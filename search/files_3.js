@@ -32,7 +32,7 @@ var searchData=
   ['command_5fpalette_2eh_29',['command_palette.h',['../d8/d28/command__palette_8h.html',1,'']]],
   ['commands_2eh_30',['commands.h',['../d5/d90/commands_8h.html',1,'']]],
   ['common_2ecc_31',['common.cc',['../da/d35/common_8cc.html',1,'']]],
-  ['common_2eh_32',['common.h',['../d4/db5/app_2zelda3_2common_8h.html',1,'(Global Namespace)'],['../d6/dbc/cli_2handlers_2agent_2common_8h.html',1,'(Global Namespace)'],['../d1/d1d/cli_2service_2ai_2common_8h.html',1,'(Global Namespace)']]],
+  ['common_2eh_32',['common.h',['../d6/dbc/cli_2handlers_2agent_2common_8h.html',1,'(Global Namespace)'],['../d4/db5/app_2zelda3_2common_8h.html',1,'(Global Namespace)'],['../d1/d1d/cli_2service_2ai_2common_8h.html',1,'(Global Namespace)']]],
   ['comprehensive_5fintegration_5ftest_2ecc_33',['comprehensive_integration_test.cc',['../d6/dae/comprehensive__integration__test_8cc.html',1,'']]],
   ['comprehensive_5foverworld_5fanalysis_2emd_34',['comprehensive_overworld_analysis.md',['../d5/dfa/comprehensive__overworld__analysis_8md.html',1,'']]],
   ['compress_2ecc_35',['compress.cc',['../da/d6b/compress_8cc.html',1,'']]],
@@ -41,8 +41,9 @@ var searchData=
   ['compression_5ftest_2ecc_38',['compression_test.cc',['../d4/d12/compression__test_8cc.html',1,'']]],
   ['controller_2ecc_39',['controller.cc',['../da/d0c/controller_8cc.html',1,'']]],
   ['controller_2eh_40',['controller.h',['../d2/dd9/controller_8h.html',1,'']]],
-  ['conversational_5fagent_5fservice_2ecc_41',['conversational_agent_service.cc',['../d3/d5c/conversational__agent__service_8cc.html',1,'']]],
-  ['conversational_5fagent_5fservice_2eh_42',['conversational_agent_service.h',['../d1/dad/conversational__agent__service_8h.html',1,'']]],
-  ['cpu_2ecc_43',['cpu.cc',['../d0/d97/cpu_8cc.html',1,'']]],
-  ['cpu_2eh_44',['cpu.h',['../dc/da7/cpu_8h.html',1,'']]]
+  ['conversation_5ftest_2ecc_41',['conversation_test.cc',['../de/d20/conversation__test_8cc.html',1,'']]],
+  ['conversational_5fagent_5fservice_2ecc_42',['conversational_agent_service.cc',['../d3/d5c/conversational__agent__service_8cc.html',1,'']]],
+  ['conversational_5fagent_5fservice_2eh_43',['conversational_agent_service.h',['../d1/dad/conversational__agent__service_8h.html',1,'']]],
+  ['cpu_2ecc_44',['cpu.cc',['../d0/d97/cpu_8cc.html',1,'']]],
+  ['cpu_2eh_45',['cpu.h',['../dc/da7/cpu_8h.html',1,'']]]
 ];

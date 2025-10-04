@@ -112,9 +112,12 @@ $(document).ready(function(){initNavTree('db/d01/proposal__registry_8cc.html','.
 <code>#include &lt;iostream&gt;</code><br />
 <code>#include &quot;absl/status/status.h&quot;</code><br />
 <code>#include &quot;absl/status/statusor.h&quot;</code><br />
+<code>#include &quot;absl/strings/ascii.h&quot;</code><br />
+<code>#include &quot;absl/strings/match.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;absl/time/time.h&quot;</code><br />
+<code>#include &quot;nlohmann/json.hpp&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d4/d9e/macro_8h_source.html">util/macro.h</a>&quot;</code><br />
 </div>
 <p><a href="../../db/d01/proposal__registry_8cc_source.html">Go to the source code of this file.</a></p>
@@ -134,6 +137,14 @@ Namespaces</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a935048446d732782954cb7db885d3e71" id="r_a935048446d732782954cb7db885d3e71"><td class="memItemLeft" align="right" valign="top">std::filesystem::path&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a935048446d732782954cb7db885d3e71">yaze::cli::anonymous_namespace{proposal_registry.cc}::DetermineDefaultRoot</a> ()</td></tr>
 <tr class="separator:a935048446d732782954cb7db885d3e71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6248965b82ad45a2b95490b8f0a6a52f" id="r_a6248965b82ad45a2b95490b8f0a6a52f"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a6248965b82ad45a2b95490b8f0a6a52f">yaze::cli::anonymous_namespace{proposal_registry.cc}::StatusToString</a> (<a class="el" href="../../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a35ea789ed0667b0a69a01f80a36331ff">ProposalRegistry::ProposalStatus</a> status)</td></tr>
+<tr class="separator:a6248965b82ad45a2b95490b8f0a6a52f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6bd4b541a3ab7c8fccffacb4cd574de3" id="r_a6bd4b541a3ab7c8fccffacb4cd574de3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a35ea789ed0667b0a69a01f80a36331ff">ProposalRegistry::ProposalStatus</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a6bd4b541a3ab7c8fccffacb4cd574de3">yaze::cli::anonymous_namespace{proposal_registry.cc}::ParseStatus</a> (absl::string_view value)</td></tr>
+<tr class="separator:a6bd4b541a3ab7c8fccffacb4cd574de3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab41388469218bc96de70cc839d1d64d7" id="r_ab41388469218bc96de70cc839d1d64d7"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#ab41388469218bc96de70cc839d1d64d7">yaze::cli::anonymous_namespace{proposal_registry.cc}::TimeToMillis</a> (absl::Time time)</td></tr>
+<tr class="separator:ab41388469218bc96de70cc839d1d64d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a494193c5e861eed986c9eff144ab7486" id="r_a494193c5e861eed986c9eff144ab7486"><td class="memItemLeft" align="right" valign="top">std::optional&lt; absl::Time &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a494193c5e861eed986c9eff144ab7486">yaze::cli::anonymous_namespace{proposal_registry.cc}::OptionalTimeFromMillis</a> (int64_t millis)</td></tr>
+<tr class="separator:a494193c5e861eed986c9eff144ab7486"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

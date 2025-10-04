@@ -16,5 +16,6 @@ var commands_8h =
     [ "HandleOverworldFindTileCommand", "d5/d90/commands_8h.html#aa0f222c407a70f32a5c3c1fe69a904c2", null ],
     [ "HandleOverworldDescribeMapCommand", "d5/d90/commands_8h.html#afa0f337ee6668976e1cb1434794efddd", null ],
     [ "HandleOverworldListWarpsCommand", "d5/d90/commands_8h.html#af2e9836c9423d36a3b1c2bab9e8dcbcc", null ],
-    [ "HandleChatCommand", "d5/d90/commands_8h.html#ab9c0a392ce6c066aca8d36eac12dc2b9", null ]
+    [ "HandleChatCommand", "d5/d90/commands_8h.html#ab9c0a392ce6c066aca8d36eac12dc2b9", null ],
+    [ "HandleTestConversationCommand", "d5/d90/commands_8h.html#a815e0cf4982c5a6618608dfd1198645b", null ]
 ];

@@ -10,6 +10,7 @@ var classyaze_1_1core_1_1Controller =
     [ "set_active", "d4/d84/classyaze_1_1core_1_1Controller.html#a913205e423c0305c7fdcd0846b0a9542", null ],
     [ "active", "d4/d84/classyaze_1_1core_1_1Controller.html#a3b8d4516aea70ac4d233d56a8b9ade4b", null ],
     [ "overworld", "d4/d84/classyaze_1_1core_1_1Controller.html#a6d9fecf6791d7863e093c3f821eedfa6", null ],
+    [ "GetCurrentRom", "d4/d84/classyaze_1_1core_1_1Controller.html#a5e6f72dcbbc8c0e52dd907bd24f4d865", null ],
     [ "int::main", "d4/d84/classyaze_1_1core_1_1Controller.html#a0053aa2ca13c662cf8119dee322c81de", null ],
     [ "active_", "d4/d84/classyaze_1_1core_1_1Controller.html#aa976b011db5eebd07468b52c53500d47", null ],
     [ "window_", "d4/d84/classyaze_1_1core_1_1Controller.html#a1e275dc68218b0a1aaab5ad9e761a444", null ],

@@ -1,5 +1,9 @@
 <map id="yaze::cli::OllamaAIService::GenerateResponse" name="yaze::cli::OllamaAIService::GenerateResponse">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,176,46"/>
-<area shape="rect" id="Node000002" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a7f2e59acbfb7ed55552dcbd105a6fe5b" title=" " alt="" coords="224,5,393,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,23,208,23,208,28,176,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,176,79"/>
+<area shape="rect" id="Node000002" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a7f2e59acbfb7ed55552dcbd105a6fe5b" title=" " alt="" coords="224,39,393,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,56,208,56,208,62,176,62"/>
+<area shape="rect" id="Node000003" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#ad9a8663697e5431e4a38999c9771e580" title=" " alt="" coords="441,5,615,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="393,43,425,39,426,44,394,49"/>
+<area shape="rect" id="Node000004" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a9df42fdaade0be46447164790c14fdfd" title=" " alt="" coords="451,71,605,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="394,69,436,75,435,80,393,74"/>
 </map>

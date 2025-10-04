@@ -11,6 +11,7 @@ var classyaze_1_1cli_1_1PromptBuilder =
     [ "GetExamplesForCategory", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#afae25fafa274d6293c6d83de572dee72", null ],
     [ "LookupTileId", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#aca395dafa029712c670e0901714a944b", null ],
     [ "tile_reference", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a4363b6500c0f7caa92d94297b6fa221d", null ],
+    [ "BuildFunctionCallSchemas", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a7718de59543f0e50f3e2fc369afc90d6", null ],
     [ "SetVerbosity", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#aa6bbd493dacd6952289a9819fb45e0dd", null ],
     [ "BuildCommandReference", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#ad9a8663697e5431e4a38999c9771e580", null ],
     [ "BuildFewShotExamplesSection", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#ad51aeb9b06d6c16437cb156c14d244a0", null ],

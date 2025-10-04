@@ -227,39 +227,180 @@ Immediate Priorities</h2>
 </li>
 </ol>
 <h1><a class="anchor" id="autotoc_md1141"></a>
-Current Status &amp; Next Steps (As of Oct 3, Session 2)</h1>
+Current Status &amp; Next Steps (Updated: October 3, 2025)</h1>
 <p>We have made significant progress in laying the foundation for the conversational agent.</p>
 <h2><a class="anchor" id="autotoc_md1142"></a>
 ✅ Completed</h2>
 <ul>
-<li><b>Initial <code>ConversationalAgentService</code></b>: The basic service is in place.</li>
-<li><b>TUI Chat Stub</b>: A functional <code>agent chat</code> command exists.</li>
-<li><b>GUI Chat Widget Stub</b>: An <code>AgentChatWidget</code> is integrated into the main GUI.</li>
-<li><b>Initial Agent "Tools"</b>: <code>resource-list</code> and <code>dungeon-list-sprites</code> commands are implemented.</li>
-<li><b>Tool Use Foundation</b>: The <code>ToolDispatcher</code> is implemented, and the AI services are aware of the new tool call format.<ul>
-<li><b>Tool Loop Improvements</b>: Conversational flow now handles multi-step tool calls with default JSON output, allowing results to feed back into the chat without recursion.</li>
+<li>**<code>ConversationalAgentService</code>**: ✅ Fully operational with multi-step tool execution loop<ul>
+<li>Handles tool calls with automatic JSON output format</li>
+<li>Prevents recursion through proper tool result replay</li>
+<li>Supports conversation history and context management</li>
 </ul>
 </li>
-<li><b>Structured Tool Output Rendering</b>: Both the TUI and GUI chat widgets now display tables and JSON payloads with friendly formatting, drastically improving readability.</li>
-<li><b>Overworld Inspection Suite</b>: Added <code>overworld describe-map</code> and <code>overworld list-warps</code> commands producing text/JSON summaries for map metadata and warp points, with agent tooling hooks.</li>
-<li><b>Overworld Tile Search Tool</b>: Added <code>overworld find-tile</code> across CLI and agent tooling with shared ROM context handling and regression tests.</li>
+<li><b>TUI Chat Interface</b>: ✅ Production-ready (<code>z3ed agent chat</code>)<ul>
+<li>Renders tables from JSON tool results</li>
+<li>Pretty-prints JSON payloads with syntax formatting</li>
+<li>Scrollable history with user/agent distinction</li>
+</ul>
+</li>
+<li><b>Tool Dispatcher</b>: ✅ Complete with 5 read-only tools<ul>
+<li><code>resource-list</code>: Enumerate labeled resources (dungeons, sprites, palettes)</li>
+<li><code>dungeon-list-sprites</code>: Inspect sprites in dungeon rooms</li>
+<li><code>overworld-find-tile</code>: Search for tile16 IDs across maps</li>
+<li><code>overworld-describe-map</code>: Get comprehensive map metadata</li>
+<li><code>overworld-list-warps</code>: List entrances/exits/holes with filtering</li>
+</ul>
+</li>
+<li><b>Structured Output Rendering</b>: ✅ Both TUI formats support tables and JSON<ul>
+<li>Automatic table generation from JSON arrays/objects</li>
+<li>Column-aligned formatting with headers</li>
+<li>Graceful fallback to text for malformed data</li>
+</ul>
+</li>
+<li><b>ROM Context Integration</b>: ✅ Tools can access loaded ROM or load from <code>--rom</code> flag<ul>
+<li>Shared ROM context passed through ConversationalAgentService</li>
+<li>Automatic ROM loading with error handling</li>
+</ul>
+</li>
+<li><b>AI Service Foundation</b>: ✅ Ollama and Gemini services operational<ul>
+<li>Enhanced prompting system with resource catalogue loading</li>
+<li>System instruction generation with examples</li>
+<li>Health checks and model availability validation</li>
+</ul>
+</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md1143"></a>
-🚀 Next Steps</h2>
-<ol type="1">
-<li><b>Integrate Tool Use with LLM</b>:<ul>
-<li>Modify the <code>AIService</code> to support function calling/tool use.</li>
-<li>Teach the agent to call the new read-only commands to answer questions.</li>
+🚧 In Progress</h2>
+<ul>
+<li><b>GUI Chat Widget</b>: ⚠️ <b>NOT YET IMPLEMENTED</b><ul>
+<li>No <code>AgentChatWidget</code> found in <code>src/app/gui/</code> directory</li>
+<li>TUI implementation exists but GUI integration is pending</li>
+<li><b>Action Required</b>: Create <code>src/app/gui/debug/agent_chat_widget.{h,cc}</code></li>
 </ul>
 </li>
-<li><b>Polish the TUI Chat Experience</b>:<ul>
-<li>Tighten keyboard shortcuts, scrolling, and copy-to-clipboard behaviour.</li>
-<li>Align log file output with on-screen formatting for easier debugging.</li>
+<li><b>LLM Function Calling</b>: ⚠️ <b>PARTIALLY IMPLEMENTED</b><ul>
+<li>ToolDispatcher exists and is used by ConversationalAgentService</li>
+<li>AI services (Ollama, Gemini) parse tool calls from responses</li>
+<li><b>Gap</b>: LLM prompt needs explicit tool schema definitions for function calling</li>
+<li><b>Action Required</b>: Add tool definitions to system prompts (see Next Steps)</li>
+</ul>
+</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md1144"></a>
+🚀 Next Steps (Priority Order)</h2>
+<h3><a class="anchor" id="autotoc_md1145"></a>
+Priority 1: Complete LLM Function Calling Integration ✅ COMPLETE (Oct 3, 2025)</h3>
+<p><b>Goal</b>: Enable Ollama/Gemini to autonomously invoke read-only tools</p>
+<p><b>Completed Tasks:</b></p><ol type="1">
+<li>✅ <b>Tool Schema Generation</b> - Added <code>BuildFunctionCallSchemas()</code> method<ul>
+<li>Generates OpenAI-compatible function calling schemas from tool specifications</li>
+<li>Properly formats parameters with types, descriptions, and examples</li>
+<li>Marks required vs optional arguments</li>
+<li><b>File</b>: <code>src/cli/service/ai/prompt_builder.{h,cc}</code></li>
+</ul>
+</li>
+<li>✅ <b>System Prompt Enhancement</b> - Injected tool definitions<ul>
+<li>Updated <code>BuildConstraintsSection()</code> to include tool schemas</li>
+<li>Added tool usage guidance (tools for questions, commands for modifications)</li>
+<li>Included example tool call in JSON format</li>
+<li><b>File</b>: <code><a class="el" href="../../d0/d53/prompt__builder_8cc.html">src/cli/service/ai/prompt_builder.cc</a></code></li>
+</ul>
+</li>
+<li>✅ <b>LLM Response Parsing</b> - Already implemented<ul>
+<li>Both <code>OllamaAIService</code> and <code>GeminiAIService</code> parse <code>tool_calls</code> from JSON</li>
+<li>Populate <code>AgentResponse.tool_calls</code> with parsed ToolCall objects</li>
+<li><b>Files</b>: <code>src/cli/service/ai/{ollama,gemini}_ai_service.cc</code></li>
+</ul>
+</li>
+<li>✅ <b>Infrastructure Verification</b> - Created test scripts<ul>
+<li><code>scripts/test_tool_schemas.sh</code> - Verifies tool definitions in catalogue</li>
+<li><code>scripts/test_agent_mock.sh</code> - Validates component integration</li>
+<li>All 5 tools properly defined with arguments and examples</li>
+<li><b>Status</b>: Ready for live LLM testing</li>
 </ul>
 </li>
 </ol>
+<p><b>What's Working:</b></p><ul>
+<li>✅ Tool definitions loaded from <code>assets/agent/prompt_catalogue.yaml</code></li>
+<li>✅ Function schemas generated in OpenAI format</li>
+<li>✅ System prompts include tool definitions with usage guidance</li>
+<li>✅ AI services parse tool_calls from LLM responses</li>
+<li>✅ ConversationalAgentService dispatches tools via ToolDispatcher</li>
+<li>✅ Tools return JSON results that feed back into conversation</li>
+</ul>
+<p><b>Next Step: Live LLM Testing</b> (1-2 hours)</p><ul>
+<li>Test with Ollama: Verify qwen2.5-coder can discover and invoke tools</li>
+<li>Test with Gemini: Verify Gemini 2.0 generates correct tool_calls</li>
+<li>Create example prompts that exercise all 5 tools</li>
+<li>Verify multi-step tool execution (agent asks follow-up questions)</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md1146"></a>
+Priority 2: Implement GUI Chat Widget (6-8 hours)</h3>
+<p><b>Goal</b>: Unified chat experience in YAZE application</p>
 <ol type="1">
-<li><b>Expand Tool Coverage</b>: Target additional Overworld navigation helpers (region summaries, teleport lookups) and dialogue inspectors. Prioritize commands that unblock common level-design questions and emit concise table/JSON payloads. </li>
+<li><b>Create <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Chat Widget</b> (4 hours)<ul>
+<li>File: <code>src/app/gui/debug/agent_chat_widget.{h,cc}</code></li>
+<li>Reuse table/JSON rendering logic from TUI implementation</li>
+<li>Add to Debug menu: <code>Debug → Agent Chat</code></li>
+<li>Share <code>ConversationalAgentService</code> instance with TUI</li>
+</ul>
+</li>
+<li><b>Add Chat History Persistence</b> (2 hours)<ul>
+<li>Save chat history to <code>.yaze/agent_chat_history.json</code></li>
+<li>Load on startup, display in GUI/TUI</li>
+<li>Add "Clear History" button</li>
+</ul>
+</li>
+<li><b>Polish Input Experience</b> (2 hours)<ul>
+<li>Multi-line input support (Shift+Enter for newline, Enter to send)</li>
+<li>Keyboard shortcuts: Ctrl+L to clear, Ctrl+C to copy last response</li>
+<li>Auto-scroll to bottom on new messages</li>
+</ul>
+</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md1147"></a>
+Priority 3: Expand Tool Coverage (8-10 hours)</h3>
+<p><b>Goal</b>: Enable deeper ROM introspection for level design questions</p>
+<ol type="1">
+<li><b>Dialogue/Text Tools</b> (3 hours)<ul>
+<li><code>dialogue-search --text "search term"</code>: Find text in ROM dialogue</li>
+<li><code>dialogue-get --id 0x...</code>: Get dialogue by message ID</li>
+</ul>
+</li>
+<li><b>Sprite Tools</b> (3 hours)<ul>
+<li><code>sprite-get-info --id 0x...</code>: Sprite metadata (HP, damage, AI)</li>
+<li><code>overworld-list-sprites --map 0x...</code>: Sprites on overworld map</li>
+</ul>
+</li>
+<li><b>Advanced Overworld Tools</b> (4 hours)<ul>
+<li><code>overworld-get-region --map 0x...</code>: Region boundaries and properties</li>
+<li><code>overworld-list-transitions --from-map 0x...</code>: Map transitions/scrolling</li>
+<li><code>overworld-get-tile-at --map 0x... --x N --y N</code>: Get specific tile16 value</li>
+</ul>
+</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md1148"></a>
+Priority 4: Performance and Caching (4-6 hours)</h3>
+<ol type="1">
+<li><b>Response Caching</b> (3 hours)<ul>
+<li>Implement LRU cache for identical prompts</li>
+<li>Cache tool results by (tool_name, args) key</li>
+<li>Configurable TTL (default: 5 minutes for ROM introspection)</li>
+</ul>
+</li>
+<li><b>Token Usage Tracking</b> (2 hours)<ul>
+<li>Log tokens per request (Ollama and Gemini APIs provide this)</li>
+<li>Display in chat footer: "Last response: 1234 tokens, ~$0.02"</li>
+<li>Add <code>--show-token-usage</code> flag to CLI commands</li>
+</ul>
+</li>
+<li><b>Streaming Responses</b> (optional, 3-4 hours)<ul>
+<li>Use Ollama/Gemini streaming APIs</li>
+<li>Update GUI/TUI to show partial responses as they arrive</li>
+<li>Improves perceived latency for long responses </li>
+</ul>
+</li>
 </ol>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

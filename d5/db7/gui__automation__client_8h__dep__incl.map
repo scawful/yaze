@@ -2,11 +2,11 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="168,5,329,46"/>
 <area shape="rect" id="Node000002" href="$d6/dbc/cli_2handlers_2agent_2common_8h.html" title=" " alt="" coords="5,94,151,135"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,56,118,96,115,91,195,51"/>
-<area shape="rect" id="Node000005" href="$d5/d03/gui__commands_8cc.html" title=" " alt="" coords="60,183,205,223"/>
-<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="230,60,148,184,143,181,225,58"/>
-<area shape="rect" id="Node000007" href="$dd/db4/gui__automation__client_8cc.html" title=" " alt="" coords="226,94,394,135"/>
-<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="274,57,298,92,294,95,269,60"/>
-<area shape="rect" id="Node000008" href="$d6/d7a/test__suite_8h.html" title=" " alt="" coords="419,94,564,135"/>
-<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="319,49,437,91,435,96,317,54"/>
-<area shape="poly" id="edge2_Node000002_Node000005" title=" " alt="" coords="101,147,123,181,118,184,96,149"/>
+<area shape="rect" id="Node000006" href="$d5/d03/gui__commands_8cc.html" title=" " alt="" coords="60,183,205,223"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="230,60,148,184,143,181,225,58"/>
+<area shape="rect" id="Node000008" href="$dd/db4/gui__automation__client_8cc.html" title=" " alt="" coords="226,94,394,135"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="274,57,298,92,294,95,269,60"/>
+<area shape="rect" id="Node000009" href="$d6/d7a/test__suite_8h.html" title=" " alt="" coords="419,94,564,135"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="319,49,437,91,435,96,317,54"/>
+<area shape="poly" id="edge2_Node000002_Node000006" title=" " alt="" coords="101,147,123,181,118,184,96,149"/>
 </map>

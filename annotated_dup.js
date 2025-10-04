@@ -6,6 +6,9 @@ var annotated_dup =
     [ "yaze", "dc/d46/namespaceyaze.html", [
       [ "cli", "dd/d63/namespaceyaze_1_1cli.html", [
         [ "agent", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html", [
+          [ "anonymous_namespace{conversation_test.cc}", "d0/d0b/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03.html", [
+            [ "ConversationTestCase", "da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html", "da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase" ]
+          ] ],
           [ "anonymous_namespace{general_commands.cc}", "d1/ddf/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03.html", [
             [ "DescribeOptions", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions" ]
           ] ],
@@ -91,6 +94,8 @@ var annotated_dup =
         [ "RomValidate", "d6/d8e/classyaze_1_1cli_1_1RomValidate.html", "d6/d8e/classyaze_1_1cli_1_1RomValidate" ],
         [ "SnesToPcCommand", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand.html", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand" ],
         [ "SpriteCreate", "da/d30/classyaze_1_1cli_1_1SpriteCreate.html", "da/d30/classyaze_1_1cli_1_1SpriteCreate" ],
+        [ "StartRecordingResult", "d1/de8/structyaze_1_1cli_1_1StartRecordingResult.html", "d1/de8/structyaze_1_1cli_1_1StartRecordingResult" ],
+        [ "StopRecordingResult", "db/de2/structyaze_1_1cli_1_1StopRecordingResult.html", "db/de2/structyaze_1_1cli_1_1StopRecordingResult" ],
         [ "TestCaseDefinition", "d1/df7/structyaze_1_1cli_1_1TestCaseDefinition.html", "d1/df7/structyaze_1_1cli_1_1TestCaseDefinition" ],
         [ "TestCaseRunResult", "dd/d80/structyaze_1_1cli_1_1TestCaseRunResult.html", "dd/d80/structyaze_1_1cli_1_1TestCaseRunResult" ],
         [ "TestGroupDefinition", "dd/d7e/structyaze_1_1cli_1_1TestGroupDefinition.html", "dd/d7e/structyaze_1_1cli_1_1TestGroupDefinition" ],

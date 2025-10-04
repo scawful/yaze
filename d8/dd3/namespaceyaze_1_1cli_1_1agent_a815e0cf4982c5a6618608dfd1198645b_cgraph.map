@@ -1,0 +1,7 @@
+<map id="yaze::cli::agent::HandleTestConversationCommand" name="yaze::cli::agent::HandleTestConversationCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,188,46"/>
+<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a3999875c7eace4cdf85c06b71cb7d11c" title=" " alt="" coords="236,5,432,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,23,220,23,220,28,188,28"/>
+<area shape="rect" id="Node000003" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#a7336c2490b452be24f27b97525d2f8db" title=" " alt="" coords="480,5,677,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="433,23,465,23,465,28,433,28"/>
+</map>

@@ -150,6 +150,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a421651cffa30e9475bf0a4f4ada5d0d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e3f80b32dcc12fd3feb5ba461bbf758" id="r_a0e3f80b32dcc12fd3feb5ba461bbf758"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../dc/d57/structyaze_1_1cli_1_1ReplayTestResult.html">ReplayTestResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a0e3f80b32dcc12fd3feb5ba461bbf758">ReplayTest</a> (const std::string &amp;script_path, bool ci_mode, const std::map&lt; std::string, std::string &gt; &amp;parameter_overrides={})</td></tr>
 <tr class="separator:a0e3f80b32dcc12fd3feb5ba461bbf758"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a178845e00bd8237fc545c4f867f0eadc" id="r_a178845e00bd8237fc545c4f867f0eadc"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../d1/de8/structyaze_1_1cli_1_1StartRecordingResult.html">StartRecordingResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a178845e00bd8237fc545c4f867f0eadc">StartRecording</a> (const std::string &amp;output_path, const std::string &amp;session_name, const std::string &amp;description)</td></tr>
+<tr class="separator:a178845e00bd8237fc545c4f867f0eadc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79f03d1325bb26276aa5cdf74b5917ad" id="r_a79f03d1325bb26276aa5cdf74b5917ad"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../db/de2/structyaze_1_1cli_1_1StopRecordingResult.html">StopRecordingResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a79f03d1325bb26276aa5cdf74b5917ad">StopRecording</a> (const std::string &amp;recording_id, bool discard=false)</td></tr>
+<tr class="separator:a79f03d1325bb26276aa5cdf74b5917ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a596edfa4834ae583be2f6cd2511501b2" id="r_a596edfa4834ae583be2f6cd2511501b2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a596edfa4834ae583be2f6cd2511501b2">IsConnected</a> () const</td></tr>
 <tr class="memdesc:a596edfa4834ae583be2f6cd2511501b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if client is connected.  <br /></td></tr>
 <tr class="separator:a596edfa4834ae583be2f6cd2511501b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -176,11 +180,11 @@ Private Attributes</h2></td></tr>
 <div class="line"><span class="keywordflow">if</span> (!result-&gt;success) {</div>
 <div class="line">  <span class="keywordflow">return</span> absl::InternalError(result-&gt;message);</div>
 <div class="line">}</div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html">yaze::cli::GuiAutomationClient</a></div><div class="ttdoc">Client for automating YAZE GUI through gRPC.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00213">gui_automation_client.h:213</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1GuiAutomationClient_html"><div class="ttname"><a href="../../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html">yaze::cli::GuiAutomationClient</a></div><div class="ttdoc">Client for automating YAZE GUI through gRPC.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d51/gui__automation__client_8h_source.html#l00228">gui_automation_client.h:228</a></div></div>
 <div class="ttc" id="amacro_8h_html_a755e0e0d964b4d81ae730d174c5fa3ce"><div class="ttname"><a href="../../d4/d9e/macro_8h.html#a755e0e0d964b4d81ae730d174c5fa3ce">RETURN_IF_ERROR</a></div><div class="ttdeci">#define RETURN_IF_ERROR(expression)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d9e/macro_8h_source.html#l00053">macro.h:53</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_ad37153091199fceacd3cde06eccd7c2ca2d5fde1d924910a2a01ecd8e70a87c28"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2d5fde1d924910a2a01ecd8e70a87c28">yaze::cli::ClickType::kLeft</a></div><div class="ttdeci">@ kLeft</div></div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00213">213</a> of file <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">gui_automation_client.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00228">228</a> of file <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">gui_automation_client.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a369bc54276ebd32d0f3cda19c1a2de4d" name="a369bc54276ebd32d0f3cda19c1a2de4d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a369bc54276ebd32d0f3cda19c1a2de4d">&#9670;&#160;</a></span>GuiAutomationClient()</h2>
@@ -239,7 +243,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00080">80</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00321">connected_</a>, <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00109">Ping()</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00320">server_address_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00345">connected_</a>, <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00109">Ping()</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00344">server_address_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d5/d03/gui__commands_8cc_source.html#l00025">yaze::cli::agent::anonymous_namespace{gui_commands.cc}::HandleGuiDiscoverCommand()</a>.</p>
 <div class="dynheader">
@@ -324,7 +328,7 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Result indicating success/failure and execution time </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00189">189</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00257">257</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00043">yaze::cli::AutomationResult::execution_time</a>, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca7fb3efa35444cd88d5a31dc125ca9c28">yaze::cli::kDouble</a>, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2d5fde1d924910a2a01ecd8e70a87c28">yaze::cli::kLeft</a>, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2cab3199775e825c139b44e3e9ccf3cbc7e">yaze::cli::kMiddle</a>, <a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#ad37153091199fceacd3cde06eccd7c2ca2dd2b017192f8a09367d48c7648213c9">yaze::cli::kRight</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00042">yaze::cli::AutomationResult::message</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00041">yaze::cli::AutomationResult::success</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00046">yaze::cli::AutomationResult::test_id</a>.</p>
 
@@ -373,7 +377,7 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Result indicating success/failure and execution time </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00240">240</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00308">308</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00043">yaze::cli::AutomationResult::execution_time</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00042">yaze::cli::AutomationResult::message</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00041">yaze::cli::AutomationResult::success</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00046">yaze::cli::AutomationResult::test_id</a>.</p>
 
@@ -422,7 +426,7 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Result indicating whether condition was met </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00274">274</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00342">342</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00043">yaze::cli::AutomationResult::execution_time</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00042">yaze::cli::AutomationResult::message</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00041">yaze::cli::AutomationResult::success</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00046">yaze::cli::AutomationResult::test_id</a>.</p>
 
@@ -453,7 +457,7 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Result with actual vs expected values </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00308">308</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00376">376</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00044">yaze::cli::AutomationResult::actual_value</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00043">yaze::cli::AutomationResult::execution_time</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00045">yaze::cli::AutomationResult::expected_value</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00042">yaze::cli::AutomationResult::message</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00041">yaze::cli::AutomationResult::success</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00046">yaze::cli::AutomationResult::test_id</a>.</p>
 
@@ -495,7 +499,7 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Result with file path if successful </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00341">341</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00409">409</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00043">yaze::cli::AutomationResult::execution_time</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00042">yaze::cli::AutomationResult::message</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00041">yaze::cli::AutomationResult::success</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00046">yaze::cli::AutomationResult::test_id</a>.</p>
 
@@ -519,7 +523,7 @@ Here is the call graph for this function:</div>
 
 <p>Fetch the current execution status for a harness test. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00375">375</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00443">443</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00072">yaze::cli::TestStatusDetails::assertion_failures</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00069">yaze::cli::TestStatusDetails::completed_at</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00071">yaze::cli::TestStatusDetails::error_message</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00070">yaze::cli::TestStatusDetails::execution_time_ms</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00067">yaze::cli::TestStatusDetails::queued_at</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00068">yaze::cli::TestStatusDetails::started_at</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00066">yaze::cli::TestStatusDetails::status</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00065">yaze::cli::TestStatusDetails::test_id</a>.</p>
 
@@ -559,7 +563,7 @@ Here is the call graph for this function:</div>
 
 <p>Enumerate harness tests with optional filtering. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00411">411</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00479">479</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00086">yaze::cli::HarnessTestSummary::average_duration_ms</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00081">yaze::cli::HarnessTestSummary::category</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00085">yaze::cli::HarnessTestSummary::fail_count</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00082">yaze::cli::HarnessTestSummary::last_run_at</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00080">yaze::cli::HarnessTestSummary::name</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00094">yaze::cli::ListTestsResult::next_page_token</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00084">yaze::cli::HarnessTestSummary::pass_count</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00079">yaze::cli::HarnessTestSummary::test_id</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00093">yaze::cli::ListTestsResult::tests</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00095">yaze::cli::ListTestsResult::total_count</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00083">yaze::cli::HarnessTestSummary::total_runs</a>.</p>
 
@@ -593,7 +597,7 @@ Here is the call graph for this function:</div>
 
 <p>Retrieve detailed results for a harness test execution. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00465">465</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00533">533</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00105">yaze::cli::AssertionOutcome::actual_value</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00119">yaze::cli::TestResultDetails::assertions</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00116">yaze::cli::TestResultDetails::category</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00102">yaze::cli::AssertionOutcome::description</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00118">yaze::cli::TestResultDetails::duration_ms</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00106">yaze::cli::AssertionOutcome::error_message</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00117">yaze::cli::TestResultDetails::executed_at</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00104">yaze::cli::AssertionOutcome::expected_value</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00124">yaze::cli::TestResultDetails::failure_context</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00120">yaze::cli::TestResultDetails::logs</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00121">yaze::cli::TestResultDetails::metrics</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00103">yaze::cli::AssertionOutcome::passed</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00122">yaze::cli::TestResultDetails::screenshot_path</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00123">yaze::cli::TestResultDetails::screenshot_size_bytes</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00114">yaze::cli::TestResultDetails::success</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00113">yaze::cli::TestResultDetails::test_id</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00115">yaze::cli::TestResultDetails::test_name</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00125">yaze::cli::TestResultDetails::widget_state</a>.</p>
 
@@ -615,9 +619,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00525">525</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00593">593</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00166">yaze::cli::WidgetDescriptor::bounds</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00162">yaze::cli::WidgetDescriptor::description</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00165">yaze::cli::WidgetDescriptor::enabled</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00191">yaze::cli::DiscoverWidgetsResult::generated_at</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00168">yaze::cli::WidgetDescriptor::has_bounds</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00185">yaze::cli::DiscoverWidgetsQuery::include_disabled</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00184">yaze::cli::DiscoverWidgetsQuery::include_invisible</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00160">yaze::cli::WidgetDescriptor::label</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00170">yaze::cli::WidgetDescriptor::last_seen_at</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00169">yaze::cli::WidgetDescriptor::last_seen_frame</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00154">yaze::cli::WidgetBoundingBox::max_x</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00155">yaze::cli::WidgetBoundingBox::max_y</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00152">yaze::cli::WidgetBoundingBox::min_x</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00153">yaze::cli::WidgetBoundingBox::min_y</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00175">yaze::cli::DiscoveredWindowInfo::name</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00159">yaze::cli::WidgetDescriptor::path</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00183">yaze::cli::DiscoverWidgetsQuery::path_prefix</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00171">yaze::cli::WidgetDescriptor::stale</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00163">yaze::cli::WidgetDescriptor::suggested_action</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00190">yaze::cli::DiscoverWidgetsResult::total_widgets</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00161">yaze::cli::WidgetDescriptor::type</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00182">yaze::cli::DiscoverWidgetsQuery::type_filter</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00164">yaze::cli::WidgetDescriptor::visible</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00176">yaze::cli::DiscoveredWindowInfo::visible</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00167">yaze::cli::WidgetDescriptor::widget_id</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00177">yaze::cli::DiscoveredWindowInfo::widgets</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00181">yaze::cli::DiscoverWidgetsQuery::window_filter</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00189">yaze::cli::DiscoverWidgetsResult::windows</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00181">yaze::cli::WidgetDescriptor::bounds</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00177">yaze::cli::WidgetDescriptor::description</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00180">yaze::cli::WidgetDescriptor::enabled</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00206">yaze::cli::DiscoverWidgetsResult::generated_at</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00183">yaze::cli::WidgetDescriptor::has_bounds</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00200">yaze::cli::DiscoverWidgetsQuery::include_disabled</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00199">yaze::cli::DiscoverWidgetsQuery::include_invisible</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00175">yaze::cli::WidgetDescriptor::label</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00185">yaze::cli::WidgetDescriptor::last_seen_at</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00184">yaze::cli::WidgetDescriptor::last_seen_frame</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00169">yaze::cli::WidgetBoundingBox::max_x</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00170">yaze::cli::WidgetBoundingBox::max_y</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00167">yaze::cli::WidgetBoundingBox::min_x</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00168">yaze::cli::WidgetBoundingBox::min_y</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00190">yaze::cli::DiscoveredWindowInfo::name</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00174">yaze::cli::WidgetDescriptor::path</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00198">yaze::cli::DiscoverWidgetsQuery::path_prefix</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00186">yaze::cli::WidgetDescriptor::stale</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00178">yaze::cli::WidgetDescriptor::suggested_action</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00205">yaze::cli::DiscoverWidgetsResult::total_widgets</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00176">yaze::cli::WidgetDescriptor::type</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00197">yaze::cli::DiscoverWidgetsQuery::type_filter</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00179">yaze::cli::WidgetDescriptor::visible</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00191">yaze::cli::DiscoveredWindowInfo::visible</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00182">yaze::cli::WidgetDescriptor::widget_id</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00192">yaze::cli::DiscoveredWindowInfo::widgets</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00196">yaze::cli::DiscoverWidgetsQuery::window_filter</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00204">yaze::cli::DiscoverWidgetsResult::windows</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d5/d03/gui__commands_8cc_source.html#l00025">yaze::cli::agent::anonymous_namespace{gui_commands.cc}::HandleGuiDiscoverCommand()</a>.</p>
 
@@ -661,6 +665,76 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a178845e00bd8237fc545c4f867f0eadc" name="a178845e00bd8237fc545c4f867f0eadc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a178845e00bd8237fc545c4f867f0eadc">&#9670;&#160;</a></span>StartRecording()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::StatusOr&lt; <a class="el" href="../../d1/de8/structyaze_1_1cli_1_1StartRecordingResult.html">StartRecordingResult</a> &gt; yaze::cli::GuiAutomationClient::StartRecording </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>output_path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>session_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>description</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00189">189</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00139">yaze::cli::StartRecordingResult::message</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00140">yaze::cli::StartRecordingResult::recording_id</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00141">yaze::cli::StartRecordingResult::started_at</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00138">yaze::cli::StartRecordingResult::success</a>.</p>
+
+</div>
+</div>
+<a id="a79f03d1325bb26276aa5cdf74b5917ad" name="a79f03d1325bb26276aa5cdf74b5917ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a79f03d1325bb26276aa5cdf74b5917ad">&#9670;&#160;</a></span>StopRecording()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::StatusOr&lt; <a class="el" href="../../db/de2/structyaze_1_1cli_1_1StopRecordingResult.html">StopRecordingResult</a> &gt; yaze::cli::GuiAutomationClient::StopRecording </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>recording_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>discard</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00222">222</a> of file <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html">gui_automation_client.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00149">yaze::cli::StopRecordingResult::duration</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00146">yaze::cli::StopRecordingResult::message</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00147">yaze::cli::StopRecordingResult::output_path</a>, <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00148">yaze::cli::StopRecordingResult::step_count</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00145">yaze::cli::StopRecordingResult::success</a>.</p>
+
+</div>
+</div>
 <a id="a596edfa4834ae583be2f6cd2511501b2" name="a596edfa4834ae583be2f6cd2511501b2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a596edfa4834ae583be2f6cd2511501b2">&#9670;&#160;</a></span>IsConnected()</h2>
 
@@ -686,9 +760,9 @@ Here is the call graph for this function:</div>
 
 <p>Check if client is connected. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00309">309</a> of file <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">gui_automation_client.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00333">333</a> of file <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">gui_automation_client.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00321">connected_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00345">connected_</a>.</p>
 
 </div>
 </div>
@@ -717,9 +791,9 @@ Here is the call graph for this function:</div>
 
 <p>Get the server address. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00314">314</a> of file <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">gui_automation_client.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00338">338</a> of file <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">gui_automation_client.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00320">server_address_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00344">server_address_</a>.</p>
 
 </div>
 </div>
@@ -744,9 +818,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00320">320</a> of file <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">gui_automation_client.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00344">344</a> of file <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">gui_automation_client.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00080">Connect()</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00314">ServerAddress()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00080">Connect()</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00338">ServerAddress()</a>.</p>
 
 </div>
 </div>
@@ -770,9 +844,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00321">321</a> of file <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">gui_automation_client.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00345">345</a> of file <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">gui_automation_client.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00080">Connect()</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00309">IsConnected()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dd/db4/gui__automation__client_8cc_source.html#l00080">Connect()</a>, and <a class="el" href="../../d1/d51/gui__automation__client_8h_source.html#l00333">IsConnected()</a>.</p>
 
 </div>
 </div>

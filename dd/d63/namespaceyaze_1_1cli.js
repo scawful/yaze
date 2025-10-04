@@ -9,11 +9,16 @@ var namespaceyaze_1_1cli =
       [ "kFindTileUsage", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a2e83a1746497c566f03baff74f6904cc", null ]
     ] ],
     [ "anonymous_namespace{prompt_builder.cc}", "d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html", [
+      [ "IsYamlBool", "d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html#a5632bc9edf8847f5a8202b836f40b8da", null ],
       [ "YamlToJson", "d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html#a8082ee60fb8f4942958bf890c16bdbf0", null ],
       [ "BuildCatalogueSearchPaths", "d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html#a374b26f5aebc3cb63f3c072679674174", null ]
     ] ],
     [ "anonymous_namespace{proposal_registry.cc}", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html", [
-      [ "DetermineDefaultRoot", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a935048446d732782954cb7db885d3e71", null ]
+      [ "DetermineDefaultRoot", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a935048446d732782954cb7db885d3e71", null ],
+      [ "StatusToString", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a6248965b82ad45a2b95490b8f0a6a52f", null ],
+      [ "ParseStatus", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a6bd4b541a3ab7c8fccffacb4cd574de3", null ],
+      [ "TimeToMillis", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#ab41388469218bc96de70cc839d1d64d7", null ],
+      [ "OptionalTimeFromMillis", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a494193c5e861eed986c9eff144ab7486", null ]
     ] ],
     [ "anonymous_namespace{resource_catalog.cc}", "da/ded/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog_8cc_03.html", [
       [ "MakePaletteSchema", "da/ded/namespaceyaze_1_1cli_1_1anonymous__namespace_02resource__catalog_8cc_03.html#a20e95fcdbd9218f292e08633fe9299d7", null ],
@@ -70,6 +75,10 @@ var namespaceyaze_1_1cli =
       [ "FormatDuration", "db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#ad9fb9ff5cfc8984131cac5888e882954", null ],
       [ "FormatBool", "db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#a7911c018df51a039b8893ae66c2c9e5e", null ],
       [ "JoinQuotedList", "db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#a5b82b32512688509ce17f30191bcaf42", null ]
+    ] ],
+    [ "anonymous_namespace{tile16_proposal_generator.cc}", "d9/d8f/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator_8cc_03.html", [
+      [ "ParseTileValue", "d9/d8f/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator_8cc_03.html#ac8b37e15459252f25688dc07230ab1dc", null ],
+      [ "ParseStatus", "d9/d8f/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator_8cc_03.html#a9e3e78fa56b90440147c005927ef80eb", null ]
     ] ],
     [ "anonymous_namespace{tui.cc}", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html", [
       [ "SwitchComponents", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c", null ],
@@ -157,6 +166,8 @@ var namespaceyaze_1_1cli =
     [ "RomValidate", "d6/d8e/classyaze_1_1cli_1_1RomValidate.html", "d6/d8e/classyaze_1_1cli_1_1RomValidate" ],
     [ "SnesToPcCommand", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand.html", "d9/d12/classyaze_1_1cli_1_1SnesToPcCommand" ],
     [ "SpriteCreate", "da/d30/classyaze_1_1cli_1_1SpriteCreate.html", "da/d30/classyaze_1_1cli_1_1SpriteCreate" ],
+    [ "StartRecordingResult", "d1/de8/structyaze_1_1cli_1_1StartRecordingResult.html", "d1/de8/structyaze_1_1cli_1_1StartRecordingResult" ],
+    [ "StopRecordingResult", "db/de2/structyaze_1_1cli_1_1StopRecordingResult.html", "db/de2/structyaze_1_1cli_1_1StopRecordingResult" ],
     [ "TestCaseDefinition", "d1/df7/structyaze_1_1cli_1_1TestCaseDefinition.html", "d1/df7/structyaze_1_1cli_1_1TestCaseDefinition" ],
     [ "TestCaseRunResult", "dd/d80/structyaze_1_1cli_1_1TestCaseRunResult.html", "dd/d80/structyaze_1_1cli_1_1TestCaseRunResult" ],
     [ "TestGroupDefinition", "dd/d7e/structyaze_1_1cli_1_1TestGroupDefinition.html", "dd/d7e/structyaze_1_1cli_1_1TestGroupDefinition" ],

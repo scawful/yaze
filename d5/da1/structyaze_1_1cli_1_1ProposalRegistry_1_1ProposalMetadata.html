@@ -113,6 +113,10 @@ Public Attributes</h2></td></tr>
 <tr class="separator:acaeabd4e89a81ed8f2c56895ae9630c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac018998dadb6493adf4aeeea14a82aca" id="r_ac018998dadb6493adf4aeeea14a82aca"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da1/structyaze_1_1cli_1_1ProposalRegistry_1_1ProposalMetadata.html#ac018998dadb6493adf4aeeea14a82aca">sandbox_id</a></td></tr>
 <tr class="separator:ac018998dadb6493adf4aeeea14a82aca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24ef278578be93fdacf3e2f6119ca66a" id="r_a24ef278578be93fdacf3e2f6119ca66a"><td class="memItemLeft" align="right" valign="top">std::filesystem::path&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da1/structyaze_1_1cli_1_1ProposalRegistry_1_1ProposalMetadata.html#a24ef278578be93fdacf3e2f6119ca66a">sandbox_directory</a></td></tr>
+<tr class="separator:a24ef278578be93fdacf3e2f6119ca66a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f0bb2f14219e305b97bc3778b3db30d" id="r_a9f0bb2f14219e305b97bc3778b3db30d"><td class="memItemLeft" align="right" valign="top">std::filesystem::path&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da1/structyaze_1_1cli_1_1ProposalRegistry_1_1ProposalMetadata.html#a9f0bb2f14219e305b97bc3778b3db30d">sandbox_rom_path</a></td></tr>
+<tr class="separator:a9f0bb2f14219e305b97bc3778b3db30d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8823b6b49c29f6ded99fc667278b556a" id="r_a8823b6b49c29f6ded99fc667278b556a"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da1/structyaze_1_1cli_1_1ProposalRegistry_1_1ProposalMetadata.html#a8823b6b49c29f6ded99fc667278b556a">description</a></td></tr>
 <tr class="separator:a8823b6b49c29f6ded99fc667278b556a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af632212a1f70aec92ade8dfa144b26fa" id="r_af632212a1f70aec92ade8dfa144b26fa"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/da1/structyaze_1_1cli_1_1ProposalRegistry_1_1ProposalMetadata.html#af632212a1f70aec92ade8dfa144b26fa">prompt</a></td></tr>
@@ -152,7 +156,7 @@ Public Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00038">38</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00173">yaze::cli::ProposalRegistry::CreateProposal()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00066">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00287">yaze::cli::ProposalRegistry::CreateProposal()</a>, <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
 
 </div>
 </div>
@@ -170,6 +174,44 @@ Public Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00039">39</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
 
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
+
+</div>
+</div>
+<a id="a24ef278578be93fdacf3e2f6119ca66a" name="a24ef278578be93fdacf3e2f6119ca66a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24ef278578be93fdacf3e2f6119ca66a">&#9670;&#160;</a></span>sandbox_directory</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::filesystem::path yaze::cli::ProposalRegistry::ProposalMetadata::sandbox_directory</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00040">40</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
+
+</div>
+</div>
+<a id="a9f0bb2f14219e305b97bc3778b3db30d" name="a9f0bb2f14219e305b97bc3778b3db30d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f0bb2f14219e305b97bc3778b3db30d">&#9670;&#160;</a></span>sandbox_rom_path</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::filesystem::path yaze::cli::ProposalRegistry::ProposalMetadata::sandbox_rom_path</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00041">41</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
+
 </div>
 </div>
 <a id="a8823b6b49c29f6ded99fc667278b556a" name="a8823b6b49c29f6ded99fc667278b556a"></a>
@@ -184,7 +226,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00040">40</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00042">42</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
 
 </div>
 </div>
@@ -200,7 +244,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00041">41</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00043">43</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
 
 </div>
 </div>
@@ -216,9 +262,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00042">42</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00044">44</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d96/proposal__drawer_8cc_source.html#l00378">yaze::editor::ProposalDrawer::DrawActionButtons()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d96/proposal__drawer_8cc_source.html#l00378">yaze::editor::ProposalDrawer::DrawActionButtons()</a>, <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
 
 </div>
 </div>
@@ -234,9 +280,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00043">43</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00045">45</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00338">yaze::cli::ProposalRegistry::GetLatestPendingProposal()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00476">yaze::cli::ProposalRegistry::GetLatestPendingProposal()</a>, <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
 
 </div>
 </div>
@@ -252,7 +298,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00044">44</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00046">46</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
 
 </div>
 </div>
@@ -268,7 +316,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00047">47</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00049">49</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
 
 </div>
 </div>
@@ -284,7 +334,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00048">48</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00050">50</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
 
 </div>
 </div>
@@ -300,7 +352,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00049">49</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00051">51</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
 
 </div>
 </div>
@@ -316,7 +370,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00052">52</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00054">54</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
 
 </div>
 </div>
@@ -332,7 +388,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00053">53</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html#l00055">55</a> of file <a class="el" href="../../d4/d3d/proposal__registry_8h_source.html">proposal_registry.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00103">yaze::cli::ProposalRegistry::LoadProposalsFromDiskLocked()</a>, and <a class="el" href="../../db/d01/proposal__registry_8cc_source.html#l00495">yaze::cli::ProposalRegistry::WriteMetadataLocked()</a>.</p>
 
 </div>
 </div>

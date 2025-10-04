@@ -3,6 +3,7 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "anonymous_namespace{agent.cc}", "db/da9/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02agent_8cc_03.html", [
       [ "kUsage", "db/da9/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02agent_8cc_03.html#aa4cb89244cd9fd007a11c2c7136fd14c", null ]
     ] ],
+    [ "anonymous_namespace{conversation_test.cc}", "d0/d0b/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03.html", "d0/d0b/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03" ],
     [ "anonymous_namespace{conversational_agent_service.cc}", "d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html", [
       [ "TrimWhitespace", "d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#a50039bc5b956a117864932b60d76f65a", null ],
       [ "JsonValueToString", "d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#ab0548a61f882b63d453ea1dd303186a2", null ],
@@ -38,6 +39,7 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "HandleOverworldDescribeMapCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#afa0f337ee6668976e1cb1434794efddd", null ],
     [ "HandleOverworldListWarpsCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#af2e9836c9423d36a3b1c2bab9e8dcbcc", null ],
     [ "HandleChatCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab9c0a392ce6c066aca8d36eac12dc2b9", null ],
+    [ "HandleTestConversationCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a815e0cf4982c5a6618608dfd1198645b", null ],
     [ "HarnessAddress", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a63bb222c347948e80015db67a5e2731f", null ],
     [ "JsonEscape", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa9e3ca343f9a5ffeab7bc30f20aff921", null ],
     [ "YamlQuote", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a46743186d4f2968bccf1cf0cb7a57bfa", null ],

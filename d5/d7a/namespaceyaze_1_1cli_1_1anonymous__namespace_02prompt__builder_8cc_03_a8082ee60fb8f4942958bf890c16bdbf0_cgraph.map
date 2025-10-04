@@ -1,4 +1,7 @@
 <map id="yaze::cli::anonymous_namespace{prompt_builder::cc}::YamlToJson" name="yaze::cli::anonymous_namespace{prompt_builder::cc}::YamlToJson">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,190,85"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="61,29,61,19,68,10,80,5,98,3,117,5,129,12,127,17,115,10,97,8,82,10,71,14,66,21,66,29"/>
+<area shape="poly" id="edge3_Node000001_Node000001" title=" " alt="" coords="52,29,53,19,61,10,76,5,98,3,122,5,137,12,135,17,121,10,97,8,77,10,64,15,57,21,57,29"/>
+<area shape="rect" id="Node000002" href="$d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html#a5632bc9edf8847f5a8202b836f40b8da" title=" " alt="" coords="238,29,422,85"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,55,222,55,222,60,190,60"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="284,29,285,19,293,10,308,5,330,3,354,5,369,12,367,17,353,10,330,8,309,10,296,15,290,21,290,29"/>
 </map>

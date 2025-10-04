@@ -47,9 +47,10 @@ var searchData=
   ['contextmenuitem_44',['contextmenuitem',['../d3/d94/structyaze_1_1gui_1_1canvas_1_1CanvasContextMenu_1_1ContextMenuItem.html',1,'yaze::gui::canvas::CanvasContextMenu::ContextMenuItem'],['../d3/df3/structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html',1,'yaze::gui::Canvas::ContextMenuItem']]],
   ['controller_45',['Controller',['../d4/d84/classyaze_1_1core_1_1Controller.html',1,'yaze::core']]],
   ['conversationalagentservice_46',['ConversationalAgentService',['../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html',1,'yaze::cli::agent']]],
-  ['coordinates_47',['Coordinates',['../d0/d95/structTextEditor_1_1Coordinates.html',1,'TextEditor']]],
-  ['counterirqnmiregisters_48',['CounterIrqNmiRegisters',['../d2/d03/structyaze_1_1emu_1_1CounterIrqNmiRegisters.html',1,'yaze::emu']]],
-  ['cpu_49',['Cpu',['../dc/df4/classyaze_1_1emu_1_1Cpu.html',1,'yaze::emu']]],
-  ['cpucallbacks_50',['CpuCallbacks',['../d0/d63/structyaze_1_1emu_1_1CpuCallbacks.html',1,'yaze::emu']]],
-  ['createpatch_51',['CreatePatch',['../d7/d65/classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
+  ['conversationtestcase_47',['ConversationTestCase',['../da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html',1,'yaze::cli::agent::anonymous_namespace{conversation_test.cc}']]],
+  ['coordinates_48',['Coordinates',['../d0/d95/structTextEditor_1_1Coordinates.html',1,'TextEditor']]],
+  ['counterirqnmiregisters_49',['CounterIrqNmiRegisters',['../d2/d03/structyaze_1_1emu_1_1CounterIrqNmiRegisters.html',1,'yaze::emu']]],
+  ['cpu_50',['Cpu',['../dc/df4/classyaze_1_1emu_1_1Cpu.html',1,'yaze::emu']]],
+  ['cpucallbacks_51',['CpuCallbacks',['../d0/d63/structyaze_1_1emu_1_1CpuCallbacks.html',1,'yaze::emu']]],
+  ['createpatch_52',['CreatePatch',['../d7/d65/classyaze_1_1cli_1_1CreatePatch.html',1,'yaze::cli']]]
 ];

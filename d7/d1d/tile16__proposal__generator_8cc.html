@@ -99,17 +99,21 @@ $(document).ready(function(){initNavTree('d7/d1d/tile16__proposal__generator_8cc
 
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">tile16_proposal_generator.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html">cli/service/planning/tile16_proposal_generator.h</a>&quot;</code><br />
-<code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
+<code>#include &lt;sstream&gt;</code><br />
 <code>#include &quot;absl/strings/match.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_split.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
+<code>#include &quot;absl/strings/numbers.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d7/d9c/overworld_8h_source.html">app/zelda3/overworld/overworld.h</a>&quot;</code><br />
+<code>#include &quot;nlohmann/json.hpp&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d4/d9e/macro_8h_source.html">util/macro.h</a>&quot;</code><br />
 </div>
 <p><a href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -121,6 +125,15 @@ Namespaces</h2></td></tr>
 <tr class="memitem:dd/d63/namespaceyaze_1_1cli" id="r_dd/d63/namespaceyaze_1_1cli"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html">yaze::cli</a></td></tr>
 <tr class="memdesc:dd/d63/namespaceyaze_1_1cli"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for the command line interface. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:d9/d8f/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator_8cc_03" id="r_d9/d8f/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d8f/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator_8cc_03.html">yaze::cli::anonymous_namespace{tile16_proposal_generator.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ac8b37e15459252f25688dc07230ab1dc" id="r_ac8b37e15459252f25688dc07230ab1dc"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; uint16_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d8f/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator_8cc_03.html#ac8b37e15459252f25688dc07230ab1dc">yaze::cli::anonymous_namespace{tile16_proposal_generator.cc}::ParseTileValue</a> (const nlohmann::json &amp;json, const char *field)</td></tr>
+<tr class="separator:ac8b37e15459252f25688dc07230ab1dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e3e78fa56b90440147c005927ef80eb" id="r_a9e3e78fa56b90440147c005927ef80eb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d8/d1c/structyaze_1_1cli_1_1Tile16Proposal.html#a86717cf96ce8a4fe63906f2a47760983">Tile16Proposal::Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d8f/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator_8cc_03.html#a9e3e78fa56b90440147c005927ef80eb">yaze::cli::anonymous_namespace{tile16_proposal_generator.cc}::ParseStatus</a> (absl::string_view status_text)</td></tr>
+<tr class="separator:a9e3e78fa56b90440147c005927ef80eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

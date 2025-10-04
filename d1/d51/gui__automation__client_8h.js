@@ -7,6 +7,8 @@ var gui__automation__client_8h =
     [ "yaze::cli::AssertionOutcome", "d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html", "d4/dae/structyaze_1_1cli_1_1AssertionOutcome" ],
     [ "yaze::cli::TestResultDetails", "d4/db9/structyaze_1_1cli_1_1TestResultDetails.html", "d4/db9/structyaze_1_1cli_1_1TestResultDetails" ],
     [ "yaze::cli::ReplayTestResult", "dc/d57/structyaze_1_1cli_1_1ReplayTestResult.html", "dc/d57/structyaze_1_1cli_1_1ReplayTestResult" ],
+    [ "yaze::cli::StartRecordingResult", "d1/de8/structyaze_1_1cli_1_1StartRecordingResult.html", "d1/de8/structyaze_1_1cli_1_1StartRecordingResult" ],
+    [ "yaze::cli::StopRecordingResult", "db/de2/structyaze_1_1cli_1_1StopRecordingResult.html", "db/de2/structyaze_1_1cli_1_1StopRecordingResult" ],
     [ "yaze::cli::WidgetBoundingBox", "d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox.html", "d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox" ],
     [ "yaze::cli::WidgetDescriptor", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor.html", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor" ],
     [ "yaze::cli::DiscoveredWindowInfo", "d9/d5d/structyaze_1_1cli_1_1DiscoveredWindowInfo.html", "d9/d5d/structyaze_1_1cli_1_1DiscoveredWindowInfo" ],
