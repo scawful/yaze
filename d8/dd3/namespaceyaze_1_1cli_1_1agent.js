@@ -15,6 +15,10 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "anonymous_namespace{gui_commands.cc}", "d3/d47/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02gui__commands_8cc_03.html", [
       [ "HandleGuiDiscoverCommand", "d3/d47/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02gui__commands_8cc_03.html#a7241457d6dd22a00fd53178092478187", null ]
     ] ],
+    [ "anonymous_namespace{proposal_executor.cc}", "d0/d0c/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02proposal__executor_8cc_03.html", [
+      [ "InferProvider", "d0/d0c/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02proposal__executor_8cc_03.html#ade5192c0be31590469f1ced3857da287", null ],
+      [ "IsExecutableCommand", "d0/d0c/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02proposal__executor_8cc_03.html#a4d82734bb4d51cef3b3307533d07afba", null ]
+    ] ],
     [ "anonymous_namespace{tool_commands.cc}", "d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html", [
       [ "LoadRomFromFlag", "d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html#aacabbc0ab80e144c2a381ebad5dbf938", null ],
       [ "LoadRomFromPathOrFlag", "d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html#abfae29bd727b8759e06d2e7a728e72a8", null ]
@@ -22,6 +26,8 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "AgentConfig", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig" ],
     [ "ChatMessage", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage" ],
     [ "ConversationalAgentService", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService" ],
+    [ "ProposalCreationRequest", "d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest.html", "d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest" ],
+    [ "ProposalCreationResult", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult" ],
     [ "SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession" ],
     [ "ToolDispatcher", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher" ],
     [ "HandleRunCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a4c88dbe6c96f20bba8fd432738e1a528", null ],
@@ -61,5 +67,6 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "PromptInt", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a25fcd9d913277377f4cbc6dae0a1ba7d", null ],
     [ "PromptYesNo", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a84bc0a5094258d60f709efbe44eaf083", null ],
     [ "ParseCommaSeparated", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa03da77d985c543140590d4c01c006bd", null ],
-    [ "ParseKeyValueEntry", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a139624813695b61e3beb469862cad3fa", null ]
+    [ "ParseKeyValueEntry", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a139624813695b61e3beb469862cad3fa", null ],
+    [ "CreateProposalFromAgentResponse", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a2c1a6be10a542c3294d358a1108be09f", null ]
 ];

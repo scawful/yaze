@@ -16,12 +16,14 @@ var searchData=
   ['ppu_2ecc_13',['ppu.cc',['../dc/db3/ppu_8cc.html',1,'']]],
   ['ppu_2eh_14',['ppu.h',['../d2/df9/ppu_8h.html',1,'']]],
   ['ppu_5fregisters_2eh_15',['ppu_registers.h',['../d9/dff/ppu__registers_8h.html',1,'']]],
-  ['project_2ecc_16',['project.cc',['../d0/d4b/cli_2handlers_2project_8cc.html',1,'(Global Namespace)'],['../db/d6c/app_2core_2project_8cc.html',1,'(Global Namespace)']]],
+  ['project_2ecc_16',['project.cc',['../db/d6c/app_2core_2project_8cc.html',1,'(Global Namespace)'],['../d0/d4b/cli_2handlers_2project_8cc.html',1,'(Global Namespace)']]],
   ['project_2eh_17',['project.h',['../dc/d8d/project_8h.html',1,'']]],
   ['prompt_5fbuilder_2ecc_18',['prompt_builder.cc',['../d0/d53/prompt__builder_8cc.html',1,'']]],
   ['prompt_5fbuilder_2eh_19',['prompt_builder.h',['../df/d04/prompt__builder_8h.html',1,'']]],
   ['proposal_5fdrawer_2ecc_20',['proposal_drawer.cc',['../d1/d96/proposal__drawer_8cc.html',1,'']]],
   ['proposal_5fdrawer_2eh_21',['proposal_drawer.h',['../d5/dca/proposal__drawer_8h.html',1,'']]],
-  ['proposal_5fregistry_2ecc_22',['proposal_registry.cc',['../db/d01/proposal__registry_8cc.html',1,'']]],
-  ['proposal_5fregistry_2eh_23',['proposal_registry.h',['../d4/d3d/proposal__registry_8h.html',1,'']]]
+  ['proposal_5fexecutor_2ecc_22',['proposal_executor.cc',['../d6/d3f/proposal__executor_8cc.html',1,'']]],
+  ['proposal_5fexecutor_2eh_23',['proposal_executor.h',['../d9/d55/proposal__executor_8h.html',1,'']]],
+  ['proposal_5fregistry_2ecc_24',['proposal_registry.cc',['../db/d01/proposal__registry_8cc.html',1,'']]],
+  ['proposal_5fregistry_2eh_25',['proposal_registry.h',['../d4/d3d/proposal__registry_8h.html',1,'']]]
 ];

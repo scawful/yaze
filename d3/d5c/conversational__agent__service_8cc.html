@@ -108,12 +108,19 @@ $(document).ready(function(){initNavTree('d3/d5c/conversational__agent__service_
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cctype&gt;</code><br />
 <code>#include &lt;iostream&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;set&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
+<code>#include &quot;absl/flags/declare.h&quot;</code><br />
+<code>#include &quot;absl/flags/flag.h&quot;</code><br />
+<code>#include &quot;absl/status/status.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_join.h&quot;</code><br />
 <code>#include &quot;absl/time/clock.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d9/d55/proposal__executor_8h_source.html">cli/service/agent/proposal_executor.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d9/d37/service__factory_8h_source.html">cli/service/ai/service_factory.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../df/ded/terminal__colors_8h_source.html">cli/util/terminal_colors.h</a>&quot;</code><br />
 <code>#include &quot;nlohmann/json.hpp&quot;</code><br />
@@ -135,6 +142,8 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a0d8b1270562eb5430ea7f2a61df78496" id="r_a0d8b1270562eb5430ea7f2a61df78496"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d5c/conversational__agent__service_8cc.html#a0d8b1270562eb5430ea7f2a61df78496">ABSL_DECLARE_FLAG</a> (std::string, ai_provider)</td></tr>
+<tr class="separator:a0d8b1270562eb5430ea7f2a61df78496"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a50039bc5b956a117864932b60d76f65a" id="r_a50039bc5b956a117864932b60d76f65a"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#a50039bc5b956a117864932b60d76f65a">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}::TrimWhitespace</a> (const std::string &amp;input)</td></tr>
 <tr class="separator:a50039bc5b956a117864932b60d76f65a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab0548a61f882b63d453ea1dd303186a2" id="r_ab0548a61f882b63d453ea1dd303186a2"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#ab0548a61f882b63d453ea1dd303186a2">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}::JsonValueToString</a> (const nlohmann::json &amp;value)</td></tr>
@@ -146,6 +155,35 @@ Functions</h2></td></tr>
 <tr class="memitem:a16212129b67df04b03660abb86754cc7" id="r_a16212129b67df04b03660abb86754cc7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">ChatMessage</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#a16212129b67df04b03660abb86754cc7">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}::CreateMessage</a> (<a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2">ChatMessage::Sender</a> sender, const std::string &amp;content)</td></tr>
 <tr class="separator:a16212129b67df04b03660abb86754cc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="a0d8b1270562eb5430ea7f2a61df78496" name="a0d8b1270562eb5430ea7f2a61df78496"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d8b1270562eb5430ea7f2a61df78496">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_DECLARE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ai_provider&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

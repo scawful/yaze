@@ -1,0 +1,9 @@
+<map id="src/cli/service/agent/proposal_executor.h" name="src/cli/service/agent/proposal_executor.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="189,5,329,46"/>
+<area shape="rect" id="Node000002" href="$d9/d8d/general__commands_8cc.html" title=" " alt="" coords="5,102,161,142"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,56,121,103,119,99,208,51"/>
+<area shape="rect" id="Node000003" href="$d3/d5c/conversational__agent__service_8cc.html" title=" " alt="" coords="185,94,333,150"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="262,61,262,93,256,93,256,61"/>
+<area shape="rect" id="Node000004" href="$d6/d3f/proposal__executor_8cc.html" title=" " alt="" coords="357,102,505,142"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="310,52,396,99,394,103,307,56"/>
+</map>

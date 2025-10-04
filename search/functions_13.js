@@ -72,7 +72,7 @@ var searchData=
   ['transferbyte_69',['TransferByte',['../d6/d20/namespaceyaze_1_1emu.html#a2a0e8761d0bd636441df9347f8e29584',1,'yaze::emu']]],
   ['transferoverworldselectiontoscratch_70',['TransferOverworldSelectionToScratch',['../d7/dfb/classyaze_1_1editor_1_1OverworldEditorManager.html#a7ec30b61a34160b2973781212eac25e3',1,'yaze::editor::OverworldEditorManager']]],
   ['transferscratchselectiontooverworld_71',['TransferScratchSelectionToOverworld',['../d7/dfb/classyaze_1_1editor_1_1OverworldEditorManager.html#a60f8af199e8206228e94f352dec0cfcc',1,'yaze::editor::OverworldEditorManager']]],
-  ['trb_72',['trb',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a73b9396cbbf95cb9791f0e58728832f4',1,'yaze::emu::Cpu::Trb(uint32_t low, uint32_t high)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a844c46f0b48e2fc272e0f6d35d6059d5',1,'yaze::emu::Cpu::TRB(uint16_t address)']]],
+  ['trb_72',['trb',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a844c46f0b48e2fc272e0f6d35d6059d5',1,'yaze::emu::Cpu::TRB(uint16_t address)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a73b9396cbbf95cb9791f0e58728832f4',1,'yaze::emu::Cpu::Trb(uint32_t low, uint32_t high)']]],
   ['trim_73',['Trim',['../de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a2c59f64351a007d9e988d7a3e087fca2',1,'yaze::cli::anonymous_namespace{test_suite_loader.cc}']]],
   ['trimharnesshistorylocked_74',['TrimHarnessHistoryLocked',['../da/d3e/classyaze_1_1test_1_1TestManager.html#a2409be0114ce93166356857aaa252ab2',1,'yaze::test::TestManager']]],
   ['trimresourcehistory_75',['TrimResourceHistory',['../da/d3e/classyaze_1_1test_1_1TestManager.html#aac8ba5225045f940a57ed1f7bfa1e774',1,'yaze::test::TestManager']]],

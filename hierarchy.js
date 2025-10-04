@@ -369,6 +369,8 @@ var hierarchy =
     [ "yaze::core::ProjectMetadata", "d8/d0c/structyaze_1_1core_1_1ProjectMetadata.html", null ],
     [ "yaze::core::ProjectManager::ProjectTemplate", "d1/d47/structyaze_1_1core_1_1ProjectManager_1_1ProjectTemplate.html", null ],
     [ "yaze::cli::PromptBuilder", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html", null ],
+    [ "yaze::cli::agent::ProposalCreationRequest", "d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest.html", null ],
+    [ "yaze::cli::agent::ProposalCreationResult", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html", null ],
     [ "yaze::editor::ProposalDrawer", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html", null ],
     [ "yaze::cli::ProposalRegistry::ProposalMetadata", "d5/da1/structyaze_1_1cli_1_1ProposalRegistry_1_1ProposalMetadata.html", null ],
     [ "yaze::cli::ProposalRegistry", "de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html", null ],
