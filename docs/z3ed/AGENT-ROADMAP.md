@@ -130,40 +130,46 @@ We have made significant progress in laying the foundation for the conversationa
 
 ### 🚀 Next Steps (Priority Order)
 
-#### Priority 1: Complete LLM Function Calling Integration (4-6 hours)
+#### Priority 1: Complete LLM Function Calling Integration ✅ COMPLETE (Oct 3, 2025)
 **Goal**: Enable Ollama/Gemini to autonomously invoke read-only tools
 
-1. **Add Tool Definitions to System Prompts** (2 hours)
-   - Generate JSON schema for all 5 tools in `ToolDispatcher`
-   - Inject tool definitions into `PromptBuilder::BuildSystemInstruction()`
-   - Format: OpenAI-compatible function calling format
-   ```json
-   {
-     "name": "resource-list",
-     "description": "List all labeled resources of a given type",
-     "parameters": {
-       "type": "object",
-       "properties": {
-         "type": {"type": "string", "enum": ["dungeon", "sprite", "overworld"]},
-         "format": {"type": "string", "enum": ["table", "json"]}
-       },
-       "required": ["type"]
-     }
-   }
-   ```
+**Completed Tasks:**
+1. ✅ **Tool Schema Generation** - Added `BuildFunctionCallSchemas()` method
+   - Generates OpenAI-compatible function calling schemas from tool specifications
+   - Properly formats parameters with types, descriptions, and examples
+   - Marks required vs optional arguments
+   - **File**: `src/cli/service/ai/prompt_builder.{h,cc}`
 
-2. **Parse Function Calls from LLM Responses** (2 hours)
-   - Update `OllamaAIService::GenerateResponse()` to detect function calls in JSON
-   - Update `GeminiAIService::GenerateResponse()` for Gemini's function calling format
+2. ✅ **System Prompt Enhancement** - Injected tool definitions
+   - Updated `BuildConstraintsSection()` to include tool schemas
+   - Added tool usage guidance (tools for questions, commands for modifications)
+   - Included example tool call in JSON format
+   - **File**: `src/cli/service/ai/prompt_builder.cc`
+
+3. ✅ **LLM Response Parsing** - Already implemented
+   - Both `OllamaAIService` and `GeminiAIService` parse `tool_calls` from JSON
    - Populate `AgentResponse.tool_calls` with parsed ToolCall objects
-   - **File**: `src/cli/service/ai/ollama_ai_service.cc:176-294`
-   - **File**: `src/cli/service/ai/gemini_ai_service.cc:104-285`
+   - **Files**: `src/cli/service/ai/{ollama,gemini}_ai_service.cc`
 
-3. **Test Tool Invocation Round-Trip** (1-2 hours)
-   - Verify LLM can discover available tools from system prompt
-   - Test: "What dungeons are in this ROM?" → should call `resource-list --type dungeon`
-   - Test: "Find all water tiles on map 0" → should call `overworld-find-tile --tile 0x..."`
-   - Create regression test script: `scripts/test_agent_tool_calling.sh`
+4. ✅ **Infrastructure Verification** - Created test scripts
+   - `scripts/test_tool_schemas.sh` - Verifies tool definitions in catalogue
+   - `scripts/test_agent_mock.sh` - Validates component integration
+   - All 5 tools properly defined with arguments and examples
+   - **Status**: Ready for live LLM testing
+
+**What's Working:**
+- ✅ Tool definitions loaded from `assets/agent/prompt_catalogue.yaml`
+- ✅ Function schemas generated in OpenAI format
+- ✅ System prompts include tool definitions with usage guidance
+- ✅ AI services parse tool_calls from LLM responses
+- ✅ ConversationalAgentService dispatches tools via ToolDispatcher
+- ✅ Tools return JSON results that feed back into conversation
+
+**Next Step: Live LLM Testing** (1-2 hours)
+- Test with Ollama: Verify qwen2.5-coder can discover and invoke tools
+- Test with Gemini: Verify Gemini 2.0 generates correct tool_calls
+- Create example prompts that exercise all 5 tools
+- Verify multi-step tool execution (agent asks follow-up questions)
 
 #### Priority 2: Implement GUI Chat Widget (6-8 hours)
 **Goal**: Unified chat experience in YAZE application

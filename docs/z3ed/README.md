@@ -143,14 +143,15 @@ The project is currently focused on implementing a conversational AI agent. See 
   - `overworld-list-warps`: Entrance/exit/hole enumeration
 - **AI Service Backends**: ✅ Ollama (local) and Gemini (cloud) operational
 - **Enhanced Prompting**: ✅ Resource catalogue loading with system instruction generation
+- **LLM Function Calling**: ✅ Complete - Tool schemas injected into system prompts, response parsing implemented
 
 ### 🔄 In Progress (Priority Order)
-1. **LLM Function Calling**: Partially implemented - needs tool schema injection into prompts
-2. **GUI Chat Widget**: Not yet started - TUI exists, GUI integration pending
-3. **Tool Coverage Expansion**: 5 tools working, 8+ planned (dialogue, sprites, regions)
+1. **Live LLM Testing**: Verify function calling with Ollama/Gemini (1-2h)
+2. **GUI Chat Widget**: Not yet started - TUI exists, GUI integration pending (6-8h)
+3. **Tool Coverage Expansion**: 5 tools working, 8+ planned (dialogue, sprites, regions) (8-10h)
 
 ### 📋 Next Steps (See AGENT-ROADMAP.md for details)
-1. **Complete LLM Function Calling** (4-6h): Add tool definitions to system prompts
+1. **Live LLM Testing** (1-2h): Verify function calling with real Ollama/Gemini
 2. **Implement GUI Chat Widget** (6-8h): Create ImGui widget matching TUI experience
 3. **Expand Tool Coverage** (8-10h): Add dialogue search, sprite info, region queries
 4. **Performance Optimizations** (4-6h): Response caching, token tracking, streaming

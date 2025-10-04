@@ -86,6 +86,9 @@ class PromptBuilder {
     return tile_reference_;
   }
   
+  // Generate OpenAI-compatible function call schemas (JSON format)
+  std::string BuildFunctionCallSchemas() const;
+  
   // Set verbosity level (0=minimal, 1=standard, 2=verbose)
   void SetVerbosity(int level) { verbosity_ = level; }
   
