@@ -48,6 +48,8 @@
 #include "editor/editor.h"
 #ifdef YAZE_WITH_GRPC
 #include "app/core/service/screenshot_utils.h"
+#include "app/editor/agent/agent_chat_widget.h"
+#include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/ai/gemini_ai_service.h"
 #endif
 #include "imgui/imgui.h"
