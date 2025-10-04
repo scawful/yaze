@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/match.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/gui/icons.h"
 #include "app/gui/modules/text_editor.h"
@@ -21,11 +22,11 @@ std::vector<std::string> RemoveIgnoredFiles(
   std::vector<std::string> filtered_files;
   for (const auto& file : files) {
     // Remove subdirectory files
-    if (file.contains('/')) {
+    if (absl::StrContains(file, '/')) {
       continue;
     }
     // Make sure the file has an extension
-    if (!file.contains('.')) {
+    if (!absl::StrContains(file, '.')) {
       continue;
     }
     if (std::ranges::find(ignored_files, file) == ignored_files.end()) {
@@ -66,11 +67,11 @@ FolderItem LoadFolder(const std::string& folder) {
     auto folder_files = FileDialogWrapper::GetFilesInFolder(full_folder);
     for (const auto& files : folder_files) {
       // Remove subdirectory files
-      if (files.contains('/')) {
+      if (absl::StrContains(files, '/')) {
         continue;
       }
       // Make sure the file has an extension
-      if (!files.contains('.')) {
+      if (!absl::StrContains(files, '.')) {
         continue;
       }
       if (std::ranges::find(ignored_files, files) != ignored_files.end()) {

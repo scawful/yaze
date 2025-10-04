@@ -6,9 +6,11 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <string_view>
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
+#include "absl/strings/match.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -59,7 +61,7 @@ struct DictionaryEntry {
   }
 
   bool ContainedInString(std::string_view s) const {
-    return s.contains(Contents);
+    return absl::StrContains(s, Contents);
   }
 
   std::string ReplaceInstancesOfIn(std::string_view s) const {

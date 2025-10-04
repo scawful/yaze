@@ -33,12 +33,14 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
                      const char* format, float input_width,
                      ImGuiInputTextFlags flags, bool no_step = false) {
   ImGuiWindow* window = ImGui::GetCurrentWindow();
-  if (window->SkipItems) return false;
+  if (window->SkipItems)
+    return false;
 
   ImGuiContext& g = *GImGui;
   ImGuiStyle& style = g.Style;
 
-  if (format == NULL) format = DataTypeGetInfo(data_type)->PrintFmt;
+  if (format == NULL)
+    format = DataTypeGetInfo(data_type)->PrintFmt;
 
   char buf[64];
   DataTypeFormatString(buf, IM_ARRAYSIZE(buf), data_type, p_data, format);
@@ -106,7 +108,8 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
     const ImVec2 backup_frame_padding = style.FramePadding;
     style.FramePadding.x = style.FramePadding.y;
     ImGuiButtonFlags button_flags = ImGuiButtonFlags_PressedOnClick;
-    if (flags & ImGuiInputTextFlags_ReadOnly) BeginDisabled();
+    if (flags & ImGuiInputTextFlags_ReadOnly)
+      BeginDisabled();
     SameLine(0, style.ItemInnerSpacing.x);
     if (ButtonEx("-", ImVec2(button_size, button_size), button_flags)) {
       DataTypeApplyOp(data_type, '-', p_data, p_data,
@@ -120,7 +123,8 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
       value_changed = true;
     }
 
-    if (flags & ImGuiInputTextFlags_ReadOnly) EndDisabled();
+    if (flags & ImGuiInputTextFlags_ReadOnly)
+      EndDisabled();
 
     style.FramePadding = backup_frame_padding;
   }
@@ -128,7 +132,8 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
   EndGroup();
   ImGui::PopStyleVar(2);
 
-  if (value_changed) MarkItemEdited(g.LastItemData.ID);
+  if (value_changed)
+    MarkItemEdited(g.LastItemData.ID);
 
   return value_changed;
 }
@@ -219,29 +224,24 @@ bool ClickableText(const std::string& text) {
     // Render text with high-contrast appropriate color
     ImVec4 link_color = ImGui::GetStyleColorVec4(ImGuiCol_TextLink);
     ImVec4 bg_color = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-    
+
     // Ensure good contrast against background
-    float contrast_factor = (bg_color.x + bg_color.y + bg_color.z) < 1.5f ? 1.0f : 0.3f;
-    
+    float contrast_factor =
+        (bg_color.x + bg_color.y + bg_color.z) < 1.5f ? 1.0f : 0.3f;
+
     ImVec4 color;
     if (hovered) {
       // Brighter color on hover for better visibility
-      color = ImVec4(
-        std::min(1.0f, link_color.x + 0.3f),
-        std::min(1.0f, link_color.y + 0.3f), 
-        std::min(1.0f, link_color.z + 0.3f),
-        1.0f
-      );
+      color = ImVec4(std::min(1.0f, link_color.x + 0.3f),
+                     std::min(1.0f, link_color.y + 0.3f),
+                     std::min(1.0f, link_color.z + 0.3f), 1.0f);
     } else {
       // Ensure link color has good contrast
-      color = ImVec4(
-        std::max(contrast_factor, link_color.x),
-        std::max(contrast_factor, link_color.y),
-        std::max(contrast_factor, link_color.z),
-        1.0f
-      );
+      color = ImVec4(std::max(contrast_factor, link_color.x),
+                     std::max(contrast_factor, link_color.y),
+                     std::max(contrast_factor, link_color.z), 1.0f);
     }
-    
+
     ImGui::GetWindowDrawList()->AddText(
         pos, ImGui::ColorConvertFloat4ToU32(color), text.c_str());
 
@@ -263,10 +263,12 @@ void ItemLabel(absl::string_view title, ItemLabelFlags flags) {
   const ImGuiStyle& style = ImGui::GetStyle();
   float fullWidth = ImGui::GetContentRegionAvail().x;
   float itemWidth = ImGui::CalcItemWidth() + style.ItemSpacing.x;
-  ImVec2 textSize = ImGui::CalcTextSize(title.data(), title.data() + title.size());
+  ImVec2 textSize =
+      ImGui::CalcTextSize(title.data(), title.data() + title.size());
   ImRect textRect;
   textRect.Min = ImGui::GetCursorScreenPos();
-  if (flags & ItemLabelFlag::Right) textRect.Min.x = textRect.Min.x + itemWidth;
+  if (flags & ItemLabelFlag::Right)
+    textRect.Min.x = textRect.Min.x + itemWidth;
   textRect.Max = textRect.Min;
   textRect.Max.x += fullWidth - itemWidth;
   textRect.Max.y += textSize.y;
@@ -326,7 +328,9 @@ bool InputTileInfo(const char* label, gfx::TileInfo* tile_info) {
   return changed;
 }
 
-ImGuiID GetID(const std::string& id) { return ImGui::GetID(id.c_str()); }
+ImGuiID GetID(const std::string& id) {
+  return ImGui::GetID(id.c_str());
+}
 
 ImGuiKey MapKeyToImGuiKey(char key) {
   switch (key) {
@@ -429,7 +433,8 @@ void DrawMenu(Menu& menu) {
                 ImGui::Separator();
               } else if (ImGui::MenuItem(each_subitem.name.c_str(),
                                          each_subitem.shortcut.c_str())) {
-                if (each_subitem.callback) each_subitem.callback();
+                if (each_subitem.callback)
+                  each_subitem.callback();
               }
             }
             ImGui::EndMenu();
@@ -438,9 +443,10 @@ void DrawMenu(Menu& menu) {
           if (each_item.name == kSeparator) {
             ImGui::Separator();
           } else if (ImGui::MenuItem(each_item.name.c_str(),
-                              each_item.shortcut.c_str(),
-                              each_item.enabled_condition())) {
-            if (each_item.callback) each_item.callback();
+                                     each_item.shortcut.c_str(),
+                                     each_item.enabled_condition())) {
+            if (each_item.callback)
+              each_item.callback();
           }
         }
       }
@@ -450,8 +456,25 @@ void DrawMenu(Menu& menu) {
 }
 
 bool OpenUrl(const std::string& url) {
-  // Open the url in the default browser
+  // if iOS
+#ifdef __APPLE__
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
+// no system call on iOS
+  return false;
+#else
   return system(("open " + url).c_str()) == 0;
+#endif
+#endif
+
+#ifdef __linux__
+  return system(("xdg-open " + url).c_str()) == 0;
+#endif
+
+#ifdef __windows__
+  return system(("start " + url).c_str()) == 0;
+#endif
+
+  return false;
 }
 
 void RenderLayout(const Layout& layout) {
