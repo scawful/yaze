@@ -429,3 +429,41 @@ jobs:
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
+
+  z3ed-agent-test:
+    name: "z3ed Agent Test (macOS + Ollama)"
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install macOS dependencies
+      run: |
+        brew install ollama ninja
+
+    - name: Configure CMake for z3ed
+      run: |
+        cmake -B ${{ github.workspace }}/build_test \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DYAZE_USE_MODULAR_BUILD=ON \
+          -DZ3ED_AI=ON \
+          -DYAZE_MINIMAL_BUILD=ON \
+          -Wno-dev \
+          -GNinja
+
+    - name: Build z3ed
+      run: cmake --build ${{ github.workspace }}/build_test --config Release --target z3ed
+
+    - name: Start Ollama and pull model
+      run: |
+        ollama serve & 
+        sleep 10
+        ollama pull qwen2.5-coder:7b
+
+    - name: Run z3ed Agent Test Suite
+      run: |
+        chmod +x scripts/agent_test_suite.sh
+        ./scripts/agent_test_suite.sh ollama
