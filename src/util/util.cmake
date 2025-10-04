@@ -19,6 +19,12 @@ set(YAZE_UTIL_SRC
 
 add_library(yaze_util STATIC ${YAZE_UTIL_SRC})
 
+target_precompile_headers(yaze_util PRIVATE
+  <string>
+  <vector>
+  <string_view>
+)
+
 target_include_directories(yaze_util PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/incl

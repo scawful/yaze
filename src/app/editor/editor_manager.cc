@@ -4,6 +4,8 @@
 #include <chrono>
 #include <cstring>
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/match.h"

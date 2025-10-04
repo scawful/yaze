@@ -1,8 +1,8 @@
-include(app/core/core.cmake)
-include(app/editor/editor.cmake)
-include(app/gfx/gfx.cmake)
-include(app/gui/gui.cmake)
-include(app/zelda3/zelda3.cmake)
+include(app/core/core_library.cmake)
+include(app/editor/editor_library.cmake)
+include(app/gfx/gfx_library.cmake)
+include(app/gui/gui_library.cmake)
+include(app/zelda3/zelda3_library.cmake)
 
 if (APPLE)
   add_executable(

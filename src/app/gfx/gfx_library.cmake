@@ -1,3 +1,22 @@
+set(
+  YAZE_APP_GFX_SRC
+  app/gfx/arena.cc
+  app/gfx/atlas_renderer.cc
+  app/gfx/background_buffer.cc
+  app/gfx/bitmap.cc
+  app/gfx/compression.cc
+  app/gfx/memory_pool.cc
+  app/gfx/performance_dashboard.cc
+  app/gfx/performance_profiler.cc
+  app/gfx/scad_format.cc
+  app/gfx/snes_palette.cc
+  app/gfx/snes_tile.cc
+  app/gfx/snes_color.cc
+  app/gfx/tilemap.cc
+  app/gfx/graphics_optimizer.cc
+  app/gfx/bpp_format_manager.cc
+)
+
 # ==============================================================================
 # Yaze Graphics Library
 # ==============================================================================
@@ -13,6 +32,12 @@
 # ==============================================================================
 
 add_library(yaze_gfx STATIC ${YAZE_APP_GFX_SRC})
+
+target_precompile_headers(yaze_gfx PRIVATE
+  <vector>
+  <string>
+  <memory>
+)
 
 target_include_directories(yaze_gfx PUBLIC
   ${CMAKE_SOURCE_DIR}/src

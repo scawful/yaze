@@ -12,14 +12,20 @@
 
 add_library(yaze_test_support STATIC app/test/test_manager.cc)
 
+target_precompile_headers(yaze_test_support PRIVATE
+  <memory>
+  <set>
+  <string>
+  <string_view>
+  <vector>
+)
+
 target_include_directories(yaze_test_support PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/incl
   ${PROJECT_BINARY_DIR}
 )
 
-# The test support library needs to link against all the major app libraries
-# to be able to test them.
 target_link_libraries(yaze_test_support PUBLIC
   yaze_editor
   yaze_core_lib

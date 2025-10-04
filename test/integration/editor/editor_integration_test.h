@@ -3,6 +3,7 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
+#include "imgui/imgui.h"
 #include "app/editor/editor.h"
 #include "app/rom.h"
 #include "app/core/controller.h"
