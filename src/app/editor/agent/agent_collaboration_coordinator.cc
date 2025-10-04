@@ -1,4 +1,4 @@
-#include "app/editor/system/agent_collaboration_coordinator.h"
+#include "app/editor/agent/agent_collaboration_coordinator.h"
 
 #include <algorithm>
 #include <cctype>

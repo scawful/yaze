@@ -231,58 +231,8 @@ void EditorManager::Initialize(const std::string& filename) {
   context_.popup_manager = popup_manager_.get();
 
 #ifdef YAZE_WITH_GRPC
-  agent_chat_widget_.SetToastManager(&toast_manager_);
-  agent_chat_widget_.SetProposalDrawer(&proposal_drawer_);
-  AgentChatWidget::CollaborationCallbacks collab_callbacks;
-  collab_callbacks.host_session =
-      [this](const std::string& session_name)
-          -> absl::StatusOr<AgentChatWidget::CollaborationCallbacks::SessionContext> {
-        ASSIGN_OR_RETURN(auto session,
-                         collaboration_coordinator_.HostSession(session_name));
-        AgentChatWidget::CollaborationCallbacks::SessionContext context;
-        context.session_id = session.session_id;
-        context.session_name = session.session_name;
-        context.participants = session.participants;
-        
-        // Switch to shared chat history for this session
-        agent_chat_widget_.SwitchToSharedHistory(session.session_id);
-        
-        return context;
-      };
-  collab_callbacks.join_session =
-      [this](const std::string& session_code)
-          -> absl::StatusOr<AgentChatWidget::CollaborationCallbacks::SessionContext> {
-        ASSIGN_OR_RETURN(auto session,
-                         collaboration_coordinator_.JoinSession(session_code));
-        AgentChatWidget::CollaborationCallbacks::SessionContext context;
-        context.session_id = session.session_id;
-        context.session_name = session.session_name;
-        context.participants = session.participants;
-        
-        // Switch to shared chat history for this session
-        agent_chat_widget_.SwitchToSharedHistory(session.session_id);
-        
-        return context;
-      };
-  collab_callbacks.leave_session =
-      [this]() { 
-        absl::Status status = collaboration_coordinator_.LeaveSession();
-        if (status.ok()) {
-          // Switch back to local chat history
-          agent_chat_widget_.SwitchToLocalHistory();
-        }
-        return status;
-      };
-  collab_callbacks.refresh_session =
-      [this]() -> absl::StatusOr<AgentChatWidget::CollaborationCallbacks::SessionContext> {
-        ASSIGN_OR_RETURN(auto session, collaboration_coordinator_.RefreshSession());
-        AgentChatWidget::CollaborationCallbacks::SessionContext context;
-        context.session_id = session.session_id;
-        context.session_name = session.session_name;
-        context.participants = session.participants;
-        return context;
-      };
-  agent_chat_widget_.SetCollaborationCallbacks(collab_callbacks);
+  // Initialize the agent editor
+  agent_editor_.Initialize(&toast_manager_, &proposal_drawer_);
 
   // Set up multimodal (vision) callbacks for Gemini
   AgentChatWidget::MultimodalCallbacks multimodal_callbacks;
@@ -293,7 +243,7 @@ void EditorManager::Initialize(const std::string& filename) {
     absl::StatusOr<yaze::test::ScreenshotArtifact> result;
     
     // Capture based on selected mode
-    switch (agent_chat_widget_.capture_mode()) {
+    switch (agent_editor_.GetChatWidget()->capture_mode()) {
       case CaptureMode::kFullWindow:
         result = yaze::test::CaptureHarnessScreenshot("");
         break;
@@ -307,7 +257,7 @@ void EditorManager::Initialize(const std::string& filename) {
         break;
         
       case CaptureMode::kSpecificWindow: {
-        const char* window_name = agent_chat_widget_.specific_window_name();
+        const char* window_name = agent_editor_.GetChatWidget()->specific_window_name();
         if (window_name && std::strlen(window_name) > 0) {
           result = yaze::test::CaptureWindowByName(window_name, "");
           if (!result.ok()) {
@@ -360,11 +310,11 @@ void EditorManager::Initialize(const std::string& filename) {
     agent_msg.sender = cli::agent::ChatMessage::Sender::kAgent;
     agent_msg.message = response->text_response;
     agent_msg.timestamp = absl::Now();
-    agent_chat_widget_.SetRomContext(current_rom_);
+    agent_editor_.GetChatWidget()->SetRomContext(current_rom_);
 
     return absl::OkStatus();
   };
-  agent_chat_widget_.SetMultimodalCallbacks(multimodal_callbacks);
+  agent_editor_.GetChatWidget()->SetMultimodalCallbacks(multimodal_callbacks);
 #endif
 
   // Load critical user settings first
@@ -858,9 +808,9 @@ void EditorManager::Initialize(const std::string& filename) {
 #ifdef YAZE_WITH_GRPC
            {absl::StrCat(ICON_MD_CHAT, " Agent Chat"), "",
             [this]() {
-              agent_chat_widget_.set_active(!agent_chat_widget_.is_active());
+              agent_editor_.ToggleChat();
             },
-            [this]() { return agent_chat_widget_.is_active(); }},
+            [this]() { return agent_editor_.IsChatActive(); }},
 #endif
            
            {gui::kSeparator, "", nullptr, []() { return true; }},
@@ -1083,8 +1033,8 @@ absl::Status EditorManager::Update() {
   Rom* rom_context =
       (current_rom_ != nullptr && current_rom_->is_loaded()) ? current_rom_
                                                              : nullptr;
-  agent_chat_widget_.SetRomContext(rom_context);
-  agent_chat_widget_.Draw();
+  agent_editor_.SetRomContext(rom_context);
+  agent_editor_.Draw();
 #endif
 
   return absl::OkStatus();

@@ -1,5 +1,5 @@
-#ifndef YAZE_SRC_APP_EDITOR_SYSTEM_AGENT_CHAT_WIDGET_H_
-#define YAZE_SRC_APP_EDITOR_SYSTEM_AGENT_CHAT_WIDGET_H_
+#ifndef YAZE_APP_EDITOR_AGENT_AGENT_CHAT_WIDGET_H_
+#define YAZE_APP_EDITOR_AGENT_AGENT_CHAT_WIDGET_H_
 
 #include <filesystem>
 #include <functional>
@@ -158,4 +158,4 @@ public:
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_SRC_APP_EDITOR_SYSTEM_AGENT_CHAT_WIDGET_H_
+#endif  // YAZE_APP_EDITOR_AGENT_AGENT_CHAT_WIDGET_H_
