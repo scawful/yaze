@@ -1,93 +1,238 @@
 #!/bin/bash
+# Comprehensive test script for Ollama and Gemini AI providers with tool calling
 
-# Comprehensive test suite for the z3ed AI Agent.
-# This script consolidates multiple older test scripts into one.
-#
-# Usage: ./scripts/agent_test_suite.sh <provider>
-# provider: ollama, gemini, or mock
+set -e
 
-set -e # Exit immediately if a command exits with a non-zero status.
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# --- Configuration ---
-Z3ED_BIN="/Users/scawful/Code/yaze/build_test/bin/z3ed"
-ROM_PATH="/Users/scawful/Code/yaze/assets/zelda3.sfc"
-TEST_DIR="/Users/scawful/Code/yaze/assets/agent"
-TEST_FILES=(
-  "context_and_followup.txt"
-  "complex_command_generation.txt"
-  "error_handling_and_edge_cases.txt"
-)
+Z3ED="./build_test/bin/z3ed"
+ROM="assets/zelda3.sfc"
+RESULTS_FILE="/tmp/z3ed_ai_test_results.txt"
 
-# --- Helper Functions ---
-print_header() {
-  echo ""
-  echo "================================================="
-  echo "$1"
-  echo "================================================="
+echo "=========================================="
+echo "  Z3ED AI Provider Test Suite"
+echo "=========================================="
+echo ""
+
+# Clear results file
+> "$RESULTS_FILE"
+
+# Check if z3ed exists
+if [ ! -f "$Z3ED" ]; then
+    echo -e "${RED}✗ z3ed not found at $Z3ED${NC}"
+    echo "  Try building with: cmake --build build_rooms"
+    exit 1
+fi
+echo -e "${GREEN}✓ z3ed found${NC}"
+
+# Check if ROM exists
+if [ ! -f "$ROM" ]; then
+    echo -e "${RED}✗ ROM not found at $ROM${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✓ ROM found${NC}"
+
+# Test Ollama availability
+OLLAMA_AVAILABLE=false
+if command -v ollama &> /dev/null && curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+    if ollama list | grep -q "qwen2.5-coder"; then
+        OLLAMA_AVAILABLE=true
+        echo -e "${GREEN}✓ Ollama available (qwen2.5-coder)${NC}"
+    else
+        echo -e "${YELLOW}⚠ Ollama available but qwen2.5-coder not found${NC}"
+        echo "  Install with: ollama pull qwen2.5-coder:7b"
+    fi
+else
+    echo -e "${YELLOW}⚠ Ollama not available${NC}"
+fi
+
+# Test Gemini availability
+GEMINI_AVAILABLE=false
+if [ -n "$GEMINI_API_KEY" ]; then
+    GEMINI_AVAILABLE=true
+    echo -e "${GREEN}✓ Gemini API key configured${NC}"
+else
+    echo -e "${YELLOW}⚠ Gemini API key not set${NC}"
+    echo "  Set with: export GEMINI_API_KEY='your-key'"
+fi
+
+if [ "$OLLAMA_AVAILABLE" = false ] && [ "$GEMINI_AVAILABLE" = false ]; then
+    echo -e "${RED}✗ No AI providers available${NC}"
+    exit 1
+fi
+
+echo ""
+
+# Test function
+run_test() {
+    local test_name="$1"
+    local provider="$2"
+    local query="$3"
+    local expected_pattern="$4"
+    local extra_args="$5"
+    
+    echo "=========================================="
+    echo "  Test: $test_name"
+    echo "  Provider: $provider"
+    echo "=========================================="
+    echo ""
+    echo "Query: $query"
+    echo ""
+    
+    local cmd="$Z3ED agent simple-chat \"$query\" --rom=\"$ROM\" --ai_provider=$provider $extra_args"
+    echo "Running: $cmd"
+    echo ""
+    
+    local output
+    local exit_code=0
+    output=$($cmd 2>&1) || exit_code=$?
+    
+    echo "$output"
+    echo ""
+    
+    # Check for expected patterns
+    local result="UNKNOWN"
+    if [ $exit_code -ne 0 ]; then
+        result="FAILED (exit code: $exit_code)"
+    elif echo "$output" | grep -qi "$expected_pattern"; then
+        result="PASSED"
+        echo -e "${GREEN}✓ Response contains expected pattern: '$expected_pattern'${NC}"
+    else
+        result="FAILED (pattern not found)"
+        echo -e "${YELLOW}⚠ Response missing expected pattern: '$expected_pattern'${NC}"
+    fi
+    
+    # Check for error indicators
+    if echo "$output" | grep -qi "error\|failed\|infinite loop"; then
+        result="FAILED (error detected)"
+        echo -e "${RED}✗ Error detected in output${NC}"
+    fi
+    
+    # Record result
+    echo "$test_name | $provider | $result" >> "$RESULTS_FILE"
+    echo ""
+    echo -e "${BLUE}Result: $result${NC}"
+    echo ""
+    
+    sleep 2  # Avoid rate limiting
 }
 
-# --- Pre-flight Checks ---
-print_header "Performing Pre-flight Checks"
+# Test Suite
 
-if [ -z "$1" ]; then
-  echo "❌ Error: No AI provider specified."
-  echo "Usage: $0 <ollama|gemini|mock>"
-  exit 1
-fi
-PROVIDER=$1
-echo "✅ Provider: $PROVIDER"
-
-if [ ! -f "$Z3ED_BIN" ]; then
-  echo "❌ Error: z3ed binary not found at $Z3ED_BIN"
-  echo "Please build the project first (e.g., in build_test)."
-  exit 1
-fi
-echo "✅ z3ed binary found."
-
-if [ ! -f "$ROM_PATH" ]; then
-  echo "❌ Error: ROM not found at $ROM_PATH"
-  exit 1
-fi
-echo "✅ ROM file found."
-
-if [ "$PROVIDER" == "gemini" ] && [ -z "$GEMINI_API_KEY" ]; then
-  echo "❌ Error: GEMINI_API_KEY environment variable is not set."
-  echo "Please set it to your Gemini API key to run this test."
-  exit 1
-fi
-if [ "$PROVIDER" == "gemini" ]; then
-    echo "✅ GEMINI_API_KEY is set."
+if [ "$OLLAMA_AVAILABLE" = true ]; then
+    echo ""
+    echo "=========================================="
+    echo "  OLLAMA TESTS"
+    echo "=========================================="
+    echo ""
+    
+    run_test "Ollama: Simple Question" "ollama" \
+        "What dungeons are in this ROM?" \
+        "dungeon\|palace\|castle"
+    
+    run_test "Ollama: Sprite Query" "ollama" \
+        "What sprites are in room 0?" \
+        "sprite\|room"
+    
+    run_test "Ollama: Tile Search" "ollama" \
+        "Where can I find trees in the overworld?" \
+        "tree\|0x02E\|map\|coordinate"
+    
+    run_test "Ollama: Map Description" "ollama" \
+        "Describe overworld map 0" \
+        "light world\|map\|overworld"
+    
+    run_test "Ollama: Warp List" "ollama" \
+        "List the warps in the Light World" \
+        "warp\|entrance\|exit"
 fi
 
-if [ "$PROVIDER" == "ollama" ]; then
-    if ! pgrep -x "Ollama" > /dev/null && ! pgrep -x "ollama" > /dev/null; then
-        echo "⚠️ Warning: Ollama server process not found. The script might fail if it's not running."
+if [ "$GEMINI_AVAILABLE" = true ]; then
+    echo ""
+    echo "=========================================="
+    echo "  GEMINI TESTS"
+    echo "=========================================="
+    echo ""
+    
+    run_test "Gemini: Simple Question" "gemini" \
+        "What dungeons are in this ROM?" \
+        "dungeon\|palace\|castle" \
+        "--gemini_api_key=\"$GEMINI_API_KEY\""
+    
+    run_test "Gemini: Sprite Query" "gemini" \
+        "What sprites are in room 0?" \
+        "sprite\|room" \
+        "--gemini_api_key=\"$GEMINI_API_KEY\""
+    
+    run_test "Gemini: Tile Search" "gemini" \
+        "Where can I find trees in the overworld?" \
+        "tree\|0x02E\|map\|coordinate" \
+        "--gemini_api_key=\"$GEMINI_API_KEY\""
+    
+    run_test "Gemini: Map Description" "gemini" \
+        "Describe overworld map 0" \
+        "light world\|map\|overworld" \
+        "--gemini_api_key=\"$GEMINI_API_KEY\""
+    
+    run_test "Gemini: Warp List" "gemini" \
+        "List the warps in the Light World" \
+        "warp\|entrance\|exit" \
+        "--gemini_api_key=\"$GEMINI_API_KEY\""
+fi
+
+echo ""
+echo "=========================================="
+echo "  TEST SUMMARY"
+echo "=========================================="
+echo ""
+
+if [ -f "$RESULTS_FILE" ]; then
+    cat "$RESULTS_FILE"
+    echo ""
+    
+    local total=$(wc -l < "$RESULTS_FILE" | tr -d ' ')
+    local passed=$(grep -c "PASSED" "$RESULTS_FILE" || echo "0")
+    local failed=$(grep -c "FAILED" "$RESULTS_FILE" || echo "0")
+    
+    echo "Total Tests: $total"
+    echo -e "${GREEN}Passed: $passed${NC}"
+    echo -e "${RED}Failed: $failed${NC}"
+    echo ""
+    
+    if [ "$passed" -eq "$total" ]; then
+        echo -e "${GREEN}🎉 All tests passed!${NC}"
+    elif [ "$passed" -gt 0 ]; then
+        echo -e "${YELLOW}⚠ Some tests failed. Review output above.${NC}"
     else
-        echo "✅ Ollama server process found."
+        echo -e "${RED}✗ All tests failed. Check configuration.${NC}"
     fi
+else
+    echo -e "${RED}✗ No results file generated${NC}"
 fi
 
-# --- Run Test Suite ---
-for test_file in "${TEST_FILES[@]}"; do
-  print_header "Running Test File: $test_file (Provider: $PROVIDER)"
-  FULL_TEST_PATH="$TEST_DIR/$test_file"
-  
-  if [ ! -f "$FULL_TEST_PATH" ]; then
-    echo "❌ Error: Test file not found: $FULL_TEST_PATH"
-    continue
-  fi
-
-  # Construct the command. Use --quiet for cleaner test logs.
-  COMMAND="$Z3ED_BIN agent simple-chat --file=$FULL_TEST_PATH --rom=$ROM_PATH --ai_provider=$PROVIDER --quiet"
-  
-  echo "Executing command..."
-  echo "--- Agent Output for $test_file ---"
-  
-  # Execute the command and print its output
-  eval $COMMAND
-  
-  echo "--- Test Complete ---"
-  echo ""
-done
-
-print_header "✅ All tests completed successfully!"
+echo ""
+echo "=========================================="
+echo "  Recommendations"
+echo "=========================================="
+echo ""
+echo "If tests are failing:"
+echo "  1. Check that the ROM is valid and loaded properly"
+echo "  2. Verify tool definitions in prompt_catalogue.yaml"
+echo "  3. Review system prompts in prompt_builder.cc"
+echo "  4. Check AI provider connectivity and quotas"
+echo "  5. Examine tool execution logs for errors"
+echo ""
+echo "For Ollama:"
+echo "  - Try different models: ollama pull llama3:8b"
+echo "  - Adjust temperature in ollama_ai_service.cc"
+echo ""
+echo "For Gemini:"
+echo "  - Verify API key is valid"
+echo "  - Check quota at: https://aistudio.google.com"
+echo ""
+echo "Results saved to: $RESULTS_FILE"
+echo ""
