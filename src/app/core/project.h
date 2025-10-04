@@ -154,6 +154,11 @@ private:
   absl::Status SaveToYazeFormat();
   absl::Status ImportFromZScreamFormat(const std::string& project_path);
   
+#ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
+  absl::Status LoadFromJsonFormat(const std::string& project_path);
+  absl::Status SaveToJsonFormat();
+#endif
+  
   void InitializeDefaults();
   std::string GenerateProjectId() const;
 };
