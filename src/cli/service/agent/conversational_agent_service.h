@@ -42,6 +42,9 @@ class ConversationalAgentService {
   // Provide the service with a ROM context for tool execution.
   void SetRomContext(Rom* rom);
 
+  // Clear the current conversation history, preserving ROM/tool context.
+  void ResetConversation();
+
  private:
   std::vector<ChatMessage> history_;
   std::unique_ptr<AIService> ai_service_;
