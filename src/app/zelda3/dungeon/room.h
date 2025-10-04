@@ -244,6 +244,13 @@ class Room {
   void AddTileObject(const RoomObject& object) {
     tile_objects_.push_back(object);
   }
+  
+  // Enhanced object manipulation (Phase 3)
+  absl::Status AddObject(const RoomObject& object);
+  absl::Status RemoveObject(size_t index);
+  absl::Status UpdateObject(size_t index, const RoomObject& object);
+  absl::StatusOr<size_t> FindObjectAt(int x, int y, int layer) const;
+  bool ValidateObject(const RoomObject& object) const;
   void RemoveTileObject(size_t index) {
     if (index < tile_objects_.size()) {
       tile_objects_.erase(tile_objects_.begin() + index);
@@ -318,6 +325,10 @@ class Room {
   void ParseObjectsFromLocation(int objects_location);
   void HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY,
                             int& nbr_of_staircase);
+  
+  // Object saving (Phase 1, Task 1.3)
+  absl::Status SaveObjects();
+  std::vector<uint8_t> EncodeObjects() const;
 
   auto blocks() const { return blocks_; }
   auto& mutable_blocks() { return blocks_; }

@@ -8,6 +8,7 @@
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -100,10 +101,8 @@ absl::Status DungeonObjectEditor::SaveRoom() {
     }
   }
   
-  // TODO: Implement actual room saving to ROM
-  // This would involve writing the room data back to the ROM file
-  
-  return absl::OkStatus();
+  // Save room objects back to ROM (Phase 1, Task 1.3)
+  return current_room_->SaveObjects();
 }
 
 absl::Status DungeonObjectEditor::ClearRoom() {
@@ -175,8 +174,11 @@ absl::Status DungeonObjectEditor::InsertObject(int x, int y, int object_type, in
     }
   }
   
-  // Add object to room
-  current_room_->AddTileObject(new_object);
+  // Add object to room using new method (Phase 3)
+  auto add_status = current_room_->AddObject(new_object);
+  if (!add_status.ok()) {
+    return add_status;
+  }
   
   // Select the new object
   ClearSelection();
@@ -213,8 +215,11 @@ absl::Status DungeonObjectEditor::DeleteObject(size_t object_index) {
     return status;
   }
   
-  // Remove object from room
-  current_room_->RemoveTileObject(object_index);
+  // Remove object from room using new method (Phase 3)
+  auto remove_status = current_room_->RemoveObject(object_index);
+  if (!remove_status.ok()) {
+    return remove_status;
+  }
   
   // Update selection indices
   for (auto& selected_index : selection_state_.selected_objects) {
@@ -531,26 +536,35 @@ absl::Status DungeonObjectEditor::HandleMouseDrag(int start_x, int start_y, int 
     return absl::FailedPreconditionError("No room loaded");
   }
   
-  // Convert screen coordinates to room coordinates
-  auto [start_room_x, start_room_y] = ScreenToRoomCoordinates(start_x, start_y);
-  auto [current_room_x, current_room_y] = ScreenToRoomCoordinates(current_x, current_y);
+  // Enable dragging if not already (Phase 4)
+  if (!selection_state_.is_dragging && !selection_state_.selected_objects.empty()) {
+    selection_state_.is_dragging = true;
+    selection_state_.drag_start_x = start_x;
+    selection_state_.drag_start_y = start_y;
+    
+    // Create undo point before drag
+    auto undo_status = CreateUndoPoint();
+    if (!undo_status.ok()) {
+      return undo_status;
+    }
+  }
   
-  if (editing_state_.current_mode == Mode::kSelect && !selection_state_.selected_objects.empty()) {
-    // Move selected objects
-    for (size_t object_index : selection_state_.selected_objects) {
-      if (object_index < current_room_->GetTileObjectCount()) {
-        auto& object = current_room_->GetTileObject(object_index);
-        
-        // Calculate offset from start position
-        int offset_x = current_room_x - start_room_x;
-        int offset_y = current_room_y - start_room_y;
-        
-        // Move object
-        auto status = MoveObject(object_index, object.x_ + offset_x, object.y_ + offset_y);
-        if (!status.ok()) {
-          return status;
-        }
-      }
+  // Handle the drag operation (Phase 4)
+  return HandleDragOperation(current_x, current_y);
+}
+
+absl::Status DungeonObjectEditor::HandleMouseRelease(int x, int y) {
+  if (current_room_ == nullptr) {
+    return absl::FailedPreconditionError("No room loaded");
+  }
+  
+  // End dragging operation (Phase 4)
+  if (selection_state_.is_dragging) {
+    selection_state_.is_dragging = false;
+    
+    // Notify callbacks about the final positions
+    if (room_changed_callback_) {
+      room_changed_callback_();
     }
   }
   
@@ -861,6 +875,292 @@ bool DungeonObjectEditor::CanRedo() const {
 void DungeonObjectEditor::ClearHistory() {
   undo_history_.clear();
   redo_history_.clear();
+}
+
+// ============================================================================
+// Phase 4: Visual Feedback and GUI Methods
+// ============================================================================
+
+// Helper for color blending
+static uint32_t BlendColors(uint32_t base, uint32_t tint) {
+  uint8_t a_tint = (tint >> 24) & 0xFF;
+  if (a_tint == 0) return base;
+  
+  uint8_t r_base = (base >> 16) & 0xFF;
+  uint8_t g_base = (base >> 8) & 0xFF;
+  uint8_t b_base = base & 0xFF;
+  
+  uint8_t r_tint = (tint >> 16) & 0xFF;
+  uint8_t g_tint = (tint >> 8) & 0xFF;
+  uint8_t b_tint = tint & 0xFF;
+  
+  float alpha = a_tint / 255.0f;
+  uint8_t r = r_base * (1.0f - alpha) + r_tint * alpha;
+  uint8_t g = g_base * (1.0f - alpha) + g_tint * alpha;
+  uint8_t b = b_base * (1.0f - alpha) + b_tint * alpha;
+  
+  return 0xFF000000 | (r << 16) | (g << 8) | b;
+}
+
+void DungeonObjectEditor::RenderSelectionHighlight(gfx::Bitmap& canvas) {
+  if (!config_.show_selection_highlight || selection_state_.selected_objects.empty()) {
+    return;
+  }
+  
+  // Draw highlight rectangles around selected objects
+  for (size_t obj_idx : selection_state_.selected_objects) {
+    if (obj_idx >= current_room_->GetTileObjectCount()) continue;
+    
+    const auto& obj = current_room_->GetTileObject(obj_idx);
+    int x = obj.x() * 16;
+    int y = obj.y() * 16;
+    int w = 16 + (obj.size() * 4);  // Approximate width
+    int h = 16 + (obj.size() * 4);  // Approximate height
+    
+    // Draw yellow selection box (2px border) - using SetPixel
+    uint8_t r = (config_.selection_color >> 16) & 0xFF;
+    uint8_t g = (config_.selection_color >> 8) & 0xFF;
+    uint8_t b = config_.selection_color & 0xFF;
+    gfx::SnesColor sel_color(r, g, b);
+    
+    for (int py = y; py < y + h; py++) {
+      for (int px = x; px < x + w; px++) {
+        if (px < canvas.width() && py < canvas.height() &&
+            (px < x + 2 || px >= x + w - 2 || py < y + 2 || py >= y + h - 2)) {
+          canvas.SetPixel(px, py, sel_color);
+        }
+      }
+    }
+  }
+}
+
+void DungeonObjectEditor::RenderLayerVisualization(gfx::Bitmap& canvas) {
+  if (!config_.show_layer_colors || !current_room_) {
+    return;
+  }
+  
+  // Apply subtle color tints based on layer (simplified - just mark with colored border)
+  for (const auto& obj : current_room_->GetTileObjects()) {
+    int x = obj.x() * 16;
+    int y = obj.y() * 16;
+    int w = 16;
+    int h = 16;
+    
+    uint32_t tint_color = 0xFF000000;
+    switch (obj.GetLayerValue()) {
+      case 0: tint_color = config_.layer0_color; break;
+      case 1: tint_color = config_.layer1_color; break;
+      case 2: tint_color = config_.layer2_color; break;
+    }
+    
+    // Draw 1px border in layer color
+    uint8_t r = (tint_color >> 16) & 0xFF;
+    uint8_t g = (tint_color >> 8) & 0xFF;
+    uint8_t b = tint_color & 0xFF;
+    gfx::SnesColor layer_color(r, g, b);
+    
+    for (int py = y; py < y + h && py < canvas.height(); py++) {
+      for (int px = x; px < x + w && px < canvas.width(); px++) {
+        if (px == x || px == x + w - 1 || py == y || py == y + h - 1) {
+          canvas.SetPixel(px, py, layer_color);
+        }
+      }
+    }
+  }
+}
+
+void DungeonObjectEditor::RenderObjectPropertyPanel() {
+  if (!config_.show_property_panel || selection_state_.selected_objects.empty()) {
+    return;
+  }
+  
+  ImGui::Begin("Object Properties", &config_.show_property_panel);
+  
+  if (selection_state_.selected_objects.size() == 1) {
+    size_t obj_idx = selection_state_.selected_objects[0];
+    if (obj_idx < current_room_->GetTileObjectCount()) {
+      auto& obj = current_room_->GetTileObject(obj_idx);
+      
+      ImGui::Text("Object #%zu", obj_idx);
+      ImGui::Separator();
+      
+      // ID (hex)
+      int id = obj.id_;
+      if (ImGui::InputInt("ID (0x)", &id, 1, 16, ImGuiInputTextFlags_CharsHexadecimal)) {
+        if (id >= 0 && id <= 0xFFF) {
+          obj.id_ = id;
+          if (object_changed_callback_) {
+            object_changed_callback_(obj_idx, obj);
+          }
+        }
+      }
+      
+      // Position
+      int x = obj.x();
+      int y = obj.y();
+      if (ImGui::InputInt("X Position", &x, 1, 4)) {
+        if (x >= 0 && x < 64) {
+          obj.set_x(x);
+          if (object_changed_callback_) {
+            object_changed_callback_(obj_idx, obj);
+          }
+        }
+      }
+      if (ImGui::InputInt("Y Position", &y, 1, 4)) {
+        if (y >= 0 && y < 64) {
+          obj.set_y(y);
+          if (object_changed_callback_) {
+            object_changed_callback_(obj_idx, obj);
+          }
+        }
+      }
+      
+      // Size (for Type 1 objects only)
+      if (obj.id_ < 0x100) {
+        int size = obj.size();
+        if (ImGui::SliderInt("Size", &size, 0, 15)) {
+          obj.set_size(size);
+          if (object_changed_callback_) {
+            object_changed_callback_(obj_idx, obj);
+          }
+        }
+      }
+      
+      // Layer
+      int layer = obj.GetLayerValue();
+      if (ImGui::Combo("Layer", &layer, "Layer 0\0Layer 1\0Layer 2\0")) {
+        obj.layer_ = static_cast<RoomObject::LayerType>(layer);
+        if (object_changed_callback_) {
+          object_changed_callback_(obj_idx, obj);
+        }
+      }
+      
+      ImGui::Separator();
+      
+      // Action buttons
+      if (ImGui::Button("Delete Object")) {
+        auto status = DeleteObject(obj_idx);
+        (void)status;  // Ignore return value for now
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Duplicate")) {
+        RoomObject duplicate = obj;
+        duplicate.set_x(obj.x() + 1);
+        auto status = current_room_->AddObject(duplicate);
+        (void)status;  // Ignore return value for now
+      }
+    }
+  } else {
+    // Multiple objects selected
+    ImGui::Text("%zu objects selected", selection_state_.selected_objects.size());
+    ImGui::Separator();
+    
+    if (ImGui::Button("Delete All Selected")) {
+      auto status = DeleteSelectedObjects();
+      (void)status;  // Ignore return value for now
+    }
+    
+    if (ImGui::Button("Clear Selection")) {
+      auto status = ClearSelection();
+      (void)status;  // Ignore return value for now
+    }
+  }
+  
+  ImGui::End();
+}
+
+void DungeonObjectEditor::RenderLayerControls() {
+  ImGui::Begin("Layer Controls");
+  
+  // Current layer selection
+  ImGui::Text("Current Layer:");
+  ImGui::RadioButton("Layer 0", &editing_state_.current_layer, 0);
+  ImGui::SameLine();
+  ImGui::RadioButton("Layer 1", &editing_state_.current_layer, 1);
+  ImGui::SameLine();
+  ImGui::RadioButton("Layer 2", &editing_state_.current_layer, 2);
+  
+  ImGui::Separator();
+  
+  // Layer visibility toggles
+  static bool layer_visible[3] = {true, true, true};
+  ImGui::Text("Layer Visibility:");
+  ImGui::Checkbox("Show Layer 0", &layer_visible[0]);
+  ImGui::Checkbox("Show Layer 1", &layer_visible[1]);
+  ImGui::Checkbox("Show Layer 2", &layer_visible[2]);
+  
+  ImGui::Separator();
+  
+  // Layer colors
+  ImGui::Checkbox("Show Layer Colors", &config_.show_layer_colors);
+  if (config_.show_layer_colors) {
+    ImGui::ColorEdit4("Layer 0 Tint", (float*)&config_.layer0_color);
+    ImGui::ColorEdit4("Layer 1 Tint", (float*)&config_.layer1_color);
+    ImGui::ColorEdit4("Layer 2 Tint", (float*)&config_.layer2_color);
+  }
+  
+  ImGui::Separator();
+  
+  // Object counts per layer
+  if (current_room_) {
+    int count0 = 0, count1 = 0, count2 = 0;
+    for (const auto& obj : current_room_->GetTileObjects()) {
+      switch (obj.GetLayerValue()) {
+        case 0: count0++; break;
+        case 1: count1++; break;
+        case 2: count2++; break;
+      }
+    }
+    ImGui::Text("Layer 0: %d objects", count0);
+    ImGui::Text("Layer 1: %d objects", count1);
+    ImGui::Text("Layer 2: %d objects", count2);
+  }
+  
+  ImGui::End();
+}
+
+absl::Status DungeonObjectEditor::HandleDragOperation(int current_x, int current_y) {
+  if (!selection_state_.is_dragging || selection_state_.selected_objects.empty()) {
+    return absl::OkStatus();
+  }
+  
+  // Calculate delta from drag start
+  int dx = current_x - selection_state_.drag_start_x;
+  int dy = current_y - selection_state_.drag_start_y;
+  
+  // Convert pixel delta to grid delta
+  int grid_dx = dx / config_.grid_size;
+  int grid_dy = dy / config_.grid_size;
+  
+  if (grid_dx == 0 && grid_dy == 0) {
+    return absl::OkStatus();  // No meaningful movement yet
+  }
+  
+  // Move all selected objects
+  for (size_t obj_idx : selection_state_.selected_objects) {
+    if (obj_idx >= current_room_->GetTileObjectCount()) continue;
+    
+    auto& obj = current_room_->GetTileObject(obj_idx);
+    int new_x = obj.x() + grid_dx;
+    int new_y = obj.y() + grid_dy;
+    
+    // Clamp to valid range
+    new_x = std::max(0, std::min(63, new_x));
+    new_y = std::max(0, std::min(63, new_y));
+    
+    obj.set_x(new_x);
+    obj.set_y(new_y);
+    
+    if (object_changed_callback_) {
+      object_changed_callback_(obj_idx, obj);
+    }
+  }
+  
+  // Update drag start position
+  selection_state_.drag_start_x = current_x;
+  selection_state_.drag_start_y = current_y;
+  
+  return absl::OkStatus();
 }
 
 absl::StatusOr<gfx::Bitmap> DungeonObjectEditor::RenderRoom() {

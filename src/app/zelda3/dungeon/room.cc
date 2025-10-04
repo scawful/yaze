@@ -481,37 +481,16 @@ void Room::ParseObjectsFromLocation(int objects_location) {
     }
 
     if (!door) {
-      // Parse object with enhanced validation
-      if (b3 >= 0xF8) {
-        oid = static_cast<short>((b3 << 4) |
-                                 0x80 + (((b2 & 0x03) << 2) + ((b1 & 0x03))));
-        posX = static_cast<uint8_t>((b1 & 0xFC) >> 2);
-        posY = static_cast<uint8_t>((b2 & 0xFC) >> 2);
-        sizeXY = static_cast<uint8_t>((((b1 & 0x03) << 2) + (b2 & 0x03)));
-      } else {
-        oid = b3;
-        posX = static_cast<uint8_t>((b1 & 0xFC) >> 2);
-        posY = static_cast<uint8_t>((b2 & 0xFC) >> 2);
-        sizeX = static_cast<uint8_t>((b1 & 0x03));
-        sizeY = static_cast<uint8_t>((b2 & 0x03));
-        sizeXY = static_cast<uint8_t>(((sizeX << 2) + sizeY));
-      }
-
-      if (b1 >= 0xFC) {
-        oid = static_cast<short>((b3 & 0x3F) + 0x100);
-        posX = static_cast<uint8_t>(((b2 & 0xF0) >> 4) + ((b1 & 0x3) << 4));
-        posY = static_cast<uint8_t>(((b2 & 0x0F) << 2) + ((b3 & 0xC0) >> 6));
-        sizeXY = 0;
-      }
-
-      // Validate object ID before creating object
-      if (oid >= 0 && oid <= 0x3FF) {
-        RoomObject r(oid, posX, posY, sizeXY, static_cast<uint8_t>(layer));
+      // Use the refactored encoding/decoding functions (Phase 1, Task 1.2)
+      RoomObject r = RoomObject::DecodeObjectFromBytes(b1, b2, b3, static_cast<uint8_t>(layer));
+      
+      // Validate object ID before adding to the room
+      if (r.id_ >= 0 && r.id_ <= 0x3FF) {
         r.set_rom(rom_);
         tile_objects_.push_back(r);
 
-        // Handle special object types
-        HandleSpecialObjects(oid, posX, posY, nbr_of_staircase);
+        // Handle special object types (staircases, chests, etc.)
+        HandleSpecialObjects(r.id_, r.x(), r.y(), nbr_of_staircase);
       }
     } else {
       // Handle door objects (placeholder for future implementation)
@@ -519,6 +498,170 @@ void Room::ParseObjectsFromLocation(int objects_location) {
       //                                        0, 0, 0, static_cast<uint8_t>(layer)));
     }
   }
+}
+
+// ============================================================================
+// Object Saving Implementation (Phase 1, Task 1.3)
+// ============================================================================
+
+std::vector<uint8_t> Room::EncodeObjects() const {
+  std::vector<uint8_t> bytes;
+  
+  // Organize objects by layer
+  std::vector<RoomObject> layer0_objects;
+  std::vector<RoomObject> layer1_objects;
+  std::vector<RoomObject> layer2_objects;
+  
+  for (const auto& obj : tile_objects_) {
+    switch (obj.GetLayerValue()) {
+      case 0: layer0_objects.push_back(obj); break;
+      case 1: layer1_objects.push_back(obj); break;
+      case 2: layer2_objects.push_back(obj); break;
+    }
+  }
+  
+  // Encode Layer 1 (BG2)
+  for (const auto& obj : layer0_objects) {
+    auto encoded = obj.EncodeObjectToBytes();
+    bytes.push_back(encoded.b1);
+    bytes.push_back(encoded.b2);
+    bytes.push_back(encoded.b3);
+  }
+  bytes.push_back(0xFF);
+  bytes.push_back(0xFF);
+  
+  // Encode Layer 2 (BG1)
+  for (const auto& obj : layer1_objects) {
+    auto encoded = obj.EncodeObjectToBytes();
+    bytes.push_back(encoded.b1);
+    bytes.push_back(encoded.b2);
+    bytes.push_back(encoded.b3);
+  }
+  bytes.push_back(0xFF);
+  bytes.push_back(0xFF);
+  
+  // Encode Layer 3
+  for (const auto& obj : layer2_objects) {
+    auto encoded = obj.EncodeObjectToBytes();
+    bytes.push_back(encoded.b1);
+    bytes.push_back(encoded.b2);
+    bytes.push_back(encoded.b3);
+  }
+  
+  // Final terminator
+  bytes.push_back(0xFF);
+  bytes.push_back(0xFF);
+  
+  return bytes;
+}
+
+absl::Status Room::SaveObjects() {
+  if (rom_ == nullptr) {
+    return absl::InvalidArgumentError("ROM pointer is null");
+  }
+  
+  auto rom_data = rom()->vector();
+  
+  // Get object pointer
+  int object_pointer = (rom_data[room_object_pointer + 2] << 16) +
+                       (rom_data[room_object_pointer + 1] << 8) +
+                       (rom_data[room_object_pointer]);
+  object_pointer = SnesToPc(object_pointer);
+  
+  if (object_pointer < 0 || object_pointer >= (int)rom_->size()) {
+    return absl::OutOfRangeError("Object pointer out of range");
+  }
+  
+  int room_address = object_pointer + (room_id_ * 3);
+  
+  if (room_address < 0 || room_address + 2 >= (int)rom_->size()) {
+    return absl::OutOfRangeError("Room address out of range");
+  }
+
+  int tile_address = (rom_data[room_address + 2] << 16) +
+                     (rom_data[room_address + 1] << 8) + rom_data[room_address];
+
+  int objects_location = SnesToPc(tile_address);
+  
+  if (objects_location < 0 || objects_location >= (int)rom_->size()) {
+    return absl::OutOfRangeError("Objects location out of range");
+  }
+  
+  // Skip graphics/layout header (2 bytes)
+  int write_pos = objects_location + 2;
+  
+  // Encode all objects
+  auto encoded_bytes = EncodeObjects();
+  
+  // Write encoded bytes to ROM using WriteVector
+  return rom_->WriteVector(write_pos, encoded_bytes);
+}
+
+// ============================================================================
+// Object Manipulation Methods (Phase 3)
+// ============================================================================
+
+absl::Status Room::AddObject(const RoomObject& object) {
+  // Validate object
+  if (!ValidateObject(object)) {
+    return absl::InvalidArgumentError("Invalid object parameters");
+  }
+  
+  // Add to internal list
+  tile_objects_.push_back(object);
+  
+  return absl::OkStatus();
+}
+
+absl::Status Room::RemoveObject(size_t index) {
+  if (index >= tile_objects_.size()) {
+    return absl::OutOfRangeError("Object index out of range");
+  }
+  
+  tile_objects_.erase(tile_objects_.begin() + index);
+  
+  return absl::OkStatus();
+}
+
+absl::Status Room::UpdateObject(size_t index, const RoomObject& object) {
+  if (index >= tile_objects_.size()) {
+    return absl::OutOfRangeError("Object index out of range");
+  }
+  
+  if (!ValidateObject(object)) {
+    return absl::InvalidArgumentError("Invalid object parameters");
+  }
+  
+  tile_objects_[index] = object;
+  
+  return absl::OkStatus();
+}
+
+absl::StatusOr<size_t> Room::FindObjectAt(int x, int y, int layer) const {
+  for (size_t i = 0; i < tile_objects_.size(); i++) {
+    const auto& obj = tile_objects_[i];
+    if (obj.x() == x && obj.y() == y && obj.GetLayerValue() == layer) {
+      return i;
+    }
+  }
+  return absl::NotFoundError("No object found at position");
+}
+
+bool Room::ValidateObject(const RoomObject& object) const {
+  // Validate position (0-63 for both X and Y)
+  if (object.x() < 0 || object.x() > 63) return false;
+  if (object.y() < 0 || object.y() > 63) return false;
+  
+  // Validate layer (0-2)
+  if (object.GetLayerValue() < 0 || object.GetLayerValue() > 2) return false;
+  
+  // Validate object ID range
+  if (object.id_ < 0 || object.id_ > 0xFFF) return false;
+  
+  // Validate size for Type 1 objects
+  if (object.id_ < 0x100 && object.size() > 15) return false;
+  
+  return true;
 }
 
 void Room::HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY, int& nbr_of_staircase) {

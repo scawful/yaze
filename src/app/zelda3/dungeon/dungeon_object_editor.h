@@ -77,6 +77,15 @@ class DungeonObjectEditor {
     int auto_save_interval = 300;  // 5 minutes
     bool validate_objects = true;
     bool show_collision_bounds = false;
+    
+    // Phase 4: Visual feedback settings
+    bool show_selection_highlight = true;
+    bool show_layer_colors = true;
+    bool show_property_panel = true;
+    uint32_t selection_color = 0xFFFFFF00;  // Yellow
+    uint32_t layer0_color = 0xFFFF0000;     // Red tint
+    uint32_t layer1_color = 0xFF00FF00;     // Green tint
+    uint32_t layer2_color = 0xFF0000FF;     // Blue tint
   };
 
   // Undo/Redo system
@@ -117,7 +126,7 @@ class DungeonObjectEditor {
                                 bool right_button, bool shift_pressed);
   absl::Status HandleMouseDrag(int start_x, int start_y, int current_x,
                                int current_y);
-  absl::Status HandleMouseRelease(int x, int y);
+  absl::Status HandleMouseRelease(int x, int y);  // Phase 4: End drag operations
   absl::Status HandleScrollWheel(int delta, int x, int y, bool ctrl_pressed);
   absl::Status HandleKeyPress(int key_code, bool ctrl_pressed,
                               bool shift_pressed);
@@ -145,6 +154,13 @@ class DungeonObjectEditor {
   absl::StatusOr<gfx::Bitmap> RenderPreview(int x, int y);
   void SetPreviewPosition(int x, int y);
   void UpdatePreview();
+  
+  // Phase 4: Visual feedback and GUI
+  void RenderSelectionHighlight(gfx::Bitmap& canvas);
+  void RenderLayerVisualization(gfx::Bitmap& canvas);
+  void RenderObjectPropertyPanel();  // ImGui panel
+  void RenderLayerControls();  // ImGui controls
+  absl::Status HandleDragOperation(int current_x, int current_y);
 
   // Undo/Redo functionality
   absl::Status Undo();
