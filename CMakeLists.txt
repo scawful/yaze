@@ -271,6 +271,9 @@ file(COPY ${AGENT_FILES} DESTINATION "${CMAKE_BINARY_DIR}/assets/agent/")
 
 add_subdirectory(src)
 
+# Tools
+add_subdirectory(tools)
+
 # Tests
 if (YAZE_BUILD_TESTS)
 add_subdirectory(test)
