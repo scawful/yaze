@@ -64,10 +64,18 @@ class AgentChatWidget {
   void set_active(bool active) { active_ = active; }
 
 public:
+  enum class CollaborationMode {
+    kLocal = 0,    // Filesystem-based collaboration
+    kNetwork = 1   // WebSocket-based collaboration
+  };
+
   struct CollaborationState {
     bool active = false;
+    CollaborationMode mode = CollaborationMode::kLocal;
     std::string session_id;
     std::string session_name;
+    std::string server_url = "ws://localhost:8765";
+    bool server_connected = false;
     std::vector<std::string> participants;
     absl::Time last_synced = absl::InfinitePast();
   };
@@ -140,6 +148,7 @@ public:
   MultimodalCallbacks multimodal_callbacks_;
   char session_name_buffer_[64] = {};
   char join_code_buffer_[64] = {};
+  char server_url_buffer_[256] = "ws://localhost:8765";
   char multimodal_prompt_buffer_[256] = {};
   absl::Time last_collaboration_action_ = absl::InfinitePast();
   absl::Time last_shared_history_poll_ = absl::InfinitePast();

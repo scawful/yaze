@@ -140,6 +140,36 @@ void ModernCLI::SetupCommands() {
       }
     };
 
+    commands_["collab"] = {
+      .name = "collab",
+      .description = "🌐 Collaboration Server Management\n"
+                     "   Launch and manage the WebSocket collaboration server for networked sessions",
+      .usage = "\n"
+               "╔═══════════════════════════════════════════════════════════════════════════╗\n"
+               "║                 🌐 COLLABORATION SERVER COMMANDS                          ║\n"
+               "╚═══════════════════════════════════════════════════════════════════════════╝\n"
+               "\n"
+               "🚀 SERVER MANAGEMENT:\n"
+               "  z3ed collab start [--port=<port>]\n"
+               "    → Start the WebSocket collaboration server\n"
+               "    → Default port: 8765\n"
+               "    → Server will be accessible at ws://localhost:<port>\n"
+               "\n"
+               "📊 SERVER STATUS:\n"
+               "  z3ed collab status\n"
+               "    → Check if collaboration server is running\n"
+               "    → Show active sessions and participants\n"
+               "\n"
+               "💡 USAGE:\n"
+               "  1. Start server: z3ed collab start\n"
+               "  2. In YAZE GUI: Debug → Agent Chat\n"
+               "  3. Select 'Network' mode and connect to ws://localhost:8765\n"
+               "  4. Host or join a session to collaborate!\n",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleCollabCommand(args);
+      }
+    };
+
     commands_["widget"] = {
       .name = "widget",
       .description = "Discover GUI widgets exposed through automation APIs",
@@ -783,6 +813,89 @@ absl::Status ModernCLI::HandleExtractSymbolsCommand(const std::vector<std::strin
 absl::Status ModernCLI::HandleAgentCommand(const std::vector<std::string>& args) {
     Agent handler;
     return handler.Run(args);
+}
+
+absl::Status ModernCLI::HandleCollabCommand(const std::vector<std::string>& args) {
+  if (args.empty()) {
+    return absl::InvalidArgumentError(
+        "Usage: z3ed collab <start|status> [options]\n"
+        "  start  - Start the collaboration server\n"
+        "  status - Check server status");
+  }
+
+  const std::string& subcommand = args[0];
+
+  if (subcommand == "start") {
+    std::string port = "8765";
+    
+    // Parse port argument
+    for (size_t i = 1; i < args.size(); ++i) {
+      if (absl::StartsWith(args[i], "--port=")) {
+        port = args[i].substr(7);
+      } else if (args[i] == "--port" && i + 1 < args.size()) {
+        port = args[++i];
+      }
+    }
+
+    // Determine server directory
+    std::string server_dir;
+    if (const char* yaze_root = std::getenv("YAZE_ROOT")) {
+      server_dir = std::string(yaze_root);
+    } else {
+      // Assume we're in build directory, server is ../yaze-collab-server
+      server_dir = "..";
+    }
+    
+    std::cout << "🚀 Starting collaboration server on port " << port << "...\n";
+    std::cout << "   Server will be accessible at ws://localhost:" << port << "\n\n";
+    
+    // Build platform-specific command
+    std::string command;
+#ifdef _WIN32
+    // Windows: Use cmd.exe to run npm start
+    command = "cd /D \"" + server_dir + "\\..\\yaze-collab-server\" && set PORT=" + 
+              port + " && npm start";
+#else
+    // Unix: Use bash script
+    command = "cd \"" + server_dir + "/../yaze-collab-server\" && PORT=" + 
+              port + " node server.js &";
+#endif
+    
+    int result = std::system(command.c_str());
+    
+    if (result != 0) {
+      std::cout << "⚠️  Note: Server may not be installed. To install:\n";
+      std::cout << "   cd yaze-collab-server && npm install\n";
+      return absl::InternalError("Failed to start collaboration server");
+    }
+    
+    std::cout << "✓ Server started (may take a few seconds to initialize)\n";
+    return absl::OkStatus();
+  }
+  
+  if (subcommand == "status") {
+    // Check if Node.js process is running (platform-specific)
+    int result;
+#ifdef _WIN32
+    // Windows: Use tasklist to find node.exe
+    result = std::system("tasklist /FI \"IMAGENAME eq node.exe\" 2>NUL | find /I \"node.exe\" >NUL");
+#else
+    // Unix: Use pgrep
+    result = std::system("pgrep -f 'node.*server.js' > /dev/null 2>&1");
+#endif
+    
+    if (result == 0) {
+      std::cout << "✓ Collaboration server appears to be running\n";
+      std::cout << "  Connect from YAZE: Debug → Agent Chat → Network mode\n";
+    } else {
+      std::cout << "○ Collaboration server is not running\n";
+      std::cout << "  Start with: z3ed collab start\n";
+    }
+    
+    return absl::OkStatus();
+  }
+
+  return absl::InvalidArgumentError(absl::StrFormat("Unknown subcommand: %s", subcommand));
 }
 
 absl::Status ModernCLI::HandleProjectBuildCommand(const std::vector<std::string>& args) {

@@ -27,7 +27,12 @@ namespace {
 
 std::filesystem::path ExpandUserPath(std::string path) {
   if (!path.empty() && path.front() == '~') {
-    const char* home = std::getenv("HOME");
+    const char* home = nullptr;
+#ifdef _WIN32
+    home = std::getenv("USERPROFILE");
+#else
+    home = std::getenv("HOME");
+#endif
     if (home != nullptr) {
       path.replace(0, 1, home);
     }

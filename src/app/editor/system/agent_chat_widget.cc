@@ -32,7 +32,12 @@ const ImVec4 kProposalPanelColor = ImVec4(0.20f, 0.35f, 0.20f, 0.35f);
 
 std::filesystem::path ExpandUserPath(std::string path) {
   if (!path.empty() && path.front() == '~') {
-    const char* home = std::getenv("HOME");
+    const char* home = nullptr;
+#ifdef _WIN32
+    home = std::getenv("USERPROFILE");
+#else
+    home = std::getenv("HOME");
+#endif
     if (home != nullptr) {
       path.replace(0, 1, home);
     }
@@ -497,35 +502,94 @@ void AgentChatWidget::Draw() {
 }
 
 void AgentChatWidget::RenderCollaborationPanel() {
-  if (!ImGui::CollapsingHeader("Collaborative Session (Preview)",
+  if (!ImGui::CollapsingHeader("Collaborative Session",
                                ImGuiTreeNodeFlags_DefaultOpen)) {
     return;
   }
 
-  const bool connected = collaboration_state_.active;
-  ImGui::Text("Status: %s", connected ? "Connected" : "Not connected");
-  if (!collaboration_state_.session_name.empty()) {
-    ImGui::Text("Session Name: %s",
-                collaboration_state_.session_name.c_str());
+  // Mode selector
+  ImGui::Text("Mode:");
+  ImGui::SameLine();
+  int mode = static_cast<int>(collaboration_state_.mode);
+  if (ImGui::RadioButton("Local", &mode, 0)) {
+    collaboration_state_.mode = CollaborationMode::kLocal;
   }
-  if (!collaboration_state_.session_id.empty()) {
-    ImGui::Text("Session Code: %s",
-                collaboration_state_.session_id.c_str());
-    ImGui::SameLine();
-    if (ImGui::SmallButton("Copy Code")) {
-      ImGui::SetClipboardText(collaboration_state_.session_id.c_str());
-      if (toast_manager_) {
-        toast_manager_->Show("Session code copied",
-                             ToastType::kInfo, 2.5f);
+  ImGui::SameLine();
+  if (ImGui::RadioButton("Network", &mode, 1)) {
+    collaboration_state_.mode = CollaborationMode::kNetwork;
+  }
+
+  ImGui::Separator();
+
+  // Table layout: Left side = Session Details, Right side = Controls
+  if (ImGui::BeginTable("collab_table", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingFixedFit)) {
+    ImGui::TableSetupColumn("Session Details", ImGuiTableColumnFlags_WidthFixed, 250.0f);
+    ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthStretch);
+    
+    ImGui::TableNextRow();
+    
+    // LEFT COLUMN: Session Details
+    ImGui::TableSetColumnIndex(0);
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.18f, 1.0f));
+    ImGui::BeginChild("session_details", ImVec2(0, 180), true);
+    
+    const bool connected = collaboration_state_.active;
+    ImGui::TextColored(connected ? ImVec4(0.4f, 1.0f, 0.4f, 1.0f) : ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+                      "%s %s", connected ? "●" : "○",
+                      connected ? "Connected" : "Not connected");
+    
+    ImGui::Separator();
+    
+    if (collaboration_state_.mode == CollaborationMode::kNetwork) {
+      ImGui::Text("Server:");
+      ImGui::TextWrapped("%s", collaboration_state_.server_url.c_str());
+      ImGui::Spacing();
+    }
+    
+    if (!collaboration_state_.session_name.empty()) {
+      ImGui::Text("Session:");
+      ImGui::TextWrapped("%s", collaboration_state_.session_name.c_str());
+      ImGui::Spacing();
+    }
+    
+    if (!collaboration_state_.session_id.empty()) {
+      ImGui::Text("Code:");
+      ImGui::TextWrapped("%s", collaboration_state_.session_id.c_str());
+      if (ImGui::SmallButton("Copy")) {
+        ImGui::SetClipboardText(collaboration_state_.session_id.c_str());
+        if (toast_manager_) {
+          toast_manager_->Show("Code copied", ToastType::kInfo, 2.0f);
+        }
+      }
+      ImGui::Spacing();
+    }
+    
+    if (collaboration_state_.last_synced != absl::InfinitePast()) {
+      ImGui::TextDisabled("Last sync:");
+      ImGui::TextDisabled("%s",
+          absl::FormatTime("%H:%M:%S", collaboration_state_.last_synced,
+                          absl::LocalTimeZone()).c_str());
+    }
+    
+    ImGui::EndChild();
+    ImGui::PopStyleColor();
+    
+    // Show participants list below session details
+    ImGui::BeginChild("participants", ImVec2(0, 0), true);
+    if (collaboration_state_.participants.empty()) {
+      ImGui::TextDisabled("No participants");
+    } else {
+      ImGui::Text("Participants (%zu):", collaboration_state_.participants.size());
+      ImGui::Separator();
+      for (const auto& participant : collaboration_state_.participants) {
+        ImGui::BulletText("%s", participant.c_str());
       }
     }
-  }
-  if (collaboration_state_.last_synced != absl::InfinitePast()) {
-    ImGui::TextDisabled(
-        "Last sync: %s",
-        absl::FormatTime("%H:%M:%S", collaboration_state_.last_synced,
-                         absl::LocalTimeZone()).c_str());
-  }
+    ImGui::EndChild();
+    
+    // RIGHT COLUMN: Controls
+    ImGui::TableSetColumnIndex(1);
+    ImGui::BeginChild("controls", ImVec2(0, 0), false);
 
   ImGui::Separator();
 
@@ -534,12 +598,29 @@ void AgentChatWidget::RenderCollaborationPanel() {
   const bool can_leave = static_cast<bool>(collaboration_callbacks_.leave_session);
   const bool can_refresh = static_cast<bool>(collaboration_callbacks_.refresh_session);
 
+  // Network mode: Show server URL input
+  if (collaboration_state_.mode == CollaborationMode::kNetwork) {
+    ImGui::Text("Server URL:");
+    ImGui::InputText("##server_url", server_url_buffer_,
+                     IM_ARRAYSIZE(server_url_buffer_));
+    if (ImGui::Button("Connect to Server")) {
+      collaboration_state_.server_url = server_url_buffer_;
+      // TODO: Trigger network coordinator connection
+      if (toast_manager_) {
+        toast_manager_->Show("Network mode: connecting...",
+                            ToastType::kInfo, 3.0f);
+      }
+    }
+    ImGui::Separator();
+  }
+
+  ImGui::Text("Host New Session:");
   ImGui::InputTextWithHint("##session_name", "Session name",
                            session_name_buffer_,
                            IM_ARRAYSIZE(session_name_buffer_));
   ImGui::SameLine();
   if (!can_host) ImGui::BeginDisabled();
-  if (ImGui::Button("Host Session")) {
+  if (ImGui::Button("Host")) {
     std::string name = session_name_buffer_;
     if (name.empty()) {
       if (toast_manager_) {
@@ -575,12 +656,14 @@ void AgentChatWidget::RenderCollaborationPanel() {
     ImGui::EndDisabled();
   }
 
+  ImGui::Spacing();
+  ImGui::Text("Join Existing Session:");
   ImGui::InputTextWithHint("##join_code", "Session code",
                            join_code_buffer_,
                            IM_ARRAYSIZE(join_code_buffer_));
   ImGui::SameLine();
   if (!can_join) ImGui::BeginDisabled();
-  if (ImGui::Button("Join Session")) {
+  if (ImGui::Button("Join")) {
     std::string code = join_code_buffer_;
     if (code.empty()) {
       if (toast_manager_) {
@@ -639,26 +722,23 @@ void AgentChatWidget::RenderCollaborationPanel() {
   }
 
   if (connected) {
+    ImGui::Spacing();
     ImGui::Separator();
     if (!can_refresh) ImGui::BeginDisabled();
-    if (ImGui::Button("Refresh Participants")) {
+    if (ImGui::Button("Refresh Session")) {
       RefreshCollaboration();
     }
     if (!can_refresh && ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Provide refresh_session callback to enable");
     }
     if (!can_refresh) ImGui::EndDisabled();
-    if (collaboration_state_.participants.empty()) {
-      ImGui::TextDisabled("Awaiting participant list...");
-    } else {
-      ImGui::Text("Participants (%zu):",
-                  collaboration_state_.participants.size());
-      for (const auto& participant : collaboration_state_.participants) {
-        ImGui::BulletText("%s", participant.c_str());
-      }
-    }
   } else {
-    ImGui::TextDisabled("Start or join a session to collaborate in real time.");
+    ImGui::Spacing();
+    ImGui::TextDisabled("Start or join a session to collaborate.");
+  }
+  
+  ImGui::EndChild();  // controls
+  ImGui::EndTable();
   }
 }
 
