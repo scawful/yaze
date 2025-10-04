@@ -1,5 +1,19 @@
 // yaze iOS Application
 // Uses SDL2 and ImGui
+//
+// This file implements the iOS-specific entry point and UI management for yaze.
+// It integrates with the modern Controller API and EditorManager infrastructure.
+//
+// Key components:
+// - AppViewController: Main view controller managing the MTKView and Controller lifecycle
+// - AppDelegate: iOS app lifecycle management and document picker integration
+// - Touch gesture handlers: Maps iOS gestures to ImGui input events
+//
+// Updated to use:
+// - Modern Controller::OnEntry/OnLoad/DoRender API
+// - EditorManager for ROM management (no SharedRom singleton)
+// - Proper SDL2 initialization for iOS
+// - Updated ImGui backends (SDL2 renderer, not Metal directly)
 
 #import <Foundation/Foundation.h>
 
@@ -11,12 +25,17 @@
 
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
-
-#import <MobileCoreServices/MobileCoreServices.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+
+#include <string>
+#include <vector>
+#include <algorithm>
 
 #include "app/core/controller.h"
 #include "app/core/platform/app_delegate.h"
+#include "app/core/platform/font_loader.h"
+#include "app/core/window.h"
+#include "app/rom.h"
 
 #include <SDL.h>
 
@@ -25,7 +44,8 @@
 #endif
 
 #include "app/core/platform/view_controller.h"
-#include "imgui/backends/imgui_impl_metal.h"
+#include "imgui/backends/imgui_impl_sdl2.h"
+#include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
 
 // ----------------------------------------------------------------------------
@@ -46,20 +66,13 @@
     abort();
   }
 
-  _controller = new yaze::core::Controller();
-
-  // Setup Dear ImGui context
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO &io = ImGui::GetIO();
-  (void)io;
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
-
-  yaze::gui::ColorsYaze();
-
+  // Initialize SDL for iOS
   SDL_SetMainReady();
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
   SDL_iOSSetEventPump(SDL_TRUE);
+#endif
+  
+  // Parse command line arguments
   int argc = NSProcessInfo.processInfo.arguments.count;
   char **argv = new char *[argc];
   for (int i = 0; i < argc; i++) {
@@ -73,20 +86,29 @@
   if (argc > 1) {
     rom_filename = argv[1];
   }
+  
+  // Clean up argv
+  for (int i = 0; i < argc; i++) {
+    delete[] argv[i];
+  }
+  delete[] argv;
+  
+#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
   SDL_iOSSetEventPump(SDL_FALSE);
+#endif
 
-  // Enable native IME.
+  // Enable native IME
   SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");
 
-  ImGui_ImplSDL2_InitForSDLRenderer(_controller->window(),
-                                    yaze::core::Renderer::Get().renderer());
-  ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::Get().renderer());
-
-  if (!LoadPackageFonts().ok()) {
+  // Create and initialize controller with modern API
+  _controller = new yaze::core::Controller();
+  auto init_status = _controller->OnEntry(rom_filename);
+  if (!init_status.ok()) {
+    NSLog(@"Failed to initialize controller: %s", init_status.message().data());
     abort();
   }
-  _controller->set_active(true);
 
+  // Setup gesture recognizers
   _hoverGestureRecognizer =
       [[UIHoverGestureRecognizer alloc] initWithTarget:self action:@selector(HoverGesture:)];
   [self.view addGestureRecognizer:_hoverGestureRecognizer];
@@ -104,6 +126,7 @@
   _swipeRecognizer.direction =
       UISwipeGestureRecognizerDirectionRight | UISwipeGestureRecognizerDirectionLeft;
   [self.view addGestureRecognizer:_swipeRecognizer];
+  
   return self;
 }
 
@@ -120,48 +143,29 @@
 
   self.mtkView.device = self.device;
   self.mtkView.delegate = self;
-
-#if TARGET_OS_OSX
-  ImGui_ImplOSX_Init(self.view);
-  [NSApp activateIgnoringOtherApps:YES];
-#endif
 }
 
 - (void)drawInMTKView:(MTKView *)view {
-  if (!_controller->active()) return;
+  if (!_controller->IsActive()) return;
 
+  // Handle SDL input events
+  _controller->OnInput();
+
+  // Update ImGui display size for iOS
   ImGuiIO &io = ImGui::GetIO();
   io.DisplaySize.x = view.bounds.size.width;
   io.DisplaySize.y = view.bounds.size.height;
 
-#if TARGET_OS_OSX
-  CGFloat framebufferScale =
-      view.window.screen.backingScaleFactor ?: NSScreen.mainScreen.backingScaleFactor;
-#else
   CGFloat framebufferScale = view.window.screen.scale ?: UIScreen.mainScreen.scale;
-#endif
   io.DisplayFramebufferScale = ImVec2(framebufferScale, framebufferScale);
 
-  ImGui_ImplSDLRenderer2_NewFrame();
-  ImGui_ImplSDL2_NewFrame();
-#if TARGET_OS_OSX
-  ImGui_ImplOSX_NewFrame(view);
-#endif
-
-  ImGui::NewFrame();
-  ImGui::SetNextWindowPos(ImVec2(0, 0));
-  ImVec2 dimensions(io.DisplaySize.x, io.DisplaySize.y);
-  ImGui::SetNextWindowSize(dimensions, ImGuiCond_Always);
-  if (ImGui::Begin("##YazeMain", nullptr,
-                   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse |
-                       ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_MenuBar |
-                       ImGuiWindowFlags_NoBringToFrontOnFocus)) {
-    auto controller_status = _controller->OnLoad();
-    if (!controller_status.ok()) {
-      abort();
-    }
+  // Process frame and render using Controller's API
+  auto load_status = _controller->OnLoad();
+  if (!load_status.ok()) {
+    NSLog(@"Controller OnLoad failed: %s", load_status.message().data());
+    return;
   }
-  ImGui::End();
+  
   _controller->DoRender();
 }
 
@@ -172,20 +176,7 @@
 // Input processing
 // ----------------------------------------------------------------------------
 
-#if TARGET_OS_OSX
-
-- (void)viewWillAppear {
-  [super viewWillAppear];
-  self.view.window.delegate = self;
-}
-
-- (void)windowWillClose:(NSNotification *)notification {
-  ImGui_ImplMetal_Shutdown();
-  ImGui_ImplOSX_Shutdown();
-  ImGui::DestroyContext();
-}
-
-#else
+#if !TARGET_OS_OSX
 
 // This touch mapping is super cheesy/hacky. We treat any touch on the screen
 // as if it were a depressed left mouse button, and we don't bother handling
@@ -317,10 +308,13 @@
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
-  ImGui_ImplSDLRenderer2_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
-  ImGui::DestroyContext();
-  SDL_Quit();
+  // Controller OnExit handles cleanup
+  AppViewController *viewController = (AppViewController *)self.window.rootViewController;
+  if (viewController.controller) {
+    viewController.controller->OnExit();
+    delete viewController.controller;
+    viewController.controller = nullptr;
+  }
 }
 
 - (void)PresentDocumentPickerWithCompletionHandler:
@@ -350,21 +344,35 @@
       [selectedFileURL startAccessingSecurityScopedResource];
 
       auto data = [NSData dataWithContentsOfURL:selectedFileURL];
-      // Cast NSData* to uint8_t*
       uint8_t *bytes = (uint8_t *)[data bytes];
-      // Size of the data
       size_t size = [data length];
 
       std::vector<uint8_t> rom_data;
       rom_data.resize(size);
       std::copy(bytes, bytes + size, rom_data.begin());
 
-      // TODO: Re-implmenent this without the SharedRom singleton 
-      // PRINT_IF_ERROR(yaze::SharedRom::shared_rom_->LoadFromData(rom_data));
-      std::string filename = std::string([selectedFileURL.path UTF8String]);
-      // yaze::SharedRom::shared_rom_->set_filename(filename);
+      // Load ROM using modern API
+      // Get the AppViewController which has the controller
+      AppViewController *viewController = (AppViewController *)self.window.rootViewController;
+      if (viewController && viewController.controller) {
+        // Access the controller's EditorManager to get the current ROM
+        auto* current_rom = viewController.controller->GetCurrentRom();
+        if (current_rom) {
+          auto load_status = current_rom->LoadFromData(rom_data);
+          if (load_status.ok()) {
+            current_rom->set_filename(fileName);
+            NSLog(@"ROM loaded successfully from %s", fileName.c_str());
+          } else {
+            NSLog(@"Failed to load ROM: %s", load_status.message().data());
+          }
+        } else {
+          NSLog(@"No ROM instance available");
+        }
+      } else {
+        NSLog(@"Controller not available");
+      }
+      
       [selectedFileURL stopAccessingSecurityScopedResource];
-
     } else {
       self.completionHandler(@"");
     }
