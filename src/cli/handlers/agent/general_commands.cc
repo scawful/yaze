@@ -19,6 +19,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
 #include "absl/strings/string_view.h"
+#include "app/core/project.h"
 #include "app/zelda3/dungeon/room.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/modern_cli.h"
@@ -52,7 +53,40 @@ struct DescribeOptions {
   std::optional<std::string> last_updated;
 };
 
-absl::Status EnsureRomLoaded(Rom& rom, absl::string_view command_hint) {
+
+// Helper to load project and labels if available
+absl::Status TryLoadProjectAndLabels(Rom& rom) {
+  // Try to find and load a project file in current directory
+  core::YazeProject project;
+  auto project_status = project.Open(".");
+  
+  if (project_status.ok()) {
+    std::cout << "📂 Loaded project: " << project.name << "\n";
+    
+    // Load labels from project
+    if (!project.labels_filename.empty()) {
+      auto* label_mgr = rom.resource_label();
+      if (label_mgr && label_mgr->LoadLabels(project.labels_filename)) {
+        std::cout << "🏷️  Loaded labels from: " << project.labels_filename << "\n";
+      }
+    } else if (!project.resource_labels.empty()) {
+      // Use labels embedded in project
+      auto* label_mgr = rom.resource_label();
+      if (label_mgr) {
+        label_mgr->labels_ = project.resource_labels;
+        label_mgr->labels_loaded_ = true;
+        std::cout << "🏷️  Loaded embedded labels from project\n";
+      }
+    }
+  } else {
+    // No project found - that's okay, continue with defaults
+    std::cout << "ℹ️  No project file found. Tools will use default labels.\n";
+  }
+  
+  return absl::OkStatus();
+}
+
+absl::Status EnsureRomLoaded(Rom& rom, const std::string& command) {
   if (rom.is_loaded()) {
     return absl::OkStatus();
   }
@@ -63,9 +97,10 @@ absl::Status EnsureRomLoaded(Rom& rom, absl::string_view command_hint) {
         absl::StrFormat(
             "No ROM loaded. Pass --rom=<path> when running %s.\n"
             "Example: z3ed %s --rom=zelda3.sfc",
-            command_hint, command_hint));
+            command, command));
   }
 
+  // Load the ROM
   auto status = rom.LoadFromFile(rom_path);
   if (!status.ok()) {
     return absl::FailedPreconditionError(absl::StrFormat(
@@ -566,6 +601,9 @@ absl::Status HandleDescribeCommand(const std::vector<std::string>& arg_vec) {
 
 absl::Status HandleChatCommand(Rom& rom) {
   RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent chat"));
+  
+  // Try to load project and labels automatically
+  auto _ = TryLoadProjectAndLabels(rom);  // Ignore errors - we'll use defaults
 
   tui::ChatTUI chat_tui(&rom);
   chat_tui.Run();
@@ -575,6 +613,9 @@ absl::Status HandleChatCommand(Rom& rom) {
 absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
                                      Rom& rom) {
   RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent simple-chat"));
+  
+  // Try to load project and labels automatically
+  auto _ = TryLoadProjectAndLabels(rom);  // Ignore errors - we'll use defaults
   
   // Parse flags
   std::optional<std::string> batch_file;
