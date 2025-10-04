@@ -78,16 +78,23 @@ add_executable(
   cli/service/testing/test_suite_writer.cc
 )
 
-if(YAZE_WITH_JSON)
+# ============================================================================
+# AI Agent Support (Consolidated via Z3ED_AI flag)
+# ============================================================================
+if(Z3ED_AI OR YAZE_WITH_JSON)
   target_compile_definitions(z3ed PRIVATE YAZE_WITH_JSON)
+  message(STATUS "✓ z3ed AI agent enabled (Ollama + Gemini support)")
+  
+  # Link nlohmann_json (already fetched in main CMakeLists if YAZE_WITH_JSON)
+  target_link_libraries(z3ed PRIVATE nlohmann_json::nlohmann_json)
 endif()
 
 # ============================================================================
-# SSL/HTTPS Support (Optional - Required for Gemini API and collaborative features)
+# SSL/HTTPS Support (Optional - Required for Gemini API)
 # ============================================================================
-# SSL is only enabled when building with gRPC+JSON (the full agent/testing suite)
-# This ensures Windows builds without these dependencies still work
-if(YAZE_WITH_GRPC AND YAZE_WITH_JSON)
+# SSL is only enabled when AI features are active
+# Ollama (localhost) works without SSL, Gemini (HTTPS) requires it
+if((Z3ED_AI OR YAZE_WITH_JSON) AND (YAZE_WITH_GRPC OR Z3ED_AI))
   find_package(OpenSSL)
   
   if(OpenSSL_FOUND)
@@ -103,13 +110,16 @@ if(YAZE_WITH_GRPC AND YAZE_WITH_JSON)
       target_link_libraries(z3ed PRIVATE "-framework CoreFoundation" "-framework Security")
     endif()
     
-    message(STATUS "✓ SSL/HTTPS support enabled for z3ed (required for Gemini API)")
+    message(STATUS "✓ SSL/HTTPS support enabled for z3ed (Gemini API ready)")
   else()
-    message(WARNING "OpenSSL not found - Gemini API will not work (Ollama will still function)")
-    message(STATUS "  Install OpenSSL to enable Gemini: brew install openssl (macOS) or apt-get install libssl-dev (Linux)")
+    message(WARNING "OpenSSL not found - Gemini API will not work")
+    message(STATUS "  • Ollama (local) still works without SSL")
+    message(STATUS "  • Install OpenSSL for Gemini: brew install openssl (macOS) or apt install libssl-dev (Linux)")
   endif()
 else()
-  message(STATUS "Building z3ed without gRPC/JSON - AI agent features disabled")
+  if(NOT Z3ED_AI AND NOT YAZE_WITH_JSON)
+    message(STATUS "○ z3ed AI agent disabled (set -DZ3ED_AI=ON to enable Gemini/Ollama)")
+  endif()
 endif()
 
 target_include_directories(

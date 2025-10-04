@@ -119,6 +119,22 @@ endif()
 if(YAZE_WITH_JSON)
   target_link_libraries(yaze_agent PUBLIC nlohmann_json::nlohmann_json)
   target_compile_definitions(yaze_agent PUBLIC YAZE_WITH_JSON)
+
+  find_package(OpenSSL)
+  if(OpenSSL_FOUND)
+    target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+    target_link_libraries(yaze_agent PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+
+    if(APPLE)
+      target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN)
+      target_link_libraries(yaze_agent PUBLIC "-framework CoreFoundation" "-framework Security")
+    endif()
+
+    message(STATUS "✓ SSL/HTTPS support enabled for yaze_agent (Gemini + HTTPS)")
+  else()
+    message(WARNING "OpenSSL not found - Gemini HTTPS features disabled")
+    message(STATUS "  Install OpenSSL to enable Gemini: brew install openssl (macOS) or apt-get install libssl-dev (Linux)")
+  endif()
 endif()
 
 set_target_properties(yaze_agent PROPERTIES POSITION_INDEPENDENT_CODE ON)

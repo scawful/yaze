@@ -1,6 +1,12 @@
 #ifndef YAZE_CLI_SERVICE_PROMPT_BUILDER_H_
 #define YAZE_CLI_SERVICE_PROMPT_BUILDER_H_
 
+// PromptBuilder requires JSON and YAML support for catalogue loading
+// If you see linker errors, enable Z3ED_AI or YAZE_WITH_JSON in CMake
+#if !defined(YAZE_WITH_JSON)
+#warning "PromptBuilder requires JSON support. Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON"
+#endif
+
 #include <map>
 #include <string>
 #include <vector>
