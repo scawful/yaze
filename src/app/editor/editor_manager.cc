@@ -287,8 +287,43 @@ void EditorManager::Initialize(const std::string& filename) {
   // Set up multimodal (vision) callbacks for Gemini
   AgentChatWidget::MultimodalCallbacks multimodal_callbacks;
   multimodal_callbacks.capture_snapshot =
-      [](std::filesystem::path* output_path) -> absl::Status {
-    auto result = yaze::test::CaptureHarnessScreenshot("");
+      [this](std::filesystem::path* output_path) -> absl::Status {
+    using CaptureMode = AgentChatWidget::CaptureMode;
+    
+    absl::StatusOr<yaze::test::ScreenshotArtifact> result;
+    
+    // Capture based on selected mode
+    switch (agent_chat_widget_.capture_mode()) {
+      case CaptureMode::kFullWindow:
+        result = yaze::test::CaptureHarnessScreenshot("");
+        break;
+        
+      case CaptureMode::kActiveEditor:
+        result = yaze::test::CaptureActiveWindow("");
+        if (!result.ok()) {
+          // Fallback to full window if no active window
+          result = yaze::test::CaptureHarnessScreenshot("");
+        }
+        break;
+        
+      case CaptureMode::kSpecificWindow: {
+        const char* window_name = agent_chat_widget_.specific_window_name();
+        if (window_name && std::strlen(window_name) > 0) {
+          result = yaze::test::CaptureWindowByName(window_name, "");
+          if (!result.ok()) {
+            // Fallback to active window if specific window not found
+            result = yaze::test::CaptureActiveWindow("");
+          }
+        } else {
+          result = yaze::test::CaptureActiveWindow("");
+        }
+        if (!result.ok()) {
+          result = yaze::test::CaptureHarnessScreenshot("");
+        }
+        break;
+      }
+    }
+    
     if (!result.ok()) {
       return result.status();
     }

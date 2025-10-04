@@ -62,11 +62,6 @@ class AgentChatWidget {
   bool* active() { return &active_; }
   bool is_active() const { return active_; }
   void set_active(bool active) { active_ = active; }
-  
-  CaptureMode capture_mode() const { return multimodal_state_.capture_mode; }
-  const char* specific_window_name() const { 
-    return multimodal_state_.specific_window_buffer; 
-  }
 
 public:
   struct CollaborationState {
@@ -91,10 +86,19 @@ public:
     char specific_window_buffer[128] = {};
   };
 
-  void EnsureHistoryLoaded();
-  void PersistHistory();
+  // Accessors for capture settings
+  CaptureMode capture_mode() const { return multimodal_state_.capture_mode; }
+  const char* specific_window_name() const { 
+    return multimodal_state_.specific_window_buffer; 
+  }
+
+  // Collaboration history management (public so EditorManager can call them)
   void SwitchToSharedHistory(const std::string& session_id);
   void SwitchToLocalHistory();
+
+ private:
+  void EnsureHistoryLoaded();
+  void PersistHistory();
   void RenderHistory();
   void RenderMessage(const cli::agent::ChatMessage& msg, int index);
   void RenderProposalQuickActions(const cli::agent::ChatMessage& msg,
