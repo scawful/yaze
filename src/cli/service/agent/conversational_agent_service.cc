@@ -14,7 +14,9 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
+#include "absl/time/time.h"
 #include "app/rom.h"
 #include "cli/service/agent/proposal_executor.h"
 #include "cli/service/ai/service_factory.h"
@@ -132,6 +134,20 @@ std::optional<ChatMessage::TableData> BuildTableData(const nlohmann::json& data)
   return std::nullopt;
 }
 
+bool IsExecutableCommand(absl::string_view command) {
+  return !command.empty() && command.front() != '#';
+}
+
+int CountExecutableCommands(const std::vector<std::string>& commands) {
+  int count = 0;
+  for (const auto& command : commands) {
+    if (IsExecutableCommand(command)) {
+      ++count;
+    }
+  }
+  return count;
+}
+
 ChatMessage CreateMessage(ChatMessage::Sender sender, const std::string& content) {
   ChatMessage message;
   message.sender = sender;
@@ -175,6 +191,38 @@ void ConversationalAgentService::SetRomContext(Rom* rom) {
 
 void ConversationalAgentService::ResetConversation() {
   history_.clear();
+  metrics_ = InternalMetrics{};
+}
+
+void ConversationalAgentService::TrimHistoryIfNeeded() {
+  if (!config_.trim_history || config_.max_history_messages == 0) {
+    return;
+  }
+
+  while (history_.size() > config_.max_history_messages) {
+    history_.erase(history_.begin());
+  }
+}
+
+ChatMessage::SessionMetrics ConversationalAgentService::BuildMetricsSnapshot() const {
+  ChatMessage::SessionMetrics snapshot;
+  snapshot.turn_index = metrics_.turns_completed;
+  snapshot.total_user_messages = metrics_.user_messages;
+  snapshot.total_agent_messages = metrics_.agent_messages;
+  snapshot.total_tool_calls = metrics_.tool_calls;
+  snapshot.total_commands = metrics_.commands_generated;
+  snapshot.total_proposals = metrics_.proposals_created;
+  snapshot.total_elapsed_seconds = absl::ToDoubleSeconds(metrics_.total_latency);
+  snapshot.average_latency_seconds =
+      metrics_.turns_completed > 0
+          ? snapshot.total_elapsed_seconds /
+                static_cast<double>(metrics_.turns_completed)
+          : 0.0;
+  return snapshot;
+}
+
+ChatMessage::SessionMetrics ConversationalAgentService::GetMetrics() const {
+  return BuildMetricsSnapshot();
 }
 
 absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
@@ -186,10 +234,13 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
 
   if (!message.empty()) {
     history_.push_back(CreateMessage(ChatMessage::Sender::kUser, message));
+    TrimHistoryIfNeeded();
+    ++metrics_.user_messages;
   }
 
   const int max_iterations = config_.max_tool_iterations;
   bool waiting_for_text_response = false;
+  absl::Time turn_start = absl::Now();
   
   if (config_.verbose) {
     util::PrintInfo(absl::StrCat("Starting agent loop (max ", max_iterations, " iterations)"));
@@ -269,6 +320,7 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
         const std::string& tool_output = tool_result_or.value();
         if (!tool_output.empty()) {
           util::PrintSuccess("Tool executed successfully");
+          ++metrics_.tool_calls;
           
           if (config_.verbose) {
             std::cout << util::colors::kDim << "Tool output (truncated):" 
@@ -358,6 +410,8 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
       response_text.append("Reasoning: ");
       response_text.append(agent_response.reasoning);
     }
+    const int executable_commands =
+        CountExecutableCommands(agent_response.commands);
     if (!agent_response.commands.empty()) {
       if (!response_text.empty()) {
         response_text.append("\n\n");
@@ -365,6 +419,7 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
       response_text.append("Commands:\n");
       response_text.append(absl::StrJoin(agent_response.commands, "\n"));
     }
+    metrics_.commands_generated += executable_commands;
 
     if (proposal_result.has_value()) {
       const auto& metadata = proposal_result->metadata;
@@ -381,6 +436,7 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
           proposal_result->executed_commands == 1 ? "" : "s",
           metadata.id, metadata.sandbox_rom_path.string(),
           proposal_result->proposal_json_path.string()));
+      ++metrics_.proposals_created;
     } else if (attempted_proposal && !proposal_status.ok()) {
       if (!response_text.empty()) {
         response_text.append("\n\n");
@@ -392,7 +448,12 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
 
   ChatMessage chat_response =
     CreateMessage(ChatMessage::Sender::kAgent, response_text);
+    ++metrics_.agent_messages;
+    ++metrics_.turns_completed;
+    metrics_.total_latency += absl::Now() - turn_start;
+    chat_response.metrics = BuildMetricsSnapshot();
     history_.push_back(chat_response);
+    TrimHistoryIfNeeded();
     return chat_response;
   }
 

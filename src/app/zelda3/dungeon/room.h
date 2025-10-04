@@ -313,6 +313,15 @@ class Room {
   void SetStair3Target(uint8_t target) { stair3_.target = target; }
   void SetStair4Target(uint8_t target) { stair4_.target = target; }
 
+  // Read-only accessors for metadata
+  EffectKey effect() const { return effect_; }
+  TagKey tag1() const { return tag1_; }
+  TagKey tag2() const { return tag2_; }
+  CollisionKey collision() const { return collision_; }
+  const LayerMergeType& layer_merging() const { return layer_merging_; }
+
+  int id() const { return room_id_; }
+
   uint8_t blockset = 0;
   uint8_t spriteset = 0;
   uint8_t palette = 0;

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <sstream>
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
@@ -51,6 +52,38 @@ std::string ExtractRoomId(const std::string& normalized_prompt) {
   return "0x000";
 }
 
+std::string ExtractKeyword(const std::string& normalized_prompt) {
+  static const char* kStopwords[] = {
+      "search", "for", "resource", "resources", "label", "labels",
+      "please", "the", "a", "an", "list", "of", "in", "find"};
+
+  auto is_stopword = [](const std::string& word) {
+    for (const char* stop : kStopwords) {
+      if (word == stop) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  std::istringstream stream(normalized_prompt);
+  std::string token;
+  while (stream >> token) {
+    token.erase(std::remove_if(token.begin(), token.end(), [](unsigned char c) {
+                    return !std::isalnum(c) && c != '_' && c != '-';
+                  }),
+                token.end());
+    if (token.empty()) {
+      continue;
+    }
+    if (!is_stopword(token)) {
+      return token;
+    }
+  }
+
+  return "all";
+}
+
 }  // namespace
 
 absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
@@ -96,6 +129,20 @@ absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
     return response;
   }
 
+  if (absl::StrContains(normalized, "search") &&
+      (absl::StrContains(normalized, "resource") ||
+       absl::StrContains(normalized, "label"))) {
+    ToolCall call;
+    call.tool_name = "resource-search";
+    call.args.emplace("query", ExtractKeyword(normalized));
+    response.text_response =
+        "Let me look through the labelled resources for matches.";
+    response.reasoning =
+        "Resource search provides fuzzy matching against the ROM label catalogue.";
+    response.tool_calls.push_back(call);
+    return response;
+  }
+
   if (absl::StrContains(normalized, "sprite") &&
       absl::StrContains(normalized, "room")) {
     ToolCall call;
@@ -105,6 +152,19 @@ absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
         "Let me inspect the dungeon room sprites for you.";
     response.reasoning =
         "Calling the sprite inspection tool provides precise coordinates for the agent.";
+    response.tool_calls.push_back(call);
+    return response;
+  }
+
+  if (absl::StrContains(normalized, "describe") &&
+      absl::StrContains(normalized, "room")) {
+    ToolCall call;
+    call.tool_name = "dungeon-describe-room";
+    call.args.emplace("room", ExtractRoomId(normalized));
+    response.text_response =
+        "I'll summarize the room's metadata and hazards.";
+    response.reasoning =
+        "Room description tool surfaces lighting, effects, and object counts before planning edits.";
     response.tool_calls.push_back(call);
     return response;
   }

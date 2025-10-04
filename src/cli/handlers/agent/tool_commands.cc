@@ -1,11 +1,13 @@
 #include "cli/handlers/agent/commands.h"
 
+#include <algorithm>
 #include <iostream>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "absl/base/macros.h"
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
@@ -22,6 +24,7 @@
 #include "app/zelda3/overworld/overworld.h"
 #include "cli/handlers/overworld_inspect.h"
 #include "cli/service/resources/resource_context_builder.h"
+#include "util/macro.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 
@@ -145,6 +148,194 @@ absl::Status HandleResourceListCommand(
   return absl::OkStatus();
 }
 
+absl::Status HandleResourceSearchCommand(
+  const std::vector<std::string>& arg_vec, Rom* rom_context) {
+  std::string query;
+  std::string type = "all";
+  std::string format = "json";
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--query") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--query requires a value.");
+      }
+      query = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--query=")) {
+      query = token.substr(8);
+    } else if (token == "--type") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--type requires a value.");
+      }
+      type = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--type=")) {
+      type = token.substr(7);
+    } else if (token == "--format") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--format requires a value.");
+      }
+      format = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--format=")) {
+      format = token.substr(9);
+    }
+  }
+
+  if (query.empty()) {
+    return absl::InvalidArgumentError(
+        "Usage: agent resource-search --query <text> [--type <category>] [--format <json|text>]");
+  }
+
+  format = absl::AsciiStrToLower(format);
+  if (format != "json" && format != "text") {
+    return absl::InvalidArgumentError("--format must be either json or text");
+  }
+
+  auto normalize_category = [](std::string value) {
+    value = absl::AsciiStrToLower(value);
+    if (value.size() > 1 && value.back() == 's') {
+      value.pop_back();
+    }
+    if (value == "tile16s") {
+      return std::string("tile16");
+    }
+    return value;
+  };
+
+  const std::vector<std::string> known_categories = {
+      "overworld", "dungeon", "entrance", "room",
+      "sprite", "palette", "item", "tile16"};
+
+  std::vector<std::string> categories;
+  std::string normalized_type = normalize_category(type);
+  if (normalized_type == "all" || normalized_type.empty()) {
+    categories = known_categories;
+  } else {
+    bool recognized = false;
+    for (const auto& candidate : known_categories) {
+      if (candidate == normalized_type) {
+        recognized = true;
+        break;
+      }
+    }
+    if (!recognized) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Unknown resource category: ", type,
+                        ". Known categories: overworld, dungeon, entrance, room, sprite, palette, item, tile16."));
+    }
+    categories.push_back(normalized_type);
+  }
+
+  Rom rom_storage;
+  Rom* rom = nullptr;
+  if (rom_context != nullptr && rom_context->is_loaded()) {
+    rom = rom_context;
+  } else {
+    auto rom_or = LoadRomFromFlag();
+    if (!rom_or.ok()) {
+      return rom_or.status();
+    }
+    rom_storage = std::move(rom_or.value());
+    rom = &rom_storage;
+  }
+
+  // Ensure labels are available similar to resource-list
+  if (rom->resource_label() && !rom->resource_label()->labels_loaded_) {
+    core::YazeProject project;
+    auto labels_status = project.InitializeEmbeddedLabels();
+    if (labels_status.ok()) {
+      rom->resource_label()->labels_ = project.resource_labels;
+      rom->resource_label()->labels_loaded_ = true;
+    }
+  }
+
+  ResourceContextBuilder context_builder(rom);
+
+  struct SearchResult {
+    std::string category;
+    std::string id;
+    std::string label;
+  };
+
+  std::vector<SearchResult> results;
+  std::string lowered_query = absl::AsciiStrToLower(query);
+
+  for (const auto& category : categories) {
+    auto labels_or = context_builder.GetLabels(category);
+    if (!labels_or.ok()) {
+      // If the category was explicitly requested and not "all", surface the error.
+      if (normalized_type != "all") {
+        return labels_or.status();
+      }
+      continue;
+    }
+
+    const auto& labels = labels_or.value();
+    for (const auto& [id, label] : labels) {
+      std::string lowered_label = absl::AsciiStrToLower(label);
+      std::string lowered_id = absl::AsciiStrToLower(id);
+      if (lowered_label.find(lowered_query) != std::string::npos ||
+          lowered_id.find(lowered_query) != std::string::npos) {
+        results.push_back({category, id, label});
+      }
+    }
+  }
+
+  std::sort(results.begin(), results.end(),
+            [](const SearchResult& a, const SearchResult& b) {
+              if (a.category == b.category) {
+                return a.id < b.id;
+              }
+              return a.category < b.category;
+            });
+
+  if (results.empty()) {
+    if (format == "json") {
+      std::cout << "{\n"
+                << "  \"query\": \"" << query << "\",\n"
+                << "  \"match_count\": 0,\n"
+                << "  \"results\": []\n"
+                << "}\n";
+    } else {
+      std::cout << absl::StrFormat(
+          "🔍 No matches found for \"%s\" in %s resources.\n",
+          query, normalized_type == "all" ? std::string("any") : type);
+    }
+    return absl::OkStatus();
+  }
+
+  if (format == "json") {
+    std::cout << "{\n";
+    std::cout << "  \"query\": \"" << query << "\",\n";
+    std::cout << absl::StrFormat("  \"match_count\": %zu,\n", results.size());
+    std::cout << "  \"results\": [\n";
+    for (size_t i = 0; i < results.size(); ++i) {
+      const auto& result = results[i];
+      std::cout << absl::StrFormat(
+          "    {\"category\": \"%s\", \"id\": \"%s\", \"label\": \"%s\"}%s\n",
+          result.category, result.id, result.label,
+          (i + 1 == results.size()) ? "" : ",");
+    }
+    std::cout << "  ]\n";
+    std::cout << "}\n";
+  } else {
+    std::cout << absl::StrFormat(
+        "🔍 %zu match(es) for \"%s\" (categories: %s)\n",
+        results.size(), query,
+        normalized_type == "all" ? "all" : type);
+    std::string current_category;
+    for (const auto& result : results) {
+      if (result.category != current_category) {
+        current_category = result.category;
+        std::cout << absl::StrFormat("\n[%s]\n",
+                                     absl::AsciiStrToUpper(current_category));
+      }
+      std::cout << absl::StrFormat("  %-12s → %s\n", result.id, result.label);
+    }
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status HandleDungeonListSpritesCommand(
   const std::vector<std::string>& arg_vec, Rom* rom_context) {
   std::string room_id_str;
@@ -214,6 +405,236 @@ absl::Status HandleDungeonListSpritesCommand(
     for (const auto& sprite : sprites) {
       std::cout << absl::StrFormat("0x%-8X %-5d %-5d\n", sprite.id(),
                                    sprite.x(), sprite.y());
+    }
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status HandleDungeonDescribeRoomCommand(
+  const std::vector<std::string>& arg_vec, Rom* rom_context) {
+  std::string room_id_str;
+  std::string format = "json";
+  std::optional<std::string> rom_override;
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--room") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--room requires a value.");
+      }
+      room_id_str = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--room=")) {
+      room_id_str = token.substr(7);
+    } else if (token == "--format") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--format requires a value.");
+      }
+      format = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--format=")) {
+      format = token.substr(9);
+    } else if (token == "--rom") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--rom requires a value.");
+      }
+      rom_override = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--rom=")) {
+      rom_override = token.substr(6);
+    }
+  }
+
+  if (room_id_str.empty()) {
+    return absl::InvalidArgumentError(
+        "Usage: agent dungeon-describe-room --room <hex> [--format <json|text>]");
+  }
+
+  int room_id = 0;
+  if (!absl::SimpleHexAtoi(room_id_str, &room_id)) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Invalid room ID: ", room_id_str,
+                      " (expected hexadecimal, e.g. 0x02A)"));
+  }
+
+  format = absl::AsciiStrToLower(format);
+  if (format != "json" && format != "text") {
+    return absl::InvalidArgumentError("--format must be either json or text");
+  }
+
+  Rom rom_storage;
+  Rom* rom = nullptr;
+  if (rom_context != nullptr && rom_context->is_loaded() && !rom_override.has_value()) {
+    rom = rom_context;
+  } else {
+    ASSIGN_OR_RETURN(auto rom_or, LoadRomFromPathOrFlag(rom_override));
+    rom_storage = std::move(rom_or);
+    rom = &rom_storage;
+  }
+
+  auto room = zelda3::LoadRoomFromRom(rom, room_id);
+  room.LoadObjects();
+  room.LoadSprites();
+
+  auto dimensions = room.GetLayout().GetDimensions();
+  const auto& sprites = room.GetSprites();
+  const auto& chests = room.GetChests();
+  const auto& stairs = room.GetStairs();
+  const size_t sprite_count = sprites.size();
+  const size_t chest_count = chests.size();
+  const size_t stair_count = stairs.size();
+  const size_t object_count = room.GetTileObjectCount();
+
+  constexpr size_t kRoomNameCount =
+      sizeof(zelda3::kRoomNames) / sizeof(zelda3::kRoomNames[0]);
+  std::string room_name = "Unknown";
+  if (room_id >= 0 && static_cast<size_t>(room_id) < kRoomNameCount) {
+    room_name = std::string(zelda3::kRoomNames[room_id]);
+    if (room_name.empty()) {
+      room_name = "Unnamed";
+    }
+  }
+
+  constexpr size_t kRoomEffectCount =
+      sizeof(zelda3::RoomEffect) / sizeof(zelda3::RoomEffect[0]);
+  const size_t effect_index = static_cast<size_t>(room.effect());
+  std::string effect_name = "Unknown";
+  if (effect_index < kRoomEffectCount) {
+    effect_name = zelda3::RoomEffect[effect_index];
+  }
+
+  constexpr size_t kRoomTagCount =
+      sizeof(zelda3::RoomTag) / sizeof(zelda3::RoomTag[0]);
+  const auto tag_name = [&](zelda3::TagKey tag) {
+    const size_t index = static_cast<size_t>(tag);
+    if (index < kRoomTagCount) {
+      return std::string(zelda3::RoomTag[index]);
+    }
+    return std::string("Unknown");
+  };
+
+  constexpr absl::string_view kCollisionNames[] = {
+      "Layer 1 Only",
+      "Both Layers",
+      "Both + Scroll",
+      "Moving Floor",
+      "Moving Water",
+  };
+  std::string collision_name = "Unknown";
+  const size_t collision_index = static_cast<size_t>(room.collision());
+  if (collision_index < ABSL_ARRAYSIZE(kCollisionNames)) {
+    collision_name = std::string(kCollisionNames[collision_index]);
+  }
+
+  if (format == "json") {
+    std::cout << "{\n";
+    std::cout << absl::StrFormat("  \"room\": \"0x%03X\",\n", room_id);
+    std::cout << absl::StrFormat("  \"name\": \"%s\",\n", room_name);
+    std::cout << absl::StrFormat("  \"light\": %s,\n",
+                                  room.IsLight() ? "true" : "false");
+    std::cout << absl::StrFormat("  \"layout\": {\"width\": %d, \"height\": %d},\n",
+                                  dimensions.first, dimensions.second);
+    std::cout << absl::StrFormat(
+        "  \"counts\": {\"sprites\": %zu, \"chests\": %zu, \"stairs\": %zu, \"tile_objects\": %zu},\n",
+        sprite_count, chest_count, stair_count, object_count);
+    std::cout << absl::StrFormat(
+        "  \"state\": {\"effect\": \"%s\", \"tag1\": \"%s\", \"tag2\": \"%s\", \"collision\": \"%s\", \"layer_merge\": \"%s\"},\n",
+        effect_name, tag_name(room.tag1()), tag_name(room.tag2()),
+        collision_name, room.layer_merging().Name);
+    std::cout << absl::StrFormat(
+        "  \"graphics\": {\"blockset\": %u, \"spriteset\": %u, \"palette\": %u},\n",
+        room.blockset, room.spriteset, room.palette);
+    std::cout << absl::StrFormat(
+        "  \"floors\": {\"primary\": %u, \"secondary\": %u},\n",
+        room.floor1, room.floor2);
+    std::cout << absl::StrFormat(
+        "  \"message_id\": \"0x%03X\",\n", room.message_id_);
+    std::cout << absl::StrFormat(
+        "  \"hole_warp\": \"0x%02X\",\n", room.holewarp);
+
+    std::cout << "  \"staircases\": [";
+    for (size_t i = 0; i < stair_count; ++i) {
+      const auto& stair = stairs[i];
+      std::cout << (i == 0 ? "\n" : ",\n");
+      std::cout << absl::StrFormat(
+          "    {\"id\": %u, \"target_room\": \"0x%02X\", \"label\": \"%s\"}",
+          stair.id, stair.room, stair.label ? stair.label : "");
+    }
+    if (stair_count > 0) {
+      std::cout << "\n  ],\n";
+    } else {
+      std::cout << "],\n";
+    }
+
+    std::cout << "  \"chests\": [";
+    for (size_t i = 0; i < chest_count; ++i) {
+      const auto& chest = chests[i];
+      std::cout << (i == 0 ? "\n" : ",\n");
+      std::cout << absl::StrFormat(
+          "    {\"item_id\": \"0x%02X\", \"is_big\": %s}",
+          chest.id, chest.size ? "true" : "false");
+    }
+    if (chest_count > 0) {
+      std::cout << "\n  ],\n";
+    } else {
+      std::cout << "],\n";
+    }
+
+  const int sample_sprite_count =
+    static_cast<int>(std::min<size_t>(sprite_count, 5));
+  std::cout << absl::StrFormat(
+    "  \"sample_sprites\": %d,\n", sample_sprite_count);
+    if (!sprites.empty()) {
+      std::cout << "  \"sprites\": [\n";
+      const size_t limit = std::min<size_t>(sprites.size(), 5);
+      for (size_t i = 0; i < limit; ++i) {
+        const auto& spr = sprites[i];
+        std::cout << absl::StrFormat(
+            "    {\"index\": %zu, \"id\": \"0x%02X\", \"x\": %d, \"y\": %d, \"layer\": %d, \"subtype\": %d}",
+            i, spr.id(), spr.x(), spr.y(), spr.layer(), spr.subtype());
+        if (i + 1 < limit) {
+          std::cout << ",";
+        }
+        std::cout << "\n";
+      }
+      std::cout << "  ]\n";
+    } else {
+      std::cout << "  \"sprites\": []\n";
+    }
+    std::cout << "}\n";
+  } else {
+    std::cout << absl::StrFormat("🏰 Room 0x%03X — %s\n", room_id, room_name);
+    std::cout << absl::StrFormat(
+        "  Layout: %d×%d tiles | Lighting: %s\n",
+        dimensions.first, dimensions.second,
+        room.IsLight() ? "light" : "dark");
+    std::cout << absl::StrFormat(
+        "  Sprites: %zu  Chests: %zu  Stairs: %zu  Tile Objects: %zu\n",
+        sprite_count, chest_count, stair_count, object_count);
+    std::cout << absl::StrFormat(
+        "  Effect: %s | Tags: %s / %s | Collision: %s | Layer Merge: %s\n",
+        effect_name, tag_name(room.tag1()), tag_name(room.tag2()),
+        collision_name, room.layer_merging().Name);
+    std::cout << absl::StrFormat(
+        "  Graphics → Blockset:%u  Spriteset:%u  Palette:%u\n",
+        room.blockset, room.spriteset, room.palette);
+    std::cout << absl::StrFormat(
+        "  Floors → Main:%u Alt:%u  Message ID:0x%03X  Hole warp:0x%02X\n",
+        room.floor1, room.floor2, room.message_id_, room.holewarp);
+    if (!stairs.empty()) {
+      std::cout << "  Staircases:\n";
+      for (const auto& stair : stairs) {
+        std::cout << absl::StrFormat("    - ID %u → Room 0x%02X (%s)\n",
+                                     stair.id, stair.room,
+                                     stair.label ? stair.label : "");
+      }
+    }
+    if (!chests.empty()) {
+      std::cout << "  Chests:\n";
+      for (size_t i = 0; i < chests.size(); ++i) {
+        const auto& chest = chests[i];
+        std::cout << absl::StrFormat("    - #%zu Item 0x%02X %s\n", i,
+                                     chest.id,
+                                     chest.size ? "(big)" : "");
+      }
     }
   }
 

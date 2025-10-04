@@ -1,9 +1,13 @@
 #include "cli/tui/chat_tui.h"
 
 #include <vector>
+
+#include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "ftxui/component/captured_mouse.hpp"
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/component_base.hpp"
+#include "ftxui/component/event.hpp"
 #include "ftxui/component/screen_interactive.hpp"
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/dom/table.hpp"
@@ -27,18 +31,24 @@ void ChatTUI::SetRomContext(Rom* rom_context) {
 
 void ChatTUI::Run() {
   auto input = Input(&input_message_, "Enter your message...");
-  auto button = Button("Send", [this] { OnSubmit(); });
-
-  auto layout = Container::Vertical({
-      input,
-      button,
+  input = CatchEvent(input, [this](Event event) {
+    if (event == Event::Return) {
+      OnSubmit();
+      return true;
+    }
+    return false;
   });
 
-  auto renderer = Renderer(layout, [this] {
-    std::vector<Element> messages;
-    messages.reserve(agent_service_.GetHistory().size());
+  auto button = Button("Send", [this] { OnSubmit(); });
 
+  auto controls = Container::Horizontal({input, button});
+  auto layout = Container::Vertical({controls});
+
+  auto renderer = Renderer(layout, [this, input, button] {
+    Elements message_blocks;
     const auto& history = agent_service_.GetHistory();
+    message_blocks.reserve(history.size());
+
     for (const auto& msg : history) {
       Element header = text(msg.sender == agent::ChatMessage::Sender::kUser
                                 ? "You"
@@ -71,15 +81,56 @@ void ChatTUI::Run() {
         body = paragraph(msg.message);
       }
 
-      messages.push_back(vbox({header, hbox({text("  "), body}), separator()}));
+      Elements block = {header, hbox({text("  "), body})};
+      if (msg.metrics.has_value()) {
+        const auto& metrics = msg.metrics.value();
+    block.push_back(text(absl::StrFormat(
+                            "  📊 Turn %d — users:%d agents:%d tools:%d commands:%d proposals:%d elapsed %.2fs avg %.2fs",
+                            metrics.turn_index, metrics.total_user_messages,
+                            metrics.total_agent_messages, metrics.total_tool_calls,
+                            metrics.total_commands, metrics.total_proposals,
+                            metrics.total_elapsed_seconds,
+              metrics.average_latency_seconds)) |
+            color(Color::Cyan));
+      }
+      block.push_back(separator());
+      message_blocks.push_back(vbox(block));
     }
 
-    return vbox({
-               vbox(messages) | flex,
-               separator(),
-               hbox(text(" > "), text(input_message_)),
-           }) |
-           border;
+    if (message_blocks.empty()) {
+      message_blocks.push_back(text("No messages yet. Start chatting!") | dim);
+    }
+
+    const auto metrics = agent_service_.GetMetrics();
+    Element metrics_bar = text(absl::StrFormat(
+        "Turns:%d  Users:%d  Agents:%d  Tools:%d  Commands:%d  Proposals:%d  Elapsed:%.2fs avg %.2fs",
+        metrics.turn_index, metrics.total_user_messages,
+        metrics.total_agent_messages, metrics.total_tool_calls,
+        metrics.total_commands, metrics.total_proposals,
+        metrics.total_elapsed_seconds, metrics.average_latency_seconds)) |
+                            color(Color::Cyan);
+
+    Elements content{
+        vbox(message_blocks) | flex | frame,
+        separator(),
+    };
+
+    if (last_error_.has_value()) {
+  content.push_back(text(absl::StrCat("⚠ ", *last_error_)) |
+        color(Color::Red));
+      content.push_back(separator());
+    }
+
+    content.push_back(metrics_bar);
+    content.push_back(separator());
+    content.push_back(hbox({
+        text("You: ") | bold,
+        input->Render() | flex,
+        text(" "),
+        button->Render(),
+    }));
+
+    return vbox(content) | border;
   });
 
   screen_.Loop(renderer);
@@ -90,7 +141,12 @@ void ChatTUI::OnSubmit() {
     return;
   }
 
-  (void)agent_service_.SendMessage(input_message_);
+  auto response = agent_service_.SendMessage(input_message_);
+  if (!response.ok()) {
+    last_error_ = response.status().message();
+  } else {
+    last_error_.reset();
+  }
   input_message_.clear();
 }
 

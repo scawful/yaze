@@ -123,11 +123,13 @@ void GeminiAIService::EnableFunctionCalling(bool enable) {
 
 std::vector<std::string> GeminiAIService::GetAvailableTools() const {
   return {
-    "resource_list",
-    "dungeon_list_sprites",
-    "overworld_find_tile",
-    "overworld_describe_map",
-    "overworld_list_warps"
+    "resource-list",
+    "resource-search",
+    "dungeon-list-sprites",
+    "dungeon-describe-room",
+    "overworld-find-tile",
+    "overworld-describe-map",
+    "overworld-list-warps"
   };
 }
 

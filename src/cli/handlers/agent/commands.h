@@ -28,7 +28,13 @@ absl::Status HandleDescribeCommand(const std::vector<std::string>& arg_vec);
 absl::Status HandleResourceListCommand(
 	const std::vector<std::string>& arg_vec,
 	Rom* rom_context = nullptr);
+absl::Status HandleResourceSearchCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
 absl::Status HandleDungeonListSpritesCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleDungeonDescribeRoomCommand(
 	const std::vector<std::string>& arg_vec,
 	Rom* rom_context = nullptr);
 absl::Status HandleOverworldFindTileCommand(
