@@ -27,8 +27,8 @@ absl::Time ParseTimestamp(const Json& value) {
     return absl::Now();
   }
   absl::Time parsed;
-  if (absl::ParseTime(absl::RFC3339_full, value.get<std::string>(),
-                      absl::UTCTimeZone(), &parsed)) {
+  if (absl::ParseTime(absl::RFC3339_full, value.get<std::string>(), &parsed,
+                      nullptr)) {
     return parsed;
   }
   return absl::Now();

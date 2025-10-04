@@ -484,6 +484,9 @@ void AgentChatWidget::Draw() {
   }
 
   EnsureHistoryLoaded();
+  
+  // Poll for new messages in collaborative sessions
+  PollSharedHistory();
 
   ImGui::Begin(title_.c_str(), &active_);
   RenderHistory();
@@ -668,8 +671,31 @@ void AgentChatWidget::RenderMultimodalPanel() {
   bool can_capture = static_cast<bool>(multimodal_callbacks_.capture_snapshot);
   bool can_send = static_cast<bool>(multimodal_callbacks_.send_to_gemini);
 
+  // Capture mode selection
+  ImGui::Text("Capture Mode:");
+  ImGui::RadioButton("Full Window", 
+      reinterpret_cast<int*>(&multimodal_state_.capture_mode), 
+      static_cast<int>(CaptureMode::kFullWindow));
+  ImGui::SameLine();
+  ImGui::RadioButton("Active Editor", 
+      reinterpret_cast<int*>(&multimodal_state_.capture_mode), 
+      static_cast<int>(CaptureMode::kActiveEditor));
+  ImGui::SameLine();
+  ImGui::RadioButton("Specific Window", 
+      reinterpret_cast<int*>(&multimodal_state_.capture_mode), 
+      static_cast<int>(CaptureMode::kSpecificWindow));
+
+  // If specific window mode, show input for window name
+  if (multimodal_state_.capture_mode == CaptureMode::kSpecificWindow) {
+    ImGui::InputText("Window Name", multimodal_state_.specific_window_buffer,
+                     IM_ARRAYSIZE(multimodal_state_.specific_window_buffer));
+    ImGui::TextDisabled("Examples: Overworld Editor, Dungeon Editor, Sprite Editor");
+  }
+
+  ImGui::Separator();
+
   if (!can_capture) ImGui::BeginDisabled();
-  if (ImGui::Button("Capture Map Snapshot")) {
+  if (ImGui::Button("Capture Snapshot")) {
     if (multimodal_callbacks_.capture_snapshot) {
       std::filesystem::path captured_path;
       absl::Status status =
@@ -822,6 +848,10 @@ void AgentChatWidget::SwitchToSharedHistory(const std::string& session_id) {
   // Load shared history
   EnsureHistoryLoaded();
   
+  // Initialize polling state
+  last_known_history_size_ = agent_service_.GetHistory().size();
+  last_shared_history_poll_ = absl::Now();
+  
   if (toast_manager_) {
     toast_manager_->Show(
         absl::StrFormat("Switched to shared chat history for session %s",
@@ -846,6 +876,45 @@ void AgentChatWidget::SwitchToLocalHistory() {
   if (toast_manager_) {
     toast_manager_->Show("Switched to local chat history",
                          ToastType::kInfo, 3.0f);
+  }
+}
+
+void AgentChatWidget::PollSharedHistory() {
+  if (!collaboration_state_.active) {
+    return;  // Not in a collaborative session
+  }
+
+  const absl::Time now = absl::Now();
+  
+  // Poll every 2 seconds
+  if (now - last_shared_history_poll_ < absl::Seconds(2)) {
+    return;
+  }
+  
+  last_shared_history_poll_ = now;
+
+  // Check if the shared history file has been updated
+  auto result = AgentChatHistoryCodec::Load(history_path_);
+  if (!result.ok()) {
+    return;  // File might not exist yet or be temporarily locked
+  }
+
+  const size_t new_size = result->history.size();
+  
+  // If history has grown, reload it
+  if (new_size > last_known_history_size_) {
+    const size_t new_messages = new_size - last_known_history_size_;
+    
+    agent_service_.ReplaceHistory(std::move(result->history));
+    last_history_size_ = new_size;
+    last_known_history_size_ = new_size;
+    
+    if (toast_manager_) {
+      toast_manager_->Show(
+          absl::StrFormat("📬 %zu new message%s from collaborators",
+                          new_messages, new_messages == 1 ? "" : "s"),
+          ToastType::kInfo, 3.0f);
+    }
   }
 }
 
