@@ -1,12 +1,13 @@
 <map id="yaze::cli::agent::SimpleChatSession" name="yaze::cli::agent::SimpleChatSession">
-<area shape="rect" id="Node000001" title="Simple text&#45;based chat session for AI agent interaction." alt="" coords="153,286,303,327"/>
-<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html" title=" " alt="" coords="130,183,326,223"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,239,231,286,226,286,226,239"/>
+<area shape="rect" id="Node000001" title="Simple text&#45;based chat session for AI agent interaction." alt="" coords="274,286,425,327"/>
+<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html" title=" " alt="" coords="163,183,360,223"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="290,233,335,284,331,288,286,237"/>
 <area shape="rect" id="Node000003" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html" title=" " alt="" coords="130,94,327,120"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="231,135,231,182,226,182,226,135"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="237,134,245,158,254,181,250,183,240,160,232,135"/>
 <area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="5,5,86,31"/>
-<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="38,46,30,82,32,101,39,118,57,139,79,157,131,181,129,186,76,161,53,143,34,121,27,102,25,82,32,44"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="37,46,30,83,31,101,39,118,63,145,94,165,128,179,163,189,162,194,127,184,92,169,60,149,34,121,26,103,24,82,32,45"/>
 <area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="86,36,204,91,201,96,84,41"/>
 <area shape="rect" id="Node000008" href="$d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html" title=" " alt="" coords="351,94,532,120"/>
-<area shape="poly" id="edge5_Node000002_Node000008" title=" " alt="" coords="404,129,333,161,278,185,275,180,331,156,401,124"/>
+<area shape="poly" id="edge6_Node000001_Node000008" title=" " alt="" coords="444,136,435,197,425,231,409,264,385,288,382,284,405,261,420,230,430,196,438,135"/>
+<area shape="poly" id="edge5_Node000002_Node000008" title=" " alt="" coords="406,130,301,184,298,180,404,125"/>
 </map>

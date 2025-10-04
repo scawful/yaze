@@ -14,13 +14,14 @@ var searchData=
   ['bitmap_11',['Bitmap',['../df/d0e/classyaze_1_1gfx_1_1Bitmap.html',1,'yaze::gfx']]],
   ['bitmaperror_12',['BitmapError',['../df/d71/classyaze_1_1gfx_1_1BitmapError.html',1,'yaze::gfx']]],
   ['bookmark_13',['Bookmark',['../d9/da1/structyaze_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::emu::Emulator']]],
-  ['bppcomparisontool_14',['BppComparisonTool',['../d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html',1,'yaze::gui']]],
-  ['bppconversiondialog_15',['BppConversionDialog',['../db/d56/classyaze_1_1gui_1_1BppConversionDialog.html',1,'yaze::gui']]],
-  ['bppconversionoptions_16',['BppConversionOptions',['../d4/d68/structyaze_1_1gui_1_1canvas_1_1BppConversionOptions.html',1,'yaze::gui::canvas']]],
-  ['bppconversionscope_17',['BppConversionScope',['../d8/d44/classyaze_1_1gfx_1_1BppConversionScope.html',1,'yaze::gfx']]],
-  ['bppformatinfo_18',['BppFormatInfo',['../da/dec/structyaze_1_1gfx_1_1BppFormatInfo.html',1,'yaze::gfx']]],
-  ['bppformatmanager_19',['BppFormatManager',['../d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html',1,'yaze::gfx']]],
-  ['bppformatui_20',['BppFormatUI',['../d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html',1,'yaze::gui']]],
-  ['breakpoint_21',['Breakpoint',['../d1/dd3/structTextEditor_1_1Breakpoint.html',1,'TextEditor']]],
-  ['button_22',['Button',['../d2/dc1/structyaze_1_1gui_1_1Button.html',1,'yaze::gui']]]
+  ['boundromtest_14',['BoundRomTest',['../de/dd6/classyaze_1_1test_1_1TestRomManager_1_1BoundRomTest.html',1,'yaze::test::TestRomManager']]],
+  ['bppcomparisontool_15',['BppComparisonTool',['../d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html',1,'yaze::gui']]],
+  ['bppconversiondialog_16',['BppConversionDialog',['../db/d56/classyaze_1_1gui_1_1BppConversionDialog.html',1,'yaze::gui']]],
+  ['bppconversionoptions_17',['BppConversionOptions',['../d4/d68/structyaze_1_1gui_1_1canvas_1_1BppConversionOptions.html',1,'yaze::gui::canvas']]],
+  ['bppconversionscope_18',['BppConversionScope',['../d8/d44/classyaze_1_1gfx_1_1BppConversionScope.html',1,'yaze::gfx']]],
+  ['bppformatinfo_19',['BppFormatInfo',['../da/dec/structyaze_1_1gfx_1_1BppFormatInfo.html',1,'yaze::gfx']]],
+  ['bppformatmanager_20',['BppFormatManager',['../d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html',1,'yaze::gfx']]],
+  ['bppformatui_21',['BppFormatUI',['../d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html',1,'yaze::gui']]],
+  ['breakpoint_22',['Breakpoint',['../d1/dd3/structTextEditor_1_1Breakpoint.html',1,'TextEditor']]],
+  ['button_23',['Button',['../d2/dc1/structyaze_1_1gui_1_1Button.html',1,'yaze::gui']]]
 ];

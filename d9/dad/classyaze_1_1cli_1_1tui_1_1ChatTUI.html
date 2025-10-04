@@ -138,8 +138,6 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:aab21fb21fc54a5fd0188988afcc2844a" id="r_aab21fb21fc54a5fd0188988afcc2844a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#aab21fb21fc54a5fd0188988afcc2844a">Render</a> ()</td></tr>
-<tr class="separator:aab21fb21fc54a5fd0188988afcc2844a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a3d32670d995d957bd9f5d0a59a7ba7" id="r_a4a3d32670d995d957bd9f5d0a59a7ba7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a4a3d32670d995d957bd9f5d0a59a7ba7">OnSubmit</a> ()</td></tr>
 <tr class="separator:a4a3d32670d995d957bd9f5d0a59a7ba7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -153,10 +151,12 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a6e8779c1afff4e0137d63049f19588af"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99fe40c61497371b3c4dcf4bc22a4eb9" id="r_a99fe40c61497371b3c4dcf4bc22a4eb9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a99fe40c61497371b3c4dcf4bc22a4eb9">rom_context_</a> = nullptr</td></tr>
 <tr class="separator:a99fe40c61497371b3c4dcf4bc22a4eb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2e90790baadc3f03d5e16acdbd2579a" id="r_ae2e90790baadc3f03d5e16acdbd2579a"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#ae2e90790baadc3f03d5e16acdbd2579a">last_error_</a></td></tr>
+<tr class="separator:ae2e90790baadc3f03d5e16acdbd2579a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00015">15</a> of file <a class="el" href="../../db/d67/chat__tui_8h_source.html">chat_tui.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00017">17</a> of file <a class="el" href="../../db/d67/chat__tui_8h_source.html">chat_tui.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a13ee433594ad645f19feee988b0cb881" name="a13ee433594ad645f19feee988b0cb881"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a13ee433594ad645f19feee988b0cb881">&#9670;&#160;</a></span>ChatTUI()</h2>
@@ -182,9 +182,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00017">17</a> of file <a class="el" href="../../d0/d16/chat__tui_8cc_source.html">chat_tui.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00021">21</a> of file <a class="el" href="../../d0/d16/chat__tui_8cc_source.html">chat_tui.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00027">agent_service_</a>, <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00028">rom_context_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00168">yaze::cli::agent::ConversationalAgentService::SetRomContext()</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00028">agent_service_</a>, <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00029">rom_context_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00184">yaze::cli::agent::ConversationalAgentService::SetRomContext()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -216,23 +216,25 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00028">28</a> of file <a class="el" href="../../d0/d16/chat__tui_8cc_source.html">chat_tui.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00032">32</a> of file <a class="el" href="../../d0/d16/chat__tui_8cc_source.html">chat_tui.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00027">agent_service_</a>, <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00403">yaze::cli::agent::ConversationalAgentService::GetHistory()</a>, <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00026">input_message_</a>, <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2a3ea6f9f6140b78f0c5a050d926097f56">yaze::cli::agent::ChatMessage::kUser</a>, <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00088">OnSubmit()</a>, and <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00025">screen_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00028">agent_service_</a>, <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00464">yaze::cli::agent::ConversationalAgentService::GetHistory()</a>, <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00224">yaze::cli::agent::ConversationalAgentService::GetMetrics()</a>, <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00027">input_message_</a>, <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2a3ea6f9f6140b78f0c5a050d926097f56">yaze::cli::agent::ChatMessage::kUser</a>, <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00030">last_error_</a>, <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00139">OnSubmit()</a>, and <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00026">screen_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00516">yaze::cli::agent::HandleChatCommand()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00517">yaze::cli::agent::HandleChatCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI_a7329709baf2843979bf12d74eff14cc2_cgraph.png" border="0" usemap="#ad9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI_a7329709baf2843979bf12d74eff14cc2_cgraph" alt=""/></div>
 <map name="ad9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI_a7329709baf2843979bf12d74eff14cc2_cgraph" id="ad9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI_a7329709baf2843979bf12d74eff14cc2_cgraph">
-<area shape="rect" title=" " alt="" coords="5,46,176,72"/>
+<area shape="rect" title=" " alt="" coords="5,78,176,104"/>
 <area shape="rect" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ab55e86d1ba2febc9f75ead191a3385fc" title=" " alt="" coords="224,5,420,46"/>
-<area shape="poly" title=" " alt="" coords="176,44,208,39,209,45,177,49"/>
-<area shape="rect" href="../../d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a4a3d32670d995d957bd9f5d0a59a7ba7" title=" " alt="" coords="251,71,393,111"/>
-<area shape="poly" title=" " alt="" coords="177,68,236,76,235,82,176,73"/>
-<area shape="rect" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a10565bd80a2d2d479e8f10af89380bd6" title=" " alt="" coords="468,71,664,111"/>
-<area shape="poly" title=" " alt="" coords="393,88,452,88,452,94,393,94"/>
+<area shape="poly" title=" " alt="" coords="138,75,232,48,233,53,139,80"/>
+<area shape="rect" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a69343a3c2a079c23d8202250d1c8d1e5" title=" " alt="" coords="224,71,420,111"/>
+<area shape="poly" title=" " alt="" coords="176,88,208,88,208,94,176,94"/>
+<area shape="rect" href="../../d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a4a3d32670d995d957bd9f5d0a59a7ba7" title=" " alt="" coords="251,136,393,177"/>
+<area shape="poly" title=" " alt="" coords="139,102,237,130,236,135,138,107"/>
+<area shape="rect" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a0b3c44eb2c0b4d44703871aeefded5fd" title=" " alt="" coords="468,71,700,111"/>
+<area shape="poly" title=" " alt="" coords="421,88,452,88,452,94,421,94"/>
 </map>
 </div>
 
@@ -254,9 +256,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00023">23</a> of file <a class="el" href="../../d0/d16/chat__tui_8cc_source.html">chat_tui.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00027">27</a> of file <a class="el" href="../../d0/d16/chat__tui_8cc_source.html">chat_tui.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00027">agent_service_</a>, <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00028">rom_context_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00168">yaze::cli::agent::ConversationalAgentService::SetRomContext()</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00028">agent_service_</a>, <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00029">rom_context_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00184">yaze::cli::agent::ConversationalAgentService::SetRomContext()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -269,31 +271,6 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="392,23,424,23,424,28,392,28"/>
 </map>
 </div>
-
-</div>
-</div>
-<a id="aab21fb21fc54a5fd0188988afcc2844a" name="aab21fb21fc54a5fd0188988afcc2844a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aab21fb21fc54a5fd0188988afcc2844a">&#9670;&#160;</a></span>Render()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void yaze::cli::tui::ChatTUI::Render </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
 
 </div>
 </div>
@@ -320,26 +297,25 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00088">88</a> of file <a class="el" href="../../d0/d16/chat__tui_8cc_source.html">chat_tui.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00139">139</a> of file <a class="el" href="../../d0/d16/chat__tui_8cc_source.html">chat_tui.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00027">agent_service_</a>, <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00026">input_message_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00180">yaze::cli::agent::ConversationalAgentService::SendMessage()</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00028">agent_service_</a>, <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00027">input_message_</a>, <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00030">last_error_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00228">yaze::cli::agent::ConversationalAgentService::SendMessage()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00028">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00032">Run()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI_a4a3d32670d995d957bd9f5d0a59a7ba7_cgraph.png" border="0" usemap="#ad9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI_a4a3d32670d995d957bd9f5d0a59a7ba7_cgraph" alt=""/></div>
 <map name="ad9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI_a4a3d32670d995d957bd9f5d0a59a7ba7_cgraph" id="ad9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI_a4a3d32670d995d957bd9f5d0a59a7ba7_cgraph">
-<area shape="rect" title=" " alt="" coords="5,63,147,103"/>
-<area shape="rect" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a10565bd80a2d2d479e8f10af89380bd6" title=" " alt="" coords="195,63,391,103"/>
-<area shape="poly" title=" " alt="" coords="147,80,179,80,179,86,147,86"/>
-<area shape="rect" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a2c1a6be10a542c3294d358a1108be09f" title=" " alt="" coords="441,5,635,46"/>
-<area shape="poly" title=" " alt="" coords="382,59,432,48,434,53,383,65"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="684,42,826,68"/>
-<area shape="poly" title=" " alt="" coords="391,74,668,58,669,63,392,80"/>
-<area shape="rect" href="../../d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#ab83c62c24e7c9c186dc5010c11140cab" title=" " alt="" coords="439,120,636,161"/>
-<area shape="poly" title=" " alt="" coords="383,101,434,113,432,118,382,107"/>
-<area shape="poly" title=" " alt="" coords="635,36,669,41,669,46,635,41"/>
+<area shape="rect" title=" " alt="" coords="5,71,147,111"/>
+<area shape="rect" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a10565bd80a2d2d479e8f10af89380bd6" title=" " alt="" coords="195,71,391,111"/>
+<area shape="poly" title=" " alt="" coords="147,88,179,88,179,94,147,94"/>
+<area shape="rect" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a0b3c44eb2c0b4d44703871aeefded5fd" title=" " alt="" coords="439,5,671,46"/>
+<area shape="poly" title=" " alt="" coords="377,67,455,48,457,53,378,73"/>
+<area shape="rect" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a2c1a6be10a542c3294d358a1108be09f" title=" " alt="" coords="458,71,652,111"/>
+<area shape="poly" title=" " alt="" coords="392,88,442,88,442,94,392,94"/>
+<area shape="rect" href="../../d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#ab83c62c24e7c9c186dc5010c11140cab" title=" " alt="" coords="457,136,654,177"/>
+<area shape="poly" title=" " alt="" coords="378,109,457,129,455,134,377,115"/>
 </map>
 </div>
 
@@ -366,9 +342,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00025">25</a> of file <a class="el" href="../../db/d67/chat__tui_8h_source.html">chat_tui.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00026">26</a> of file <a class="el" href="../../db/d67/chat__tui_8h_source.html">chat_tui.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00028">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00032">Run()</a>.</p>
 
 </div>
 </div>
@@ -392,9 +368,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00026">26</a> of file <a class="el" href="../../db/d67/chat__tui_8h_source.html">chat_tui.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00027">27</a> of file <a class="el" href="../../db/d67/chat__tui_8h_source.html">chat_tui.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00088">OnSubmit()</a>, and <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00028">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00139">OnSubmit()</a>, and <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00032">Run()</a>.</p>
 
 </div>
 </div>
@@ -418,9 +394,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00027">27</a> of file <a class="el" href="../../db/d67/chat__tui_8h_source.html">chat_tui.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00028">28</a> of file <a class="el" href="../../db/d67/chat__tui_8h_source.html">chat_tui.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00017">ChatTUI()</a>, <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00088">OnSubmit()</a>, <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00028">Run()</a>, and <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00023">SetRomContext()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00021">ChatTUI()</a>, <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00139">OnSubmit()</a>, <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00032">Run()</a>, and <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00027">SetRomContext()</a>.</p>
 
 </div>
 </div>
@@ -444,9 +420,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00028">28</a> of file <a class="el" href="../../db/d67/chat__tui_8h_source.html">chat_tui.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00029">29</a> of file <a class="el" href="../../db/d67/chat__tui_8h_source.html">chat_tui.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00017">ChatTUI()</a>, and <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00023">SetRomContext()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00021">ChatTUI()</a>, and <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00027">SetRomContext()</a>.</p>
+
+</div>
+</div>
+<a id="ae2e90790baadc3f03d5e16acdbd2579a" name="ae2e90790baadc3f03d5e16acdbd2579a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2e90790baadc3f03d5e16acdbd2579a">&#9670;&#160;</a></span>last_error_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt;std::string&gt; yaze::cli::tui::ChatTUI::last_error_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../db/d67/chat__tui_8h_source.html#l00030">30</a> of file <a class="el" href="../../db/d67/chat__tui_8h_source.html">chat_tui.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00139">OnSubmit()</a>, and <a class="el" href="../../d0/d16/chat__tui_8cc_source.html#l00032">Run()</a>.</p>
 
 </div>
 </div>

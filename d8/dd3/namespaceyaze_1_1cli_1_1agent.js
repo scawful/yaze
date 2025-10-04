@@ -9,6 +9,8 @@ var namespaceyaze_1_1cli_1_1agent =
       [ "JsonValueToString", "d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#ab0548a61f882b63d453ea1dd303186a2", null ],
       [ "CollectObjectKeys", "d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#adb9a96efbf6106ec9661ea0a5eabfe3a", null ],
       [ "BuildTableData", "d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#a419c7f2142bc028b821dbfaa81f06d4c", null ],
+      [ "IsExecutableCommand", "d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#aaa25c8b2151d234a95090ea24e1c3f07", null ],
+      [ "CountExecutableCommands", "d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#a6a364bf5571168bce686f81666401eda", null ],
       [ "CreateMessage", "d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#a16212129b67df04b03660abb86754cc7", null ]
     ] ],
     [ "anonymous_namespace{general_commands.cc}", "d1/ddf/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03.html", "d1/ddf/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03" ],
@@ -18,6 +20,16 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "anonymous_namespace{proposal_executor.cc}", "d0/d0c/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02proposal__executor_8cc_03.html", [
       [ "InferProvider", "d0/d0c/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02proposal__executor_8cc_03.html#ade5192c0be31590469f1ced3857da287", null ],
       [ "IsExecutableCommand", "d0/d0c/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02proposal__executor_8cc_03.html#a4d82734bb4d51cef3b3307533d07afba", null ]
+    ] ],
+    [ "anonymous_namespace{simple_chat_session.cc}", "d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html", [
+      [ "EscapeJsonString", "d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#ad7027ba3cd263f3bd12be049fb7ea93b", null ],
+      [ "QuoteJson", "d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#a2fe452ee65ff0e567c055df9905d27df", null ],
+      [ "TableToJson", "d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#a3cb967c4f6d54933e77a0ab53f59ad7f", null ],
+      [ "MetricsToJson", "d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#ac37fa3d9fa8b303126a8b1fc6af7845f", null ],
+      [ "MessageToJson", "d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#aef26d3d3782ab75b4645a02a8838f114", null ],
+      [ "PrintMarkdownTable", "d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#ae686ee81a69ab7088a9db1f5a8577074", null ],
+      [ "PrintMarkdownMetrics", "d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#a6bfef8db73c77ae80117dc35c6ca0c7e", null ],
+      [ "SessionMetricsToJson", "d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#ab3cf7c800704640d2d1401da1c250723", null ]
     ] ],
     [ "anonymous_namespace{tool_commands.cc}", "d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html", [
       [ "LoadRomFromFlag", "d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html#aacabbc0ab80e144c2a381ebad5dbf938", null ],
@@ -30,6 +42,12 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "ProposalCreationResult", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult" ],
     [ "SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession" ],
     [ "ToolDispatcher", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher" ],
+    [ "AgentOutputFormat", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7", [
+      [ "kFriendly", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a1a115fc122d4846ead8cc4b1255cbf44", null ],
+      [ "kCompact", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a104573db6e35d80a8a5bacc53b26a4a2", null ],
+      [ "kMarkdown", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a30437633d552b7229b65b11ec90cb153", null ],
+      [ "kJson", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a319f3b99b8d96c21e2f6b7ebc6fe8d8f", null ]
+    ] ],
     [ "HandleRunCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a4c88dbe6c96f20bba8fd432738e1a528", null ],
     [ "HandlePlanCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#af164e32341de8c5ac58d6836bb3bc483", null ],
     [ "HandleDiffCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab7fbe1f4946d07411f70942eed73a58e", null ],
@@ -42,7 +60,9 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "HandleRevertCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ac2a2ccb930ec7a842d23197aa6a43a51", null ],
     [ "HandleDescribeCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#acb618f817422ff44303453fcaadd3478", null ],
     [ "HandleResourceListCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a1ca1e4283e12e1d22bd7c455a9958ecb", null ],
+    [ "HandleResourceSearchCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa2abd46cc6fdb474c07541546d5382fe", null ],
     [ "HandleDungeonListSpritesCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a78262ef9b80b22c88525796f93d573e8", null ],
+    [ "HandleDungeonDescribeRoomCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a5b96c42f2f39eeb7392e8ac323a8db08", null ],
     [ "HandleOverworldFindTileCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa0f222c407a70f32a5c3c1fe69a904c2", null ],
     [ "HandleOverworldDescribeMapCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#afa0f337ee6668976e1cb1434794efddd", null ],
     [ "HandleOverworldListWarpsCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#af2e9836c9423d36a3b1c2bab9e8dcbcc", null ],

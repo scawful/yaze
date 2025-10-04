@@ -106,8 +106,11 @@ $(document).ready(function(){initNavTree('dc/d8b/modern__cli_8cc.html','../../')
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../d8/d43/modern__cli_8h_source.html">cli/modern_cli.h</a>&quot;</code><br />
 <code>#include &lt;iostream&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
 <code>#include &quot;absl/flags/flag.h&quot;</code><br />
 <code>#include &quot;absl/flags/declare.h&quot;</code><br />
+<code>#include &quot;absl/strings/ascii.h&quot;</code><br />
+<code>#include &quot;absl/strings/match.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_join.h&quot;</code><br />
@@ -130,10 +133,12 @@ Namespaces</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:aa9c3df97146a4533c1c78f5ac7c9e36e" id="r_aa9c3df97146a4533c1c78f5ac7c9e36e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d8b/modern__cli_8cc.html#aa9c3df97146a4533c1c78f5ac7c9e36e">ABSL_DECLARE_FLAG</a> (std::string, rom)</td></tr>
 <tr class="separator:aa9c3df97146a4533c1c78f5ac7c9e36e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af11b6e9ba40c7993fe5124d72de77ac7" id="r_af11b6e9ba40c7993fe5124d72de77ac7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d8b/modern__cli_8cc.html#af11b6e9ba40c7993fe5124d72de77ac7">ABSL_DECLARE_FLAG</a> (bool, quiet)</td></tr>
+<tr class="separator:af11b6e9ba40c7993fe5124d72de77ac7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="aa9c3df97146a4533c1c78f5ac7c9e36e" name="aa9c3df97146a4533c1c78f5ac7c9e36e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa9c3df97146a4533c1c78f5ac7c9e36e">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9c3df97146a4533c1c78f5ac7c9e36e">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -148,6 +153,34 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">rom&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af11b6e9ba40c7993fe5124d72de77ac7" name="af11b6e9ba40c7993fe5124d72de77ac7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af11b6e9ba40c7993fe5124d72de77ac7">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_DECLARE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quiet&#160;</td>
           <td class="paramname">&#160;</td>
         </tr>
         <tr>

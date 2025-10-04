@@ -101,9 +101,9 @@ $(document).ready(function(){initNavTree('d3/d63/md_docs_2z3ed_2README.html','..
   <div class="headertitle"><div class="title">z3ed: AI-Powered CLI for YAZE</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1038"></a> <b>Status</b>: Production Ready (AI Integration) <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md877"></a> <b>Status</b>: Production Ready (AI Integration) <br  />
  <b>Latest Update</b>: October 3, 2025</p>
-<h1><a class="anchor" id="autotoc_md1039"></a>
+<h1><a class="anchor" id="autotoc_md878"></a>
 Overview</h1>
 <p><code>z3ed</code> is a command-line interface for YAZE enabling AI-driven ROM modifications through a conversational interface. It provides natural language interaction for ROM inspection and editing with a safe proposal-based workflow.</p>
 <p><b>Core Capabilities</b>:</p><ol type="1">
@@ -112,9 +112,9 @@ Overview</h1>
 <li><b>Proposal System</b>: Sandbox editing with review workflow</li>
 <li><b>Multiple AI Backends</b>: Ollama (local), Gemini (cloud)</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1040"></a>
+<h1><a class="anchor" id="autotoc_md879"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md1041"></a>
+<h2><a class="anchor" id="autotoc_md880"></a>
 Build</h2>
 <div class="fragment"><div class="line"># Full AI features (RECOMMENDED)</div>
 <div class="line">cmake -B build -DZ3ED_AI=ON</div>
@@ -123,14 +123,14 @@ Build</h2>
 <div class="line"># With GUI automation</div>
 <div class="line">cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON</div>
 <div class="line">cmake --build build --target z3ed</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1042"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md881"></a>
 AI Setup</h2>
 <p><b>Ollama (Recommended for Development)</b>: </p><div class="fragment"><div class="line">brew install ollama              # macOS</div>
 <div class="line">ollama pull qwen2.5-coder:7b    # Pull model</div>
 <div class="line">ollama serve                     # Start server</div>
 </div><!-- fragment --><p><b>Gemini (Cloud API)</b>: </p><div class="fragment"><div class="line">export GEMINI_API_KEY=&quot;your-key-here&quot;</div>
 <div class="line"># Get key from https://aistudio.google.com/apikey</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1043"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md882"></a>
 Example Commands</h2>
 <p><b>Conversational Agent</b>: </p><div class="fragment"><div class="line"># Interactive chat (FTXUI)</div>
 <div class="line">z3ed agent chat --rom zelda3.sfc</div>
@@ -159,9 +159,9 @@ Example Commands</h2>
 <div class="line"> </div>
 <div class="line"># Accept</div>
 <div class="line">z3ed agent accept --proposal-id &lt;id&gt;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1044"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md883"></a>
 Chat Modes</h1>
-<h2><a class="anchor" id="autotoc_md1045"></a>
+<h2><a class="anchor" id="autotoc_md884"></a>
 1. FTXUI Chat (&lt;tt&gt;agent chat&lt;/tt&gt;)</h2>
 <p>Full-screen interactive terminal with:</p><ul>
 <li>Table rendering for JSON results</li>
@@ -169,7 +169,7 @@ Chat Modes</h1>
 <li>Scrollable history</li>
 <li>Best for manual exploration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1046"></a>
+<h2><a class="anchor" id="autotoc_md885"></a>
 2. Simple Chat (&lt;tt&gt;agent simple-chat&lt;/tt&gt;)</h2>
 <p>Text-based REPL without FTXUI:</p><ul>
 <li>Lightweight, no dependencies</li>
@@ -178,7 +178,7 @@ Chat Modes</h1>
 <li>Better for AI agent testing</li>
 <li>Commands: <code>quit</code>, <code>exit</code>, <code>reset</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1047"></a>
+<h2><a class="anchor" id="autotoc_md886"></a>
 3. GUI Chat Widget (In Progress)</h2>
 <p><a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> widget in YAZE editor:</p><ul>
 <li>Same backend as CLI</li>
@@ -186,7 +186,7 @@ Chat Modes</h1>
 <li>History persistence</li>
 <li>Visual proposal review</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1048"></a>
+<h1><a class="anchor" id="autotoc_md887"></a>
 Available Tools</h1>
 <p>The agent can call these tools autonomously:</p>
 <table class="markdownTable">
@@ -195,7 +195,11 @@ Available Tools</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>resource-list</code>   </td><td class="markdownTableBodyNone">List labeled resources   </td><td class="markdownTableBodyNone">"What dungeons exist?"    </td></tr>
 <tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>resource-search</code>   </td><td class="markdownTableBodyNone">Fuzzy search across labels   </td><td class="markdownTableBodyNone">"Search for soldier labels"    </td></tr>
+<tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>dungeon-list-sprites</code>   </td><td class="markdownTableBodyNone">Sprites in room   </td><td class="markdownTableBodyNone">"Show soldiers in room 0x12"    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>dungeon-describe-room</code>   </td><td class="markdownTableBodyNone">Room metadata summary   </td><td class="markdownTableBodyNone">"Describe room 0x012"    </td></tr>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>overworld-find-tile</code>   </td><td class="markdownTableBodyNone">Find tile locations   </td><td class="markdownTableBodyNone">"Where is tile 0x2E used?"    </td></tr>
 <tr class="markdownTableRowEven">
@@ -203,52 +207,20 @@ Available Tools</h1>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>overworld-list-warps</code>   </td><td class="markdownTableBodyNone">List entrances/exits   </td><td class="markdownTableBodyNone">"Show all cave entrances"   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md1049"></a>
-Documentation</h1>
-<ul>
-<li><b>AGENT-ROADMAP.md</b> - Vision, priorities, and technical architecture</li>
-<li><b>E6-z3ed-cli-design.md</b> - CLI design and command structure</li>
-<li><b>E6-z3ed-reference.md</b> - Complete command reference</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md1050"></a>
-Recent Updates (Oct 3, 2025)</h1>
-<h2><a class="anchor" id="autotoc_md1051"></a>
-✅ Implemented</h2>
-<ul>
-<li><b>Simple Chat Mode</b>: Text-based REPL for automation</li>
-<li><b>GUI Widget Fixes</b>: Corrected API usage, table rendering</li>
-<li><b>Condensed Documentation</b>: Streamlined README and ROADMAP</li>
-<li><b>Z3ED_AI Flag</b>: Simplified build with single master flag</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md1052"></a>
+<h2><a class="anchor" id="autotoc_md888"></a>
 🎯 Next Steps</h2>
 <ol type="1">
-<li><b>Live LLM Testing</b> (1-2h): Verify function calling works</li>
 <li><b>GUI Integration</b> (4-6h): Wire chat widget into main app</li>
 <li><b>Proposal Integration</b> (6-8h): Connect chat to ROM modification</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1053"></a>
+<h1><a class="anchor" id="autotoc_md889"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md1054"></a>
-"AI features not available"</h2>
-<p><b>Solution</b>: Rebuild with <code>-DZ3ED_AI=ON</code></p>
-<h2><a class="anchor" id="autotoc_md1055"></a>
-"OpenSSL not found"</h2>
-<p><b>Impact</b>: Gemini won't work <br  />
- <b>Solutions</b>:</p><ul>
-<li>Use Ollama (no SSL needed)</li>
-<li>Install OpenSSL: <code>brew install openssl</code></li>
-</ul>
-<h2><a class="anchor" id="autotoc_md1056"></a>
+<h2><a class="anchor" id="autotoc_md890"></a>
 Chat mode freezes</h2>
 <p><b>Solution</b>: Use <code>agent simple-chat</code> instead of <code>agent chat</code></p>
-<h2><a class="anchor" id="autotoc_md1057"></a>
-Tool not being called</h2>
-<p><b>Cause</b>: Model doesn't support function calling <br  />
- <b>Solution</b>: Use qwen2.5-coder (Ollama) or Gemini 2.0</p>
-<h1><a class="anchor" id="autotoc_md1058"></a>
+<h1><a class="anchor" id="autotoc_md891"></a>
 Example Workflows</h1>
-<h2><a class="anchor" id="autotoc_md1059"></a>
+<h2><a class="anchor" id="autotoc_md892"></a>
 Explore ROM</h2>
 <div class="fragment"><div class="line">$ z3ed agent simple-chat --rom zelda3.sfc</div>
 <div class="line">You: What dungeons are defined?</div>
@@ -262,7 +234,7 @@ Explore ROM</h2>
 <div class="line">You: Show me sprites in the first dungeon room 0x012</div>
 <div class="line">Agent: &lt;calls dungeon-list-sprites --room 0x012&gt;</div>
 <div class="line">  ...</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1060"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md893"></a>
 Make Changes</h2>
 <div class="fragment"><div class="line">$ z3ed agent run --prompt &quot;Add a tree at position 10,10 on map 0&quot; --sandbox</div>
 <div class="line">Proposal created: abc123</div>
@@ -273,7 +245,7 @@ Make Changes</h2>
 <div class="line"> </div>
 <div class="line">$ z3ed agent accept --proposal-id abc123</div>
 <div class="line">✅ Proposal accepted</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1061"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md894"></a>
 Overview</h1>
 <p><code>z3ed</code> is a command-line interface for YAZE that enables AI-driven ROM modifications through a proposal-based workflow. It provides both human-accessible commands for developers and machine-readable APIs for LLM integration.</p>
 <p><b>Core Capabilities</b>:</p><ol type="1">
@@ -282,9 +254,9 @@ Overview</h1>
 <li><b>Proposal System</b>: Safe sandbox editing with accept/reject workflow</li>
 <li><b>Multiple AI Backends</b>: Ollama (local), Gemini (cloud), Claude (planned)</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1062"></a>
+<h1><a class="anchor" id="autotoc_md895"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md1063"></a>
+<h2><a class="anchor" id="autotoc_md896"></a>
 Build Options</h2>
 <div class="fragment"><div class="line"># Basic z3ed (CLI only, no AI/testing features)</div>
 <div class="line">cmake --build build --target z3ed</div>
@@ -292,6 +264,8 @@ Build Options</h2>
 <div class="line"># Full build with AI agent (RECOMMENDED - uses consolidated flag)</div>
 <div class="line">cmake -B build -DZ3ED_AI=ON</div>
 <div class="line">cmake --build build --target z3ed</div>
+<div class="line"> </div>
+<div class="line"># use macos-dev-z3ed-ai cmake preset</div>
 <div class="line"> </div>
 <div class="line"># Full build with AI agent AND testing suite</div>
 <div class="line">cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON</div>
@@ -307,7 +281,7 @@ Build Options</h2>
 <li>httplib (HTTP/HTTPS API calls)</li>
 <li>OpenSSL (optional, for Gemini HTTPS - auto-detected on macOS/Linux)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1064"></a>
+<h2><a class="anchor" id="autotoc_md897"></a>
 AI Agent Commands</h2>
 <div class="fragment"><div class="line"># Generate commands from natural language prompt</div>
 <div class="line">z3ed agent plan --prompt &quot;Place a tree at position 10, 10 on map 0&quot;</div>
@@ -332,7 +306,7 @@ AI Agent Commands</h2>
 <div class="line"> </div>
 <div class="line"># Search overworld maps for a tile ID using shared agent tooling</div>
 <div class="line">z3ed agent overworld-find-tile --tile 0x02E --map 0x05</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1065"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md898"></a>
 GUI Testing Commands</h2>
 <div class="fragment"><div class="line"># Run automated test</div>
 <div class="line">z3ed agent test --prompt &quot;Open Overworld editor and verify it loads&quot;</div>
@@ -353,9 +327,9 @@ GUI Testing Commands</h2>
 <div class="line"> </div>
 <div class="line"># Test with custom conversation file</div>
 <div class="line">z3ed agent test-conversation --file my_tests.json</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1066"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md899"></a>
 AI Service Setup</h1>
-<h2><a class="anchor" id="autotoc_md1067"></a>
+<h2><a class="anchor" id="autotoc_md900"></a>
 Ollama (Local LLM - Recommended for Development)</h2>
 <div class="fragment"><div class="line"># Install Ollama</div>
 <div class="line">brew install ollama  # macOS</div>
@@ -369,7 +343,7 @@ Ollama (Local LLM - Recommended for Development)</h2>
 <div class="line"> </div>
 <div class="line"># z3ed will auto-detect Ollama at localhost:11434</div>
 <div class="line">z3ed agent plan --prompt &quot;test&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1068"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md901"></a>
 Gemini (Google Cloud API)</h2>
 <div class="fragment"><div class="line"># Get API key from https://aistudio.google.com/apikey</div>
 <div class="line">export GEMINI_API_KEY=&quot;your-key-here&quot;</div>
@@ -377,7 +351,7 @@ Gemini (Google Cloud API)</h2>
 <div class="line"># z3ed will auto-select Gemini when key is set</div>
 <div class="line">z3ed agent plan --prompt &quot;test&quot;</div>
 </div><!-- fragment --><p><b>Note</b>: Gemini requires OpenSSL (HTTPS). Build with <code>-DYAZE_WITH_GRPC=ON -DYAZE_WITH_JSON=ON</code> to enable SSL support. OpenSSL is auto-detected on macOS/Linux. Windows users can use Ollama instead.</p>
-<h2><a class="anchor" id="autotoc_md1069"></a>
+<h2><a class="anchor" id="autotoc_md902"></a>
 Example Prompts</h2>
 <p>Here are some example prompts you can try with either Ollama or Gemini:</p>
 <p><b>Overworld Tile16 Editing</b>:</p><ul>
@@ -390,20 +364,11 @@ Example Prompts</h2>
 <li><code>"Add 3 soldiers to the Eastern Palace entrance room"</code></li>
 <li><code>"Place a chest in Hyrule Castle treasure room"</code></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1070"></a>
+<h1><a class="anchor" id="autotoc_md903"></a>
 Core Documentation</h1>
-<h2><a class="anchor" id="autotoc_md1071"></a>
-Essential Reads</h2>
-<ol type="1">
-<li><b>BUILD_QUICK_REFERENCE.md</b> - <b>NEW!</b> Fast build guide with Z3ED_AI flag examples</li>
-<li><b>AGENT-ROADMAP.md</b> - The primary source of truth for the AI agent's strategic vision, architecture, and next steps</li>
-<li><b>Z3ED_AI_FLAG_MIGRATION.md</b> - <b>NEW!</b> Complete guide to Z3ED_AI flag and crash fixes</li>
-<li><b>E6-z3ed-cli-design.md</b> - Detailed architecture and design philosophy</li>
-<li><b>E6-z3ed-reference.md</b> - Complete command reference and API documentation</li>
-</ol>
-<h1><a class="anchor" id="autotoc_md1072"></a>
+<h1><a class="anchor" id="autotoc_md904"></a>
 Current Status (October 3, 2025)</h1>
-<h2><a class="anchor" id="autotoc_md1073"></a>
+<h2><a class="anchor" id="autotoc_md905"></a>
 ✅ Production Ready</h2>
 <ul>
 <li><b>Build System</b>: ✅ Z3ED_AI flag consolidation complete<ul>
@@ -432,20 +397,17 @@ Current Status (October 3, 2025)</h1>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1074"></a>
+<h2><a class="anchor" id="autotoc_md906"></a>
 � In Progress (Priority Order)</h2>
 <ol type="1">
 <li><b>Live LLM Testing</b> (1-2h): Verify function calling with real models</li>
 <li><b>GUI Chat Widget</b> (6-8h): <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> integration (TUI exists as reference)</li>
 <li><b>Tool Coverage Expansion</b> (8-10h): Dialogue, sprites, regions</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1075"></a>
-📋 Next Steps</h2>
-<p>See AGENT-ROADMAP.md for detailed technical roadmap.</p>
-<h1><a class="anchor" id="autotoc_md1076"></a>
+<h1><a class="anchor" id="autotoc_md907"></a>
 AI Editing Focus Areas</h1>
 <p>z3ed is optimized for practical ROM editing workflows:</p>
-<h2><a class="anchor" id="autotoc_md1077"></a>
+<h2><a class="anchor" id="autotoc_md908"></a>
 Overworld Tile16 Editing ⭐ PRIMARY FOCUS</h2>
 <p><b>Why</b>: Simple data model (uint16 IDs), visual feedback, reversible, safe</p><ul>
 <li>Single tile placement (trees, rocks, bushes)</li>
@@ -453,7 +415,7 @@ Overworld Tile16 Editing ⭐ PRIMARY FOCUS</h2>
 <li>Path creation (connecting points with tiles)</li>
 <li>Pattern generation (tree rows, forests, boundaries)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1078"></a>
+<h2><a class="anchor" id="autotoc_md909"></a>
 Dungeon Editing</h2>
 <ul>
 <li>Sprite placement with label awareness ("eastern palace entrance")</li>
@@ -461,14 +423,14 @@ Dungeon Editing</h2>
 <li>Entrance configuration</li>
 <li>Room property editing</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1079"></a>
+<h2><a class="anchor" id="autotoc_md910"></a>
 Palette Editing</h2>
 <ul>
 <li>Color modification by index</li>
 <li>Sprite palette adjustments</li>
 <li>Export/import workflows</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1080"></a>
+<h2><a class="anchor" id="autotoc_md911"></a>
 Additional Capabilities</h2>
 <ul>
 <li>Sprite data editing</li>
@@ -476,9 +438,9 @@ Additional Capabilities</h2>
 <li>ROM validation</li>
 <li>Patch application</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1081"></a>
+<h1><a class="anchor" id="autotoc_md912"></a>
 Example Workflows</h1>
-<h2><a class="anchor" id="autotoc_md1082"></a>
+<h2><a class="anchor" id="autotoc_md913"></a>
 Basic Tile16 Edit</h2>
 <div class="fragment"><div class="line"># AI generates command</div>
 <div class="line">z3ed agent plan --prompt &quot;Place a tree at 10, 10&quot;</div>
@@ -489,7 +451,7 @@ Basic Tile16 Edit</h2>
 <div class="line"> </div>
 <div class="line"># Or auto-execute with sandbox</div>
 <div class="line">z3ed agent run --prompt &quot;Place a tree at 10, 10&quot; --rom zelda3.sfc --sandbox</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1083"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md914"></a>
 Complex Multi-Step Edit</h2>
 <div class="fragment"><div class="line"># AI generates multiple commands</div>
 <div class="line">z3ed agent plan --prompt &quot;Create a 3x3 water pond at 15, 20&quot;</div>
@@ -499,7 +461,7 @@ Complex Multi-Step Edit</h2>
 <div class="line"> </div>
 <div class="line"># Accept and apply</div>
 <div class="line">z3ed agent accept --latest</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1084"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md915"></a>
 Locate Existing Tiles</h2>
 <div class="fragment"><div class="line"># Find every instance of tile 0x02E across the overworld</div>
 <div class="line">z3ed overworld find-tile --tile 0x02E --format json</div>
@@ -509,12 +471,12 @@ Locate Existing Tiles</h2>
 <div class="line"> </div>
 <div class="line"># Ask the agent to perform the same lookup (returns JSON by default)</div>
 <div class="line">z3ed agent overworld-find-tile --tile 0x02E --map 0x05</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1085"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md916"></a>
 Label-Aware Dungeon Edit</h2>
 <div class="fragment"><div class="line"># AI uses ResourceLabels from your project</div>
 <div class="line">z3ed agent plan --prompt &quot;Add 3 soldiers to my custom fortress entrance&quot;</div>
 <div class="line"># AI explains: &quot;Using label &#39;custom_fortress&#39; for dungeon 0x04&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1086"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md917"></a>
 Dependencies Guard</h1>
 <p>AI agent features require:</p><ul>
 <li><code>YAZE_WITH_GRPC=ON</code> - GUI automation and test harness</li>
@@ -522,9 +484,9 @@ Dependencies Guard</h1>
 <li>OpenSSL (optional) - Gemini HTTPS support (auto-detected)</li>
 </ul>
 <p><b>Windows Compatibility</b>: Build without gRPC/JSON for basic z3ed functionality. Use Ollama (localhost) instead of Gemini for AI features without SSL dependency.</p>
-<h1><a class="anchor" id="autotoc_md1087"></a>
+<h1><a class="anchor" id="autotoc_md918"></a>
 Recent Changes (Oct 3, 2025)</h1>
-<h2><a class="anchor" id="autotoc_md1088"></a>
+<h2><a class="anchor" id="autotoc_md919"></a>
 Z3ED_AI Build Flag (Major Improvement)</h2>
 <ul>
 <li>✅ <b>Consolidated Build Flags</b>: New <code>-DZ3ED_AI=ON</code> replaces multiple flags<ul>
@@ -536,40 +498,32 @@ Z3ED_AI Build Flag (Major Improvement)</h2>
 <li>✅ <b>Better Error Messages</b>: Clear guidance on missing dependencies</li>
 <li>✅ <b>Production Ready</b>: Both backends tested and operational</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1089"></a>
+<h2><a class="anchor" id="autotoc_md920"></a>
 Build System</h2>
 <ul>
 <li>✅ Auto-manages dependencies (JSON, YAML, httplib, OpenSSL)</li>
 <li>✅ Backward compatible with old flags</li>
 <li>✅ Ready for build modularization (optional <code>libyaze_agent.a</code>)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1090"></a>
+<h2><a class="anchor" id="autotoc_md921"></a>
 Documentation</h2>
 <ul>
 <li>✅ Updated build instructions with Z3ED_AI flag</li>
 <li>✅ Added migration guide: Z3ED_AI_FLAG_MIGRATION.md</li>
 <li>✅ Clear troubleshooting section with common issues</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1091"></a>
+<h1><a class="anchor" id="autotoc_md922"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md1092"></a>
-"OpenSSL not found" warning</h2>
-<p><b>Impact</b>: Gemini API won't work (HTTPS required) <br  />
- <b>Solutions</b>:</p><ul>
-<li>Use Ollama instead (no SSL needed, runs locally) - <b>RECOMMENDED</b></li>
-<li>Install OpenSSL: <code>brew install openssl</code> (macOS) or <code>apt-get install libssl-dev</code> (Linux)</li>
-<li>Windows: Use Ollama (localhost) instead of Gemini</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md1093"></a>
+<h2><a class="anchor" id="autotoc_md923"></a>
 "Build with -DZ3ED_AI=ON" warning</h2>
 <p><b>Impact</b>: AI agent features disabled (no Ollama or Gemini) <br  />
  <b>Solution</b>: Rebuild with AI support: </p><div class="fragment"><div class="line">cmake -B build -DZ3ED_AI=ON</div>
 <div class="line">cmake --build build --target z3ed</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1094"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md924"></a>
 "gRPC not available" error</h2>
 <p><b>Impact</b>: GUI testing and automation disabled <br  />
  <b>Solution</b>: Rebuild with <code>-DYAZE_WITH_GRPC=ON</code> (also requires Z3ED_AI)</p>
-<h2><a class="anchor" id="autotoc_md1095"></a>
+<h2><a class="anchor" id="autotoc_md925"></a>
 AI generates invalid commands</h2>
 <p><b>Causes</b>: Vague prompt, unfamiliar tile IDs, missing context <br  />
  <b>Solutions</b>:</p><ul>
@@ -578,7 +532,7 @@ AI generates invalid commands</h2>
 <li>Provide map context ("Light World", "map 0")</li>
 <li>Check ResourceLabels are loaded for your project</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1096"></a>
+<h2><a class="anchor" id="autotoc_md926"></a>
 Testing the conversational agent</h2>
 <p><b>Problem</b>: TUI chat requires interactive input <br  />
  <b>Solution</b>: Use the new batch testing mode: </p><div class="fragment"><div class="line"># Run with default test cases (no interaction required)</div>
@@ -586,11 +540,11 @@ Testing the conversational agent</h2>
 <div class="line"> </div>
 <div class="line"># Or use the automated test script</div>
 <div class="line">./scripts/test_agent_conversation_live.sh</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1097"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md927"></a>
 Verifying ImGui test harness</h2>
 <p><b>Problem</b>: Unsure if GUI automation is working <br  />
  <b>Solution</b>: Run the verification script: </p><div class="fragment"><div class="line">./scripts/test_imgui_harness.sh</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md1098"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md928"></a>
 Gemini-Specific Issues</h3>
 <ul>
 <li>**"Cannot reach Gemini API"**: Check your internet connection, API key, and that you've built with SSL support.</li>

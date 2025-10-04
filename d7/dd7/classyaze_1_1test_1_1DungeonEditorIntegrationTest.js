@@ -11,6 +11,6 @@ var classyaze_1_1test_1_1DungeonEditorIntegrationTest =
     [ "GenerateMockRoomHeader", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#a245f9b936a2b5464738ce4b6a01243b6", null ],
     [ "GenerateMockObjectData", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#adf31048c1448fe3671b3e27b124c2644", null ],
     [ "GenerateMockGraphicsData", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#aacf9d54aa8bc8ac6d7e63b6a9ab2f457", null ],
-    [ "mock_rom_", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#a7de0b5cf4f0a75a4aa62acc299f2afbf", null ],
+    [ "mock_rom_", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#a37959320d78f5985cc7401ff31c8bac6", null ],
     [ "dungeon_editor_", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#a19a4ab1a466f7b4571c7296c01903e54", null ]
 ];

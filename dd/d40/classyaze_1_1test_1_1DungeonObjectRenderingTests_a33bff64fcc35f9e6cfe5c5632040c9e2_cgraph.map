@@ -1,0 +1,7 @@
+<map id="yaze::test::DungeonObjectRenderingTests::CreateEmptyRoomScenario" name="yaze::test::DungeonObjectRenderingTests::CreateEmptyRoomScenario">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,232,61"/>
+<area shape="rect" id="Node000002" href="$de/dd6/classyaze_1_1test_1_1TestRomManager_1_1BoundRomTest.html#ad905613a57e42c91a7aad828dd5b2111" title=" " alt="" coords="280,13,464,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="232,31,264,31,264,36,232,36"/>
+<area shape="rect" id="Node000003" href="$de/dd6/classyaze_1_1test_1_1TestRomManager_1_1BoundRomTest.html#abd7ba33a0f0e1a78efe5f416c189c0db" title=" " alt="" coords="512,13,745,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="465,31,496,31,496,36,465,36"/>
+</map>

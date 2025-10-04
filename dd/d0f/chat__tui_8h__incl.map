@@ -1,11 +1,12 @@
 <map id="src/cli/tui/chat_tui.h" name="src/cli/tui/chat_tui.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="246,5,381,31"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,87,211,112"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="283,34,155,83,153,78,281,29"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="235,79,392,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="316,31,316,64,311,64,311,31"/>
-<area shape="rect" id="Node000004" href="$d1/dad/conversational__agent__service_8h.html" title=" " alt="" coords="415,79,620,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="346,29,453,71,452,76,344,34"/>
-<area shape="rect" id="Node000005" title=" " alt="" coords="484,168,551,193"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="520,120,520,152,515,152,515,120"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="166,5,300,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="232,168,298,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,29,103,40,45,58,24,70,12,84,9,100,18,118,30,128,49,138,102,153,162,165,217,172,216,177,161,170,100,159,47,143,27,133,14,121,4,100,7,82,21,66,43,54,102,35,165,24"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="28,87,233,112"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="219,34,160,79,157,75,216,29"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="258,79,414,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="250,29,300,67,297,72,247,34"/>
+<area shape="rect" id="Node000005" href="$d1/dad/conversational__agent__service_8h.html" title=" " alt="" coords="438,79,642,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="281,29,449,72,448,77,280,34"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="472,123,314,168,313,163,471,118"/>
 </map>

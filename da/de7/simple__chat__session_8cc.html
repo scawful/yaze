@@ -99,16 +99,21 @@ $(document).ready(function(){initNavTree('da/de7/simple__chat__session_8cc.html'
 
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">simple_chat_session.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../d5/dee/simple__chat__session_8h_source.html">cli/service/agent/simple_chat_session.h</a>&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
-<code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;iomanip&gt;</code><br />
+<code>#include &lt;iostream&gt;</code><br />
+<code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;unistd.h&gt;</code><br />
+<code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_join.h&quot;</code><br />
 <code>#include &quot;absl/time/time.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../df/ded/terminal__colors_8h_source.html">cli/util/terminal_colors.h</a>&quot;</code><br />
 </div>
@@ -124,6 +129,27 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:d8/dd3/namespaceyaze_1_1cli_1_1agent" id="r_d8/dd3/namespaceyaze_1_1cli_1_1agent"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html">yaze::cli::agent</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03" id="r_d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html">yaze::cli::agent::anonymous_namespace{simple_chat_session.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ad7027ba3cd263f3bd12be049fb7ea93b" id="r_ad7027ba3cd263f3bd12be049fb7ea93b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#ad7027ba3cd263f3bd12be049fb7ea93b">yaze::cli::agent::anonymous_namespace{simple_chat_session.cc}::EscapeJsonString</a> (absl::string_view input)</td></tr>
+<tr class="separator:ad7027ba3cd263f3bd12be049fb7ea93b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2fe452ee65ff0e567c055df9905d27df" id="r_a2fe452ee65ff0e567c055df9905d27df"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#a2fe452ee65ff0e567c055df9905d27df">yaze::cli::agent::anonymous_namespace{simple_chat_session.cc}::QuoteJson</a> (absl::string_view value)</td></tr>
+<tr class="separator:a2fe452ee65ff0e567c055df9905d27df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3cb967c4f6d54933e77a0ab53f59ad7f" id="r_a3cb967c4f6d54933e77a0ab53f59ad7f"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#a3cb967c4f6d54933e77a0ab53f59ad7f">yaze::cli::agent::anonymous_namespace{simple_chat_session.cc}::TableToJson</a> (const <a class="el" href="../../df/de3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1TableData.html">ChatMessage::TableData</a> &amp;table)</td></tr>
+<tr class="separator:a3cb967c4f6d54933e77a0ab53f59ad7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac37fa3d9fa8b303126a8b1fc6af7845f" id="r_ac37fa3d9fa8b303126a8b1fc6af7845f"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#ac37fa3d9fa8b303126a8b1fc6af7845f">yaze::cli::agent::anonymous_namespace{simple_chat_session.cc}::MetricsToJson</a> (const <a class="el" href="../../d5/d86/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1SessionMetrics.html">ChatMessage::SessionMetrics</a> &amp;metrics)</td></tr>
+<tr class="separator:ac37fa3d9fa8b303126a8b1fc6af7845f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef26d3d3782ab75b4645a02a8838f114" id="r_aef26d3d3782ab75b4645a02a8838f114"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#aef26d3d3782ab75b4645a02a8838f114">yaze::cli::agent::anonymous_namespace{simple_chat_session.cc}::MessageToJson</a> (const <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">ChatMessage</a> &amp;msg, bool show_timestamp)</td></tr>
+<tr class="separator:aef26d3d3782ab75b4645a02a8838f114"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae686ee81a69ab7088a9db1f5a8577074" id="r_ae686ee81a69ab7088a9db1f5a8577074"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#ae686ee81a69ab7088a9db1f5a8577074">yaze::cli::agent::anonymous_namespace{simple_chat_session.cc}::PrintMarkdownTable</a> (const <a class="el" href="../../df/de3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1TableData.html">ChatMessage::TableData</a> &amp;table)</td></tr>
+<tr class="separator:ae686ee81a69ab7088a9db1f5a8577074"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6bfef8db73c77ae80117dc35c6ca0c7e" id="r_a6bfef8db73c77ae80117dc35c6ca0c7e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#a6bfef8db73c77ae80117dc35c6ca0c7e">yaze::cli::agent::anonymous_namespace{simple_chat_session.cc}::PrintMarkdownMetrics</a> (const <a class="el" href="../../d5/d86/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1SessionMetrics.html">ChatMessage::SessionMetrics</a> &amp;metrics)</td></tr>
+<tr class="separator:a6bfef8db73c77ae80117dc35c6ca0c7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab3cf7c800704640d2d1401da1c250723" id="r_ab3cf7c800704640d2d1401da1c250723"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#ab3cf7c800704640d2d1401da1c250723">yaze::cli::agent::anonymous_namespace{simple_chat_session.cc}::SessionMetricsToJson</a> (const <a class="el" href="../../d5/d86/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1SessionMetrics.html">ChatMessage::SessionMetrics</a> &amp;metrics)</td></tr>
+<tr class="separator:ab3cf7c800704640d2d1401da1c250723"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

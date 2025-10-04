@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('d8/d20/md_docs_2imgui__widget__testing
   <div class="headertitle"><div class="title">ImGui Widget Testing Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md906"></a> </p>
-<h1><a class="anchor" id="autotoc_md907"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md745"></a> </p>
+<h1><a class="anchor" id="autotoc_md746"></a>
 Overview</h1>
 <p>This guide explains how to use YAZE's <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> testing infrastructure for automated GUI testing and AI agent interaction.</p>
-<h1><a class="anchor" id="autotoc_md908"></a>
+<h1><a class="anchor" id="autotoc_md747"></a>
 Architecture</h1>
-<h2><a class="anchor" id="autotoc_md909"></a>
+<h2><a class="anchor" id="autotoc_md748"></a>
 Components</h2>
 <ol type="1">
 <li><b>WidgetIdRegistry</b>: Centralized registry of all GUI widgets with hierarchical paths</li>
@@ -116,16 +116,16 @@ Components</h2>
 <li><b><a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Test Engine</b>: Automated testing framework</li>
 <li><b>ImGuiTestHarness</b>: gRPC service for remote test control</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md910"></a>
+<h2><a class="anchor" id="autotoc_md749"></a>
 Widget Hierarchy</h2>
 <p>Widgets are identified by hierarchical paths: </p><div class="fragment"><div class="line">Dungeon/Canvas/canvas:DungeonCanvas</div>
 <div class="line">Dungeon/RoomSelector/selectable:Room_5</div>
 <div class="line">Dungeon/ObjectEditor/input_int:ObjectID</div>
 <div class="line">Overworld/Toolset/button:DrawTile</div>
 </div><!-- fragment --><p>Format: <code>Editor/Section/type:name</code></p>
-<h1><a class="anchor" id="autotoc_md911"></a>
+<h1><a class="anchor" id="autotoc_md750"></a>
 Integration Guide</h1>
-<h2><a class="anchor" id="autotoc_md912"></a>
+<h2><a class="anchor" id="autotoc_md751"></a>
 1. Add Auto-Registration to Your Editor</h2>
 <p><b>Before</b>: </p><div class="fragment"><div class="line"><span class="comment">// dungeon_editor.cc</span></div>
 <div class="line"><span class="keywordtype">void</span> DungeonEditor::DrawCanvasPanel() {</div>
@@ -145,7 +145,7 @@ Integration Guide</h1>
 <div class="line">  gui::AutoInputInt(<span class="stringliteral">&quot;Room ID&quot;</span>, &amp;room_id_);</div>
 <div class="line">}</div>
 <div class="ttc" id="awidget__auto__register_8h_html"><div class="ttname"><a href="../../dd/d7f/widget__auto__register_8h.html">widget_auto_register.h</a></div><div class="ttdoc">Automatic widget registration helpers for ImGui Test Engine integration.</div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md913"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md752"></a>
 2. Register Canvas and Tables</h2>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> DungeonEditor::DrawDungeonCanvas() {</div>
 <div class="line">  gui::AutoWidgetScope scope(<span class="stringliteral">&quot;Dungeon/Canvas&quot;</span>);</div>
@@ -177,7 +177,7 @@ Integration Guide</h1>
 <div class="line">    ImGui::EndTable();</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md914"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md753"></a>
 3. Hierarchical Scoping</h2>
 <p>Use nested scopes for complex UIs:</p>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> DungeonEditor::Update() {</div>
@@ -210,7 +210,7 @@ Integration Guide</h1>
 <div class="line">    ImGui::EndTable();</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md915"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md754"></a>
 4. Register Custom Widgets</h2>
 <p>For widgets not covered by Auto* wrappers:</p>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> DrawCustomWidget() {</div>
@@ -227,9 +227,9 @@ Integration Guide</h1>
 <div class="line">  </div>
 <div class="line">  ImGui::PopID();</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md916"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md755"></a>
 Writing Tests</h1>
-<h2><a class="anchor" id="autotoc_md917"></a>
+<h2><a class="anchor" id="autotoc_md756"></a>
 Basic Test Structure</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;imgui_test_engine/imgui_te_engine.h&quot;</span></div>
 <div class="line"><span class="preprocessor">#include &quot;imgui_test_engine/imgui_te_context.h&quot;</span></div>
@@ -246,7 +246,7 @@ Basic Test Structure</h2>
 <div class="line">  IM_CHECK(canvas_info != <span class="keyword">nullptr</span>);</div>
 <div class="line">  IM_CHECK(canvas_info-&gt;RectFull.GetWidth() &gt; 0);</div>
 <div class="line">};</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md918"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md757"></a>
 Test Actions</h2>
 <div class="fragment"><div class="line"><span class="comment">// Click a button</span></div>
 <div class="line">ctx-&gt;ItemClick(<span class="stringliteral">&quot;Dungeon/Toolset/button:Save&quot;</span>);</div>
@@ -262,7 +262,7 @@ Test Actions</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Wait for condition</span></div>
 <div class="line">ctx-&gt;ItemWaitForVisible(<span class="stringliteral">&quot;Dungeon/Canvas/canvas:DungeonCanvas&quot;</span>, 2.0f);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md919"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md758"></a>
 Test with Variables</h2>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>MyTestVars {</div>
 <div class="line">  <span class="keywordtype">int</span> room_id = 0;</div>
@@ -279,9 +279,9 @@ Test with Variables</h2>
 <div class="line">  vars.room_id = 5;</div>
 <div class="line">  ctx-&gt;ItemClick(absl::StrFormat(<span class="stringliteral">&quot;Room_%d&quot;</span>, vars.room_id).c_str());</div>
 <div class="line">};</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md920"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md759"></a>
 Agent Integration</h1>
-<h2><a class="anchor" id="autotoc_md921"></a>
+<h2><a class="anchor" id="autotoc_md760"></a>
 Widget Discovery</h2>
 <p>The z3ed agent can discover available widgets:</p>
 <div class="fragment"><div class="line">z3ed describe --widget-catalog</div>
@@ -297,7 +297,7 @@ Widget Discovery</h2>
 <div class="line">      max: [612.0, 562.0]</div>
 <div class="line">    actions: [click, drag, scroll]</div>
 <div class="line">    description: &quot;Main dungeon editing canvas&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md922"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md761"></a>
 Remote Testing via gRPC</h2>
 <div class="fragment"><div class="line"># Click a button</div>
 <div class="line">z3ed test click &quot;Dungeon/Toolset/button:Save&quot;</div>
@@ -310,16 +310,16 @@ Remote Testing via gRPC</h2>
 <div class="line"> </div>
 <div class="line"># Take screenshot</div>
 <div class="line">z3ed test screenshot --window &quot;Dungeon Editor&quot; --output dungeon.png</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md923"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md762"></a>
 Best Practices</h1>
-<h2><a class="anchor" id="autotoc_md924"></a>
+<h2><a class="anchor" id="autotoc_md763"></a>
 1. Use Stable IDs</h2>
 <div class="fragment"><div class="line"><span class="comment">// GOOD: Stable ID that won&#39;t change with label</span></div>
 <div class="line">gui::AutoButton(<span class="stringliteral">&quot;Save##DungeonSave&quot;</span>);</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// BAD: Label might change in translations</span></div>
 <div class="line">gui::AutoButton(<span class="stringliteral">&quot;Save&quot;</span>);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md925"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md764"></a>
 2. Hierarchical Naming</h2>
 <div class="fragment"><div class="line"><span class="comment">// GOOD: Clear hierarchy</span></div>
 <div class="line">{</div>
@@ -332,14 +332,14 @@ Best Practices</h1>
 <div class="line"> </div>
 <div class="line"><span class="comment">// BAD: Flat structure, name collisions</span></div>
 <div class="line">gui::AutoButton(<span class="stringliteral">&quot;Save&quot;</span>);  <span class="comment">// Which editor&#39;s save?</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md926"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md765"></a>
 3. Descriptive Names</h2>
 <div class="fragment"><div class="line"><span class="comment">// GOOD: Self-documenting</span></div>
 <div class="line">gui::RegisterCanvas(<span class="stringliteral">&quot;DungeonCanvas&quot;</span>, <span class="stringliteral">&quot;Main editing canvas for dungeon rooms&quot;</span>);</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// BAD: Generic</span></div>
 <div class="line">gui::RegisterCanvas(<span class="stringliteral">&quot;Canvas&quot;</span>);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md927"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md766"></a>
 4. Frame Lifecycle</h2>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> Editor::Update() {</div>
 <div class="line">  <span class="comment">// Begin frame for widget registry</span></div>
@@ -350,40 +350,40 @@ Best Practices</h1>
 <div class="line">  <span class="comment">// End frame to prune stale widgets</span></div>
 <div class="line">  gui::WidgetIdRegistry::Instance().EndFrame();</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md928"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md767"></a>
 5. Test Organization</h2>
 <div class="fragment"><div class="line"><span class="comment">// Group related tests</span></div>
 <div class="line">RegisterCanvasTests(engine);         <span class="comment">// Canvas rendering tests</span></div>
 <div class="line">RegisterRoomSelectorTests(engine);   <span class="comment">// Room selection tests</span></div>
 <div class="line">RegisterObjectEditorTests(engine);   <span class="comment">// Object editing tests</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md929"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md768"></a>
 Debugging</h1>
-<h2><a class="anchor" id="autotoc_md930"></a>
+<h2><a class="anchor" id="autotoc_md769"></a>
 View Widget Registry</h2>
 <div class="fragment"><div class="line"><span class="comment">// Export current registry to file</span></div>
 <div class="line">gui::WidgetIdRegistry::Instance().ExportCatalogToFile(<span class="stringliteral">&quot;widgets.yaml&quot;</span>, <span class="stringliteral">&quot;yaml&quot;</span>);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md931"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md770"></a>
 Check if Widget Registered</h2>
 <div class="fragment"><div class="line"><span class="keyword">auto</span>&amp; registry = gui::WidgetIdRegistry::Instance();</div>
 <div class="line">ImGuiID widget_id = registry.GetWidgetId(<span class="stringliteral">&quot;Dungeon/Canvas/canvas:DungeonCanvas&quot;</span>);</div>
 <div class="line"><span class="keywordflow">if</span> (widget_id == 0) {</div>
 <div class="line">  <span class="comment">// Widget not registered!</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md932"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md771"></a>
 Test Engine Debug UI</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#ifdef IMGUI_ENABLE_TEST_ENGINE</span></div>
 <div class="line">ImGuiTestEngine_ShowTestEngineWindows(engine, &amp;show_test_engine);</div>
 <div class="line"><span class="preprocessor">#endif</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md933"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md772"></a>
 Performance Considerations</h1>
 <ol type="1">
 <li><b>Auto-registration overhead</b>: Minimal (~1-2μs per widget per frame)</li>
 <li><b>Registry size</b>: Automatically prunes stale widgets after 600 frames</li>
 <li><b>gRPC latency</b>: 1-5ms for local connections</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md934"></a>
+<h1><a class="anchor" id="autotoc_md773"></a>
 Common Issues</h1>
-<h2><a class="anchor" id="autotoc_md935"></a>
+<h2><a class="anchor" id="autotoc_md774"></a>
 Widget Not Found</h2>
 <p><b>Problem</b>: Test can't find widget path <b>Solution</b>: Check widget is registered and path is correct</p>
 <div class="fragment"><div class="line"><span class="comment">// List all widgets</span></div>
@@ -391,7 +391,7 @@ Widget Not Found</h2>
 <div class="line"><span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [path, info] : registry.GetAllWidgets()) {</div>
 <div class="line">  std::cout &lt;&lt; path &lt;&lt; std::endl;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md936"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md775"></a>
 ID Collisions</h2>
 <p><b>Problem</b>: Multiple widgets with same ID <b>Solution</b>: Use unique IDs with <code>##</code></p>
 <div class="fragment"><div class="line"><span class="comment">// GOOD</span></div>
@@ -401,7 +401,7 @@ ID Collisions</h2>
 <div class="line"><span class="comment">// BAD</span></div>
 <div class="line">gui::AutoButton(<span class="stringliteral">&quot;Save&quot;</span>);  <span class="comment">// Multiple Save buttons collide!</span></div>
 <div class="line">gui::AutoButton(<span class="stringliteral">&quot;Save&quot;</span>);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md937"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md776"></a>
 Scope Issues</h2>
 <p><b>Problem</b>: Widgets disappearing after scope exit <b>Solution</b>: Ensure scopes match widget lifetime</p>
 <div class="fragment"><div class="line"><span class="comment">// GOOD</span></div>
@@ -413,14 +413,14 @@ Scope Issues</h2>
 <div class="line"><span class="comment">// BAD</span></div>
 <div class="line">gui::AutoWidgetScope(<span class="stringliteral">&quot;Dungeon&quot;</span>);  <span class="comment">// Scope ends immediately!</span></div>
 <div class="line">gui::AutoButton(<span class="stringliteral">&quot;Save&quot;</span>);  <span class="comment">// No scope active</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md938"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md777"></a>
 Examples</h1>
 <p>See:</p><ul>
 <li><code><a class="el" href="../../db/d49/dungeon__editor__tests_8cc.html">test/imgui/dungeon_editor_tests.cc</a></code> - Comprehensive dungeon editor tests</li>
 <li><code><a class="el" href="../../da/d46/dungeon__editor_8cc.html">src/app/editor/dungeon/dungeon_editor.cc</a></code> - Integration example</li>
 <li><code>docs/z3ed/E6-z3ed-cli-design.md</code> - Agent interaction design</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md939"></a>
+<h1><a class="anchor" id="autotoc_md778"></a>
 References</h1>
 <ul>
 <li><a href="https://github.com/ocornut/imgui_test_engine">ImGui Test Engine Documentation</a></li>

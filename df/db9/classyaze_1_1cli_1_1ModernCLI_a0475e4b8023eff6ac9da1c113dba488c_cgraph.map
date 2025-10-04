@@ -1,0 +1,11 @@
+<map id="yaze::cli::ModernCLI::HandleWidgetCommand" name="yaze::cli::ModernCLI::HandleWidgetCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,173,79"/>
+<area shape="rect" id="Node000002" href="$df/db9/classyaze_1_1cli_1_1ModernCLI.html#ad407b75d236b0703ad3c608407656b5c" title=" " alt="" coords="221,5,382,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,43,205,38,206,43,174,48"/>
+<area shape="rect" id="Node000193" href="$df/db9/classyaze_1_1cli_1_1ModernCLI.html#a0af31bc690d750d1921692470cb61fac" title=" " alt="" coords="232,71,371,111"/>
+<area shape="poly" id="edge3_Node000001_Node000193" title=" " alt="" coords="174,69,218,76,217,81,173,74"/>
+<area shape="rect" id="Node000003" href="$d9/dee/classyaze_1_1cli_1_1Agent.html#a0981a339f18d6d2a369fce50eb74253d" title=" " alt="" coords="446,13,581,39"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="382,23,430,23,430,28,382,28"/>
+<area shape="rect" id="Node000194" href="$dd/d63/namespaceyaze_1_1cli.html#adc29fb4ca4077f5e031b48b69220b97d" title=" " alt="" coords="430,78,596,104"/>
+<area shape="poly" id="edge4_Node000193_Node000194" title=" " alt="" coords="371,88,414,88,414,94,371,94"/>
+</map>

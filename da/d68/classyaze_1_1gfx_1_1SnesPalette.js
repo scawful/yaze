@@ -13,6 +13,7 @@ var classyaze_1_1gfx_1_1SnesPalette =
     [ "set_size", "da/d68/classyaze_1_1gfx_1_1SnesPalette.html#ab18a68493c6122eb55dd3d0466686a78", null ],
     [ "size", "da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda", null ],
     [ "empty", "da/d68/classyaze_1_1gfx_1_1SnesPalette.html#aeb01c20c88b1ad90bff7289f1b5c8205", null ],
+    [ "Resize", "da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a2bb7de82832a99a804d16546dc22394d", null ],
     [ "begin", "da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a19e74a4e0ebec56b1bb0f7e99acbc067", null ],
     [ "end", "da/d68/classyaze_1_1gfx_1_1SnesPalette.html#aeb8694af4f5cf6e0b1ea59e88c8353d6", null ],
     [ "begin", "da/d68/classyaze_1_1gfx_1_1SnesPalette.html#aae6a17a905d9d0e2ef4d506a35da91da", null ],

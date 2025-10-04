@@ -5,6 +5,7 @@ var structyaze_1_1gfx_1_1PaletteGroup =
     [ "AddPalette", "d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb", null ],
     [ "AddColor", "d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html#ac2f1743a209c415c37c5c9041586b805", null ],
     [ "clear", "d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html#a87c61b7d91a2135d802cc0219e2b4c29", null ],
+    [ "resize", "d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html#acd68116cdb68eeb95a81107e8971d3c7", null ],
     [ "name", "d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html#ad806aadfe8753d3e926852829f96d5be", null ],
     [ "size", "d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html#a39c315f86a3b6e9d256ff42ea500ad7b", null ],
     [ "palette", "d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html#aabe0189dbbebd07ef2dc6128a2227007", null ],

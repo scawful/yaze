@@ -1,9 +1,11 @@
 <map id="yaze::test::DungeonEditorIntegrationTest::LoadTestRoomData" name="yaze::test::DungeonEditorIntegrationTest::LoadTestRoomData">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,236,111"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,107,236,147"/>
 <area shape="rect" id="Node000002" href="$d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#aacf9d54aa8bc8ac6d7e63b6a9ab2f457" title=" " alt="" coords="284,5,562,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="217,67,310,47,311,52,218,73"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,104,221,80,283,56,310,48,312,53,285,62,223,85,167,109"/>
 <area shape="rect" id="Node000003" href="$d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#adf31048c1448fe3671b3e27b124c2644" title=" " alt="" coords="291,71,555,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="236,88,275,88,275,94,236,94"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="236,111,275,106,276,111,236,116"/>
 <area shape="rect" id="Node000004" href="$d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html#a245f9b936a2b5464738ce4b6a01243b6" title=" " alt="" coords="306,135,540,191"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="210,109,292,129,290,134,208,115"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="236,138,291,145,290,150,236,143"/>
+<area shape="rect" id="Node000005" href="$df/df5/classyaze_1_1test_1_1MockRom.html#ab881bdc57ddcadb830af7ac6778bff44" title=" " alt="" coords="353,215,493,255"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="161,145,219,174,285,200,338,216,337,221,283,206,216,178,159,150"/>
 </map>

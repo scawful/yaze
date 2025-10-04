@@ -101,10 +101,10 @@ $(document).ready(function(){initNavTree('da/d40/md_docs_2ollama__integration__s
   <div class="headertitle"><div class="title">Ollama Integration Status - Updated# Ollama Integration Status</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md949"></a></p>
-<h1><a class="anchor" id="autotoc_md950"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md788"></a></p>
+<h1><a class="anchor" id="autotoc_md789"></a>
 ✅ Completed## ✅ Completed</h1>
-<h2><a class="anchor" id="autotoc_md951"></a>
+<h2><a class="anchor" id="autotoc_md790"></a>
 Infrastructure### Flag Parsing</h2>
 <ul>
 <li>✅ Flag parsing for AI provider configuration- <b>Fixed</b>: AI provider flags (<code>--ai_provider</code>, <code>--ai_model</code>, <code>--ollama_host</code>, <code>--gemini_api_key</code>) are now properly parsed in <code><a class="el" href="../../d5/d48/cli__main_8cc.html">cli_main.cc</a></code></li>
@@ -116,7 +116,7 @@ Infrastructure### Flag Parsing</h2>
 <li>✅ Configurable max-tool-iterations and max-retries- <b>Health Check</b>: Successfully validates model availability (qwen2.5-coder:7b)</li>
 <li>✅ File-based prompt system (assets/agent/*.txt)- <b>JSON Parsing</b>: Correctly extracts tool calls and text responses from Ollama's response format</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md952"></a>
+<h2><a class="anchor" id="autotoc_md791"></a>
 Current Issue: Empty Tool Results### Tool System</h2>
 <ul>
 <li><b>Tool Dispatcher</b>: Working correctly - routes tool calls to appropriate handlers</li>
@@ -182,9 +182,9 @@ Current Issue: Empty Tool Results### Tool System</h2>
 </li>
 </ol>
 <p>Calls tools again (loop detected after 4 iterations)</p>
-<h1><a class="anchor" id="autotoc_md953"></a>
+<h1><a class="anchor" id="autotoc_md792"></a>
 🎨 New Features Added  - OR doesn't provide a &lt;tt&gt;text_response&lt;/tt&gt; field in the JSON</h1>
-<h2><a class="anchor" id="autotoc_md954"></a>
+<h2><a class="anchor" id="autotoc_md793"></a>
 Verbose Mode**Solution Needed**: Update system prompt to include explicit instructions like:</h2>
 <div class="fragment"><div class="line">z3ed agent simple-chat &quot;query&quot; --verbose</div>
 </div><!-- fragment --><div class="fragment"><div class="line"> you call a tool:</div>
@@ -244,7 +244,7 @@ Verbose Mode**Solution Needed**: Update system prompt to include explicit instru
 <ul>
 <li>✅ Ollama connects successfully</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md955"></a>
+<h2><a class="anchor" id="autotoc_md794"></a>
 Priority 2: Refine Prompts (MEDIUM)- ✅ Model loads (qwen2.5-coder:7b)</h2>
 <p>Once tools return data:- ❌ Hits 4-iteration limit without final response</p>
 <ol type="1">
@@ -253,14 +253,14 @@ Priority 2: Refine Prompts (MEDIUM)- ✅ Model loads (qwen2.5-coder:7b)</h2>
 <li>Test with different Ollama models (llama3, codellama)```bash</li>
 </ol>
 <p>./build_test/bin/z3ed agent resource-list &ndash;type=dungeon &ndash;format=json &ndash;rom=assets/zelda3.sfc</p>
-<h2><a class="anchor" id="autotoc_md956"></a>
+<h2><a class="anchor" id="autotoc_md795"></a>
 Priority 3: Documentation (LOW)```</h2>
 <ol type="1">
 <li>Document available resource categories**Result**: ✅ Returns proper JSON with dungeon names</li>
 <li>Add troubleshooting guide</li>
 <li>Create example queries for each tool## 🔧 Next Steps</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md957"></a>
+<h1><a class="anchor" id="autotoc_md796"></a>
 🧪 Testing Commands### Priority 1: Fix Tool Calling Loop (High Priority)</h1>
 <ol type="1">
 <li><b>Update system prompt</b> in <code><a class="el" href="../../d0/d53/prompt__builder_8cc.html">prompt_builder.cc</a></code>:</li>
@@ -296,7 +296,7 @@ Priority 3: Documentation (LOW)```</h2>
 <ul>
 <li>llama3:8b</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md958"></a>
+<h1><a class="anchor" id="autotoc_md797"></a>
 📊 Performance   - codellama:7b</h1>
 <ul>
 <li>Ollama response: ~2-5 seconds (qwen2.5-coder:7b)2. Create regression test suite for tool calling:</li>
@@ -306,9 +306,9 @@ Priority 3: Documentation (LOW)```</h2>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md959"></a>
+<h1><a class="anchor" id="autotoc_md798"></a>
 🎯 Success Criteria</h1>
-<h2><a class="anchor" id="autotoc_md960"></a>
+<h2><a class="anchor" id="autotoc_md799"></a>
 Priority 3: Documentation (Low Priority)</h2>
 <ul>
 <li>[x] Colorful, user-friendly output1. Update `simple_chat_input_methods.md` with:</li>
@@ -330,23 +330,23 @@ Priority 3: Documentation (Low Priority)</h2>
 <li>**Tool Execution**: &lt;100ms per tool call</li>
 <li>**Total Interaction**: ~2-5 seconds for simple queries, longer for multi-turn with tools</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md961"></a>
+<h1><a class="anchor" id="autotoc_md800"></a>
 🐛 Known Issues</h1>
 <ol type="1">
 <li>**Tool Calling Loop**: Agent doesn't provide final response after tool execution (see above)</li>
 <li>**No Streaming**: Responses are blocking (not streamed), so user sees delay</li>
 <li>**Limited Context**: Prompt builder doesn't include full conversation context in system prompt</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md962"></a>
+<h1><a class="anchor" id="autotoc_md801"></a>
 💡 Recommendations</h1>
-<h2><a class="anchor" id="autotoc_md963"></a>
+<h2><a class="anchor" id="autotoc_md802"></a>
 For Users</h2>
 <ul>
 <li>Use MockAIService for testing until tool calling is fixed</li>
 <li>For production, prefer Gemini (has native function calling support)</li>
 <li>Keep queries simple and direct</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md964"></a>
+<h2><a class="anchor" id="autotoc_md803"></a>
 For Developers</h2>
 <ul>
 <li>Focus on fixing the tool calling loop first</li>
@@ -354,7 +354,7 @@ For Developers</h2>
 <li>Add debug logging to track tool call cycles</li>
 <li>Test with multiple Ollama models to find best performer</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md965"></a>
+<h1><a class="anchor" id="autotoc_md804"></a>
 📝 Related Files</h1>
 <ul>
 <li>`/Users/scawful/Code/yaze/src/cli/cli_main.cc` - Flag parsing (FIXED ✅)</li>
@@ -365,9 +365,9 @@ For Developers</h2>
 <li>`/Users/scawful/Code/yaze/docs/simple_chat_input_methods.md` - User documentation</li>
 <li>`/Users/scawful/Code/yaze/test_simple_chat_ollama.sh` - Test script</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md966"></a>
+<h1><a class="anchor" id="autotoc_md805"></a>
 🎯 Success Criteria</h1>
-<h2><a class="anchor" id="autotoc_md967"></a>
+<h2><a class="anchor" id="autotoc_md806"></a>
 Minimum Viable</h2>
 <ul>
 <li>[ ] LLM successfully calls tools</li>
@@ -375,7 +375,7 @@ Minimum Viable</h2>
 <li>[ ] No infinite loops (completes within 4 iterations)</li>
 <li>[ ] Accurate answers to simple questions ("What dungeons?", "List sprites in room X")</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md968"></a>
+<h2><a class="anchor" id="autotoc_md807"></a>
 Full Success</h2>
 <ul>
 <li>[ ] All 5 tools work correctly with Ollama</li>

@@ -1,9 +1,11 @@
 <map id="yaze::cli::agent::HandleChatCommand" name="yaze::cli::agent::HandleChatCommand">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,157,79"/>
-<area shape="rect" id="Node000002" href="$d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a7329709baf2843979bf12d74eff14cc2" title=" " alt="" coords="205,46,375,72"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,56,189,56,189,62,157,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,157,111"/>
+<area shape="rect" id="Node000002" href="$d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a7329709baf2843979bf12d74eff14cc2" title=" " alt="" coords="205,78,375,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,88,189,88,189,94,157,94"/>
 <area shape="rect" id="Node000003" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ab55e86d1ba2febc9f75ead191a3385fc" title=" " alt="" coords="423,5,619,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="375,44,407,39,408,45,376,49"/>
-<area shape="rect" id="Node000004" href="$d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a4a3d32670d995d957bd9f5d0a59a7ba7" title=" " alt="" coords="451,71,592,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="376,68,435,76,434,82,375,73"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="337,75,431,48,433,53,339,80"/>
+<area shape="rect" id="Node000004" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a69343a3c2a079c23d8202250d1c8d1e5" title=" " alt="" coords="423,71,619,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="376,88,407,88,407,94,376,94"/>
+<area shape="rect" id="Node000006" href="$d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a4a3d32670d995d957bd9f5d0a59a7ba7" title=" " alt="" coords="451,136,592,177"/>
+<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="339,102,436,130,435,135,337,107"/>
 </map>

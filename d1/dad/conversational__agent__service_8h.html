@@ -100,7 +100,8 @@ $(document).ready(function(){initNavTree('d1/dad/conversational__agent__service_
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle"><div class="title">conversational_agent_service.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -108,6 +109,7 @@ $(document).ready(function(){initNavTree('d1/dad/conversational__agent__service_
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/status/statusor.h&quot;</code><br />
+<code>#include &quot;absl/time/time.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d7/d52/ai__service_8h_source.html">cli/service/ai/ai_service.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d3/d12/tool__dispatcher_8h_source.html">cli/service/agent/tool_dispatcher.h</a>&quot;</code><br />
 </div>
@@ -119,9 +121,13 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/de3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1TableData.html">yaze::cli::agent::ChatMessage::TableData</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d86/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1SessionMetrics.html">yaze::cli::agent::ChatMessage::SessionMetrics</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html">yaze::cli::agent::AgentConfig</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html">yaze::cli::agent::ConversationalAgentService</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d80/structyaze_1_1cli_1_1agent_1_1ConversationalAgentService_1_1InternalMetrics.html">yaze::cli::agent::ConversationalAgentService::InternalMetrics</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -134,6 +140,15 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:d8/dd3/namespaceyaze_1_1cli_1_1agent" id="r_d8/dd3/namespaceyaze_1_1cli_1_1agent"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html">yaze::cli::agent</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:a6a3d696815c6e8d815849cfb27cc7cc7" id="r_a6a3d696815c6e8d815849cfb27cc7cc7"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7">yaze::cli::agent::AgentOutputFormat</a> { <a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a1a115fc122d4846ead8cc4b1255cbf44">yaze::cli::agent::kFriendly</a>
+, <a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a104573db6e35d80a8a5bacc53b26a4a2">yaze::cli::agent::kCompact</a>
+, <a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a30437633d552b7229b65b11ec90cb153">yaze::cli::agent::kMarkdown</a>
+, <a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a319f3b99b8d96c21e2f6b7ebc6fe8d8f">yaze::cli::agent::kJson</a>
+ }</td></tr>
+<tr class="separator:a6a3d696815c6e8d815849cfb27cc7cc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

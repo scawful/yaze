@@ -2,7 +2,8 @@ var namespaceyaze_1_1cli =
 [
     [ "agent", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html", "d8/dd3/namespaceyaze_1_1cli_1_1agent" ],
     [ "anonymous_namespace{ai_service.cc}", "d7/d82/namespaceyaze_1_1cli_1_1anonymous__namespace_02ai__service_8cc_03.html", [
-      [ "ExtractRoomId", "d7/d82/namespaceyaze_1_1cli_1_1anonymous__namespace_02ai__service_8cc_03.html#a1709f7c7f2a529b4d939bc64d815d9e2", null ]
+      [ "ExtractRoomId", "d7/d82/namespaceyaze_1_1cli_1_1anonymous__namespace_02ai__service_8cc_03.html#a1709f7c7f2a529b4d939bc64d815d9e2", null ],
+      [ "ExtractKeyword", "d7/d82/namespaceyaze_1_1cli_1_1anonymous__namespace_02ai__service_8cc_03.html#a0139de3a9ca27b0701c2e765ca945299", null ]
     ] ],
     [ "anonymous_namespace{gui_automation_client.cc}", "d7/dbb/namespaceyaze_1_1cli_1_1anonymous__namespace_02gui__automation__client_8cc_03.html", null ],
     [ "anonymous_namespace{overworld.cc}", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html", [

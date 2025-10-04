@@ -4,9 +4,12 @@ var classyaze_1_1cli_1_1ModernCLI =
     [ "Run", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a27044c21202e6f14553e7150de89eb53", null ],
     [ "GetCommandHandler", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a0a85c4731d61a6a26114953d1d63d569", null ],
     [ "PrintTopLevelHelp", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#aaf3ee9771848185cc9abbb934ae10053", null ],
+    [ "PrintCategoryHelp", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a2e36509c08e30abf8e7499d57228be7a", null ],
+    [ "PrintCommandSummary", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a39d7e70b7e94ca73a40b0d109e24962e", null ],
     [ "SetupCommands", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a7eca5c1ea2d7713cff409387373b4b07", null ],
     [ "ShowHelp", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#ad60ee322bbde31938708cb76f1c2cf06", null ],
     [ "ShowCategoryHelp", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a0af31bc690d750d1921692470cb61fac", null ],
+    [ "ShowCommandSummary", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a6ebcd459769064532cf76cbddb6bd85b", null ],
     [ "HandleAsarPatchCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#ae76bce0a2ccab9cc16ca42ea426aae6b", null ],
     [ "HandleBpsPatchCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a5f7e4318495872ca7e4caeb76badc547", null ],
     [ "HandleExtractSymbolsCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#ab805ea4de16aac44190bff2c8efebdb0", null ],
@@ -31,5 +34,8 @@ var classyaze_1_1cli_1_1ModernCLI =
     [ "HandleOverworldListWarpsCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a6c0e34013ebae447b3cf7cfdd7faf7b2", null ],
     [ "HandleOverworldSetTileCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a1f9503b3057447fe54a33228e848f354", null ],
     [ "HandleSpriteCreateCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#acc43a4b1ee0b60ad35cf3461cb3929ed", null ],
+    [ "HandleChatEntryCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a8e849465c04fc1de5b5a76e13141b965", null ],
+    [ "HandleProposalCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a62220cf0ce4a334d8cb3eecb23fbd167", null ],
+    [ "HandleWidgetCommand", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#a0475e4b8023eff6ac9da1c113dba488c", null ],
     [ "commands_", "df/db9/classyaze_1_1cli_1_1ModernCLI.html#af4ca9e6038548fc54f17cb2fa1750fb9", null ]
 ];

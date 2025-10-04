@@ -7,7 +7,7 @@ var searchData=
   ['resource_5fcatalog_5ftest_2ecc_4',['resource_catalog_test.cc',['../d3/d72/resource__catalog__test_8cc.html',1,'']]],
   ['resource_5fcontext_5fbuilder_2ecc_5',['resource_context_builder.cc',['../da/dbe/resource__context__builder_8cc.html',1,'']]],
   ['resource_5fcontext_5fbuilder_2eh_6',['resource_context_builder.h',['../d5/d28/resource__context__builder_8h.html',1,'']]],
-  ['rom_2ecc_7',['rom.cc',['../d4/d79/app_2rom_8cc.html',1,'(Global Namespace)'],['../d4/d1a/cli_2handlers_2rom_8cc.html',1,'(Global Namespace)']]],
+  ['rom_2ecc_7',['rom.cc',['../d4/d1a/cli_2handlers_2rom_8cc.html',1,'(Global Namespace)'],['../d4/d79/app_2rom_8cc.html',1,'(Global Namespace)']]],
   ['rom_2eh_8',['rom.h',['../da/de5/rom_8h.html',1,'']]],
   ['rom_5fdependent_5ftest_5fsuite_2eh_9',['rom_dependent_test_suite.h',['../d5/d98/rom__dependent__test__suite_8h.html',1,'']]],
   ['rom_5fpatch_5futility_2ecc_10',['rom_patch_utility.cc',['../da/db0/rom__patch__utility_8cc.html',1,'']]],
@@ -25,7 +25,7 @@ var searchData=
   ['room_5fmanipulation_5ftest_2ecc_22',['room_manipulation_test.cc',['../d0/d14/room__manipulation__test_8cc.html',1,'']]],
   ['room_5fobject_2ecc_23',['room_object.cc',['../d5/da0/room__object_8cc.html',1,'']]],
   ['room_5fobject_2eh_24',['room_object.h',['../d0/dff/room__object_8h.html',1,'']]],
-  ['room_5fobject_5fencoding_5ftest_2ecc_25',['room_object_encoding_test.cc',['../db/de9/room__object__encoding__test_8cc.html',1,'']]],
+  ['room_5fobject_5fencoding_5ftest_2ecc_25',['room_object_encoding_test.cc',['../d0/de3/unit_2zelda3_2dungeon_2room__object__encoding__test_8cc.html',1,'(Global Namespace)'],['../db/d8e/zelda3_2dungeon_2room__object__encoding__test_8cc.html',1,'(Global Namespace)']]],
   ['room_5fvisual_5fdiagnostic_2ecc_26',['room_visual_diagnostic.cc',['../dc/db8/room__visual__diagnostic_8cc.html',1,'']]],
   ['room_5fvisual_5fdiagnostic_2eh_27',['room_visual_diagnostic.h',['../d6/df9/room__visual__diagnostic_8h.html',1,'']]]
 ];

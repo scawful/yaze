@@ -1,0 +1,11 @@
+<map id="yaze::test::DungeonObjectRenderingE2ETests::SetUp" name="yaze::test::DungeonObjectRenderingE2ETests::SetUp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,82,184,123"/>
+<area shape="rect" id="Node000002" href="$d0/dc7/classyaze_1_1test_1_1DungeonObjectRenderingE2ETests.html#a8cab9b1e1ef59d1cbb5b9bc19b721348" title=" " alt="" coords="232,49,469,90"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,88,216,84,217,89,184,94"/>
+<area shape="rect" id="Node000023" href="$de/dd6/classyaze_1_1test_1_1TestRomManager_1_1BoundRomTest.html#ad905613a57e42c91a7aad828dd5b2111" title=" " alt="" coords="258,114,443,155"/>
+<area shape="poly" id="edge4_Node000001_Node000023" title=" " alt="" coords="184,111,243,118,243,124,184,116"/>
+<area shape="rect" id="Node000003" href="$d0/dc7/classyaze_1_1test_1_1DungeonObjectRenderingE2ETests.html#a44939dab1f85e672713389712d368c10" title="Test: Toggle layer visibility." alt="" coords="519,5,740,61"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="469,51,503,47,504,52,470,56"/>
+<area shape="rect" id="Node000004" href="$d4/d0a/namespaceyaze_1_1test.html#a91ca7c048a3fafad2c6dd99faf0b403e" title="Test: Place objects on different layers." alt="" coords="517,85,742,126"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="470,82,502,86,501,91,469,87"/>
+</map>

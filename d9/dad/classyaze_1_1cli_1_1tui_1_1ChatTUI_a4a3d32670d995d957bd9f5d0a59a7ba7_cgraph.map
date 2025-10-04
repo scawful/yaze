@@ -1,12 +1,11 @@
 <map id="yaze::cli::tui::ChatTUI::OnSubmit" name="yaze::cli::tui::ChatTUI::OnSubmit">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,147,103"/>
-<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a10565bd80a2d2d479e8f10af89380bd6" title=" " alt="" coords="195,63,391,103"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,80,179,80,179,86,147,86"/>
-<area shape="rect" id="Node000003" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a2c1a6be10a542c3294d358a1108be09f" title=" " alt="" coords="441,5,635,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="382,59,432,48,434,53,383,65"/>
-<area shape="rect" id="Node000005" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="684,42,826,68"/>
-<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="391,74,668,58,669,63,392,80"/>
-<area shape="rect" id="Node000058" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#ab83c62c24e7c9c186dc5010c11140cab" title=" " alt="" coords="439,120,636,161"/>
-<area shape="poly" id="edge4_Node000002_Node000058" title=" " alt="" coords="383,101,434,113,432,118,382,107"/>
-<area shape="poly" id="edge3_Node000003_Node000005" title=" " alt="" coords="635,36,669,41,669,46,635,41"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,147,111"/>
+<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a10565bd80a2d2d479e8f10af89380bd6" title=" " alt="" coords="195,71,391,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,88,179,88,179,94,147,94"/>
+<area shape="rect" id="Node000003" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a0b3c44eb2c0b4d44703871aeefded5fd" title=" " alt="" coords="439,5,671,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="377,67,455,48,457,53,378,73"/>
+<area shape="rect" id="Node000004" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a2c1a6be10a542c3294d358a1108be09f" title=" " alt="" coords="458,71,652,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="392,88,442,88,442,94,392,94"/>
+<area shape="rect" id="Node000059" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#ab83c62c24e7c9c186dc5010c11140cab" title=" " alt="" coords="457,136,654,177"/>
+<area shape="poly" id="edge4_Node000002_Node000059" title=" " alt="" coords="378,109,457,129,455,134,377,115"/>
 </map>

@@ -118,7 +118,9 @@ $(document).ready(function(){initNavTree('d3/d5c/conversational__agent__service_
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_join.h&quot;</code><br />
+<code>#include &quot;absl/strings/string_view.h&quot;</code><br />
 <code>#include &quot;absl/time/clock.h&quot;</code><br />
+<code>#include &quot;absl/time/time.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d9/d55/proposal__executor_8h_source.html">cli/service/agent/proposal_executor.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d9/d37/service__factory_8h_source.html">cli/service/ai/service_factory.h</a>&quot;</code><br />
@@ -152,6 +154,10 @@ Functions</h2></td></tr>
 <tr class="separator:adb9a96efbf6106ec9661ea0a5eabfe3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a419c7f2142bc028b821dbfaa81f06d4c" id="r_a419c7f2142bc028b821dbfaa81f06d4c"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="../../df/de3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1TableData.html">ChatMessage::TableData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#a419c7f2142bc028b821dbfaa81f06d4c">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}::BuildTableData</a> (const nlohmann::json &amp;data)</td></tr>
 <tr class="separator:a419c7f2142bc028b821dbfaa81f06d4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa25c8b2151d234a95090ea24e1c3f07" id="r_aaa25c8b2151d234a95090ea24e1c3f07"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#aaa25c8b2151d234a95090ea24e1c3f07">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}::IsExecutableCommand</a> (absl::string_view command)</td></tr>
+<tr class="separator:aaa25c8b2151d234a95090ea24e1c3f07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a364bf5571168bce686f81666401eda" id="r_a6a364bf5571168bce686f81666401eda"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#a6a364bf5571168bce686f81666401eda">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}::CountExecutableCommands</a> (const std::vector&lt; std::string &gt; &amp;commands)</td></tr>
+<tr class="separator:a6a364bf5571168bce686f81666401eda"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16212129b67df04b03660abb86754cc7" id="r_a16212129b67df04b03660abb86754cc7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">ChatMessage</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#a16212129b67df04b03660abb86754cc7">yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}::CreateMessage</a> (<a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2">ChatMessage::Sender</a> sender, const std::string &amp;content)</td></tr>
 <tr class="separator:a16212129b67df04b03660abb86754cc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
