@@ -16,6 +16,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "app/core/project.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/overworld/overworld.h"
@@ -104,6 +105,16 @@ absl::Status HandleResourceListCommand(
     }
     rom_storage = std::move(rom_or.value());
     rom = &rom_storage;
+  }
+
+  // Initialize embedded labels if not already loaded
+  if (rom->resource_label() && !rom->resource_label()->labels_loaded_) {
+    core::YazeProject project;
+    auto labels_status = project.InitializeEmbeddedLabels();
+    if (labels_status.ok()) {
+      rom->resource_label()->labels_ = project.resource_labels;
+      rom->resource_label()->labels_loaded_ = true;
+    }
   }
 
   ResourceContextBuilder context_builder(rom);

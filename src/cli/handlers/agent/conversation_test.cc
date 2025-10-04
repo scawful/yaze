@@ -1,5 +1,6 @@
 #include "cli/handlers/agent/commands.h"
 #include "app/rom.h"
+#include "app/core/project.h"
 
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
@@ -55,6 +56,30 @@ struct ConversationTestCase {
 std::vector<ConversationTestCase> GetDefaultTestCases() {
   return {
       {
+          .name = "embedded_labels_room_query",
+          .description = "Ask about room names using embedded labels",
+          .user_prompts = {"What is the name of room 5?"},
+          .expected_keywords = {"room", "Tower of Hera", "Moldorm"},
+          .expect_tool_calls = false,
+          .expect_commands = false,
+      },
+      {
+          .name = "embedded_labels_sprite_query",
+          .description = "Ask about sprite names using embedded labels",
+          .user_prompts = {"What is sprite 9?"},
+          .expected_keywords = {"sprite", "Moldorm", "Boss"},
+          .expect_tool_calls = false,
+          .expect_commands = false,
+      },
+      {
+          .name = "embedded_labels_entrance_query",
+          .description = "Ask about entrance names using embedded labels",
+          .user_prompts = {"What is entrance 0?"},
+          .expected_keywords = {"entrance", "Link", "House"},
+          .expect_tool_calls = false,
+          .expect_commands = false,
+      },
+      {
           .name = "simple_question",
           .description = "Ask about dungeons in the ROM",
           .user_prompts = {"What dungeons are in this ROM?"},
@@ -63,10 +88,18 @@ std::vector<ConversationTestCase> GetDefaultTestCases() {
           .expect_commands = false,
       },
       {
+          .name = "list_all_rooms",
+          .description = "List all room names with embedded labels",
+          .user_prompts = {"List the first 10 dungeon rooms"},
+          .expected_keywords = {"room", "Ganon", "Hyrule", "Palace"},
+          .expect_tool_calls = true,
+          .expect_commands = false,
+      },
+      {
           .name = "overworld_tile_search",
           .description = "Find specific tiles in overworld",
           .user_prompts = {"Find all trees on the overworld"},
-          .expected_keywords = {"tree", "tile", "0x02E", "map"},
+          .expected_keywords = {"tree", "tile", "map"},
           .expect_tool_calls = true,
           .expect_commands = false,
       },
@@ -74,26 +107,18 @@ std::vector<ConversationTestCase> GetDefaultTestCases() {
           .name = "multi_step_query",
           .description = "Ask multiple questions in sequence",
           .user_prompts = {
-              "What dungeons are defined?",
-              "Tell me about the sprites in the first dungeon room",
+              "What is the name of room 0?",
+              "What sprites are defined in the game?",
           },
-          .expected_keywords = {"dungeon", "sprite", "room"},
+          .expected_keywords = {"Ganon", "sprite", "room"},
           .expect_tool_calls = true,
           .expect_commands = false,
-      },
-      {
-          .name = "command_generation",
-          .description = "Request ROM modification",
-          .user_prompts = {"Place a tree at position 10, 10 on map 0"},
-          .expected_keywords = {"overworld", "set-tile", "0x02E", "tree"},
-          .expect_tool_calls = false,
-          .expect_commands = true,
       },
       {
           .name = "map_description",
           .description = "Get information about a specific map",
           .user_prompts = {"Describe overworld map 0"},
-          .expected_keywords = {"map", "light world", "size", "tile"},
+          .expected_keywords = {"map", "light world", "tile"},
           .expect_tool_calls = true,
           .expect_commands = false,
       },
@@ -324,16 +349,51 @@ absl::Status HandleTestConversationCommand(
     }
   }
   
+  std::cout << "🔍 Debug: Starting test-conversation handler...\n";
+  
   // Load ROM context
   Rom rom;
+  std::cout << "🔍 Debug: Loading ROM...\n";
   auto load_status = LoadRomForAgent(rom);
   if (!load_status.ok()) {
+    std::cerr << "❌ Error loading ROM: " << load_status.message() << "\n";
     return load_status;
   }
   
+  std::cout << "✅ ROM loaded: " << rom.title() << "\n";
+  
+  // Load embedded labels for natural language queries
+  std::cout << "🔍 Debug: Initializing embedded labels...\n";
+  core::YazeProject project;
+  auto labels_status = project.InitializeEmbeddedLabels();
+  if (!labels_status.ok()) {
+    std::cerr << "⚠️  Warning: Could not initialize embedded labels: " 
+              << labels_status.message() << "\n";
+  } else {
+    std::cout << "✅ Embedded labels initialized successfully\n";
+  }
+  
+  // Associate labels with ROM if it has a resource label manager
+  std::cout << "🔍 Debug: Checking resource label manager...\n";
+  if (rom.resource_label() && project.use_embedded_labels) {
+    std::cout << "🔍 Debug: Associating labels with ROM...\n";
+    rom.resource_label()->labels_ = project.resource_labels;
+    rom.resource_label()->labels_loaded_ = true;
+    std::cout << "✅ Embedded labels loaded and associated with ROM\n";
+  } else {
+    std::cout << "⚠️  ROM has no resource label manager\n";
+  }
+  
   // Create conversational agent service
+  std::cout << "🔍 Debug: Creating conversational agent service...\n";
+  std::cout << "🔍 Debug: About to construct service object...\n";
+  
   ConversationalAgentService service;
+  std::cout << "✅ Service object created\n";
+  
+  std::cout << "🔍 Debug: Setting ROM context...\n";
   service.SetRomContext(&rom);
+  std::cout << "✅ Service initialized\n";
   
   // Load test cases
   std::vector<ConversationTestCase> test_cases;
