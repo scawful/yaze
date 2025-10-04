@@ -41,6 +41,9 @@ var namespaceyaze_1_1zelda3 =
     [ "anonymous_namespace{tracker.cc}", "dd/df6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html", [
       [ "AddSpcReloc", "dd/df6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#a57c95bb79e56737d2e3e30296e409617", null ]
     ] ],
+    [ "anonymous_namespace{zelda3_labels.cc}", "d8/dbe/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02zelda3__labels_8cc_03.html", [
+      [ "ConvertArrayToVector", "d8/dbe/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02zelda3__labels_8cc_03.html#a52b1aec52fb6a9ad2dacd3110d2fb26d", null ]
+    ] ],
     [ "EntranceTypes", "dc/dcb/namespaceyaze_1_1zelda3_1_1EntranceTypes.html", "dc/dcb/namespaceyaze_1_1zelda3_1_1EntranceTypes" ],
     [ "ItemTypes", "da/d9f/namespaceyaze_1_1zelda3_1_1ItemTypes.html", "da/d9f/namespaceyaze_1_1zelda3_1_1ItemTypes" ],
     [ "music", "d7/d68/namespaceyaze_1_1zelda3_1_1music.html", "d7/d68/namespaceyaze_1_1zelda3_1_1music" ],
@@ -102,6 +105,7 @@ var namespaceyaze_1_1zelda3 =
     [ "Subtype3", "d1/dc6/classyaze_1_1zelda3_1_1Subtype3.html", "d1/dc6/classyaze_1_1zelda3_1_1Subtype3" ],
     [ "SubtypeInfo", "da/d92/structyaze_1_1zelda3_1_1SubtypeInfo.html", "da/d92/structyaze_1_1zelda3_1_1SubtypeInfo" ],
     [ "TitleScreen", "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html", "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen" ],
+    [ "Zelda3Labels", "d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html", null ],
     [ "OverworldBlockset", "d5/d1f/namespaceyaze_1_1zelda3.html#ac8076a14b02fe37987d83f6cd9b4ba43", null ],
     [ "OverworldMapTiles", "d5/d1f/namespaceyaze_1_1zelda3.html#a96678ef2cc89582d5d8a7f2b74c5f69b", null ],
     [ "DungeonMapLabels", "d5/d1f/namespaceyaze_1_1zelda3.html#ad2ad871f946a2bab43dd92bc159c2bb9", null ],

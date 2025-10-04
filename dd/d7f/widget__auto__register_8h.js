@@ -1,0 +1,28 @@
+var widget__auto__register_8h =
+[
+    [ "yaze::gui::AutoWidgetScope", "db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html", "db/d2c/classyaze_1_1gui_1_1AutoWidgetScope" ],
+    [ "AutoRegisterLastItem", "dd/d7f/widget__auto__register_8h.html#a2be424fe9c7f540133dfcf036c48b5d1", null ],
+    [ "AutoButton", "dd/d7f/widget__auto__register_8h.html#aa974616ee11ced3f6a693ffbe4c22435", null ],
+    [ "AutoSmallButton", "dd/d7f/widget__auto__register_8h.html#aa9cc8ceed3690c25e93278cc2e2e6477", null ],
+    [ "AutoCheckbox", "dd/d7f/widget__auto__register_8h.html#a9d30614e797aca9e2dc67fa422a4d70d", null ],
+    [ "AutoRadioButton", "dd/d7f/widget__auto__register_8h.html#aa17e9927f468dad4907d32627a3bcbe6", null ],
+    [ "AutoRadioButton", "dd/d7f/widget__auto__register_8h.html#a4edfae0ca73584e67b6a8cfc65ac96de", null ],
+    [ "AutoInputText", "dd/d7f/widget__auto__register_8h.html#ae7db5a965396ae1866b3e8aae95bc2f0", null ],
+    [ "AutoInputTextMultiline", "dd/d7f/widget__auto__register_8h.html#a54047b271231e3097b608fdfef89bb5a", null ],
+    [ "AutoInputInt", "dd/d7f/widget__auto__register_8h.html#a548bde7ae5089c2621f998c20cd15e24", null ],
+    [ "AutoInputFloat", "dd/d7f/widget__auto__register_8h.html#a40f845a0bcc86ef1432569400f378f58", null ],
+    [ "AutoSliderInt", "dd/d7f/widget__auto__register_8h.html#aeeaa34ebe8d8e3688b14f9bd0356d0ca", null ],
+    [ "AutoSliderFloat", "dd/d7f/widget__auto__register_8h.html#a97331e355160a200e7615d2ff8644b2f", null ],
+    [ "AutoCombo", "dd/d7f/widget__auto__register_8h.html#ab872c89167199d188ad7b31236fbd5c6", null ],
+    [ "AutoSelectable", "dd/d7f/widget__auto__register_8h.html#a7a90e3e7dce0b6d5029e9369116e4d61", null ],
+    [ "AutoSelectable", "dd/d7f/widget__auto__register_8h.html#a64f98477b5c92d1500fc75bab7ad8dac", null ],
+    [ "AutoMenuItem", "dd/d7f/widget__auto__register_8h.html#adb7aca8b264155328cd58f8abd26561b", null ],
+    [ "AutoMenuItem", "dd/d7f/widget__auto__register_8h.html#aabe94091dd3b738f59b46dfdf95ad360", null ],
+    [ "AutoBeginMenu", "dd/d7f/widget__auto__register_8h.html#afea67083a7c7849f3c690d3002c24856", null ],
+    [ "AutoBeginTabItem", "dd/d7f/widget__auto__register_8h.html#a263d04d07dd4a4939eb6a02c98bc8a1a", null ],
+    [ "AutoTreeNode", "dd/d7f/widget__auto__register_8h.html#a71bd2dfd42e0daf7c741025eb6376547", null ],
+    [ "AutoTreeNodeEx", "dd/d7f/widget__auto__register_8h.html#aa206667fc5e5020ce1a2c51414694e96", null ],
+    [ "AutoCollapsingHeader", "dd/d7f/widget__auto__register_8h.html#ae69ceb976f8e2109907fc63f91bc253e", null ],
+    [ "RegisterCanvas", "dd/d7f/widget__auto__register_8h.html#aab68a4b7788efe52385aa3b3cdf33471", null ],
+    [ "RegisterTable", "dd/d7f/widget__auto__register_8h.html#a05b5841c88a2c37c558bb6527cd958ec", null ]
+];

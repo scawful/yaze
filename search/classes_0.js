@@ -30,5 +30,6 @@ var searchData=
   ['atlasstats_27',['AtlasStats',['../d2/dea/structyaze_1_1gfx_1_1AtlasStats.html',1,'yaze::gfx']]],
   ['audioram_28',['AudioRam',['../db/dc9/classyaze_1_1emu_1_1AudioRam.html',1,'yaze::emu']]],
   ['audioramimpl_29',['AudioRamImpl',['../d5/da7/classyaze_1_1emu_1_1AudioRamImpl.html',1,'yaze::emu']]],
-  ['automationresult_30',['AutomationResult',['../d4/daf/structyaze_1_1cli_1_1AutomationResult.html',1,'yaze::cli']]]
+  ['automationresult_30',['AutomationResult',['../d4/daf/structyaze_1_1cli_1_1AutomationResult.html',1,'yaze::cli']]],
+  ['autowidgetscope_31',['AutoWidgetScope',['../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html',1,'yaze::gui']]]
 ];

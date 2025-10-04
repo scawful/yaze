@@ -1,0 +1,11 @@
+<map id="src/app/zelda3/zelda3_labels.h" name="src/app/zelda3/zelda3_labels.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="81,5,227,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,52,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,49,62,88,59,83,121,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="75,94,129,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="143,48,121,82,116,79,139,45"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="152,94,262,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="169,45,193,80,188,83,165,48"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="287,94,344,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="195,44,278,84,276,89,193,49"/>
+</map>

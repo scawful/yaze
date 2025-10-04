@@ -130,6 +130,9 @@ Namespaces</h2></td></tr>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d23/structyaze_1_1gui_1_1AssetObject.html">AssetObject</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html">AutoWidgetScope</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">RAII scope that enables automatic widget registration.  <a href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dc2/classyaze_1_1gui_1_1BackgroundRenderer.html">BackgroundRenderer</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Renders themed background effects for docking windows.  <a href="../../d5/dc2/classyaze_1_1gui_1_1BackgroundRenderer.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -362,6 +365,57 @@ Functions</h2></td></tr>
 <tr class="separator:ae1dd75e97e825b7a53e86c954569eb5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a360475adc3adcf2ead59d3d9dbc85ce6" id="r_a360475adc3adcf2ead59d3d9dbc85ce6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d4/dca/structyaze_1_1gui_1_1Color.html">Color</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a360475adc3adcf2ead59d3d9dbc85ce6">RGBA</a> (int r, int g, int b, int a=255)</td></tr>
 <tr class="separator:a360475adc3adcf2ead59d3d9dbc85ce6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2be424fe9c7f540133dfcf036c48b5d1" id="r_a2be424fe9c7f540133dfcf036c48b5d1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1">AutoRegisterLastItem</a> (const std::string &amp;widget_type, const std::string &amp;explicit_label=&quot;&quot;, const std::string &amp;description=&quot;&quot;)</td></tr>
+<tr class="memdesc:a2be424fe9c7f540133dfcf036c48b5d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Automatically register the last <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> item.  <br /></td></tr>
+<tr class="separator:a2be424fe9c7f540133dfcf036c48b5d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa974616ee11ced3f6a693ffbe4c22435" id="r_aa974616ee11ced3f6a693ffbe4c22435"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#aa974616ee11ced3f6a693ffbe4c22435">AutoButton</a> (const char *label, const ImVec2 &amp;size=ImVec2(0, 0))</td></tr>
+<tr class="separator:aa974616ee11ced3f6a693ffbe4c22435"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9cc8ceed3690c25e93278cc2e2e6477" id="r_aa9cc8ceed3690c25e93278cc2e2e6477"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#aa9cc8ceed3690c25e93278cc2e2e6477">AutoSmallButton</a> (const char *label)</td></tr>
+<tr class="separator:aa9cc8ceed3690c25e93278cc2e2e6477"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d30614e797aca9e2dc67fa422a4d70d" id="r_a9d30614e797aca9e2dc67fa422a4d70d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a9d30614e797aca9e2dc67fa422a4d70d">AutoCheckbox</a> (const char *label, bool *v)</td></tr>
+<tr class="separator:a9d30614e797aca9e2dc67fa422a4d70d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa17e9927f468dad4907d32627a3bcbe6" id="r_aa17e9927f468dad4907d32627a3bcbe6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#aa17e9927f468dad4907d32627a3bcbe6">AutoRadioButton</a> (const char *label, bool active)</td></tr>
+<tr class="separator:aa17e9927f468dad4907d32627a3bcbe6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4edfae0ca73584e67b6a8cfc65ac96de" id="r_a4edfae0ca73584e67b6a8cfc65ac96de"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a4edfae0ca73584e67b6a8cfc65ac96de">AutoRadioButton</a> (const char *label, int *v, int v_button)</td></tr>
+<tr class="separator:a4edfae0ca73584e67b6a8cfc65ac96de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7db5a965396ae1866b3e8aae95bc2f0" id="r_ae7db5a965396ae1866b3e8aae95bc2f0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#ae7db5a965396ae1866b3e8aae95bc2f0">AutoInputText</a> (const char *label, char *buf, size_t buf_size, ImGuiInputTextFlags flags=0, ImGuiInputTextCallback callback=nullptr, void *user_data=nullptr)</td></tr>
+<tr class="separator:ae7db5a965396ae1866b3e8aae95bc2f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54047b271231e3097b608fdfef89bb5a" id="r_a54047b271231e3097b608fdfef89bb5a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a54047b271231e3097b608fdfef89bb5a">AutoInputTextMultiline</a> (const char *label, char *buf, size_t buf_size, const ImVec2 &amp;size=ImVec2(0, 0), ImGuiInputTextFlags flags=0, ImGuiInputTextCallback callback=nullptr, void *user_data=nullptr)</td></tr>
+<tr class="separator:a54047b271231e3097b608fdfef89bb5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a548bde7ae5089c2621f998c20cd15e24" id="r_a548bde7ae5089c2621f998c20cd15e24"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a548bde7ae5089c2621f998c20cd15e24">AutoInputInt</a> (const char *label, int *v, int step=1, int step_fast=100, ImGuiInputTextFlags flags=0)</td></tr>
+<tr class="separator:a548bde7ae5089c2621f998c20cd15e24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a40f845a0bcc86ef1432569400f378f58" id="r_a40f845a0bcc86ef1432569400f378f58"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a40f845a0bcc86ef1432569400f378f58">AutoInputFloat</a> (const char *label, float *v, float step=0.0f, float step_fast=0.0f, const char *format=&quot;%.3f&quot;, ImGuiInputTextFlags flags=0)</td></tr>
+<tr class="separator:a40f845a0bcc86ef1432569400f378f58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeeaa34ebe8d8e3688b14f9bd0356d0ca" id="r_aeeaa34ebe8d8e3688b14f9bd0356d0ca"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#aeeaa34ebe8d8e3688b14f9bd0356d0ca">AutoSliderInt</a> (const char *label, int *v, int v_min, int v_max, const char *format=&quot;%d&quot;, ImGuiSliderFlags flags=0)</td></tr>
+<tr class="separator:aeeaa34ebe8d8e3688b14f9bd0356d0ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97331e355160a200e7615d2ff8644b2f" id="r_a97331e355160a200e7615d2ff8644b2f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a97331e355160a200e7615d2ff8644b2f">AutoSliderFloat</a> (const char *label, float *v, float v_min, float v_max, const char *format=&quot;%.3f&quot;, ImGuiSliderFlags flags=0)</td></tr>
+<tr class="separator:a97331e355160a200e7615d2ff8644b2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab872c89167199d188ad7b31236fbd5c6" id="r_ab872c89167199d188ad7b31236fbd5c6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#ab872c89167199d188ad7b31236fbd5c6">AutoCombo</a> (const char *label, int *current_item, const char *const items[], int items_count, int popup_max_height_in_items=-1)</td></tr>
+<tr class="separator:ab872c89167199d188ad7b31236fbd5c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a90e3e7dce0b6d5029e9369116e4d61" id="r_a7a90e3e7dce0b6d5029e9369116e4d61"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a7a90e3e7dce0b6d5029e9369116e4d61">AutoSelectable</a> (const char *label, bool selected=false, ImGuiSelectableFlags flags=0, const ImVec2 &amp;size=ImVec2(0, 0))</td></tr>
+<tr class="separator:a7a90e3e7dce0b6d5029e9369116e4d61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64f98477b5c92d1500fc75bab7ad8dac" id="r_a64f98477b5c92d1500fc75bab7ad8dac"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a64f98477b5c92d1500fc75bab7ad8dac">AutoSelectable</a> (const char *label, bool *p_selected, ImGuiSelectableFlags flags=0, const ImVec2 &amp;size=ImVec2(0, 0))</td></tr>
+<tr class="separator:a64f98477b5c92d1500fc75bab7ad8dac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb7aca8b264155328cd58f8abd26561b" id="r_adb7aca8b264155328cd58f8abd26561b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#adb7aca8b264155328cd58f8abd26561b">AutoMenuItem</a> (const char *label, const char *shortcut=nullptr, bool selected=false, bool enabled=true)</td></tr>
+<tr class="separator:adb7aca8b264155328cd58f8abd26561b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aabe94091dd3b738f59b46dfdf95ad360" id="r_aabe94091dd3b738f59b46dfdf95ad360"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#aabe94091dd3b738f59b46dfdf95ad360">AutoMenuItem</a> (const char *label, const char *shortcut, bool *p_selected, bool enabled=true)</td></tr>
+<tr class="separator:aabe94091dd3b738f59b46dfdf95ad360"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afea67083a7c7849f3c690d3002c24856" id="r_afea67083a7c7849f3c690d3002c24856"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#afea67083a7c7849f3c690d3002c24856">AutoBeginMenu</a> (const char *label, bool enabled=true)</td></tr>
+<tr class="separator:afea67083a7c7849f3c690d3002c24856"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a263d04d07dd4a4939eb6a02c98bc8a1a" id="r_a263d04d07dd4a4939eb6a02c98bc8a1a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a263d04d07dd4a4939eb6a02c98bc8a1a">AutoBeginTabItem</a> (const char *label, bool *p_open=nullptr, ImGuiTabItemFlags flags=0)</td></tr>
+<tr class="separator:a263d04d07dd4a4939eb6a02c98bc8a1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71bd2dfd42e0daf7c741025eb6376547" id="r_a71bd2dfd42e0daf7c741025eb6376547"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a71bd2dfd42e0daf7c741025eb6376547">AutoTreeNode</a> (const char *label)</td></tr>
+<tr class="separator:a71bd2dfd42e0daf7c741025eb6376547"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa206667fc5e5020ce1a2c51414694e96" id="r_aa206667fc5e5020ce1a2c51414694e96"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#aa206667fc5e5020ce1a2c51414694e96">AutoTreeNodeEx</a> (const char *label, ImGuiTreeNodeFlags flags=0)</td></tr>
+<tr class="separator:aa206667fc5e5020ce1a2c51414694e96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae69ceb976f8e2109907fc63f91bc253e" id="r_ae69ceb976f8e2109907fc63f91bc253e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#ae69ceb976f8e2109907fc63f91bc253e">AutoCollapsingHeader</a> (const char *label, ImGuiTreeNodeFlags flags=0)</td></tr>
+<tr class="separator:ae69ceb976f8e2109907fc63f91bc253e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab68a4b7788efe52385aa3b3cdf33471" id="r_aab68a4b7788efe52385aa3b3cdf33471"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#aab68a4b7788efe52385aa3b3cdf33471">RegisterCanvas</a> (const char *canvas_name, const std::string &amp;description=&quot;&quot;)</td></tr>
+<tr class="memdesc:aab68a4b7788efe52385aa3b3cdf33471"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register a canvas widget after BeginChild or similar.  <br /></td></tr>
+<tr class="separator:aab68a4b7788efe52385aa3b3cdf33471"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05b5841c88a2c37c558bb6527cd958ec" id="r_a05b5841c88a2c37c558bb6527cd958ec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a05b5841c88a2c37c558bb6527cd958ec">RegisterTable</a> (const char *table_name, const std::string &amp;description=&quot;&quot;)</td></tr>
+<tr class="memdesc:a05b5841c88a2c37c558bb6527cd958ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register a table after BeginTable.  <br /></td></tr>
+<tr class="separator:a05b5841c88a2c37c558bb6527cd958ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -381,6 +435,8 @@ Variables</h2></td></tr>
 <tr class="separator:ab500bfa55478470e1f7cd45806c3728e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b98f0b2012856166c36b814bc70184c" id="r_a3b98f0b2012856166c36b814bc70184c"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a3b98f0b2012856166c36b814bc70184c">kSeparator</a> = &quot;-&quot;</td></tr>
 <tr class="separator:a3b98f0b2012856166c36b814bc70184c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a010a82bb36767f92646fec4223eb8b5a" id="r_a010a82bb36767f92646fec4223eb8b5a"><td class="memItemLeft" align="right" valign="top">thread_local std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">g_auto_scope_stack_</a></td></tr>
+<tr class="separator:a010a82bb36767f92646fec4223eb8b5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Graphical User Interface (GUI) components for the application. </p>
@@ -1148,7 +1204,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="../../d8/ddb/snes__palette_8h_source.html#l00144">yaze::gfx::SnesPalette::size()</a>, and <a class="el" href="../../d3/de1/color_8cc_source.html#l00019">SnesColorButton()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00356">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00607">yaze::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00194">yaze::editor::DungeonEditor::UpdateDungeonRoomView()</a>, and <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00378">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00356">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00607">yaze::editor::GraphicsEditor::DrawPaletteControls()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00207">yaze::editor::DungeonEditor::UpdateDungeonRoomView()</a>, and <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00378">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1444,7 +1500,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="../../de/d4c/input_8cc_source.html#l00031">ImGui::InputScalarLeft()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00146">kStepFastHex</a>, and <a class="el" href="../../de/d4c/input_8cc_source.html#l00145">kStepOneHex</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00542">yaze::editor::MapPropertiesSystem::DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00706">yaze::editor::MapPropertiesSystem::DrawCustomFeaturesTab()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00625">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00061">yaze::editor::DungeonCanvasViewer::DrawDungeonCanvas()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00464">yaze::editor::DungeonEditor::DrawDungeonCanvas()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00243">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="../../d1/d69/dungeon__room__selector_8cc_source.html#l00058">yaze::editor::DungeonRoomSelector::DrawEntranceSelector()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00200">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02910">yaze::editor::OverworldEditor::DrawMapPropertiesPanel()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00928">yaze::editor::MapPropertiesSystem::DrawOverlayControls()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02583">yaze::editor::OverworldEditor::DrawOverlayEditor()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00233">yaze::editor::MapPropertiesSystem::DrawOverlayEditor()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00129">yaze::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00393">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00326">yaze::editor::DungeonEditor::DrawRoomPropertiesDebugPopup()</a>, <a class="el" href="../../d1/d69/dungeon__room__selector_8cc_source.html#l00029">yaze::editor::DungeonRoomSelector::DrawRoomSelector()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00113">yaze::editor::SpriteEditor::DrawSpriteCanvas()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00317">InputTileInfo()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00429">yaze::emu::Emulator::RenderBreakpointList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00542">yaze::editor::MapPropertiesSystem::DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00706">yaze::editor::MapPropertiesSystem::DrawCustomFeaturesTab()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00625">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00061">yaze::editor::DungeonCanvasViewer::DrawDungeonCanvas()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00481">yaze::editor::DungeonEditor::DrawDungeonCanvas()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00243">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="../../d1/d69/dungeon__room__selector_8cc_source.html#l00058">yaze::editor::DungeonRoomSelector::DrawEntranceSelector()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00200">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02910">yaze::editor::OverworldEditor::DrawMapPropertiesPanel()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00928">yaze::editor::MapPropertiesSystem::DrawOverlayControls()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02583">yaze::editor::OverworldEditor::DrawOverlayEditor()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00233">yaze::editor::MapPropertiesSystem::DrawOverlayEditor()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00129">yaze::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00393">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00343">yaze::editor::DungeonEditor::DrawRoomPropertiesDebugPopup()</a>, <a class="el" href="../../d1/d69/dungeon__room__selector_8cc_source.html#l00029">yaze::editor::DungeonRoomSelector::DrawRoomSelector()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00113">yaze::editor::SpriteEditor::DrawSpriteCanvas()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00317">InputTileInfo()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00429">yaze::emu::Emulator::RenderBreakpointList()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1554,7 +1610,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="../../de/d4c/input_8cc_source.html#l00031">ImGui::InputScalarLeft()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00146">kStepFastHex</a>, and <a class="el" href="../../de/d4c/input_8cc_source.html#l00145">kStepOneHex</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00542">yaze::editor::MapPropertiesSystem::DrawBasicPropertiesTab()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00086">yaze::editor::GfxGroupEditor::DrawBlocksetViewer()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00261">yaze::editor::DungeonEditor::DrawCanvasAndPropertiesPanel()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00173">yaze::editor::SpriteEditor::DrawCurrentSheets()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00706">yaze::editor::MapPropertiesSystem::DrawCustomFeaturesTab()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00625">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00061">yaze::editor::DungeonCanvasViewer::DrawDungeonCanvas()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00464">yaze::editor::DungeonEditor::DrawDungeonCanvas()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00243">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="../../d1/d69/dungeon__room__selector_8cc_source.html#l00058">yaze::editor::DungeonRoomSelector::DrawEntranceSelector()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00200">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00112">yaze::editor::GraphicsEditor::DrawGfxEditToolset()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00342">yaze::editor::MapPropertiesSystem::DrawGraphicsPopup()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02910">yaze::editor::OverworldEditor::DrawMapPropertiesPanel()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00809">yaze::editor::MapPropertiesSystem::DrawMusicTab()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00129">yaze::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00393">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00238">yaze::editor::GfxGroupEditor::DrawPaletteViewer()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00326">yaze::editor::DungeonEditor::DrawRoomPropertiesDebugPopup()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00125">yaze::editor::GfxGroupEditor::DrawRoomsetViewer()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00113">yaze::editor::SpriteEditor::DrawSpriteCanvas()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00642">yaze::editor::MapPropertiesSystem::DrawSpritePropertiesTab()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00178">yaze::editor::GfxGroupEditor::DrawSpritesetViewer()</a>, <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00275">yaze::editor::MessageEditor::DrawTextCommands()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00770">yaze::editor::MapPropertiesSystem::DrawTileGraphicsTab()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00317">InputTileInfo()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00429">yaze::emu::Emulator::RenderBreakpointList()</a>, and <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00043">yaze::editor::GfxGroupEditor::Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00542">yaze::editor::MapPropertiesSystem::DrawBasicPropertiesTab()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00086">yaze::editor::GfxGroupEditor::DrawBlocksetViewer()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00278">yaze::editor::DungeonEditor::DrawCanvasAndPropertiesPanel()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00173">yaze::editor::SpriteEditor::DrawCurrentSheets()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00706">yaze::editor::MapPropertiesSystem::DrawCustomFeaturesTab()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00625">yaze::editor::OverworldEditor::DrawCustomOverworldMapSettings()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00061">yaze::editor::DungeonCanvasViewer::DrawDungeonCanvas()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00481">yaze::editor::DungeonEditor::DrawDungeonCanvas()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00243">yaze::editor::ScreenEditor::DrawDungeonMapsTabs()</a>, <a class="el" href="../../d1/d69/dungeon__room__selector_8cc_source.html#l00058">yaze::editor::DungeonRoomSelector::DrawEntranceSelector()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00200">yaze::editor::DrawExitEditorPopup()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00112">yaze::editor::GraphicsEditor::DrawGfxEditToolset()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00342">yaze::editor::MapPropertiesSystem::DrawGraphicsPopup()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02910">yaze::editor::OverworldEditor::DrawMapPropertiesPanel()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00809">yaze::editor::MapPropertiesSystem::DrawMusicTab()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00129">yaze::editor::DrawOverworldEntrancePopup()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00393">yaze::editor::OverworldEditor::DrawOverworldMapSettings()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00238">yaze::editor::GfxGroupEditor::DrawPaletteViewer()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00343">yaze::editor::DungeonEditor::DrawRoomPropertiesDebugPopup()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00125">yaze::editor::GfxGroupEditor::DrawRoomsetViewer()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00113">yaze::editor::SpriteEditor::DrawSpriteCanvas()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00642">yaze::editor::MapPropertiesSystem::DrawSpritePropertiesTab()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00178">yaze::editor::GfxGroupEditor::DrawSpritesetViewer()</a>, <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00275">yaze::editor::MessageEditor::DrawTextCommands()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00770">yaze::editor::MapPropertiesSystem::DrawTileGraphicsTab()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00317">InputTileInfo()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00429">yaze::emu::Emulator::RenderBreakpointList()</a>, and <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00043">yaze::editor::GfxGroupEditor::Update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2723,6 +2779,1607 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a id="a2be424fe9c7f540133dfcf036c48b5d1" name="a2be424fe9c7f540133dfcf036c48b5d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2be424fe9c7f540133dfcf036c48b5d1">&#9670;&#160;</a></span>AutoRegisterLastItem()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::gui::AutoRegisterLastItem </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>widget_type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>explicit_label</em> = <code>&quot;&quot;</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>description</em> = <code>&quot;&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Automatically register the last <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> item. </p>
+<p>Call this after any <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> widget creation to automatically register it. Captures widget type, bounds, visibility, and enabled state.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">widget_type</td><td>Type of widget ("button", "input", "checkbox", etc.) </td></tr>
+    <tr><td class="paramname">explicit_label</td><td>Optional explicit label (uses ImGui::GetItemLabel() if empty) </td></tr>
+    <tr><td class="paramname">description</td><td>Optional description for the test harness </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">17</a> of file <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html">widget_auto_register.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00082">yaze::gui::WidgetIdRegistry::WidgetMetadata::bounds</a>, <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00081">yaze::gui::WidgetIdRegistry::WidgetMetadata::enabled</a>, <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00010">g_auto_scope_stack_</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00058">yaze::gui::WidgetIdRegistry::Instance()</a>, <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00078">yaze::gui::WidgetIdRegistry::WidgetMetadata::label</a>, <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00072">yaze::gui::WidgetIdRegistry::WidgetBounds::max_x</a>, <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00073">yaze::gui::WidgetIdRegistry::WidgetBounds::max_y</a>, <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00070">yaze::gui::WidgetIdRegistry::WidgetBounds::min_x</a>, <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00071">yaze::gui::WidgetIdRegistry::WidgetBounds::min_y</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00411">yaze::gui::WidgetIdRegistry::NormalizeLabel()</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00158">yaze::gui::WidgetIdRegistry::RegisterWidget()</a>, <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00074">yaze::gui::WidgetIdRegistry::WidgetBounds::valid</a>, <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00080">yaze::gui::WidgetIdRegistry::WidgetMetadata::visible</a>, and <a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html#l00079">yaze::gui::WidgetIdRegistry::WidgetMetadata::window_name</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00190">AutoBeginMenu()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00198">AutoBeginTabItem()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00075">AutoButton()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00087">AutoCheckbox()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00223">AutoCollapsingHeader()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00153">AutoCombo()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00131">AutoInputFloat()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00124">AutoInputInt()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00105">AutoInputText()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00114">AutoInputTextMultiline()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00183">AutoMenuItem()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00176">AutoMenuItem()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00093">AutoRadioButton()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00099">AutoRadioButton()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00168">AutoSelectable()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00160">AutoSelectable()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00146">AutoSliderFloat()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00139">AutoSliderInt()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00081">AutoSmallButton()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00207">AutoTreeNode()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00215">AutoTreeNodeEx()</a>, <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00244">RegisterCanvas()</a>, and <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00259">RegisterTable()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_a2be424fe9c7f540133dfcf036c48b5d1_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_a2be424fe9c7f540133dfcf036c48b5d1_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_a2be424fe9c7f540133dfcf036c48b5d1_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_a2be424fe9c7f540133dfcf036c48b5d1_cgraph">
+<area shape="rect" title="Automatically register the last ImGui item." alt="" coords="5,70,209,96"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="257,5,431,46"/>
+<area shape="poly" title=" " alt="" coords="163,67,241,48,243,53,164,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="701,113,876,154"/>
+<area shape="poly" title=" " alt="" coords="209,86,414,98,654,116,686,119,686,125,653,122,414,104,209,91"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="257,120,431,161"/>
+<area shape="poly" title=" " alt="" coords="164,94,243,113,241,118,163,99"/>
+<area shape="poly" title=" " alt="" coords="431,136,686,133,686,138,431,142"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a23c22ac119fb015547d1dccfde58cfab" title=" " alt="" coords="479,171,653,211"/>
+<area shape="poly" title=" " alt="" coords="432,158,464,165,463,170,431,163"/>
+<area shape="poly" title=" " alt="" coords="647,168,692,156,693,161,648,173"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aa974616ee11ced3f6a693ffbe4c22435" name="aa974616ee11ced3f6a693ffbe4c22435"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa974616ee11ced3f6a693ffbe4c22435">&#9670;&#160;</a></span>AutoButton()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoButton </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const ImVec2 &amp;&#160;</td>
+          <td class="paramname"><em>size</em> = <code>ImVec2(0,&#160;0)</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00075">75</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_aa974616ee11ced3f6a693ffbe4c22435_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_aa974616ee11ced3f6a693ffbe4c22435_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_aa974616ee11ced3f6a693ffbe4c22435_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_aa974616ee11ced3f6a693ffbe4c22435_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,147,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="195,70,398,96"/>
+<area shape="poly" title=" " alt="" coords="147,80,179,80,179,86,147,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="446,5,620,46"/>
+<area shape="poly" title=" " alt="" coords="352,67,431,48,432,53,353,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="668,92,843,133"/>
+<area shape="poly" title=" " alt="" coords="399,87,653,103,652,108,398,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="446,120,620,161"/>
+<area shape="poly" title=" " alt="" coords="353,94,432,113,431,118,352,99"/>
+<area shape="poly" title=" " alt="" coords="620,127,652,123,653,128,621,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aa9cc8ceed3690c25e93278cc2e2e6477" name="aa9cc8ceed3690c25e93278cc2e2e6477"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9cc8ceed3690c25e93278cc2e2e6477">&#9670;&#160;</a></span>AutoSmallButton()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoSmallButton </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00081">81</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_aa9cc8ceed3690c25e93278cc2e2e6477_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_aa9cc8ceed3690c25e93278cc2e2e6477_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_aa9cc8ceed3690c25e93278cc2e2e6477_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_aa9cc8ceed3690c25e93278cc2e2e6477_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,180,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="228,70,431,96"/>
+<area shape="poly" title=" " alt="" coords="180,80,212,80,212,86,180,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="479,5,653,46"/>
+<area shape="poly" title=" " alt="" coords="385,67,464,48,465,53,386,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="701,92,876,133"/>
+<area shape="poly" title=" " alt="" coords="432,87,686,103,685,108,431,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="479,120,653,161"/>
+<area shape="poly" title=" " alt="" coords="386,94,465,113,464,118,385,99"/>
+<area shape="poly" title=" " alt="" coords="653,127,685,123,686,128,654,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a9d30614e797aca9e2dc67fa422a4d70d" name="a9d30614e797aca9e2dc67fa422a4d70d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d30614e797aca9e2dc67fa422a4d70d">&#9670;&#160;</a></span>AutoCheckbox()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoCheckbox </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool *&#160;</td>
+          <td class="paramname"><em>v</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00087">87</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_a9d30614e797aca9e2dc67fa422a4d70d_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_a9d30614e797aca9e2dc67fa422a4d70d_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_a9d30614e797aca9e2dc67fa422a4d70d_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_a9d30614e797aca9e2dc67fa422a4d70d_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,166,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="214,70,417,96"/>
+<area shape="poly" title=" " alt="" coords="166,80,198,80,198,86,166,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="465,5,639,46"/>
+<area shape="poly" title=" " alt="" coords="371,67,450,48,451,53,372,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="687,92,862,133"/>
+<area shape="poly" title=" " alt="" coords="418,87,672,103,671,108,417,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="465,120,639,161"/>
+<area shape="poly" title=" " alt="" coords="372,94,451,113,450,118,371,99"/>
+<area shape="poly" title=" " alt="" coords="639,127,671,123,672,128,640,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aa17e9927f468dad4907d32627a3bcbe6" name="aa17e9927f468dad4907d32627a3bcbe6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa17e9927f468dad4907d32627a3bcbe6">&#9670;&#160;</a></span>AutoRadioButton() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoRadioButton </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>active</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00093">93</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_aa17e9927f468dad4907d32627a3bcbe6_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_aa17e9927f468dad4907d32627a3bcbe6_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_aa17e9927f468dad4907d32627a3bcbe6_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_aa17e9927f468dad4907d32627a3bcbe6_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,180,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="228,70,431,96"/>
+<area shape="poly" title=" " alt="" coords="180,80,212,80,212,86,180,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="479,5,653,46"/>
+<area shape="poly" title=" " alt="" coords="385,67,464,48,465,53,386,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="701,92,876,133"/>
+<area shape="poly" title=" " alt="" coords="432,87,686,103,685,108,431,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="479,120,653,161"/>
+<area shape="poly" title=" " alt="" coords="386,94,465,113,464,118,385,99"/>
+<area shape="poly" title=" " alt="" coords="653,127,685,123,686,128,654,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a4edfae0ca73584e67b6a8cfc65ac96de" name="a4edfae0ca73584e67b6a8cfc65ac96de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4edfae0ca73584e67b6a8cfc65ac96de">&#9670;&#160;</a></span>AutoRadioButton() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoRadioButton </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>v</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>v_button</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00099">99</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_a4edfae0ca73584e67b6a8cfc65ac96de_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_a4edfae0ca73584e67b6a8cfc65ac96de_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_a4edfae0ca73584e67b6a8cfc65ac96de_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_a4edfae0ca73584e67b6a8cfc65ac96de_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,180,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="228,70,431,96"/>
+<area shape="poly" title=" " alt="" coords="180,80,212,80,212,86,180,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="479,5,653,46"/>
+<area shape="poly" title=" " alt="" coords="385,67,464,48,465,53,386,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="701,92,876,133"/>
+<area shape="poly" title=" " alt="" coords="432,87,686,103,685,108,431,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="479,120,653,161"/>
+<area shape="poly" title=" " alt="" coords="386,94,465,113,464,118,385,99"/>
+<area shape="poly" title=" " alt="" coords="653,127,685,123,686,128,654,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ae7db5a965396ae1866b3e8aae95bc2f0" name="ae7db5a965396ae1866b3e8aae95bc2f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7db5a965396ae1866b3e8aae95bc2f0">&#9670;&#160;</a></span>AutoInputText()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoInputText </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>buf_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiInputTextFlags&#160;</td>
+          <td class="paramname"><em>flags</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiInputTextCallback&#160;</td>
+          <td class="paramname"><em>callback</em> = <code>nullptr</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>user_data</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00105">105</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_ae7db5a965396ae1866b3e8aae95bc2f0_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_ae7db5a965396ae1866b3e8aae95bc2f0_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_ae7db5a965396ae1866b3e8aae95bc2f0_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_ae7db5a965396ae1866b3e8aae95bc2f0_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,163,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="211,70,414,96"/>
+<area shape="poly" title=" " alt="" coords="163,80,195,80,195,86,163,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="462,5,636,46"/>
+<area shape="poly" title=" " alt="" coords="368,67,447,48,448,53,369,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="684,92,859,133"/>
+<area shape="poly" title=" " alt="" coords="415,87,669,103,668,108,414,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="462,120,636,161"/>
+<area shape="poly" title=" " alt="" coords="369,94,448,113,447,118,368,99"/>
+<area shape="poly" title=" " alt="" coords="636,127,668,123,669,128,637,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a54047b271231e3097b608fdfef89bb5a" name="a54047b271231e3097b608fdfef89bb5a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54047b271231e3097b608fdfef89bb5a">&#9670;&#160;</a></span>AutoInputTextMultiline()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoInputTextMultiline </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>buf_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const ImVec2 &amp;&#160;</td>
+          <td class="paramname"><em>size</em> = <code>ImVec2(0,&#160;0)</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiInputTextFlags&#160;</td>
+          <td class="paramname"><em>flags</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiInputTextCallback&#160;</td>
+          <td class="paramname"><em>callback</em> = <code>nullptr</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>user_data</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00114">114</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_a54047b271231e3097b608fdfef89bb5a_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_a54047b271231e3097b608fdfef89bb5a_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_a54047b271231e3097b608fdfef89bb5a_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_a54047b271231e3097b608fdfef89bb5a_cgraph">
+<area shape="rect" title=" " alt="" coords="5,63,163,103"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="211,70,414,96"/>
+<area shape="poly" title=" " alt="" coords="163,80,195,80,195,86,163,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="462,5,636,46"/>
+<area shape="poly" title=" " alt="" coords="368,67,447,48,448,53,369,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="684,92,859,133"/>
+<area shape="poly" title=" " alt="" coords="415,87,669,103,668,108,414,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="462,120,636,161"/>
+<area shape="poly" title=" " alt="" coords="369,94,448,113,447,118,368,99"/>
+<area shape="poly" title=" " alt="" coords="636,127,668,123,669,128,637,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a548bde7ae5089c2621f998c20cd15e24" name="a548bde7ae5089c2621f998c20cd15e24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a548bde7ae5089c2621f998c20cd15e24">&#9670;&#160;</a></span>AutoInputInt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoInputInt </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>v</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>step</em> = <code>1</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>step_fast</em> = <code>100</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiInputTextFlags&#160;</td>
+          <td class="paramname"><em>flags</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00124">124</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_a548bde7ae5089c2621f998c20cd15e24_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_a548bde7ae5089c2621f998c20cd15e24_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_a548bde7ae5089c2621f998c20cd15e24_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_a548bde7ae5089c2621f998c20cd15e24_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,153,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="201,70,404,96"/>
+<area shape="poly" title=" " alt="" coords="153,80,185,80,185,86,153,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="452,5,626,46"/>
+<area shape="poly" title=" " alt="" coords="358,67,437,48,438,53,359,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="674,92,849,133"/>
+<area shape="poly" title=" " alt="" coords="405,87,659,103,658,108,404,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="452,120,626,161"/>
+<area shape="poly" title=" " alt="" coords="359,94,438,113,437,118,358,99"/>
+<area shape="poly" title=" " alt="" coords="626,127,658,123,659,128,627,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a40f845a0bcc86ef1432569400f378f58" name="a40f845a0bcc86ef1432569400f378f58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a40f845a0bcc86ef1432569400f378f58">&#9670;&#160;</a></span>AutoInputFloat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoInputFloat </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>v</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>step</em> = <code>0.0f</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>step_fast</em> = <code>0.0f</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>format</em> = <code>&quot;%.3f&quot;</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiInputTextFlags&#160;</td>
+          <td class="paramname"><em>flags</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00131">131</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_a40f845a0bcc86ef1432569400f378f58_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_a40f845a0bcc86ef1432569400f378f58_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_a40f845a0bcc86ef1432569400f378f58_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_a40f845a0bcc86ef1432569400f378f58_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,167,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="215,70,418,96"/>
+<area shape="poly" title=" " alt="" coords="167,80,199,80,199,86,167,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="466,5,640,46"/>
+<area shape="poly" title=" " alt="" coords="372,67,451,48,452,53,373,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="688,92,863,133"/>
+<area shape="poly" title=" " alt="" coords="419,87,673,103,672,108,418,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="466,120,640,161"/>
+<area shape="poly" title=" " alt="" coords="373,94,452,113,451,118,372,99"/>
+<area shape="poly" title=" " alt="" coords="640,127,672,123,673,128,641,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aeeaa34ebe8d8e3688b14f9bd0356d0ca" name="aeeaa34ebe8d8e3688b14f9bd0356d0ca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeeaa34ebe8d8e3688b14f9bd0356d0ca">&#9670;&#160;</a></span>AutoSliderInt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoSliderInt </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>v</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>v_min</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>v_max</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>format</em> = <code>&quot;%d&quot;</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiSliderFlags&#160;</td>
+          <td class="paramname"><em>flags</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00139">139</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_aeeaa34ebe8d8e3688b14f9bd0356d0ca_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_aeeaa34ebe8d8e3688b14f9bd0356d0ca_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_aeeaa34ebe8d8e3688b14f9bd0356d0ca_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_aeeaa34ebe8d8e3688b14f9bd0356d0ca_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,157,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="205,70,408,96"/>
+<area shape="poly" title=" " alt="" coords="157,80,189,80,189,86,157,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="456,5,630,46"/>
+<area shape="poly" title=" " alt="" coords="362,67,441,48,442,53,363,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="678,92,853,133"/>
+<area shape="poly" title=" " alt="" coords="409,87,663,103,662,108,408,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="456,120,630,161"/>
+<area shape="poly" title=" " alt="" coords="363,94,442,113,441,118,362,99"/>
+<area shape="poly" title=" " alt="" coords="630,127,662,123,663,128,631,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a97331e355160a200e7615d2ff8644b2f" name="a97331e355160a200e7615d2ff8644b2f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97331e355160a200e7615d2ff8644b2f">&#9670;&#160;</a></span>AutoSliderFloat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoSliderFloat </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>v</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>v_min</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float&#160;</td>
+          <td class="paramname"><em>v_max</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>format</em> = <code>&quot;%.3f&quot;</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiSliderFlags&#160;</td>
+          <td class="paramname"><em>flags</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00146">146</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_a97331e355160a200e7615d2ff8644b2f_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_a97331e355160a200e7615d2ff8644b2f_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_a97331e355160a200e7615d2ff8644b2f_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_a97331e355160a200e7615d2ff8644b2f_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,171,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="219,70,422,96"/>
+<area shape="poly" title=" " alt="" coords="171,80,203,80,203,86,171,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="470,5,644,46"/>
+<area shape="poly" title=" " alt="" coords="376,67,455,48,456,53,377,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="692,92,867,133"/>
+<area shape="poly" title=" " alt="" coords="423,87,677,103,676,108,422,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="470,120,644,161"/>
+<area shape="poly" title=" " alt="" coords="377,94,456,113,455,118,376,99"/>
+<area shape="poly" title=" " alt="" coords="644,127,676,123,677,128,645,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ab872c89167199d188ad7b31236fbd5c6" name="ab872c89167199d188ad7b31236fbd5c6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab872c89167199d188ad7b31236fbd5c6">&#9670;&#160;</a></span>AutoCombo()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoCombo </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>current_item</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *const&#160;</td>
+          <td class="paramname"><em>items</em>[], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>items_count</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>popup_max_height_in_items</em> = <code>-1</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00153">153</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_ab872c89167199d188ad7b31236fbd5c6_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_ab872c89167199d188ad7b31236fbd5c6_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_ab872c89167199d188ad7b31236fbd5c6_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_ab872c89167199d188ad7b31236fbd5c6_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,150,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="198,70,401,96"/>
+<area shape="poly" title=" " alt="" coords="150,80,182,80,182,86,150,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="449,5,623,46"/>
+<area shape="poly" title=" " alt="" coords="355,67,434,48,435,53,356,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="671,92,846,133"/>
+<area shape="poly" title=" " alt="" coords="402,87,656,103,655,108,401,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="449,120,623,161"/>
+<area shape="poly" title=" " alt="" coords="356,94,435,113,434,118,355,99"/>
+<area shape="poly" title=" " alt="" coords="623,127,655,123,656,128,624,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a7a90e3e7dce0b6d5029e9369116e4d61" name="a7a90e3e7dce0b6d5029e9369116e4d61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7a90e3e7dce0b6d5029e9369116e4d61">&#9670;&#160;</a></span>AutoSelectable() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoSelectable </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>selected</em> = <code>false</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiSelectableFlags&#160;</td>
+          <td class="paramname"><em>flags</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const ImVec2 &amp;&#160;</td>
+          <td class="paramname"><em>size</em> = <code>ImVec2(0,&#160;0)</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00160">160</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_a7a90e3e7dce0b6d5029e9369116e4d61_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_a7a90e3e7dce0b6d5029e9369116e4d61_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_a7a90e3e7dce0b6d5029e9369116e4d61_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_a7a90e3e7dce0b6d5029e9369116e4d61_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,170,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="218,70,421,96"/>
+<area shape="poly" title=" " alt="" coords="170,80,202,80,202,86,170,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="469,5,643,46"/>
+<area shape="poly" title=" " alt="" coords="375,67,454,48,455,53,376,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="691,92,866,133"/>
+<area shape="poly" title=" " alt="" coords="422,87,676,103,675,108,421,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="469,120,643,161"/>
+<area shape="poly" title=" " alt="" coords="376,94,455,113,454,118,375,99"/>
+<area shape="poly" title=" " alt="" coords="643,127,675,123,676,128,644,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a64f98477b5c92d1500fc75bab7ad8dac" name="a64f98477b5c92d1500fc75bab7ad8dac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64f98477b5c92d1500fc75bab7ad8dac">&#9670;&#160;</a></span>AutoSelectable() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoSelectable </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool *&#160;</td>
+          <td class="paramname"><em>p_selected</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiSelectableFlags&#160;</td>
+          <td class="paramname"><em>flags</em> = <code>0</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const ImVec2 &amp;&#160;</td>
+          <td class="paramname"><em>size</em> = <code>ImVec2(0,&#160;0)</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00168">168</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_a64f98477b5c92d1500fc75bab7ad8dac_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_a64f98477b5c92d1500fc75bab7ad8dac_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_a64f98477b5c92d1500fc75bab7ad8dac_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_a64f98477b5c92d1500fc75bab7ad8dac_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,170,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="218,70,421,96"/>
+<area shape="poly" title=" " alt="" coords="170,80,202,80,202,86,170,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="469,5,643,46"/>
+<area shape="poly" title=" " alt="" coords="375,67,454,48,455,53,376,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="691,92,866,133"/>
+<area shape="poly" title=" " alt="" coords="422,87,676,103,675,108,421,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="469,120,643,161"/>
+<area shape="poly" title=" " alt="" coords="376,94,455,113,454,118,375,99"/>
+<area shape="poly" title=" " alt="" coords="643,127,675,123,676,128,644,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="adb7aca8b264155328cd58f8abd26561b" name="adb7aca8b264155328cd58f8abd26561b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb7aca8b264155328cd58f8abd26561b">&#9670;&#160;</a></span>AutoMenuItem() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoMenuItem </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>shortcut</em> = <code>nullptr</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>selected</em> = <code>false</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enabled</em> = <code>true</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00176">176</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_adb7aca8b264155328cd58f8abd26561b_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_adb7aca8b264155328cd58f8abd26561b_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_adb7aca8b264155328cd58f8abd26561b_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_adb7aca8b264155328cd58f8abd26561b_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,167,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="215,70,418,96"/>
+<area shape="poly" title=" " alt="" coords="167,80,199,80,199,86,167,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="466,5,640,46"/>
+<area shape="poly" title=" " alt="" coords="372,67,451,48,452,53,373,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="688,92,863,133"/>
+<area shape="poly" title=" " alt="" coords="419,87,673,103,672,108,418,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="466,120,640,161"/>
+<area shape="poly" title=" " alt="" coords="373,94,452,113,451,118,372,99"/>
+<area shape="poly" title=" " alt="" coords="640,127,672,123,673,128,641,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aabe94091dd3b738f59b46dfdf95ad360" name="aabe94091dd3b738f59b46dfdf95ad360"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aabe94091dd3b738f59b46dfdf95ad360">&#9670;&#160;</a></span>AutoMenuItem() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoMenuItem </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>shortcut</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool *&#160;</td>
+          <td class="paramname"><em>p_selected</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enabled</em> = <code>true</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00183">183</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_aabe94091dd3b738f59b46dfdf95ad360_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_aabe94091dd3b738f59b46dfdf95ad360_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_aabe94091dd3b738f59b46dfdf95ad360_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_aabe94091dd3b738f59b46dfdf95ad360_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,167,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="215,70,418,96"/>
+<area shape="poly" title=" " alt="" coords="167,80,199,80,199,86,167,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="466,5,640,46"/>
+<area shape="poly" title=" " alt="" coords="372,67,451,48,452,53,373,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="688,92,863,133"/>
+<area shape="poly" title=" " alt="" coords="419,87,673,103,672,108,418,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="466,120,640,161"/>
+<area shape="poly" title=" " alt="" coords="373,94,452,113,451,118,372,99"/>
+<area shape="poly" title=" " alt="" coords="640,127,672,123,673,128,641,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="afea67083a7c7849f3c690d3002c24856" name="afea67083a7c7849f3c690d3002c24856"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afea67083a7c7849f3c690d3002c24856">&#9670;&#160;</a></span>AutoBeginMenu()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoBeginMenu </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enabled</em> = <code>true</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00190">190</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_afea67083a7c7849f3c690d3002c24856_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_afea67083a7c7849f3c690d3002c24856_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_afea67083a7c7849f3c690d3002c24856_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_afea67083a7c7849f3c690d3002c24856_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,174,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="222,70,425,96"/>
+<area shape="poly" title=" " alt="" coords="174,80,206,80,206,86,174,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="473,5,647,46"/>
+<area shape="poly" title=" " alt="" coords="379,67,458,48,459,53,380,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="695,92,870,133"/>
+<area shape="poly" title=" " alt="" coords="426,87,680,103,679,108,425,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="473,120,647,161"/>
+<area shape="poly" title=" " alt="" coords="380,94,459,113,458,118,379,99"/>
+<area shape="poly" title=" " alt="" coords="647,127,679,123,680,128,648,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a263d04d07dd4a4939eb6a02c98bc8a1a" name="a263d04d07dd4a4939eb6a02c98bc8a1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a263d04d07dd4a4939eb6a02c98bc8a1a">&#9670;&#160;</a></span>AutoBeginTabItem()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoBeginTabItem </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool *&#160;</td>
+          <td class="paramname"><em>p_open</em> = <code>nullptr</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiTabItemFlags&#160;</td>
+          <td class="paramname"><em>flags</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00198">198</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_a263d04d07dd4a4939eb6a02c98bc8a1a_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_a263d04d07dd4a4939eb6a02c98bc8a1a_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_a263d04d07dd4a4939eb6a02c98bc8a1a_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_a263d04d07dd4a4939eb6a02c98bc8a1a_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,190,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="238,70,441,96"/>
+<area shape="poly" title=" " alt="" coords="190,80,222,80,222,86,190,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="489,5,663,46"/>
+<area shape="poly" title=" " alt="" coords="395,67,474,48,475,53,396,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="711,92,886,133"/>
+<area shape="poly" title=" " alt="" coords="442,87,696,103,695,108,441,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="489,120,663,161"/>
+<area shape="poly" title=" " alt="" coords="396,94,475,113,474,118,395,99"/>
+<area shape="poly" title=" " alt="" coords="663,127,695,123,696,128,664,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a71bd2dfd42e0daf7c741025eb6376547" name="a71bd2dfd42e0daf7c741025eb6376547"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71bd2dfd42e0daf7c741025eb6376547">&#9670;&#160;</a></span>AutoTreeNode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoTreeNode </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00207">207</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_a71bd2dfd42e0daf7c741025eb6376547_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_a71bd2dfd42e0daf7c741025eb6376547_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_a71bd2dfd42e0daf7c741025eb6376547_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_a71bd2dfd42e0daf7c741025eb6376547_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,166,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="214,70,417,96"/>
+<area shape="poly" title=" " alt="" coords="166,80,198,80,198,86,166,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="465,5,639,46"/>
+<area shape="poly" title=" " alt="" coords="371,67,450,48,451,53,372,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="687,92,862,133"/>
+<area shape="poly" title=" " alt="" coords="418,87,672,103,671,108,417,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="465,120,639,161"/>
+<area shape="poly" title=" " alt="" coords="372,94,451,113,450,118,371,99"/>
+<area shape="poly" title=" " alt="" coords="639,127,671,123,672,128,640,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aa206667fc5e5020ce1a2c51414694e96" name="aa206667fc5e5020ce1a2c51414694e96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa206667fc5e5020ce1a2c51414694e96">&#9670;&#160;</a></span>AutoTreeNodeEx()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoTreeNodeEx </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiTreeNodeFlags&#160;</td>
+          <td class="paramname"><em>flags</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00215">215</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_aa206667fc5e5020ce1a2c51414694e96_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_aa206667fc5e5020ce1a2c51414694e96_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_aa206667fc5e5020ce1a2c51414694e96_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_aa206667fc5e5020ce1a2c51414694e96_cgraph">
+<area shape="rect" title=" " alt="" coords="5,70,180,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="228,70,431,96"/>
+<area shape="poly" title=" " alt="" coords="180,80,212,80,212,86,180,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="479,5,653,46"/>
+<area shape="poly" title=" " alt="" coords="385,67,464,48,465,53,386,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="701,92,876,133"/>
+<area shape="poly" title=" " alt="" coords="432,87,686,103,685,108,431,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="479,120,653,161"/>
+<area shape="poly" title=" " alt="" coords="386,94,465,113,464,118,385,99"/>
+<area shape="poly" title=" " alt="" coords="653,127,685,123,686,128,654,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ae69ceb976f8e2109907fc63f91bc253e" name="ae69ceb976f8e2109907fc63f91bc253e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae69ceb976f8e2109907fc63f91bc253e">&#9670;&#160;</a></span>AutoCollapsingHeader()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::gui::AutoCollapsingHeader </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>label</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ImGuiTreeNodeFlags&#160;</td>
+          <td class="paramname"><em>flags</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00223">223</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_ae69ceb976f8e2109907fc63f91bc253e_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_ae69ceb976f8e2109907fc63f91bc253e_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_ae69ceb976f8e2109907fc63f91bc253e_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_ae69ceb976f8e2109907fc63f91bc253e_cgraph">
+<area shape="rect" title=" " alt="" coords="5,63,169,103"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="217,70,420,96"/>
+<area shape="poly" title=" " alt="" coords="169,80,201,80,201,86,169,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="468,5,642,46"/>
+<area shape="poly" title=" " alt="" coords="374,67,453,48,454,53,375,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="690,92,865,133"/>
+<area shape="poly" title=" " alt="" coords="421,87,675,103,674,108,420,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="468,120,642,161"/>
+<area shape="poly" title=" " alt="" coords="375,94,454,113,453,118,374,99"/>
+<area shape="poly" title=" " alt="" coords="642,127,674,123,675,128,643,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aab68a4b7788efe52385aa3b3cdf33471" name="aab68a4b7788efe52385aa3b3cdf33471"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab68a4b7788efe52385aa3b3cdf33471">&#9670;&#160;</a></span>RegisterCanvas()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::gui::RegisterCanvas </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>canvas_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>description</em> = <code>&quot;&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Register a canvas widget after BeginChild or similar. </p>
+<p>Canvases typically use BeginChild which doesn't have a return value, so we provide a separate registration helper.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">canvas_name</td><td>Name of the canvas (should match BeginChild name) </td></tr>
+    <tr><td class="paramname">description</td><td>Optional description of the canvas purpose </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00244">244</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_aab68a4b7788efe52385aa3b3cdf33471_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_aab68a4b7788efe52385aa3b3cdf33471_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_aab68a4b7788efe52385aa3b3cdf33471_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_aab68a4b7788efe52385aa3b3cdf33471_cgraph">
+<area shape="rect" title="Register a canvas widget after BeginChild or similar." alt="" coords="5,70,174,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="222,70,425,96"/>
+<area shape="poly" title=" " alt="" coords="174,80,206,80,206,86,174,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="473,5,647,46"/>
+<area shape="poly" title=" " alt="" coords="379,67,458,48,459,53,380,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="695,92,870,133"/>
+<area shape="poly" title=" " alt="" coords="426,87,680,103,679,108,425,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="473,120,647,161"/>
+<area shape="poly" title=" " alt="" coords="380,94,459,113,458,118,379,99"/>
+<area shape="poly" title=" " alt="" coords="647,127,679,123,680,128,648,132"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a05b5841c88a2c37c558bb6527cd958ec" name="a05b5841c88a2c37c558bb6527cd958ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05b5841c88a2c37c558bb6527cd958ec">&#9670;&#160;</a></span>RegisterTable()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::gui::RegisterTable </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>table_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>description</em> = <code>&quot;&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Register a table after BeginTable. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">table_name</td><td>Name of the table (should match BeginTable name) </td></tr>
+    <tr><td class="paramname">description</td><td>Optional description </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00259">259</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/dbf/namespaceyaze_1_1gui_a05b5841c88a2c37c558bb6527cd958ec_cgraph.png" border="0" usemap="#ad3/dbf/namespaceyaze_1_1gui_a05b5841c88a2c37c558bb6527cd958ec_cgraph" alt=""/></div>
+<map name="ad3/dbf/namespaceyaze_1_1gui_a05b5841c88a2c37c558bb6527cd958ec_cgraph" id="ad3/dbf/namespaceyaze_1_1gui_a05b5841c88a2c37c558bb6527cd958ec_cgraph">
+<area shape="rect" title="Register a table after BeginTable." alt="" coords="5,70,162,96"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="210,70,413,96"/>
+<area shape="poly" title=" " alt="" coords="162,80,194,80,194,86,162,86"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="461,5,635,46"/>
+<area shape="poly" title=" " alt="" coords="367,67,446,48,447,53,368,72"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="683,92,858,133"/>
+<area shape="poly" title=" " alt="" coords="414,87,668,103,667,108,413,92"/>
+<area shape="rect" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="461,120,635,161"/>
+<area shape="poly" title=" " alt="" coords="368,94,447,113,446,118,367,99"/>
+<area shape="poly" title=" " alt="" coords="635,127,667,123,668,128,636,132"/>
+</map>
+</div>
+
+</div>
+</div>
 <h2 class="groupheader">Variable Documentation</h2>
 <a id="a074b2ff8f8c07459d6dbdc5cac6b68cb" name="a074b2ff8f8c07459d6dbdc5cac6b68cb"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a074b2ff8f8c07459d6dbdc5cac6b68cb">&#9670;&#160;</a></span>kRectangleColor</h2>
@@ -2905,6 +4562,24 @@ Here is the call graph for this function:</div>
 <p class="definition">Definition at line <a class="el" href="../../de/ded/input_8h_source.html#l00118">118</a> of file <a class="el" href="../../de/ded/input_8h_source.html">input.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../de/d4c/input_8cc_source.html#l00425">DrawMenu()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00211">yaze::editor::EditorManager::Initialize()</a>.</p>
+
+</div>
+</div>
+<a id="a010a82bb36767f92646fec4223eb8b5a" name="a010a82bb36767f92646fec4223eb8b5a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a010a82bb36767f92646fec4223eb8b5a">&#9670;&#160;</a></span>g_auto_scope_stack_</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">thread_local std::vector&lt;std::string&gt; yaze::gui::g_auto_scope_stack_</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00010">10</a> of file <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html">widget_auto_register.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">AutoRegisterLastItem()</a>, and <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00012">yaze::gui::AutoWidgetScope::AutoWidgetScope()</a>.</p>
 
 </div>
 </div>

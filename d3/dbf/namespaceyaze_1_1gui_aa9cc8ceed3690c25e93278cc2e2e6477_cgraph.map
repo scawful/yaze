@@ -1,0 +1,12 @@
+<map id="yaze::gui::AutoSmallButton" name="yaze::gui::AutoSmallButton">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,180,96"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="228,70,431,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,80,212,80,212,86,180,86"/>
+<area shape="rect" id="Node000003" href="$d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc" title=" " alt="" coords="479,5,653,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="385,67,464,48,465,53,386,72"/>
+<area shape="rect" id="Node000004" href="$d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116" title=" " alt="" coords="701,92,876,133"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="432,87,686,103,685,108,431,92"/>
+<area shape="rect" id="Node000005" href="$d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1" title=" " alt="" coords="479,120,653,161"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="386,94,465,113,464,118,385,99"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="653,127,685,123,686,128,654,132"/>
+</map>

@@ -1,0 +1,10 @@
+<map id="yaze::editor::DungeonEditor::UpdateObjectEditor" name="yaze::editor::DungeonEditor::UpdateObjectEditor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,181,46"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="777,13,919,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,20,229,19,479,16,729,19,762,20,762,25,729,24,479,22,229,24,181,25"/>
+<area shape="rect" id="Node000003" href="$d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#a417d0697720518c4526ede7295049153" title=" " alt="" coords="229,33,435,74"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,33,213,37,213,42,181,39"/>
+<area shape="rect" id="Node000004" href="$d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3" title=" " alt="" coords="483,33,729,74"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="435,51,467,51,467,56,435,56"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="730,37,762,33,762,38,730,42"/>
+</map>

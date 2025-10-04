@@ -7,5 +7,7 @@ var dir_3692ec13241b192189de912e0a54f355 =
     [ "sprite", "dir_12e106757ecdaf4af0ac0afab505b8fc.html", "dir_12e106757ecdaf4af0ac0afab505b8fc" ],
     [ "common.h", "d4/db5/app_2zelda3_2common_8h.html", "d4/db5/app_2zelda3_2common_8h" ],
     [ "hyrule_magic.cc", "da/d37/hyrule__magic_8cc.html", "da/d37/hyrule__magic_8cc" ],
-    [ "hyrule_magic.h", "db/d03/hyrule__magic_8h.html", "db/d03/hyrule__magic_8h" ]
+    [ "hyrule_magic.h", "db/d03/hyrule__magic_8h.html", "db/d03/hyrule__magic_8h" ],
+    [ "zelda3_labels.cc", "d3/d1f/zelda3__labels_8cc.html", "d3/d1f/zelda3__labels_8cc" ],
+    [ "zelda3_labels.h", "d3/d0f/zelda3__labels_8h.html", "d3/d0f/zelda3__labels_8h" ]
 ];

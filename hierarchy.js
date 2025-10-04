@@ -33,6 +33,7 @@ var hierarchy =
       [ "yaze::emu::AudioRamImpl", "d5/da7/classyaze_1_1emu_1_1AudioRamImpl.html", null ]
     ] ],
     [ "yaze::cli::AutomationResult", "d4/daf/structyaze_1_1cli_1_1AutomationResult.html", null ],
+    [ "yaze::gui::AutoWidgetScope", "db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html", null ],
     [ "yaze::gfx::BackgroundBuffer", "dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html", null ],
     [ "yaze::emu::BackgroundLayer", "d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html", null ],
     [ "yaze::gui::BackgroundRenderer", "d5/dc2/classyaze_1_1gui_1_1BackgroundRenderer.html", null ],
@@ -620,6 +621,7 @@ var hierarchy =
     [ "zelda3_overworld_map", "da/d93/structzelda3__overworld__map.html", null ],
     [ "zelda3_rom", "de/dad/structzelda3__rom.html", null ],
     [ "zelda3_version_pointers", "de/d0d/structzelda3__version__pointers.html", null ],
+    [ "yaze::zelda3::Zelda3Labels", "d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html", null ],
     [ "yaze::zelda3::music::ZeldaInstrument", "d3/dae/structyaze_1_1zelda3_1_1music_1_1ZeldaInstrument.html", null ],
     [ "yaze::zelda3::music::ZeldaSfxInstrument", "db/d2e/structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html", null ],
     [ "yaze::zelda3::music::ZeldaWave", "df/d2f/structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html", null ],

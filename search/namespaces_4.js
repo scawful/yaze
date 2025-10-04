@@ -78,12 +78,13 @@ var searchData=
   ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7broom_5fobject_2ecc_7d_75',['anonymous_namespace{room_object.cc}',['../d5/da6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03.html',1,'yaze::zelda3']]],
   ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7broom_5fobject_5fencoding_5ftest_2ecc_7d_76',['anonymous_namespace{room_object_encoding_test.cc}',['../df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html',1,'yaze::zelda3']]],
   ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7btracker_2ecc_7d_77',['anonymous_namespace{tracker.cc}',['../dd/df6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3aentrancetypes_78',['EntranceTypes',['../dc/dcb/namespaceyaze_1_1zelda3_1_1EntranceTypes.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3aitemtypes_79',['ItemTypes',['../da/d9f/namespaceyaze_1_1zelda3_1_1ItemTypes.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3amusic_80',['music',['../d7/d68/namespaceyaze_1_1zelda3_1_1music.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3aobjectcategories_81',['ObjectCategories',['../d0/d1c/namespaceyaze_1_1zelda3_1_1ObjectCategories.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3aobjectrenderingutils_82',['ObjectRenderingUtils',['../d1/d67/namespaceyaze_1_1zelda3_1_1ObjectRenderingUtils.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3apalette_5finternal_83',['palette_internal',['../d6/d52/namespaceyaze_1_1zelda3_1_1palette__internal.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3aspritetypes_84',['SpriteTypes',['../d1/d1c/namespaceyaze_1_1zelda3_1_1SpriteTypes.html',1,'yaze::zelda3']]],
-  ['yaze_3a_3azelda3_3a_3atest_85',['test',['../df/dfe/namespaceyaze_1_1zelda3_1_1test.html',1,'yaze::zelda3']]]
+  ['yaze_3a_3azelda3_3a_3aanonymous_5fnamespace_7bzelda3_5flabels_2ecc_7d_78',['anonymous_namespace{zelda3_labels.cc}',['../d8/dbe/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02zelda3__labels_8cc_03.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3aentrancetypes_79',['EntranceTypes',['../dc/dcb/namespaceyaze_1_1zelda3_1_1EntranceTypes.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3aitemtypes_80',['ItemTypes',['../da/d9f/namespaceyaze_1_1zelda3_1_1ItemTypes.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3amusic_81',['music',['../d7/d68/namespaceyaze_1_1zelda3_1_1music.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3aobjectcategories_82',['ObjectCategories',['../d0/d1c/namespaceyaze_1_1zelda3_1_1ObjectCategories.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3aobjectrenderingutils_83',['ObjectRenderingUtils',['../d1/d67/namespaceyaze_1_1zelda3_1_1ObjectRenderingUtils.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3apalette_5finternal_84',['palette_internal',['../d6/d52/namespaceyaze_1_1zelda3_1_1palette__internal.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3aspritetypes_85',['SpriteTypes',['../d1/d1c/namespaceyaze_1_1zelda3_1_1SpriteTypes.html',1,'yaze::zelda3']]],
+  ['yaze_3a_3azelda3_3a_3atest_86',['test',['../df/dfe/namespaceyaze_1_1zelda3_1_1test.html',1,'yaze::zelda3']]]
 ];

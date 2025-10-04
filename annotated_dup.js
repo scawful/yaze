@@ -390,6 +390,7 @@ var annotated_dup =
           [ "CanvasRenderContext", "d5/d10/structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html", "d5/d10/structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext" ]
         ] ],
         [ "AssetObject", "d5/d23/structyaze_1_1gui_1_1AssetObject.html", "d5/d23/structyaze_1_1gui_1_1AssetObject" ],
+        [ "AutoWidgetScope", "db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html", "db/d2c/classyaze_1_1gui_1_1AutoWidgetScope" ],
         [ "BackgroundRenderer", "d5/dc2/classyaze_1_1gui_1_1BackgroundRenderer.html", "d5/dc2/classyaze_1_1gui_1_1BackgroundRenderer" ],
         [ "BppComparisonTool", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html", "d3/d1a/classyaze_1_1gui_1_1BppComparisonTool" ],
         [ "BppConversionDialog", "db/d56/classyaze_1_1gui_1_1BppConversionDialog.html", "db/d56/classyaze_1_1gui_1_1BppConversionDialog" ],
@@ -553,7 +554,8 @@ var annotated_dup =
         [ "Subtype2", "dc/d10/classyaze_1_1zelda3_1_1Subtype2.html", "dc/d10/classyaze_1_1zelda3_1_1Subtype2" ],
         [ "Subtype3", "d1/dc6/classyaze_1_1zelda3_1_1Subtype3.html", "d1/dc6/classyaze_1_1zelda3_1_1Subtype3" ],
         [ "SubtypeInfo", "da/d92/structyaze_1_1zelda3_1_1SubtypeInfo.html", "da/d92/structyaze_1_1zelda3_1_1SubtypeInfo" ],
-        [ "TitleScreen", "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html", "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen" ]
+        [ "TitleScreen", "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html", "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen" ],
+        [ "Zelda3Labels", "d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html", null ]
       ] ],
       [ "Rom", "d6/d30/classyaze_1_1Rom.html", "d6/d30/classyaze_1_1Rom" ],
       [ "RomLoadOptions", "db/d22/structyaze_1_1RomLoadOptions.html", "db/d22/structyaze_1_1RomLoadOptions" ],

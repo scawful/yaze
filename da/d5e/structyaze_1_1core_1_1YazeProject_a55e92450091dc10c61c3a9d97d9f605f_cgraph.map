@@ -1,0 +1,7 @@
+<map id="yaze::core::YazeProject::GetLabel" name="yaze::core::YazeProject::GetLabel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,160,46"/>
+<area shape="rect" id="Node000002" href="$d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html#ac123a4cd4666b761a4c39fe70fbbc9b0" title="Get a label by resource type and ID." alt="" coords="208,5,382,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,23,192,23,192,28,160,28"/>
+<area shape="rect" id="Node000003" href="$d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html#a34742ede25e2a3dff22e0165d7220079" title="Convert all labels to a structured map for project embedding." alt="" coords="430,5,604,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="382,23,414,23,414,28,382,28"/>
+</map>

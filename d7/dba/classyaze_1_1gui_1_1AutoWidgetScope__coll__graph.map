@@ -1,0 +1,5 @@
+<map id="yaze::gui::AutoWidgetScope" name="yaze::gui::AutoWidgetScope">
+<area shape="rect" id="Node000001" title="RAII scope that enables automatic widget registration." alt="" coords="5,94,186,120"/>
+<area shape="rect" id="Node000002" href="$d8/dd5/classyaze_1_1gui_1_1WidgetIdScope.html" title="RAII helper for managing hierarchical ImGui ID scopes." alt="" coords="13,5,178,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,47,98,94,93,94,93,47"/>
+</map>
