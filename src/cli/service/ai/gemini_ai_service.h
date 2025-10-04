@@ -17,7 +17,7 @@ struct GeminiConfig {
   std::string model = "gemini-2.5-flash";  // Default to flash model
   float temperature = 0.7f;
   int max_output_tokens = 2048;
-  std::string system_instruction;
+  mutable std::string system_instruction;  // Mutable to allow lazy initialization
   bool use_enhanced_prompting = true;  // Enable few-shot examples
   
   GeminiConfig() = default;

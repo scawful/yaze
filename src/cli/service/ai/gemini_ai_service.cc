@@ -1,8 +1,10 @@
 #include "cli/service/ai/gemini_ai_service.h"
 #include "cli/service/agent/conversational_agent_service.h"
 
+#include <atomic>
 #include <cstdlib>
 #include <iostream>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -16,27 +18,59 @@
 #include "httplib.h"
 #include "nlohmann/json.hpp"
 namespace fs = std::filesystem;
+
+// OpenSSL initialization for HTTPS support
+#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <openssl/crypto.h>
+
+// Global flag to track OpenSSL initialization
+static std::atomic<bool> g_openssl_initialized{false};
+static std::mutex g_openssl_init_mutex;
+
+static void InitializeOpenSSL() {
+  std::lock_guard<std::mutex> lock(g_openssl_init_mutex);
+  if (!g_openssl_initialized.exchange(true)) {
+    OPENSSL_init_ssl(OPENSSL_INIT_LOAD_SSL_STRINGS | OPENSSL_INIT_LOAD_CRYPTO_STRINGS, nullptr);
+    std::cerr << "✓ OpenSSL initialized for HTTPS support" << std::endl;
+  }
+}
+#endif
 #endif
 
 namespace yaze {
 namespace cli {
 
 GeminiAIService::GeminiAIService(const GeminiConfig& config) 
-    : config_(config), function_calling_enabled_(true) {
+    : config_(config), function_calling_enabled_(false) {  // Disable function calling - use JSON output instead
+  std::cerr << "🔧 GeminiAIService constructor: start" << std::endl;
+  
+#ifdef CPPHTTPLIB_OPENSSL_SUPPORT
+  // Initialize OpenSSL for HTTPS support
+  InitializeOpenSSL();
+#endif
+  
   // Load command documentation into prompt builder
   if (auto status = prompt_builder_.LoadResourceCatalogue(""); !status.ok()) {
     std::cerr << "⚠️  Failed to load agent prompt catalogue: "
               << status.message() << std::endl;
   }
   
+  std::cerr << "🔧 GeminiAIService: loaded catalogue" << std::endl;
+  
   if (config_.system_instruction.empty()) {
+    std::cerr << "🔧 GeminiAIService: building system instruction" << std::endl;
     // Use enhanced prompting by default
     if (config_.use_enhanced_prompting) {
       config_.system_instruction = prompt_builder_.BuildSystemInstructionWithExamples();
     } else {
       config_.system_instruction = BuildSystemInstruction();
     }
+    std::cerr << "🔧 GeminiAIService: system instruction built" << std::endl;
   }
+  
+  std::cerr << "🔧 GeminiAIService constructor: complete" << std::endl;
 }
 
 void GeminiAIService::EnableFunctionCalling(bool enable) {
@@ -119,23 +153,33 @@ absl::Status GeminiAIService::CheckAvailability() {
   return absl::UnimplementedError(
       "Gemini AI service requires JSON support. Build with -DYAZE_WITH_JSON=ON");
 #else
-  if (config_.api_key.empty()) {
-    return absl::FailedPreconditionError(
-        "❌ Gemini API key not configured\n"
-        "   Set GEMINI_API_KEY environment variable\n"
-        "   Get your API key at: https://makersuite.google.com/app/apikey");
-  }
-  
-  // Test API connectivity with a simple request
-  httplib::Client cli("https://generativelanguage.googleapis.com");
-  cli.set_connection_timeout(5, 0);  // 5 seconds timeout
-  
-  std::string test_endpoint = "/v1beta/models/" + config_.model;
-  httplib::Headers headers = {
-      {"x-goog-api-key", config_.api_key},
-  };
-  
-  auto res = cli.Get(test_endpoint.c_str(), headers);
+  try {
+    std::cerr << "🔧 CheckAvailability: start" << std::endl;
+    
+    if (config_.api_key.empty()) {
+      return absl::FailedPreconditionError(
+          "❌ Gemini API key not configured\n"
+          "   Set GEMINI_API_KEY environment variable\n"
+          "   Get your API key at: https://makersuite.google.com/app/apikey");
+    }
+    
+    std::cerr << "🔧 CheckAvailability: creating HTTPS client" << std::endl;
+    // Test API connectivity with a simple request
+    httplib::Client cli("https://generativelanguage.googleapis.com");
+    std::cerr << "🔧 CheckAvailability: client created" << std::endl;
+    
+    cli.set_connection_timeout(5, 0);  // 5 seconds timeout
+    
+    std::cerr << "🔧 CheckAvailability: building endpoint" << std::endl;
+    std::string test_endpoint = "/v1beta/models/" + config_.model;
+    httplib::Headers headers = {
+        {"x-goog-api-key", config_.api_key},
+    };
+    
+    std::cerr << "🔧 CheckAvailability: making request to " << test_endpoint << std::endl;
+    auto res = cli.Get(test_endpoint.c_str(), headers);
+    
+    std::cerr << "🔧 CheckAvailability: got response" << std::endl;
   
   if (!res) {
     return absl::UnavailableError(
@@ -155,12 +199,19 @@ absl::Status GeminiAIService::CheckAvailability() {
                      "   Try: gemini-2.5-flash or gemini-1.5-pro"));
   }
   
-  if (res->status != 200) {
-    return absl::InternalError(
-        absl::StrCat("❌ Gemini API error: ", res->status, "\n   ", res->body));
+    if (res->status != 200) {
+      return absl::InternalError(
+          absl::StrCat("❌ Gemini API error: ", res->status, "\n   ", res->body));
+    }
+    
+    return absl::OkStatus();
+  } catch (const std::exception& e) {
+    std::cerr << "🔧 CheckAvailability: EXCEPTION: " << e.what() << std::endl;
+    return absl::InternalError(absl::StrCat("Exception during availability check: ", e.what()));
+  } catch (...) {
+    std::cerr << "🔧 CheckAvailability: UNKNOWN EXCEPTION" << std::endl;
+    return absl::InternalError("Unknown exception during availability check");
   }
-  
-  return absl::OkStatus();
 #endif
 }
 
@@ -182,63 +233,110 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
   
   std::string prompt = prompt_builder_.BuildPromptFromHistory(history);
 
-  // Validate configuration
-  if (auto status = CheckAvailability(); !status.ok()) {
-    return status;
+  // Skip availability check - causes segfault with current SSL setup
+  // TODO: Fix SSL/TLS initialization issue
+  // if (auto status = CheckAvailability(); !status.ok()) {
+  //   return status;
+  // }
+  
+  if (config_.api_key.empty()) {
+    return absl::FailedPreconditionError("Gemini API key not configured");
   }
 
-  httplib::Client cli("https://generativelanguage.googleapis.com");
-  cli.set_connection_timeout(30, 0);  // 30 seconds for generation
-  
-  // Build request with proper Gemini API v1beta format
-  nlohmann::json request_body = {
-      {"system_instruction", {
-          {"parts", {
-              {"text", config_.system_instruction}
-          }}
-      }},
-      {"contents", {{
-          {"parts", {{
-              {"text", prompt}
-          }}}
-      }}},
-      {"generationConfig", {
-          {"temperature", config_.temperature},
-          {"maxOutputTokens", config_.max_output_tokens},
-          {"responseMimeType", "application/json"}
-      }}
-  };
-  
-  // Add function calling tools if enabled
-  if (function_calling_enabled_) {
-    try {
-      nlohmann::json tools = nlohmann::json::parse(BuildFunctionCallSchemas());
-      request_body["tools"] = {{
-        {"function_declarations", tools}
-      }};
-    } catch (const nlohmann::json::exception& e) {
-      std::cerr << "⚠️  Failed to parse function schemas: " << e.what() << std::endl;
+  try {
+    std::cerr << "🔧 GenerateResponse: using curl for HTTPS request" << std::endl;
+    
+    // Build request with proper Gemini API v1beta format
+    nlohmann::json request_body = {
+        {"system_instruction", {
+            {"parts", {
+                {"text", config_.system_instruction}
+            }}
+        }},
+        {"contents", {{
+            {"parts", {{
+                {"text", prompt}
+            }}}
+        }}},
+        {"generationConfig", {
+            {"temperature", config_.temperature},
+            {"maxOutputTokens", config_.max_output_tokens}
+        }}
+    };
+    
+    // Only add responseMimeType if NOT using function calling
+    // (Gemini doesn't support both at the same time)
+    if (!function_calling_enabled_) {
+      request_body["generationConfig"]["responseMimeType"] = "application/json";
     }
+    
+    // Add function calling tools if enabled
+    if (function_calling_enabled_) {
+      try {
+        nlohmann::json tools = nlohmann::json::parse(BuildFunctionCallSchemas());
+        request_body["tools"] = {{
+          {"function_declarations", tools}
+        }};
+      } catch (const nlohmann::json::exception& e) {
+        std::cerr << "⚠️  Failed to parse function schemas: " << e.what() << std::endl;
+      }
+    }
+
+    // Write request body to temp file
+    std::string temp_file = "/tmp/gemini_request.json";
+    std::ofstream out(temp_file);
+    out << request_body.dump();
+    out.close();
+
+    // Use curl to make the request (avoiding httplib SSL issues)
+    std::string endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + 
+                          config_.model + ":generateContent";
+    std::string curl_cmd = "curl -s -X POST '" + endpoint + "' "
+                          "-H 'Content-Type: application/json' "
+                          "-H 'x-goog-api-key: " + config_.api_key + "' "
+                          "-d @" + temp_file + " 2>&1";
+    
+    std::cerr << "🔧 Executing curl request..." << std::endl;
+    
+    FILE* pipe = popen(curl_cmd.c_str(), "r");
+    if (!pipe) {
+      return absl::InternalError("Failed to execute curl command");
+    }
+    
+    std::string response_body;
+    char buffer[4096];
+    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+      response_body += buffer;
+    }
+    
+    int status = pclose(pipe);
+    std::remove(temp_file.c_str());
+    
+    if (status != 0) {
+      return absl::InternalError(absl::StrCat("Curl failed with status ", status));
+    }
+    
+    if (response_body.empty()) {
+      return absl::InternalError("Empty response from Gemini API");
+    }
+    
+    // Debug: print response
+    const char* verbose_env = std::getenv("Z3ED_VERBOSE");
+    if (verbose_env && std::string(verbose_env) == "1") {
+      std::cout << "\n" << "\033[35m" << "🔍 Raw Gemini API Response:" << "\033[0m" << "\n"
+                << "\033[2m" << response_body.substr(0, 500) << "\033[0m" << "\n\n";
+    }
+    
+    std::cerr << "🔧 Got response, parsing..." << std::endl;
+    return ParseGeminiResponse(response_body);
+  
+  } catch (const std::exception& e) {
+    std::cerr << "🔧 GenerateResponse: EXCEPTION: " << e.what() << std::endl;
+    return absl::InternalError(absl::StrCat("Exception during generation: ", e.what()));
+  } catch (...) {
+    std::cerr << "🔧 GenerateResponse: UNKNOWN EXCEPTION" << std::endl;
+    return absl::InternalError("Unknown exception during generation");
   }
-
-  httplib::Headers headers = {
-      {"Content-Type", "application/json"},
-      {"x-goog-api-key", config_.api_key},
-  };
-
-  std::string endpoint = "/v1beta/models/" + config_.model + ":generateContent";
-  auto res = cli.Post(endpoint.c_str(), headers, request_body.dump(), "application/json");
-
-  if (!res) {
-    return absl::InternalError("❌ Failed to connect to Gemini API");
-  }
-
-  if (res->status != 200) {
-    return absl::InternalError(
-        absl::StrCat("❌ Gemini API error: ", res->status, "\n   ", res->body));
-  }
-
-  return ParseGeminiResponse(res->body);
 #endif
 }
 
@@ -268,6 +366,13 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
         }
         
         std::string text_content = part["text"].get<std::string>();
+        
+        // Debug: Print raw LLM output when verbose mode is enabled
+        const char* verbose_env = std::getenv("Z3ED_VERBOSE");
+        if (verbose_env && std::string(verbose_env) == "1") {
+          std::cout << "\n" << "\033[35m" << "🔍 Raw LLM Response:" << "\033[0m" << "\n"
+                    << "\033[2m" << text_content << "\033[0m" << "\n\n";
+        }
         
         // Strip markdown code blocks if present (```json ... ```)
         text_content = std::string(absl::StripAsciiWhitespace(text_content));
