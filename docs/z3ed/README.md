@@ -209,25 +209,64 @@ The help system is organized by category for easy navigation.
 
 ### Collaborative Sessions
 
-Z3ED supports lightweight collaborative sessions where multiple editors on the same machine can share a chat conversation.
+Z3ED supports both local (filesystem-based) and network (WebSocket-based) collaborative sessions for sharing chat conversations and working together on ROM hacks.
+
+#### Local Collaboration Mode
 
 **How to Use:**
 1. Open YAZE and go to **Debug → Agent Chat**
-2. In the Agent Chat widget, expand the **"Collaboration (Preview)"** panel
+2. In the Agent Chat widget, select **"Local"** mode
 3. **Host a Session:**
    - Enter a session name (e.g., "Evening ROM Hack")
-   - Click "Host Session"
-   - Share the generated 6-character code (e.g., `ABC123`) with collaborators
+   - Click "Host"
+   - Share the generated 6-character code (e.g., `ABC123`) with collaborators on the same machine
 4. **Join a Session:**
    - Enter the session code provided by the host
-   - Click "Join Session"
+   - Click "Join"
    - Your chat will now sync with others in the session
 
 **Features:**
 - Shared chat history stored in `~/.yaze/agent/sessions/<code>_history.json`
-- Automatic synchronization when sending/receiving messages
+- Automatic synchronization when sending/receiving messages (2-second polling)
 - Participant list shows all connected users
-- When you leave a session, you return to your local chat history
+- Perfect for multiple YAZE instances on the same machine
+
+#### Network Collaboration Mode (NEW!)
+
+**Requirements:**
+- Node.js installed on the server machine
+- `yaze-collab-server` repository cloned alongside `yaze`
+- Network connectivity between collaborators
+
+**Setup:**
+1. **Start the Collaboration Server:**
+   ```bash
+   # From z3ed CLI:
+   z3ed collab start [--port=8765]
+   
+   # Or manually:
+   cd yaze-collab-server
+   npm install
+   node server.js
+   ```
+
+2. **Connect from YAZE:**
+   - Open YAZE and go to **Debug → Agent Chat**
+   - Select **"Network"** mode
+   - Enter server URL (e.g., `ws://localhost:8765`)
+   - Click "Connect to Server"
+
+3. **Collaborate:**
+   - Host or join sessions just like local mode
+   - Collaborate with anyone who can reach your server
+   - Real-time message broadcasting via WebSockets
+
+**Features:**
+- Real-time collaboration over the internet
+- Session management with unique codes
+- Participant tracking and notifications
+- Persistent message history
+- Perfect for remote pair programming
 
 ### Multimodal Vision (Gemini)
 

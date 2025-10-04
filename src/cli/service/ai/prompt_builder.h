@@ -4,7 +4,11 @@
 // PromptBuilder requires JSON and YAML support for catalogue loading
 // If you see linker errors, enable Z3ED_AI or YAZE_WITH_JSON in CMake
 #if !defined(YAZE_WITH_JSON)
-#warning "PromptBuilder requires JSON support. Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON"
+#ifdef _MSC_VER
+  #pragma message("PromptBuilder requires JSON support. Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON")
+#else
+  #warning "PromptBuilder requires JSON support. Build with -DZ3ED_AI=ON or -DYAZE_WITH_JSON=ON"
+#endif
 #endif
 
 #include <map>
