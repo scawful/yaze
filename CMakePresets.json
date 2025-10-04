@@ -18,7 +18,7 @@
         "YAZE_BUILD_APP": "ON",
         "YAZE_BUILD_LIB": "ON",
         "YAZE_BUILD_EMU": "OFF",
-        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_BUILD_Z3ED": "OFF",
         "YAZE_USE_MODULAR_BUILD": "ON"
       }
     },
@@ -57,11 +57,17 @@
     {
       "name": "macos-dev",
       "displayName": "macOS debug (ARM64)",
-      "description": "macOS ARM64 development build with ROM testing",
+      "description": "macOS ARM64 development build with ROM testing (no z3ed AI)",
       "inherits": "macos-debug",
       "cacheVariables": {
+        "YAZE_BUILD_APP": "ON",
+        "YAZE_BUILD_EMU": "OFF",
+        "YAZE_BUILD_Z3ED": "OFF",
+        "YAZE_MINIMAL_BUILD": "ON",
+        "YAZE_BUILD_TESTS": "ON",
         "YAZE_ENABLE_ROM_TESTS": "ON",
-        "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc"
+        "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
@@ -73,6 +79,7 @@
       "cacheVariables": {
         "YAZE_ENABLE_ROM_TESTS": "ON",
         "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc",
+        "Z3ED_AI": "ON",
         "YAZE_WITH_JSON": "ON",
         "YAZE_WITH_GRPC": "ON",
         "YAZE_BUILD_Z3ED": "ON",

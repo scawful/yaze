@@ -4,6 +4,14 @@
 #include <iostream>
 #include <iomanip>
 
+#ifdef _WIN32
+#include <io.h>
+#define isatty _isatty
+#define fileno _fileno
+#else
+#include <unistd.h>
+#endif
+
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
 
@@ -90,15 +98,30 @@ absl::Status SimpleChatSession::SendAndWaitForResponse(
 }
 
 absl::Status SimpleChatSession::RunInteractive() {
-  std::cout << "Z3ED Agent Chat (Simple Mode)\n";
-  std::cout << "Type 'quit' or 'exit' to end the session.\n";
-  std::cout << "Type 'reset' to clear conversation history.\n";
-  std::cout << "----------------------------------------\n\n";
+  // Check if stdin is a TTY (interactive) or a pipe/file
+  bool is_interactive = isatty(fileno(stdin));
+  
+  if (is_interactive) {
+    std::cout << "Z3ED Agent Chat (Simple Mode)\n";
+    std::cout << "Type 'quit' or 'exit' to end the session.\n";
+    std::cout << "Type 'reset' to clear conversation history.\n";
+    std::cout << "----------------------------------------\n\n";
+  }
   
   std::string input;
   while (true) {
-    std::cout << "You: ";
-    std::getline(std::cin, input);
+    if (is_interactive) {
+      std::cout << "You: ";
+      std::cout.flush();  // Ensure prompt is displayed before reading
+    }
+    
+    if (!std::getline(std::cin, input)) {
+      // EOF reached (piped input exhausted or Ctrl+D)
+      if (is_interactive) {
+        std::cout << "\n";
+      }
+      break;
+    }
     
     if (input.empty()) continue;
     if (input == "quit" || input == "exit") break;

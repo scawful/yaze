@@ -133,7 +133,7 @@ if(YAZE_WITH_JSON)
 
     message(STATUS "✓ SSL/HTTPS support enabled for yaze_agent (Gemini + HTTPS)")
   else()
-    message(WARNING "OpenSSL not found - Gemini HTTPS features disabled")
+    message(WARNING "OpenSSL not found - Gemini HTTPS features disabled (Ollama still works)")
     message(STATUS "  Install OpenSSL to enable Gemini: brew install openssl (macOS) or apt-get install libssl-dev (Linux)")
   endif()
 endif()
