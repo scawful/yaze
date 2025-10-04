@@ -1,16 +1,28 @@
-#ifndef YAZE_SRC_CLI_SERVICE_AI_SERVICE_FACTORY_H_
-#define YAZE_SRC_CLI_SERVICE_AI_SERVICE_FACTORY_H_
+#ifndef YAZE_CLI_SERVICE_AI_SERVICE_FACTORY_H_
+#define YAZE_CLI_SERVICE_AI_SERVICE_FACTORY_H_
 
 #include <memory>
+#include <string>
+
 #include "cli/service/ai/ai_service.h"
 
 namespace yaze {
 namespace cli {
 
-// Helper: Select AI service based on environment variables
+struct AIServiceConfig {
+  std::string provider = "mock";  // "mock", "ollama", or "gemini"
+  std::string model;              // Provider-specific model name
+  std::string gemini_api_key;     // For Gemini
+  std::string ollama_host = "http://localhost:11434";  // For Ollama
+};
+
+// Create AI service using command-line flags
 std::unique_ptr<AIService> CreateAIService();
+
+// Create AI service with explicit configuration
+std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config);
 
 }  // namespace cli
 }  // namespace yaze
 
-#endif  // YAZE_SRC_CLI_SERVICE_AI_SERVICE_FACTORY_H_
+#endif  // YAZE_CLI_SERVICE_AI_SERVICE_FACTORY_H_

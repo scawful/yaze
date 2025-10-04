@@ -3,6 +3,9 @@
 #include <cstring>
 #include <iostream>
 
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
+#include "absl/strings/ascii.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
 
@@ -10,31 +13,47 @@
 #include "cli/service/ai/gemini_ai_service.h"
 #endif
 
+ABSL_DECLARE_FLAG(std::string, ai_provider);
+ABSL_DECLARE_FLAG(std::string, ai_model);
+ABSL_DECLARE_FLAG(std::string, gemini_api_key);
+ABSL_DECLARE_FLAG(std::string, ollama_host);
+
 namespace yaze {
 namespace cli {
 
 std::unique_ptr<AIService> CreateAIService() {
-  // Priority: Ollama (local) > Gemini (remote) > Mock (testing)
-  const char* provider_env = std::getenv("YAZE_AI_PROVIDER");
-  const char* ollama_model = std::getenv("OLLAMA_MODEL");
-  const std::string provider = provider_env ? provider_env : "";
-  const bool gemini_requested = provider == "gemini";
+  // Read configuration from flags
+  AIServiceConfig config;
+  config.provider = absl::AsciiStrToLower(absl::GetFlag(FLAGS_ai_provider));
+  config.model = absl::GetFlag(FLAGS_ai_model);
+  config.gemini_api_key = absl::GetFlag(FLAGS_gemini_api_key);
+  config.ollama_host = absl::GetFlag(FLAGS_ollama_host);
+  
+  // Fall back to environment variables if flags not set
+  if (config.gemini_api_key.empty()) {
+    const char* env_key = std::getenv("GEMINI_API_KEY");
+    if (env_key) config.gemini_api_key = env_key;
+  }
+  if (config.model.empty()) {
+    const char* env_model = std::getenv("OLLAMA_MODEL");
+    if (env_model) config.model = env_model;
+  }
+  
+  return CreateAIService(config);
+}
 
-#ifdef YAZE_WITH_JSON
-  const char* gemini_key = std::getenv("GEMINI_API_KEY");
-  const char* gemini_model = std::getenv("GEMINI_MODEL");
-#endif
-
-  // Explicit provider selection
-  if (provider == "ollama") {
-    OllamaConfig config;
-
-    // Allow model override via env
-    if (ollama_model && std::strlen(ollama_model) > 0) {
-      config.model = ollama_model;
+std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
+  std::cout << "🤖 AI Provider: " << config.provider << "\n";
+  
+  // Ollama provider
+  if (config.provider == "ollama") {
+    OllamaConfig ollama_config;
+    ollama_config.base_url = config.ollama_host;
+    if (!config.model.empty()) {
+      ollama_config.model = config.model;
     }
 
-    auto service = std::make_unique<OllamaAIService>(config);
+    auto service = std::make_unique<OllamaAIService>(ollama_config);
 
     // Health check
     if (auto status = service->CheckAvailability(); !status.ok()) {
@@ -43,21 +62,26 @@ std::unique_ptr<AIService> CreateAIService() {
       return std::make_unique<MockAIService>();
     }
 
-    std::cout << "🤖 Using Ollama AI with model: " << config.model << std::endl;
+    std::cout << "   Using model: " << ollama_config.model << std::endl;
     return service;
   }
 
-  // Gemini if API key provided
+  // Gemini provider
 #ifdef YAZE_WITH_JSON
-  if (gemini_key && std::strlen(gemini_key) > 0) {
-    GeminiConfig config(gemini_key);
-
-    // Allow model override via env
-    if (gemini_model && std::strlen(gemini_model) > 0) {
-      config.model = gemini_model;
+  if (config.provider == "gemini") {
+    if (config.gemini_api_key.empty()) {
+      std::cerr << "⚠️  Gemini API key not provided" << std::endl;
+      std::cerr << "   Use --gemini_api_key=<key> or set GEMINI_API_KEY environment variable" << std::endl;
+      std::cerr << "   Falling back to MockAIService" << std::endl;
+      return std::make_unique<MockAIService>();
+    }
+    
+    GeminiConfig gemini_config(config.gemini_api_key);
+    if (!config.model.empty()) {
+      gemini_config.model = config.model;
     }
 
-    auto service = std::make_unique<GeminiAIService>(config);
+    auto service = std::make_unique<GeminiAIService>(gemini_config);
 
     // Health check
     if (auto status = service->CheckAvailability(); !status.ok()) {
@@ -66,20 +90,21 @@ std::unique_ptr<AIService> CreateAIService() {
       return std::make_unique<MockAIService>();
     }
 
-    std::cout << "🤖 Using Gemini AI with model: " << config.model << std::endl;
+    std::cout << "   Using model: " << gemini_config.model << std::endl;
     return service;
   }
 #else
-  if (gemini_requested || std::getenv("GEMINI_API_KEY")) {
+  if (config.provider == "gemini") {
     std::cerr << "⚠️  Gemini support not available: rebuild with YAZE_WITH_JSON=ON" << std::endl;
+    std::cerr << "   Falling back to MockAIService" << std::endl;
   }
 #endif
 
-  // Default: Mock service for testing
-  std::cout << "🤖 Using MockAIService (no LLM configured)" << std::endl;
-  std::cout
-      << "   Tip: Set YAZE_AI_PROVIDER=ollama or GEMINI_API_KEY to enable LLM"
-      << std::endl;
+  // Default: Mock service
+  if (config.provider != "mock") {
+    std::cout << "   No LLM configured, using MockAIService" << std::endl;
+  }
+  std::cout << "   Tip: Use --ai_provider=ollama or --ai_provider=gemini" << std::endl;
   return std::make_unique<MockAIService>();
 }
 
