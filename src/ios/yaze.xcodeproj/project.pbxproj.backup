@@ -801,30 +801,6 @@
 		E3BE45912E90A7EB0075AC22 /* map_properties.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45892E90A7EA0075AC22 /* map_properties.cc */; };
 		E3BE45922E90A7EB0075AC22 /* scratch_space.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE458C2E90A7EA0075AC22 /* scratch_space.cc */; };
 		E3BE45932E90A7EB0075AC22 /* overworld_editor_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE458B2E90A7EA0075AC22 /* overworld_editor_manager.cc */; };
-		E3BE45A62E90A9D70075AC22 /* dungeon_canvas_viewer.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45972E90A9D70075AC22 /* dungeon_canvas_viewer.cc */; };
-		E3BE45A72E90A9D70075AC22 /* dungeon_object_selector.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE459B2E90A9D70075AC22 /* dungeon_object_selector.cc */; };
-		E3BE45A82E90A9D70075AC22 /* dungeon_renderer.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE459D2E90A9D70075AC22 /* dungeon_renderer.cc */; };
-		E3BE45A92E90A9D70075AC22 /* dungeon_room_loader.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE459F2E90A9D70075AC22 /* dungeon_room_loader.cc */; };
-		E3BE45AA2E90A9D70075AC22 /* dungeon_object_interaction.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45992E90A9D70075AC22 /* dungeon_object_interaction.cc */; };
-		E3BE45AB2E90A9D70075AC22 /* dungeon_toolset.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45A32E90A9D70075AC22 /* dungeon_toolset.cc */; };
-		E3BE45AC2E90A9D70075AC22 /* dungeon_room_selector.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45A12E90A9D70075AC22 /* dungeon_room_selector.cc */; };
-		E3BE45AD2E90A9D70075AC22 /* dungeon_usage_tracker.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45A52E90A9D70075AC22 /* dungeon_usage_tracker.cc */; };
-		E3BE45AE2E90A9D70075AC22 /* dungeon_canvas_viewer.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45972E90A9D70075AC22 /* dungeon_canvas_viewer.cc */; };
-		E3BE45AF2E90A9D70075AC22 /* dungeon_object_selector.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE459B2E90A9D70075AC22 /* dungeon_object_selector.cc */; };
-		E3BE45B02E90A9D70075AC22 /* dungeon_renderer.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE459D2E90A9D70075AC22 /* dungeon_renderer.cc */; };
-		E3BE45B12E90A9D70075AC22 /* dungeon_room_loader.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE459F2E90A9D70075AC22 /* dungeon_room_loader.cc */; };
-		E3BE45B22E90A9D70075AC22 /* dungeon_object_interaction.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45992E90A9D70075AC22 /* dungeon_object_interaction.cc */; };
-		E3BE45B32E90A9D70075AC22 /* dungeon_toolset.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45A32E90A9D70075AC22 /* dungeon_toolset.cc */; };
-		E3BE45B42E90A9D70075AC22 /* dungeon_room_selector.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45A12E90A9D70075AC22 /* dungeon_room_selector.cc */; };
-		E3BE45B52E90A9D70075AC22 /* dungeon_usage_tracker.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45A52E90A9D70075AC22 /* dungeon_usage_tracker.cc */; };
-		E3BE45C02E90A9E80075AC22 /* shortcut_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45BE2E90A9E80075AC22 /* shortcut_manager.cc */; };
-		E3BE45C12E90A9E80075AC22 /* proposal_drawer.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45BC2E90A9E80075AC22 /* proposal_drawer.cc */; };
-		E3BE45C22E90A9E80075AC22 /* agent_chat_widget.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45B72E90A9E80075AC22 /* agent_chat_widget.cc */; };
-		E3BE45C32E90A9E80075AC22 /* popup_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45BA2E90A9E80075AC22 /* popup_manager.cc */; };
-		E3BE45C52E90A9FE0075AC22 /* dungeon_map.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45C42E90A9FE0075AC22 /* dungeon_map.cc */; };
-		E3BE45C62E90A9FF0075AC22 /* dungeon_map.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45C42E90A9FE0075AC22 /* dungeon_map.cc */; };
-		E3BE45C92E90AA0C0075AC22 /* message_preview.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45C82E90AA0C0075AC22 /* message_preview.cc */; };
-		E3BE45CA2E90AA0C0075AC22 /* message_preview.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45C82E90AA0C0075AC22 /* message_preview.cc */; };
 		E3BE958D2C68379B008DD1E7 /* editor_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958B2C68379B008DD1E7 /* editor_manager.cc */; };
 		E3BE95902C6837C8008DD1E7 /* overworld_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE958F2C6837C8008DD1E7 /* overworld_editor.cc */; };
 /* End PBXBuildFile section */
@@ -2559,35 +2535,6 @@
 		E3BE458D2E90A7EA0075AC22 /* ui_constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ui_constants.h; sourceTree = "<group>"; };
 		E3BE45942E90A8410075AC22 /* snes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = snes.h; sourceTree = "<group>"; };
 		E3BE45952E90A8410075AC22 /* transaction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = transaction.h; sourceTree = "<group>"; };
-		E3BE45962E90A9D70075AC22 /* dungeon_canvas_viewer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dungeon_canvas_viewer.h; sourceTree = "<group>"; };
-		E3BE45972E90A9D70075AC22 /* dungeon_canvas_viewer.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dungeon_canvas_viewer.cc; sourceTree = "<group>"; };
-		E3BE45982E90A9D70075AC22 /* dungeon_object_interaction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dungeon_object_interaction.h; sourceTree = "<group>"; };
-		E3BE45992E90A9D70075AC22 /* dungeon_object_interaction.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dungeon_object_interaction.cc; sourceTree = "<group>"; };
-		E3BE459A2E90A9D70075AC22 /* dungeon_object_selector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dungeon_object_selector.h; sourceTree = "<group>"; };
-		E3BE459B2E90A9D70075AC22 /* dungeon_object_selector.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dungeon_object_selector.cc; sourceTree = "<group>"; };
-		E3BE459C2E90A9D70075AC22 /* dungeon_renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dungeon_renderer.h; sourceTree = "<group>"; };
-		E3BE459D2E90A9D70075AC22 /* dungeon_renderer.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dungeon_renderer.cc; sourceTree = "<group>"; };
-		E3BE459E2E90A9D70075AC22 /* dungeon_room_loader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dungeon_room_loader.h; sourceTree = "<group>"; };
-		E3BE459F2E90A9D70075AC22 /* dungeon_room_loader.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dungeon_room_loader.cc; sourceTree = "<group>"; };
-		E3BE45A02E90A9D70075AC22 /* dungeon_room_selector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dungeon_room_selector.h; sourceTree = "<group>"; };
-		E3BE45A12E90A9D70075AC22 /* dungeon_room_selector.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dungeon_room_selector.cc; sourceTree = "<group>"; };
-		E3BE45A22E90A9D70075AC22 /* dungeon_toolset.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dungeon_toolset.h; sourceTree = "<group>"; };
-		E3BE45A32E90A9D70075AC22 /* dungeon_toolset.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dungeon_toolset.cc; sourceTree = "<group>"; };
-		E3BE45A42E90A9D70075AC22 /* dungeon_usage_tracker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dungeon_usage_tracker.h; sourceTree = "<group>"; };
-		E3BE45A52E90A9D70075AC22 /* dungeon_usage_tracker.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dungeon_usage_tracker.cc; sourceTree = "<group>"; };
-		E3BE45B62E90A9E80075AC22 /* agent_chat_widget.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = agent_chat_widget.h; sourceTree = "<group>"; };
-		E3BE45B72E90A9E80075AC22 /* agent_chat_widget.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = agent_chat_widget.cc; sourceTree = "<group>"; };
-		E3BE45B82E90A9E80075AC22 /* history_manager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = history_manager.h; sourceTree = "<group>"; };
-		E3BE45B92E90A9E80075AC22 /* popup_manager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = popup_manager.h; sourceTree = "<group>"; };
-		E3BE45BA2E90A9E80075AC22 /* popup_manager.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = popup_manager.cc; sourceTree = "<group>"; };
-		E3BE45BB2E90A9E80075AC22 /* proposal_drawer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = proposal_drawer.h; sourceTree = "<group>"; };
-		E3BE45BC2E90A9E80075AC22 /* proposal_drawer.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = proposal_drawer.cc; sourceTree = "<group>"; };
-		E3BE45BD2E90A9E80075AC22 /* shortcut_manager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = shortcut_manager.h; sourceTree = "<group>"; };
-		E3BE45BE2E90A9E80075AC22 /* shortcut_manager.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = shortcut_manager.cc; sourceTree = "<group>"; };
-		E3BE45BF2E90A9E80075AC22 /* toast_manager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = toast_manager.h; sourceTree = "<group>"; };
-		E3BE45C42E90A9FE0075AC22 /* dungeon_map.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = dungeon_map.cc; sourceTree = "<group>"; };
-		E3BE45C72E90AA0C0075AC22 /* message_preview.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = message_preview.h; sourceTree = "<group>"; };
-		E3BE45C82E90AA0C0075AC22 /* message_preview.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = message_preview.cc; sourceTree = "<group>"; };
 		E3BE958B2C68379B008DD1E7 /* editor_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = editor_manager.cc; sourceTree = "<group>"; };
 		E3BE958C2C68379B008DD1E7 /* editor_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = editor_manager.h; sourceTree = "<group>"; };
 		E3BE958E2C6837C8008DD1E7 /* overworld_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = overworld_editor.h; sourceTree = "<group>"; };
@@ -2765,22 +2712,6 @@
 		E318D8622C59C08300091322 /* dungeon */ = {
 			isa = PBXGroup;
 			children = (
-				E3BE45962E90A9D70075AC22 /* dungeon_canvas_viewer.h */,
-				E3BE45972E90A9D70075AC22 /* dungeon_canvas_viewer.cc */,
-				E3BE45982E90A9D70075AC22 /* dungeon_object_interaction.h */,
-				E3BE45992E90A9D70075AC22 /* dungeon_object_interaction.cc */,
-				E3BE459A2E90A9D70075AC22 /* dungeon_object_selector.h */,
-				E3BE459B2E90A9D70075AC22 /* dungeon_object_selector.cc */,
-				E3BE459C2E90A9D70075AC22 /* dungeon_renderer.h */,
-				E3BE459D2E90A9D70075AC22 /* dungeon_renderer.cc */,
-				E3BE459E2E90A9D70075AC22 /* dungeon_room_loader.h */,
-				E3BE459F2E90A9D70075AC22 /* dungeon_room_loader.cc */,
-				E3BE45A02E90A9D70075AC22 /* dungeon_room_selector.h */,
-				E3BE45A12E90A9D70075AC22 /* dungeon_room_selector.cc */,
-				E3BE45A22E90A9D70075AC22 /* dungeon_toolset.h */,
-				E3BE45A32E90A9D70075AC22 /* dungeon_toolset.cc */,
-				E3BE45A42E90A9D70075AC22 /* dungeon_usage_tracker.h */,
-				E3BE45A52E90A9D70075AC22 /* dungeon_usage_tracker.cc */,
 				E318D8602C59C08300091322 /* dungeon_editor.cc */,
 				E318D8612C59C08300091322 /* dungeon_editor.h */,
 			);
@@ -2805,8 +2736,6 @@
 		E318D8722C59C08300091322 /* message */ = {
 			isa = PBXGroup;
 			children = (
-				E3BE45C72E90AA0C0075AC22 /* message_preview.h */,
-				E3BE45C82E90AA0C0075AC22 /* message_preview.cc */,
 				E384E2D52C76C6C800147029 /* message_data.cc */,
 				E318D86E2C59C08300091322 /* message_data.h */,
 				E318D8702C59C08300091322 /* message_editor.cc */,
@@ -3069,7 +2998,6 @@
 		E318D8ED2C59C08300091322 /* screen */ = {
 			isa = PBXGroup;
 			children = (
-				E3BE45C42E90A9FE0075AC22 /* dungeon_map.cc */,
 				E318D8E82C59C08300091322 /* dungeon_map.h */,
 				E318D8E92C59C08300091322 /* inventory.cc */,
 				E318D8EA2C59C08300091322 /* inventory.h */,
@@ -5256,16 +5184,6 @@
 		E38A97F62C6C4CE3005FB662 /* system */ = {
 			isa = PBXGroup;
 			children = (
-				E3BE45B62E90A9E80075AC22 /* agent_chat_widget.h */,
-				E3BE45B72E90A9E80075AC22 /* agent_chat_widget.cc */,
-				E3BE45B82E90A9E80075AC22 /* history_manager.h */,
-				E3BE45B92E90A9E80075AC22 /* popup_manager.h */,
-				E3BE45BA2E90A9E80075AC22 /* popup_manager.cc */,
-				E3BE45BB2E90A9E80075AC22 /* proposal_drawer.h */,
-				E3BE45BC2E90A9E80075AC22 /* proposal_drawer.cc */,
-				E3BE45BD2E90A9E80075AC22 /* shortcut_manager.h */,
-				E3BE45BE2E90A9E80075AC22 /* shortcut_manager.cc */,
-				E3BE45BF2E90A9E80075AC22 /* toast_manager.h */,
 				E32BC4CA2CA4D7BC001F57A8 /* command_manager.cc */,
 				E38A97F12C6C4CE3005FB662 /* command_manager.h */,
 				E38A97F22C6C4CE3005FB662 /* extension_manager.cc */,
@@ -5573,7 +5491,6 @@
 				83BBEA0920EB54E700295997 /* imgui.cpp in Sources */,
 				E318D93D2C59C08300091322 /* addressing.cc in Sources */,
 				E318E0312C5A4FBF00091322 /* flag.cc in Sources */,
-				E3BE45C92E90AA0C0075AC22 /* message_preview.cc in Sources */,
 				E318DF6B2C5A4FBE00091322 /* throw_delegate.cc in Sources */,
 				E318D9652C59C08300091322 /* color.cc in Sources */,
 				E318E0F32C5A4FC000091322 /* seed_material.cc in Sources */,
@@ -5690,7 +5607,6 @@
 				E3BE451E2E90A64D0075AC22 /* atlas_renderer.cc in Sources */,
 				E318E7BF2C5A548C00091322 /* pngset.c in Sources */,
 				E318E2252C5A4FC200091322 /* civil_time_detail.cc in Sources */,
-				E3BE45C62E90A9FF0075AC22 /* dungeon_map.cc in Sources */,
 				E318D9552C59C08300091322 /* compression.cc in Sources */,
 				E318E2352C5A4FC300091322 /* time_zone_libc.cc in Sources */,
 				E318E1B72C5A4FC200091322 /* cord_analysis.cc in Sources */,
@@ -5732,10 +5648,6 @@
 				E3BE45932E90A7EB0075AC22 /* overworld_editor_manager.cc in Sources */,
 				E3BE45442E90A6690075AC22 /* canvas_utils.cc in Sources */,
 				E3BE45452E90A6690075AC22 /* theme_manager.cc in Sources */,
-				E3BE45C02E90A9E80075AC22 /* shortcut_manager.cc in Sources */,
-				E3BE45C12E90A9E80075AC22 /* proposal_drawer.cc in Sources */,
-				E3BE45C22E90A9E80075AC22 /* agent_chat_widget.cc in Sources */,
-				E3BE45C32E90A9E80075AC22 /* popup_manager.cc in Sources */,
 				E3BE45462E90A6690075AC22 /* canvas_utils_moved.cc in Sources */,
 				E3BE45472E90A6690075AC22 /* asset_browser.cc in Sources */,
 				E3BE45482E90A6690075AC22 /* background_renderer.cc in Sources */,
@@ -5803,14 +5715,6 @@
 				E318E1872C5A4FC100091322 /* cordz_sample_token.cc in Sources */,
 				E318DF4D2C5A4FBE00091322 /* spinlock_akaros.inc in Sources */,
 				E318E1B32C5A4FC200091322 /* charconv.cc in Sources */,
-				E3BE45A62E90A9D70075AC22 /* dungeon_canvas_viewer.cc in Sources */,
-				E3BE45A72E90A9D70075AC22 /* dungeon_object_selector.cc in Sources */,
-				E3BE45A82E90A9D70075AC22 /* dungeon_renderer.cc in Sources */,
-				E3BE45A92E90A9D70075AC22 /* dungeon_room_loader.cc in Sources */,
-				E3BE45AA2E90A9D70075AC22 /* dungeon_object_interaction.cc in Sources */,
-				E3BE45AB2E90A9D70075AC22 /* dungeon_toolset.cc in Sources */,
-				E3BE45AC2E90A9D70075AC22 /* dungeon_room_selector.cc in Sources */,
-				E3BE45AD2E90A9D70075AC22 /* dungeon_usage_tracker.cc in Sources */,
 				E318E1612C5A4FC100091322 /* cord_internal.cc in Sources */,
 				E318DF4B2C5A4FBE00091322 /* scoped_set_env.cc in Sources */,
 				E318E7232C5A4FC900091322 /* bad_any_cast.cc in Sources */,
@@ -5883,14 +5787,6 @@
 				E318E08C2C5A4FC000091322 /* memory_exception_safety_test.cc in Sources */,
 				E318E1CC2C5A4FC200091322 /* escaping.cc in Sources */,
 				E318E7222C5A4FC900091322 /* any_test.cc in Sources */,
-				E3BE45AE2E90A9D70075AC22 /* dungeon_canvas_viewer.cc in Sources */,
-				E3BE45AF2E90A9D70075AC22 /* dungeon_object_selector.cc in Sources */,
-				E3BE45B02E90A9D70075AC22 /* dungeon_renderer.cc in Sources */,
-				E3BE45B12E90A9D70075AC22 /* dungeon_room_loader.cc in Sources */,
-				E3BE45B22E90A9D70075AC22 /* dungeon_object_interaction.cc in Sources */,
-				E3BE45B32E90A9D70075AC22 /* dungeon_toolset.cc in Sources */,
-				E3BE45B42E90A9D70075AC22 /* dungeon_room_selector.cc in Sources */,
-				E3BE45B52E90A9D70075AC22 /* dungeon_usage_tracker.cc in Sources */,
 				E318E1FC2C5A4FC200091322 /* create_thread_identity.cc in Sources */,
 				8309BDBE253CCCB60045E2A1 /* imgui_impl_metal.mm in Sources */,
 				E318DF3A2C5A4FBE00091322 /* endian_test.cc in Sources */,
@@ -5937,7 +5833,6 @@
 				E318DF5E2C5A4FBE00091322 /* strerror_test.cc in Sources */,
 				E318DFF62C5A4FBF00091322 /* stack_consumption_test.cc in Sources */,
 				E318E23C2C5A4FC300091322 /* time_zone_posix.cc in Sources */,
-				E3BE45CA2E90AA0C0075AC22 /* message_preview.cc in Sources */,
 				E318DF4A2C5A4FBE00091322 /* scoped_set_env_test.cc in Sources */,
 				E318E1682C5A4FC100091322 /* cord_rep_btree_reader_test.cc in Sources */,
 				E318E0C02C5A4FC000091322 /* distribution_test_util_test.cc in Sources */,
@@ -6094,7 +5989,6 @@
 				E3BE45132E90A64D0075AC22 /* arena.cc in Sources */,
 				E3BE45142E90A64D0075AC22 /* performance_profiler.cc in Sources */,
 				E3BE45152E90A64D0075AC22 /* atlas_renderer.cc in Sources */,
-				E3BE45C52E90A9FE0075AC22 /* dungeon_map.cc in Sources */,
 				E318D97C2C59C08300091322 /* inventory.cc in Sources */,
 				E318D9162C59C08300091322 /* palette_editor.cc in Sources */,
 				E318DF342C5A4FBD00091322 /* atomic_hook_test.cc in Sources */,
