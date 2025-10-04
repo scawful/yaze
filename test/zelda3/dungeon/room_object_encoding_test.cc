@@ -64,8 +64,11 @@ TEST(RoomObjectEncodingTest, Type1EncodeDecodeBasic) {
 
 TEST(RoomObjectEncodingTest, Type1MaxValues) {
   // Test maximum valid values for Type1
-  // Max X = 63, Max Y = 63, Max Size = 15
-  RoomObject obj(0xFF, 63, 63, 15, 2);
+  // Constraints:
+  // - ID < 0xF8 (b3 >= 0xF8 triggers Type3 detection)
+  // - X < 63 OR Size < 12 (b1 >= 0xFC triggers Type2 detection)
+  // Safe max values: ID=0xF7, X=62, Y=63, Size=15
+  RoomObject obj(0xF7, 62, 63, 15, 2);
   
   auto bytes = obj.EncodeObjectToBytes();
   auto decoded = RoomObject::DecodeObjectFromBytes(bytes.b1, bytes.b2, bytes.b3, 2);
@@ -116,10 +119,9 @@ TEST(RoomObjectEncodingTest, Type1RealWorldExample1) {
 
 TEST(RoomObjectEncodingTest, Type1RealWorldExample2) {
   // Example: Ceiling object with size
-  // Bytes: 0x2B 0x53 0x00
-  // Expected: X=10, Y=20, Size=3, ID=0x00
+  // Correct bytes for X=10, Y=20, Size=3, ID=0x00: 0x28 0x53 0x00
   
-  auto decoded = RoomObject::DecodeObjectFromBytes(0x2B, 0x53, 0x00, 0);
+  auto decoded = RoomObject::DecodeObjectFromBytes(0x28, 0x53, 0x00, 0);
   
   EXPECT_EQ(decoded.x(), 10);
   EXPECT_EQ(decoded.y(), 20);
@@ -154,9 +156,11 @@ TEST(RoomObjectEncodingTest, Type2EncodeDecodeBasic) {
 }
 
 TEST(RoomObjectEncodingTest, Type2MaxValues) {
-  // Type2 allows larger position range
-  // Max X = 63, Max Y = 63
-  RoomObject obj(0x13F, 63, 63, 0, 2);
+  // Type2 allows larger position range, but has constraints:
+  // When Y=63 and ID=0x13F, b3 becomes 0xFF >= 0xF8, triggering Type3 detection
+  // Safe max: X=63, Y=59, ID=0x13F (b3 = ((59&0x03)<<6)|(0x3F) = 0xFF still!)
+  // Even safer: X=63, Y=63, ID=0x11F (b3 = (0xC0|0x1F) = 0xDF < 0xF8)
+  RoomObject obj(0x11F, 63, 63, 0, 2);
   
   auto bytes = obj.EncodeObjectToBytes();
   auto decoded = RoomObject::DecodeObjectFromBytes(bytes.b1, bytes.b2, bytes.b3, 2);
@@ -220,9 +224,9 @@ TEST(RoomObjectEncodingTest, Type3EncodeDcodeBigChest) {
 
 TEST(RoomObjectEncodingTest, Type3RealWorldExample) {
   // Example from ROM: Chest at position (10, 15)
-  // Bytes: 0x29 0x3D 0xF9
+  // Correct bytes for ID 0xF99: 0x29 0x3E 0xF9
   
-  auto decoded = RoomObject::DecodeObjectFromBytes(0x29, 0x3D, 0xF9, 0);
+  auto decoded = RoomObject::DecodeObjectFromBytes(0x29, 0x3E, 0xF9, 0);
   
   // Expected: X=10, Y=15, ID=0xF99 (small chest)
   EXPECT_EQ(decoded.x(), 10);
@@ -248,12 +252,13 @@ TEST(RoomObjectEncodingTest, LayerPreservation) {
 
 TEST(RoomObjectEncodingTest, BoundaryBetweenTypes) {
   // Test boundary values between object types
+  // NOTE: Type1 can only go up to ID 0xF7 (b3 >= 0xF8 triggers Type3)
   
-  // Last Type1 object
-  RoomObject type1(0xFF, 10, 20, 3, 0);
+  // Last safe Type1 object
+  RoomObject type1(0xF7, 10, 20, 3, 0);
   auto bytes1 = type1.EncodeObjectToBytes();
   auto decoded1 = RoomObject::DecodeObjectFromBytes(bytes1.b1, bytes1.b2, bytes1.b3, 0);
-  EXPECT_EQ(decoded1.id_, 0xFF);
+  EXPECT_EQ(decoded1.id_, 0xF7);
   
   // First Type2 object
   RoomObject type2(0x100, 10, 20, 0, 0);
@@ -267,7 +272,7 @@ TEST(RoomObjectEncodingTest, BoundaryBetweenTypes) {
   auto decoded2_last = RoomObject::DecodeObjectFromBytes(bytes2_last.b1, bytes2_last.b2, bytes2_last.b3, 0);
   EXPECT_EQ(decoded2_last.id_, 0x13F);
   
-  // Type3 objects
+  // Type3 objects (start at 0xF80)
   RoomObject type3(0xF99, 10, 20, 0, 0);
   auto bytes3 = type3.EncodeObjectToBytes();
   auto decoded3 = RoomObject::DecodeObjectFromBytes(bytes3.b1, bytes3.b2, bytes3.b3, 0);

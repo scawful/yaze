@@ -96,11 +96,14 @@
     {
       "name": "macos-dungeon-dev",
       "displayName": "Dungeon Editor Dev (ARM64)",
-      "description": "macOS ARM64 build for dungeon editing implementation work",
+      "description": "macOS ARM64 build for dungeon editing implementation work (app + tests only)",
       "binaryDir": "${sourceDir}/build_rooms",
       "inherits": "macos-debug",
       "cacheVariables": {
         "YAZE_BUILD_APP": "ON",
+        "YAZE_BUILD_EMU": "OFF",
+        "YAZE_BUILD_Z3ED": "OFF",
+        "YAZE_MINIMAL_BUILD": "ON",
         "YAZE_BUILD_TESTS": "ON",
         "YAZE_ENABLE_ROM_TESTS": "ON",
         "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc",
