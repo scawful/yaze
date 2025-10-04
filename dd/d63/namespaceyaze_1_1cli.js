@@ -8,6 +8,10 @@ var namespaceyaze_1_1cli =
     [ "anonymous_namespace{overworld.cc}", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html", [
       [ "kFindTileUsage", "d6/d7b/namespaceyaze_1_1cli_1_1anonymous__namespace_02overworld_8cc_03.html#a2e83a1746497c566f03baff74f6904cc", null ]
     ] ],
+    [ "anonymous_namespace{prompt_builder.cc}", "d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html", [
+      [ "YamlToJson", "d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html#a8082ee60fb8f4942958bf890c16bdbf0", null ],
+      [ "BuildCatalogueSearchPaths", "d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html#a374b26f5aebc3cb63f3c072679674174", null ]
+    ] ],
     [ "anonymous_namespace{proposal_registry.cc}", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html", [
       [ "DetermineDefaultRoot", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a935048446d732782954cb7db885d3e71", null ]
     ] ],
@@ -168,7 +172,9 @@ var namespaceyaze_1_1cli =
     [ "Tile16Proposal", "d8/d1c/structyaze_1_1cli_1_1Tile16Proposal.html", "d8/d1c/structyaze_1_1cli_1_1Tile16Proposal" ],
     [ "Tile16ProposalGenerator", "d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html", "d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator" ],
     [ "Tile16Transfer", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer.html", "d8/d7c/classyaze_1_1cli_1_1Tile16Transfer" ],
+    [ "ToolArgument", "d6/d40/structyaze_1_1cli_1_1ToolArgument.html", "d6/d40/structyaze_1_1cli_1_1ToolArgument" ],
     [ "ToolCall", "df/d6e/structyaze_1_1cli_1_1ToolCall.html", "df/d6e/structyaze_1_1cli_1_1ToolCall" ],
+    [ "ToolSpecification", "d5/dcb/structyaze_1_1cli_1_1ToolSpecification.html", "d5/dcb/structyaze_1_1cli_1_1ToolSpecification" ],
     [ "TuiComponent", "dc/d6b/classyaze_1_1cli_1_1TuiComponent.html", "dc/d6b/classyaze_1_1cli_1_1TuiComponent" ],
     [ "WidgetBoundingBox", "d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox.html", "d7/d72/structyaze_1_1cli_1_1WidgetBoundingBox" ],
     [ "WidgetDescriptor", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor.html", "d0/d85/structyaze_1_1cli_1_1WidgetDescriptor" ],

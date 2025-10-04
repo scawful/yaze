@@ -179,13 +179,8 @@ Next Steps</h1>
 Immediate Priorities</h2>
 <ol type="1">
 <li><b>Expand Overworld Tool Coverage</b>:<ul>
-<li>Add read-only commands for tile searches, area summaries, and teleport destinations.</li>
-<li>Guarantee each tool returns both JSON and human-readable summaries for the chat renderers.</li>
-</ul>
-</li>
-<li><b>Document &amp; Test the New Tooling</b>:<ul>
-<li>Update the main <code>README.md</code> and relevant docs to cover the new chat formatting.</li>
-<li>Add regression tests (unit or golden JSON fixtures) for the new Overworld tools.</li>
+<li>✅ Ship read-only tile searches (<code>overworld find-tile</code>) with shared formatting for CLI and agent calls.</li>
+<li>Next: add area summaries, teleport destination lookups, and keep JSON/Text parity for all new tools.</li>
 </ul>
 </li>
 <li><b>Polish the TUI Chat Experience</b>:<ul>
@@ -198,8 +193,9 @@ Immediate Priorities</h2>
 <li>Teach the agent to call the new read-only commands to answer questions.</li>
 </ul>
 </li>
-<li><b>Land Overworld Tooling</b>:<ul>
-<li>Ship at least two Overworld inspection commands with comprehensive tests.</li>
+<li><b>Document &amp; Test the New Tooling</b>:<ul>
+<li>Update the main <code>README.md</code> and relevant docs to cover the new chat formatting.</li>
+<li>Add regression tests (unit or golden JSON fixtures) for the new Overworld tools.</li>
 </ul>
 </li>
 <li><b>Build GUI Chat Widget</b>:<ul>
@@ -246,15 +242,24 @@ Current Status &amp; Next Steps (As of Oct 3, Session 2)</h1>
 </li>
 <li><b>Structured Tool Output Rendering</b>: Both the TUI and GUI chat widgets now display tables and JSON payloads with friendly formatting, drastically improving readability.</li>
 <li><b>Overworld Inspection Suite</b>: Added <code>overworld describe-map</code> and <code>overworld list-warps</code> commands producing text/JSON summaries for map metadata and warp points, with agent tooling hooks.</li>
+<li><b>Overworld Tile Search Tool</b>: Added <code>overworld find-tile</code> across CLI and agent tooling with shared ROM context handling and regression tests.</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md1143"></a>
-✅ Build Configuration Issue Resolved</h2>
-<p>The linker error is fixed. Both the CLI and GUI targets now link against <code>yaze_agent</code>, so the shared agent handlers (<code>HandleResourceListCommand</code>, <code>HandleDungeonListSpritesCommand</code>, etc.) compile once and are available to <code>ToolDispatcher</code> everywhere.</p>
-<h2><a class="anchor" id="autotoc_md1144"></a>
 🚀 Next Steps</h2>
 <ol type="1">
-<li><b>Share ROM Context with the Agent</b>: Inject the active GUI ROM into <code>ConversationalAgentService</code> so tool calls work even when <code>--rom</code> flags are unavailable. Analyze the <code><a class="el" href="../../d4/d79/app_2rom_8cc.html">src/app/rom.cc</a></code> and <code><a class="el" href="../../da/de5/rom_8h.html">src/app/rom.h</a></code> and <code><a class="el" href="../../d0/dd9/editor__manager_8cc.html">src/app/editor/editor_manager.cc</a></code> files for guidance on accessing the current project/ROM.</li>
-<li><b>Expand Tool Coverage</b>: Target Overworld navigation helpers (<code>overworld find-tile</code>, <code>overworld list-warps</code>, region summaries) and dialogue inspectors. Prioritize commands that unblock common level-design questions and emit concise table/JSON payloads. </li>
+<li><b>Integrate Tool Use with LLM</b>:<ul>
+<li>Modify the <code>AIService</code> to support function calling/tool use.</li>
+<li>Teach the agent to call the new read-only commands to answer questions.</li>
+</ul>
+</li>
+<li><b>Polish the TUI Chat Experience</b>:<ul>
+<li>Tighten keyboard shortcuts, scrolling, and copy-to-clipboard behaviour.</li>
+<li>Align log file output with on-screen formatting for easier debugging.</li>
+</ul>
+</li>
+</ol>
+<ol type="1">
+<li><b>Expand Tool Coverage</b>: Target additional Overworld navigation helpers (region summaries, teleport lookups) and dialogue inspectors. Prioritize commands that unblock common level-design questions and emit concise table/JSON payloads. </li>
 </ol>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

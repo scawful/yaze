@@ -12,6 +12,8 @@ var namespaceyaze_1_1cli_1_1overworld =
       [ "kSpecialWorldOffset", "d0/d27/namespaceyaze_1_1cli_1_1overworld_1_1anonymous__namespace_02overworld__inspect_8cc_03.html#ac9e1d3a917be50864aa4b03a63f3ab6e", null ]
     ] ],
     [ "MapSummary", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary" ],
+    [ "TileMatch", "dd/d10/structyaze_1_1cli_1_1overworld_1_1TileMatch.html", "dd/d10/structyaze_1_1cli_1_1overworld_1_1TileMatch" ],
+    [ "TileSearchOptions", "da/d5b/structyaze_1_1cli_1_1overworld_1_1TileSearchOptions.html", "da/d5b/structyaze_1_1cli_1_1overworld_1_1TileSearchOptions" ],
     [ "WarpEntry", "d1/d67/structyaze_1_1cli_1_1overworld_1_1WarpEntry.html", "d1/d67/structyaze_1_1cli_1_1overworld_1_1WarpEntry" ],
     [ "WarpQuery", "d0/dcb/structyaze_1_1cli_1_1overworld_1_1WarpQuery.html", "d0/dcb/structyaze_1_1cli_1_1overworld_1_1WarpQuery" ],
     [ "WarpType", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a488562d98c871126f559038f340ba8cb", [
@@ -25,5 +27,6 @@ var namespaceyaze_1_1cli_1_1overworld =
     [ "WorldName", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#ad6b625e4549edcdf9cbdc090ec662b2a", null ],
     [ "WarpTypeName", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#ac2ede884549bbdc36e527cbdbc9be58f", null ],
     [ "BuildMapSummary", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a217f7e2eaa9da157d195e045be67d87b", null ],
-    [ "CollectWarpEntries", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a30c82e946374c5fb06b0f44db5792033", null ]
+    [ "CollectWarpEntries", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a30c82e946374c5fb06b0f44db5792033", null ],
+    [ "FindTileMatches", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#ac2d02e383f9bfe555d8706160b6e658c", null ]
 ];

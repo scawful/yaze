@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('d0/d46/md_test_2README.html','../../')
   <div class="headertitle"><div class="title">yaze Test Suite</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1488"></a> This directory contains the comprehensive test suite for YAZE, organized for optimal AI agent testing and development workflow.</p>
-<h1><a class="anchor" id="autotoc_md1489"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1487"></a> This directory contains the comprehensive test suite for YAZE, organized for optimal AI agent testing and development workflow.</p>
+<h1><a class="anchor" id="autotoc_md1488"></a>
 Directory Structure</h1>
 <div class="fragment"><div class="line">test/</div>
 <div class="line">├── unit/                    # Unit tests for individual components</div>
@@ -123,9 +123,9 @@ Directory Structure</h1>
 <div class="line">├── mocks/                  # Mock objects for testing</div>
 <div class="line">├── assets/                 # Test assets and patches</div>
 <div class="line">└── yaze_test.cc           # Enhanced test runner</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1490"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1489"></a>
 Test Categories</h1>
-<h2><a class="anchor" id="autotoc_md1491"></a>
+<h2><a class="anchor" id="autotoc_md1490"></a>
 Unit Tests (&lt;tt&gt;unit/&lt;/tt&gt;)</h2>
 <ul>
 <li><b>Core</b>: ASAR wrapper, hex utilities, core functionality</li>
@@ -133,23 +133,23 @@ Unit Tests (&lt;tt&gt;unit/&lt;/tt&gt;)</h2>
 <li><b>Graphics</b>: SNES tiles, palettes, compression</li>
 <li><b>Zelda3</b>: Message system, overworld, objects, sprites</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1492"></a>
+<h2><a class="anchor" id="autotoc_md1491"></a>
 Integration Tests (&lt;tt&gt;integration/&lt;/tt&gt;)</h2>
 <ul>
 <li><b>Editor</b>: Tile editor, dungeon editor integration</li>
 <li><b>ASAR</b>: ASAR integration and ROM patching</li>
 <li><b>Dungeon</b>: Dungeon editor system integration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1493"></a>
+<h2><a class="anchor" id="autotoc_md1492"></a>
 End-to-End Tests (&lt;tt&gt;e2e/&lt;/tt&gt;)</h2>
 <ul>
 <li><b>ROM Dependent</b>: Complete ROM editing workflow validation</li>
 <li><b>ZSCustomOverworld</b>: Version upgrade testing (vanilla → v2 → v3)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1494"></a>
+<h1><a class="anchor" id="autotoc_md1493"></a>
 Enhanced Test Runner</h1>
 <p>The <code>yaze_test</code> executable now supports comprehensive argument handling for AI agents:</p>
-<h2><a class="anchor" id="autotoc_md1495"></a>
+<h2><a class="anchor" id="autotoc_md1494"></a>
 Usage Examples</h2>
 <div class="fragment"><div class="line"># Run all tests</div>
 <div class="line">./yaze_test</div>
@@ -169,7 +169,7 @@ Usage Examples</h2>
 <div class="line"> </div>
 <div class="line"># Enable UI tests</div>
 <div class="line">./yaze_test --enable-ui-tests</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1496"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1495"></a>
 Test Modes</h2>
 <ul>
 <li><code>--unit</code>: Unit tests only</li>
@@ -182,7 +182,7 @@ Test Modes</h2>
 <li><code>--editor</code>: Editor tests</li>
 <li><code>--deprecated</code>: Deprecated tests (for cleanup)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1497"></a>
+<h2><a class="anchor" id="autotoc_md1496"></a>
 Options</h2>
 <ul>
 <li><code>--rom-path PATH</code>: Specify ROM path for testing</li>
@@ -191,7 +191,7 @@ Options</h2>
 <li><code>--verbose</code>: Enable verbose output</li>
 <li><code>--help</code>: Show help message</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1498"></a>
+<h1><a class="anchor" id="autotoc_md1497"></a>
 E2E ROM Testing</h1>
 <p>The E2E ROM test suite (<code><a class="el" href="../../d1/d20/e2e__rom__test_8cc.html">e2e/rom_dependent/e2e_rom_test.cc</a></code>) provides comprehensive validation of the complete ROM editing workflow:</p>
 <ol type="1">
@@ -201,7 +201,7 @@ E2E ROM Testing</h1>
 <li><b>Reload ROM and verify edits persist</b></li>
 <li><b>Verify no data corruption occurred</b></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1499"></a>
+<h2><a class="anchor" id="autotoc_md1498"></a>
 Test Cases</h2>
 <ul>
 <li><code>BasicROMLoadSave</code>: Basic ROM loading and saving</li>
@@ -211,17 +211,17 @@ Test Cases</h2>
 <li><code>CorruptionDetection</code>: ROM corruption detection</li>
 <li><code>LargeScaleEditing</code>: Large-scale editing without corruption</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1500"></a>
+<h1><a class="anchor" id="autotoc_md1499"></a>
 ZSCustomOverworld Upgrade Testing</h1>
 <p>The ZSCustomOverworld test suite (<code><a class="el" href="../../d7/db2/zscustomoverworld__upgrade__test_8cc.html">e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc</a></code>) validates version upgrades:</p>
-<h2><a class="anchor" id="autotoc_md1501"></a>
+<h2><a class="anchor" id="autotoc_md1500"></a>
 Supported Upgrades</h2>
 <ul>
 <li><b>Vanilla → v2</b>: Basic upgrade with main palettes</li>
 <li><b>v2 → v3</b>: Advanced upgrade with expanded features</li>
 <li><b>Vanilla → v3</b>: Direct upgrade to latest version</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1502"></a>
+<h2><a class="anchor" id="autotoc_md1501"></a>
 Test Cases</h2>
 <ul>
 <li><code>VanillaBaseline</code>: Validate vanilla ROM baseline</li>
@@ -233,21 +233,21 @@ Test Cases</h2>
 <li><code>FeatureToggle</code>: Test feature enablement/disablement</li>
 <li><code>DataIntegrity</code>: Test data integrity during upgrades</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1503"></a>
+<h2><a class="anchor" id="autotoc_md1502"></a>
 Version-Specific Features</h2>
-<h3><a class="anchor" id="autotoc_md1504"></a>
+<h3><a class="anchor" id="autotoc_md1503"></a>
 Vanilla</h3>
 <ul>
 <li>Basic overworld functionality</li>
 <li>Standard message IDs, area graphics, palettes</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1505"></a>
+<h3><a class="anchor" id="autotoc_md1504"></a>
 v2</h3>
 <ul>
 <li>Main palettes support</li>
 <li>Expanded message ID table</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1506"></a>
+<h3><a class="anchor" id="autotoc_md1505"></a>
 v3</h3>
 <ul>
 <li>Area-specific background colors</li>
@@ -256,7 +256,7 @@ v3</h3>
 <li>Custom tile GFX groups</li>
 <li>Mosaic effects</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1507"></a>
+<h1><a class="anchor" id="autotoc_md1506"></a>
 Environment Variables</h1>
 <ul>
 <li><code>YAZE_TEST_ROM_PATH</code>: Path to test ROM file</li>
@@ -264,7 +264,7 @@ Environment Variables</h1>
 <li><code>YAZE_ENABLE_UI_TESTS</code>: Enable UI tests</li>
 <li><code>YAZE_VERBOSE_TESTS</code>: Enable verbose test output</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1508"></a>
+<h1><a class="anchor" id="autotoc_md1507"></a>
 CI/CD Integration</h1>
 <p>Tests are automatically labeled for CI/CD:</p>
 <ul>
@@ -278,14 +278,14 @@ CI/CD Integration</h1>
 <li><code>editor</code>: Editor tests</li>
 <li><code>deprecated</code>: Deprecated tests</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1509"></a>
+<h1><a class="anchor" id="autotoc_md1508"></a>
 Deprecated Tests</h1>
 <p>The <code>deprecated/</code> directory contains outdated tests that no longer pass after the large refactor:</p>
 <ul>
 <li><b>EMU tests</b>: CPU, PPU, SPC700, APU tests that are no longer compatible</li>
 <li>These tests are kept for reference but should not be run in CI/CD</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1510"></a>
+<h1><a class="anchor" id="autotoc_md1509"></a>
 Best Practices</h1>
 <ol type="1">
 <li><b>Use appropriate test categories</b> for new tests</li>
@@ -295,7 +295,7 @@ Best Practices</h1>
 <li><b>Use descriptive test names</b> for AI agent clarity</li>
 <li><b>Include verbose output</b> for debugging</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1511"></a>
+<h1><a class="anchor" id="autotoc_md1510"></a>
 AI Agent Testing</h1>
 <p>The enhanced test runner is specifically designed for AI agent testing:</p>
 <ul>

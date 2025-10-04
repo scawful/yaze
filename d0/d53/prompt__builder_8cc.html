@@ -99,16 +99,22 @@ $(document).ready(function(){initNavTree('d0/d53/prompt__builder_8cc.html','../.
 
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">prompt_builder.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../df/d04/prompt__builder_8h_source.html">cli/service/ai/prompt_builder.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d1/dad/conversational__agent__service_8h_source.html">cli/service/agent/conversational_agent_service.h</a>&quot;</code><br />
+<code>#include &lt;cstdlib&gt;</code><br />
+<code>#include &lt;filesystem&gt;</code><br />
 <code>#include &lt;fstream&gt;</code><br />
+<code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_join.h&quot;</code><br />
+<code>#include &quot;nlohmann/json.hpp&quot;</code><br />
+<code>#include &quot;yaml-cpp/yaml.h&quot;</code><br />
 </div>
 <p><a href="../../d0/d53/prompt__builder_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -120,6 +126,15 @@ Namespaces</h2></td></tr>
 <tr class="memitem:dd/d63/namespaceyaze_1_1cli" id="r_dd/d63/namespaceyaze_1_1cli"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html">yaze::cli</a></td></tr>
 <tr class="memdesc:dd/d63/namespaceyaze_1_1cli"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for the command line interface. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03" id="r_d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html">yaze::cli::anonymous_namespace{prompt_builder.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a8082ee60fb8f4942958bf890c16bdbf0" id="r_a8082ee60fb8f4942958bf890c16bdbf0"><td class="memItemLeft" align="right" valign="top">nlohmann::json&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html#a8082ee60fb8f4942958bf890c16bdbf0">yaze::cli::anonymous_namespace{prompt_builder.cc}::YamlToJson</a> (const YAML::Node &amp;node)</td></tr>
+<tr class="separator:a8082ee60fb8f4942958bf890c16bdbf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a374b26f5aebc3cb63f3c072679674174" id="r_a374b26f5aebc3cb63f3c072679674174"><td class="memItemLeft" align="right" valign="top">std::vector&lt; fs::path &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html#a374b26f5aebc3cb63f3c072679674174">yaze::cli::anonymous_namespace{prompt_builder.cc}::BuildCatalogueSearchPaths</a> (const std::string &amp;explicit_path)</td></tr>
+<tr class="separator:a374b26f5aebc3cb63f3c072679674174"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

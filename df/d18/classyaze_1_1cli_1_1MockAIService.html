@@ -129,6 +129,8 @@ Collaboration diagram for yaze::cli::MockAIService:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a6673f778ec3db70ea11a9ff964203649" id="r_a6673f778ec3db70ea11a9ff964203649"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d18/classyaze_1_1cli_1_1MockAIService.html#a6673f778ec3db70ea11a9ff964203649">SetRomContext</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom) override</td></tr>
+<tr class="separator:a6673f778ec3db70ea11a9ff964203649"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7fb69e8c496c5d47420d5998ae37efba" id="r_a7fb69e8c496c5d47420d5998ae37efba"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../db/d5f/structyaze_1_1cli_1_1AgentResponse.html">AgentResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d18/classyaze_1_1cli_1_1MockAIService.html#a7fb69e8c496c5d47420d5998ae37efba">GenerateResponse</a> (const std::string &amp;prompt) override</td></tr>
 <tr class="separator:a7fb69e8c496c5d47420d5998ae37efba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8ed5bc62530167252e3150186d4da54a" id="r_a8ed5bc62530167252e3150186d4da54a"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../db/d5f/structyaze_1_1cli_1_1AgentResponse.html">AgentResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d18/classyaze_1_1cli_1_1MockAIService.html#a8ed5bc62530167252e3150186d4da54a">GenerateResponse</a> (const std::vector&lt; <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">agent::ChatMessage</a> &gt; &amp;history) override</td></tr>
@@ -139,8 +141,38 @@ Public Member Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="../../d7/d52/ai__service_8h_source.html#l00031">31</a> of file <a class="el" href="../../d7/d52/ai__service_8h_source.html">ai_service.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d52/ai__service_8h_source.html#l00037">37</a> of file <a class="el" href="../../d7/d52/ai__service_8h_source.html">ai_service.h</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
+<a id="a6673f778ec3db70ea11a9ff964203649" name="a6673f778ec3db70ea11a9ff964203649"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6673f778ec3db70ea11a9ff964203649">&#9670;&#160;</a></span>SetRomContext()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::cli::MockAIService::SetRomContext </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *&#160;</td>
+          <td class="paramname"><em>rom</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Reimplemented from <a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html#ac9cfc59ba6f833fd70b983ff126d01b2">yaze::cli::AIService</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d52/ai__service_8h_source.html#l00039">39</a> of file <a class="el" href="../../d7/d52/ai__service_8h_source.html">ai_service.h</a>.</p>
+
+</div>
+</div>
 <a id="a7fb69e8c496c5d47420d5998ae37efba" name="a7fb69e8c496c5d47420d5998ae37efba"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7fb69e8c496c5d47420d5998ae37efba">&#9670;&#160;</a></span>GenerateResponse() <span class="overload">[1/2]</span></h2>
 

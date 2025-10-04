@@ -111,6 +111,7 @@ $(document).ready(function(){initNavTree('d5/d48/cli__main_8cc.html','../../'); 
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;string_view&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
+<code>#include &quot;absl/flags/declare.h&quot;</code><br />
 <code>#include &quot;absl/flags/flag.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;absl/strings/match.h&quot;</code><br />
@@ -134,8 +135,8 @@ Namespaces</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:ad1f607cfb6c65380d2957cdfca942205" id="r_ad1f607cfb6c65380d2957cdfca942205"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#ad1f607cfb6c65380d2957cdfca942205">ABSL_FLAG</a> (bool, tui, false, &quot;Launch Text User Interface&quot;)</td></tr>
 <tr class="separator:ad1f607cfb6c65380d2957cdfca942205"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91812729dacce6b1853f0e70048b936c" id="r_a91812729dacce6b1853f0e70048b936c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a91812729dacce6b1853f0e70048b936c">ABSL_FLAG</a> (std::string, rom, &quot;&quot;, &quot;Path to the ROM file&quot;)</td></tr>
-<tr class="separator:a91812729dacce6b1853f0e70048b936c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9c3df97146a4533c1c78f5ac7c9e36e" id="r_aa9c3df97146a4533c1c78f5ac7c9e36e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#aa9c3df97146a4533c1c78f5ac7c9e36e">ABSL_DECLARE_FLAG</a> (std::string, rom)</td></tr>
+<tr class="separator:aa9c3df97146a4533c1c78f5ac7c9e36e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af9e15e6f0cb42ef0d7e8e09d14c1429e" id="r_af9e15e6f0cb42ef0d7e8e09d14c1429e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals.html">ParsedGlobals</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html#af9e15e6f0cb42ef0d7e8e09d14c1429e">anonymous_namespace{cli_main.cc}::ParseGlobalFlags</a> (int argc, char *argv[])</td></tr>
 <tr class="separator:af9e15e6f0cb42ef0d7e8e09d14c1429e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2d343cff7ca205e9a15c30caa0fd444" id="r_ad2d343cff7ca205e9a15c30caa0fd444"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html#ad2d343cff7ca205e9a15c30caa0fd444">anonymous_namespace{cli_main.cc}::PrintVersion</a> ()</td></tr>
@@ -145,7 +146,7 @@ Functions</h2></td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="ad1f607cfb6c65380d2957cdfca942205" name="ad1f607cfb6c65380d2957cdfca942205"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1f607cfb6c65380d2957cdfca942205">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad1f607cfb6c65380d2957cdfca942205">&#9670;&#160;</a></span>ABSL_FLAG()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -184,14 +185,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a91812729dacce6b1853f0e70048b936c" name="a91812729dacce6b1853f0e70048b936c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91812729dacce6b1853f0e70048b936c">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[2/2]</span></h2>
+<a id="aa9c3df97146a4533c1c78f5ac7c9e36e" name="aa9c3df97146a4533c1c78f5ac7c9e36e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9c3df97146a4533c1c78f5ac7c9e36e">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">ABSL_FLAG </td>
+          <td class="memname">ABSL_DECLARE_FLAG </td>
           <td>(</td>
           <td class="paramtype">std::string&#160;</td>
           <td class="paramname">, </td>
@@ -200,18 +201,6 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">rom&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&quot;&quot;&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&quot;Path to the ROM file&quot;&#160;</td>
           <td class="paramname">&#160;</td>
         </tr>
         <tr>
@@ -250,9 +239,9 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00093">93</a> of file <a class="el" href="../../d5/d48/cli__main_8cc_source.html">cli_main.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00094">94</a> of file <a class="el" href="../../d5/d48/cli__main_8cc_source.html">cli_main.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00028">anonymous_namespace{cli_main.cc}::ParseGlobalFlags()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00280">yaze::cli::ModernCLI::PrintTopLevelHelp()</a>, <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00085">anonymous_namespace{cli_main.cc}::PrintVersion()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00284">yaze::cli::ModernCLI::Run()</a>, and <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00833">yaze::cli::ShowMain()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00029">anonymous_namespace{cli_main.cc}::ParseGlobalFlags()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00280">yaze::cli::ModernCLI::PrintTopLevelHelp()</a>, <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00086">anonymous_namespace{cli_main.cc}::PrintVersion()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00284">yaze::cli::ModernCLI::Run()</a>, and <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00833">yaze::cli::ShowMain()</a>.</p>
 
 </div>
 </div>

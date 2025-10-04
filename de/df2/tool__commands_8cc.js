@@ -5,6 +5,7 @@ var tool__commands_8cc =
     [ "LoadRomFromPathOrFlag", "de/df2/tool__commands_8cc.html#abfae29bd727b8759e06d2e7a728e72a8", null ],
     [ "HandleResourceListCommand", "de/df2/tool__commands_8cc.html#a1ca1e4283e12e1d22bd7c455a9958ecb", null ],
     [ "HandleDungeonListSpritesCommand", "de/df2/tool__commands_8cc.html#a78262ef9b80b22c88525796f93d573e8", null ],
+    [ "HandleOverworldFindTileCommand", "de/df2/tool__commands_8cc.html#aa0f222c407a70f32a5c3c1fe69a904c2", null ],
     [ "HandleOverworldDescribeMapCommand", "de/df2/tool__commands_8cc.html#afa0f337ee6668976e1cb1434794efddd", null ],
     [ "HandleOverworldListWarpsCommand", "de/df2/tool__commands_8cc.html#af2e9836c9423d36a3b1c2bab9e8dcbcc", null ]
 ];

@@ -1,6 +1,7 @@
 var classyaze_1_1cli_1_1OllamaAIService =
 [
     [ "OllamaAIService", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#aa54065448ee6fe182ad056d9099201b9", null ],
+    [ "SetRomContext", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#a2018fcfdfdd5641ccbb45f8add989a4a", null ],
     [ "GenerateResponse", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#a2d306efd663359585ba6716ae4a451f9", null ],
     [ "GenerateResponse", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#ad31ab679d23748b864b5d071d0761a6a", null ],
     [ "CheckAvailability", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#a082e4e2b00cec515e63305402bfaa9d3", null ],

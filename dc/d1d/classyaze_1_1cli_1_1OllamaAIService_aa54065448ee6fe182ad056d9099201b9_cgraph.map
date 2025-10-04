@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,71,176,111"/>
 <area shape="rect" id="Node000002" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a7850a60cd6750e09e6f6e3d4a294dc10" title=" " alt="" coords="224,5,467,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,67,248,48,249,53,173,73"/>
-<area shape="rect" id="Node000007" href="$dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#ac6ac158faef88066545d0c001c2fb4bc" title=" " alt="" coords="260,71,431,111"/>
-<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="176,88,245,88,245,94,176,94"/>
-<area shape="rect" id="Node000008" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#ae455cada92d2f170884bdbcb61e4d05f" title=" " alt="" coords="261,136,430,177"/>
-<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="173,109,249,129,248,134,172,115"/>
-<area shape="rect" id="Node000003" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a5cfb6bb6351a9dd73523ad485b8771b8" title=" " alt="" coords="515,5,723,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="468,23,499,23,499,28,468,28"/>
+<area shape="rect" id="Node000003" href="$dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#ac6ac158faef88066545d0c001c2fb4bc" title=" " alt="" coords="260,71,431,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,88,245,88,245,94,176,94"/>
+<area shape="rect" id="Node000005" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#ae455cada92d2f170884bdbcb61e4d05f" title=" " alt="" coords="261,136,430,177"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="173,109,249,129,248,134,172,115"/>
+<area shape="rect" id="Node000004" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#ac1332dae27f0b86a89cda12abd56f972" title=" " alt="" coords="515,71,676,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="431,88,499,88,499,94,431,94"/>
 </map>

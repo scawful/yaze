@@ -1,6 +1,7 @@
 var classyaze_1_1cli_1_1GeminiAIService =
 [
     [ "GeminiAIService", "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a159bc25d0883729abfd39a45c22f5b88", null ],
+    [ "SetRomContext", "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a677ec50fbc3c51f7e953622f6e816c40", null ],
     [ "GenerateResponse", "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#af5648f2b661e7ea74a8a5c095ef31c49", null ],
     [ "GenerateResponse", "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#afb6c6d1f4e4ae3228c651f32844c4c72", null ],
     [ "CheckAvailability", "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a3a4bacc8f298fe12928485d5da741cdb", null ],

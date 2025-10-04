@@ -13,6 +13,7 @@ var commands_8h =
     [ "HandleDescribeCommand", "d5/d90/commands_8h.html#acb618f817422ff44303453fcaadd3478", null ],
     [ "HandleResourceListCommand", "d5/d90/commands_8h.html#a1ca1e4283e12e1d22bd7c455a9958ecb", null ],
     [ "HandleDungeonListSpritesCommand", "d5/d90/commands_8h.html#a78262ef9b80b22c88525796f93d573e8", null ],
+    [ "HandleOverworldFindTileCommand", "d5/d90/commands_8h.html#aa0f222c407a70f32a5c3c1fe69a904c2", null ],
     [ "HandleOverworldDescribeMapCommand", "d5/d90/commands_8h.html#afa0f337ee6668976e1cb1434794efddd", null ],
     [ "HandleOverworldListWarpsCommand", "d5/d90/commands_8h.html#af2e9836c9423d36a3b1c2bab9e8dcbcc", null ],
     [ "HandleChatCommand", "d5/d90/commands_8h.html#ab9c0a392ce6c066aca8d36eac12dc2b9", null ]
