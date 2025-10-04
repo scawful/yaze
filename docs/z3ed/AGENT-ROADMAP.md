@@ -1,19 +1,82 @@
 # z3ed Agent Roadmap
 
-This document outlines the strategic vision and concrete next steps for the `z3ed` AI agent, focusing on a transition from a command-line tool to a fully interactive, conversational assistant for ROM hacking.
+**Last Updated**: October 3, 2025
 
-## Core Vision: The Conversational ROM Hacking Assistant
+## Current Status
 
-The next evolution of the `z3ed` agent is to create a chat-like interface where users can interact with the AI in a more natural and exploratory way. Instead of just issuing a single command, users will be able to have a dialogue with the agent to inspect the ROM, ask questions, and iteratively build up a set of changes.
+### ✅ Production Ready
+- **Build System**: Z3ED_AI flag consolidation complete
+- **AI Backends**: Ollama (local) and Gemini (cloud) operational
+- **Conversational Agent**: Multi-step tool execution with chat history
+- **Tool Dispatcher**: 5 read-only tools (resource-list, dungeon-list-sprites, overworld-find-tile, overworld-describe-map, overworld-list-warps)
+- **TUI Chat**: FTXUI-based interactive terminal interface
+- **Simple Chat**: Text-mode REPL for AI testing (no FTXUI dependencies)
+- **GUI Chat Widget**: ImGui-based widget (needs integration into main app)
 
-This vision will be realized through a shared interface available in both the `z3ed` TUI and the main `yaze` GUI application.
+### 🚧 Active Work
+1. **Live LLM Testing** (1-2h): Verify function calling with real models
+2. **GUI Integration** (4-6h): Wire AgentChatWidget into YAZE editor
+3. **Proposal Workflow** (6-8h): End-to-end integration from chat to ROM changes
 
-### Key Features
-1.  **Interactive Chat Interface**: A familiar chat window for conversing with the agent.
-2.  **ROM Introspection**: The agent will be able to answer questions about the ROM, such as "What dungeons are defined in this project?" or "How many soldiers are in the Hyrule Castle throne room?".
-3.  **Contextual Awareness**: The agent will maintain the context of the conversation, allowing for follow-up questions and commands.
-4.  **Seamless Transition to Action**: When the user is ready to make a change, the agent will use the conversation history to generate a comprehensive proposal for editing the ROM.
-5.  **Shared Experience**: The same conversational agent will be accessible from both the terminal and the graphical user interface, providing a consistent experience.
+## Core Vision
+
+Transform z3ed from a command-line tool into a **conversational ROM hacking assistant** where users can:
+- Ask questions about ROM contents ("What dungeons exist?")
+- Inspect game data interactively ("How many soldiers in room X?")
+- Build changes incrementally through dialogue
+- Generate proposals from conversation context
+
+## Technical Architecture
+
+### 1. Conversational Agent Service ✅
+**Status**: Complete
+- `ConversationalAgentService`: Manages chat sessions and tool execution
+- Integrates with Ollama/Gemini AI services
+- Handles tool calls with automatic JSON formatting
+- Maintains conversation history and context
+
+### 2. Read-Only Tools ✅
+**Status**: 5 tools implemented
+- `resource-list`: Enumerate labeled resources
+- `dungeon-list-sprites`: Inspect sprites in rooms
+- `overworld-find-tile`: Search for tile16 IDs
+- `overworld-describe-map`: Get map metadata
+- `overworld-list-warps`: List entrances/exits/holes
+
+**Next**: Add dialogue, sprite info, and region inspection tools
+
+### 3. Chat Interfaces
+**Status**: Multiple modes available
+- **TUI (FTXUI)**: Full-screen interactive terminal (✅ complete)
+- **Simple Mode**: Text REPL for automation/testing (✅ complete)
+- **GUI (ImGui)**: Dockable widget in YAZE (⚠️ needs integration)
+
+### 4. Proposal Workflow Integration
+**Status**: Planned
+**Goal**: When user requests ROM changes, agent generates proposal
+1. User chats to explore ROM
+2. User requests change ("add two more soldiers")
+3. Agent generates commands → creates proposal
+4. User reviews with `agent diff` or GUI
+5. User accepts/rejects proposal
+
+## Immediate Priorities
+
+### Priority 1: Live LLM Testing (1-2 hours)
+Verify function calling works end-to-end:
+- Test Gemini 2.0 with natural language prompts
+- Test Ollama (qwen2.5-coder) with tool discovery
+- Validate multi-step conversations
+- Exercise all 5 tools
+
+### Priority 2: GUI Chat Integration (4-6 hours)
+Wire AgentChatWidget into main YAZE editor:
+- Add menu item: Debug → Agent Chat
+- Connect to shared ConversationalAgentService
+- Test with loaded ROM context
+- Add history persistence
+
+### Priority 3: Proposal Generation (6-8 hours)
 
 ## Technical Implementation Plan
 
@@ -198,7 +261,75 @@ We have made significant progress in laying the foundation for the conversationa
    - Keyboard shortcuts: Ctrl+L to clear, Ctrl+C to copy last response
    - Auto-scroll to bottom on new messages
 
-#### Priority 3: Expand Tool Coverage (8-10 hours)
+#### Priority 3: Proposal Generation (6-8 hours)
+Connect chat to ROM modification workflow:
+- Detect action intents in conversation
+- Generate proposal from accumulated context
+- Link proposal to chat history
+- GUI notification when proposal ready
+
+## Command Reference
+
+### Chat Modes
+```bash
+# Interactive TUI chat (FTXUI)
+z3ed agent chat --rom zelda3.sfc
+
+# Simple text mode (for automation/AI testing)
+z3ed agent simple-chat --rom zelda3.sfc
+
+# Batch mode from file
+z3ed agent simple-chat --file tests.txt --rom zelda3.sfc
+```
+
+### Tool Commands (for direct testing)
+```bash
+# List dungeons
+z3ed agent resource-list --type dungeon --format json
+
+# Find tiles
+z3ed agent overworld-find-tile --tile 0x02E --map 0x05
+
+# List sprites in room
+z3ed agent dungeon-list-sprites --room 0x012
+```
+
+## Build Quick Reference
+
+```bash
+# Full AI features
+cmake -B build -DZ3ED_AI=ON
+cmake --build build --target z3ed
+
+# With GUI automation/testing
+cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON
+cmake --build build
+
+# Minimal (no AI)
+cmake -B build
+cmake --build build --target z3ed
+```
+
+## Future Enhancements
+
+### Short Term (1-2 months)
+- Dialogue/text search tools
+- Sprite info inspection
+- Region/teleport tools
+- Response caching
+- Token usage tracking
+
+### Medium Term (3-6 months)
+- Multi-modal agent (image generation)
+- Advanced configuration (env vars, model selection)
+- Proposal templates for common edits
+- Undo/redo in conversations
+
+### Long Term (6+ months)
+- Visual diff viewer for proposals
+- Collaborative editing sessions
+- Learning from user feedback
+- Custom tool plugins
 **Goal**: Enable deeper ROM introspection for level design questions
 
 1. **Dialogue/Text Tools** (3 hours)
