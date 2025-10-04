@@ -28,16 +28,16 @@ You must follow this exact two-step process to avoid errors.
 *Example Step 1:*
 ```json
 {
-  "text_response": "Let me look up the dungeons for you...",
+  "text_response": "Let me look up the rooms for you...",
   "tool_calls": [
     {
-      "tool_name": "resource_list",
+      "tool_name": "resource-list",
       "args": {
-        "type": "dungeon"
+        "type": "room"
       }
     }
   ],
-  "reasoning": "The user is asking for a list of dungeons. I need to call the `resource_list` tool with the type 'dungeon' to get this information."
+  "reasoning": "The user is asking for a list of rooms. I need to call the `resource-list` tool with the type 'room' to get this information."
 }
 ```
 
@@ -49,8 +49,8 @@ You must follow this exact two-step process to avoid errors.
 *Example Step 2:*
 ```json
 {
-  "text_response": "This ROM contains 12 dungeons, including: Hyrule Castle, Eastern Palace, and Desert Palace.",
-  "reasoning": "I have received the list of dungeons from the tool result. I will now format this information into a friendly, readable response for the user."
+  "text_response": "This ROM contains 297 rooms, including: Ganon, Hyrule Castle (North Corridor), and Behind Sanctuary (Switch).",
+  "reasoning": "I have received the list of rooms from the tool result. I will now format this information into a friendly, readable response for the user."
 }
 ```
 
