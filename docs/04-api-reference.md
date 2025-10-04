@@ -58,6 +58,40 @@ yaze_status yaze_save_message(zelda3_rom* rom, const zelda3_message* message);
 ## C++ API
 
 ### AsarWrapper (`src/app/core/asar_wrapper.h`)
+
+Complete cross-platform ROM patching with assembly code support, symbol extraction, and validation.
+
+#### Quick Examples
+
+**Command Line**
+```bash
+# Apply assembly patch to ROM
+z3ed asar my_patch.asm --rom=zelda3.sfc
+
+# Extract symbols without patching
+z3ed extract my_patch.asm
+
+# Validate assembly syntax
+z3ed validate my_patch.asm
+```
+
+**C++ API**
+```cpp
+#include "app/core/asar_wrapper.h"
+
+yaze::core::AsarWrapper wrapper;
+wrapper.Initialize();
+
+// Apply patch to ROM
+auto result = wrapper.ApplyPatch("patch.asm", rom_data);
+if (result.ok() && result->success) {
+    for (const auto& symbol : result->symbols) {
+        std::cout << symbol.name << " @ $" << std::hex << symbol.address << std::endl;
+    }
+}
+```
+
+#### AsarWrapper Class
 ```cpp
 namespace yaze::core {
 
@@ -91,6 +125,16 @@ public:
 
 }
 ```
+
+#### Error Handling
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `Unknown command` | Invalid opcode | Check 65816 instruction reference |
+| `Label not found` | Undefined label | Define the label or check spelling |
+| `Invalid hex value` | Bad hex format | Use `$1234` format |
+| `Buffer too small` | ROM needs expansion | Check if ROM needs to be larger |
+
 
 ### Data Structures
 
