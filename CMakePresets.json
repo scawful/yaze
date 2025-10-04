@@ -371,115 +371,135 @@
     {
       "name": "default",
       "configurePreset": "default",
-      "displayName": "Default Build"
+      "displayName": "Default Build",
+      "jobs": 12
     },
     {
       "name": "debug",
       "configurePreset": "debug",
-      "displayName": "Debug Build"
+      "displayName": "Debug Build",
+      "jobs": 12
     },
     {
       "name": "release",
       "configurePreset": "release",
-      "displayName": "Release Build"
+      "displayName": "Release Build",
+      "jobs": 12
     },
     {
       "name": "dev",
       "configurePreset": "dev",
-      "displayName": "Development Build"
+      "displayName": "Development Build",
+      "jobs": 12
     },
     {
       "name": "macos-dev",
       "configurePreset": "macos-dev",
-      "displayName": "macOS debug ARM64"
+      "displayName": "macOS debug ARM64",
+      "jobs": 12
     },
     {
       "name": "macos-dev-z3ed-ai",
       "configurePreset": "macos-dev-z3ed-ai",
-      "displayName": "yaze-ai"
+      "displayName": "yaze-ai",
+      "jobs": 12
     },
     {
       "name": "ci",
       "configurePreset": "ci",
-      "displayName": "CI Build"
+      "displayName": "CI Build",
+      "jobs": 12
     },
     {
       "name": "macos-debug",
       "configurePreset": "macos-debug",
-      "displayName": "macOS Debug Build"
+      "displayName": "macOS Debug Build",
+      "jobs": 12
     },
     {
       "name": "macos-release",
       "configurePreset": "macos-release",
-      "displayName": "macOS Release Build (ARM64)"
+      "displayName": "macOS Release Build (ARM64)",
+      "jobs": 12
     },
     {
       "name": "macos-debug-universal",
       "configurePreset": "macos-debug-universal",
-      "displayName": "macOS Debug Build (Universal)"
+      "displayName": "macOS Debug Build (Universal)",
+      "jobs": 12
     },
     {
       "name": "macos-release-universal",
       "configurePreset": "macos-release-universal",
-      "displayName": "macOS Release Build (Universal)"
+      "displayName": "macOS Release Build (Universal)",
+      "jobs": 12
     },
     {
       "name": "macos-agent-test",
       "configurePreset": "macos-agent-test",
-      "displayName": "macOS z3ed Agent Test Build"
+      "displayName": "macOS z3ed Agent Test Build",
+      "jobs": 12
     },
     {
       "name": "macos-dungeon-dev",
       "configurePreset": "macos-dungeon-dev",
-      "displayName": "macOS Dungeon Editor Dev Build"
+      "displayName": "macOS Dungeon Editor Dev Build",
+      "jobs": 12
     },
     {
       "name": "fast",
       "configurePreset": "debug",
       "displayName": "Fast Debug Build",
-      "jobs": 0
+      "jobs": 12
     },
     {
       "name": "windows-debug",
       "configurePreset": "windows-debug",
       "displayName": "Windows Debug Build",
-      "configuration": "Debug"
+      "configuration": "Debug",
+      "jobs": 12
     },
     {
       "name": "windows-release",
       "configurePreset": "windows-release",
       "displayName": "Windows Release Build",
-      "configuration": "Release"
+      "configuration": "Release",
+      "jobs": 12
     },
     {
       "name": "windows-dev",
       "configurePreset": "windows-dev",
       "displayName": "Windows Development Build",
-      "configuration": "Debug"
+      "configuration": "Debug",
+      "jobs": 12
     },
     {
       "name": "windows-arm64-debug",
       "configurePreset": "windows-arm64-debug",
       "displayName": "Windows ARM64 Debug Build",
-      "configuration": "Debug"
+      "configuration": "Debug",
+      "jobs": 12
     },
     {
       "name": "windows-arm64-release",
       "configurePreset": "windows-arm64-release",
       "displayName": "Windows ARM64 Release Build",
-      "configuration": "Release"
+      "configuration": "Release",
+      "jobs": 12
     },
     {
       "name": "windows-arm64-dev",
       "configurePreset": "windows-arm64-dev",
       "displayName": "Windows ARM64 Development Build",
-      "configuration": "Debug"
+      "configuration": "Debug",
+      "jobs": 12
     },
     {
       "name": "windows-agent-test",
       "configurePreset": "windows-agent-test",
       "displayName": "Windows z3ed Agent Test Build",
-      "configuration": "Debug"
+      "configuration": "Debug",
+      "jobs": 12
     }
   ],
   "testPresets": [

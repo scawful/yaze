@@ -205,6 +205,10 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
     endif()
   endif()
 
+  if(TARGET yaze_test_support)
+    target_link_libraries(yaze_test yaze_test_support)
+  endif()
+
   # Conditionally link ImGuiTestEngine only when UI tests are enabled
   if(YAZE_ENABLE_UI_TESTS)
     target_link_libraries(yaze_test ${IMGUI_TEST_ENGINE_TARGET})
