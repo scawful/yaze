@@ -43,6 +43,8 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       unit/zelda3/test_dungeon_objects.cc
       unit/zelda3/dungeon_component_unit_test.cc
       zelda3/dungeon/room_object_encoding_test.cc
+      zelda3/dungeon/room_integration_test.cc
+      zelda3/dungeon/room_manipulation_test.cc
 
       # CLI Services (for catalog serialization tests)
       ../src/cli/service/resources/resource_catalog.cc
@@ -98,6 +100,8 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       unit/zelda3/test_dungeon_objects.cc
       unit/zelda3/dungeon_component_unit_test.cc
       zelda3/dungeon/room_object_encoding_test.cc
+      zelda3/dungeon/room_integration_test.cc
+      zelda3/dungeon/room_manipulation_test.cc
 
       # CLI Services (for catalog serialization tests)
       ../src/cli/service/resources/resource_catalog.cc
