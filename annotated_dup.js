@@ -173,6 +173,7 @@ var annotated_dup =
           [ "UserRoutine", "da/d81/structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html", "da/d81/structyaze_1_1editor_1_1zsprite_1_1UserRoutine" ],
           [ "ZSprite", "df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html", "df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite" ]
         ] ],
+        [ "AgentChatHistoryCodec", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec.html", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec" ],
         [ "AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget" ],
         [ "AssemblyEditor", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor" ],
         [ "CommandManager", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html", "d3/d8a/classyaze_1_1editor_1_1CommandManager" ],

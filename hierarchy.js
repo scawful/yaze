@@ -1,5 +1,6 @@
 var hierarchy =
 [
+    [ "yaze::editor::AgentChatHistoryCodec", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec.html", null ],
     [ "yaze::app::gui::AgentChatWidget", "d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html", null ],
     [ "yaze::editor::AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", null ],
     [ "yaze::cli::agent::AgentConfig", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html", null ],
@@ -92,6 +93,7 @@ var hierarchy =
     [ "yaze::zelda3::DungeonEditorSystem::ChestData", "dc/d40/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1ChestData.html", null ],
     [ "yaze::emu::COLDATA", "d9/dd1/structyaze_1_1emu_1_1COLDATA.html", null ],
     [ "yaze::editor::AgentChatWidget::CollaborationCallbacks", "dd/d80/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationCallbacks.html", null ],
+    [ "yaze::editor::AgentChatHistoryCodec::CollaborationState", "d8/d53/structyaze_1_1editor_1_1AgentChatHistoryCodec_1_1CollaborationState.html", null ],
     [ "yaze::editor::AgentChatWidget::CollaborationState", "d7/dc8/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationState.html", null ],
     [ "yaze::emu::Color", "d8/d72/structyaze_1_1emu_1_1Color.html", null ],
     [ "yaze::gui::Color", "d4/dca/structyaze_1_1gui_1_1Color.html", null ],
@@ -306,6 +308,7 @@ var hierarchy =
     [ "yaze::emu::MPYL", "d4/dae/structyaze_1_1emu_1_1MPYL.html", null ],
     [ "yaze::emu::MPYM", "d0/d95/structyaze_1_1emu_1_1MPYM.html", null ],
     [ "yaze::editor::AgentChatWidget::MultimodalCallbacks", "d5/dcf/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalCallbacks.html", null ],
+    [ "yaze::editor::AgentChatHistoryCodec::MultimodalState", "da/d51/structyaze_1_1editor_1_1AgentChatHistoryCodec_1_1MultimodalState.html", null ],
     [ "yaze::editor::AgentChatWidget::MultimodalState", "db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState.html", null ],
     [ "yaze::gui::MultiSelect< T >", "d2/d39/classyaze_1_1gui_1_1MultiSelect.html", null ],
     [ "yaze::util::NotifyValue< T >", "de/d82/classyaze_1_1util_1_1NotifyValue.html", null ],
@@ -444,6 +447,7 @@ var hierarchy =
     [ "yaze::editor::ShortcutManager", "d7/d84/classyaze_1_1editor_1_1ShortcutManager.html", null ],
     [ "yaze::cli::agent::SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html", null ],
     [ "yaze::emu::SLHV", "de/d3d/structyaze_1_1emu_1_1SLHV.html", null ],
+    [ "yaze::editor::AgentChatHistoryCodec::Snapshot", "df/ddd/structyaze_1_1editor_1_1AgentChatHistoryCodec_1_1Snapshot.html", null ],
     [ "yaze::emu::Snes", "d3/d15/classyaze_1_1emu_1_1Snes.html", null ],
     [ "snes_color", "df/d71/structsnes__color.html", null ],
     [ "snes_palette", "d0/dad/structsnes__palette.html", null ],

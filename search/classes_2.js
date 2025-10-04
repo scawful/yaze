@@ -30,7 +30,7 @@ var searchData=
   ['chestdata_27',['ChestData',['../dc/d40/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1ChestData.html',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['coldata_28',['COLDATA',['../d9/dd1/structyaze_1_1emu_1_1COLDATA.html',1,'yaze::emu']]],
   ['collaborationcallbacks_29',['CollaborationCallbacks',['../dd/d80/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationCallbacks.html',1,'yaze::editor::AgentChatWidget']]],
-  ['collaborationstate_30',['CollaborationState',['../d7/dc8/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationState.html',1,'yaze::editor::AgentChatWidget']]],
+  ['collaborationstate_30',['collaborationstate',['../d8/d53/structyaze_1_1editor_1_1AgentChatHistoryCodec_1_1CollaborationState.html',1,'yaze::editor::AgentChatHistoryCodec::CollaborationState'],['../d7/dc8/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationState.html',1,'yaze::editor::AgentChatWidget::CollaborationState']]],
   ['color_31',['color',['../d8/d72/structyaze_1_1emu_1_1Color.html',1,'yaze::emu::Color'],['../d4/dca/structyaze_1_1gui_1_1Color.html',1,'yaze::gui::Color']]],
   ['coloranalysisoptions_32',['ColorAnalysisOptions',['../d8/de6/structyaze_1_1gui_1_1canvas_1_1ColorAnalysisOptions.html',1,'yaze::gui::canvas']]],
   ['colors_33',['Colors',['../d2/dda/structyaze_1_1app_1_1gui_1_1AgentChatWidget_1_1Colors.html',1,'yaze::app::gui::AgentChatWidget']]],

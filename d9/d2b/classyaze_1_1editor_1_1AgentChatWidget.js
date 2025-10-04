@@ -35,6 +35,8 @@ var classyaze_1_1editor_1_1AgentChatWidget =
     [ "last_history_size_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a18b11c05517fae261aa1c6703334f909", null ],
     [ "history_loaded_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ac93350adebd8375aa05f00bff0626872", null ],
     [ "history_dirty_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a326ea1117c7eb0024ef5d857b2821a7a", null ],
+    [ "history_supported_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a4cb780db418166227bb48f2adde90299", null ],
+    [ "history_warning_displayed_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#af68620c0a9fe0b9a3cfe7d8c103c6225", null ],
     [ "history_path_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ac23828c78c05bd1289d89774930541da", null ],
     [ "last_proposal_count_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#affa0210f28a2335ebb9e9064bd7731aa", null ],
     [ "toast_manager_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a7eefe1d223935d8bf829af26bbe897ba", null ],

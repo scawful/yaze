@@ -96,7 +96,7 @@ var searchData=
   ['of_20contents_93',['of contents',['../d7/d9a/md_docs_2E1-asm-style-guide.html#autotoc_md456',1,'Table of Contents'],['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md553',1,'Table of Contents']]],
   ['off_94',['Off',['../d3/d81/group__dungeon.html#gadcf43c7a0c40bed25771dcd055a2e565',1,'zelda.h']]],
   ['offertestsessioncreation_95',['OfferTestSessionCreation',['../da/d3e/classyaze_1_1test_1_1TestManager.html#ac0e33eba8ade56271b4c15d82fad122f',1,'yaze::test::TestManager']]],
-  ['offset_96',['offset',['../d2/d09/structyaze_1_1emu_1_1ScrollRegister.html#a7719138fdd82cc7affd62ebbfbe376de',1,'yaze::emu::ScrollRegister::offset'],['../d5/db2/structyaze_1_1editor_1_1ExampleMemberInfo.html#a290a3cd08e27d9b2072c059b91482f96',1,'yaze::editor::ExampleMemberInfo::Offset']]],
+  ['offset_96',['offset',['../d5/db2/structyaze_1_1editor_1_1ExampleMemberInfo.html#a290a3cd08e27d9b2072c059b91482f96',1,'yaze::editor::ExampleMemberInfo::Offset'],['../d2/d09/structyaze_1_1emu_1_1ScrollRegister.html#a7719138fdd82cc7affd62ebbfbe376de',1,'yaze::emu::ScrollRegister::offset']]],
   ['offset_5fx_5f_97',['offset_x_',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a7af011bcb00c9cbbe365526b13cf19ac',1,'yaze::zelda3::RoomObject']]],
   ['offset_5fy_5f_98',['offset_y_',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#ab51d96a171361d176bdae4770ff723a3',1,'yaze::zelda3::RoomObject']]],
   ['old_5ftile_99',['old_tile',['../d6/d52/structyaze_1_1cli_1_1Tile16Change.html#afedb295cf2c5c3a6cf9e69b4ae726fc5',1,'yaze::cli::Tile16Change']]],

@@ -2,7 +2,7 @@ var classyaze_1_1editor_1_1EditorSet =
 [
     [ "EditorSet", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a641ff69b331c7a79c26dd4228726c3da", null ],
     [ "assembly_editor_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#ac073c43793ade0d820758bd6d7175322", null ],
-    [ "dungeon_editor_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a094b7d7c17157d507b4700a1042d4b75", null ],
+    [ "dungeon_editor_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a52760cfa4105c4e46b39ea8c6b966963", null ],
     [ "graphics_editor_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a75df97875600232e9193257a7c59a06a", null ],
     [ "music_editor_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#a2baa314753f43ad1205b0e271a82eb43", null ],
     [ "overworld_editor_", "d3/d21/classyaze_1_1editor_1_1EditorSet.html#acbfabda386721c0839e746a47f60b554", null ],

@@ -1,5 +1,8 @@
 var NAVTREEINDEX26 =
 {
+"d4/d0a/namespaceyaze_1_1test.html#a2920b49cde487363eb92e004de5c3a86":[32,0,5,8,92],
+"d4/d0a/namespaceyaze_1_1test.html#a29719ee810b0657e19889fabc837efe4":[32,0,5,8,99],
+"d4/d0a/namespaceyaze_1_1test.html#a2a11f299beab72535b885e4306437550":[32,0,5,8,91],
 "d4/d0a/namespaceyaze_1_1test.html#a2a5754a75fc0064e1c85a6406b8940d8":[32,0,5,8,77],
 "d4/d0a/namespaceyaze_1_1test.html#a2bc40237272e2d4fb9d31f8dc475c210":[32,0,5,8,174],
 "d4/d0a/namespaceyaze_1_1test.html#a2fa13aab942bfc8f13b0c5c76cb35e84":[32,0,5,8,108],
@@ -235,8 +238,8 @@ var NAVTREEINDEX26 =
 "d4/d1a/cli_2handlers_2rom_8cc.html":[34,0,3,1,0,12],
 "d4/d1a/cli_2handlers_2rom_8cc.html#aa9c3df97146a4533c1c78f5ac7c9e36e":[34,0,3,1,0,12,0],
 "d4/d1a/cli_2handlers_2rom_8cc_source.html":[34,0,3,1,0,12],
-"d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html":[33,0,1,9,19,0],
 "d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html":[32,0,5,10,26,0],
+"d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html":[33,0,1,9,19,0],
 "d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html#a70748828c09b41a8d0b8735b9aae59fe":[32,0,5,10,26,0,0],
 "d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html#a70748828c09b41a8d0b8735b9aae59fe":[33,0,1,9,19,0,0],
 "d4/d2a/asar__integration__test_8cc.html":[34,0,4,4,2],
@@ -246,8 +249,5 @@ var NAVTREEINDEX26 =
 "d4/d2a/asar__integration__test_8cc.html#a3c211f25c9fb86fd7663934e957074b6":[34,0,4,4,2,2],
 "d4/d2a/asar__integration__test_8cc.html#a66b236bcaa37d8b8f9f3b4419ed0b68c":[34,0,4,4,2,6],
 "d4/d2a/asar__integration__test_8cc.html#ac3545ad5782ac2ea16cd6eb08e617cde":[34,0,4,4,2,3],
-"d4/d2a/asar__integration__test_8cc.html#ae96e6fe7bc401a79b498a8469aaebe98":[34,0,4,4,2,1],
-"d4/d2a/asar__integration__test_8cc_source.html":[34,0,4,4,2],
-"d4/d2e/structyaze_1_1cli_1_1RomContext.html":[32,0,5,2,78],
-"d4/d2e/structyaze_1_1cli_1_1RomContext.html":[33,0,1,1,65]
+"d4/d2a/asar__integration__test_8cc.html#ae96e6fe7bc401a79b498a8469aaebe98":[34,0,4,4,2,1]
 };

@@ -1,5 +1,6 @@
 var namespaceyaze_1_1editor =
 [
+    [ "anonymous_namespace{agent_chat_history_codec.cc}", "d3/d49/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__codec_8cc_03.html", null ],
     [ "anonymous_namespace{assembly_editor.cc}", "d1/d33/namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html", [
       [ "RemoveIgnoredFiles", "d1/d33/namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#afb9e8d9b03590a412db61ef023a6e689", null ],
       [ "LoadFolder", "d1/d33/namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#a892d14f134c77a3840951d2cfa0f7ce7", null ]
@@ -23,6 +24,7 @@ var namespaceyaze_1_1editor =
     [ "palette_internal", "d9/d8b/namespaceyaze_1_1editor_1_1palette__internal.html", "d9/d8b/namespaceyaze_1_1editor_1_1palette__internal" ],
     [ "test", "d1/dac/namespaceyaze_1_1editor_1_1test.html", "d1/dac/namespaceyaze_1_1editor_1_1test" ],
     [ "zsprite", "d8/d17/namespaceyaze_1_1editor_1_1zsprite.html", "d8/d17/namespaceyaze_1_1editor_1_1zsprite" ],
+    [ "AgentChatHistoryCodec", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec.html", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec" ],
     [ "AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget" ],
     [ "AssemblyEditor", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor" ],
     [ "CommandManager", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html", "d3/d8a/classyaze_1_1editor_1_1CommandManager" ],

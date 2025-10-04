@@ -1,0 +1,7 @@
+<map id="yaze::editor::AgentChatHistoryCodec::Snapshot" name="yaze::editor::AgentChatHistoryCodec::Snapshot">
+<area shape="rect" id="Node000001" title=" " alt="" coords="323,39,516,79"/>
+<area shape="rect" id="Node000002" href="$d8/d53/structyaze_1_1editor_1_1AgentChatHistoryCodec_1_1CollaborationState.html" title=" " alt="" coords="5,5,199,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,35,323,46,322,52,214,40"/>
+<area shape="rect" id="Node000003" href="$da/d51/structyaze_1_1editor_1_1AgentChatHistoryCodec_1_1MultimodalState.html" title=" " alt="" coords="5,71,199,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="214,77,322,66,322,71,214,82"/>
+</map>

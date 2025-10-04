@@ -1,9 +1,11 @@
 <map id="yaze::editor::AgentChatWidget::MarkHistoryDirty" name="yaze::editor::AgentChatWidget::MarkHistoryDirty">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,198,79"/>
-<area shape="rect" id="Node000002" href="$d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a02931df005bb2c634a5885bae19c4180" title=" " alt="" coords="246,39,438,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,56,230,56,230,62,198,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,198,111"/>
+<area shape="rect" id="Node000002" href="$d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a02931df005bb2c634a5885bae19c4180" title=" " alt="" coords="246,71,438,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,88,230,88,230,94,198,94"/>
 <area shape="rect" id="Node000003" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ab55e86d1ba2febc9f75ead191a3385fc" title=" " alt="" coords="486,5,682,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="438,43,470,39,471,44,439,48"/>
-<area shape="rect" id="Node000004" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="497,71,671,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="439,69,482,75,482,80,438,74"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="419,68,491,48,492,53,420,73"/>
+<area shape="rect" id="Node000004" href="$d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec.html#a2ade08e68b399b2a45b7658e5cc26c46" title=" " alt="" coords="488,71,681,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="439,88,472,88,472,94,439,94"/>
+<area shape="rect" id="Node000005" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="497,136,671,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="420,109,492,129,491,134,419,114"/>
 </map>
