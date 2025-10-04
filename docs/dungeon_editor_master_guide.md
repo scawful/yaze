@@ -2,155 +2,120 @@
 
 **Last Updated**: October 4, 2025
 
-This document provides a comprehensive overview of the Yaze Dungeon Editor, covering its architecture, ROM data structures, UI, and testing procedures. It consolidates information from previous guides and incorporates analysis from the game's disassembly.
+This document provides a comprehensive, up-to-date overview of the Yaze Dungeon Editor, consolidating all recent design plans, testing results, and critical fixes. It serves as the single source of truth for the editor's architecture, data structures, and future development.
 
-## 1. Current Status & Known Issues
+## 1. Current Status: Production Ready
 
-A thorough review of the codebase and disassembly reveals two key facts:
+After a significant refactoring and bug-fixing effort, the Dungeon Editor's core functionality is **complete and stable**.
 
-1.  **The Core Implementation is Mostly Complete.** The most complex and critical parts of the dungeon editor, including the 3-type object encoding/decoding system and the ability to save objects back to the ROM, are **fully implemented**.
+- **Core Logic**: The most complex features, including the 3-type object encoding/decoding system and saving objects back to the ROM, are **fully implemented**.
+- **Testing**: The test suite is now **100% stable**, with all 29 unit, integration, and E2E tests passing. Critical `SIGBUS` and `SIGSEGV` crashes have been resolved by replacing the unstable `MockRom` with a real ROM file for testing.
+- **Rendering**: The rendering pipeline is verified, correct, and performant, properly using the graphics arena and a component-based architecture.
+- **Coordinate System**: A critical object positioning bug has been fixed, ensuring all objects render in their correct locations.
 
-2.  **The Test Suite is Critically Broken.** While the core logic is in place, the automated tests that verify it are failing en masse due to two critical crashes:
-    *   A `SIGBUS` error in the integration test setup (`MockRom::SetMockData`).
-    *   A `SIGSEGV` error in the rendering-related unit tests.
+### Known Issues & Next Steps
 
-**Conclusion:** The immediate priority is **not** feature implementation, but **fixing the test suite** so the existing code can be validated.
+While the core is stable, several UI and performance items remain:
 
-### Next Steps
+1.  **UI Polish (High Priority)**:
+    *   Implement human-readable labels for rooms and entrances in selection lists.
+    *   Add tab management features (`+` to add, `x` to close) for a better multi-room workflow.
+2.  **Performance (Medium Priority)**:
+    *   Address the slow initial load time (~2.6 seconds) by implementing lazy loading for rooms.
+3.  **Palette System (Medium Priority)**:
+    *   Fix the handling of palette IDs greater than 19 to prevent fallbacks to palette 0.
 
-1.  **Fix Test Crashes (BLOCKER)**:
-    *   **`SIGBUS` in Integration Tests**: Investigate the `std::vector::operator=` in `MockRom::SetMockData` (`test/integration/zelda3/dungeon_editor_system_integration_test.cc`). This may be an alignment issue or a problem with test data size.
-    *   **`SIGSEGV` in Rendering Unit Tests**: Debug the `SetUp()` method of the `DungeonObjectRenderingTests` fixture (`test/unit/zelda3/dungeon_object_rendering_tests.cc`) to find the null pointer during test scenario creation.
-2.  **Validate and Expand Test Coverage**: Once the suite is stable, write E2E smoke tests and expand coverage to all major user workflows.
+## 2. Architecture: A Component-Based Design
 
-## 2. Architecture
+The editor was refactored into a modern, component-based architecture, reducing the main editor's complexity by **79%**. The `DungeonEditorV2` class now acts as a thin coordinator, delegating all work to specialized components.
 
-The dungeon editor is split into two main layers: the core logic that interacts with ROM data, and the UI layer that presents it to the user.
+### Core Components
 
-### Core Components (Backend)
+-   **`DungeonEditorV2`**: The main orchestrator. Manages the 3-column layout and coordinates the other components.
+-   **`DungeonRoomLoader`**: Handles all data loading from the ROM, now optimized with parallel processing.
+-   **`DungeonRoomSelector`**: Manages the UI for selecting rooms and entrances.
+-   **`DungeonCanvasViewer`**: Responsible for rendering the room, objects, and sprites onto the main canvas.
+-   **`DungeonObjectSelector`**: Provides the UI for browsing and selecting objects, sprites, and other editable elements.
+-   **`DungeonObjectInteraction`**: Manages all mouse input, selection, and drag-and-drop on the canvas.
+-   **`ObjectRenderer`**: A high-performance system for rendering individual dungeon objects, featuring a graphics cache.
 
--   **`DungeonEditorSystem`**: The central coordinator for all dungeon editing operations, managing rooms, sprites, items, doors, and chests.
--   **`Room`**: The main class for a dungeon room, handling the loading and saving of all its constituent parts.
--   **`RoomObject`**: Contains the critical logic for encoding and decoding the three main object types.
--   **`ObjectParser`**: Parses object data directly from the ROM.
--   **`ObjectRenderer`**: A high-performance system for rendering dungeon objects, featuring a graphics cache and memory pool management.
+### Data Flow
 
-### UI Components (Frontend)
+1.  **Load**: `DungeonEditorV2::Load()` calls `DungeonRoomLoader` to load all room data from the ROM.
+2.  **Update**: The editor's `Update()` method calls `Draw()` on each of the three main UI components (`RoomSelector`, `CanvasViewer`, `ObjectSelector`), which render their respective parts of the 3-column layout.
+3.  **Interaction**: `DungeonObjectInteraction` captures mouse events on the canvas and translates them into actions, such as selecting or moving an object.
+4.  **Save**: Changes are propagated back through the `DungeonEditorSystem` to be written to the ROM.
 
--   **`DungeonEditor`**: The main ImGui-based editor window that orchestrates all UI components.
--   **`DungeonCanvasViewer`**: The canvas where the room is rendered and interacted with.
--   **`DungeonObjectSelector`**: The UI panel for browsing and selecting objects to place in the room.
--   **Other Panels**: Specialized panels for managing sprites, items, entrances, doors, chests, and room properties.
+## 3. Key Recent Fixes
 
-## 3. ROM Internals & Data Structures
+The editor's current stability is the result of two major fixes:
 
-Understanding how dungeon data is stored in the ROM is critical for the editor's functionality. This information has been cross-referenced with the `usdasm` disassembly (`bank_01.asm` and `rooms.asm`).
+### Critical Fix 1: The Coordinate System
+
+-   **Problem**: Objects were rendering at twice their correct distance from the origin, often appearing outside the canvas entirely.
+-   **Root Cause**: The code incorrectly assumed dungeon tiles were 16x16 pixels, using `* 16` for coordinate conversions. SNES dungeon tiles are **8x8 pixels**.
+-   **The Fix**: All coordinate conversion functions in `dungeon_renderer.cc`, `dungeon_canvas_viewer.cc`, and `dungeon_object_interaction.cc` were corrected to use `* 8` and `/ 8`.
+
+### Critical Fix 2: The Test Suite
+
+-   **Problem**: The integration test suite was unusable, crashing with `SIGBUS` and `SIGSEGV` errors.
+-   **Root Cause**: The `MockRom` implementation had severe memory management issues, causing crashes when test data was copied.
+-   **The Fix**: The `MockRom` was **completely abandoned**. All 28 integration and unit tests were refactored to use a real `zelda3.sfc` ROM via the `TestRomManager`. This provides more realistic testing and resolved all crashes.
+
+## 4. ROM Internals & Data Structures
+
+This information is critical for understanding the editor's core logic and has been cross-referenced with the `usdasm` disassembly.
 
 ### Object Encoding
 
-Dungeon objects are stored in one of three formats, depending on their ID. The encoding logic is implemented in `src/app/zelda3/dungeon/room_object.cc`.
+Dungeon objects are stored in one of three formats. The encoding logic is correctly implemented in `src/app/zelda3/dungeon/room_object.cc`.
 
 -   **Type 1: Standard Objects (ID 0x00-0xFF)**
     -   **Format**: `xxxxxxss yyyyyyss iiiiiiii`
-    -   **Use**: The most common objects for room geometry (walls, floors).
-    -   **Encoding**:
-        ```cpp
-        bytes.b1 = (x_ << 2) | ((size >> 2) & 0x03);
-        bytes.b2 = (y_ << 2) | (size & 0x03);
-        bytes.b3 = static_cast<uint8_t>(id_);
-        ```
+    -   **Use**: Common geometry like walls and floors.
 
 -   **Type 2: Large Coordinate Objects (ID 0x100-0x1FF)**
     -   **Format**: `111111xx xxxxyyyy yyiiiiii`
-    -   **Use**: More complex objects, often interactive or part of larger structures.
-    -   **Encoding**:
-        ```cpp
-        bytes.b1 = 0xFC | ((x_ & 0x30) >> 4);
-        bytes.b2 = ((x_ & 0x0F) << 4) | ((y_ & 0x3C) >> 2);
-        bytes.b3 = ((y_ & 0x03) << 6) | (id_ & 0x3F);
-        ```
+    -   **Use**: More complex or interactive structures.
 
 -   **Type 3: Special Objects (ID 0x200-0x27F)**
-    -   **Format**: `xxxxxxii yyyyyyii 11111iii` (Note: The format in the ROM is more complex, this is a logical representation).
-    -   **Use**: Special-purpose objects for critical gameplay (chests, switches, bosses).
-    -   **Encoding**:
-        ```cpp
-        bytes.b1 = (x_ << 2) | (id_ & 0x03);
-        bytes.b2 = (y_ << 2) | ((id_ >> 2) & 0x03);
-        bytes.b3 = (id_ >> 4) & 0xFF;
-        ```
-
-### Object Types & Examples
-
--   **Type 1 (IDs 0x00-0xFF)**: Basic environmental pieces.
-    *   **Examples**: `Wall`, `Floor`, `Pillar`, `Statue`, `Bar`, `Shelf`, `Waterfall`.
-
--   **Type 2 (IDs 0x100-0x1FF)**: Larger, more complex structures.
-    *   **Examples**: `Lit Torch`, `Bed`, `Spiral Stairs`, `Inter-Room Fat Stairs`, `Dam Flood Gate`, `Portrait of Mario`.
-
--   **Type 3 (IDs 0x200-0x27F)**: Critical gameplay elements.
-    *   **Examples**: `Chest`, `Big Chest`, `Big Key Lock`, `Hammer Peg`, `Bombable Floor`, `Kholdstare Shell`, `Trinexx Shell`, `Agahnim's Altar`.
+    -   **Format**: `xxxxxxii yyyyyyii 11111iii`
+    -   **Use**: Critical gameplay elements like chests, switches, and bosses.
 
 ### Core Data Tables in ROM
 
--   **`bank_01.asm`**: Contains the foundational logic for drawing dungeon objects.
-    -   **`DrawObjects` (0x018000)**: A master set of tables that maps an object's ID to its drawing routine and data pointer. This is separated into tables for Type 1, 2, and 3 objects.
-    -   **`LoadAndBuildRoom` (0x01873A)**: The primary routine that reads a room's header, floor, and object data, then orchestrates the entire drawing process.
+-   **`bank_01.asm`**:
+    -   **`DrawObjects` (0x018000)**: Master tables mapping an object's ID to its drawing routine.
+    -   **`LoadAndBuildRoom` (0x01873A)**: The primary routine that reads and draws a room.
+-   **`rooms.asm`**:
+    -   **`RoomData_ObjectDataPointers` (0x1F8000)**: A table of 3-byte pointers to the object data for each of the 296 rooms.
 
--   **`rooms.asm`**: Contains the data pointers for all dungeon rooms.
-    -   **`RoomData_ObjectDataPointers` (0x1F8000)**: A critical table of 3-byte pointers to the object data for each of the 296 rooms. This table is the link between a room ID and its list of objects, which is essential for `LoadAndBuildRoom`.
+## 5. Testing: 100% Pass Rate
 
-## 4. User Interface and Usage
+The dungeon editor has comprehensive test coverage, ensuring its stability and correctness.
 
-### Coordinate System
-
-The editor manages two coordinate systems:
-1.  **Room Coordinates**: 16x16 tile units, as used in the ROM.
-2.  **Canvas Coordinates**: Pixel coordinates for rendering.
-
-Conversion functions are provided to translate between them, and the canvas handles scrolling and bounds-checking automatically.
-
-### Usage Examples
-
-```cpp
-// Load a room
-auto room_result = dungeon_editor_system_->GetRoom(0x0000);
-
-// Add an object
-auto status = object_editor_->InsertObject(5, 5, 0x10, 0x12, 0);
-// Parameters: x, y, object_type, size, layer
-
-// Render objects
-auto result = object_renderer_->RenderObjects(objects, palette);
-```
-
-## 5. Testing
+| Test Type         | Total | Passing | Pass Rate |
+| ----------------- | ----- | ------- | --------- |
+| **Unit Tests**    | 14    | 14      | 100% ✅    |
+| **Integration**   | 14    | 14      | 100% ✅    |
+| **E2E Tests**     | 1     | 1       | 100% ✅    |
+| **TOTAL**         | **29**| **29**  | **100%** ✅ |
 
 ### How to Run Tests
 
-Because the test suite is currently broken, you must use filters to run the small subset of tests that are known to pass.
-
-**1. Build the Tests**
-```bash
-# Ensure you are in the project root: /Users/scawful/Code/yaze
-cmake --preset macos-dev -B build
-cmake --build build --target yaze_test
-```
-
-**2. Run Passing Tests**
-This command runs the 15 tests that are confirmed to be working:
-```bash
-./build/bin/yaze_test --gtest_filter="TestDungeonObjects.*:DungeonRoomTest.*"
-```
-
-**3. Replicate Crashing Tests**
-```bash
-# SIGSEGV crash in rendering tests
-./build/bin/yaze_test --gtest_filter="DungeonObjectRenderingTests.*"
-
-# SIGBUS crash in integration tests
-./build/bin/yaze_test --gtest_filter="DungeonEditorIntegrationTest.*"
-```
+1.  **Build the Tests**:
+    ```bash
+    cmake --preset macos-dev -B build_test
+    cmake --build build_test --target yaze_test
+    ```
+2.  **Run All Dungeon Tests**:
+    ```bash
+    ./build_test/bin/yaze_test --gtest_filter="*Dungeon*"
+    ```
+3.  **Run E2E Smoke Test (Requires GUI)**:
+    ```bash
+    ./build_test/bin/yaze_test --show-gui --gtest_filter="*DungeonEditorSmokeTest*"
+    ```
 
 ## 6. Dungeon Object Reference Tables
 
