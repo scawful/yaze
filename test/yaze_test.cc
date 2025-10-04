@@ -19,6 +19,7 @@
 #include "app/core/controller.h"
 #include "e2e/canvas_selection_test.h"
 #include "e2e/framework_smoke_test.h"
+#include "e2e/dungeon_editor_smoke_test.h"
 
 // #include "test_editor.h"  // Not used in main
 
@@ -285,6 +286,11 @@ int main(int argc, char* argv[]) {
     ImGuiTest* canvas_test = IM_REGISTER_TEST(engine, "E2ETest", "CanvasSelectionTest");
     canvas_test->TestFunc = E2ETest_CanvasSelectionTest;
     canvas_test->UserData = &controller;
+    
+    // Register dungeon editor smoke test
+    ImGuiTest* dungeon_test = IM_REGISTER_TEST(engine, "E2ETest", "DungeonEditorSmokeTest");
+    dungeon_test->TestFunc = E2ETest_DungeonEditorSmokeTest;
+    dungeon_test->UserData = &controller;
 
     // Main loop
     bool done = false;

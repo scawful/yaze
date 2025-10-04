@@ -18,9 +18,16 @@ namespace test {
 class DungeonEditorIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Use the real ROM
+    // Use the real ROM (try multiple locations)
     rom_ = std::make_unique<Rom>();
-    ASSERT_TRUE(rom_->LoadFromFile("build/bin/zelda3.sfc").ok());
+    auto status = rom_->LoadFromFile("assets/zelda3.sfc");
+    if (!status.ok()) {
+      status = rom_->LoadFromFile("build/bin/zelda3.sfc");
+    }
+    if (!status.ok()) {
+      status = rom_->LoadFromFile("zelda3.sfc");
+    }
+    ASSERT_TRUE(status.ok()) << "Could not load zelda3.sfc from any location";
     dungeon_editor_ = std::make_unique<editor::DungeonEditor>();
     dungeon_editor_->set_rom(rom_.get());
   }
