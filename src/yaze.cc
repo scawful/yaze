@@ -43,7 +43,7 @@ int yaze_app_main(int argc, char** argv) {
     std::string upper_s;
     std::transform(s.begin(), s.end(), std::back_inserter(upper_s),
                    ::toupper);
-    if (upper_s == "DEBUG") return yaze::util::LogLevel::DEBUG;
+    if (upper_s == "YAZE_DEBUG") return yaze::util::LogLevel::YAZE_DEBUG;
     if (upper_s == "INFO") return yaze::util::LogLevel::INFO;
     if (upper_s == "WARN" || upper_s == "WARNING")
       return yaze::util::LogLevel::WARNING;
