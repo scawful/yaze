@@ -62,8 +62,13 @@ class AgentChatWidget {
   bool* active() { return &active_; }
   bool is_active() const { return active_; }
   void set_active(bool active) { active_ = active; }
+  
+  CaptureMode capture_mode() const { return multimodal_state_.capture_mode; }
+  const char* specific_window_name() const { 
+    return multimodal_state_.specific_window_buffer; 
+  }
 
- private:
+public:
   struct CollaborationState {
     bool active = false;
     std::string session_id;
@@ -72,10 +77,18 @@ class AgentChatWidget {
     absl::Time last_synced = absl::InfinitePast();
   };
 
+  enum class CaptureMode {
+    kFullWindow = 0,
+    kActiveEditor = 1,
+    kSpecificWindow = 2
+  };
+
   struct MultimodalState {
     std::optional<std::filesystem::path> last_capture_path;
     std::string status_message;
     absl::Time last_updated = absl::InfinitePast();
+    CaptureMode capture_mode = CaptureMode::kActiveEditor;
+    char specific_window_buffer[128] = {};
   };
 
   void EnsureHistoryLoaded();
@@ -100,6 +113,7 @@ class AgentChatWidget {
       const CollaborationCallbacks::SessionContext& context,
       bool update_action_timestamp);
   void MarkHistoryDirty();
+  void PollSharedHistory();  // For real-time collaboration sync
 
   cli::agent::ConversationalAgentService agent_service_;
   char input_buffer_[1024];
@@ -124,6 +138,8 @@ class AgentChatWidget {
   char join_code_buffer_[64] = {};
   char multimodal_prompt_buffer_[256] = {};
   absl::Time last_collaboration_action_ = absl::InfinitePast();
+  absl::Time last_shared_history_poll_ = absl::InfinitePast();
+  size_t last_known_history_size_ = 0;
 };
 
 }  // namespace editor

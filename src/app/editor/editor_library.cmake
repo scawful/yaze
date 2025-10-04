@@ -92,6 +92,17 @@ target_link_libraries(yaze_editor PUBLIC
   ImGui
 )
 
+if(YAZE_WITH_JSON)
+  target_include_directories(yaze_editor PUBLIC
+    ${CMAKE_SOURCE_DIR}/third_party/json/include)
+
+  if(TARGET nlohmann_json::nlohmann_json)
+    target_link_libraries(yaze_editor PUBLIC nlohmann_json::nlohmann_json)
+  endif()
+
+  target_compile_definitions(yaze_editor PUBLIC YAZE_WITH_JSON)
+endif()
+
 # Conditionally link ImGui Test Engine
 if(YAZE_ENABLE_UI_TESTS AND TARGET ImGuiTestEngine)
   target_link_libraries(yaze_editor PUBLIC ImGuiTestEngine)
