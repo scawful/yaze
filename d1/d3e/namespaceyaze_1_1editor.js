@@ -1,6 +1,10 @@
 var namespaceyaze_1_1editor =
 [
     [ "anonymous_namespace{agent_chat_history_codec.cc}", "d3/d49/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__codec_8cc_03.html", null ],
+    [ "anonymous_namespace{agent_collaboration_coordinator.cc}", "dc/d0a/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__collaboration__coordinator_8cc_03.html", [
+      [ "ExpandUserPath", "dc/d0a/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__collaboration__coordinator_8cc_03.html#a4fc792052e179669716d31413c174cc9", null ],
+      [ "Trimmed", "dc/d0a/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__collaboration__coordinator_8cc_03.html#ad3e7f14716b68bcb17c428459e5cc7f0", null ]
+    ] ],
     [ "anonymous_namespace{assembly_editor.cc}", "d1/d33/namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html", [
       [ "RemoveIgnoredFiles", "d1/d33/namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#afb9e8d9b03590a412db61ef023a6e689", null ],
       [ "LoadFolder", "d1/d33/namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#a892d14f134c77a3840951d2cfa0f7ce7", null ]
@@ -26,6 +30,7 @@ var namespaceyaze_1_1editor =
     [ "zsprite", "d8/d17/namespaceyaze_1_1editor_1_1zsprite.html", "d8/d17/namespaceyaze_1_1editor_1_1zsprite" ],
     [ "AgentChatHistoryCodec", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec.html", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec" ],
     [ "AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget" ],
+    [ "AgentCollaborationCoordinator", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator" ],
     [ "AssemblyEditor", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor" ],
     [ "CommandManager", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html", "d3/d8a/classyaze_1_1editor_1_1CommandManager" ],
     [ "DictionaryEntry", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry" ],

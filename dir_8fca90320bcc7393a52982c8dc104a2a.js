@@ -15,6 +15,7 @@ var dir_8fca90320bcc7393a52982c8dc104a2a =
     [ "color.h", "da/dec/color_8h.html", "da/dec/color_8h" ],
     [ "enhanced_palette_editor.cc", "de/dd4/enhanced__palette__editor_8cc.html", null ],
     [ "enhanced_palette_editor.h", "d5/d21/enhanced__palette__editor_8h.html", "d5/d21/enhanced__palette__editor_8h" ],
+    [ "feature_flags_menu.h", "d3/d47/feature__flags__menu_8h.html", "d3/d47/feature__flags__menu_8h" ],
     [ "icons.h", "de/dbf/icons_8h.html", "de/dbf/icons_8h" ],
     [ "input.cc", "de/d4c/input_8cc.html", "de/d4c/input_8cc" ],
     [ "input.h", "de/ded/input_8h.html", "de/ded/input_8h" ],

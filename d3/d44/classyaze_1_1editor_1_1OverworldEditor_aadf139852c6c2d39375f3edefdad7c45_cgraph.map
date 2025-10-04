@@ -1,0 +1,10 @@
+<map id="yaze::editor::OverworldEditor::LoadScratchToSelection" name="yaze::editor::OverworldEditor::LoadScratchToSelection">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,189,99"/>
+<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#ad275954728917ad92cd88165cd47184f" title=" " alt="" coords="237,66,334,92"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,76,221,76,221,82,189,82"/>
+<area shape="rect" id="Node000003" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#a14416ae7e2c8807918b806b0ae947c6d" title=" " alt="" coords="394,29,542,70"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="334,69,378,61,378,67,335,74"/>
+<area shape="rect" id="Node000004" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#ae326c7c3034a3127513198774bb75c07" title="The primary logging function." alt="" coords="382,94,553,120"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="335,84,367,89,366,94,334,89"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="433,29,431,19,437,10,449,5,468,3,488,5,500,11,497,16,486,10,468,8,451,10,440,14,436,20,438,28"/>
+</map>

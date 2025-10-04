@@ -1,0 +1,26 @@
+var classyaze_1_1editor_1_1AgentCollaborationCoordinator =
+[
+    [ "SessionFileData", "d0/d42/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionFileData.html", "d0/d42/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionFileData" ],
+    [ "SessionInfo", "d2/df2/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionInfo.html", "d2/df2/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionInfo" ],
+    [ "AgentCollaborationCoordinator", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a51cb500f862d082a879fd6a3fbad4421", null ],
+    [ "HostSession", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#ad4ea570664620a429654009aa0f90e8c", null ],
+    [ "JoinSession", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a17ee6d5798bd8dba231cfce40495a518", null ],
+    [ "LeaveSession", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#afe423c605b6bb7f6661e5dc0f223ecd2", null ],
+    [ "RefreshSession", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#aee153995b9f596aedc91ad3011aadf9d", null ],
+    [ "active", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a26763a4af9856feb830c9293824ee63c", null ],
+    [ "session_id", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a66ad79395a38b40a463f48722dd01a2e", null ],
+    [ "session_name", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#ad88f2a572586f42355520629d88f9dca", null ],
+    [ "EnsureDirectory", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a974efe0c0d9b5b13d16423fc072389c0", null ],
+    [ "LocalUserName", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a283e78fd0678742539f612ea212bf677", null ],
+    [ "NormalizeSessionCode", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a78751689f80fdd2b3a718694e55775c1", null ],
+    [ "GenerateSessionCode", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a47941d0cb140657447642dbb1603a536", null ],
+    [ "SessionsDirectory", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a4fa614f247f0932bcfc68c1a10769e5f", null ],
+    [ "SessionFilePath", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#ae2b8f8a83d8a52dbd6faf69841b90f8d", null ],
+    [ "LoadSessionFile", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a2d5a80314e0a73d6c46fc57879c78179", null ],
+    [ "WriteSessionFile", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#ac34d2c3cc2dc2f21d084177f5df6eaa4", null ],
+    [ "active_", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#aae9ffb472a0cc933da1cf4cabd0d5bee", null ],
+    [ "hosting_", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a8351ce85672ac9e367656aec195f8232", null ],
+    [ "session_id_", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#ac08cf79791f81372ff8005e3f77e24b5", null ],
+    [ "session_name_", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a7cdfebdca951f7e266485167b4bfe295", null ],
+    [ "local_user_", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a2e00b1facabbae5a07532c1007d11dbf", null ]
+];

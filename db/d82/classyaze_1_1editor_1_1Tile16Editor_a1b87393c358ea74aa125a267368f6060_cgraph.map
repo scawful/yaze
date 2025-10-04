@@ -1,11 +1,13 @@
 <map id="yaze::editor::Tile16Editor::CyclePalette" name="yaze::editor::Tile16Editor::CyclePalette">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,165,96"/>
-<area shape="rect" id="Node000002" href="$db/d82/classyaze_1_1editor_1_1Tile16Editor.html#aa2d77760af31583876c01d604e2799b2" title=" " alt="" coords="213,55,372,96"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,73,197,73,197,78,165,78"/>
-<area shape="rect" id="Node000003" href="$da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="420,5,583,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="368,52,437,33,438,38,370,57"/>
-<area shape="rect" id="Node000004" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919" title=" " alt="" coords="440,55,563,96"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="372,73,425,73,425,78,372,78"/>
-<area shape="rect" id="Node000005" href="$d6/d30/classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="439,121,564,161"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="360,94,425,114,423,119,359,99"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,165,99"/>
+<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#ad275954728917ad92cd88165cd47184f" title=" " alt="" coords="420,66,517,92"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,73,213,72,372,72,404,73,404,79,372,78,213,78,165,79"/>
+<area shape="rect" id="Node000005" href="$db/d82/classyaze_1_1editor_1_1Tile16Editor.html#aa2d77760af31583876c01d604e2799b2" title=" " alt="" coords="213,87,372,127"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="165,87,198,92,197,97,165,92"/>
+<area shape="rect" id="Node000003" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#a14416ae7e2c8807918b806b0ae947c6d" title=" " alt="" coords="577,29,725,70"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="517,69,561,61,562,67,518,74"/>
+<area shape="rect" id="Node000004" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#ae326c7c3034a3127513198774bb75c07" title="The primary logging function." alt="" coords="565,94,737,120"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="518,84,550,89,550,94,517,89"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="616,29,614,19,620,10,632,5,651,3,671,5,683,11,680,16,669,10,651,8,634,10,624,14,620,20,621,28"/>
+<area shape="poly" id="edge6_Node000005_Node000002" title=" " alt="" coords="372,92,404,86,405,92,373,97"/>
 </map>

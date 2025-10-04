@@ -73,6 +73,8 @@ var classyaze_1_1zelda3_1_1Room =
     [ "SetStair2Target", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a74053b5ac4047f4837c2b0095bdbcfc8", null ],
     [ "SetStair3Target", "d7/df6/classyaze_1_1zelda3_1_1Room.html#aea5db3c5b3e41d21b1e2716d7495ec69", null ],
     [ "SetStair4Target", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a1bbfa8161ac621fc5c9eed8b01be8766", null ],
+    [ "IsLoaded", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a5eba7512cc162aba69c920a81a04ecee", null ],
+    [ "SetLoaded", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a296b2142bb55eea716211eec60b156c8", null ],
     [ "effect", "d7/df6/classyaze_1_1zelda3_1_1Room.html#ac8d32b794fed4d58975542193edddabf", null ],
     [ "tag1", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a9d2d3d75c8a2cfaaacc65cb2dee2b86d", null ],
     [ "tag2", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a731d5150f06ebce672a34452027cdc31", null ],

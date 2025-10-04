@@ -1,8 +1,13 @@
 <map id="yaze::zelda3::Overworld::AssembleMap32Tiles" name="yaze::zelda3::Overworld::AssembleMap32Tiles">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,161,75"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,161,103"/>
 <area shape="rect" id="Node000002" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#adce596173df992b103ed68c75e01763c" title=" " alt="" coords="209,5,364,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,41,193,36,193,42,161,46"/>
-<area shape="rect" id="Node000003" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a024996a77d32a4e9fa6ecaa918d642b4" title=" " alt="" coords="412,42,595,68"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="161,54,209,55,364,55,396,55,396,60,364,60,209,60,161,60"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="365,34,397,38,396,43,364,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,60,196,48,198,53,158,65"/>
+<area shape="rect" id="Node000003" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a024996a77d32a4e9fa6ecaa918d642b4" title=" " alt="" coords="412,26,595,52"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="161,74,364,55,396,51,397,56,364,60,161,80"/>
+<area shape="rect" id="Node000004" href="$d4/de1/namespaceyaze_1_1util.html#ad275954728917ad92cd88165cd47184f" title=" " alt="" coords="238,121,335,147"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="161,100,223,115,222,121,160,105"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="365,28,397,30,396,35,364,33"/>
+<area shape="rect" id="Node000005" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#a14416ae7e2c8807918b806b0ae947c6d" title=" " alt="" coords="430,113,578,154"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="335,131,414,131,414,136,335,136"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="463,113,461,103,467,94,482,89,504,87,527,89,541,95,539,100,526,94,504,92,483,94,470,99,466,105,468,112"/>
 </map>

@@ -1,7 +1,12 @@
 <map id="yaze::editor::ParseMessageToData" name="yaze::editor::ParseMessageToData">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,184,79"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,184,111"/>
 <area shape="rect" id="Node000002" href="$d1/d3e/namespaceyaze_1_1editor.html#a03b0a3d0118e4a4e0b4b63532aa03c4c" title=" " alt="" coords="232,5,401,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="183,43,216,38,216,43,184,48"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,68,229,48,231,54,167,73"/>
 <area shape="rect" id="Node000003" href="$d1/d3e/namespaceyaze_1_1editor.html#ad840a81ab7030a220a019f79fbbabb6d" title=" " alt="" coords="232,71,401,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,69,216,74,216,79,183,74"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,88,216,88,216,94,184,94"/>
+<area shape="rect" id="Node000004" href="$d4/de1/namespaceyaze_1_1util.html#ad275954728917ad92cd88165cd47184f" title=" " alt="" coords="268,136,365,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="176,109,253,129,252,135,175,114"/>
+<area shape="rect" id="Node000005" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#a14416ae7e2c8807918b806b0ae947c6d" title=" " alt="" coords="449,128,597,169"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="366,146,434,146,434,151,366,151"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="484,128,482,118,488,109,502,103,523,101,546,104,559,110,557,115,544,109,523,107,504,109,492,113,487,119,489,127"/>
 </map>

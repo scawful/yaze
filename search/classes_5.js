@@ -7,7 +7,7 @@ var searchData=
   ['flagparser_4',['FlagParser',['../d1/d71/classyaze_1_1util_1_1FlagParser.html',1,'yaze::util']]],
   ['flagregistry_5',['FlagRegistry',['../d5/d1f/classyaze_1_1util_1_1FlagRegistry.html',1,'yaze::util']]],
   ['flags_6',['flags',['../dd/d19/structyaze_1_1core_1_1FeatureFlags_1_1Flags.html',1,'yaze::core::FeatureFlags::Flags'],['../d9/dd4/structyaze_1_1emu_1_1Spc700_1_1Flags.html',1,'yaze::emu::Spc700::Flags']]],
-  ['flagsmenu_7',['FlagsMenu',['../d0/dd0/structyaze_1_1core_1_1FlagsMenu.html',1,'yaze::core']]],
+  ['flagsmenu_7',['FlagsMenu',['../d0/df3/structyaze_1_1gui_1_1FlagsMenu.html',1,'yaze::gui']]],
   ['folderitem_8',['FolderItem',['../da/d6e/structyaze_1_1editor_1_1FolderItem.html',1,'yaze::editor']]],
   ['fontconfig_9',['FontConfig',['../d6/d2f/structyaze_1_1core_1_1FontConfig.html',1,'yaze::core']]],
   ['fontstate_10',['FontState',['../d6/df8/structyaze_1_1core_1_1FontState.html',1,'yaze::core']]],

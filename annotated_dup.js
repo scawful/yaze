@@ -141,7 +141,6 @@ var annotated_dup =
         [ "Controller", "d4/d84/classyaze_1_1core_1_1Controller.html", "d4/d84/classyaze_1_1core_1_1Controller" ],
         [ "FeatureFlags", "d8/d3f/classyaze_1_1core_1_1FeatureFlags.html", "d8/d3f/classyaze_1_1core_1_1FeatureFlags" ],
         [ "FileDialogWrapper", "d5/d6c/classyaze_1_1core_1_1FileDialogWrapper.html", null ],
-        [ "FlagsMenu", "d0/dd0/structyaze_1_1core_1_1FlagsMenu.html", "d0/dd0/structyaze_1_1core_1_1FlagsMenu" ],
         [ "FontConfig", "d6/d2f/structyaze_1_1core_1_1FontConfig.html", "d6/d2f/structyaze_1_1core_1_1FontConfig" ],
         [ "FontState", "d6/df8/structyaze_1_1core_1_1FontState.html", "d6/df8/structyaze_1_1core_1_1FontState" ],
         [ "ProjectManager", "d9/d7f/classyaze_1_1core_1_1ProjectManager.html", "d9/d7f/classyaze_1_1core_1_1ProjectManager" ],
@@ -175,6 +174,7 @@ var annotated_dup =
         ] ],
         [ "AgentChatHistoryCodec", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec.html", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec" ],
         [ "AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget" ],
+        [ "AgentCollaborationCoordinator", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator" ],
         [ "AssemblyEditor", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor" ],
         [ "CommandManager", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html", "d3/d8a/classyaze_1_1editor_1_1CommandManager" ],
         [ "DictionaryEntry", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry" ],
@@ -416,6 +416,7 @@ var annotated_dup =
         [ "EnhancedPaletteEditor", "df/d20/classyaze_1_1gui_1_1EnhancedPaletteEditor.html", "df/d20/classyaze_1_1gui_1_1EnhancedPaletteEditor" ],
         [ "EnhancedTheme", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme" ],
         [ "ExampleSelectionWithDeletion", "d4/d4b/structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html", "d4/d4b/structyaze_1_1gui_1_1ExampleSelectionWithDeletion" ],
+        [ "FlagsMenu", "d0/df3/structyaze_1_1gui_1_1FlagsMenu.html", "d0/df3/structyaze_1_1gui_1_1FlagsMenu" ],
         [ "GfxSheetAssetBrowser", "dd/d44/structyaze_1_1gui_1_1GfxSheetAssetBrowser.html", "dd/d44/structyaze_1_1gui_1_1GfxSheetAssetBrowser" ],
         [ "Layout", "d4/d44/structyaze_1_1gui_1_1Layout.html", "d4/d44/structyaze_1_1gui_1_1Layout" ],
         [ "MenuItem", "d7/dc5/structyaze_1_1gui_1_1MenuItem.html", "d7/dc5/structyaze_1_1gui_1_1MenuItem" ],
@@ -486,6 +487,7 @@ var annotated_dup =
         [ "FlagRegistry", "d5/d1f/classyaze_1_1util_1_1FlagRegistry.html", "d5/d1f/classyaze_1_1util_1_1FlagRegistry" ],
         [ "HexStringParams", "da/df6/structyaze_1_1util_1_1HexStringParams.html", "da/df6/structyaze_1_1util_1_1HexStringParams" ],
         [ "IFlag", "d7/df7/classyaze_1_1util_1_1IFlag.html", "d7/df7/classyaze_1_1util_1_1IFlag" ],
+        [ "LogManager", "d1/d42/classyaze_1_1util_1_1LogManager.html", "d1/d42/classyaze_1_1util_1_1LogManager" ],
         [ "NotifyValue", "de/d82/classyaze_1_1util_1_1NotifyValue.html", "de/d82/classyaze_1_1util_1_1NotifyValue" ]
       ] ],
       [ "zelda3", "d5/d1f/namespaceyaze_1_1zelda3.html", [

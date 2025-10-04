@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['💡_20recommendations_0',['💡 Recommendations',['../da/d40/md_docs_2ollama__integration__status.html#autotoc_md628',1,'']]]
+  ['💡_20recommendations_0',['💡 Recommendations',['../da/d40/md_docs_2ollama__integration__status.html#autotoc_md503',1,'']]]
 ];

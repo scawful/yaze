@@ -30,7 +30,7 @@ var classyaze_1_1editor_1_1DungeonEditor =
     [ "DrawRoomGraphics", "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#aea73fa7247253d45ff02f8edbbb7a13d", null ],
     [ "DrawTileSelector", "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#a7fce0ec7fa188ae3512f1d68c0eb291f", null ],
     [ "DrawObjectRenderer", "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#ac937ae0b3f5ad1d4f70cd1d36f4af94a", null ],
-    [ "LoadAndRenderRoomGraphics", "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#a417d0697720518c4526ede7295049153", null ],
+    [ "LoadAndRenderRoomGraphics", "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#a46e29693fe20778d52cd642b77894088", null ],
     [ "ReloadAllRoomGraphics", "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#ab850d265b5fcad89dbf98b033e23b5bb", null ],
     [ "UpdateRoomBackgroundLayers", "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#af7dc618eedc2dbc4763d5239d2447dcb", null ],
     [ "preview_object_", "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#a563ad0a520f4dddbc68305c36080f527", null ],

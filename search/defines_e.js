@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['yaze_5fregister_5fcurrent_5fwidget_0',['YAZE_REGISTER_CURRENT_WIDGET',['../d3/dd9/widget__id__registry_8h.html#a8722b5d9f861225fb46da92983a4db8b',1,'widget_id_registry.h']]],
-  ['yaze_5fregister_5fwidget_1',['YAZE_REGISTER_WIDGET',['../d3/dd9/widget__id__registry_8h.html#ae597da29dff13bc49ff5bbafbeb7a8a7',1,'widget_id_registry.h']]],
-  ['yaze_5from_5ftest_2',['YAZE_ROM_TEST',['../df/dfd/test__utils_8h.html#acde8466936427e1b1ba331bccb124a9e',1,'test_utils.h']]],
-  ['yaze_5fwidget_5fscope_3',['YAZE_WIDGET_SCOPE',['../d3/dd9/widget__id__registry_8h.html#a99cb7369335eedfc1c6c2b93989c25b0',1,'widget_id_registry.h']]]
+  ['tab_5fitem_0',['TAB_ITEM',['../d4/d9e/macro_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c',1,'macro.h']]],
+  ['table_5fborders_5fresizable_1',['TABLE_BORDERS_RESIZABLE',['../d4/d9e/macro_8h.html#a2156df838e48af22983ff9bf3732f51a',1,'macro.h']]],
+  ['table_5fheaders_2',['TABLE_HEADERS',['../d4/d9e/macro_8h.html#a33caff5b27e68aa2f9e362dc929e052b',1,'macro.h']]],
+  ['text_5fwith_5fseparator_3',['TEXT_WITH_SEPARATOR',['../d4/d9e/macro_8h.html#a76ecc345f3680496c1de21f6d7d39f02',1,'macro.h']]]
 ];

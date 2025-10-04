@@ -274,6 +274,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aea5db3c5b3e41d21b1e2716d7495ec69"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1bbfa8161ac621fc5c9eed8b01be8766" id="r_a1bbfa8161ac621fc5c9eed8b01be8766"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html#a1bbfa8161ac621fc5c9eed8b01be8766">SetStair4Target</a> (uint8_t target)</td></tr>
 <tr class="separator:a1bbfa8161ac621fc5c9eed8b01be8766"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5eba7512cc162aba69c920a81a04ecee" id="r_a5eba7512cc162aba69c920a81a04ecee"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html#a5eba7512cc162aba69c920a81a04ecee">IsLoaded</a> () const</td></tr>
+<tr class="separator:a5eba7512cc162aba69c920a81a04ecee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a296b2142bb55eea716211eec60b156c8" id="r_a296b2142bb55eea716211eec60b156c8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html#a296b2142bb55eea716211eec60b156c8">SetLoaded</a> (bool loaded)</td></tr>
+<tr class="separator:a296b2142bb55eea716211eec60b156c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac8d32b794fed4d58975542193edddabf" id="r_ac8d32b794fed4d58975542193edddabf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a44b1e31e5857baaa00dc88ae724003c3">EffectKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html#ac8d32b794fed4d58975542193edddabf">effect</a> () const</td></tr>
 <tr class="separator:ac8d32b794fed4d58975542193edddabf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9d2d3d75c8a2cfaaacc65cb2dee2b86d" id="r_a9d2d3d75c8a2cfaaacc65cb2dee2b86d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468">TagKey</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html#a9d2d3d75c8a2cfaaacc65cb2dee2b86d">tag1</a> () const</td></tr>
@@ -330,7 +334,7 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a2c9a41aa48ed642008b6cd04e65a0767"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5f07506f28416e5b9632b9e726d87cda" id="r_a5f07506f28416e5b9632b9e726d87cda"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html#a5f07506f28416e5b9632b9e726d87cda">is_light_</a></td></tr>
 <tr class="separator:a5f07506f28416e5b9632b9e726d87cda"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c77701cec2d6491ccda2307b272429f" id="r_a6c77701cec2d6491ccda2307b272429f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html#a6c77701cec2d6491ccda2307b272429f">is_loaded_</a></td></tr>
+<tr class="memitem:a6c77701cec2d6491ccda2307b272429f" id="r_a6c77701cec2d6491ccda2307b272429f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html#a6c77701cec2d6491ccda2307b272429f">is_loaded_</a> = false</td></tr>
 <tr class="separator:a6c77701cec2d6491ccda2307b272429f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9be733571372a3bef14ea054449a9559" id="r_a9be733571372a3bef14ea054449a9559"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html#a9be733571372a3bef14ea054449a9559">is_dark_</a></td></tr>
 <tr class="separator:a9be733571372a3bef14ea054449a9559"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -479,11 +483,11 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00204">204</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00198">198</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00371">blocks_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00325">blockset</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00326">spriteset</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00375">blocks_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00329">blockset</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00330">spriteset</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00167">yaze::editor::DungeonRoomLoader::LoadAndRenderRoomGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00181">yaze::editor::DungeonRoomLoader::LoadAndRenderRoomGraphics()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -512,11 +516,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00237">237</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00231">231</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00371">blocks_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00350">current_gfx16_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00232">yaze::zelda3::kGfxBufferRoomOffset</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00235">yaze::zelda3::kGfxBufferRoomSpriteLastLineOffset</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00455">LoadAnimatedGraphics()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00375">blocks_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00354">current_gfx16_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00226">yaze::zelda3::kGfxBufferRoomOffset</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00229">yaze::zelda3::kGfxBufferRoomSpriteLastLineOffset</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00447">LoadAnimatedGraphics()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00288">RenderRoomGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">RenderRoomGraphics()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -553,11 +557,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00288">288</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">282</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00156">yaze::gfx::Arena::bg1()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00162">yaze::gfx::Arena::bg2()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00237">CopyRoomGraphicsToBuffer()</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00098">yaze::core::Renderer::CreateAndRenderBitmap()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00350">current_gfx16_</a>, <a class="el" href="../../d3/db7/room__diagnostic_8cc_source.html#l00012">yaze::zelda3::DiagnoseRoomRendering()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00367">floor1_graphics_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00368">floor2_graphics_</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00047">yaze::core::Renderer::Get()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00327">palette</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00354">RenderObjectsToBackground()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00357">room_id_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00082">yaze::zelda3::tile_address</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00083">yaze::zelda3::tile_address_floor</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00156">yaze::gfx::Arena::bg1()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00162">yaze::gfx::Arena::bg2()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00231">CopyRoomGraphicsToBuffer()</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00098">yaze::core::Renderer::CreateAndRenderBitmap()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00354">current_gfx16_</a>, <a class="el" href="../../d3/db7/room__diagnostic_8cc_source.html#l00012">yaze::zelda3::DiagnoseRoomRendering()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00371">floor1_graphics_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00372">floor2_graphics_</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00047">yaze::core::Renderer::Get()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00331">palette</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00346">RenderObjectsToBackground()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00361">room_id_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00082">yaze::zelda3::tile_address</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00083">yaze::zelda3::tile_address_floor</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00167">yaze::editor::DungeonRoomLoader::LoadAndRenderRoomGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00181">yaze::editor::DungeonRoomLoader::LoadAndRenderRoomGraphics()</a>.</p>
 
 </div>
 </div>
@@ -576,11 +580,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00354">354</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00346">346</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00156">yaze::gfx::Arena::bg1()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00162">yaze::gfx::Arena::bg2()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00058">yaze::zelda3::RoomObject::BG2</a>, <a class="el" href="../../d5/da0/room__object_8cc_source.html#l00155">yaze::zelda3::RoomObject::EnsureTilesLoaded()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00357">room_id_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>, and <a class="el" href="../../d3/d73/snes__tile_8cc_source.html#l00291">yaze::gfx::TileInfoToWord()</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00156">yaze::gfx::Arena::bg1()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00162">yaze::gfx::Arena::bg2()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00058">yaze::zelda3::RoomObject::BG2</a>, <a class="el" href="../../d5/da0/room__object_8cc_source.html#l00155">yaze::zelda3::RoomObject::EnsureTilesLoaded()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">rom_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00361">room_id_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>, and <a class="el" href="../../d3/d73/snes__tile_8cc_source.html#l00291">yaze::gfx::TileInfoToWord()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00288">RenderRoomGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">RenderRoomGraphics()</a>.</p>
 
 </div>
 </div>
@@ -599,11 +603,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00455">455</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00447">447</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00358">animated_frame_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00363">background_tileset_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00350">current_gfx16_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom_</a>, and <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00362">animated_frame_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00367">background_tileset_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00354">current_gfx16_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">rom_</a>, and <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00237">CopyRoomGraphicsToBuffer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00231">CopyRoomGraphicsToBuffer()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -636,11 +640,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00516">516</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00508">508</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00367">floor1_graphics_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00368">floor2_graphics_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00355">is_floor_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00328">layout</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00892">LoadChests()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00566">ParseObjectsFromLocation()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00357">room_id_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00035">yaze::zelda3::room_object_pointer</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00196">yaze::Rom::size()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00082">yaze::zelda3::tile_address</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00371">floor1_graphics_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00372">floor2_graphics_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00359">is_floor_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00332">layout</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00877">LoadChests()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00555">ParseObjectsFromLocation()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">rom_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00361">room_id_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00035">yaze::zelda3::room_object_pointer</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00196">yaze::Rom::size()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00082">yaze::zelda3::tile_address</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00044">yaze::cli::DungeonListObjects::Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00016">yaze::editor::DungeonRoomLoader::LoadRoom()</a>, and <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00044">yaze::cli::DungeonListObjects::Run()</a>.</p>
 
 </div>
 </div>
@@ -659,9 +663,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00845">845</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00828">828</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d08/sprite_8h_source.html#l00338">yaze::zelda3::Sprite::id()</a>, <a class="el" href="../../db/d08/sprite_8h_source.html#l00349">yaze::zelda3::Sprite::layer()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00357">room_id_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00040">yaze::zelda3::rooms_sprite_pointer</a>, <a class="el" href="../../db/d08/sprite_8h_source.html#l00357">yaze::zelda3::Sprite::set_key_drop()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00376">sprites_</a>, <a class="el" href="../../db/d08/sprite_8h_source.html#l00350">yaze::zelda3::Sprite::subtype()</a>, <a class="el" href="../../db/d08/sprite_8h_source.html#l00340">yaze::zelda3::Sprite::x()</a>, and <a class="el" href="../../db/d08/sprite_8h_source.html#l00341">yaze::zelda3::Sprite::y()</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d08/sprite_8h_source.html#l00338">yaze::zelda3::Sprite::id()</a>, <a class="el" href="../../db/d08/sprite_8h_source.html#l00349">yaze::zelda3::Sprite::layer()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00361">room_id_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00040">yaze::zelda3::rooms_sprite_pointer</a>, <a class="el" href="../../db/d08/sprite_8h_source.html#l00357">yaze::zelda3::Sprite::set_key_drop()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00380">sprites_</a>, <a class="el" href="../../db/d08/sprite_8h_source.html#l00350">yaze::zelda3::Sprite::subtype()</a>, <a class="el" href="../../db/d08/sprite_8h_source.html#l00340">yaze::zelda3::Sprite::x()</a>, and <a class="el" href="../../db/d08/sprite_8h_source.html#l00341">yaze::zelda3::Sprite::y()</a>.</p>
 
 </div>
 </div>
@@ -680,11 +684,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00892">892</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00877">877</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00045">yaze::zelda3::chests_data_pointer1</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">chests_in_room_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00044">yaze::zelda3::chests_length_pointer</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00357">room_id_</a>, and <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00045">yaze::zelda3::chests_data_pointer1</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00382">chests_in_room_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00044">yaze::zelda3::chests_length_pointer</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00361">room_id_</a>, and <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00516">LoadObjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00508">LoadObjects()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -715,11 +719,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00916">916</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00901">901</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00328">layout</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00381">layout_</a>, <a class="el" href="../../da/d12/room__layout_8cc_source.html#l00047">yaze::zelda3::RoomLayout::LoadLayout()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00357">room_id_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00332">layout</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00385">layout_</a>, <a class="el" href="../../da/d12/room__layout_8cc_source.html#l00047">yaze::zelda3::RoomLayout::LoadLayout()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00361">room_id_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -756,11 +760,11 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000058">Todo:</a></b></dt><dd>Implement full door loading from ROM data </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00933">933</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00913">913</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -790,11 +794,11 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000059">Todo:</a></b></dt><dd>Implement full torch loading from ROM data </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00944">944</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00924">924</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00055">yaze::zelda3::torches_length_pointer</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -824,11 +828,11 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000060">Todo:</a></b></dt><dd>Implement full block loading from ROM data </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00954">954</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00934">934</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00049">yaze::zelda3::blocks_length</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -858,11 +862,11 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000061">Todo:</a></b></dt><dd>Implement full pit loading from ROM data </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00964">964</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00944">944</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -901,7 +905,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00220">220</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00381">layout_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00385">layout_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d5/dc5/object__renderer_8cc_source.html#l00505">yaze::zelda3::ObjectRenderer::RenderRoom()</a>.</p>
 
@@ -932,7 +936,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00221">221</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00381">layout_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00385">layout_</a>.</p>
 
 </div>
 </div>
@@ -961,7 +965,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00224">224</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00376">sprites_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00380">sprites_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00261">yaze::editor::DungeonCanvasViewer::RenderSprites()</a>, and <a class="el" href="../../d4/dc2/dungeon__renderer_8cc_source.html#l00114">yaze::editor::DungeonRenderer::RenderSprites()</a>.</p>
 
@@ -992,7 +996,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00225">225</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00376">sprites_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00380">sprites_</a>.</p>
 
 </div>
 </div>
@@ -1021,7 +1025,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00228">228</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">chests_in_room_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00382">chests_in_room_</a>.</p>
 
 </div>
 </div>
@@ -1050,7 +1054,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00229">229</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">chests_in_room_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00382">chests_in_room_</a>.</p>
 
 </div>
 </div>
@@ -1079,7 +1083,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00232">232</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00377">z3_staircases_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00381">z3_staircases_</a>.</p>
 
 </div>
 </div>
@@ -1108,7 +1112,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00233">233</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00377">z3_staircases_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00381">z3_staircases_</a>.</p>
 
 </div>
 </div>
@@ -1137,7 +1141,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00237">237</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/db7/room__diagnostic_8cc_source.html#l00012">yaze::zelda3::DiagnoseRoomRendering()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00307">yaze::editor::DungeonCanvasViewer::RenderChests()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00342">yaze::editor::DungeonCanvasViewer::RenderDoorObjects()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00452">yaze::editor::DungeonCanvasViewer::RenderPotObjects()</a>, <a class="el" href="../../d5/dc5/object__renderer_8cc_source.html#l00505">yaze::zelda3::ObjectRenderer::RenderRoom()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00230">yaze::editor::DungeonCanvasViewer::RenderStairObjects()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00376">yaze::editor::DungeonCanvasViewer::RenderWallObjects()</a>, <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00044">yaze::cli::DungeonListObjects::Run()</a>, <a class="el" href="../../d8/d2e/room__integration__test_8cc_source.html#l00059">yaze::zelda3::test::TEST_F()</a>, <a class="el" href="../../d8/d2e/room__integration__test_8cc_source.html#l00294">yaze::zelda3::test::TEST_F()</a>, <a class="el" href="../../d8/d2e/room__integration__test_8cc_source.html#l00145">yaze::zelda3::test::TEST_F()</a>, <a class="el" href="../../d8/d2e/room__integration__test_8cc_source.html#l00102">yaze::zelda3::test::TEST_F()</a>, and <a class="el" href="../../d8/d2e/room__integration__test_8cc_source.html#l00187">yaze::zelda3::test::TEST_F()</a>.</p>
 
@@ -1168,7 +1172,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00240">240</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>.</p>
 
 </div>
 </div>
@@ -1197,7 +1201,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00243">243</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>.</p>
 
 </div>
 </div>
@@ -1227,7 +1231,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00244">244</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/dc0/dungeon__object__renderer__mock__test_8cc_source.html#l00165">yaze::zelda3::MockRoomGenerator::GenerateMockObjects()</a>.</p>
 
@@ -1249,9 +1253,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00745">745</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00728">728</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00791">ValidateObject()</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00774">ValidateObject()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1281,9 +1285,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00757">757</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00740">740</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>.</p>
 
 </div>
 </div>
@@ -1313,9 +1317,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00767">767</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00750">750</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00791">ValidateObject()</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00774">ValidateObject()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1361,9 +1365,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00781">781</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00764">764</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>.</p>
 
 </div>
 </div>
@@ -1383,9 +1387,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00791">791</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00774">774</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00745">AddObject()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00767">UpdateObject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00728">AddObject()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00750">UpdateObject()</a>.</p>
 
 </div>
 </div>
@@ -1415,7 +1419,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00254">254</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>.</p>
 
 </div>
 </div>
@@ -1444,7 +1448,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00259">259</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>.</p>
 
 </div>
 </div>
@@ -1474,7 +1478,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00260">260</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>.</p>
 
 </div>
 </div>
@@ -1504,7 +1508,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00261">261</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>.</p>
 
 </div>
 </div>
@@ -1534,7 +1538,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00266">266</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>.</p>
 
 </div>
 </div>
@@ -1564,9 +1568,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00271">271</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00389">bg2_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00393">bg2_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -1596,9 +1600,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00272">272</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00320">collision()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00384">collision_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00324">collision()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00388">collision_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1638,9 +1642,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00273">273</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">is_light_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00356">is_light_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -1670,9 +1674,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00274">274</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00327">palette</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00331">palette</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dc0/dungeon__object__renderer__mock__test_8cc_source.html#l00147">yaze::zelda3::MockRoomGenerator::GenerateMockRoom()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dc0/dungeon__object__renderer__mock__test_8cc_source.html#l00147">yaze::zelda3::MockRoomGenerator::GenerateMockRoom()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -1702,9 +1706,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00275">275</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00325">blockset</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00329">blockset</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dc0/dungeon__object__renderer__mock__test_8cc_source.html#l00147">yaze::zelda3::MockRoomGenerator::GenerateMockRoom()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dc0/dungeon__object__renderer__mock__test_8cc_source.html#l00147">yaze::zelda3::MockRoomGenerator::GenerateMockRoom()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -1734,9 +1738,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00276">276</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00326">spriteset</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00330">spriteset</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dc0/dungeon__object__renderer__mock__test_8cc_source.html#l00147">yaze::zelda3::MockRoomGenerator::GenerateMockRoom()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dc0/dungeon__object__renderer__mock__test_8cc_source.html#l00147">yaze::zelda3::MockRoomGenerator::GenerateMockRoom()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -1766,9 +1770,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00277">277</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00317">effect()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00385">effect_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00321">effect()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00389">effect_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1808,9 +1812,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00278">278</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00318">tag1()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00386">tag1_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00322">tag1()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00390">tag1_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1850,9 +1854,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00279">279</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00319">tag2()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00387">tag2_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00323">tag2()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00391">tag2_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1902,9 +1906,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00280">280</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00360">staircase_plane_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00364">staircase_plane_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -1934,9 +1938,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00283">283</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00329">holewarp</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00333">holewarp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -1976,9 +1980,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00284">284</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00361">staircase_rooms_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00365">staircase_rooms_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2008,7 +2012,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00287">287</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00330">floor1</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00334">floor1</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/dc0/dungeon__object__renderer__mock__test_8cc_source.html#l00147">yaze::zelda3::MockRoomGenerator::GenerateMockRoom()</a>.</p>
 
@@ -2040,7 +2044,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00288">288</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00331">floor2</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00335">floor2</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/dc0/dungeon__object__renderer__mock__test_8cc_source.html#l00147">yaze::zelda3::MockRoomGenerator::GenerateMockRoom()</a>.</p>
 
@@ -2072,7 +2076,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00289">289</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00332">message_id_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00336">message_id_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/dc0/dungeon__object__renderer__mock__test_8cc_source.html#l00147">yaze::zelda3::MockRoomGenerator::GenerateMockRoom()</a>.</p>
 
@@ -2103,9 +2107,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00292">292</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">is_light_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00356">is_light_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2135,9 +2139,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00295">295</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00332">message_id_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00336">message_id_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2167,9 +2171,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00296">296</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00369">layer2_mode_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00373">layer2_mode_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2199,9 +2203,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00297">297</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00383">layer_merging_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00387">layer_merging_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2231,9 +2235,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00298">298</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00354">is_dark_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00358">is_dark_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2263,9 +2267,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00299">299</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00327">palette</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00366">palette_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00331">palette</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00370">palette_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2295,9 +2299,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00300">300</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00363">background_tileset_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00367">background_tileset_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2327,9 +2331,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00301">301</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00364">sprite_tileset_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00368">sprite_tileset_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2359,9 +2363,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00302">302</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00365">layer2_behavior_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00369">layer2_behavior_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2391,9 +2395,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00303">303</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00318">tag1()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00386">tag1_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00322">tag1()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00390">tag1_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2433,9 +2437,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00304">304</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00319">tag2()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00387">tag2_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00323">tag2()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00391">tag2_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -2475,9 +2479,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00305">305</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00390">pits_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00450">destination::target_layer</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00394">pits_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00450">destination::target_layer</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2507,9 +2511,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00306">306</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00391">stair1_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00450">destination::target_layer</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00395">stair1_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00450">destination::target_layer</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2539,9 +2543,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00307">307</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00392">stair2_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00450">destination::target_layer</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00396">stair2_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00450">destination::target_layer</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2571,9 +2575,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00308">308</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00393">stair3_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00450">destination::target_layer</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00397">stair3_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00450">destination::target_layer</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2603,9 +2607,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00309">309</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00394">stair4_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00450">destination::target_layer</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00398">stair4_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00450">destination::target_layer</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2635,9 +2639,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00310">310</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00390">pits_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00449">destination::target</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00394">pits_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00449">destination::target</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2667,9 +2671,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00311">311</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00391">stair1_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00449">destination::target</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00395">stair1_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00449">destination::target</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2699,9 +2703,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00312">312</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00392">stair2_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00449">destination::target</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00396">stair2_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00449">destination::target</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2731,9 +2735,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00313">313</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00393">stair3_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00449">destination::target</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00397">stair3_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00449">destination::target</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2763,9 +2767,70 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00314">314</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00394">stair4_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00449">destination::target</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00398">stair4_</a>, and <a class="el" href="../../de/dae/zelda_8h_source.html#l00449">destination::target</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
+
+</div>
+</div>
+<a id="a5eba7512cc162aba69c920a81a04ecee" name="a5eba7512cc162aba69c920a81a04ecee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5eba7512cc162aba69c920a81a04ecee">&#9670;&#160;</a></span>IsLoaded()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::zelda3::Room::IsLoaded </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00317">317</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00357">is_loaded_</a>.</p>
+
+</div>
+</div>
+<a id="a296b2142bb55eea716211eec60b156c8" name="a296b2142bb55eea716211eec60b156c8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a296b2142bb55eea716211eec60b156c8">&#9670;&#160;</a></span>SetLoaded()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::Room::SetLoaded </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>loaded</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00318">318</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00357">is_loaded_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00075">yaze::zelda3::LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -2792,9 +2857,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00317">317</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00321">321</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00385">effect_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00389">effect_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00277">SetEffect()</a>.</p>
 
@@ -2823,9 +2888,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00318">318</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00322">322</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00386">tag1_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00390">tag1_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00278">SetTag1()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00303">SetTag1Direct()</a>.</p>
 
@@ -2854,9 +2919,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00319">319</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00323">323</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00387">tag2_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00391">tag2_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00279">SetTag2()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00304">SetTag2Direct()</a>.</p>
 
@@ -2885,9 +2950,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00320">320</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00324">324</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00384">collision_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00388">collision_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00272">SetCollision()</a>.</p>
 
@@ -2916,9 +2981,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00321">321</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00325">325</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00383">layer_merging_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00387">layer_merging_</a>.</p>
 
 </div>
 </div>
@@ -2945,9 +3010,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00323">323</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00327">327</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00357">room_id_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00361">room_id_</a>.</p>
 
 </div>
 </div>
@@ -2967,11 +3032,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00566">566</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00555">555</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/da0/room__object_8cc_source.html#l00272">yaze::zelda3::RoomObject::DecodeObjectFromBytes()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00808">HandleSpecialObjects()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00163">yaze::zelda3::RoomObject::id_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom_</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00074">yaze::zelda3::RoomObject::set_rom()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00196">yaze::Rom::size()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00082">yaze::zelda3::RoomObject::x()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00083">yaze::zelda3::RoomObject::y()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00377">z3_staircases_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/da0/room__object_8cc_source.html#l00272">yaze::zelda3::RoomObject::DecodeObjectFromBytes()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00791">HandleSpecialObjects()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00163">yaze::zelda3::RoomObject::id_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">rom_</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00074">yaze::zelda3::RoomObject::set_rom()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00196">yaze::Rom::size()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00082">yaze::zelda3::RoomObject::x()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00083">yaze::zelda3::RoomObject::y()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00381">z3_staircases_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00516">LoadObjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00508">LoadObjects()</a>.</p>
 
 </div>
 </div>
@@ -3013,11 +3078,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00808">808</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00791">791</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a080a546abcbea74459f27ba33313993d">yaze::zelda3::Chest</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">chests_in_room_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00361">staircase_rooms_</a>, <a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a0b01cc688e1e0b5f6b70f858a1b389ae">yaze::zelda3::Stairs</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00080">yaze::zelda3::stairsObjects</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00377">z3_staircases_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a080a546abcbea74459f27ba33313993d">yaze::zelda3::Chest</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00382">chests_in_room_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00365">staircase_rooms_</a>, <a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a0b01cc688e1e0b5f6b70f858a1b389ae">yaze::zelda3::Stairs</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00080">yaze::zelda3::stairsObjects</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00381">z3_staircases_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00566">ParseObjectsFromLocation()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00555">ParseObjectsFromLocation()</a>.</p>
 
 </div>
 </div>
@@ -3036,9 +3101,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00699">699</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00682">682</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1b/room_8cc_source.html#l00648">EncodeObjects()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00357">room_id_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00035">yaze::zelda3::room_object_pointer</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00196">yaze::Rom::size()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00082">yaze::zelda3::tile_address</a>, and <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00722">yaze::Rom::WriteVector()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1b/room_8cc_source.html#l00631">EncodeObjects()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">rom_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00361">room_id_</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00035">yaze::zelda3::room_object_pointer</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00196">yaze::Rom::size()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00082">yaze::zelda3::tile_address</a>, and <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00722">yaze::Rom::WriteVector()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d8/d2e/room__integration__test_8cc_source.html#l00059">yaze::zelda3::test::TEST_F()</a>, <a class="el" href="../../d8/d2e/room__integration__test_8cc_source.html#l00235">yaze::zelda3::test::TEST_F()</a>, <a class="el" href="../../d8/d2e/room__integration__test_8cc_source.html#l00145">yaze::zelda3::test::TEST_F()</a>, <a class="el" href="../../d8/d2e/room__integration__test_8cc_source.html#l00102">yaze::zelda3::test::TEST_F()</a>, and <a class="el" href="../../d8/d2e/room__integration__test_8cc_source.html#l00187">yaze::zelda3::test::TEST_F()</a>.</p>
 
@@ -3059,11 +3124,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00648">648</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00631">631</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">tile_objects_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">tile_objects_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00699">SaveObjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00682">SaveObjects()</a>.</p>
 
 </div>
 </div>
@@ -3090,9 +3155,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00342">342</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00346">346</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00371">blocks_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00375">blocks_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/db7/room__diagnostic_8cc_source.html#l00012">yaze::zelda3::DiagnoseRoomRendering()</a>.</p>
 
@@ -3121,9 +3186,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00343">343</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00347">347</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00371">blocks_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00375">blocks_</a>.</p>
 
 </div>
 </div>
@@ -3150,11 +3215,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">344</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">348</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00237">CopyRoomGraphicsToBuffer()</a>, <a class="el" href="../../d3/db7/room__diagnostic_8cc_source.html#l00012">yaze::zelda3::DiagnoseRoomRendering()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00455">LoadAnimatedGraphics()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00954">LoadBlocks()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00892">LoadChests()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00933">LoadDoors()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00516">LoadObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00964">LoadPits()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00204">LoadRoomGraphics()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00845">LoadSprites()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00944">LoadTorches()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00566">ParseObjectsFromLocation()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00288">RenderRoomGraphics()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00699">SaveObjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00231">CopyRoomGraphicsToBuffer()</a>, <a class="el" href="../../d3/db7/room__diagnostic_8cc_source.html#l00012">yaze::zelda3::DiagnoseRoomRendering()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00447">LoadAnimatedGraphics()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00934">LoadBlocks()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00877">LoadChests()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00913">LoadDoors()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00508">LoadObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00944">LoadPits()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00198">LoadRoomGraphics()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00828">LoadSprites()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00924">LoadTorches()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00555">ParseObjectsFromLocation()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">RenderRoomGraphics()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00682">SaveObjects()</a>.</p>
 
 </div>
 </div>
@@ -3181,9 +3246,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00345">345</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00349">349</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">rom_</a>.</p>
 
 </div>
 </div>
@@ -3200,9 +3265,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00325">325</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00329">329</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00167">yaze::editor::DungeonRoomLoader::LoadAndRenderRoomGraphics()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00204">LoadRoomGraphics()</a>, <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00012">yaze::cli::DungeonExport::Run()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00275">SetBlockset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00181">yaze::editor::DungeonRoomLoader::LoadAndRenderRoomGraphics()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00198">LoadRoomGraphics()</a>, <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00012">yaze::cli::DungeonExport::Run()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00275">SetBlockset()</a>.</p>
 
 </div>
 </div>
@@ -3218,9 +3283,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00326">326</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00330">330</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00204">LoadRoomGraphics()</a>, <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00012">yaze::cli::DungeonExport::Run()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00276">SetSpriteset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00198">LoadRoomGraphics()</a>, <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00012">yaze::cli::DungeonExport::Run()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00276">SetSpriteset()</a>.</p>
 
 </div>
 </div>
@@ -3236,9 +3301,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00327">327</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00331">331</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00288">RenderRoomGraphics()</a>, <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00012">yaze::cli::DungeonExport::Run()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00274">SetPalette()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00299">SetPaletteDirect()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">RenderRoomGraphics()</a>, <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00012">yaze::cli::DungeonExport::Run()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00274">SetPalette()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00299">SetPaletteDirect()</a>.</p>
 
 </div>
 </div>
@@ -3254,9 +3319,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00328">328</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00332">332</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00516">LoadObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00916">LoadRoomLayout()</a>, and <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00012">yaze::cli::DungeonExport::Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00508">LoadObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00901">LoadRoomLayout()</a>, and <a class="el" href="../../dc/d42/dungeon_8cc_source.html#l00012">yaze::cli::DungeonExport::Run()</a>.</p>
 
 </div>
 </div>
@@ -3272,7 +3337,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00329">329</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00333">333</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00283">SetHolewarp()</a>.</p>
 
@@ -3290,7 +3355,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00330">330</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00334">334</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00287">SetFloor1()</a>.</p>
 
@@ -3308,7 +3373,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00331">331</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00335">335</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00288">SetFloor2()</a>.</p>
 
@@ -3326,7 +3391,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00332">332</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00336">336</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00289">SetMessageId()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00295">SetMessageIdDirect()</a>.</p>
 
@@ -3352,9 +3417,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">348</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">352</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00237">CopyRoomGraphicsToBuffer()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00455">LoadAnimatedGraphics()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00516">LoadObjects()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00345">mutable_rom()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00566">ParseObjectsFromLocation()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00354">RenderObjectsToBackground()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00344">rom()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00699">SaveObjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00231">CopyRoomGraphicsToBuffer()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00447">LoadAnimatedGraphics()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00508">LoadObjects()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00349">mutable_rom()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00555">ParseObjectsFromLocation()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00346">RenderObjectsToBackground()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00348">rom()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00682">SaveObjects()</a>.</p>
 
 </div>
 </div>
@@ -3378,9 +3443,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00350">350</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00354">354</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00237">CopyRoomGraphicsToBuffer()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00455">LoadAnimatedGraphics()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00288">RenderRoomGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00231">CopyRoomGraphicsToBuffer()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00447">LoadAnimatedGraphics()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">RenderRoomGraphics()</a>.</p>
 
 </div>
 </div>
@@ -3404,7 +3469,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00352">352</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00356">356</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00292">IsLight()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00273">SetIsLight()</a>.</p>
 
@@ -3420,7 +3485,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool yaze::zelda3::Room::is_loaded_</td>
+          <td class="memname">bool yaze::zelda3::Room::is_loaded_ = false</td>
         </tr>
       </table>
   </td>
@@ -3430,7 +3495,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00353">353</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00357">357</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00317">IsLoaded()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00318">SetLoaded()</a>.</p>
 
 </div>
 </div>
@@ -3454,7 +3521,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00354">354</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00358">358</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00298">SetIsDark()</a>.</p>
 
@@ -3480,9 +3547,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00355">355</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00359">359</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00516">LoadObjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00508">LoadObjects()</a>.</p>
 
 </div>
 </div>
@@ -3506,9 +3573,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00357">357</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00361">361</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00323">id()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00892">LoadChests()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00516">LoadObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00916">LoadRoomLayout()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00845">LoadSprites()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00354">RenderObjectsToBackground()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00288">RenderRoomGraphics()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00699">SaveObjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00327">id()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00877">LoadChests()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00508">LoadObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00901">LoadRoomLayout()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00828">LoadSprites()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00346">RenderObjectsToBackground()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">RenderRoomGraphics()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00682">SaveObjects()</a>.</p>
 
 </div>
 </div>
@@ -3532,9 +3599,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00358">358</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00362">362</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00455">LoadAnimatedGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00447">LoadAnimatedGraphics()</a>.</p>
 
 </div>
 </div>
@@ -3558,7 +3625,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00360">360</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00364">364</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00280">SetStaircasePlane()</a>.</p>
 
@@ -3584,9 +3651,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00361">361</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00365">365</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00808">HandleSpecialObjects()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00284">SetStaircaseRoom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00791">HandleSpecialObjects()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00284">SetStaircaseRoom()</a>.</p>
 
 </div>
 </div>
@@ -3610,9 +3677,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00363">363</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00367">367</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00455">LoadAnimatedGraphics()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00300">SetBackgroundTileset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00447">LoadAnimatedGraphics()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00300">SetBackgroundTileset()</a>.</p>
 
 </div>
 </div>
@@ -3636,7 +3703,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00364">364</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00368">368</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00301">SetSpriteTileset()</a>.</p>
 
@@ -3662,7 +3729,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00365">365</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00369">369</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00302">SetLayer2Behavior()</a>.</p>
 
@@ -3688,7 +3755,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00366">366</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00370">370</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00299">SetPaletteDirect()</a>.</p>
 
@@ -3714,9 +3781,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00367">367</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00371">371</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00516">LoadObjects()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00288">RenderRoomGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00508">LoadObjects()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">RenderRoomGraphics()</a>.</p>
 
 </div>
 </div>
@@ -3740,9 +3807,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00368">368</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00372">372</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00516">LoadObjects()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00288">RenderRoomGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00508">LoadObjects()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">RenderRoomGraphics()</a>.</p>
 
 </div>
 </div>
@@ -3766,7 +3833,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00369">369</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00373">373</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00296">SetLayer2Mode()</a>.</p>
 
@@ -3792,9 +3859,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00371">371</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00375">375</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00342">blocks()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00237">CopyRoomGraphicsToBuffer()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00204">LoadRoomGraphics()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00343">mutable_blocks()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00346">blocks()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00231">CopyRoomGraphicsToBuffer()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00198">LoadRoomGraphics()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00347">mutable_blocks()</a>.</p>
 
 </div>
 </div>
@@ -3818,7 +3885,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00372">372</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00376">376</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 </div>
 </div>
@@ -3842,9 +3909,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00374">374</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">378</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00745">AddObject()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00244">AddTileObject()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00243">ClearTileObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00648">EncodeObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00781">FindObjectAt()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00260">GetTileObject()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00261">GetTileObject()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00259">GetTileObjectCount()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00240">GetTileObjects()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00237">GetTileObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00808">HandleSpecialObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00566">ParseObjectsFromLocation()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00757">RemoveObject()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00254">RemoveTileObject()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00354">RenderObjectsToBackground()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00266">SetTileObjects()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00767">UpdateObject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00728">AddObject()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00244">AddTileObject()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00243">ClearTileObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00631">EncodeObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00764">FindObjectAt()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00260">GetTileObject()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00261">GetTileObject()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00259">GetTileObjectCount()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00240">GetTileObjects()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00237">GetTileObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00791">HandleSpecialObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00555">ParseObjectsFromLocation()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00740">RemoveObject()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00254">RemoveTileObject()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00346">RenderObjectsToBackground()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00266">SetTileObjects()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00750">UpdateObject()</a>.</p>
 
 </div>
 </div>
@@ -3869,9 +3936,9 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000062">Todo:</a></b></dt><dd>add separate door objects list when door section (F0 FF) is parsed </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00376">376</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00380">380</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00225">GetSprites()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00224">GetSprites()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00845">LoadSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00225">GetSprites()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00224">GetSprites()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00828">LoadSprites()</a>.</p>
 
 </div>
 </div>
@@ -3895,9 +3962,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00377">377</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00381">381</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00233">GetStairs()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00232">GetStairs()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00808">HandleSpecialObjects()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00566">ParseObjectsFromLocation()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00233">GetStairs()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00232">GetStairs()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00791">HandleSpecialObjects()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00555">ParseObjectsFromLocation()</a>.</p>
 
 </div>
 </div>
@@ -3921,9 +3988,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00378">378</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00382">382</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00229">GetChests()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00228">GetChests()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00808">HandleSpecialObjects()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00892">LoadChests()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00229">GetChests()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00228">GetChests()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00791">HandleSpecialObjects()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00877">LoadChests()</a>.</p>
 
 </div>
 </div>
@@ -3947,9 +4014,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00381">381</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00385">385</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00221">GetLayout()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00220">GetLayout()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00916">LoadRoomLayout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00221">GetLayout()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00220">GetLayout()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00901">LoadRoomLayout()</a>.</p>
 
 </div>
 </div>
@@ -3973,9 +4040,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00383">383</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00387">387</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00321">layer_merging()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00297">SetLayerMerging()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00325">layer_merging()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00297">SetLayerMerging()</a>.</p>
 
 </div>
 </div>
@@ -3999,9 +4066,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00384">384</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00388">388</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00320">collision()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00272">SetCollision()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00324">collision()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00272">SetCollision()</a>.</p>
 
 </div>
 </div>
@@ -4025,9 +4092,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00385">385</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00389">389</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00317">effect()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00277">SetEffect()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00321">effect()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00277">SetEffect()</a>.</p>
 
 </div>
 </div>
@@ -4051,9 +4118,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00386">386</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00390">390</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00278">SetTag1()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00303">SetTag1Direct()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00318">tag1()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00278">SetTag1()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00303">SetTag1Direct()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00322">tag1()</a>.</p>
 
 </div>
 </div>
@@ -4077,9 +4144,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00387">387</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00391">391</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00279">SetTag2()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00304">SetTag2Direct()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00319">tag2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00279">SetTag2()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00304">SetTag2Direct()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00323">tag2()</a>.</p>
 
 </div>
 </div>
@@ -4103,7 +4170,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00389">389</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00393">393</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00271">SetBg2()</a>.</p>
 
@@ -4129,7 +4196,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00390">390</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00394">394</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00310">SetPitsTarget()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00305">SetPitsTargetLayer()</a>.</p>
 
@@ -4155,7 +4222,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00391">391</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00395">395</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00311">SetStair1Target()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00306">SetStair1TargetLayer()</a>.</p>
 
@@ -4181,7 +4248,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00392">392</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00396">396</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00312">SetStair2Target()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00307">SetStair2TargetLayer()</a>.</p>
 
@@ -4207,7 +4274,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00393">393</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00397">397</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00313">SetStair3Target()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00308">SetStair3TargetLayer()</a>.</p>
 
@@ -4233,7 +4300,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00394">394</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00398">398</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/dc0/room_8h_source.html#l00314">SetStair4Target()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00309">SetStair4TargetLayer()</a>.</p>
 

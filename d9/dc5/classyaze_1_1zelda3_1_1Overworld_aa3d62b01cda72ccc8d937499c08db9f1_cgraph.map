@@ -1,5 +1,12 @@
 <map id="yaze::zelda3::Overworld::SaveAreaSpecificBGColors" name="yaze::zelda3::Overworld::SaveAreaSpecificBGColors">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,192,46"/>
-<area shape="rect" id="Node000002" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a024996a77d32a4e9fa6ecaa918d642b4" title=" " alt="" coords="240,13,423,39"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,23,224,23,224,28,192,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,84,192,125"/>
+<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#ad275954728917ad92cd88165cd47184f" title=" " alt="" coords="283,66,380,92"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,92,268,83,268,88,192,97"/>
+<area shape="rect" id="Node000005" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a024996a77d32a4e9fa6ecaa918d642b4" title=" " alt="" coords="240,116,423,141"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="192,111,224,115,224,120,192,117"/>
+<area shape="rect" id="Node000003" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#a14416ae7e2c8807918b806b0ae947c6d" title=" " alt="" coords="483,29,631,70"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="380,70,467,59,467,64,381,75"/>
+<area shape="rect" id="Node000004" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#ae326c7c3034a3127513198774bb75c07" title="The primary logging function." alt="" coords="471,94,642,120"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="381,82,456,92,455,97,380,88"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="514,29,512,19,519,10,534,5,557,3,581,5,596,11,593,16,580,10,557,8,535,10,522,15,517,21,519,28"/>
 </map>

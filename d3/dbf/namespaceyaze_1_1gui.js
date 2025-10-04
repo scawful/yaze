@@ -32,6 +32,7 @@ var namespaceyaze_1_1gui =
     [ "EnhancedPaletteEditor", "df/d20/classyaze_1_1gui_1_1EnhancedPaletteEditor.html", "df/d20/classyaze_1_1gui_1_1EnhancedPaletteEditor" ],
     [ "EnhancedTheme", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme" ],
     [ "ExampleSelectionWithDeletion", "d4/d4b/structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html", "d4/d4b/structyaze_1_1gui_1_1ExampleSelectionWithDeletion" ],
+    [ "FlagsMenu", "d0/df3/structyaze_1_1gui_1_1FlagsMenu.html", "d0/df3/structyaze_1_1gui_1_1FlagsMenu" ],
     [ "GfxSheetAssetBrowser", "dd/d44/structyaze_1_1gui_1_1GfxSheetAssetBrowser.html", "dd/d44/structyaze_1_1gui_1_1GfxSheetAssetBrowser" ],
     [ "Layout", "d4/d44/structyaze_1_1gui_1_1Layout.html", "d4/d44/structyaze_1_1gui_1_1Layout" ],
     [ "MenuItem", "d7/dc5/structyaze_1_1gui_1_1MenuItem.html", "d7/dc5/structyaze_1_1gui_1_1MenuItem" ],

@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['build_20instructions_0',['Build Instructions',['../d9/d41/md_docs_202-build-instructions.html',1,'']]],
-  ['build_20modularization_20plan_20for_20yaze_1',['Build Modularization Plan for Yaze',['../d7/daf/md_docs_2build__modularization__plan.html',1,'']]],
-  ['build_20presets_20guide_2',['Build Presets Guide',['../d7/d51/md_docs_2B3-build-presets.html',1,'']]],
-  ['build_20scripts_3',['yaze Build Scripts',['../de/d82/md_scripts_2README.html',1,'']]]
+  ['deprecated_20list_0',['Deprecated List',['../da/d58/deprecated.html',1,'']]],
+  ['documentation_1',['documentation',['../d3/d49/md_docs_2B4-release-workflows.html',1,'Release Workflows Documentation'],['../d3/d4c/md_docs_2index.html',1,'yaze Documentation']]],
+  ['dungeon_20editor_3a_20master_20guide_2',['Yaze Dungeon Editor: Master Guide',['../d5/dde/md_docs_2dungeon__editor__master__guide.html',1,'']]]
 ];

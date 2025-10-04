@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['tab_5fitem_0',['TAB_ITEM',['../d4/d9e/macro_8h.html#ad50b96f19fd95562cdbcbaf0e1a0743c',1,'macro.h']]],
-  ['table_5fborders_5fresizable_1',['TABLE_BORDERS_RESIZABLE',['../d4/d9e/macro_8h.html#a2156df838e48af22983ff9bf3732f51a',1,'macro.h']]],
-  ['table_5fheaders_2',['TABLE_HEADERS',['../d4/d9e/macro_8h.html#a33caff5b27e68aa2f9e362dc929e052b',1,'macro.h']]],
-  ['text_5fwith_5fseparator_3',['TEXT_WITH_SEPARATOR',['../d4/d9e/macro_8h.html#a76ecc345f3680496c1de21f6d7d39f02',1,'macro.h']]]
+  ['sdl_5fmain_5fhandled_0',['SDL_MAIN_HANDLED',['../de/d3d/yaze__test_8cc.html#a51f528deaaeb973f417b46a2ec36f850',1,'yaze_test.cc']]],
+  ['sdl_5freturn_5fif_5ferror_1',['SDL_RETURN_IF_ERROR',['../d4/d9e/macro_8h.html#a7ff41a09894e97938253afc4e6387add',1,'macro.h']]],
+  ['setup_5fcolumn_2',['SETUP_COLUMN',['../d4/d9e/macro_8h.html#a0400ff495867d2b1173e970e6d9c478a',1,'macro.h']]]
 ];

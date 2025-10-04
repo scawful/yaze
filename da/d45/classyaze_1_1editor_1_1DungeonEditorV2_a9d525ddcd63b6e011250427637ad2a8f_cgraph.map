@@ -1,11 +1,11 @@
 <map id="yaze::editor::DungeonEditorV2::DrawRoomTab" name="yaze::editor::DungeonEditorV2::DrawRoomTab">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,72,181,113"/>
-<area shape="rect" id="Node000002" href="$d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#ad5e66e0318966b1e82f9199ebe21c56b" title=" " alt="" coords="256,39,448,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,78,240,71,240,76,181,84"/>
-<area shape="rect" id="Node000116" href="$d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3" title=" " alt="" coords="229,104,475,145"/>
-<area shape="poly" id="edge4_Node000001_Node000116" title=" " alt="" coords="181,101,214,105,213,110,181,106"/>
-<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ad8f81f1ad4537d5b9c094ed4bb66d304" title=" " alt="" coords="524,5,650,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="448,43,508,34,509,39,449,48"/>
-<area shape="rect" id="Node000007" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a401e3bebaabb7d192f9466835c86f3ab" title=" " alt="" coords="523,71,650,111"/>
-<area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="449,70,508,78,507,83,448,75"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,181,111"/>
+<area shape="rect" id="Node000002" href="$d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#ad5e66e0318966b1e82f9199ebe21c56b" title=" " alt="" coords="256,5,448,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,67,253,48,254,53,177,73"/>
+<area shape="rect" id="Node000116" href="$d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#aef241e92630a95140c2617fd9d2537c9" title=" " alt="" coords="229,71,475,111"/>
+<area shape="poly" id="edge3_Node000001_Node000116" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
+<area shape="rect" id="Node000141" href="$d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a3a9af7d66f11092b7ab6b47389444868" title=" " alt="" coords="264,136,440,177"/>
+<area shape="poly" id="edge4_Node000001_Node000141" title=" " alt="" coords="177,109,254,129,253,134,176,115"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ad8f81f1ad4537d5b9c094ed4bb66d304" title=" " alt="" coords="523,5,649,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="448,23,508,23,508,28,448,28"/>
 </map>

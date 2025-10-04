@@ -6,5 +6,6 @@ var searchData=
   ['layout_3',['Layout',['../d4/d44/structyaze_1_1gui_1_1Layout.html',1,'yaze::gui']]],
   ['layoutscratch_4',['LayoutScratch',['../d7/d4a/structyaze_1_1editor_1_1Tile16Editor_1_1LayoutScratch.html',1,'yaze::editor::Tile16Editor']]],
   ['listtestsresult_5',['ListTestsResult',['../d7/dce/structyaze_1_1cli_1_1ListTestsResult.html',1,'yaze::cli']]],
-  ['loadingindicator_6',['LoadingIndicator',['../d8/d03/classyaze_1_1cli_1_1util_1_1LoadingIndicator.html',1,'yaze::cli::util']]]
+  ['loadingindicator_6',['LoadingIndicator',['../d8/d03/classyaze_1_1cli_1_1util_1_1LoadingIndicator.html',1,'yaze::cli::util']]],
+  ['logmanager_7',['LogManager',['../d1/d42/classyaze_1_1util_1_1LogManager.html',1,'yaze::util']]]
 ];

@@ -242,7 +242,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A null-terminated string describing the status </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00073">73</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00121">121</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d9/d89/yaze_8h_source.html#l00062">YAZE_ERROR_CORRUPTION</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00059">YAZE_ERROR_FILE_NOT_FOUND</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00058">YAZE_ERROR_INVALID_ARG</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00061">YAZE_ERROR_IO</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00060">YAZE_ERROR_MEMORY</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00063">YAZE_ERROR_NOT_INITIALIZED</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00057">YAZE_ERROR_UNKNOWN</a>, and <a class="el" href="../../d9/d89/yaze_8h_source.html#l00056">YAZE_OK</a>.</p>
 
@@ -268,11 +268,11 @@ Functions</h2></td></tr>
 <p>This function must be called before using any other YAZE functions. It initializes internal subsystems and prepares the library for use.</p>
 <dl class="section return"><dt>Returns</dt><dd>YAZE_OK on success, error code on failure </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00052">52</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00100">100</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d9/d89/yaze_8h_source.html#l00056">YAZE_OK</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/d84/yaze_8cc_source.html#l00111">yaze_init()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/d84/yaze_8cc_source.html#l00159">yaze_init()</a>.</p>
 
 </div>
 </div>
@@ -295,7 +295,7 @@ Functions</h2></td></tr>
 <p>Shutdown the YAZE library. </p>
 <p>This function cleans up resources allocated by <a class="el" href="../../d0/de1/group__core.html#ga3a3a4e60f272ceed1dea6ccaefd39e65" title="Initialize the YAZE library.">yaze_library_init()</a>. After calling this function, no other YAZE functions should be called until <a class="el" href="../../d0/de1/group__core.html#ga3a3a4e60f272ceed1dea6ccaefd39e65" title="Initialize the YAZE library.">yaze_library_init()</a> is called again. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00062">62</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00110">110</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
 
 </div>
 </div>
@@ -335,20 +335,25 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Exit code (0 for success, non-zero for error) </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00025">25</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00037">37</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00035">EXIT_IF_ERROR</a>, <a class="el" href="../../d2/da4/flag_8h_source.html#l00115">yaze::util::global_flag_registry()</a>, <a class="el" href="../../d2/da4/flag_8h_source.html#l00135">yaze::util::FlagParser::Parse()</a>, and <a class="el" href="../../d4/d9e/macro_8h_source.html#l00103">RETURN_IF_EXCEPTION</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dc1/log_8cc_source.html#l00043">yaze::util::LogManager::configure()</a>, <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3abb1ca97ec761fc37101737ba0aa2e7c5">yaze::util::ERROR</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00035">EXIT_IF_ERROR</a>, <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a19da7170bea36556dde582519795f3fc">yaze::util::FATAL</a>, <a class="el" href="../../d2/da4/flag_8h_source.html#l00115">yaze::util::global_flag_registry()</a>, <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a551b723eafd6a31d444fcb2f5920fbd3">yaze::util::INFO</a>, <a class="el" href="../../d4/dc1/log_8cc_source.html#l00029">yaze::util::LogManager::instance()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00097">LOG_ERROR</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../d2/da4/flag_8h_source.html#l00135">yaze::util::FlagParser::Parse()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00103">RETURN_IF_EXCEPTION</a>, <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a059e9861e0400dfbe05c98a841f3f96b">yaze::util::WARNING</a>, and <a class="el" href="../../d9/d89/yaze_8h_source.html#l00032">YAZE_VERSION_STRING</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d0/de1/group__core_ga440a6545b01877e0afee7ba8a54ad27e_cgraph.png" border="0" usemap="#ad0/de1/group__core_ga440a6545b01877e0afee7ba8a54ad27e_cgraph" alt=""/></div>
 <map name="ad0/de1/group__core_ga440a6545b01877e0afee7ba8a54ad27e_cgraph" id="ad0/de1/group__core_ga440a6545b01877e0afee7ba8a54ad27e_cgraph">
-<area shape="rect" title="Main entry point for the YAZE application." alt="" coords="5,58,116,84"/>
-<area shape="rect" href="../../d4/de1/namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577" title=" " alt="" coords="178,5,289,46"/>
-<area shape="poly" title=" " alt="" coords="112,55,162,41,164,47,113,60"/>
-<area shape="rect" href="../../d1/d71/classyaze_1_1util_1_1FlagParser.html#aa5d5b0f51665afbb0d6bf9e41859b051" title=" " alt="" coords="164,95,303,135"/>
-<area shape="poly" title=" " alt="" coords="114,82,150,91,148,96,113,87"/>
-<area shape="poly" title=" " alt="" coords="200,94,198,85,204,76,216,70,233,68,252,70,264,77,261,81,251,76,233,73,217,75,207,80,204,86,205,94"/>
+<area shape="rect" title="Main entry point for the YAZE application." alt="" coords="5,124,116,149"/>
+<area shape="rect" href="../../d1/d42/classyaze_1_1util_1_1LogManager.html#a1485bdd93cb22800a1da14976ae38f64" title="Configures the logging system." alt="" coords="164,5,312,46"/>
+<area shape="poly" title=" " alt="" coords="76,121,114,90,162,57,172,51,174,56,165,61,117,94,79,125"/>
+<area shape="rect" href="../../d4/de1/namespaceyaze_1_1util.html#a60afeb1f1afc9e19c61b64749a219577" title=" " alt="" coords="183,71,293,111"/>
+<area shape="poly" title=" " alt="" coords="113,120,167,106,168,112,114,125"/>
+<area shape="rect" href="../../d1/d42/classyaze_1_1util_1_1LogManager.html#a14416ae7e2c8807918b806b0ae947c6d" title=" " alt="" coords="164,160,312,201"/>
+<area shape="poly" title=" " alt="" coords="116,147,150,156,148,161,115,152"/>
+<area shape="rect" href="../../d1/d71/classyaze_1_1util_1_1FlagParser.html#aa5d5b0f51665afbb0d6bf9e41859b051" title=" " alt="" coords="168,249,308,290"/>
+<area shape="poly" title=" " alt="" coords="81,147,199,238,196,242,78,152"/>
+<area shape="poly" title=" " alt="" coords="204,160,202,150,208,141,220,135,238,133,257,136,269,142,266,147,256,141,238,139,221,141,211,145,207,151,209,159"/>
+<area shape="poly" title=" " alt="" coords="204,249,202,239,208,230,220,225,238,223,257,225,269,231,266,236,256,230,238,228,221,230,211,234,207,240,209,248"/>
 </map>
 </div>
 
@@ -379,7 +384,7 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>true if compatible, false otherwise </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00104">104</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00152">152</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d9/d89/yaze_8h_source.html#l00032">YAZE_VERSION_STRING</a>.</p>
 
@@ -404,7 +409,7 @@ Here is the call graph for this function:</div>
 <p>Get the current YAZE version string. </p>
 <dl class="section return"><dt>Returns</dt><dd>A null-terminated string containing the version </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00096">96</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00144">144</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d9/d89/yaze_8h_source.html#l00032">YAZE_VERSION_STRING</a>.</p>
 
@@ -429,7 +434,7 @@ Here is the call graph for this function:</div>
 <p>Get the current YAZE version number. </p>
 <dl class="section return"><dt>Returns</dt><dd>Version number (major * 10000 + minor * 100 + patch) </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00100">100</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00148">148</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d9/d89/yaze_8h_source.html#l00035">YAZE_VERSION_NUMBER</a>.</p>
 
@@ -473,9 +478,9 @@ Here is the call graph for this function:</div>
 <dl class="section return"><dt>Returns</dt><dd>YAZE_OK on success, error code on failure</dd></dl>
 <dl class="section note"><dt>Note</dt><dd>The caller is responsible for calling <a class="el" href="../../d0/de1/group__core.html#gaa46ba7ffb64df6d5168dc78b9372657e" title="Shutdown and clean up a YAZE editor context.">yaze_shutdown()</a> to clean up the context </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00111">111</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00159">159</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/d89/yaze_8h_source.html#l00041">yaze_editor_context::error_message</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00040">yaze_editor_context::rom</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00059">YAZE_ERROR_FILE_NOT_FOUND</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00058">YAZE_ERROR_INVALID_ARG</a>, <a class="el" href="../../df/d84/yaze_8cc_source.html#l00052">yaze_library_init()</a>, <a class="el" href="../../df/d84/yaze_8cc_source.html#l00151">yaze_load_rom()</a>, and <a class="el" href="../../d9/d89/yaze_8h_source.html#l00056">YAZE_OK</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/d89/yaze_8h_source.html#l00041">yaze_editor_context::error_message</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00040">yaze_editor_context::rom</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00059">YAZE_ERROR_FILE_NOT_FOUND</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00058">YAZE_ERROR_INVALID_ARG</a>, <a class="el" href="../../df/d84/yaze_8cc_source.html#l00100">yaze_library_init()</a>, <a class="el" href="../../df/d84/yaze_8cc_source.html#l00199">yaze_load_rom()</a>, and <a class="el" href="../../d9/d89/yaze_8h_source.html#l00056">YAZE_OK</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -517,9 +522,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>YAZE_OK on success, error code on failure </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00137">137</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00185">185</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d9/d89/yaze_8h_source.html#l00041">yaze_editor_context::error_message</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00040">yaze_editor_context::rom</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00058">YAZE_ERROR_INVALID_ARG</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00056">YAZE_OK</a>, and <a class="el" href="../../df/d84/yaze_8cc_source.html#l00171">yaze_unload_rom()</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/d89/yaze_8h_source.html#l00041">yaze_editor_context::error_message</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00040">yaze_editor_context::rom</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00058">YAZE_ERROR_INVALID_ARG</a>, <a class="el" href="../../d9/d89/yaze_8h_source.html#l00056">YAZE_OK</a>, and <a class="el" href="../../df/d84/yaze_8cc_source.html#l00219">yaze_unload_rom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

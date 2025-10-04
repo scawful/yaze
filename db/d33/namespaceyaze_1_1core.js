@@ -25,7 +25,6 @@ var namespaceyaze_1_1core =
     [ "Controller", "d4/d84/classyaze_1_1core_1_1Controller.html", "d4/d84/classyaze_1_1core_1_1Controller" ],
     [ "FeatureFlags", "d8/d3f/classyaze_1_1core_1_1FeatureFlags.html", "d8/d3f/classyaze_1_1core_1_1FeatureFlags" ],
     [ "FileDialogWrapper", "d5/d6c/classyaze_1_1core_1_1FileDialogWrapper.html", null ],
-    [ "FlagsMenu", "d0/dd0/structyaze_1_1core_1_1FlagsMenu.html", "d0/dd0/structyaze_1_1core_1_1FlagsMenu" ],
     [ "FontConfig", "d6/d2f/structyaze_1_1core_1_1FontConfig.html", "d6/d2f/structyaze_1_1core_1_1FontConfig" ],
     [ "FontState", "d6/df8/structyaze_1_1core_1_1FontState.html", "d6/df8/structyaze_1_1core_1_1FontState" ],
     [ "ProjectManager", "d9/d7f/classyaze_1_1core_1_1ProjectManager.html", "d9/d7f/classyaze_1_1core_1_1ProjectManager" ],

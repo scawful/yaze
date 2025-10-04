@@ -108,14 +108,18 @@ $(document).ready(function(){initNavTree('df/d84/yaze_8cc.html','../../'); initR
 <code>#include &lt;cstring&gt;</code><br />
 <code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
+<code>#include &lt;set&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
 <code>#include &lt;stdexcept&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;<a class="el" href="../../d2/dd9/controller_8h_source.html">app/core/controller.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d3/d16/app__delegate_8h_source.html">app/core/platform/app_delegate.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../db/d9c/message__data_8h_source.html">app/editor/message/message_data.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d7/d9c/overworld_8h_source.html">app/zelda3/overworld/overworld.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d2/da4/flag_8h_source.html">util/flag.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d7/d7f/log_8h_source.html">util/log.h</a>&quot;</code><br />
 <code>#include &quot;yaze_config.h&quot;</code><br />
 </div>
 <p><a href="../../df/d84/yaze_8cc_source.html">Go to the source code of this file.</a></p>
@@ -124,6 +128,12 @@ $(document).ready(function(){initNavTree('df/d84/yaze_8cc.html','../../'); initR
 Functions</h2></td></tr>
 <tr class="memitem:a396799212dcd857614ee23b702a94f3b" id="r_a396799212dcd857614ee23b702a94f3b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d84/yaze_8cc.html#a396799212dcd857614ee23b702a94f3b">DEFINE_FLAG</a> (std::string, rom_file, &quot;&quot;, &quot;Path to the ROM file to load. &quot; &quot;If not specified, the app will run without a ROM.&quot;)</td></tr>
 <tr class="separator:a396799212dcd857614ee23b702a94f3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a94ca889d49f659aad7012b2fd874f0" id="r_a1a94ca889d49f659aad7012b2fd874f0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d84/yaze_8cc.html#a1a94ca889d49f659aad7012b2fd874f0">DEFINE_FLAG</a> (std::string, log_level, &quot;info&quot;, &quot;Minimum log level to output (e.g., debug, info, warn, error, fatal).&quot;)</td></tr>
+<tr class="separator:a1a94ca889d49f659aad7012b2fd874f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a384cb77903ce48091eb6bf224c2d9234" id="r_a384cb77903ce48091eb6bf224c2d9234"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d84/yaze_8cc.html#a384cb77903ce48091eb6bf224c2d9234">DEFINE_FLAG</a> (std::string, log_file, &quot;&quot;, &quot;Path to the log file. If empty, logs to stderr.&quot;)</td></tr>
+<tr class="separator:a384cb77903ce48091eb6bf224c2d9234"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6afd6b49c12b7f2a3a3d38ed8f10e3da" id="r_a6afd6b49c12b7f2a3a3d38ed8f10e3da"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/d84/yaze_8cc.html#a6afd6b49c12b7f2a3a3d38ed8f10e3da">DEFINE_FLAG</a> (std::string, log_categories, &quot;&quot;, &quot;Comma-separated list of log categories to enable.&quot;)</td></tr>
+<tr class="separator:a6afd6b49c12b7f2a3a3d38ed8f10e3da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga440a6545b01877e0afee7ba8a54ad27e" id="r_ga440a6545b01877e0afee7ba8a54ad27e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/de1/group__core.html#ga440a6545b01877e0afee7ba8a54ad27e">yaze_app_main</a> (int argc, char **argv)</td></tr>
 <tr class="memdesc:ga440a6545b01877e0afee7ba8a54ad27e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main entry point for the YAZE application.  <br /></td></tr>
 <tr class="separator:ga440a6545b01877e0afee7ba8a54ad27e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -198,7 +208,7 @@ Functions</h2></td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a396799212dcd857614ee23b702a94f3b" name="a396799212dcd857614ee23b702a94f3b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a396799212dcd857614ee23b702a94f3b">&#9670;&#160;</a></span>DEFINE_FLAG()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a396799212dcd857614ee23b702a94f3b">&#9670;&#160;</a></span>DEFINE_FLAG() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -243,6 +253,132 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a1a94ca889d49f659aad7012b2fd874f0" name="a1a94ca889d49f659aad7012b2fd874f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a94ca889d49f659aad7012b2fd874f0">&#9670;&#160;</a></span>DEFINE_FLAG() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">DEFINE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">log_level&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;info&quot;&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Minimum log level to output (e.g., debug, info, warn, error, fatal).&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a384cb77903ce48091eb6bf224c2d9234" name="a384cb77903ce48091eb6bf224c2d9234"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a384cb77903ce48091eb6bf224c2d9234">&#9670;&#160;</a></span>DEFINE_FLAG() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">DEFINE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">log_file&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;&quot;&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Path to the log file. If&#160;</td>
+          <td class="paramname"><em>empty</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">logs to stderr.&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6afd6b49c12b7f2a3a3d38ed8f10e3da" name="a6afd6b49c12b7f2a3a3d38ed8f10e3da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6afd6b49c12b7f2a3a3d38ed8f10e3da">&#9670;&#160;</a></span>DEFINE_FLAG() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">DEFINE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">log_categories&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;&quot;&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Comma-separated list of log categories to enable.&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a6b14017ad1ab9e7da860e59f6145c1d1" name="a6b14017ad1ab9e7da860e59f6145c1d1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6b14017ad1ab9e7da860e59f6145c1d1">&#9670;&#160;</a></span>yaze_load_all_rooms()</h2>
 
@@ -259,7 +395,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00258">258</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d84/yaze_8cc_source.html#l00306">306</a> of file <a class="el" href="../../df/d84/yaze_8cc_source.html">yaze.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../de/dae/zelda_8h_source.html#l00216">zelda3_rom::impl</a>.</p>
 

@@ -1,11 +1,12 @@
 var classyaze_1_1editor_1_1DungeonRoomLoader =
 [
     [ "DungeonRoomLoader", "d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#acb74e89b4ea14eec56010a7bee0cac3d", null ],
+    [ "LoadRoom", "d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a3a9af7d66f11092b7ab6b47389444868", null ],
     [ "LoadAllRooms", "d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a34ff16de29d8f3a3b97fd52bd673c79e", null ],
     [ "LoadRoomEntrances", "d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a2b009f29c6b6b54364ee01122259d7b8", null ],
     [ "LoadDungeonRoomSize", "d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a88e8f7ad6540b2d58da03d54328a026b", null ],
     [ "GetTotalRoomSize", "d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#ada77eca73b51ba4d4648488ffaac0aff", null ],
-    [ "LoadAndRenderRoomGraphics", "d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a0337638649ca484208e9643854c10ee3", null ],
+    [ "LoadAndRenderRoomGraphics", "d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#aef241e92630a95140c2617fd9d2537c9", null ],
     [ "ReloadAllRoomGraphics", "d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a46d3ee807f7a9aaaec118255611b71f2", null ],
     [ "GetRoomSizePointers", "d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a9b56597b2a46499419a631675608b693", null ],
     [ "GetRoomSizes", "d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a0ab302ae9ab12015ce03d4b7c1203f07", null ],

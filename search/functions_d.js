@@ -9,10 +9,11 @@ var searchData=
   ['normalizelabel_6',['NormalizeLabel',['../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116',1,'yaze::gui::WidgetIdRegistry']]],
   ['normalizemapid_7',['NormalizeMapId',['../d0/d27/namespaceyaze_1_1cli_1_1overworld_1_1anonymous__namespace_02overworld__inspect_8cc_03.html#a2352897478589c29aadc9adb70533ad4',1,'yaze::cli::overworld::anonymous_namespace{overworld_inspect.cc}']]],
   ['normalizepathsegment_8',['NormalizePathSegment',['../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a23c22ac119fb015547d1dccfde58cfab',1,'yaze::gui::WidgetIdRegistry']]],
-  ['not1_9',['NOT1',['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a16b76a437f9574f5981f4c46d907ee96',1,'yaze::emu::Spc700']]],
-  ['notc_10',['NOTC',['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a920808e5ffd0598476d16861729fd4bd',1,'yaze::emu::Spc700']]],
-  ['notifyproposalcreated_11',['NotifyProposalCreated',['../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a4e01117a5a7444195eba772593cf8ad1',1,'yaze::editor::AgentChatWidget']]],
-  ['notifyvalue_12',['notifyvalue',['../de/d82/classyaze_1_1util_1_1NotifyValue.html#a3ec30e0f28aed54366ff93c8d009ab69',1,'yaze::util::NotifyValue::NotifyValue()'],['../de/d82/classyaze_1_1util_1_1NotifyValue.html#a5e043e96e569c1097bc1fc35dfcf18c6',1,'yaze::util::NotifyValue::NotifyValue(const T &amp;value)']]],
-  ['nx_13',['nx',['../d6/db1/classyaze_1_1zelda3_1_1Sprite.html#adbbc2669926bc228ccb2d0a20e01bc6a',1,'yaze::zelda3::Sprite']]],
-  ['ny_14',['ny',['../d6/db1/classyaze_1_1zelda3_1_1Sprite.html#af2bd1685f01fc3cfe9c164793855461f',1,'yaze::zelda3::Sprite']]]
+  ['normalizesessioncode_9',['NormalizeSessionCode',['../d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a78751689f80fdd2b3a718694e55775c1',1,'yaze::editor::AgentCollaborationCoordinator']]],
+  ['not1_10',['NOT1',['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a16b76a437f9574f5981f4c46d907ee96',1,'yaze::emu::Spc700']]],
+  ['notc_11',['NOTC',['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a920808e5ffd0598476d16861729fd4bd',1,'yaze::emu::Spc700']]],
+  ['notifyproposalcreated_12',['NotifyProposalCreated',['../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a4e01117a5a7444195eba772593cf8ad1',1,'yaze::editor::AgentChatWidget']]],
+  ['notifyvalue_13',['notifyvalue',['../de/d82/classyaze_1_1util_1_1NotifyValue.html#a3ec30e0f28aed54366ff93c8d009ab69',1,'yaze::util::NotifyValue::NotifyValue()'],['../de/d82/classyaze_1_1util_1_1NotifyValue.html#a5e043e96e569c1097bc1fc35dfcf18c6',1,'yaze::util::NotifyValue::NotifyValue(const T &amp;value)']]],
+  ['nx_14',['nx',['../d6/db1/classyaze_1_1zelda3_1_1Sprite.html#adbbc2669926bc228ccb2d0a20e01bc6a',1,'yaze::zelda3::Sprite']]],
+  ['ny_15',['ny',['../d6/db1/classyaze_1_1zelda3_1_1Sprite.html#af2bd1685f01fc3cfe9c164793855461f',1,'yaze::zelda3::Sprite']]]
 ];

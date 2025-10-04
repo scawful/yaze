@@ -1,9 +1,8 @@
 var searchData=
 [
-  ['canvas_20system_20comprehensive_20guide_0',['Canvas System - Comprehensive Guide',['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'']]],
-  ['changelog_1',['Changelog',['../d7/d6f/md_docs_2C1-changelog.html',1,'']]],
-  ['cli_20for_20yaze_2',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
-  ['compatibility_20improvements_3',['Platform Compatibility Improvements',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'']]],
-  ['comprehensive_20guide_4',['Canvas System - Comprehensive Guide',['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'']]],
-  ['coverage_20report_5',['Dungeon Editor Test Coverage Report',['../dd/d40/md_docs_2DUNGEON__TEST__COVERAGE.html',1,'']]]
+  ['e2e_20tests_0',['End-to-End (E2E) Tests',['../d9/db0/md_test_2e2e_2README.html',1,'']]],
+  ['editor_1',['yaze - Yet Another Zelda3 Editor',['../d0/d30/md_README.html',1,'']]],
+  ['editor_20palette_20system_2',['Tile16 Editor Palette System',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'']]],
+  ['editor_3a_20master_20guide_3',['Yaze Dungeon Editor: Master Guide',['../d5/dde/md_docs_2dungeon__editor__master__guide.html',1,'']]],
+  ['end_20to_20end_20e2e_20tests_4',['End-to-End (E2E) Tests',['../d9/db0/md_test_2e2e_2README.html',1,'']]]
 ];

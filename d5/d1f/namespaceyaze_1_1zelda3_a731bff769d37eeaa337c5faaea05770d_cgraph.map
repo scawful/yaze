@@ -2,11 +2,11 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,94,150,120"/>
 <area shape="rect" id="Node000002" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a0ea7c62cb7b2f6a9338e778f0243be4e" title=" " alt="" coords="203,5,359,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,91,197,55,211,50,213,55,199,60,112,96"/>
-<area shape="rect" id="Node000027" href="$d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="198,94,364,120"/>
-<area shape="poly" id="edge3_Node000001_Node000027" title=" " alt="" coords="150,104,182,104,182,110,150,110"/>
-<area shape="rect" id="Node000032" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a7035830b7589452ca012eae392aa7aed" title=" " alt="" coords="203,144,359,185"/>
-<area shape="poly" id="edge5_Node000001_Node000032" title=" " alt="" coords="127,118,192,137,191,142,125,123"/>
+<area shape="rect" id="Node000030" href="$d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="198,94,364,120"/>
+<area shape="poly" id="edge3_Node000001_Node000030" title=" " alt="" coords="150,104,182,104,182,110,150,110"/>
+<area shape="rect" id="Node000035" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a7035830b7589452ca012eae392aa7aed" title=" " alt="" coords="203,144,359,185"/>
+<area shape="poly" id="edge5_Node000001_Node000035" title=" " alt="" coords="127,118,192,137,191,142,125,123"/>
 <area shape="rect" id="Node000003" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#ac213f830ec85c668d91f46bc27939eba" title=" " alt="" coords="412,5,567,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="359,23,396,23,396,28,359,28"/>
-<area shape="poly" id="edge4_Node000027_Node000027" title=" " alt="" coords="247,95,240,86,244,76,258,70,281,68,306,70,319,77,316,82,304,75,281,73,259,75,248,80,245,85,251,92"/>
+<area shape="poly" id="edge4_Node000030_Node000030" title=" " alt="" coords="247,95,240,86,244,76,258,70,281,68,306,70,319,77,316,82,304,75,281,73,259,75,248,80,245,85,251,92"/>
 </map>

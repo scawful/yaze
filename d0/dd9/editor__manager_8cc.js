@@ -1,5 +1,6 @@
 var editor__manager_8cc =
 [
+    [ "IMGUI_DEFINE_MATH_OPERATORS", "d0/dd9/editor__manager_8cc.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "GetEditorName", "d0/dd9/editor__manager_8cc.html#a04a2feb18db36480026c96f4c432701d", null ],
     [ "kOverworldEditorName", "d0/dd9/editor__manager_8cc.html#a71f5e2369095a77351061be9b7bb8bb1", null ],
     [ "kGraphicsEditorName", "d0/dd9/editor__manager_8cc.html#a4aeaba1613d291e363d09328be45faf1", null ],

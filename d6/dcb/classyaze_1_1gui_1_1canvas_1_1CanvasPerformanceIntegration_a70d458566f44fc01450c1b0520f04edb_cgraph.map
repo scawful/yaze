@@ -1,7 +1,12 @@
 <map id="yaze::gui::canvas::CanvasPerformanceIntegration::Initialize" name="yaze::gui::canvas::CanvasPerformanceIntegration::Initialize">
-<area shape="rect" id="Node000001" title="Initialize performance integration." alt="" coords="5,24,206,79"/>
+<area shape="rect" id="Node000001" title="Initialize performance integration." alt="" coords="5,40,206,95"/>
 <area shape="rect" id="Node000002" href="$d4/d6f/classyaze_1_1gfx_1_1PerformanceDashboard.html#a17aa7d383b756039828f137ba8ddf004" title=" " alt="" coords="254,5,493,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,36,249,31,250,36,207,42"/>
-<area shape="rect" id="Node000003" href="$d3/d30/structyaze_1_1gui_1_1canvas_1_1CanvasPerformanceMetrics.html#a55ed08d0b369b103b9aefefdd6240efa" title=" " alt="" coords="282,56,465,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="207,61,267,68,266,73,206,66"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,46,284,32,285,37,207,52"/>
+<area shape="rect" id="Node000003" href="$d4/de1/namespaceyaze_1_1util.html#ad275954728917ad92cd88165cd47184f" title=" " alt="" coords="325,55,422,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,65,309,65,309,70,206,70"/>
+<area shape="rect" id="Node000006" href="$d3/d30/structyaze_1_1gui_1_1canvas_1_1CanvasPerformanceMetrics.html#a55ed08d0b369b103b9aefefdd6240efa" title=" " alt="" coords="282,105,465,161"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="207,89,268,104,267,110,206,95"/>
+<area shape="rect" id="Node000004" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#a14416ae7e2c8807918b806b0ae947c6d" title=" " alt="" coords="541,47,689,88"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="422,65,525,65,525,70,422,70"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="570,47,567,37,575,28,591,23,615,21,641,23,657,29,655,34,640,28,615,26,592,28,578,33,573,38,575,46"/>
 </map>

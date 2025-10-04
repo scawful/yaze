@@ -1,0 +1,10 @@
+<map id="yaze::gui::canvas::CanvasPerformanceManager::ClearAllIntegrations" name="yaze::gui::canvas::CanvasPerformanceManager::ClearAllIntegrations">
+<area shape="rect" id="Node000001" title="Clear all integrations." alt="" coords="5,51,195,107"/>
+<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#ad275954728917ad92cd88165cd47184f" title=" " alt="" coords="243,66,340,92"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,76,227,76,227,82,195,82"/>
+<area shape="rect" id="Node000003" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#a14416ae7e2c8807918b806b0ae947c6d" title=" " alt="" coords="400,29,548,70"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="340,69,384,61,384,67,341,74"/>
+<area shape="rect" id="Node000004" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#ae326c7c3034a3127513198774bb75c07" title="The primary logging function." alt="" coords="388,94,559,120"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="341,84,373,89,372,94,340,89"/>
+<area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="439,29,437,19,443,10,455,5,474,3,494,5,506,11,503,16,492,10,474,8,457,10,446,14,442,20,444,28"/>
+</map>
