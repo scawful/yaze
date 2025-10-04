@@ -1,0 +1,9 @@
+<map id="yaze::editor::AgentChatWidget::NotifyProposalCreated" name="yaze::editor::AgentChatWidget::NotifyProposalCreated">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,198,79"/>
+<area shape="rect" id="Node000002" href="$d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a993dcad5d03dcc0cf4c825d27684936b" title=" " alt="" coords="246,5,438,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,43,230,39,231,44,199,48"/>
+<area shape="rect" id="Node000004" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="255,71,429,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="198,69,239,75,239,80,198,74"/>
+<area shape="rect" id="Node000003" href="$dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#ab811cae5845c007ae1fc6faf533e0e3b" title=" " alt="" coords="486,5,669,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="438,23,471,23,471,28,438,28"/>
+</map>

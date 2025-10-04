@@ -42,5 +42,6 @@ var searchData=
   ['proposalcreationresult_39',['ProposalCreationResult',['../d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html',1,'yaze::cli::agent']]],
   ['proposaldrawer_40',['ProposalDrawer',['../dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html',1,'yaze::editor']]],
   ['proposalmetadata_41',['ProposalMetadata',['../d5/da1/structyaze_1_1cli_1_1ProposalRegistry_1_1ProposalMetadata.html',1,'yaze::cli::ProposalRegistry']]],
-  ['proposalregistry_42',['ProposalRegistry',['../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html',1,'yaze::cli']]]
+  ['proposalregistry_42',['ProposalRegistry',['../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html',1,'yaze::cli']]],
+  ['proposalsummary_43',['ProposalSummary',['../de/dd3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1ProposalSummary.html',1,'yaze::cli::agent::ChatMessage']]]
 ];

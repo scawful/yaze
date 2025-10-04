@@ -104,25 +104,15 @@ $(document).ready(function(){initNavTree('dc/d5e/editor_2system_2agent__chat__wi
   <div class="headertitle"><div class="title">agent_chat_widget.h File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;string&gt;</code><br />
+<div class="textblock"><code>#include &lt;filesystem&gt;</code><br />
+<code>#include &lt;functional&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
+<code>#include &quot;absl/status/status.h&quot;</code><br />
+<code>#include &quot;absl/status/statusor.h&quot;</code><br />
+<code>#include &quot;absl/time/time.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d1/dad/conversational__agent__service_8h_source.html">cli/service/agent/conversational_agent_service.h</a>&quot;</code><br />
-</div><div class="textblock"><div class="dynheader">
-Include dependency graph for agent_chat_widget.h:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../de/d6f/editor_2system_2agent__chat__widget_8h__incl.png" border="0" usemap="#asrc_2app_2editor_2system_2agent__chat__widget_8h" alt=""/></div>
-<map name="asrc_2app_2editor_2system_2agent__chat__widget_8h" id="asrc_2app_2editor_2system_2agent__chat__widget_8h">
-<area shape="rect" title=" " alt="" coords="5,5,152,46"/>
-<area shape="rect" title=" " alt="" coords="11,183,64,208"/>
-<area shape="poly" title=" " alt="" coords="63,48,48,70,37,95,32,132,35,167,29,167,27,132,32,93,44,67,59,45"/>
-<area shape="rect" href="../../d1/dad/conversational__agent__service_8h.html" title=" " alt="" coords="47,94,251,135"/>
-<area shape="poly" title=" " alt="" coords="97,45,126,80,122,84,92,48"/>
-<area shape="poly" title=" " alt="" coords="123,137,68,175,65,171,120,133"/>
-<area shape="rect" title=" " alt="" coords="101,183,168,208"/>
-<area shape="poly" title=" " alt="" coords="148,136,142,168,137,167,143,135"/>
-<area shape="rect" title=" " alt="" coords="191,183,249,208"/>
-<area shape="poly" title=" " alt="" coords="169,133,201,169,197,173,165,137"/>
-</map>
-</div>
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
@@ -139,6 +129,14 @@ This graph shows which files directly or indirectly include this file:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html">yaze::editor::AgentChatWidget</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d80/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationCallbacks.html">yaze::editor::AgentChatWidget::CollaborationCallbacks</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/dcf/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalCallbacks.html">yaze::editor::AgentChatWidget::MultimodalCallbacks</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dc8/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationState.html">yaze::editor::AgentChatWidget::CollaborationState</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState.html">yaze::editor::AgentChatWidget::MultimodalState</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>

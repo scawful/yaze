@@ -1,11 +1,10 @@
 var searchData=
 [
-  ['scripts_0',['scripts',['../dc/db4/md_scripts_2README__VERIFICATION.html',1,'YAZE Build Environment Verification Scripts'],['../de/d82/md_scripts_2README.html',1,'yaze Build Scripts']]],
-  ['stability_20testability_20release_20workflow_20improvements_1',['Stability, Testability &amp; Release Workflow Improvements',['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'']]],
-  ['started_2',['Getting Started',['../d0/d63/md_docs_201-getting-started.html',1,'']]],
-  ['status_20updated_20ollama_20integration_20status_3',['Ollama Integration Status - Updated# Ollama Integration Status',['../da/d40/md_docs_2ollama__integration__status.html',1,'']]],
-  ['style_20guide_4',['Asm Style Guide',['../d7/d9a/md_docs_2E1-asm-style-guide.html',1,'']]],
-  ['suite_5',['yaze Test Suite',['../d0/d46/md_test_2README.html',1,'']]],
-  ['system_6',['Tile16 Editor Palette System',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'']]],
-  ['system_20comprehensive_20guide_7',['Canvas System - Comprehensive Guide',['../d2/db2/md_docs_2CANVAS__GUIDE.html',1,'']]]
+  ['palette_20system_0',['Tile16 Editor Palette System',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'']]],
+  ['performance_20optimization_1',['Graphics System Performance &amp; Optimization',['../db/dc2/md_docs_2GRAPHICS__PERFORMANCE.html',1,'']]],
+  ['plan_2',['Dungeon Editor Design Plan',['../dc/d82/md_docs_2E3-dungeon-editor-design.html',1,'']]],
+  ['plan_20for_20yaze_3',['Build Modularization Plan for Yaze',['../d7/daf/md_docs_2build__modularization__plan.html',1,'']]],
+  ['platform_20compatibility_20improvements_4',['Platform Compatibility Improvements',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'']]],
+  ['powered_20cli_20for_20yaze_5',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
+  ['presets_20guide_6',['Build Presets Guide',['../d7/d51/md_docs_2B3-build-presets.html',1,'']]]
 ];

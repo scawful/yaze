@@ -101,12 +101,12 @@ $(document).ready(function(){initNavTree('d3/d63/md_docs_2z3ed_2README.html','..
   <div class="headertitle"><div class="title">z3ed: AI-Powered CLI for YAZE</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md625"></a> <b>Version</b>: 0.1.0-alpha <b>Last Updated</b>: October 4, 2025</p>
-<h1><a class="anchor" id="autotoc_md626"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md696"></a> <b>Version</b>: 0.1.0-alpha <b>Last Updated</b>: October 4, 2025</p>
+<h1><a class="anchor" id="autotoc_md697"></a>
 1. Overview</h1>
 <p>This document is the <b>source of truth</b> for the z3ed CLI architecture, design, and roadmap. It outlines the evolution of <code>z3ed</code> into a powerful, scriptable, and extensible tool for both manual and AI-driven ROM hacking.</p>
 <p><code>z3ed</code> has successfully implemented its core infrastructure and is <b>production-ready on macOS</b>.</p>
-<h2><a class="anchor" id="autotoc_md627"></a>
+<h2><a class="anchor" id="autotoc_md698"></a>
 Core Capabilities</h2>
 <ol type="1">
 <li><b>Conversational Agent</b>: Chat with an AI (Ollama or Gemini) to explore ROM contents and plan changes using natural language—available from the CLI, terminal UI, and now directly within the YAZE editor.</li>
@@ -114,9 +114,9 @@ Core Capabilities</h2>
 <li><b>Proposal System</b>: A safe, sandboxed editing workflow where all changes are tracked as "proposals" that require human review and acceptance.</li>
 <li><b>Resource-Oriented CLI</b>: A clean <code>z3ed &lt;resource&gt; &lt;action&gt;</code> command structure that is both human-readable and machine-parsable.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md628"></a>
+<h1><a class="anchor" id="autotoc_md699"></a>
 2. Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md629"></a>
+<h2><a class="anchor" id="autotoc_md700"></a>
 Build</h2>
 <p>A single <code>Z3ED_AI=ON</code> CMake flag enables all AI features, including JSON, YAML, and httplib dependencies. This simplifies the build process.</p>
 <div class="fragment"><div class="line"># Build with AI features (RECOMMENDED)</div>
@@ -126,14 +126,14 @@ Build</h2>
 <div class="line"># For GUI automation features, also include gRPC</div>
 <div class="line">cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON</div>
 <div class="line">cmake --build build --target z3ed</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md630"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md701"></a>
 AI Setup</h2>
 <p><b>Ollama (Recommended for Development)</b>: </p><div class="fragment"><div class="line">brew install ollama              # macOS</div>
 <div class="line">ollama pull qwen2.5-coder:7b    # Pull recommended model</div>
 <div class="line">ollama serve                     # Start server</div>
 </div><!-- fragment --><p><b>Gemini (Cloud API)</b>: </p><div class="fragment"><div class="line"># Get API key from https://aistudio.google.com/apikey</div>
 <div class="line">export GEMINI_API_KEY=&quot;your-key-here&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md631"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md702"></a>
 Example Commands</h2>
 <p><b>Conversational Agent</b>: </p><div class="fragment"><div class="line"># Interactive chat (FTXUI)</div>
 <div class="line">z3ed agent chat --rom zelda3.sfc</div>
@@ -154,10 +154,10 @@ Example Commands</h2>
 <div class="line"> </div>
 <div class="line"># Accept</div>
 <div class="line">z3ed agent accept --proposal-id &lt;id&gt;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md632"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md703"></a>
 3. Architecture</h1>
 <p>The z3ed system is composed of several layers, from the high-level AI agent down to the YAZE GUI and test harness.</p>
-<h2><a class="anchor" id="autotoc_md633"></a>
+<h2><a class="anchor" id="autotoc_md704"></a>
 System Components Diagram</h2>
 <div class="fragment"><div class="line">┌─────────────────────────────────────────────────────────┐</div>
 <div class="line">│ AI Agent Layer (LLM: Ollama, Gemini)                    │</div>
@@ -187,7 +187,7 @@ System Components Diagram</h2>
 <div class="line">│ YAZE GUI (ImGui Application)                            │</div>
 <div class="line">│  └─ ProposalDrawer &amp; Editor Windows                     │</div>
 <div class="line">└─────────────────────────────────────────────────────────┘</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md634"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md705"></a>
 4. Agentic &amp; Generative Workflow (MCP)</h1>
 <p>The <code>z3ed</code> CLI is the foundation for an AI-driven Model-Code-Program (MCP) loop, where the AI agent's "program" is a script of <code>z3ed</code> commands.</p>
 <ol type="1">
@@ -196,9 +196,9 @@ System Components Diagram</h2>
 <li><b>Program (Execution)</b>: The <code>z3ed agent</code> parses the plan and executes each command sequentially in a sandboxed ROM environment.</li>
 <li><b>Verification (Tester)</b>: The <code>ImGuiTestHarness</code> is used to run automated GUI tests to verify that the changes were applied correctly.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md635"></a>
+<h1><a class="anchor" id="autotoc_md706"></a>
 5. Command Reference</h1>
-<h2><a class="anchor" id="autotoc_md636"></a>
+<h2><a class="anchor" id="autotoc_md707"></a>
 Agent Commands</h2>
 <ul>
 <li><code>agent run --prompt "..."</code>: Executes an AI-driven ROM modification in a sandbox.</li>
@@ -210,7 +210,7 @@ Agent Commands</h2>
 <li><code>agent simple-chat</code>: A lightweight, non-TUI chat mode for scripting and automation.</li>
 <li><code>agent test ...</code>: Commands for running and managing automated GUI tests.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md637"></a>
+<h2><a class="anchor" id="autotoc_md708"></a>
 Resource Commands</h2>
 <ul>
 <li><code>rom info|validate|diff</code>: Commands for ROM file inspection and comparison.</li>
@@ -218,18 +218,18 @@ Resource Commands</h2>
 <li><code>overworld get-tile|find-tile|set-tile</code>: Commands for overworld editing.</li>
 <li><code>dungeon list-sprites|list-rooms</code>: Commands for dungeon inspection.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md638"></a>
+<h1><a class="anchor" id="autotoc_md709"></a>
 6. Chat Modes</h1>
-<h2><a class="anchor" id="autotoc_md639"></a>
+<h2><a class="anchor" id="autotoc_md710"></a>
 FTXUI Chat (&lt;tt&gt;agent chat&lt;/tt&gt;)</h2>
 <p>Full-screen interactive terminal with table rendering, syntax highlighting, and scrollable history. Best for manual exploration.</p>
-<h2><a class="anchor" id="autotoc_md640"></a>
+<h2><a class="anchor" id="autotoc_md711"></a>
 Simple Chat (&lt;tt&gt;agent simple-chat&lt;/tt&gt;)</h2>
 <p>Lightweight, scriptable text-based REPL that supports single messages, interactive sessions, piped input, and batch files.</p>
-<h2><a class="anchor" id="autotoc_md641"></a>
+<h2><a class="anchor" id="autotoc_md712"></a>
 GUI Chat Widget (Editor Integration Preview)</h2>
 <p>Accessible from <b>Debug → Agent Chat</b> inside YAZE. Provides the same conversation loop as the CLI, including streaming history, JSON/table inspection, and ROM-aware tool dispatch. Current limitations: no proposal preview shortcuts yet, and the window state resets on restart.</p>
-<h1><a class="anchor" id="autotoc_md642"></a>
+<h1><a class="anchor" id="autotoc_md713"></a>
 7. AI Provider Configuration</h1>
 <p>Z3ED supports multiple AI providers. Configuration is resolved with command-line flags taking precedence over environment variables.</p>
 <ul>
@@ -238,10 +238,10 @@ GUI Chat Widget (Editor Integration Preview)</h2>
 <li><code>--gemini_api_key=&lt;key&gt;</code>: Your Gemini API key.</li>
 <li><code>--ollama_host=&lt;url&gt;</code>: The URL for your Ollama server (default: <code><a href="http://localhost:11434">http://localhost:11434</a></code>).</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md643"></a>
+<h1><a class="anchor" id="autotoc_md714"></a>
 8. Roadmap &amp; Implementation Status</h1>
 <p><b>Last Updated</b>: October 4, 2025</p>
-<h2><a class="anchor" id="autotoc_md644"></a>
+<h2><a class="anchor" id="autotoc_md715"></a>
 ✅ Completed</h2>
 <ul>
 <li><b>Core Infrastructure</b>: Resource-oriented CLI, proposal workflow, sandbox manager, and resource catalog are all production-ready.</li>
@@ -249,15 +249,17 @@ GUI Chat Widget (Editor Integration Preview)</h2>
 <li><b>Conversational Agent</b>: The agent service, tool dispatcher (with 5 read-only tools), TUI/simple chat interfaces, and initial <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> editor chat widget are complete.</li>
 <li><b>GUI Test Harness</b>: A comprehensive GUI testing platform with introspection, widget discovery, recording/replay, and CI integration support.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md645"></a>
+<h2><a class="anchor" id="autotoc_md716"></a>
 🚧 Active &amp; Next Steps</h2>
 <ol type="1">
 <li><b>Live LLM Testing (1-2h)</b>: Verify function calling with real models (Ollama/Gemini).</li>
 <li><b>GUI Chat Enhancements (4-6h)</b>: Persist chat state, surface proposal shortcuts, and add toast notifications when new proposals arrive from chats.</li>
 <li><b>Expand Tool Coverage (8-10h)</b>: Add new read-only tools for inspecting dialogue, sprites, and regions.</li>
+<li><b>Collaborative Sessions</b>: Expand the infrastructure of <code>z3ed</code> and <code>yaze</code> to support collaborative sessions where users can edit the same game and query the AI model together.</li>
+<li><b>Multi-modal Gemini for image feedback</b>: Take screenshots of the map for Gemini to have more context to tool and function calls.</li>
 <li><b>Windows Cross-Platform Testing (8-10h)</b>: Validate <code>z3ed</code> and the test harness on Windows.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md646"></a>
+<h1><a class="anchor" id="autotoc_md717"></a>
 9. Troubleshooting</h1>
 <ul>
 <li>**"Build with -DZ3ED_AI=ON" warning**: AI features are disabled. Rebuild with the flag to enable them.</li>

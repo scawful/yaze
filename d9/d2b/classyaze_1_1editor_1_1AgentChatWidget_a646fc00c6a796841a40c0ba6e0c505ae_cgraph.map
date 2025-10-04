@@ -1,0 +1,12 @@
+<map id="yaze::editor::AgentChatWidget::HandleAgentResponse" name="yaze::editor::AgentChatWidget::HandleAgentResponse">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,198,111"/>
+<area shape="rect" id="Node000002" href="$d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a913e30bf827eacec57a0cb7c63ff9dbd" title=" " alt="" coords="246,5,438,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,68,249,48,250,53,179,73"/>
+<area shape="rect" id="Node000004" href="$d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a4e01117a5a7444195eba772593cf8ad1" title=" " alt="" coords="246,71,438,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="198,88,230,88,230,94,198,94"/>
+<area shape="rect" id="Node000007" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="497,99,671,139"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="182,109,246,120,368,127,481,124,481,129,368,132,245,126,182,115"/>
+<area shape="rect" id="Node000003" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ab55e86d1ba2febc9f75ead191a3385fc" title=" " alt="" coords="486,5,682,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="439,23,470,23,470,28,439,28"/>
+<area shape="poly" id="edge4_Node000004_Node000007" title=" " alt="" coords="439,99,482,105,481,110,438,105"/>
+</map>

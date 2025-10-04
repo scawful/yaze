@@ -14,6 +14,7 @@ var classyaze_1_1editor_1_1ProposalDrawer =
     [ "Hide", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#acc9647b7e8ca1a138ca7462da585a647", null ],
     [ "Toggle", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#ade9a0c16a98e6df1bc04ac15373711a4", null ],
     [ "IsVisible", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a11017f90202637a319008b327d03f2a9", null ],
+    [ "FocusProposal", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#ab811cae5845c007ae1fc6faf533e0e3b", null ],
     [ "DrawProposalList", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a0243612aa77d6448482d234f7624a2ef", null ],
     [ "DrawProposalDetail", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a17d7f09418092ad9c7efbf4da9db9b3e", null ],
     [ "DrawPolicyStatus", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a1d14311464dc64aa00c8f56ba83a22b1", null ],

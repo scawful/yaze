@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['z3ed_3a_20ai_20powered_20cli_20for_20yaze_0',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
-  ['zelda3_20editor_1',['yaze - Yet Another Zelda3 Editor',['../d0/d30/md_README.html',1,'']]],
-  ['zscream_20vs_20yaze_20overworld_20implementation_20analysis_2',['ZScream vs. yaze Overworld Implementation Analysis',['../d9/d48/md_docs_2analysis_2overworld__implementation__analysis.html',1,'']]]
+  ['workflow_20improvements_0',['Stability, Testability &amp; Release Workflow Improvements',['../d9/d6b/md_docs_2B5-stability-improvements.html',1,'']]],
+  ['workflows_20documentation_1',['Release Workflows Documentation',['../d3/d49/md_docs_2B4-release-workflows.html',1,'']]]
 ];

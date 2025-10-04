@@ -106,10 +106,23 @@ $(document).ready(function(){initNavTree('dd/dde/editor_2system_2agent__chat__wi
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../dc/d5e/editor_2system_2agent__chat__widget_8h_source.html">app/editor/system/agent_chat_widget.h</a>&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;cstdlib&gt;</code><br />
 <code>#include &lt;cstring&gt;</code><br />
+<code>#include &lt;fstream&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
-<code>#include &quot;imgui.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_format.h&quot;</code><br />
+<code>#include &quot;absl/time/clock.h&quot;</code><br />
+<code>#include &quot;absl/time/time.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d0/d77/file__dialog_8h_source.html">app/core/platform/file_dialog.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d5/dca/proposal__drawer_8h_source.html">app/editor/system/proposal_drawer.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../de/d7d/toast__manager_8h_source.html">app/editor/system/toast_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../de/dbf/icons_8h_source.html">app/gui/icons.h</a>&quot;</code><br />
+<code>#include &quot;imgui/imgui.h&quot;</code><br />
+<code>#include &quot;imgui/misc/cpp/imgui_stdlib.h&quot;</code><br />
+<code>#include &quot;nlohmann/json.hpp&quot;</code><br />
 </div>
 <p><a href="../../dd/dde/editor_2system_2agent__chat__widget_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -126,8 +139,22 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aa1d23c9345a5677fd9aa0a63467ee9c0" id="r_aa1d23c9345a5677fd9aa0a63467ee9c0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#aa1d23c9345a5677fd9aa0a63467ee9c0">anonymous_namespace{agent_chat_widget.cc}::RenderTable</a> (const <a class="el" href="../../df/de3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1TableData.html">yaze::cli::agent::ChatMessage::TableData</a> &amp;table_data)</td></tr>
-<tr class="separator:aa1d23c9345a5677fd9aa0a63467ee9c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3aaf3d0a0eac7b21e8028e9b6a84ac97" id="r_a3aaf3d0a0eac7b21e8028e9b6a84ac97"><td class="memItemLeft" align="right" valign="top">std::filesystem::path&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#a3aaf3d0a0eac7b21e8028e9b6a84ac97">anonymous_namespace{agent_chat_widget.cc}::ExpandUserPath</a> (std::string path)</td></tr>
+<tr class="separator:a3aaf3d0a0eac7b21e8028e9b6a84ac97"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9caa8d28dfb5072a941117203ded3626" id="r_a9caa8d28dfb5072a941117203ded3626"><td class="memItemLeft" align="right" valign="top">std::filesystem::path&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#a9caa8d28dfb5072a941117203ded3626">anonymous_namespace{agent_chat_widget.cc}::ResolveHistoryPath</a> ()</td></tr>
+<tr class="separator:a9caa8d28dfb5072a941117203ded3626"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a718570dc6117bab3ebd4105e62127bf1" id="r_a718570dc6117bab3ebd4105e62127bf1"><td class="memItemLeft" align="right" valign="top">absl::Time&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#a718570dc6117bab3ebd4105e62127bf1">anonymous_namespace{agent_chat_widget.cc}::ParseTimestamp</a> (const nlohmann::json &amp;value)</td></tr>
+<tr class="separator:a718570dc6117bab3ebd4105e62127bf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afeec3f3cc30b336e3510f6466657e1a2" id="r_afeec3f3cc30b336e3510f6466657e1a2"><td class="memItemLeft" align="right" valign="top">nlohmann::json&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#afeec3f3cc30b336e3510f6466657e1a2">anonymous_namespace{agent_chat_widget.cc}::SerializeTableData</a> (const <a class="el" href="../../df/de3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1TableData.html">ChatMessage::TableData</a> &amp;table)</td></tr>
+<tr class="separator:afeec3f3cc30b336e3510f6466657e1a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a723b347c53b408802be0b07b1b5d25ac" id="r_a723b347c53b408802be0b07b1b5d25ac"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="../../df/de3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1TableData.html">ChatMessage::TableData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#a723b347c53b408802be0b07b1b5d25ac">anonymous_namespace{agent_chat_widget.cc}::ParseTableData</a> (const nlohmann::json &amp;json)</td></tr>
+<tr class="separator:a723b347c53b408802be0b07b1b5d25ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1ae7247bb9e53516244482e30e1919a" id="r_ac1ae7247bb9e53516244482e30e1919a"><td class="memItemLeft" align="right" valign="top">nlohmann::json&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#ac1ae7247bb9e53516244482e30e1919a">anonymous_namespace{agent_chat_widget.cc}::SerializeProposal</a> (const <a class="el" href="../../de/dd3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1ProposalSummary.html">ChatMessage::ProposalSummary</a> &amp;proposal)</td></tr>
+<tr class="separator:ac1ae7247bb9e53516244482e30e1919a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac9fe5bfa5de2dc86d4ac0747f42420f7" id="r_ac9fe5bfa5de2dc86d4ac0747f42420f7"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="../../de/dd3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1ProposalSummary.html">ChatMessage::ProposalSummary</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#ac9fe5bfa5de2dc86d4ac0747f42420f7">anonymous_namespace{agent_chat_widget.cc}::ParseProposal</a> (const nlohmann::json &amp;json)</td></tr>
+<tr class="separator:ac9fe5bfa5de2dc86d4ac0747f42420f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fb4bcc7a1f8e6f2525d69c8826501da" id="r_a5fb4bcc7a1f8e6f2525d69c8826501da"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#a5fb4bcc7a1f8e6f2525d69c8826501da">anonymous_namespace{agent_chat_widget.cc}::RenderTable</a> (const <a class="el" href="../../df/de3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1TableData.html">ChatMessage::TableData</a> &amp;table_data)</td></tr>
+<tr class="separator:a5fb4bcc7a1f8e6f2525d69c8826501da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -137,6 +164,8 @@ Variables</h2></td></tr>
 <tr class="separator:aaea43c6de41da70af235ab7afdf339d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1f70a3de6f83b5b8bbb32bd2c8915742" id="r_a1f70a3de6f83b5b8bbb32bd2c8915742"><td class="memItemLeft" align="right" valign="top">const ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#a1f70a3de6f83b5b8bbb32bd2c8915742">anonymous_namespace{agent_chat_widget.cc}::kJsonTextColor</a> = ImVec4(0.78f, 0.83f, 0.90f, 1.0f)</td></tr>
 <tr class="separator:a1f70a3de6f83b5b8bbb32bd2c8915742"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a52ca0dae2c5ebc04512a3390d626d7ea" id="r_a52ca0dae2c5ebc04512a3390d626d7ea"><td class="memItemLeft" align="right" valign="top">const ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#a52ca0dae2c5ebc04512a3390d626d7ea">anonymous_namespace{agent_chat_widget.cc}::kProposalPanelColor</a> = ImVec4(0.20f, 0.35f, 0.20f, 0.35f)</td></tr>
+<tr class="separator:a52ca0dae2c5ebc04512a3390d626d7ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

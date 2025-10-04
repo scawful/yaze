@@ -40,8 +40,10 @@ var searchData=
   ['dungeon_5froom_5fselector_2ecc_37',['dungeon_room_selector.cc',['../d1/d69/dungeon__room__selector_8cc.html',1,'']]],
   ['dungeon_5froom_5fselector_2eh_38',['dungeon_room_selector.h',['../d2/d24/dungeon__room__selector_8h.html',1,'']]],
   ['dungeon_5froom_5ftest_2ecc_39',['dungeon_room_test.cc',['../da/d92/dungeon__room__test_8cc.html',1,'']]],
-  ['dungeon_5ftoolset_2ecc_40',['dungeon_toolset.cc',['../d7/dfa/dungeon__toolset_8cc.html',1,'']]],
-  ['dungeon_5ftoolset_2eh_41',['dungeon_toolset.h',['../d0/d9a/dungeon__toolset_8h.html',1,'']]],
-  ['dungeon_5fusage_5ftracker_2ecc_42',['dungeon_usage_tracker.cc',['../dd/d1d/dungeon__usage__tracker_8cc.html',1,'']]],
-  ['dungeon_5fusage_5ftracker_2eh_43',['dungeon_usage_tracker.h',['../d8/d05/dungeon__usage__tracker_8h.html',1,'']]]
+  ['dungeon_5ftest_5fcoverage_2emd_40',['DUNGEON_TEST_COVERAGE.md',['../d6/ddb/DUNGEON__TEST__COVERAGE_8md.html',1,'']]],
+  ['dungeon_5ftesting_5fresults_2emd_41',['DUNGEON_TESTING_RESULTS.md',['../dc/d9e/DUNGEON__TESTING__RESULTS_8md.html',1,'']]],
+  ['dungeon_5ftoolset_2ecc_42',['dungeon_toolset.cc',['../d7/dfa/dungeon__toolset_8cc.html',1,'']]],
+  ['dungeon_5ftoolset_2eh_43',['dungeon_toolset.h',['../d0/d9a/dungeon__toolset_8h.html',1,'']]],
+  ['dungeon_5fusage_5ftracker_2ecc_44',['dungeon_usage_tracker.cc',['../dd/d1d/dungeon__usage__tracker_8cc.html',1,'']]],
+  ['dungeon_5fusage_5ftracker_2eh_45',['dungeon_usage_tracker.h',['../d8/d05/dungeon__usage__tracker_8h.html',1,'']]]
 ];

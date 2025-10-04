@@ -35,6 +35,8 @@ var searchData=
   ['mpyh_32',['MPYH',['../d6/d63/structyaze_1_1emu_1_1MPYH.html',1,'yaze::emu']]],
   ['mpyl_33',['MPYL',['../d4/dae/structyaze_1_1emu_1_1MPYL.html',1,'yaze::emu']]],
   ['mpym_34',['MPYM',['../d0/d95/structyaze_1_1emu_1_1MPYM.html',1,'yaze::emu']]],
-  ['multiselect_35',['MultiSelect',['../d2/d39/classyaze_1_1gui_1_1MultiSelect.html',1,'yaze::gui']]],
-  ['musiceditor_36',['MusicEditor',['../db/d9a/classyaze_1_1editor_1_1MusicEditor.html',1,'yaze::editor']]]
+  ['multimodalcallbacks_35',['MultimodalCallbacks',['../d5/dcf/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalCallbacks.html',1,'yaze::editor::AgentChatWidget']]],
+  ['multimodalstate_36',['MultimodalState',['../db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState.html',1,'yaze::editor::AgentChatWidget']]],
+  ['multiselect_37',['MultiSelect',['../d2/d39/classyaze_1_1gui_1_1MultiSelect.html',1,'yaze::gui']]],
+  ['musiceditor_38',['MusicEditor',['../db/d9a/classyaze_1_1editor_1_1MusicEditor.html',1,'yaze::editor']]]
 ];

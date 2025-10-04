@@ -16,7 +16,7 @@ var searchData=
   ['0_203_200_20september_202025_13',['0.3.0 (September 2025)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md297',1,'']]],
   ['0_203_201_20september_202025_14',['0.3.1 (September 2025)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md289',1,'']]],
   ['0_203_202_20december_202025_20in_20development_15',['0.3.2 (December 2025) - In Development',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md281',1,'']]],
-  ['0_203_202_20release_16',['Version 0.3.2 - Release',['../d0/d30/md_README.html#autotoc_md648',1,'']]],
+  ['0_203_202_20release_16',['Version 0.3.2 - Release',['../d0/d30/md_README.html#autotoc_md719',1,'']]],
   ['0_204_20x_20next_20major_20release_17',['0.4.X (Next Major Release)',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md371',1,'']]],
   ['0_205_20x_18',['0.5.X',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md374',1,'']]],
   ['0_206_20x_19',['0.6.X',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md376',1,'']]],
@@ -26,7 +26,7 @@ var searchData=
   ['02_2dbuild_2dinstructions_2emd_23',['02-build-instructions.md',['../d2/d14/02-build-instructions_8md.html',1,'']]],
   ['03_2dasar_2dintegration_2emd_24',['03-asar-integration.md',['../d5/ddb/03-asar-integration_8md.html',1,'']]],
   ['04_2dapi_2dreference_2emd_25',['04-api-reference.md',['../da/d6f/04-api-reference_8md.html',1,'']]],
-  ['0x80_200x9f_26',['Special Area Maps (0x80-0x9F)',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md513',1,'']]],
-  ['0x9f_27',['Special Area Maps (0x80-0x9F)',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md513',1,'']]],
-  ['0xff_28',['Vanilla ROMs (asm_version == 0xFF)',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md522',1,'']]]
+  ['0x80_200x9f_26',['Special Area Maps (0x80-0x9F)',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md577',1,'']]],
+  ['0x9f_27',['Special Area Maps (0x80-0x9F)',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md577',1,'']]],
+  ['0xff_28',['Vanilla ROMs (asm_version == 0xFF)',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md586',1,'']]]
 ];
