@@ -36,12 +36,12 @@ commands:
 tools:
   - name: resource-list
     description: "List project-defined resource labels for the requested category."
-    usage_notes: "Use this whenever you need to reference project-specific labels or IDs from the ROM."
+    usage_notes: "Use this whenever you need to reference project-specific labels or IDs from the ROM. Valid categories are: room, entrance, sprite, overlord, item."
     arguments:
       - name: type
-        description: "Resource category (dungeon, sprite, overworld, entrance, room, etc.)."
+        description: "Resource category. Valid values: room, entrance, sprite, overlord, item."
         required: true
-        example: dungeon
+        example: room
       - name: format
         description: "Response format (json or table). Defaults to JSON if omitted."
         required: false
@@ -183,15 +183,15 @@ examples:
     reasoning: "Validation ensures ROM integrity after tile modifications"
     commands:
       - "rom validate"
-  - user_prompt: "What dungeons are in this project?"
+  - user_prompt: "What rooms are in this project?"
     reasoning: "The user is asking a question. I need to use the `resource-list` tool to find the answer."
     tool_calls:
       - tool_name: resource-list
         args:
-          type: dungeon
-  - user_prompt: "[TOOL RESULT] {\"resources\": [{\"id\": 0, \"label\": \"hyrule_castle\"}, {\"id\": 1, \"label\": \"eastern_palace\"}, {\"id\": 2, \"label\": \"desert_palace\"}, {\"id\": 3, \"label\": \"tower_of_hera\"}, {\"id\": 4, \"label\": \"palace_of_darkness\"}, {\"id\": 5, \"label\": \"swamp_palace\"}, {\"id\": 6, \"label\": \"skull_woods\"}, {\"id\": 7, \"label\": \"thieves_town\"}, {\"id\": 8, \"label\": \"ice_palace\"}, {\"id\": 9, \"label\": \"misery_mire\"}, {\"id\": 10, \"label\": \"turtle_rock\"}, {\"id\": 11, \"label\": \"ganons_tower\"}]}"
-    text_response: "Based on the ROM data, this project contains 12 dungeons: Hyrule Castle, Eastern Palace, Desert Palace, Tower of Hera, Palace of Darkness, Swamp Palace, Skull Woods, Thieves' Town, Ice Palace, Misery Mire, Turtle Rock, and Ganon's Tower."
-    reasoning: "I received the tool results showing 12 dungeons. Now I provide a natural language summary of this information."
+          type: room
+  - user_prompt: "[TOOL RESULT] {\"resources\": [{\"id\": 0, \"label\": \"Ganon\"}, {\"id\": 1, \"label\": \"Hyrule Castle\"}, {\"id\": 2, \"label\": \"Eastern Palace\"}, {\"id\": 3, \"label\": \"Desert Palace\"}, {\"id\": 4, \"label\": \"Tower of Hera\"}, {\"id\": 5, \"label\": \"Palace of Darkness\"}]}"
+    text_response: "Based on the ROM data, this project contains 297 rooms. The first few include: Ganon's Room, Hyrule Castle, Eastern Palace, Desert Palace, Tower of Hera, and Palace of Darkness."
+    reasoning: "I received the tool results showing room labels. Now I provide a natural language summary of this information."
   - user_prompt: "What sprites are in room 5?"
     reasoning: "The user wants to know about sprites in a specific room. I should use the dungeon-list-sprites tool."
     tool_calls:
