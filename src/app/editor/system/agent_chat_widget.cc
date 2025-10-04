@@ -3,21 +3,21 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
-#include <fstream>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/core/platform/file_dialog.h"
+#include "app/editor/system/agent_chat_history_codec.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/gui/icons.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
-#include "nlohmann/json.hpp"
 
 namespace {
 
@@ -45,95 +45,6 @@ std::filesystem::path ResolveHistoryPath() {
   }
   auto directory = base / "agent";
   return directory / "chat_history.json";
-}
-
-absl::Time ParseTimestamp(const nlohmann::json& value) {
-  if (!value.is_string()) {
-    return absl::Now();
-  }
-  absl::Time parsed;
-  if (absl::ParseTime(absl::RFC3339_full, value.get<std::string>(),
-                      absl::UTCTimeZone(), &parsed)) {
-    return parsed;
-  }
-  return absl::Now();
-}
-
-nlohmann::json SerializeTableData(const ChatMessage::TableData& table) {
-  nlohmann::json json;
-  json["headers"] = table.headers;
-  json["rows"] = table.rows;
-  return json;
-}
-
-std::optional<ChatMessage::TableData> ParseTableData(const nlohmann::json& json) {
-  if (!json.is_object()) {
-    return std::nullopt;
-  }
-
-  ChatMessage::TableData table;
-  if (json.contains("headers") && json["headers"].is_array()) {
-    for (const auto& header : json["headers"]) {
-      if (header.is_string()) {
-        table.headers.push_back(header.get<std::string>());
-      }
-    }
-  }
-
-  if (json.contains("rows") && json["rows"].is_array()) {
-    for (const auto& row : json["rows"]) {
-      if (!row.is_array()) {
-        continue;
-      }
-      std::vector<std::string> row_values;
-      for (const auto& value : row) {
-        if (value.is_string()) {
-          row_values.push_back(value.get<std::string>());
-        } else {
-          row_values.push_back(value.dump());
-        }
-      }
-      table.rows.push_back(std::move(row_values));
-    }
-  }
-
-  if (table.headers.empty() && table.rows.empty()) {
-    return std::nullopt;
-  }
-
-  return table;
-}
-
-nlohmann::json SerializeProposal(const ChatMessage::ProposalSummary& proposal) {
-  nlohmann::json json;
-  json["id"] = proposal.id;
-  json["change_count"] = proposal.change_count;
-  json["executed_commands"] = proposal.executed_commands;
-  json["sandbox_rom_path"] = proposal.sandbox_rom_path.string();
-  json["proposal_json_path"] = proposal.proposal_json_path.string();
-  return json;
-}
-
-std::optional<ChatMessage::ProposalSummary> ParseProposal(
-    const nlohmann::json& json) {
-  if (!json.is_object()) {
-    return std::nullopt;
-  }
-
-  ChatMessage::ProposalSummary summary;
-  summary.id = json.value("id", "");
-  summary.change_count = json.value("change_count", 0);
-  summary.executed_commands = json.value("executed_commands", 0);
-  if (json.contains("sandbox_rom_path") && json["sandbox_rom_path"].is_string()) {
-    summary.sandbox_rom_path = json["sandbox_rom_path"].get<std::string>();
-  }
-  if (json.contains("proposal_json_path") && json["proposal_json_path"].is_string()) {
-    summary.proposal_json_path = json["proposal_json_path"].get<std::string>();
-  }
-  if (summary.id.empty()) {
-    return std::nullopt;
-  }
-  return summary;
 }
 
 void RenderTable(const ChatMessage::TableData& table_data) {
@@ -175,6 +86,7 @@ AgentChatWidget::AgentChatWidget() {
   title_ = "Agent Chat";
   memset(input_buffer_, 0, sizeof(input_buffer_));
   history_path_ = ResolveHistoryPath();
+  history_supported_ = AgentChatHistoryCodec::Available();
 }
 
 void AgentChatWidget::SetRomContext(Rom* rom) {
@@ -212,122 +124,62 @@ void AgentChatWidget::EnsureHistoryLoaded() {
       return;
     }
   }
-
-  std::ifstream file(history_path_);
-  if (!file.good()) {
+  if (!history_supported_) {
+    if (!history_warning_displayed_ && toast_manager_) {
+      toast_manager_->Show(
+          "Chat history requires gRPC/JSON support and is disabled",
+          ToastType::kWarning, 5.0f);
+      history_warning_displayed_ = true;
+    }
     return;
   }
 
-  try {
-    nlohmann::json json;
-    file >> json;
-    if (!json.contains("messages") || !json["messages"].is_array()) {
+  absl::StatusOr<AgentChatHistoryCodec::Snapshot> result =
+      AgentChatHistoryCodec::Load(history_path_);
+  if (!result.ok()) {
+    if (result.status().code() == absl::StatusCode::kUnimplemented) {
+      history_supported_ = false;
+      if (!history_warning_displayed_ && toast_manager_) {
+        toast_manager_->Show(
+            "Chat history requires gRPC/JSON support and is disabled",
+            ToastType::kWarning, 5.0f);
+        history_warning_displayed_ = true;
+      }
       return;
     }
 
-    std::vector<ChatMessage> history;
-    for (const auto& item : json["messages"]) {
-      if (!item.is_object()) {
-        continue;
-      }
-
-      ChatMessage message;
-      std::string sender = item.value("sender", "agent");
-      message.sender =
-          sender == "user" ? ChatMessage::Sender::kUser
-                             : ChatMessage::Sender::kAgent;
-      message.message = item.value("message", "");
-      message.timestamp = ParseTimestamp(item["timestamp"]);
-
-      if (item.contains("json_pretty") && item["json_pretty"].is_string()) {
-        message.json_pretty = item["json_pretty"].get<std::string>();
-      }
-
-      if (item.contains("table_data")) {
-        message.table_data = ParseTableData(item["table_data"]);
-      }
-
-      if (item.contains("metrics") && item["metrics"].is_object()) {
-        ChatMessage::SessionMetrics metrics;
-        const auto& metrics_json = item["metrics"];
-        metrics.turn_index = metrics_json.value("turn_index", 0);
-        metrics.total_user_messages =
-            metrics_json.value("total_user_messages", 0);
-        metrics.total_agent_messages =
-            metrics_json.value("total_agent_messages", 0);
-        metrics.total_tool_calls =
-            metrics_json.value("total_tool_calls", 0);
-        metrics.total_commands = metrics_json.value("total_commands", 0);
-        metrics.total_proposals = metrics_json.value("total_proposals", 0);
-        metrics.total_elapsed_seconds =
-            metrics_json.value("total_elapsed_seconds", 0.0);
-        metrics.average_latency_seconds =
-            metrics_json.value("average_latency_seconds", 0.0);
-        message.metrics = metrics;
-      }
-
-      if (item.contains("proposal")) {
-        message.proposal = ParseProposal(item["proposal"]);
-      }
-
-      history.push_back(std::move(message));
-    }
-
-    if (!history.empty()) {
-      agent_service_.ReplaceHistory(std::move(history));
-      last_history_size_ = agent_service_.GetHistory().size();
-      last_proposal_count_ = CountKnownProposals();
-      history_dirty_ = false;
-      last_persist_time_ = absl::Now();
-      if (toast_manager_) {
-        toast_manager_->Show("Restored chat history",
-                             ToastType::kInfo, 3.5f);
-      }
-    }
-
-    if (json.contains("collaboration") && json["collaboration"].is_object()) {
-      const auto& collab_json = json["collaboration"];
-      collaboration_state_.active = collab_json.value("active", false);
-      collaboration_state_.session_id = collab_json.value("session_id", "");
-      collaboration_state_.participants.clear();
-      if (collab_json.contains("participants") &&
-          collab_json["participants"].is_array()) {
-        for (const auto& participant : collab_json["participants"]) {
-          if (participant.is_string()) {
-            collaboration_state_.participants.push_back(
-                participant.get<std::string>());
-          }
-        }
-      }
-      if (collab_json.contains("last_synced")) {
-        collaboration_state_.last_synced =
-            ParseTimestamp(collab_json["last_synced"]);
-      }
-    }
-
-    if (json.contains("multimodal") && json["multimodal"].is_object()) {
-      const auto& multimodal_json = json["multimodal"];
-      if (multimodal_json.contains("last_capture_path") &&
-          multimodal_json["last_capture_path"].is_string()) {
-        std::string path = multimodal_json["last_capture_path"].get<std::string>();
-        if (!path.empty()) {
-          multimodal_state_.last_capture_path = std::filesystem::path(path);
-        }
-      }
-      multimodal_state_.status_message =
-          multimodal_json.value("status_message", "");
-      if (multimodal_json.contains("last_updated")) {
-        multimodal_state_.last_updated =
-            ParseTimestamp(multimodal_json["last_updated"]);
-      }
-    }
-  } catch (const std::exception& e) {
     if (toast_manager_) {
       toast_manager_->Show(
-          absl::StrFormat("Failed to load chat history: %s", e.what()),
+          absl::StrFormat("Failed to load chat history: %s",
+                          result.status().ToString()),
           ToastType::kError, 6.0f);
     }
+    return;
   }
+
+  AgentChatHistoryCodec::Snapshot snapshot = std::move(result.value());
+
+  if (!snapshot.history.empty()) {
+    agent_service_.ReplaceHistory(std::move(snapshot.history));
+    last_history_size_ = agent_service_.GetHistory().size();
+    last_proposal_count_ = CountKnownProposals();
+    history_dirty_ = false;
+    last_persist_time_ = absl::Now();
+    if (toast_manager_) {
+      toast_manager_->Show("Restored chat history",
+                           ToastType::kInfo, 3.5f);
+    }
+  }
+
+  collaboration_state_.active = snapshot.collaboration.active;
+  collaboration_state_.session_id = snapshot.collaboration.session_id;
+  collaboration_state_.participants = snapshot.collaboration.participants;
+  collaboration_state_.last_synced = snapshot.collaboration.last_synced;
+
+  multimodal_state_.last_capture_path =
+      snapshot.multimodal.last_capture_path;
+  multimodal_state_.status_message = snapshot.multimodal.status_message;
+  multimodal_state_.last_updated = snapshot.multimodal.last_updated;
 }
 
 void AgentChatWidget::PersistHistory() {
@@ -335,98 +187,51 @@ void AgentChatWidget::PersistHistory() {
     return;
   }
 
-  const auto& history = agent_service_.GetHistory();
-
-  nlohmann::json json;
-  json["version"] = 2;
-  json["messages"] = nlohmann::json::array();
-
-  for (const auto& message : history) {
-    nlohmann::json entry;
-    entry["sender"] =
-        message.sender == ChatMessage::Sender::kUser ? "user" : "agent";
-    entry["message"] = message.message;
-    entry["timestamp"] = absl::FormatTime(absl::RFC3339_full,
-                                           message.timestamp,
-                                           absl::UTCTimeZone());
-
-    if (message.json_pretty.has_value()) {
-      entry["json_pretty"] = *message.json_pretty;
-    }
-    if (message.table_data.has_value()) {
-      entry["table_data"] = SerializeTableData(*message.table_data);
-    }
-    if (message.metrics.has_value()) {
-      const auto& metrics = *message.metrics;
-      nlohmann::json metrics_json;
-      metrics_json["turn_index"] = metrics.turn_index;
-      metrics_json["total_user_messages"] = metrics.total_user_messages;
-      metrics_json["total_agent_messages"] = metrics.total_agent_messages;
-      metrics_json["total_tool_calls"] = metrics.total_tool_calls;
-      metrics_json["total_commands"] = metrics.total_commands;
-      metrics_json["total_proposals"] = metrics.total_proposals;
-      metrics_json["total_elapsed_seconds"] = metrics.total_elapsed_seconds;
-      metrics_json["average_latency_seconds"] =
-          metrics.average_latency_seconds;
-      entry["metrics"] = metrics_json;
-    }
-    if (message.proposal.has_value()) {
-      entry["proposal"] = SerializeProposal(*message.proposal);
-    }
-
-    json["messages"].push_back(std::move(entry));
-  }
-
-  nlohmann::json collab_json;
-  collab_json["active"] = collaboration_state_.active;
-  collab_json["session_id"] = collaboration_state_.session_id;
-  collab_json["participants"] = collaboration_state_.participants;
-  if (collaboration_state_.last_synced != absl::InfinitePast()) {
-    collab_json["last_synced"] = absl::FormatTime(
-        absl::RFC3339_full, collaboration_state_.last_synced,
-        absl::UTCTimeZone());
-  }
-  json["collaboration"] = std::move(collab_json);
-
-  nlohmann::json multimodal_json;
-  if (multimodal_state_.last_capture_path.has_value()) {
-    multimodal_json["last_capture_path"] =
-        multimodal_state_.last_capture_path->string();
-  } else {
-    multimodal_json["last_capture_path"] = "";
-  }
-  multimodal_json["status_message"] = multimodal_state_.status_message;
-  if (multimodal_state_.last_updated != absl::InfinitePast()) {
-    multimodal_json["last_updated"] = absl::FormatTime(
-        absl::RFC3339_full, multimodal_state_.last_updated,
-        absl::UTCTimeZone());
-  }
-  json["multimodal"] = std::move(multimodal_json);
-
-  std::error_code ec;
-  auto directory = history_path_.parent_path();
-  if (!directory.empty()) {
-    std::filesystem::create_directories(directory, ec);
-    if (ec) {
-      if (toast_manager_) {
-        toast_manager_->Show(
-            "Unable to create chat history directory",
-            ToastType::kError, 5.0f);
-      }
-      return;
-    }
-  }
-
-  std::ofstream file(history_path_);
-  if (!file.is_open()) {
-    if (toast_manager_) {
-      toast_manager_->Show("Cannot write chat history",
-                           ToastType::kError, 5.0f);
+  if (!history_supported_) {
+    history_dirty_ = false;
+    if (!history_warning_displayed_ && toast_manager_) {
+      toast_manager_->Show(
+          "Chat history requires gRPC/JSON support and is disabled",
+          ToastType::kWarning, 5.0f);
+      history_warning_displayed_ = true;
     }
     return;
   }
 
-  file << json.dump(2);
+  AgentChatHistoryCodec::Snapshot snapshot;
+  snapshot.history = agent_service_.GetHistory();
+  snapshot.collaboration.active = collaboration_state_.active;
+  snapshot.collaboration.session_id = collaboration_state_.session_id;
+  snapshot.collaboration.participants = collaboration_state_.participants;
+  snapshot.collaboration.last_synced = collaboration_state_.last_synced;
+  snapshot.multimodal.last_capture_path =
+      multimodal_state_.last_capture_path;
+  snapshot.multimodal.status_message = multimodal_state_.status_message;
+  snapshot.multimodal.last_updated = multimodal_state_.last_updated;
+
+  absl::Status status = AgentChatHistoryCodec::Save(history_path_, snapshot);
+  if (!status.ok()) {
+    if (status.code() == absl::StatusCode::kUnimplemented) {
+      history_supported_ = false;
+      if (!history_warning_displayed_ && toast_manager_) {
+        toast_manager_->Show(
+            "Chat history requires gRPC/JSON support and is disabled",
+            ToastType::kWarning, 5.0f);
+        history_warning_displayed_ = true;
+      }
+      history_dirty_ = false;
+      return;
+    }
+
+    if (toast_manager_) {
+      toast_manager_->Show(
+          absl::StrFormat("Failed to persist chat history: %s",
+                          status.ToString()),
+          ToastType::kError, 6.0f);
+    }
+    return;
+  }
+
   history_dirty_ = false;
   last_persist_time_ = absl::Now();
 }

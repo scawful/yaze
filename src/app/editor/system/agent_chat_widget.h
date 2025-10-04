@@ -96,6 +96,8 @@ class AgentChatWidget {
   size_t last_history_size_ = 0;
   bool history_loaded_ = false;
   bool history_dirty_ = false;
+  bool history_supported_ = true;
+  bool history_warning_displayed_ = false;
   std::filesystem::path history_path_;
   int last_proposal_count_ = 0;
   ToastManager* toast_manager_ = nullptr;
