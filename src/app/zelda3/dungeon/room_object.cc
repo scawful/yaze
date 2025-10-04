@@ -271,31 +271,46 @@ int RoomObject::DetermineObjectType(uint8_t b1, uint8_t b3) {
 
 RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
                                              uint8_t layer) {
-  int type = DetermineObjectType(b1, b3);
-  
   uint8_t x = 0;
   uint8_t y = 0;
   uint8_t size = 0;
   uint16_t id = 0;
   
-  switch (type) {
-    case 1: {
-      // Type1: xxxxxxss yyyyyyss iiiiiiii
-      // X position: bits 2-7 of byte 1
-      x = (b1 & 0xFC) >> 2;
-      
-      // Y position: bits 2-7 of byte 2
-      y = (b2 & 0xFC) >> 2;
-      
-      // Size: bits 0-1 of byte 1 (high), bits 0-1 of byte 2 (low)
-      size = ((b1 & 0x03) << 2) | (b2 & 0x03);
-      
-      // ID: byte 3 (0x00-0xFF)
-      id = b3;
-      break;
-    }
+  // ZScream's approach: Check Type3 first, then decode as Type1, 
+  // then override with Type2 if b1 >= 0xFC
+  // This is critical because Type1 objects can have b1 >= 0xFC when X is at max position
+  
+  if (b3 >= 0xF8) {
+    // Type3: xxxxxxii yyyyyyii 11111iii
+    // X position: bits 2-7 of byte 1
+    x = (b1 & 0xFC) >> 2;
     
-    case 2: {
+    // Y position: bits 2-7 of byte 2
+    y = (b2 & 0xFC) >> 2;
+    
+    // Size: Stored in same bits as ID lower bits
+    size = ((b1 & 0x03) << 2) | (b2 & 0x03);
+    
+    // ID: Complex reconstruction (ZScream formula)
+    // Top 8 bits from byte 3 (shifted left by 4)
+    // OR'd with (0x80 + lower bits from b2 and b1)
+    id = ((b3 & 0xFF) << 4) | (0x80 + (((b2 & 0x03) << 2) + (b1 & 0x03)));
+  } else {
+    // Default decode as Type1: xxxxxxss yyyyyyss iiiiiiii
+    // X position: bits 2-7 of byte 1
+    x = (b1 & 0xFC) >> 2;
+    
+    // Y position: bits 2-7 of byte 2
+    y = (b2 & 0xFC) >> 2;
+    
+    // Size: bits 0-1 of byte 1 (high), bits 0-1 of byte 2 (low)
+    size = ((b1 & 0x03) << 2) | (b2 & 0x03);
+    
+    // ID: byte 3 (0x00-0xFF)
+    id = b3;
+    
+    // NOW check if this is actually Type2 and override
+    if (b1 >= 0xFC) {
       // Type2: 111111xx xxxxyyyy yyiiiiii
       // X position: bits 0-1 of byte 1 (high), bits 4-7 of byte 2 (low)
       x = ((b1 & 0x03) << 4) | ((b2 & 0xF0) >> 4);
@@ -308,36 +323,7 @@ RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
       
       // ID: bits 0-5 of byte 3, OR with 0x100 to mark as Type2
       id = (b3 & 0x3F) | 0x100;
-      break;
     }
-    
-    case 3: {
-      // Type3: xxxxxxii yyyyyyii 11111iii
-      // X position: bits 2-7 of byte 1
-      x = (b1 & 0xFC) >> 2;
-      
-      // Y position: bits 2-7 of byte 2
-      y = (b2 & 0xFC) >> 2;
-      
-      // Size: 0 (Type3 objects don't use size parameter)
-      size = 0;
-      
-      // ID: Complex reconstruction
-      // Top 8 bits from byte 3 (shifted left by 4)
-      // Bits 2-3 from byte 2
-      // Bits 0-1 from byte 1
-      // Plus 0x80 offset
-      id = ((b3 & 0xFF) << 4) | ((b2 & 0x03) << 2) | (b1 & 0x03) | 0x80;
-      break;
-    }
-    
-    default:
-      // Should never happen, but default to Type1
-      id = b3;
-      x = (b1 & 0xFC) >> 2;
-      y = (b2 & 0xFC) >> 2;
-      size = ((b1 & 0x03) << 2) | (b2 & 0x03);
-      break;
   }
   
   return RoomObject(static_cast<int16_t>(id), x, y, size, layer);
