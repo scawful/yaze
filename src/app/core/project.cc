@@ -15,6 +15,11 @@
 #include "imgui/imgui.h"
 #include "yaze_config.h"
 
+#ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
+#include "nlohmann/json.hpp"
+using json = nlohmann::json;
+#endif
+
 namespace yaze {
 namespace core {
 
@@ -111,7 +116,27 @@ absl::Status YazeProject::Open(const std::string& project_path) {
   // Determine format and load accordingly
   if (project_path.ends_with(".yaze")) {
     format = ProjectFormat::kYazeNative;
-    return LoadFromYazeFormat(project_path);
+    
+    // Try to detect if it's JSON format by peeking at first character
+    std::ifstream file(project_path);
+    if (file.is_open()) {
+      char first_char;
+      file.get(first_char);
+      file.close();
+      
+#ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
+      if (first_char == '{') {
+        std::cout << "📄 Detected JSON format project file\n";
+        return LoadFromJsonFormat(project_path);
+      }
+#endif
+      
+      // Default to INI format
+      return LoadFromYazeFormat(project_path);
+    }
+    
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Cannot open project file: %s", project_path));
   } else if (project_path.ends_with(".zsproj")) {
     format = ProjectFormat::kZScreamCompat;
     return ImportFromZScreamFormat(project_path);
@@ -867,6 +892,132 @@ std::string YazeProject::GetLabel(const std::string& resource_type, int id,
     ? resource_type + "_" + std::to_string(id)
     : default_value;
 }
+
+// ============================================================================
+// JSON Format Support (Optional)
+// ============================================================================
+
+#ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
+
+absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
+  std::ifstream file(project_path);
+  if (!file.is_open()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Cannot open JSON project file: %s", project_path));
+  }
+
+  try {
+    json j;
+    file >> j;
+    
+    // Parse project metadata
+    if (j.contains("yaze_project")) {
+      auto& proj = j["yaze_project"];
+      
+      if (proj.contains("name")) name = proj["name"].get<std::string>();
+      if (proj.contains("description")) metadata.description = proj["description"].get<std::string>();
+      if (proj.contains("author")) metadata.author = proj["author"].get<std::string>();
+      if (proj.contains("version")) metadata.version = proj["version"].get<std::string>();
+      if (proj.contains("created")) metadata.created_date = proj["created"].get<std::string>();
+      if (proj.contains("modified")) metadata.last_modified = proj["modified"].get<std::string>();
+      
+      // Files
+      if (proj.contains("rom_filename")) rom_filename = proj["rom_filename"].get<std::string>();
+      if (proj.contains("code_folder")) code_folder = proj["code_folder"].get<std::string>();
+      if (proj.contains("assets_folder")) assets_folder = proj["assets_folder"].get<std::string>();
+      if (proj.contains("patches_folder")) patches_folder = proj["patches_folder"].get<std::string>();
+      if (proj.contains("labels_filename")) labels_filename = proj["labels_filename"].get<std::string>();
+      if (proj.contains("symbols_filename")) symbols_filename = proj["symbols_filename"].get<std::string>();
+      
+      // Embedded labels flag
+      if (proj.contains("use_embedded_labels")) {
+        use_embedded_labels = proj["use_embedded_labels"].get<bool>();
+      }
+      
+      // Feature flags
+      if (proj.contains("feature_flags")) {
+        auto& flags = proj["feature_flags"];
+        if (flags.contains("kLogInstructions")) 
+          feature_flags.kLogInstructions = flags["kLogInstructions"].get<bool>();
+        if (flags.contains("kSaveDungeonMaps")) 
+          feature_flags.kSaveDungeonMaps = flags["kSaveDungeonMaps"].get<bool>();
+        if (flags.contains("kSaveGraphicsSheet")) 
+          feature_flags.kSaveGraphicsSheet = flags["kSaveGraphicsSheet"].get<bool>();
+      }
+      
+      // Workspace settings
+      if (proj.contains("workspace_settings")) {
+        auto& ws = proj["workspace_settings"];
+        if (ws.contains("auto_save_enabled")) 
+          workspace_settings.autosave_enabled = ws["auto_save_enabled"].get<bool>();
+        if (ws.contains("auto_save_interval")) 
+          workspace_settings.autosave_interval_secs = ws["auto_save_interval"].get<float>();
+      }
+      
+      // Build settings
+      if (proj.contains("build_script")) build_script = proj["build_script"].get<std::string>();
+      if (proj.contains("output_folder")) output_folder = proj["output_folder"].get<std::string>();
+      if (proj.contains("git_repository")) git_repository = proj["git_repository"].get<std::string>();
+      if (proj.contains("track_changes")) track_changes = proj["track_changes"].get<bool>();
+    }
+    
+    return absl::OkStatus();
+  } catch (const json::exception& e) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("JSON parse error: %s", e.what()));
+  }
+}
+
+absl::Status YazeProject::SaveToJsonFormat() {
+  json j;
+  auto& proj = j["yaze_project"];
+  
+  // Metadata
+  proj["version"] = metadata.version;
+  proj["name"] = name;
+  proj["author"] = metadata.author;
+  proj["description"] = metadata.description;
+  proj["created"] = metadata.created_date;
+  proj["modified"] = metadata.last_modified;
+  
+  // Files
+  proj["rom_filename"] = rom_filename;
+  proj["code_folder"] = code_folder;
+  proj["assets_folder"] = assets_folder;
+  proj["patches_folder"] = patches_folder;
+  proj["labels_filename"] = labels_filename;
+  proj["symbols_filename"] = symbols_filename;
+  proj["output_folder"] = output_folder;
+  
+  // Embedded labels
+  proj["use_embedded_labels"] = use_embedded_labels;
+  
+  // Feature flags
+  proj["feature_flags"]["kLogInstructions"] = feature_flags.kLogInstructions;
+  proj["feature_flags"]["kSaveDungeonMaps"] = feature_flags.kSaveDungeonMaps;
+  proj["feature_flags"]["kSaveGraphicsSheet"] = feature_flags.kSaveGraphicsSheet;
+  
+  // Workspace settings
+  proj["workspace_settings"]["auto_save_enabled"] = workspace_settings.autosave_enabled;
+  proj["workspace_settings"]["auto_save_interval"] = workspace_settings.autosave_interval_secs;
+  
+  // Build settings
+  proj["build_script"] = build_script;
+  proj["git_repository"] = git_repository;
+  proj["track_changes"] = track_changes;
+  
+  // Write to file
+  std::ofstream file(filepath);
+  if (!file.is_open()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Cannot write JSON project file: %s", filepath));
+  }
+  
+  file << j.dump(2); // Pretty print with 2-space indent
+  return absl::OkStatus();
+}
+
+#endif // YAZE_ENABLE_JSON_PROJECT_FORMAT
 
 } // namespace core
 } // namespace yaze

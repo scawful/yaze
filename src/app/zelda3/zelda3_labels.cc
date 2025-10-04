@@ -273,9 +273,9 @@ const std::vector<std::string>& Zelda3Labels::GetTileTypeNames() {
 }
 
 // Convert all labels to structured map for project embedding
-std::map<std::string, std::map<std::string, std::string>> 
+std::unordered_map<std::string, std::unordered_map<std::string, std::string>> 
 Zelda3Labels::ToResourceLabels() {
-  std::map<std::string, std::map<std::string, std::string>> labels;
+  std::unordered_map<std::string, std::unordered_map<std::string, std::string>> labels;
   
   // Rooms
   const auto& rooms = GetRoomNames();

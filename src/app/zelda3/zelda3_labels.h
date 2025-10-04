@@ -3,6 +3,7 @@
 
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace yaze {
@@ -59,7 +60,7 @@ struct Zelda3Labels {
    * @brief Convert all labels to a structured map for project embedding
    * @return Map of resource type -> (id -> name) for all resources
    */
-  static std::map<std::string, std::map<std::string, std::string>> ToResourceLabels();
+  static std::unordered_map<std::string, std::unordered_map<std::string, std::string>> ToResourceLabels();
   
   /**
    * @brief Get a label by resource type and ID

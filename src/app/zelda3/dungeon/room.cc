@@ -284,20 +284,35 @@ void Room::CopyRoomGraphicsToBuffer() {
 }
 
 void Room::RenderRoomGraphics() {
+  std::printf("\n=== RenderRoomGraphics Room %d ===\n", room_id_);
+  
   CopyRoomGraphicsToBuffer();
+  std::printf("1. Graphics buffer copied\n");
 
   gfx::Arena::Get().bg1().DrawFloor(rom()->vector(), tile_address,
                                     tile_address_floor, floor1_graphics_);
   gfx::Arena::Get().bg2().DrawFloor(rom()->vector(), tile_address,
                                     tile_address_floor, floor2_graphics_);
+  std::printf("2. Floor pattern drawn\n");
+
+  // Render layout and object tiles to background buffers
+  RenderObjectsToBackground();
+  std::printf("3. Objects rendered to buffer\n");
 
   gfx::Arena::Get().bg1().DrawBackground(std::span<uint8_t>(current_gfx16_));
   gfx::Arena::Get().bg2().DrawBackground(std::span<uint8_t>(current_gfx16_));
+  std::printf("4. Background drawn from buffer\n");
+
+  auto& bg1_bmp = gfx::Arena::Get().bg1().bitmap();
+  auto& bg2_bmp = gfx::Arena::Get().bg2().bitmap();
+  std::printf("5. BG1 bitmap: active=%d, size=%dx%d, data_size=%zu\n",
+             bg1_bmp.is_active(), bg1_bmp.width(), bg1_bmp.height(), bg1_bmp.vector().size());
 
   auto bg1_palette =
       rom()->mutable_palette_group()->get_group("dungeon_main")[0].palette(0);
 
   if (!gfx::Arena::Get().bg1().bitmap().is_active()) {
+    std::printf("6a. Creating new bitmap textures\n");
     core::Renderer::Get().CreateAndRenderBitmap(
         0x200, 0x200, 0x200, gfx::Arena::Get().bg1().bitmap().vector(),
         gfx::Arena::Get().bg1().bitmap(), bg1_palette);
@@ -305,10 +320,96 @@ void Room::RenderRoomGraphics() {
         0x200, 0x200, 0x200, gfx::Arena::Get().bg2().bitmap().vector(),
         gfx::Arena::Get().bg2().bitmap(), bg1_palette);
   } else {
+    std::printf("6b. Updating existing bitmap textures\n");
     // Update the bitmap
     core::Renderer::Get().UpdateBitmap(&gfx::Arena::Get().bg1().bitmap());
     core::Renderer::Get().UpdateBitmap(&gfx::Arena::Get().bg2().bitmap());
   }
+  
+  std::printf("7. BG1 has texture: %d\n", bg1_bmp.texture() != nullptr);
+  std::printf("=== RenderRoomGraphics Complete ===\n\n");
+}
+
+void Room::RenderObjectsToBackground() {
+  if (!rom_ || !rom_->is_loaded()) {
+    std::printf("RenderObjectsToBackground: ROM not loaded\n");
+    return;
+  }
+  
+  std::printf("RenderObjectsToBackground: Room %d has %zu objects\n", room_id_, tile_objects_.size());
+  
+  // Get references to the background buffers
+  auto& bg1 = gfx::Arena::Get().bg1();
+  auto& bg2 = gfx::Arena::Get().bg2();
+  
+  // Render tile objects to their respective layers
+  int rendered_count = 0;
+  for (const auto& obj : tile_objects_) {
+    // Ensure object has tiles loaded
+    auto mutable_obj = const_cast<RoomObject&>(obj);
+    mutable_obj.EnsureTilesLoaded();
+    
+    // Get tiles with error handling
+    auto tiles_result = obj.GetTiles();
+    if (!tiles_result.ok()) {
+      std::printf("  Object at (%d,%d) failed to load tiles: %s\n", 
+                  obj.x_, obj.y_, tiles_result.status().ToString().c_str());
+      continue;
+    }
+    if (tiles_result->empty()) {
+      std::printf("  Object at (%d,%d) has no tiles\n", obj.x_, obj.y_);
+      continue;
+    }
+    
+    const auto& tiles = *tiles_result;
+    std::printf("  Object at (%d,%d) has %zu tiles\n", obj.x_, obj.y_, tiles.size());
+    
+    // Calculate object position in tile coordinates (each position is an 8x8 tile)
+    int obj_x = obj.x_;  // X position in 8x8 tile units
+    int obj_y = obj.y_;  // Y position in 8x8 tile units
+    
+    // Determine which layer this object belongs to
+    bool is_bg2 = (obj.layer_ == RoomObject::LayerType::BG2);
+    auto& target_buffer = is_bg2 ? bg2 : bg1;
+    
+    // Draw each Tile16 from the object
+    // Each Tile16 is a 16x16 tile made of 4 TileInfo (8x8) tiles
+    for (size_t i = 0; i < tiles.size(); i++) {
+      const auto& tile16 = tiles[i];
+      
+      // Calculate tile16 position (in 16x16 units, so multiply by 2 for 8x8 units)
+      int base_x = obj_x + ((i % 4) * 2);  // Assume 4-tile16 width for now
+      int base_y = obj_y + ((i / 4) * 2);
+      
+      // Each Tile16 contains 4 TileInfo objects arranged as:
+      // [0][1]  (top-left, top-right)
+      // [2][3]  (bottom-left, bottom-right)
+      const auto& tile_infos = tile16.tiles_info;
+      
+      // Draw the 4 sub-tiles of this Tile16
+      for (int sub_tile = 0; sub_tile < 4; sub_tile++) {
+        int tile_x = base_x + (sub_tile % 2);
+        int tile_y = base_y + (sub_tile / 2);
+        
+        // Bounds check
+        if (tile_x < 0 || tile_x >= 64 || tile_y < 0 || tile_y >= 64) {
+          continue;
+        }
+        
+        // Convert TileInfo to word format: (vflip<<15) | (hflip<<14) | (over<<13) | (palette<<10) | tile_id
+        uint16_t tile_word = gfx::TileInfoToWord(tile_infos[sub_tile]);
+        
+        // Set the tile in the buffer
+        target_buffer.SetTileAt(tile_x, tile_y, tile_word);
+        rendered_count++;
+      }
+    }
+  }
+  
+  std::printf("RenderObjectsToBackground: Rendered %d tiles total\n", rendered_count);
+  
+  // Note: Layout objects rendering would go here if needed
+  // For now, focusing on regular tile objects which is what ZScream primarily renders
 }
 
 void Room::LoadAnimatedGraphics() {
