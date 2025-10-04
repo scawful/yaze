@@ -662,6 +662,11 @@ if (YAZE_BUILD_LIB)
     target_compile_definitions(yaze_c PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
   endif()
 
+  # Link with test support library if available (required by editor)
+  if(TARGET yaze_test_support)
+    target_link_libraries(yaze_c PRIVATE yaze_test_support)
+  endif()
+
   if(PNG_FOUND)
     target_link_libraries(yaze_c PRIVATE ${PNG_LIBRARIES})
     if(NOT YAZE_USE_MODULAR_BUILD)
