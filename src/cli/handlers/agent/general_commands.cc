@@ -619,10 +619,10 @@ absl::Status HandleChatCommand(Rom& rom) {
 }
 
 absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
-                                     Rom& rom, bool quiet) {
-  RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent simple-chat"));
+                                     Rom* rom, bool quiet) {
+  RETURN_IF_ERROR(EnsureRomLoaded(*rom, "agent simple-chat"));
   
-  auto _ = TryLoadProjectAndLabels(rom);
+  auto _ = TryLoadProjectAndLabels(*rom);
   
   std::optional<std::string> batch_file;
   std::optional<std::string> single_message;
@@ -646,8 +646,7 @@ absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
   
   SimpleChatSession session;
   session.SetConfig(config);
-  session.SetRomContext(&rom);
-  session.SetQuietMode(quiet);
+  session.SetRomContext(rom);
 
   if (batch_file.has_value()) {
     std::ifstream file(*batch_file);

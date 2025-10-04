@@ -31,6 +31,7 @@ class ModernCLI {
  private:
   void SetupCommands();
   void ShowHelp();
+  void ShowCategoryHelp(const std::string& category);
 
   // Command Handlers
   absl::Status HandleAsarPatchCommand(const std::vector<std::string>& args);

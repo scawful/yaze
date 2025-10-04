@@ -289,35 +289,241 @@ void ModernCLI::SetupCommands() {
 void ModernCLI::ShowHelp() {
     std::cout << GetColoredLogo() << std::endl;
     std::cout << std::endl;
-    std::cout << "USAGE:" << std::endl;
-    std::cout << "  z3ed [--tui] <resource> <action> [arguments]" << std::endl;
+    std::cout << "\033[1m\033[36mUSAGE:\033[0m" << std::endl;
+    std::cout << "  z3ed [options] <command> [arguments]" << std::endl;
     std::cout << std::endl;
-    std::cout << "GLOBAL FLAGS:" << std::endl;
-    std::cout << "  --tui              Launch Text User Interface" << std::endl;
-    std::cout << "  --rom=<file>       Specify ROM file to use" << std::endl;
+    
+    std::cout << "\033[1m\033[36mGLOBAL OPTIONS:\033[0m" << std::endl;
+    std::cout << "  --tui              Launch interactive Text User Interface" << std::endl;
+    std::cout << "  --rom=<file>       Specify ROM file path" << std::endl;
+    std::cout << "  --verbose, -v      Show detailed debug output" << std::endl;
     std::cout << "  --version          Show version information" << std::endl;
-    std::cout << "  --help             Show this help message" << std::endl;
+    std::cout << "  --help, -h         Show this help message" << std::endl;
     std::cout << std::endl;
-    std::cout << "COMMANDS:" << std::endl;
     
-    for (const auto& [name, info] : commands_) {
-      std::cout << absl::StrFormat("  %-25s %s", name, info.description) << std::endl;
-    }
+    // Categorize commands
+    std::cout << "\033[1m\033[36mCOMMANDS:\033[0m" << std::endl;
+    std::cout << std::endl;
     
+    std::cout << "  \033[1m🤖 AI Agent\033[0m" << std::endl;
+    std::cout << "    agent simple-chat     Natural language ROM queries" << std::endl;
+    std::cout << "    agent test-conversation  Interactive testing mode" << std::endl;
+    std::cout << "    \033[90m→ z3ed help agent\033[0m" << std::endl;
     std::cout << std::endl;
-    std::cout << "EXAMPLES:" << std::endl;
-    std::cout << "  z3ed --tui                                    # Launch TUI" << std::endl;
-    std::cout << "  z3ed patch apply-asar patch.asm --rom=zelda3.sfc # Apply Asar patch" << std::endl;
-    std::cout << "  z3ed patch apply-bps changes.bps --rom=zelda3.sfc # Apply BPS patch" << std::endl;
-    std::cout << "  z3ed patch extract-symbols patch.asm          # Extract symbols" << std::endl;
-    std::cout << "  z3ed rom info --rom=zelda3.sfc                   # Show ROM info" << std::endl;
+    
+    std::cout << "  \033[1m🔧 ROM Patching\033[0m" << std::endl;
+    std::cout << "    patch apply-asar      Apply Asar 65816 assembly patch" << std::endl;
+    std::cout << "    patch apply-bps       Apply BPS binary patch" << std::endl;
+    std::cout << "    patch extract-symbols Extract symbols from assembly" << std::endl;
+    std::cout << "    \033[90m→ z3ed help patch\033[0m" << std::endl;
     std::cout << std::endl;
-    std::cout << "For more information on a specific command:" << std::endl;
-    std::cout << "  z3ed help <resource> <action>" << std::endl;
+    
+    std::cout << "  \033[1m📦 ROM Operations\033[0m" << std::endl;
+    std::cout << "    rom info              Display ROM information" << std::endl;
+    std::cout << "    rom diff              Compare two ROM files" << std::endl;
+    std::cout << "    rom generate-golden   Create golden test file" << std::endl;
+    std::cout << "    \033[90m→ z3ed help rom\033[0m" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << "  \033[1m🗺️  Overworld\033[0m" << std::endl;
+    std::cout << "    overworld get-tile    Get tile at coordinates" << std::endl;
+    std::cout << "    overworld set-tile    Place tile at coordinates" << std::endl;
+    std::cout << "    overworld find-tile   Search for tile occurrences" << std::endl;
+    std::cout << "    overworld describe-map  Show map metadata" << std::endl;
+    std::cout << "    overworld list-warps  List entrances and exits" << std::endl;
+    std::cout << "    \033[90m→ z3ed help overworld\033[0m" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << "  \033[1m🏰 Dungeon\033[0m" << std::endl;
+    std::cout << "    dungeon export        Export dungeon data" << std::endl;
+    std::cout << "    dungeon import        Import dungeon data" << std::endl;
+    std::cout << "    \033[90m→ z3ed help dungeon\033[0m" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << "  \033[1m🎨 Graphics\033[0m" << std::endl;
+    std::cout << "    gfx export-sheet      Export graphics sheet" << std::endl;
+    std::cout << "    gfx import-sheet      Import graphics sheet" << std::endl;
+    std::cout << "    palette export        Export palette data" << std::endl;
+    std::cout << "    palette import        Import palette data" << std::endl;
+    std::cout << "    \033[90m→ z3ed help gfx, z3ed help palette\033[0m" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << "\033[1m\033[36mQUICK START:\033[0m" << std::endl;
+    std::cout << "  z3ed --tui" << std::endl;
+    std::cout << "  z3ed agent simple-chat \"What is room 5?\" --rom=zelda3.sfc" << std::endl;
+    std::cout << "  z3ed patch apply-asar patch.asm --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    
+    std::cout << "\033[90mFor detailed help: z3ed help <category>\033[0m" << std::endl;
 }
 
 void ModernCLI::PrintTopLevelHelp() const {
   const_cast<ModernCLI*>(this)->ShowHelp();
+}
+
+void ModernCLI::ShowCategoryHelp(const std::string& category) {
+  std::cout << GetColoredLogo() << std::endl;
+  std::cout << std::endl;
+  
+  if (category == "agent") {
+    std::cout << "\033[1m\033[36m🤖 AI AGENT COMMANDS\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mDESCRIPTION:\033[0m" << std::endl;
+    std::cout << "  Natural language interface for ROM inspection using embedded labels." << std::endl;
+    std::cout << "  Query rooms, sprites, entrances, and game data conversationally." << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mCOMMANDS:\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1magent simple-chat\033[0m [\"<question>\"]" << std::endl;
+    std::cout << "    Single-shot or interactive chat mode" << std::endl;
+    std::cout << "    Options: --rom=<file>, --verbose" << std::endl;
+    std::cout << "    Examples:" << std::endl;
+    std::cout << "      z3ed agent simple-chat \"What sprites are in room 5?\" --rom=zelda3.sfc" << std::endl;
+    std::cout << "      echo \"List all dungeons\" | z3ed agent simple-chat --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1magent test-conversation\033[0m" << std::endl;
+    std::cout << "    Interactive testing mode with full context" << std::endl;
+    std::cout << "    Options: --rom=<file>, --verbose, --file=<json>" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1magent chat\033[0m \"<prompt>\"" << std::endl;
+    std::cout << "    Advanced multi-turn conversation mode" << std::endl;
+    std::cout << "    Options: --host=<host>, --port=<port>" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mTIPS:\033[0m" << std::endl;
+    std::cout << "  • Use --verbose to see detailed API calls and responses" << std::endl;
+    std::cout << "  • Set GEMINI_API_KEY environment variable for Gemini" << std::endl;
+    std::cout << "  • Use --ai_provider=gemini or --ai_provider=ollama" << std::endl;
+    std::cout << std::endl;
+    
+  } else if (category == "patch") {
+    std::cout << "\033[1m\033[36m🔧 ROM PATCHING COMMANDS\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mDESCRIPTION:\033[0m" << std::endl;
+    std::cout << "  Apply patches and extract symbols from assembly files." << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mCOMMANDS:\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mpatch apply-asar\033[0m <patch.asm>" << std::endl;
+    std::cout << "    Apply Asar 65816 assembly patch to ROM" << std::endl;
+    std::cout << "    Options: --rom=<file>, --output=<file>" << std::endl;
+    std::cout << "    Example: z3ed patch apply-asar custom.asm --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mpatch apply-bps\033[0m <patch.bps>" << std::endl;
+    std::cout << "    Apply BPS binary patch to ROM" << std::endl;
+    std::cout << "    Options: --rom=<file>, --output=<file>" << std::endl;
+    std::cout << "    Example: z3ed patch apply-bps hack.bps --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mpatch extract-symbols\033[0m <patch.asm>" << std::endl;
+    std::cout << "    Extract symbol table from assembly file" << std::endl;
+    std::cout << "    Example: z3ed patch extract-symbols code.asm" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mRELATED:\033[0m" << std::endl;
+    std::cout << "  z3ed help rom         ROM operations and validation" << std::endl;
+    std::cout << std::endl;
+    
+  } else if (category == "rom") {
+    std::cout << "\033[1m\033[36m📦 ROM OPERATIONS\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mCOMMANDS:\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mrom info\033[0m" << std::endl;
+    std::cout << "    Display ROM header and metadata" << std::endl;
+    std::cout << "    Example: z3ed rom info --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mrom diff\033[0m" << std::endl;
+    std::cout << "    Compare two ROM files byte-by-byte" << std::endl;
+    std::cout << "    Example: z3ed rom diff --src=original.sfc --modified=hacked.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mrom generate-golden\033[0m" << std::endl;
+    std::cout << "    Create golden test reference file" << std::endl;
+    std::cout << "    Example: z3ed rom generate-golden --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mrom validate\033[0m" << std::endl;
+    std::cout << "    Validate ROM checksum and structure" << std::endl;
+    std::cout << "    Example: z3ed rom validate --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    
+  } else if (category == "overworld") {
+    std::cout << "\033[1m\033[36m🗺️  OVERWORLD COMMANDS\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mDESCRIPTION:\033[0m" << std::endl;
+    std::cout << "  Inspect and modify overworld map data, tiles, and warps." << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mCOMMANDS:\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1moverworld get-tile\033[0m" << std::endl;
+    std::cout << "    Get tile ID at specific coordinates" << std::endl;
+    std::cout << "    Example: z3ed overworld get-tile --x=10 --y=20 --map=0 --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1moverworld set-tile\033[0m" << std::endl;
+    std::cout << "    Place tile at coordinates" << std::endl;
+    std::cout << "    Example: z3ed overworld set-tile --x=10 --y=20 --tile=0x42 --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1moverworld find-tile\033[0m" << std::endl;
+    std::cout << "    Search for all occurrences of a tile" << std::endl;
+    std::cout << "    Example: z3ed overworld find-tile --tile=0x42 --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1moverworld describe-map\033[0m" << std::endl;
+    std::cout << "    Show map metadata and properties" << std::endl;
+    std::cout << "    Example: z3ed overworld describe-map --map=0 --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1moverworld list-warps\033[0m" << std::endl;
+    std::cout << "    List all entrances and exits" << std::endl;
+    std::cout << "    Example: z3ed overworld list-warps --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    
+  } else if (category == "dungeon") {
+    std::cout << "\033[1m\033[36m🏰 DUNGEON COMMANDS\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mCOMMANDS:\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mdungeon export\033[0m" << std::endl;
+    std::cout << "    Export dungeon room data to JSON" << std::endl;
+    std::cout << "    Example: z3ed dungeon export --room=5 --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mdungeon import\033[0m" << std::endl;
+    std::cout << "    Import dungeon data from JSON" << std::endl;
+    std::cout << "    Example: z3ed dungeon import --file=room5.json --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    
+  } else if (category == "gfx" || category == "graphics") {
+    std::cout << "\033[1m\033[36m🎨 GRAPHICS COMMANDS\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mCOMMANDS:\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mgfx export-sheet\033[0m" << std::endl;
+    std::cout << "    Export graphics sheet to PNG" << std::endl;
+    std::cout << "    Example: z3ed gfx export-sheet --sheet=0 --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mgfx import-sheet\033[0m" << std::endl;
+    std::cout << "    Import graphics from PNG" << std::endl;
+    std::cout << "    Example: z3ed gfx import-sheet --file=custom.png --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mRELATED:\033[0m" << std::endl;
+    std::cout << "  z3ed help palette     Palette manipulation commands" << std::endl;
+    std::cout << std::endl;
+    
+  } else if (category == "palette") {
+    std::cout << "\033[1m\033[36m🎨 PALETTE COMMANDS\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mCOMMANDS:\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mpalette export\033[0m" << std::endl;
+    std::cout << "    Export palette data" << std::endl;
+    std::cout << "    Example: z3ed palette export --palette=0 --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1mpalette import\033[0m" << std::endl;
+    std::cout << "    Import palette data" << std::endl;
+    std::cout << "    Example: z3ed palette import --file=colors.pal --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    
+  } else {
+    std::cout << "\033[1m\033[31mUnknown category: " << category << "\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Available categories: agent, patch, rom, overworld, dungeon, gfx, palette" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Use 'z3ed --help' to see all commands." << std::endl;
+  }
 }
 
 absl::Status ModernCLI::Run(int argc, char* argv[]) {
@@ -330,6 +536,16 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
   args.reserve(argc - 1);
   for (int i = 1; i < argc; ++i) {
     args.emplace_back(argv[i]);
+  }
+
+  // Handle "help <category>" command
+  if (args.size() >= 1 && args[0] == "help") {
+    if (args.size() == 1) {
+      ShowHelp();
+      return absl::OkStatus();
+    }
+    ShowCategoryHelp(args[1]);
+    return absl::OkStatus();
   }
 
   const CommandInfo* command_info = nullptr;

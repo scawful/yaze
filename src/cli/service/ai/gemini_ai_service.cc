@@ -42,15 +42,20 @@ static void InitializeOpenSSL() {
 namespace yaze {
 namespace cli {
 
-GeminiAIService::GeminiAIService(const GeminiConfig& config) 
+GeminiAIService::GeminiAIService(const GeminiConfig& config)
     : config_(config), function_calling_enabled_(config.use_function_calling) {
-  std::cerr << "🔧 GeminiAIService constructor: start" << std::endl;
-  std::cerr << "🔧 Function calling: " << (function_calling_enabled_ ? "enabled" : "disabled (JSON output mode)") << std::endl;
-  std::cerr << "🔧 Prompt version: " << config_.prompt_version << std::endl;
+  if (config_.verbose) {
+    std::cerr << "[DEBUG] Initializing Gemini service..." << std::endl;
+    std::cerr << "[DEBUG] Function calling: " << (function_calling_enabled_ ? "enabled" : "disabled") << std::endl;
+    std::cerr << "[DEBUG] Prompt version: " << config_.prompt_version << std::endl;
+  }
   
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
   // Initialize OpenSSL for HTTPS support
   InitializeOpenSSL();
+  if (config_.verbose) {
+    std::cerr << "[DEBUG] OpenSSL initialized for HTTPS" << std::endl;
+  }
 #endif
   
   // Load command documentation into prompt builder with specified version
@@ -62,10 +67,14 @@ GeminiAIService::GeminiAIService(const GeminiConfig& config)
               << status.message() << std::endl;
   }
   
-  std::cerr << "🔧 GeminiAIService: loaded catalogue" << std::endl;
+  if (config_.verbose) {
+    std::cerr << "[DEBUG] Loaded prompt catalogue" << std::endl;
+  }
   
   if (config_.system_instruction.empty()) {
-    std::cerr << "🔧 GeminiAIService: building system instruction" << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] Building system instruction..." << std::endl;
+    }
     
     // Try to load version-specific system prompt file
     std::string prompt_file = config_.prompt_version == "v2"
@@ -85,7 +94,9 @@ GeminiAIService::GeminiAIService(const GeminiConfig& config)
         std::stringstream buffer;
         buffer << file.rdbuf();
         config_.system_instruction = buffer.str();
-        std::cerr << "✓ Loaded prompt from: " << path << std::endl;
+        if (config_.verbose) {
+          std::cerr << "[DEBUG] Loaded prompt: " << path << std::endl;
+        }
         loaded = true;
         break;
       }
@@ -99,10 +110,11 @@ GeminiAIService::GeminiAIService(const GeminiConfig& config)
         config_.system_instruction = BuildSystemInstruction();
       }
     }
-    std::cerr << "🔧 GeminiAIService: system instruction built" << std::endl;
   }
   
-  std::cerr << "🔧 GeminiAIService constructor: complete" << std::endl;
+  if (config_.verbose) {
+    std::cerr << "[DEBUG] Gemini service initialized" << std::endl;
+  }
 }
 
 void GeminiAIService::EnableFunctionCalling(bool enable) {
@@ -186,7 +198,9 @@ absl::Status GeminiAIService::CheckAvailability() {
       "Gemini AI service requires JSON support. Build with -DYAZE_WITH_JSON=ON");
 #else
   try {
-    std::cerr << "🔧 CheckAvailability: start" << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] CheckAvailability: start" << std::endl;
+    }
     
     if (config_.api_key.empty()) {
       return absl::FailedPreconditionError(
@@ -195,23 +209,33 @@ absl::Status GeminiAIService::CheckAvailability() {
           "   Get your API key at: https://makersuite.google.com/app/apikey");
     }
     
-    std::cerr << "🔧 CheckAvailability: creating HTTPS client" << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] CheckAvailability: creating HTTPS client" << std::endl;
+    }
     // Test API connectivity with a simple request
     httplib::Client cli("https://generativelanguage.googleapis.com");
-    std::cerr << "🔧 CheckAvailability: client created" << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] CheckAvailability: client created" << std::endl;
+    }
     
     cli.set_connection_timeout(5, 0);  // 5 seconds timeout
     
-    std::cerr << "🔧 CheckAvailability: building endpoint" << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] CheckAvailability: building endpoint" << std::endl;
+    }
     std::string test_endpoint = "/v1beta/models/" + config_.model;
     httplib::Headers headers = {
         {"x-goog-api-key", config_.api_key},
     };
     
-    std::cerr << "🔧 CheckAvailability: making request to " << test_endpoint << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] CheckAvailability: making request to " << test_endpoint << std::endl;
+    }
     auto res = cli.Get(test_endpoint.c_str(), headers);
     
-    std::cerr << "🔧 CheckAvailability: got response" << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] CheckAvailability: got response" << std::endl;
+    }
   
   if (!res) {
     return absl::UnavailableError(
@@ -238,10 +262,14 @@ absl::Status GeminiAIService::CheckAvailability() {
     
     return absl::OkStatus();
   } catch (const std::exception& e) {
-    std::cerr << "🔧 CheckAvailability: EXCEPTION: " << e.what() << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] CheckAvailability: EXCEPTION: " << e.what() << std::endl;
+    }
     return absl::InternalError(absl::StrCat("Exception during availability check: ", e.what()));
   } catch (...) {
-    std::cerr << "🔧 CheckAvailability: UNKNOWN EXCEPTION" << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] CheckAvailability: UNKNOWN EXCEPTION" << std::endl;
+    }
     return absl::InternalError("Unknown exception during availability check");
   }
 #endif
@@ -276,7 +304,9 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
   }
 
   try {
-    std::cerr << "🔧 GenerateResponse: using curl for HTTPS request" << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] Using curl for HTTPS request" << std::endl;
+    }
     
     // Build request with proper Gemini API v1beta format
     nlohmann::json request_body = {
@@ -328,17 +358,19 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
                           "-H 'x-goog-api-key: " + config_.api_key + "' "
                           "-d @" + temp_file + " 2>&1";
     
-    std::cerr << "🔧 Executing curl request..." << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] Executing API request..." << std::endl;
+    }
     
     FILE* pipe = popen(curl_cmd.c_str(), "r");
     if (!pipe) {
       return absl::InternalError("Failed to execute curl command");
     }
     
-    std::string response_body;
+    std::string response_str;
     char buffer[4096];
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-      response_body += buffer;
+      response_str += buffer;
     }
     
     int status = pclose(pipe);
@@ -348,25 +380,30 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
       return absl::InternalError(absl::StrCat("Curl failed with status ", status));
     }
     
-    if (response_body.empty()) {
+    if (response_str.empty()) {
       return absl::InternalError("Empty response from Gemini API");
     }
     
     // Debug: print response
-    const char* verbose_env = std::getenv("Z3ED_VERBOSE");
-    if (verbose_env && std::string(verbose_env) == "1") {
+    if (config_.verbose) {
       std::cout << "\n" << "\033[35m" << "🔍 Raw Gemini API Response:" << "\033[0m" << "\n"
-                << "\033[2m" << response_body.substr(0, 500) << "\033[0m" << "\n\n";
+                << "\033[2m" << response_str.substr(0, 500) << "\033[0m" << "\n\n";
     }
     
-    std::cerr << "🔧 Got response, parsing..." << std::endl;
-    return ParseGeminiResponse(response_body);
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] Parsing response..." << std::endl;
+    }
+    return ParseGeminiResponse(response_str);
   
   } catch (const std::exception& e) {
-    std::cerr << "🔧 GenerateResponse: EXCEPTION: " << e.what() << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[ERROR] Exception: " << e.what() << std::endl;
+    }
     return absl::InternalError(absl::StrCat("Exception during generation: ", e.what()));
   } catch (...) {
-    std::cerr << "🔧 GenerateResponse: UNKNOWN EXCEPTION" << std::endl;
+    if (config_.verbose) {
+      std::cerr << "[ERROR] Unknown exception" << std::endl;
+    }
     return absl::InternalError("Unknown exception during generation");
   }
 #endif
@@ -374,34 +411,34 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
 
 absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
     const std::string& response_body) {
-#ifdef YAZE_WITH_JSON
+#ifndef YAZE_WITH_JSON
+  return absl::UnimplementedError("JSON support required");
+#else
   AgentResponse agent_response;
   
-  try {
-    nlohmann::json response_json = nlohmann::json::parse(response_body);
-    
-    // Navigate Gemini's response structure
-    if (!response_json.contains("candidates") || 
-        response_json["candidates"].empty()) {
-      return absl::InternalError("❌ No candidates in Gemini response");
+  auto response_json = nlohmann::json::parse(response_body, nullptr, false);
+  if (response_json.is_discarded()) {
+    return absl::InternalError("❌ Failed to parse Gemini response JSON");
+  }
+  
+  // Navigate Gemini's response structure
+  if (!response_json.contains("candidates") || 
+      response_json["candidates"].empty()) {
+    return absl::InternalError("❌ No candidates in Gemini response");
+  }
+  
+  for (const auto& candidate : response_json["candidates"]) {
+    if (!candidate.contains("content") || 
+        !candidate["content"].contains("parts")) {
+      continue;
     }
     
-    for (const auto& candidate : response_json["candidates"]) {
-      if (!candidate.contains("content") || 
-          !candidate["content"].contains("parts")) {
-        continue;
-      }
-      
-      for (const auto& part : candidate["content"]["parts"]) {
-        if (!part.contains("text")) {
-          continue;
-        }
-        
+    for (const auto& part : candidate["content"]["parts"]) {
+      if (part.contains("text")) {
         std::string text_content = part["text"].get<std::string>();
         
         // Debug: Print raw LLM output when verbose mode is enabled
-        const char* verbose_env = std::getenv("Z3ED_VERBOSE");
-        if (verbose_env && std::string(verbose_env) == "1") {
+        if (config_.verbose) {
           std::cout << "\n" << "\033[35m" << "🔍 Raw LLM Response:" << "\033[0m" << "\n"
                     << "\033[2m" << text_content << "\033[0m" << "\n\n";
         }
@@ -418,39 +455,22 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
         }
         text_content = std::string(absl::StripAsciiWhitespace(text_content));
         
-        // Parse as JSON object
-        try {
-          nlohmann::json response_json = nlohmann::json::parse(text_content);
-          if (response_json.contains("text_response") &&
-              response_json["text_response"].is_string()) {
+        // Try to parse as JSON object
+        auto parsed_text = nlohmann::json::parse(text_content, nullptr, false);
+        if (!parsed_text.is_discarded()) {
+          if (parsed_text.contains("text_response") &&
+              parsed_text["text_response"].is_string()) {
             agent_response.text_response =
-                response_json["text_response"].get<std::string>();
+                parsed_text["text_response"].get<std::string>();
           }
-          if (response_json.contains("reasoning") &&
-              response_json["reasoning"].is_string()) {
+          if (parsed_text.contains("reasoning") &&
+              parsed_text["reasoning"].is_string()) {
             agent_response.reasoning =
-                response_json["reasoning"].get<std::string>();
+                parsed_text["reasoning"].get<std::string>();
           }
-          if (response_json.contains("tool_calls") &&
-              response_json["tool_calls"].is_array()) {
-            for (const auto& call : response_json["tool_calls"]) {
-              if (call.contains("tool_name") && call["tool_name"].is_string()) {
-                ToolCall tool_call;
-                tool_call.tool_name = call["tool_name"].get<std::string>();
-                if (call.contains("args") && call["args"].is_object()) {
-                  for (auto& [key, value] : call["args"].items()) {
-                    if (value.is_string()) {
-                      tool_call.args[key] = value.get<std::string>();
-                    }
-                  }
-                }
-                agent_response.tool_calls.push_back(tool_call);
-              }
-            }
-          }
-          if (response_json.contains("commands") &&
-              response_json["commands"].is_array()) {
-            for (const auto& cmd : response_json["commands"]) {
+          if (parsed_text.contains("commands") &&
+              parsed_text["commands"].is_array()) {
+            for (const auto& cmd : parsed_text["commands"]) {
               if (cmd.is_string()) {
                 std::string command = cmd.get<std::string>();
                 if (absl::StartsWith(command, "z3ed ")) {
@@ -460,8 +480,8 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
               }
             }
           }
-        } catch (const nlohmann::json::exception& inner_e) {
-          // If parsing the full object fails, fallback to just commands
+        } else {
+          // If parsing the full object fails, fallback to extracting commands from text
           std::vector<std::string> lines = absl::StrSplit(text_content, '\n');
           for (const auto& line : lines) {
             std::string trimmed = std::string(absl::StripAsciiWhitespace(line));
@@ -478,11 +498,24 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
             }
           }
         }
+      } else if (part.contains("functionCall")) {
+        const auto& call = part["functionCall"];
+        if (call.contains("name") && call["name"].is_string()) {
+          ToolCall tool_call;
+          tool_call.tool_name = call["name"].get<std::string>();
+          if (call.contains("args") && call["args"].is_object()) {
+            for (auto& [key, value] : call["args"].items()) {
+              if (value.is_string()) {
+                tool_call.args[key] = value.get<std::string>();
+              } else if (value.is_number()) {
+                tool_call.args[key] = std::to_string(value.get<double>());
+              }
+            }
+          }
+          agent_response.tool_calls.push_back(tool_call);
+        }
       }
     }
-  } catch (const nlohmann::json::exception& e) {
-    return absl::InternalError(
-        absl::StrCat("❌ Failed to parse Gemini response: ", e.what()));
   }
   
   if (agent_response.text_response.empty() && 
@@ -495,8 +528,6 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
   }
   
   return agent_response;
-#else
-  return absl::UnimplementedError("JSON support required");
 #endif
 }
 

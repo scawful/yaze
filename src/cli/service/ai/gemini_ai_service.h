@@ -21,6 +21,7 @@ struct GeminiConfig {
   bool use_enhanced_prompting = true;  // Enable few-shot examples
   bool use_function_calling = false;  // Use native Gemini function calling
   std::string prompt_version = "default";  // Which prompt file to use (default, v2, etc.)
+  bool verbose = false;  // Enable debug logging
   
   GeminiConfig() = default;
   explicit GeminiConfig(const std::string& key) : api_key(key) {}

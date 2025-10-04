@@ -4,7 +4,11 @@
 #include <string>
 #include <vector>
 
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 #include "absl/status/status.h"
+
+ABSL_DECLARE_FLAG(bool, quiet);
 
 namespace yaze {
 namespace cli {
@@ -133,7 +137,7 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
     return agent::HandleChatCommand(rom_);
   }
   if (subcommand == "simple-chat") {
-    return agent::HandleSimpleChatCommand(subcommand_args, rom_, absl::GetFlag(FLAGS_quiet));
+    return agent::HandleSimpleChatCommand(subcommand_args, &rom_, absl::GetFlag(FLAGS_quiet));
   }
 
   return absl::InvalidArgumentError(std::string(agent::kUsage));
