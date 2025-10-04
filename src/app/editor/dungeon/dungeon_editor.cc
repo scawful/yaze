@@ -301,11 +301,22 @@ void DungeonEditor::DrawCanvasAndPropertiesPanel() {
           static std::vector<uint8_t> empty_gfx;
           const auto& gfx_buffer = rom()->graphics_buffer();
           
+          // Get the actual palette being used by this room
+          const auto& dungeon_pal_group = rom()->palette_group().dungeon_main;
+          int room_palette_id = rooms_[room_id].palette;
+          
+          // Validate and clamp palette ID
+          if (room_palette_id < 0 || room_palette_id >= static_cast<int>(dungeon_pal_group.size())) {
+            room_palette_id = 0;
+          }
+          
+          auto room_palette = dungeon_pal_group[room_palette_id];
+          
           zelda3::dungeon::RoomVisualDiagnostic::DrawDiagnosticWindow(
               &show_visual_diagnostic_,
               gfx::Arena::Get().bg1(),
               gfx::Arena::Get().bg2(),
-              current_palette_,
+              room_palette,
               gfx_buffer.empty() ? empty_gfx : gfx_buffer);
         }
       } else {

@@ -312,7 +312,7 @@ void Room::RenderRoomGraphics() {
 
   // Get the palette for this room - just use the 90-color palette as-is
   // The SNES will index into this palette correctly without needing expansion
-  auto& dungeon_pal_group = rom()->mutable_palette_group()->get_group("dungeon_main")[0];
+  auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
   int num_palettes = dungeon_pal_group.size();
   int palette_id = palette;
   
