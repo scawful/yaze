@@ -16,12 +16,11 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
 - **IT-01**: ImGuiTestHarness - Full GUI automation via gRPC + ImGuiTestEngine (all 3 phases complete)
 - **IT-02**: CLI Agent Test - Natural language → automated GUI testing (implementation complete)
 
-**🔄 Active Phase**:
-- **Test Harness Enhancements (IT-05 to IT-09)**: ✅ Core infrastructure complete (IT-05/07/08 shipped, IT-09 CLI tooling complete)
-- **Conversational Agent Implementation**: 🚧 Foundation complete, LLM function calling integration in progress
+**🎯 Active Phase**:
+- **Conversational Agent Implementation**: ✅ Foundation complete, LLM function calling ✅ COMPLETE (Oct 3, 2025)
 
 **📋 Next Phases (Updated Oct 3, 2025)**:
-- **Priority 1**: Complete LLM Function Calling (4-6h) - Add tool schema to prompts, parse function calls
+- **Priority 1**: Live LLM Testing (1-2h) - Verify function calling with Ollama/Gemini
 - **Priority 2**: GUI Chat Widget (6-8h) - Create ImGui widget matching TUI experience
 - **Priority 3**: Expand Tool Coverage (8-10h) - Add dialogue, sprite, region inspection tools
 - **Priority 4**: Widget Discovery API (IT-06) - AI agents enumerate available GUI interactions

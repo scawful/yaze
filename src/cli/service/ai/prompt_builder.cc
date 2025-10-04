@@ -406,6 +406,57 @@ std::string PromptBuilder::BuildToolReference() const {
   return oss.str();
 }
 
+std::string PromptBuilder::BuildFunctionCallSchemas() const {
+  if (tool_specs_.empty()) {
+    return "[]";
+  }
+
+  nlohmann::json tools_array = nlohmann::json::array();
+
+  for (const auto& spec : tool_specs_) {
+    nlohmann::json tool;
+    tool["type"] = "function";
+    
+    nlohmann::json function;
+    function["name"] = spec.name;
+    function["description"] = spec.description;
+    if (!spec.usage_notes.empty()) {
+      function["description"] = spec.description + " " + spec.usage_notes;
+    }
+
+    nlohmann::json parameters;
+    parameters["type"] = "object";
+    
+    nlohmann::json properties = nlohmann::json::object();
+    nlohmann::json required = nlohmann::json::array();
+
+    for (const auto& arg : spec.arguments) {
+      nlohmann::json arg_schema;
+      arg_schema["type"] = "string";  // All CLI args are strings
+      arg_schema["description"] = arg.description;
+      if (!arg.example.empty()) {
+        arg_schema["example"] = arg.example;
+      }
+      properties[arg.name] = arg_schema;
+      
+      if (arg.required) {
+        required.push_back(arg.name);
+      }
+    }
+
+    parameters["properties"] = properties;
+    if (!required.empty()) {
+      parameters["required"] = required;
+    }
+
+    function["parameters"] = parameters;
+    tool["function"] = function;
+    tools_array.push_back(tool);
+  }
+
+  return tools_array.dump(2);
+}
+
 std::string PromptBuilder::BuildFewShotExamplesSection() const {
   std::ostringstream oss;
 
@@ -460,25 +511,53 @@ std::string PromptBuilder::BuildConstraintsSection() const {
     "reasoning": "Your thought process."
   }
   - `text_response` is for conversational replies.
-  - `tool_calls` is for asking questions about the ROM. Use the available tools.
+  - `tool_calls` is for asking questions about the ROM. Use the available tools listed below.
   - `commands` is for generating commands to modify the ROM.
-  - All fields are optional.
+  - All fields are optional, but you should always provide at least one.
 
-2. **Command Syntax:** Follow the exact syntax shown in examples
+2. **Tool Usage:** When the user asks a question about the ROM state, use tool_calls instead of commands
+  - Tools are read-only and return information
+  - Commands modify the ROM and should only be used when explicitly requested
+  - You can call multiple tools in one response
+  - Always use JSON format for tool results
+
+3. **Command Syntax:** Follow the exact syntax shown in examples
   - Use correct flag names (--group, --id, --to, --from, etc.)
   - Use hex format for colors (0xRRGGBB) and tile IDs (0xNNN)
   - Coordinates are 0-based indices
 
-3. **Common Patterns:**
+4. **Common Patterns:**
   - Palette modifications: export → set-color → import
   - Multiple tile placement: multiple overworld set-tile commands
   - Validation: single rom validate command
 
-4. **Error Prevention:**
+5. **Error Prevention:**
   - Always export before modifying palettes
   - Use temporary file names (temp_*.json) for intermediate files
   - Validate coordinates are within bounds
 )";
+
+  if (!tool_specs_.empty()) {
+    oss << "\n# Available Tools for ROM Inspection\n\n";
+    oss << "You have access to the following tools to answer questions:\n\n";
+    oss << "```json\n";
+    oss << BuildFunctionCallSchemas();
+    oss << "\n```\n\n";
+    oss << "**Tool Call Example:**\n";
+    oss << "```json\n";
+    oss << R"({
+  "text_response": "Let me check the dungeons in this ROM.",
+  "tool_calls": [
+    {
+      "tool_name": "resource-list",
+      "args": {
+        "type": "dungeon"
+      }
+    }
+  ]
+})";
+    oss << "\n```\n";
+  }
 
   if (!tile_reference_.empty()) {
    oss << "\n" << BuildTileReferenceSection();
