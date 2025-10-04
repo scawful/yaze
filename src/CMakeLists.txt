@@ -90,6 +90,10 @@ endif()
     include(app/zelda3/zelda3_library.cmake)
     include(app/editor/editor_library.cmake)
 
+    if(YAZE_BUILD_TESTS)
+      include(app/test/test.cmake)
+    endif()
+
     if(YAZE_BUILD_EMU)
       include(app/emu/emu_library.cmake)
     endif()
@@ -190,6 +194,10 @@ if (YAZE_BUILD_APP)
 
     if(YAZE_BUILD_EMU AND TARGET yaze_emulator)
       list(APPEND _yaze_modular_links yaze_emulator)
+    endif()
+
+    if(YAZE_BUILD_TESTS AND TARGET yaze_test_support)
+      list(APPEND _yaze_modular_links yaze_test_support)
     endif()
 
     target_link_libraries(yaze PRIVATE ${_yaze_modular_links})
