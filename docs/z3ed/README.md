@@ -207,89 +207,582 @@ The help system is organized by category for easy navigation.
 
 ## 9. Collaborative Sessions & Multimodal Vision
 
-### Collaborative Sessions
+### Overview
 
-Z3ED supports both local (filesystem-based) and network (WebSocket-based) collaborative sessions for sharing chat conversations and working together on ROM hacks.
+YAZE supports real-time collaboration for ROM hacking through dual modes: **Local** (filesystem-based) for same-machine collaboration, and **Network** (WebSocket-based via yaze-server v2.0) for internet-based collaboration with advanced features including ROM synchronization, snapshot sharing, and AI agent integration.
 
-#### Local Collaboration Mode
+---
 
-**How to Use:**
-1. Open YAZE and go to **Debug → Agent Chat**
-2. In the Agent Chat widget, select **"Local"** mode
+### Local Collaboration Mode
+
+Perfect for multiple YAZE instances on the same machine or cloud-synced folders (Dropbox, iCloud).
+
+#### How to Use
+
+1. Open YAZE → **Debug → Agent Chat**
+2. Select **"Local"** mode
 3. **Host a Session:**
-   - Enter a session name (e.g., "Evening ROM Hack")
-   - Click "Host"
-   - Share the generated 6-character code (e.g., `ABC123`) with collaborators on the same machine
+   - Enter session name: `Evening ROM Hack`
+   - Click **"Host Session"**
+   - Share the 6-character code (e.g., `ABC123`)
 4. **Join a Session:**
-   - Enter the session code provided by the host
-   - Click "Join"
-   - Your chat will now sync with others in the session
+   - Enter the session code
+   - Click **"Join Session"**
+   - Chat history syncs automatically
 
-**Features:**
-- Shared chat history stored in `~/.yaze/agent/sessions/<code>_history.json`
-- Automatic synchronization when sending/receiving messages (2-second polling)
-- Participant list shows all connected users
-- Perfect for multiple YAZE instances on the same machine
+#### Features
 
-#### Network Collaboration Mode (NEW!)
+- **Shared History**: `~/.yaze/agent/sessions/<code>_history.json`
+- **Auto-Sync**: 2-second polling for new messages
+- **Participant Tracking**: Real-time participant list
+- **Toast Notifications**: Get notified when collaborators send messages
+- **Zero Setup**: No server required
 
-**Requirements:**
-- Node.js installed on the server machine
-- `yaze-collab-server` repository cloned alongside `yaze`
-- Network connectivity between collaborators
+#### Cloud Folder Workaround
 
-**Setup:**
-1. **Start the Collaboration Server:**
+Enable internet collaboration without a server:
+
+```bash
+# Link your sessions directory to Dropbox/iCloud
+ln -s ~/Dropbox/yaze-sessions ~/.yaze/agent/sessions
+
+# Have your collaborator do the same
+# Now you can collaborate through cloud sync!
+```
+
+---
+
+### Network Collaboration Mode (yaze-server v2.0)
+
+Real-time collaboration over the internet with advanced features powered by the yaze-server v2.0.
+
+#### Requirements
+
+- **Server**: Node.js 18+ with yaze-server running
+- **Client**: YAZE built with `-DYAZE_WITH_GRPC=ON` and `-DZ3ED_AI=ON`
+- **Network**: Connectivity between collaborators
+
+#### Server Setup
+
+**Option 1: Using z3ed CLI**
    ```bash
-   # From z3ed CLI:
    z3ed collab start [--port=8765]
-   
-   # Or manually:
-   cd yaze-collab-server
+```
+
+**Option 2: Manual Launch**
+```bash
+cd /path/to/yaze-server
+npm install
+npm start
+
+# Server starts on http://localhost:8765
+# Health check: curl http://localhost:8765/health
+```
+
+**Option 3: Docker**
+```bash
+docker build -t yaze-server .
+docker run -p 8765:8765 yaze-server
+```
+
+#### Client Connection
+
+1. Open YAZE → **Debug → Agent Chat**
+2. Select **"Network"** mode
+3. Enter server URL: `ws://localhost:8765` (or remote server)
+4. Click **"Connect to Server"**
+5. Host or join sessions like local mode
+
+#### Core Features
+
+**Session Management:**
+- Unique 6-character session codes
+- Participant tracking with join/leave notifications
+- Real-time message broadcasting
+- Persistent chat history
+
+**Connection Management:**
+- Health monitoring endpoints (`/health`, `/metrics`)
+- Graceful shutdown notifications
+- Automatic cleanup of inactive sessions
+- Rate limiting (100 messages/minute per IP)
+
+#### Advanced Features (v2.0)
+
+**🎮 ROM Synchronization**
+Share ROM edits in real-time:
+- Send base64-encoded diffs to all participants
+- Automatic ROM hash tracking
+- Size limit: 5MB per diff
+- Conflict detection via hash comparison
+
+**📸 Multimodal Snapshot Sharing**
+Share screenshots and images:
+- Capture and share specific editor views
+- Support for multiple snapshot types (overworld, dungeon, sprite, etc.)
+- Base64 encoding for efficient transfer
+- Size limit: 10MB per snapshot
+
+**💡 Proposal Management**
+Collaborative proposal workflow:
+- Share AI-generated proposals with all participants
+- Track proposal status: pending, accepted, rejected
+- Real-time status updates broadcast to all users
+- Proposal history tracked in server database
+
+**🤖 AI Agent Integration**
+Server-routed AI queries:
+- Send queries through the collaboration server
+- Shared AI responses visible to all participants
+- Query history tracked in database
+- Optional: Disable AI per session
+
+#### Protocol Reference
+
+The server uses JSON WebSocket messages over HTTP/WebSocket transport.
+
+**Client → Server Messages:**
+
+```json
+// Host Session (v2.0 with optional ROM hash and AI control)
+{
+  "type": "host_session",
+  "payload": {
+    "session_name": "My Session",
+    "username": "alice",
+    "rom_hash": "abc123...",  // optional
+    "ai_enabled": true         // optional, default true
+  }
+}
+
+// Join Session
+{
+  "type": "join_session",
+  "payload": {
+    "session_code": "ABC123",
+    "username": "bob"
+  }
+}
+
+// Chat Message (v2.0 with metadata support)
+{
+  "type": "chat_message",
+  "payload": {
+    "sender": "alice",
+    "message": "Hello!",
+    "message_type": "chat",    // optional: chat, system, ai
+    "metadata": {...}          // optional metadata
+  }
+}
+
+// ROM Sync (NEW in v2.0)
+{
+  "type": "rom_sync",
+  "payload": {
+    "sender": "alice",
+    "diff_data": "base64_encoded_diff...",
+    "rom_hash": "sha256_hash"
+  }
+}
+
+// Snapshot Share (NEW in v2.0)
+{
+  "type": "snapshot_share",
+  "payload": {
+    "sender": "alice",
+    "snapshot_data": "base64_encoded_image...",
+    "snapshot_type": "overworld_editor"
+  }
+}
+
+// Proposal Share (NEW in v2.0)
+{
+  "type": "proposal_share",
+  "payload": {
+    "sender": "alice",
+    "proposal_data": {
+      "title": "Add new sprite",
+      "description": "...",
+      "changes": [...]
+    }
+  }
+}
+
+// Proposal Update (NEW in v2.0)
+{
+  "type": "proposal_update",
+  "payload": {
+    "proposal_id": "uuid",
+    "status": "accepted"  // pending, accepted, rejected
+  }
+}
+
+// AI Query (NEW in v2.0)
+{
+  "type": "ai_query",
+  "payload": {
+    "username": "alice",
+    "query": "What enemies are in the eastern palace?"
+  }
+}
+
+// Leave Session
+{ "type": "leave_session" }
+
+// Ping
+{ "type": "ping" }
+```
+
+**Server → Client Messages:**
+
+```json
+// Session Hosted
+{
+  "type": "session_hosted",
+  "payload": {
+    "session_id": "uuid",
+    "session_code": "ABC123",
+    "session_name": "My Session",
+    "participants": ["alice"],
+    "rom_hash": "abc123...",
+    "ai_enabled": true
+  }
+}
+
+// Session Joined
+{
+  "type": "session_joined",
+  "payload": {
+    "session_id": "uuid",
+    "session_code": "ABC123",
+    "session_name": "My Session",
+    "participants": ["alice", "bob"],
+    "messages": [...]
+  }
+}
+
+// Chat Message (broadcast)
+{
+  "type": "chat_message",
+  "payload": {
+    "sender": "alice",
+    "message": "Hello!",
+    "timestamp": 1709567890123,
+    "message_type": "chat",
+    "metadata": null
+  }
+}
+
+// ROM Sync (broadcast, NEW in v2.0)
+{
+  "type": "rom_sync",
+  "payload": {
+    "sync_id": "uuid",
+    "sender": "alice",
+    "diff_data": "base64...",
+    "rom_hash": "sha256...",
+    "timestamp": 1709567890123
+  }
+}
+
+// Snapshot Shared (broadcast, NEW in v2.0)
+{
+  "type": "snapshot_shared",
+  "payload": {
+    "snapshot_id": "uuid",
+    "sender": "alice",
+    "snapshot_data": "base64...",
+    "snapshot_type": "overworld_editor",
+    "timestamp": 1709567890123
+  }
+}
+
+// Proposal Shared (broadcast, NEW in v2.0)
+{
+  "type": "proposal_shared",
+  "payload": {
+    "proposal_id": "uuid",
+    "sender": "alice",
+    "proposal_data": {...},
+    "status": "pending",
+    "timestamp": 1709567890123
+  }
+}
+
+// Proposal Updated (broadcast, NEW in v2.0)
+{
+  "type": "proposal_updated",
+  "payload": {
+    "proposal_id": "uuid",
+    "status": "accepted",
+    "timestamp": 1709567890123
+  }
+}
+
+// AI Response (broadcast, NEW in v2.0)
+{
+  "type": "ai_response",
+  "payload": {
+    "query_id": "uuid",
+    "username": "alice",
+    "query": "What enemies are in the eastern palace?",
+    "response": "The eastern palace contains...",
+    "timestamp": 1709567890123
+  }
+}
+
+// Participant Events
+{
+  "type": "participant_joined",  // or "participant_left"
+  "payload": {
+    "username": "bob",
+    "participants": ["alice", "bob"]
+  }
+}
+
+// Server Shutdown (NEW in v2.0)
+{
+  "type": "server_shutdown",
+  "payload": {
+    "message": "Server is shutting down. Please reconnect later."
+  }
+}
+
+// Pong
+{
+  "type": "pong",
+  "payload": { "timestamp": 1709567890123 }
+}
+
+// Error
+{
+  "type": "error",
+  "payload": { "error": "Session ABC123 not found" }
+}
+```
+
+#### Server Configuration
+
+**Environment Variables:**
+- `PORT` - Server port (default: 8765)
+- `ENABLE_AI_AGENT` - Enable AI agent integration (default: true)
+- `AI_AGENT_ENDPOINT` - External AI agent endpoint URL
+
+**Rate Limiting:**
+- Window: 60 seconds
+- Max messages: 100 per IP per window
+- Max snapshot size: 10 MB
+- Max ROM diff size: 5 MB
+
+#### Database Schema (Server v2.0)
+
+The server uses SQLite with the following tables:
+
+- **sessions**: Session metadata, ROM hash, AI enabled flag
+- **participants**: User tracking with last_seen timestamps
+- **messages**: Chat history with message types and metadata
+- **rom_syncs**: ROM diff history with hashes
+- **snapshots**: Shared screenshots and images
+- **proposals**: AI proposal tracking with status
+- **agent_interactions**: AI query and response history
+
+#### Deployment
+
+**Heroku:**
+```bash
+cd /path/to/yaze-server
+heroku create yaze-collab
+git push heroku main
+heroku config:set ENABLE_AI_AGENT=true
+```
+
+**VPS (with PM2):**
+```bash
+git clone https://github.com/scawful/yaze-server
+   cd yaze-server
    npm install
-   node server.js
-   ```
+npm install -g pm2
+pm2 start server.js --name yaze-collab
+pm2 startup
+pm2 save
+```
 
-2. **Connect from YAZE:**
-   - Open YAZE and go to **Debug → Agent Chat**
-   - Select **"Network"** mode
-   - Enter server URL (e.g., `ws://localhost:8765`)
-   - Click "Connect to Server"
+**Docker:**
+```bash
+docker build -t yaze-server .
+docker run -p 8765:8765 -e ENABLE_AI_AGENT=true yaze-server
+```
 
-3. **Collaborate:**
-   - Host or join sessions just like local mode
-   - Collaborate with anyone who can reach your server
-   - Real-time message broadcasting via WebSockets
+#### Testing
 
-**Features:**
-- Real-time collaboration over the internet
-- Session management with unique codes
-- Participant tracking and notifications
-- Persistent message history
-- Perfect for remote pair programming
+**Health Check:**
+```bash
+curl http://localhost:8765/health
+curl http://localhost:8765/metrics
+```
+
+**Test with wscat:**
+```bash
+npm install -g wscat
+wscat -c ws://localhost:8765
+
+# Host session
+> {"type":"host_session","payload":{"session_name":"Test","username":"alice","ai_enabled":true}}
+
+# Join session (in another terminal)
+> {"type":"join_session","payload":{"session_code":"ABC123","username":"bob"}}
+
+# Send message
+> {"type":"chat_message","payload":{"sender":"alice","message":"Hello!"}}
+```
+
+#### Security Considerations
+
+**Current Implementation:**
+⚠️ Basic security - suitable for trusted networks
+- No authentication or encryption by default
+- Plain text message transmission
+- Session codes are the only access control
+
+**Recommended for Production:**
+1. **SSL/TLS**: Use `wss://` with valid certificates
+2. **Authentication**: Implement JWT tokens or OAuth
+3. **Session Passwords**: Optional per-session passwords
+4. **Persistent Storage**: Use PostgreSQL/MySQL for production
+5. **Monitoring**: Add logging to CloudWatch/Datadog
+6. **Backup**: Regular database backups
+
+---
 
 ### Multimodal Vision (Gemini)
 
-Ask Gemini to analyze screenshots of your ROM editor to get visual feedback and suggestions.
+Analyze screenshots of your ROM editor using Gemini's vision capabilities for visual feedback and suggestions.
 
-**Requirements:**
+#### Requirements
+
 - `GEMINI_API_KEY` environment variable set
 - YAZE built with `-DYAZE_WITH_GRPC=ON` and `-DZ3ED_AI=ON`
 
-**How to Use:**
-1. Open the Agent Chat widget (**Debug → Agent Chat**)
-2. Expand the **"Gemini Multimodal (Preview)"** panel
-3. Click **"Capture Map Snapshot"** to take a screenshot of the current view
-4. Enter a prompt in the text box (e.g., "What issues do you see with this overworld layout?")
-5. Click **"Send to Gemini"** to get visual analysis
+#### Capture Modes
 
-**Example Prompts:**
+**Full Window**: Captures the entire YAZE application window
+
+**Active Editor** (default): Captures only the currently focused editor window
+
+**Specific Window**: Captures a named window (e.g., "Overworld Editor")
+
+#### How to Use
+
+1. Open **Debug → Agent Chat**
+2. Expand **"Gemini Multimodal (Preview)"** panel
+3. Select capture mode:
+   - ○ Full Window
+   - ● Active Editor (default)
+   - ○ Specific Window
+4. If Specific Window, enter window name: `Overworld Editor`
+5. Click **"Capture Snapshot"**
+6. Enter prompt: `"What issues do you see with this layout?"`
+7. Click **"Send to Gemini"**
+
+#### Example Prompts
+
 - "Analyze the tile placement in this overworld screen"
 - "What's wrong with the palette colors in this screenshot?"
 - "Suggest improvements for this dungeon room layout"
 - "Does this screen follow good level design practices?"
+- "Are there any visual glitches or tile conflicts?"
+- "How can I improve the composition of this room?"
 
-The AI response will appear in your chat history and can reference specific details from the screenshot.
+The AI response appears in your chat history and can reference specific details from the screenshot. In network collaboration mode, multimodal snapshots can be shared with all participants.
+
+---
+
+### Architecture
+
+```
+┌──────────────────────────────────────────────────────┐
+│                    YAZE Editor                       │
+│                                                      │
+│  ┌─────────────────────────────────────────────┐   │
+│  │         Agent Chat Widget (ImGui)           │   │
+│  │                                             │   │
+│  │  [Collaboration Panel]                      │   │
+│  │  ├─ Local Mode (filesystem)  ✓ Working     │   │
+│  │  └─ Network Mode (websocket) ✓ Working     │   │
+│  │                                             │   │
+│  │  [Multimodal Panel]                         │   │
+│  │  ├─ Capture Mode Selection   ✓ Working     │   │
+│  │  ├─ Screenshot Capture        ✓ Working     │   │
+│  │  └─ Send to Gemini           ✓ Working     │   │
+│  └─────────────────────────────────────────────┘   │
+│           │                    │                    │
+│           ▼                    ▼                    │
+│  ┌──────────────────┐  ┌──────────────────┐       │
+│  │  Collaboration   │  │  Screenshot      │       │
+│  │  Coordinators    │  │  Utils           │       │
+│  └──────────────────┘  └──────────────────┘       │
+│           │                    │                    │
+└───────────┼────────────────────┼────────────────────┘
+            │                    │
+            ▼                    ▼
+┌──────────────────┐    ┌──────────────────┐
+│  ~/.yaze/agent/  │    │  Gemini Vision   │
+│    sessions/     │    │      API         │
+└──────────────────┘    └──────────────────┘
+            │
+            ▼
+┌──────────────────────────────────────────┐
+│         yaze-server v2.0                 │
+│  - WebSocket Server (Node.js)            │
+│  - SQLite Database                       │
+│  - Session Management                    │
+│  - ROM Sync                              │
+│  - Snapshot Sharing                      │
+│  - Proposal Management                   │
+│  - AI Agent Integration                  │
+└──────────────────────────────────────────┘
+```
+
+---
+
+### Troubleshooting
+
+**"Failed to start collaboration server"**
+- Ensure Node.js is installed: `node --version`
+- Check port availability: `lsof -i :8765`
+- Verify server directory exists
+
+**"Not connected to collaboration server"**
+- Verify server is running: `curl http://localhost:8765/health`
+- Check firewall settings
+- Confirm server URL is correct
+
+**"Session not found"**
+- Verify session code is correct (case-insensitive)
+- Check if session expired (server restart clears sessions)
+- Try hosting a new session
+
+**"Rate limit exceeded"**
+- Server enforces 100 messages per minute per IP
+- Wait 60 seconds and try again
+
+**Participants not updating**
+- Click "Refresh Session" button
+- Check network connectivity
+- Verify server logs for errors
+
+**Messages not broadcasting**
+- Ensure all clients are in the same session
+- Check session code matches exactly
+- Verify network connectivity between client and server
+
+---
+
+### References
+
+- **Server Repository**: [yaze-server](https://github.com/scawful/yaze-server)
+- **Agent Editor Docs**: `src/app/editor/agent/README.md`
+- **Integration Guide**: `docs/z3ed/YAZE_SERVER_V2_INTEGRATION.md`
 
 ## 10. Roadmap & Implementation Status
 
@@ -301,15 +794,26 @@ The AI response will appear in your chat history and can reference specific deta
 -   **AI Backends**: Both Ollama (local) and Gemini (cloud) are operational.
 -   **Conversational Agent**: The agent service, tool dispatcher (with 5 read-only tools), TUI/simple chat interfaces, and ImGui editor chat widget with persistent history.
 -   **GUI Test Harness**: A comprehensive GUI testing platform with introspection, widget discovery, recording/replay, and CI integration support.
--   **Collaborative Sessions**: Local filesystem-based collaborative editing with shared chat history.
--   **Multimodal Vision**: Gemini vision API integration for analyzing ROM editor screenshots.
+-   **Collaborative Sessions**: 
+    - Local filesystem-based collaborative editing with shared chat history
+    - Network WebSocket-based collaboration via yaze-server v2.0
+    - Dual-mode support (Local/Network) with seamless switching
+-   **Multimodal Vision**: Gemini vision API integration with multiple capture modes (Full Window, Active Editor, Specific Window).
+-   **yaze-server v2.0**: Production-ready Node.js WebSocket server with:
+    - ROM synchronization with diff broadcasting
+    - Multimodal snapshot sharing
+    - Collaborative proposal management
+    - AI agent integration and query routing
+    - Health monitoring and metrics endpoints
+    - Rate limiting and security features
 
 ### 🚧 Active & Next Steps
 
 1.  **Live LLM Testing (1-2h)**: Verify function calling with real models (Ollama/Gemini).
 2.  **Expand Tool Coverage (8-10h)**: Add new read-only tools for inspecting dialogue, sprites, and regions.
-3.  **Network-Based Collaboration**: Upgrade the filesystem-based collaboration to support remote connections via WebSockets or gRPC.
-4.  **Windows Cross-Platform Testing (8-10h)**: Validate `z3ed` and the test harness on Windows.
+3.  **Full WebSocket Protocol (2-3 days)**: Upgrade from HTTP polling to true WebSocket frames using ixwebsocket or websocketpp.
+4.  **Collaboration UI Enhancements (1 day)**: Add UI elements for ROM sync, snapshot sharing, and proposal management in the Agent Chat widget.
+5.  **Windows Cross-Platform Testing (8-10h)**: Validate `z3ed` and the test harness on Windows.
 
 ## 11. Troubleshooting
 

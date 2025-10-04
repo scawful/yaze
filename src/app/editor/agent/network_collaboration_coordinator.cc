@@ -143,20 +143,29 @@ void NetworkCollaborationCoordinator::DisconnectWebSocket() {
 
 absl::StatusOr<NetworkCollaborationCoordinator::SessionInfo>
 NetworkCollaborationCoordinator::HostSession(const std::string& session_name,
-                                             const std::string& username) {
+                                             const std::string& username,
+                                             const std::string& rom_hash,
+                                             bool ai_enabled) {
   if (!connected_) {
     return absl::FailedPreconditionError("Not connected to collaboration server");
   }
 
   username_ = username;
 
-  // Build host_session message
+  // Build host_session message with v2.0 fields
+  Json payload = {
+      {"session_name", session_name},
+      {"username", username},
+      {"ai_enabled", ai_enabled}
+  };
+  
+  if (!rom_hash.empty()) {
+    payload["rom_hash"] = rom_hash;
+  }
+
   Json message = {
       {"type", "host_session"},
-      {"payload", {
-          {"session_name", session_name},
-          {"username", username}
-      }}
+      {"payload", payload}
   };
 
   SendWebSocketMessage("host_session", message["payload"].dump());
@@ -221,20 +230,122 @@ absl::Status NetworkCollaborationCoordinator::LeaveSession() {
 }
 
 absl::Status NetworkCollaborationCoordinator::SendMessage(
-    const std::string& sender, const std::string& message) {
+    const std::string& sender, const std::string& message,
+    const std::string& message_type, const std::string& metadata) {
+  if (!in_session_) {
+    return absl::FailedPreconditionError("Not in a session");
+  }
+
+  Json payload = {
+      {"sender", sender},
+      {"message", message},
+      {"message_type", message_type}
+  };
+  
+  if (!metadata.empty()) {
+    payload["metadata"] = Json::parse(metadata);
+  }
+
+  Json msg = {
+      {"type", "chat_message"},
+      {"payload", payload}
+  };
+
+  SendWebSocketMessage("chat_message", msg["payload"].dump());
+  return absl::OkStatus();
+}
+
+absl::Status NetworkCollaborationCoordinator::SendRomSync(
+    const std::string& sender, const std::string& diff_data,
+    const std::string& rom_hash) {
   if (!in_session_) {
     return absl::FailedPreconditionError("Not in a session");
   }
 
   Json msg = {
-      {"type", "chat_message"},
+      {"type", "rom_sync"},
       {"payload", {
           {"sender", sender},
-          {"message", message}
+          {"diff_data", diff_data},
+          {"rom_hash", rom_hash}
       }}
   };
 
-  SendWebSocketMessage("chat_message", msg["payload"].dump());
+  SendWebSocketMessage("rom_sync", msg["payload"].dump());
+  return absl::OkStatus();
+}
+
+absl::Status NetworkCollaborationCoordinator::SendSnapshot(
+    const std::string& sender, const std::string& snapshot_data,
+    const std::string& snapshot_type) {
+  if (!in_session_) {
+    return absl::FailedPreconditionError("Not in a session");
+  }
+
+  Json msg = {
+      {"type", "snapshot_share"},
+      {"payload", {
+          {"sender", sender},
+          {"snapshot_data", snapshot_data},
+          {"snapshot_type", snapshot_type}
+      }}
+  };
+
+  SendWebSocketMessage("snapshot_share", msg["payload"].dump());
+  return absl::OkStatus();
+}
+
+absl::Status NetworkCollaborationCoordinator::SendProposal(
+    const std::string& sender, const std::string& proposal_data_json) {
+  if (!in_session_) {
+    return absl::FailedPreconditionError("Not in a session");
+  }
+
+  Json msg = {
+      {"type", "proposal_share"},
+      {"payload", {
+          {"sender", sender},
+          {"proposal_data", Json::parse(proposal_data_json)}
+      }}
+  };
+
+  SendWebSocketMessage("proposal_share", msg["payload"].dump());
+  return absl::OkStatus();
+}
+
+absl::Status NetworkCollaborationCoordinator::UpdateProposal(
+    const std::string& proposal_id, const std::string& status) {
+  if (!in_session_) {
+    return absl::FailedPreconditionError("Not in a session");
+  }
+
+  Json msg = {
+      {"type", "proposal_update"},
+      {"payload", {
+          {"proposal_id", proposal_id},
+          {"status", status}
+      }}
+  };
+
+  SendWebSocketMessage("proposal_update", msg["payload"].dump());
+  return absl::OkStatus();
+}
+
+absl::Status NetworkCollaborationCoordinator::SendAIQuery(
+    const std::string& username, const std::string& query) {
+  if (!in_session_) {
+    return absl::FailedPreconditionError("Not in a session");
+  }
+
+  Json msg = {
+      {"type", "ai_query"},
+      {"payload", {
+          {"username", username},
+          {"query", query}
+      }}
+  };
+
+  SendWebSocketMessage("ai_query", msg["payload"].dump());
   return absl::OkStatus();
 }
 
@@ -256,6 +367,31 @@ void NetworkCollaborationCoordinator::SetParticipantCallback(
 void NetworkCollaborationCoordinator::SetErrorCallback(ErrorCallback callback) {
   absl::MutexLock lock(&mutex_);
   error_callback_ = std::move(callback);
+}
+
+void NetworkCollaborationCoordinator::SetRomSyncCallback(RomSyncCallback callback) {
+  absl::MutexLock lock(&mutex_);
+  rom_sync_callback_ = std::move(callback);
+}
+
+void NetworkCollaborationCoordinator::SetSnapshotCallback(SnapshotCallback callback) {
+  absl::MutexLock lock(&mutex_);
+  snapshot_callback_ = std::move(callback);
+}
+
+void NetworkCollaborationCoordinator::SetProposalCallback(ProposalCallback callback) {
+  absl::MutexLock lock(&mutex_);
+  proposal_callback_ = std::move(callback);
+}
+
+void NetworkCollaborationCoordinator::SetProposalUpdateCallback(ProposalUpdateCallback callback) {
+  absl::MutexLock lock(&mutex_);
+  proposal_update_callback_ = std::move(callback);
+}
+
+void NetworkCollaborationCoordinator::SetAIResponseCallback(AIResponseCallback callback) {
+  absl::MutexLock lock(&mutex_);
+  ai_response_callback_ = std::move(callback);
 }
 
 void NetworkCollaborationCoordinator::SendWebSocketMessage(
@@ -310,11 +446,87 @@ void NetworkCollaborationCoordinator::HandleWebSocketMessage(
       msg.sender = payload["sender"];
       msg.message = payload["message"];
       msg.timestamp = payload["timestamp"];
+      msg.message_type = payload.value("message_type", "chat");
+      if (payload.contains("metadata") && !payload["metadata"].is_null()) {
+        msg.metadata = payload["metadata"].dump();
+      }
       
       absl::MutexLock lock(&mutex_);
       if (message_callback_) {
         message_callback_(msg);
       }
+    } else if (type == "rom_sync") {
+      Json payload = message["payload"];
+      RomSync sync;
+      sync.sync_id = payload["sync_id"];
+      sync.sender = payload["sender"];
+      sync.diff_data = payload["diff_data"];
+      sync.rom_hash = payload["rom_hash"];
+      sync.timestamp = payload["timestamp"];
+      
+      absl::MutexLock lock(&mutex_);
+      if (rom_sync_callback_) {
+        rom_sync_callback_(sync);
+      }
+    } else if (type == "snapshot_shared") {
+      Json payload = message["payload"];
+      Snapshot snapshot;
+      snapshot.snapshot_id = payload["snapshot_id"];
+      snapshot.sender = payload["sender"];
+      snapshot.snapshot_data = payload["snapshot_data"];
+      snapshot.snapshot_type = payload["snapshot_type"];
+      snapshot.timestamp = payload["timestamp"];
+      
+      absl::MutexLock lock(&mutex_);
+      if (snapshot_callback_) {
+        snapshot_callback_(snapshot);
+      }
+    } else if (type == "proposal_shared") {
+      Json payload = message["payload"];
+      Proposal proposal;
+      proposal.proposal_id = payload["proposal_id"];
+      proposal.sender = payload["sender"];
+      proposal.proposal_data = payload["proposal_data"].dump();
+      proposal.status = payload["status"];
+      proposal.timestamp = payload["timestamp"];
+      
+      absl::MutexLock lock(&mutex_);
+      if (proposal_callback_) {
+        proposal_callback_(proposal);
+      }
+    } else if (type == "proposal_updated") {
+      Json payload = message["payload"];
+      std::string proposal_id = payload["proposal_id"];
+      std::string status = payload["status"];
+      
+      absl::MutexLock lock(&mutex_);
+      if (proposal_update_callback_) {
+        proposal_update_callback_(proposal_id, status);
+      }
+    } else if (type == "ai_response") {
+      Json payload = message["payload"];
+      AIResponse response;
+      response.query_id = payload["query_id"];
+      response.username = payload["username"];
+      response.query = payload["query"];
+      response.response = payload["response"];
+      response.timestamp = payload["timestamp"];
+      
+      absl::MutexLock lock(&mutex_);
+      if (ai_response_callback_) {
+        ai_response_callback_(response);
+      }
+    } else if (type == "server_shutdown") {
+      Json payload = message["payload"];
+      std::string error = "Server shutdown: " + payload["message"].get<std::string>();
+      
+      absl::MutexLock lock(&mutex_);
+      if (error_callback_) {
+        error_callback_(error);
+      }
+      
+      // Disconnect
+      connected_ = false;
     } else if (type == "participant_joined" || type == "participant_left") {
       Json payload = message["payload"];
       if (payload.contains("participants")) {
@@ -361,7 +573,8 @@ NetworkCollaborationCoordinator::NetworkCollaborationCoordinator(
 NetworkCollaborationCoordinator::~NetworkCollaborationCoordinator() = default;
 
 absl::StatusOr<NetworkCollaborationCoordinator::SessionInfo>
-NetworkCollaborationCoordinator::HostSession(const std::string&, const std::string&) {
+NetworkCollaborationCoordinator::HostSession(const std::string&, const std::string&,
+                                             const std::string&, bool) {
   return absl::UnimplementedError("Network collaboration requires JSON support");
 }
 
@@ -375,6 +588,31 @@ absl::Status NetworkCollaborationCoordinator::LeaveSession() {
 }
 
 absl::Status NetworkCollaborationCoordinator::SendMessage(
+    const std::string&, const std::string&, const std::string&, const std::string&) {
+  return absl::UnimplementedError("Network collaboration requires JSON support");
+}
+
+absl::Status NetworkCollaborationCoordinator::SendRomSync(
+    const std::string&, const std::string&, const std::string&) {
+  return absl::UnimplementedError("Network collaboration requires JSON support");
+}
+
+absl::Status NetworkCollaborationCoordinator::SendSnapshot(
+    const std::string&, const std::string&, const std::string&) {
+  return absl::UnimplementedError("Network collaboration requires JSON support");
+}
+
+absl::Status NetworkCollaborationCoordinator::SendProposal(
+    const std::string&, const std::string&) {
+  return absl::UnimplementedError("Network collaboration requires JSON support");
+}
+
+absl::Status NetworkCollaborationCoordinator::UpdateProposal(
+    const std::string&, const std::string&) {
+  return absl::UnimplementedError("Network collaboration requires JSON support");
+}
+
+absl::Status NetworkCollaborationCoordinator::SendAIQuery(
     const std::string&, const std::string&) {
   return absl::UnimplementedError("Network collaboration requires JSON support");
 }
@@ -384,6 +622,11 @@ bool NetworkCollaborationCoordinator::IsConnected() const { return false; }
 void NetworkCollaborationCoordinator::SetMessageCallback(MessageCallback) {}
 void NetworkCollaborationCoordinator::SetParticipantCallback(ParticipantCallback) {}
 void NetworkCollaborationCoordinator::SetErrorCallback(ErrorCallback) {}
+void NetworkCollaborationCoordinator::SetRomSyncCallback(RomSyncCallback) {}
+void NetworkCollaborationCoordinator::SetSnapshotCallback(SnapshotCallback) {}
+void NetworkCollaborationCoordinator::SetProposalCallback(ProposalCallback) {}
+void NetworkCollaborationCoordinator::SetProposalUpdateCallback(ProposalUpdateCallback) {}
+void NetworkCollaborationCoordinator::SetAIResponseCallback(AIResponseCallback) {}
 void NetworkCollaborationCoordinator::ConnectWebSocket() {}
 void NetworkCollaborationCoordinator::DisconnectWebSocket() {}
 void NetworkCollaborationCoordinator::SendWebSocketMessage(const std::string&, const std::string&) {}
