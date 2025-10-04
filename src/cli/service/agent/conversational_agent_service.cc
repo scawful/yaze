@@ -270,7 +270,12 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
           }
           
           // Add tool result with a clear marker for the LLM
-          std::string marked_output = "[TOOL RESULT] " + tool_output;
+          // Format as plain text to avoid confusing the LLM with nested JSON
+          std::string marked_output = absl::StrCat(
+              "[TOOL RESULT for ", tool_call.tool_name, "]\n",
+              "The tool returned the following data:\n",
+              tool_output, "\n\n",
+              "Please provide a text_response field in your JSON to summarize this information for the user.");
           history_.push_back(
               CreateMessage(ChatMessage::Sender::kUser, marked_output));
         }
