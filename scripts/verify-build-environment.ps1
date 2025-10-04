@@ -137,15 +137,82 @@ function Test-DependencyCompatibility {
     return $conflicts.Count -eq 0
 }
 
-function Clean-CMakeCache {
-    Write-Status "Cleaning CMake cache..." "Step"
+function Test-AgentFolderStructure {
+    Write-Status "Verifying agent folder structure..." "Step"
     
-    $buildDirs = @("build", "build_test", "build-grpc-test")
+    $agentFiles = @(
+        "src/app/editor/agent/agent_editor.h",
+        "src/app/editor/agent/agent_editor.cc",
+        "src/app/editor/agent/agent_chat_widget.h",
+        "src/app/editor/agent/agent_chat_widget.cc",
+        "src/app/editor/agent/agent_chat_history_codec.h",
+        "src/app/editor/agent/agent_chat_history_codec.cc",
+        "src/app/editor/agent/agent_collaboration_coordinator.h",
+        "src/app/editor/agent/agent_collaboration_coordinator.cc",
+        "src/app/editor/agent/network_collaboration_coordinator.h",
+        "src/app/editor/agent/network_collaboration_coordinator.cc"
+    )
+    
+    $oldSystemFiles = @(
+        "src/app/editor/system/agent_chat_widget.h",
+        "src/app/editor/system/agent_collaboration_coordinator.h"
+    )
+    
+    $allPresent = $true
+    $hasOldStructure = $false
+    
+    foreach ($file in $agentFiles) {
+        $path = Join-Path $PSScriptRoot ".." $file
+        if (-not (Test-Path $path)) {
+            Write-Status "Agent file missing: $file" "Error"
+            $script:issuesFound += "Missing agent file: $file (may need to rebuild)"
+            $allPresent = $false
+        } elseif ($Verbose) {
+            Write-Status "Agent file found: $file" "Success"
+        }
+    }
+    
+    # Check for old structure (indicates stale cache)
+    foreach ($file in $oldSystemFiles) {
+        $path = Join-Path $PSScriptRoot ".." $file
+        if (Test-Path $path) {
+            Write-Status "Old agent file still present: $file" "Warning"
+            $script:warnings += "Old agent structure detected (CMake cache needs cleaning)"
+            $hasOldStructure = $true
+        }
+    }
+    
+    if ($allPresent -and -not $hasOldStructure) {
+        Write-Status "Agent folder structure is correct" "Success"
+        $script:success += "Agent refactoring structure verified"
+    } elseif ($hasOldStructure) {
+        Write-Status "Stale agent files detected - CMake cache should be cleaned" "Warning"
+        return $false
+    }
+    
+    return $allPresent
+}
+
+function Clean-CMakeCache {
+    param([switch]$Force)
+    
+    Write-Status "Cleaning CMake cache and build directories..." "Step"
+    
+    $buildDirs = @("build", "build_test", "build-grpc-test", "build_rooms")
+    $cleaned = $false
+    
     foreach ($dir in $buildDirs) {
         $fullPath = Join-Path $PSScriptRoot ".." $dir
         if (Test-Path $fullPath) {
             Write-Status "Removing $dir..." "Info"
-            Remove-Item -Recurse -Force $fullPath -ErrorAction SilentlyContinue
+            try {
+                Remove-Item -Recurse -Force $fullPath -ErrorAction Stop
+                $cleaned = $true
+                Write-Status "  ✓ Removed $dir" "Success"
+            } catch {
+                Write-Status "  ✗ Failed to remove $dir`: $_" "Error"
+                $script:warnings += "Could not fully clean $dir (some files may be locked)"
+            }
         }
     }
     
@@ -153,10 +220,36 @@ function Clean-CMakeCache {
     $vsCache = Join-Path $PSScriptRoot ".." "out"
     if (Test-Path $vsCache) {
         Write-Status "Removing Visual Studio CMake cache (out/)..." "Info"
-        Remove-Item -Recurse -Force $vsCache -ErrorAction SilentlyContinue
+        try {
+            Remove-Item -Recurse -Force $vsCache -ErrorAction Stop
+            $cleaned = $true
+            Write-Status "  ✓ Removed Visual Studio cache" "Success"
+        } catch {
+            Write-Status "  ✗ Failed to remove Visual Studio cache: $_" "Warning"
+        }
     }
     
-    Write-Status "CMake cache cleaned" "Success"
+    # Clean CMake generated files in root
+    $cmakeFiles = @(
+        "CMakeCache.txt",
+        "cmake_install.cmake",
+        "compile_commands.json"
+    )
+    
+    foreach ($file in $cmakeFiles) {
+        $fullPath = Join-Path $PSScriptRoot ".." $file
+        if (Test-Path $fullPath) {
+            Write-Status "Removing root $file..." "Info"
+            Remove-Item -Force $fullPath -ErrorAction SilentlyContinue
+        }
+    }
+    
+    if ($cleaned) {
+        Write-Status "CMake cache cleaned successfully" "Success"
+        $script:success += "Build directories cleaned - fresh build recommended"
+    } else {
+        Write-Status "No build directories found to clean" "Info"
+    }
 }
 
 function Sync-GitSubmodules {
@@ -351,7 +444,21 @@ if ($cacheOk) {
 # Step 6: Check Dependencies
 Test-DependencyCompatibility
 
-# Step 7: Test CMake Configuration (if requested)
+# Step 7: Check Agent Folder Structure
+Write-Status "Checking agent folder structure..." "Step"
+$agentStructureOk = Test-AgentFolderStructure
+if (-not $agentStructureOk) {
+    Write-Status "Agent folder structure has issues" "Warning"
+    if ($CleanCache -or $FixIssues) {
+        Write-Status "Cleaning CMake cache due to structural changes..." "Info"
+        Clean-CMakeCache
+        Write-Status "Please rebuild the project after cache cleaning" "Info"
+    } else {
+        Write-Status "Run with -CleanCache to fix structural issues" "Info"
+    }
+}
+
+# Step 8: Test CMake Configuration (if requested)
 if ($Verbose -or $FixIssues) {
     Test-CMakeConfiguration
 }
