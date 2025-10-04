@@ -1,6 +1,9 @@
 #include "app/gui/widget_auto_register.h"
 
+#include <vector>
+
 #include "imgui/imgui_internal.h"
+#include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
 
 namespace yaze {
@@ -12,6 +15,12 @@ thread_local std::vector<std::string> g_auto_scope_stack_;
 AutoWidgetScope::AutoWidgetScope(const std::string& name)
     : scope_(name), name_(name) {
   g_auto_scope_stack_.push_back(name);
+}
+
+AutoWidgetScope::~AutoWidgetScope() {
+  if (!g_auto_scope_stack_.empty()) {
+    g_auto_scope_stack_.pop_back();
+  }
 }
 
 void AutoRegisterLastItem(const std::string& widget_type,
@@ -31,14 +40,7 @@ void AutoRegisterLastItem(const std::string& widget_type,
   // Extract label
   std::string label = explicit_label;
   if (label.empty()) {
-    // Try to get label from ImGui
-    const char* imgui_label = ImGui::GetItemLabel();
-    if (imgui_label && imgui_label[0] != '\0') {
-      label = imgui_label;
-    } else {
-      // Fallback to widget type + ID
-      label = absl::StrCat(widget_type, "_", imgui_id);
-    }
+    label = absl::StrCat(widget_type, "_", imgui_id);
   }
 
   // Build full hierarchical path

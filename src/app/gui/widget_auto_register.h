@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_GUI_WIDGET_AUTO_REGISTER_H_
 #define YAZE_APP_GUI_WIDGET_AUTO_REGISTER_H_
 
+#include <string>
+
 #include "imgui/imgui.h"
 #include "app/gui/widget_id_registry.h"
 #include "absl/strings/str_cat.h"
@@ -39,7 +41,7 @@ namespace gui {
 class AutoWidgetScope {
  public:
   explicit AutoWidgetScope(const std::string& name);
-  ~AutoWidgetScope() = default;
+    ~AutoWidgetScope();
 
   // Get current scope path
   std::string GetPath() const { return scope_.GetFullPath(); }
@@ -242,12 +244,7 @@ inline bool AutoCollapsingHeader(const char* label, ImGuiTreeNodeFlags flags = 0
  * @param description Optional description of the canvas purpose
  */
 inline void RegisterCanvas(const char* canvas_name, const std::string& description = "") {
-  // Get the child window ID
-  ImGuiContext* ctx = ImGui::GetCurrentContext();
-  if (ctx && ctx->CurrentWindow) {
-    ImGuiID canvas_id = ImGui::GetID(canvas_name);
-    AutoRegisterLastItem("canvas", canvas_name, description);
-  }
+  AutoRegisterLastItem("canvas", canvas_name, description);
 }
 
 /**
@@ -257,7 +254,6 @@ inline void RegisterCanvas(const char* canvas_name, const std::string& descripti
  * @param description Optional description
  */
 inline void RegisterTable(const char* table_name, const std::string& description = "") {
-  ImGuiID table_id = ImGui::GetID(table_name);
   AutoRegisterLastItem("table", table_name, description);
 }
 
