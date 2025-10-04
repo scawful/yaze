@@ -619,67 +619,69 @@ absl::Status HandleChatCommand(Rom& rom) {
 }
 
 absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
-                                     Rom& rom) {
+                                     Rom& rom, bool quiet) {
   RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent simple-chat"));
   
-  // Try to load project and labels automatically
-  auto _ = TryLoadProjectAndLabels(rom);  // Ignore errors - we'll use defaults
+  auto _ = TryLoadProjectAndLabels(rom);
   
-  // Parse flags and positional arguments
   std::optional<std::string> batch_file;
   std::optional<std::string> single_message;
-  bool non_interactive = false;
   bool verbose = false;
-  bool show_reasoning = true;
-  int max_tool_iterations = 4;
-  int max_retry_attempts = 3;
   
   for (size_t i = 0; i < arg_vec.size(); ++i) {
     const std::string& arg = arg_vec[i];
-    
     if (absl::StartsWith(arg, "--file=")) {
       batch_file = arg.substr(7);
     } else if (arg == "--file" && i + 1 < arg_vec.size()) {
-      batch_file = arg_vec[i + 1];
-      ++i;
-    } else if (arg == "--non-interactive" || arg == "-n") {
-      non_interactive = true;
+      batch_file = arg_vec[++i];
     } else if (arg == "--verbose" || arg == "-v") {
       verbose = true;
-    } else if (arg == "--no-reasoning") {
-      show_reasoning = false;
-    } else if (absl::StartsWith(arg, "--max-tool-iterations=")) {
-      absl::SimpleAtoi(arg.substr(22), &max_tool_iterations);
-    } else if (arg == "--max-tool-iterations" && i + 1 < arg_vec.size()) {
-      absl::SimpleAtoi(arg_vec[i + 1], &max_tool_iterations);
-      ++i;
-    } else if (absl::StartsWith(arg, "--max-retries=")) {
-      absl::SimpleAtoi(arg.substr(14), &max_retry_attempts);
-    } else if (arg == "--max-retries" && i + 1 < arg_vec.size()) {
-      absl::SimpleAtoi(arg_vec[i + 1], &max_retry_attempts);
-      ++i;
     } else if (!absl::StartsWith(arg, "--") && !single_message.has_value()) {
-      // Treat first non-flag argument as the message
       single_message = arg;
     }
   }
   
-  // Configure agent
   agent::AgentConfig config;
   config.verbose = verbose;
-  config.show_reasoning = show_reasoning;
-  config.max_tool_iterations = max_tool_iterations;
-  config.max_retry_attempts = max_retry_attempts;
   
   SimpleChatSession session;
   session.SetConfig(config);
   session.SetRomContext(&rom);
-  
-  // Priority: batch file > single message > interactive/piped
+  session.SetQuietMode(quiet);
+
   if (batch_file.has_value()) {
-    return session.RunBatch(*batch_file);
+    std::ifstream file(*batch_file);
+    if (!file.is_open()) {
+      return absl::NotFoundError(absl::StrCat("Failed to open file: ", *batch_file));
+    }
+    if (!quiet) {
+        std::cout << "Running batch session from: " << *batch_file << std::endl;
+        std::cout << "----------------------------------------\n\n";
+    }
+    std::string line;
+    int line_num = 0;
+    while (std::getline(file, line)) {
+      line_num++;
+      std::string trimmed_line = std::string(absl::StripAsciiWhitespace(line));
+      if (trimmed_line.empty() || absl::StartsWith(trimmed_line, "#")) {
+        continue;
+      }
+      if (!quiet) {
+        std::cout << "Input [" << line_num << "]: " << trimmed_line << std::endl;
+      }
+      std::string response;
+      auto status = session.SendAndWaitForResponse(trimmed_line, &response);
+      if (!status.ok()) {
+        std::cerr << "Error processing line " << line_num << ": " << status.message() << std::endl;
+        continue;
+      }
+      std::cout << response << "\n";
+      if (!quiet) {
+          std::cout << "\n";
+      }
+    }
+    return absl::OkStatus();
   } else if (single_message.has_value()) {
-    // Single message mode - send message and print response
     std::string response;
     auto status = session.SendAndWaitForResponse(*single_message, &response);
     if (!status.ok()) {
@@ -688,7 +690,6 @@ absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
     std::cout << response << "\n";
     return absl::OkStatus();
   } else {
-    // Interactive or piped input mode
     return session.RunInteractive();
   }
 }

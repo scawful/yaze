@@ -20,6 +20,9 @@ ABSL_DECLARE_FLAG(std::string, ai_provider);
 ABSL_DECLARE_FLAG(std::string, ai_model);
 ABSL_DECLARE_FLAG(std::string, gemini_api_key);
 ABSL_DECLARE_FLAG(std::string, ollama_host);
+ABSL_DECLARE_FLAG(std::string, prompt_version);
+ABSL_DECLARE_FLAG(bool, use_function_calling);
+ABSL_FLAG(bool, quiet, false, "Enable quiet mode for simple-chat.");
 
 namespace {
 
@@ -130,6 +133,34 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
           return result;
         }
         absl::SetFlag(&FLAGS_ollama_host, std::string(argv[++i]));
+        continue;
+      }
+
+      if (absl::StartsWith(token, "--prompt_version=")) {
+        absl::SetFlag(&FLAGS_prompt_version, std::string(token.substr(17)));
+        continue;
+      }
+      if (token == "--prompt_version") {
+        if (i + 1 >= argc) {
+          result.error = "--prompt_version flag requires a value";
+          return result;
+        }
+        absl::SetFlag(&FLAGS_prompt_version, std::string(argv[++i]));
+        continue;
+      }
+
+      if (absl::StartsWith(token, "--use_function_calling=")) {
+        std::string value(token.substr(23));
+        absl::SetFlag(&FLAGS_use_function_calling, value == "true" || value == "1");
+        continue;
+      }
+      if (token == "--use_function_calling") {
+        if (i + 1 >= argc) {
+          result.error = "--use_function_calling flag requires a value";
+          return result;
+        }
+        std::string value(argv[++i]);
+        absl::SetFlag(&FLAGS_use_function_calling, value == "true" || value == "1");
         continue;
       }
     }

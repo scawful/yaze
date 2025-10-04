@@ -133,7 +133,7 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
     return agent::HandleChatCommand(rom_);
   }
   if (subcommand == "simple-chat") {
-    return agent::HandleSimpleChatCommand(subcommand_args, rom_);
+    return agent::HandleSimpleChatCommand(subcommand_args, rom_, absl::GetFlag(FLAGS_quiet));
   }
 
   return absl::InvalidArgumentError(std::string(agent::kUsage));

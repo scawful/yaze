@@ -1,0 +1,15 @@
+# Test 1: Context and Follow-up Queries
+
+# The agent should use the 'resource-list' tool.
+What dungeons are defined in this ROM?
+
+# The agent must use the context from the previous answer to identify "the first one"
+# and then call the 'dungeon-list-sprites' tool for that specific room.
+Tell me about the sprites in the first dungeon listed.
+
+# The agent must remember the room from the previous query and use the 'overworld-list-warps' tool.
+Are there any warp points in that same room?
+
+# This is a complex reasoning test. The agent needs to synthesize information
+# from the last two tool calls (sprite list and warp list) to answer.
+Is there a soldier sprite located near any of the warp points in that room?
