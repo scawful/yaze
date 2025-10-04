@@ -318,18 +318,44 @@ endif()
 if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
   include(GoogleTest)
   
-  # Discover all tests with default properties
-  # On Windows, use NO_PRETTY_TYPES and increased timeout to prevent stack overflow during discovery
+  # Discover all tests and apply default labels using PROPERTIES argument
+  # This ensures all tests get the ALL_TESTS label immediately
   if(WIN32)
     gtest_discover_tests(yaze_test
+      TEST_LIST yaze_discovered_tests
       DISCOVERY_TIMEOUT 60
       NO_PRETTY_TYPES
       PROPERTIES
         TIMEOUT 300
+        LABELS "ALL_TESTS;UNIT_TEST;STABLE;ASAR_TEST;INTEGRATION_TEST;E2E_TEST;ROM_TEST;ZSCUSTOM_TEST;CLI_TEST;MISC_TEST"
+      TEST_PREFIX ""
+      TEST_SUFFIX ""
     )
   else()
-    gtest_discover_tests(yaze_test)
+    gtest_discover_tests(yaze_test
+      TEST_LIST yaze_discovered_tests
+      PROPERTIES
+        LABELS "ALL_TESTS;UNIT_TEST;STABLE;ASAR_TEST;INTEGRATION_TEST;E2E_TEST;ROM_TEST;ZSCUSTOM_TEST;CLI_TEST;MISC_TEST"
+      TEST_PREFIX ""
+      TEST_SUFFIX ""
+    )
   endif()
+  
+  # Note: Due to CMake's bracket argument syntax limitations, we cannot dynamically
+  # apply labels to tests with bracket-quoted names in post-processing scripts.
+  # All tests get all possible labels initially, and can be filtered using test presets
+  # in CMakePresets.json which use label-based filtering via ctest -L option.
+  #
+  # Test categorization is done via naming conventions:
+  # - Tests matching "*IntegrationTest*" -> Integration tests  
+  # - Tests matching "E2ERomDependentTest.*" -> E2E + ROM tests
+  # - Tests matching "ZSCustomOverworldUpgradeTest.*" -> E2E + ROM + ZSCustom tests
+  # - Tests matching "RomTest.*" or "*RomIntegrationTest*" -> ROM tests
+  # - Tests matching "*Asar*" -> Asar tests
+  # - Tests matching "ResourceCatalogTest*" -> CLI tests
+  # - All others -> Unit tests
+  #
+  # Test presets use these labels for filtering (see CMakePresets.json)
 else()
   # Tests are disabled - don't build test executable or discover tests
   message(STATUS "Tests disabled - skipping test executable and discovery")

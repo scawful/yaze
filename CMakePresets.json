@@ -66,7 +66,7 @@
     },
     {
       "name": "macos-dev-z3ed-ai",
-      "displayName": "macOS debug z3ed agent (ARM64)",
+      "displayName": "yaze-ai",
       "description": "macOS ARM64 development build with ROM testing",
       "binaryDir": "${sourceDir}/build_test",
       "inherits": "macos-debug",
@@ -81,7 +81,7 @@
     },
     {
       "name": "macos-agent-test",
-      "displayName": "macOS z3ed agent test (ARM64)",
+      "displayName": "z3ed-agent (ARM64)",
       "description": "macOS ARM64 build for exercising the z3ed agent with JSON/GRPC",
       "inherits": "macos-debug",
       "cacheVariables": {
@@ -372,7 +372,7 @@
     {
       "name": "macos-dev-z3ed-ai",
       "configurePreset": "macos-dev-z3ed-ai",
-      "displayName": "macOS debug arm64 z3ed-ai"
+      "displayName": "yaze-ai"
     },
     {
       "name": "ci",
@@ -463,8 +463,8 @@
         "stopOnFailure": true
       },
       "filter": {
-        "include": {
-          "label": "STABLE"
+        "exclude": {
+          "name": ".*(IntegrationTest|E2ERomDependentTest|ZSCustomOverworldUpgradeTest|RomIntegrationTest|ComprehensiveIntegrationTest|OverworldIntegrationTest|DungeonIntegrationTest|DungeonEditorIntegrationTest|DungeonEditorSystemIntegrationTest|DungeonObjectRendererIntegrationTest|DungeonObjectRendererMockTest|DungeonObjectRenderingTests|Tile16EditorIntegrationTest).*"
         }
       }
     },
@@ -478,7 +478,7 @@
       },
       "filter": {
         "exclude": {
-          "label": "EXPERIMENTAL"
+          "name": ".*(E2ERomDependentTest|ZSCustomOverworldUpgradeTest).*"
         }
       }
     },
@@ -491,8 +491,8 @@
         "stopOnFailure": true
       },
       "filter": {
-        "include": {
-          "label": "STABLE"
+        "exclude": {
+          "name": ".*(IntegrationTest|E2ERomDependentTest|ZSCustomOverworldUpgradeTest|RomIntegrationTest|ComprehensiveIntegrationTest|OverworldIntegrationTest|DungeonIntegrationTest|DungeonEditorIntegrationTest|DungeonEditorSystemIntegrationTest|DungeonObjectRendererIntegrationTest|DungeonObjectRendererMockTest|DungeonObjectRenderingTests|Tile16EditorIntegrationTest).*"
         }
       }
     },
@@ -506,7 +506,7 @@
       },
       "filter": {
         "include": {
-          "label": "EXPERIMENTAL"
+          "name": ".*(E2ERomDependentTest|ZSCustomOverworldUpgradeTest).*"
         }
       }
     },
@@ -516,7 +516,7 @@
       "displayName": "Asar Tests Only",
       "filter": {
         "include": {
-          "name": "*Asar*"
+          "name": ".*Asar.*"
         }
       }
     },
@@ -525,8 +525,64 @@
       "configurePreset": "default",
       "displayName": "Unit Tests Only",
       "filter": {
+        "exclude": {
+          "name": ".*(IntegrationTest|E2ERomDependentTest|ZSCustomOverworldUpgradeTest|RomIntegrationTest|ComprehensiveIntegrationTest|OverworldIntegrationTest|DungeonIntegrationTest|DungeonEditorIntegrationTest|DungeonEditorSystemIntegrationTest|DungeonObjectRendererIntegrationTest|DungeonObjectRendererMockTest|DungeonObjectRenderingTests|Tile16EditorIntegrationTest).*"
+        }
+      }
+    },
+    {
+      "name": "integration-only",
+      "configurePreset": "default",
+      "displayName": "Integration Tests Only",
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      },
+      "filter": {
         "include": {
-          "label": "UNIT_TEST"
+          "name": ".*(IntegrationTest|RomIntegrationTest|ComprehensiveIntegrationTest|OverworldIntegrationTest|DungeonIntegrationTest|DungeonEditorIntegrationTest|DungeonEditorSystemIntegrationTest|DungeonObjectRendererIntegrationTest|DungeonObjectRendererMockTest|DungeonObjectRenderingTests|Tile16EditorIntegrationTest).*"
+        }
+      }
+    },
+    {
+      "name": "rom-only",
+      "configurePreset": "default",
+      "displayName": "ROM-Dependent Tests",
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false
+      },
+      "filter": {
+        "include": {
+          "name": ".*(RomTest|RomIntegrationTest|ComprehensiveIntegrationTest|OverworldIntegrationTest|DungeonIntegrationTest|DungeonEditorIntegrationTest|DungeonEditorSystemIntegrationTest|DungeonObjectRendererIntegrationTest|DungeonObjectRendererMockTest|DungeonObjectRenderingTests|Tile16EditorIntegrationTest).*"
+        }
+      }
+    },
+    {
+      "name": "e2e-only",
+      "configurePreset": "default",
+      "displayName": "End-to-End Tests",
+      "execution": {
+        "noTestsAction": "ignore",
+        "stopOnFailure": false
+      },
+      "filter": {
+        "include": {
+          "name": ".*(E2ERomDependentTest|ZSCustomOverworldUpgradeTest).*"
+        }
+      }
+    },
+    {
+      "name": "zscustom-overworld",
+      "configurePreset": "default",
+      "displayName": "ZS Custom Overworld Tests",
+      "execution": {
+        "noTestsAction": "ignore",
+        "stopOnFailure": false
+      },
+      "filter": {
+        "include": {
+          "name": ".*ZSCustomOverworldUpgradeTest.*"
         }
       }
     }
