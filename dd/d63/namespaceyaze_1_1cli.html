@@ -154,6 +154,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html">AIService</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html">AIServiceConfig</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d64/classyaze_1_1cli_1_1ApplyPatch.html">ApplyPatch</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d3f/classyaze_1_1cli_1_1AsarPatch.html">AsarPatch</a></td></tr>
@@ -451,6 +453,8 @@ Enumerations</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a40be8377fef9b85066f54617143d652a" id="r_a40be8377fef9b85066f54617143d652a"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html">AIService</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a">CreateAIService</a> ()</td></tr>
 <tr class="separator:a40be8377fef9b85066f54617143d652a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbd91793ccd2732fa85d0cd642987169" id="r_adbd91793ccd2732fa85d0cd642987169"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html">AIService</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#adbd91793ccd2732fa85d0cd642987169">CreateAIService</a> (const <a class="el" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html">AIServiceConfig</a> &amp;config)</td></tr>
+<tr class="separator:adbd91793ccd2732fa85d0cd642987169"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2e4e0fdaf85f4c7c05572fa6ed7be18" id="r_ab2e4e0fdaf85f4c7c05572fa6ed7be18"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../de/d68/structyaze_1_1cli_1_1TestSuiteDefinition.html">TestSuiteDefinition</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#ab2e4e0fdaf85f4c7c05572fa6ed7be18">ParseTestSuiteDefinition</a> (absl::string_view content)</td></tr>
 <tr class="separator:ab2e4e0fdaf85f4c7c05572fa6ed7be18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68b880dd4eae738940e4ac53f1dd64b9" id="r_a68b880dd4eae738940e4ac53f1dd64b9"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../de/d68/structyaze_1_1cli_1_1TestSuiteDefinition.html">TestSuiteDefinition</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a68b880dd4eae738940e4ac53f1dd64b9">LoadTestSuiteFromFile</a> (const std::string &amp;path)</td></tr>
@@ -757,7 +761,7 @@ Variables</h2></td></tr>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a40be8377fef9b85066f54617143d652a" name="a40be8377fef9b85066f54617143d652a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a40be8377fef9b85066f54617143d652a">&#9670;&#160;</a></span>CreateAIService()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a40be8377fef9b85066f54617143d652a">&#9670;&#160;</a></span>CreateAIService() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -771,11 +775,42 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d98/service__factory_8cc_source.html#l00016">16</a> of file <a class="el" href="../../d8/d98/service__factory_8cc_source.html">service_factory.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d98/service__factory_8cc_source.html#l00024">24</a> of file <a class="el" href="../../d8/d98/service__factory_8cc_source.html">service_factory.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00017">yaze::cli::GeminiConfig::model</a>, and <a class="el" href="../../da/d1c/ollama__ai__service_8h_source.html#l00018">yaze::cli::OllamaConfig::model</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/d98/service__factory_8cc_source.html#l00024">CreateAIService()</a>, <a class="el" href="../../d9/d37/service__factory_8h_source.html#l00015">yaze::cli::AIServiceConfig::gemini_api_key</a>, <a class="el" href="../../d9/d37/service__factory_8h_source.html#l00014">yaze::cli::AIServiceConfig::model</a>, <a class="el" href="../../d9/d37/service__factory_8h_source.html#l00016">yaze::cli::AIServiceConfig::ollama_host</a>, and <a class="el" href="../../d9/d37/service__factory_8h_source.html#l00013">yaze::cli::AIServiceConfig::provider</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00148">yaze::cli::agent::ConversationalAgentService::ConversationalAgentService()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00333">yaze::cli::agent::HandlePlanCommand()</a>, and <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00179">yaze::cli::agent::HandleRunCommand()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00149">yaze::cli::agent::ConversationalAgentService::ConversationalAgentService()</a>, <a class="el" href="../../d8/d98/service__factory_8cc_source.html#l00024">CreateAIService()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00333">yaze::cli::agent::HandlePlanCommand()</a>, <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00179">yaze::cli::agent::HandleRunCommand()</a>, and <a class="el" href="../../d1/dd0/test__conversation__minimal_8cc_source.html#l00010">main()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../dd/d63/namespaceyaze_1_1cli_a40be8377fef9b85066f54617143d652a_cgraph.png" border="0" usemap="#add/d63/namespaceyaze_1_1cli_a40be8377fef9b85066f54617143d652a_cgraph" alt=""/></div>
+<map name="add/d63/namespaceyaze_1_1cli_a40be8377fef9b85066f54617143d652a_cgraph" id="add/d63/namespaceyaze_1_1cli_a40be8377fef9b85066f54617143d652a_cgraph">
+<area shape="rect" title=" " alt="" coords="5,29,173,55"/>
+<area shape="poly" title=" " alt="" coords="61,30,55,21,58,11,70,5,89,3,109,5,120,12,117,16,108,10,89,8,72,10,62,15,60,20,65,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="adbd91793ccd2732fa85d0cd642987169" name="adbd91793ccd2732fa85d0cd642987169"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbd91793ccd2732fa85d0cd642987169">&#9670;&#160;</a></span>CreateAIService() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt; <a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html">AIService</a> &gt; yaze::cli::CreateAIService </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html">AIServiceConfig</a> &amp;&#160;</td>
+          <td class="paramname"><em>config</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d8/d98/service__factory_8cc_source.html#l00045">45</a> of file <a class="el" href="../../d8/d98/service__factory_8cc_source.html">service_factory.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../da/d1c/ollama__ai__service_8h_source.html#l00017">yaze::cli::OllamaConfig::base_url</a>, <a class="el" href="../../d9/d37/service__factory_8h_source.html#l00015">yaze::cli::AIServiceConfig::gemini_api_key</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00017">yaze::cli::GeminiConfig::model</a>, <a class="el" href="../../da/d1c/ollama__ai__service_8h_source.html#l00018">yaze::cli::OllamaConfig::model</a>, <a class="el" href="../../d9/d37/service__factory_8h_source.html#l00014">yaze::cli::AIServiceConfig::model</a>, <a class="el" href="../../d9/d37/service__factory_8h_source.html#l00016">yaze::cli::AIServiceConfig::ollama_host</a>, and <a class="el" href="../../d9/d37/service__factory_8h_source.html#l00013">yaze::cli::AIServiceConfig::provider</a>.</p>
 
 </div>
 </div>
@@ -1010,11 +1045,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00854">854</a> of file <a class="el" href="../../d4/d8e/tui_8cc_source.html">tui.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00848">848</a> of file <a class="el" href="../../d4/d8e/tui_8cc_source.html">tui.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/da8/tui_2command__palette_8cc_source.html#l00014">yaze::cli::CommandPaletteComponent::Render()</a>, and <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00854">ShowMain()</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/da8/tui_2command__palette_8cc_source.html#l00014">yaze::cli::CommandPaletteComponent::Render()</a>, and <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00848">ShowMain()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00094">main()</a>, and <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00854">ShowMain()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00094">main()</a>, and <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00848">ShowMain()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1054,7 +1089,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d06/z3ed__ascii__logo_8h_source.html#l00047">47</a> of file <a class="el" href="../../d1/d06/z3ed__ascii__logo_8h_source.html">z3ed_ascii_logo.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00252">yaze::cli::ModernCLI::ShowHelp()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00289">yaze::cli::ModernCLI::ShowHelp()</a>.</p>
 
 </div>
 </div>
@@ -1086,7 +1121,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="definition">Definition at line <a class="el" href="../../de/dab/tui_8h_source.html#l00018">18</a> of file <a class="el" href="../../de/dab/tui_8h_source.html">tui.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00751">yaze::cli::anonymous_namespace{tui.cc}::MainMenuComponent()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00745">yaze::cli::anonymous_namespace{tui.cc}::MainMenuComponent()</a>.</p>
 
 </div>
 </div>

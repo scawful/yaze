@@ -1,5 +1,7 @@
 <map id="yaze::gfx::BackgroundBuffer::DrawFloor" name="yaze::gfx::BackgroundBuffer::DrawFloor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,185,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,185,75"/>
 <area shape="rect" id="Node000002" href="$dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a9a7be412d7cf193aff2c97890b788374" title=" " alt="" coords="233,5,412,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,23,217,23,217,28,185,28"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,41,217,37,217,42,185,46"/>
+<area shape="rect" id="Node000003" href="$d0/d27/namespaceyaze_1_1gfx.html#a66b9ad66f02a591afa773753724ea892" title=" " alt="" coords="240,70,405,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,63,225,68,224,74,185,69"/>
 </map>

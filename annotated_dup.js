@@ -35,6 +35,7 @@ var annotated_dup =
         [ "Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", "d9/dee/classyaze_1_1cli_1_1Agent" ],
         [ "AgentResponse", "db/d5f/structyaze_1_1cli_1_1AgentResponse.html", "db/d5f/structyaze_1_1cli_1_1AgentResponse" ],
         [ "AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", "d2/d2a/classyaze_1_1cli_1_1AIService" ],
+        [ "AIServiceConfig", "dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html", "dd/dd2/structyaze_1_1cli_1_1AIServiceConfig" ],
         [ "ApplyPatch", "dd/d64/classyaze_1_1cli_1_1ApplyPatch.html", "dd/d64/classyaze_1_1cli_1_1ApplyPatch" ],
         [ "AsarPatch", "d7/d3f/classyaze_1_1cli_1_1AsarPatch.html", "d7/d3f/classyaze_1_1cli_1_1AsarPatch" ],
         [ "AsarPatchComponent", "d2/d2b/classyaze_1_1cli_1_1AsarPatchComponent.html", "d2/d2b/classyaze_1_1cli_1_1AsarPatchComponent" ],

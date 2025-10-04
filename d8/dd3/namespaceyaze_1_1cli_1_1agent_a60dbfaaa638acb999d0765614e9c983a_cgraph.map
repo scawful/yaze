@@ -1,12 +1,11 @@
 <map id="yaze::cli::agent::HandleSimpleChatCommand" name="yaze::cli::agent::HandleSimpleChatCommand">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,157,111"/>
-<area shape="rect" id="Node000002" href="$db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a81a741f5fb7bf07f04fd4e2f8e460c65" title=" " alt="" coords="222,5,380,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="151,68,215,48,216,54,152,73"/>
-<area shape="rect" id="Node000100" href="$db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#ae901112af83140b660356e0775648f4a" title=" " alt="" coords="208,71,394,111"/>
-<area shape="poly" id="edge3_Node000001_Node000100" title=" " alt="" coords="157,88,193,88,193,94,157,94"/>
-<area shape="rect" id="Node000103" href="$db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a1778f6e6bc1501e0fcb9981511f38121" title=" " alt="" coords="205,136,397,177"/>
-<area shape="poly" id="edge5_Node000001_Node000103" title=" " alt="" coords="152,109,216,128,215,134,151,114"/>
-<area shape="rect" id="Node000003" href="$db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#aab5189016f89bfc5638e9df279344073" title=" " alt="" coords="445,39,626,79"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="380,34,430,41,429,47,380,39"/>
-<area shape="poly" id="edge4_Node000100_Node000003" title=" " alt="" coords="394,76,429,71,430,76,394,81"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,157,145"/>
+<area shape="rect" id="Node000002" href="$db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a81a741f5fb7bf07f04fd4e2f8e460c65" title=" " alt="" coords="254,5,413,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,101,157,78,204,57,238,45,240,50,206,61,159,83,117,106"/>
+<area shape="rect" id="Node000113" href="$db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#ae901112af83140b660356e0775648f4a" title=" " alt="" coords="241,71,426,111"/>
+<area shape="poly" id="edge2_Node000001_Node000113" title=" " alt="" coords="157,112,225,103,226,108,158,117"/>
+<area shape="rect" id="Node000116" href="$db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#afd1ff6e283662811433e88c5a353a880" title=" " alt="" coords="205,136,462,177"/>
+<area shape="poly" id="edge3_Node000001_Node000116" title=" " alt="" coords="158,131,190,135,189,141,157,137"/>
+<area shape="rect" id="Node000117" href="$db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a1778f6e6bc1501e0fcb9981511f38121" title=" " alt="" coords="237,201,430,242"/>
+<area shape="poly" id="edge4_Node000001_Node000117" title=" " alt="" coords="118,143,160,165,206,186,228,194,226,199,204,191,157,170,116,148"/>
 </map>

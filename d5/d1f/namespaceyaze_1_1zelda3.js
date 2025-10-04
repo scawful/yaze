@@ -227,6 +227,7 @@ var namespaceyaze_1_1zelda3 =
     [ "CreateObjectRenderer", "d5/d1f/namespaceyaze_1_1zelda3.html#a9c6166444e3191ad2f65d7503696d66e", null ],
     [ "CalculateRoomSize", "d5/d1f/namespaceyaze_1_1zelda3.html#a62286f1cb2eebc9d5834551ead453371", null ],
     [ "LoadRoomFromRom", "d5/d1f/namespaceyaze_1_1zelda3.html#aa0d397af98a0f5652a8741144abc15e9", null ],
+    [ "DiagnoseRoomRendering", "d5/d1f/namespaceyaze_1_1zelda3.html#a5fdee14aeee191172a2072ad64bdb833", null ],
     [ "operator|", "d5/d1f/namespaceyaze_1_1zelda3.html#a599b7198a7dd0ec9da754a83f9a7e5f9", null ],
     [ "operator&", "d5/d1f/namespaceyaze_1_1zelda3.html#ac507bdbc1fe4503baebb7c8d6fcc0d55", null ],
     [ "operator^", "d5/d1f/namespaceyaze_1_1zelda3.html#a5f1053148284ef69ee84ef1d04d61fad", null ],

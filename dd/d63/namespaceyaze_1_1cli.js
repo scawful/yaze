@@ -101,6 +101,7 @@ var namespaceyaze_1_1cli =
     [ "Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", "d9/dee/classyaze_1_1cli_1_1Agent" ],
     [ "AgentResponse", "db/d5f/structyaze_1_1cli_1_1AgentResponse.html", "db/d5f/structyaze_1_1cli_1_1AgentResponse" ],
     [ "AIService", "d2/d2a/classyaze_1_1cli_1_1AIService.html", "d2/d2a/classyaze_1_1cli_1_1AIService" ],
+    [ "AIServiceConfig", "dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html", "dd/dd2/structyaze_1_1cli_1_1AIServiceConfig" ],
     [ "ApplyPatch", "dd/d64/classyaze_1_1cli_1_1ApplyPatch.html", "dd/d64/classyaze_1_1cli_1_1ApplyPatch" ],
     [ "AsarPatch", "d7/d3f/classyaze_1_1cli_1_1AsarPatch.html", "d7/d3f/classyaze_1_1cli_1_1AsarPatch" ],
     [ "AsarPatchComponent", "d2/d2b/classyaze_1_1cli_1_1AsarPatchComponent.html", "d2/d2b/classyaze_1_1cli_1_1AsarPatchComponent" ],
@@ -263,6 +264,7 @@ var namespaceyaze_1_1cli =
       [ "kError", "dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33ae3587c730cc1aa530fa4ddc9c4204e97", null ]
     ] ],
     [ "CreateAIService", "dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a", null ],
+    [ "CreateAIService", "dd/d63/namespaceyaze_1_1cli.html#adbd91793ccd2732fa85d0cd642987169", null ],
     [ "ParseTestSuiteDefinition", "dd/d63/namespaceyaze_1_1cli.html#ab2e4e0fdaf85f4c7c05572fa6ed7be18", null ],
     [ "LoadTestSuiteFromFile", "dd/d63/namespaceyaze_1_1cli.html#a68b880dd4eae738940e4ac53f1dd64b9", null ],
     [ "BuildTextSummary", "dd/d63/namespaceyaze_1_1cli.html#ac18aa41e75a53a40f653cb06b285d72c", null ],

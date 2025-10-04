@@ -8,6 +8,7 @@ var hierarchy =
       [ "yaze::cli::MockAIService", "df/d18/classyaze_1_1cli_1_1MockAIService.html", null ],
       [ "yaze::cli::OllamaAIService", "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html", null ]
     ] ],
+    [ "yaze::cli::AIServiceConfig", "dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html", null ],
     [ "yaze::editor::zsprite::AnimationGroup", "dc/d2c/structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html", null ],
     [ "AppDelegate", "d3/d3e/classAppDelegate.html", null ],
     [ "AppViewController", "d1/de7/classAppViewController.html", null ],

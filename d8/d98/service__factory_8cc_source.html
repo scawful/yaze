@@ -106,99 +106,133 @@ $(document).ready(function(){initNavTree('d8/d98/service__factory_8cc_source.htm
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;cstring&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;iostream&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/d52/ai__service_8h.html">cli/service/ai/ai_service.h</a>&quot;</span></div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="../../da/d1c/ollama__ai__service_8h.html">cli/service/ai/ollama_ai_service.h</a>&quot;</span></div>
-<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#ifdef YAZE_WITH_JSON</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="../../d3/d22/gemini__ai__service_8h.html">cli/service/ai/gemini_ai_service.h</a>&quot;</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">namespace </span>cli {</div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;absl/flags/declare.h&quot;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;absl/flags/flag.h&quot;</span></div>
+<div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;absl/strings/ascii.h&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/d52/ai__service_8h.html">cli/service/ai/ai_service.h</a>&quot;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="../../da/d1c/ollama__ai__service_8h.html">cli/service/ai/ollama_ai_service.h</a>&quot;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#ifdef YAZE_WITH_JSON</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="../../d3/d22/gemini__ai__service_8h.html">cli/service/ai/gemini_ai_service.h</a>&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
-<div class="foldopen" id="foldopen00016" data-start="{" data-end="}">
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="../../dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a">   16</a></span>std::unique_ptr&lt;AIService&gt; <a class="code hl_function" href="../../dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a">CreateAIService</a>() {</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <span class="comment">// Priority: Ollama (local) &gt; Gemini (remote) &gt; Mock (testing)</span></div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  <span class="keyword">const</span> <span class="keywordtype">char</span>* provider_env = std::getenv(<span class="stringliteral">&quot;YAZE_AI_PROVIDER&quot;</span>);</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>  <span class="keyword">const</span> <span class="keywordtype">char</span>* ollama_model = std::getenv(<span class="stringliteral">&quot;OLLAMA_MODEL&quot;</span>);</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keyword">const</span> std::string provider = provider_env ? provider_env : <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <span class="keyword">const</span> <span class="keywordtype">bool</span> gemini_requested = provider == <span class="stringliteral">&quot;gemini&quot;</span>;</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#ifdef YAZE_WITH_JSON</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  <span class="keyword">const</span> <span class="keywordtype">char</span>* gemini_key = std::getenv(<span class="stringliteral">&quot;GEMINI_API_KEY&quot;</span>);</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="keyword">const</span> <span class="keywordtype">char</span>* gemini_model = std::getenv(<span class="stringliteral">&quot;GEMINI_MODEL&quot;</span>);</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="comment">// Explicit provider selection</span></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  <span class="keywordflow">if</span> (provider == <span class="stringliteral">&quot;ollama&quot;</span>) {</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <a class="code hl_struct" href="../../d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html">OllamaConfig</a> config;</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    <span class="comment">// Allow model override via env</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keywordflow">if</span> (ollama_model &amp;&amp; std::strlen(ollama_model) &gt; 0) {</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>      config.<a class="code hl_variable" href="../../d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html#afe9a8786f6353ee32bc6add2959db511">model</a> = ollama_model;</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    }</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keyword">auto</span> service = std::make_unique&lt;OllamaAIService&gt;(config);</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="comment">// Health check</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keywordflow">if</span> (<span class="keyword">auto</span> status = service-&gt;CheckAvailability(); !status.ok()) {</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;⚠️  Ollama unavailable: &quot;</span> &lt;&lt; status.message() &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;   Falling back to MockAIService&quot;</span> &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>      <span class="keywordflow">return</span> std::make_unique&lt;MockAIService&gt;();</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    }</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    std::cout &lt;&lt; <span class="stringliteral">&quot;🤖 Using Ollama AI with model: &quot;</span> &lt;&lt; config.<a class="code hl_variable" href="../../d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html#afe9a8786f6353ee32bc6add2959db511">model</a> &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keywordflow">return</span> service;</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  }</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  <span class="comment">// Gemini if API key provided</span></div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="preprocessor">#ifdef YAZE_WITH_JSON</span></div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  <span class="keywordflow">if</span> (gemini_key &amp;&amp; std::strlen(gemini_key) &gt; 0) {</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <a class="code hl_struct" href="../../dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html">GeminiConfig</a> config(gemini_key);</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    <span class="comment">// Allow model override via env</span></div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keywordflow">if</span> (gemini_model &amp;&amp; std::strlen(gemini_model) &gt; 0) {</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      config.<a class="code hl_variable" href="../../dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a7c49acd31557a3aa9bdb2765f9b48e63">model</a> = gemini_model;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    }</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    <span class="keyword">auto</span> service = std::make_unique&lt;GeminiAIService&gt;(config);</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="comment">// Health check</span></div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="keywordflow">if</span> (<span class="keyword">auto</span> status = service-&gt;CheckAvailability(); !status.ok()) {</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;⚠️  Gemini unavailable: &quot;</span> &lt;&lt; status.message() &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;   Falling back to MockAIService&quot;</span> &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>      <span class="keywordflow">return</span> std::make_unique&lt;MockAIService&gt;();</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    }</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    std::cout &lt;&lt; <span class="stringliteral">&quot;🤖 Using Gemini AI with model: &quot;</span> &lt;&lt; config.<a class="code hl_variable" href="../../dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a7c49acd31557a3aa9bdb2765f9b48e63">model</a> &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keywordflow">return</span> service;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  }</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  <span class="keywordflow">if</span> (gemini_requested || std::getenv(<span class="stringliteral">&quot;GEMINI_API_KEY&quot;</span>)) {</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    std::cerr &lt;&lt; <span class="stringliteral">&quot;⚠️  Gemini support not available: rebuild with YAZE_WITH_JSON=ON&quot;</span> &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  }</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  <span class="comment">// Default: Mock service for testing</span></div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;🤖 Using MockAIService (no LLM configured)&quot;</span> &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  std::cout</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      &lt;&lt; <span class="stringliteral">&quot;   Tip: Set YAZE_AI_PROVIDER=ollama or GEMINI_API_KEY to enable LLM&quot;</span></div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>      &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  <span class="keywordflow">return</span> std::make_unique&lt;MockAIService&gt;();</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>}</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="../../d8/d98/service__factory_8cc.html#a0d8b1270562eb5430ea7f2a61df78496">   16</a></span><a class="code hl_function" href="../../d8/d98/service__factory_8cc.html#a0d8b1270562eb5430ea7f2a61df78496">ABSL_DECLARE_FLAG</a>(std::string, ai_provider);</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="../../d8/d98/service__factory_8cc.html#a459be2e627a1cf21ba45fb1d99802fdf">   17</a></span><a class="code hl_function" href="../../d8/d98/service__factory_8cc.html#a0d8b1270562eb5430ea7f2a61df78496">ABSL_DECLARE_FLAG</a>(std::string, ai_model);</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="../../d8/d98/service__factory_8cc.html#adca234766ac2c5b79c199c2b894357a9">   18</a></span><a class="code hl_function" href="../../d8/d98/service__factory_8cc.html#a0d8b1270562eb5430ea7f2a61df78496">ABSL_DECLARE_FLAG</a>(std::string, gemini_api_key);</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="../../d8/d98/service__factory_8cc.html#a57ba25eb41539d2fa37a6bad18a9783a">   19</a></span><a class="code hl_function" href="../../d8/d98/service__factory_8cc.html#a0d8b1270562eb5430ea7f2a61df78496">ABSL_DECLARE_FLAG</a>(std::string, ollama_host);</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="keyword">namespace </span>cli {</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
+<div class="foldopen" id="foldopen00024" data-start="{" data-end="}">
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno"><a class="line" href="../../dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a">   24</a></span>std::unique_ptr&lt;AIService&gt; <a class="code hl_function" href="../../dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a">CreateAIService</a>() {</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="comment">// Read configuration from flags</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  <a class="code hl_struct" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html">AIServiceConfig</a> config;</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a042e6aef0f5927a5c5ca5d19fe3e9970">provider</a> = absl::AsciiStrToLower(absl::GetFlag(FLAGS_ai_provider));</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a27a381f5674b75faa5284d0625084bdd">model</a> = absl::GetFlag(FLAGS_ai_model);</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a605fdd928481ce1c1c01c26252f09886">gemini_api_key</a> = absl::GetFlag(FLAGS_gemini_api_key);</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a806445e749a1c881928457b2e7252d67">ollama_host</a> = absl::GetFlag(FLAGS_ollama_host);</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  </div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  <span class="comment">// Fall back to environment variables if flags not set</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a605fdd928481ce1c1c01c26252f09886">gemini_api_key</a>.empty()) {</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* env_key = std::getenv(<span class="stringliteral">&quot;GEMINI_API_KEY&quot;</span>);</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keywordflow">if</span> (env_key) config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a605fdd928481ce1c1c01c26252f09886">gemini_api_key</a> = env_key;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  }</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a27a381f5674b75faa5284d0625084bdd">model</a>.empty()) {</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* env_model = std::getenv(<span class="stringliteral">&quot;OLLAMA_MODEL&quot;</span>);</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="keywordflow">if</span> (env_model) config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a27a381f5674b75faa5284d0625084bdd">model</a> = env_model;</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  }</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  </div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="../../dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a">CreateAIService</a>(config);</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>}</div>
 </div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
+<div class="foldopen" id="foldopen00045" data-start="{" data-end="}">
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno"><a class="line" href="../../dd/d63/namespaceyaze_1_1cli.html#adbd91793ccd2732fa85d0cd642987169">   45</a></span>std::unique_ptr&lt;AIService&gt; <a class="code hl_function" href="../../dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a">CreateAIService</a>(<span class="keyword">const</span> <a class="code hl_struct" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html">AIServiceConfig</a>&amp; config) {</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;🤖 AI Provider: &quot;</span> &lt;&lt; config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a042e6aef0f5927a5c5ca5d19fe3e9970">provider</a> &lt;&lt; <span class="stringliteral">&quot;\n&quot;</span>;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  <span class="comment">// Ollama provider</span></div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a042e6aef0f5927a5c5ca5d19fe3e9970">provider</a> == <span class="stringliteral">&quot;ollama&quot;</span>) {</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    <a class="code hl_struct" href="../../d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html">OllamaConfig</a> ollama_config;</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    ollama_config.<a class="code hl_variable" href="../../d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html#ae1bf7f1a0f72507b5e4da8794caece1f">base_url</a> = config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a806445e749a1c881928457b2e7252d67">ollama_host</a>;</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keywordflow">if</span> (!config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a27a381f5674b75faa5284d0625084bdd">model</a>.empty()) {</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>      ollama_config.<a class="code hl_variable" href="../../d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html#afe9a8786f6353ee32bc6add2959db511">model</a> = config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a27a381f5674b75faa5284d0625084bdd">model</a>;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    }</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="keyword">auto</span> service = std::make_unique&lt;OllamaAIService&gt;(ollama_config);</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    <span class="comment">// Health check</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordflow">if</span> (<span class="keyword">auto</span> status = service-&gt;CheckAvailability(); !status.ok()) {</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;⚠️  Ollama unavailable: &quot;</span> &lt;&lt; status.message() &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;   Falling back to MockAIService&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>      <span class="keywordflow">return</span> std::make_unique&lt;MockAIService&gt;();</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    }</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span> </div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    std::cout &lt;&lt; <span class="stringliteral">&quot;   Using model: &quot;</span> &lt;&lt; ollama_config.<a class="code hl_variable" href="../../d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html#afe9a8786f6353ee32bc6add2959db511">model</a> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <span class="keywordflow">return</span> service;</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  }</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  <span class="comment">// Gemini provider</span></div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="preprocessor">#ifdef YAZE_WITH_JSON</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a042e6aef0f5927a5c5ca5d19fe3e9970">provider</a> == <span class="stringliteral">&quot;gemini&quot;</span>) {</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a605fdd928481ce1c1c01c26252f09886">gemini_api_key</a>.empty()) {</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;⚠️  Gemini API key not provided&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;   Use --gemini_api_key=&lt;key&gt; or set GEMINI_API_KEY environment variable&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;   Falling back to MockAIService&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      <span class="keywordflow">return</span> std::make_unique&lt;MockAIService&gt;();</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    }</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    </div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>    <a class="code hl_struct" href="../../dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html">GeminiConfig</a> gemini_config(config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a605fdd928481ce1c1c01c26252f09886">gemini_api_key</a>);</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>    <span class="keywordflow">if</span> (!config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a27a381f5674b75faa5284d0625084bdd">model</a>.empty()) {</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      gemini_config.<a class="code hl_variable" href="../../dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a7c49acd31557a3aa9bdb2765f9b48e63">model</a> = config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a27a381f5674b75faa5284d0625084bdd">model</a>;</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>    }</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>    <span class="keyword">auto</span> service = std::make_unique&lt;GeminiAIService&gt;(gemini_config);</div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>}  <span class="comment">// namespace cli</span></div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>    <span class="comment">// Health check</span></div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    <span class="keywordflow">if</span> (<span class="keyword">auto</span> status = service-&gt;CheckAvailability(); !status.ok()) {</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;⚠️  Gemini unavailable: &quot;</span> &lt;&lt; status.message() &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>      std::cerr &lt;&lt; <span class="stringliteral">&quot;   Falling back to MockAIService&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      <span class="keywordflow">return</span> std::make_unique&lt;MockAIService&gt;();</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    }</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    std::cout &lt;&lt; <span class="stringliteral">&quot;   Using model: &quot;</span> &lt;&lt; gemini_config.<a class="code hl_variable" href="../../dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a7c49acd31557a3aa9bdb2765f9b48e63">model</a> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>    <span class="keywordflow">return</span> service;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  }</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>  <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a042e6aef0f5927a5c5ca5d19fe3e9970">provider</a> == <span class="stringliteral">&quot;gemini&quot;</span>) {</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    std::cerr &lt;&lt; <span class="stringliteral">&quot;⚠️  Gemini support not available: rebuild with YAZE_WITH_JSON=ON&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    std::cerr &lt;&lt; <span class="stringliteral">&quot;   Falling back to MockAIService&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>  }</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>  <span class="comment">// Default: Mock service</span></div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>  <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a042e6aef0f5927a5c5ca5d19fe3e9970">provider</a> != <span class="stringliteral">&quot;mock&quot;</span>) {</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    std::cout &lt;&lt; <span class="stringliteral">&quot;   No LLM configured, using MockAIService&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>  }</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;   Tip: Use --ai_provider=ollama or --ai_provider=gemini&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>  <span class="keywordflow">return</span> std::make_unique&lt;MockAIService&gt;();</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>}</div>
+</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span> </div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>}  <span class="comment">// namespace cli</span></div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aai__service_8h_html"><div class="ttname"><a href="../../d7/d52/ai__service_8h.html">ai_service.h</a></div></div>
 <div class="ttc" id="agemini__ai__service_8h_html"><div class="ttname"><a href="../../d3/d22/gemini__ai__service_8h.html">gemini_ai_service.h</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1cli_html_a40be8377fef9b85066f54617143d652a"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a">yaze::cli::CreateAIService</a></div><div class="ttdeci">std::unique_ptr&lt; AIService &gt; CreateAIService()</div><div class="ttdef"><b>Definition</b> <a href="../../d8/d98/service__factory_8cc_source.html#l00016">service_factory.cc:16</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_html_a40be8377fef9b85066f54617143d652a"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a">yaze::cli::CreateAIService</a></div><div class="ttdeci">std::unique_ptr&lt; AIService &gt; CreateAIService()</div><div class="ttdef"><b>Definition</b> <a href="../../d8/d98/service__factory_8cc_source.html#l00024">service_factory.cc:24</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="aollama__ai__service_8h_html"><div class="ttname"><a href="../../da/d1c/ollama__ai__service_8h.html">ollama_ai_service.h</a></div></div>
+<div class="ttc" id="aservice__factory_8cc_html_a0d8b1270562eb5430ea7f2a61df78496"><div class="ttname"><a href="../../d8/d98/service__factory_8cc.html#a0d8b1270562eb5430ea7f2a61df78496">ABSL_DECLARE_FLAG</a></div><div class="ttdeci">ABSL_DECLARE_FLAG(std::string, ai_provider)</div></div>
 <div class="ttc" id="aservice__factory_8h_html"><div class="ttname"><a href="../../d9/d37/service__factory_8h.html">service_factory.h</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AIServiceConfig_html"><div class="ttname"><a href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html">yaze::cli::AIServiceConfig</a></div><div class="ttdef"><b>Definition</b> <a href="../../d9/d37/service__factory_8h_source.html#l00012">service_factory.h:12</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AIServiceConfig_html_a042e6aef0f5927a5c5ca5d19fe3e9970"><div class="ttname"><a href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a042e6aef0f5927a5c5ca5d19fe3e9970">yaze::cli::AIServiceConfig::provider</a></div><div class="ttdeci">std::string provider</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d37/service__factory_8h_source.html#l00013">service_factory.h:13</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AIServiceConfig_html_a27a381f5674b75faa5284d0625084bdd"><div class="ttname"><a href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a27a381f5674b75faa5284d0625084bdd">yaze::cli::AIServiceConfig::model</a></div><div class="ttdeci">std::string model</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d37/service__factory_8h_source.html#l00014">service_factory.h:14</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AIServiceConfig_html_a605fdd928481ce1c1c01c26252f09886"><div class="ttname"><a href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a605fdd928481ce1c1c01c26252f09886">yaze::cli::AIServiceConfig::gemini_api_key</a></div><div class="ttdeci">std::string gemini_api_key</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d37/service__factory_8h_source.html#l00015">service_factory.h:15</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1AIServiceConfig_html_a806445e749a1c881928457b2e7252d67"><div class="ttname"><a href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html#a806445e749a1c881928457b2e7252d67">yaze::cli::AIServiceConfig::ollama_host</a></div><div class="ttdeci">std::string ollama_host</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d37/service__factory_8h_source.html#l00016">service_factory.h:16</a></div></div>
 <div class="ttc" id="astructyaze_1_1cli_1_1GeminiConfig_html"><div class="ttname"><a href="../../dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html">yaze::cli::GeminiConfig</a></div><div class="ttdef"><b>Definition</b> <a href="../../d3/d22/gemini__ai__service_8h_source.html#l00015">gemini_ai_service.h:15</a></div></div>
 <div class="ttc" id="astructyaze_1_1cli_1_1GeminiConfig_html_a7c49acd31557a3aa9bdb2765f9b48e63"><div class="ttname"><a href="../../dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a7c49acd31557a3aa9bdb2765f9b48e63">yaze::cli::GeminiConfig::model</a></div><div class="ttdeci">std::string model</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d22/gemini__ai__service_8h_source.html#l00017">gemini_ai_service.h:17</a></div></div>
 <div class="ttc" id="astructyaze_1_1cli_1_1OllamaConfig_html"><div class="ttname"><a href="../../d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html">yaze::cli::OllamaConfig</a></div><div class="ttdef"><b>Definition</b> <a href="../../da/d1c/ollama__ai__service_8h_source.html#l00016">ollama_ai_service.h:16</a></div></div>
+<div class="ttc" id="astructyaze_1_1cli_1_1OllamaConfig_html_ae1bf7f1a0f72507b5e4da8794caece1f"><div class="ttname"><a href="../../d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html#ae1bf7f1a0f72507b5e4da8794caece1f">yaze::cli::OllamaConfig::base_url</a></div><div class="ttdeci">std::string base_url</div><div class="ttdef"><b>Definition</b> <a href="../../da/d1c/ollama__ai__service_8h_source.html#l00017">ollama_ai_service.h:17</a></div></div>
 <div class="ttc" id="astructyaze_1_1cli_1_1OllamaConfig_html_afe9a8786f6353ee32bc6add2959db511"><div class="ttname"><a href="../../d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html#afe9a8786f6353ee32bc6add2959db511">yaze::cli::OllamaConfig::model</a></div><div class="ttdeci">std::string model</div><div class="ttdef"><b>Definition</b> <a href="../../da/d1c/ollama__ai__service_8h_source.html#l00018">ollama_ai_service.h:18</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

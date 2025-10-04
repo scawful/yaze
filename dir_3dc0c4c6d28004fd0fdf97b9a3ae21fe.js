@@ -10,6 +10,8 @@ var dir_3dc0c4c6d28004fd0fdf97b9a3ae21fe =
     [ "object_renderer.h", "d7/d4a/object__renderer_8h.html", "d7/d4a/object__renderer_8h" ],
     [ "room.cc", "d5/d1b/room_8cc.html", "d5/d1b/room_8cc" ],
     [ "room.h", "d9/dc0/room_8h.html", "d9/dc0/room_8h" ],
+    [ "room_diagnostic.cc", "d3/db7/room__diagnostic_8cc.html", "d3/db7/room__diagnostic_8cc" ],
+    [ "room_diagnostic.h", "d5/d61/room__diagnostic_8h.html", "d5/d61/room__diagnostic_8h" ],
     [ "room_entrance.h", "d1/d8a/room__entrance_8h.html", "d1/d8a/room__entrance_8h" ],
     [ "room_layout.cc", "da/d12/room__layout_8cc.html", null ],
     [ "room_layout.h", "da/d96/room__layout_8h.html", "da/d96/room__layout_8h" ],

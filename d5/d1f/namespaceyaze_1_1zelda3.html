@@ -437,6 +437,8 @@ Functions</h2></td></tr>
 <tr class="separator:a62286f1cb2eebc9d5834551ead453371"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0d397af98a0f5652a8741144abc15e9" id="r_aa0d397af98a0f5652a8741144abc15e9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html">Room</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aa0d397af98a0f5652a8741144abc15e9">LoadRoomFromRom</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom, int room_id)</td></tr>
 <tr class="separator:aa0d397af98a0f5652a8741144abc15e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fdee14aeee191172a2072ad64bdb833" id="r_a5fdee14aeee191172a2072ad64bdb833"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a5fdee14aeee191172a2072ad64bdb833">DiagnoseRoomRendering</a> (<a class="el" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html">Room</a> &amp;room, int room_id)</td></tr>
+<tr class="separator:a5fdee14aeee191172a2072ad64bdb833"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a599b7198a7dd0ec9da754a83f9a7e5f9" id="r_a599b7198a7dd0ec9da754a83f9a7e5f9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8">ObjectOption</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a599b7198a7dd0ec9da754a83f9a7e5f9">operator|</a> (<a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8">ObjectOption</a> lhs, <a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8">ObjectOption</a> rhs)</td></tr>
 <tr class="separator:a599b7198a7dd0ec9da754a83f9a7e5f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac507bdbc1fe4503baebb7c8d6fcc0d55" id="r_ac507bdbc1fe4503baebb7c8d6fcc0d55"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8">ObjectOption</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#ac507bdbc1fe4503baebb7c8d6fcc0d55">operator&amp;</a> (<a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8">ObjectOption</a> lhs, <a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8">ObjectOption</a> rhs)</td></tr>
@@ -1704,7 +1706,7 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00020">20</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00022">22</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::data()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00393">yaze::zelda3::RoomSize::room_size</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00392">yaze::zelda3::RoomSize::room_size_pointer</a>.</p>
 
@@ -1748,11 +1750,45 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00080">80</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">82</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::data()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00076">dungeon_spr_ptrs</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00292">yaze::zelda3::Room::IsLight()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00041">kRoomHeaderPointer</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00042">kRoomHeaderPointerBank</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00914">yaze::zelda3::Room::LoadBlocks()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00893">yaze::zelda3::Room::LoadDoors()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00924">yaze::zelda3::Room::LoadPits()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00876">yaze::zelda3::Room::LoadRoomLayout()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00904">yaze::zelda3::Room::LoadTorches()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00047">messages_id_dungeon</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00035">room_object_pointer</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00040">rooms_sprite_pointer</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00300">yaze::zelda3::Room::SetBackgroundTileset()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00271">yaze::zelda3::Room::SetBg2()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00275">yaze::zelda3::Room::SetBlockset()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00272">yaze::zelda3::Room::SetCollision()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00277">yaze::zelda3::Room::SetEffect()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00283">yaze::zelda3::Room::SetHolewarp()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00298">yaze::zelda3::Room::SetIsDark()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00273">yaze::zelda3::Room::SetIsLight()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00302">yaze::zelda3::Room::SetLayer2Behavior()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00296">yaze::zelda3::Room::SetLayer2Mode()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00297">yaze::zelda3::Room::SetLayerMerging()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00295">yaze::zelda3::Room::SetMessageIdDirect()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00274">yaze::zelda3::Room::SetPalette()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00299">yaze::zelda3::Room::SetPaletteDirect()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00310">yaze::zelda3::Room::SetPitsTarget()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00305">yaze::zelda3::Room::SetPitsTargetLayer()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00276">yaze::zelda3::Room::SetSpriteset()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00301">yaze::zelda3::Room::SetSpriteTileset()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00311">yaze::zelda3::Room::SetStair1Target()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00306">yaze::zelda3::Room::SetStair1TargetLayer()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00312">yaze::zelda3::Room::SetStair2Target()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00307">yaze::zelda3::Room::SetStair2TargetLayer()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00313">yaze::zelda3::Room::SetStair3Target()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00308">yaze::zelda3::Room::SetStair3TargetLayer()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00314">yaze::zelda3::Room::SetStair4Target()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00309">yaze::zelda3::Room::SetStair4TargetLayer()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00280">yaze::zelda3::Room::SetStaircasePlane()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00284">yaze::zelda3::Room::SetStaircaseRoom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00278">yaze::zelda3::Room::SetTag1()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00303">yaze::zelda3::Room::SetTag1Direct()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00279">yaze::zelda3::Room::SetTag2()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00304">yaze::zelda3::Room::SetTag2Direct()</a>, and <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>.</p>
+<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::data()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00076">dungeon_spr_ptrs</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00292">yaze::zelda3::Room::IsLight()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00041">kRoomHeaderPointer</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00042">kRoomHeaderPointerBank</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00940">yaze::zelda3::Room::LoadBlocks()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00919">yaze::zelda3::Room::LoadDoors()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00950">yaze::zelda3::Room::LoadPits()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00902">yaze::zelda3::Room::LoadRoomLayout()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00930">yaze::zelda3::Room::LoadTorches()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00047">messages_id_dungeon</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00035">room_object_pointer</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00040">rooms_sprite_pointer</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00300">yaze::zelda3::Room::SetBackgroundTileset()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00271">yaze::zelda3::Room::SetBg2()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00275">yaze::zelda3::Room::SetBlockset()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00272">yaze::zelda3::Room::SetCollision()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00277">yaze::zelda3::Room::SetEffect()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00283">yaze::zelda3::Room::SetHolewarp()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00298">yaze::zelda3::Room::SetIsDark()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00273">yaze::zelda3::Room::SetIsLight()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00302">yaze::zelda3::Room::SetLayer2Behavior()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00296">yaze::zelda3::Room::SetLayer2Mode()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00297">yaze::zelda3::Room::SetLayerMerging()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00295">yaze::zelda3::Room::SetMessageIdDirect()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00274">yaze::zelda3::Room::SetPalette()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00299">yaze::zelda3::Room::SetPaletteDirect()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00310">yaze::zelda3::Room::SetPitsTarget()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00305">yaze::zelda3::Room::SetPitsTargetLayer()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00276">yaze::zelda3::Room::SetSpriteset()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00301">yaze::zelda3::Room::SetSpriteTileset()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00311">yaze::zelda3::Room::SetStair1Target()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00306">yaze::zelda3::Room::SetStair1TargetLayer()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00312">yaze::zelda3::Room::SetStair2Target()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00307">yaze::zelda3::Room::SetStair2TargetLayer()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00313">yaze::zelda3::Room::SetStair3Target()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00308">yaze::zelda3::Room::SetStair3TargetLayer()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00314">yaze::zelda3::Room::SetStair4Target()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00309">yaze::zelda3::Room::SetStair4TargetLayer()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00280">yaze::zelda3::Room::SetStaircasePlane()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00284">yaze::zelda3::Room::SetStaircaseRoom()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00278">yaze::zelda3::Room::SetTag1()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00303">yaze::zelda3::Room::SetTag1Direct()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00279">yaze::zelda3::Room::SetTag2()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00304">yaze::zelda3::Room::SetTag2Direct()</a>, and <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00137">yaze::cli::agent::HandleDungeonListSpritesCommand()</a>, <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00016">yaze::editor::DungeonRoomLoader::LoadAllRooms()</a>, <a class="el" href="../../d1/d36/dungeon__object__renderer__integration__test_8cc_source.html#l00055">yaze::zelda3::DungeonObjectRendererIntegrationTest::LoadTestRoomData()</a>, <a class="el" href="../../d1/d36/dungeon__object__renderer__integration__test_8cc_source.html#l00716">TEST_F()</a>, <a class="el" href="../../da/d92/dungeon__room__test_8cc_source.html#l00027">yaze::test::TEST_F()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00071">yaze::test::DungeonEditorIntegrationTest::TestObjectParsing()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00094">yaze::test::DungeonEditorIntegrationTest::TestObjectRendering()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00126">yaze::test::DungeonEditorIntegrationTest::TestPaletteHandling()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00112">yaze::test::DungeonEditorIntegrationTest::TestRoomGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00148">yaze::cli::agent::HandleDungeonListSpritesCommand()</a>, <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00016">yaze::editor::DungeonRoomLoader::LoadAllRooms()</a>, <a class="el" href="../../d1/d36/dungeon__object__renderer__integration__test_8cc_source.html#l00055">yaze::zelda3::DungeonObjectRendererIntegrationTest::LoadTestRoomData()</a>, <a class="el" href="../../d1/d36/dungeon__object__renderer__integration__test_8cc_source.html#l00716">TEST_F()</a>, <a class="el" href="../../da/d92/dungeon__room__test_8cc_source.html#l00027">yaze::test::TEST_F()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00071">yaze::test::DungeonEditorIntegrationTest::TestObjectParsing()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00094">yaze::test::DungeonEditorIntegrationTest::TestObjectRendering()</a>, <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00126">yaze::test::DungeonEditorIntegrationTest::TestPaletteHandling()</a>, and <a class="el" href="../../d7/d87/dungeon__editor__test_8cc_source.html#l00112">yaze::test::DungeonEditorIntegrationTest::TestRoomGraphics()</a>.</p>
+
+</div>
+</div>
+<a id="a5fdee14aeee191172a2072ad64bdb833" name="a5fdee14aeee191172a2072ad64bdb833"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5fdee14aeee191172a2072ad64bdb833">&#9670;&#160;</a></span>DiagnoseRoomRendering()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::DiagnoseRoomRendering </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html">Room</a> &amp;&#160;</td>
+          <td class="paramname"><em>room</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>room_id</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d3/db7/room__diagnostic_8cc_source.html#l00012">12</a> of file <a class="el" href="../../d3/db7/room__diagnostic_8cc_source.html">room_diagnostic.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00156">yaze::gfx::Arena::bg1()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00162">yaze::gfx::Arena::bg2()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00333">yaze::zelda3::Room::blocks()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00010">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00237">yaze::zelda3::Room::GetTileObjects()</a>, and <a class="el" href="../../d9/dc0/room_8h_source.html#l00335">yaze::zelda3::Room::rom()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00288">yaze::zelda3::Room::RenderRoomGraphics()</a>.</p>
 
 </div>
 </div>
@@ -4314,7 +4350,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d36/dungeon__object__renderer__integration__test_8cc_source.html#l00716">716</a> of file <a class="el" href="../../d1/d36/dungeon__object__renderer__integration__test_8cc_source.html">dungeon_object_renderer_integration_test.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1b/room_8cc_source.html#l00080">LoadRoomFromRom()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">LoadRoomFromRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -5466,7 +5502,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00226">226</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00228">228</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -5490,7 +5526,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00227">227</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00229">229</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -5514,7 +5550,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00228">228</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00230">230</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -5538,7 +5574,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00229">229</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00231">231</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -5562,9 +5598,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00230">230</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00232">232</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00235">yaze::zelda3::Room::CopyRoomGraphicsToBuffer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00237">yaze::zelda3::Room::CopyRoomGraphicsToBuffer()</a>.</p>
 
 </div>
 </div>
@@ -5588,7 +5624,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00231">231</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00233">233</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -5612,7 +5648,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00232">232</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00234">234</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
 </div>
 </div>
@@ -5636,9 +5672,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00233">233</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1b/room_8cc_source.html#l00235">235</a> of file <a class="el" href="../../d5/d1b/room_8cc_source.html">room.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00235">yaze::zelda3::Room::CopyRoomGraphicsToBuffer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00237">yaze::zelda3::Room::CopyRoomGraphicsToBuffer()</a>.</p>
 
 </div>
 </div>
@@ -5690,7 +5726,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00035">35</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00476">yaze::zelda3::Room::LoadObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00080">LoadRoomFromRom()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00659">yaze::zelda3::Room::SaveObjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00502">yaze::zelda3::Room::LoadObjects()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">LoadRoomFromRom()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00685">yaze::zelda3::Room::SaveObjects()</a>.</p>
 
 </div>
 </div>
@@ -5788,7 +5824,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00040">40</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00080">LoadRoomFromRom()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00805">yaze::zelda3::Room::LoadSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">LoadRoomFromRom()</a>, and <a class="el" href="../../d5/d1b/room_8cc_source.html#l00831">yaze::zelda3::Room::LoadSprites()</a>.</p>
 
 </div>
 </div>
@@ -5814,7 +5850,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00041">41</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00080">LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -5840,7 +5876,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00042">42</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00080">LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -5890,7 +5926,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00044">44</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00852">yaze::zelda3::Room::LoadChests()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00878">yaze::zelda3::Room::LoadChests()</a>.</p>
 
 </div>
 </div>
@@ -5916,7 +5952,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00045">45</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00852">yaze::zelda3::Room::LoadChests()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00878">yaze::zelda3::Room::LoadChests()</a>.</p>
 
 </div>
 </div>
@@ -5942,7 +5978,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00047">47</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00080">LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -5968,7 +6004,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00049">49</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00914">yaze::zelda3::Room::LoadBlocks()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00940">yaze::zelda3::Room::LoadBlocks()</a>.</p>
 
 </div>
 </div>
@@ -6114,7 +6150,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00055">55</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00904">yaze::zelda3::Room::LoadTorches()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00930">yaze::zelda3::Room::LoadTorches()</a>.</p>
 
 </div>
 </div>
@@ -6524,7 +6560,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00076">76</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00080">LoadRoomFromRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00082">LoadRoomFromRom()</a>.</p>
 
 </div>
 </div>
@@ -6576,7 +6612,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00080">80</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00768">yaze::zelda3::Room::HandleSpecialObjects()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00794">yaze::zelda3::Room::HandleSpecialObjects()</a>.</p>
 
 </div>
 </div>
@@ -6602,7 +6638,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00082">82</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00476">yaze::zelda3::Room::LoadObjects()</a>, <a class="el" href="../../d5/dc5/object__renderer_8cc_source.html#l00360">yaze::zelda3::ObjectRenderer::ObjectParser::ReadTileData()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00286">yaze::zelda3::Room::RenderRoomGraphics()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00659">yaze::zelda3::Room::SaveObjects()</a>, and <a class="el" href="../../d8/d2e/room__integration__test_8cc_source.html#l00235">yaze::zelda3::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00502">yaze::zelda3::Room::LoadObjects()</a>, <a class="el" href="../../d5/dc5/object__renderer_8cc_source.html#l00360">yaze::zelda3::ObjectRenderer::ObjectParser::ReadTileData()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00288">yaze::zelda3::Room::RenderRoomGraphics()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00685">yaze::zelda3::Room::SaveObjects()</a>, and <a class="el" href="../../d8/d2e/room__integration__test_8cc_source.html#l00235">yaze::zelda3::test::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -6628,7 +6664,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d9/dc0/room_8h_source.html#l00083">83</a> of file <a class="el" href="../../d9/dc0/room_8h_source.html">room.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00286">yaze::zelda3::Room::RenderRoomGraphics()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00288">yaze::zelda3::Room::RenderRoomGraphics()</a>.</p>
 
 </div>
 </div>
@@ -10092,7 +10128,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00119">119</a> of file <a class="el" href="../../d7/d9c/overworld_8h_source.html">overworld.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00169">yaze::zelda3::Overworld::AssignMapSizes()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00393">yaze::zelda3::Overworld::DecompressAllMapTilesParallel()</a>, <a class="el" href="../../d8/dd4/overworld__editor__manager_8cc_source.html#l00080">yaze::editor::OverworldEditorManager::DrawAreaSpecificSettings()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02692">yaze::editor::OverworldEditor::DrawOverlayPreview()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01052">yaze::editor::MapPropertiesSystem::DrawOverlayPreviewOnMap()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00510">yaze::zelda3::Overworld::EnsureMapBuilt()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02035">yaze::editor::OverworldEditor::EnsureMapTexture()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l01914">yaze::zelda3::anonymous_namespace{overworld.cc}::GetAllTile16()</a>, <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00380">yaze::cli::agent::HandleOverworldDescribeMapCommand()</a>, <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00212">yaze::cli::agent::HandleOverworldFindTileCommand()</a>, <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00542">yaze::cli::agent::HandleOverworldListWarpsCommand()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00027">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l01821">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00653">yaze::zelda3::Overworld::LoadItems()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00454">yaze::zelda3::Overworld::LoadOverworldMaps()</a>, <a class="el" href="../../d8/d3e/overworld__map_8cc_source.html#l00733">yaze::zelda3::OverworldMap::LoadPalette()</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00079">yaze::cli::overworld::anonymous_namespace{overworld_inspect.cc}::PopulateCommonWarpFields()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l01960">yaze::editor::OverworldEditor::ProcessDeferredTextures()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02348">yaze::editor::OverworldEditor::RefreshMapPalette()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02418">yaze::editor::OverworldEditor::RefreshMapProperties()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02204">yaze::editor::OverworldEditor::RefreshMultiAreaMapsSafely()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02103">yaze::editor::OverworldEditor::RefreshOverworldMapOnDemand()</a>, <a class="el" href="../../df/d93/cli_2handlers_2overworld_8cc_source.html#l00295">yaze::cli::OverworldDescribeMap::Run()</a>, <a class="el" href="../../df/d93/cli_2handlers_2overworld_8cc_source.html#l00477">yaze::cli::OverworldListWarps::Run()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l02868">yaze::zelda3::Overworld::SaveAreaSizes()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l02779">yaze::zelda3::Overworld::SaveAreaSpecificBGColors()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l02707">yaze::zelda3::Overworld::SaveCustomOverworldASM()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l01399">yaze::zelda3::Overworld::SaveLargeAreaTransitions()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l01832">yaze::zelda3::Overworld::SaveLargeMapsExpanded()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l02624">yaze::zelda3::Overworld::SaveMapOverlays()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00822">yaze::zelda3::Overworld::SaveOverworldMaps()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l01290">yaze::zelda3::Overworld::SaveSmallAreaTransitions()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l01695">yaze::zelda3::Overworld::SaveTallAreaTransitions()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l01555">yaze::zelda3::Overworld::SaveWideAreaTransitions()</a>, <a class="el" href="../../d6/dae/comprehensive__integration__test_8cc_source.html#l00362">TEST_F()</a>, <a class="el" href="../../de/dd1/dungeon__integration__test_8cc_source.html#l00107">TEST_F()</a>, and <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00047">yaze::cli::overworld::anonymous_namespace{overworld_inspect.cc}::ValidateMapId()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00169">yaze::zelda3::Overworld::AssignMapSizes()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00393">yaze::zelda3::Overworld::DecompressAllMapTilesParallel()</a>, <a class="el" href="../../d8/dd4/overworld__editor__manager_8cc_source.html#l00080">yaze::editor::OverworldEditorManager::DrawAreaSpecificSettings()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02692">yaze::editor::OverworldEditor::DrawOverlayPreview()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01052">yaze::editor::MapPropertiesSystem::DrawOverlayPreviewOnMap()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00510">yaze::zelda3::Overworld::EnsureMapBuilt()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02035">yaze::editor::OverworldEditor::EnsureMapTexture()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l01914">yaze::zelda3::anonymous_namespace{overworld.cc}::GetAllTile16()</a>, <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00391">yaze::cli::agent::HandleOverworldDescribeMapCommand()</a>, <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00223">yaze::cli::agent::HandleOverworldFindTileCommand()</a>, <a class="el" href="../../de/df2/tool__commands_8cc_source.html#l00553">yaze::cli::agent::HandleOverworldListWarpsCommand()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00027">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l01821">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00653">yaze::zelda3::Overworld::LoadItems()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00454">yaze::zelda3::Overworld::LoadOverworldMaps()</a>, <a class="el" href="../../d8/d3e/overworld__map_8cc_source.html#l00733">yaze::zelda3::OverworldMap::LoadPalette()</a>, <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00079">yaze::cli::overworld::anonymous_namespace{overworld_inspect.cc}::PopulateCommonWarpFields()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l01960">yaze::editor::OverworldEditor::ProcessDeferredTextures()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02348">yaze::editor::OverworldEditor::RefreshMapPalette()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02418">yaze::editor::OverworldEditor::RefreshMapProperties()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02204">yaze::editor::OverworldEditor::RefreshMultiAreaMapsSafely()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l02103">yaze::editor::OverworldEditor::RefreshOverworldMapOnDemand()</a>, <a class="el" href="../../df/d93/cli_2handlers_2overworld_8cc_source.html#l00295">yaze::cli::OverworldDescribeMap::Run()</a>, <a class="el" href="../../df/d93/cli_2handlers_2overworld_8cc_source.html#l00477">yaze::cli::OverworldListWarps::Run()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l02868">yaze::zelda3::Overworld::SaveAreaSizes()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l02779">yaze::zelda3::Overworld::SaveAreaSpecificBGColors()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l02707">yaze::zelda3::Overworld::SaveCustomOverworldASM()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l01399">yaze::zelda3::Overworld::SaveLargeAreaTransitions()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l01832">yaze::zelda3::Overworld::SaveLargeMapsExpanded()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l02624">yaze::zelda3::Overworld::SaveMapOverlays()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00822">yaze::zelda3::Overworld::SaveOverworldMaps()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l01290">yaze::zelda3::Overworld::SaveSmallAreaTransitions()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l01695">yaze::zelda3::Overworld::SaveTallAreaTransitions()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l01555">yaze::zelda3::Overworld::SaveWideAreaTransitions()</a>, <a class="el" href="../../d6/dae/comprehensive__integration__test_8cc_source.html#l00362">TEST_F()</a>, <a class="el" href="../../de/dd1/dungeon__integration__test_8cc_source.html#l00107">TEST_F()</a>, and <a class="el" href="../../d0/dfd/overworld__inspect_8cc_source.html#l00047">yaze::cli::overworld::anonymous_namespace{overworld_inspect.cc}::ValidateMapId()</a>.</p>
 
 </div>
 </div>

@@ -664,395 +664,389 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="foldopen" id="foldopen00538" data-start="{" data-end="}">
 <div class="line"><a id="l00538" name="l00538"></a><span class="lineno"><a class="line" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#abb3fbd2c5e9c53690714b06d6d882c52">  538</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#abb3fbd2c5e9c53690714b06d6d882c52">HelpComponent</a>(ftxui::ScreenInteractive &amp;screen) {</div>
 <div class="line"><a id="l00539" name="l00539"></a><span class="lineno">  539</span>  <span class="keyword">auto</span> help_text = vbox({</div>
-<div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span>      text(<span class="stringliteral">&quot;z3ed v0.3.2&quot;</span>) | bold | color(Color::Yellow),</div>
-<div class="line"><a id="l00541" name="l00541"></a><span class="lineno">  541</span>      text(<span class="stringliteral">&quot;by scawful&quot;</span>) | color(Color::Magenta),</div>
-<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>      text(<span class="stringliteral">&quot;The Legend of Zelda: A Link to the Past Hacking Tool&quot;</span>) |</div>
-<div class="line"><a id="l00543" name="l00543"></a><span class="lineno">  543</span>          color(Color::Red),</div>
-<div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>      text(<span class="stringliteral">&quot;Now with Asar 65816 Assembler Integration!&quot;</span>) |</div>
-<div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>          color(Color::Green),</div>
-<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span>      separator(),</div>
-<div class="line"><a id="l00547" name="l00547"></a><span class="lineno">  547</span>      </div>
-<div class="line"><a id="l00548" name="l00548"></a><span class="lineno">  548</span>      text(<span class="stringliteral">&quot;🎯 ASAR COMMANDS&quot;</span>) | bold | color(Color::Cyan),</div>
-<div class="line"><a id="l00549" name="l00549"></a><span class="lineno">  549</span>      separator(),</div>
-<div class="line"><a id="l00550" name="l00550"></a><span class="lineno">  550</span>      hbox({</div>
-<div class="line"><a id="l00551" name="l00551"></a><span class="lineno">  551</span>          text(<span class="stringliteral">&quot;Apply Asar Patch&quot;</span>),</div>
-<div class="line"><a id="l00552" name="l00552"></a><span class="lineno">  552</span>          filler(),</div>
-<div class="line"><a id="l00553" name="l00553"></a><span class="lineno">  553</span>          text(<span class="stringliteral">&quot;asar&quot;</span>),</div>
-<div class="line"><a id="l00554" name="l00554"></a><span class="lineno">  554</span>          filler(),</div>
-<div class="line"><a id="l00555" name="l00555"></a><span class="lineno">  555</span>          text(<span class="stringliteral">&quot;&lt;patch.asm&gt; [--rom=&lt;file&gt;]&quot;</span>),</div>
-<div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span>      }),</div>
-<div class="line"><a id="l00557" name="l00557"></a><span class="lineno">  557</span>      hbox({</div>
-<div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span>          text(<span class="stringliteral">&quot;Extract Symbols&quot;</span>),</div>
-<div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span>          filler(),</div>
-<div class="line"><a id="l00560" name="l00560"></a><span class="lineno">  560</span>          text(<span class="stringliteral">&quot;extract&quot;</span>),</div>
-<div class="line"><a id="l00561" name="l00561"></a><span class="lineno">  561</span>          filler(),</div>
-<div class="line"><a id="l00562" name="l00562"></a><span class="lineno">  562</span>          text(<span class="stringliteral">&quot;&lt;patch.asm&gt;&quot;</span>),</div>
-<div class="line"><a id="l00563" name="l00563"></a><span class="lineno">  563</span>      }),</div>
-<div class="line"><a id="l00564" name="l00564"></a><span class="lineno">  564</span>      hbox({</div>
-<div class="line"><a id="l00565" name="l00565"></a><span class="lineno">  565</span>          text(<span class="stringliteral">&quot;Validate Assembly&quot;</span>),</div>
-<div class="line"><a id="l00566" name="l00566"></a><span class="lineno">  566</span>          filler(),</div>
-<div class="line"><a id="l00567" name="l00567"></a><span class="lineno">  567</span>          text(<span class="stringliteral">&quot;validate&quot;</span>),</div>
-<div class="line"><a id="l00568" name="l00568"></a><span class="lineno">  568</span>          filler(),</div>
-<div class="line"><a id="l00569" name="l00569"></a><span class="lineno">  569</span>          text(<span class="stringliteral">&quot;&lt;patch.asm&gt;&quot;</span>),</div>
-<div class="line"><a id="l00570" name="l00570"></a><span class="lineno">  570</span>      }),</div>
-<div class="line"><a id="l00571" name="l00571"></a><span class="lineno">  571</span>      </div>
-<div class="line"><a id="l00572" name="l00572"></a><span class="lineno">  572</span>      separator(),</div>
-<div class="line"><a id="l00573" name="l00573"></a><span class="lineno">  573</span>      text(<span class="stringliteral">&quot;📦 PATCH COMMANDS&quot;</span>) | bold | color(Color::Blue),</div>
-<div class="line"><a id="l00574" name="l00574"></a><span class="lineno">  574</span>      separator(),</div>
-<div class="line"><a id="l00575" name="l00575"></a><span class="lineno">  575</span>      hbox({</div>
-<div class="line"><a id="l00576" name="l00576"></a><span class="lineno">  576</span>          text(<span class="stringliteral">&quot;Apply BPS Patch&quot;</span>),</div>
-<div class="line"><a id="l00577" name="l00577"></a><span class="lineno">  577</span>          filler(),</div>
-<div class="line"><a id="l00578" name="l00578"></a><span class="lineno">  578</span>          text(<span class="stringliteral">&quot;patch&quot;</span>),</div>
-<div class="line"><a id="l00579" name="l00579"></a><span class="lineno">  579</span>          filler(),</div>
-<div class="line"><a id="l00580" name="l00580"></a><span class="lineno">  580</span>          text(<span class="stringliteral">&quot;&lt;patch.bps&gt; [--rom=&lt;file&gt;]&quot;</span>),</div>
-<div class="line"><a id="l00581" name="l00581"></a><span class="lineno">  581</span>      }),</div>
-<div class="line"><a id="l00582" name="l00582"></a><span class="lineno">  582</span>      hbox({</div>
-<div class="line"><a id="l00583" name="l00583"></a><span class="lineno">  583</span>          text(<span class="stringliteral">&quot;Create BPS Patch&quot;</span>),</div>
-<div class="line"><a id="l00584" name="l00584"></a><span class="lineno">  584</span>          filler(),</div>
-<div class="line"><a id="l00585" name="l00585"></a><span class="lineno">  585</span>          text(<span class="stringliteral">&quot;create&quot;</span>),</div>
-<div class="line"><a id="l00586" name="l00586"></a><span class="lineno">  586</span>          filler(),</div>
-<div class="line"><a id="l00587" name="l00587"></a><span class="lineno">  587</span>          text(<span class="stringliteral">&quot;&lt;src_file&gt; &lt;modified_file&gt;&quot;</span>),</div>
-<div class="line"><a id="l00588" name="l00588"></a><span class="lineno">  588</span>      }),</div>
-<div class="line"><a id="l00589" name="l00589"></a><span class="lineno">  589</span>      </div>
-<div class="line"><a id="l00590" name="l00590"></a><span class="lineno">  590</span>      separator(),</div>
-<div class="line"><a id="l00591" name="l00591"></a><span class="lineno">  591</span>      text(<span class="stringliteral">&quot;🗃️  ROM COMMANDS&quot;</span>) | bold | color(Color::Yellow),</div>
-<div class="line"><a id="l00592" name="l00592"></a><span class="lineno">  592</span>      separator(),</div>
-<div class="line"><a id="l00593" name="l00593"></a><span class="lineno">  593</span>      hbox({</div>
-<div class="line"><a id="l00594" name="l00594"></a><span class="lineno">  594</span>          text(<span class="stringliteral">&quot;Show ROM Info&quot;</span>),</div>
-<div class="line"><a id="l00595" name="l00595"></a><span class="lineno">  595</span>          filler(),</div>
-<div class="line"><a id="l00596" name="l00596"></a><span class="lineno">  596</span>          text(<span class="stringliteral">&quot;info&quot;</span>),</div>
-<div class="line"><a id="l00597" name="l00597"></a><span class="lineno">  597</span>          filler(),</div>
-<div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span>          text(<span class="stringliteral">&quot;[--rom=&lt;file&gt;]&quot;</span>),</div>
-<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>      }),</div>
-<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>      hbox({</div>
-<div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span>          text(<span class="stringliteral">&quot;Backup ROM&quot;</span>),</div>
-<div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span>          filler(),</div>
-<div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span>          text(<span class="stringliteral">&quot;backup&quot;</span>),</div>
-<div class="line"><a id="l00604" name="l00604"></a><span class="lineno">  604</span>          filler(),</div>
-<div class="line"><a id="l00605" name="l00605"></a><span class="lineno">  605</span>          text(<span class="stringliteral">&quot;&lt;rom_file&gt; [backup_name]&quot;</span>),</div>
-<div class="line"><a id="l00606" name="l00606"></a><span class="lineno">  606</span>      }),</div>
-<div class="line"><a id="l00607" name="l00607"></a><span class="lineno">  607</span>      hbox({</div>
-<div class="line"><a id="l00608" name="l00608"></a><span class="lineno">  608</span>          text(<span class="stringliteral">&quot;Expand ROM&quot;</span>),</div>
-<div class="line"><a id="l00609" name="l00609"></a><span class="lineno">  609</span>          filler(),</div>
-<div class="line"><a id="l00610" name="l00610"></a><span class="lineno">  610</span>          text(<span class="stringliteral">&quot;expand&quot;</span>),</div>
-<div class="line"><a id="l00611" name="l00611"></a><span class="lineno">  611</span>          filler(),</div>
-<div class="line"><a id="l00612" name="l00612"></a><span class="lineno">  612</span>          text(<span class="stringliteral">&quot;&lt;rom_file&gt; &lt;size&gt;&quot;</span>),</div>
-<div class="line"><a id="l00613" name="l00613"></a><span class="lineno">  613</span>      }),</div>
-<div class="line"><a id="l00614" name="l00614"></a><span class="lineno">  614</span>      </div>
-<div class="line"><a id="l00615" name="l00615"></a><span class="lineno">  615</span>      separator(),</div>
-<div class="line"><a id="l00616" name="l00616"></a><span class="lineno">  616</span>      text(<span class="stringliteral">&quot;🔧 UTILITY COMMANDS&quot;</span>) | bold | color(Color::Magenta),</div>
-<div class="line"><a id="l00617" name="l00617"></a><span class="lineno">  617</span>      separator(),</div>
-<div class="line"><a id="l00618" name="l00618"></a><span class="lineno">  618</span>      hbox({</div>
-<div class="line"><a id="l00619" name="l00619"></a><span class="lineno">  619</span>          text(<span class="stringliteral">&quot;Address Conversion&quot;</span>),</div>
-<div class="line"><a id="l00620" name="l00620"></a><span class="lineno">  620</span>          filler(),</div>
-<div class="line"><a id="l00621" name="l00621"></a><span class="lineno">  621</span>          text(<span class="stringliteral">&quot;convert&quot;</span>),</div>
-<div class="line"><a id="l00622" name="l00622"></a><span class="lineno">  622</span>          filler(),</div>
-<div class="line"><a id="l00623" name="l00623"></a><span class="lineno">  623</span>          text(<span class="stringliteral">&quot;&lt;address&gt; [--to-pc|--to-snes]&quot;</span>),</div>
-<div class="line"><a id="l00624" name="l00624"></a><span class="lineno">  624</span>      }),</div>
-<div class="line"><a id="l00625" name="l00625"></a><span class="lineno">  625</span>      hbox({</div>
-<div class="line"><a id="l00626" name="l00626"></a><span class="lineno">  626</span>          text(<span class="stringliteral">&quot;Transfer Tile16&quot;</span>),</div>
-<div class="line"><a id="l00627" name="l00627"></a><span class="lineno">  627</span>          filler(),</div>
-<div class="line"><a id="l00628" name="l00628"></a><span class="lineno">  628</span>          text(<span class="stringliteral">&quot;tile16&quot;</span>),</div>
-<div class="line"><a id="l00629" name="l00629"></a><span class="lineno">  629</span>          filler(),</div>
-<div class="line"><a id="l00630" name="l00630"></a><span class="lineno">  630</span>          text(<span class="stringliteral">&quot;&lt;src&gt; &lt;dest&gt; &lt;tiles&gt;&quot;</span>),</div>
-<div class="line"><a id="l00631" name="l00631"></a><span class="lineno">  631</span>      }),</div>
-<div class="line"><a id="l00632" name="l00632"></a><span class="lineno">  632</span>      </div>
-<div class="line"><a id="l00633" name="l00633"></a><span class="lineno">  633</span>      separator(),</div>
-<div class="line"><a id="l00634" name="l00634"></a><span class="lineno">  634</span>      text(<span class="stringliteral">&quot;🌐 GLOBAL FLAGS&quot;</span>) | bold | color(Color::White),</div>
-<div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span>      separator(),</div>
-<div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>      hbox({</div>
-<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>          text(<span class="stringliteral">&quot;--tui&quot;</span>),</div>
-<div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>          filler(),</div>
-<div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>          text(<span class="stringliteral">&quot;Launch Text User Interface&quot;</span>),</div>
-<div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>      }),</div>
-<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>      hbox({</div>
-<div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>          text(<span class="stringliteral">&quot;--rom=&lt;file&gt;&quot;</span>),</div>
-<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span>          filler(),</div>
-<div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span>          text(<span class="stringliteral">&quot;Specify ROM file&quot;</span>),</div>
-<div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span>      }),</div>
-<div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span>      hbox({</div>
-<div class="line"><a id="l00647" name="l00647"></a><span class="lineno">  647</span>          text(<span class="stringliteral">&quot;--output=&lt;file&gt;&quot;</span>),</div>
-<div class="line"><a id="l00648" name="l00648"></a><span class="lineno">  648</span>          filler(),</div>
-<div class="line"><a id="l00649" name="l00649"></a><span class="lineno">  649</span>          text(<span class="stringliteral">&quot;Specify output file&quot;</span>),</div>
-<div class="line"><a id="l00650" name="l00650"></a><span class="lineno">  650</span>      }),</div>
-<div class="line"><a id="l00651" name="l00651"></a><span class="lineno">  651</span>      hbox({</div>
-<div class="line"><a id="l00652" name="l00652"></a><span class="lineno">  652</span>          text(<span class="stringliteral">&quot;--verbose&quot;</span>),</div>
-<div class="line"><a id="l00653" name="l00653"></a><span class="lineno">  653</span>          filler(),</div>
-<div class="line"><a id="l00654" name="l00654"></a><span class="lineno">  654</span>          text(<span class="stringliteral">&quot;Enable verbose output&quot;</span>),</div>
-<div class="line"><a id="l00655" name="l00655"></a><span class="lineno">  655</span>      }),</div>
-<div class="line"><a id="l00656" name="l00656"></a><span class="lineno">  656</span>      hbox({</div>
-<div class="line"><a id="l00657" name="l00657"></a><span class="lineno">  657</span>          text(<span class="stringliteral">&quot;--dry-run&quot;</span>),</div>
-<div class="line"><a id="l00658" name="l00658"></a><span class="lineno">  658</span>          filler(),</div>
-<div class="line"><a id="l00659" name="l00659"></a><span class="lineno">  659</span>          text(<span class="stringliteral">&quot;Test without changes&quot;</span>),</div>
-<div class="line"><a id="l00660" name="l00660"></a><span class="lineno">  660</span>      }),</div>
-<div class="line"><a id="l00661" name="l00661"></a><span class="lineno">  661</span>  });</div>
+<div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span>      <span class="comment">// Header</span></div>
+<div class="line"><a id="l00541" name="l00541"></a><span class="lineno">  541</span>      text(<span class="stringliteral">&quot;╔══════════════════════════════════════════════════════════╗&quot;</span>) | color(Color::Cyan1) | bold,</div>
+<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>      text(<span class="stringliteral">&quot;║            Z3ED v0.3.2 - AI-Powered CLI                 ║&quot;</span>) | color(Color::Cyan1) | bold,</div>
+<div class="line"><a id="l00543" name="l00543"></a><span class="lineno">  543</span>      text(<span class="stringliteral">&quot;║   The Legend of Zelda: A Link to the Past Editor        ║&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>      text(<span class="stringliteral">&quot;╚══════════════════════════════════════════════════════════╝&quot;</span>) | color(Color::Cyan1) | bold,</div>
+<div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>      text(<span class="stringliteral">&quot;&quot;</span>),</div>
+<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span>      hbox({</div>
+<div class="line"><a id="l00547" name="l00547"></a><span class="lineno">  547</span>          text(<span class="stringliteral">&quot;✨ Author: &quot;</span>) | color(Color::Yellow1) | bold,</div>
+<div class="line"><a id="l00548" name="l00548"></a><span class="lineno">  548</span>          text(<span class="stringliteral">&quot;scawful&quot;</span>) | color(Color::Magenta),</div>
+<div class="line"><a id="l00549" name="l00549"></a><span class="lineno">  549</span>          text(<span class="stringliteral">&quot;  │  &quot;</span>) | color(Color::GrayDark),</div>
+<div class="line"><a id="l00550" name="l00550"></a><span class="lineno">  550</span>          text(<span class="stringliteral">&quot;🤖 AI: &quot;</span>) | color(Color::Green1) | bold,</div>
+<div class="line"><a id="l00551" name="l00551"></a><span class="lineno">  551</span>          text(<span class="stringliteral">&quot;Ollama + Gemini Integration&quot;</span>) | color(Color::GreenLight),</div>
+<div class="line"><a id="l00552" name="l00552"></a><span class="lineno">  552</span>      }) | center,</div>
+<div class="line"><a id="l00553" name="l00553"></a><span class="lineno">  553</span>      text(<span class="stringliteral">&quot;&quot;</span>),</div>
+<div class="line"><a id="l00554" name="l00554"></a><span class="lineno">  554</span>      separator(),</div>
+<div class="line"><a id="l00555" name="l00555"></a><span class="lineno">  555</span>      </div>
+<div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span>      <span class="comment">// AI Agent Commands</span></div>
+<div class="line"><a id="l00557" name="l00557"></a><span class="lineno">  557</span>      text(<span class="stringliteral">&quot;&quot;</span>) | center,</div>
+<div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span>      text(<span class="stringliteral">&quot;🤖 AI AGENT COMMANDS&quot;</span>) | bold | color(Color::Green1) | center,</div>
+<div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span>      text(<span class="stringliteral">&quot;    Conversational AI for ROM inspection and modification&quot;</span>) | color(Color::GreenLight) | center,</div>
+<div class="line"><a id="l00560" name="l00560"></a><span class="lineno">  560</span>      separator(),</div>
+<div class="line"><a id="l00561" name="l00561"></a><span class="lineno">  561</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;💬 Test Chat Mode&quot;</span>) | bold | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00562" name="l00562"></a><span class="lineno">  562</span>            text(<span class="stringliteral">&quot;agent test-conversation&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00563" name="l00563"></a><span class="lineno">  563</span>            text(<span class="stringliteral">&quot;  [--rom=&lt;file&gt;] [--verbose]&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00564" name="l00564"></a><span class="lineno">  564</span>      hbox({text(<span class="stringliteral">&quot;     &quot;</span>), text(<span class="stringliteral">&quot;→ Interactive AI testing with embedded labels&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00565" name="l00565"></a><span class="lineno">  565</span>      text(<span class="stringliteral">&quot;&quot;</span>),</div>
+<div class="line"><a id="l00566" name="l00566"></a><span class="lineno">  566</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;📊 Chat with AI&quot;</span>) | bold | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00567" name="l00567"></a><span class="lineno">  567</span>            text(<span class="stringliteral">&quot;agent chat&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00568" name="l00568"></a><span class="lineno">  568</span>            text(<span class="stringliteral">&quot;  &lt;prompt&gt; [--host] [--port]&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00569" name="l00569"></a><span class="lineno">  569</span>      hbox({text(<span class="stringliteral">&quot;     &quot;</span>), text(<span class="stringliteral">&quot;→ Natural language ROM inspection (rooms, sprites, entrances)&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00570" name="l00570"></a><span class="lineno">  570</span>      text(<span class="stringliteral">&quot;&quot;</span>),</div>
+<div class="line"><a id="l00571" name="l00571"></a><span class="lineno">  571</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;🎯 Simple Chat&quot;</span>) | bold | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00572" name="l00572"></a><span class="lineno">  572</span>            text(<span class="stringliteral">&quot;agent simple-chat&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00573" name="l00573"></a><span class="lineno">  573</span>            text(<span class="stringliteral">&quot;  &lt;prompt&gt; [--rom=&lt;file&gt;]&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00574" name="l00574"></a><span class="lineno">  574</span>      hbox({text(<span class="stringliteral">&quot;     &quot;</span>), text(<span class="stringliteral">&quot;→ Quick AI queries with automatic ROM loading&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00575" name="l00575"></a><span class="lineno">  575</span>      text(<span class="stringliteral">&quot;&quot;</span>),</div>
+<div class="line"><a id="l00576" name="l00576"></a><span class="lineno">  576</span>      </div>
+<div class="line"><a id="l00577" name="l00577"></a><span class="lineno">  577</span>      separator(),</div>
+<div class="line"><a id="l00578" name="l00578"></a><span class="lineno">  578</span>      text(<span class="stringliteral">&quot;&quot;</span>) | center,</div>
+<div class="line"><a id="l00579" name="l00579"></a><span class="lineno">  579</span>      text(<span class="stringliteral">&quot;🎯 ASAR 65816 ASSEMBLER&quot;</span>) | bold | color(Color::Yellow1) | center,</div>
+<div class="line"><a id="l00580" name="l00580"></a><span class="lineno">  580</span>      text(<span class="stringliteral">&quot;    Assemble and patch with Asar integration&quot;</span>) | color(Color::YellowLight) | center,</div>
+<div class="line"><a id="l00581" name="l00581"></a><span class="lineno">  581</span>      separator(),</div>
+<div class="line"><a id="l00582" name="l00582"></a><span class="lineno">  582</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;⚡ Apply Patch&quot;</span>) | bold | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00583" name="l00583"></a><span class="lineno">  583</span>            text(<span class="stringliteral">&quot;patch apply-asar&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00584" name="l00584"></a><span class="lineno">  584</span>            text(<span class="stringliteral">&quot;  &lt;patch.asm&gt; [--rom=&lt;file&gt;]&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00585" name="l00585"></a><span class="lineno">  585</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;🔍 Extract Symbols&quot;</span>) | bold | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00586" name="l00586"></a><span class="lineno">  586</span>            text(<span class="stringliteral">&quot;patch extract-symbols&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00587" name="l00587"></a><span class="lineno">  587</span>            text(<span class="stringliteral">&quot;  &lt;patch.asm&gt;&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00588" name="l00588"></a><span class="lineno">  588</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;✓ Validate Assembly&quot;</span>) | bold | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00589" name="l00589"></a><span class="lineno">  589</span>            text(<span class="stringliteral">&quot;patch validate&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00590" name="l00590"></a><span class="lineno">  590</span>            text(<span class="stringliteral">&quot;  &lt;patch.asm&gt;&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00591" name="l00591"></a><span class="lineno">  591</span>      text(<span class="stringliteral">&quot;&quot;</span>),</div>
+<div class="line"><a id="l00592" name="l00592"></a><span class="lineno">  592</span>      </div>
+<div class="line"><a id="l00593" name="l00593"></a><span class="lineno">  593</span>      separator(),</div>
+<div class="line"><a id="l00594" name="l00594"></a><span class="lineno">  594</span>      text(<span class="stringliteral">&quot;&quot;</span>) | center,</div>
+<div class="line"><a id="l00595" name="l00595"></a><span class="lineno">  595</span>      text(<span class="stringliteral">&quot;📦 PATCH MANAGEMENT&quot;</span>) | bold | color(Color::Blue) | center,</div>
+<div class="line"><a id="l00596" name="l00596"></a><span class="lineno">  596</span>      separator(),</div>
+<div class="line"><a id="l00597" name="l00597"></a><span class="lineno">  597</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;Apply BPS Patch&quot;</span>) | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span>            text(<span class="stringliteral">&quot;patch apply-bps&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>            text(<span class="stringliteral">&quot;  &lt;patch.bps&gt; [--rom=&lt;file&gt;]&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;Create BPS Patch&quot;</span>) | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span>            text(<span class="stringliteral">&quot;patch create&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span>            text(<span class="stringliteral">&quot;  &lt;src&gt; &lt;modified&gt;&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span>      text(<span class="stringliteral">&quot;&quot;</span>),</div>
+<div class="line"><a id="l00604" name="l00604"></a><span class="lineno">  604</span>      </div>
+<div class="line"><a id="l00605" name="l00605"></a><span class="lineno">  605</span>      separator(),</div>
+<div class="line"><a id="l00606" name="l00606"></a><span class="lineno">  606</span>      text(<span class="stringliteral">&quot;&quot;</span>) | center,</div>
+<div class="line"><a id="l00607" name="l00607"></a><span class="lineno">  607</span>      text(<span class="stringliteral">&quot;🗃️  ROM OPERATIONS&quot;</span>) | bold | color(Color::Magenta) | center,</div>
+<div class="line"><a id="l00608" name="l00608"></a><span class="lineno">  608</span>      separator(),</div>
+<div class="line"><a id="l00609" name="l00609"></a><span class="lineno">  609</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;Show ROM Info&quot;</span>) | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00610" name="l00610"></a><span class="lineno">  610</span>            text(<span class="stringliteral">&quot;rom info&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00611" name="l00611"></a><span class="lineno">  611</span>            text(<span class="stringliteral">&quot;  [--rom=&lt;file&gt;]&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00612" name="l00612"></a><span class="lineno">  612</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;Validate ROM&quot;</span>) | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00613" name="l00613"></a><span class="lineno">  613</span>            text(<span class="stringliteral">&quot;rom validate&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00614" name="l00614"></a><span class="lineno">  614</span>            text(<span class="stringliteral">&quot;  [--rom=&lt;file&gt;]&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00615" name="l00615"></a><span class="lineno">  615</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;Compare ROMs&quot;</span>) | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00616" name="l00616"></a><span class="lineno">  616</span>            text(<span class="stringliteral">&quot;rom diff&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00617" name="l00617"></a><span class="lineno">  617</span>            text(<span class="stringliteral">&quot;  &lt;rom_a&gt; &lt;rom_b&gt;&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00618" name="l00618"></a><span class="lineno">  618</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;Backup ROM&quot;</span>) | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00619" name="l00619"></a><span class="lineno">  619</span>            text(<span class="stringliteral">&quot;rom backup&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00620" name="l00620"></a><span class="lineno">  620</span>            text(<span class="stringliteral">&quot;  &lt;rom_file&gt; [name]&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00621" name="l00621"></a><span class="lineno">  621</span>      hbox({text(<span class="stringliteral">&quot;  &quot;</span>), text(<span class="stringliteral">&quot;Expand ROM&quot;</span>) | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00622" name="l00622"></a><span class="lineno">  622</span>            text(<span class="stringliteral">&quot;rom expand&quot;</span>) | color(Color::White),</div>
+<div class="line"><a id="l00623" name="l00623"></a><span class="lineno">  623</span>            text(<span class="stringliteral">&quot;  &lt;rom_file&gt; &lt;size&gt;&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00624" name="l00624"></a><span class="lineno">  624</span>      text(<span class="stringliteral">&quot;&quot;</span>),</div>
+<div class="line"><a id="l00625" name="l00625"></a><span class="lineno">  625</span>      </div>
+<div class="line"><a id="l00626" name="l00626"></a><span class="lineno">  626</span>      separator(),</div>
+<div class="line"><a id="l00627" name="l00627"></a><span class="lineno">  627</span>      text(<span class="stringliteral">&quot;&quot;</span>) | center,</div>
+<div class="line"><a id="l00628" name="l00628"></a><span class="lineno">  628</span>      text(<span class="stringliteral">&quot;🏰 EMBEDDED RESOURCE LABELS&quot;</span>) | bold | color(Color::Red1) | center,</div>
+<div class="line"><a id="l00629" name="l00629"></a><span class="lineno">  629</span>      text(<span class="stringliteral">&quot;    All Zelda3 names built-in and always available to AI&quot;</span>) | color(Color::RedLight) | center,</div>
+<div class="line"><a id="l00630" name="l00630"></a><span class="lineno">  630</span>      separator(),</div>
+<div class="line"><a id="l00631" name="l00631"></a><span class="lineno">  631</span>      hbox({text(<span class="stringliteral">&quot;  📚 296+ Room Names&quot;</span>) | color(Color::GreenLight), text(<span class="stringliteral">&quot;  │  &quot;</span>) | color(Color::GrayDark),</div>
+<div class="line"><a id="l00632" name="l00632"></a><span class="lineno">  632</span>            text(<span class="stringliteral">&quot;256 Sprite Names&quot;</span>) | color(Color::GreenLight), text(<span class="stringliteral">&quot;  │  &quot;</span>) | color(Color::GrayDark),</div>
+<div class="line"><a id="l00633" name="l00633"></a><span class="lineno">  633</span>            text(<span class="stringliteral">&quot;133 Entrance Names&quot;</span>) | color(Color::GreenLight)}),</div>
+<div class="line"><a id="l00634" name="l00634"></a><span class="lineno">  634</span>      hbox({text(<span class="stringliteral">&quot;  🎨 100 Item Names&quot;</span>) | color(Color::GreenLight), text(<span class="stringliteral">&quot;  │  &quot;</span>) | color(Color::GrayDark),</div>
+<div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span>            text(<span class="stringliteral">&quot;160 Overworld Maps&quot;</span>) | color(Color::GreenLight), text(<span class="stringliteral">&quot;  │  &quot;</span>) | color(Color::GrayDark),</div>
+<div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>            text(<span class="stringliteral">&quot;48 Music Tracks&quot;</span>) | color(Color::GreenLight)}),</div>
+<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>      hbox({text(<span class="stringliteral">&quot;  🔧 60 Tile Types&quot;</span>) | color(Color::GreenLight), text(<span class="stringliteral">&quot;  │  &quot;</span>) | color(Color::GrayDark),</div>
+<div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>            text(<span class="stringliteral">&quot;26 Overlord Names&quot;</span>) | color(Color::GreenLight), text(<span class="stringliteral">&quot;  │  &quot;</span>) | color(Color::GrayDark),</div>
+<div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>            text(<span class="stringliteral">&quot;32 GFX Sheets&quot;</span>) | color(Color::GreenLight)}),</div>
+<div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>      text(<span class="stringliteral">&quot;&quot;</span>),</div>
+<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>      </div>
+<div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>      separator(),</div>
+<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span>      text(<span class="stringliteral">&quot;🌐 GLOBAL FLAGS&quot;</span>) | bold | color(Color::White) | center,</div>
+<div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span>      separator(),</div>
+<div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span>      hbox({text(<span class="stringliteral">&quot;  --tui&quot;</span>) | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span>            text(<span class="stringliteral">&quot;Launch Text User Interface&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00647" name="l00647"></a><span class="lineno">  647</span>      hbox({text(<span class="stringliteral">&quot;  --rom=&lt;file&gt;&quot;</span>) | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00648" name="l00648"></a><span class="lineno">  648</span>            text(<span class="stringliteral">&quot;Specify ROM file&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00649" name="l00649"></a><span class="lineno">  649</span>      hbox({text(<span class="stringliteral">&quot;  --output=&lt;file&gt;&quot;</span>) | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00650" name="l00650"></a><span class="lineno">  650</span>            text(<span class="stringliteral">&quot;Specify output file&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00651" name="l00651"></a><span class="lineno">  651</span>      hbox({text(<span class="stringliteral">&quot;  --verbose&quot;</span>) | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00652" name="l00652"></a><span class="lineno">  652</span>            text(<span class="stringliteral">&quot;Enable verbose output&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00653" name="l00653"></a><span class="lineno">  653</span>      hbox({text(<span class="stringliteral">&quot;  --dry-run&quot;</span>) | color(Color::Cyan), filler(),</div>
+<div class="line"><a id="l00654" name="l00654"></a><span class="lineno">  654</span>            text(<span class="stringliteral">&quot;Test without changes&quot;</span>) | color(Color::GrayLight)}),</div>
+<div class="line"><a id="l00655" name="l00655"></a><span class="lineno">  655</span>      text(<span class="stringliteral">&quot;&quot;</span>),</div>
+<div class="line"><a id="l00656" name="l00656"></a><span class="lineno">  656</span>      separator(),</div>
+<div class="line"><a id="l00657" name="l00657"></a><span class="lineno">  657</span>      text(<span class="stringliteral">&quot;Press &#39;q&#39; to quit, &#39;/&#39; for command palette, &#39;h&#39; for help&quot;</span>) | center | color(Color::GrayLight),</div>
+<div class="line"><a id="l00658" name="l00658"></a><span class="lineno">  658</span>  });</div>
+<div class="line"><a id="l00659" name="l00659"></a><span class="lineno">  659</span> </div>
+<div class="line"><a id="l00660" name="l00660"></a><span class="lineno">  660</span>  <span class="keyword">auto</span> back_button =</div>
+<div class="line"><a id="l00661" name="l00661"></a><span class="lineno">  661</span>      Button(<span class="stringliteral">&quot;Back&quot;</span>, [&amp;] { <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kMainMenu); });</div>
 <div class="line"><a id="l00662" name="l00662"></a><span class="lineno">  662</span> </div>
-<div class="line"><a id="l00663" name="l00663"></a><span class="lineno">  663</span>  <span class="keyword">auto</span> help_text_component = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>([&amp;] { <span class="keywordflow">return</span> help_text; });</div>
-<div class="line"><a id="l00664" name="l00664"></a><span class="lineno">  664</span> </div>
-<div class="line"><a id="l00665" name="l00665"></a><span class="lineno">  665</span>  <span class="keyword">auto</span> back_button =</div>
-<div class="line"><a id="l00666" name="l00666"></a><span class="lineno">  666</span>      Button(<span class="stringliteral">&quot;Back&quot;</span>, [&amp;] { <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kMainMenu); });</div>
-<div class="line"><a id="l00667" name="l00667"></a><span class="lineno">  667</span> </div>
-<div class="line"><a id="l00668" name="l00668"></a><span class="lineno">  668</span>  <span class="keyword">auto</span> container = Container::Vertical({</div>
-<div class="line"><a id="l00669" name="l00669"></a><span class="lineno">  669</span>      help_text_component,</div>
-<div class="line"><a id="l00670" name="l00670"></a><span class="lineno">  670</span>      back_button,</div>
-<div class="line"><a id="l00671" name="l00671"></a><span class="lineno">  671</span>  });</div>
-<div class="line"><a id="l00672" name="l00672"></a><span class="lineno">  672</span> </div>
-<div class="line"><a id="l00673" name="l00673"></a><span class="lineno">  673</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(container, [&amp;] {</div>
-<div class="line"><a id="l00674" name="l00674"></a><span class="lineno">  674</span>    <span class="keywordflow">return</span> vbox({</div>
-<div class="line"><a id="l00675" name="l00675"></a><span class="lineno">  675</span>               help_text_component-&gt;Render() | center,</div>
-<div class="line"><a id="l00676" name="l00676"></a><span class="lineno">  676</span>               separator(),</div>
-<div class="line"><a id="l00677" name="l00677"></a><span class="lineno">  677</span>               back_button-&gt;Render() | center,</div>
-<div class="line"><a id="l00678" name="l00678"></a><span class="lineno">  678</span>           }) |</div>
-<div class="line"><a id="l00679" name="l00679"></a><span class="lineno">  679</span>           border;</div>
-<div class="line"><a id="l00680" name="l00680"></a><span class="lineno">  680</span>  });</div>
+<div class="line"><a id="l00663" name="l00663"></a><span class="lineno">  663</span>  <span class="keyword">auto</span> container = Container::Vertical({</div>
+<div class="line"><a id="l00664" name="l00664"></a><span class="lineno">  664</span>      back_button,</div>
+<div class="line"><a id="l00665" name="l00665"></a><span class="lineno">  665</span>  });</div>
+<div class="line"><a id="l00666" name="l00666"></a><span class="lineno">  666</span> </div>
+<div class="line"><a id="l00667" name="l00667"></a><span class="lineno">  667</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(container, [&amp;] {</div>
+<div class="line"><a id="l00668" name="l00668"></a><span class="lineno">  668</span>    <span class="keywordflow">return</span> vbox({</div>
+<div class="line"><a id="l00669" name="l00669"></a><span class="lineno">  669</span>               help_text | vscroll_indicator | frame | flex,</div>
+<div class="line"><a id="l00670" name="l00670"></a><span class="lineno">  670</span>               separator(),</div>
+<div class="line"><a id="l00671" name="l00671"></a><span class="lineno">  671</span>               back_button-&gt;Render() | center,</div>
+<div class="line"><a id="l00672" name="l00672"></a><span class="lineno">  672</span>           }) |</div>
+<div class="line"><a id="l00673" name="l00673"></a><span class="lineno">  673</span>           border;</div>
+<div class="line"><a id="l00674" name="l00674"></a><span class="lineno">  674</span>  });</div>
+<div class="line"><a id="l00675" name="l00675"></a><span class="lineno">  675</span> </div>
+<div class="line"><a id="l00676" name="l00676"></a><span class="lineno">  676</span>  screen.Loop(renderer);</div>
+<div class="line"><a id="l00677" name="l00677"></a><span class="lineno">  677</span>}</div>
+</div>
+<div class="line"><a id="l00678" name="l00678"></a><span class="lineno">  678</span> </div>
+<div class="foldopen" id="foldopen00679" data-start="{" data-end="}">
+<div class="line"><a id="l00679" name="l00679"></a><span class="lineno"><a class="line" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a65c8418432a92530720b305d96f257ec">  679</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a65c8418432a92530720b305d96f257ec">HexViewerComponent</a>(ftxui::ScreenInteractive &amp;screen) {</div>
+<div class="line"><a id="l00680" name="l00680"></a><span class="lineno">  680</span>  <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#aca48c44e4e20f84f95f7d0ee8edf1303">ReturnIfRomNotLoaded</a>(screen);</div>
 <div class="line"><a id="l00681" name="l00681"></a><span class="lineno">  681</span> </div>
-<div class="line"><a id="l00682" name="l00682"></a><span class="lineno">  682</span>  screen.Loop(renderer);</div>
-<div class="line"><a id="l00683" name="l00683"></a><span class="lineno">  683</span>}</div>
-</div>
+<div class="line"><a id="l00682" name="l00682"></a><span class="lineno">  682</span>  <span class="keyword">auto</span> back_button =</div>
+<div class="line"><a id="l00683" name="l00683"></a><span class="lineno">  683</span>      Button(<span class="stringliteral">&quot;Back&quot;</span>, [&amp;] { <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kMainMenu); });</div>
 <div class="line"><a id="l00684" name="l00684"></a><span class="lineno">  684</span> </div>
-<div class="foldopen" id="foldopen00685" data-start="{" data-end="}">
-<div class="line"><a id="l00685" name="l00685"></a><span class="lineno"><a class="line" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a65c8418432a92530720b305d96f257ec">  685</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a65c8418432a92530720b305d96f257ec">HexViewerComponent</a>(ftxui::ScreenInteractive &amp;screen) {</div>
-<div class="line"><a id="l00686" name="l00686"></a><span class="lineno">  686</span>  <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#aca48c44e4e20f84f95f7d0ee8edf1303">ReturnIfRomNotLoaded</a>(screen);</div>
+<div class="line"><a id="l00685" name="l00685"></a><span class="lineno">  685</span>  <span class="keyword">static</span> <span class="keywordtype">int</span> offset = 0;</div>
+<div class="line"><a id="l00686" name="l00686"></a><span class="lineno">  686</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> lines_to_show = 20;</div>
 <div class="line"><a id="l00687" name="l00687"></a><span class="lineno">  687</span> </div>
-<div class="line"><a id="l00688" name="l00688"></a><span class="lineno">  688</span>  <span class="keyword">auto</span> back_button =</div>
-<div class="line"><a id="l00689" name="l00689"></a><span class="lineno">  689</span>      Button(<span class="stringliteral">&quot;Back&quot;</span>, [&amp;] { <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kMainMenu); });</div>
-<div class="line"><a id="l00690" name="l00690"></a><span class="lineno">  690</span> </div>
-<div class="line"><a id="l00691" name="l00691"></a><span class="lineno">  691</span>  <span class="keyword">static</span> <span class="keywordtype">int</span> offset = 0;</div>
-<div class="line"><a id="l00692" name="l00692"></a><span class="lineno">  692</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> lines_to_show = 20;</div>
-<div class="line"><a id="l00693" name="l00693"></a><span class="lineno">  693</span> </div>
-<div class="line"><a id="l00694" name="l00694"></a><span class="lineno">  694</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(back_button, [&amp;] {</div>
-<div class="line"><a id="l00695" name="l00695"></a><span class="lineno">  695</span>    std::vector&lt;Element&gt; rows;</div>
-<div class="line"><a id="l00696" name="l00696"></a><span class="lineno">  696</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; lines_to_show; ++i) {</div>
-<div class="line"><a id="l00697" name="l00697"></a><span class="lineno">  697</span>        <span class="keywordtype">int</span> current_offset = offset + (i * 16);</div>
-<div class="line"><a id="l00698" name="l00698"></a><span class="lineno">  698</span>        <span class="keywordflow">if</span> (current_offset &gt;= <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(app_context.rom.size())) {</div>
-<div class="line"><a id="l00699" name="l00699"></a><span class="lineno">  699</span>            <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00700" name="l00700"></a><span class="lineno">  700</span>        }</div>
-<div class="line"><a id="l00701" name="l00701"></a><span class="lineno">  701</span> </div>
-<div class="line"><a id="l00702" name="l00702"></a><span class="lineno">  702</span>        Elements row;</div>
-<div class="line"><a id="l00703" name="l00703"></a><span class="lineno">  703</span>        row.push_back(text(absl::StrFormat(<span class="stringliteral">&quot;0x%08X: &quot;</span>, current_offset)) | color(Color::Yellow));</div>
-<div class="line"><a id="l00704" name="l00704"></a><span class="lineno">  704</span> </div>
-<div class="line"><a id="l00705" name="l00705"></a><span class="lineno">  705</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; j &lt; 16; ++j) {</div>
-<div class="line"><a id="l00706" name="l00706"></a><span class="lineno">  706</span>            <span class="keywordflow">if</span> (current_offset + j &lt; <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(app_context.rom.size())) {</div>
-<div class="line"><a id="l00707" name="l00707"></a><span class="lineno">  707</span>                row.push_back(text(absl::StrFormat(<span class="stringliteral">&quot;%02X &quot;</span>, app_context.rom.vector()[current_offset + j])));</div>
-<div class="line"><a id="l00708" name="l00708"></a><span class="lineno">  708</span>            } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00709" name="l00709"></a><span class="lineno">  709</span>                row.push_back(text(<span class="stringliteral">&quot;   &quot;</span>));</div>
-<div class="line"><a id="l00710" name="l00710"></a><span class="lineno">  710</span>            }</div>
-<div class="line"><a id="l00711" name="l00711"></a><span class="lineno">  711</span>        }</div>
-<div class="line"><a id="l00712" name="l00712"></a><span class="lineno">  712</span> </div>
-<div class="line"><a id="l00713" name="l00713"></a><span class="lineno">  713</span>        row.push_back(separator());</div>
-<div class="line"><a id="l00714" name="l00714"></a><span class="lineno">  714</span> </div>
-<div class="line"><a id="l00715" name="l00715"></a><span class="lineno">  715</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; j &lt; 16; ++j) {</div>
-<div class="line"><a id="l00716" name="l00716"></a><span class="lineno">  716</span>            <span class="keywordflow">if</span> (current_offset + j &lt; <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(app_context.rom.size())) {</div>
-<div class="line"><a id="l00717" name="l00717"></a><span class="lineno">  717</span>                <span class="keywordtype">char</span> c = app_context.rom.vector()[current_offset + j];</div>
-<div class="line"><a id="l00718" name="l00718"></a><span class="lineno">  718</span>                row.push_back(text(std::isprint(c) ? std::string(1, c) : <span class="stringliteral">&quot;.&quot;</span>));</div>
-<div class="line"><a id="l00719" name="l00719"></a><span class="lineno">  719</span>            } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00720" name="l00720"></a><span class="lineno">  720</span>                row.push_back(text(<span class="stringliteral">&quot; &quot;</span>));</div>
-<div class="line"><a id="l00721" name="l00721"></a><span class="lineno">  721</span>            }</div>
-<div class="line"><a id="l00722" name="l00722"></a><span class="lineno">  722</span>        }</div>
-<div class="line"><a id="l00723" name="l00723"></a><span class="lineno">  723</span> </div>
-<div class="line"><a id="l00724" name="l00724"></a><span class="lineno">  724</span>        rows.push_back(hbox(row));</div>
-<div class="line"><a id="l00725" name="l00725"></a><span class="lineno">  725</span>    }</div>
-<div class="line"><a id="l00726" name="l00726"></a><span class="lineno">  726</span> </div>
-<div class="line"><a id="l00727" name="l00727"></a><span class="lineno">  727</span>    <span class="keywordflow">return</span> vbox({</div>
-<div class="line"><a id="l00728" name="l00728"></a><span class="lineno">  728</span>        text(<span class="stringliteral">&quot;Hex Viewer&quot;</span>) | center | bold,</div>
-<div class="line"><a id="l00729" name="l00729"></a><span class="lineno">  729</span>        separator(),</div>
-<div class="line"><a id="l00730" name="l00730"></a><span class="lineno">  730</span>        vbox(rows) | frame | flex,</div>
-<div class="line"><a id="l00731" name="l00731"></a><span class="lineno">  731</span>        separator(),</div>
-<div class="line"><a id="l00732" name="l00732"></a><span class="lineno">  732</span>        text(absl::StrFormat(<span class="stringliteral">&quot;Offset: 0x%08X&quot;</span>, offset)),</div>
-<div class="line"><a id="l00733" name="l00733"></a><span class="lineno">  733</span>        separator(),</div>
-<div class="line"><a id="l00734" name="l00734"></a><span class="lineno">  734</span>        back_button-&gt;Render() | center,</div>
-<div class="line"><a id="l00735" name="l00735"></a><span class="lineno">  735</span>    }) | border;</div>
-<div class="line"><a id="l00736" name="l00736"></a><span class="lineno">  736</span>  });</div>
-<div class="line"><a id="l00737" name="l00737"></a><span class="lineno">  737</span> </div>
-<div class="line"><a id="l00738" name="l00738"></a><span class="lineno">  738</span>  <span class="keyword">auto</span> event_handler = CatchEvent(renderer, [&amp;](Event event) {</div>
-<div class="line"><a id="l00739" name="l00739"></a><span class="lineno">  739</span>    <span class="keywordflow">if</span> (event == Event::ArrowUp) offset = std::max(0, offset - 16);</div>
-<div class="line"><a id="l00740" name="l00740"></a><span class="lineno">  740</span>    <span class="keywordflow">if</span> (event == Event::ArrowDown) offset = std::min(<span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(app_context.rom.size()) - (lines_to_show * 16), offset + 16);</div>
-<div class="line"><a id="l00741" name="l00741"></a><span class="lineno">  741</span>    <span class="keywordflow">if</span> (event == Event::PageUp) offset = std::max(0, offset - (lines_to_show * 16));</div>
-<div class="line"><a id="l00742" name="l00742"></a><span class="lineno">  742</span>    <span class="keywordflow">if</span> (event == Event::PageDown) offset = std::min(<span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(app_context.rom.size()) - (lines_to_show * 16), offset + (lines_to_show * 16));</div>
-<div class="line"><a id="l00743" name="l00743"></a><span class="lineno">  743</span>    <span class="keywordflow">if</span> (event == Event::Character(<span class="charliteral">&#39;q&#39;</span>)) <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kExit);</div>
-<div class="line"><a id="l00744" name="l00744"></a><span class="lineno">  744</span>    <span class="keywordflow">if</span> (event == Event::Return) <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kMainMenu);</div>
-<div class="line"><a id="l00745" name="l00745"></a><span class="lineno">  745</span>    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00746" name="l00746"></a><span class="lineno">  746</span>  });</div>
-<div class="line"><a id="l00747" name="l00747"></a><span class="lineno">  747</span> </div>
-<div class="line"><a id="l00748" name="l00748"></a><span class="lineno">  748</span>  screen.Loop(event_handler);</div>
-<div class="line"><a id="l00749" name="l00749"></a><span class="lineno">  749</span>}</div>
+<div class="line"><a id="l00688" name="l00688"></a><span class="lineno">  688</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(back_button, [&amp;] {</div>
+<div class="line"><a id="l00689" name="l00689"></a><span class="lineno">  689</span>    std::vector&lt;Element&gt; rows;</div>
+<div class="line"><a id="l00690" name="l00690"></a><span class="lineno">  690</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; lines_to_show; ++i) {</div>
+<div class="line"><a id="l00691" name="l00691"></a><span class="lineno">  691</span>        <span class="keywordtype">int</span> current_offset = offset + (i * 16);</div>
+<div class="line"><a id="l00692" name="l00692"></a><span class="lineno">  692</span>        <span class="keywordflow">if</span> (current_offset &gt;= <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(app_context.rom.size())) {</div>
+<div class="line"><a id="l00693" name="l00693"></a><span class="lineno">  693</span>            <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00694" name="l00694"></a><span class="lineno">  694</span>        }</div>
+<div class="line"><a id="l00695" name="l00695"></a><span class="lineno">  695</span> </div>
+<div class="line"><a id="l00696" name="l00696"></a><span class="lineno">  696</span>        Elements row;</div>
+<div class="line"><a id="l00697" name="l00697"></a><span class="lineno">  697</span>        row.push_back(text(absl::StrFormat(<span class="stringliteral">&quot;0x%08X: &quot;</span>, current_offset)) | color(Color::Yellow));</div>
+<div class="line"><a id="l00698" name="l00698"></a><span class="lineno">  698</span> </div>
+<div class="line"><a id="l00699" name="l00699"></a><span class="lineno">  699</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; j &lt; 16; ++j) {</div>
+<div class="line"><a id="l00700" name="l00700"></a><span class="lineno">  700</span>            <span class="keywordflow">if</span> (current_offset + j &lt; <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(app_context.rom.size())) {</div>
+<div class="line"><a id="l00701" name="l00701"></a><span class="lineno">  701</span>                row.push_back(text(absl::StrFormat(<span class="stringliteral">&quot;%02X &quot;</span>, app_context.rom.vector()[current_offset + j])));</div>
+<div class="line"><a id="l00702" name="l00702"></a><span class="lineno">  702</span>            } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00703" name="l00703"></a><span class="lineno">  703</span>                row.push_back(text(<span class="stringliteral">&quot;   &quot;</span>));</div>
+<div class="line"><a id="l00704" name="l00704"></a><span class="lineno">  704</span>            }</div>
+<div class="line"><a id="l00705" name="l00705"></a><span class="lineno">  705</span>        }</div>
+<div class="line"><a id="l00706" name="l00706"></a><span class="lineno">  706</span> </div>
+<div class="line"><a id="l00707" name="l00707"></a><span class="lineno">  707</span>        row.push_back(separator());</div>
+<div class="line"><a id="l00708" name="l00708"></a><span class="lineno">  708</span> </div>
+<div class="line"><a id="l00709" name="l00709"></a><span class="lineno">  709</span>        <span class="keywordflow">for</span> (<span class="keywordtype">int</span> j = 0; j &lt; 16; ++j) {</div>
+<div class="line"><a id="l00710" name="l00710"></a><span class="lineno">  710</span>            <span class="keywordflow">if</span> (current_offset + j &lt; <span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(app_context.rom.size())) {</div>
+<div class="line"><a id="l00711" name="l00711"></a><span class="lineno">  711</span>                <span class="keywordtype">char</span> c = app_context.rom.vector()[current_offset + j];</div>
+<div class="line"><a id="l00712" name="l00712"></a><span class="lineno">  712</span>                row.push_back(text(std::isprint(c) ? std::string(1, c) : <span class="stringliteral">&quot;.&quot;</span>));</div>
+<div class="line"><a id="l00713" name="l00713"></a><span class="lineno">  713</span>            } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00714" name="l00714"></a><span class="lineno">  714</span>                row.push_back(text(<span class="stringliteral">&quot; &quot;</span>));</div>
+<div class="line"><a id="l00715" name="l00715"></a><span class="lineno">  715</span>            }</div>
+<div class="line"><a id="l00716" name="l00716"></a><span class="lineno">  716</span>        }</div>
+<div class="line"><a id="l00717" name="l00717"></a><span class="lineno">  717</span> </div>
+<div class="line"><a id="l00718" name="l00718"></a><span class="lineno">  718</span>        rows.push_back(hbox(row));</div>
+<div class="line"><a id="l00719" name="l00719"></a><span class="lineno">  719</span>    }</div>
+<div class="line"><a id="l00720" name="l00720"></a><span class="lineno">  720</span> </div>
+<div class="line"><a id="l00721" name="l00721"></a><span class="lineno">  721</span>    <span class="keywordflow">return</span> vbox({</div>
+<div class="line"><a id="l00722" name="l00722"></a><span class="lineno">  722</span>        text(<span class="stringliteral">&quot;Hex Viewer&quot;</span>) | center | bold,</div>
+<div class="line"><a id="l00723" name="l00723"></a><span class="lineno">  723</span>        separator(),</div>
+<div class="line"><a id="l00724" name="l00724"></a><span class="lineno">  724</span>        vbox(rows) | frame | flex,</div>
+<div class="line"><a id="l00725" name="l00725"></a><span class="lineno">  725</span>        separator(),</div>
+<div class="line"><a id="l00726" name="l00726"></a><span class="lineno">  726</span>        text(absl::StrFormat(<span class="stringliteral">&quot;Offset: 0x%08X&quot;</span>, offset)),</div>
+<div class="line"><a id="l00727" name="l00727"></a><span class="lineno">  727</span>        separator(),</div>
+<div class="line"><a id="l00728" name="l00728"></a><span class="lineno">  728</span>        back_button-&gt;Render() | center,</div>
+<div class="line"><a id="l00729" name="l00729"></a><span class="lineno">  729</span>    }) | border;</div>
+<div class="line"><a id="l00730" name="l00730"></a><span class="lineno">  730</span>  });</div>
+<div class="line"><a id="l00731" name="l00731"></a><span class="lineno">  731</span> </div>
+<div class="line"><a id="l00732" name="l00732"></a><span class="lineno">  732</span>  <span class="keyword">auto</span> event_handler = CatchEvent(renderer, [&amp;](Event event) {</div>
+<div class="line"><a id="l00733" name="l00733"></a><span class="lineno">  733</span>    <span class="keywordflow">if</span> (event == Event::ArrowUp) offset = std::max(0, offset - 16);</div>
+<div class="line"><a id="l00734" name="l00734"></a><span class="lineno">  734</span>    <span class="keywordflow">if</span> (event == Event::ArrowDown) offset = std::min(<span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(app_context.rom.size()) - (lines_to_show * 16), offset + 16);</div>
+<div class="line"><a id="l00735" name="l00735"></a><span class="lineno">  735</span>    <span class="keywordflow">if</span> (event == Event::PageUp) offset = std::max(0, offset - (lines_to_show * 16));</div>
+<div class="line"><a id="l00736" name="l00736"></a><span class="lineno">  736</span>    <span class="keywordflow">if</span> (event == Event::PageDown) offset = std::min(<span class="keyword">static_cast&lt;</span><span class="keywordtype">int</span><span class="keyword">&gt;</span>(app_context.rom.size()) - (lines_to_show * 16), offset + (lines_to_show * 16));</div>
+<div class="line"><a id="l00737" name="l00737"></a><span class="lineno">  737</span>    <span class="keywordflow">if</span> (event == Event::Character(<span class="charliteral">&#39;q&#39;</span>)) <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kExit);</div>
+<div class="line"><a id="l00738" name="l00738"></a><span class="lineno">  738</span>    <span class="keywordflow">if</span> (event == Event::Return) <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kMainMenu);</div>
+<div class="line"><a id="l00739" name="l00739"></a><span class="lineno">  739</span>    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00740" name="l00740"></a><span class="lineno">  740</span>  });</div>
+<div class="line"><a id="l00741" name="l00741"></a><span class="lineno">  741</span> </div>
+<div class="line"><a id="l00742" name="l00742"></a><span class="lineno">  742</span>  screen.Loop(event_handler);</div>
+<div class="line"><a id="l00743" name="l00743"></a><span class="lineno">  743</span>}</div>
 </div>
-<div class="line"><a id="l00750" name="l00750"></a><span class="lineno">  750</span> </div>
-<div class="foldopen" id="foldopen00751" data-start="{" data-end="}">
-<div class="line"><a id="l00751" name="l00751"></a><span class="lineno"><a class="line" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548">  751</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548">MainMenuComponent</a>(ftxui::ScreenInteractive &amp;screen) {</div>
-<div class="line"><a id="l00752" name="l00752"></a><span class="lineno">  752</span>  <span class="comment">// Tracks which menu item is selected.</span></div>
-<div class="line"><a id="l00753" name="l00753"></a><span class="lineno">  753</span>  <span class="keyword">static</span> <span class="keywordtype">int</span> selected = 0;</div>
-<div class="line"><a id="l00754" name="l00754"></a><span class="lineno">  754</span>  MenuOption option;</div>
-<div class="line"><a id="l00755" name="l00755"></a><span class="lineno">  755</span>  option.focused_entry = &amp;selected;</div>
-<div class="line"><a id="l00756" name="l00756"></a><span class="lineno">  756</span>  <span class="keyword">auto</span> menu = Menu(&amp;<a class="code hl_variable" href="../../dd/d63/namespaceyaze_1_1cli.html#a4faed45116bb119fd88fb89b6eaab816">kMainMenuEntries</a>, &amp;selected, option);</div>
-<div class="line"><a id="l00757" name="l00757"></a><span class="lineno">  757</span>  menu = CatchEvent(</div>
-<div class="line"><a id="l00758" name="l00758"></a><span class="lineno">  758</span>      menu, [&amp;](Event event) { <span class="keywordflow">return</span> <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a2c1dc8ab15f8e8bbcf375a362c11d942">HandleInput</a>(screen, event, selected); });</div>
-<div class="line"><a id="l00759" name="l00759"></a><span class="lineno">  759</span> </div>
-<div class="line"><a id="l00760" name="l00760"></a><span class="lineno">  760</span>  std::string rom_information = <span class="stringliteral">&quot;ROM not loaded&quot;</span>;</div>
-<div class="line"><a id="l00761" name="l00761"></a><span class="lineno">  761</span>  <span class="keywordflow">if</span> (app_context.rom.is_loaded()) {</div>
-<div class="line"><a id="l00762" name="l00762"></a><span class="lineno">  762</span>    rom_information = app_context.rom.title();</div>
-<div class="line"><a id="l00763" name="l00763"></a><span class="lineno">  763</span>  }</div>
-<div class="line"><a id="l00764" name="l00764"></a><span class="lineno">  764</span> </div>
-<div class="line"><a id="l00765" name="l00765"></a><span class="lineno">  765</span>  <span class="comment">// Create ASCII logo with styling</span></div>
-<div class="line"><a id="l00766" name="l00766"></a><span class="lineno">  766</span>  <span class="keyword">auto</span> logo = vbox({</div>
-<div class="line"><a id="l00767" name="l00767"></a><span class="lineno">  767</span>      text(<span class="stringliteral">&quot;    ███████╗██████╗ ███████╗██████╗ &quot;</span>) | color(Color::Cyan1) | bold,</div>
-<div class="line"><a id="l00768" name="l00768"></a><span class="lineno">  768</span>      text(<span class="stringliteral">&quot;    ╚══███╔╝╚════██╗██╔════╝██╔══██╗&quot;</span>) | color(Color::Cyan1) | bold,</div>
-<div class="line"><a id="l00769" name="l00769"></a><span class="lineno">  769</span>      text(<span class="stringliteral">&quot;      ███╔╝  █████╔╝█████╗  ██║  ██║&quot;</span>) | color(Color::Cyan1) | bold,</div>
-<div class="line"><a id="l00770" name="l00770"></a><span class="lineno">  770</span>      text(<span class="stringliteral">&quot;     ███╔╝   ╚═══██╗██╔══╝  ██║  ██║&quot;</span>) | color(Color::Cyan1) | bold,</div>
-<div class="line"><a id="l00771" name="l00771"></a><span class="lineno">  771</span>      text(<span class="stringliteral">&quot;    ███████╗██████╔╝███████╗██████╔╝&quot;</span>) | color(Color::Cyan1) | bold,</div>
-<div class="line"><a id="l00772" name="l00772"></a><span class="lineno">  772</span>      text(<span class="stringliteral">&quot;    ╚══════╝╚═════╝ ╚══════╝╚═════╝ &quot;</span>) | color(Color::Cyan1) | bold,</div>
-<div class="line"><a id="l00773" name="l00773"></a><span class="lineno">  773</span>      text(<span class="stringliteral">&quot;&quot;</span>) | center,</div>
-<div class="line"><a id="l00774" name="l00774"></a><span class="lineno">  774</span>      hbox({</div>
-<div class="line"><a id="l00775" name="l00775"></a><span class="lineno">  775</span>          text(<span class="stringliteral">&quot;       ▲      &quot;</span>) | color(Color::Yellow1) | bold,</div>
-<div class="line"><a id="l00776" name="l00776"></a><span class="lineno">  776</span>          text(<span class="stringliteral">&quot;Zelda 3 Editor&quot;</span>) | color(Color::White) | bold,</div>
-<div class="line"><a id="l00777" name="l00777"></a><span class="lineno">  777</span>      }) | center,</div>
-<div class="line"><a id="l00778" name="l00778"></a><span class="lineno">  778</span>      hbox({</div>
-<div class="line"><a id="l00779" name="l00779"></a><span class="lineno">  779</span>          text(<span class="stringliteral">&quot;      ▲ ▲     &quot;</span>) | color(Color::Yellow1) | bold,</div>
-<div class="line"><a id="l00780" name="l00780"></a><span class="lineno">  780</span>          text(<span class="stringliteral">&quot;AI-Powered CLI&quot;</span>) | color(Color::GrayLight),</div>
-<div class="line"><a id="l00781" name="l00781"></a><span class="lineno">  781</span>      }) | center,</div>
-<div class="line"><a id="l00782" name="l00782"></a><span class="lineno">  782</span>      text(<span class="stringliteral">&quot;     ▲▲▲▲▲    &quot;</span>) | color(Color::Yellow1) | bold | center,</div>
-<div class="line"><a id="l00783" name="l00783"></a><span class="lineno">  783</span>  });</div>
+<div class="line"><a id="l00744" name="l00744"></a><span class="lineno">  744</span> </div>
+<div class="foldopen" id="foldopen00745" data-start="{" data-end="}">
+<div class="line"><a id="l00745" name="l00745"></a><span class="lineno"><a class="line" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548">  745</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548">MainMenuComponent</a>(ftxui::ScreenInteractive &amp;screen) {</div>
+<div class="line"><a id="l00746" name="l00746"></a><span class="lineno">  746</span>  <span class="comment">// Tracks which menu item is selected.</span></div>
+<div class="line"><a id="l00747" name="l00747"></a><span class="lineno">  747</span>  <span class="keyword">static</span> <span class="keywordtype">int</span> selected = 0;</div>
+<div class="line"><a id="l00748" name="l00748"></a><span class="lineno">  748</span>  MenuOption option;</div>
+<div class="line"><a id="l00749" name="l00749"></a><span class="lineno">  749</span>  option.focused_entry = &amp;selected;</div>
+<div class="line"><a id="l00750" name="l00750"></a><span class="lineno">  750</span>  <span class="keyword">auto</span> menu = Menu(&amp;<a class="code hl_variable" href="../../dd/d63/namespaceyaze_1_1cli.html#a4faed45116bb119fd88fb89b6eaab816">kMainMenuEntries</a>, &amp;selected, option);</div>
+<div class="line"><a id="l00751" name="l00751"></a><span class="lineno">  751</span>  menu = CatchEvent(</div>
+<div class="line"><a id="l00752" name="l00752"></a><span class="lineno">  752</span>      menu, [&amp;](Event event) { <span class="keywordflow">return</span> <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a2c1dc8ab15f8e8bbcf375a362c11d942">HandleInput</a>(screen, event, selected); });</div>
+<div class="line"><a id="l00753" name="l00753"></a><span class="lineno">  753</span> </div>
+<div class="line"><a id="l00754" name="l00754"></a><span class="lineno">  754</span>  std::string rom_information = <span class="stringliteral">&quot;ROM not loaded&quot;</span>;</div>
+<div class="line"><a id="l00755" name="l00755"></a><span class="lineno">  755</span>  <span class="keywordflow">if</span> (app_context.rom.is_loaded()) {</div>
+<div class="line"><a id="l00756" name="l00756"></a><span class="lineno">  756</span>    rom_information = app_context.rom.title();</div>
+<div class="line"><a id="l00757" name="l00757"></a><span class="lineno">  757</span>  }</div>
+<div class="line"><a id="l00758" name="l00758"></a><span class="lineno">  758</span> </div>
+<div class="line"><a id="l00759" name="l00759"></a><span class="lineno">  759</span>  <span class="comment">// Create ASCII logo with styling</span></div>
+<div class="line"><a id="l00760" name="l00760"></a><span class="lineno">  760</span>  <span class="keyword">auto</span> logo = vbox({</div>
+<div class="line"><a id="l00761" name="l00761"></a><span class="lineno">  761</span>      text(<span class="stringliteral">&quot;    ███████╗██████╗ ███████╗██████╗ &quot;</span>) | color(Color::Cyan1) | bold,</div>
+<div class="line"><a id="l00762" name="l00762"></a><span class="lineno">  762</span>      text(<span class="stringliteral">&quot;    ╚══███╔╝╚════██╗██╔════╝██╔══██╗&quot;</span>) | color(Color::Cyan1) | bold,</div>
+<div class="line"><a id="l00763" name="l00763"></a><span class="lineno">  763</span>      text(<span class="stringliteral">&quot;      ███╔╝  █████╔╝█████╗  ██║  ██║&quot;</span>) | color(Color::Cyan1) | bold,</div>
+<div class="line"><a id="l00764" name="l00764"></a><span class="lineno">  764</span>      text(<span class="stringliteral">&quot;     ███╔╝   ╚═══██╗██╔══╝  ██║  ██║&quot;</span>) | color(Color::Cyan1) | bold,</div>
+<div class="line"><a id="l00765" name="l00765"></a><span class="lineno">  765</span>      text(<span class="stringliteral">&quot;    ███████╗██████╔╝███████╗██████╔╝&quot;</span>) | color(Color::Cyan1) | bold,</div>
+<div class="line"><a id="l00766" name="l00766"></a><span class="lineno">  766</span>      text(<span class="stringliteral">&quot;    ╚══════╝╚═════╝ ╚══════╝╚═════╝ &quot;</span>) | color(Color::Cyan1) | bold,</div>
+<div class="line"><a id="l00767" name="l00767"></a><span class="lineno">  767</span>      text(<span class="stringliteral">&quot;&quot;</span>) | center,</div>
+<div class="line"><a id="l00768" name="l00768"></a><span class="lineno">  768</span>      hbox({</div>
+<div class="line"><a id="l00769" name="l00769"></a><span class="lineno">  769</span>          text(<span class="stringliteral">&quot;       ▲      &quot;</span>) | color(Color::Yellow1) | bold,</div>
+<div class="line"><a id="l00770" name="l00770"></a><span class="lineno">  770</span>          text(<span class="stringliteral">&quot;Zelda 3 Editor&quot;</span>) | color(Color::White) | bold,</div>
+<div class="line"><a id="l00771" name="l00771"></a><span class="lineno">  771</span>      }) | center,</div>
+<div class="line"><a id="l00772" name="l00772"></a><span class="lineno">  772</span>      hbox({</div>
+<div class="line"><a id="l00773" name="l00773"></a><span class="lineno">  773</span>          text(<span class="stringliteral">&quot;      ▲ ▲     &quot;</span>) | color(Color::Yellow1) | bold,</div>
+<div class="line"><a id="l00774" name="l00774"></a><span class="lineno">  774</span>          text(<span class="stringliteral">&quot;AI-Powered CLI&quot;</span>) | color(Color::GrayLight),</div>
+<div class="line"><a id="l00775" name="l00775"></a><span class="lineno">  775</span>      }) | center,</div>
+<div class="line"><a id="l00776" name="l00776"></a><span class="lineno">  776</span>      text(<span class="stringliteral">&quot;     ▲▲▲▲▲    &quot;</span>) | color(Color::Yellow1) | bold | center,</div>
+<div class="line"><a id="l00777" name="l00777"></a><span class="lineno">  777</span>  });</div>
+<div class="line"><a id="l00778" name="l00778"></a><span class="lineno">  778</span> </div>
+<div class="line"><a id="l00779" name="l00779"></a><span class="lineno">  779</span>  <span class="keyword">auto</span> title = border(hbox({</div>
+<div class="line"><a id="l00780" name="l00780"></a><span class="lineno">  780</span>      text(<span class="stringliteral">&quot;v0.3.2&quot;</span>) | bold | color(Color::Green1),</div>
+<div class="line"><a id="l00781" name="l00781"></a><span class="lineno">  781</span>      separator(),</div>
+<div class="line"><a id="l00782" name="l00782"></a><span class="lineno">  782</span>      text(rom_information) | bold | color(Color::Red1),</div>
+<div class="line"><a id="l00783" name="l00783"></a><span class="lineno">  783</span>  }));</div>
 <div class="line"><a id="l00784" name="l00784"></a><span class="lineno">  784</span> </div>
-<div class="line"><a id="l00785" name="l00785"></a><span class="lineno">  785</span>  <span class="keyword">auto</span> title = border(hbox({</div>
-<div class="line"><a id="l00786" name="l00786"></a><span class="lineno">  786</span>      text(<span class="stringliteral">&quot;v0.3.2&quot;</span>) | bold | color(Color::Green1),</div>
-<div class="line"><a id="l00787" name="l00787"></a><span class="lineno">  787</span>      separator(),</div>
-<div class="line"><a id="l00788" name="l00788"></a><span class="lineno">  788</span>      text(rom_information) | bold | color(Color::Red1),</div>
-<div class="line"><a id="l00789" name="l00789"></a><span class="lineno">  789</span>  }));</div>
-<div class="line"><a id="l00790" name="l00790"></a><span class="lineno">  790</span> </div>
-<div class="line"><a id="l00791" name="l00791"></a><span class="lineno">  791</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(menu, [&amp;] {</div>
-<div class="line"><a id="l00792" name="l00792"></a><span class="lineno">  792</span>    <span class="keywordflow">return</span> vbox({</div>
-<div class="line"><a id="l00793" name="l00793"></a><span class="lineno">  793</span>        separator(),</div>
-<div class="line"><a id="l00794" name="l00794"></a><span class="lineno">  794</span>        logo | center,</div>
-<div class="line"><a id="l00795" name="l00795"></a><span class="lineno">  795</span>        separator(),</div>
-<div class="line"><a id="l00796" name="l00796"></a><span class="lineno">  796</span>        title | center,</div>
-<div class="line"><a id="l00797" name="l00797"></a><span class="lineno">  797</span>        separator(),</div>
-<div class="line"><a id="l00798" name="l00798"></a><span class="lineno">  798</span>        menu-&gt;Render() | center,</div>
-<div class="line"><a id="l00799" name="l00799"></a><span class="lineno">  799</span>    });</div>
-<div class="line"><a id="l00800" name="l00800"></a><span class="lineno">  800</span>  });</div>
-<div class="line"><a id="l00801" name="l00801"></a><span class="lineno">  801</span> </div>
-<div class="line"><a id="l00802" name="l00802"></a><span class="lineno">  802</span>  <span class="comment">// Catch events like pressing Enter to switch layout or pressing &#39;q&#39; to exit.</span></div>
-<div class="line"><a id="l00803" name="l00803"></a><span class="lineno">  803</span>  <span class="keyword">auto</span> main_component = CatchEvent(renderer, [&amp;](Event event) {</div>
-<div class="line"><a id="l00804" name="l00804"></a><span class="lineno">  804</span>    <span class="keywordflow">if</span> (event == Event::Return) {</div>
-<div class="line"><a id="l00805" name="l00805"></a><span class="lineno">  805</span>      <span class="keywordflow">switch</span> ((<a class="code hl_enumeration" href="../../dd/d63/namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395">MainMenuEntry</a>)selected) {</div>
-<div class="line"><a id="l00806" name="l00806"></a><span class="lineno">  806</span>        <span class="keywordflow">case</span> MainMenuEntry::kLoadRom:</div>
-<div class="line"><a id="l00807" name="l00807"></a><span class="lineno">  807</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kLoadRom);</div>
+<div class="line"><a id="l00785" name="l00785"></a><span class="lineno">  785</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(menu, [&amp;] {</div>
+<div class="line"><a id="l00786" name="l00786"></a><span class="lineno">  786</span>    <span class="keywordflow">return</span> vbox({</div>
+<div class="line"><a id="l00787" name="l00787"></a><span class="lineno">  787</span>        separator(),</div>
+<div class="line"><a id="l00788" name="l00788"></a><span class="lineno">  788</span>        logo | center,</div>
+<div class="line"><a id="l00789" name="l00789"></a><span class="lineno">  789</span>        separator(),</div>
+<div class="line"><a id="l00790" name="l00790"></a><span class="lineno">  790</span>        title | center,</div>
+<div class="line"><a id="l00791" name="l00791"></a><span class="lineno">  791</span>        separator(),</div>
+<div class="line"><a id="l00792" name="l00792"></a><span class="lineno">  792</span>        menu-&gt;Render() | center,</div>
+<div class="line"><a id="l00793" name="l00793"></a><span class="lineno">  793</span>    });</div>
+<div class="line"><a id="l00794" name="l00794"></a><span class="lineno">  794</span>  });</div>
+<div class="line"><a id="l00795" name="l00795"></a><span class="lineno">  795</span> </div>
+<div class="line"><a id="l00796" name="l00796"></a><span class="lineno">  796</span>  <span class="comment">// Catch events like pressing Enter to switch layout or pressing &#39;q&#39; to exit.</span></div>
+<div class="line"><a id="l00797" name="l00797"></a><span class="lineno">  797</span>  <span class="keyword">auto</span> main_component = CatchEvent(renderer, [&amp;](Event event) {</div>
+<div class="line"><a id="l00798" name="l00798"></a><span class="lineno">  798</span>    <span class="keywordflow">if</span> (event == Event::Return) {</div>
+<div class="line"><a id="l00799" name="l00799"></a><span class="lineno">  799</span>      <span class="keywordflow">switch</span> ((<a class="code hl_enumeration" href="../../dd/d63/namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395">MainMenuEntry</a>)selected) {</div>
+<div class="line"><a id="l00800" name="l00800"></a><span class="lineno">  800</span>        <span class="keywordflow">case</span> MainMenuEntry::kLoadRom:</div>
+<div class="line"><a id="l00801" name="l00801"></a><span class="lineno">  801</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kLoadRom);</div>
+<div class="line"><a id="l00802" name="l00802"></a><span class="lineno">  802</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00803" name="l00803"></a><span class="lineno">  803</span>        <span class="keywordflow">case</span> MainMenuEntry::kApplyAsarPatch:</div>
+<div class="line"><a id="l00804" name="l00804"></a><span class="lineno">  804</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kApplyAsarPatch);</div>
+<div class="line"><a id="l00805" name="l00805"></a><span class="lineno">  805</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00806" name="l00806"></a><span class="lineno">  806</span>        <span class="keywordflow">case</span> MainMenuEntry::kApplyBpsPatch:</div>
+<div class="line"><a id="l00807" name="l00807"></a><span class="lineno">  807</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kApplyBpsPatch);</div>
 <div class="line"><a id="l00808" name="l00808"></a><span class="lineno">  808</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00809" name="l00809"></a><span class="lineno">  809</span>        <span class="keywordflow">case</span> MainMenuEntry::kApplyAsarPatch:</div>
-<div class="line"><a id="l00810" name="l00810"></a><span class="lineno">  810</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kApplyAsarPatch);</div>
+<div class="line"><a id="l00809" name="l00809"></a><span class="lineno">  809</span>        <span class="keywordflow">case</span> MainMenuEntry::kExtractSymbols:</div>
+<div class="line"><a id="l00810" name="l00810"></a><span class="lineno">  810</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kExtractSymbols);</div>
 <div class="line"><a id="l00811" name="l00811"></a><span class="lineno">  811</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00812" name="l00812"></a><span class="lineno">  812</span>        <span class="keywordflow">case</span> MainMenuEntry::kApplyBpsPatch:</div>
-<div class="line"><a id="l00813" name="l00813"></a><span class="lineno">  813</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kApplyBpsPatch);</div>
+<div class="line"><a id="l00812" name="l00812"></a><span class="lineno">  812</span>        <span class="keywordflow">case</span> MainMenuEntry::kValidateAssembly:</div>
+<div class="line"><a id="l00813" name="l00813"></a><span class="lineno">  813</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kValidateAssembly);</div>
 <div class="line"><a id="l00814" name="l00814"></a><span class="lineno">  814</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00815" name="l00815"></a><span class="lineno">  815</span>        <span class="keywordflow">case</span> MainMenuEntry::kExtractSymbols:</div>
-<div class="line"><a id="l00816" name="l00816"></a><span class="lineno">  816</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kExtractSymbols);</div>
+<div class="line"><a id="l00815" name="l00815"></a><span class="lineno">  815</span>        <span class="keywordflow">case</span> MainMenuEntry::kGenerateSaveFile:</div>
+<div class="line"><a id="l00816" name="l00816"></a><span class="lineno">  816</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kGenerateSaveFile);</div>
 <div class="line"><a id="l00817" name="l00817"></a><span class="lineno">  817</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span>        <span class="keywordflow">case</span> MainMenuEntry::kValidateAssembly:</div>
-<div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kValidateAssembly);</div>
+<div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span>        <span class="keywordflow">case</span> MainMenuEntry::kPaletteEditor:</div>
+<div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kPaletteEditor);</div>
 <div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span>        <span class="keywordflow">case</span> MainMenuEntry::kGenerateSaveFile:</div>
-<div class="line"><a id="l00822" name="l00822"></a><span class="lineno">  822</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kGenerateSaveFile);</div>
+<div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span>        <span class="keywordflow">case</span> MainMenuEntry::kHexViewer:</div>
+<div class="line"><a id="l00822" name="l00822"></a><span class="lineno">  822</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kHexViewer);</div>
 <div class="line"><a id="l00823" name="l00823"></a><span class="lineno">  823</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00824" name="l00824"></a><span class="lineno">  824</span>        <span class="keywordflow">case</span> MainMenuEntry::kPaletteEditor:</div>
-<div class="line"><a id="l00825" name="l00825"></a><span class="lineno">  825</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kPaletteEditor);</div>
+<div class="line"><a id="l00824" name="l00824"></a><span class="lineno">  824</span>        <span class="keywordflow">case</span> MainMenuEntry::kCommandPalette:</div>
+<div class="line"><a id="l00825" name="l00825"></a><span class="lineno">  825</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kCommandPalette);</div>
 <div class="line"><a id="l00826" name="l00826"></a><span class="lineno">  826</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00827" name="l00827"></a><span class="lineno">  827</span>        <span class="keywordflow">case</span> MainMenuEntry::kHexViewer:</div>
-<div class="line"><a id="l00828" name="l00828"></a><span class="lineno">  828</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kHexViewer);</div>
+<div class="line"><a id="l00827" name="l00827"></a><span class="lineno">  827</span>        <span class="keywordflow">case</span> MainMenuEntry::kHelp:</div>
+<div class="line"><a id="l00828" name="l00828"></a><span class="lineno">  828</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kHelp);</div>
 <div class="line"><a id="l00829" name="l00829"></a><span class="lineno">  829</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00830" name="l00830"></a><span class="lineno">  830</span>        <span class="keywordflow">case</span> MainMenuEntry::kCommandPalette:</div>
-<div class="line"><a id="l00831" name="l00831"></a><span class="lineno">  831</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kCommandPalette);</div>
+<div class="line"><a id="l00830" name="l00830"></a><span class="lineno">  830</span>        <span class="keywordflow">case</span> MainMenuEntry::kExit:</div>
+<div class="line"><a id="l00831" name="l00831"></a><span class="lineno">  831</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kExit);</div>
 <div class="line"><a id="l00832" name="l00832"></a><span class="lineno">  832</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00833" name="l00833"></a><span class="lineno">  833</span>        <span class="keywordflow">case</span> MainMenuEntry::kHelp:</div>
-<div class="line"><a id="l00834" name="l00834"></a><span class="lineno">  834</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kHelp);</div>
-<div class="line"><a id="l00835" name="l00835"></a><span class="lineno">  835</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00836" name="l00836"></a><span class="lineno">  836</span>        <span class="keywordflow">case</span> MainMenuEntry::kExit:</div>
-<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span>          <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kExit);</div>
-<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span>          <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00839" name="l00839"></a><span class="lineno">  839</span>      }</div>
-<div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>    }</div>
-<div class="line"><a id="l00841" name="l00841"></a><span class="lineno">  841</span> </div>
-<div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span>    <span class="keywordflow">if</span> (event == Event::Character(<span class="charliteral">&#39;q&#39;</span>)) {</div>
-<div class="line"><a id="l00843" name="l00843"></a><span class="lineno">  843</span>      <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kExit);</div>
-<div class="line"><a id="l00844" name="l00844"></a><span class="lineno">  844</span>      <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00845" name="l00845"></a><span class="lineno">  845</span>    }</div>
-<div class="line"><a id="l00846" name="l00846"></a><span class="lineno">  846</span>    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00847" name="l00847"></a><span class="lineno">  847</span>  });</div>
-<div class="line"><a id="l00848" name="l00848"></a><span class="lineno">  848</span> </div>
-<div class="line"><a id="l00849" name="l00849"></a><span class="lineno">  849</span>  screen.Loop(main_component);</div>
-<div class="line"><a id="l00850" name="l00850"></a><span class="lineno">  850</span>}</div>
+<div class="line"><a id="l00833" name="l00833"></a><span class="lineno">  833</span>      }</div>
+<div class="line"><a id="l00834" name="l00834"></a><span class="lineno">  834</span>    }</div>
+<div class="line"><a id="l00835" name="l00835"></a><span class="lineno">  835</span> </div>
+<div class="line"><a id="l00836" name="l00836"></a><span class="lineno">  836</span>    <span class="keywordflow">if</span> (event == Event::Character(<span class="charliteral">&#39;q&#39;</span>)) {</div>
+<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span>      <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kExit);</div>
+<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span>      <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00839" name="l00839"></a><span class="lineno">  839</span>    }</div>
+<div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00841" name="l00841"></a><span class="lineno">  841</span>  });</div>
+<div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span> </div>
+<div class="line"><a id="l00843" name="l00843"></a><span class="lineno">  843</span>  screen.Loop(main_component);</div>
+<div class="line"><a id="l00844" name="l00844"></a><span class="lineno">  844</span>}</div>
 </div>
-<div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span> </div>
-<div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span>}  <span class="comment">// namespace</span></div>
+<div class="line"><a id="l00845" name="l00845"></a><span class="lineno">  845</span> </div>
+<div class="line"><a id="l00846" name="l00846"></a><span class="lineno">  846</span>}  <span class="comment">// namespace</span></div>
 </div>
-<div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span> </div>
-<div class="foldopen" id="foldopen00854" data-start="{" data-end="}">
-<div class="line"><a id="l00854" name="l00854"></a><span class="lineno"><a class="line" href="../../dd/d63/namespaceyaze_1_1cli.html#a7cde2d3d2d98674ab1401d816314fdb3">  854</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../dd/d63/namespaceyaze_1_1cli.html#a7cde2d3d2d98674ab1401d816314fdb3">ShowMain</a>() {</div>
-<div class="line"><a id="l00855" name="l00855"></a><span class="lineno">  855</span>  <span class="keyword">auto</span> screen = ScreenInteractive::TerminalOutput();</div>
-<div class="line"><a id="l00856" name="l00856"></a><span class="lineno">  856</span>  <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
-<div class="line"><a id="l00857" name="l00857"></a><span class="lineno">  857</span>    <span class="keywordflow">switch</span> (app_context.current_layout) {</div>
-<div class="line"><a id="l00858" name="l00858"></a><span class="lineno">  858</span>      <span class="keywordflow">case</span> LayoutID::kMainMenu: {</div>
-<div class="line"><a id="l00859" name="l00859"></a><span class="lineno">  859</span>        MainMenuComponent(screen);</div>
+<div class="line"><a id="l00847" name="l00847"></a><span class="lineno">  847</span> </div>
+<div class="foldopen" id="foldopen00848" data-start="{" data-end="}">
+<div class="line"><a id="l00848" name="l00848"></a><span class="lineno"><a class="line" href="../../dd/d63/namespaceyaze_1_1cli.html#a7cde2d3d2d98674ab1401d816314fdb3">  848</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../dd/d63/namespaceyaze_1_1cli.html#a7cde2d3d2d98674ab1401d816314fdb3">ShowMain</a>() {</div>
+<div class="line"><a id="l00849" name="l00849"></a><span class="lineno">  849</span>  <span class="keyword">auto</span> screen = ScreenInteractive::TerminalOutput();</div>
+<div class="line"><a id="l00850" name="l00850"></a><span class="lineno">  850</span>  <span class="keywordflow">while</span> (<span class="keyword">true</span>) {</div>
+<div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span>    <span class="keywordflow">switch</span> (app_context.current_layout) {</div>
+<div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span>      <span class="keywordflow">case</span> LayoutID::kMainMenu: {</div>
+<div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span>        MainMenuComponent(screen);</div>
+<div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span>      } <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00855" name="l00855"></a><span class="lineno">  855</span>      <span class="keywordflow">case</span> LayoutID::kLoadRom: {</div>
+<div class="line"><a id="l00856" name="l00856"></a><span class="lineno">  856</span>        LoadRomComponent(screen);</div>
+<div class="line"><a id="l00857" name="l00857"></a><span class="lineno">  857</span>      } <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00858" name="l00858"></a><span class="lineno">  858</span>      <span class="keywordflow">case</span> LayoutID::kApplyAsarPatch: {</div>
+<div class="line"><a id="l00859" name="l00859"></a><span class="lineno">  859</span>        ApplyAsarPatchComponent(screen);</div>
 <div class="line"><a id="l00860" name="l00860"></a><span class="lineno">  860</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00861" name="l00861"></a><span class="lineno">  861</span>      <span class="keywordflow">case</span> LayoutID::kLoadRom: {</div>
-<div class="line"><a id="l00862" name="l00862"></a><span class="lineno">  862</span>        LoadRomComponent(screen);</div>
+<div class="line"><a id="l00861" name="l00861"></a><span class="lineno">  861</span>      <span class="keywordflow">case</span> LayoutID::kApplyBpsPatch: {</div>
+<div class="line"><a id="l00862" name="l00862"></a><span class="lineno">  862</span>        ApplyBpsPatchComponent(screen);</div>
 <div class="line"><a id="l00863" name="l00863"></a><span class="lineno">  863</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00864" name="l00864"></a><span class="lineno">  864</span>      <span class="keywordflow">case</span> LayoutID::kApplyAsarPatch: {</div>
-<div class="line"><a id="l00865" name="l00865"></a><span class="lineno">  865</span>        ApplyAsarPatchComponent(screen);</div>
+<div class="line"><a id="l00864" name="l00864"></a><span class="lineno">  864</span>      <span class="keywordflow">case</span> LayoutID::kExtractSymbols: {</div>
+<div class="line"><a id="l00865" name="l00865"></a><span class="lineno">  865</span>        ExtractSymbolsComponent(screen);</div>
 <div class="line"><a id="l00866" name="l00866"></a><span class="lineno">  866</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00867" name="l00867"></a><span class="lineno">  867</span>      <span class="keywordflow">case</span> LayoutID::kApplyBpsPatch: {</div>
-<div class="line"><a id="l00868" name="l00868"></a><span class="lineno">  868</span>        ApplyBpsPatchComponent(screen);</div>
+<div class="line"><a id="l00867" name="l00867"></a><span class="lineno">  867</span>      <span class="keywordflow">case</span> LayoutID::kValidateAssembly: {</div>
+<div class="line"><a id="l00868" name="l00868"></a><span class="lineno">  868</span>        ValidateAssemblyComponent(screen);</div>
 <div class="line"><a id="l00869" name="l00869"></a><span class="lineno">  869</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00870" name="l00870"></a><span class="lineno">  870</span>      <span class="keywordflow">case</span> LayoutID::kExtractSymbols: {</div>
-<div class="line"><a id="l00871" name="l00871"></a><span class="lineno">  871</span>        ExtractSymbolsComponent(screen);</div>
+<div class="line"><a id="l00870" name="l00870"></a><span class="lineno">  870</span>      <span class="keywordflow">case</span> LayoutID::kGenerateSaveFile: {</div>
+<div class="line"><a id="l00871" name="l00871"></a><span class="lineno">  871</span>        GenerateSaveFileComponent(screen);</div>
 <div class="line"><a id="l00872" name="l00872"></a><span class="lineno">  872</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00873" name="l00873"></a><span class="lineno">  873</span>      <span class="keywordflow">case</span> LayoutID::kValidateAssembly: {</div>
-<div class="line"><a id="l00874" name="l00874"></a><span class="lineno">  874</span>        ValidateAssemblyComponent(screen);</div>
+<div class="line"><a id="l00873" name="l00873"></a><span class="lineno">  873</span>      <span class="keywordflow">case</span> LayoutID::kPaletteEditor: {</div>
+<div class="line"><a id="l00874" name="l00874"></a><span class="lineno">  874</span>        <a class="code hl_class" href="../../d8/d3c/classyaze_1_1cli_1_1PaletteEditorComponent.html">PaletteEditorComponent</a>(screen);</div>
 <div class="line"><a id="l00875" name="l00875"></a><span class="lineno">  875</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00876" name="l00876"></a><span class="lineno">  876</span>      <span class="keywordflow">case</span> LayoutID::kGenerateSaveFile: {</div>
-<div class="line"><a id="l00877" name="l00877"></a><span class="lineno">  877</span>        GenerateSaveFileComponent(screen);</div>
+<div class="line"><a id="l00876" name="l00876"></a><span class="lineno">  876</span>      <span class="keywordflow">case</span> LayoutID::kHexViewer: {</div>
+<div class="line"><a id="l00877" name="l00877"></a><span class="lineno">  877</span>        HexViewerComponent(screen);</div>
 <div class="line"><a id="l00878" name="l00878"></a><span class="lineno">  878</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span>      <span class="keywordflow">case</span> LayoutID::kPaletteEditor: {</div>
-<div class="line"><a id="l00880" name="l00880"></a><span class="lineno">  880</span>        <a class="code hl_class" href="../../d8/d3c/classyaze_1_1cli_1_1PaletteEditorComponent.html">PaletteEditorComponent</a>(screen);</div>
-<div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>      <span class="keywordflow">case</span> LayoutID::kHexViewer: {</div>
-<div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span>        HexViewerComponent(screen);</div>
-<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>      <span class="keywordflow">case</span> LayoutID::kCommandPalette: {</div>
-<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>        <a class="code hl_class" href="../../dc/d14/classyaze_1_1cli_1_1CommandPaletteComponent.html">CommandPaletteComponent</a> component;</div>
-<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>        <span class="keyword">auto</span> cmd_component = component.<a class="code hl_function" href="../../dc/d14/classyaze_1_1cli_1_1CommandPaletteComponent.html#aeb8a54099b646157b43493a3316e8072">Render</a>();</div>
-<div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>        screen.Loop(cmd_component);</div>
-<div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00890" name="l00890"></a><span class="lineno">  890</span>      <span class="keywordflow">case</span> LayoutID::kHelp: {</div>
-<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span>        HelpComponent(screen);</div>
-<div class="line"><a id="l00892" name="l00892"></a><span class="lineno">  892</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00893" name="l00893"></a><span class="lineno">  893</span>      <span class="keywordflow">case</span> LayoutID::kError: {</div>
-<div class="line"><a id="l00894" name="l00894"></a><span class="lineno">  894</span>        <span class="comment">// Display error message and return to main menu.</span></div>
-<div class="line"><a id="l00895" name="l00895"></a><span class="lineno">  895</span>        <span class="keyword">auto</span> error_button = Button(<span class="stringliteral">&quot;Back to Main Menu&quot;</span>, [&amp;] {</div>
-<div class="line"><a id="l00896" name="l00896"></a><span class="lineno">  896</span>          app_context.error_message.clear();</div>
-<div class="line"><a id="l00897" name="l00897"></a><span class="lineno">  897</span>          SwitchComponents(screen, LayoutID::kMainMenu);</div>
-<div class="line"><a id="l00898" name="l00898"></a><span class="lineno">  898</span>        });</div>
-<div class="line"><a id="l00899" name="l00899"></a><span class="lineno">  899</span> </div>
-<div class="line"><a id="l00900" name="l00900"></a><span class="lineno">  900</span>        <span class="keyword">auto</span> error_renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(error_button, [&amp;] {</div>
-<div class="line"><a id="l00901" name="l00901"></a><span class="lineno">  901</span>          <span class="keywordflow">return</span> vbox({</div>
-<div class="line"><a id="l00902" name="l00902"></a><span class="lineno">  902</span>            text(<span class="stringliteral">&quot;Error&quot;</span>) | center | bold | color(Color::Red),</div>
-<div class="line"><a id="l00903" name="l00903"></a><span class="lineno">  903</span>            separator(),</div>
-<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>            text(app_context.error_message) | color(Color::Yellow),</div>
-<div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span>            separator(),</div>
-<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>            error_button-&gt;Render() | center</div>
-<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>          }) | center | border;</div>
-<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span>        });</div>
-<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span> </div>
-<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span>        screen.Loop(error_renderer);</div>
-<div class="line"><a id="l00911" name="l00911"></a><span class="lineno">  911</span>      } <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00912" name="l00912"></a><span class="lineno">  912</span>      <span class="keywordflow">case</span> LayoutID::kExit:</div>
-<div class="line"><a id="l00913" name="l00913"></a><span class="lineno">  913</span>      <span class="keywordflow">default</span>:</div>
-<div class="line"><a id="l00914" name="l00914"></a><span class="lineno">  914</span>        <span class="keywordflow">return</span>;  <span class="comment">// Exit the application.</span></div>
-<div class="line"><a id="l00915" name="l00915"></a><span class="lineno">  915</span>    }</div>
-<div class="line"><a id="l00916" name="l00916"></a><span class="lineno">  916</span>  }</div>
-<div class="line"><a id="l00917" name="l00917"></a><span class="lineno">  917</span>}</div>
+<div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span>      <span class="keywordflow">case</span> LayoutID::kCommandPalette: {</div>
+<div class="line"><a id="l00880" name="l00880"></a><span class="lineno">  880</span>        <a class="code hl_class" href="../../dc/d14/classyaze_1_1cli_1_1CommandPaletteComponent.html">CommandPaletteComponent</a> component;</div>
+<div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span>        <span class="keyword">auto</span> cmd_component = component.<a class="code hl_function" href="../../dc/d14/classyaze_1_1cli_1_1CommandPaletteComponent.html#aeb8a54099b646157b43493a3316e8072">Render</a>();</div>
+<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>        screen.Loop(cmd_component);</div>
+<div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span>      } <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span>      <span class="keywordflow">case</span> LayoutID::kHelp: {</div>
+<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>        HelpComponent(screen);</div>
+<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>      } <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>      <span class="keywordflow">case</span> LayoutID::kError: {</div>
+<div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>        <span class="comment">// Display error message and return to main menu.</span></div>
+<div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>        <span class="keyword">auto</span> error_button = Button(<span class="stringliteral">&quot;Back to Main Menu&quot;</span>, [&amp;] {</div>
+<div class="line"><a id="l00890" name="l00890"></a><span class="lineno">  890</span>          app_context.error_message.clear();</div>
+<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span>          SwitchComponents(screen, LayoutID::kMainMenu);</div>
+<div class="line"><a id="l00892" name="l00892"></a><span class="lineno">  892</span>        });</div>
+<div class="line"><a id="l00893" name="l00893"></a><span class="lineno">  893</span> </div>
+<div class="line"><a id="l00894" name="l00894"></a><span class="lineno">  894</span>        <span class="keyword">auto</span> error_renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(error_button, [&amp;] {</div>
+<div class="line"><a id="l00895" name="l00895"></a><span class="lineno">  895</span>          <span class="keywordflow">return</span> vbox({</div>
+<div class="line"><a id="l00896" name="l00896"></a><span class="lineno">  896</span>            text(<span class="stringliteral">&quot;Error&quot;</span>) | center | bold | color(Color::Red),</div>
+<div class="line"><a id="l00897" name="l00897"></a><span class="lineno">  897</span>            separator(),</div>
+<div class="line"><a id="l00898" name="l00898"></a><span class="lineno">  898</span>            text(app_context.error_message) | color(Color::Yellow),</div>
+<div class="line"><a id="l00899" name="l00899"></a><span class="lineno">  899</span>            separator(),</div>
+<div class="line"><a id="l00900" name="l00900"></a><span class="lineno">  900</span>            error_button-&gt;Render() | center</div>
+<div class="line"><a id="l00901" name="l00901"></a><span class="lineno">  901</span>          }) | center | border;</div>
+<div class="line"><a id="l00902" name="l00902"></a><span class="lineno">  902</span>        });</div>
+<div class="line"><a id="l00903" name="l00903"></a><span class="lineno">  903</span> </div>
+<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>        screen.Loop(error_renderer);</div>
+<div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span>      } <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>      <span class="keywordflow">case</span> LayoutID::kExit:</div>
+<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>      <span class="keywordflow">default</span>:</div>
+<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span>        <span class="keywordflow">return</span>;  <span class="comment">// Exit the application.</span></div>
+<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>    }</div>
+<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span>  }</div>
+<div class="line"><a id="l00911" name="l00911"></a><span class="lineno">  911</span>}</div>
 </div>
-<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span> </div>
-<div class="line"><a id="l00919" name="l00919"></a><span class="lineno">  919</span>}  <span class="comment">// namespace cli</span></div>
-<div class="line"><a id="l00920" name="l00920"></a><span class="lineno">  920</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00912" name="l00912"></a><span class="lineno">  912</span> </div>
+<div class="line"><a id="l00913" name="l00913"></a><span class="lineno">  913</span>}  <span class="comment">// namespace cli</span></div>
+<div class="line"><a id="l00914" name="l00914"></a><span class="lineno">  914</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aasar__wrapper_8h_html"><div class="ttname"><a href="../../de/d62/asar__wrapper_8h.html">asar_wrapper.h</a></div></div>
 <div class="ttc" id="abps_8h_html"><div class="ttname"><a href="../../db/d90/bps_8h.html">bps.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1CommandPaletteComponent_html"><div class="ttname"><a href="../../dc/d14/classyaze_1_1cli_1_1CommandPaletteComponent.html">yaze::cli::CommandPaletteComponent</a></div><div class="ttdef"><b>Definition</b> <a href="../../d8/d28/command__palette_8h_source.html#l00009">command_palette.h:9</a></div></div>
@@ -1069,16 +1063,16 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_a5071629fc6cbcafef9c3efa6c851f536"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a5071629fc6cbcafef9c3efa6c851f536">yaze::cli::anonymous_namespace{tui.cc}::ApplyAsarPatchComponent</a></div><div class="ttdeci">void ApplyAsarPatchComponent(ftxui::ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00227">tui.cc:227</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_a647d436e3c168d5e1ba1b90243356d59"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a647d436e3c168d5e1ba1b90243356d59">yaze::cli::anonymous_namespace{tui.cc}::ValidateAssemblyComponent</a></div><div class="ttdeci">void ValidateAssemblyComponent(ftxui::ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00408">tui.cc:408</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_a6588526a2719d947bb19f4ad714989a6"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a6588526a2719d947bb19f4ad714989a6">yaze::cli::anonymous_namespace{tui.cc}::ApplyBpsPatchComponent</a></div><div class="ttdeci">void ApplyBpsPatchComponent(ftxui::ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00054">tui.cc:54</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_a65c8418432a92530720b305d96f257ec"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a65c8418432a92530720b305d96f257ec">yaze::cli::anonymous_namespace{tui.cc}::HexViewerComponent</a></div><div class="ttdeci">void HexViewerComponent(ftxui::ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00685">tui.cc:685</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_a65c8418432a92530720b305d96f257ec"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a65c8418432a92530720b305d96f257ec">yaze::cli::anonymous_namespace{tui.cc}::HexViewerComponent</a></div><div class="ttdeci">void HexViewerComponent(ftxui::ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00679">tui.cc:679</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_a67dd0fa752ae48367e75313a4325cb11"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a67dd0fa752ae48367e75313a4325cb11">yaze::cli::anonymous_namespace{tui.cc}::ExtractSymbolsComponent</a></div><div class="ttdeci">void ExtractSymbolsComponent(ftxui::ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00315">tui.cc:315</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_a7dfff14a075ea3b86b67ea5eeb640548"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548">yaze::cli::anonymous_namespace{tui.cc}::MainMenuComponent</a></div><div class="ttdeci">void MainMenuComponent(ftxui::ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00751">tui.cc:751</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_a7dfff14a075ea3b86b67ea5eeb640548"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548">yaze::cli::anonymous_namespace{tui.cc}::MainMenuComponent</a></div><div class="ttdeci">void MainMenuComponent(ftxui::ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00745">tui.cc:745</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_a879bdc125949b92f2e3b4e8f26d26521"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a879bdc125949b92f2e3b4e8f26d26521">yaze::cli::anonymous_namespace{tui.cc}::GenerateSaveFileComponent</a></div><div class="ttdeci">void GenerateSaveFileComponent(ftxui::ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00129">tui.cc:129</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_abb3fbd2c5e9c53690714b06d6d882c52"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#abb3fbd2c5e9c53690714b06d6d882c52">yaze::cli::anonymous_namespace{tui.cc}::HelpComponent</a></div><div class="ttdeci">void HelpComponent(ftxui::ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00538">tui.cc:538</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_aca48c44e4e20f84f95f7d0ee8edf1303"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#aca48c44e4e20f84f95f7d0ee8edf1303">yaze::cli::anonymous_namespace{tui.cc}::ReturnIfRomNotLoaded</a></div><div class="ttdeci">void ReturnIfRomNotLoaded(ftxui::ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00047">tui.cc:47</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_ae2f63af3233c3bc5642a48a1e493dd7c"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">yaze::cli::anonymous_namespace{tui.cc}::SwitchComponents</a></div><div class="ttdeci">void SwitchComponents(ftxui::ScreenInteractive &amp;screen, LayoutID layout)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00024">tui.cc:24</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_a4faed45116bb119fd88fb89b6eaab816"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#a4faed45116bb119fd88fb89b6eaab816">yaze::cli::kMainMenuEntries</a></div><div class="ttdeci">const std::vector&lt; std::string &gt; kMainMenuEntries</div><div class="ttdef"><b>Definition</b> <a href="../../de/dab/tui_8h_source.html#l00018">tui.h:18</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_a556e883eb9174f820cdce1c4e8ac7395"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395">yaze::cli::MainMenuEntry</a></div><div class="ttdeci">MainMenuEntry</div><div class="ttdef"><b>Definition</b> <a href="../../de/dab/tui_8h_source.html#l00032">tui.h:32</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1cli_html_a7cde2d3d2d98674ab1401d816314fdb3"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#a7cde2d3d2d98674ab1401d816314fdb3">yaze::cli::ShowMain</a></div><div class="ttdeci">void ShowMain()</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00854">tui.cc:854</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_html_a7cde2d3d2d98674ab1401d816314fdb3"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#a7cde2d3d2d98674ab1401d816314fdb3">yaze::cli::ShowMain</a></div><div class="ttdeci">void ShowMain()</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00848">tui.cc:848</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_ab3acc1b59e84abb18e2d438f7ed2ad33"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33">yaze::cli::LayoutID</a></div><div class="ttdeci">LayoutID</div><div class="ttdef"><b>Definition</b> <a href="../../de/dab/tui_8h_source.html#l00046">tui.h:46</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_ab3acc1b59e84abb18e2d438f7ed2ad33a90bfbb340d0004281b380b5058c652fd"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a90bfbb340d0004281b380b5058c652fd">yaze::cli::LayoutID::kMainMenu</a></div><div class="ttdeci">@ kMainMenu</div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_ab3acc1b59e84abb18e2d438f7ed2ad33ac2477f77de6d38233af46d78ec777846"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33ac2477f77de6d38233af46d78ec777846">yaze::cli::LayoutID::kExit</a></div><div class="ttdeci">@ kExit</div></div>

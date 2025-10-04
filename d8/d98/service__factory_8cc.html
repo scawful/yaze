@@ -107,6 +107,9 @@ $(document).ready(function(){initNavTree('d8/d98/service__factory_8cc.html','../
 <div class="textblock"><code>#include &quot;<a class="el" href="../../d9/d37/service__factory_8h_source.html">cli/service/ai/service_factory.h</a>&quot;</code><br />
 <code>#include &lt;cstring&gt;</code><br />
 <code>#include &lt;iostream&gt;</code><br />
+<code>#include &quot;absl/flags/declare.h&quot;</code><br />
+<code>#include &quot;absl/flags/flag.h&quot;</code><br />
+<code>#include &quot;absl/strings/ascii.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d7/d52/ai__service_8h_source.html">cli/service/ai/ai_service.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/d1c/ollama__ai__service_8h_source.html">cli/service/ai/ollama_ai_service.h</a>&quot;</code><br />
 </div>
@@ -123,9 +126,132 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a0d8b1270562eb5430ea7f2a61df78496" id="r_a0d8b1270562eb5430ea7f2a61df78496"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d98/service__factory_8cc.html#a0d8b1270562eb5430ea7f2a61df78496">ABSL_DECLARE_FLAG</a> (std::string, ai_provider)</td></tr>
+<tr class="separator:a0d8b1270562eb5430ea7f2a61df78496"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a459be2e627a1cf21ba45fb1d99802fdf" id="r_a459be2e627a1cf21ba45fb1d99802fdf"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d98/service__factory_8cc.html#a459be2e627a1cf21ba45fb1d99802fdf">ABSL_DECLARE_FLAG</a> (std::string, ai_model)</td></tr>
+<tr class="separator:a459be2e627a1cf21ba45fb1d99802fdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adca234766ac2c5b79c199c2b894357a9" id="r_adca234766ac2c5b79c199c2b894357a9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d98/service__factory_8cc.html#adca234766ac2c5b79c199c2b894357a9">ABSL_DECLARE_FLAG</a> (std::string, gemini_api_key)</td></tr>
+<tr class="separator:adca234766ac2c5b79c199c2b894357a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a57ba25eb41539d2fa37a6bad18a9783a" id="r_a57ba25eb41539d2fa37a6bad18a9783a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d98/service__factory_8cc.html#a57ba25eb41539d2fa37a6bad18a9783a">ABSL_DECLARE_FLAG</a> (std::string, ollama_host)</td></tr>
+<tr class="separator:a57ba25eb41539d2fa37a6bad18a9783a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40be8377fef9b85066f54617143d652a" id="r_a40be8377fef9b85066f54617143d652a"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html">AIService</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a">yaze::cli::CreateAIService</a> ()</td></tr>
 <tr class="separator:a40be8377fef9b85066f54617143d652a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbd91793ccd2732fa85d0cd642987169" id="r_adbd91793ccd2732fa85d0cd642987169"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html">AIService</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html#adbd91793ccd2732fa85d0cd642987169">yaze::cli::CreateAIService</a> (const <a class="el" href="../../dd/dd2/structyaze_1_1cli_1_1AIServiceConfig.html">AIServiceConfig</a> &amp;config)</td></tr>
+<tr class="separator:adbd91793ccd2732fa85d0cd642987169"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="a0d8b1270562eb5430ea7f2a61df78496" name="a0d8b1270562eb5430ea7f2a61df78496"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d8b1270562eb5430ea7f2a61df78496">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG() <span class="overload">[1/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_DECLARE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ai_provider&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a459be2e627a1cf21ba45fb1d99802fdf" name="a459be2e627a1cf21ba45fb1d99802fdf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a459be2e627a1cf21ba45fb1d99802fdf">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_DECLARE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ai_model&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adca234766ac2c5b79c199c2b894357a9" name="adca234766ac2c5b79c199c2b894357a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adca234766ac2c5b79c199c2b894357a9">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG() <span class="overload">[3/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_DECLARE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">gemini_api_key&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a57ba25eb41539d2fa37a6bad18a9783a" name="a57ba25eb41539d2fa37a6bad18a9783a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a57ba25eb41539d2fa37a6bad18a9783a">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG() <span class="overload">[4/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_DECLARE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">ollama_host&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

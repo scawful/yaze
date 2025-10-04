@@ -1,0 +1,10 @@
+<map id="main" name="main">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,55,84"/>
+<area shape="rect" id="Node000002" href="$dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a" title=" " alt="" coords="117,29,285,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="55,65,107,56,108,61,56,70"/>
+<area shape="rect" id="Node000003" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a3999875c7eace4cdf85c06b71cb7d11c" title=" " alt="" coords="103,79,299,120"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="56,73,88,78,87,83,55,78"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="172,30,166,21,170,11,182,5,201,3,222,5,233,12,230,16,220,10,201,8,183,10,174,15,172,20,176,28"/>
+<area shape="rect" id="Node000004" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html#a7336c2490b452be24f27b97525d2f8db" title=" " alt="" coords="347,79,544,120"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="300,97,332,97,332,102,300,102"/>
+</map>

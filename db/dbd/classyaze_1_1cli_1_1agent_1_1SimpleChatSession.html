@@ -158,9 +158,15 @@ Private Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Simple text-based chat session for AI agent interaction. </p>
-<p>Provides a basic REPL-style interface without FTXUI dependencies, suitable for automated testing and AI agent interactions. </p>
+<p>Provides a basic REPL-style interface without FTXUI dependencies, suitable for automated testing and AI agent interactions.</p>
+<p>Supports multiple input modes:</p><ul>
+<li>Interactive REPL (default when stdin is a TTY)</li>
+<li>Piped input (reads lines from stdin)</li>
+<li>Batch file (reads lines from file)</li>
+<li>Single message (programmatic use) </li>
+</ul>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00024">24</a> of file <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html">simple_chat_session.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00030">30</a> of file <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html">simple_chat_session.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a3d6796ac1d1fc39856ac595f1f012a89" name="a3d6796ac1d1fc39856ac595f1f012a89"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3d6796ac1d1fc39856ac595f1f012a89">&#9670;&#160;</a></span>SimpleChatSession()</h2>
@@ -206,7 +212,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00024">24</a> of file <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html">simple_chat_session.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00055">agent_service_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00152">yaze::cli::agent::ConversationalAgentService::SetRomContext()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00062">agent_service_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00153">yaze::cli::agent::ConversationalAgentService::SetRomContext()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00620">yaze::cli::agent::HandleSimpleChatCommand()</a>.</p>
 <div class="dynheader">
@@ -252,7 +258,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00084">84</a> of file <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html">simple_chat_session.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00055">agent_service_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00164">yaze::cli::agent::ConversationalAgentService::SendMessage()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00062">agent_service_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00165">yaze::cli::agent::ConversationalAgentService::SendMessage()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00620">yaze::cli::agent::HandleSimpleChatCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -285,7 +293,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00100">100</a> of file <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html">simple_chat_session.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00055">agent_service_</a>, <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00064">PrintMessage()</a>, <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00047">Reset()</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00164">yaze::cli::agent::ConversationalAgentService::SendMessage()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00062">agent_service_</a>, <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00064">PrintMessage()</a>, <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00054">Reset()</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00165">yaze::cli::agent::ConversationalAgentService::SendMessage()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00620">yaze::cli::agent::HandleSimpleChatCommand()</a>.</p>
 <div class="dynheader">
@@ -325,7 +333,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00148">148</a> of file <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html">simple_chat_session.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00055">agent_service_</a>, <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00064">PrintMessage()</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00164">yaze::cli::agent::ConversationalAgentService::SendMessage()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00062">agent_service_</a>, <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00064">PrintMessage()</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00165">yaze::cli::agent::ConversationalAgentService::SendMessage()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00620">yaze::cli::agent::HandleSimpleChatCommand()</a>.</p>
 <div class="dynheader">
@@ -370,9 +378,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00042">42</a> of file <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html">simple_chat_session.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00049">49</a> of file <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html">simple_chat_session.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00055">agent_service_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00234">yaze::cli::agent::ConversationalAgentService::GetHistory()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00062">agent_service_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00235">yaze::cli::agent::ConversationalAgentService::GetHistory()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -409,9 +417,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00047">47</a> of file <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html">simple_chat_session.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00054">54</a> of file <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html">simple_chat_session.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00055">agent_service_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00160">yaze::cli::agent::ConversationalAgentService::ResetConversation()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00062">agent_service_</a>, and <a class="el" href="../../d3/d5c/conversational__agent__service_8cc_source.html#l00161">yaze::cli::agent::ConversationalAgentService::ResetConversation()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00100">RunInteractive()</a>.</p>
 <div class="dynheader">
@@ -532,9 +540,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00055">55</a> of file <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html">simple_chat_session.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00062">62</a> of file <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html">simple_chat_session.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00042">GetHistory()</a>, <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00047">Reset()</a>, <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00148">RunBatch()</a>, <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00100">RunInteractive()</a>, <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00084">SendAndWaitForResponse()</a>, and <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00024">SetRomContext()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00049">GetHistory()</a>, <a class="el" href="../../d5/dee/simple__chat__session_8h_source.html#l00054">Reset()</a>, <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00148">RunBatch()</a>, <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00100">RunInteractive()</a>, <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00084">SendAndWaitForResponse()</a>, and <a class="el" href="../../da/de7/simple__chat__session_8cc_source.html#l00024">SetRomContext()</a>.</p>
 
 </div>
 </div>
