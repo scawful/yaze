@@ -450,6 +450,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release \
           -DYAZE_USE_MODULAR_BUILD=ON \
           -DZ3ED_AI=ON \
+          -DYAZE_BUILD_Z3ED=ON \
           -DYAZE_MINIMAL_BUILD=ON \
           -Wno-dev \
           -GNinja
