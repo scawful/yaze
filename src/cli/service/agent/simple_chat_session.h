@@ -36,6 +36,7 @@ class SimpleChatSession {
   
   // Set agent configuration
   void SetConfig(const AgentConfig& config) {
+    config_ = config;
     agent_service_.SetConfig(config);
   }
   
@@ -65,6 +66,7 @@ class SimpleChatSession {
   void PrintTable(const ChatMessage::TableData& table);
   
   ConversationalAgentService agent_service_;
+  AgentConfig config_;
 };
 
 }  // namespace agent

@@ -12,13 +12,14 @@
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
-#include "absl/status/statusor.h"
+#include "absl/status/status.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
-#include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "absl/strings/str_replace.h"
+#include "absl/strings/str_join.h"
+#include "absl/time/clock.h"
+#include "absl/time/time.h"
 #include "absl/strings/string_view.h"
 #include "app/core/project.h"
 #include "app/zelda3/dungeon/room.h"
@@ -533,6 +534,7 @@ absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
   std::optional<std::string> batch_file;
   std::optional<std::string> single_message;
   bool verbose = false;
+  std::optional<std::string> format_option;
   
   for (size_t i = 0; i < arg_vec.size(); ++i) {
     const std::string& arg = arg_vec[i];
@@ -540,6 +542,16 @@ absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
       batch_file = arg.substr(7);
     } else if (arg == "--file" && i + 1 < arg_vec.size()) {
       batch_file = arg_vec[++i];
+    } else if (absl::StartsWith(arg, "--format=")) {
+      format_option = arg.substr(9);
+    } else if (arg == "--format" && i + 1 < arg_vec.size()) {
+      format_option = arg_vec[++i];
+    } else if (arg == "--json") {
+      format_option = "json";
+    } else if (arg == "--markdown" || arg == "--md") {
+      format_option = "markdown";
+    } else if (arg == "--compact" || arg == "--raw") {
+      format_option = "compact";
     } else if (arg == "--verbose" || arg == "-v") {
       verbose = true;
     } else if (!absl::StartsWith(arg, "--") && !single_message.has_value()) {
@@ -549,6 +561,23 @@ absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
   
   agent::AgentConfig config;
   config.verbose = verbose;
+  if (format_option.has_value()) {
+    std::string normalized = absl::AsciiStrToLower(*format_option);
+    if (normalized == "json") {
+      config.output_format = AgentOutputFormat::kJson;
+    } else if (normalized == "markdown" || normalized == "md") {
+      config.output_format = AgentOutputFormat::kMarkdown;
+    } else if (normalized == "compact" || normalized == "raw") {
+      config.output_format = AgentOutputFormat::kCompact;
+    } else if (normalized == "text" || normalized == "friendly" ||
+               normalized == "pretty") {
+      config.output_format = AgentOutputFormat::kFriendly;
+    } else {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Unsupported chat format: ", *format_option,
+                        ". Supported formats: text, markdown, json, compact"));
+    }
+  }
   
   SimpleChatSession session;
   session.SetConfig(config);

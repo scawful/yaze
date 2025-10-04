@@ -30,6 +30,8 @@ struct ParsedGlobals {
   std::vector<char*> positional;
   bool show_help = false;
   bool show_version = false;
+  bool list_commands = false;
+  std::optional<std::string> help_category;
   std::optional<std::string> error;
 };
 
@@ -54,8 +56,22 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
         continue;
       }
 
+      if (absl::StartsWith(token, "--help=")) {
+        std::string category(token.substr(7));
+        if (!category.empty()) {
+          result.help_category = category;
+        } else {
+          result.show_help = true;
+        }
+        continue;
+      }
+
       if (token == "--help" || token == "-h") {
-        result.show_help = true;
+        if (i + 1 < argc && argv[i + 1][0] != '-') {
+          result.help_category = std::string(argv[++i]);
+        } else {
+          result.show_help = true;
+        }
         continue;
       }
 
@@ -66,6 +82,23 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
 
       if (token == "--tui") {
         absl::SetFlag(&FLAGS_tui, true);
+        continue;
+      }
+
+      if (token == "--list-commands" || token == "--list") {
+        result.list_commands = true;
+        continue;
+      }
+
+      if (absl::StartsWith(token, "--quiet=")) {
+        std::string value(token.substr(8));
+        bool enable = value.empty() || value == "1" || value == "true";
+        absl::SetFlag(&FLAGS_quiet, enable);
+        continue;
+      }
+
+      if (token == "--quiet" || token == "-q") {
+        absl::SetFlag(&FLAGS_quiet, true);
         continue;
       }
 
@@ -199,6 +232,16 @@ int main(int argc, char* argv[]) {
   }
 
   yaze::cli::ModernCLI cli;
+
+  if (globals.help_category.has_value()) {
+    cli.PrintCategoryHelp(*globals.help_category);
+    return EXIT_SUCCESS;
+  }
+
+  if (globals.list_commands) {
+    cli.PrintCommandSummary();
+    return EXIT_SUCCESS;
+  }
 
   if (globals.show_help) {
     cli.PrintTopLevelHelp();
