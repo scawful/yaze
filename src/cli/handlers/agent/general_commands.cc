@@ -15,6 +15,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
+#include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
@@ -628,6 +629,10 @@ absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
   std::optional<std::string> batch_file;
   std::optional<std::string> single_message;
   bool non_interactive = false;
+  bool verbose = false;
+  bool show_reasoning = true;
+  int max_tool_iterations = 4;
+  int max_retry_attempts = 3;
   
   for (size_t i = 0; i < arg_vec.size(); ++i) {
     const std::string& arg = arg_vec[i];
@@ -639,13 +644,35 @@ absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
       ++i;
     } else if (arg == "--non-interactive" || arg == "-n") {
       non_interactive = true;
+    } else if (arg == "--verbose" || arg == "-v") {
+      verbose = true;
+    } else if (arg == "--no-reasoning") {
+      show_reasoning = false;
+    } else if (absl::StartsWith(arg, "--max-tool-iterations=")) {
+      absl::SimpleAtoi(arg.substr(22), &max_tool_iterations);
+    } else if (arg == "--max-tool-iterations" && i + 1 < arg_vec.size()) {
+      absl::SimpleAtoi(arg_vec[i + 1], &max_tool_iterations);
+      ++i;
+    } else if (absl::StartsWith(arg, "--max-retries=")) {
+      absl::SimpleAtoi(arg.substr(14), &max_retry_attempts);
+    } else if (arg == "--max-retries" && i + 1 < arg_vec.size()) {
+      absl::SimpleAtoi(arg_vec[i + 1], &max_retry_attempts);
+      ++i;
     } else if (!absl::StartsWith(arg, "--") && !single_message.has_value()) {
       // Treat first non-flag argument as the message
       single_message = arg;
     }
   }
   
+  // Configure agent
+  agent::AgentConfig config;
+  config.verbose = verbose;
+  config.show_reasoning = show_reasoning;
+  config.max_tool_iterations = max_tool_iterations;
+  config.max_retry_attempts = max_retry_attempts;
+  
   SimpleChatSession session;
+  session.SetConfig(config);
   session.SetRomContext(&rom);
   
   // Priority: batch file > single message > interactive/piped

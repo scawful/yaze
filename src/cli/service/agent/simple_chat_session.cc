@@ -14,6 +14,7 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
+#include "cli/util/terminal_colors.h"
 
 namespace yaze {
 namespace cli {
