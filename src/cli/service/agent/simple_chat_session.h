@@ -34,6 +34,11 @@ class SimpleChatSession {
   // Set ROM context for tool execution
   void SetRomContext(Rom* rom);
   
+  // Set agent configuration
+  void SetConfig(const AgentConfig& config) {
+    agent_service_.SetConfig(config);
+  }
+  
   // Send a single message and get response (blocking)
   absl::Status SendAndWaitForResponse(const std::string& message, 
                                       std::string* response_out = nullptr);

@@ -29,9 +29,17 @@ struct ChatMessage {
   std::optional<TableData> table_data;
 };
 
+struct AgentConfig {
+  int max_tool_iterations = 4;  // Maximum number of tool calling iterations
+  int max_retry_attempts = 3;   // Maximum retries on errors
+  bool verbose = false;          // Enable verbose diagnostic output
+  bool show_reasoning = true;    // Show LLM reasoning in output
+};
+
 class ConversationalAgentService {
  public:
   ConversationalAgentService();
+  explicit ConversationalAgentService(const AgentConfig& config);
 
   // Send a message from the user and get the agent's response.
   absl::StatusOr<ChatMessage> SendMessage(const std::string& message);
@@ -45,11 +53,16 @@ class ConversationalAgentService {
   // Clear the current conversation history, preserving ROM/tool context.
   void ResetConversation();
 
+  // Configuration
+  void SetConfig(const AgentConfig& config) { config_ = config; }
+  const AgentConfig& GetConfig() const { return config_; }
+
  private:
   std::vector<ChatMessage> history_;
   std::unique_ptr<AIService> ai_service_;
   ToolDispatcher tool_dispatcher_;
   Rom* rom_context_ = nullptr;
+  AgentConfig config_;
 };
 
 }  // namespace agent

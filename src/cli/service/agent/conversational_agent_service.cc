@@ -151,6 +151,11 @@ ConversationalAgentService::ConversationalAgentService() {
   ai_service_ = CreateAIService();
 }
 
+ConversationalAgentService::ConversationalAgentService(const AgentConfig& config)
+    : config_(config) {
+  ai_service_ = CreateAIService();
+}
+
 void ConversationalAgentService::SetRomContext(Rom* rom) {
   rom_context_ = rom;
   tool_dispatcher_.SetRomContext(rom_context_);
@@ -174,16 +179,27 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
     history_.push_back(CreateMessage(ChatMessage::Sender::kUser, message));
   }
 
-  constexpr int kMaxToolIterations = 4;
+  const int max_iterations = config_.max_tool_iterations;
   bool waiting_for_text_response = false;
   
-  for (int iteration = 0; iteration < kMaxToolIterations; ++iteration) {
+  if (config_.verbose) {
+    util::PrintInfo(absl::StrCat("Starting agent loop (max ", max_iterations, " iterations)"));
+    util::PrintInfo(absl::StrCat("History size: ", history_.size(), " messages"));
+  }
+  
+  for (int iteration = 0; iteration < max_iterations; ++iteration) {
+    if (config_.verbose) {
+      util::PrintSeparator();
+      std::cout << util::colors::kCyan << "Iteration " << (iteration + 1) 
+                << "/" << max_iterations << util::colors::kReset << std::endl;
+    }
+    
     // Show loading indicator while waiting for AI response
     util::LoadingIndicator loader(
         waiting_for_text_response 
             ? "Generating final response..." 
             : "Thinking...", 
-        true);
+        !config_.verbose);  // Hide spinner in verbose mode
     loader.Start();
     
     auto response_or = ai_service_->GenerateResponse(history_);
@@ -198,12 +214,28 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
 
     const auto& agent_response = response_or.value();
 
+    if (config_.verbose) {
+      util::PrintInfo("Received agent response:");
+      std::cout << util::colors::kDim << "  - Tool calls: " 
+                << agent_response.tool_calls.size() << util::colors::kReset << std::endl;
+      std::cout << util::colors::kDim << "  - Commands: " 
+                << agent_response.commands.size() << util::colors::kReset << std::endl;
+      std::cout << util::colors::kDim << "  - Text response: "
+                << (agent_response.text_response.empty() ? "empty" : "present")
+                << util::colors::kReset << std::endl;
+      if (!agent_response.reasoning.empty() && config_.show_reasoning) {
+        std::cout << util::colors::kYellow << "  💭 Reasoning: " 
+                  << util::colors::kDim << agent_response.reasoning 
+                  << util::colors::kReset << std::endl;
+      }
+    }
+
     if (!agent_response.tool_calls.empty()) {
       // Check if we were waiting for a text response but got more tool calls instead
       if (waiting_for_text_response) {
         util::PrintWarning(
             absl::StrCat("LLM called tools again instead of providing final response (Iteration: ",
-                        iteration, "/", kMaxToolIterations, ")"));
+                        iteration + 1, "/", max_iterations, ")"));
       }
       
       bool executed_tool = false;
@@ -228,6 +260,15 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
         const std::string& tool_output = tool_result_or.value();
         if (!tool_output.empty()) {
           util::PrintSuccess("Tool executed successfully");
+          
+          if (config_.verbose) {
+            std::cout << util::colors::kDim << "Tool output (truncated):" 
+                      << util::colors::kReset << std::endl;
+            std::string preview = tool_output.substr(0, std::min(size_t(200), tool_output.size()));
+            if (tool_output.size() > 200) preview += "...";
+            std::cout << util::colors::kDim << preview << util::colors::kReset << std::endl;
+          }
+          
           // Add tool result with a clear marker for the LLM
           std::string marked_output = "[TOOL RESULT] " + tool_output;
           history_.push_back(
@@ -249,7 +290,7 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
         agent_response.commands.empty()) {
       util::PrintWarning(
           absl::StrCat("LLM did not provide text_response after receiving tool results (Iteration: ",
-                      iteration, "/", kMaxToolIterations, ")"));
+                      iteration + 1, "/", max_iterations, ")"));
       // Continue to give it another chance
       continue;
     }
