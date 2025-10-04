@@ -134,7 +134,7 @@ if(YAZE_PLATFORM_MACOS)
     set(_yaze_default_force_absl ON)
 endif()
 option(YAZE_FORCE_BUNDLED_ABSL
-             "Force building the bundled Abseil submodule instead of finding a system package"
+             "Force building the bundled Abseil FetchContent dependency instead of finding a system package"
              ${_yaze_default_force_absl})
 
 # Create a common interface target for shared settings

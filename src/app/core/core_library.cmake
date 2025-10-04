@@ -47,6 +47,10 @@ target_sources(yaze_core_lib PRIVATE
 )
 
 if(YAZE_WITH_GRPC)
+  target_include_directories(yaze_core_lib PRIVATE
+    ${CMAKE_SOURCE_DIR}/third_party/json/include)
+  target_compile_definitions(yaze_core_lib PRIVATE YAZE_WITH_JSON)
+
   target_add_protobuf(yaze_core_lib
     ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
 

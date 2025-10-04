@@ -77,6 +77,8 @@ set(YAZE_AGENT_SOURCES
   cli/service/planning/tile16_proposal_generator.cc
   cli/service/resources/resource_catalog.cc
   cli/service/resources/resource_context_builder.cc
+  cli/handlers/overworld_inspect.cc
+  cli/flags.cc
   cli/service/rom/rom_sandbox_manager.cc
 )
 

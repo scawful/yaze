@@ -22,7 +22,8 @@ set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH FALSE)
 # Add compiler flags for Clang 15+ compatibility
 # gRPC v1.62.0 requires C++17 (std::result_of removed in C++20)
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wno-error=missing-template-arg-list-after-template-kw)
+    add_compile_options(-Wno-error=missing-template-arg-list-after-template-kw)
+    add_compile_definitions(_LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS)
 endif()
 
 # Save YAZE's C++ standard and temporarily set to C++17 for gRPC
@@ -46,6 +47,12 @@ set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "" FORCE)
 set(gRPC_BENCHMARK_PROVIDER "none" CACHE STRING "" FORCE)
 set(gRPC_ZLIB_PROVIDER "package" CACHE STRING "" FORCE)
 
+# Skip install rule generation inside gRPC's dependency graph. This avoids
+# configure-time checks that require every transitive dependency (like Abseil
+# compatibility shims) to participate in install export sets, which we do not
+# need for the editor builds.
+set(CMAKE_SKIP_INSTALL_RULES ON CACHE BOOL "" FORCE)
+
 # Let gRPC fetch and build its own protobuf and abseil
 set(gRPC_PROTOBUF_PROVIDER "module" CACHE STRING "" FORCE)
 set(gRPC_ABSL_PROVIDER "module" CACHE STRING "" FORCE)
@@ -59,7 +66,7 @@ set(protobuf_WITH_ZLIB ON CACHE BOOL "" FORCE)
 
 # Abseil configuration
 set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
-set(ABSL_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+set(ABSL_ENABLE_INSTALL ON CACHE BOOL "" FORCE)
 set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
 # Declare gRPC - use v1.62.0 which fixes health_check_client incomplete type bug
@@ -150,7 +157,7 @@ function(target_add_protobuf target)
             "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.cc"
             "${_gRPC_PROTO_GENS_DIR}/${RELFIL_WE}.pb.h"
         )
-        target_include_directories(${target} PRIVATE
+        target_include_directories(${target} PUBLIC
             $<BUILD_INTERFACE:${_gRPC_PROTO_GENS_DIR}>
             $<BUILD_INTERFACE:${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}>
         )

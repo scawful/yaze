@@ -65,6 +65,7 @@ add_executable(
   cli/handlers/agent/test_common.cc
   cli/handlers/agent/test_commands.cc
   cli/handlers/agent/gui_commands.cc
+    cli/flags.cc
   cli/modern_cli.cc
   cli/tui/asar_patch.cc
   cli/tui/palette_editor.cc

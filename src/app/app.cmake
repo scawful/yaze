@@ -105,7 +105,7 @@ if(YAZE_USE_MODULAR_BUILD)
     list(APPEND _yaze_modular_links yaze_agent)
   endif()
 
-  if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC AND TARGET yaze_emulator)
+  if(YAZE_BUILD_EMU AND TARGET yaze_emulator)
     list(APPEND _yaze_modular_links yaze_emulator)
   endif()
 

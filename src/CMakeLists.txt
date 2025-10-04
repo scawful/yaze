@@ -102,7 +102,7 @@ if(YAZE_USE_MODULAR_BUILD)
     include(app/gui/gui_library.cmake)
     include(app/zelda3/zelda3_library.cmake)
 
-    if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC)
+    if(YAZE_BUILD_EMU)
       include(app/emu/emu_library.cmake)
     endif()
 
@@ -233,7 +233,7 @@ if (YAZE_BUILD_LIB)
       target_link_libraries(yaze_core INTERFACE yaze_agent)
     endif()
 
-    if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC AND TARGET yaze_emulator)
+    if(YAZE_BUILD_EMU AND TARGET yaze_emulator)
       target_link_libraries(yaze_core INTERFACE yaze_emulator)
     endif()
 
@@ -345,7 +345,7 @@ if (YAZE_BUILD_LIB)
       target_link_libraries(yaze_c PRIVATE yaze_agent)
     endif()
 
-    if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC AND TARGET yaze_emulator)
+    if(YAZE_BUILD_EMU AND TARGET yaze_emulator)
       target_link_libraries(yaze_c PRIVATE yaze_emulator)
     endif()
   else()
