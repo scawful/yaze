@@ -31,8 +31,8 @@ void CanvasUsageTracker::SetUsageMode(CanvasUsage usage) {
     // Record mode change interaction
     RecordInteraction(CanvasInteraction::kModeChange, GetUsageModeName(usage));
     
-    util::logf("Canvas %s: Usage mode changed to %s", 
-               canvas_id_.c_str(), GetUsageModeName(usage).c_str());
+  LOG_INFO("CanvasUsage", "Canvas %s: Usage mode changed to %s", 
+       canvas_id_.c_str(), GetUsageModeName(usage).c_str());
   }
 }
 
@@ -267,11 +267,11 @@ void CanvasUsageTracker::EndSession() {
   // Save final stats
   SaveCurrentStats();
   
-  util::logf("Canvas %s: Session ended. Duration: %s, Operations: %d", 
-             canvas_id_.c_str(), 
-             FormatDuration(std::chrono::duration_cast<std::chrono::milliseconds>(
-                 std::chrono::steady_clock::now() - session_start_)).c_str(),
-             current_stats_.total_operations);
+  LOG_INFO("CanvasUsage", "Canvas %s: Session ended. Duration: %s, Operations: %d", 
+       canvas_id_.c_str(), 
+       FormatDuration(std::chrono::duration_cast<std::chrono::milliseconds>(
+         std::chrono::steady_clock::now() - session_start_)).c_str(),
+       current_stats_.total_operations);
 }
 
 void CanvasUsageTracker::UpdateActiveTime() {
@@ -352,7 +352,7 @@ CanvasUsageManager& CanvasUsageManager::Get() {
 void CanvasUsageManager::RegisterTracker(const std::string& canvas_id, 
                                         std::shared_ptr<CanvasUsageTracker> tracker) {
   trackers_[canvas_id] = tracker;
-  util::logf("Registered usage tracker for canvas: %s", canvas_id.c_str());
+  LOG_INFO("CanvasUsage", "Registered usage tracker for canvas: %s", canvas_id.c_str());
 }
 
 std::shared_ptr<CanvasUsageTracker> CanvasUsageManager::GetTracker(const std::string& canvas_id) {
@@ -421,7 +421,7 @@ void CanvasUsageManager::ClearAllTrackers() {
     tracker->ClearHistory();
   }
   trackers_.clear();
-  util::logf("Cleared all canvas usage trackers");
+  LOG_INFO("CanvasUsage", "Cleared all canvas usage trackers");
 }
 
 }  // namespace canvas
