@@ -1,5 +1,16 @@
 var NAVTREEINDEX1 =
 {
+"d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8db":[48,0,5,6,45],
+"d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba0a831653f592380e5468c289248d97ba":[48,0,5,6,45,5],
+"d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba185f0e372b857b26dbd371e9f54d68f7":[48,0,5,6,45,6],
+"d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba209403e94e5ae3fecb2e65f298d46370":[48,0,5,6,45,0],
+"d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba2f71fb69e2115f386b5f356665f8eadc":[48,0,5,6,45,7],
+"d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba36796835a2cffb6218b1755600160d2b":[48,0,5,6,45,8],
+"d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba44b225210525a1b9ad60c50d0b712c16":[48,0,5,6,45,2],
+"d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba69e677e331f6bd566413f27d9fe64f09":[48,0,5,6,45,11],
+"d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba763760ff92c842ba0fba2b7916605884":[48,0,5,6,45,3],
+"d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba88add653e236b3d50a59a49dc984f7f1":[48,0,5,6,45,4],
+"d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba88eb78a13c2d02166e0cf9c2fdd458c4":[48,0,5,6,45,13],
 "d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dba9f56642cd3258629b69bd8a501b90343":[48,0,5,6,45,1],
 "d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dbac4ed7facba5bc499470417f80fccfd30":[48,0,5,6,45,10],
 "d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8dbad2d78692099223ba9f44829c75a6cbf9":[48,0,5,6,45,9],
@@ -238,16 +249,5 @@ var NAVTREEINDEX1 =
 "d0/d30/md_README.html#autotoc_md1685":[41,1,0],
 "d0/d30/md_README.html#autotoc_md1686":[41,1,1],
 "d0/d30/md_README.html#autotoc_md1687":[41,2],
-"d0/d30/md_README.html#autotoc_md1688":[41,2,0],
-"d0/d30/md_README.html#autotoc_md1689":[41,2,1],
-"d0/d30/md_README.html#autotoc_md1690":[41,2,2],
-"d0/d30/md_README.html#autotoc_md1691":[41,3],
-"d0/d30/md_README.html#autotoc_md1692":[41,4],
-"d0/d30/md_README.html#autotoc_md1693":[41,5],
-"d0/d30/md_README.html#autotoc_md1694":[41,6],
-"d0/d30/md_README.html#autotoc_md1695":[41,7],
-"d0/d30/md_README.html#autotoc_md1696":[41,8],
-"d0/d30/md_README.html#autotoc_md1697":[41,9],
-"d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html":[49,0,1,1,37],
-"d0/d3d/structyaze_1_1cli_1_1OllamaConfig.html":[48,0,5,2,50]
+"d0/d30/md_README.html#autotoc_md1688":[41,2,0]
 };

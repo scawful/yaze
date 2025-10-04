@@ -505,6 +505,10 @@ var annotated_dup =
         [ "SpriteTypes", "d1/d1c/namespaceyaze_1_1zelda3_1_1SpriteTypes.html", [
           [ "SpriteInfo", "dc/ded/structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html", "dc/ded/structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo" ]
         ] ],
+        [ "test", "df/dfe/namespaceyaze_1_1zelda3_1_1test.html", [
+          [ "RoomIntegrationTest", "df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html", "df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest" ],
+          [ "RoomManipulationTest", "d7/dc3/classyaze_1_1zelda3_1_1test_1_1RoomManipulationTest.html", "d7/dc3/classyaze_1_1zelda3_1_1test_1_1RoomManipulationTest" ]
+        ] ],
         [ "ComprehensiveIntegrationTest", "d7/d85/classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html", "d7/d85/classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest" ],
         [ "DungeonEditorSystem", "d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html", "d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem" ],
         [ "DungeonEditorSystemIntegrationTest", "dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html", "dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest" ],

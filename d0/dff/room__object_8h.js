@@ -2,6 +2,7 @@ var room__object_8h =
 [
     [ "yaze::zelda3::SubtypeInfo", "da/d92/structyaze_1_1zelda3_1_1SubtypeInfo.html", "da/d92/structyaze_1_1zelda3_1_1SubtypeInfo" ],
     [ "yaze::zelda3::RoomObject", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject" ],
+    [ "yaze::zelda3::RoomObject::ObjectBytes", "d1/d0e/structyaze_1_1zelda3_1_1RoomObject_1_1ObjectBytes.html", "d1/d0e/structyaze_1_1zelda3_1_1RoomObject_1_1ObjectBytes" ],
     [ "yaze::zelda3::Subtype1", "d8/db7/classyaze_1_1zelda3_1_1Subtype1.html", "d8/db7/classyaze_1_1zelda3_1_1Subtype1" ],
     [ "yaze::zelda3::Subtype2", "dc/d10/classyaze_1_1zelda3_1_1Subtype2.html", "dc/d10/classyaze_1_1zelda3_1_1Subtype2" ],
     [ "yaze::zelda3::Subtype3", "d1/dc6/classyaze_1_1zelda3_1_1Subtype3.html", "d1/dc6/classyaze_1_1zelda3_1_1Subtype3" ],

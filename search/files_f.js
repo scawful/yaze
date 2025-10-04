@@ -18,8 +18,11 @@ var searchData=
   ['room_2ecc_15',['room.cc',['../d5/d1b/room_8cc.html',1,'']]],
   ['room_2eh_16',['room.h',['../d9/dc0/room_8h.html',1,'']]],
   ['room_5fentrance_2eh_17',['room_entrance.h',['../d1/d8a/room__entrance_8h.html',1,'']]],
-  ['room_5flayout_2ecc_18',['room_layout.cc',['../da/d12/room__layout_8cc.html',1,'']]],
-  ['room_5flayout_2eh_19',['room_layout.h',['../da/d96/room__layout_8h.html',1,'']]],
-  ['room_5fobject_2ecc_20',['room_object.cc',['../d5/da0/room__object_8cc.html',1,'']]],
-  ['room_5fobject_2eh_21',['room_object.h',['../d0/dff/room__object_8h.html',1,'']]]
+  ['room_5fintegration_5ftest_2ecc_18',['room_integration_test.cc',['../d8/d2e/room__integration__test_8cc.html',1,'']]],
+  ['room_5flayout_2ecc_19',['room_layout.cc',['../da/d12/room__layout_8cc.html',1,'']]],
+  ['room_5flayout_2eh_20',['room_layout.h',['../da/d96/room__layout_8h.html',1,'']]],
+  ['room_5fmanipulation_5ftest_2ecc_21',['room_manipulation_test.cc',['../d0/d14/room__manipulation__test_8cc.html',1,'']]],
+  ['room_5fobject_2ecc_22',['room_object.cc',['../d5/da0/room__object_8cc.html',1,'']]],
+  ['room_5fobject_2eh_23',['room_object.h',['../d0/dff/room__object_8h.html',1,'']]],
+  ['room_5fobject_5fencoding_5ftest_2ecc_24',['room_object_encoding_test.cc',['../db/de9/room__object__encoding__test_8cc.html',1,'']]]
 ];

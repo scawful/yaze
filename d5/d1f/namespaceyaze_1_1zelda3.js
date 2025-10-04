@@ -17,6 +17,27 @@ var namespaceyaze_1_1zelda3 =
       [ "CompareItemsArrays", "db/dbd/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#a5b374fda1bb2eb9781736fd765e1ef4b", null ]
     ] ],
     [ "anonymous_namespace{room_object.cc}", "d5/da6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03.html", "d5/da6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03" ],
+    [ "anonymous_namespace{room_object_encoding_test.cc}", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html", [
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#ac5333b8280a8760583801bb4e3d05886", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#a00cfb0f8beba115fa2ea9fd8e8b33245", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#ae49d51ff32fafb2184e8bfdb3f34a4e3", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#a6699a78510423623a6de55a667fc96cd", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#a0870eefdbbc19ea37bd2e26237faee69", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#acd9dc92ca52eaded7a637f0f81ae4b06", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#a9453ccc9260ff6f0e7153efa0c8bc1a4", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#aa7df1111d7427fdca4bb0cc5a7b115a5", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#abe95462007f7468abf7a4b4fbb7d8eae", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#a828f017abc414d784d8bff9a65eee232", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#a74c815e21c30fec3dc470be9cbf7cd92", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#a9dcad3cb813411dc67f6ffa6ee34bed4", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#a2bb735e6a4490281db739dd62c5fbae0", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#aaeea3484e4129e03b90da1af3ce6d763", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#a8975c3cdb19f44ded1cadc413d303dcc", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#a68416c714a819cd0865ae7a4f127f476", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#a03b171580dbc0f9a284ca2cfd2b67edf", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#afdcf602b1704bab8750d0498c49f0d82", null ],
+      [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#ab6fef3af8c9484a1c91c42c5ecbcc42c", null ]
+    ] ],
     [ "anonymous_namespace{tracker.cc}", "dd/df6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html", [
       [ "AddSpcReloc", "dd/df6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02tracker_8cc_03.html#a57c95bb79e56737d2e3e30296e409617", null ]
     ] ],
@@ -35,6 +56,7 @@ var namespaceyaze_1_1zelda3 =
       [ "SetColorsPalette", "d6/d52/namespaceyaze_1_1zelda3_1_1palette__internal.html#a7f32e9b2fd815c57c56c9a2e878e8165", null ]
     ] ],
     [ "SpriteTypes", "d1/d1c/namespaceyaze_1_1zelda3_1_1SpriteTypes.html", "d1/d1c/namespaceyaze_1_1zelda3_1_1SpriteTypes" ],
+    [ "test", "df/dfe/namespaceyaze_1_1zelda3_1_1test.html", "df/dfe/namespaceyaze_1_1zelda3_1_1test" ],
     [ "ComprehensiveIntegrationTest", "d7/d85/classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html", "d7/d85/classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest" ],
     [ "DungeonEditorSystem", "d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html", "d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem" ],
     [ "DungeonEditorSystemIntegrationTest", "dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html", "dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest" ],

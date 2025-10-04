@@ -32,9 +32,11 @@ var searchData=
   ['romvalidate_29',['RomValidate',['../d6/d8e/classyaze_1_1cli_1_1RomValidate.html',1,'yaze::cli']]],
   ['room_30',['Room',['../d7/df6/classyaze_1_1zelda3_1_1Room.html',1,'yaze::zelda3']]],
   ['roomentrance_31',['RoomEntrance',['../d8/d1e/classyaze_1_1zelda3_1_1RoomEntrance.html',1,'yaze::zelda3']]],
-  ['roomlayout_32',['RoomLayout',['../d9/d70/classyaze_1_1zelda3_1_1RoomLayout.html',1,'yaze::zelda3']]],
-  ['roomlayoutobject_33',['RoomLayoutObject',['../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html',1,'yaze::zelda3']]],
-  ['roomobject_34',['RoomObject',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html',1,'yaze::zelda3']]],
-  ['roomproperties_35',['RoomProperties',['../d4/d8a/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html',1,'yaze::zelda3::DungeonEditorSystem']]],
-  ['roomsize_36',['RoomSize',['../d6/df8/structyaze_1_1zelda3_1_1RoomSize.html',1,'yaze::zelda3']]]
+  ['roomintegrationtest_32',['RoomIntegrationTest',['../df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html',1,'yaze::zelda3::test']]],
+  ['roomlayout_33',['RoomLayout',['../d9/d70/classyaze_1_1zelda3_1_1RoomLayout.html',1,'yaze::zelda3']]],
+  ['roomlayoutobject_34',['RoomLayoutObject',['../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html',1,'yaze::zelda3']]],
+  ['roommanipulationtest_35',['RoomManipulationTest',['../d7/dc3/classyaze_1_1zelda3_1_1test_1_1RoomManipulationTest.html',1,'yaze::zelda3::test']]],
+  ['roomobject_36',['RoomObject',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html',1,'yaze::zelda3']]],
+  ['roomproperties_37',['RoomProperties',['../d4/d8a/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html',1,'yaze::zelda3::DungeonEditorSystem']]],
+  ['roomsize_38',['RoomSize',['../d6/df8/structyaze_1_1zelda3_1_1RoomSize.html',1,'yaze::zelda3']]]
 ];

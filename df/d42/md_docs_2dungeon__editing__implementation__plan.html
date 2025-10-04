@@ -257,7 +257,7 @@ Layer and Door Markers</h2>
 Object Loading Process (ZScream)</h2>
 <div class="fragment"><div class="line"><span class="comment">// 1. Get room object pointer (3 bytes)</span></div>
 <div class="line"><span class="keywordtype">int</span> object_pointer = ROM at (room_object_pointer + room_id * 3)</div>
-<div class="line"><span class="keywordtype">int</span> objects_location = SnesToPc(object_pointer)</div>
+<div class="line"><span class="keywordtype">int</span> objects_location = <a class="code hl_function" href="../../d8/d2e/room__integration__test_8cc.html#a61a9e6bd5f106106e0aa16d549b241c8">SnesToPc</a>(object_pointer)</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// 2. Read floor/layout</span></div>
 <div class="line"><span class="keywordtype">byte</span> floor1 = data[objects_location] &amp; 0x0F</div>
@@ -304,6 +304,7 @@ Object Loading Process (ZScream)</h2>
 <div class="line">        pos += 2</div>
 <div class="line">    }</div>
 <div class="line">}</div>
+<div class="ttc" id="aroom__integration__test_8cc_html_a61a9e6bd5f106106e0aa16d549b241c8"><div class="ttname"><a href="../../d8/d2e/room__integration__test_8cc.html#a61a9e6bd5f106106e0aa16d549b241c8">SnesToPc</a></div><div class="ttdeci">int SnesToPc(int addr)</div><div class="ttdef"><b>Definition</b> <a href="../../d8/d2e/room__integration__test_8cc_source.html#l00012">room_integration_test.cc:12</a></div></div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md670"></a>
 Object Saving Process (ZScream)</h2>
 <div class="fragment"><div class="line"><span class="keyword">public</span> <span class="keywordtype">byte</span>[] getTilesBytes()</div>

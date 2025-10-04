@@ -311,6 +311,7 @@ var hierarchy =
     [ "yaze::editor::zsprite::OamTile", "dd/d2f/structyaze_1_1editor_1_1zsprite_1_1OamTile.html", null ],
     [ "yaze::gfx::OamTile", "df/da2/classyaze_1_1gfx_1_1OamTile.html", null ],
     [ "object_door", "d6/d61/structobject__door.html", null ],
+    [ "yaze::zelda3::RoomObject::ObjectBytes", "d1/d0e/structyaze_1_1zelda3_1_1RoomObject_1_1ObjectBytes.html", null ],
     [ "yaze::zelda3::ObjectCategories::ObjectCategory", "da/d2d/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectCategory.html", null ],
     [ "yaze::zelda3::ObjectCategories::ObjectInfo", "da/d35/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectInfo.html", null ],
     [ "yaze::zelda3::ObjectParser", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html", null ],
@@ -491,7 +492,9 @@ var hierarchy =
       [ "yaze::zelda3::DungeonObjectRendererMockTest", "d4/dd0/classyaze_1_1zelda3_1_1DungeonObjectRendererMockTest.html", null ],
       [ "yaze::zelda3::OverworldIntegrationTest", "df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html", null ],
       [ "yaze::zelda3::OverworldTest", "d3/ddf/classyaze_1_1zelda3_1_1OverworldTest.html", null ],
-      [ "yaze::zelda3::SpritePositionTest", "db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html", null ]
+      [ "yaze::zelda3::SpritePositionTest", "db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html", null ],
+      [ "yaze::zelda3::test::RoomIntegrationTest", "df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html", null ],
+      [ "yaze::zelda3::test::RoomManipulationTest", "d7/dc3/classyaze_1_1zelda3_1_1test_1_1RoomManipulationTest.html", null ]
     ] ],
     [ "yaze::cli::TestCaseDefinition", "d1/df7/structyaze_1_1cli_1_1TestCaseDefinition.html", null ],
     [ "yaze::cli::TestCaseRunResult", "dd/d80/structyaze_1_1cli_1_1TestCaseRunResult.html", null ],

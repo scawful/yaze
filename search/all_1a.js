@@ -406,7 +406,7 @@ var searchData=
   ['power_5f_403',['power_',['../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a6cb9bbefae5b801bb60a64cc0b55ddf5',1,'yaze::emu::Emulator']]],
   ['powered_20cli_20for_20yaze_404',['z3ed: AI-Powered CLI for YAZE',['../d3/d63/md_docs_2z3ed_2README.html',1,'']]],
   ['powershell_405',['Windows (PowerShell)',['../d9/d41/md_docs_202-build-instructions.html#autotoc_md8',1,'']]],
-  ['ppu_406',['ppu',['../d3/ded/classyaze_1_1emu_1_1Ppu.html',1,'yaze::emu::Ppu'],['../d3/ded/classyaze_1_1emu_1_1Ppu.html#ab35bb7b590fde1a0f9baece7a4068d02',1,'yaze::emu::Ppu::Ppu()'],['../d3/d15/classyaze_1_1emu_1_1Snes.html#a30fb924208f2153a364f9d2be6f69adc',1,'yaze::emu::Snes::ppu()']]],
+  ['ppu_406',['ppu',['../d3/ded/classyaze_1_1emu_1_1Ppu.html',1,'yaze::emu::Ppu'],['../d3/d15/classyaze_1_1emu_1_1Snes.html#a30fb924208f2153a364f9d2be6f69adc',1,'yaze::emu::Snes::ppu()'],['../d3/ded/classyaze_1_1emu_1_1Ppu.html#ab35bb7b590fde1a0f9baece7a4068d02',1,'yaze::emu::Ppu::Ppu()']]],
   ['ppu_2ecc_407',['ppu.cc',['../dc/db3/ppu_8cc.html',1,'']]],
   ['ppu_2eh_408',['ppu.h',['../d2/df9/ppu_8h.html',1,'']]],
   ['ppu1_5fopen_5fbus_5f_409',['ppu1_open_bus_',['../d3/ded/classyaze_1_1emu_1_1Ppu.html#a18acadc5ce49598d9d51a1d6feeafc9a',1,'yaze::emu::Ppu']]],
