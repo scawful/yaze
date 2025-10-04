@@ -374,7 +374,7 @@ void DungeonObjectSelector::DrawRoomGraphics() {
 }
 
 void DungeonObjectSelector::DrawIntegratedEditingPanels() {
-  if (!dungeon_editor_system_ || !object_editor_ || !*dungeon_editor_system_ || !*object_editor_) {
+  if (!dungeon_editor_system_ || !*dungeon_editor_system_ || !object_editor_) {
     ImGui::Text("Editor systems not initialized");
     return;
   }
@@ -428,12 +428,12 @@ void DungeonObjectSelector::DrawIntegratedEditingPanels() {
 }
 
 void DungeonObjectSelector::DrawCompactObjectEditor() {
-  if (!object_editor_ || !*object_editor_) {
+  if (!object_editor_) {
     ImGui::Text("Object editor not initialized");
     return;
   }
 
-  auto& editor = **object_editor_;
+  auto& editor = *object_editor_;
   
   ImGui::Text("Object Editor");
   Separator();

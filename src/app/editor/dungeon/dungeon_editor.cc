@@ -42,7 +42,20 @@ void DungeonEditor::Initialize() {
   if (rom_ && !dungeon_editor_system_) {
     dungeon_editor_system_ =
         std::make_unique<zelda3::DungeonEditorSystem>(rom_);
-    object_editor_ = std::make_shared<zelda3::DungeonObjectEditor>(rom_);
+  }
+  
+  // Phase 5: Initialize integrated object editor
+  if (rom_ && !object_editor_) {
+    object_editor_ = std::make_unique<zelda3::DungeonObjectEditor>(rom_);
+    
+    // Configure editor for dungeon editing
+    auto config = object_editor_->GetConfig();
+    config.show_selection_highlight = enable_selection_highlight_;
+    config.show_layer_colors = enable_layer_visualization_;
+    config.show_property_panel = show_object_property_panel_;
+    config.snap_to_grid = true;
+    config.grid_size = 16;  // 16x16 tiles
+    object_editor_->SetConfig(config);
   }
 }
 
@@ -224,6 +237,10 @@ absl::Status DungeonEditor::UpdateDungeonRoomView() {
     // Column 3: Object selector, room graphics, and object editor
     TableNextColumn();
     object_selector_.Draw();
+    
+    // Phase 5: Draw integrated object editor panels below object selector
+    ImGui::Separator();
+    DrawObjectEditorPanels();
 
     ImGui::EndTable();
   }
@@ -667,12 +684,106 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
     }
   }
 
+  // Phase 5: Render with integrated object editor
+  RenderRoomWithObjects(room_id);
+  
   // Draw selection box and drag preview using component
   object_interaction_.DrawSelectBox();
   object_interaction_.DrawDragPreview();
 
   canvas_.DrawGrid();
   canvas_.DrawOverlay();
+}
+
+// ============================================================================
+// Phase 5: Integrated Object Editor Methods
+// ============================================================================
+
+void DungeonEditor::UpdateObjectEditor() {
+  if (!object_editor_ || !rom_ || !rom_->is_loaded()) {
+    return;
+  }
+  
+  // Get current room ID
+  int room_id = current_room_id_;
+  if (!active_rooms_.empty() && current_active_room_tab_ < active_rooms_.Size) {
+    room_id = active_rooms_[current_active_room_tab_];
+  }
+  
+  if (room_id < 0 || room_id >= rooms_.size()) {
+    return;
+  }
+  
+  // Ensure room graphics and objects are loaded
+  auto& room = rooms_[room_id];
+  
+  // Load room graphics if not already loaded (this populates arena buffers)
+  if (room.blocks().empty()) {
+    auto status = LoadAndRenderRoomGraphics(room_id);
+    if (!status.ok()) {
+      // Log error but continue
+      return;
+    }
+  }
+  
+  // Load room objects if not already loaded
+  if (room.GetTileObjects().empty()) {
+    room.LoadObjects();
+  }
+  
+  // Sync object editor with current room's objects
+  // The object editor should work with the room's tile_objects_ directly
+  // rather than maintaining its own copy
+}
+
+void DungeonEditor::RenderRoomWithObjects(int room_id) {
+  if (!object_editor_ || room_id < 0 || room_id >= rooms_.size()) {
+    return;
+  }
+  
+  // Ensure room graphics are loaded and rendered to arena buffers first
+  if (rooms_[room_id].blocks().empty()) {
+    // Room graphics not loaded yet, will be loaded by LoadAndRenderRoomGraphics
+    return;
+  }
+  
+  // Get the arena buffers for rendering - these should already be populated
+  // by Room::RenderRoomGraphics() which was called in LoadAndRenderRoomGraphics
+  auto& bg1_bitmap = gfx::Arena::Get().bg1().bitmap();
+  auto& bg2_bitmap = gfx::Arena::Get().bg2().bitmap();
+  
+  if (!bg1_bitmap.is_active() || !bg2_bitmap.is_active()) {
+    // Arena bitmaps not initialized, this means RenderRoomGraphics wasn't called
+    return;
+  }
+  
+  // Render layer visualization if enabled (draws on top of existing bitmap)
+  if (enable_layer_visualization_) {
+    object_editor_->RenderLayerVisualization(bg1_bitmap);
+  }
+  
+  // Render selection highlights if enabled (draws on top of existing bitmap)
+  if (enable_selection_highlight_) {
+    object_editor_->RenderSelectionHighlight(bg1_bitmap);
+  }
+}
+
+void DungeonEditor::DrawObjectEditorPanels() {
+  if (!object_editor_) {
+    return;
+  }
+  
+  // Update editor state
+  UpdateObjectEditor();
+  
+  // Render ImGui panels
+  if (show_object_property_panel_) {
+    object_editor_->RenderObjectPropertyPanel();
+  }
+  
+  if (show_layer_controls_) {
+    object_editor_->RenderLayerControls();
+  }
 }
 
 // Legacy method implementations that delegate to components

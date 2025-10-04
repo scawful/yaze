@@ -57,7 +57,7 @@ class DungeonEditor : public Editor {
     // Initialize the new dungeon editor system
     if (rom) {
       dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom);
-      object_editor_ = std::make_shared<zelda3::DungeonObjectEditor>(rom);
+      object_editor_ = std::make_unique<zelda3::DungeonObjectEditor>(rom);
     }
   }
 
@@ -105,6 +105,11 @@ class DungeonEditor : public Editor {
   void DrawCanvasAndPropertiesPanel();
   void DrawRoomPropertiesDebugPopup();
   
+  // Phase 5: Integrated editor panels
+  void DrawObjectEditorPanels();
+  void RenderRoomWithObjects(int room_id);
+  void UpdateObjectEditor();
+  
   // Room selection management
   void OnRoomSelected(int room_id);
 
@@ -126,10 +131,15 @@ class DungeonEditor : public Editor {
   bool palette_showing_ = false;
   bool refresh_graphics_ = false;
   
-  // New editor system integration
+  // Phase 5: Integrated object editor system
+  std::unique_ptr<zelda3::DungeonObjectEditor> object_editor_;
+  bool show_object_property_panel_ = true;
+  bool show_layer_controls_ = true;
+  bool enable_selection_highlight_ = true;
+  bool enable_layer_visualization_ = true;
+  
+  // Legacy editor system (deprecated)
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
-  std::shared_ptr<zelda3::DungeonObjectEditor> object_editor_;
-  bool show_object_editor_ = false;
   bool show_sprite_editor_ = false;
   bool show_item_editor_ = false;
   bool show_entrance_editor_ = false;
