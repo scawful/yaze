@@ -118,7 +118,7 @@ class DungeonEditor : public Editor {
   void DrawObjectRenderer();
   
   // Legacy methods (delegated to components)
-  absl::Status LoadAndRenderRoomGraphics(int room_id);
+  absl::Status LoadAndRenderRoomGraphics(zelda3::Room& room);
   absl::Status ReloadAllRoomGraphics();
   absl::Status UpdateRoomBackgroundLayers(int room_id);
 

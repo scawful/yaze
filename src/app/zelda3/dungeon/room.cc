@@ -14,7 +14,6 @@
 #include "app/zelda3/dungeon/room_diagnostic.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
-#include "util/log.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -198,6 +197,7 @@ Room LoadRoomFromRom(Rom *rom, int room_id) {
   room.LoadBlocks();
   room.LoadPits();
 
+  room.SetLoaded(true);
   return room;
 }
 
@@ -318,9 +318,7 @@ void Room::RenderRoomGraphics() {
   
   // Validate palette ID and fall back to palette 0 if invalid
   if (palette_id < 0 || palette_id >= num_palettes) {
-    std::printf("WARNING: Room %d has invalid palette_id=%d (max=%d), falling back to palette 0\n", 
-                room_id_, palette_id, num_palettes - 1);
-    palette_id = 0;
+    //palette_id = 0;
   }
   
   // Load the 90-color dungeon palette directly
@@ -573,12 +571,6 @@ void Room::ParseObjectsFromLocation(int objects_location) {
   uint8_t b1 = 0;
   uint8_t b2 = 0;
   uint8_t b3 = 0;
-  uint8_t posX = 0;
-  uint8_t posY = 0;
-  uint8_t sizeX = 0;
-  uint8_t sizeY = 0;
-  uint8_t sizeXY = 0;
-  short oid = 0;
   int layer = 0;
   bool door = false;
   bool end_read = false;
@@ -852,7 +844,9 @@ void Room::LoadSprites() {
       rom_data[sprite_pointer + (room_id_ * 2)];
 
   int sprite_address = SnesToPc(sprite_address_snes);
-  bool sortsprites = rom_data[sprite_address] == 1;
+  if (rom_data[sprite_address] == 1) {
+    // sortsprites is unused
+  }
   sprite_address += 1;
 
   while (true) {
@@ -897,7 +891,7 @@ void Room::LoadChests() {
   size_t clength = (rom_data[chests_length_pointer + 1] << 8) +
                    (rom_data[chests_length_pointer]);
 
-  for (int i = 0; i < clength; i++) {
+  for (size_t i = 0; i < clength; i++) {
     if ((((rom_data[cpos + (i * 3) + 1] << 8) + (rom_data[cpos + (i * 3)])) &
          0x7FFF) == room_id_) {
       // There's a chest in that room !
@@ -945,7 +939,7 @@ void Room::LoadTorches() {
   auto rom_data = rom()->vector();
   
   // Load torch data from torch_data address
-  int torch_count = rom_data[torches_length_pointer + 1] << 8 | rom_data[torches_length_pointer];
+  // int torch_count = rom_data[torches_length_pointer + 1] << 8 | rom_data[torches_length_pointer];
   
   // For now, create placeholder torch objects
   // TODO: Implement full torch loading from ROM data
@@ -955,7 +949,7 @@ void Room::LoadBlocks() {
   auto rom_data = rom()->vector();
   
   // Load block data from blocks_* addresses
-  int block_count = rom_data[blocks_length + 1] << 8 | rom_data[blocks_length];
+  // int block_count = rom_data[blocks_length + 1] << 8 | rom_data[blocks_length];
   
   // For now, create placeholder block objects
   // TODO: Implement full block loading from ROM data

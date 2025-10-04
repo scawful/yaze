@@ -14,13 +14,6 @@ set(
   app/emu/snes.cc
 )
 
-set(
-  YAZE_UTIL_SRC
-  util/bps.cc
-  util/flag.cc
-  util/hex.cc
-)
-
 set(YAZE_RESOURCE_FILES
   ${CMAKE_SOURCE_DIR}/assets/font/Karla-Regular.ttf
   ${CMAKE_SOURCE_DIR}/assets/font/Roboto-Medium.ttf
@@ -249,6 +242,7 @@ if (YAZE_BUILD_LIB)
     endif()
   else()
     # Create core library for testing (includes editor and zelda3 components needed by tests)
+    include(util/util.cmake)
     set(YAZE_CORE_SOURCES
       app/rom.cc
       ${YAZE_APP_CORE_SRC}
@@ -257,7 +251,6 @@ if (YAZE_BUILD_LIB)
       ${YAZE_APP_ZELDA3_SRC}
       ${YAZE_APP_EMU_SRC}
       ${YAZE_GUI_SRC}
-      ${YAZE_UTIL_SRC}
       # cli/service/gui_automation_client.cc # Moved to yaze_c
       cli/service/testing/test_workflow_generator.cc
     )
@@ -284,6 +277,7 @@ if (YAZE_BUILD_LIB)
       yaze_core PUBLIC
       asar-static
       yaze_agent
+      yaze_util
       ${ABSL_TARGETS}
       ${SDL_TARGETS}
       ${CMAKE_DL_LIBS}
@@ -765,6 +759,7 @@ source_group("Utilities" FILES
   util/flag.h
   util/hex.cc
   util/hex.h
+  util/log.cc
   util/log.h
   util/macro.h
   util/notify.h

@@ -174,12 +174,9 @@ bool EnhancedPaletteEditor::ApplyROMPalette(gfx::Bitmap* bitmap, int group_index
     current_group_index_ = group_index;
     current_palette_index_ = palette_index;
     
-    util::logf("Applied ROM palette: %s (index %d)", 
-               palette_group_names_[group_index].c_str(), palette_index);
     return true;
     
   } catch (const std::exception& e) {
-    util::logf("Failed to apply ROM palette: %s", e.what());
     return false;
   }
 }
@@ -455,10 +452,9 @@ void EnhancedPaletteEditor::LoadROMPalettes() {
     }
     
     rom_palettes_loaded_ = true;
-    util::logf("Enhanced Palette Editor: Loaded %zu ROM palette groups", rom_palette_groups_.size());
     
   } catch (const std::exception& e) {
-    util::logf("Enhanced Palette Editor: Failed to load ROM palettes: %s", e.what());
+   LOG_ERROR("Enhanced Palette Editor", "Failed to load ROM palettes");
   }
 }
 

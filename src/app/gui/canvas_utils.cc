@@ -85,12 +85,12 @@ bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager) {
     }
 
     palette_manager.palettes_loaded = true;
-    util::logf("Canvas: Loaded %zu ROM palette groups",
+    LOG_INFO("Canvas", "Loaded %zu ROM palette groups",
                palette_manager.rom_palette_groups.size());
     return true;
 
   } catch (const std::exception& e) {
-    util::logf("Canvas: Failed to load ROM palette groups: %s", e.what());
+    LOG_ERROR("Canvas", "Failed to load ROM palette groups");
     return false;
   }
 }
@@ -116,12 +116,12 @@ bool ApplyPaletteGroup(gfx::Bitmap* bitmap,
     }
 
     Renderer::Get().UpdateBitmap(bitmap);
-    util::logf("Canvas: Applied palette group %d, index %d to bitmap",
+    LOG_INFO("Canvas", "Applied palette group %d, index %d to bitmap",
                group_index, palette_index);
     return true;
 
   } catch (const std::exception& e) {
-    util::logf("Canvas: Failed to apply palette: %s", e.what());
+    LOG_ERROR("Canvas", "Failed to apply palette");
     return false;
   }
 }
