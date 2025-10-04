@@ -36,8 +36,14 @@ constexpr absl::string_view kUsage =
   "  resource-list           List labeled resources (dungeons, sprites, etc.)\n"
   "                          Example: agent resource-list --type=dungeon --format=json\n"
   "\n"
+  "  resource-search         Search resource labels by fuzzy text\n"
+  "                          Example: agent resource-search --query=soldier --type=sprite\n"
+  "\n"
   "  dungeon-list-sprites    List sprites in a dungeon room\n"
   "                          Example: agent dungeon-list-sprites --room=5 --format=json\n"
+  "\n"
+  "  dungeon-describe-room   Summarize metadata for a dungeon room\n"
+  "                          Example: agent dungeon-describe-room --room=0x12 --format=text\n"
   "\n"
   "  overworld-find-tile     Search for tile placements in overworld\n"
   "                          Example: agent overworld-find-tile --tile=0x02E --format=json\n"
@@ -121,8 +127,14 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
   if (subcommand == "resource-list") {
     return agent::HandleResourceListCommand(subcommand_args);
   }
+  if (subcommand == "resource-search") {
+    return agent::HandleResourceSearchCommand(subcommand_args);
+  }
   if (subcommand == "dungeon-list-sprites") {
     return agent::HandleDungeonListSpritesCommand(subcommand_args);
+  }
+  if (subcommand == "dungeon-describe-room") {
+    return agent::HandleDungeonDescribeRoomCommand(subcommand_args);
   }
   if (subcommand == "overworld-find-tile") {
     return agent::HandleOverworldFindTileCommand(subcommand_args);

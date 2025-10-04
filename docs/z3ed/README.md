@@ -113,47 +113,22 @@ The agent can call these tools autonomously:
 | Tool | Purpose | Example |
 |------|---------|---------|
 | `resource-list` | List labeled resources | "What dungeons exist?" |
+| `resource-search` | Fuzzy search across labels | "Search for soldier labels" |
 | `dungeon-list-sprites` | Sprites in room | "Show soldiers in room 0x12" |
+| `dungeon-describe-room` | Room metadata summary | "Describe room 0x012" |
 | `overworld-find-tile` | Find tile locations | "Where is tile 0x2E used?" |
 | `overworld-describe-map` | Map metadata | "Describe map 0x05" |
 | `overworld-list-warps` | List entrances/exits | "Show all cave entrances" |
 
-## Documentation
-
-- **[AGENT-ROADMAP.md](AGENT-ROADMAP.md)** - Vision, priorities, and technical architecture
-- **[E6-z3ed-cli-design.md](E6-z3ed-cli-design.md)** - CLI design and command structure
-- **[E6-z3ed-reference.md](E6-z3ed-reference.md)** - Complete command reference
-
-## Recent Updates (Oct 3, 2025)
-
-### ✅ Implemented
-- **Simple Chat Mode**: Text-based REPL for automation
-- **GUI Widget Fixes**: Corrected API usage, table rendering
-- **Condensed Documentation**: Streamlined README and ROADMAP
-- **Z3ED_AI Flag**: Simplified build with single master flag
 
 ### 🎯 Next Steps
-1. **Live LLM Testing** (1-2h): Verify function calling works
 2. **GUI Integration** (4-6h): Wire chat widget into main app
 3. **Proposal Integration** (6-8h): Connect chat to ROM modification
 
 ## Troubleshooting
 
-### "AI features not available"
-**Solution**: Rebuild with `-DZ3ED_AI=ON`
-
-### "OpenSSL not found"
-**Impact**: Gemini won't work  
-**Solutions**:
-- Use Ollama (no SSL needed)
-- Install OpenSSL: `brew install openssl`
-
 ### Chat mode freezes
 **Solution**: Use `agent simple-chat` instead of `agent chat`
-
-### Tool not being called
-**Cause**: Model doesn't support function calling  
-**Solution**: Use qwen2.5-coder (Ollama) or Gemini 2.0
 
 ## Example Workflows
 
@@ -462,13 +437,6 @@ AI agent features require:
 - ✅ Clear troubleshooting section with common issues
 
 ## Troubleshooting
-
-### "OpenSSL not found" warning
-**Impact**: Gemini API won't work (HTTPS required)  
-**Solutions**:
-- Use Ollama instead (no SSL needed, runs locally) - **RECOMMENDED**
-- Install OpenSSL: `brew install openssl` (macOS) or `apt-get install libssl-dev` (Linux)
-- Windows: Use Ollama (localhost) instead of Gemini
 
 ### "Build with -DZ3ED_AI=ON" warning
 **Impact**: AI agent features disabled (no Ollama or Gemini)  

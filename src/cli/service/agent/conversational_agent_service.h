@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "absl/time/time.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/agent/tool_dispatcher.h"
 
@@ -27,6 +28,17 @@ struct ChatMessage {
   absl::Time timestamp;
   std::optional<std::string> json_pretty;
   std::optional<TableData> table_data;
+  struct SessionMetrics {
+    int turn_index = 0;
+    int total_user_messages = 0;
+    int total_agent_messages = 0;
+    int total_tool_calls = 0;
+    int total_commands = 0;
+    int total_proposals = 0;
+    double total_elapsed_seconds = 0.0;
+    double average_latency_seconds = 0.0;
+  };
+  std::optional<SessionMetrics> metrics;
 };
 
 struct AgentConfig {
@@ -34,6 +46,8 @@ struct AgentConfig {
   int max_retry_attempts = 3;   // Maximum retries on errors
   bool verbose = false;          // Enable verbose diagnostic output
   bool show_reasoning = true;    // Show LLM reasoning in output
+  size_t max_history_messages = 50;  // Maximum stored history messages per session
+  bool trim_history = true;          // Whether to trim history beyond the limit
 };
 
 class ConversationalAgentService {
@@ -57,12 +71,28 @@ class ConversationalAgentService {
   void SetConfig(const AgentConfig& config) { config_ = config; }
   const AgentConfig& GetConfig() const { return config_; }
 
+  ChatMessage::SessionMetrics GetMetrics() const;
+
  private:
+  struct InternalMetrics {
+    int user_messages = 0;
+    int agent_messages = 0;
+    int tool_calls = 0;
+    int commands_generated = 0;
+    int proposals_created = 0;
+    int turns_completed = 0;
+    absl::Duration total_latency = absl::ZeroDuration();
+  };
+
+  void TrimHistoryIfNeeded();
+  ChatMessage::SessionMetrics BuildMetricsSnapshot() const;
+
   std::vector<ChatMessage> history_;
   std::unique_ptr<AIService> ai_service_;
   ToolDispatcher tool_dispatcher_;
   Rom* rom_context_ = nullptr;
   AgentConfig config_;
+  InternalMetrics metrics_;
 };
 
 }  // namespace agent

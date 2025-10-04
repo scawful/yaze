@@ -80,6 +80,20 @@ void SimpleChatSession::PrintMessage(const ChatMessage& msg, bool show_timestamp
   } else {
     std::cout << msg.message << "\n";
   }
+
+  if (msg.metrics.has_value()) {
+    const auto& metrics = msg.metrics.value();
+    std::cout << "  📊 Turn " << metrics.turn_index
+              << " summary — users: " << metrics.total_user_messages
+              << ", agents: " << metrics.total_agent_messages
+              << ", tools: " << metrics.total_tool_calls
+              << ", commands: " << metrics.total_commands
+              << ", proposals: " << metrics.total_proposals
+              << ", elapsed: "
+              << absl::StrFormat("%.2fs avg %.2fs", metrics.total_elapsed_seconds,
+                                  metrics.average_latency_seconds)
+              << "\n";
+  }
 }
 
 absl::Status SimpleChatSession::SendAndWaitForResponse(
@@ -142,6 +156,18 @@ absl::Status SimpleChatSession::RunInteractive() {
     PrintMessage(result.value(), false);
     std::cout << "\n";
   }
+
+  const auto metrics = agent_service_.GetMetrics();
+  std::cout << "Session totals — turns: " << metrics.turn_index
+            << ", user messages: " << metrics.total_user_messages
+            << ", agent messages: " << metrics.total_agent_messages
+            << ", tool calls: " << metrics.total_tool_calls
+            << ", commands: " << metrics.total_commands
+            << ", proposals: " << metrics.total_proposals
+            << ", elapsed: "
+            << absl::StrFormat("%.2fs avg %.2fs\n\n",
+                               metrics.total_elapsed_seconds,
+                               metrics.average_latency_seconds);
   
   return absl::OkStatus();
 }
@@ -175,6 +201,18 @@ absl::Status SimpleChatSession::RunBatch(const std::string& input_file) {
     PrintMessage(result.value(), false);
     std::cout << "\n";
   }
+
+  const auto metrics = agent_service_.GetMetrics();
+  std::cout << "Batch session totals — turns: " << metrics.turn_index
+            << ", user messages: " << metrics.total_user_messages
+            << ", agent messages: " << metrics.total_agent_messages
+            << ", tool calls: " << metrics.total_tool_calls
+            << ", commands: " << metrics.total_commands
+            << ", proposals: " << metrics.total_proposals
+            << ", elapsed: "
+            << absl::StrFormat("%.2fs avg %.2fs\n\n",
+                               metrics.total_elapsed_seconds,
+                               metrics.average_latency_seconds);
   
   return absl::OkStatus();
 }

@@ -36,14 +36,30 @@ commands:
 tools:
   - name: resource-list
     description: "List project-defined resource labels for the requested category."
-    usage_notes: "Use this whenever you need to reference project-specific labels or IDs from the ROM. Valid categories are: room, entrance, sprite, overlord, item."
+  usage_notes: "Use this whenever you need to reference project-specific labels or IDs from the ROM. Valid categories: dungeon, room, entrance, overworld, sprite, palette, item, tile16, or all."
     arguments:
       - name: type
-        description: "Resource category. Valid values: room, entrance, sprite, overlord, item."
+  description: "Resource category. Valid values: dungeon, room, entrance, overworld, sprite, palette, item, tile16, all."
         required: true
-        example: room
+        example: dungeon
       - name: format
         description: "Response format (json or table). Defaults to JSON if omitted."
+        required: false
+        example: json
+  - name: resource-search
+    description: "Search resource labels by partial name or ID."
+  usage_notes: "Use to locate specific rooms, sprites, palettes, entrances, overworld maps, or tile16 entries based on fuzzy text."
+    arguments:
+      - name: query
+        description: "Search term to match against labels and IDs."
+        required: true
+        example: soldier
+      - name: type
+  description: "Optional category filter (dungeon, room, entrance, overworld, sprite, palette, item, tile16, all)."
+        required: false
+        example: sprite
+      - name: format
+        description: "Response format (json or text). Defaults to JSON."
         required: false
         example: json
   - name: dungeon-list-sprites
@@ -60,6 +76,18 @@ tools:
         example: 0x00
       - name: format
         description: "Response format (json or table). Defaults to JSON if omitted."
+        required: false
+        example: json
+  - name: dungeon-describe-room
+    description: "Summarize dungeon room metadata, hazards, and object counts."
+    usage_notes: "Great for understanding room state before proposing edits. Includes lighting, effect flags, chests, staircases, and sample sprites."
+    arguments:
+      - name: room
+        description: "Room label or numeric ID (supports hex like 0x123)."
+        required: true
+        example: 0x012
+      - name: format
+        description: "Response format (json or text). Defaults to JSON if omitted."
         required: false
         example: json
   - name: overworld-find-tile
@@ -188,7 +216,14 @@ examples:
     tool_calls:
       - tool_name: resource-list
         args:
-          type: room
+          type: dungeon
+  - user_prompt: "Search for soldier sprites in the label database"
+    reasoning: "The user wants to find sprite labels. I should use the `resource-search` tool with a sprite filter."
+    tool_calls:
+      - tool_name: resource-search
+        args:
+          query: soldier
+          type: sprite
   - user_prompt: "[TOOL RESULT] {\"resources\": [{\"id\": 0, \"label\": \"Ganon\"}, {\"id\": 1, \"label\": \"Hyrule Castle\"}, {\"id\": 2, \"label\": \"Eastern Palace\"}, {\"id\": 3, \"label\": \"Desert Palace\"}, {\"id\": 4, \"label\": \"Tower of Hera\"}, {\"id\": 5, \"label\": \"Palace of Darkness\"}]}"
     text_response: "Based on the ROM data, this project contains 297 rooms. The first few include: Ganon's Room, Hyrule Castle, Eastern Palace, Desert Palace, Tower of Hera, and Palace of Darkness."
     reasoning: "I received the tool results showing room labels. Now I provide a natural language summary of this information."
@@ -198,6 +233,12 @@ examples:
       - tool_name: dungeon-list-sprites
         args:
           room: "5"
+  - user_prompt: "Describe dungeon room 0x012"
+    reasoning: "The user wants overall room metadata. I should call `dungeon-describe-room` to gather the summary."
+    tool_calls:
+      - tool_name: dungeon-describe-room
+        args:
+          room: "0x012"
   - user_prompt: "[TOOL RESULT] {\"sprites\": [{\"id\": 0x41, \"name\": \"soldier\", \"x\": 5, \"y\": 3}, {\"id\": 0x41, \"name\": \"soldier\", \"x\": 10, \"y\": 3}]}"
     text_response: "Room 5 contains 2 sprites: two soldiers positioned at coordinates (5, 3) and (10, 3). Both are sprite ID 0x41."
     reasoning: "The tool returned sprite data for room 5. I've formatted this into a readable response for the user."

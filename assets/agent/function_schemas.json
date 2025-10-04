@@ -1,6 +1,6 @@
 [
   {
-    "name": "resource_list",
+    "name": "resource-list",
     "description": "List all labeled resources of a specific type (dungeons, sprites, palettes)",
     "parameters": {
       "type": "object",
@@ -8,7 +8,53 @@
         "type": {
           "type": "string",
           "description": "Resource type to list",
-          "enum": ["dungeon", "sprite", "palette", "all"]
+          "enum": [
+            "dungeon",
+            "room",
+            "entrance",
+            "overworld",
+            "sprite",
+            "palette",
+            "item",
+            "tile16",
+            "all"
+          ]
+        },
+        "format": {
+          "type": "string",
+          "description": "Output format",
+          "enum": ["json", "table", "text"],
+          "default": "table"
+        }
+      },
+      "required": ["type"]
+    }
+  },
+  {
+    "name": "resource-search",
+    "description": "Search labeled resources by name, ID, or partial match",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Search text (case-insensitive substring match)"
+        },
+        "type": {
+          "type": "string",
+          "description": "Optional resource category to filter",
+          "enum": [
+            "dungeon",
+            "room",
+            "entrance",
+            "overworld",
+            "sprite",
+            "palette",
+            "item",
+            "tile16",
+            "all"
+          ],
+          "default": "all"
         },
         "format": {
           "type": "string",
@@ -17,11 +63,11 @@
           "default": "json"
         }
       },
-      "required": ["type"]
+      "required": ["query"]
     }
   },
   {
-    "name": "dungeon_list_sprites",
+    "name": "dungeon-list-sprites",
     "description": "List all sprites in a specific dungeon room",
     "parameters": {
       "type": "object",
@@ -40,7 +86,26 @@
     }
   },
   {
-    "name": "overworld_find_tile",
+    "name": "dungeon-describe-room",
+    "description": "Summarize dungeon room metadata, hazards, and counts",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "room": {
+          "type": "string",
+          "description": "Room ID in hex format (e.g., 0x012)"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json", "text"],
+          "default": "json"
+        }
+      },
+      "required": ["room"]
+    }
+  },
+  {
+    "name": "overworld-find-tile",
     "description": "Find all occurrences of a specific tile16 ID on overworld maps",
     "parameters": {
       "type": "object",
@@ -63,7 +128,7 @@
     }
   },
   {
-    "name": "overworld_describe_map",
+    "name": "overworld-describe-map",
     "description": "Get summary information about an overworld map",
     "parameters": {
       "type": "object",
@@ -82,7 +147,7 @@
     }
   },
   {
-    "name": "overworld_list_warps",
+    "name": "overworld-list-warps",
     "description": "List warp/entrance/exit points on the overworld",
     "parameters": {
       "type": "object",
@@ -94,7 +159,8 @@
         "type": {
           "type": "string",
           "description": "Optional: filter by warp type",
-          "enum": ["entrance", "exit", "hole", "all"]
+          "enum": ["entrance", "exit", "hole", "all"],
+          "default": "all"
         },
         "format": {
           "type": "string",
