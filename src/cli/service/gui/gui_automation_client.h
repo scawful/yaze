@@ -134,6 +134,21 @@ struct ReplayTestResult {
   std::vector<std::string> logs;
 };
 
+struct StartRecordingResult {
+  bool success = false;
+  std::string message;
+  std::string recording_id;
+  std::optional<absl::Time> started_at;
+};
+
+struct StopRecordingResult {
+  bool success = false;
+  std::string message;
+  std::string output_path;
+  int step_count = 0;
+  std::chrono::milliseconds duration{0};
+};
+
 enum class WidgetTypeFilter {
   kUnspecified,
   kAll,
@@ -302,6 +317,15 @@ class GuiAutomationClient {
   absl::StatusOr<ReplayTestResult> ReplayTest(
     const std::string& script_path, bool ci_mode,
     const std::map<std::string, std::string>& parameter_overrides = {});
+
+  absl::StatusOr<StartRecordingResult> StartRecording(
+      const std::string& output_path,
+      const std::string& session_name,
+      const std::string& description);
+
+  absl::StatusOr<StopRecordingResult> StopRecording(
+      const std::string& recording_id,
+      bool discard = false);
 
   /**
    * @brief Check if client is connected

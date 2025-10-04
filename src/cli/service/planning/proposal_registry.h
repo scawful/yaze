@@ -37,6 +37,8 @@ class ProposalRegistry {
   struct ProposalMetadata {
     std::string id;
     std::string sandbox_id;
+    std::filesystem::path sandbox_directory;
+    std::filesystem::path sandbox_rom_path;
     std::string description;
     std::string prompt;  // Original agent prompt that created this proposal
     ProposalStatus status;
@@ -65,6 +67,7 @@ class ProposalRegistry {
   // is created under the root, and metadata is initialized.
   absl::StatusOr<ProposalMetadata> CreateProposal(
       absl::string_view sandbox_id,
+      const std::filesystem::path& sandbox_rom_path,
       absl::string_view prompt,
       absl::string_view description);
 
@@ -81,6 +84,11 @@ class ProposalRegistry {
   // be copied into the proposal directory before calling this.
   absl::Status AddScreenshot(const std::string& proposal_id,
                              const std::filesystem::path& screenshot_path);
+
+  // Updates the number of commands executed for a proposal. Used to track
+  // how many CLI commands ran when generating the proposal.
+  absl::Status UpdateCommandStats(const std::string& proposal_id,
+                                  int commands_executed);
 
   // Updates the proposal status (pending -> accepted/rejected) and sets
   // the review timestamp.
@@ -111,6 +119,7 @@ class ProposalRegistry {
   absl::Status LoadProposalsFromDiskLocked();
   std::string GenerateProposalIdLocked();
   std::filesystem::path ProposalDirectory(absl::string_view proposal_id) const;
+  absl::Status WriteMetadataLocked(const ProposalMetadata& metadata) const;
 
   std::filesystem::path root_directory_;
   mutable std::mutex mutex_;
