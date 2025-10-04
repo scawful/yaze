@@ -48,7 +48,7 @@ class AgentChatWidget {
   void RenderInputArea();
   void RenderToolbar();
   void RenderMessageBubble(const cli::agent::ChatMessage& msg, int index);
-  void RenderTableFromJson(const std::string& json_str);
+  void RenderTableData(const cli::agent::ChatMessage::TableData& table);
   
   void SendMessage(const std::string& message);
   void ScrollToBottom();

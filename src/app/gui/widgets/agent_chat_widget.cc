@@ -166,84 +166,46 @@ void AgentChatWidget::RenderMessageBubble(const cli::agent::ChatMessage& msg, in
   // Message content
   ImGui::Indent(20.0f);
   
-  // Check if message is JSON (tool result)
-  if (!is_user && msg.text.find('[') != std::string::npos && 
-      msg.text.find('{') != std::string::npos) {
-    // Try to render as table
-    RenderTableFromJson(msg.text);
+  // Check if we have table data to render
+  if (!is_user && msg.table_data.has_value()) {
+    RenderTableData(msg.table_data.value());
+  } else if (!is_user && msg.json_pretty.has_value()) {
+    ImGui::TextWrapped("%s", msg.json_pretty.value().c_str());
   } else {
     // Regular text message
-    ImGui::TextWrapped("%s", msg.text.c_str());
+    ImGui::TextWrapped("%s", msg.message.c_str());
   }
   
   ImGui::Unindent(20.0f);
 }
 
-void AgentChatWidget::RenderTableFromJson(const std::string& json_str) {
-#ifdef YAZE_WITH_JSON
-  try {
-    auto json_data = nlohmann::json::parse(json_str);
-    
-    if (!json_data.is_array() || json_data.empty()) {
-      ImGui::TextWrapped("%s", json_str.c_str());
-      return;
-    }
-    
-    // Extract column headers from first object
-    std::vector<std::string> headers;
-    if (json_data[0].is_object()) {
-      for (auto& [key, value] : json_data[0].items()) {
-        headers.push_back(key);
-      }
-    }
-    
-    if (headers.empty()) {
-      ImGui::TextWrapped("%s", json_str.c_str());
-      return;
-    }
-    
-    // Render table
-    if (ImGui::BeginTable("ToolResultTable", headers.size(), 
-                          ImGuiTableFlags_Borders | 
-                          ImGuiTableFlags_RowBg |
-                          ImGuiTableFlags_ScrollY)) {
-      // Headers
-      for (const auto& header : headers) {
-        ImGui::TableSetupColumn(header.c_str());
-      }
-      ImGui::TableHeadersRow();
-      
-      // Rows
-      for (const auto& row : json_data) {
-        if (!row.is_object()) continue;
-        
-        ImGui::TableNextRow();
-        for (size_t col = 0; col < headers.size(); ++col) {
-          ImGui::TableSetColumnIndex(col);
-          
-          const auto& header = headers[col];
-          if (row.contains(header)) {
-            std::string cell_value;
-            if (row[header].is_string()) {
-              cell_value = row[header].get<std::string>();
-            } else {
-              cell_value = row[header].dump();
-            }
-            ImGui::TextWrapped("%s", cell_value.c_str());
-          }
-        }
-      }
-      
-      ImGui::EndTable();
-    }
-    
-  } catch (const nlohmann::json::exception& e) {
-    // Fallback to plain text if JSON parsing fails
-    ImGui::TextWrapped("%s", json_str.c_str());
+void AgentChatWidget::RenderTableData(const cli::agent::ChatMessage::TableData& table) {
+  if (table.headers.empty()) {
+    return;
   }
-#else
-  ImGui::TextWrapped("%s", json_str.c_str());
-#endif
+  
+  // Render table
+  if (ImGui::BeginTable("ToolResultTable", table.headers.size(), 
+                        ImGuiTableFlags_Borders | 
+                        ImGuiTableFlags_RowBg |
+                        ImGuiTableFlags_ScrollY)) {
+    // Headers
+    for (const auto& header : table.headers) {
+      ImGui::TableSetupColumn(header.c_str());
+    }
+    ImGui::TableHeadersRow();
+    
+    // Rows
+    for (const auto& row : table.rows) {
+      ImGui::TableNextRow();
+      for (size_t col = 0; col < std::min(row.size(), table.headers.size()); ++col) {
+        ImGui::TableSetColumnIndex(col);
+        ImGui::TextWrapped("%s", row[col].c_str());
+      }
+    }
+    
+    ImGui::EndTable();
+  }
 }
 
 void AgentChatWidget::RenderInputArea() {
@@ -278,16 +240,10 @@ void AgentChatWidget::SendMessage(const std::string& message) {
 #ifdef Z3ED_AI_AVAILABLE
   if (!agent_service_) return;
   
-  // Process message through agent service
-  auto result = agent_service_->ProcessMessage(message);
+  // Send message through agent service
+  auto result = agent_service_->SendMessage(message);
   
   if (!result.ok()) {
-    // Add error message to history
-    cli::agent::ChatMessage error_msg;
-    error_msg.sender = cli::agent::ChatMessage::Sender::kAgent;
-    error_msg.text = absl::StrFormat("Error: %s", result.status().message());
-    error_msg.timestamp = absl::Now();
-    // Note: We'd need to expose AddMessage in the service to do this properly
     std::cerr << "Error processing message: " << result.status() << std::endl;
   }
   
@@ -356,7 +312,7 @@ absl::Status AgentChatWidget::SaveHistory(const std::string& filepath) {
       nlohmann::json msg_json;
       msg_json["sender"] = (msg.sender == cli::agent::ChatMessage::Sender::kUser) 
                            ? "user" : "agent";
-      msg_json["text"] = msg.text;
+      msg_json["message"] = msg.message;
       msg_json["timestamp"] = absl::FormatTime(msg.timestamp);
       j["messages"].push_back(msg_json);
     }

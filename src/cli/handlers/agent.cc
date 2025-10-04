@@ -12,7 +12,7 @@ namespace agent {
 namespace {
 
 constexpr absl::string_view kUsage =
-  "Usage: agent <run|plan|diff|accept|test|test-conversation|gui|learn|list|commit|revert|describe|resource-list|dungeon-list-sprites|overworld-find-tile|overworld-describe-map|overworld-list-warps|chat> "
+  "Usage: agent <run|plan|diff|accept|test|test-conversation|gui|learn|list|commit|revert|describe|resource-list|dungeon-list-sprites|overworld-find-tile|overworld-describe-map|overworld-list-warps|chat|simple-chat> "
   "[options]";
 
 }  // namespace
@@ -79,6 +79,9 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
   }
   if (subcommand == "chat") {
     return agent::HandleChatCommand(rom_);
+  }
+  if (subcommand == "simple-chat") {
+    return agent::HandleSimpleChatCommand(subcommand_args, rom_);
   }
 
   return absl::InvalidArgumentError(std::string(agent::kUsage));
