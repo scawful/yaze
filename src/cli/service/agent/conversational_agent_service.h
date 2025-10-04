@@ -41,6 +41,13 @@ struct ChatMessage {
   std::optional<SessionMetrics> metrics;
 };
 
+enum class AgentOutputFormat {
+  kFriendly,
+  kCompact,
+  kMarkdown,
+  kJson
+};
+
 struct AgentConfig {
   int max_tool_iterations = 4;  // Maximum number of tool calling iterations
   int max_retry_attempts = 3;   // Maximum retries on errors
@@ -48,6 +55,7 @@ struct AgentConfig {
   bool show_reasoning = true;    // Show LLM reasoning in output
   size_t max_history_messages = 50;  // Maximum stored history messages per session
   bool trim_history = true;          // Whether to trim history beyond the limit
+  AgentOutputFormat output_format = AgentOutputFormat::kFriendly;
 };
 
 class ConversationalAgentService {

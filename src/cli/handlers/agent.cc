@@ -73,7 +73,7 @@ constexpr absl::string_view kUsage =
   "  --ai_model=<name>       Model name (e.g., qwen2.5-coder:7b for Ollama)\n"
   "  --ollama_host=<url>     Ollama server URL (default: http://localhost:11434)\n"
   "  --gemini_api_key=<key>  Gemini API key (or set GEMINI_API_KEY env var)\n"
-  "  --format=<type>         Output format: json | table | yaml\n"
+  "  --format=<type>         Output format: text | markdown | json | compact\n"
   "\n"
   "For more details, see: docs/simple_chat_input_methods.md";
 

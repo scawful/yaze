@@ -25,6 +25,8 @@ class ModernCLI {
   absl::Status Run(int argc, char* argv[]);
   CommandHandler* GetCommandHandler(const std::string& name);
   void PrintTopLevelHelp() const;
+  void PrintCategoryHelp(const std::string& category) const;
+  void PrintCommandSummary() const;
 
   std::map<std::string, CommandInfo> commands_;
 
@@ -32,6 +34,7 @@ class ModernCLI {
   void SetupCommands();
   void ShowHelp();
   void ShowCategoryHelp(const std::string& category);
+  void ShowCommandSummary() const;
 
   // Command Handlers
   absl::Status HandleAsarPatchCommand(const std::vector<std::string>& args);
@@ -58,6 +61,9 @@ class ModernCLI {
   absl::Status HandleOverworldListWarpsCommand(const std::vector<std::string>& args);
   absl::Status HandleOverworldSetTileCommand(const std::vector<std::string>& args);
   absl::Status HandleSpriteCreateCommand(const std::vector<std::string>& args);
+  absl::Status HandleChatEntryCommand(const std::vector<std::string>& args);
+  absl::Status HandleProposalCommand(const std::vector<std::string>& args);
+  absl::Status HandleWidgetCommand(const std::vector<std::string>& args);
 };
 
 }  // namespace cli

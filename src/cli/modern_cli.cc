@@ -1,9 +1,12 @@
 #include "cli/modern_cli.h"
 
 #include <iostream>
+#include <optional>
 
 #include "absl/flags/flag.h"
 #include "absl/flags/declare.h"
+#include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -13,6 +16,7 @@
 #include "cli/z3ed_ascii_logo.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
+ABSL_DECLARE_FLAG(bool, quiet);
 
 namespace yaze {
 namespace cli {
@@ -111,6 +115,48 @@ void ModernCLI::SetupCommands() {
                "📚 No separate labels file needed - all names built into z3ed!\n",
       .handler = [this](const std::vector<std::string>& args) -> absl::Status {
         return HandleAgentCommand(args);
+      }
+    };
+
+    commands_["chat"] = {
+      .name = "chat",
+      .description =
+          "Unified chat entrypoint with text, markdown, or JSON output",
+      .usage =
+          "z3ed chat [--mode=simple|gui|test] [--format=text|markdown|json|compact]"
+          " [--prompt \"<message>\"] [--file=<questions.txt>] [--quiet]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleChatEntryCommand(args);
+      }
+    };
+
+    commands_["proposal"] = {
+      .name = "proposal",
+      .description = "Review and manage AI-generated change proposals",
+      .usage =
+          "z3ed proposal <run|list|diff|show|accept|commit|revert> [options]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleProposalCommand(args);
+      }
+    };
+
+    commands_["widget"] = {
+      .name = "widget",
+      .description = "Discover GUI widgets exposed through automation APIs",
+      .usage = "z3ed widget discover [--window=<name>] [--type=<widget>]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleWidgetCommand(args);
+      }
+    };
+
+    commands_["widget discover"] = {
+      .name = "widget discover",
+      .description = "Inspect UI widgets using the automation service",
+      .usage =
+          "z3ed widget discover [--window=<name>] [--type=<widget>]"
+          " [--format=text|json]",
+      .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+        return HandleWidgetCommand(args);
       }
     };
 
@@ -305,11 +351,25 @@ void ModernCLI::ShowHelp() {
     std::cout << "\033[1m\033[36mCOMMANDS:\033[0m" << std::endl;
     std::cout << std::endl;
     
-    std::cout << "  \033[1m🤖 AI Agent\033[0m" << std::endl;
-    std::cout << "    agent simple-chat     Natural language ROM queries" << std::endl;
-    std::cout << "    agent test-conversation  Interactive testing mode" << std::endl;
-    std::cout << "    \033[90m→ z3ed help agent\033[0m" << std::endl;
+  std::cout << "  \033[1m🤖 AI Agent\033[0m" << std::endl;
+  std::cout << "    chat                  Unified chat entrypoint (text/json/markdown)" << std::endl;
+  std::cout << "    agent simple-chat     Natural language ROM queries" << std::endl;
+  std::cout << "    agent test-conversation  Interactive testing mode" << std::endl;
+  std::cout << "    \033[90m→ z3ed help chat, z3ed help agent\033[0m" << std::endl;
     std::cout << std::endl;
+
+  std::cout << "  \033[1m🧠 Proposals\033[0m" << std::endl;
+  std::cout << "    proposal run          Execute AI-driven sandbox plan" << std::endl;
+  std::cout << "    proposal list         Show pending proposals" << std::endl;
+  std::cout << "    proposal diff         Review latest sandbox diff" << std::endl;
+  std::cout << "    proposal accept       Apply sandbox changes" << std::endl;
+  std::cout << "    \033[90m→ z3ed help proposal\033[0m" << std::endl;
+  std::cout << std::endl;
+
+  std::cout << "  \033[1m🪟 GUI Automation\033[0m" << std::endl;
+  std::cout << "    widget discover       Inspect GUI widgets via automation" << std::endl;
+  std::cout << "    \033[90m→ z3ed help widget\033[0m" << std::endl;
+  std::cout << std::endl;
     
     std::cout << "  \033[1m🔧 ROM Patching\033[0m" << std::endl;
     std::cout << "    patch apply-asar      Apply Asar 65816 assembly patch" << std::endl;
@@ -350,7 +410,7 @@ void ModernCLI::ShowHelp() {
     
     std::cout << "\033[1m\033[36mQUICK START:\033[0m" << std::endl;
     std::cout << "  z3ed --tui" << std::endl;
-    std::cout << "  z3ed agent simple-chat \"What is room 5?\" --rom=zelda3.sfc" << std::endl;
+  std::cout << "  z3ed chat \"What is room 5?\" --rom=zelda3.sfc --format=markdown" << std::endl;
     std::cout << "  z3ed patch apply-asar patch.asm --rom=zelda3.sfc" << std::endl;
     std::cout << std::endl;
     
@@ -359,6 +419,14 @@ void ModernCLI::ShowHelp() {
 
 void ModernCLI::PrintTopLevelHelp() const {
   const_cast<ModernCLI*>(this)->ShowHelp();
+}
+
+void ModernCLI::PrintCategoryHelp(const std::string& category) const {
+  const_cast<ModernCLI*>(this)->ShowCategoryHelp(category);
+}
+
+void ModernCLI::PrintCommandSummary() const {
+  const_cast<ModernCLI*>(this)->ShowCommandSummary();
 }
 
 void ModernCLI::ShowCategoryHelp(const std::string& category) {
@@ -395,6 +463,54 @@ void ModernCLI::ShowCategoryHelp(const std::string& category) {
     std::cout << "  • Use --ai_provider=gemini or --ai_provider=ollama" << std::endl;
     std::cout << std::endl;
     
+  } else if (category == "chat") {
+    std::cout << "\033[1m\033[36m💬 CHAT ENTRYPOINT\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mDESCRIPTION:\033[0m" << std::endl;
+    std::cout << "  Launch the embedded agent in text, markdown, or JSON-friendly modes." << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mMODES:\033[0m" << std::endl;
+    std::cout << "  chat --mode=simple        Quick REPL with --format=text|markdown|json|compact" << std::endl;
+    std::cout << "  chat --mode=batch --file=F   Run prompts from file (one per line)" << std::endl;
+    std::cout << "  chat --mode=gui            Launch the full FTXUI conversation experience" << std::endl;
+    std::cout << "  chat --mode=test           Execute scripted agent conversation for QA" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mOPTIONS:\033[0m" << std::endl;
+    std::cout << "  --format=text|markdown|json|compact    Control response formatting" << std::endl;
+    std::cout << "  --prompt \"<msg>\"                  Send a single message and exit" << std::endl;
+    std::cout << "  --file questions.txt                  Batch mode input" << std::endl;
+    std::cout << "  --quiet                                Suppress extra banners" << std::endl;
+    std::cout << std::endl;
+
+  } else if (category == "proposal") {
+    std::cout << "\033[1m\033[36m🧠 PROPOSAL WORKFLOWS\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mCOMMANDS:\033[0m" << std::endl;
+    std::cout << "  proposal run --prompt \"<desc>\"        Plan and execute changes in sandbox" << std::endl;
+    std::cout << "  proposal list                          Show pending proposals" << std::endl;
+    std::cout << "  proposal diff [--proposal-id=X]        Inspect latest diff/log" << std::endl;
+    std::cout << "  proposal accept --proposal-id=X        Apply sandbox changes to main ROM" << std::endl;
+    std::cout << "  proposal commit | proposal revert      Persist or undo sandbox changes" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mTIPS:\033[0m" << std::endl;
+    std::cout << "  • Run `z3ed proposal list` frequently to monitor progress" << std::endl;
+    std::cout << "  • Use `--prompt` to describe tasks in natural language" << std::endl;
+    std::cout << "  • Sandbox artifacts live alongside proposal logs" << std::endl;
+    std::cout << std::endl;
+
+  } else if (category == "widget") {
+    std::cout << "\033[1m\033[36m🪟 GUI WIDGET DISCOVERY\033[0m" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mCOMMANDS:\033[0m" << std::endl;
+  std::cout << "  widget discover [--window=<name>] [--type=<widget>]" << std::endl;
+  std::cout << "    Enumerate UI widgets available through automation hooks" << std::endl;
+  std::cout << "    Options: --format=table|json, --limit <n>, --include-invisible, --include-disabled" << std::endl;
+    std::cout << std::endl;
+    std::cout << "\033[1mTIPS:\033[0m" << std::endl;
+    std::cout << "  • Requires the YAZE GUI to be running locally" << std::endl;
+    std::cout << "  • Combine with `z3ed proposal run` for automated UI tests" << std::endl;
+    std::cout << std::endl;
+
   } else if (category == "patch") {
     std::cout << "\033[1m\033[36m🔧 ROM PATCHING COMMANDS\033[0m" << std::endl;
     std::cout << std::endl;
@@ -520,10 +636,42 @@ void ModernCLI::ShowCategoryHelp(const std::string& category) {
   } else {
     std::cout << "\033[1m\033[31mUnknown category: " << category << "\033[0m" << std::endl;
     std::cout << std::endl;
-    std::cout << "Available categories: agent, patch, rom, overworld, dungeon, gfx, palette" << std::endl;
+  std::cout << "Available categories: agent, chat, proposal, widget, patch, rom, overworld, dungeon, gfx, palette" << std::endl;
     std::cout << std::endl;
     std::cout << "Use 'z3ed --help' to see all commands." << std::endl;
   }
+}
+
+void ModernCLI::ShowCommandSummary() const {
+  std::cout << GetColoredLogo() << std::endl;
+  std::cout << std::endl;
+  std::cout << "\033[1m\033[36mCOMMANDS OVERVIEW\033[0m" << std::endl;
+  std::cout << std::endl;
+
+  for (const auto& [key, info] : commands_) {
+    std::string headline = info.description;
+    const size_t newline_pos = headline.find('\n');
+    if (newline_pos != std::string::npos) {
+      headline = headline.substr(0, newline_pos);
+    }
+    if (headline.empty()) {
+      headline = info.usage;
+    }
+    if (headline.size() > 80) {
+      headline = absl::StrCat(headline.substr(0, 77), "…");
+    }
+
+    std::string label = info.name;
+    if (label.size() > 24) {
+      label = absl::StrCat(label.substr(0, 23), "…");
+    }
+
+  std::cout << "  "
+        << absl::StrFormat("%-24s%s", label, headline) << std::endl;
+  }
+
+  std::cout << std::endl;
+  std::cout << "Use \033[90mz3ed help <topic>\033[0m for detailed information." << std::endl;
 }
 
 absl::Status ModernCLI::Run(int argc, char* argv[]) {
@@ -737,8 +885,143 @@ absl::Status ModernCLI::HandleOverworldSetTileCommand(const std::vector<std::str
 }
 
 absl::Status ModernCLI::HandleSpriteCreateCommand(const std::vector<std::string>& args) {
-    SpriteCreate handler;
-    return handler.Run(args);
+  SpriteCreate handler;
+  return handler.Run(args);
+}
+
+absl::Status ModernCLI::HandleChatEntryCommand(
+  const std::vector<std::string>& args) {
+  std::string mode = "simple";
+  std::optional<std::string> prompt;
+  std::vector<std::string> forwarded;
+
+  for (size_t i = 0; i < args.size(); ++i) {
+    const std::string& token = args[i];
+    if (absl::StartsWith(token, "--mode=")) {
+      mode = absl::AsciiStrToLower(token.substr(7));
+      continue;
+    }
+    if (token == "--mode" && i + 1 < args.size()) {
+      mode = absl::AsciiStrToLower(args[i + 1]);
+      ++i;
+      continue;
+    }
+    if (absl::StartsWith(token, "--prompt=")) {
+      prompt = token.substr(9);
+      continue;
+    }
+    if (token == "--prompt" && i + 1 < args.size()) {
+      prompt = args[i + 1];
+      ++i;
+      continue;
+    }
+    if (token == "--quiet" || token == "-q") {
+      absl::SetFlag(&FLAGS_quiet, true);
+      continue;
+    }
+    if (!absl::StartsWith(token, "--") && !prompt.has_value()) {
+      prompt = token;
+      continue;
+    }
+    forwarded.push_back(token);
+  }
+
+  const std::string normalized_mode = absl::AsciiStrToLower(mode);
+
+  auto has_batch_file = [&forwarded]() {
+    for (const auto& token : forwarded) {
+      if (absl::StartsWith(token, "--file") || token == "--file") {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  std::vector<std::string> agent_args;
+  if (normalized_mode == "gui" || normalized_mode == "visual" ||
+    normalized_mode == "tui") {
+    if (prompt.has_value()) {
+      return absl::InvalidArgumentError(
+        "GUI chat mode launches the interactive TUI and does not accept a --prompt value.");
+    }
+    agent_args.push_back("chat");
+  } else if (normalized_mode == "test" || normalized_mode == "qa") {
+    if (prompt.has_value()) {
+      return absl::InvalidArgumentError(
+        "Test conversation mode does not accept an inline prompt.");
+    }
+    agent_args.push_back("test-conversation");
+  } else {
+    if (normalized_mode == "batch" && !has_batch_file()) {
+      return absl::InvalidArgumentError(
+        "Batch chat mode requires a --file=<path> option.");
+    }
+    agent_args.push_back("simple-chat");
+    if (prompt.has_value()) {
+      agent_args.push_back(*prompt);
+    }
+  }
+
+  agent_args.insert(agent_args.end(), forwarded.begin(), forwarded.end());
+  return HandleAgentCommand(agent_args);
+}
+
+absl::Status ModernCLI::HandleProposalCommand(
+  const std::vector<std::string>& args) {
+  if (args.empty()) {
+    ShowCategoryHelp("proposal");
+    return absl::OkStatus();
+  }
+
+  std::string subcommand = absl::AsciiStrToLower(args[0]);
+  std::vector<std::string> forwarded(args.begin() + 1, args.end());
+  std::vector<std::string> agent_args;
+
+  if (subcommand == "run" || subcommand == "plan") {
+    agent_args.push_back(subcommand);
+  } else if (subcommand == "list") {
+    agent_args.push_back("list");
+  } else if (subcommand == "diff" || subcommand == "show") {
+    agent_args.push_back("diff");
+  } else if (subcommand == "accept") {
+    agent_args.push_back("accept");
+  } else if (subcommand == "commit") {
+    agent_args.push_back("commit");
+  } else if (subcommand == "revert" || subcommand == "reject") {
+    agent_args.push_back("revert");
+  } else if (subcommand == "test") {
+    agent_args.push_back("test");
+  } else {
+    return absl::InvalidArgumentError(
+      absl::StrCat("Unknown proposal command: ", subcommand,
+              ". Valid actions: run, plan, list, diff, show, accept, commit, revert."));
+  }
+
+  agent_args.insert(agent_args.end(), forwarded.begin(), forwarded.end());
+  return HandleAgentCommand(agent_args);
+}
+
+absl::Status ModernCLI::HandleWidgetCommand(
+  const std::vector<std::string>& args) {
+  if (args.empty()) {
+    ShowCategoryHelp("widget");
+    return absl::OkStatus();
+  }
+
+  std::vector<std::string> forwarded(args.begin(), args.end());
+  std::string subcommand = absl::AsciiStrToLower(forwarded[0]);
+  std::vector<std::string> agent_args;
+
+  if (subcommand == "discover") {
+    agent_args.push_back("gui");
+    agent_args.insert(agent_args.end(), forwarded.begin(), forwarded.end());
+  } else {
+    return absl::InvalidArgumentError(
+      absl::StrCat("Unknown widget command: ", forwarded[0],
+              ". Try 'z3ed widget discover'."));
+  }
+
+  return HandleAgentCommand(agent_args);
 }
 
 }  // namespace cli
