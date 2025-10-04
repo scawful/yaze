@@ -11,7 +11,7 @@
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
-#include "app/editor/dungeon/dungeon_editor.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/graphics/screen_editor.h"
@@ -59,7 +59,7 @@ class EditorSet {
   }
 
   AssemblyEditor assembly_editor_;
-  DungeonEditor dungeon_editor_;
+  DungeonEditorV2 dungeon_editor_;
   GraphicsEditor graphics_editor_;
   MusicEditor music_editor_;
   OverworldEditor overworld_editor_;

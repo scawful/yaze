@@ -270,11 +270,13 @@ bool DungeonObjectInteraction::IsObjectInSelectBox(
 }
 
 std::pair<int, int> DungeonObjectInteraction::RoomToCanvasCoordinates(int room_x, int room_y) const {
-  return {room_x * 16, room_y * 16};
+  // Dungeon tiles are 8x8 pixels, convert room coordinates (tiles) to pixels
+  return {room_x * 8, room_y * 8};
 }
 
 std::pair<int, int> DungeonObjectInteraction::CanvasToRoomCoordinates(int canvas_x, int canvas_y) const {
-  return {canvas_x / 16, canvas_y / 16};
+  // Convert canvas pixels back to room coordinates (tiles)
+  return {canvas_x / 8, canvas_y / 8};
 }
 
 bool DungeonObjectInteraction::IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin) const {
