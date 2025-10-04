@@ -129,9 +129,8 @@ void TestManager::InitializeUITesting() {
   if (!ui_test_engine_) {
     // Check if ImGui context is ready
     if (ImGui::GetCurrentContext() == nullptr) {
-      util::logf(
-          "[TestManager] Warning: ImGui context not ready, deferring test "
-          "engine initialization");
+      LOG_WARN("TestManager",
+               "ImGui context not ready, deferring test engine initialization");
       return;
     }
 
@@ -144,7 +143,7 @@ void TestManager::InitializeUITesting() {
 
       // Start the test engine
       ImGuiTestEngine_Start(ui_test_engine_, ImGui::GetCurrentContext());
-      util::logf("[TestManager] ImGuiTestEngine initialized successfully");
+      LOG_INFO("TestManager", "ImGuiTestEngine initialized successfully");
     }
   }
 }
@@ -364,8 +363,9 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
   frame_counter++;
   if (frame_counter % 60 == 0) {  // Check every 60 frames
     // Log ROM status periodically for debugging
-    util::logf("TestManager ROM status check - Frame %d: ROM %p, loaded: %s",
-               frame_counter, (void*)current_rom_, has_rom ? "true" : "false");
+    LOG_INFO("TestManager",
+             "TestManager ROM status check - Frame %d: ROM %p, loaded: %s",
+             frame_counter, (void*)current_rom_, has_rom ? "true" : "false");
   }
 
   if (ImGui::BeginTable("ROM_Status_Table", 2, ImGuiTableFlags_BordersInner)) {
@@ -448,16 +448,18 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
       }
       ImGui::SameLine();
       if (ImGui::Button("Debug ROM State")) {
-        util::logf("=== ROM DEBUG INFO ===");
-        util::logf("current_rom_ pointer: %p", (void*)current_rom_);
+        LOG_INFO("TestManager", "=== ROM DEBUG INFO ===");
+        LOG_INFO("TestManager", "current_rom_ pointer: %p", (void*)current_rom_);
         if (current_rom_) {
-          util::logf("ROM title: '%s'", current_rom_->title().c_str());
-          util::logf("ROM size: %zu", current_rom_->size());
-          util::logf("ROM is_loaded(): %s",
-                     current_rom_->is_loaded() ? "true" : "false");
-          util::logf("ROM data pointer: %p", (void*)current_rom_->data());
+          LOG_INFO("TestManager", "ROM title: '%s'",
+                   current_rom_->title().c_str());
+          LOG_INFO("TestManager", "ROM size: %zu", current_rom_->size());
+          LOG_INFO("TestManager", "ROM is_loaded(): %s",
+                   current_rom_->is_loaded() ? "true" : "false");
+          LOG_INFO("TestManager", "ROM data pointer: %p",
+                   (void*)current_rom_->data());
         }
-        util::logf("======================");
+        LOG_INFO("TestManager", "======================");
       }
     }
 
@@ -529,8 +531,8 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
       bool nfd_mode = core::FeatureFlags::get().kUseNativeFileDialog;
       if (ImGui::MenuItem("Use NFD File Dialog", nullptr, &nfd_mode)) {
         core::FeatureFlags::get().kUseNativeFileDialog = nfd_mode;
-        util::logf("Global file dialog mode changed to: %s",
-                   nfd_mode ? "NFD" : "Bespoke");
+        LOG_INFO("TestManager", "Global file dialog mode changed to: %s",
+                 nfd_mode ? "NFD" : "Bespoke");
       }
       ImGui::EndMenu();
     }
@@ -858,7 +860,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
       if (ImGui::Button("Run All Google Tests")) {
         // Run Google tests - this would integrate with gtest
-        util::logf("Running Google Tests...");
+        LOG_INFO("TestManager", "Running Google Tests...");
       }
 
       ImGui::SameLine();
@@ -977,7 +979,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
         bool nfd_mode = core::FeatureFlags::get().kUseNativeFileDialog;
         if (ImGui::RadioButton("NFD (Native File Dialog)", nfd_mode)) {
           core::FeatureFlags::get().kUseNativeFileDialog = true;
-          util::logf("Global file dialog mode set to: NFD");
+          LOG_INFO("TestManager", "Global file dialog mode set to: NFD");
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
@@ -986,7 +988,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
         if (ImGui::RadioButton("Bespoke Implementation", !nfd_mode)) {
           core::FeatureFlags::get().kUseNativeFileDialog = false;
-          util::logf("Global file dialog mode set to: Bespoke");
+          LOG_INFO("TestManager", "Global file dialog mode set to: Bespoke");
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
@@ -1003,17 +1005,19 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
         if (ImGui::Button("Test Current File Dialog")) {
           // Test the current file dialog implementation
-          util::logf("Testing global file dialog mode: %s",
-                     core::FeatureFlags::get().kUseNativeFileDialog
-                         ? "NFD"
-                         : "Bespoke");
+          LOG_INFO("TestManager", "Testing global file dialog mode: %s",
+                   core::FeatureFlags::get().kUseNativeFileDialog
+                       ? "NFD"
+                       : "Bespoke");
 
           // Actually test the file dialog
           auto result = core::FileDialogWrapper::ShowOpenFileDialog();
           if (!result.empty()) {
-            util::logf("File dialog test successful: %s", result.c_str());
+            LOG_INFO("TestManager", "File dialog test successful: %s",
+                     result.c_str());
           } else {
-            util::logf("File dialog test: No file selected or dialog canceled");
+            LOG_INFO("TestManager",
+                     "File dialog test: No file selected or dialog canceled");
           }
         }
 
@@ -1021,9 +1025,10 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
         if (ImGui::Button("Test NFD Directly")) {
           auto result = core::FileDialogWrapper::ShowOpenFileDialogNFD();
           if (!result.empty()) {
-            util::logf("NFD test successful: %s", result.c_str());
+            LOG_INFO("TestManager", "NFD test successful: %s", result.c_str());
           } else {
-            util::logf(
+            LOG_INFO(
+                "TestManager",
                 "NFD test: No file selected, canceled, or error occurred");
           }
         }
@@ -1032,9 +1037,11 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
         if (ImGui::Button("Test Bespoke Directly")) {
           auto result = core::FileDialogWrapper::ShowOpenFileDialogBespoke();
           if (!result.empty()) {
-            util::logf("Bespoke test successful: %s", result.c_str());
+            LOG_INFO("TestManager", "Bespoke test successful: %s",
+                     result.c_str());
           } else {
-            util::logf("Bespoke test: No file selected or not implemented");
+            LOG_INFO("TestManager",
+                     "Bespoke test: No file selected or not implemented");
           }
         }
       }
@@ -1118,12 +1125,12 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
             if (enabled) {
               if (ImGui::Button("Disable")) {
                 DisableTest(test_name);
-                util::logf("Disabled test: %s", test_name.c_str());
+                LOG_INFO("TestManager", "Disabled test: %s", test_name.c_str());
               }
             } else {
               if (ImGui::Button("Enable")) {
                 EnableTest(test_name);
-                util::logf("Enabled test: %s", test_name.c_str());
+                LOG_INFO("TestManager", "Enabled test: %s", test_name.c_str());
               }
             }
             ImGui::PopID();
@@ -1143,7 +1150,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
               DisableTest(test_name);
             }
           }
-          util::logf("Enabled only safe tests");
+          LOG_INFO("TestManager", "Enabled only safe tests");
         }
         ImGui::SameLine();
 
@@ -1151,7 +1158,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
           for (const auto& [test_name, description] : known_tests) {
             EnableTest(test_name);
           }
-          util::logf("Enabled all tests (including dangerous ones)");
+          LOG_INFO("TestManager", "Enabled all tests (including dangerous ones)");
         }
         ImGui::SameLine();
 
@@ -1159,7 +1166,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
           for (const auto& [test_name, description] : known_tests) {
             DisableTest(test_name);
           }
-          util::logf("Disabled all tests");
+          LOG_INFO("TestManager", "Disabled all tests");
         }
 
         ImGui::Separator();
@@ -1181,15 +1188,14 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
         if (ImGui::Button("Quick Test NFD")) {
           auto result = core::FileDialogWrapper::ShowOpenFileDialogNFD();
-          util::logf("NFD test result: %s",
-                     result.empty() ? "Failed/Canceled" : result.c_str());
+          LOG_INFO("TestManager", "NFD test result: %s",
+                   result.empty() ? "Failed/Canceled" : result.c_str());
         }
         ImGui::SameLine();
         if (ImGui::Button("Quick Test Bespoke")) {
           auto result = core::FileDialogWrapper::ShowOpenFileDialogBespoke();
-          util::logf("Bespoke test result: %s", result.empty()
-                                                    ? "Failed/Not Implemented"
-                                                    : result.c_str());
+          LOG_INFO("TestManager", "Bespoke test result: %s",
+                   result.empty() ? "Failed/Not Implemented" : result.c_str());
         }
 
         ImGui::Separator();
@@ -1229,8 +1235,9 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
               ImVec2(200, 0))) {
         // TODO: This would need access to EditorManager to create a new session
         // For now, just show a message
-        util::logf("User requested to open test ROM in new session: %s",
-                   test_rom_path_for_session_.c_str());
+        LOG_INFO("TestManager",
+                 "User requested to open test ROM in new session: %s",
+                 test_rom_path_for_session_.c_str());
         show_test_session_dialog_ = false;
       }
 
@@ -1253,32 +1260,38 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 }
 
 void TestManager::RefreshCurrentRom() {
-  util::logf("=== TestManager ROM Refresh ===");
+  LOG_INFO("TestManager", "=== TestManager ROM Refresh ===");
 
   // Log current TestManager ROM state for debugging
   if (current_rom_) {
-    util::logf("TestManager ROM pointer: %p", (void*)current_rom_);
-    util::logf("ROM is_loaded(): %s",
-               current_rom_->is_loaded() ? "true" : "false");
+    LOG_INFO("TestManager", "TestManager ROM pointer: %p", (void*)current_rom_);
+    LOG_INFO("TestManager", "ROM is_loaded(): %s",
+             current_rom_->is_loaded() ? "true" : "false");
     if (current_rom_->is_loaded()) {
-      util::logf("ROM title: '%s'", current_rom_->title().c_str());
-      util::logf("ROM size: %.2f MB", current_rom_->size() / 1048576.0f);
-      util::logf("ROM dirty: %s", current_rom_->dirty() ? "true" : "false");
+      LOG_INFO("TestManager", "ROM title: '%s'",
+               current_rom_->title().c_str());
+      LOG_INFO("TestManager", "ROM size: %.2f MB",
+               current_rom_->size() / 1048576.0f);
+      LOG_INFO("TestManager", "ROM dirty: %s",
+               current_rom_->dirty() ? "true" : "false");
     }
   } else {
-    util::logf("TestManager ROM pointer is null");
-    util::logf("Note: ROM should be set by EditorManager when ROM is loaded");
+    LOG_INFO("TestManager", "TestManager ROM pointer is null");
+    LOG_INFO(
+        "TestManager",
+        "Note: ROM should be set by EditorManager when ROM is loaded");
   }
-  util::logf("===============================");
+  LOG_INFO("TestManager", "===============================");
 }
 
-absl::Status TestManager::CreateTestRomCopy(Rom* source_rom,
-                                            std::unique_ptr<Rom>& test_rom) {
+absl::Status TestManager::CreateTestRomCopy(
+    Rom* source_rom, std::unique_ptr<Rom>& test_rom) {
   if (!source_rom || !source_rom->is_loaded()) {
     return absl::FailedPreconditionError("Source ROM not loaded");
   }
 
-  util::logf("Creating test ROM copy from: %s", source_rom->title().c_str());
+  LOG_INFO("TestManager", "Creating test ROM copy from: %s",
+           source_rom->title().c_str());
 
   // Create a new ROM instance
   test_rom = std::make_unique<Rom>();
@@ -1290,12 +1303,13 @@ absl::Status TestManager::CreateTestRomCopy(Rom* source_rom,
     return load_status;
   }
 
-  util::logf("Test ROM copy created successfully (size: %.2f MB)",
-             test_rom->size() / 1048576.0f);
+  LOG_INFO("TestManager", "Test ROM copy created successfully (size: %.2f MB)",
+           test_rom->size() / 1048576.0f);
   return absl::OkStatus();
 }
 
-std::string TestManager::GenerateTestRomFilename(const std::string& base_name) {
+std::string TestManager::GenerateTestRomFilename(
+    const std::string& base_name) {
   // Generate filename with timestamp
   auto now = std::chrono::system_clock::now();
   auto time_t = std::chrono::system_clock::to_time_t(now);
@@ -1337,13 +1351,13 @@ absl::Status TestManager::TestRomWithCopy(
   std::unique_ptr<Rom> test_rom;
   RETURN_IF_ERROR(CreateTestRomCopy(source_rom, test_rom));
 
-  util::logf("Executing test function on ROM copy");
+  LOG_INFO("TestManager", "Executing test function on ROM copy");
 
   // Run the test function on the copy
   auto test_result = test_function(test_rom.get());
 
-  util::logf("Test function completed with status: %s",
-             test_result.ToString().c_str());
+  LOG_INFO("TestManager", "Test function completed with status: %s",
+           test_result.ToString().c_str());
 
   return test_result;
 }
@@ -1351,7 +1365,8 @@ absl::Status TestManager::TestRomWithCopy(
 absl::Status TestManager::LoadRomForTesting(const std::string& filename) {
   // This would load a ROM specifically for testing purposes
   // For now, just log the request
-  util::logf("Request to load ROM for testing: %s", filename.c_str());
+  LOG_INFO("TestManager", "Request to load ROM for testing: %s",
+           filename.c_str());
   return absl::UnimplementedError(
       "ROM loading for testing not yet implemented");
 }
@@ -1397,8 +1412,8 @@ absl::Status TestManager::TestRomSaveLoad(Rom* rom) {
 
   // Use TestRomWithCopy to avoid affecting the original ROM
   return TestRomWithCopy(rom, [this](Rom* test_rom) -> absl::Status {
-    util::logf("Testing ROM save/load operations on copy: %s",
-               test_rom->title().c_str());
+    LOG_INFO("TestManager", "Testing ROM save/load operations on copy: %s",
+             test_rom->title().c_str());
 
     // Perform test modifications on the copy
     // Test save operations
@@ -1412,7 +1427,8 @@ absl::Status TestManager::TestRomSaveLoad(Rom* rom) {
       return save_status;
     }
 
-    util::logf("Test ROM saved successfully to: %s", settings.filename.c_str());
+    LOG_INFO("TestManager", "Test ROM saved successfully to: %s",
+             settings.filename.c_str());
 
     // Offer to open test ROM in new session
     OfferTestSessionCreation(settings.filename);
@@ -1428,8 +1444,8 @@ absl::Status TestManager::TestRomDataIntegrity(Rom* rom) {
 
   // Use TestRomWithCopy for integrity testing (read-only but uses copy for safety)
   return TestRomWithCopy(rom, [](Rom* test_rom) -> absl::Status {
-    util::logf("Testing ROM data integrity on copy: %s",
-               test_rom->title().c_str());
+    LOG_INFO("TestManager", "Testing ROM data integrity on copy: %s",
+             test_rom->title().c_str());
 
     // Perform data integrity checks on the copy
     // This validates ROM structure, checksums, etc. without affecting original
@@ -1446,7 +1462,8 @@ absl::Status TestManager::TestRomDataIntegrity(Rom* rom) {
       return header_status.status();
     }
 
-    util::logf("ROM integrity check passed for: %s", test_rom->title().c_str());
+    LOG_INFO("TestManager", "ROM integrity check passed for: %s",
+             test_rom->title().c_str());
     return absl::OkStatus();
   });
 }
@@ -1753,22 +1770,25 @@ void TestManager::CaptureFailureContext(const std::string& test_id) {
 
 #if defined(YAZE_WITH_GRPC)
   if (screenshot_artifact.ok()) {
-    util::logf("[TestManager] Captured failure context for test %s: %s",
-               test_id.c_str(), failure_context.c_str());
-    util::logf("[TestManager] Failure screenshot stored at %s (%lld bytes)",
-               screenshot_artifact->file_path.c_str(),
-               static_cast<long long>(screenshot_artifact->file_size_bytes));
+    LOG_INFO("TestManager",
+             "Captured failure context for test %s: %s", test_id.c_str(),
+             failure_context.c_str());
+    LOG_INFO("TestManager",
+             "Failure screenshot stored at %s (%lld bytes)",
+             screenshot_artifact->file_path.c_str(),
+             static_cast<long long>(screenshot_artifact->file_size_bytes));
   } else {
-    util::logf("[TestManager] Failed to capture screenshot for test %s: %s",
-               test_id.c_str(),
-               screenshot_artifact.status().ToString().c_str());
+    LOG_WARN("TestManager",
+             "Failed to capture screenshot for test %s: %s", test_id.c_str(),
+             screenshot_artifact.status().ToString().c_str());
   }
 #else
-  util::logf(
-      "[TestManager] Screenshot capture unavailable (YAZE_WITH_GRPC=OFF) for test %s",
+  LOG_INFO(
+      "TestManager",
+      "Screenshot capture unavailable (YAZE_WITH_GRPC=OFF) for test %s",
       test_id.c_str());
 #endif
-  util::logf("[TestManager] Widget state: %s", widget_state.c_str());
+  LOG_INFO("TestManager", "Widget state: %s", widget_state.c_str());
 }
 
 }  // namespace test

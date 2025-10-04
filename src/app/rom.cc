@@ -674,7 +674,7 @@ absl::Status Rom::WriteByte(int addr, uint8_t value) {
         value, addr));
   }
   rom_data_[addr] = value;
-  util::logf("WriteByte: %#06X: %s", addr, util::HexByte(value).data());
+  LOG_DEBUG("Rom", "WriteByte: %#06X: %s", addr, util::HexByte(value).data());
   dirty_ = true;
   return absl::OkStatus();
 }
@@ -687,7 +687,7 @@ absl::Status Rom::WriteWord(int addr, uint16_t value) {
   }
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
-  util::logf("WriteWord: %#06X: %s", addr, util::HexWord(value).data());
+  LOG_DEBUG("Rom", "WriteWord: %#06X: %s", addr, util::HexWord(value).data());
   dirty_ = true;
   return absl::OkStatus();
 }
@@ -700,7 +700,7 @@ absl::Status Rom::WriteShort(int addr, uint16_t value) {
   }
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
-  util::logf("WriteShort: %#06X: %s", addr, util::HexWord(value).data());
+  LOG_DEBUG("Rom", "WriteShort: %#06X: %s", addr, util::HexWord(value).data());
   dirty_ = true;
   return absl::OkStatus();
 }
@@ -714,7 +714,7 @@ absl::Status Rom::WriteLong(uint32_t addr, uint32_t value) {
   rom_data_[addr] = (uint8_t)(value & 0xFF);
   rom_data_[addr + 1] = (uint8_t)((value >> 8) & 0xFF);
   rom_data_[addr + 2] = (uint8_t)((value >> 16) & 0xFF);
-  util::logf("WriteLong: %#06X: %s", addr, util::HexLong(value).data());
+  LOG_DEBUG("Rom", "WriteLong: %#06X: %s", addr, util::HexLong(value).data());
   dirty_ = true;
   return absl::OkStatus();
 }
@@ -728,7 +728,8 @@ absl::Status Rom::WriteVector(int addr, std::vector<uint8_t> data) {
   for (int i = 0; i < static_cast<int>(data.size()); i++) {
     rom_data_[addr + i] = data[i];
   }
-  util::logf("WriteVector: %#06X: %s", addr, util::HexByte(data[0]).data());
+  LOG_DEBUG("Rom", "WriteVector: %#06X: %s", addr,
+            util::HexByte(data[0]).data());
   dirty_ = true;
   return absl::OkStatus();
 }
@@ -738,9 +739,10 @@ absl::Status Rom::WriteColor(uint32_t address, const gfx::SnesColor &color) {
                  (color.snes() & 0x7C00);
 
   // Write the 16-bit color value to the ROM at the specified address
-  util::logf("WriteColor: %#06X: %s", address, util::HexWord(bgr).data());
+  LOG_DEBUG("Rom", "WriteColor: %#06X: %s", address, util::HexWord(bgr).data());
   auto st = WriteShort(address, bgr);
-  if (st.ok()) dirty_ = true;
+  if (st.ok())
+    dirty_ = true;
   return st;
 }
 

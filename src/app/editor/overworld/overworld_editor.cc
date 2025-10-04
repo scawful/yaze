@@ -180,6 +180,9 @@ void OverworldEditor::Initialize() {
 }
 
 absl::Status OverworldEditor::Load() {
+  gfx::ScopedTimer timer("OverworldEditor::Load");
+
+  LOG_INFO("OverworldEditor", "Loading overworld.");
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -201,7 +204,7 @@ absl::Status OverworldEditor::Load() {
     // Force refresh of the current overworld map to show changes
     RefreshOverworldMap();
 
-    util::logf("Overworld editor refreshed after Tile16 changes");
+    LOG_INFO("OverworldEditor", "Overworld editor refreshed after Tile16 changes");
     return absl::OkStatus();
   });
 
@@ -471,8 +474,8 @@ void OverworldEditor::DrawOverworldMapSettings() {
           auto asm_status = ApplyZSCustomOverworldASM(3);
           if (!asm_status.ok()) {
             // Show error but still set version marker
-            util::logf("Failed to apply ZSCustomOverworld ASM: %s",
-                       asm_status.ToString().c_str());
+            LOG_ERROR("OverworldEditor", "Failed to apply ZSCustomOverworld ASM: %s",
+                      asm_status.ToString().c_str());
           }
         }
 
@@ -843,11 +846,11 @@ void OverworldEditor::DrawOverworldEdits() {
   // Validate tile16_blockset_ before calling GetTilemapData
   if (!tile16_blockset_.atlas.is_active() ||
       tile16_blockset_.atlas.vector().empty()) {
-    util::logf(
-        "Error: tile16_blockset_ is not properly initialized (active: %s, "
-        "size: %zu)",
-        tile16_blockset_.atlas.is_active() ? "true" : "false",
-        tile16_blockset_.atlas.vector().size());
+    LOG_ERROR("OverworldEditor",
+              "Error: tile16_blockset_ is not properly initialized (active: %s, "
+              "size: %zu)",
+              tile16_blockset_.atlas.is_active() ? "true" : "false",
+              tile16_blockset_.atlas.vector().size());
     return;  // Skip drawing if blockset is invalid
   }
 
@@ -881,10 +884,10 @@ void OverworldEditor::RenderUpdatedMapBitmap(
 
   // Bounds checking to prevent crashes
   if (current_map_ < 0 || current_map_ >= static_cast<int>(maps_bmp_.size())) {
-    util::logf(
-        "ERROR: RenderUpdatedMapBitmap - Invalid current_map_ %d "
-        "(maps_bmp_.size()=%zu)",
-        current_map_, maps_bmp_.size());
+    LOG_ERROR("OverworldEditor",
+              "ERROR: RenderUpdatedMapBitmap - Invalid current_map_ %d "
+              "(maps_bmp_.size()=%zu)",
+              current_map_, maps_bmp_.size());
     return;  // Invalid map index, skip rendering
   }
 
@@ -904,11 +907,11 @@ void OverworldEditor::RenderUpdatedMapBitmap(
 
   // Validate bitmap state before writing
   if (!current_bitmap.is_active() || current_bitmap.size() == 0) {
-    util::logf(
-        "ERROR: RenderUpdatedMapBitmap - Bitmap %d is not active or has no "
-        "data (active=%s, size=%zu)",
-        current_map_, current_bitmap.is_active() ? "true" : "false",
-        current_bitmap.size());
+    LOG_ERROR("OverworldEditor",
+              "ERROR: RenderUpdatedMapBitmap - Bitmap %d is not active or has no "
+              "data (active=%s, size=%zu)",
+              current_map_, current_bitmap.is_active() ? "true" : "false",
+              current_bitmap.size());
     return;
   }
 
@@ -920,10 +923,10 @@ void OverworldEditor::RenderUpdatedMapBitmap(
       // Bounds check for pixel index
       if (pixel_index < 0 ||
           pixel_index >= static_cast<int>(current_bitmap.size())) {
-        util::logf(
-            "ERROR: RenderUpdatedMapBitmap - pixel_index %d out of bounds "
-            "(bitmap size=%zu)",
-            pixel_index, current_bitmap.size());
+        LOG_ERROR("OverworldEditor",
+                  "ERROR: RenderUpdatedMapBitmap - pixel_index %d out of bounds "
+                  "(bitmap size=%zu)",
+                  pixel_index, current_bitmap.size());
         continue;
       }
 
@@ -931,10 +934,10 @@ void OverworldEditor::RenderUpdatedMapBitmap(
       int tile_data_index = y * kTile16Size + x;
       if (tile_data_index < 0 ||
           tile_data_index >= static_cast<int>(tile_data.size())) {
-        util::logf(
-            "ERROR: RenderUpdatedMapBitmap - tile_data_index %d out of bounds "
-            "(tile_data size=%zu)",
-            tile_data_index, tile_data.size());
+        LOG_ERROR("OverworldEditor",
+                  "ERROR: RenderUpdatedMapBitmap - tile_data_index %d out of bounds "
+                  "(tile_data size=%zu)",
+                  tile_data_index, tile_data.size());
         continue;
       }
 
@@ -949,6 +952,9 @@ void OverworldEditor::RenderUpdatedMapBitmap(
 }
 
 void OverworldEditor::CheckForOverworldEdits() {
+  LOG_DEBUG("OverworldEditor", "CheckForOverworldEdits: Frame %d",
+            ImGui::GetFrameCount());
+
   CheckForSelectRectangle();
 
   // User has selected a tile they want to draw from the blockset
@@ -962,7 +968,7 @@ void OverworldEditor::CheckForOverworldEdits() {
   if (ow_map_canvas_.select_rect_active()) {
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-      util::logf("CheckForOverworldEdits: About to apply rectangle selection");
+      LOG_DEBUG("OverworldEditor", "CheckForOverworldEdits: About to apply rectangle selection");
 
       auto& selected_world =
           (current_world_ == 0) ? overworld_.mutable_map_tiles()->light_world
@@ -988,10 +994,10 @@ void OverworldEditor::CheckForOverworldEdits() {
       // Number of tiles per local map (since each tile is 16x16)
       constexpr int tiles_per_local_map = local_map_size / kTile16Size;
 
-      util::logf(
-          "CheckForOverworldEdits: About to fill rectangle with "
-          "current_tile16_=%d",
-          current_tile16_);
+      LOG_DEBUG("OverworldEditor",
+                "CheckForOverworldEdits: About to fill rectangle with "
+                "current_tile16_=%d",
+                current_tile16_);
 
       // Apply the selected tiles to each position in the rectangle
       // CRITICAL FIX: Use pre-computed tile16_ids_ instead of recalculating from selected_tiles_
@@ -1038,12 +1044,12 @@ void OverworldEditor::CheckForOverworldEdits() {
             auto tile_data = gfx::GetTilemapData(tile16_blockset_, tile16_id);
             if (!tile_data.empty()) {
               RenderUpdatedMapBitmap(tile_position, tile_data);
-              util::logf(
-                  "CheckForOverworldEdits: Updated bitmap at position (%d,%d) "
-                  "with tile16_id=%d",
-                  x, y, tile16_id);
+              LOG_INFO("OverworldEditor",
+                       "CheckForOverworldEdits: Updated bitmap at position (%d,%d) "
+                       "with tile16_id=%d",
+                       x, y, tile16_id);
             } else {
-              util::logf("ERROR: Failed to get tile data for tile16_id=%d",
+              LOG_ERROR("OverworldEditor", "ERROR: Failed to get tile data for tile16_id=%d",
                          tile16_id);
             }
           }
@@ -1055,8 +1061,8 @@ void OverworldEditor::CheckForOverworldEdits() {
       // This is commented out for now, will come back to later.
       // ow_map_canvas_.mutable_selected_tiles()->clear();
       // ow_map_canvas_.mutable_points()->clear();
-      util::logf(
-          "CheckForOverworldEdits: Rectangle selection applied and cleared");
+      LOG_INFO("OverworldEditor",
+               "CheckForOverworldEdits: Rectangle selection applied and cleared");
     }
   }
 }
@@ -1821,7 +1827,7 @@ absl::Status OverworldEditor::Save() {
 absl::Status OverworldEditor::LoadGraphics() {
   gfx::ScopedTimer timer("LoadGraphics");
 
-  util::logf("Loading overworld.");
+  LOG_INFO("OverworldEditor", "Loading overworld.");
   // Load the Link to the Past overworld.
   {
     gfx::ScopedTimer load_timer("Overworld::Load");
@@ -1829,7 +1835,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   }
   palette_ = overworld_.current_area_palette();
 
-  util::logf("Loading overworld graphics (optimized).");
+  LOG_INFO("OverworldEditor", "Loading overworld graphics (optimized).");
 
   // Phase 1: Create bitmaps without textures for faster loading
   // This avoids blocking the main thread with GPU texture creation
@@ -1840,7 +1846,7 @@ absl::Status OverworldEditor::LoadGraphics() {
                                                current_gfx_bmp_, palette_);
   }
 
-  util::logf("Loading overworld tileset (deferred textures).");
+  LOG_INFO("OverworldEditor", "Loading overworld tileset (deferred textures).");
   {
     gfx::ScopedTimer tileset_timer("CreateBitmapWithoutTexture_Tileset");
     Renderer::Get().CreateBitmapWithoutTexture(
@@ -1851,7 +1857,7 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Copy the tile16 data into individual tiles.
   auto tile16_blockset_data = overworld_.tile16_blockset_data();
-  util::logf("Loading overworld tile16 graphics.");
+  LOG_INFO("OverworldEditor", "Loading overworld tile16 graphics.");
 
   {
     gfx::ScopedTimer tilemap_timer("CreateTilemap");
@@ -1869,9 +1875,9 @@ absl::Status OverworldEditor::LoadGraphics() {
   constexpr int kSpecialWorldEssential =
       zelda3::kSpecialWorldMapIdStart + kEssentialMapsPerWorld;
 
-  util::logf(
-      "Creating bitmaps for essential maps only (first %d maps per world)",
-      kEssentialMapsPerWorld);
+  LOG_INFO("OverworldEditor",
+           "Creating bitmaps for essential maps only (first %d maps per world)",
+           kEssentialMapsPerWorld);
 
   std::vector<gfx::Bitmap*> maps_to_texture;
   maps_to_texture.reserve(kEssentialMapsPerWorld *
@@ -2040,7 +2046,8 @@ void OverworldEditor::EnsureMapTexture(int map_index) {
   // Ensure the map is built first (on-demand loading)
   auto status = overworld_.EnsureMapBuilt(map_index);
   if (!status.ok()) {
-    util::logf("Failed to build map %d: %s", map_index, status.message());
+    LOG_ERROR("OverworldEditor", "Failed to build map %d: %s", map_index,
+              status.message());
     return;
   }
 
@@ -2055,7 +2062,8 @@ void OverworldEditor::EnsureMapTexture(int map_index) {
                     overworld_.current_map_bitmap_data());
       bitmap.SetPalette(palette);
     } catch (const std::bad_alloc& e) {
-      util::logf("Error allocating bitmap for map %d: %s", map_index, e.what());
+      LOG_ERROR("OverworldEditor", "Error allocating bitmap for map %d: %s",
+                map_index, e.what());
       return;
     }
   }
@@ -2137,8 +2145,8 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
     // Rebuild tileset only if graphics changed
     auto status = map->BuildTileset();
     if (!status.ok()) {
-      util::logf("Failed to build tileset for map %d: %s", map_index,
-                 status.message().data());
+      LOG_ERROR("OverworldEditor", "Failed to build tileset for map %d: %s",
+                map_index, status.message().data());
       return;
     }
 
@@ -2146,16 +2154,16 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
     status = map->BuildTiles16Gfx(*overworld_.mutable_tiles16(),
                                   overworld_.tiles16().size());
     if (!status.ok()) {
-      util::logf("Failed to build tiles16 graphics for map %d: %s", map_index,
-                 status.message().data());
+      LOG_ERROR("OverworldEditor", "Failed to build tiles16 graphics for map %d: %s",
+                map_index, status.message().data());
       return;
     }
 
     // Rebuild bitmap
     status = map->BuildBitmap(overworld_.GetMapTiles(current_world_));
     if (!status.ok()) {
-      util::logf("Failed to build bitmap for map %d: %s", map_index,
-                 status.message().data());
+      LOG_ERROR("OverworldEditor", "Failed to build bitmap for map %d: %s",
+                map_index, status.message().data());
       return;
     }
 
@@ -2165,8 +2173,8 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
 
     // Validate surface synchronization to help debug crashes
     if (!maps_bmp_[map_index].ValidateDataSurfaceSync()) {
-      util::logf("Warning: Surface synchronization issue detected for map %d",
-                 map_index);
+      LOG_WARN("OverworldEditor", "Warning: Surface synchronization issue detected for map %d",
+               map_index);
     }
 
     // Update texture on main thread
@@ -2216,12 +2224,12 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
     return;  // No siblings to coordinate
   }
 
-  util::logf(
-      "RefreshMultiAreaMapsSafely: Processing %s area map %d (parent: %d)",
-      (area_size == AreaSizeEnum::LargeArea)  ? "large"
-      : (area_size == AreaSizeEnum::WideArea) ? "wide"
-                                              : "tall",
-      map_index, map->parent());
+  LOG_DEBUG("OverworldEditor",
+            "RefreshMultiAreaMapsSafely: Processing %s area map %d (parent: %d)",
+            (area_size == AreaSizeEnum::LargeArea)  ? "large"
+            : (area_size == AreaSizeEnum::WideArea) ? "wide"
+                                                    : "tall",
+            map_index, map->parent());
 
   // Determine all maps that are part of this multi-area structure
   std::vector<int> sibling_maps;
@@ -2234,9 +2242,9 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
       // Parent is top-left (quadrant 0), siblings are:
       // +1 (top-right, quadrant 1), +8 (bottom-left, quadrant 2), +9 (bottom-right, quadrant 3)
       sibling_maps = {parent_id, parent_id + 1, parent_id + 8, parent_id + 9};
-      util::logf(
-          "RefreshMultiAreaMapsSafely: Large area siblings: %d, %d, %d, %d",
-          parent_id, parent_id + 1, parent_id + 8, parent_id + 9);
+      LOG_DEBUG("OverworldEditor",
+                "RefreshMultiAreaMapsSafely: Large area siblings: %d, %d, %d, %d",
+                parent_id, parent_id + 1, parent_id + 8, parent_id + 9);
       break;
     }
 
@@ -2244,8 +2252,9 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
       // Wide Area: 2x1 grid (2 maps total, horizontally adjacent)
       // Parent is left, sibling is +1 (right)
       sibling_maps = {parent_id, parent_id + 1};
-      util::logf("RefreshMultiAreaMapsSafely: Wide area siblings: %d, %d",
-                 parent_id, parent_id + 1);
+      LOG_DEBUG("OverworldEditor",
+                "RefreshMultiAreaMapsSafely: Wide area siblings: %d, %d",
+                parent_id, parent_id + 1);
       break;
     }
 
@@ -2253,14 +2262,16 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
       // Tall Area: 1x2 grid (2 maps total, vertically adjacent)
       // Parent is top, sibling is +8 (bottom)
       sibling_maps = {parent_id, parent_id + 8};
-      util::logf("RefreshMultiAreaMapsSafely: Tall area siblings: %d, %d",
-                 parent_id, parent_id + 8);
+      LOG_DEBUG("OverworldEditor",
+                "RefreshMultiAreaMapsSafely: Tall area siblings: %d, %d",
+                parent_id, parent_id + 8);
       break;
     }
 
     default:
-      util::logf("RefreshMultiAreaMapsSafely: Unknown area size %d for map %d",
-                 static_cast<int>(area_size), map_index);
+      LOG_WARN("OverworldEditor",
+               "RefreshMultiAreaMapsSafely: Unknown area size %d for map %d",
+               static_cast<int>(area_size), map_index);
       return;
   }
 
@@ -2286,13 +2297,13 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
     bool needs_refresh = maps_bmp_[sibling].modified();
 
     if ((is_current_map || is_current_world) && needs_refresh) {
-      util::logf(
-          "RefreshMultiAreaMapsSafely: Refreshing %s area sibling map %d "
-          "(parent: %d)",
-          (area_size == AreaSizeEnum::LargeArea)  ? "large"
-          : (area_size == AreaSizeEnum::WideArea) ? "wide"
-                                                  : "tall",
-          sibling, parent_id);
+      LOG_DEBUG("OverworldEditor",
+                "RefreshMultiAreaMapsSafely: Refreshing %s area sibling map %d "
+                "(parent: %d)",
+                (area_size == AreaSizeEnum::LargeArea)  ? "large"
+                : (area_size == AreaSizeEnum::WideArea) ? "wide"
+                                                        : "tall",
+                sibling, parent_id);
 
       // Direct refresh without calling RefreshChildMapOnDemand to avoid recursion
       auto* sibling_map = overworld_.mutable_overworld_map(sibling);
@@ -2327,10 +2338,10 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
         }
 
         if (!status.ok()) {
-          util::logf(
-              "RefreshMultiAreaMapsSafely: Failed to refresh sibling map %d: "
-              "%s",
-              sibling, status.message().data());
+          LOG_ERROR("OverworldEditor",
+                    "RefreshMultiAreaMapsSafely: Failed to refresh sibling map %d: "
+                    "%s",
+                    sibling, status.message().data());
         }
       }
     } else if (!is_current_map && !is_current_world) {
@@ -2487,6 +2498,7 @@ void OverworldEditor::RefreshMapProperties() {
 }
 
 absl::Status OverworldEditor::RefreshTile16Blockset() {
+  LOG_DEBUG("OverworldEditor", "RefreshTile16Blockset called");
   if (current_blockset_ ==
       overworld_.overworld_map(current_map_)->area_graphics()) {
     return absl::OkStatus();
@@ -3261,8 +3273,8 @@ void OverworldEditor::SetupOverworldCanvasContextMenu() {
     RefreshOverworldMap();
     auto status = RefreshTile16Blockset();
     if (!status.ok()) {
-      util::logf("Failed to refresh tile16 blockset: %s",
-                 status.message().data());
+      LOG_ERROR("OverworldEditor", "Failed to refresh tile16 blockset: %s",
+                status.message().data());
     }
   };
   ow_map_canvas_.AddContextMenuItem(refresh_map_item);
@@ -3581,7 +3593,8 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
         "ROM is already version %d or higher", current_version));
   }
 
-  util::logf("Applying ZSCustomOverworld ASM v%d to ROM...", target_version);
+  LOG_INFO("OverworldEditor", "Applying ZSCustomOverworld ASM v%d to ROM...",
+           target_version);
 
   // Initialize Asar wrapper
   auto asar_wrapper = std::make_unique<core::AsarWrapper>();
@@ -3636,25 +3649,26 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
     RETURN_IF_ERROR(UpdateROMVersionMarkers(target_version));
 
     // Log symbols found during patching
-    util::logf("ASM patch applied successfully. Found %zu symbols:",
-               result.symbols.size());
+    LOG_INFO("OverworldEditor", "ASM patch applied successfully. Found %zu symbols:",
+             result.symbols.size());
     for (const auto& symbol : result.symbols) {
-      util::logf("  %s @ $%06X", symbol.name.c_str(), symbol.address);
+      LOG_INFO("OverworldEditor", "  %s @ $%06X", symbol.name.c_str(),
+               symbol.address);
     }
 
     // Refresh overworld data to reflect changes
     RETURN_IF_ERROR(overworld_.Load(rom_));
 
-    util::logf("ZSCustomOverworld v%d successfully applied to ROM",
-               target_version);
+    LOG_INFO("OverworldEditor", "ZSCustomOverworld v%d successfully applied to ROM",
+             target_version);
     return absl::OkStatus();
 
   } catch (const std::exception& e) {
     // Restore original ROM data on any exception
     auto restore_result = rom_->LoadFromData(original_rom_data, false);
     if (!restore_result.ok()) {
-      util::logf("Failed to restore ROM data: %s",
-                 restore_result.message().data());
+      LOG_ERROR("OverworldEditor", "Failed to restore ROM data: %s",
+                restore_result.message().data());
     }
     return absl::InternalError(
         absl::StrFormat("Exception during ASM application: %s", e.what()));
@@ -3672,7 +3686,7 @@ absl::Status OverworldEditor::UpdateROMVersionMarkers(int target_version) {
     (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] = 0x01;
     (*rom_)[zelda3::OverworldCustomMainPaletteEnabled] = 0x01;
 
-    util::logf("Enabled v2+ features: Custom BG colors, Main palettes");
+    LOG_INFO("OverworldEditor", "Enabled v2+ features: Custom BG colors, Main palettes");
   }
 
   if (target_version >= 3) {
@@ -3682,9 +3696,9 @@ absl::Status OverworldEditor::UpdateROMVersionMarkers(int target_version) {
     (*rom_)[zelda3::OverworldCustomTileGFXGroupEnabled] = 0x01;
     (*rom_)[zelda3::OverworldCustomMosaicEnabled] = 0x01;
 
-    util::logf(
-        "Enabled v3+ features: Subscreen overlays, Animated GFX, Tile GFX "
-        "groups, Mosaic");
+    LOG_INFO("OverworldEditor",
+             "Enabled v3+ features: Subscreen overlays, Animated GFX, Tile GFX "
+             "groups, Mosaic");
 
     // Initialize area size data for v3 (set all areas to small by default)
     for (int i = 0; i < 0xA0; i++) {
@@ -3706,10 +3720,11 @@ absl::Status OverworldEditor::UpdateROMVersionMarkers(int target_version) {
       }
     }
 
-    util::logf("Initialized area size data for %zu areas", large_areas.size());
+    LOG_INFO("OverworldEditor", "Initialized area size data for %zu areas",
+             large_areas.size());
   }
 
-  util::logf("ROM version markers updated to v%d", target_version);
+  LOG_INFO("OverworldEditor", "ROM version markers updated to v%d", target_version);
   return absl::OkStatus();
 }
 

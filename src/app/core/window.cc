@@ -64,7 +64,8 @@ absl::Status CreateWindow(Window& window, int flags) {
   auto status = theme_manager.LoadTheme("YAZE Classic");
   if (!status.ok()) {
     // Theme system failed, stick with original ColorsYaze()
-    util::logf("Theme system failed, using original ColorsYaze(): %s", status.message().data());
+    LOG_WARN("Window", "Theme system failed, using original ColorsYaze(): %s",
+             status.message().data());
   }
 
   const int audio_frequency = 48000;

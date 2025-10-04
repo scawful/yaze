@@ -54,15 +54,17 @@ int main(int argc, char **argv) {
   yaze::util::FlagParser parser(yaze::util::global_flag_registry());
   RETURN_IF_EXCEPTION(parser.Parse(argc, argv));
   
-  // Set up logging and debug flags (using custom flag system)
-  if (!FLAGS_log_file->Get().empty()) {
-    yaze::util::SetLogFile(FLAGS_log_file->Get());
-  }
-  
-  // Enable debugging if requested
+  // Set up logging
+  yaze::util::LogLevel log_level = FLAGS_debug->Get()
+                                     ? yaze::util::LogLevel::YAZE_DEBUG
+                                     : yaze::util::LogLevel::INFO;
+  yaze::util::LogManager::instance().configure(log_level, FLAGS_log_file->Get(),
+                                             {});
+
+  // Enable console logging via feature flag if debug is enabled.
   if (FLAGS_debug->Get()) {
     yaze::core::FeatureFlags::get().kLogToConsole = true;
-    yaze::util::logf("🚀 YAZE started in debug mode");
+    LOG_INFO("Main", "🚀 YAZE started in debug mode");
   }
   
   std::string rom_filename = "";

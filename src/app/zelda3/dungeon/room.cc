@@ -36,7 +36,6 @@ RoomSize CalculateRoomSize(Rom *rom, int room_id) {
   room_size.room_size = 0;
 
   auto room_size_address = 0xF8000 + (room_id * 3);
-  // util::logf("Room #%#03X Addresss: %#06X", room_id, room_size_address);
 
   // Reading bytes for long address construction
   uint8_t low = rom->data()[room_size_address];
@@ -45,12 +44,10 @@ RoomSize CalculateRoomSize(Rom *rom, int room_id) {
 
   // Constructing the long address
   int long_address = (bank << 16) | (high << 8) | low;
-  // util::logf("%#06X", long_address);
   room_size.room_size_pointer = long_address;
 
   if (long_address == 0x0A8000) {
     // Blank room disregard in size calculation
-    // util::logf("Size of Room #%#03X: 0 bytes", room_id);
     room_size.room_size = 0;
   } else {
     // use the long address to calculate the size of the room
@@ -58,7 +55,6 @@ RoomSize CalculateRoomSize(Rom *rom, int room_id) {
     // and subtract the two to get the size of the room
 
     int next_room_address = 0xF8000 + ((room_id + 1) * 3);
-    // util::logf("Next Room Address: %#06X", next_room_address);
 
     // Reading bytes for long address construction
     uint8_t next_low = rom->data()[next_room_address];
@@ -67,12 +63,10 @@ RoomSize CalculateRoomSize(Rom *rom, int room_id) {
 
     // Constructing the long address
     int next_long_address = (next_bank << 16) | (next_high << 8) | next_low;
-    // util::logf("%#06X", next_long_address);
 
     // Calculate the size of the room
     int actual_room_size = next_long_address - long_address;
     room_size.room_size = actual_room_size;
-    // util::logf("Size of Room #%#03X: %d bytes", room_id, actual_room_size);
   }
 
   return room_size;
@@ -522,7 +516,6 @@ void Room::LoadObjects() {
   
   // Enhanced bounds checking for object pointer
   if (object_pointer < 0 || object_pointer >= (int)rom_->size()) {
-    // util::logf("Object pointer out of range for room %d: %#06x", room_id_, object_pointer);
     return;
   }
   
@@ -530,7 +523,6 @@ void Room::LoadObjects() {
   
   // Enhanced bounds checking for room address
   if (room_address < 0 || room_address + 2 >= (int)rom_->size()) {
-    // util::logf("Room address out of range for room %d: %#06x", room_id_, room_address);
     return;
   }
 
@@ -541,7 +533,6 @@ void Room::LoadObjects() {
   
   // Enhanced bounds checking for objects location
   if (objects_location < 0 || objects_location >= (int)rom_->size()) {
-    // util::logf("Objects location out of range for room %d: %#06x", room_id_, objects_location);
     return;
   }
 
@@ -912,16 +903,11 @@ void Room::LoadRoomLayout() {
   auto status = layout_.LoadLayout(room_id_);
   if (!status.ok()) {
     // Log error but don't fail - some rooms might not have layout data
-    // util::logf("Failed to load room layout for room %d: %s", 
-              //  room_id_, status.message().data());
     return;
   }
   
   // Store the layout ID for compatibility with existing code
   layout = static_cast<uint8_t>(room_id_ & 0xFF);
-  
-  // util::logf("Loaded room layout for room %d with %zu objects", 
-            //  room_id_, layout_.GetObjects().size());
 }
 
 void Room::LoadDoors() {
