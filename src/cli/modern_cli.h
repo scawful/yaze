@@ -41,6 +41,7 @@ class ModernCLI {
   absl::Status HandleBpsPatchCommand(const std::vector<std::string>& args);
   absl::Status HandleExtractSymbolsCommand(const std::vector<std::string>& args);
   absl::Status HandleAgentCommand(const std::vector<std::string>& args);
+  absl::Status HandleCollabCommand(const std::vector<std::string>& args);
   absl::Status HandleProjectBuildCommand(const std::vector<std::string>& args);
   absl::Status HandleProjectInitCommand(const std::vector<std::string>& args);
   absl::Status HandleRomInfoCommand(const std::vector<std::string>& args);
