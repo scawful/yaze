@@ -151,6 +151,12 @@ Build</h2>
 <div class="line"># Build with CMake</div>
 <div class="line">cmake --preset debug        # macOS</div>
 <div class="line">cmake -B build &amp;&amp; cmake --build build  # Linux/Windows</div>
+<div class="line"> </div>
+<div class="line"># Windows-specific</div>
+<div class="line">scripts\verify-build-environment.ps1   # Verify your setup</div>
+<div class="line">cmake --preset windows-debug           # Basic build</div>
+<div class="line">cmake --preset windows-ai-debug        # With AI features</div>
+<div class="line">cmake --build build --config Debug     # Build</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md594"></a>
 Applications</h2>
 <ul>
