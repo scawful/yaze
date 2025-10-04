@@ -9,7 +9,7 @@
 #include "app/core/window.h"
 #include "app/editor/editor_manager.h"
 
-int main(int argc, char **argv);
+int main(int argc, char** argv);
 
 namespace yaze {
 namespace core {
@@ -29,13 +29,16 @@ class Controller {
   void DoRender() const;
   void OnExit();
 
-  auto window() -> SDL_Window * { return window_.window_.get(); }
+  auto window() -> SDL_Window* { return window_.window_.get(); }
   void set_active(bool active) { active_ = active; }
   auto active() const { return active_; }
-  auto overworld() -> yaze::zelda3::Overworld* { return editor_manager_.overworld(); }
+  auto overworld() -> yaze::zelda3::Overworld* {
+    return editor_manager_.overworld();
+  }
+  auto GetCurrentRom() -> Rom* { return editor_manager_.GetCurrentRom(); }
 
  private:
-  friend int ::main(int argc, char **argv);
+  friend int ::main(int argc, char** argv);
 
   bool active_ = false;
   core::Window window_;
