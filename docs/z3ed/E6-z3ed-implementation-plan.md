@@ -17,12 +17,15 @@ The z3ed CLI and AI agent workflow system has completed major infrastructure mil
 - **IT-02**: CLI Agent Test - Natural language → automated GUI testing (implementation complete)
 
 **🔄 Active Phase**:
-- **Test Harness Enhancements (IT-05 to IT-09)**: Expanding from basic automation to comprehensive testing platform with a renewed emphasis on system-wide error reporting
+- **Test Harness Enhancements (IT-05 to IT-09)**: ✅ Core infrastructure complete (IT-05/07/08 shipped, IT-09 CLI tooling complete)
+- **Conversational Agent Implementation**: 🚧 Foundation complete, LLM function calling integration in progress
 
-**📋 Next Phases**:
-- **Priority 1**: LLM Integration (Ollama + Gemini + Claude) - Make AI agent system production-ready (see [LLM-INTEGRATION-PLAN.md](LLM-INTEGRATION-PLAN.md))
-- **Priority 2**: Widget Discovery API (IT-06) - AI agents enumerate available GUI interactions
-- **Priority 3**: Windows Cross-Platform Testing - Validate on Windows with vcpkg
+**📋 Next Phases (Updated Oct 3, 2025)**:
+- **Priority 1**: Complete LLM Function Calling (4-6h) - Add tool schema to prompts, parse function calls
+- **Priority 2**: GUI Chat Widget (6-8h) - Create ImGui widget matching TUI experience
+- **Priority 3**: Expand Tool Coverage (8-10h) - Add dialogue, sprite, region inspection tools
+- **Priority 4**: Widget Discovery API (IT-06) - AI agents enumerate available GUI interactions
+- **Priority 5**: Windows Cross-Platform Testing - Validate on Windows with vcpkg
 - **Deprioritized**: Collaborative Editing (IT-10) - Postponed in favor of practical LLM integration
 
 **Recent Accomplishments** (Updated: October 2025):

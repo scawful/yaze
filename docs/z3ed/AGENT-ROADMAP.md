@@ -86,26 +86,133 @@ This vision will be realized through a shared interface available in both the `z
     - Implement a response cache to reduce latency and API costs.
     - Add token usage tracking and reporting.
 
-## Current Status & Next Steps (As of Oct 3, Session 2)
+## Current Status & Next Steps (Updated: October 3, 2025)
 
 We have made significant progress in laying the foundation for the conversational agent.
 
 ### ✅ Completed
-- **Initial `ConversationalAgentService`**: The basic service is in place.
-- **TUI Chat Stub**: A functional `agent chat` command exists.
-- **GUI Chat Widget Stub**: An `AgentChatWidget` is integrated into the main GUI.
-- **Initial Agent "Tools"**: `resource-list` and `dungeon-list-sprites` commands are implemented.
-- **Tool Use Foundation**: The `ToolDispatcher` is implemented, and the AI services are aware of the new tool call format.
- - **Tool Loop Improvements**: Conversational flow now handles multi-step tool calls with default JSON output, allowing results to feed back into the chat without recursion.
-- **Structured Tool Output Rendering**: Both the TUI and GUI chat widgets now display tables and JSON payloads with friendly formatting, drastically improving readability.
-- **Overworld Inspection Suite**: Added `overworld describe-map` and `overworld list-warps` commands producing text/JSON summaries for map metadata and warp points, with agent tooling hooks.
-- **Overworld Tile Search Tool**: Added `overworld find-tile` across CLI and agent tooling with shared ROM context handling and regression tests.
+- **`ConversationalAgentService`**: ✅ Fully operational with multi-step tool execution loop
+  - Handles tool calls with automatic JSON output format
+  - Prevents recursion through proper tool result replay
+  - Supports conversation history and context management
+- **TUI Chat Interface**: ✅ Production-ready (`z3ed agent chat`)
+  - Renders tables from JSON tool results
+  - Pretty-prints JSON payloads with syntax formatting
+  - Scrollable history with user/agent distinction
+- **Tool Dispatcher**: ✅ Complete with 5 read-only tools
+  - `resource-list`: Enumerate labeled resources (dungeons, sprites, palettes)
+  - `dungeon-list-sprites`: Inspect sprites in dungeon rooms
+  - `overworld-find-tile`: Search for tile16 IDs across maps
+  - `overworld-describe-map`: Get comprehensive map metadata
+  - `overworld-list-warps`: List entrances/exits/holes with filtering
+- **Structured Output Rendering**: ✅ Both TUI formats support tables and JSON
+  - Automatic table generation from JSON arrays/objects
+  - Column-aligned formatting with headers
+  - Graceful fallback to text for malformed data
+- **ROM Context Integration**: ✅ Tools can access loaded ROM or load from `--rom` flag
+  - Shared ROM context passed through ConversationalAgentService
+  - Automatic ROM loading with error handling
+- **AI Service Foundation**: ✅ Ollama and Gemini services operational
+  - Enhanced prompting system with resource catalogue loading
+  - System instruction generation with examples
+  - Health checks and model availability validation
 
-### 🚀 Next Steps
-1.  **Integrate Tool Use with LLM**:
-    - Modify the `AIService` to support function calling/tool use.
-    - Teach the agent to call the new read-only commands to answer questions.
-2.  **Polish the TUI Chat Experience**:
-    - Tighten keyboard shortcuts, scrolling, and copy-to-clipboard behaviour.
-    - Align log file output with on-screen formatting for easier debugging.
-2.  **Expand Tool Coverage**: Target additional Overworld navigation helpers (region summaries, teleport lookups) and dialogue inspectors. Prioritize commands that unblock common level-design questions and emit concise table/JSON payloads.
+### 🚧 In Progress
+- **GUI Chat Widget**: ⚠️ **NOT YET IMPLEMENTED**
+  - No `AgentChatWidget` found in `src/app/gui/` directory
+  - TUI implementation exists but GUI integration is pending
+  - **Action Required**: Create `src/app/gui/debug/agent_chat_widget.{h,cc}`
+- **LLM Function Calling**: ⚠️ **PARTIALLY IMPLEMENTED**
+  - ToolDispatcher exists and is used by ConversationalAgentService
+  - AI services (Ollama, Gemini) parse tool calls from responses
+  - **Gap**: LLM prompt needs explicit tool schema definitions for function calling
+  - **Action Required**: Add tool definitions to system prompts (see Next Steps)
+
+### 🚀 Next Steps (Priority Order)
+
+#### Priority 1: Complete LLM Function Calling Integration (4-6 hours)
+**Goal**: Enable Ollama/Gemini to autonomously invoke read-only tools
+
+1. **Add Tool Definitions to System Prompts** (2 hours)
+   - Generate JSON schema for all 5 tools in `ToolDispatcher`
+   - Inject tool definitions into `PromptBuilder::BuildSystemInstruction()`
+   - Format: OpenAI-compatible function calling format
+   ```json
+   {
+     "name": "resource-list",
+     "description": "List all labeled resources of a given type",
+     "parameters": {
+       "type": "object",
+       "properties": {
+         "type": {"type": "string", "enum": ["dungeon", "sprite", "overworld"]},
+         "format": {"type": "string", "enum": ["table", "json"]}
+       },
+       "required": ["type"]
+     }
+   }
+   ```
+
+2. **Parse Function Calls from LLM Responses** (2 hours)
+   - Update `OllamaAIService::GenerateResponse()` to detect function calls in JSON
+   - Update `GeminiAIService::GenerateResponse()` for Gemini's function calling format
+   - Populate `AgentResponse.tool_calls` with parsed ToolCall objects
+   - **File**: `src/cli/service/ai/ollama_ai_service.cc:176-294`
+   - **File**: `src/cli/service/ai/gemini_ai_service.cc:104-285`
+
+3. **Test Tool Invocation Round-Trip** (1-2 hours)
+   - Verify LLM can discover available tools from system prompt
+   - Test: "What dungeons are in this ROM?" → should call `resource-list --type dungeon`
+   - Test: "Find all water tiles on map 0" → should call `overworld-find-tile --tile 0x..."`
+   - Create regression test script: `scripts/test_agent_tool_calling.sh`
+
+#### Priority 2: Implement GUI Chat Widget (6-8 hours)
+**Goal**: Unified chat experience in YAZE application
+
+1. **Create ImGui Chat Widget** (4 hours)
+   - File: `src/app/gui/debug/agent_chat_widget.{h,cc}`
+   - Reuse table/JSON rendering logic from TUI implementation
+   - Add to Debug menu: `Debug → Agent Chat`
+   - Share `ConversationalAgentService` instance with TUI
+
+2. **Add Chat History Persistence** (2 hours)
+   - Save chat history to `.yaze/agent_chat_history.json`
+   - Load on startup, display in GUI/TUI
+   - Add "Clear History" button
+
+3. **Polish Input Experience** (2 hours)
+   - Multi-line input support (Shift+Enter for newline, Enter to send)
+   - Keyboard shortcuts: Ctrl+L to clear, Ctrl+C to copy last response
+   - Auto-scroll to bottom on new messages
+
+#### Priority 3: Expand Tool Coverage (8-10 hours)
+**Goal**: Enable deeper ROM introspection for level design questions
+
+1. **Dialogue/Text Tools** (3 hours)
+   - `dialogue-search --text "search term"`: Find text in ROM dialogue
+   - `dialogue-get --id 0x...`: Get dialogue by message ID
+
+2. **Sprite Tools** (3 hours)
+   - `sprite-get-info --id 0x...`: Sprite metadata (HP, damage, AI)
+   - `overworld-list-sprites --map 0x...`: Sprites on overworld map
+
+3. **Advanced Overworld Tools** (4 hours)
+   - `overworld-get-region --map 0x...`: Region boundaries and properties
+   - `overworld-list-transitions --from-map 0x...`: Map transitions/scrolling
+   - `overworld-get-tile-at --map 0x... --x N --y N`: Get specific tile16 value
+
+#### Priority 4: Performance and Caching (4-6 hours)
+
+1. **Response Caching** (3 hours)
+   - Implement LRU cache for identical prompts
+   - Cache tool results by (tool_name, args) key
+   - Configurable TTL (default: 5 minutes for ROM introspection)
+
+2. **Token Usage Tracking** (2 hours)
+   - Log tokens per request (Ollama and Gemini APIs provide this)
+   - Display in chat footer: "Last response: 1234 tokens, ~$0.02"
+   - Add `--show-token-usage` flag to CLI commands
+
+3. **Streaming Responses** (optional, 3-4 hours)
+   - Use Ollama/Gemini streaming APIs
+   - Update GUI/TUI to show partial responses as they arrive
+   - Improves perceived latency for long responses
