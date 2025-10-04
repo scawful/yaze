@@ -185,7 +185,6 @@ class EditorManager {
 #ifdef YAZE_WITH_GRPC
   // Agent chat widget
   AgentChatWidget agent_chat_widget_;
-  bool show_agent_chat_widget_ = false;
 #endif
 
   std::string version_ = "";
