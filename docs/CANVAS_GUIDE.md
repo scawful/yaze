@@ -401,30 +401,16 @@ canvas.SetContextMenuEnabled(true); // Enable right-click menu
 canvas.SetClampRectToLocalMaps(true);  // Prevent boundary wrapping (default)
 ```
 
-## Bug Fixes Applied
+## Known Issues
 
-### 1. Rectangle Selection Wrapping in Large Maps ✅
+### ⚠️ Rectangle Selection Wrapping
 
-**Issue**: When dragging rectangle selection near 512x512 boundaries, tiles painted in wrong location
+When dragging a multi-tile rectangle selection near 512x512 local map boundaries in large maps, tiles still paint in the wrong location (wrap to left side of map).
 
-**Root Cause**:
-- `selected_tiles_` contains coordinates from ORIGINAL selection  
-- Painting used `GetTileFromPosition(selected_tiles_[i])` which recalculated wrong tile IDs
-- Index mismatch when dragged position was clamped
+**Root Cause Analysis**:
+The issue involves complex interaction between the original selection coordinates, the clamped preview position while dragging, and the final paint calculation. If the clamped preview is smaller than the original selection, the loop indices can go out of sync, causing tiles to be read from the wrong source position.
 
-**Fix**:
-- Moved `tile16_ids` from local static to member variable `selected_tile16_ids_`
-- Pre-compute tile IDs from original selection
-- Painting uses `selected_tile16_ids_[i]` directly (no recalculation)
-- Proper bounds checking prevents array overflow
-
-**Result**: Rectangle painting works correctly at all boundary positions
-
-### 2. Drag-Time Preview Clamping ✅
-
-**Issue**: Preview could show wrapping during drag
-
-**Fix**: Clamp mouse position BEFORE grid alignment in `DrawBitmapGroup`
+**Status**: A fix has been implemented for the painting logic by pre-computing tile IDs, but a visual wrapping artifact may still occur during the drag preview itself. Further investigation is needed to perfectly clamp the preview.
 
 ## API Reference
 
@@ -615,14 +601,6 @@ void ClearContextMenuItems();
 - Save/load scratch layouts
 
 **Current status**: Data structures exist, UI pending
-
-## Documentation Files
-
-1. **CANVAS_GUIDE.md** (this file) - Complete reference
-2. **canvas_modern_usage_examples.md** - Code examples
-3. **canvas_refactoring_summary.md** - Phase 1 improvements
-4. **canvas_refactoring_summary_phase2.md** - Lessons learned
-5. **canvas_bug_analysis.md** - Wrapping bug details
 
 ## Summary
 
