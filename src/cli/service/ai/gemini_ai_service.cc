@@ -43,16 +43,21 @@ namespace yaze {
 namespace cli {
 
 GeminiAIService::GeminiAIService(const GeminiConfig& config) 
-    : config_(config), function_calling_enabled_(false) {  // Disable function calling - use JSON output instead
+    : config_(config), function_calling_enabled_(config.use_function_calling) {
   std::cerr << "🔧 GeminiAIService constructor: start" << std::endl;
+  std::cerr << "🔧 Function calling: " << (function_calling_enabled_ ? "enabled" : "disabled (JSON output mode)") << std::endl;
+  std::cerr << "🔧 Prompt version: " << config_.prompt_version << std::endl;
   
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
   // Initialize OpenSSL for HTTPS support
   InitializeOpenSSL();
 #endif
   
-  // Load command documentation into prompt builder
-  if (auto status = prompt_builder_.LoadResourceCatalogue(""); !status.ok()) {
+  // Load command documentation into prompt builder with specified version
+  std::string catalogue_path = config_.prompt_version == "v2" 
+      ? "assets/agent/prompt_catalogue_v2.yaml"
+      : "assets/agent/prompt_catalogue.yaml";
+  if (auto status = prompt_builder_.LoadResourceCatalogue(catalogue_path); !status.ok()) {
     std::cerr << "⚠️  Failed to load agent prompt catalogue: "
               << status.message() << std::endl;
   }
@@ -61,11 +66,38 @@ GeminiAIService::GeminiAIService(const GeminiConfig& config)
   
   if (config_.system_instruction.empty()) {
     std::cerr << "🔧 GeminiAIService: building system instruction" << std::endl;
-    // Use enhanced prompting by default
-    if (config_.use_enhanced_prompting) {
-      config_.system_instruction = prompt_builder_.BuildSystemInstructionWithExamples();
-    } else {
-      config_.system_instruction = BuildSystemInstruction();
+    
+    // Try to load version-specific system prompt file
+    std::string prompt_file = config_.prompt_version == "v2"
+        ? "assets/agent/system_prompt_v2.txt"
+        : "assets/agent/system_prompt.txt";
+    
+    std::vector<std::string> search_paths = {
+        prompt_file,
+        "../" + prompt_file,
+        "../../" + prompt_file
+    };
+    
+    bool loaded = false;
+    for (const auto& path : search_paths) {
+      std::ifstream file(path);
+      if (file.good()) {
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        config_.system_instruction = buffer.str();
+        std::cerr << "✓ Loaded prompt from: " << path << std::endl;
+        loaded = true;
+        break;
+      }
+    }
+    
+    if (!loaded) {
+      // Fallback to builder
+      if (config_.use_enhanced_prompting) {
+        config_.system_instruction = prompt_builder_.BuildSystemInstructionWithExamples();
+      } else {
+        config_.system_instruction = BuildSystemInstruction();
+      }
     }
     std::cerr << "🔧 GeminiAIService: system instruction built" << std::endl;
   }

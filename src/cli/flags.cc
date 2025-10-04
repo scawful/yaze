@@ -14,3 +14,7 @@ ABSL_FLAG(std::string, gemini_api_key, "",
           "Gemini API key (can also use GEMINI_API_KEY environment variable)");
 ABSL_FLAG(std::string, ollama_host, "http://localhost:11434",
           "Ollama server host URL");
+ABSL_FLAG(std::string, prompt_version, "default",
+          "Prompt version to use: 'default' or 'v2'");
+ABSL_FLAG(bool, use_function_calling, false,
+          "Enable native Gemini function calling (incompatible with JSON output mode)");

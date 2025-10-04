@@ -17,6 +17,8 @@ ABSL_DECLARE_FLAG(std::string, ai_provider);
 ABSL_DECLARE_FLAG(std::string, ai_model);
 ABSL_DECLARE_FLAG(std::string, gemini_api_key);
 ABSL_DECLARE_FLAG(std::string, ollama_host);
+ABSL_DECLARE_FLAG(std::string, prompt_version);
+ABSL_DECLARE_FLAG(bool, use_function_calling);
 
 namespace yaze {
 namespace cli {
@@ -83,7 +85,10 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
     if (!config.model.empty()) {
       gemini_config.model = config.model;
     }
+    gemini_config.prompt_version = absl::GetFlag(FLAGS_prompt_version);
+    gemini_config.use_function_calling = absl::GetFlag(FLAGS_use_function_calling);
     std::cerr << "🔧 Model: " << gemini_config.model << std::endl;
+    std::cerr << "🔧 Prompt version: " << gemini_config.prompt_version << std::endl;
 
     std::cerr << "🔧 Creating Gemini service instance..." << std::endl;
     auto service = std::make_unique<GeminiAIService>(gemini_config);

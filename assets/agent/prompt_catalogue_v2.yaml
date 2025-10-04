@@ -1,0 +1,46 @@
+# Prompt Catalogue V2 - Simplified for testing
+# This version focuses on clear tool calling workflow
+
+commands:
+  palette export: |-
+    Export palette data to JSON file
+      --group <group>  Palette group (overworld, dungeon, sprite)
+      --id <id>        Palette ID (0-based index)
+      --to <file>      Output JSON file path
+  overworld set-tile: |-
+    Place a tile in the overworld
+      --map <id>       Map ID (0-based)
+      --x <x>          X coordinate (0-63)
+      --y <y>          Y coordinate (0-63)
+      --tile <hex>     Tile ID in hex (e.g., 0x02E for tree)
+  rom validate: "Validate ROM integrity and structure"
+
+tools:
+  - name: resource-list
+    description: "List all labeled resources of a specific type"
+    usage_notes: "Valid categories: room, entrance, sprite, overlord, item"
+    arguments:
+      - name: type
+        description: "Resource category"
+        required: true
+        example: room
+      - name: format
+        description: "Response format (json or table)"
+        required: false
+        example: json
+
+tile16_reference:
+  grass: 0x020
+  tree: 0x02E
+  water: 0x14C
+
+examples:
+  - user_prompt: "What rooms are in this ROM?"
+    reasoning: "User wants room list. Call resource-list tool first."
+    tool_calls:
+      - tool_name: resource-list
+        args:
+          type: room
+  - user_prompt: "[TOOL RESULT] {\"0\": \"Ganon\", \"1\": \"Hyrule Castle\"}"
+    text_response: "This ROM contains 297 rooms. The first two are: Ganon (ID 0) and Hyrule Castle (ID 1)."
+    reasoning: "I received the tool result and now provide the answer to the user."
