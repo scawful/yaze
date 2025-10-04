@@ -62,9 +62,11 @@ add_executable(
   cli/handlers/agent.cc
   cli/handlers/agent/common.cc
   cli/handlers/agent/general_commands.cc
+  cli/handlers/agent/conversation_test.cc
   cli/handlers/agent/test_common.cc
   cli/handlers/agent/test_commands.cc
   cli/handlers/agent/gui_commands.cc
+  cli/handlers/agent/tool_commands.cc
     cli/flags.cc
   cli/modern_cli.cc
   cli/tui/asar_patch.cc
