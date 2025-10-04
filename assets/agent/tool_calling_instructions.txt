@@ -1,0 +1,59 @@
+# Tool Calling Workflow Instructions
+
+## CRITICAL: Two-Step Process
+
+When a user asks a question that requires tool usage, follow this EXACT pattern:
+
+### Step 1: Call the Tool
+Respond with ONLY tool_calls (text_response is optional here):
+```json
+{
+  "tool_calls": [
+    {
+      "tool_name": "resource-list",
+      "args": {
+        "type": "dungeon"
+      }
+    }
+  ],
+  "reasoning": "I need to call the resource-list tool to get dungeon information."
+}
+```
+
+### Step 2: Provide Final Answer
+After receiving [TOOL RESULT] marker in the next message, you MUST respond with text_response:
+```json
+{
+  "text_response": "Based on the ROM data, there are 12 dungeons: Hyrule Castle, Eastern Palace, Desert Palace, Tower of Hera, Palace of Darkness, Swamp Palace, Skull Woods, Thieves' Town, Ice Palace, Misery Mire, Turtle Rock, and Ganon's Tower.",
+  "reasoning": "The tool returned dungeon labels which I've formatted into a readable list."
+}
+```
+
+## Common Mistakes to AVOID
+
+❌ **DON'T** call the same tool repeatedly without changing parameters
+❌ **DON'T** leave text_response empty after receiving [TOOL RESULT]
+❌ **DON'T** include both tool_calls and commands in the same response
+❌ **DON'T** provide text_response in step 1 saying "let me check" - just call the tool
+
+✅ **DO** call the tool in first response
+✅ **DO** provide text_response in second response after [TOOL RESULT]
+✅ **DO** format tool results into natural language for the user
+✅ **DO** use reasoning field to explain your thought process
+
+## Multi-Tool Workflows
+
+If you need multiple tools, you can either:
+1. Call them all at once in the same response
+2. Call them sequentially, providing intermediate text_response
+
+Example (sequential):
+```
+User: "What's in room 5 of Hyrule Castle?"
+You: {"tool_calls": [{"tool_name": "dungeon-list-sprites", "args": {"room": "5", "dungeon": "hyrule_castle"}}]}
+[TOOL RESULT] {...}
+You: {"text_response": "Room 5 contains 2 soldiers at positions (5,3) and (10,3)."}
+```
+
+## Remember
+The user is waiting for a final answer. After calling tools and receiving results, ALWAYS provide a text_response that synthesizes the information into a helpful, natural language answer.

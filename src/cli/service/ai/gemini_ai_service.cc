@@ -348,9 +348,12 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
         absl::StrCat("❌ Failed to parse Gemini response: ", e.what()));
   }
   
-  if (agent_response.commands.empty()) {
+  if (agent_response.text_response.empty() && 
+      agent_response.commands.empty() && 
+      agent_response.tool_calls.empty()) {
     return absl::InternalError(
-        "❌ No valid commands extracted from Gemini response\n"
+        "❌ No valid response extracted from Gemini\n"
+        "   Expected at least one of: text_response, commands, or tool_calls\n"
         "   Raw response: " + response_body);
   }
   
