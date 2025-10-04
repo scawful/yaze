@@ -37,11 +37,18 @@ class GeminiAIService : public AIService {
   
   // Health check
   absl::Status CheckAvailability();
+  
+  // Function calling support
+  void EnableFunctionCalling(bool enable = true);
+  std::vector<std::string> GetAvailableTools() const;
 
  private:
   std::string BuildSystemInstruction();
+  std::string BuildFunctionCallSchemas();
   absl::StatusOr<AgentResponse> ParseGeminiResponse(
       const std::string& response_body);
+  
+  bool function_calling_enabled_ = true;
   
   GeminiConfig config_;
   PromptBuilder prompt_builder_;

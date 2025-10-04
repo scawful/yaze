@@ -13,6 +13,7 @@
 #include "app/zelda3/overworld/overworld.h"
 #include "cli/modern_cli.h"
 #include "cli/tui/command_palette.h"
+#include "cli/z3ed_ascii_logo.h"
 
 namespace yaze {
 namespace cli {
@@ -761,9 +762,27 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
     rom_information = app_context.rom.title();
   }
 
+  // Create ASCII logo with styling
+  auto logo = vbox({
+      text("    ███████╗██████╗ ███████╗██████╗ ") | color(Color::Cyan1) | bold,
+      text("    ╚══███╔╝╚════██╗██╔════╝██╔══██╗") | color(Color::Cyan1) | bold,
+      text("      ███╔╝  █████╔╝█████╗  ██║  ██║") | color(Color::Cyan1) | bold,
+      text("     ███╔╝   ╚═══██╗██╔══╝  ██║  ██║") | color(Color::Cyan1) | bold,
+      text("    ███████╗██████╔╝███████╗██████╔╝") | color(Color::Cyan1) | bold,
+      text("    ╚══════╝╚═════╝ ╚══════╝╚═════╝ ") | color(Color::Cyan1) | bold,
+      text("") | center,
+      hbox({
+          text("       ▲      ") | color(Color::Yellow1) | bold,
+          text("Zelda 3 Editor") | color(Color::White) | bold,
+      }) | center,
+      hbox({
+          text("      ▲ ▲     ") | color(Color::Yellow1) | bold,
+          text("AI-Powered CLI") | color(Color::GrayLight),
+      }) | center,
+      text("     ▲▲▲▲▲    ") | color(Color::Yellow1) | bold | center,
+  });
+
   auto title = border(hbox({
-      text("z3ed") | bold | color(Color::Blue1),
-      separator(),
       text("v0.3.2") | bold | color(Color::Green1),
       separator(),
       text(rom_information) | bold | color(Color::Red1),
@@ -771,6 +790,8 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
 
   auto renderer = Renderer(menu, [&] {
     return vbox({
+        separator(),
+        logo | center,
         separator(),
         title | center,
         separator(),

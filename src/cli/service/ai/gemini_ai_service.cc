@@ -11,15 +11,18 @@
 #include "absl/strings/strip.h"
 
 #ifdef YAZE_WITH_JSON
+#include <filesystem>
+#include <fstream>
 #include "httplib.h"
 #include "nlohmann/json.hpp"
+namespace fs = std::filesystem;
 #endif
 
 namespace yaze {
 namespace cli {
 
 GeminiAIService::GeminiAIService(const GeminiConfig& config) 
-    : config_(config) {
+    : config_(config), function_calling_enabled_(true) {
   // Load command documentation into prompt builder
   if (auto status = prompt_builder_.LoadResourceCatalogue(""); !status.ok()) {
     std::cerr << "⚠️  Failed to load agent prompt catalogue: "
@@ -34,6 +37,71 @@ GeminiAIService::GeminiAIService(const GeminiConfig& config)
       config_.system_instruction = BuildSystemInstruction();
     }
   }
+}
+
+void GeminiAIService::EnableFunctionCalling(bool enable) {
+  function_calling_enabled_ = enable;
+}
+
+std::vector<std::string> GeminiAIService::GetAvailableTools() const {
+  return {
+    "resource_list",
+    "dungeon_list_sprites",
+    "overworld_find_tile",
+    "overworld_describe_map",
+    "overworld_list_warps"
+  };
+}
+
+std::string GeminiAIService::BuildFunctionCallSchemas() {
+#ifndef YAZE_WITH_JSON
+  return "[]";  // Empty array if JSON not available
+#else
+  // Search for function_schemas.json in multiple locations
+  const std::vector<std::string> search_paths = {
+      "assets/agent/function_schemas.json",
+      "../assets/agent/function_schemas.json",
+      "../../assets/agent/function_schemas.json",
+  };
+  
+  fs::path schema_path;
+  bool found = false;
+  
+  for (const auto& candidate : search_paths) {
+    fs::path resolved = fs::absolute(candidate);
+    if (fs::exists(resolved)) {
+      schema_path = resolved;
+      found = true;
+      break;
+    }
+  }
+  
+  if (!found) {
+    std::cerr << "⚠️  Function schemas file not found. Tried paths:" << std::endl;
+    for (const auto& path : search_paths) {
+      std::cerr << "   - " << fs::absolute(path).string() << std::endl;
+    }
+    return "[]";  // Return empty array as fallback
+  }
+  
+  // Load and parse the JSON file
+  std::ifstream file(schema_path);
+  if (!file.is_open()) {
+    std::cerr << "⚠️  Failed to open function schemas file: " 
+              << schema_path.string() << std::endl;
+    return "[]";
+  }
+  
+  try {
+    nlohmann::json schemas_json;
+    file >> schemas_json;
+    return schemas_json.dump();
+  } catch (const nlohmann::json::exception& e) {
+    std::cerr << "⚠️  Failed to parse function schemas JSON: " 
+              << e.what() << std::endl;
+    return "[]";
+  }
+#endif
 }
 
 std::string GeminiAIService::BuildSystemInstruction() {
@@ -140,6 +208,18 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
           {"responseMimeType", "application/json"}
       }}
   };
+  
+  // Add function calling tools if enabled
+  if (function_calling_enabled_) {
+    try {
+      nlohmann::json tools = nlohmann::json::parse(BuildFunctionCallSchemas());
+      request_body["tools"] = {{
+        {"function_declarations", tools}
+      }};
+    } catch (const nlohmann::json::exception& e) {
+      std::cerr << "⚠️  Failed to parse function schemas: " << e.what() << std::endl;
+    }
+  }
 
   httplib::Headers headers = {
       {"Content-Type", "application/json"},
