@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_SYSTEM_AGENT_CHAT_HISTORY_CODEC_H_
-#define YAZE_APP_EDITOR_SYSTEM_AGENT_CHAT_HISTORY_CODEC_H_
+#ifndef YAZE_APP_EDITOR_AGENT_AGENT_CHAT_HISTORY_CODEC_H_
+#define YAZE_APP_EDITOR_AGENT_AGENT_CHAT_HISTORY_CODEC_H_
 
 #include <filesystem>
 #include <optional>
@@ -51,4 +51,4 @@ class AgentChatHistoryCodec {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_SYSTEM_AGENT_CHAT_HISTORY_CODEC_H_
+#endif  // YAZE_APP_EDITOR_AGENT_AGENT_CHAT_HISTORY_CODEC_H_

@@ -1,4 +1,4 @@
-#include "app/editor/system/network_collaboration_coordinator.h"
+#include "app/editor/agent/network_collaboration_coordinator.h"
 
 #ifdef YAZE_WITH_GRPC
 

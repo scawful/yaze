@@ -32,15 +32,16 @@ set(
   app/editor/system/extension_manager.cc
   app/editor/system/shortcut_manager.cc
   app/editor/system/popup_manager.cc
-  app/editor/system/agent_chat_history_codec.cc
   app/editor/system/proposal_drawer.cc
+  app/editor/agent/agent_chat_history_codec.cc
 )
 
 if(YAZE_WITH_GRPC)
   list(APPEND YAZE_APP_EDITOR_SRC
-    app/editor/system/agent_chat_widget.cc
-    app/editor/system/agent_collaboration_coordinator.cc
-    app/editor/system/network_collaboration_coordinator.cc
+    app/editor/agent/agent_editor.cc
+    app/editor/agent/agent_chat_widget.cc
+    app/editor/agent/agent_collaboration_coordinator.cc
+    app/editor/agent/network_collaboration_coordinator.cc
   )
 endif()
 

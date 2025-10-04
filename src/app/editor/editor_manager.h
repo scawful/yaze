@@ -24,8 +24,7 @@
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #ifdef YAZE_WITH_GRPC
-#include "app/editor/system/agent_collaboration_coordinator.h"
-#include "app/editor/system/agent_chat_widget.h"
+#include "app/editor/agent/agent_editor.h"
 #endif
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
@@ -186,9 +185,8 @@ class EditorManager {
   bool show_proposal_drawer_ = false;
 
 #ifdef YAZE_WITH_GRPC
-  // Agent chat widget
-  AgentCollaborationCoordinator collaboration_coordinator_;
-  AgentChatWidget agent_chat_widget_;
+  // Agent editor - manages chat, collaboration, and network coordination
+  AgentEditor agent_editor_;
 #endif
 
   std::string version_ = "";
