@@ -7,7 +7,7 @@ var searchData=
   ['_7easarwrapper_4',['~AsarWrapper',['../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ad6ea68dd2f57310d3e545911b1d1da55',1,'yaze::core::AsarWrapper']]],
   ['_7eatlasrenderer_5',['~AtlasRenderer',['../d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html#af9005670d7a07f2287bf4105cb97925c',1,'yaze::gfx::AtlasRenderer']]],
   ['_7eaudioram_6',['~AudioRam',['../db/dc9/classyaze_1_1emu_1_1AudioRam.html#af839827fe2d3c9caffa31198eb4d3f73',1,'yaze::emu::AudioRam']]],
-  ['_7eautowidgetscope_7',['~AutoWidgetScope',['../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#ac990990286a65be97629451711027408',1,'yaze::gui::AutoWidgetScope']]],
+  ['_7eautowidgetscope_7',['~AutoWidgetScope',['../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a612bde95e31dde28d08f3a6795db2178',1,'yaze::gui::AutoWidgetScope']]],
   ['_7ebgnba_8',['~BGNBA',['../da/d26/structyaze_1_1emu_1_1BGNBA.html#a747481461b1cab2e79c3ae46099797d4',1,'yaze::emu::BGNBA']]],
   ['_7ebgsc_9',['~BGSC',['../d2/d99/structyaze_1_1emu_1_1BGSC.html#a12bdf8e8f258fe6ef9ae75581e16e912',1,'yaze::emu::BGSC']]],
   ['_7ebitmap_10',['~Bitmap',['../df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2039d06055a940cf508550d390f60baf',1,'yaze::gfx::Bitmap']]],

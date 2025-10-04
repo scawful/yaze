@@ -103,99 +103,104 @@ $(document).ready(function(){initNavTree('d5/d3e/widget__auto__register_8cc_sour
 <div class="contents">
 <a href="../../d5/d3e/widget__auto__register_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../dd/d7f/widget__auto__register_8h.html">app/gui/widget_auto_register.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
-<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &quot;imgui/imgui_internal.h&quot;</span></div>
-<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;absl/strings/string_view.h&quot;</span></div>
-<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span>gui {</div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span> </div>
+<div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;imgui/imgui_internal.h&quot;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;absl/strings/str_join.h&quot;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;absl/strings/string_view.h&quot;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="comment">// Thread-local storage for the current auto-registration scope</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno"><a class="line" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">   10</a></span><span class="keyword">thread_local</span> std::vector&lt;std::string&gt; <a class="code hl_variable" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">g_auto_scope_stack_</a>;</div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span>gui {</div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
-<div class="foldopen" id="foldopen00012" data-start="{" data-end="}">
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a020154c739a2b1b0ec6874f171902e82">   12</a></span><a class="code hl_function" href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a020154c739a2b1b0ec6874f171902e82">AutoWidgetScope::AutoWidgetScope</a>(<span class="keyword">const</span> std::string&amp; name)</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>    : scope_(name), name_(name) {</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  <a class="code hl_variable" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">g_auto_scope_stack_</a>.push_back(name);</div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>}</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="comment">// Thread-local storage for the current auto-registration scope</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">   13</a></span><span class="keyword">thread_local</span> std::vector&lt;std::string&gt; <a class="code hl_variable" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">g_auto_scope_stack_</a>;</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span> </div>
+<div class="foldopen" id="foldopen00015" data-start="{" data-end="}">
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno"><a class="line" href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a020154c739a2b1b0ec6874f171902e82">   15</a></span><a class="code hl_function" href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a020154c739a2b1b0ec6874f171902e82">AutoWidgetScope::AutoWidgetScope</a>(<span class="keyword">const</span> std::string&amp; name)</div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>    : scope_(name), name_(name) {</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <a class="code hl_variable" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">g_auto_scope_stack_</a>.push_back(name);</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>}</div>
 </div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
-<div class="foldopen" id="foldopen00017" data-start="{" data-end="}">
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1">   17</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1">AutoRegisterLastItem</a>(<span class="keyword">const</span> std::string&amp; widget_type,</div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>                          <span class="keyword">const</span> std::string&amp; explicit_label,</div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>                          <span class="keyword">const</span> std::string&amp; description) {</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  ImGuiContext* ctx = ImGui::GetCurrentContext();</div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <span class="keywordflow">if</span> (!ctx || !ctx-&gt;CurrentWindow) {</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
+<div class="foldopen" id="foldopen00020" data-start="{" data-end="}">
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a612bde95e31dde28d08f3a6795db2178">   20</a></span><a class="code hl_function" href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a612bde95e31dde28d08f3a6795db2178">AutoWidgetScope::~AutoWidgetScope</a>() {</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">g_auto_scope_stack_</a>.empty()) {</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    <a class="code hl_variable" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">g_auto_scope_stack_</a>.pop_back();</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  }</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  <span class="comment">// Get the last item&#39;s ID</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  ImGuiID imgui_id = ctx-&gt;LastItemData.ID;</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keywordflow">if</span> (imgui_id == 0) {</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="keywordflow">return</span>;  <span class="comment">// No valid item to register</span></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  }</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  <span class="comment">// Extract label</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  std::string label = explicit_label;</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>  <span class="keywordflow">if</span> (label.empty()) {</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="comment">// Try to get label from ImGui</span></div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* imgui_label = ImGui::GetItemLabel();</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="keywordflow">if</span> (imgui_label &amp;&amp; imgui_label[0] != <span class="charliteral">&#39;\0&#39;</span>) {</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>      label = imgui_label;</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>    } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>      <span class="comment">// Fallback to widget type + ID</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>      label = absl::StrCat(widget_type, <span class="stringliteral">&quot;_&quot;</span>, imgui_id);</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    }</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  }</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="comment">// Build full hierarchical path</span></div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  std::string full_path;</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">g_auto_scope_stack_</a>.empty()) {</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    full_path = absl::StrJoin(<a class="code hl_variable" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">g_auto_scope_stack_</a>, <span class="stringliteral">&quot;/&quot;</span>);</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    full_path += <span class="stringliteral">&quot;/&quot;</span>;</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  }</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  </div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <span class="comment">// Add widget type and normalized label</span></div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  std::string normalized_label = <a class="code hl_function" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116">WidgetIdRegistry::NormalizeLabel</a>(label);</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  full_path += absl::StrCat(widget_type, <span class="stringliteral">&quot;:&quot;</span>, normalized_label);</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  <span class="comment">// Capture metadata from ImGui&#39;s last item</span></div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  <a class="code hl_struct" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html">WidgetIdRegistry::WidgetMetadata</a> metadata;</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  metadata.<a class="code hl_variable" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html#ad222e21fcc20db7c6c9d4ad6584bf14b">label</a> = label;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  </div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  <span class="comment">// Get window name</span></div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  <span class="keywordflow">if</span> (ctx-&gt;CurrentWindow) {</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    metadata.<a class="code hl_variable" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html#a6560c98a0d114f641bcdc313262ffa43">window_name</a> = std::string(ctx-&gt;CurrentWindow-&gt;Name);</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  }</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  <span class="comment">// Capture visibility and enabled state</span></div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  <span class="keyword">const</span> ImGuiLastItemData&amp; last = ctx-&gt;LastItemData;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  metadata.<a class="code hl_variable" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html#a69c186e5a5bcc3ba7c6d5f65f4afbcb7">visible</a> = (last.StatusFlags &amp; ImGuiItemStatusFlags_Visible) != 0;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  metadata.<a class="code hl_variable" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html#af24e83fe12d3b7200fba74e820b652da">enabled</a> = (last.ItemFlags &amp; ImGuiItemFlags_Disabled) == 0;</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  <span class="comment">// Capture bounding rectangle</span></div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>  <a class="code hl_struct" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html">WidgetIdRegistry::WidgetBounds</a> bounds;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  bounds.<a class="code hl_variable" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html#a606618b10e73f43c6d0bca3256c4fac2">min_x</a> = last.Rect.Min.x;</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  bounds.<a class="code hl_variable" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html#a9214f70090e48640bfb67d616454167f">min_y</a> = last.Rect.Min.y;</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  bounds.<a class="code hl_variable" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html#acf5c35d2ed654068a61b7bf310276a44">max_x</a> = last.Rect.Max.x;</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  bounds.<a class="code hl_variable" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html#a492b4be2f82efadc6057c22e80225436">max_y</a> = last.Rect.Max.y;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  bounds.<a class="code hl_variable" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html#ad65735152204c05c9a55d48740975653">valid</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  metadata.<a class="code hl_variable" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html#a671aa0eec9d4c7389ead642736488189">bounds</a> = bounds;</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  <span class="comment">// Register with the global registry</span></div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  <a class="code hl_function" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc">WidgetIdRegistry::Instance</a>().<a class="code hl_function" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1">RegisterWidget</a>(</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>      full_path, widget_type, imgui_id, description, metadata);</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>}</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>}</div>
 </div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>}  <span class="comment">// namespace gui</span></div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
-<div class="ttc" id="aclassyaze_1_1gui_1_1AutoWidgetScope_html_a020154c739a2b1b0ec6874f171902e82"><div class="ttname"><a href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a020154c739a2b1b0ec6874f171902e82">yaze::gui::AutoWidgetScope::AutoWidgetScope</a></div><div class="ttdeci">AutoWidgetScope(const std::string &amp;name)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d3e/widget__auto__register_8cc_source.html#l00012">widget_auto_register.cc:12</a></div></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
+<div class="foldopen" id="foldopen00026" data-start="{" data-end="}">
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1">   26</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1">AutoRegisterLastItem</a>(<span class="keyword">const</span> std::string&amp; widget_type,</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>                          <span class="keyword">const</span> std::string&amp; explicit_label,</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>                          <span class="keyword">const</span> std::string&amp; description) {</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  ImGuiContext* ctx = ImGui::GetCurrentContext();</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keywordflow">if</span> (!ctx || !ctx-&gt;CurrentWindow) {</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>  }</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>  <span class="comment">// Get the last item&#39;s ID</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  ImGuiID imgui_id = ctx-&gt;LastItemData.ID;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  <span class="keywordflow">if</span> (imgui_id == 0) {</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keywordflow">return</span>;  <span class="comment">// No valid item to register</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  }</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>  <span class="comment">// Extract label</span></div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>  std::string label = explicit_label;</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>  <span class="keywordflow">if</span> (label.empty()) {</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    label = absl::StrCat(widget_type, <span class="stringliteral">&quot;_&quot;</span>, imgui_id);</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  }</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <span class="comment">// Build full hierarchical path</span></div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  std::string full_path;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">g_auto_scope_stack_</a>.empty()) {</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    full_path = absl::StrJoin(<a class="code hl_variable" href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">g_auto_scope_stack_</a>, <span class="stringliteral">&quot;/&quot;</span>);</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>    full_path += <span class="stringliteral">&quot;/&quot;</span>;</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  }</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  </div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  <span class="comment">// Add widget type and normalized label</span></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  std::string normalized_label = <a class="code hl_function" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116">WidgetIdRegistry::NormalizeLabel</a>(label);</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  full_path += absl::StrCat(widget_type, <span class="stringliteral">&quot;:&quot;</span>, normalized_label);</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  <span class="comment">// Capture metadata from ImGui&#39;s last item</span></div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  <a class="code hl_struct" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html">WidgetIdRegistry::WidgetMetadata</a> metadata;</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  metadata.<a class="code hl_variable" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html#ad222e21fcc20db7c6c9d4ad6584bf14b">label</a> = label;</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  </div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  <span class="comment">// Get window name</span></div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  <span class="keywordflow">if</span> (ctx-&gt;CurrentWindow) {</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    metadata.<a class="code hl_variable" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html#a6560c98a0d114f641bcdc313262ffa43">window_name</a> = std::string(ctx-&gt;CurrentWindow-&gt;Name);</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  }</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  <span class="comment">// Capture visibility and enabled state</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>  <span class="keyword">const</span> ImGuiLastItemData&amp; last = ctx-&gt;LastItemData;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  metadata.<a class="code hl_variable" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html#a69c186e5a5bcc3ba7c6d5f65f4afbcb7">visible</a> = (last.StatusFlags &amp; ImGuiItemStatusFlags_Visible) != 0;</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  metadata.<a class="code hl_variable" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html#af24e83fe12d3b7200fba74e820b652da">enabled</a> = (last.ItemFlags &amp; ImGuiItemFlags_Disabled) == 0;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  <span class="comment">// Capture bounding rectangle</span></div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  <a class="code hl_struct" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html">WidgetIdRegistry::WidgetBounds</a> bounds;</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  bounds.<a class="code hl_variable" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html#a606618b10e73f43c6d0bca3256c4fac2">min_x</a> = last.Rect.Min.x;</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  bounds.<a class="code hl_variable" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html#a9214f70090e48640bfb67d616454167f">min_y</a> = last.Rect.Min.y;</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  bounds.<a class="code hl_variable" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html#acf5c35d2ed654068a61b7bf310276a44">max_x</a> = last.Rect.Max.x;</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  bounds.<a class="code hl_variable" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html#a492b4be2f82efadc6057c22e80225436">max_y</a> = last.Rect.Max.y;</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  bounds.<a class="code hl_variable" href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html#ad65735152204c05c9a55d48740975653">valid</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>  metadata.<a class="code hl_variable" href="../../da/de2/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetMetadata.html#a671aa0eec9d4c7389ead642736488189">bounds</a> = bounds;</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>  <span class="comment">// Register with the global registry</span></div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  <a class="code hl_function" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc">WidgetIdRegistry::Instance</a>().<a class="code hl_function" href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1">RegisterWidget</a>(</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>      full_path, widget_type, imgui_id, description, metadata);</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>}</div>
+</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>}  <span class="comment">// namespace gui</span></div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
+<div class="ttc" id="aclassyaze_1_1gui_1_1AutoWidgetScope_html_a020154c739a2b1b0ec6874f171902e82"><div class="ttname"><a href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a020154c739a2b1b0ec6874f171902e82">yaze::gui::AutoWidgetScope::AutoWidgetScope</a></div><div class="ttdeci">AutoWidgetScope(const std::string &amp;name)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d3e/widget__auto__register_8cc_source.html#l00015">widget_auto_register.cc:15</a></div></div>
+<div class="ttc" id="aclassyaze_1_1gui_1_1AutoWidgetScope_html_a612bde95e31dde28d08f3a6795db2178"><div class="ttname"><a href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a612bde95e31dde28d08f3a6795db2178">yaze::gui::AutoWidgetScope::~AutoWidgetScope</a></div><div class="ttdeci">~AutoWidgetScope()</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d3e/widget__auto__register_8cc_source.html#l00020">widget_auto_register.cc:20</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gui_1_1WidgetIdRegistry_html_a9870a98aedc3638304ba2f2aad102116"><div class="ttname"><a href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a9870a98aedc3638304ba2f2aad102116">yaze::gui::WidgetIdRegistry::NormalizeLabel</a></div><div class="ttdeci">static std::string NormalizeLabel(absl::string_view label)</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d10/widget__id__registry_8cc_source.html#l00411">widget_id_registry.cc:411</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gui_1_1WidgetIdRegistry_html_abb43545d5ef214a5e1b5cbdee8832da1"><div class="ttname"><a href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#abb43545d5ef214a5e1b5cbdee8832da1">yaze::gui::WidgetIdRegistry::RegisterWidget</a></div><div class="ttdeci">void RegisterWidget(const std::string &amp;full_path, const std::string &amp;type, ImGuiID imgui_id, const std::string &amp;description=&quot;&quot;, const WidgetMetadata &amp;metadata=WidgetMetadata())</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d10/widget__id__registry_8cc_source.html#l00158">widget_id_registry.cc:158</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gui_1_1WidgetIdRegistry_html_ad97ad32dc8820f89ff7005108f836ffc"><div class="ttname"><a href="../../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ad97ad32dc8820f89ff7005108f836ffc">yaze::gui::WidgetIdRegistry::Instance</a></div><div class="ttdeci">static WidgetIdRegistry &amp; Instance()</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d10/widget__id__registry_8cc_source.html#l00058">widget_id_registry.cc:58</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1gui_html_a010a82bb36767f92646fec4223eb8b5a"><div class="ttname"><a href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">yaze::gui::g_auto_scope_stack_</a></div><div class="ttdeci">thread_local std::vector&lt; std::string &gt; g_auto_scope_stack_</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d3e/widget__auto__register_8cc_source.html#l00010">widget_auto_register.cc:10</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1gui_html_a2be424fe9c7f540133dfcf036c48b5d1"><div class="ttname"><a href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1">yaze::gui::AutoRegisterLastItem</a></div><div class="ttdeci">void AutoRegisterLastItem(const std::string &amp;widget_type, const std::string &amp;explicit_label, const std::string &amp;description)</div><div class="ttdoc">Automatically register the last ImGui item.</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d3e/widget__auto__register_8cc_source.html#l00017">widget_auto_register.cc:17</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1gui_html_a010a82bb36767f92646fec4223eb8b5a"><div class="ttname"><a href="../../d3/dbf/namespaceyaze_1_1gui.html#a010a82bb36767f92646fec4223eb8b5a">yaze::gui::g_auto_scope_stack_</a></div><div class="ttdeci">thread_local std::vector&lt; std::string &gt; g_auto_scope_stack_</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d3e/widget__auto__register_8cc_source.html#l00013">widget_auto_register.cc:13</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1gui_html_a2be424fe9c7f540133dfcf036c48b5d1"><div class="ttname"><a href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1">yaze::gui::AutoRegisterLastItem</a></div><div class="ttdeci">void AutoRegisterLastItem(const std::string &amp;widget_type, const std::string &amp;explicit_label, const std::string &amp;description)</div><div class="ttdoc">Automatically register the last ImGui item.</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d3e/widget__auto__register_8cc_source.html#l00026">widget_auto_register.cc:26</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="astructyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds_html"><div class="ttname"><a href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html">yaze::gui::WidgetIdRegistry::WidgetBounds</a></div><div class="ttdef"><b>Definition</b> <a href="../../d3/dd9/widget__id__registry_8h_source.html#l00069">widget_id_registry.h:69</a></div></div>
 <div class="ttc" id="astructyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds_html_a492b4be2f82efadc6057c22e80225436"><div class="ttname"><a href="../../d9/d8e/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetBounds.html#a492b4be2f82efadc6057c22e80225436">yaze::gui::WidgetIdRegistry::WidgetBounds::max_y</a></div><div class="ttdeci">float max_y</div><div class="ttdef"><b>Definition</b> <a href="../../d3/dd9/widget__id__registry_8h_source.html#l00073">widget_id_registry.h:73</a></div></div>

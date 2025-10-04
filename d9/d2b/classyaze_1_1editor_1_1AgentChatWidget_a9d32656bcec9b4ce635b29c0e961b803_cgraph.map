@@ -1,0 +1,11 @@
+<map id="yaze::editor::AgentChatWidget::PollSharedHistory" name="yaze::editor::AgentChatWidget::PollSharedHistory">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,198,111"/>
+<area shape="rect" id="Node000002" href="$d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec.html#ae0509ac657310afdc7a770bf5d28ebf1" title=" " alt="" coords="247,5,441,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,68,250,48,252,53,180,73"/>
+<area shape="rect" id="Node000003" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#af9a7cabd8517b60c036240d576f82e17" title=" " alt="" coords="246,71,442,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="198,88,230,88,230,94,198,94"/>
+<area shape="rect" id="Node000006" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="257,136,431,177"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="180,109,252,129,250,134,179,114"/>
+<area shape="rect" id="Node000004" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a24ce59fa692842ca2228e5eac4bb3165" title=" " alt="" coords="490,71,752,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="442,88,474,88,474,94,442,94"/>
+</map>

@@ -125,8 +125,8 @@ Collaboration diagram for yaze::gui::AutoWidgetScope:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a020154c739a2b1b0ec6874f171902e82" id="r_a020154c739a2b1b0ec6874f171902e82"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a020154c739a2b1b0ec6874f171902e82">AutoWidgetScope</a> (const std::string &amp;name)</td></tr>
 <tr class="separator:a020154c739a2b1b0ec6874f171902e82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac990990286a65be97629451711027408" id="r_ac990990286a65be97629451711027408"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#ac990990286a65be97629451711027408">~AutoWidgetScope</a> ()=default</td></tr>
-<tr class="separator:ac990990286a65be97629451711027408"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a612bde95e31dde28d08f3a6795db2178" id="r_a612bde95e31dde28d08f3a6795db2178"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a612bde95e31dde28d08f3a6795db2178">~AutoWidgetScope</a> ()</td></tr>
+<tr class="separator:a612bde95e31dde28d08f3a6795db2178"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5136662430c330d5e55ecb1f96e70e48" id="r_a5136662430c330d5e55ecb1f96e70e48"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html#a5136662430c330d5e55ecb1f96e70e48">GetPath</a> () const</td></tr>
 <tr class="separator:a5136662430c330d5e55ecb1f96e70e48"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -141,7 +141,7 @@ Private Attributes</h2></td></tr>
 <div class="textblock"><p>RAII scope that enables automatic widget registration. </p>
 <p>Creates a widget ID scope and enables auto-registration for all widgets created within this scope. Combines <a class="el" href="../../d8/dd5/classyaze_1_1gui_1_1WidgetIdScope.html" title="RAII helper for managing hierarchical ImGui ID scopes.">WidgetIdScope</a> with automatic metadata capture. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00039">39</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00041">41</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a020154c739a2b1b0ec6874f171902e82" name="a020154c739a2b1b0ec6874f171902e82"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a020154c739a2b1b0ec6874f171902e82">&#9670;&#160;</a></span>AutoWidgetScope()</h2>
@@ -167,20 +167,17 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00012">12</a> of file <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html">widget_auto_register.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00015">15</a> of file <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html">widget_auto_register.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00010">yaze::gui::g_auto_scope_stack_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00013">yaze::gui::g_auto_scope_stack_</a>.</p>
 
 </div>
 </div>
-<a id="ac990990286a65be97629451711027408" name="ac990990286a65be97629451711027408"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac990990286a65be97629451711027408">&#9670;&#160;</a></span>~AutoWidgetScope()</h2>
+<a id="a612bde95e31dde28d08f3a6795db2178" name="a612bde95e31dde28d08f3a6795db2178"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a612bde95e31dde28d08f3a6795db2178">&#9670;&#160;</a></span>~AutoWidgetScope()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">yaze::gui::AutoWidgetScope::~AutoWidgetScope </td>
@@ -189,12 +186,11 @@ Private Attributes</h2></td></tr>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">default</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00020">20</a> of file <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html">widget_auto_register.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d3e/widget__auto__register_8cc_source.html#l00013">yaze::gui::g_auto_scope_stack_</a>.</p>
 
 </div>
 </div>
@@ -222,9 +218,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00045">45</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00047">47</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00043">yaze::gui::WidgetIdScope::GetFullPath()</a>, and <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00048">scope_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00043">yaze::gui::WidgetIdScope::GetFullPath()</a>, and <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00050">scope_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -259,9 +255,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00048">48</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00050">50</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00045">GetPath()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00047">GetPath()</a>.</p>
 
 </div>
 </div>
@@ -285,7 +281,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00049">49</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html#l00051">51</a> of file <a class="el" href="../../dd/d7f/widget__auto__register_8h_source.html">widget_auto_register.h</a>.</p>
 
 </div>
 </div>

@@ -4,6 +4,11 @@ var classyaze_1_1editor_1_1AgentChatWidget =
     [ "CollaborationState", "d7/dc8/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationState.html", "d7/dc8/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationState" ],
     [ "MultimodalCallbacks", "d5/dcf/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalCallbacks.html", "d5/dcf/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalCallbacks" ],
     [ "MultimodalState", "db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState.html", "db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState" ],
+    [ "CaptureMode", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a1cd4697023fffc700c9e2d75fd433b8d", [
+      [ "kFullWindow", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a1cd4697023fffc700c9e2d75fd433b8dad898381929379a39b3a97bf35faf1276", null ],
+      [ "kActiveEditor", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a1cd4697023fffc700c9e2d75fd433b8da5b0d5f450e5d74f208106d4cc3ad3ba7", null ],
+      [ "kSpecificWindow", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a1cd4697023fffc700c9e2d75fd433b8da0cc8ecd642b6d30028d6f2d6cad8123e", null ]
+    ] ],
     [ "AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a86f01089759358aa4f87b7e9435bb9ea", null ],
     [ "Draw", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a1f4b3a0399ce8362afae0f8dfa84b1f5", null ],
     [ "SetRomContext", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a907aa6670f36fdad4b02cb5773fb4385", null ],
@@ -14,6 +19,10 @@ var classyaze_1_1editor_1_1AgentChatWidget =
     [ "active", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ad82388f90c95cd4b3ce19deec372b8b3", null ],
     [ "is_active", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ac0597eb049f9a4870109aebde7590ac5", null ],
     [ "set_active", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a5d2be5bd0d6d1483e16d10b391a0f8c9", null ],
+    [ "capture_mode", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a2d7878e1bbbdb86a4e60c2e12662f6e2", null ],
+    [ "specific_window_name", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#aef6e20427b23a1ad78fbfb250a423aa0", null ],
+    [ "SwitchToSharedHistory", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ab9727ad34c6dc3b6b6efee3d1a474121", null ],
+    [ "SwitchToLocalHistory", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a12c571c3af9cf22a30e0c585730b398a", null ],
     [ "EnsureHistoryLoaded", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ad5902a046c3f90bcd0961d6ac9d1df64", null ],
     [ "PersistHistory", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a02931df005bb2c634a5885bae19c4180", null ],
     [ "RenderHistory", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a94c390825c0ebd8bc137c9d60b3fd7a9", null ],
@@ -29,6 +38,7 @@ var classyaze_1_1editor_1_1AgentChatWidget =
     [ "RefreshCollaboration", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a4bf22ab0ba4b8a50d3b3bdc31d50280d", null ],
     [ "ApplyCollaborationSession", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#af2ee887e67a787b30a39246d5cff1f54", null ],
     [ "MarkHistoryDirty", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a9af9ba8d83b928028c82c6cd56fe2860", null ],
+    [ "PollSharedHistory", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a9d32656bcec9b4ce635b29c0e961b803", null ],
     [ "agent_service_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a89a217078fca0cdaa24bb971b860ef4e", null ],
     [ "input_buffer_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ae7b62bd0d119cdc555ebfdec0888b6e8", null ],
     [ "active_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ac493372d406a2b1b5c02378b367c4f4a", null ],
@@ -51,5 +61,7 @@ var classyaze_1_1editor_1_1AgentChatWidget =
     [ "session_name_buffer_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ad8333752c139244ede79276d30c19f06", null ],
     [ "join_code_buffer_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#acbb92cc63fc2bd3a9f9cf075472f3fef", null ],
     [ "multimodal_prompt_buffer_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a2aee0edc0fcbf664fac87b272b3e8515", null ],
-    [ "last_collaboration_action_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#af7fcbc5368917f309fa1f91ea4b7daad", null ]
+    [ "last_collaboration_action_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#af7fcbc5368917f309fa1f91ea4b7daad", null ],
+    [ "last_shared_history_poll_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a728f97cf78005f9cf493d89223d13fed", null ],
+    [ "last_known_history_size_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a5207dfc87f83d7d35c2a90643d0114c7", null ]
 ];

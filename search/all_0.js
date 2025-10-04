@@ -15,7 +15,7 @@ var searchData=
   ['0_203_200_20september_202025_12',['0.3.0 (September 2025)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md276',1,'']]],
   ['0_203_201_20september_202025_13',['0.3.1 (September 2025)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md268',1,'']]],
   ['0_203_202_20december_202025_20in_20development_14',['0.3.2 (December 2025) - In Development',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md260',1,'']]],
-  ['0_203_202_20release_15',['Version 0.3.2 - Release',['../d0/d30/md_README.html#autotoc_md582',1,'']]],
+  ['0_203_202_20release_15',['Version 0.3.2 - Release',['../d0/d30/md_README.html#autotoc_md585',1,'']]],
   ['0_204_20x_20next_20major_20release_20stability_20core_20tooling_16',['0.4.X (Next Major Release) - Stability &amp; Core Tooling',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md352',1,'']]],
   ['0_205_20x_20feature_20expansion_17',['0.5.X - Feature Expansion',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md357',1,'']]],
   ['0_206_20x_20polish_20integration_18',['0.6.X - Polish &amp; Integration',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md359',1,'']]],

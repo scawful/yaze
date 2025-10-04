@@ -16,7 +16,7 @@ var searchData=
   ['ldle2_13',['ldle2',['../df/d3e/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#a18ba82482f1821f52179a8deba75e974',1,'yaze::zelda3::anonymous_namespace{hyrule_magic.cc}']]],
   ['ldle3_14',['ldle3',['../df/d3e/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#a99df28514d1137d065e3d7b6b8e0c4eb',1,'yaze::zelda3::anonymous_namespace{hyrule_magic.cc}']]],
   ['ldx_15',['ldx',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#aea682e47ae0952d8dfb1de5ad2eb6d3f',1,'yaze::emu::Cpu::LDX(uint16_t address, bool immediate=false)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a944511a19819a401e9d376af0d37eb31',1,'yaze::emu::Cpu::Ldx(uint32_t low, uint32_t high)']]],
-  ['ldy_16',['ldy',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a2948577f6b7a7f01d4a3d6003dc95def',1,'yaze::emu::Cpu::Ldy(uint32_t low, uint32_t high)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#afdfd7049fec0692d76ec82575793ebe0',1,'yaze::emu::Cpu::LDY(uint16_t address, bool immediate=false)']]],
+  ['ldy_16',['ldy',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#afdfd7049fec0692d76ec82575793ebe0',1,'yaze::emu::Cpu::LDY(uint16_t address, bool immediate=false)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a2948577f6b7a7f01d4a3d6003dc95def',1,'yaze::emu::Cpu::Ldy(uint32_t low, uint32_t high)']]],
   ['leavesession_17',['LeaveSession',['../d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#afe423c605b6bb7f6661e5dc0f223ecd2',1,'yaze::editor::AgentCollaborationCoordinator']]],
   ['listavailablemodels_18',['ListAvailableModels',['../dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#a98fa7047f1cb3932bf94e078e0079d9f',1,'yaze::cli::OllamaAIService']]],
   ['listbox_19',['ListBox',['../d3/dbf/namespaceyaze_1_1gui.html#a384cb97485e1d8ed280808163a529998',1,'yaze::gui']]],
@@ -160,6 +160,6 @@ var searchData=
   ['loginstructions_157',['LogInstructions',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#aac0b846abec30dc25411f8d9a19763f5',1,'yaze::emu::Cpu']]],
   ['logmanager_158',['logmanager',['../d1/d42/classyaze_1_1util_1_1LogManager.html#ad9ae26830fc575a263c8db02aaaef0de',1,'yaze::util::LogManager::LogManager()'],['../d1/d42/classyaze_1_1util_1_1LogManager.html#af7b403bb44e1232c376f5480df4ce2b3',1,'yaze::util::LogManager::LogManager(const LogManager &amp;)=delete']]],
   ['lookuptileid_159',['LookupTileId',['../d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#aca395dafa029712c670e0901714a944b',1,'yaze::cli::PromptBuilder']]],
-  ['lsr_160',['lsr',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#aeef69e95d01044f54452510c045c8880',1,'yaze::emu::Cpu::Lsr(uint32_t low, uint32_t high)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a29faed6bbc611bce0ed5cd23dba77500',1,'yaze::emu::Cpu::LSR(uint16_t address, bool accumulator=false)'],['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a5933e96d79fd8cacf3373140d9132309',1,'yaze::emu::Spc700::LSR()']]],
+  ['lsr_160',['lsr',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a29faed6bbc611bce0ed5cd23dba77500',1,'yaze::emu::Cpu::LSR()'],['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a5933e96d79fd8cacf3373140d9132309',1,'yaze::emu::Spc700::LSR()'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#aeef69e95d01044f54452510c045c8880',1,'yaze::emu::Cpu::Lsr()']]],
   ['lua_161',['Lua',['../dd/dd2/structTextEditor_1_1LanguageDefinition.html#a4e811b43370cba9ec8b8869ae2bfc4ff',1,'TextEditor::LanguageDefinition']]]
 ];

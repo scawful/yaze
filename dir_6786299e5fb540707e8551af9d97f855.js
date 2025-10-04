@@ -11,6 +11,8 @@ var dir_6786299e5fb540707e8551af9d97f855 =
     [ "extension_manager.cc", "d1/d95/extension__manager_8cc.html", null ],
     [ "extension_manager.h", "d4/db5/extension__manager_8h.html", "d4/db5/extension__manager_8h" ],
     [ "history_manager.h", "d4/d82/history__manager_8h.html", "d4/d82/history__manager_8h" ],
+    [ "network_collaboration_coordinator.cc", "d2/d6a/network__collaboration__coordinator_8cc.html", null ],
+    [ "network_collaboration_coordinator.h", "db/ddb/network__collaboration__coordinator_8h.html", null ],
     [ "popup_manager.cc", "d8/de0/popup__manager_8cc.html", null ],
     [ "popup_manager.h", "dd/da4/popup__manager_8h.html", "dd/da4/popup__manager_8h" ],
     [ "proposal_drawer.cc", "d1/d96/proposal__drawer_8cc.html", null ],

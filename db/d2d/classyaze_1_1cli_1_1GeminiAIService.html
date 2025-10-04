@@ -151,6 +151,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a405569111c5447467e48f505ea051465"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a457f3463abe48790aaf3172713fc4091" id="r_a457f3463abe48790aaf3172713fc4091"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a457f3463abe48790aaf3172713fc4091">GetAvailableTools</a> () const</td></tr>
 <tr class="separator:a457f3463abe48790aaf3172713fc4091"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0767d7fb1097b5c331c386b88ae9099e" id="r_a0767d7fb1097b5c331c386b88ae9099e"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../db/d5f/structyaze_1_1cli_1_1AgentResponse.html">AgentResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a0767d7fb1097b5c331c386b88ae9099e">GenerateMultimodalResponse</a> (const std::string &amp;image_path, const std::string &amp;prompt)</td></tr>
+<tr class="separator:a0767d7fb1097b5c331c386b88ae9099e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classyaze_1_1cli_1_1AIService"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classyaze_1_1cli_1_1AIService')"><img src="../../closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html">yaze::cli::AIService</a></td></tr>
 <tr class="memitem:a55b5fceb48e11c1ffc74820689e3cae0 inherit pub_methods_classyaze_1_1cli_1_1AIService" id="r_a55b5fceb48e11c1ffc74820689e3cae0"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d2a/classyaze_1_1cli_1_1AIService.html#a55b5fceb48e11c1ffc74820689e3cae0">~AIService</a> ()=default</td></tr>
 <tr class="separator:a55b5fceb48e11c1ffc74820689e3cae0 inherit pub_methods_classyaze_1_1cli_1_1AIService"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -163,6 +165,8 @@ Private Member Functions</h2></td></tr>
 <tr class="separator:a3b983e01884a58d17271442bebcb72c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8fabee613135908e8ef20253f8261658" id="r_a8fabee613135908e8ef20253f8261658"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../db/d5f/structyaze_1_1cli_1_1AgentResponse.html">AgentResponse</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a8fabee613135908e8ef20253f8261658">ParseGeminiResponse</a> (const std::string &amp;response_body)</td></tr>
 <tr class="separator:a8fabee613135908e8ef20253f8261658"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a747ba76fe2ab26b5dff56e6b587eb95f" id="r_a747ba76fe2ab26b5dff56e6b587eb95f"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a747ba76fe2ab26b5dff56e6b587eb95f">EncodeImageToBase64</a> (const std::string &amp;image_path) const</td></tr>
+<tr class="separator:a747ba76fe2ab26b5dff56e6b587eb95f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -203,7 +207,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00045">45</a> of file <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html">gemini_ai_service.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00187">BuildSystemInstruction()</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00706">yaze::cli::PromptBuilder::BuildSystemInstructionWithExamples()</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00056">config_</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00054">function_calling_enabled_</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00127">yaze::cli::PromptBuilder::LoadResourceCatalogue()</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00057">prompt_builder_</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00023">yaze::cli::GeminiConfig::prompt_version</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00020">yaze::cli::GeminiConfig::system_instruction</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00021">yaze::cli::GeminiConfig::use_enhanced_prompting</a>, and <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00024">yaze::cli::GeminiConfig::verbose</a>.</p>
+<p class="reference">References <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00187">BuildSystemInstruction()</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00706">yaze::cli::PromptBuilder::BuildSystemInstructionWithExamples()</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00064">config_</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00062">function_calling_enabled_</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00127">yaze::cli::PromptBuilder::LoadResourceCatalogue()</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00065">prompt_builder_</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00023">yaze::cli::GeminiConfig::prompt_version</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00020">yaze::cli::GeminiConfig::system_instruction</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00021">yaze::cli::GeminiConfig::use_enhanced_prompting</a>, and <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00024">yaze::cli::GeminiConfig::verbose</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -252,7 +256,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00193">193</a> of file <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html">gemini_ai_service.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00057">prompt_builder_</a>, and <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00064">yaze::cli::PromptBuilder::SetRom()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00065">prompt_builder_</a>, and <a class="el" href="../../df/d04/prompt__builder_8h_source.html#l00064">yaze::cli::PromptBuilder::SetRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -337,7 +341,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00285">285</a> of file <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html">gemini_ai_service.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00016">yaze::cli::GeminiConfig::api_key</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00136">BuildFunctionCallSchemas()</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00732">yaze::cli::PromptBuilder::BuildPromptFromHistory()</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00056">config_</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00054">function_calling_enabled_</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00019">yaze::cli::GeminiConfig::max_output_tokens</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00017">yaze::cli::GeminiConfig::model</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00414">ParseGeminiResponse()</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00057">prompt_builder_</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00020">yaze::cli::GeminiConfig::system_instruction</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00018">yaze::cli::GeminiConfig::temperature</a>, and <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00024">yaze::cli::GeminiConfig::verbose</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00016">yaze::cli::GeminiConfig::api_key</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00136">BuildFunctionCallSchemas()</a>, <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00732">yaze::cli::PromptBuilder::BuildPromptFromHistory()</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00064">config_</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00062">function_calling_enabled_</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00019">yaze::cli::GeminiConfig::max_output_tokens</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00017">yaze::cli::GeminiConfig::model</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00414">ParseGeminiResponse()</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00065">prompt_builder_</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00020">yaze::cli::GeminiConfig::system_instruction</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00018">yaze::cli::GeminiConfig::temperature</a>, and <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00024">yaze::cli::GeminiConfig::verbose</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -374,7 +378,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00197">197</a> of file <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html">gemini_ai_service.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00016">yaze::cli::GeminiConfig::api_key</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00056">config_</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00017">yaze::cli::GeminiConfig::model</a>, and <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00024">yaze::cli::GeminiConfig::verbose</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00016">yaze::cli::GeminiConfig::api_key</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00064">config_</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00017">yaze::cli::GeminiConfig::model</a>, and <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00024">yaze::cli::GeminiConfig::verbose</a>.</p>
 
 </div>
 </div>
@@ -396,7 +400,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00120">120</a> of file <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html">gemini_ai_service.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00054">function_calling_enabled_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00062">function_calling_enabled_</a>.</p>
 
 </div>
 </div>
@@ -416,6 +420,52 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00124">124</a> of file <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html">gemini_ai_service.cc</a>.</p>
+
+</div>
+</div>
+<a id="a0767d7fb1097b5c331c386b88ae9099e" name="a0767d7fb1097b5c331c386b88ae9099e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0767d7fb1097b5c331c386b88ae9099e">&#9670;&#160;</a></span>GenerateMultimodalResponse()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::StatusOr&lt; <a class="el" href="../../db/d5f/structyaze_1_1cli_1_1AgentResponse.html">AgentResponse</a> &gt; yaze::cli::GeminiAIService::GenerateMultimodalResponse </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>image_path</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>prompt</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00604">604</a> of file <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html">gemini_ai_service.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00016">yaze::cli::GeminiConfig::api_key</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00064">config_</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00536">EncodeImageToBase64()</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00019">yaze::cli::GeminiConfig::max_output_tokens</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00017">yaze::cli::GeminiConfig::model</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00414">ParseGeminiResponse()</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00018">yaze::cli::GeminiConfig::temperature</a>, and <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00024">yaze::cli::GeminiConfig::verbose</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00218">yaze::editor::EditorManager::Initialize()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../db/d2d/classyaze_1_1cli_1_1GeminiAIService_a0767d7fb1097b5c331c386b88ae9099e_cgraph.png" border="0" usemap="#adb/d2d/classyaze_1_1cli_1_1GeminiAIService_a0767d7fb1097b5c331c386b88ae9099e_cgraph" alt=""/></div>
+<map name="adb/d2d/classyaze_1_1cli_1_1GeminiAIService_a0767d7fb1097b5c331c386b88ae9099e_cgraph" id="adb/d2d/classyaze_1_1cli_1_1GeminiAIService_a0767d7fb1097b5c331c386b88ae9099e_cgraph">
+<area shape="rect" title=" " alt="" coords="5,39,207,79"/>
+<area shape="rect" href="../../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a747ba76fe2ab26b5dff56e6b587eb95f" title=" " alt="" coords="255,5,425,46"/>
+<area shape="poly" title=" " alt="" coords="207,42,239,37,240,43,207,47"/>
+<area shape="rect" href="../../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a8fabee613135908e8ef20253f8261658" title=" " alt="" coords="255,71,425,111"/>
+<area shape="poly" title=" " alt="" coords="207,70,240,75,239,80,207,75"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -444,7 +494,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00187">187</a> of file <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html">gemini_ai_service.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00646">yaze::cli::PromptBuilder::BuildSystemInstruction()</a>, and <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00057">prompt_builder_</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00646">yaze::cli::PromptBuilder::BuildSystemInstruction()</a>, and <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00065">prompt_builder_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00045">GeminiAIService()</a>.</p>
 <div class="dynheader">
@@ -515,9 +565,39 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00414">414</a> of file <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html">gemini_ai_service.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00014">yaze::cli::ToolCall::args</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00026">yaze::cli::AgentResponse::commands</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00056">config_</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00029">yaze::cli::AgentResponse::reasoning</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00020">yaze::cli::AgentResponse::text_response</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00023">yaze::cli::AgentResponse::tool_calls</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00013">yaze::cli::ToolCall::tool_name</a>, and <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00024">yaze::cli::GeminiConfig::verbose</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00014">yaze::cli::ToolCall::args</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00026">yaze::cli::AgentResponse::commands</a>, <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00064">config_</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00029">yaze::cli::AgentResponse::reasoning</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00020">yaze::cli::AgentResponse::text_response</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00023">yaze::cli::AgentResponse::tool_calls</a>, <a class="el" href="../../d1/d1d/cli_2service_2ai_2common_8h_source.html#l00013">yaze::cli::ToolCall::tool_name</a>, and <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00024">yaze::cli::GeminiConfig::verbose</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00285">GenerateResponse()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00604">GenerateMultimodalResponse()</a>, and <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00285">GenerateResponse()</a>.</p>
+
+</div>
+</div>
+<a id="a747ba76fe2ab26b5dff56e6b587eb95f" name="a747ba76fe2ab26b5dff56e6b587eb95f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a747ba76fe2ab26b5dff56e6b587eb95f">&#9670;&#160;</a></span>EncodeImageToBase64()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::StatusOr&lt; std::string &gt; yaze::cli::GeminiAIService::EncodeImageToBase64 </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>image_path</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00536">536</a> of file <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html">gemini_ai_service.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00604">GenerateMultimodalResponse()</a>.</p>
 
 </div>
 </div>
@@ -542,7 +622,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00054">54</a> of file <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html">gemini_ai_service.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00062">62</a> of file <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html">gemini_ai_service.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00120">EnableFunctionCalling()</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00045">GeminiAIService()</a>, and <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00285">GenerateResponse()</a>.</p>
 
@@ -568,9 +648,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00056">56</a> of file <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html">gemini_ai_service.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00064">64</a> of file <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html">gemini_ai_service.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00197">CheckAvailability()</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00045">GeminiAIService()</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00285">GenerateResponse()</a>, and <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00414">ParseGeminiResponse()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00197">CheckAvailability()</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00045">GeminiAIService()</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00604">GenerateMultimodalResponse()</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00285">GenerateResponse()</a>, and <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00414">ParseGeminiResponse()</a>.</p>
 
 </div>
 </div>
@@ -594,7 +674,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00057">57</a> of file <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html">gemini_ai_service.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html#l00065">65</a> of file <a class="el" href="../../d3/d22/gemini__ai__service_8h_source.html">gemini_ai_service.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00187">BuildSystemInstruction()</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00045">GeminiAIService()</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00285">GenerateResponse()</a>, and <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00193">SetRomContext()</a>.</p>
 
