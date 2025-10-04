@@ -10,6 +10,7 @@
 
 #include "app/core/asar_wrapper.h"
 #include "app/rom.h"
+#include "cli/z3ed_ascii_logo.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 
@@ -249,7 +250,7 @@ void ModernCLI::SetupCommands() {
 }
 
 void ModernCLI::ShowHelp() {
-    std::cout << "z3ed - Yet Another Zelda3 Editor CLI Tool" << std::endl;
+    std::cout << GetColoredLogo() << std::endl;
     std::cout << std::endl;
     std::cout << "USAGE:" << std::endl;
     std::cout << "  z3ed [--tui] <resource> <action> [arguments]" << std::endl;

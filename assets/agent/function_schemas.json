@@ -1,0 +1,108 @@
+[
+  {
+    "name": "resource_list",
+    "description": "List all labeled resources of a specific type (dungeons, sprites, palettes)",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Resource type to list",
+          "enum": ["dungeon", "sprite", "palette", "all"]
+        },
+        "format": {
+          "type": "string",
+          "description": "Output format",
+          "enum": ["json", "text"],
+          "default": "json"
+        }
+      },
+      "required": ["type"]
+    }
+  },
+  {
+    "name": "dungeon_list_sprites",
+    "description": "List all sprites in a specific dungeon room",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "room": {
+          "type": "string",
+          "description": "Room ID in hex format (e.g., 0x012)"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json", "text"],
+          "default": "json"
+        }
+      },
+      "required": ["room"]
+    }
+  },
+  {
+    "name": "overworld_find_tile",
+    "description": "Find all occurrences of a specific tile16 ID on overworld maps",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "tile": {
+          "type": "string",
+          "description": "Tile16 ID in hex format (e.g., 0x02E)"
+        },
+        "map": {
+          "type": "string",
+          "description": "Optional: specific map ID to search (e.g., 0x05)"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json", "text"],
+          "default": "json"
+        }
+      },
+      "required": ["tile"]
+    }
+  },
+  {
+    "name": "overworld_describe_map",
+    "description": "Get summary information about an overworld map",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "map": {
+          "type": "string",
+          "description": "Map ID in hex format (e.g., 0x00)"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json", "text"],
+          "default": "json"
+        }
+      },
+      "required": ["map"]
+    }
+  },
+  {
+    "name": "overworld_list_warps",
+    "description": "List warp/entrance/exit points on the overworld",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "map": {
+          "type": "string",
+          "description": "Optional: filter by map ID"
+        },
+        "type": {
+          "type": "string",
+          "description": "Optional: filter by warp type",
+          "enum": ["entrance", "exit", "hole", "all"]
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json", "text"],
+          "default": "json"
+        }
+      }
+    }
+  }
+]
+
