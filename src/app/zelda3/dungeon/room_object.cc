@@ -248,5 +248,127 @@ int RoomObject::GetTileCount() const {
   return tile_count_;
 }
 
+// ============================================================================
+// Object Encoding/Decoding Implementation (Phase 1, Task 1.1)
+// ============================================================================
+
+int RoomObject::DetermineObjectType(uint8_t b1, uint8_t b3) {
+  // Type 3: Objects with ID >= 0xF00
+  // These have b3 >= 0xF8 (top nibble is 0xF)
+  if (b3 >= 0xF8) {
+    return 3;
+  }
+  
+  // Type 2: Objects with ID >= 0x100
+  // These have b1 >= 0xFC (marker for Type2 encoding)
+  if (b1 >= 0xFC) {
+    return 2;
+  }
+  
+  // Type 1: Standard objects (ID 0x00-0xFF)
+  return 1;
+}
+
+RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
+                                             uint8_t layer) {
+  int type = DetermineObjectType(b1, b3);
+  
+  uint8_t x = 0;
+  uint8_t y = 0;
+  uint8_t size = 0;
+  uint16_t id = 0;
+  
+  switch (type) {
+    case 1: {
+      // Type1: xxxxxxss yyyyyyss iiiiiiii
+      // X position: bits 2-7 of byte 1
+      x = (b1 & 0xFC) >> 2;
+      
+      // Y position: bits 2-7 of byte 2
+      y = (b2 & 0xFC) >> 2;
+      
+      // Size: bits 0-1 of byte 1 (high), bits 0-1 of byte 2 (low)
+      size = ((b1 & 0x03) << 2) | (b2 & 0x03);
+      
+      // ID: byte 3 (0x00-0xFF)
+      id = b3;
+      break;
+    }
+    
+    case 2: {
+      // Type2: 111111xx xxxxyyyy yyiiiiii
+      // X position: bits 0-1 of byte 1 (high), bits 4-7 of byte 2 (low)
+      x = ((b1 & 0x03) << 4) | ((b2 & 0xF0) >> 4);
+      
+      // Y position: bits 0-3 of byte 2 (high), bits 6-7 of byte 3 (low)
+      y = ((b2 & 0x0F) << 2) | ((b3 & 0xC0) >> 6);
+      
+      // Size: 0 (Type2 objects don't use size parameter)
+      size = 0;
+      
+      // ID: bits 0-5 of byte 3, OR with 0x100 to mark as Type2
+      id = (b3 & 0x3F) | 0x100;
+      break;
+    }
+    
+    case 3: {
+      // Type3: xxxxxxii yyyyyyii 11111iii
+      // X position: bits 2-7 of byte 1
+      x = (b1 & 0xFC) >> 2;
+      
+      // Y position: bits 2-7 of byte 2
+      y = (b2 & 0xFC) >> 2;
+      
+      // Size: 0 (Type3 objects don't use size parameter)
+      size = 0;
+      
+      // ID: Complex reconstruction
+      // Top 8 bits from byte 3 (shifted left by 4)
+      // Bits 2-3 from byte 2
+      // Bits 0-1 from byte 1
+      // Plus 0x80 offset
+      id = ((b3 & 0xFF) << 4) | ((b2 & 0x03) << 2) | (b1 & 0x03) | 0x80;
+      break;
+    }
+    
+    default:
+      // Should never happen, but default to Type1
+      id = b3;
+      x = (b1 & 0xFC) >> 2;
+      y = (b2 & 0xFC) >> 2;
+      size = ((b1 & 0x03) << 2) | (b2 & 0x03);
+      break;
+  }
+  
+  return RoomObject(static_cast<int16_t>(id), x, y, size, layer);
+}
+
+RoomObject::ObjectBytes RoomObject::EncodeObjectToBytes() const {
+  ObjectBytes bytes;
+  
+  // Determine type based on object ID
+  if (id_ >= 0xF00) {
+    // Type 3: xxxxxxii yyyyyyii 11111iii
+    bytes.b1 = (x_ << 2) | (id_ & 0x03);
+    bytes.b2 = (y_ << 2) | ((id_ >> 2) & 0x03);
+    bytes.b3 = (id_ >> 4) & 0xFF;
+  } else if (id_ >= 0x100) {
+    // Type 2: 111111xx xxxxyyyy yyiiiiii
+    bytes.b1 = 0xFC | ((x_ & 0x30) >> 4);
+    bytes.b2 = ((x_ & 0x0F) << 4) | ((y_ & 0x3C) >> 2);
+    bytes.b3 = ((y_ & 0x03) << 6) | (id_ & 0x3F);
+  } else {
+    // Type 1: xxxxxxss yyyyyyss iiiiiiii
+    // Clamp size to 0-15 range
+    uint8_t clamped_size = size_ > 15 ? 0 : size_;
+    
+    bytes.b1 = (x_ << 2) | ((clamped_size >> 2) & 0x03);
+    bytes.b2 = (y_ << 2) | (clamped_size & 0x03);
+    bytes.b3 = static_cast<uint8_t>(id_);
+  }
+  
+  return bytes;
+}
+
 }  // namespace zelda3
 }  // namespace yaze

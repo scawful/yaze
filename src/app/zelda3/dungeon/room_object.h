@@ -103,6 +103,35 @@ class RoomObject {
   // Get tile count without loading all tiles
   int GetTileCount() const;
 
+  // ============================================================================
+  // Object Encoding/Decoding (Phase 1, Task 1.1)
+  // ============================================================================
+  
+  // 3-byte object encoding structure
+  struct ObjectBytes {
+    uint8_t b1;
+    uint8_t b2;
+    uint8_t b3;
+  };
+  
+  // Decode object from 3-byte ROM format
+  // Type1: xxxxxxss yyyyyyss iiiiiiii (ID 0x00-0xFF)
+  // Type2: 111111xx xxxxyyyy yyiiiiii (ID 0x100-0x1FF)
+  // Type3: xxxxxxii yyyyyyii 11111iii (ID 0xF00-0xFFF)
+  static RoomObject DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
+                                          uint8_t layer);
+  
+  // Encode object to 3-byte ROM format
+  ObjectBytes EncodeObjectToBytes() const;
+  
+  // Determine object type from bytes (1, 2, or 3)
+  static int DetermineObjectType(uint8_t b1, uint8_t b3);
+  
+  // Get layer from LayerType enum
+  uint8_t GetLayerValue() const { return static_cast<uint8_t>(layer_); }
+  
+  // ============================================================================
+
   void AddTiles(int nbr, int pos) {
     // Reads nbr Tile16 entries from ROM object data starting at pos (8 bytes per Tile16)
     for (int i = 0; i < nbr; i++) {
