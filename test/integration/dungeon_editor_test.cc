@@ -30,7 +30,12 @@ TEST_F(DungeonEditorIntegrationTest, LoadMultipleRooms) {
 }
 
 TEST_F(DungeonEditorIntegrationTest, DungeonEditorInitialization) {
-  ASSERT_TRUE(dungeon_editor_->Load().ok());
+  // Initialize the editor before loading
+  dungeon_editor_->Initialize();
+  
+  // Now load should succeed
+  auto status = dungeon_editor_->Load();
+  ASSERT_TRUE(status.ok()) << "Load failed: " << status.message();
 }
 
 // ============================================================================
@@ -70,9 +75,10 @@ TEST_F(DungeonEditorIntegrationTest, EncodeType3Object) {
   // Type 3: xxxxxxii yyyyyyii 11111iii (ID >= 0xF00)
   zelda3::RoomObject obj(0xF23, 3, 4, 0, 0);
   auto bytes = obj.EncodeObjectToBytes();
-  
-  // Verify Type 3 encoding
-  EXPECT_EQ((bytes.b3 >> 4), 0xF2) << "Type 3 high nibbles should be in b3";
+
+  // Verify Type 3 encoding: bytes.b3 = (id_ >> 4) & 0xFF
+  // For ID 0xF23: (0xF23 >> 4) = 0xF2
+  EXPECT_EQ(bytes.b3, 0xF2) << "Type 3: (ID >> 4) should be in b3";
 }
 
 // ============================================================================
@@ -82,14 +88,14 @@ TEST_F(DungeonEditorIntegrationTest, EncodeType3Object) {
 TEST_F(DungeonEditorIntegrationTest, AddObjectToRoom) {
   auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
   room.LoadObjects();
-  
+
   size_t initial_count = room.GetTileObjects().size();
-  
-  // Add a new object
-  zelda3::RoomObject new_obj(0x20, 10, 10, 0x12, 0);
+
+  // Add a new object (Type 1, so size must be <= 15)
+  zelda3::RoomObject new_obj(0x20, 10, 10, 5, 0);
   new_obj.set_rom(rom_.get());
   auto status = room.AddObject(new_obj);
-  
+
   EXPECT_TRUE(status.ok()) << "Failed to add object: " << status.message();
   EXPECT_EQ(room.GetTileObjects().size(), initial_count + 1);
 }
@@ -132,17 +138,23 @@ TEST_F(DungeonEditorIntegrationTest, UpdateObjectInRoom) {
 
 TEST_F(DungeonEditorIntegrationTest, ValidateObjectBounds) {
   auto room = zelda3::LoadRoomFromRom(rom_.get(), kTestRoomId);
-  
-  // Test objects within valid bounds
+
+  // Test objects within valid bounds (0-63 for x and y)
   zelda3::RoomObject valid_obj(0x10, 0, 0, 0, 0);
   EXPECT_TRUE(room.ValidateObject(valid_obj));
-  
+
   zelda3::RoomObject valid_obj2(0x10, 31, 31, 0, 0);
   EXPECT_TRUE(room.ValidateObject(valid_obj2));
-  
-  // Test objects outside bounds
-  zelda3::RoomObject invalid_obj(0x10, 32, 32, 0, 0);
+
+  zelda3::RoomObject valid_obj3(0x10, 63, 63, 0, 0);
+  EXPECT_TRUE(room.ValidateObject(valid_obj3));
+
+  // Test objects outside bounds (> 63)
+  zelda3::RoomObject invalid_obj(0x10, 64, 64, 0, 0);
   EXPECT_FALSE(room.ValidateObject(invalid_obj));
+
+  zelda3::RoomObject invalid_obj2(0x10, 100, 100, 0, 0);
+  EXPECT_FALSE(room.ValidateObject(invalid_obj2));
 }
 
 // ============================================================================
