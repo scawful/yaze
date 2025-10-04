@@ -480,18 +480,20 @@ void DungeonCanvasViewer::RenderPotObjects(const zelda3::Room& room) {
 std::pair<int, int> DungeonCanvasViewer::RoomToCanvasCoordinates(int room_x,
                                                                 int room_y) const {
   // Convert room coordinates (tile units) to canvas coordinates (pixels)
+  // Dungeon tiles are 8x8 pixels (not 16x16!)
   // Account for canvas scaling and offset
   float scale = canvas_.global_scale();
   int offset_x = static_cast<int>(canvas_.drawn_tile_position().x);
   int offset_y = static_cast<int>(canvas_.drawn_tile_position().y);
   
-  return {static_cast<int>((room_x * 16 + offset_x) * scale), 
-          static_cast<int>((room_y * 16 + offset_y) * scale)};
+  return {static_cast<int>((room_x * 8 + offset_x) * scale), 
+          static_cast<int>((room_y * 8 + offset_y) * scale)};
 }
 
 std::pair<int, int> DungeonCanvasViewer::CanvasToRoomCoordinates(int canvas_x,
                                                                 int canvas_y) const {
   // Convert canvas coordinates (pixels) to room coordinates (tile units)
+  // Dungeon tiles are 8x8 pixels (not 16x16!)
   // Account for canvas scaling and offset
   float scale = canvas_.global_scale();
   int offset_x = static_cast<int>(canvas_.drawn_tile_position().x);
@@ -499,8 +501,8 @@ std::pair<int, int> DungeonCanvasViewer::CanvasToRoomCoordinates(int canvas_x,
   
   if (scale <= 0.0f) scale = 1.0f; // Prevent division by zero
   
-  return {static_cast<int>((canvas_x / scale - offset_x) / 16), 
-          static_cast<int>((canvas_y / scale - offset_y) / 16)};
+  return {static_cast<int>((canvas_x / scale - offset_x) / 8), 
+          static_cast<int>((canvas_y / scale - offset_y) / 8)};
 }
 
 bool DungeonCanvasViewer::IsWithinCanvasBounds(int canvas_x, int canvas_y,
