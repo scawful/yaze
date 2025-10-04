@@ -104,6 +104,9 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::HostSession(
     // Get username from system (could be made configurable)
     const char* username = std::getenv("USER");
     if (!username) {
+      username = std::getenv("USERNAME");  // Windows fallback
+    }
+    if (!username) {
       username = "unknown";
     }
 
@@ -172,6 +175,9 @@ absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::JoinSession(
     }
 
     const char* username = std::getenv("USER");
+    if (!username) {
+      username = std::getenv("USERNAME");  // Windows fallback
+    }
     if (!username) {
       username = "unknown";
     }
