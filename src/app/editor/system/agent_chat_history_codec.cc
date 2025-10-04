@@ -10,7 +10,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 
-#ifdef YAZE_WITH_GRPC
+#if defined(YAZE_WITH_JSON)
 #include "nlohmann/json.hpp"
 #endif
 
@@ -19,7 +19,7 @@ namespace editor {
 
 namespace {
 
-#ifdef YAZE_WITH_GRPC
+#if defined(YAZE_WITH_JSON)
 using Json = nlohmann::json;
 
 absl::Time ParseTimestamp(const Json& value) {
@@ -118,7 +118,7 @@ std::optional<cli::agent::ChatMessage::ProposalSummary> ParseProposal(
 }  // namespace
 
 bool AgentChatHistoryCodec::Available() {
-#ifdef YAZE_WITH_GRPC
+#if defined(YAZE_WITH_JSON)
   return true;
 #else
   return false;
@@ -127,7 +127,7 @@ bool AgentChatHistoryCodec::Available() {
 
 absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
     const std::filesystem::path& path) {
-#ifdef YAZE_WITH_GRPC
+#if defined(YAZE_WITH_JSON)
   Snapshot snapshot;
 
   std::ifstream file(path);
@@ -239,7 +239,7 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
 
 absl::Status AgentChatHistoryCodec::Save(
     const std::filesystem::path& path, const Snapshot& snapshot) {
-#ifdef YAZE_WITH_GRPC
+#if defined(YAZE_WITH_JSON)
   Json json;
   json["version"] = 2;
   json["messages"] = Json::array();
