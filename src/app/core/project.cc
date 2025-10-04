@@ -858,18 +858,23 @@ std::string ResourceLabelManager::CreateOrGetLabel(const std::string& type, cons
 // ============================================================================
 
 absl::Status YazeProject::InitializeEmbeddedLabels() {
-  // Load all default Zelda3 resource names into resource_labels
-  resource_labels = zelda3::Zelda3Labels::ToResourceLabels();
-  use_embedded_labels = true;
-  
-  std::cout << "📚 Initialized embedded labels:\n"
-            << "   - " << resource_labels["room"].size() << " room names\n"
-            << "   - " << resource_labels["entrance"].size() << " entrance names\n"
-            << "   - " << resource_labels["sprite"].size() << " sprite names\n"
-            << "   - " << resource_labels["overlord"].size() << " overlord names\n"
-            << "   - " << resource_labels["item"].size() << " item names\n";
-  
-  return absl::OkStatus();
+  try {
+    // Load all default Zelda3 resource names into resource_labels
+    resource_labels = zelda3::Zelda3Labels::ToResourceLabels();
+    use_embedded_labels = true;
+    
+    std::cout << "📚 Initialized embedded labels:\n"
+              << "   - " << resource_labels["room"].size() << " room names\n"
+              << "   - " << resource_labels["entrance"].size() << " entrance names\n"
+              << "   - " << resource_labels["sprite"].size() << " sprite names\n"
+              << "   - " << resource_labels["overlord"].size() << " overlord names\n"
+              << "   - " << resource_labels["item"].size() << " item names\n";
+    
+    return absl::OkStatus();
+  } catch (const std::exception& e) {
+    return absl::InternalError(
+        absl::StrCat("Failed to initialize embedded labels: ", e.what()));
+  }
 }
 
 std::string YazeProject::GetLabel(const std::string& resource_type, int id,
