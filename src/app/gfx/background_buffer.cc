@@ -101,17 +101,27 @@ void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
                            rom_data[tile_address_floor + f + 7]);
 
   // Draw the floor tiles in a pattern
+  // Convert TileInfo to 16-bit words with palette information
+  uint16_t word1 = gfx::TileInfoToWord(floorTile1);
+  uint16_t word2 = gfx::TileInfoToWord(floorTile2);
+  uint16_t word3 = gfx::TileInfoToWord(floorTile3);
+  uint16_t word4 = gfx::TileInfoToWord(floorTile4);
+  uint16_t word5 = gfx::TileInfoToWord(floorTile5);
+  uint16_t word6 = gfx::TileInfoToWord(floorTile6);
+  uint16_t word7 = gfx::TileInfoToWord(floorTile7);
+  uint16_t word8 = gfx::TileInfoToWord(floorTile8);
+  
   for (int xx = 0; xx < 16; xx++) {
     for (int yy = 0; yy < 32; yy++) {
-      SetTileAt((xx * 4), (yy * 2), floorTile1.id_);
-      SetTileAt((xx * 4) + 1, (yy * 2), floorTile2.id_);
-      SetTileAt((xx * 4) + 2, (yy * 2), floorTile3.id_);
-      SetTileAt((xx * 4) + 3, (yy * 2), floorTile4.id_);
+      SetTileAt((xx * 4), (yy * 2), word1);
+      SetTileAt((xx * 4) + 1, (yy * 2), word2);
+      SetTileAt((xx * 4) + 2, (yy * 2), word3);
+      SetTileAt((xx * 4) + 3, (yy * 2), word4);
 
-      SetTileAt((xx * 4), (yy * 2) + 1, floorTile5.id_);
-      SetTileAt((xx * 4) + 1, (yy * 2) + 1, floorTile6.id_);
-      SetTileAt((xx * 4) + 2, (yy * 2) + 1, floorTile7.id_);
-      SetTileAt((xx * 4) + 3, (yy * 2) + 1, floorTile8.id_);
+      SetTileAt((xx * 4), (yy * 2) + 1, word5);
+      SetTileAt((xx * 4) + 1, (yy * 2) + 1, word6);
+      SetTileAt((xx * 4) + 2, (yy * 2) + 1, word7);
+      SetTileAt((xx * 4) + 3, (yy * 2) + 1, word8);
     }
   }
 }
