@@ -624,24 +624,44 @@ absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
   // Try to load project and labels automatically
   auto _ = TryLoadProjectAndLabels(rom);  // Ignore errors - we'll use defaults
   
-  // Parse flags
+  // Parse flags and positional arguments
   std::optional<std::string> batch_file;
+  std::optional<std::string> single_message;
+  bool non_interactive = false;
+  
   for (size_t i = 0; i < arg_vec.size(); ++i) {
     const std::string& arg = arg_vec[i];
+    
     if (absl::StartsWith(arg, "--file=")) {
       batch_file = arg.substr(7);
     } else if (arg == "--file" && i + 1 < arg_vec.size()) {
       batch_file = arg_vec[i + 1];
       ++i;
+    } else if (arg == "--non-interactive" || arg == "-n") {
+      non_interactive = true;
+    } else if (!absl::StartsWith(arg, "--") && !single_message.has_value()) {
+      // Treat first non-flag argument as the message
+      single_message = arg;
     }
   }
   
   SimpleChatSession session;
   session.SetRomContext(&rom);
   
+  // Priority: batch file > single message > interactive/piped
   if (batch_file.has_value()) {
     return session.RunBatch(*batch_file);
+  } else if (single_message.has_value()) {
+    // Single message mode - send message and print response
+    std::string response;
+    auto status = session.SendAndWaitForResponse(*single_message, &response);
+    if (!status.ok()) {
+      return status;
+    }
+    std::cout << response << "\n";
+    return absl::OkStatus();
   } else {
+    // Interactive or piped input mode
     return session.RunInteractive();
   }
 }

@@ -20,6 +20,12 @@ namespace agent {
  * 
  * Provides a basic REPL-style interface without FTXUI dependencies,
  * suitable for automated testing and AI agent interactions.
+ * 
+ * Supports multiple input modes:
+ * - Interactive REPL (default when stdin is a TTY)
+ * - Piped input (reads lines from stdin)
+ * - Batch file (reads lines from file)
+ * - Single message (programmatic use)
  */
 class SimpleChatSession {
  public:
@@ -33,6 +39,7 @@ class SimpleChatSession {
                                       std::string* response_out = nullptr);
   
   // Run interactive REPL mode (reads from stdin)
+  // If stdin is piped, runs in quiet mode
   absl::Status RunInteractive();
   
   // Run batch mode from file (one message per line)
