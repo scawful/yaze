@@ -154,18 +154,85 @@ sudo apt-get install -y build-essential cmake ninja-build pkg-config \
 
 ### Windows
 
-#### Requirements
-- Visual Studio 2022 with "Desktop development with C++" workload
-- CMake 3.16+ (included with Visual Studio)
-- Git (for cloning and submodules)
+YAZE provides comprehensive Windows support with Visual Studio integration, automated environment verification, and detailed troubleshooting guides.
 
-#### Optional: vcpkg for SDL2
-The project uses bundled dependencies by default. Optionally, you can use vcpkg for SDL2:
+#### Quick Start
 
-```powershell
-# Setup vcpkg (optional)
-.\scripts\setup-vcpkg-windows.ps1
+```cmd
+# 1. Verify environment
+.\scripts\verify-build-environment.ps1
+
+# 2. Build (choose one)
+# Basic editor:
+cmake --preset windows-debug
+cmake --build build --config Debug
+
+# With AI features:
+cmake --preset windows-ai-debug
+cmake --build build --config Debug
+
+# 3. Run
+build\bin\Debug\yaze.exe
 ```
+
+#### Requirements
+
+**Essential:**
+- **Windows 10/11** (64-bit)
+- **Visual Studio 2022** or **Visual Studio 2019** with:
+  - Desktop development with C++
+  - C++ CMake tools for Windows
+  - Windows 10/11 SDK
+- **Git** for cloning and submodules
+
+**Optional:**
+- **vcpkg** for easier dependency management
+- **Node.js** for collaboration server features
+
+#### Build Options
+
+YAZE offers multiple build configurations for different use cases:
+
+**Option A: Basic Editor (Recommended for first build)**
+```cmd
+cmake --preset windows-debug
+cmake --build build --config Debug
+```
+- Full ROM editor with all core features
+- Fastest build time (~5 minutes)
+- No external dependencies beyond Visual Studio
+
+**Option B: Editor with AI Features**
+```cmd
+cmake --preset windows-ai-debug
+cmake --build build --config Debug
+```
+- ROM editor + AI chat assistant + code generation
+- Requires bundled JSON library (included)
+- Build time: ~7 minutes
+
+**Option C: Full Build (AI + Collaboration)**
+```cmd
+cmake --preset windows-collab-debug
+cmake --build build --config Debug
+```
+- Everything + network collaboration + automated testing
+- Compiles gRPC from source
+- First build: 15-20 minutes (subsequent builds much faster)
+
+#### Available CMake Presets
+
+| Preset | JSON | gRPC | Use Case | Build Time |
+|--------|------|------|----------|------------|
+| `windows-debug` | ❌ | ❌ | Basic ROM editing | ~5 min |
+| `windows-release` | ❌ | ❌ | Production build | ~5 min |
+| `windows-dev` | ❌ | ❌ | Core development | ~5 min |
+| `windows-ai-debug` | ✅ | ❌ | AI features | ~7 min |
+| `windows-ai-release` | ✅ | ❌ | AI production | ~7 min |
+| `windows-collab-debug` | ✅ | ✅ | Full features + collaboration | ~20 min* |
+| `windows-arm64-debug` | ❌ | ❌ | ARM64 Windows | ~5 min |
+
+*First build only; subsequent builds: ~1 min
 
 #### vcpkg Integration (Optional)
 
@@ -176,12 +243,33 @@ The project uses bundled dependencies by default. Optionally, you can use vcpkg 
 
 # Command Prompt
 .\scripts\setup-vcpkg-windows.bat
+
+# Install dependencies
+vcpkg install sdl2:x64-windows yaml-cpp:x64-windows
 ```
 
-**Dependencies (vcpkg.json):**
-- sdl2 (graphics/input) - optional, bundled version available
+**Note**: vcpkg is optional. YAZE bundles most dependencies and can build without it.
 
-**Note**: All other dependencies (Abseil, GoogleTest, ImGui, Asar) are built from source via CMake for better compatibility.
+#### Platform-Specific Considerations
+
+**Windows Compatibility Features:**
+- ✅ Native path separator handling via `std::filesystem`
+- ✅ Platform-specific process management (`tasklist` vs `pgrep`)
+- ✅ Correct home directory resolution (`%USERPROFILE%` vs `$HOME`)
+- ✅ MSVC-compatible warning directives
+- ✅ Cross-platform thread management with `std::thread`
+- ✅ Unicode support for file paths and names
+
+**Known Platform Differences:**
+- **File Locking**: Windows has stricter file locking than Unix
+- **Process Spawning**: Uses `cmd.exe` instead of `bash`
+- **Background Processes**: Server runs in foreground (no `&` operator)
+- **Path Case Sensitivity**: NTFS is case-preserving but case-insensitive
+
+**Supported Architectures:**
+- **x64 (64-bit)**: Primary target for modern systems
+- **ARM64**: For ARM-based Windows devices (Surface Pro X, etc.)
+- **x86 (32-bit)**: Not supported
 
 ## Build Targets
 
@@ -479,6 +567,359 @@ All Windows CI/CD builds include automatic fallback mechanisms:
 
 **Linux:**
 - x64 (64-bit)
+
+## Windows Troubleshooting
+
+This section provides detailed solutions for common Windows build issues.
+
+### Quick Diagnostics
+
+Always start with the verification script to identify issues:
+
+```cmd
+.\scripts\verify-build-environment.ps1
+
+# With verbose output
+.\scripts\verify-build-environment.ps1 -Verbose
+
+# With automatic fixes
+.\scripts\verify-build-environment.ps1 -FixIssues
+```
+
+### Common Errors and Solutions
+
+#### Error 1: "nlohmann/json.hpp: No such file or directory"
+
+**Full Error:**
+```
+fatal error C1083: Cannot open include file: 'nlohmann/json.hpp': No such file or directory
+```
+
+**Cause**: Building code that uses JSON without enabling JSON support.
+
+**Solutions:**
+
+1. **Use AI preset** (enables JSON automatically):
+   ```cmd
+   cmake --preset windows-ai-debug
+   cmake --build build --config Debug
+   ```
+
+2. **Enable JSON manually**:
+   ```cmd
+   cmake --preset windows-debug -DYAZE_WITH_JSON=ON
+   cmake --build build --config Debug
+   ```
+
+3. **Verify JSON library exists**:
+   ```cmd
+   dir third_party\json\include\nlohmann\json.hpp
+   ```
+   
+4. **Initialize submodules** (if file is missing):
+   ```cmd
+   git submodule update --init --recursive
+   ```
+
+5. **Build without AI** (if you don't need it):
+   ```cmd
+   cmake --preset windows-debug
+   cmake --build build --config Debug
+   ```
+
+#### Error 2: "Cannot find nlohmann_json::nlohmann_json target"
+
+**Full Error:**
+```
+CMake Error: The following imported targets are referenced, but are missing:
+nlohmann_json::nlohmann_json
+```
+
+**Cause**: CMake isn't creating the JSON library target.
+
+**Solutions:**
+
+1. **Clean and rebuild**:
+   ```cmd
+   rmdir /s /q build
+   cmake --preset windows-ai-debug
+   cmake --build build --config Debug
+   ```
+
+2. **Check CMake output**:
+   ```cmd
+   cmake --preset windows-ai-debug 2>&1 | findstr "json"
+   ```
+   Should show: `✓ JSON support enabled (nlohmann/json)`
+
+3. **Verify submodule**:
+   ```cmd
+   git submodule status third_party/json
+   ```
+   Should show a commit hash (no `-` prefix)
+
+#### Error 3: "vcpkg toolchain file not found"
+
+**Full Error:**
+```
+CMake Warning: CMAKE_TOOLCHAIN_FILE is set but file does not exist
+```
+
+**Cause**: Preset expects vcpkg but it's not installed.
+
+**Solution 1: Use bundled dependencies** (recommended):
+```cmd
+cmake --preset windows-debug -DCMAKE_TOOLCHAIN_FILE=""
+cmake --build build --config Debug
+```
+
+**Solution 2: Install vcpkg**:
+```cmd
+git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg
+cd C:\vcpkg
+.\bootstrap-vcpkg.bat
+setx VCPKG_ROOT "C:\vcpkg"
+
+# Restart shell, then:
+vcpkg install sdl2:x64-windows yaml-cpp:x64-windows
+cmake --preset windows-debug
+```
+
+**Solution 3: Point to your vcpkg installation**:
+```cmd
+cmake --preset windows-debug ^
+  -DCMAKE_TOOLCHAIN_FILE="D:\your\path\to\vcpkg\scripts\buildsystems\vcpkg.cmake"
+```
+
+#### Error 4: "SDL2 not found"
+
+**Full Error:**
+```
+CMake Error: Could not find a package configuration file provided by "SDL2"
+```
+
+**Solution 1: With vcpkg**:
+```cmd
+vcpkg install sdl2:x64-windows
+cmake --preset windows-debug
+```
+
+**Solution 2: Manual installation**:
+1. Download SDL2 from https://libsdl.org/download-2.0.php
+2. Choose "SDL2-devel-2.x.x-VC.zip"
+3. Extract to `C:\SDL2`
+4. Set environment variable:
+   ```cmd
+   setx SDL2_DIR "C:\SDL2\cmake"
+   ```
+5. Restart shell and rebuild
+
+#### Error 5: Build is Very Slow (15-20 minutes)
+
+**Cause**: Building with gRPC enabled compiles gRPC + Protobuf from source.
+
+**Solutions:**
+
+1. **Be patient**: First build is slow, subsequent builds are ~1 minute
+2. **Use precompiled gRPC via vcpkg**:
+   ```cmd
+   vcpkg install grpc:x64-windows
+   cmake --preset windows-collab-debug
+   ```
+   (Note: vcpkg gRPC install also takes 15-20 mins, but only once)
+
+3. **Build without gRPC** (if you don't need collaboration):
+   ```cmd
+   cmake --preset windows-ai-debug
+   ```
+
+4. **Use parallel builds**:
+   ```cmd
+   cmake --build build --config Debug -j 12
+   ```
+
+#### Error 6: "Cannot open file 'yaze.exe': Permission denied"
+
+**Full Error:**
+```
+LINK : fatal error LNK1168: cannot open yaze.exe for writing
+```
+
+**Cause**: Previous instance of `yaze.exe` is still running.
+
+**Solutions:**
+
+1. **Kill all instances**:
+   ```cmd
+   taskkill /F /IM yaze.exe
+   cmake --build build --config Debug
+   ```
+
+2. **Use Task Manager**:
+   - Open Task Manager (Ctrl+Shift+Esc)
+   - Find `yaze.exe` processes
+   - End tasks
+   - Rebuild
+
+#### Error 7: "C++ standard 'cxx_std_23' not supported"
+
+**Full Error:**
+```
+CMake Error: The C++ compiler does not support C++23
+```
+
+**Cause**: Visual Studio version is too old.
+
+**Solutions:**
+
+1. **Update Visual Studio**:
+   - Open Visual Studio Installer
+   - Update to latest version (VS2022 17.4+ recommended)
+   - Ensure "C++ CMake tools" workload is installed
+
+2. **Temporary workaround** (use C++20):
+   Edit `CMakeLists.txt` line 106:
+   ```cmake
+   set(CMAKE_CXX_STANDARD 20)  # Changed from 23
+   ```
+   (May cause compilation issues with newer features)
+
+#### Error 8: Visual Studio Can't Find CMakePresets.json
+
+**Observation**: VS doesn't show any build configurations.
+
+**Solutions:**
+
+1. **Reload project**:
+   - File → Close Folder
+   - File → Open → Folder
+   - Select yaze directory
+   - Wait for CMake to configure
+
+2. **Use CMake GUI** (alternative):
+   - Open CMake GUI
+   - Set source: `<path to yaze>`
+   - Set build: `<path to yaze>/build`
+   - Click Configure
+   - Choose "Visual Studio 17 2022"
+   - Set options (YAZE_WITH_JSON, etc.)
+   - Click Generate
+   - Open `build/yaze.sln` in VS
+
+3. **Check CMakePresets.json exists**:
+   ```cmd
+   dir CMakePresets.json
+   ```
+
+#### Error 9: "error MSB8066: Custom build exited with code 1"
+
+**Full Error:**
+```
+error MSB8066: Custom build for 'CMakeLists.txt' exited with code 1
+```
+
+**Cause**: CMake configuration failed, but VS doesn't show the actual error.
+
+**Solutions:**
+
+1. **Run CMake from command line**:
+   ```cmd
+   cmake --preset windows-debug 2>&1 | more
+   ```
+   This shows the actual CMake error.
+
+2. **Check CMake output in VS**:
+   - View → Output
+   - Show output from: CMake
+   - Scroll up to find actual error message
+
+3. **Clean CMake cache**:
+   ```cmd
+   rmdir /s /q build
+   cmake --preset windows-debug
+   ```
+
+### Debugging CMake Configuration
+
+**Enable verbose CMake output:**
+```cmd
+cmake --preset windows-debug --trace-expand > cmake_trace.txt
+```
+Look through `cmake_trace.txt` for errors.
+
+**Check what's being built:**
+```cmd
+cmake --preset windows-debug
+cmake --build build --config Debug --verbose
+```
+
+**Verify preset settings:**
+```cmd
+cmake --preset windows-debug --trace-expand | findstr "YAZE_WITH_JSON"
+cmake --preset windows-debug --trace-expand | findstr "Z3ED_AI"
+```
+
+### Tips for Successful Builds
+
+1. **Start simple**:
+   ```cmd
+   cmake --preset windows-debug
+   cmake --build build --config Debug
+   ```
+
+2. **Add features incrementally**:
+   ```cmd
+   # Once basic build works, add JSON:
+   cmake --preset windows-ai-debug
+   cmake --build build --config Debug
+   
+   # Then add gRPC if needed:
+   cmake --preset windows-collab-debug
+   cmake --build build --config Debug
+   ```
+
+3. **Clean between major changes**:
+   ```cmd
+   rmdir /s /q build
+   cmake --preset <new-preset>
+   cmake --build build --config Debug
+   ```
+
+4. **Use parallel builds**:
+   ```cmd
+   cmake --build build --config Debug -j 12
+   ```
+
+5. **Watch for warnings**:
+   ```cmd
+   cmake --build build --config Debug 2>&1 | findstr "warning"
+   ```
+
+### Still Having Issues?
+
+**Collect diagnostic information:**
+
+1. Run verification script:
+   ```cmd
+   .\scripts\verify-build-environment.ps1 -Verbose > diagnostic.txt
+   ```
+
+2. Get CMake configuration:
+   ```cmd
+   cmake --preset windows-debug 2>&1 >> diagnostic.txt
+   ```
+
+3. Get build output:
+   ```cmd
+   cmake --build build --config Debug 2>&1 >> diagnostic.txt
+   ```
+
+**Create a GitHub Issue** with:
+- Windows version (run `winver`)
+- Visual Studio version
+- Contents of `diagnostic.txt`
+- Which preset you're using
+- Full error message
 
 ## Contributing
 
