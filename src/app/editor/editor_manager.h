@@ -13,6 +13,7 @@
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
+#include "app/editor/code/project_file_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/palette_editor.h"
@@ -183,6 +184,9 @@ class EditorManager {
   // Agent proposal drawer
   ProposalDrawer proposal_drawer_;
   bool show_proposal_drawer_ = false;
+
+  // Project file editor
+  ProjectFileEditor project_file_editor_;
 
 #ifdef YAZE_WITH_GRPC
   // Agent editor - manages chat, collaboration, and network coordination
