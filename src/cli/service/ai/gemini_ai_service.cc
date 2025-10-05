@@ -299,11 +299,12 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
   return absl::UnimplementedError(
       "Gemini AI service requires JSON support. Build with -DYAZE_WITH_JSON=ON");
 #else
-  // TODO: Implement history-aware prompting.
   if (history.empty()) {
     return absl::InvalidArgumentError("History cannot be empty.");
   }
   
+  // Build a structured conversation history for better context
+  // Gemini supports multi-turn conversations via the contents array
   std::string prompt = prompt_builder_.BuildPromptFromHistory(history);
 
   // Skip availability check - causes segfault with current SSL setup
@@ -319,6 +320,40 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
   try {
     if (config_.verbose) {
       std::cerr << "[DEBUG] Using curl for HTTPS request" << std::endl;
+      std::cerr << "[DEBUG] Processing " << history.size() << " messages in history" << std::endl;
+    }
+    
+    // Build conversation history for multi-turn context
+    // Gemini supports alternating user/model messages for better context
+    nlohmann::json contents = nlohmann::json::array();
+    
+    // Add conversation history (up to last 10 messages for context window)
+    int start_idx = std::max(0, static_cast<int>(history.size()) - 10);
+    for (size_t i = start_idx; i < history.size(); ++i) {
+      const auto& msg = history[i];
+      std::string role = (msg.sender == agent::ChatMessage::Sender::kUser) ? "user" : "model";
+      
+      nlohmann::json message = {
+          {"role", role},
+          {"parts", {{
+              {"text", msg.message}
+          }}}
+      };
+      contents.push_back(message);
+    }
+    
+    // If the last message is from the model, we need to ensure the conversation
+    // ends with a user message for Gemini
+    if (!history.empty() && 
+        history.back().sender == agent::ChatMessage::Sender::kAgent) {
+      // Add a continuation prompt
+      nlohmann::json user_continuation = {
+          {"role", "user"},
+          {"parts", {{
+              {"text", "Please continue or clarify your response."}
+          }}}
+      };
+      contents.push_back(user_continuation);
     }
     
     // Build request with proper Gemini API v1beta format
@@ -328,16 +363,16 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
                 {"text", config_.system_instruction}
             }}
         }},
-        {"contents", {{
-            {"parts", {{
-                {"text", prompt}
-            }}}
-        }}},
+        {"contents", contents},
         {"generationConfig", {
             {"temperature", config_.temperature},
             {"maxOutputTokens", config_.max_output_tokens}
         }}
     };
+    
+    if (config_.verbose) {
+      std::cerr << "[DEBUG] Sending " << contents.size() << " conversation turns to Gemini" << std::endl;
+    }
     
     // Only add responseMimeType if NOT using function calling
     // (Gemini doesn't support both at the same time)

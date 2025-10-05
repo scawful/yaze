@@ -64,6 +64,9 @@ class Tile16ProposalGenerator {
  public:
   Tile16ProposalGenerator() = default;
   
+  // Allow testing of private methods
+  friend class Tile16ProposalGeneratorTest;
+  
   /**
    * @brief Generate a tile16 proposal from an AI-generated command list.
    * 
@@ -131,6 +134,25 @@ class Tile16ProposalGenerator {
    * Expected format: "overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E"
    */
   absl::StatusOr<Tile16Change> ParseSetTileCommand(
+      const std::string& command,
+      Rom* rom);
+  
+  /**
+   * @brief Parse a "overworld set-area" command into multiple Tile16Changes.
+   * 
+   * Expected format: "overworld set-area --map 0 --x 10 --y 20 --width 5 --height 3 --tile 0x02E"
+   */
+  absl::StatusOr<std::vector<Tile16Change>> ParseSetAreaCommand(
+      const std::string& command,
+      Rom* rom);
+  
+  /**
+   * @brief Parse a "overworld replace-tile" command into multiple Tile16Changes.
+   * 
+   * Expected format: "overworld replace-tile --map 0 --old-tile 0x02E --new-tile 0x030"
+   * Can also specify optional bounds: --x-min 0 --y-min 0 --x-max 31 --y-max 31
+   */
+  absl::StatusOr<std::vector<Tile16Change>> ParseReplaceTileCommand(
       const std::string& command,
       Rom* rom);
   
