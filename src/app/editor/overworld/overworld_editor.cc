@@ -225,10 +225,10 @@ absl::Status OverworldEditor::Update() {
     v3_settings_card.End();
   }
 
-  // Map Properties Panel
+  // Area Configuration Panel (detailed editing)
   if (show_map_properties_panel_) {
-    ImGui::SetNextWindowSize(ImVec2(600, 700), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(ICON_MD_SETTINGS " Map Properties", &show_map_properties_panel_)) {
+    ImGui::SetNextWindowSize(ImVec2(650, 750), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin(ICON_MD_TUNE " Area Configuration###AreaConfig", &show_map_properties_panel_)) {
       if (rom_->is_loaded() && overworld_.is_loaded() && map_properties_system_) {
         map_properties_system_->DrawMapPropertiesPanel(current_map_, show_map_properties_panel_);
       }
@@ -247,10 +247,10 @@ absl::Status OverworldEditor::Update() {
     ImGui::End();
   }
 
-  // Overlay Editor
+  // Visual Effects Editor (Subscreen Overlays)
   if (show_overlay_editor_) {
-    ImGui::SetNextWindowSize(ImVec2(450, 400), ImGuiCond_FirstUseEver);
-    if (ImGui::Begin(ICON_MD_LAYERS " Overlay Editor", &show_overlay_editor_)) {
+    ImGui::SetNextWindowSize(ImVec2(500, 450), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin(ICON_MD_LAYERS " Visual Effects Editor###OverlayEditor", &show_overlay_editor_)) {
       if (rom_->is_loaded() && overworld_.is_loaded() && map_properties_system_) {
         map_properties_system_->DrawOverlayEditor(current_map_, show_overlay_editor_);
       }
@@ -416,93 +416,22 @@ void OverworldEditor::DrawToolset() {
     show_usage_stats_ = !show_usage_stats_;
   }
   
-  if (toolbar.AddAction(ICON_MD_TUNE, "Open Map Properties")) {
+  if (toolbar.AddAction(ICON_MD_TUNE, "Open Area Configuration")) {
     show_map_properties_panel_ = !show_map_properties_panel_;
   }
   
   toolbar.End();
 
-  // Legacy popup windows removed - all editors now use EditorCard system
-  // Tile16 Editor, Graphics Groups, Usage Stats, etc. are rendered in Update() as cards
+  // All editor windows are now rendered in Update() using either EditorCard system
+  // or MapPropertiesSystem for map-specific panels. This keeps the toolset clean
+  // and prevents ImGui ID stack issues.
 
-  if (show_gfx_group_editor_) {
-    std::string gfx_window_name = context_
-        ? absl::StrFormat("%s Graphics Groups###GfxGroup_S%zu", ICON_MD_COLLECTIONS, context_->session_id)
-        : ICON_MD_COLLECTIONS " Graphics Groups";
-    
-    // Responsive sizing
-    ImVec2 window_size = ImVec2(
-      gui::GetResponsiveWidth(500, 900, 0.6f),
-      ImGui::GetIO().DisplaySize.y * 0.7f
-    );
-    ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
-    
-    gui::BeginWindowWithDisplaySettings(gfx_window_name.c_str(),
-                                        &show_gfx_group_editor_);
-    status_ = gfx_group_editor_.Update();
-    gui::EndWindowWithDisplaySettings();
-  }
-
-  if (show_properties_editor_) {
-    std::string props_window_name = context_
-        ? absl::StrFormat("%s Map Properties###Props_S%zu", ICON_MD_SETTINGS, context_->session_id)
-        : ICON_MD_SETTINGS " Map Properties";
-    
-    // Compact window for properties
-    ImVec2 window_size = ImVec2(450, 600);
-    ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
-    
-    ImGui::Begin(props_window_name.c_str(), &show_properties_editor_);
-    DrawOverworldProperties();
-    ImGui::End();
-  }
-
-  if (show_custom_bg_color_editor_) {
-    std::string bg_window_name = context_
-        ? absl::StrFormat("%s Background Colors###BG_S%zu", ICON_MD_COLOR_LENS, context_->session_id)
-        : ICON_MD_COLOR_LENS " Background Colors";
-    
-    ImVec2 window_size = ImVec2(400, 500);
-    ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
-    
-    ImGui::Begin(bg_window_name.c_str(), &show_custom_bg_color_editor_);
-    DrawCustomBackgroundColorEditor();
-    ImGui::End();
-  }
-
-  if (show_overlay_editor_) {
-    std::string overlay_window_name = context_
-        ? absl::StrFormat("%s Overlay Editor###Overlay_S%zu", ICON_MD_LAYERS, context_->session_id)
-        : ICON_MD_LAYERS " Overlay Editor";
-    
-    ImVec2 window_size = ImVec2(500, 600);
-    ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
-    
-    ImGui::Begin(overlay_window_name.c_str(), &show_overlay_editor_);
-    DrawOverlayEditor();
-    ImGui::End();
-  }
-
-  if (show_map_properties_panel_) {
-    // Create unique window name using session ID from context
-    std::string map_props_window_name = context_
-        ? absl::StrFormat("%s Map Properties###MapProps_S%zu", ICON_MD_TUNE, context_->session_id)
-        : ICON_MD_TUNE " Map Properties";
-    
-    ImVec2 window_size = ImVec2(
-      gui::GetResponsiveWidth(400, 700, 0.4f),
-      600
-    );
-    ImGui::SetNextWindowSize(window_size, ImGuiCond_FirstUseEver);
-    
-    ImGui::Begin(map_props_window_name.c_str(), &show_map_properties_panel_);
-    
-    // Use WidgetIdScope for test automation
-    gui::WidgetIdScope map_props_scope("MapProperties");
-    DrawMapPropertiesPanel();
-    
-    ImGui::End();
-  }
+  // Legacy window code removed - windows rendered in Update() include:
+  // - Graphics Groups (EditorCard)
+  // - Area Configuration (MapPropertiesSystem)
+  // - Background Color Editor (MapPropertiesSystem)
+  // - Visual Effects Editor (MapPropertiesSystem)
+  // - Tile16 Editor, Usage Stats, etc. (EditorCards)
 
   // Keyboard shortcuts for the Overworld Editor
   if (!ImGui::IsAnyItemActive()) {
@@ -2609,9 +2538,9 @@ void OverworldEditor::DrawOverworldContextMenu() {
 
       Separator();
 
-      // Quick access to map settings
-      if (MenuItem("Map Properties")) {
-        show_properties_editor_ = true;
+      // Quick access to area configuration
+      if (MenuItem(ICON_MD_TUNE " Area Configuration")) {
+        show_map_properties_panel_ = true;
         current_map_ = hovered_map;
       }
 
