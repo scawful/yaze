@@ -35,27 +35,12 @@ constexpr ImVec2 kGraphicsBinCanvasSize(0x100 + 1, kNumSheetsToLoad * 0x40 + 1);
 constexpr ImGuiTableFlags kOWMapFlags =
     ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable |
     ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp;
-constexpr ImGuiTableFlags kToolsetTableFlags = ImGuiTableFlags_SizingFixedFit;
-constexpr ImGuiTableFlags kOWEditFlags =
-    ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable |
-    ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter |
-    ImGuiTableFlags_BordersV;
-
-static constexpr absl::string_view kToolsetColumnNames[] = {
-    "#undoTool",      "#redoTool",   "#separator2",       "#zoomOutTool",
-    "#zoomInTool",    "#separator",  "#drawTool",         "#history",
-    "#entranceTool",  "#exitTool",   "#itemTool",         "#spriteTool",
-    "#transportTool", "#musicTool",  "#separator3",       "#tilemapTool",
-    "propertiesTool", "#separator4", "#experimentalTool", "#properties",
-    "#separator5"};
 
 constexpr absl::string_view kWorldList =
     "Light World\0Dark World\0Extra World\0";
 
 constexpr absl::string_view kGamePartComboString = "Part 0\0Part 1\0Part 2\0";
 
-constexpr absl::string_view kTileSelectorTab = "##TileSelectorTabBar";
-constexpr absl::string_view kOWEditTable = "##OWEditTable";
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
 /**
@@ -178,7 +163,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status DrawTile16Selector();
   void DrawTile8Selector();
   absl::Status DrawAreaGraphics();
-  absl::Status DrawTileSelector();
 
   absl::Status LoadSpriteGraphics();
 
@@ -200,14 +184,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void EnsureMapTexture(int map_index);
 
   void DrawOverworldProperties();
-  void DrawCustomBackgroundColorEditor();
-  void DrawOverlayEditor();
-  void DrawMapLockControls();
-  void DrawOverlayPreview();
-  void DrawOverlayPreviewOnMap();
-  void DrawOverworldContextMenu();
-  void DrawSimplifiedMapSettings();
-  void DrawMapPropertiesPanel();
   void HandleMapInteraction();
   void SetupOverworldCanvasContextMenu();
   
@@ -365,7 +341,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   gui::Canvas properties_canvas_;
   gui::Canvas scratch_canvas_{"ScratchSpace", ImVec2(320, 480), gui::CanvasGridSize::k32x32};
 
-  gui::Table toolset_table_{"##ToolsetTable0", 12, kToolsetTableFlags};
   gui::Table map_settings_table_{kOWMapTable.data(), 8, kOWMapFlags,
                                  ImVec2(0, 0)};
 
