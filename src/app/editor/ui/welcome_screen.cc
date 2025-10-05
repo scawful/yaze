@@ -30,20 +30,21 @@ ImVec4 GetThemedColor(const char* color_name, const ImVec4& fallback) {
   auto& theme_mgr = gui::ThemeManager::Get();
   const auto& theme = theme_mgr.GetCurrentTheme();
   
+  // TODO: Fix this
   // Map color names to theme colors
-  if (strcmp(color_name, "triforce_gold") == 0) {
-    return theme.accent.to_im_vec4();
-  } else if (strcmp(color_name, "hyrule_green") == 0) {
-    return theme.success.to_im_vec4();
-  } else if (strcmp(color_name, "master_sword_blue") == 0) {
-    return theme.info.to_im_vec4();
-  } else if (strcmp(color_name, "ganon_purple") == 0) {
-    return theme.secondary.to_im_vec4();
-  } else if (strcmp(color_name, "heart_red") == 0) {
-    return theme.error.to_im_vec4();
-  } else if (strcmp(color_name, "spirit_orange") == 0) {
-    return theme.warning.to_im_vec4();
-  }
+  // if (strcmp(color_name, "triforce_gold") == 0) {
+  //   return theme.accent.to_im_vec4();
+  // } else if (strcmp(color_name, "hyrule_green") == 0) {
+  //   return theme.success.to_im_vec4();
+  // } else if (strcmp(color_name, "master_sword_blue") == 0) {
+  //   return theme.info.to_im_vec4();
+  // } else if (strcmp(color_name, "ganon_purple") == 0) {
+  //   return theme.secondary.to_im_vec4();
+  // } else if (strcmp(color_name, "heart_red") == 0) {
+  //   return theme.error.to_im_vec4();
+  // } else if (strcmp(color_name, "spirit_orange") == 0) {
+  //   return theme.warning.to_im_vec4();
+  // }
   
   return fallback;
 }
@@ -262,7 +263,7 @@ void WelcomeScreen::RefreshRecentProjects() {
   recent_projects_.clear();
   
   // Use the ProjectManager singleton to get recent files
-  auto& recent_files = core::ProjectManager::GetInstance().GetRecentFiles();
+  auto& recent_files = core::RecentFilesManager::GetInstance().GetRecentFiles();
   
   for (const auto& filepath : recent_files) {
     if (recent_projects_.size() >= kMaxRecentProjects) break;

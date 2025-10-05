@@ -112,7 +112,7 @@ std::string yaze::util::FileDialogWrapper::ShowSaveFileDialogBespoke(const std::
 
 // Global feature flag-based dispatch methods
 std::string yaze::util::FileDialogWrapper::ShowOpenFileDialog() {
-  if (FeatureFlags::get().kUseNativeFileDialog) {
+  if (core::FeatureFlags::get().kUseNativeFileDialog) {
     return ShowOpenFileDialogNFD();
   } else {
     return ShowOpenFileDialogBespoke();
@@ -120,7 +120,7 @@ std::string yaze::util::FileDialogWrapper::ShowOpenFileDialog() {
 }
 
 std::string yaze::util::FileDialogWrapper::ShowOpenFolderDialog() {
-  if (FeatureFlags::get().kUseNativeFileDialog) {
+  if (core::FeatureFlags::get().kUseNativeFileDialog) {
     return ShowOpenFolderDialogNFD();
   } else {
     return ShowOpenFolderDialogBespoke();
@@ -129,7 +129,7 @@ std::string yaze::util::FileDialogWrapper::ShowOpenFolderDialog() {
 
 std::string yaze::util::FileDialogWrapper::ShowSaveFileDialog(const std::string& default_name, 
                                                              const std::string& default_extension) {
-  if (FeatureFlags::get().kUseNativeFileDialog) {
+  if (core::FeatureFlags::get().kUseNativeFileDialog) {
     return ShowSaveFileDialogNFD(default_name, default_extension);
   } else {
     return ShowSaveFileDialogBespoke(default_name, default_extension);

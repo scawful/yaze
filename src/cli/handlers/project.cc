@@ -1,6 +1,6 @@
 #include "app/core/project.h"
 #include "cli/z3ed.h"
-#include "core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "util/bps.h"
 #ifndef _WIN32
 #include <glob.h>

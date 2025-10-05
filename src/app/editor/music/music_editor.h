@@ -3,9 +3,9 @@
 
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/editor.h"
+#include "app/emu/audio/apu.h"
 #include "app/rom.h"
 #include "app/zelda3/music/tracker.h"
-#include "app/emu/audio/apu.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -57,8 +57,10 @@ const ImGuiTableFlags music_editor_flags_ = ImGuiTableFlags_SizingFixedFit |
  */
 class MusicEditor : public Editor {
  public:
-  MusicEditor() : Editor(EditorType::kMusic) {}
-  
+  explicit MusicEditor(Rom* rom = nullptr) : rom_(rom) {
+    type_ = EditorType::kMusic;
+  }
+
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Save() override { return absl::UnimplementedError("Save"); }
@@ -69,6 +71,12 @@ class MusicEditor : public Editor {
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
+
+  // Set the ROM pointer
+  void set_rom(Rom* rom) { rom_ = rom; }
+
+  // Get the ROM pointer
+  Rom* rom() const { return rom_; }
 
  private:
   // UI Drawing Methods
@@ -84,7 +92,7 @@ class MusicEditor : public Editor {
 
   AssemblyEditor assembly_editor_;
   zelda3::music::Tracker music_tracker_;
-  emu::Apu apu_;
+  // Note: APU requires ROM memory, will be initialized when needed
 
   // UI State
   int current_song_index_ = 0;
@@ -102,6 +110,8 @@ class MusicEditor : public Editor {
   ImGuiTableFlags toolset_table_flags_ =
       ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersOuter |
       ImGuiTableFlags_BordersV | ImGuiTableFlags_PadOuterX;
+
+  Rom* rom_;
 };
 
 }  // namespace editor

@@ -259,7 +259,7 @@ std::string AgentCollaborationCoordinator::GenerateSessionCode() const {
 }
 
 std::filesystem::path AgentCollaborationCoordinator::SessionsDirectory() const {
-  std::filesystem::path base = ExpandUserPath(core::GetConfigDirectory());
+  std::filesystem::path base = ExpandUserPath(util::GetConfigDirectory());
   if (base.empty()) {
     base = ExpandUserPath(".yaze");
   }
