@@ -6,7 +6,7 @@
 
 #include "app/gfx/performance_profiler.h"
 #include "app/gfx/performance_dashboard.h"
-#include "app/gui/enhanced_palette_editor.h"
+#include "app/gui/widgets/palette_widget.h"
 #include "app/gui/bpp_format_ui.h"
 #include "app/gui/icons.h"
 #include "imgui/imgui.h"
@@ -421,9 +421,9 @@ void CanvasModals::RenderPaletteEditorModal(const std::string& canvas_id,
     ImGui::Text("%s %s", ICON_MD_PALETTE, modal_title.c_str());
     ImGui::Separator();
     
-    // Use the existing EnhancedPaletteEditor
-    static std::unique_ptr<gui::EnhancedPaletteEditor> palette_editor = 
-        std::make_unique<gui::EnhancedPaletteEditor>();
+    // Use the existing PaletteWidget
+    static std::unique_ptr<gui::PaletteWidget> palette_editor = 
+        std::make_unique<gui::PaletteWidget>();
     
     if (options.palette) {
       palette_editor->ShowPaletteEditor(*options.palette, modal_title);
@@ -454,9 +454,9 @@ void CanvasModals::RenderColorAnalysisModal(const std::string& canvas_id,
     ImGui::Text("%s %s", ICON_MD_ZOOM_IN, modal_title.c_str());
     ImGui::Separator();
     
-    // Use the existing EnhancedPaletteEditor for color analysis
-    static std::unique_ptr<gui::EnhancedPaletteEditor> palette_editor = 
-        std::make_unique<gui::EnhancedPaletteEditor>();
+    // Use the existing PaletteWidget for color analysis
+    static std::unique_ptr<gui::PaletteWidget> palette_editor = 
+        std::make_unique<gui::PaletteWidget>();
     
     if (options.bitmap) {
       palette_editor->ShowColorAnalysis(*options.bitmap, modal_title);

@@ -1,4 +1,4 @@
-#include "background_renderer.h"
+#include "app/editor/ui/background_renderer.h"
 
 #include <algorithm>
 #include <cmath>

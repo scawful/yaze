@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_GUI_BACKGROUND_RENDERER_H
-#define YAZE_APP_GUI_BACKGROUND_RENDERER_H
+#ifndef YAZE_APP_EDITOR_UI_BACKGROUND_RENDERER_H
+#define YAZE_APP_EDITOR_UI_BACKGROUND_RENDERER_H
 
 #include "imgui/imgui.h"
 #include "app/gui/color.h"
@@ -93,4 +93,4 @@ private:
 } // namespace gui
 } // namespace yaze
 
-#endif // YAZE_APP_GUI_BACKGROUND_RENDERER_H
+#endif // YAZE_APP_EDITOR_UI_BACKGROUND_RENDERER_H
