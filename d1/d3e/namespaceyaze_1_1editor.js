@@ -117,9 +117,7 @@ var namespaceyaze_1_1editor =
     [ "MessagePreview", "dc/dd1/structyaze_1_1editor_1_1MessagePreview.html", "dc/dd1/structyaze_1_1editor_1_1MessagePreview" ],
     [ "MusicEditor", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html", "db/d9a/classyaze_1_1editor_1_1MusicEditor" ],
     [ "OverworldEditor", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html", "d3/d44/classyaze_1_1editor_1_1OverworldEditor" ],
-    [ "OverworldEditorManager", "d7/dfb/classyaze_1_1editor_1_1OverworldEditorManager.html", "d7/dfb/classyaze_1_1editor_1_1OverworldEditorManager" ],
     [ "OverworldEntityRenderer", "d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer.html", "d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer" ],
-    [ "OverworldGraphicsManager", "d3/d31/classyaze_1_1editor_1_1OverworldGraphicsManager.html", "d3/d31/classyaze_1_1editor_1_1OverworldGraphicsManager" ],
     [ "PaletteEditor", "d2/d46/classyaze_1_1editor_1_1PaletteEditor.html", "d2/d46/classyaze_1_1editor_1_1PaletteEditor" ],
     [ "ParsedElement", "da/d5e/structyaze_1_1editor_1_1ParsedElement.html", "da/d5e/structyaze_1_1editor_1_1ParsedElement" ],
     [ "PopupManager", "d3/d8d/classyaze_1_1editor_1_1PopupManager.html", "d3/d8d/classyaze_1_1editor_1_1PopupManager" ],
@@ -140,7 +138,6 @@ var namespaceyaze_1_1editor =
     [ "UserSettings", "d8/d46/classyaze_1_1editor_1_1UserSettings.html", "d8/d46/classyaze_1_1editor_1_1UserSettings" ],
     [ "WelcomeScreen", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen" ],
     [ "WorkspaceManager", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager" ],
-    [ "Tilemap", "d1/d3e/namespaceyaze_1_1editor.html#aa7118e129748ae3766fedefb02bfbd0e", null ],
     [ "EditorType", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622a", [
       [ "kAssembly", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aab686a008a9fc3fe70222034bef987ced", null ],
       [ "kDungeon", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa773324726da2f589c757da4c39336156", null ],

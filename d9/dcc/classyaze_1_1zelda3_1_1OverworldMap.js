@@ -66,6 +66,7 @@ var classyaze_1_1zelda3_1_1OverworldMap =
     [ "SetAsLargeMap", "d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#a090862b6818f447d5381d15733403b55", null ],
     [ "SetAsSmallMap", "d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#a4e8f929457942ff26cfa9b6913041910", null ],
     [ "SetAreaSize", "d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#a87eb503da6848dab19352a360f46192b", null ],
+    [ "SetParent", "d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#a74b62cf38bbe9106c72a59effd423e96", null ],
     [ "Destroy", "d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#a329e9935a7baac3ce1c03fbc4f9de13d", null ],
     [ "LoadAreaInfo", "d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#a178ccdcb70517b4c722bdc1ec57d387c", null ],
     [ "LoadCustomOverworldData", "d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#aecfb0779072d30e1be7594a2d1d58437", null ],

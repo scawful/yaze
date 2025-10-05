@@ -124,7 +124,6 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "show_usage_stats_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a5e1c8e6cfa47c2e05b9cbbfb5a8dd987", null ],
     [ "show_v3_settings_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a194bfeef4da47828b07e01488f5676a5", null ],
     [ "map_properties_system_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a093c928ecbbbe166f3218a579e7a7121", null ],
-    [ "overworld_manager_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a4a679c667e38dca92928e42e5ff8c740", null ],
     [ "entity_renderer_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aa7e6c21673d2abf7b6d514db2761d5e2", null ],
     [ "scratch_spaces_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a1ad0f7f8f1faf9bb2293bfc0e850a70d", null ],
     [ "current_scratch_slot_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af21b6972b94508ab68e9fdf926039d4c", null ],
@@ -141,8 +140,6 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "maps_bmp_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a54c67fbc2513c94180ffb90b8aa8e942", null ],
     [ "current_graphics_set_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#ad5d7700e6c6261b10da947b32538b043", null ],
     [ "sprite_previews_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aaed34f2e7f5af4b781203b15f6bc1c31", null ],
-    [ "deferred_map_textures_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a244d2645f3e30005f0e0916c67792674", null ],
-    [ "deferred_textures_mutex_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aa1188901ee3c4bde966e8b09d17776de", null ],
     [ "overworld_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#ad7ab4bb78250192917437afcc1ebb995", null ],
     [ "refresh_blockset_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a385e357969576cdc91a11389b34d2a00", null ],
     [ "current_sprite_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a1da0f4e0c03b14a5bfabcc993f4680b2", null ],
@@ -158,6 +155,5 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "graphics_bin_canvas_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#ad50b76ad7d4a49ac8f5ea1ce940e6b74", null ],
     [ "properties_canvas_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af15b9838fc18496532d3664c90db811f", null ],
     [ "scratch_canvas_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a628a781d32ed5b88735741ee500a9ea8", null ],
-    [ "map_settings_table_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af0e3533783ffa2a5eeea85e04ee40fa2", null ],
     [ "status_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a92f496396b365517e10fab89f317ea60", null ]
 ];

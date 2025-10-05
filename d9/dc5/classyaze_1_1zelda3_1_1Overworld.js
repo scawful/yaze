@@ -41,6 +41,7 @@ var classyaze_1_1zelda3_1_1Overworld =
     [ "SaveMusic", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#af51bc4eaeec57a4474aae5f3043a8ea9", null ],
     [ "SaveAreaSizes", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a39c12da24da3a1916c4f21036250c24a", null ],
     [ "AssignMapSizes", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#ad41e639ab813abd4c121c067d6835395", null ],
+    [ "ConfigureMultiAreaMap", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#af5545979d47e519e96708681e0513fd7", null ],
     [ "rom", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a024996a77d32a4e9fa6ecaa918d642b4", null ],
     [ "mutable_rom", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a089526955541efe772303a9dd5f1494a", null ],
     [ "Destroy", "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#ac44618ad4337c4f46cc41b88b330d87c", null ],

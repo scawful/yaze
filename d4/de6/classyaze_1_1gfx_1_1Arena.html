@@ -135,6 +135,8 @@ Collaboration diagram for yaze::gfx::Arena:</div>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d3c/structyaze_1_1gfx_1_1Arena_1_1BatchUpdate.html">BatchUpdate</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/de4/structyaze_1_1gfx_1_1Arena_1_1DeferredTexture.html">DeferredTexture</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d5d/structyaze_1_1gfx_1_1Arena_1_1SurfacePool.html">SurfacePool</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/dec/structyaze_1_1gfx_1_1Arena_1_1TexturePool.html">TexturePool</a></td></tr>
@@ -199,6 +201,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab4b9ad9acd7039bf316e83e2131c21e7" id="r_ab4b9ad9acd7039bf316e83e2131c21e7"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ab4b9ad9acd7039bf316e83e2131c21e7">bg2</a> ()</td></tr>
 <tr class="memdesc:ab4b9ad9acd7039bf316e83e2131c21e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get reference to background layer 2 buffer.  <br /></td></tr>
 <tr class="separator:ab4b9ad9acd7039bf316e83e2131c21e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71a402df6c12d54b0203f6c734e57632" id="r_a71a402df6c12d54b0203f6c734e57632"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a71a402df6c12d54b0203f6c734e57632">QueueDeferredTexture</a> (<a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> *bitmap, int priority=0)</td></tr>
+<tr class="memdesc:a71a402df6c12d54b0203f6c734e57632"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a bitmap to the deferred texture queue.  <br /></td></tr>
+<tr class="separator:a71a402df6c12d54b0203f6c734e57632"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcb673f1b9c520644345f40623829aa7" id="r_adcb673f1b9c520644345f40623829aa7"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#adcb673f1b9c520644345f40623829aa7">GetNextDeferredTextureBatch</a> (int high_priority_limit=4, int low_priority_limit=2)</td></tr>
+<tr class="memdesc:adcb673f1b9c520644345f40623829aa7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get next batch of deferred textures to process.  <br /></td></tr>
+<tr class="separator:adcb673f1b9c520644345f40623829aa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a226b7a738b9279d742036a8d0400d2b9" id="r_a226b7a738b9279d742036a8d0400d2b9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a226b7a738b9279d742036a8d0400d2b9">ClearDeferredTextures</a> ()</td></tr>
+<tr class="memdesc:a226b7a738b9279d742036a8d0400d2b9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear all deferred texture items.  <br /></td></tr>
+<tr class="separator:a226b7a738b9279d742036a8d0400d2b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a674da1ff9498b1451ed31a9e75d91f85" id="r_a674da1ff9498b1451ed31a9e75d91f85"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a674da1ff9498b1451ed31a9e75d91f85">GetDeferredTextureCount</a> () const</td></tr>
+<tr class="memdesc:a674da1ff9498b1451ed31a9e75d91f85"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get count of remaining deferred textures.  <br /></td></tr>
+<tr class="separator:a674da1ff9498b1451ed31a9e75d91f85"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -238,6 +252,10 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ad1e8755d810c5d3b845e7a0801cb6ea3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac0361a60394b05ba32449415ff04c968" id="r_ac0361a60394b05ba32449415ff04c968"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../db/d3c/structyaze_1_1gfx_1_1Arena_1_1BatchUpdate.html">BatchUpdate</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ac0361a60394b05ba32449415ff04c968">batch_update_queue_</a></td></tr>
 <tr class="separator:ac0361a60394b05ba32449415ff04c968"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac945037bf13e3efd53ac99c647bdbba6" id="r_ac945037bf13e3efd53ac99c647bdbba6"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../d1/de4/structyaze_1_1gfx_1_1Arena_1_1DeferredTexture.html">DeferredTexture</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ac945037bf13e3efd53ac99c647bdbba6">deferred_textures_</a></td></tr>
+<tr class="separator:ac945037bf13e3efd53ac99c647bdbba6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5202254cd2c32863f140f9064647e96" id="r_af5202254cd2c32863f140f9064647e96"><td class="memItemLeft" align="right" valign="top">std::mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#af5202254cd2c32863f140f9064647e96">deferred_mutex_</a></td></tr>
+<tr class="separator:af5202254cd2c32863f140f9064647e96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-static-attribs" name="pri-static-attribs"></a>
 Static Private Attributes</h2></td></tr>
@@ -273,7 +291,7 @@ Static Private Attributes</h2></td></tr>
 <li>Integration with SNES graphics format requirements </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00042">42</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00044">44</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ad7dfac47acae071316a9feeb1739c20c" name="ad7dfac47acae071316a9feeb1739c20c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad7dfac47acae071316a9feeb1739c20c">&#9670;&#160;</a></span>~Arena()</h2>
@@ -290,9 +308,9 @@ Static Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00020">20</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00021">21</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/dee/arena_8cc_source.html#l00090">Shutdown()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/dee/arena_8cc_source.html#l00091">Shutdown()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -331,9 +349,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">15</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00016">16</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00174">layer1_buffer_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00175">layer2_buffer_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00211">layer1_buffer_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00212">layer2_buffer_</a>.</p>
 
 </div>
 </div>
@@ -361,9 +379,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00010">10</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00011">11</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00064">yaze::gfx::Bitmap::Bitmap()</a>, <a class="el" href="../../d1/d2e/test__manager_8cc_source.html#l00357">yaze::test::TestManager::CollectResourceStats()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00186">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00302">yaze::gfx::Bitmap::CreateTexture()</a>, <a class="el" href="../../d3/db7/room__diagnostic_8cc_source.html#l00012">yaze::zelda3::DiagnoseRoomRendering()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00086">yaze::editor::GfxGroupEditor::DrawBlocksetViewer()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00279">yaze::editor::DungeonEditor::DrawCanvasAndPropertiesPanel()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00173">yaze::editor::SpriteEditor::DrawCurrentSheets()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00112">yaze::editor::GraphicsEditor::DrawGfxEditToolset()</a>, <a class="el" href="../../dc/dcc/dungeon__object__selector_8cc_source.html#l00320">yaze::editor::DungeonObjectSelector::DrawRoomGraphics()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00125">yaze::editor::GfxGroupEditor::DrawRoomsetViewer()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00178">yaze::editor::GfxGroupEditor::DrawSpritesetViewer()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l01210">yaze::editor::OverworldEditor::DrawTile8Selector()</a>, <a class="el" href="../../d5/dc5/object__renderer_8cc_source.html#l00023">yaze::zelda3::ObjectRenderer::GraphicsCache::GetGraphicsSheet()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00034">yaze::editor::ScreenEditor::Load()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02086">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00085">yaze::gfx::Bitmap::operator=()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00272">yaze::gfx::Bitmap::QueueTextureUpdate()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00223">yaze::gfx::Bitmap::Reformat()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00187">yaze::editor::DungeonEditor::RefreshGraphics()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00346">yaze::zelda3::Room::RenderObjectsToBackground()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00653">yaze::editor::DungeonCanvasViewer::RenderRoomBackgroundLayers()</a>, <a class="el" href="../../d4/dc2/dungeon__renderer_8cc_source.html#l00136">yaze::editor::DungeonRenderer::RenderRoomBackgroundLayers()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">yaze::zelda3::Room::RenderRoomGraphics()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00781">yaze::editor::DungeonEditor::RenderRoomWithObjects()</a>, <a class="el" href="../../d5/dc5/object__renderer_8cc_source.html#l00915">yaze::zelda3::ObjectRenderer::RenderTile()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00603">yaze::gfx::Bitmap::Resize()</a>, <a class="el" href="../../d7/dfd/gfx_8cc_source.html#l00012">yaze::cli::GfxExport::Run()</a>, <a class="el" href="../../d7/dfd/gfx_8cc_source.html#l00049">yaze::cli::GfxImport::Run()</a>, <a class="el" href="../../dc/dc8/unit__test__suite_8h_source.html#l00187">yaze::test::ArenaTestSuite::RunArenaAllocationTest()</a>, <a class="el" href="../../dc/dc8/unit__test__suite_8h_source.html#l00224">yaze::test::ArenaTestSuite::RunArenaCleanupTest()</a>, <a class="el" href="../../d2/df2/integrated__test__suite_8h_source.html#l00057">yaze::test::IntegratedTestSuite::RunArenaIntegrityTest()</a>, <a class="el" href="../../d2/df2/integrated__test__suite_8h_source.html#l00096">yaze::test::IntegratedTestSuite::RunArenaResourceManagementTest()</a>, <a class="el" href="../../dc/dc8/unit__test__suite_8h_source.html#l00257">yaze::test::ArenaTestSuite::RunArenaResourceTrackingTest()</a>, <a class="el" href="../../d2/df2/integrated__test__suite_8h_source.html#l00204">yaze::test::IntegratedTestSuite::RunGraphicsValidationTest()</a>, <a class="el" href="../../d2/df2/integrated__test__suite_8h_source.html#l00320">yaze::test::PerformanceTestSuite::RunMemoryUsageTest()</a>, <a class="el" href="../../d2/df2/integrated__test__suite_8h_source.html#l00364">yaze::test::PerformanceTestSuite::RunResourceLeakTest()</a>, <a class="el" href="../../d8/df1/scratch__space_8cc_source.html#l00324">yaze::editor::OverworldEditor::SaveCurrentSelectionToScratch()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02116">yaze::editor::EditorManager::SaveRom()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02138">yaze::editor::EditorManager::SaveRomAs()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00018">yaze::gfx::GraphicsOptimizationBenchmarks::SetUp()</a>, <a class="el" href="../../d7/d60/window_8cc_source.html#l00090">yaze::core::ShutdownWindow()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00159">yaze::gfx::TEST_F()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00373">yaze::gfx::TEST_F()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00049">yaze::editor::GraphicsEditor::Update()</a>, <a class="el" href="../../d6/ddd/tile16__editor_8cc_source.html#l00355">yaze::editor::Tile16Editor::UpdateBlocksetBitmap()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00202">yaze::editor::GraphicsEditor::UpdateGfxSheetList()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00275">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00378">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00598">yaze::editor::DungeonCanvasViewer::UpdateRoomBackgroundLayers()</a>, and <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00325">yaze::gfx::Bitmap::UpdateTextureData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00064">yaze::gfx::Bitmap::Bitmap()</a>, <a class="el" href="../../d1/d2e/test__manager_8cc_source.html#l00357">yaze::test::TestManager::CollectResourceStats()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00186">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00302">yaze::gfx::Bitmap::CreateTexture()</a>, <a class="el" href="../../d3/db7/room__diagnostic_8cc_source.html#l00012">yaze::zelda3::DiagnoseRoomRendering()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00086">yaze::editor::GfxGroupEditor::DrawBlocksetViewer()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00279">yaze::editor::DungeonEditor::DrawCanvasAndPropertiesPanel()</a>, <a class="el" href="../../db/d30/sprite__editor_8cc_source.html#l00173">yaze::editor::SpriteEditor::DrawCurrentSheets()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00112">yaze::editor::GraphicsEditor::DrawGfxEditToolset()</a>, <a class="el" href="../../dc/dcc/dungeon__object__selector_8cc_source.html#l00320">yaze::editor::DungeonObjectSelector::DrawRoomGraphics()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00125">yaze::editor::GfxGroupEditor::DrawRoomsetViewer()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00178">yaze::editor::GfxGroupEditor::DrawSpritesetViewer()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l01198">yaze::editor::OverworldEditor::DrawTile8Selector()</a>, <a class="el" href="../../d5/dc5/object__renderer_8cc_source.html#l00023">yaze::zelda3::ObjectRenderer::GraphicsCache::GetGraphicsSheet()</a>, <a class="el" href="../../de/d57/screen__editor_8cc_source.html#l00034">yaze::editor::ScreenEditor::Load()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02086">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l01284">yaze::editor::OverworldEditor::LoadGraphics()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00085">yaze::gfx::Bitmap::operator=()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l01440">yaze::editor::OverworldEditor::ProcessDeferredTextures()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00272">yaze::gfx::Bitmap::QueueTextureUpdate()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00223">yaze::gfx::Bitmap::Reformat()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00187">yaze::editor::DungeonEditor::RefreshGraphics()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00346">yaze::zelda3::Room::RenderObjectsToBackground()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00653">yaze::editor::DungeonCanvasViewer::RenderRoomBackgroundLayers()</a>, <a class="el" href="../../d4/dc2/dungeon__renderer_8cc_source.html#l00136">yaze::editor::DungeonRenderer::RenderRoomBackgroundLayers()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">yaze::zelda3::Room::RenderRoomGraphics()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00781">yaze::editor::DungeonEditor::RenderRoomWithObjects()</a>, <a class="el" href="../../d5/dc5/object__renderer_8cc_source.html#l00915">yaze::zelda3::ObjectRenderer::RenderTile()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00603">yaze::gfx::Bitmap::Resize()</a>, <a class="el" href="../../d7/dfd/gfx_8cc_source.html#l00012">yaze::cli::GfxExport::Run()</a>, <a class="el" href="../../d7/dfd/gfx_8cc_source.html#l00049">yaze::cli::GfxImport::Run()</a>, <a class="el" href="../../dc/dc8/unit__test__suite_8h_source.html#l00187">yaze::test::ArenaTestSuite::RunArenaAllocationTest()</a>, <a class="el" href="../../dc/dc8/unit__test__suite_8h_source.html#l00224">yaze::test::ArenaTestSuite::RunArenaCleanupTest()</a>, <a class="el" href="../../d2/df2/integrated__test__suite_8h_source.html#l00057">yaze::test::IntegratedTestSuite::RunArenaIntegrityTest()</a>, <a class="el" href="../../d2/df2/integrated__test__suite_8h_source.html#l00096">yaze::test::IntegratedTestSuite::RunArenaResourceManagementTest()</a>, <a class="el" href="../../dc/dc8/unit__test__suite_8h_source.html#l00257">yaze::test::ArenaTestSuite::RunArenaResourceTrackingTest()</a>, <a class="el" href="../../d2/df2/integrated__test__suite_8h_source.html#l00204">yaze::test::IntegratedTestSuite::RunGraphicsValidationTest()</a>, <a class="el" href="../../d2/df2/integrated__test__suite_8h_source.html#l00320">yaze::test::PerformanceTestSuite::RunMemoryUsageTest()</a>, <a class="el" href="../../d2/df2/integrated__test__suite_8h_source.html#l00364">yaze::test::PerformanceTestSuite::RunResourceLeakTest()</a>, <a class="el" href="../../d8/df1/scratch__space_8cc_source.html#l00324">yaze::editor::OverworldEditor::SaveCurrentSelectionToScratch()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02116">yaze::editor::EditorManager::SaveRom()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02138">yaze::editor::EditorManager::SaveRomAs()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00018">yaze::gfx::GraphicsOptimizationBenchmarks::SetUp()</a>, <a class="el" href="../../d7/d60/window_8cc_source.html#l00090">yaze::core::ShutdownWindow()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00159">yaze::gfx::TEST_F()</a>, <a class="el" href="../../d6/def/gfx__optimization__benchmarks_8cc_source.html#l00373">yaze::gfx::TEST_F()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00049">yaze::editor::GraphicsEditor::Update()</a>, <a class="el" href="../../d6/ddd/tile16__editor_8cc_source.html#l00355">yaze::editor::Tile16Editor::UpdateBlocksetBitmap()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00202">yaze::editor::GraphicsEditor::UpdateGfxSheetList()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00275">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00378">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00598">yaze::editor::DungeonCanvasViewer::UpdateRoomBackgroundLayers()</a>, and <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00325">yaze::gfx::Bitmap::UpdateTextureData()</a>.</p>
 
 </div>
 </div>
@@ -427,9 +445,9 @@ Here is the call graph for this function:</div>
 <li>Hash map storage for O(1) lookup and management </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00039">39</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00040">40</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00189">yaze::gfx::Arena::TexturePool::available_textures_</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00270">CreateNewTexture()</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a0bcd3b965edadeb0d3f8fbe893f41d7a">texture_pool_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00190">yaze::gfx::Arena::TexturePool::texture_sizes_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00181">textures_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00226">yaze::gfx::Arena::TexturePool::available_textures_</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00271">CreateNewTexture()</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a0bcd3b965edadeb0d3f8fbe893f41d7a">texture_pool_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00227">yaze::gfx::Arena::TexturePool::texture_sizes_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00218">textures_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00302">yaze::gfx::Bitmap::CreateTexture()</a>.</p>
 <div class="dynheader">
@@ -469,9 +487,9 @@ Here is the call graph for this function:</div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00070">70</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00071">71</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00189">yaze::gfx::Arena::TexturePool::available_textures_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00191">yaze::gfx::Arena::TexturePool::MAX_POOL_SIZE</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a0bcd3b965edadeb0d3f8fbe893f41d7a">texture_pool_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00190">yaze::gfx::Arena::TexturePool::texture_sizes_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00181">textures_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00226">yaze::gfx::Arena::TexturePool::available_textures_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00228">yaze::gfx::Arena::TexturePool::MAX_POOL_SIZE</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a0bcd3b965edadeb0d3f8fbe893f41d7a">texture_pool_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00227">yaze::gfx::Arena::TexturePool::texture_sizes_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00218">textures_</a>.</p>
 
 </div>
 </div>
@@ -523,9 +541,9 @@ Here is the call graph for this function:</div>
 <li>Optimized for frequent updates during editing </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00125">125</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00126">126</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00415">ProcessBatchTextureUpdates()</a>, and <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00325">yaze::gfx::Bitmap::UpdateTextureData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00416">ProcessBatchTextureUpdates()</a>, and <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00325">yaze::gfx::Bitmap::UpdateTextureData()</a>.</p>
 
 </div>
 </div>
@@ -580,9 +598,9 @@ Here is the call graph for this function:</div>
 <li>Handles format conversion automatically </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00319">319</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00320">320</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00415">ProcessBatchTextureUpdates()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00416">ProcessBatchTextureUpdates()</a>.</p>
 
 </div>
 </div>
@@ -636,9 +654,9 @@ Here is the call graph for this function:</div>
 <li>Automatic queue size management to prevent memory bloat </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00391">391</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00392">392</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00210">batch_update_queue_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00211">MAX_BATCH_SIZE</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00415">ProcessBatchTextureUpdates()</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00247">batch_update_queue_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00248">MAX_BATCH_SIZE</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00416">ProcessBatchTextureUpdates()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00272">yaze::gfx::Bitmap::QueueTextureUpdate()</a>.</p>
 <div class="dynheader">
@@ -684,11 +702,11 @@ This reduces SDL calls and improves performance significantly</dd></dl>
 <li>Clears queue after processing </li>
 </ul>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00415">415</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00416">416</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00210">batch_update_queue_</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00125">UpdateTexture()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00319">UpdateTextureRegion()</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00247">batch_update_queue_</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00126">UpdateTexture()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00320">UpdateTextureRegion()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00391">QueueTextureUpdate()</a>, <a class="el" href="../../d8/df1/scratch__space_8cc_source.html#l00324">yaze::editor::OverworldEditor::SaveCurrentSelectionToScratch()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00090">Shutdown()</a>, <a class="el" href="../../d6/ddd/tile16__editor_8cc_source.html#l00355">yaze::editor::Tile16Editor::UpdateBlocksetBitmap()</a>, and <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00275">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00392">QueueTextureUpdate()</a>, <a class="el" href="../../d8/df1/scratch__space_8cc_source.html#l00324">yaze::editor::OverworldEditor::SaveCurrentSelectionToScratch()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00091">Shutdown()</a>, <a class="el" href="../../d6/ddd/tile16__editor_8cc_source.html#l00355">yaze::editor::Tile16Editor::UpdateBlocksetBitmap()</a>, and <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00275">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -722,9 +740,9 @@ Here is the call graph for this function:</div>
 <p>Clear all queued texture updates. </p>
 <dl class="section note"><dt>Note</dt><dd>Useful for cleanup or when batch processing is not needed </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00442">442</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00443">443</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00210">batch_update_queue_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00247">batch_update_queue_</a>.</p>
 
 </div>
 </div>
@@ -778,9 +796,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to allocated surface (managed by <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html" title="Resource management arena for efficient graphics memory handling.">Arena</a>) </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00213">213</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00214">214</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00195">yaze::gfx::Arena::SurfacePool::available_surfaces_</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00293">CreateNewSurface()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00196">yaze::gfx::Arena::SurfacePool::surface_info_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ad1e8755d810c5d3b845e7a0801cb6ea3">surface_pool_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00185">surfaces_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00232">yaze::gfx::Arena::SurfacePool::available_surfaces_</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00294">CreateNewSurface()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00233">yaze::gfx::Arena::SurfacePool::surface_info_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ad1e8755d810c5d3b845e7a0801cb6ea3">surface_pool_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00222">surfaces_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00064">yaze::gfx::Bitmap::Bitmap()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00186">yaze::gfx::Bitmap::Create()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00085">yaze::gfx::Bitmap::operator=()</a>, <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00223">yaze::gfx::Bitmap::Reformat()</a>, and <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00603">yaze::gfx::Bitmap::Resize()</a>.</p>
 <div class="dynheader">
@@ -820,9 +838,9 @@ Here is the call graph for this function:</div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00241">241</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00242">242</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00195">yaze::gfx::Arena::SurfacePool::available_surfaces_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00197">yaze::gfx::Arena::SurfacePool::MAX_POOL_SIZE</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00196">yaze::gfx::Arena::SurfacePool::surface_info_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ad1e8755d810c5d3b845e7a0801cb6ea3">surface_pool_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00185">surfaces_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00232">yaze::gfx::Arena::SurfacePool::available_surfaces_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00234">yaze::gfx::Arena::SurfacePool::MAX_POOL_SIZE</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00233">yaze::gfx::Arena::SurfacePool::surface_info_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ad1e8755d810c5d3b845e7a0801cb6ea3">surface_pool_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00222">surfaces_</a>.</p>
 
 </div>
 </div>
@@ -841,11 +859,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00090">90</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00091">91</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00195">yaze::gfx::Arena::SurfacePool::available_surfaces_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00189">yaze::gfx::Arena::TexturePool::available_textures_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00210">batch_update_queue_</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00415">ProcessBatchTextureUpdates()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00196">yaze::gfx::Arena::SurfacePool::surface_info_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ad1e8755d810c5d3b845e7a0801cb6ea3">surface_pool_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00185">surfaces_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a0bcd3b965edadeb0d3f8fbe893f41d7a">texture_pool_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00190">yaze::gfx::Arena::TexturePool::texture_sizes_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00181">textures_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00232">yaze::gfx::Arena::SurfacePool::available_surfaces_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00226">yaze::gfx::Arena::TexturePool::available_textures_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00247">batch_update_queue_</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00416">ProcessBatchTextureUpdates()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00233">yaze::gfx::Arena::SurfacePool::surface_info_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ad1e8755d810c5d3b845e7a0801cb6ea3">surface_pool_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00222">surfaces_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a0bcd3b965edadeb0d3f8fbe893f41d7a">texture_pool_</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00227">yaze::gfx::Arena::TexturePool::texture_sizes_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00218">textures_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d60/window_8cc_source.html#l00090">yaze::core::ShutdownWindow()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00020">~Arena()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d60/window_8cc_source.html#l00090">yaze::core::ShutdownWindow()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00021">~Arena()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -886,9 +904,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00119">119</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00121">121</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00181">textures_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00218">textures_</a>.</p>
 
 </div>
 </div>
@@ -915,9 +933,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00120">120</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00122">122</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00185">surfaces_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00222">surfaces_</a>.</p>
 
 </div>
 </div>
@@ -944,9 +962,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00121">121</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00123">123</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00189">yaze::gfx::Arena::TexturePool::available_textures_</a>, and <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a0bcd3b965edadeb0d3f8fbe893f41d7a">texture_pool_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00226">yaze::gfx::Arena::TexturePool::available_textures_</a>, and <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a0bcd3b965edadeb0d3f8fbe893f41d7a">texture_pool_</a>.</p>
 
 </div>
 </div>
@@ -973,9 +991,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00122">122</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00124">124</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00195">yaze::gfx::Arena::SurfacePool::available_surfaces_</a>, and <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ad1e8755d810c5d3b845e7a0801cb6ea3">surface_pool_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00232">yaze::gfx::Arena::SurfacePool::available_surfaces_</a>, and <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ad1e8755d810c5d3b845e7a0801cb6ea3">surface_pool_</a>.</p>
 
 </div>
 </div>
@@ -1005,11 +1023,11 @@ Here is the call graph for this function:</div>
 <p>Get reference to all graphics sheets. </p>
 <dl class="section return"><dt>Returns</dt><dd>Reference to array of 223 <a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image optimized for SNES ROM hacking.">Bitmap</a> objects </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00129">129</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00131">131</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00177">gfx_sheets_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00214">gfx_sheets_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00112">yaze::editor::GraphicsEditor::DrawGfxEditToolset()</a>, <a class="el" href="../../dc/dcc/dungeon__object__selector_8cc_source.html#l00320">yaze::editor::DungeonObjectSelector::DrawRoomGraphics()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l01210">yaze::editor::OverworldEditor::DrawTile8Selector()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00187">yaze::editor::DungeonEditor::RefreshGraphics()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00202">yaze::editor::GraphicsEditor::UpdateGfxSheetList()</a>, and <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00598">yaze::editor::DungeonCanvasViewer::UpdateRoomBackgroundLayers()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00112">yaze::editor::GraphicsEditor::DrawGfxEditToolset()</a>, <a class="el" href="../../dc/dcc/dungeon__object__selector_8cc_source.html#l00320">yaze::editor::DungeonObjectSelector::DrawRoomGraphics()</a>, <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l01198">yaze::editor::OverworldEditor::DrawTile8Selector()</a>, <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00187">yaze::editor::DungeonEditor::RefreshGraphics()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00202">yaze::editor::GraphicsEditor::UpdateGfxSheetList()</a>, and <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00598">yaze::editor::DungeonCanvasViewer::UpdateRoomBackgroundLayers()</a>.</p>
 
 </div>
 </div>
@@ -1046,9 +1064,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Copy of the <a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image optimized for SNES ROM hacking.">Bitmap</a> at index i </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00136">136</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00138">138</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00177">gfx_sheets_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00214">gfx_sheets_</a>.</p>
 
 </div>
 </div>
@@ -1085,9 +1103,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to mutable <a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image optimized for SNES ROM hacking.">Bitmap</a> at index i </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00143">143</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00145">145</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00177">gfx_sheets_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00214">gfx_sheets_</a>.</p>
 
 </div>
 </div>
@@ -1117,9 +1135,9 @@ Here is the call graph for this function:</div>
 <p>Get mutable reference to all graphics sheets. </p>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to mutable array of 223 <a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image optimized for SNES ROM hacking.">Bitmap</a> objects </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00149">149</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00151">151</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00177">gfx_sheets_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00214">gfx_sheets_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00086">yaze::editor::GfxGroupEditor::DrawBlocksetViewer()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00125">yaze::editor::GfxGroupEditor::DrawRoomsetViewer()</a>, <a class="el" href="../../db/d1b/gfx__group__editor_8cc_source.html#l00178">yaze::editor::GfxGroupEditor::DrawSpritesetViewer()</a>, <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00275">yaze::editor::GraphicsEditor::UpdateGfxTabView()</a>, and <a class="el" href="../../d4/dbe/graphics__editor_8cc_source.html#l00378">yaze::editor::GraphicsEditor::UpdatePaletteColumn()</a>.</p>
 
@@ -1151,9 +1169,9 @@ Here is the call graph for this function:</div>
 <p>Get reference to background layer 1 buffer. </p>
 <dl class="section return"><dt>Returns</dt><dd>Reference to <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">BackgroundBuffer</a> for layer 1 </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00156">156</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00158">158</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00167">bg1_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00204">bg1_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/db7/room__diagnostic_8cc_source.html#l00012">yaze::zelda3::DiagnoseRoomRendering()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00346">yaze::zelda3::Room::RenderObjectsToBackground()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00653">yaze::editor::DungeonCanvasViewer::RenderRoomBackgroundLayers()</a>, <a class="el" href="../../d4/dc2/dungeon__renderer_8cc_source.html#l00136">yaze::editor::DungeonRenderer::RenderRoomBackgroundLayers()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">yaze::zelda3::Room::RenderRoomGraphics()</a>, and <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00781">yaze::editor::DungeonEditor::RenderRoomWithObjects()</a>.</p>
 
@@ -1185,11 +1203,155 @@ Here is the call graph for this function:</div>
 <p>Get reference to background layer 2 buffer. </p>
 <dl class="section return"><dt>Returns</dt><dd>Reference to <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">BackgroundBuffer</a> for layer 2 </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00162">162</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00164">164</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00168">bg2_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00205">bg2_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/db7/room__diagnostic_8cc_source.html#l00012">yaze::zelda3::DiagnoseRoomRendering()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00346">yaze::zelda3::Room::RenderObjectsToBackground()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00653">yaze::editor::DungeonCanvasViewer::RenderRoomBackgroundLayers()</a>, <a class="el" href="../../d4/dc2/dungeon__renderer_8cc_source.html#l00136">yaze::editor::DungeonRenderer::RenderRoomBackgroundLayers()</a>, <a class="el" href="../../d5/d1b/room_8cc_source.html#l00282">yaze::zelda3::Room::RenderRoomGraphics()</a>, and <a class="el" href="../../da/d46/dungeon__editor_8cc_source.html#l00781">yaze::editor::DungeonEditor::RenderRoomWithObjects()</a>.</p>
+
+</div>
+</div>
+<a id="a71a402df6c12d54b0203f6c734e57632" name="a71a402df6c12d54b0203f6c734e57632"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71a402df6c12d54b0203f6c734e57632">&#9670;&#160;</a></span>QueueDeferredTexture()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::gfx::Arena::QueueDeferredTexture </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> *&#160;</td>
+          <td class="paramname"><em>bitmap</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>priority</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Add a bitmap to the deferred texture queue. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">bitmap</td><td><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html" title="Represents a bitmap image optimized for SNES ROM hacking.">Bitmap</a> that needs a texture created </td></tr>
+    <tr><td class="paramname">priority</td><td>Higher priority items processed first (0 = highest)</td></tr>
+  </table>
+  </dd>
+</dl>
+<p>Use this for progressive loading of large asset sets (e.g., overworld maps). Textures are created incrementally per frame to avoid UI freezes. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00451">451</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00262">deferred_mutex_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00261">deferred_textures_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l01284">yaze::editor::OverworldEditor::LoadGraphics()</a>.</p>
+
+</div>
+</div>
+<a id="adcb673f1b9c520644345f40623829aa7" name="adcb673f1b9c520644345f40623829aa7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adcb673f1b9c520644345f40623829aa7">&#9670;&#160;</a></span>GetNextDeferredTextureBatch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> * &gt; yaze::gfx::Arena::GetNextDeferredTextureBatch </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>high_priority_limit</em> = <code>4</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>low_priority_limit</em> = <code>2</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get next batch of deferred textures to process. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">high_priority_limit</td><td>Max high-priority items to return </td></tr>
+    <tr><td class="paramname">low_priority_limit</td><td>Max low-priority items to return </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Vector of bitmaps to render (caller renders them via Renderer)</dd></dl>
+<p>Call this once per frame in your editor's Update() method, then render each bitmap. High-priority items (priority 0-10) returned up to high_priority_limit. Low-priority items (priority 11+) returned up to low_priority_limit. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00458">458</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00262">deferred_mutex_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00261">deferred_textures_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l01440">yaze::editor::OverworldEditor::ProcessDeferredTextures()</a>.</p>
+
+</div>
+</div>
+<a id="a226b7a738b9279d742036a8d0400d2b9" name="a226b7a738b9279d742036a8d0400d2b9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a226b7a738b9279d742036a8d0400d2b9">&#9670;&#160;</a></span>ClearDeferredTextures()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::gfx::Arena::ClearDeferredTextures </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Clear all deferred texture items. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00503">503</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00262">deferred_mutex_</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00261">deferred_textures_</a>.</p>
+
+</div>
+</div>
+<a id="a674da1ff9498b1451ed31a9e75d91f85" name="a674da1ff9498b1451ed31a9e75d91f85"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a674da1ff9498b1451ed31a9e75d91f85">&#9670;&#160;</a></span>GetDeferredTextureCount()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t yaze::gfx::Arena::GetDeferredTextureCount </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get count of remaining deferred textures. </p>
+<dl class="section return"><dt>Returns</dt><dd>Number of bitmaps waiting for textures </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00199">199</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00261">deferred_textures_</a>.</p>
 
 </div>
 </div>
@@ -1244,11 +1406,11 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to allocated texture (managed by <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html" title="Resource management arena for efficient graphics memory handling.">Arena</a>) </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00270">270</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00271">271</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00181">textures_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00218">textures_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00039">AllocateTexture()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00040">AllocateTexture()</a>.</p>
 
 </div>
 </div>
@@ -1310,11 +1472,11 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to allocated surface (managed by <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html" title="Resource management arena for efficient graphics memory handling.">Arena</a>) </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00293">293</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dee/arena_8cc_source.html#l00294">294</a> of file <a class="el" href="../../d2/dee/arena_8cc_source.html">arena.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00185">surfaces_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/d0c/arena_8h_source.html#l00222">surfaces_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00213">AllocateSurface()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00214">AllocateSurface()</a>.</p>
 
 </div>
 </div>
@@ -1339,9 +1501,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00167">167</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00204">204</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/d0c/arena_8h_source.html#l00156">bg1()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/d0c/arena_8h_source.html#l00158">bg1()</a>.</p>
 
 </div>
 </div>
@@ -1365,9 +1527,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00168">168</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00205">205</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/d0c/arena_8h_source.html#l00162">bg2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/d0c/arena_8h_source.html#l00164">bg2()</a>.</p>
 
 </div>
 </div>
@@ -1391,7 +1553,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00170">170</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00207">207</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
 </div>
 </div>
@@ -1415,7 +1577,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00171">171</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00208">208</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
 </div>
 </div>
@@ -1439,7 +1601,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00172">172</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00209">209</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
 </div>
 </div>
@@ -1463,9 +1625,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00174">174</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00211">211</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">Arena()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00016">Arena()</a>.</p>
 
 </div>
 </div>
@@ -1489,9 +1651,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00175">175</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00212">212</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">Arena()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00016">Arena()</a>.</p>
 
 </div>
 </div>
@@ -1515,9 +1677,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00177">177</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00214">214</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/d0c/arena_8h_source.html#l00136">gfx_sheet()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00129">gfx_sheets()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00143">mutable_gfx_sheet()</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00149">mutable_gfx_sheets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/d0c/arena_8h_source.html#l00138">gfx_sheet()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00131">gfx_sheets()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00145">mutable_gfx_sheet()</a>, and <a class="el" href="../../da/d0c/arena_8h_source.html#l00151">mutable_gfx_sheets()</a>.</p>
 
 </div>
 </div>
@@ -1541,9 +1703,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00181">181</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00218">218</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00039">AllocateTexture()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00270">CreateNewTexture()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00070">FreeTexture()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00119">GetTextureCount()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00090">Shutdown()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00040">AllocateTexture()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00271">CreateNewTexture()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00071">FreeTexture()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00121">GetTextureCount()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00091">Shutdown()</a>.</p>
 
 </div>
 </div>
@@ -1567,9 +1729,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00185">185</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00222">222</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00213">AllocateSurface()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00293">CreateNewSurface()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00241">FreeSurface()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00120">GetSurfaceCount()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00090">Shutdown()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00214">AllocateSurface()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00294">CreateNewSurface()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00242">FreeSurface()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00122">GetSurfaceCount()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00091">Shutdown()</a>.</p>
 
 </div>
 </div>
@@ -1593,7 +1755,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00039">AllocateTexture()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00070">FreeTexture()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00121">GetPooledTextureCount()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00090">Shutdown()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00040">AllocateTexture()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00071">FreeTexture()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00123">GetPooledTextureCount()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00091">Shutdown()</a>.</p>
 
 </div>
 </div>
@@ -1617,7 +1779,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00213">AllocateSurface()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00241">FreeSurface()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00122">GetPooledSurfaceCount()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00090">Shutdown()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00214">AllocateSurface()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00242">FreeSurface()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00124">GetPooledSurfaceCount()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00091">Shutdown()</a>.</p>
 
 </div>
 </div>
@@ -1641,9 +1803,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00210">210</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00247">247</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00442">ClearBatchQueue()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00415">ProcessBatchTextureUpdates()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00391">QueueTextureUpdate()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00090">Shutdown()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00443">ClearBatchQueue()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00416">ProcessBatchTextureUpdates()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00392">QueueTextureUpdate()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00091">Shutdown()</a>.</p>
 
 </div>
 </div>
@@ -1667,9 +1829,61 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00211">211</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00248">248</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00391">QueueTextureUpdate()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00392">QueueTextureUpdate()</a>.</p>
+
+</div>
+</div>
+<a id="ac945037bf13e3efd53ac99c647bdbba6" name="ac945037bf13e3efd53ac99c647bdbba6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac945037bf13e3efd53ac99c647bdbba6">&#9670;&#160;</a></span>deferred_textures_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;<a class="el" href="../../d1/de4/structyaze_1_1gfx_1_1Arena_1_1DeferredTexture.html">DeferredTexture</a>&gt; yaze::gfx::Arena::deferred_textures_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00261">261</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00503">ClearDeferredTextures()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00199">GetDeferredTextureCount()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00458">GetNextDeferredTextureBatch()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00451">QueueDeferredTexture()</a>.</p>
+
+</div>
+</div>
+<a id="af5202254cd2c32863f140f9064647e96" name="af5202254cd2c32863f140f9064647e96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5202254cd2c32863f140f9064647e96">&#9670;&#160;</a></span>deferred_mutex_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::mutex yaze::gfx::Arena::deferred_mutex_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/arena_8h_source.html#l00262">262</a> of file <a class="el" href="../../da/d0c/arena_8h_source.html">arena.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d2/dee/arena_8cc_source.html#l00503">ClearDeferredTextures()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00458">GetNextDeferredTextureBatch()</a>, and <a class="el" href="../../d2/dee/arena_8cc_source.html#l00451">QueueDeferredTexture()</a>.</p>
 
 </div>
 </div>
