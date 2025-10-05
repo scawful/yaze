@@ -894,7 +894,8 @@ The AI response appears in your chat history and can reference specific details 
 -   **Native Gemini Function Calling**: Upgraded from manual curl to native function calling API with automatic tool schema generation
 -   **Multimodal Vision Testing**: Comprehensive test suite for Gemini vision capabilities with screenshot integration
 -   **AI-Controlled GUI Automation**: Natural language parsing (`AIActionParser`) and test script generation (`GuiActionGenerator`) for automated tile placement
--   **gRPC Windows Build Optimization**: vcpkg integration for 10-20x faster Windows builds, removed abseil-cpp submodule
+-   **gRPC Windows Build Optimization**: vcpkg integration for 10-20x faster Windows builds, removed abseil-cpp submodule  
+-   **Collaboration UI Panel**: New `CollaborationPanel` widget with ROM sync history, snapshot gallery, and proposal management
 -   **Improved Documentation**: Consolidated architecture, enhancement plans, and build instructions with JSON-first approach
 
 ## 12. Troubleshooting
