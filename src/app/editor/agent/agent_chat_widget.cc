@@ -18,6 +18,7 @@
 #include "util/file_util.h"
 #include "app/editor/agent/agent_chat_history_codec.h"
 #include "app/editor/system/proposal_drawer.h"
+#include "app/editor/system/agent_chat_history_popup.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/gui/icons.h"
 #include "app/core/project.h"
@@ -122,6 +123,20 @@ void AgentChatWidget::SetProposalDrawer(ProposalDrawer* drawer) {
   }
 }
 
+void AgentChatWidget::SetChatHistoryPopup(AgentChatHistoryPopup* popup) {
+  chat_history_popup_ = popup;
+  
+  // Set up callback to open this chat window
+  if (chat_history_popup_) {
+    chat_history_popup_->SetOpenChatCallback([this]() {
+      this->set_active(true);
+    });
+    
+    // Initial sync
+    SyncHistoryToPopup();
+  }
+}
+
 void AgentChatWidget::EnsureHistoryLoaded() {
   if (history_loaded_) {
     return;
@@ -221,6 +236,9 @@ void AgentChatWidget::PersistHistory() {
   snapshot.collaboration.active = collaboration_state_.active;
   snapshot.collaboration.session_id = collaboration_state_.session_id;
   snapshot.collaboration.session_name = collaboration_state_.session_name;
+  
+  // Sync to popup when persisting
+  SyncHistoryToPopup();
   snapshot.collaboration.participants = collaboration_state_.participants;
   snapshot.collaboration.last_synced = collaboration_state_.last_synced;
   snapshot.multimodal.last_capture_path = multimodal_state_.last_capture_path;
@@ -321,6 +339,9 @@ void AgentChatWidget::HandleAgentResponse(
     NotifyProposalCreated(message, total);
   }
   last_proposal_count_ = std::max(last_proposal_count_, total);
+  
+  // Sync history to popup after response
+  SyncHistoryToPopup();
 }
 
 void AgentChatWidget::RenderMessage(const ChatMessage& msg, int index) {
@@ -1831,6 +1852,14 @@ void AgentChatWidget::HandleProposalReceived(
     toast_manager_->Show(ICON_MD_LIGHTBULB " New proposal received from collaborator",
                          ToastType::kInfo, 3.5f);
   }
+}
+
+void AgentChatWidget::SyncHistoryToPopup() {
+  if (!chat_history_popup_) return;
+  
+  const auto& history = agent_service_.GetHistory();
+  chat_history_popup_->UpdateHistory(history);
+  chat_history_popup_->NotifyNewMessage();
 }
 
 void AgentChatWidget::RenderSystemPromptEditor() {

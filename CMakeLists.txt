@@ -394,3 +394,9 @@ endif()
 # Packaging configuration
 include(cmake/packaging.cmake)
 
+add_custom_target(build_cleaner
+  COMMAND ${CMAKE_COMMAND} -E echo "Running scripts/build_cleaner.py --dry-run"
+  COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${Python3_EXECUTABLE} scripts/build_cleaner.py --dry-run
+  COMMENT "Validate CMake source lists and includes"
+)
+
