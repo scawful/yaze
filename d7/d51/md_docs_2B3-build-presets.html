@@ -101,111 +101,236 @@ $(document).ready(function(){initNavTree('d7/d51/md_docs_2B3-build-presets.html'
   <div class="headertitle"><div class="title">Build Presets Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md144"></a> CMake presets for development workflow and architecture-specific builds.</p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md144"></a> This document explains the reorganized CMake preset system for Yaze.</p>
 <h1><a class="anchor" id="autotoc_md145"></a>
-🍎 macOS ARM64 Presets (Recommended for Apple Silicon)</h1>
-<h2><a class="anchor" id="autotoc_md146"></a>
-For Development Work:</h2>
-<div class="fragment"><div class="line"># ARM64-only development build with ROM testing</div>
-<div class="line">cmake --preset macos-dev</div>
-<div class="line">cmake --build --preset macos-dev</div>
+Design Principles</h1>
+<ol type="1">
+<li><b>Short, memorable names</b> - No more <code>macos-dev-z3ed-ai</code>, just <code>mac-ai</code></li>
+<li><b>Warnings off by default</b> - Add <code>-v</code> suffix for verbose (e.g., <code>mac-dbg-v</code>)</li>
+<li><b>Clear architecture support</b> - Explicit ARM64 and x86_64 presets</li>
+<li><b>Platform prefixes</b> - <code>mac-</code>, <code>win-</code>, <code>lin-</code> for easy identification</li>
+</ol>
+<h1><a class="anchor" id="autotoc_md146"></a>
+Quick Start</h1>
+<h2><a class="anchor" id="autotoc_md147"></a>
+macOS Development</h2>
+<div class="fragment"><div class="line"># Most common: AI-enabled development</div>
+<div class="line">cmake --preset mac-ai</div>
+<div class="line">cmake --build --preset mac-ai</div>
 <div class="line"> </div>
-<div class="line"># ARM64-only debug build </div>
-<div class="line">cmake --preset macos-debug</div>
-<div class="line">cmake --build --preset macos-debug</div>
+<div class="line"># Basic debug build (no AI)</div>
+<div class="line">cmake --preset mac-dbg</div>
+<div class="line">cmake --build --preset mac-dbg</div>
 <div class="line"> </div>
-<div class="line"># ARM64-only release build</div>
-<div class="line">cmake --preset macos-release  </div>
-<div class="line">cmake --build --preset macos-release</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md147"></a>
-For Distribution:</h2>
-<div class="fragment"><div class="line"># Universal binary (ARM64 + x86_64) - use only when needed for distribution</div>
-<div class="line">cmake --preset macos-debug-universal</div>
-<div class="line">cmake --build --preset macos-debug-universal</div>
+<div class="line"># Verbose warnings for debugging</div>
+<div class="line">cmake --preset mac-dbg-v</div>
+<div class="line">cmake --build --preset mac-dbg-v</div>
 <div class="line"> </div>
-<div class="line">cmake --preset macos-release-universal</div>
-<div class="line">cmake --build --preset macos-release-universal</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md148"></a>
-🔧 Why This Fixes Architecture Errors</h1>
-<p><b>Problem</b>: The original presets used <code>CMAKE_OSX_ARCHITECTURES: "x86_64;arm64"</code> which forced CMake to build universal binaries. This caused issues because:</p><ul>
-<li>Dependencies like Abseil tried to use x86 SSE instructions (<code>-msse4.1</code>)</li>
-<li>These instructions don't exist on ARM64 processors</li>
-<li>Build failed with "unsupported option '-msse4.1' for target 'arm64-apple-darwin'"</li>
-</ul>
-<p><b>Solution</b>: The new ARM64-only presets use <code>CMAKE_OSX_ARCHITECTURES: "arm64"</code> which:</p><ul>
-<li>✅ Only targets ARM64 architecture <br  />
-</li>
-<li>✅ Prevents x86-specific instruction usage</li>
-<li>✅ Uses ARM64 optimizations instead</li>
-<li>✅ Builds much faster (no cross-compilation)</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md149"></a>
-📋 Available Presets</h1>
+<div class="line"># Release build</div>
+<div class="line">cmake --preset mac-rel</div>
+<div class="line">cmake --build --preset mac-rel</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md148"></a>
+Windows Development</h2>
+<div class="fragment"><div class="line"># Debug build (x64)</div>
+<div class="line">cmake --preset win-dbg</div>
+<div class="line">cmake --build --preset win-dbg</div>
+<div class="line"> </div>
+<div class="line"># AI-enabled development</div>
+<div class="line">cmake --preset win-ai</div>
+<div class="line">cmake --build --preset win-ai</div>
+<div class="line"> </div>
+<div class="line"># ARM64 support</div>
+<div class="line">cmake --preset win-arm</div>
+<div class="line">cmake --build --preset win-arm</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md149"></a>
+All Presets</h1>
+<h2><a class="anchor" id="autotoc_md150"></a>
+macOS Presets</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Preset Name   </th><th class="markdownTableHeadNone">Architecture   </th><th class="markdownTableHeadNone">Purpose   </th><th class="markdownTableHeadNone">ROM Tests    </th></tr>
+<th class="markdownTableHeadNone">Preset   </th><th class="markdownTableHeadNone">Description   </th><th class="markdownTableHeadNone">Arch   </th><th class="markdownTableHeadNone">Warnings   </th><th class="markdownTableHeadNone">Features    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>macos-dev</code>   </td><td class="markdownTableBodyNone">ARM64 only   </td><td class="markdownTableBodyNone">Development   </td><td class="markdownTableBodyNone">✅ Enabled    </td></tr>
+<td class="markdownTableBodyNone"><code>mac-dbg</code>   </td><td class="markdownTableBodyNone">Debug build   </td><td class="markdownTableBodyNone">ARM64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">Basic    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>macos-debug</code>   </td><td class="markdownTableBodyNone">ARM64 only   </td><td class="markdownTableBodyNone">Debug builds   </td><td class="markdownTableBodyNone">❌ Disabled    </td></tr>
+<td class="markdownTableBodyNone"><code>mac-dbg-v</code>   </td><td class="markdownTableBodyNone">Debug verbose   </td><td class="markdownTableBodyNone">ARM64   </td><td class="markdownTableBodyNone">On   </td><td class="markdownTableBodyNone">Basic    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>macos-release</code>   </td><td class="markdownTableBodyNone">ARM64 only   </td><td class="markdownTableBodyNone">Release builds   </td><td class="markdownTableBodyNone">❌ Disabled    </td></tr>
+<td class="markdownTableBodyNone"><code>mac-rel</code>   </td><td class="markdownTableBodyNone">Release   </td><td class="markdownTableBodyNone">ARM64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">Basic    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone"><code>macos-debug-universal</code>   </td><td class="markdownTableBodyNone">Universal   </td><td class="markdownTableBodyNone">Distribution debug   </td><td class="markdownTableBodyNone">❌ Disabled    </td></tr>
+<td class="markdownTableBodyNone"><code>mac-x64</code>   </td><td class="markdownTableBodyNone">Debug x86_64   </td><td class="markdownTableBodyNone">x86_64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">Basic    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone"><code>macos-release-universal</code>   </td><td class="markdownTableBodyNone">Universal   </td><td class="markdownTableBodyNone">Distribution release   </td><td class="markdownTableBodyNone">❌ Disabled   </td></tr>
+<td class="markdownTableBodyNone"><code>mac-uni</code>   </td><td class="markdownTableBodyNone">Universal binary   </td><td class="markdownTableBodyNone">Both   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">Basic    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>mac-dev</code>   </td><td class="markdownTableBodyNone">Development   </td><td class="markdownTableBodyNone">ARM64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">ROM tests    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>mac-ai</code>   </td><td class="markdownTableBodyNone">AI development   </td><td class="markdownTableBodyNone">ARM64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">z3ed, JSON, gRPC, ROM tests    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>mac-z3ed</code>   </td><td class="markdownTableBodyNone">z3ed CLI   </td><td class="markdownTableBodyNone">ARM64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">AI agent support    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>mac-rooms</code>   </td><td class="markdownTableBodyNone">Dungeon editor   </td><td class="markdownTableBodyNone">ARM64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">Minimal build for room editing   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md150"></a>
-🚀 Quick Start</h1>
-<p>For most development work on Apple Silicon:</p>
-<div class="fragment"><div class="line"># Clean build</div>
-<div class="line">rm -rf build</div>
-<div class="line"> </div>
-<div class="line"># Configure for ARM64 development</div>
-<div class="line">cmake --preset macos-dev</div>
-<div class="line"> </div>
-<div class="line"># Build</div>
-<div class="line">cmake --build --preset macos-dev</div>
-<div class="line"> </div>
-<div class="line"># Run tests  </div>
-<div class="line">cmake --build --preset macos-dev --target test</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md151"></a>
-🛠️ IDE Integration</h1>
+<h2><a class="anchor" id="autotoc_md151"></a>
+Windows Presets</h2>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Preset   </th><th class="markdownTableHeadNone">Description   </th><th class="markdownTableHeadNone">Arch   </th><th class="markdownTableHeadNone">Warnings   </th><th class="markdownTableHeadNone">Features    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>win-dbg</code>   </td><td class="markdownTableBodyNone">Debug build   </td><td class="markdownTableBodyNone">x64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">Basic    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>win-dbg-v</code>   </td><td class="markdownTableBodyNone">Debug verbose   </td><td class="markdownTableBodyNone">x64   </td><td class="markdownTableBodyNone">On   </td><td class="markdownTableBodyNone">Basic    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>win-rel</code>   </td><td class="markdownTableBodyNone">Release   </td><td class="markdownTableBodyNone">x64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">Basic    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>win-arm</code>   </td><td class="markdownTableBodyNone">Debug ARM64   </td><td class="markdownTableBodyNone">ARM64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">Basic    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>win-arm-rel</code>   </td><td class="markdownTableBodyNone">Release ARM64   </td><td class="markdownTableBodyNone">ARM64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">Basic    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>win-dev</code>   </td><td class="markdownTableBodyNone">Development   </td><td class="markdownTableBodyNone">x64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">ROM tests    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>win-ai</code>   </td><td class="markdownTableBodyNone">AI development   </td><td class="markdownTableBodyNone">x64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">z3ed, JSON, gRPC, ROM tests    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>win-z3ed</code>   </td><td class="markdownTableBodyNone">z3ed CLI   </td><td class="markdownTableBodyNone">x64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">AI agent support   </td></tr>
+</table>
 <h2><a class="anchor" id="autotoc_md152"></a>
-VS Code with CMake Tools:</h2>
-<ol type="1">
-<li>Open Command Palette (<code>Cmd+Shift+P</code>)</li>
-<li>Run "CMake: Select Configure Preset"</li>
-<li>Choose <code>macos-dev</code> or <code>macos-debug</code></li>
-</ol>
+Linux Presets</h2>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Preset   </th><th class="markdownTableHeadNone">Description   </th><th class="markdownTableHeadNone">Compiler   </th><th class="markdownTableHeadNone">Warnings    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>lin-dbg</code>   </td><td class="markdownTableBodyNone">Debug   </td><td class="markdownTableBodyNone">GCC   </td><td class="markdownTableBodyNone">Off    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>lin-clang</code>   </td><td class="markdownTableBodyNone">Debug   </td><td class="markdownTableBodyNone">Clang   </td><td class="markdownTableBodyNone">Off   </td></tr>
+</table>
 <h2><a class="anchor" id="autotoc_md153"></a>
-CLion:</h2>
+Special Purpose</h2>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Preset   </th><th class="markdownTableHeadNone">Description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>ci</code>   </td><td class="markdownTableBodyNone">Continuous integration (no ROM tests)    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>asan</code>   </td><td class="markdownTableBodyNone">AddressSanitizer build    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>coverage</code>   </td><td class="markdownTableBodyNone">Code coverage build   </td></tr>
+</table>
+<h1><a class="anchor" id="autotoc_md154"></a>
+Warning Control</h1>
+<p>By default, all presets suppress compiler warnings with <code>-w</code> for a cleaner build experience.</p>
+<h2><a class="anchor" id="autotoc_md155"></a>
+To Enable Verbose Warnings:</h2>
 <ol type="1">
-<li>Go to Settings → Build, Execution, Deployment → CMake</li>
-<li>Add new profile with preset <code>macos-dev</code></li>
+<li>Use a preset with <code>-v</code> suffix (e.g., <code>mac-dbg-v</code>, <code>win-dbg-v</code>)</li>
+<li>Or set <code>YAZE_SUPPRESS_WARNINGS=OFF</code> manually: <div class="fragment"><div class="line">cmake --preset mac-dbg -DYAZE_SUPPRESS_WARNINGS=OFF</div>
+</div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md154"></a>
-Xcode:</h2>
-<div class="fragment"><div class="line"># Generate Xcode project</div>
-<div class="line">cmake --preset macos-debug -G Xcode</div>
-<div class="line">open build/yaze.xcodeproj</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md155"></a>
-🔍 Troubleshooting</h1>
-<p>If you still get architecture errors:</p><ol type="1">
-<li><b>Clean completely</b>: <code>rm -rf build</code></li>
-<li><b>Check preset</b>: Ensure you're using an ARM64 preset (not universal)</li>
-<li><b>Verify configuration</b>: Check that <code>CMAKE_OSX_ARCHITECTURES</code> shows only <code>arm64</code></li>
-</ol>
-<div class="fragment"><div class="line"># Verify architecture setting</div>
-<div class="line">cmake --preset macos-debug</div>
-<div class="line">grep -A 5 -B 5 &quot;CMAKE_OSX_ARCHITECTURES&quot; build/CMakeCache.txt</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md156"></a>
-📝 Notes</h1>
+<h1><a class="anchor" id="autotoc_md156"></a>
+Architecture Support</h1>
+<h2><a class="anchor" id="autotoc_md157"></a>
+macOS</h2>
 <ul>
-<li><b>ARM64 presets</b>: Fast builds, no architecture conflicts</li>
-<li><b>Universal presets</b>: Slower builds, for distribution only</li>
-<li><b>Deployment target</b>: ARM64 presets use macOS 11.0+ (when Apple Silicon was introduced)</li>
-<li><b>Universal presets</b>: Still support macOS 10.15+ for backward compatibility </li>
+<li><b>ARM64 (Apple Silicon)</b>: <code>mac-dbg</code>, <code>mac-rel</code>, <code>mac-ai</code>, etc.</li>
+<li><b>x86_64 (Intel)</b>: <code>mac-x64</code></li>
+<li><b>Universal Binary</b>: <code>mac-uni</code> (both ARM64 + x86_64)</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md158"></a>
+Windows</h2>
+<ul>
+<li><b>x64</b>: <code>win-dbg</code>, <code>win-rel</code>, <code>win-ai</code>, etc.</li>
+<li><b>ARM64</b>: <code>win-arm</code>, <code>win-arm-rel</code></li>
+</ul>
+<h1><a class="anchor" id="autotoc_md159"></a>
+Build Directories</h1>
+<p>Most presets use <code>build/</code> directory. Exceptions:</p><ul>
+<li><code>mac-rooms</code>: Uses <code>build_rooms/</code> to avoid conflicts</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md160"></a>
+Feature Flags</h1>
+<p>Common CMake options you can override:</p>
+<div class="fragment"><div class="line"># Enable/disable components</div>
+<div class="line">-DYAZE_BUILD_TESTS=ON/OFF</div>
+<div class="line">-DYAZE_BUILD_Z3ED=ON/OFF</div>
+<div class="line">-DYAZE_BUILD_EMU=ON/OFF</div>
+<div class="line">-DYAZE_BUILD_APP=ON/OFF</div>
+<div class="line"> </div>
+<div class="line"># AI features</div>
+<div class="line">-DZ3ED_AI=ON/OFF</div>
+<div class="line">-DYAZE_WITH_JSON=ON/OFF</div>
+<div class="line">-DYAZE_WITH_GRPC=ON/OFF</div>
+<div class="line"> </div>
+<div class="line"># Testing</div>
+<div class="line">-DYAZE_ENABLE_ROM_TESTS=ON/OFF</div>
+<div class="line">-DYAZE_TEST_ROM_PATH=/path/to/zelda3.sfc</div>
+<div class="line"> </div>
+<div class="line"># Build optimization</div>
+<div class="line">-DYAZE_MINIMAL_BUILD=ON/OFF</div>
+<div class="line">-DYAZE_USE_MODULAR_BUILD=ON/OFF</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md161"></a>
+Examples</h1>
+<h2><a class="anchor" id="autotoc_md162"></a>
+Development with AI features and verbose warnings</h2>
+<div class="fragment"><div class="line">cmake --preset mac-dbg-v -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON</div>
+<div class="line">cmake --build --preset mac-dbg-v</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md163"></a>
+Release build for distribution (macOS Universal)</h2>
+<div class="fragment"><div class="line">cmake --preset mac-uni</div>
+<div class="line">cmake --build --preset mac-uni</div>
+<div class="line">cpack --preset mac-uni</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md164"></a>
+Quick minimal build for testing</h2>
+<div class="fragment"><div class="line">cmake --preset mac-dbg -DYAZE_MINIMAL_BUILD=ON</div>
+<div class="line">cmake --build --preset mac-dbg -j12</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md165"></a>
+Updating compile_commands.json</h1>
+<p>After configuring with a new preset, copy the compile commands for IDE support:</p>
+<div class="fragment"><div class="line">cp build/compile_commands.json .</div>
+</div><!-- fragment --><p>This ensures clangd and other LSP servers can find headers and understand build flags.</p>
+<h1><a class="anchor" id="autotoc_md166"></a>
+Migration from Old Presets</h1>
+<p>Old preset names have been simplified:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Old Name   </th><th class="markdownTableHeadNone">New Name    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>macos-dev-z3ed-ai</code>   </td><td class="markdownTableBodyNone"><code>mac-ai</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>macos-debug</code>   </td><td class="markdownTableBodyNone"><code>mac-dbg</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>macos-release</code>   </td><td class="markdownTableBodyNone"><code>mac-rel</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>macos-debug-universal</code>   </td><td class="markdownTableBodyNone"><code>mac-uni</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>macos-dungeon-dev</code>   </td><td class="markdownTableBodyNone"><code>mac-rooms</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>windows-debug</code>   </td><td class="markdownTableBodyNone"><code>win-dbg</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>windows-release</code>   </td><td class="markdownTableBodyNone"><code>win-rel</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>windows-arm64-debug</code>   </td><td class="markdownTableBodyNone"><code>win-arm</code>    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>linux-debug</code>   </td><td class="markdownTableBodyNone"><code>lin-dbg</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>linux-clang</code>   </td><td class="markdownTableBodyNone"><code>lin-clang</code>   </td></tr>
+</table>
+<h1><a class="anchor" id="autotoc_md167"></a>
+Troubleshooting</h1>
+<h2><a class="anchor" id="autotoc_md168"></a>
+Warnings are still showing</h2>
+<ul>
+<li>Make sure you're using a preset without <code>-v</code> suffix</li>
+<li>Check <code>cmake</code> output for <code>✓ Warnings suppressed</code> message</li>
+<li>Reconfigure and rebuild: <code>rm -rf build &amp;&amp; cmake --preset mac-dbg</code></li>
+</ul>
+<h2><a class="anchor" id="autotoc_md169"></a>
+clangd can't find nlohmann/json</h2>
+<ul>
+<li>Run <code>cmake --preset &lt;your-preset&gt;</code> to regenerate compile_commands.json</li>
+<li>Copy to root: <code>cp build/compile_commands.json .</code></li>
+<li>Restart your IDE or LSP server</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md170"></a>
+Build fails with missing dependencies</h2>
+<ul>
+<li>Ensure submodules are initialized: <code>git submodule update --init --recursive</code></li>
+<li>For AI features, make sure you have OpenSSL: <code>brew install openssl</code> (macOS) </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

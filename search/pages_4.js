@@ -4,6 +4,6 @@ var searchData=
   ['editor_1',['yaze - Yet Another Zelda3 Editor',['../d0/d30/md_README.html',1,'']]],
   ['editor_20module_2',['Agent Editor Module',['../d6/df7/md_src_2app_2editor_2agent_2README.html',1,'']]],
   ['editor_20palette_20system_3',['Tile16 Editor Palette System',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'']]],
-  ['editor_3a_20master_20guide_4',['Yaze Dungeon Editor: Master Guide',['../d5/dde/md_docs_2dungeon__editor__master__guide.html',1,'']]],
+  ['editor_3a_20master_20guide_4',['Yaze Dungeon Editor: Master Guide',['../d5/d47/md_docs_2D2-dungeon-editor-guide.html',1,'']]],
   ['end_20to_20end_20e2e_20tests_5',['End-to-End (E2E) Tests',['../d9/db0/md_test_2e2e_2README.html',1,'']]]
 ];

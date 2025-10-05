@@ -1,0 +1,12 @@
+<map id="yaze::editor::ProjectFileEditor::SaveFile" name="yaze::editor::ProjectFileEditor::SaveFile">
+<area shape="rect" id="Node000001" title="Save the current editor contents to disk." alt="" coords="5,71,159,111"/>
+<area shape="rect" id="Node000002" href="$d8/ddf/classyaze_1_1editor_1_1ProjectFileEditor.html#a35c9b854579c0e15613af1e2a0f6e8c2" title="Save to a new file path." alt="" coords="207,71,360,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,88,191,88,191,94,159,94"/>
+<area shape="rect" id="Node000003" href="$d8/ddf/classyaze_1_1editor_1_1ProjectFileEditor.html#afb0116cc3fd3dbc12af513d5c52238c1" title="Get the current filepath." alt="" coords="433,5,586,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="355,68,422,48,423,53,357,73"/>
+<area shape="rect" id="Node000004" href="$d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html#a5d27da46038aed6b42243f1010ee043d" title=" " alt="" coords="408,71,611,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="360,88,392,88,392,94,360,94"/>
+<area shape="rect" id="Node000005" href="$d0/d28/classTextEditor.html#a581e92e7aff81a99dcd1ab8dcc95e909" title=" " alt="" coords="444,160,575,185"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="343,109,458,151,456,156,341,114"/>
+<area shape="poly" id="edge5_Node000005_Node000005" title=" " alt="" coords="472,161,465,151,469,141,484,135,510,133,537,136,551,142,549,147,536,141,510,138,486,140,473,145,470,150,476,157"/>
+</map>

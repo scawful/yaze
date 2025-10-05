@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['updated_20ollama_20integration_20status_0',['Ollama Integration Status - Updated# Ollama Integration Status',['../da/d40/md_docs_2ollama__integration__status.html',1,'']]]
+  ['workflows_20documentation_0',['Release Workflows Documentation',['../d3/d49/md_docs_2B4-release-workflows.html',1,'']]]
 ];

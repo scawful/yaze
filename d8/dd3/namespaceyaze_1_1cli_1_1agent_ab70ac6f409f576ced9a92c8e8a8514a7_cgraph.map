@@ -1,0 +1,8 @@
+<map id="yaze::cli::agent::HandleMessageReadCommand" name="yaze::cli::agent::HandleMessageReadCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,169,70"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="43,29,41,19,48,10,63,5,87,3,112,5,127,11,125,16,111,10,87,8,65,10,51,15,46,21,48,28"/>
+<area shape="rect" id="Node000002" href="$db/d13/namespaceyaze_1_1cli_1_1message.html#a903be95b49aa0210501c6bed2c89c25f" title="Read a specific message by ID." alt="" coords="217,29,427,70"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="169,47,201,47,201,52,169,52"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="475,37,616,63"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="427,47,460,47,460,52,427,52"/>
+</map>

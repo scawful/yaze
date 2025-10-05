@@ -3,6 +3,7 @@ var project_8h =
     [ "yaze::core::ProjectMetadata", "d8/d0c/structyaze_1_1core_1_1ProjectMetadata.html", "d8/d0c/structyaze_1_1core_1_1ProjectMetadata" ],
     [ "yaze::core::WorkspaceSettings", "d1/def/structyaze_1_1core_1_1WorkspaceSettings.html", "d1/def/structyaze_1_1core_1_1WorkspaceSettings" ],
     [ "yaze::core::YazeProject", "da/d5e/structyaze_1_1core_1_1YazeProject.html", "da/d5e/structyaze_1_1core_1_1YazeProject" ],
+    [ "yaze::core::YazeProject::AgentSettings", "d4/db6/structyaze_1_1core_1_1YazeProject_1_1AgentSettings.html", "d4/db6/structyaze_1_1core_1_1YazeProject_1_1AgentSettings" ],
     [ "yaze::core::ProjectManager", "d9/d7f/classyaze_1_1core_1_1ProjectManager.html", "d9/d7f/classyaze_1_1core_1_1ProjectManager" ],
     [ "yaze::core::ProjectManager::ProjectTemplate", "d1/d47/structyaze_1_1core_1_1ProjectManager_1_1ProjectTemplate.html", "d1/d47/structyaze_1_1core_1_1ProjectManager_1_1ProjectTemplate" ],
     [ "yaze::core::ResourceLabelManager", "d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html", "d8/d4d/structyaze_1_1core_1_1ResourceLabelManager" ],

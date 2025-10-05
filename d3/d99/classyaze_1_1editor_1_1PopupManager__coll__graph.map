@@ -1,13 +1,11 @@
 <map id="yaze::editor::PopupManager" name="yaze::editor::PopupManager">
-<area shape="rect" id="Node000001" title=" " alt="" coords="107,271,285,297"/>
-<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="109,183,283,208"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,224,199,271,194,271,194,224"/>
-<area shape="rect" id="Node000003" href="$dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html" title="ImGui drawer for displaying and managing agent proposals." alt="" coords="105,94,288,120"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="199,135,199,182,194,182,194,135"/>
-<area shape="rect" id="Node000005" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="156,5,236,31"/>
-<area shape="poly" id="edge6_Node000002_Node000005" title=" " alt="" coords="141,28,107,36,73,50,41,69,15,95,9,111,10,125,19,137,33,148,74,167,122,180,121,185,73,172,30,153,15,141,5,127,4,110,11,93,37,65,70,45,106,31,140,23"/>
-<area shape="poly" id="edge3_Node000003_Node000005" title=" " alt="" coords="199,47,199,94,194,94,194,47"/>
-<area shape="rect" id="Node000009" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html" title="A class for emulating and debugging SNES games." alt="" coords="313,94,448,120"/>
-<area shape="poly" id="edge5_Node000009_Node000005" title=" " alt="" coords="237,36,356,91,353,96,235,41"/>
-<area shape="poly" id="edge4_Node000002_Node000009" title=" " alt="" coords="355,131,308,161,245,185,243,180,306,156,352,127"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="200,198,378,223"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="202,109,376,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="292,150,292,197,286,197,286,150"/>
+<area shape="rect" id="Node000003" href="$dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html" title="ImGui drawer for displaying and managing agent proposals." alt="" coords="5,13,189,39"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="124,46,180,83,241,106,240,111,177,87,121,51"/>
+<area shape="rect" id="Node000009" href="$d8/ddf/classyaze_1_1editor_1_1ProjectFileEditor.html" title="Editor for .yaze project files with syntax highlighting and validation." alt="" coords="212,5,366,46"/>
+<area shape="poly" id="edge3_Node000002_Node000009" title=" " alt="" coords="292,61,292,109,286,109,286,61"/>
+<area shape="rect" id="Node000015" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html" title="A class for emulating and debugging SNES games." alt="" coords="389,13,525,39"/>
+<area shape="poly" id="edge4_Node000002_Node000015" title=" " alt="" coords="442,53,426,71,406,87,379,101,351,111,349,106,377,96,404,83,422,67,438,49"/>
 </map>

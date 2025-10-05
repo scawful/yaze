@@ -1,0 +1,9 @@
+<map id="yaze::editor::AgentChatWidget::RenderAgentConfigPanel" name="yaze::editor::AgentChatWidget::RenderAgentConfigPanel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,198,79"/>
+<area shape="rect" id="Node000002" href="$d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ab4cd3a172c1e8a2812b241dd2aa5a131" title=" " alt="" coords="246,39,438,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,56,230,56,230,62,198,62"/>
+<area shape="rect" id="Node000003" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a3b0b9eb3ac507453fe4b81117714557d" title=" " alt="" coords="486,5,682,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="438,43,470,39,471,44,439,48"/>
+<area shape="rect" id="Node000004" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="497,71,671,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="439,69,482,75,482,80,438,74"/>
+</map>

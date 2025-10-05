@@ -1,0 +1,14 @@
+<map id="yaze::cli::overworld::AnalyzeTileUsage" name="yaze::cli::overworld::AnalyzeTileUsage">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,137,145"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="37,104,35,94,41,85,53,79,71,77,91,80,102,86,100,91,89,85,71,83,54,85,44,89,40,95,42,103"/>
+<area shape="rect" id="Node000002" href="$d5/d93/namespaceyaze_1_1cli_1_1overworld.html#ac2d02e383f9bfe555d8706160b6e658c" title=" " alt="" coords="185,73,313,114"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="137,110,169,105,170,110,138,116"/>
+<area shape="rect" id="Node000004" href="$d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a170ae015f55b42c7e0387caa4725264e" title=" " alt="" coords="363,136,515,177"/>
+<area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="137,127,347,146,347,151,137,133"/>
+<area shape="poly" id="edge3_Node000002_Node000002" title=" " alt="" coords="215,73,213,63,219,54,231,49,249,47,268,49,280,55,277,60,267,54,249,52,232,54,222,58,218,64,220,72"/>
+<area shape="rect" id="Node000003" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#aaf829190011d16662c756ae1cc6f2688" title=" " alt="" coords="361,5,516,46"/>
+<area shape="poly" id="edge4_Node000002_Node000003" title=" " alt="" coords="307,70,365,49,367,54,309,75"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="313,112,361,128,359,133,312,117"/>
+<area shape="rect" id="Node000005" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a06d8d1c0415daa5b721bd312f239f049" title=" " alt="" coords="361,71,516,111"/>
+<area shape="poly" id="edge6_Node000002_Node000005" title=" " alt="" coords="313,90,345,90,345,95,314,95"/>
+</map>

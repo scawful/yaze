@@ -15,11 +15,12 @@ var searchData=
   ['enhancedpaletteeditor_12',['EnhancedPaletteEditor',['../df/d20/classyaze_1_1gui_1_1EnhancedPaletteEditor.html',1,'yaze::gui']]],
   ['enhancedtheme_13',['EnhancedTheme',['../d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html',1,'yaze::gui']]],
   ['entrancedata_14',['EntranceData',['../d3/d9b/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EntranceData.html',1,'yaze::zelda3::DungeonEditorSystem']]],
-  ['entranceinfo_15',['EntranceInfo',['../dc/dfb/structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html',1,'yaze::zelda3::EntranceTypes']]],
-  ['exampleapppropertyeditor_16',['ExampleAppPropertyEditor',['../de/d7d/structyaze_1_1editor_1_1ExampleAppPropertyEditor.html',1,'yaze::editor']]],
-  ['examplememberinfo_17',['ExampleMemberInfo',['../d5/db2/structyaze_1_1editor_1_1ExampleMemberInfo.html',1,'yaze::editor']]],
-  ['exampleselectionwithdeletion_18',['ExampleSelectionWithDeletion',['../d4/d4b/structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html',1,'yaze::gui']]],
-  ['exampletreenode_19',['ExampleTreeNode',['../d8/d9f/structyaze_1_1editor_1_1ExampleTreeNode.html',1,'yaze::editor']]],
-  ['expand_20',['Expand',['../d7/d30/classyaze_1_1cli_1_1Expand.html',1,'yaze::cli']]],
-  ['extensionmanager_21',['ExtensionManager',['../d8/d45/classyaze_1_1editor_1_1ExtensionManager.html',1,'yaze::editor']]]
+  ['entrancedetails_15',['EntranceDetails',['../d9/df8/structyaze_1_1cli_1_1overworld_1_1EntranceDetails.html',1,'yaze::cli::overworld']]],
+  ['entranceinfo_16',['EntranceInfo',['../dc/dfb/structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html',1,'yaze::zelda3::EntranceTypes']]],
+  ['exampleapppropertyeditor_17',['ExampleAppPropertyEditor',['../de/d7d/structyaze_1_1editor_1_1ExampleAppPropertyEditor.html',1,'yaze::editor']]],
+  ['examplememberinfo_18',['ExampleMemberInfo',['../d5/db2/structyaze_1_1editor_1_1ExampleMemberInfo.html',1,'yaze::editor']]],
+  ['exampleselectionwithdeletion_19',['ExampleSelectionWithDeletion',['../d4/d4b/structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html',1,'yaze::gui']]],
+  ['exampletreenode_20',['ExampleTreeNode',['../d8/d9f/structyaze_1_1editor_1_1ExampleTreeNode.html',1,'yaze::editor']]],
+  ['expand_21',['Expand',['../d7/d30/classyaze_1_1cli_1_1Expand.html',1,'yaze::cli']]],
+  ['extensionmanager_22',['ExtensionManager',['../d8/d45/classyaze_1_1editor_1_1ExtensionManager.html',1,'yaze::editor']]]
 ];

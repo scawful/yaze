@@ -1,0 +1,6 @@
+<map id="yaze::cli::overworld::CollectOverworldSprites" name="yaze::cli::overworld::CollectOverworldSprites">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,173,70"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="49,29,47,19,54,10,68,5,89,3,112,5,125,11,123,16,110,10,89,8,69,10,57,15,53,20,55,28"/>
+<area shape="rect" id="Node000002" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a3f756e95bf3daf66f09f1f09d69ff7b0" title=" " alt="" coords="221,29,376,70"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="173,47,205,47,205,52,173,52"/>
+</map>

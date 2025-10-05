@@ -6,6 +6,8 @@ var dir_1803ec2ac2120f8427544b062f2515ae =
     [ "compress.cc", "da/d6b/compress_8cc.html", null ],
     [ "dungeon.cc", "dc/d42/dungeon_8cc.html", "dc/d42/dungeon_8cc" ],
     [ "gfx.cc", "d7/dfd/gfx_8cc.html", "d7/dfd/gfx_8cc" ],
+    [ "message.cc", "d4/d7a/message_8cc.html", "d4/d7a/message_8cc" ],
+    [ "message.h", "d2/d0d/message_8h.html", "d2/d0d/message_8h" ],
     [ "overworld.cc", "df/d93/cli_2handlers_2overworld_8cc.html", "df/d93/cli_2handlers_2overworld_8cc" ],
     [ "overworld_inspect.cc", "d0/dfd/overworld__inspect_8cc.html", "d0/dfd/overworld__inspect_8cc" ],
     [ "overworld_inspect.h", "df/d12/overworld__inspect_8h.html", "df/d12/overworld__inspect_8h" ],

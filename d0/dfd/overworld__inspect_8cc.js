@@ -14,6 +14,9 @@ var overworld__inspect_8cc =
     [ "BuildMapSummary", "d0/dfd/overworld__inspect_8cc.html#a217f7e2eaa9da157d195e045be67d87b", null ],
     [ "CollectWarpEntries", "d0/dfd/overworld__inspect_8cc.html#a30c82e946374c5fb06b0f44db5792033", null ],
     [ "FindTileMatches", "d0/dfd/overworld__inspect_8cc.html#ac2d02e383f9bfe555d8706160b6e658c", null ],
+    [ "CollectOverworldSprites", "d0/dfd/overworld__inspect_8cc.html#aa23de2fc506c7b636ce4ad29ecdc9823", null ],
+    [ "GetEntranceDetails", "d0/dfd/overworld__inspect_8cc.html#aa01c89ff51950ce7ef2aacce1b224fc6", null ],
+    [ "AnalyzeTileUsage", "d0/dfd/overworld__inspect_8cc.html#a574fec16a6b0e5343423968948610c0b", null ],
     [ "kLightWorldOffset", "d0/dfd/overworld__inspect_8cc.html#a39edb5cac44052cc30a8a1216b463e91", null ],
     [ "kDarkWorldOffset", "d0/dfd/overworld__inspect_8cc.html#a6151290a03e462ef75ec9c3b0a17b400", null ],
     [ "kSpecialWorldOffset", "d0/dfd/overworld__inspect_8cc.html#ac9e1d3a917be50864aa4b03a63f3ab6e", null ]

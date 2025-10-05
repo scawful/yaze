@@ -12,7 +12,7 @@ var searchData=
   ['objectbytes_9',['ObjectBytes',['../d1/d0e/structyaze_1_1zelda3_1_1RoomObject_1_1ObjectBytes.html',1,'yaze::zelda3::RoomObject']]],
   ['objectcategory_10',['ObjectCategory',['../da/d2d/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectCategory.html',1,'yaze::zelda3::ObjectCategories']]],
   ['objectinfo_11',['ObjectInfo',['../da/d35/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectInfo.html',1,'yaze::zelda3::ObjectCategories']]],
-  ['objectparser_12',['objectparser',['../de/dab/classyaze_1_1zelda3_1_1ObjectRenderer_1_1ObjectParser.html',1,'yaze::zelda3::ObjectRenderer::ObjectParser'],['../d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html',1,'yaze::zelda3::ObjectParser']]],
+  ['objectparser_12',['objectparser',['../d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html',1,'yaze::zelda3::ObjectParser'],['../de/dab/classyaze_1_1zelda3_1_1ObjectRenderer_1_1ObjectParser.html',1,'yaze::zelda3::ObjectRenderer::ObjectParser']]],
   ['objectparserstructstest_13',['ObjectParserStructsTest',['../db/d4a/classyaze_1_1test_1_1ObjectParserStructsTest.html',1,'yaze::test']]],
   ['objectparsertest_14',['ObjectParserTest',['../d4/d80/classyaze_1_1test_1_1ObjectParserTest.html',1,'yaze::test']]],
   ['objectrendercache_15',['objectrendercache',['../d8/dbd/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1ObjectRenderCache.html',1,'yaze::editor::DungeonCanvasViewer::ObjectRenderCache'],['../d4/d03/structyaze_1_1editor_1_1DungeonRenderer_1_1ObjectRenderCache.html',1,'yaze::editor::DungeonRenderer::ObjectRenderCache']]],
@@ -48,5 +48,6 @@ var searchData=
   ['overworldmap_45',['OverworldMap',['../d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html',1,'yaze::zelda3']]],
   ['overworldmaptiles_46',['OverworldMapTiles',['../da/d54/structyaze_1_1zelda3_1_1OverworldMapTiles.html',1,'yaze::zelda3']]],
   ['overworldsettile_47',['OverworldSetTile',['../da/d7a/classyaze_1_1cli_1_1OverworldSetTile.html',1,'yaze::cli']]],
-  ['overworldtest_48',['OverworldTest',['../d3/ddf/classyaze_1_1zelda3_1_1OverworldTest.html',1,'yaze::zelda3']]]
+  ['overworldsprite_48',['OverworldSprite',['../d0/d4c/structyaze_1_1cli_1_1overworld_1_1OverworldSprite.html',1,'yaze::cli::overworld']]],
+  ['overworldtest_49',['OverworldTest',['../d3/ddf/classyaze_1_1zelda3_1_1OverworldTest.html',1,'yaze::zelda3']]]
 ];

@@ -1,0 +1,12 @@
+<map id="yaze::editor::AgentChatWidget::FileEditorTab" name="yaze::editor::AgentChatWidget::FileEditorTab">
+<area shape="rect" id="Node000001" title=" " alt="" coords="164,306,356,346"/>
+<area shape="rect" id="Node000002" href="$d0/d28/classTextEditor.html" title=" " alt="" coords="220,217,300,243"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="263,258,263,305,257,305,257,258"/>
+<area shape="rect" id="Node000003" href="$dd/d5f/structTextEditor_1_1EditorState.html" title=" " alt="" coords="185,126,335,152"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="263,167,263,217,257,217,257,167"/>
+<area shape="rect" id="Node000004" href="$d0/d95/structTextEditor_1_1Coordinates.html" title=" " alt="" coords="5,5,160,31"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="74,46,67,71,63,99,65,127,75,153,89,169,105,182,143,203,183,216,220,223,219,228,182,221,141,208,102,187,85,173,71,155,60,128,58,99,62,70,69,45"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="114,37,243,123,240,128,111,42"/>
+<area shape="rect" id="Node000005" href="$dd/dd2/structTextEditor_1_1LanguageDefinition.html" title=" " alt="" coords="358,126,554,152"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="416,161,287,219,285,214,414,156"/>
+</map>

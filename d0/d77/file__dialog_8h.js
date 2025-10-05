@@ -14,6 +14,8 @@ var file__dialog_8h =
     [ "LoadFile", "d0/d77/file__dialog_8h.html#a52189778cda85a731116f50ab603ca6c", null ],
     [ "LoadConfigFile", "d0/d77/file__dialog_8h.html#a7345775b8c056bb6c1b6f663eb7e25a8", null ],
     [ "GetConfigDirectory", "d0/d77/file__dialog_8h.html#af3dbed157830d6193bd5c7f74b8361a3", null ],
+    [ "EnsureConfigDirectoryExists", "d0/d77/file__dialog_8h.html#a3cfa361038ead681e092d79be406d517", null ],
+    [ "ExpandHomePath", "d0/d77/file__dialog_8h.html#a22ce5c0a708f5e0753b97f439ffe3464", null ],
     [ "GetResourcePath", "d0/d77/file__dialog_8h.html#a7ce3cf710bdabe4b53e4f92c41c00a34", null ],
     [ "SaveFile", "d0/d77/file__dialog_8h.html#ad2f59a19103453af1c33ddd072d81f07", null ]
 ];

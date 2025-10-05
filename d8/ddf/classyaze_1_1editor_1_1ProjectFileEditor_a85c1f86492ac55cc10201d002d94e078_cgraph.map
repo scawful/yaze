@@ -1,0 +1,5 @@
+<map id="yaze::editor::ProjectFileEditor::set_active" name="yaze::editor::ProjectFileEditor::set_active">
+<area shape="rect" id="Node000001" title="Set whether the editor window is active." alt="" coords="5,5,159,46"/>
+<area shape="rect" id="Node000002" href="$d8/ddf/classyaze_1_1editor_1_1ProjectFileEditor.html#a2aec91ae9e8cc7052718250b7009c6bc" title="Get pointer to active state for ImGui." alt="" coords="207,5,360,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,23,191,23,191,28,159,28"/>
+</map>

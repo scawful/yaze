@@ -124,8 +124,8 @@ Include dependency graph for flags.cc:</div>
 Functions</h2></td></tr>
 <tr class="memitem:a91812729dacce6b1853f0e70048b936c" id="r_a91812729dacce6b1853f0e70048b936c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d54/flags_8cc.html#a91812729dacce6b1853f0e70048b936c">ABSL_FLAG</a> (std::string, rom, &quot;&quot;, &quot;Path to the ROM file&quot;)</td></tr>
 <tr class="separator:a91812729dacce6b1853f0e70048b936c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1f6fb8d47230b1fb788244a4139c48c7" id="r_a1f6fb8d47230b1fb788244a4139c48c7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d54/flags_8cc.html#a1f6fb8d47230b1fb788244a4139c48c7">ABSL_FLAG</a> (std::string, ai_provider, &quot;mock&quot;, &quot;AI provider to use: 'mock' (default), 'ollama', or 'gemini'&quot;)</td></tr>
-<tr class="separator:a1f6fb8d47230b1fb788244a4139c48c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb90e2e657dfb9e765f3fb82b9f3ec3b" id="r_acb90e2e657dfb9e765f3fb82b9f3ec3b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d54/flags_8cc.html#acb90e2e657dfb9e765f3fb82b9f3ec3b">ABSL_FLAG</a> (std::string, ai_provider, &quot;auto&quot;, &quot;AI provider to use: 'auto' (try gemini→ollama→mock), 'gemini', 'ollama', or 'mock'&quot;)</td></tr>
+<tr class="separator:acb90e2e657dfb9e765f3fb82b9f3ec3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9fbebedc6687ed5eb887d7419dc1774" id="r_ab9fbebedc6687ed5eb887d7419dc1774"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d54/flags_8cc.html#ab9fbebedc6687ed5eb887d7419dc1774">ABSL_FLAG</a> (std::string, ai_model, &quot;&quot;, &quot;AI model to use (provider-specific, e.g., 'llama3' for Ollama, &quot; &quot;'gemini-1.5-flash' for Gemini)&quot;)</td></tr>
 <tr class="separator:ab9fbebedc6687ed5eb887d7419dc1774"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab4114b3da440bec2ad5c0789c7913261" id="r_ab4114b3da440bec2ad5c0789c7913261"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d54/flags_8cc.html#ab4114b3da440bec2ad5c0789c7913261">ABSL_FLAG</a> (std::string, gemini_api_key, &quot;&quot;, &quot;Gemini API key (can also use GEMINI_API_KEY environment variable)&quot;)</td></tr>
@@ -178,8 +178,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a1f6fb8d47230b1fb788244a4139c48c7" name="a1f6fb8d47230b1fb788244a4139c48c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1f6fb8d47230b1fb788244a4139c48c7">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[2/7]</span></h2>
+<a id="acb90e2e657dfb9e765f3fb82b9f3ec3b" name="acb90e2e657dfb9e765f3fb82b9f3ec3b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb90e2e657dfb9e765f3fb82b9f3ec3b">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[2/7]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -199,14 +199,20 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">&quot;mock&quot;&#160;</td>
+          <td class="paramtype">&quot;auto&quot;&#160;</td>
           <td class="paramname">, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">&quot;AI provider to use: 'mock' &#160;</td>
-          <td class="paramname">default, </td>
+          <td class="paramtype">&quot;AI provider to use: 'auto' &#160;</td>
+          <td class="paramname">try gemini→ollama→mock, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">'gemini'&#160;</td>
+          <td class="paramname">, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -217,7 +223,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">or 'gemini'&quot;&#160;</td>
+          <td class="paramtype">or 'mock'&quot;&#160;</td>
           <td class="paramname">&#160;</td>
         </tr>
         <tr>

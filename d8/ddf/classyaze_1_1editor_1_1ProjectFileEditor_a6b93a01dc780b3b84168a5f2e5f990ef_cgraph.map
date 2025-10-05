@@ -1,0 +1,5 @@
+<map id="yaze::editor::ProjectFileEditor::IsModified" name="yaze::editor::ProjectFileEditor::IsModified">
+<area shape="rect" id="Node000001" title="Get whether the file has unsaved changes." alt="" coords="5,5,159,46"/>
+<area shape="rect" id="Node000002" href="$d0/d28/classTextEditor.html#a520b40ab8db8cb72c8802329bca2f13c" title=" " alt="" coords="207,13,379,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,23,191,23,191,28,159,28"/>
+</map>

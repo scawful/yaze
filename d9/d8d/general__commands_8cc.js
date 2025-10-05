@@ -9,7 +9,7 @@ var general__commands_8cc =
     [ "HandleRunCommand", "d9/d8d/general__commands_8cc.html#a4c88dbe6c96f20bba8fd432738e1a528", null ],
     [ "HandlePlanCommand", "d9/d8d/general__commands_8cc.html#af164e32341de8c5ac58d6836bb3bc483", null ],
     [ "HandleDiffCommand", "d9/d8d/general__commands_8cc.html#ab7fbe1f4946d07411f70942eed73a58e", null ],
-    [ "HandleLearnCommand", "d9/d8d/general__commands_8cc.html#a7b1928126b1405fc4750106b308fa146", null ],
+    [ "HandleLearnCommand", "d9/d8d/general__commands_8cc.html#a57e8a6339d35643f00f52be1db745557", null ],
     [ "HandleListCommand", "d9/d8d/general__commands_8cc.html#aedb92c4f15ff24a3558fab3df8252ddb", null ],
     [ "HandleCommitCommand", "d9/d8d/general__commands_8cc.html#a748d73993407c29f729a58d7d109514b", null ],
     [ "HandleRevertCommand", "d9/d8d/general__commands_8cc.html#ac2a2ccb930ec7a842d23197aa6a43a51", null ],

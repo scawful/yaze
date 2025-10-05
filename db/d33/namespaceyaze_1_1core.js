@@ -56,6 +56,8 @@ var namespaceyaze_1_1core =
     [ "LoadConfigFile", "db/d33/namespaceyaze_1_1core.html#a7345775b8c056bb6c1b6f663eb7e25a8", null ],
     [ "SaveFile", "db/d33/namespaceyaze_1_1core.html#ad2f59a19103453af1c33ddd072d81f07", null ],
     [ "GetResourcePath", "db/d33/namespaceyaze_1_1core.html#a7ce3cf710bdabe4b53e4f92c41c00a34", null ],
+    [ "ExpandHomePath", "db/d33/namespaceyaze_1_1core.html#a22ce5c0a708f5e0753b97f439ffe3464", null ],
+    [ "EnsureConfigDirectoryExists", "db/d33/namespaceyaze_1_1core.html#a3cfa361038ead681e092d79be406d517", null ],
     [ "GetConfigDirectory", "db/d33/namespaceyaze_1_1core.html#af3dbed157830d6193bd5c7f74b8361a3", null ],
     [ "GetBundleResourcePath", "db/d33/namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5", null ],
     [ "LoadPackageFonts", "db/d33/namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd", null ],

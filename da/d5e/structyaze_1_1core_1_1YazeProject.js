@@ -1,5 +1,6 @@
 var structyaze_1_1core_1_1YazeProject =
 [
+    [ "AgentSettings", "d4/db6/structyaze_1_1core_1_1YazeProject_1_1AgentSettings.html", "d4/db6/structyaze_1_1core_1_1YazeProject_1_1AgentSettings" ],
     [ "Create", "da/d5e/structyaze_1_1core_1_1YazeProject.html#aa254bb42ffd51d5e0f2527549835912f", null ],
     [ "Open", "da/d5e/structyaze_1_1core_1_1YazeProject.html#a01c9181e16416e9999014de5ea21f9c4", null ],
     [ "Save", "da/d5e/structyaze_1_1core_1_1YazeProject.html#a874af571a34457bbf36fa3d710c89a77", null ],
@@ -45,6 +46,7 @@ var structyaze_1_1core_1_1YazeProject =
     [ "build_configurations", "da/d5e/structyaze_1_1core_1_1YazeProject.html#a9d7a6a9fcbb45b723ca17cb7bd987fdb", null ],
     [ "git_repository", "da/d5e/structyaze_1_1core_1_1YazeProject.html#a786bb2bd1ffba5f39ed8dcf67a78edd5", null ],
     [ "track_changes", "da/d5e/structyaze_1_1core_1_1YazeProject.html#a42b1c62ef42b5f23b9911921f6857859", null ],
+    [ "agent_settings", "da/d5e/structyaze_1_1core_1_1YazeProject.html#a1bdac4d4ca5b9368ba59122e09903b05", null ],
     [ "zscream_project_file", "da/d5e/structyaze_1_1core_1_1YazeProject.html#ac7cd96ac6b28d043989e0ec28da9af42", null ],
     [ "zscream_mappings", "da/d5e/structyaze_1_1core_1_1YazeProject.html#a0ef9040cae9819621476d87f8b09cf76", null ]
 ];

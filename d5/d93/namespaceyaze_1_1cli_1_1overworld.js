@@ -11,9 +11,13 @@ var namespaceyaze_1_1cli_1_1overworld =
       [ "kDarkWorldOffset", "d0/d27/namespaceyaze_1_1cli_1_1overworld_1_1anonymous__namespace_02overworld__inspect_8cc_03.html#a6151290a03e462ef75ec9c3b0a17b400", null ],
       [ "kSpecialWorldOffset", "d0/d27/namespaceyaze_1_1cli_1_1overworld_1_1anonymous__namespace_02overworld__inspect_8cc_03.html#ac9e1d3a917be50864aa4b03a63f3ab6e", null ]
     ] ],
+    [ "EntranceDetails", "d9/df8/structyaze_1_1cli_1_1overworld_1_1EntranceDetails.html", "d9/df8/structyaze_1_1cli_1_1overworld_1_1EntranceDetails" ],
     [ "MapSummary", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary" ],
+    [ "OverworldSprite", "d0/d4c/structyaze_1_1cli_1_1overworld_1_1OverworldSprite.html", "d0/d4c/structyaze_1_1cli_1_1overworld_1_1OverworldSprite" ],
+    [ "SpriteQuery", "d7/dd9/structyaze_1_1cli_1_1overworld_1_1SpriteQuery.html", "d7/dd9/structyaze_1_1cli_1_1overworld_1_1SpriteQuery" ],
     [ "TileMatch", "dd/d10/structyaze_1_1cli_1_1overworld_1_1TileMatch.html", "dd/d10/structyaze_1_1cli_1_1overworld_1_1TileMatch" ],
     [ "TileSearchOptions", "da/d5b/structyaze_1_1cli_1_1overworld_1_1TileSearchOptions.html", "da/d5b/structyaze_1_1cli_1_1overworld_1_1TileSearchOptions" ],
+    [ "TileStatistics", "de/d83/structyaze_1_1cli_1_1overworld_1_1TileStatistics.html", "de/d83/structyaze_1_1cli_1_1overworld_1_1TileStatistics" ],
     [ "WarpEntry", "d1/d67/structyaze_1_1cli_1_1overworld_1_1WarpEntry.html", "d1/d67/structyaze_1_1cli_1_1overworld_1_1WarpEntry" ],
     [ "WarpQuery", "d0/dcb/structyaze_1_1cli_1_1overworld_1_1WarpQuery.html", "d0/dcb/structyaze_1_1cli_1_1overworld_1_1WarpQuery" ],
     [ "WarpType", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a488562d98c871126f559038f340ba8cb", [
@@ -28,5 +32,8 @@ var namespaceyaze_1_1cli_1_1overworld =
     [ "WarpTypeName", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#ac2ede884549bbdc36e527cbdbc9be58f", null ],
     [ "BuildMapSummary", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a217f7e2eaa9da157d195e045be67d87b", null ],
     [ "CollectWarpEntries", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a30c82e946374c5fb06b0f44db5792033", null ],
-    [ "FindTileMatches", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#ac2d02e383f9bfe555d8706160b6e658c", null ]
+    [ "FindTileMatches", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#ac2d02e383f9bfe555d8706160b6e658c", null ],
+    [ "CollectOverworldSprites", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#aa23de2fc506c7b636ce4ad29ecdc9823", null ],
+    [ "GetEntranceDetails", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#aa01c89ff51950ce7ef2aacce1b224fc6", null ],
+    [ "AnalyzeTileUsage", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a574fec16a6b0e5343423968948610c0b", null ]
 ];

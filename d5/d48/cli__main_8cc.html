@@ -113,10 +113,11 @@ $(document).ready(function(){initNavTree('d5/d48/cli__main_8cc.html','../../'); 
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/flags/declare.h&quot;</code><br />
 <code>#include &quot;absl/flags/flag.h&quot;</code><br />
-<code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;absl/strings/match.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d8/d43/modern__cli_8h_source.html">cli/modern_cli.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../de/dab/tui_8h_source.html">cli/tui.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d1/d06/z3ed__ascii__logo_8h_source.html">cli/z3ed_ascii_logo.h</a>&quot;</code><br />
 <code>#include &quot;yaze_config.h&quot;</code><br />
 </div>
 <p><a href="../../d5/d48/cli__main_8cc_source.html">Go to the source code of this file.</a></p>
@@ -133,8 +134,12 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ad1f607cfb6c65380d2957cdfca942205" id="r_ad1f607cfb6c65380d2957cdfca942205"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#ad1f607cfb6c65380d2957cdfca942205">ABSL_FLAG</a> (bool, tui, false, &quot;Launch Text User Interface&quot;)</td></tr>
-<tr class="separator:ad1f607cfb6c65380d2957cdfca942205"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac59920fe19f2557d694ac0c6fff95805" id="r_ac59920fe19f2557d694ac0c6fff95805"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#ac59920fe19f2557d694ac0c6fff95805">ABSL_FLAG</a> (bool, tui, false, &quot;Launch interactive Text User Interface&quot;)</td></tr>
+<tr class="separator:ac59920fe19f2557d694ac0c6fff95805"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92993d878ac8be80d36bd2081f97e5df" id="r_a92993d878ac8be80d36bd2081f97e5df"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a92993d878ac8be80d36bd2081f97e5df">ABSL_FLAG</a> (bool, quiet, false, &quot;Suppress non-essential output&quot;)</td></tr>
+<tr class="separator:a92993d878ac8be80d36bd2081f97e5df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d2f63061810a7cafcc7c8f9c89c3d65" id="r_a9d2f63061810a7cafcc7c8f9c89c3d65"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a9d2f63061810a7cafcc7c8f9c89c3d65">ABSL_FLAG</a> (bool, version, false, &quot;Show version information&quot;)</td></tr>
+<tr class="separator:a9d2f63061810a7cafcc7c8f9c89c3d65"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa9c3df97146a4533c1c78f5ac7c9e36e" id="r_aa9c3df97146a4533c1c78f5ac7c9e36e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#aa9c3df97146a4533c1c78f5ac7c9e36e">ABSL_DECLARE_FLAG</a> (std::string, rom)</td></tr>
 <tr class="separator:aa9c3df97146a4533c1c78f5ac7c9e36e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d8b1270562eb5430ea7f2a61df78496" id="r_a0d8b1270562eb5430ea7f2a61df78496"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a0d8b1270562eb5430ea7f2a61df78496">ABSL_DECLARE_FLAG</a> (std::string, ai_provider)</td></tr>
@@ -149,18 +154,18 @@ Functions</h2></td></tr>
 <tr class="separator:aa50617a8a0f619a4290e7403f724b135"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0fa06b989502d4faa3b0a361b6e1cd2f" id="r_a0fa06b989502d4faa3b0a361b6e1cd2f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a0fa06b989502d4faa3b0a361b6e1cd2f">ABSL_DECLARE_FLAG</a> (bool, use_function_calling)</td></tr>
 <tr class="separator:a0fa06b989502d4faa3b0a361b6e1cd2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad35a54d3b6e1416ad4b24ab752fdeb09" id="r_ad35a54d3b6e1416ad4b24ab752fdeb09"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#ad35a54d3b6e1416ad4b24ab752fdeb09">ABSL_FLAG</a> (bool, quiet, false, &quot;Enable quiet mode for simple-chat.&quot;)</td></tr>
-<tr class="separator:ad35a54d3b6e1416ad4b24ab752fdeb09"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9e15e6f0cb42ef0d7e8e09d14c1429e" id="r_af9e15e6f0cb42ef0d7e8e09d14c1429e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals.html">ParsedGlobals</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html#af9e15e6f0cb42ef0d7e8e09d14c1429e">anonymous_namespace{cli_main.cc}::ParseGlobalFlags</a> (int argc, char *argv[])</td></tr>
-<tr class="separator:af9e15e6f0cb42ef0d7e8e09d14c1429e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2d343cff7ca205e9a15c30caa0fd444" id="r_ad2d343cff7ca205e9a15c30caa0fd444"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html#ad2d343cff7ca205e9a15c30caa0fd444">anonymous_namespace{cli_main.cc}::PrintVersion</a> ()</td></tr>
 <tr class="separator:ad2d343cff7ca205e9a15c30caa0fd444"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a943973ab83740052ae9ecbd614fcfacc" id="r_a943973ab83740052ae9ecbd614fcfacc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html#a943973ab83740052ae9ecbd614fcfacc">anonymous_namespace{cli_main.cc}::PrintCompactHelp</a> ()</td></tr>
+<tr class="separator:a943973ab83740052ae9ecbd614fcfacc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9e15e6f0cb42ef0d7e8e09d14c1429e" id="r_af9e15e6f0cb42ef0d7e8e09d14c1429e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals.html">ParsedGlobals</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html#af9e15e6f0cb42ef0d7e8e09d14c1429e">anonymous_namespace{cli_main.cc}::ParseGlobalFlags</a> (int argc, char *argv[])</td></tr>
+<tr class="separator:af9e15e6f0cb42ef0d7e8e09d14c1429e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ddf1224851353fc92bfbff6f499fa97" id="r_a0ddf1224851353fc92bfbff6f499fa97"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d48/cli__main_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">main</a> (int argc, char *argv[])</td></tr>
 <tr class="separator:a0ddf1224851353fc92bfbff6f499fa97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ad1f607cfb6c65380d2957cdfca942205" name="ad1f607cfb6c65380d2957cdfca942205"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1f607cfb6c65380d2957cdfca942205">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[1/2]</span></h2>
+<a id="ac59920fe19f2557d694ac0c6fff95805" name="ac59920fe19f2557d694ac0c6fff95805"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac59920fe19f2557d694ac0c6fff95805">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -186,7 +191,87 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">&quot;Launch Text User Interface&quot;&#160;</td>
+          <td class="paramtype">&quot;Launch interactive Text User Interface&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a92993d878ac8be80d36bd2081f97e5df" name="a92993d878ac8be80d36bd2081f97e5df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92993d878ac8be80d36bd2081f97e5df">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[2/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">quiet&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">false&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Suppress non-essential output&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9d2f63061810a7cafcc7c8f9c89c3d65" name="a9d2f63061810a7cafcc7c8f9c89c3d65"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9d2f63061810a7cafcc7c8f9c89c3d65">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">version&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">false&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Show version information&quot;&#160;</td>
           <td class="paramname">&#160;</td>
         </tr>
         <tr>
@@ -395,46 +480,6 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ad35a54d3b6e1416ad4b24ab752fdeb09" name="ad35a54d3b6e1416ad4b24ab752fdeb09"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad35a54d3b6e1416ad4b24ab752fdeb09">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">ABSL_FLAG </td>
-          <td>(</td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">quiet&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">false&#160;</td>
-          <td class="paramname">, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&quot;Enable quiet mode for simple-chat.&quot;&#160;</td>
-          <td class="paramname">&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a0ddf1224851353fc92bfbff6f499fa97" name="a0ddf1224851353fc92bfbff6f499fa97"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0ddf1224851353fc92bfbff6f499fa97">&#9670;&#160;</a></span>main()</h2>
 
@@ -461,9 +506,9 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00215">215</a> of file <a class="el" href="../../d5/d48/cli__main_8cc_source.html">cli_main.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00273">273</a> of file <a class="el" href="../../d5/d48/cli__main_8cc_source.html">cli_main.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00038">anonymous_namespace{cli_main.cc}::ParseGlobalFlags()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00454">yaze::cli::ModernCLI::PrintCategoryHelp()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00458">yaze::cli::ModernCLI::PrintCommandSummary()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00450">yaze::cli::ModernCLI::PrintTopLevelHelp()</a>, <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00207">anonymous_namespace{cli_main.cc}::PrintVersion()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00707">yaze::cli::ModernCLI::Run()</a>, and <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00848">yaze::cli::ShowMain()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00088">anonymous_namespace{cli_main.cc}::ParseGlobalFlags()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00454">yaze::cli::ModernCLI::PrintCategoryHelp()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00458">yaze::cli::ModernCLI::PrintCommandSummary()</a>, <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00041">anonymous_namespace{cli_main.cc}::PrintCompactHelp()</a>, <a class="el" href="../../d5/d48/cli__main_8cc_source.html#l00031">anonymous_namespace{cli_main.cc}::PrintVersion()</a>, <a class="el" href="../../dc/d8b/modern__cli_8cc_source.html#l00707">yaze::cli::ModernCLI::Run()</a>, and <a class="el" href="../../d4/d8e/tui_8cc_source.html#l00850">yaze::cli::ShowMain()</a>.</p>
 
 </div>
 </div>

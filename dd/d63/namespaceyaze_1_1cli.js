@@ -97,6 +97,7 @@ var namespaceyaze_1_1cli =
       [ "HexViewerComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a65c8418432a92530720b305d96f257ec", null ],
       [ "MainMenuComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548", null ]
     ] ],
+    [ "message", "db/d13/namespaceyaze_1_1cli_1_1message.html", "db/d13/namespaceyaze_1_1cli_1_1message" ],
     [ "overworld", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html", "d5/d93/namespaceyaze_1_1cli_1_1overworld" ],
     [ "tui", "da/d0b/namespaceyaze_1_1cli_1_1tui.html", "da/d0b/namespaceyaze_1_1cli_1_1tui" ],
     [ "util", "d1/d87/namespaceyaze_1_1cli_1_1util.html", "d1/d87/namespaceyaze_1_1cli_1_1util" ],

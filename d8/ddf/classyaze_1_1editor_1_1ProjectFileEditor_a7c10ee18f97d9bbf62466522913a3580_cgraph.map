@@ -1,0 +1,8 @@
+<map id="yaze::editor::ProjectFileEditor::ValidateContent" name="yaze::editor::ProjectFileEditor::ValidateContent">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,51,159,92"/>
+<area shape="rect" id="Node000002" href="$d0/d28/classTextEditor.html#a581e92e7aff81a99dcd1ab8dcc95e909" title=" " alt="" coords="228,29,360,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,58,212,51,213,56,159,64"/>
+<area shape="rect" id="Node000003" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="207,79,381,120"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="159,79,191,83,191,89,158,84"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="259,31,252,21,256,11,270,5,294,3,320,5,333,12,331,17,318,10,294,8,271,10,259,15,257,20,263,27"/>
+</map>

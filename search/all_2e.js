@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🐛_20known_20issues_0',['🐛 Known Issues',['../da/d40/md_docs_2ollama__integration__status.html#autotoc_md520',1,'']]]
+  ['🙏_20acknowledgments_0',['🙏 Acknowledgments',['../d0/d30/md_README.html#autotoc_md541',1,'']]]
 ];

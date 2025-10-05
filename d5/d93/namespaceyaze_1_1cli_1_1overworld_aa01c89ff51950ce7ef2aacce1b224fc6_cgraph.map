@@ -1,0 +1,6 @@
+<map id="yaze::cli::overworld::GetEntranceDetails" name="yaze::cli::overworld::GetEntranceDetails">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,145,70"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="38,29,36,19,42,10,55,5,75,3,96,5,109,11,107,16,95,10,75,8,57,10,45,15,41,20,43,28"/>
+<area shape="rect" id="Node000002" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#acf51b6babb13dd20fba8546a4fe777b7" title=" " alt="" coords="193,29,348,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,47,177,47,177,52,145,52"/>
+</map>

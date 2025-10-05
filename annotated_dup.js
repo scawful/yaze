@@ -20,15 +20,20 @@ var annotated_dup =
           [ "AgentConfig", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig" ],
           [ "ChatMessage", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage" ],
           [ "ConversationalAgentService", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService" ],
+          [ "LearnedKnowledgeService", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService" ],
           [ "ProposalCreationRequest", "d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest.html", "d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest" ],
           [ "ProposalCreationResult", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult" ],
           [ "SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession" ],
           [ "ToolDispatcher", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher" ]
         ] ],
         [ "overworld", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html", [
+          [ "EntranceDetails", "d9/df8/structyaze_1_1cli_1_1overworld_1_1EntranceDetails.html", "d9/df8/structyaze_1_1cli_1_1overworld_1_1EntranceDetails" ],
           [ "MapSummary", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary" ],
+          [ "OverworldSprite", "d0/d4c/structyaze_1_1cli_1_1overworld_1_1OverworldSprite.html", "d0/d4c/structyaze_1_1cli_1_1overworld_1_1OverworldSprite" ],
+          [ "SpriteQuery", "d7/dd9/structyaze_1_1cli_1_1overworld_1_1SpriteQuery.html", "d7/dd9/structyaze_1_1cli_1_1overworld_1_1SpriteQuery" ],
           [ "TileMatch", "dd/d10/structyaze_1_1cli_1_1overworld_1_1TileMatch.html", "dd/d10/structyaze_1_1cli_1_1overworld_1_1TileMatch" ],
           [ "TileSearchOptions", "da/d5b/structyaze_1_1cli_1_1overworld_1_1TileSearchOptions.html", "da/d5b/structyaze_1_1cli_1_1overworld_1_1TileSearchOptions" ],
+          [ "TileStatistics", "de/d83/structyaze_1_1cli_1_1overworld_1_1TileStatistics.html", "de/d83/structyaze_1_1cli_1_1overworld_1_1TileStatistics" ],
           [ "WarpEntry", "d1/d67/structyaze_1_1cli_1_1overworld_1_1WarpEntry.html", "d1/d67/structyaze_1_1cli_1_1overworld_1_1WarpEntry" ],
           [ "WarpQuery", "d0/dcb/structyaze_1_1cli_1_1overworld_1_1WarpQuery.html", "d0/dcb/structyaze_1_1cli_1_1overworld_1_1WarpQuery" ]
         ] ],
@@ -213,6 +218,7 @@ var annotated_dup =
         [ "ParsedElement", "da/d5e/structyaze_1_1editor_1_1ParsedElement.html", "da/d5e/structyaze_1_1editor_1_1ParsedElement" ],
         [ "PopupManager", "d3/d8d/classyaze_1_1editor_1_1PopupManager.html", "d3/d8d/classyaze_1_1editor_1_1PopupManager" ],
         [ "PopupParams", "df/dc2/structyaze_1_1editor_1_1PopupParams.html", "df/dc2/structyaze_1_1editor_1_1PopupParams" ],
+        [ "ProjectFileEditor", "d8/ddf/classyaze_1_1editor_1_1ProjectFileEditor.html", "d8/ddf/classyaze_1_1editor_1_1ProjectFileEditor" ],
         [ "ProposalDrawer", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer" ],
         [ "ScreenEditor", "db/dcc/classyaze_1_1editor_1_1ScreenEditor.html", "db/dcc/classyaze_1_1editor_1_1ScreenEditor" ],
         [ "SettingsEditor", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html", "dd/d00/classyaze_1_1editor_1_1SettingsEditor" ],
