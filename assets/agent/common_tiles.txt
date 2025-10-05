@@ -1,0 +1,42 @@
+# Common Tile16 Reference for AI Agents
+# This file can be customized per project
+
+[grass_tiles]
+0x020 = Grass (standard)
+0x021 = Grass variant 1
+0x0E0 = Grass (dark world)
+
+[nature_tiles]
+0x02E = Tree (standard oak)
+0x02F = Tree (palm)
+0x003 = Bush (standard)
+0x004 = Rock (standard)
+0x021 = Flower (standard)
+
+[ground_tiles]
+0x022 = Dirt (standard)
+0x023 = Sand (desert)
+0x024 = Stone path
+
+[water_tiles]
+0x14C = Water (top edge)
+0x14D = Water (middle)
+0x14E = Water (bottom edge)
+0x14F = Water (left edge)
+0x150 = Water (right edge)
+
+[structure_tiles]
+0x100 = Wall (castle, exterior)
+0x101 = Wall (castle, interior)
+0x120 = Door (standard)
+0x121 = Door (locked)
+
+[special_tiles]
+0x200 = Warp tile
+0x201 = Treasure chest
+0x202 = Switch tile
+
+# Notes:
+# - IDs are in hexadecimal (0x prefix)
+# - Customize this file for your ROM hack
+# - AI will reference these when placing tiles

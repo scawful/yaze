@@ -95,7 +95,7 @@ void ColorsYaze() {
   colors[ImGuiCol_FrameBgHovered] = ImVec4(0.28f, 0.36f, 0.28f, 0.40f);
   colors[ImGuiCol_FrameBgActive] = ImVec4(0.28f, 0.36f, 0.28f, 0.69f);
 
-  colors[ImGuiCol_CheckMark] = ImVec4(0.90f, 0.90f, 0.90f, 0.50f);
+  colors[ImGuiCol_CheckMark] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);  // Solid blue checkmark
   colors[ImGuiCol_SliderGrab] = ImVec4(1.00f, 1.00f, 1.00f, 0.30f);
   colors[ImGuiCol_SliderGrabActive] = ImVec4(0.36f, 0.45f, 0.36f, 0.60f);
 

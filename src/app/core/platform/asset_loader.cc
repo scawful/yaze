@@ -15,8 +15,16 @@ std::vector<std::filesystem::path> AssetLoader::GetSearchPaths(const std::string
 #ifdef __APPLE__
   // macOS bundle resource paths
   std::string bundle_root = yaze::util::GetBundleResourcePath();
+  
+  // Try Contents/Resources first (standard bundle location)
   search_paths.push_back(std::filesystem::path(bundle_root) / "Contents" / "Resources" / relative_path);
-  search_paths.push_back(std::filesystem::path(bundle_root) / "assets" / relative_path);
+  
+  // Try without Contents (if app is at root)
+  search_paths.push_back(std::filesystem::path(bundle_root) / "Resources" / relative_path);
+  
+  // Development paths (when running from build dir)
+  search_paths.push_back(std::filesystem::path(bundle_root) / ".." / ".." / ".." / "assets" / relative_path);
+  search_paths.push_back(std::filesystem::path(bundle_root) / ".." / ".." / ".." / ".." / "assets" / relative_path);
 #endif
   
   // Standard relative paths (works for all platforms)
@@ -24,6 +32,7 @@ std::vector<std::filesystem::path> AssetLoader::GetSearchPaths(const std::string
   search_paths.push_back(std::filesystem::path("../assets") / relative_path);
   search_paths.push_back(std::filesystem::path("../../assets") / relative_path);
   search_paths.push_back(std::filesystem::path("../../../assets") / relative_path);
+  search_paths.push_back(std::filesystem::path("../../../../assets") / relative_path);
   
   // Build directory paths
   search_paths.push_back(std::filesystem::path("build/assets") / relative_path);
