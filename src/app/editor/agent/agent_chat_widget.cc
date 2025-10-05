@@ -551,49 +551,115 @@ void AgentChatWidget::Draw() {
   
   // Modern tabbed interface
   if (ImGui::BeginTabBar("AgentChatTabs", ImGuiTabBarFlags_None)) {
-    // Main Chat Tab
+    // Main Chat Tab - with integrated controls
     if (ImGui::BeginTabItem(ICON_MD_CHAT " Chat")) {
-      if (ImGui::BeginTable("#agent_chat_table", 2,
-                            ImGuiTableFlags_BordersInnerV |
-                                ImGuiTableFlags_Resizable |
-                                ImGuiTableFlags_SizingStretchProp)) {
-        ImGui::TableSetupColumn("Panels", ImGuiTableColumnFlags_WidthFixed, 400.0f);
-        ImGui::TableSetupColumn("Conversation", ImGuiTableColumnFlags_WidthStretch);
-
-        ImGui::TableNextRow();
-
-        ImGui::TableSetColumnIndex(0);
-        ImGui::BeginChild("LeftPanels", ImVec2(0, 0), false);
-        
-        if (show_agent_config_) {
-          RenderAgentConfigPanel();
-        }
-        RenderMultimodalPanel();
-        if (show_z3ed_commands_) {
-          RenderZ3EDCommandPanel();
+      // Connection Status Bar at top
+      ImGui::BeginChild("ConnectionStatusBar", ImVec2(0, 80), true, ImGuiWindowFlags_NoScrollbar);
+      {
+        // Provider selection and connection status in one row
+        ImGui::Text(ICON_MD_SMART_TOY " AI Provider:");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(120);
+        const char* providers[] = { "Mock", "Ollama", "Gemini" };
+        int current_provider = (agent_config_.ai_provider == "mock") ? 0 : 
+                              (agent_config_.ai_provider == "ollama") ? 1 : 2;
+        if (ImGui::Combo("##provider", &current_provider, providers, 3)) {
+          agent_config_.ai_provider = (current_provider == 0) ? "mock" : 
+                                     (current_provider == 1) ? "ollama" : "gemini";
+          strncpy(agent_config_.provider_buffer, agent_config_.ai_provider.c_str(), 
+                  sizeof(agent_config_.provider_buffer) - 1);
         }
         
-        ImGui::EndChild();
-
-        ImGui::TableSetColumnIndex(1);
-        RenderHistory();
-        RenderInputBox();
-        ImGui::EndTable();
+        ImGui::SameLine();
+        if (agent_config_.ai_provider == "ollama") {
+          ImGui::Text(ICON_MD_LINK " Host:");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(200);
+          if (ImGui::InputText("##ollama_host", agent_config_.ollama_host_buffer, 
+                              sizeof(agent_config_.ollama_host_buffer))) {
+            agent_config_.ollama_host = agent_config_.ollama_host_buffer;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_MD_REFRESH " Test Connection")) {
+            if (toast_manager_) {
+              toast_manager_->Show("Testing Ollama connection...", ToastType::kInfo);
+            }
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Test connection to Ollama server");
+          }
+        } else if (agent_config_.ai_provider == "gemini") {
+          ImGui::Text(ICON_MD_KEY " API Key:");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(250);
+          if (ImGui::InputText("##gemini_key", agent_config_.gemini_key_buffer, 
+                              sizeof(agent_config_.gemini_key_buffer), 
+                              ImGuiInputTextFlags_Password)) {
+            agent_config_.gemini_api_key = agent_config_.gemini_key_buffer;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_MD_CHECK " Verify")) {
+            if (toast_manager_) {
+              toast_manager_->Show("Verifying Gemini API key...", ToastType::kInfo);
+            }
+          }
+        } else {
+          ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "(Mock mode - no external connection needed)");
+        }
+        
+        // Second row: Model selection and quick settings
+        ImGui::Text(ICON_MD_PSYCHOLOGY " Model:");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(200);
+        ImGui::InputText("##model", agent_config_.model_buffer, sizeof(agent_config_.model_buffer));
+        
+        ImGui::SameLine();
+        ImGui::Checkbox(ICON_MD_VISIBILITY " Reasoning", &agent_config_.show_reasoning);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Show agent's reasoning process in responses");
+        }
+        
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(80);
+        ImGui::InputInt("Max Iterations", &agent_config_.max_tool_iterations);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Maximum tool call iterations per request");
+        }
       }
+      ImGui::EndChild();
+      
+      ImGui::Spacing();
+      
+      // Main chat area
+      RenderHistory();
+      RenderInputBox();
+      
+      ImGui::EndTabItem();
+    }
+    
+    // Commands Tab - Z3ED and Multimodal
+    if (ImGui::BeginTabItem(ICON_MD_TERMINAL " Commands")) {
+      RenderZ3EDCommandPanel();
+      ImGui::Separator();
+      RenderMultimodalPanel();
       ImGui::EndTabItem();
     }
     
     // Collaboration Tab
     if (ImGui::BeginTabItem(ICON_MD_PEOPLE " Collaboration")) {
       RenderCollaborationPanel();
-      if (show_rom_sync_) {
-        ImGui::Separator();
-        RenderRomSyncPanel();
-      }
+      ImGui::Separator();
+      RenderRomSyncPanel();
       if (show_snapshot_preview_) {
         ImGui::Separator();
         RenderSnapshotPreviewPanel();
       }
+      ImGui::EndTabItem();
+    }
+    
+    // Advanced Settings Tab
+    if (ImGui::BeginTabItem(ICON_MD_SETTINGS " Advanced")) {
+      RenderAgentConfigPanel();
       ImGui::EndTabItem();
     }
     

@@ -327,10 +327,7 @@ void EditorManager::Initialize(const std::string& filename) {
   // Initialize welcome screen callbacks
   welcome_screen_.SetOpenRomCallback([this]() {
     status_ = LoadRom();
-    if (status_.ok()) {
-      show_welcome_screen_ = false;
-      welcome_screen_manually_closed_ = true;
-    }
+    // LoadRom() already handles closing welcome screen and showing editor selection
   });
   
   welcome_screen_.SetNewProjectCallback([this]() {
@@ -753,22 +750,66 @@ absl::Status EditorManager::DrawRomSelector() {
 void EditorManager::BuildModernMenu() {
   menu_builder_.Clear();
   
-  // File Menu (no icon to avoid cutoff)
+  // File Menu - enhanced with ROM features
   menu_builder_.BeginMenu("File")
-    .Item("Open", ICON_MD_FILE_OPEN, 
+    .Item("Open ROM", ICON_MD_FILE_OPEN, 
           [this]() { status_ = LoadRom(); }, "Ctrl+O")
-    .Item("Save", ICON_MD_SAVE,
+    .Item("Save ROM", ICON_MD_SAVE,
           [this]() { status_ = SaveRom(); }, "Ctrl+S",
           [this]() { return current_rom_ && current_rom_->is_loaded(); })
     .Item("Save As...", ICON_MD_SAVE_AS,
-          [this]() { popup_manager_->Show("Save As.."); })
+          [this]() { popup_manager_->Show("Save As.."); },
+          nullptr,
+          [this]() { return current_rom_ && current_rom_->is_loaded(); })
     .Separator()
-    .BeginSubMenu("Project", ICON_MD_FOLDER_SPECIAL)
-      .Item("New Project", ICON_MD_CREATE_NEW_FOLDER,
-            [this]() { status_ = CreateNewProject(); })
-      .Item("Open Project", ICON_MD_FOLDER_OPEN,
-            [this]() { status_ = OpenProject(); })
-      .EndMenu()
+    .Item("New Project", ICON_MD_CREATE_NEW_FOLDER,
+          [this]() { status_ = CreateNewProject(); })
+    .Item("Open Project", ICON_MD_FOLDER_OPEN,
+          [this]() { status_ = OpenProject(); })
+    .Item("Save Project", ICON_MD_SAVE,
+          [this]() { status_ = SaveProject(); },
+          nullptr,
+          [this]() { return !current_project_.filepath.empty(); })
+    .Item("Save Project As...", ICON_MD_SAVE_AS,
+          [this]() { status_ = SaveProjectAs(); },
+          nullptr,
+          [this]() { return !current_project_.filepath.empty(); })
+    .Separator()
+    .Item("ROM Information", ICON_MD_INFO,
+          [this]() { popup_manager_->Show("ROM Info"); },
+          nullptr,
+          [this]() { return current_rom_ && current_rom_->is_loaded(); })
+    .Item("Create Backup", ICON_MD_BACKUP,
+          [this]() { 
+            if (current_rom_ && current_rom_->is_loaded()) {
+              Rom::SaveSettings settings;
+              settings.backup = true;
+              settings.filename = current_rom_->filename();
+              status_ = current_rom_->SaveToFile(settings);
+              if (status_.ok()) {
+                toast_manager_.Show("Backup created successfully", ToastType::kSuccess);
+              }
+            }
+          },
+          nullptr,
+          [this]() { return current_rom_ && current_rom_->is_loaded(); })
+    .Item("Validate ROM", ICON_MD_CHECK_CIRCLE,
+          [this]() {
+            if (current_rom_ && current_rom_->is_loaded()) {
+              auto result = current_project_.Validate();
+              if (result.ok()) {
+                toast_manager_.Show("ROM validation passed", ToastType::kSuccess);
+              } else {
+                toast_manager_.Show("ROM validation failed: " + std::string(result.message()), 
+                    ToastType::kError);
+              }
+            }
+          },
+          nullptr,
+          [this]() { return current_rom_ && current_rom_->is_loaded(); })
+    .Separator()
+    .Item("Settings", ICON_MD_SETTINGS,
+          [this]() { current_editor_set_->settings_editor_.set_active(true); })
     .Separator()
     .Item("Quit", ICON_MD_EXIT_TO_APP,
           [this]() { quit_ = true; }, "Ctrl+Q")
@@ -790,203 +831,68 @@ void EditorManager::BuildModernMenu() {
     .Separator()
     .Item("Find", ICON_MD_SEARCH,
           [this]() { if (current_editor_) status_ = current_editor_->Find(); }, "Ctrl+F")
-    .Separator()
-    .Item("Settings", ICON_MD_SETTINGS,
-          [this]() { current_editor_set_->settings_editor_.set_active(true); })
+    .Item("Find in Files", ICON_MD_SEARCH,
+          [this]() { show_global_search_ = true; }, "Ctrl+Shift+F")
     .EndMenu();
   
-  // View Menu
+  // View Menu - editors and layout
   menu_builder_.BeginMenu("View")
-    .BeginSubMenu("Editors", ICON_MD_APPS)
-      .Item("Show Editor Selection", ICON_MD_DASHBOARD,
-            [this]() { show_editor_selection_ = true; }, "Ctrl+E")
-      .Separator()
-      .Item("Overworld", ICON_MD_MAP,
-            [this]() { current_editor_set_->overworld_editor_.set_active(true); })
-      .Item("Dungeon", ICON_MD_CASTLE,
-            [this]() { current_editor_set_->dungeon_editor_.set_active(true); })
-      .Item("Graphics", ICON_MD_IMAGE,
-            [this]() { current_editor_set_->graphics_editor_.set_active(true); })
-      .Item("Sprite", ICON_MD_TOYS,
-            [this]() { current_editor_set_->sprite_editor_.set_active(true); })
-      .Item("Palette", ICON_MD_PALETTE,
-            [this]() { current_editor_set_->palette_editor_.set_active(true); })
-      .Item("Message", ICON_MD_CHAT_BUBBLE,
-            [this]() { current_editor_set_->message_editor_.set_active(true); })
-      .Item("Music", ICON_MD_MUSIC_NOTE,
-            [this]() { current_editor_set_->music_editor_.set_active(true); })
-      .EndMenu()
+    .Item("Editor Selection", ICON_MD_DASHBOARD,
+          [this]() { show_editor_selection_ = true; }, "Ctrl+E")
     .Separator()
+    .Item("Overworld", ICON_MD_MAP,
+          [this]() { current_editor_set_->overworld_editor_.set_active(true); }, "Ctrl+1")
+    .Item("Dungeon", ICON_MD_CASTLE,
+          [this]() { current_editor_set_->dungeon_editor_.set_active(true); }, "Ctrl+2")
+    .Item("Graphics", ICON_MD_IMAGE,
+          [this]() { current_editor_set_->graphics_editor_.set_active(true); }, "Ctrl+3")
+    .Item("Sprites", ICON_MD_TOYS,
+          [this]() { current_editor_set_->sprite_editor_.set_active(true); }, "Ctrl+4")
+    .Item("Messages", ICON_MD_CHAT_BUBBLE,
+          [this]() { current_editor_set_->message_editor_.set_active(true); }, "Ctrl+5")
+    .Item("Music", ICON_MD_MUSIC_NOTE,
+          [this]() { current_editor_set_->music_editor_.set_active(true); }, "Ctrl+6")
+    .Item("Palettes", ICON_MD_PALETTE,
+          [this]() { current_editor_set_->palette_editor_.set_active(true); }, "Ctrl+7")
+    .Item("Screens", ICON_MD_TV,
+          [this]() { current_editor_set_->screen_editor_.set_active(true); }, "Ctrl+8")
+    .Item("Hex Editor", ICON_MD_DATA_ARRAY,
+          [this]() { show_memory_editor_ = true; }, "Ctrl+0")
+    .Separator()
+    .Item("Save Layout", ICON_MD_SAVE,
+          [this]() { SaveWorkspaceLayout(); }, "Ctrl+Shift+S")
+    .Item("Load Layout", ICON_MD_FOLDER_OPEN,
+          [this]() { LoadWorkspaceLayout(); }, "Ctrl+Shift+O")
+    .Item("Reset Layout", ICON_MD_RESET_TV,
+          [this]() { ResetWorkspaceLayout(); })
+    .Item("Layout Presets", ICON_MD_BOOKMARK,
+          [this]() { show_layout_presets_ = true; })
+    .Separator()
+    .Item("Show All Windows", ICON_MD_VISIBILITY,
+          [this]() { ShowAllWindows(); })
+    .Item("Hide All Windows", ICON_MD_VISIBILITY_OFF,
+          [this]() { HideAllWindows(); })
+    .Item("Maximize Current", ICON_MD_FULLSCREEN,
+          [this]() { MaximizeCurrentWindow(); }, "F11")
+    .EndMenu();
+  
+  // Tools Menu - developer tools and utilities
+  menu_builder_.BeginMenu("Tools")
     .Item("Welcome Screen", ICON_MD_HOME,
           [this]() { show_welcome_screen_ = true; })
-    .Item("Emulator", ICON_MD_GAMEPAD,
-          [this]() { show_emulator_ = true; },
-          nullptr,
-          nullptr,
-          [this]() { return show_emulator_; })
     .Item("Command Palette", ICON_MD_TERMINAL,
           [this]() { show_command_palette_ = true; }, "Ctrl+Shift+P")
-#ifdef YAZE_WITH_GRPC
-    .Separator()
-    .Item("AI Agent Editor", ICON_MD_SMART_TOY,
-          [this]() { agent_editor_.SetChatActive(true); }, "Ctrl+Shift+A",
-          nullptr,
-          [this]() { return agent_editor_.IsChatActive(); })
-#endif
-    .EndMenu();
-  
-  // Workspace Menu
-  menu_builder_.BeginMenu("Workspace")
-    .BeginSubMenu("Sessions", ICON_MD_TAB)
-      .Item("New Session", ICON_MD_ADD,
-            [this]() { CreateNewSession(); }, "Ctrl+Shift+N")
-      .Item("Duplicate Session", ICON_MD_CONTENT_COPY,
-            [this]() { DuplicateCurrentSession(); },
-            nullptr, [this]() { return current_rom_ != nullptr; })
-      .Item("Close Session", ICON_MD_CLOSE,
-            [this]() { CloseCurrentSession(); }, "Ctrl+Shift+W",
-            [this]() { return sessions_.size() > 1; })
-      .Separator()
-      .Item("Session Switcher", ICON_MD_SWITCH_ACCOUNT,
-            [this]() { show_session_switcher_ = true; }, "Ctrl+Tab",
-            [this]() { return sessions_.size() > 1; })
-      .Item("Session Manager", ICON_MD_VIEW_LIST,
-            [this]() { show_session_manager_ = true; })
-      .EndMenu()
-    .Separator()
-    .BeginSubMenu("Layout", ICON_MD_DASHBOARD)
-      .Item("Save Layout", ICON_MD_SAVE,
-            [this]() { SaveWorkspaceLayout(); }, "Ctrl+Shift+S")
-      .Item("Load Layout", ICON_MD_FOLDER_OPEN,
-            [this]() { LoadWorkspaceLayout(); }, "Ctrl+Shift+O")
-      .Item("Reset Layout", ICON_MD_RESET_TV,
-            [this]() { ResetWorkspaceLayout(); })
-      .Separator()
-      .Item("Layout Presets", ICON_MD_BOOKMARK,
-            [this]() { show_layout_presets_ = true; })
-      .EndMenu()
-    .BeginSubMenu("Windows", ICON_MD_WINDOW)
-      .Item("Show All", ICON_MD_VISIBILITY,
-            [this]() { ShowAllWindows(); })
-      .Item("Hide All", ICON_MD_VISIBILITY_OFF,
-            [this]() { HideAllWindows(); })
-      .Separator()
-      .Item("Maximize Current", ICON_MD_FULLSCREEN,
-            [this]() { MaximizeCurrentWindow(); }, "F11")
-      .Item("Restore All", ICON_MD_FULLSCREEN_EXIT,
-            [this]() { RestoreAllWindows(); })
-      .Separator()
-      .Item("Close All Floating", ICON_MD_CLOSE_FULLSCREEN,
-            [this]() { CloseAllFloatingWindows(); })
-      .EndMenu()
+    .Item("Emulator", ICON_MD_GAMEPAD,
+          [this]() { show_emulator_ = true; },
+          nullptr, nullptr,
+          [this]() { return show_emulator_; })
     .Separator()
     .Item("Performance Dashboard", ICON_MD_SPEED,
-          [this]() { show_performance_dashboard_ = true; }, "Ctrl+Shift+P")
-    .EndMenu();
-  
-#ifdef YAZE_WITH_GRPC
-  // AI Agent Menu
-  menu_builder_.BeginMenu("Agent")
-    .Item("Open Agent Chat", ICON_MD_CHAT,
-          [this]() { agent_editor_.SetChatActive(true); }, "Ctrl+Shift+A")
-    .Separator()
-    .BeginSubMenu("Vision & Multimodal", ICON_MD_CAMERA)
-      .Item("Capture Active Editor", ICON_MD_SCREENSHOT,
-            [this]() { 
-              std::filesystem::path output;
-              AgentEditor::CaptureConfig config;
-              config.mode = AgentEditor::CaptureConfig::CaptureMode::kActiveEditor;
-              status_ = agent_editor_.CaptureSnapshot(&output, config);
-            })
-      .Item("Capture Full Window", ICON_MD_FULLSCREEN,
-            [this]() {
-              std::filesystem::path output;
-              AgentEditor::CaptureConfig config;
-              config.mode = AgentEditor::CaptureConfig::CaptureMode::kFullWindow;
-              status_ = agent_editor_.CaptureSnapshot(&output, config);
-            })
-      .EndMenu()
-    .Separator()
-    .Item("Proposal Drawer", ICON_MD_RATE_REVIEW,
-          [this]() { show_proposal_drawer_ = !show_proposal_drawer_; },
-          nullptr, nullptr,
-          [this]() { return show_proposal_drawer_; })
-    .EndMenu();
-  
-  // Collaboration Menu
-  menu_builder_.BeginMenu("Network")
-    .BeginSubMenu("Session", ICON_MD_MEETING_ROOM)
-      .Item("Host Session", ICON_MD_ADD_CIRCLE,
-            [this]() {
-              auto result = agent_editor_.HostSession("New Session");
-              if (result.ok()) {
-                toast_manager_.Show("Hosted session: " + result->session_name, 
-                    ToastType::kSuccess);
-              } else {
-                toast_manager_.Show("Failed to host session: " + std::string(result.status().message()),
-                    ToastType::kError);
-              }
-            })
-      .Item("Join Session", ICON_MD_LOGIN,
-            [this]() { popup_manager_->Show("Join Collaboration Session"); })
-      .Separator()
-      .Item("Leave Session", ICON_MD_LOGOUT,
-            [this]() {
-              status_ = agent_editor_.LeaveSession();
-              if (status_.ok()) {
-                toast_manager_.Show("Left collaboration session", ToastType::kInfo);
-              }
-            },
-            nullptr,
-            [this]() { return agent_editor_.IsInSession(); })
-      .Item("Refresh Session", ICON_MD_REFRESH,
-            [this]() {
-              auto result = agent_editor_.RefreshSession();
-              if (result.ok()) {
-                toast_manager_.Show("Session refreshed: " + std::to_string(result->participants.size()) + " participants", 
-                    ToastType::kSuccess);
-              }
-            },
-            nullptr,
-            [this]() { return agent_editor_.IsInSession(); })
-      .EndMenu()
-    .Separator()
-    .BeginSubMenu("Server", ICON_MD_CLOUD)
-      .Item("Connect to Server", ICON_MD_CLOUD_UPLOAD,
-            [this]() { popup_manager_->Show("Connect to Server"); })
-      .Item("Disconnect", ICON_MD_CLOUD_OFF,
-            [this]() {
-              agent_editor_.DisconnectFromServer();
-              toast_manager_.Show("Disconnected from server", ToastType::kInfo);
-            },
-            nullptr,
-            [this]() { return agent_editor_.IsConnectedToServer(); })
-      .EndMenu()
-    .Separator()
-    .BeginSubMenu("Mode", ICON_MD_SETTINGS_ETHERNET)
-      .Item("Local (Filesystem)", ICON_MD_FOLDER,
-            [this]() { /* Set local mode */ },
-            nullptr, nullptr,
-            [this]() { return agent_editor_.GetCurrentMode() == AgentEditor::CollaborationMode::kLocal; })
-      .Item("Network (WebSocket)", ICON_MD_WIFI,
-            [this]() { /* Set network mode */ },
-            nullptr, nullptr,
-            [this]() { return agent_editor_.GetCurrentMode() == AgentEditor::CollaborationMode::kNetwork; })
-      .EndMenu()
-    .EndMenu();
-#endif
-  
-  // Debug Menu
-  menu_builder_.BeginMenu("Debug")
+          [this]() { show_performance_dashboard_ = true; })
 #ifdef YAZE_ENABLE_TESTING
     .Item("Test Dashboard", ICON_MD_SCIENCE,
           [this]() { show_test_dashboard_ = true; }, "Ctrl+T")
-    .Separator()
 #endif
-    .Item("Memory Editor", ICON_MD_MEMORY,
-          [this]() { show_memory_editor_ = true; })
-    .Item("Assembly Editor", ICON_MD_CODE,
-          [this]() { show_asm_editor_ = true; })
     .Separator()
     .Item("ImGui Demo", ICON_MD_HELP,
           [this]() { show_imgui_demo_ = true; },
@@ -996,13 +902,114 @@ void EditorManager::BuildModernMenu() {
           [this]() { show_imgui_metrics_ = true; },
           nullptr, nullptr,
           [this]() { return show_imgui_metrics_; })
-#ifdef YAZE_WITH_GRPC
+    .EndMenu();
+  
+  // Session Menu - workspace session management
+  menu_builder_.BeginMenu("Session")
+    .Item("New Session", ICON_MD_ADD,
+          [this]() { CreateNewSession(); }, "Ctrl+Shift+N")
+    .Item("Duplicate Session", ICON_MD_CONTENT_COPY,
+          [this]() { DuplicateCurrentSession(); },
+          nullptr, [this]() { return current_rom_ != nullptr; })
+    .Item("Close Session", ICON_MD_CLOSE,
+          [this]() { CloseCurrentSession(); }, "Ctrl+Shift+W",
+          [this]() { return sessions_.size() > 1; })
     .Separator()
-    .Item("Agent Chat", ICON_MD_CHAT,
-          [this]() { agent_editor_.ToggleChat(); },
-          nullptr, nullptr,
+    .Item("Session Switcher", ICON_MD_SWITCH_ACCOUNT,
+          [this]() { show_session_switcher_ = true; }, "Ctrl+Tab",
+          [this]() { return sessions_.size() > 1; })
+    .Item("Session Manager", ICON_MD_VIEW_LIST,
+          [this]() { show_session_manager_ = true; })
+    .EndMenu();
+  
+  
+#ifdef YAZE_WITH_GRPC
+  // Collaboration Menu - combined Agent + Network features
+  menu_builder_.BeginMenu("Collaborate")
+    .Item("AI Agent Chat", ICON_MD_SMART_TOY,
+          [this]() { agent_editor_.SetChatActive(true); }, "Ctrl+Shift+A",
+          nullptr,
           [this]() { return agent_editor_.IsChatActive(); })
+    .Item("Proposal Drawer", ICON_MD_RATE_REVIEW,
+          [this]() { show_proposal_drawer_ = !show_proposal_drawer_; },
+          nullptr, nullptr,
+          [this]() { return show_proposal_drawer_; })
+    .Separator()
+    .Item("Host Session", ICON_MD_ADD_CIRCLE,
+          [this]() {
+            auto result = agent_editor_.HostSession("New Session");
+            if (result.ok()) {
+              toast_manager_.Show("Hosted session: " + result->session_name, 
+                  ToastType::kSuccess);
+            } else {
+              toast_manager_.Show("Failed to host session: " + std::string(result.status().message()),
+                  ToastType::kError);
+            }
+          })
+    .Item("Join Session", ICON_MD_LOGIN,
+          [this]() { popup_manager_->Show("Join Collaboration Session"); })
+    .Item("Leave Session", ICON_MD_LOGOUT,
+          [this]() {
+            status_ = agent_editor_.LeaveSession();
+            if (status_.ok()) {
+              toast_manager_.Show("Left collaboration session", ToastType::kInfo);
+            }
+          },
+          nullptr,
+          [this]() { return agent_editor_.IsInSession(); })
+    .Item("Refresh Session", ICON_MD_REFRESH,
+          [this]() {
+            auto result = agent_editor_.RefreshSession();
+            if (result.ok()) {
+              toast_manager_.Show("Session refreshed: " + std::to_string(result->participants.size()) + " participants", 
+                  ToastType::kSuccess);
+            }
+          },
+          nullptr,
+          [this]() { return agent_editor_.IsInSession(); })
+    .Separator()
+    .Item("Connect to Server", ICON_MD_CLOUD_UPLOAD,
+          [this]() { popup_manager_->Show("Connect to Server"); })
+    .Item("Disconnect from Server", ICON_MD_CLOUD_OFF,
+          [this]() {
+            agent_editor_.DisconnectFromServer();
+            toast_manager_.Show("Disconnected from server", ToastType::kInfo);
+          },
+          nullptr,
+          [this]() { return agent_editor_.IsConnectedToServer(); })
+    .Separator()
+    .Item("Capture Active Editor", ICON_MD_SCREENSHOT,
+          [this]() { 
+            std::filesystem::path output;
+            AgentEditor::CaptureConfig config;
+            config.mode = AgentEditor::CaptureConfig::CaptureMode::kActiveEditor;
+            status_ = agent_editor_.CaptureSnapshot(&output, config);
+          })
+    .Item("Capture Full Window", ICON_MD_FULLSCREEN,
+          [this]() {
+            std::filesystem::path output;
+            AgentEditor::CaptureConfig config;
+            config.mode = AgentEditor::CaptureConfig::CaptureMode::kFullWindow;
+            status_ = agent_editor_.CaptureSnapshot(&output, config);
+          })
+    .Separator()
+    .Item("Local Mode", ICON_MD_FOLDER,
+          [this]() { /* Set local mode */ },
+          nullptr, nullptr,
+          [this]() { return agent_editor_.GetCurrentMode() == AgentEditor::CollaborationMode::kLocal; })
+    .Item("Network Mode", ICON_MD_WIFI,
+          [this]() { /* Set network mode */ },
+          nullptr, nullptr,
+          [this]() { return agent_editor_.GetCurrentMode() == AgentEditor::CollaborationMode::kNetwork; })
+    .EndMenu();
 #endif
+  
+  // Debug Menu
+  menu_builder_.BeginMenu("Debug")
+    .Item("Memory Editor", ICON_MD_MEMORY,
+          [this]() { show_memory_editor_ = true; })
+    .Item("Assembly Editor", ICON_MD_CODE,
+          [this]() { show_asm_editor_ = true; })
     .EndMenu();
   
   // Help Menu
@@ -1842,9 +1849,8 @@ absl::Status EditorManager::LoadRom() {
   // Hide welcome screen when ROM is successfully loaded - don't reset manual close state
   show_welcome_screen_ = false;
   
-  // Optionally show editor selection dialog after ROM loads
-  // (Can be disabled via settings if users prefer to manually select editors)
-  // show_editor_selection_ = true;  // Uncomment to auto-show after ROM load
+  // Show editor selection dialog after ROM loads
+  show_editor_selection_ = true;
 
   return absl::OkStatus();
 }
@@ -1967,8 +1973,9 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     current_editor_set_ = &session.editors;
     RETURN_IF_ERROR(LoadAssets());
 
-    // Reset welcome screen state when ROM is loaded
-    welcome_screen_manually_closed_ = false;
+    // Hide welcome screen and show editor selection when ROM is loaded
+    show_welcome_screen_ = false;
+    show_editor_selection_ = true;
   }
   return absl::OkStatus();
 }
@@ -2044,6 +2051,10 @@ absl::Status EditorManager::OpenProject() {
     }
 
     RETURN_IF_ERROR(LoadAssets());
+    
+    // Hide welcome screen and show editor selection when project ROM is loaded
+    show_welcome_screen_ = false;
+    show_editor_selection_ = true;
   }
 
   // Apply workspace settings

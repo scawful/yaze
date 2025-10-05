@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "app/editor/editor.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
@@ -22,6 +23,7 @@ struct EditorInfo {
   const char* shortcut;
   bool recently_used = false;
   bool requires_rom = true;
+  ImVec4 color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);  // Theme color for this editor
 };
 
 /**

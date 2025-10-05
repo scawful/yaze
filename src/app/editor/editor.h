@@ -60,12 +60,13 @@ enum class EditorType {
   kScreen,
   kSprite,
   kMessage,
+  kHex,
   kSettings,
 };
 
-constexpr std::array<const char*, 10> kEditorNames = {
+constexpr std::array<const char*, 11> kEditorNames = {
     "Assembly", "Dungeon", "Graphics", "Music",   "Overworld",
-    "Palette",  "Screen",  "Sprite",   "Message", "Settings",
+    "Palette",  "Screen",  "Sprite",   "Message", "Hex", "Settings",
 };
 
 /**
