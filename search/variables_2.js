@@ -126,7 +126,7 @@ var searchData=
   ['collaboration_5fcallbacks_5f_123',['collaboration_callbacks_',['../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a9e69439761ef42cd6ddc58429627aff7',1,'yaze::editor::AgentChatWidget']]],
   ['collaboration_5fstate_5f_124',['collaboration_state_',['../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ab89d66e6fdf8c20e054c0bdf11800834',1,'yaze::editor::AgentChatWidget']]],
   ['collision_5f_125',['collision_',['../d7/df6/classyaze_1_1zelda3_1_1Room.html#af7e8308bd16980af7ad615510ee031ea',1,'yaze::zelda3::Room']]],
-  ['color_126',['color',['../d3/d94/structyaze_1_1gui_1_1canvas_1_1CanvasContextMenu_1_1ContextMenuItem.html#a11d5419c58f1dd8a3bd318794c6039c9',1,'yaze::gui::canvas::CanvasContextMenu::ContextMenuItem']]],
+  ['color_126',['color',['../d3/d94/structyaze_1_1gui_1_1canvas_1_1CanvasContextMenu_1_1ContextMenuItem.html#a11d5419c58f1dd8a3bd318794c6039c9',1,'yaze::gui::canvas::CanvasContextMenu::ContextMenuItem::color'],['../d1/dc6/structyaze_1_1editor_1_1EditorInfo.html#add956cacce11676d5224f58a12782aec',1,'yaze::editor::EditorInfo::color']]],
   ['color_5fdepth_127',['color_depth',['../d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html#a99125faf9e0971e6bc3d2858b82a0305',1,'yaze::emu::BackgroundLayer']]],
   ['color_5findex_128',['color_index',['../dc/dc6/structyaze_1_1editor_1_1palette__internal_1_1PaletteChange.html#a2008b6404fc79881edd9ad60e7f0fe42',1,'yaze::editor::palette_internal::PaletteChange']]],
   ['color_5fpaint_5foperations_129',['color_paint_operations',['../d3/d30/structyaze_1_1gui_1_1canvas_1_1CanvasPerformanceMetrics.html#a36e532a6954f0435d2cf06c8065c0a0a',1,'yaze::gui::canvas::CanvasPerformanceMetrics']]],

@@ -27,5 +27,10 @@ var classyaze_1_1editor_1_1WelcomeScreen =
     [ "hovered_card_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a6c8ddb21424ffc21b31dae4c2791bb66", null ],
     [ "triforce_positions_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ab239bf12c2e9f2829be866b20ba384a9", null ],
     [ "triforce_base_positions_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a61ec4312c395d014be4960b66f3cacaa", null ],
-    [ "triforce_positions_initialized_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#af1a97634d916d499f2c74b106815f345", null ]
+    [ "triforce_positions_initialized_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#af1a97634d916d499f2c74b106815f345", null ],
+    [ "show_triforce_settings_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a1d163635c3f0d207de5084e0e1717b0b", null ],
+    [ "triforce_alpha_multiplier_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a0fe4757661ffd524fd0d763d6aa5b4c5", null ],
+    [ "triforce_speed_multiplier_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a16ec2147ccdad676b46e5c12f7f34e3f", null ],
+    [ "triforce_size_multiplier_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a4cd059901b10d4faad1fd2cb478e6c29", null ],
+    [ "triforce_mouse_repel_enabled_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ac5e3175af6077a7a99dd9f01cd57f12f", null ]
 ];

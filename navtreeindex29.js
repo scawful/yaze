@@ -1,5 +1,8 @@
 var NAVTREEINDEX29 =
 {
+"d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3c2601c340c7c05be7f863cddf388436":[25,0,5,8,53,8],
+"d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3e1c9b3724e1f17fea630f35337bc792":[25,0,5,8,53,7],
+"d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a4383f9f429063405fc69bdc8ff4b7ee8":[25,0,5,8,53,1],
 "d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a5fd47ec26e3287ea852c40bdb687b01d":[25,0,5,8,53,2],
 "d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a9f2d923af819cb4370597b632b0b153a":[25,0,5,8,53,10],
 "d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ac2df65ec0e2a97c5419517b7e4ef2717":[25,0,5,8,53,4],
@@ -216,14 +219,14 @@ var NAVTREEINDEX29 =
 "d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html":[26,0,1,1,0,8,2],
 "d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#a678ca7fb87732708ca9d5b4def13dbef":[25,0,5,2,0,18,2,5],
 "d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#a678ca7fb87732708ca9d5b4def13dbef":[26,0,1,1,0,8,2,5],
-"d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#a6b1e443dfc399aa8f992df6db87cf017":[25,0,5,2,0,18,2,4],
 "d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#a6b1e443dfc399aa8f992df6db87cf017":[26,0,1,1,0,8,2,4],
-"d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#a89015484b12e25876c2f8243cfd1c4cd":[26,0,1,1,0,8,2,0],
+"d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#a6b1e443dfc399aa8f992df6db87cf017":[25,0,5,2,0,18,2,4],
 "d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#a89015484b12e25876c2f8243cfd1c4cd":[25,0,5,2,0,18,2,0],
-"d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#a8c22cd2f77a2c32edbd2e11a3b891dee":[25,0,5,2,0,18,2,3],
+"d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#a89015484b12e25876c2f8243cfd1c4cd":[26,0,1,1,0,8,2,0],
 "d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#a8c22cd2f77a2c32edbd2e11a3b891dee":[26,0,1,1,0,8,2,3],
-"d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#aa5a21b3f0f5811c69ea4779dbc9141aa":[26,0,1,1,0,8,2,1],
+"d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#a8c22cd2f77a2c32edbd2e11a3b891dee":[25,0,5,2,0,18,2,3],
 "d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#aa5a21b3f0f5811c69ea4779dbc9141aa":[25,0,5,2,0,18,2,1],
+"d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#aa5a21b3f0f5811c69ea4779dbc9141aa":[26,0,1,1,0,8,2,1],
 "d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#ae7a67ea40700635887325a381ec004ae":[25,0,5,2,0,18,2,2],
 "d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html#ae7a67ea40700635887325a381ec004ae":[26,0,1,1,0,8,2,2],
 "d4/d1a/cli_2handlers_2rom_8cc.html":[27,0,3,1,0,15],
@@ -242,12 +245,9 @@ var NAVTREEINDEX29 =
 "d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html":[25,0,5,10,26,0],
 "d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html#a70748828c09b41a8d0b8735b9aae59fe":[25,0,5,10,26,0,0],
 "d4/d1e/structyaze_1_1zelda3_1_1MockRom_1_1MockPaletteGroup.html#a70748828c09b41a8d0b8735b9aae59fe":[26,0,1,9,19,0,0],
-"d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html":[25,0,5,2,0,7,0],
 "d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html":[26,0,1,1,0,2,0],
+"d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html":[25,0,5,2,0,7,0],
 "d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html#a24fb15856238877bf32ba3b91b2df34c":[25,0,5,2,0,7,0,1],
 "d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html#a24fb15856238877bf32ba3b91b2df34c":[26,0,1,1,0,2,0,1],
-"d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html#a2bb83f940c8b13752ab14e6cbb45cba6":[25,0,5,2,0,7,0,0],
-"d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html#a2bb83f940c8b13752ab14e6cbb45cba6":[26,0,1,1,0,2,0,0],
-"d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html#aa369ad3a514eefbab9ec4b61db7edf41":[26,0,1,1,0,2,0,2],
-"d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html#aa369ad3a514eefbab9ec4b61db7edf41":[25,0,5,2,0,7,0,2]
+"d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html#a2bb83f940c8b13752ab14e6cbb45cba6":[26,0,1,1,0,2,0,0]
 };

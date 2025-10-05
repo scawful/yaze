@@ -115,7 +115,7 @@ var searchData=
   ['analyzesheet_112',['AnalyzeSheet',['../d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#a84ff97055dd879aea73c27973c94b251',1,'yaze::gfx::GraphicsOptimizer']]],
   ['analyzetileusage_113',['AnalyzeTileUsage',['../d5/d93/namespaceyaze_1_1cli_1_1overworld.html#a574fec16a6b0e5343423968948610c0b',1,'yaze::cli::overworld']]],
   ['analyzetileusagepattern_114',['AnalyzeTileUsagePattern',['../d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#a54363f1e6f10e0582a110c202e1717b0',1,'yaze::gfx::BppFormatManager']]],
-  ['and_115',['and',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a56fdfed546707d17ea1abc309cd8478f',1,'yaze::emu::Cpu::And(uint32_t low, uint32_t high)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#aa551140ac9ad214aef6313c32e95e1e3',1,'yaze::emu::Cpu::AND(uint32_t address, bool immediate=false)'],['../d2/d07/classyaze_1_1emu_1_1Spc700.html#aea262b676a2f72f0b14f0ec0b2c857b5',1,'yaze::emu::Spc700::AND(uint16_t adr)']]],
+  ['and_115',['and',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#aa551140ac9ad214aef6313c32e95e1e3',1,'yaze::emu::Cpu::AND()'],['../d2/d07/classyaze_1_1emu_1_1Spc700.html#aea262b676a2f72f0b14f0ec0b2c857b5',1,'yaze::emu::Spc700::AND()'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a56fdfed546707d17ea1abc309cd8478f',1,'yaze::emu::Cpu::And()']]],
   ['and1_116',['AND1',['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a26093966e63ce5afa48c0f369d3ebdfe',1,'yaze::emu::Spc700']]],
   ['andabsolutelong_117',['ANDAbsoluteLong',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#ac86865e509992c77195e34581eb14a4f',1,'yaze::emu::Cpu']]],
   ['andm_118',['ANDM',['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a2f3159cc51171f661ebbbbfdfb4636f0',1,'yaze::emu::Spc700']]],
