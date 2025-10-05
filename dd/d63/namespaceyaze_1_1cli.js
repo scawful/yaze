@@ -82,12 +82,14 @@ var namespaceyaze_1_1cli =
       [ "ParseTileValue", "d9/d8f/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator_8cc_03.html#ac8b37e15459252f25688dc07230ab1dc", null ],
       [ "ParseStatus", "d9/d8f/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator_8cc_03.html#a9e3e78fa56b90440147c005927ef80eb", null ]
     ] ],
+    [ "anonymous_namespace{tile16_proposal_generator_test.cc}", "d6/d5e/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator__test_8cc_03.html", "d6/d5e/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator__test_8cc_03" ],
     [ "anonymous_namespace{tui.cc}", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html", [
       [ "SwitchComponents", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c", null ],
       [ "HandleInput", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a2c1dc8ab15f8e8bbcf375a362c11d942", null ],
       [ "ReturnIfRomNotLoaded", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#aca48c44e4e20f84f95f7d0ee8edf1303", null ],
       [ "ApplyBpsPatchComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a6588526a2719d947bb19f4ad714989a6", null ],
       [ "GenerateSaveFileComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a879bdc125949b92f2e3b4e8f26d26521", null ],
+      [ "TodoManagerComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a016de2775ae7b54ae399afe50eba2ceb", null ],
       [ "ApplyAsarPatchComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a5071629fc6cbcafef9c3efa6c851f536", null ],
       [ "PaletteEditorComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a10a49ca97b0266ed489de16edba6d909", null ],
       [ "ExtractSymbolsComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a67dd0fa752ae48367e75313a4325cb11", null ],
@@ -96,6 +98,7 @@ var namespaceyaze_1_1cli =
       [ "ColorBox", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a42e2b26b5b0aaf880b0d9c4c4a255d09", null ],
       [ "HelpComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#abb3fbd2c5e9c53690714b06d6d882c52", null ],
       [ "HexViewerComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a65c8418432a92530720b305d96f257ec", null ],
+      [ "DashboardComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ac7e0f6477197a03d885a027b64348a30", null ],
       [ "MainMenuComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548", null ]
     ] ],
     [ "gui", "d9/db5/namespaceyaze_1_1cli_1_1gui.html", "d9/db5/namespaceyaze_1_1cli_1_1gui" ],
@@ -274,6 +277,7 @@ var namespaceyaze_1_1cli =
       [ "kHelp", "dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a244ce4b6c7f56eaa446d64fc2d068bbb", null ],
       [ "kExit", "dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33ac2477f77de6d38233af46d78ec777846", null ],
       [ "kMainMenu", "dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a90bfbb340d0004281b380b5058c652fd", null ],
+      [ "kDashboard", "dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a05cc2787f10032ece164c00b6945801b", null ],
       [ "kError", "dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33ae3587c730cc1aa530fa4ddc9c4204e97", null ]
     ] ],
     [ "CreateAIService", "dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a", null ],

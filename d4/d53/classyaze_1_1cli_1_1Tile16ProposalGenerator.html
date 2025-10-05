@@ -101,6 +101,7 @@ $(document).ready(function(){initNavTree('d4/d53/classyaze_1_1cli_1_1Tile16Propo
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pri-methods">Private Member Functions</a> &#124;
+<a href="#friends">Friends</a> &#124;
 <a href="../../d4/d16/classyaze_1_1cli_1_1Tile16ProposalGenerator-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::cli::Tile16ProposalGenerator Class Reference</div></div>
 </div><!--header-->
@@ -136,9 +137,20 @@ Private Member Functions</h2></td></tr>
 <tr class="memitem:ad67772c00cabd6ffd0d9c8df5924a366" id="r_ad67772c00cabd6ffd0d9c8df5924a366"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../d6/d52/structyaze_1_1cli_1_1Tile16Change.html">Tile16Change</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#ad67772c00cabd6ffd0d9c8df5924a366">ParseSetTileCommand</a> (const std::string &amp;command, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
 <tr class="memdesc:ad67772c00cabd6ffd0d9c8df5924a366"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parse a single "overworld set-tile" command into a <a class="el" href="../../d6/d52/structyaze_1_1cli_1_1Tile16Change.html" title="Represents a single tile16 change in a proposal.">Tile16Change</a>.  <br /></td></tr>
 <tr class="separator:ad67772c00cabd6ffd0d9c8df5924a366"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a653c8917fa4b5a511046f1ee348f7243" id="r_a653c8917fa4b5a511046f1ee348f7243"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; <a class="el" href="../../d6/d52/structyaze_1_1cli_1_1Tile16Change.html">Tile16Change</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a653c8917fa4b5a511046f1ee348f7243">ParseSetAreaCommand</a> (const std::string &amp;command, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
+<tr class="memdesc:a653c8917fa4b5a511046f1ee348f7243"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parse a "overworld set-area" command into multiple Tile16Changes.  <br /></td></tr>
+<tr class="separator:a653c8917fa4b5a511046f1ee348f7243"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c04fca5c3f59e78560492cba42b8220" id="r_a2c04fca5c3f59e78560492cba42b8220"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; std::vector&lt; <a class="el" href="../../d6/d52/structyaze_1_1cli_1_1Tile16Change.html">Tile16Change</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a2c04fca5c3f59e78560492cba42b8220">ParseReplaceTileCommand</a> (const std::string &amp;command, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
+<tr class="memdesc:a2c04fca5c3f59e78560492cba42b8220"><td class="mdescLeft">&#160;</td><td class="mdescRight">Parse a "overworld replace-tile" command into multiple Tile16Changes.  <br /></td></tr>
+<tr class="separator:a2c04fca5c3f59e78560492cba42b8220"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b9a0a2e16d712fd72e6cdec5236d6da" id="r_a0b9a0a2e16d712fd72e6cdec5236d6da"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a0b9a0a2e16d712fd72e6cdec5236d6da">GenerateProposalId</a> () const</td></tr>
 <tr class="memdesc:a0b9a0a2e16d712fd72e6cdec5236d6da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate a unique proposal ID.  <br /></td></tr>
 <tr class="separator:a0b9a0a2e16d712fd72e6cdec5236d6da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="friends" name="friends"></a>
+Friends</h2></td></tr>
+<tr class="memitem:a8b315652955651570d5bb3d3421e7afb" id="r_a8b315652955651570d5bb3d3421e7afb"><td class="memItemLeft" align="right" valign="top">class&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a8b315652955651570d5bb3d3421e7afb">Tile16ProposalGeneratorTest</a></td></tr>
+<tr class="separator:a8b315652955651570d5bb3d3421e7afb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Generates and manages tile16 editing proposals. </p>
@@ -221,11 +233,10 @@ Private Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="../../d8/d1c/structyaze_1_1cli_1_1Tile16Proposal.html" title="Represents a proposal for tile16 edits on the overworld.">Tile16Proposal</a> with parsed changes </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000126">Todo:</a></b></dt><dd>Add support for other command types (set-area, replace-tile, etc.) </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00305">305</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00488">488</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00041">yaze::cli::Tile16Proposal::ai_service</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00039">yaze::cli::Tile16Proposal::changes</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00042">yaze::cli::Tile16Proposal::created_at</a>, <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00231">GenerateProposalId()</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00037">yaze::cli::Tile16Proposal::id</a>, <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00242">ParseSetTileCommand()</a>, <a class="el" href="../../d8/d1c/structyaze_1_1cli_1_1Tile16Proposal.html#a86717cf96ce8a4fe63906f2a47760983ac69f06e1a9b016d133907b4e5f5864d2">yaze::cli::Tile16Proposal::PENDING</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00038">yaze::cli::Tile16Proposal::prompt</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00040">yaze::cli::Tile16Proposal::reasoning</a>, and <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00051">yaze::cli::Tile16Proposal::status</a>.</p>
+<p class="reference">References <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00041">yaze::cli::Tile16Proposal::ai_service</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00039">yaze::cli::Tile16Proposal::changes</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00042">yaze::cli::Tile16Proposal::created_at</a>, <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00231">GenerateProposalId()</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00037">yaze::cli::Tile16Proposal::id</a>, <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00395">ParseReplaceTileCommand()</a>, <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00305">ParseSetAreaCommand()</a>, <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00242">ParseSetTileCommand()</a>, <a class="el" href="../../d8/d1c/structyaze_1_1cli_1_1Tile16Proposal.html#a86717cf96ce8a4fe63906f2a47760983ac69f06e1a9b016d133907b4e5f5864d2">yaze::cli::Tile16Proposal::PENDING</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00038">yaze::cli::Tile16Proposal::prompt</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00040">yaze::cli::Tile16Proposal::reasoning</a>, and <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00051">yaze::cli::Tile16Proposal::status</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d6/d3f/proposal__executor_8cc_source.html#l00037">yaze::cli::agent::CreateProposalFromAgentResponse()</a>, and <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00242">yaze::cli::agent::HandlePlanCommand()</a>.</p>
 <div class="dynheader">
@@ -233,15 +244,15 @@ Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator_a1a4e916775b3ba423218c40352b7f9a9_cgraph.png" border="0" usemap="#ad4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator_a1a4e916775b3ba423218c40352b7f9a9_cgraph" alt=""/></div>
 <map name="ad4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator_a1a4e916775b3ba423218c40352b7f9a9_cgraph" id="ad4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator_a1a4e916775b3ba423218c40352b7f9a9_cgraph">
-<area shape="rect" title="Generate a tile16 proposal from an AI&#45;generated command list." alt="" coords="5,39,239,79"/>
-<area shape="rect" href="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a0b9a0a2e16d712fd72e6cdec5236d6da" title="Generate a unique proposal ID." alt="" coords="296,5,496,46"/>
-<area shape="poly" title=" " alt="" coords="239,42,281,37,281,42,239,47"/>
-<area shape="rect" href="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#ad67772c00cabd6ffd0d9c8df5924a366" title="Parse a single &quot;overworld set&#45;tile&quot; command into a Tile16Change." alt="" coords="287,71,505,111"/>
-<area shape="poly" title=" " alt="" coords="239,70,272,74,271,79,239,75"/>
-<area shape="rect" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#aaf829190011d16662c756ae1cc6f2688" title=" " alt="" coords="553,41,708,82"/>
-<area shape="poly" title=" " alt="" coords="505,75,537,71,538,76,506,80"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="560,106,701,132"/>
-<area shape="poly" title=" " alt="" coords="506,101,545,106,544,111,505,107"/>
+<area shape="rect" title="Generate a tile16 proposal from an AI&#45;generated command list." alt="" coords="5,104,239,145"/>
+<area shape="rect" href="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a0b9a0a2e16d712fd72e6cdec5236d6da" title="Generate a unique proposal ID." alt="" coords="310,5,509,46"/>
+<area shape="poly" title=" " alt="" coords="170,101,286,56,311,48,313,53,288,62,172,106"/>
+<area shape="rect" href="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a2c04fca5c3f59e78560492cba42b8220" title="Parse a &quot;overworld replace&#45;tile&quot; command into multiple Tile16Changes." alt="" coords="287,71,532,111"/>
+<area shape="poly" title=" " alt="" coords="239,108,271,104,271,110,239,113"/>
+<area shape="rect" href="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#a653c8917fa4b5a511046f1ee348f7243" title="Parse a &quot;overworld set&#45;area&quot; command into multiple Tile16Changes." alt="" coords="297,136,522,177"/>
+<area shape="poly" title=" " alt="" coords="239,135,282,139,281,145,239,140"/>
+<area shape="rect" href="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator.html#ad67772c00cabd6ffd0d9c8df5924a366" title="Parse a single &quot;overworld set&#45;tile&quot; command into a Tile16Change." alt="" coords="300,201,519,242"/>
+<area shape="poly" title=" " alt="" coords="174,143,288,186,314,194,312,199,286,191,172,148"/>
 </map>
 </div>
 
@@ -284,7 +295,7 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Status indicating success or failure </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00348">348</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00548">548</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00039">yaze::cli::Tile16Proposal::changes</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00027">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00282">yaze::zelda3::Overworld::set_current_world()</a>, and <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00292">yaze::zelda3::Overworld::SetTile()</a>.</p>
 
@@ -351,9 +362,10 @@ Here is the call graph for this function:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Bitmap showing the visual difference </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000127">Todo:</a></b></dt><dd>Implement visual diff generation </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00383">383</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00583">583</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00039">yaze::cli::Tile16Proposal::changes</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00283">yaze::zelda3::Overworld::GetTile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00027">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00282">yaze::zelda3::Overworld::set_current_world()</a>, and <a class="el" href="../../d4/d13/bitmap_8cc_source.html#l00575">yaze::gfx::Bitmap::SetPixel()</a>.</p>
 
 </div>
 </div>
@@ -393,11 +405,11 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Status indicating success or failure </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00398">398</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00701">701</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00024">yaze::cli::Tile16Proposal::ToJson()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d3f/proposal__executor_8cc_source.html#l00037">yaze::cli::agent::CreateProposalFromAgentResponse()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d3f/proposal__executor_8cc_source.html#l00037">yaze::cli::agent::CreateProposalFromAgentResponse()</a>, and <a class="el" href="../../d9/d8d/general__commands_8cc_source.html#l00242">yaze::cli::agent::HandlePlanCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -436,7 +448,7 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>The loaded proposal or error </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00414">414</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00717">717</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00131">yaze::cli::Tile16Proposal::FromJson()</a>.</p>
 <div class="dynheader">
@@ -493,7 +505,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00283">yaze::zelda3::Overworld::GetTile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00027">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00020">yaze::cli::Tile16Change::map_id</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00024">yaze::cli::Tile16Change::new_tile</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00023">yaze::cli::Tile16Change::old_tile</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00282">yaze::zelda3::Overworld::set_current_world()</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00021">yaze::cli::Tile16Change::x</a>, and <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00022">yaze::cli::Tile16Change::y</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00305">GenerateFromCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00488">GenerateFromCommands()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -508,6 +520,128 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="224,123,256,127,256,132,224,128"/>
 <area shape="rect" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a06d8d1c0415daa5b721bd312f239f049" title=" " alt="" coords="272,185,427,226"/>
 <area shape="poly" title=" " alt="" coords="169,131,283,177,281,182,167,136"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a653c8917fa4b5a511046f1ee348f7243" name="a653c8917fa4b5a511046f1ee348f7243"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a653c8917fa4b5a511046f1ee348f7243">&#9670;&#160;</a></span>ParseSetAreaCommand()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::StatusOr&lt; std::vector&lt; <a class="el" href="../../d6/d52/structyaze_1_1cli_1_1Tile16Change.html">Tile16Change</a> &gt; &gt; yaze::cli::Tile16ProposalGenerator::ParseSetAreaCommand </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>command</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *&#160;</td>
+          <td class="paramname"><em>rom</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Parse a "overworld set-area" command into multiple Tile16Changes. </p>
+<p>Expected format: "overworld set-area --map 0 --x 10 --y 20 --width 5 --height 3 --tile 0x02E" </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00305">305</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00283">yaze::zelda3::Overworld::GetTile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00027">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00020">yaze::cli::Tile16Change::map_id</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00024">yaze::cli::Tile16Change::new_tile</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00023">yaze::cli::Tile16Change::old_tile</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00282">yaze::zelda3::Overworld::set_current_world()</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00021">yaze::cli::Tile16Change::x</a>, and <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00022">yaze::cli::Tile16Change::y</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00488">GenerateFromCommands()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator_a653c8917fa4b5a511046f1ee348f7243_cgraph.png" border="0" usemap="#ad4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator_a653c8917fa4b5a511046f1ee348f7243_cgraph" alt=""/></div>
+<map name="ad4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator_a653c8917fa4b5a511046f1ee348f7243_cgraph" id="ad4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator_a653c8917fa4b5a511046f1ee348f7243_cgraph">
+<area shape="rect" title="Parse a &quot;overworld set&#45;area&quot; command into multiple Tile16Changes." alt="" coords="5,92,230,133"/>
+<area shape="rect" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#aaf829190011d16662c756ae1cc6f2688" title=" " alt="" coords="278,5,433,46"/>
+<area shape="poly" title=" " alt="" coords="175,89,282,49,284,54,177,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="285,70,426,96"/>
+<area shape="poly" title=" " alt="" coords="230,96,269,91,270,96,231,101"/>
+<area shape="rect" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a0ea7c62cb7b2f6a9338e778f0243be4e" title=" " alt="" coords="278,120,433,161"/>
+<area shape="poly" title=" " alt="" coords="231,123,262,127,262,132,230,128"/>
+<area shape="rect" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a06d8d1c0415daa5b721bd312f239f049" title=" " alt="" coords="278,185,433,226"/>
+<area shape="poly" title=" " alt="" coords="173,131,288,177,286,182,171,136"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a2c04fca5c3f59e78560492cba42b8220" name="a2c04fca5c3f59e78560492cba42b8220"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2c04fca5c3f59e78560492cba42b8220">&#9670;&#160;</a></span>ParseReplaceTileCommand()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::StatusOr&lt; std::vector&lt; <a class="el" href="../../d6/d52/structyaze_1_1cli_1_1Tile16Change.html">Tile16Change</a> &gt; &gt; yaze::cli::Tile16ProposalGenerator::ParseReplaceTileCommand </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>command</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *&#160;</td>
+          <td class="paramname"><em>rom</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Parse a "overworld replace-tile" command into multiple Tile16Changes. </p>
+<p>Expected format: "overworld replace-tile --map 0 --old-tile 0x02E --new-tile 0x030" Can also specify optional bounds: &ndash;x-min 0 &ndash;y-min 0 &ndash;x-max 31 &ndash;y-max 31 </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00395">395</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00283">yaze::zelda3::Overworld::GetTile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d2/d35/app_2zelda3_2overworld_2overworld_8cc_source.html#l00027">yaze::zelda3::Overworld::Load()</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00020">yaze::cli::Tile16Change::map_id</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00024">yaze::cli::Tile16Change::new_tile</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00023">yaze::cli::Tile16Change::old_tile</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00282">yaze::zelda3::Overworld::set_current_world()</a>, <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00021">yaze::cli::Tile16Change::x</a>, and <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00022">yaze::cli::Tile16Change::y</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00488">GenerateFromCommands()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator_a2c04fca5c3f59e78560492cba42b8220_cgraph.png" border="0" usemap="#ad4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator_a2c04fca5c3f59e78560492cba42b8220_cgraph" alt=""/></div>
+<map name="ad4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator_a2c04fca5c3f59e78560492cba42b8220_cgraph" id="ad4/d53/classyaze_1_1cli_1_1Tile16ProposalGenerator_a2c04fca5c3f59e78560492cba42b8220_cgraph">
+<area shape="rect" title="Parse a &quot;overworld replace&#45;tile&quot; command into multiple Tile16Changes." alt="" coords="5,92,251,133"/>
+<area shape="rect" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#aaf829190011d16662c756ae1cc6f2688" title=" " alt="" coords="299,5,454,46"/>
+<area shape="poly" title=" " alt="" coords="188,89,300,49,302,54,190,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="306,70,447,96"/>
+<area shape="poly" title=" " alt="" coords="251,95,290,90,290,96,251,100"/>
+<area shape="rect" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a0ea7c62cb7b2f6a9338e778f0243be4e" title=" " alt="" coords="299,120,454,161"/>
+<area shape="poly" title=" " alt="" coords="251,124,283,127,283,133,251,129"/>
+<area shape="rect" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a06d8d1c0415daa5b721bd312f239f049" title=" " alt="" coords="299,185,454,226"/>
+<area shape="poly" title=" " alt="" coords="185,131,307,177,305,182,184,136"/>
 </map>
 </div>
 
@@ -540,7 +674,32 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00231">231</a> of file <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html">tile16_proposal_generator.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00305">GenerateFromCommands()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d1d/tile16__proposal__generator_8cc_source.html#l00488">GenerateFromCommands()</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Friends And Related Symbol Documentation</h2>
+<a id="a8b315652955651570d5bb3d3421e7afb" name="a8b315652955651570d5bb3d3421e7afb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b315652955651570d5bb3d3421e7afb">&#9670;&#160;</a></span>Tile16ProposalGeneratorTest</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">friend class Tile16ProposalGeneratorTest</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">friend</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html#l00068">68</a> of file <a class="el" href="../../de/d9c/tile16__proposal__generator_8h_source.html">tile16_proposal_generator.h</a>.</p>
 
 </div>
 </div>

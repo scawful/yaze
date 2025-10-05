@@ -1,0 +1,13 @@
+<map id="yaze::cli::anonymous_namespace{tui::cc}::TodoManagerComponent" name="yaze::cli::anonymous_namespace{tui::cc}::TodoManagerComponent">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,172,87"/>
+<area shape="poly" id="edge6_Node000001_Node000001" title=" " alt="" coords="44,31,45,21,53,12,67,6,89,5,112,7,127,14,125,19,111,12,88,10,69,12,56,16,50,23,49,31"/>
+<area shape="rect" id="Node000002" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#af767df0886636b476ddaa7e875e7c5a0" title="Get all TODO items." alt="" coords="220,5,409,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,44,204,39,205,45,173,49"/>
+<area shape="rect" id="Node000003" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#aa4d7b22359c0374507ce1359ec2fceb4" title="Initialize the TODO manager and load persisted data." alt="" coords="220,71,409,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,68,205,73,204,78,172,73"/>
+<area shape="rect" id="Node000004" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a84dcfd258a5319e7fbf34fe53081b87e" title="Ensure a directory exists, creating it if necessary." alt="" coords="457,41,616,82"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="409,76,441,72,442,77,410,81"/>
+<area shape="rect" id="Node000005" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#ac630fae629aa23f1e48d8242b3fa7df2" title="Check if a file or directory exists." alt="" coords="664,71,824,111"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="410,90,457,91,616,91,649,91,649,96,616,96,457,96,410,96"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="617,70,649,75,648,80,616,76"/>
+</map>

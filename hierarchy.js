@@ -278,7 +278,9 @@ var hierarchy =
     [ "yaze::zelda3::ObjectRenderer::GraphicsCache::GraphicsSheetInfo", "dc/d69/structyaze_1_1zelda3_1_1ObjectRenderer_1_1GraphicsCache_1_1GraphicsSheetInfo.html", null ],
     [ "yaze::gui::BackgroundRenderer::GridSettings", "d1/d46/structyaze_1_1gui_1_1BackgroundRenderer_1_1GridSettings.html", null ],
     [ "yaze::cli::gui::GuiActionGenerator", "df/d9d/classyaze_1_1cli_1_1gui_1_1GuiActionGenerator.html", null ],
-    [ "yaze::cli::GuiAutomationClient", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html", null ],
+    [ "yaze::cli::GuiAutomationClient", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html", [
+      [ "yaze::cli::ai::anonymous_namespace{ai_gui_controller_test.cc}::MockGuiAutomationClient", "d9/d8f/classyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__gui__controller__test_8cc_03_1_1MockGuiAutomationClient.html", null ]
+    ] ],
     [ "yaze::test::TestManager::HarnessAggregate", "dc/d71/structyaze_1_1test_1_1TestManager_1_1HarnessAggregate.html", null ],
     [ "yaze::test::HarnessTestExecution", "d3/dc3/structyaze_1_1test_1_1HarnessTestExecution.html", null ],
     [ "yaze::cli::HarnessTestSummary", "db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html", null ],
@@ -556,6 +558,8 @@ var hierarchy =
     [ "yaze::gui::Table", "d8/d52/structyaze_1_1gui_1_1Table.html", null ],
     [ "yaze::cli::agent::ChatMessage::TableData", "df/de3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1TableData.html", null ],
     [ "testing::Test", null, [
+      [ "yaze::cli::ai::anonymous_namespace{ai_gui_controller_test.cc}::AIGUIControllerTest", "d6/d41/classyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__gui__controller__test_8cc_03_1_1AIGUIControllerTest.html", null ],
+      [ "yaze::cli::anonymous_namespace{tile16_proposal_generator_test.cc}::Tile16ProposalGeneratorTest", "d9/d88/classyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator__test_8cc_03_1_1Tile16ProposalGeneratorTest.html", null ],
       [ "yaze::core::anonymous_namespace{asar_wrapper_test.cc}::AsarWrapperTest", "da/d84/classyaze_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html", null ],
       [ "yaze::editor::test::Tile16EditorIntegrationTest", "d8/d78/classyaze_1_1editor_1_1test_1_1Tile16EditorIntegrationTest.html", null ],
       [ "yaze::gfx::GraphicsOptimizationBenchmarks", "de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html", null ],

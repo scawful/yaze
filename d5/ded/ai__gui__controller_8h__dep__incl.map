@@ -1,7 +1,9 @@
 <map id="src/cli/service/ai/ai_gui_controller.h" name="src/cli/service/ai/ai_gui_controller.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="92,5,221,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="177,5,306,46"/>
 <area shape="rect" id="Node000002" href="$d3/db9/ai__gui__controller_8cc.html" title=" " alt="" coords="5,94,142,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,59,94,95,90,92,125,56"/>
-<area shape="rect" id="Node000003" href="$d4/d1b/test__ai__tile__placement_8cc.html" title=" " alt="" coords="166,94,312,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,56,222,92,218,95,184,59"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,56,113,96,110,91,189,51"/>
+<area shape="rect" id="Node000003" href="$d2/d90/ai__gui__controller__test_8cc.html" title=" " alt="" coords="166,94,317,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="244,62,244,94,239,94,239,62"/>
+<area shape="rect" id="Node000004" href="$d4/d1b/test__ai__tile__placement_8cc.html" title=" " alt="" coords="342,94,488,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="296,51,377,91,374,96,293,56"/>
 </map>

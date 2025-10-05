@@ -49,6 +49,10 @@ var annotated_dup =
           [ "VimMode", "d9/dd2/classyaze_1_1cli_1_1agent_1_1VimMode.html", "d9/dd2/classyaze_1_1cli_1_1agent_1_1VimMode" ]
         ] ],
         [ "ai", "d8/d4c/namespaceyaze_1_1cli_1_1ai.html", [
+          [ "anonymous_namespace{ai_gui_controller_test.cc}", "df/d37/namespaceyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__gui__controller__test_8cc_03.html", [
+            [ "AIGUIControllerTest", "d6/d41/classyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__gui__controller__test_8cc_03_1_1AIGUIControllerTest.html", "d6/d41/classyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__gui__controller__test_8cc_03_1_1AIGUIControllerTest" ],
+            [ "MockGuiAutomationClient", "d9/d8f/classyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__gui__controller__test_8cc_03_1_1MockGuiAutomationClient.html", "d9/d8f/classyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__gui__controller__test_8cc_03_1_1MockGuiAutomationClient" ]
+          ] ],
           [ "ActionRefinement", "d4/d66/structyaze_1_1cli_1_1ai_1_1ActionRefinement.html", "d4/d66/structyaze_1_1cli_1_1ai_1_1ActionRefinement" ],
           [ "AIAction", "d3/d8b/structyaze_1_1cli_1_1ai_1_1AIAction.html", "d3/d8b/structyaze_1_1cli_1_1ai_1_1AIAction" ],
           [ "AIActionParser", "df/def/classyaze_1_1cli_1_1ai_1_1AIActionParser.html", null ],
@@ -57,6 +61,9 @@ var annotated_dup =
           [ "ControlResult", "d0/dfd/structyaze_1_1cli_1_1ai_1_1ControlResult.html", "d0/dfd/structyaze_1_1cli_1_1ai_1_1ControlResult" ],
           [ "VisionActionRefiner", "df/dcb/classyaze_1_1cli_1_1ai_1_1VisionActionRefiner.html", "df/dcb/classyaze_1_1cli_1_1ai_1_1VisionActionRefiner" ],
           [ "VisionAnalysisResult", "d2/d07/structyaze_1_1cli_1_1ai_1_1VisionAnalysisResult.html", "d2/d07/structyaze_1_1cli_1_1ai_1_1VisionAnalysisResult" ]
+        ] ],
+        [ "anonymous_namespace{tile16_proposal_generator_test.cc}", "d6/d5e/namespaceyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator__test_8cc_03.html", [
+          [ "Tile16ProposalGeneratorTest", "d9/d88/classyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator__test_8cc_03_1_1Tile16ProposalGeneratorTest.html", "d9/d88/classyaze_1_1cli_1_1anonymous__namespace_02tile16__proposal__generator__test_8cc_03_1_1Tile16ProposalGeneratorTest" ]
         ] ],
         [ "gui", "d9/db5/namespaceyaze_1_1cli_1_1gui.html", [
           [ "GuiActionGenerator", "df/d9d/classyaze_1_1cli_1_1gui_1_1GuiActionGenerator.html", "df/d9d/classyaze_1_1cli_1_1gui_1_1GuiActionGenerator" ]

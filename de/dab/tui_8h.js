@@ -31,6 +31,7 @@ var tui_8h =
       [ "kHelp", "de/dab/tui_8h.html#ab3acc1b59e84abb18e2d438f7ed2ad33a244ce4b6c7f56eaa446d64fc2d068bbb", null ],
       [ "kExit", "de/dab/tui_8h.html#ab3acc1b59e84abb18e2d438f7ed2ad33ac2477f77de6d38233af46d78ec777846", null ],
       [ "kMainMenu", "de/dab/tui_8h.html#ab3acc1b59e84abb18e2d438f7ed2ad33a90bfbb340d0004281b380b5058c652fd", null ],
+      [ "kDashboard", "de/dab/tui_8h.html#ab3acc1b59e84abb18e2d438f7ed2ad33a05cc2787f10032ece164c00b6945801b", null ],
       [ "kError", "de/dab/tui_8h.html#ab3acc1b59e84abb18e2d438f7ed2ad33ae3587c730cc1aa530fa4ddc9c4204e97", null ]
     ] ],
     [ "ShowMain", "de/dab/tui_8h.html#a7cde2d3d2d98674ab1401d816314fdb3", null ],

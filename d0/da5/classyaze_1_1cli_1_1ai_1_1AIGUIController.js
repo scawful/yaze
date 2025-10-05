@@ -1,6 +1,6 @@
 var classyaze_1_1cli_1_1ai_1_1AIGUIController =
 [
-    [ "AIGUIController", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#a8bb98c7664ec76be296d6cb25eb353cc", null ],
+    [ "AIGUIController", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#a6f186b7ec261430415f4fa0c33d4da8a", null ],
     [ "~AIGUIController", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#ad237f4e29407da4bfcab00fafb70fc3d", null ],
     [ "Initialize", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#a36cba024bd6bf3580db92f104cdc10cd", null ],
     [ "ExecuteCommand", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#a95ef2007603ba99364dec900cb16871b", null ],
@@ -16,7 +16,7 @@ var classyaze_1_1cli_1_1ai_1_1AIGUIController =
     [ "EnsureScreenshotsDirectory", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#af96f4ff473c6e7df13c76c8bc01e9d5b", null ],
     [ "GenerateScreenshotPath", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#a4beec552c089395c2ec18c5f2c0f3fc6", null ],
     [ "gemini_service_", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#a350bfa825cad7819701275a4232cb071", null ],
-    [ "gui_client_", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#a7c59669e2a111c45c3376124e7c4152d", null ],
+    [ "gui_client_", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#ab857d248e9eaf3a545528f2d85b651ac", null ],
     [ "vision_refiner_", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#a003c3a78138be4d3a1855265217433f6", null ],
     [ "action_generator_", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#aa9b65b61f0f759920b2471aa4520d06b", null ],
     [ "config_", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#ac7ec45c02415b9db4d5ca12add3490fa", null ],

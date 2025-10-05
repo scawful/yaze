@@ -1,0 +1,11 @@
+<map id="yaze::cli::Tile16ProposalGenerator::ParseReplaceTileCommand" name="yaze::cli::Tile16ProposalGenerator::ParseReplaceTileCommand">
+<area shape="rect" id="Node000001" title="Parse a &quot;overworld replace&#45;tile&quot; command into multiple Tile16Changes." alt="" coords="5,92,251,133"/>
+<area shape="rect" id="Node000002" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#aaf829190011d16662c756ae1cc6f2688" title=" " alt="" coords="299,5,454,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,89,300,49,302,54,190,94"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="306,70,447,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="251,95,290,90,290,96,251,100"/>
+<area shape="rect" id="Node000004" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a0ea7c62cb7b2f6a9338e778f0243be4e" title=" " alt="" coords="299,120,454,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="251,124,283,127,283,133,251,129"/>
+<area shape="rect" id="Node000032" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a06d8d1c0415daa5b721bd312f239f049" title=" " alt="" coords="299,185,454,226"/>
+<area shape="poly" id="edge4_Node000001_Node000032" title=" " alt="" coords="185,131,307,177,305,182,184,136"/>
+</map>

@@ -4,6 +4,7 @@ var namespaceyaze_1_1cli_1_1ai =
       [ "ParseHexOrDecimal", "de/d0e/namespaceyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__action__parser_8cc_03.html#aa36b2ab0132cb1f4ad3d695387f9868d", null ],
       [ "ExtractCoordinates", "de/d0e/namespaceyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__action__parser_8cc_03.html#a3f61ff128404154cbb5a45bdc91ab379", null ]
     ] ],
+    [ "anonymous_namespace{ai_gui_controller_test.cc}", "df/d37/namespaceyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__gui__controller__test_8cc_03.html", "df/d37/namespaceyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__gui__controller__test_8cc_03" ],
     [ "ActionRefinement", "d4/d66/structyaze_1_1cli_1_1ai_1_1ActionRefinement.html", "d4/d66/structyaze_1_1cli_1_1ai_1_1ActionRefinement" ],
     [ "AIAction", "d3/d8b/structyaze_1_1cli_1_1ai_1_1AIAction.html", "d3/d8b/structyaze_1_1cli_1_1ai_1_1AIAction" ],
     [ "AIActionParser", "df/def/classyaze_1_1cli_1_1ai_1_1AIActionParser.html", null ],
