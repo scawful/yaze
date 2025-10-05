@@ -534,18 +534,32 @@ void AgentEditor::DrawPromptEditorPanel() {
       prompt_editor_->SetText(*content_result);
       current_profile_.system_prompt = *content_result;
       prompt_editor_initialized_ = true;
-    } else {
-      // Only show error on first attempt (don't spam)
-      static bool error_shown = false;
-      if (!error_shown && toast_manager_) {
+      
+      if (toast_manager_) {
         toast_manager_->Show(
-            absl::StrFormat("Prompt file not found: %s", active_prompt_file_),
-            ToastType::kWarning, 3.0f);
-        error_shown = true;
+            absl::StrFormat(ICON_MD_CHECK_CIRCLE " Loaded %s", active_prompt_file_),
+            ToastType::kSuccess, 2.0f);
       }
-      // Set placeholder text
-      prompt_editor_->SetText("# System prompt file not found\n# Please check assets/agent/ directory");
-      prompt_editor_initialized_ = true;  // Don't retry every frame
+    } else {
+      // Show detailed error in console
+      std::cerr << "❌ Failed to load " << active_prompt_file_ << "\n";
+      std::cerr << "   Error: " << content_result.status().message() << "\n";
+      
+      // Set placeholder with instructions
+      std::string placeholder = absl::StrFormat(
+          "# System prompt file not found: %s\n"
+          "# Error: %s\n\n"
+          "# Please ensure the file exists in:\n"
+          "# - assets/agent/%s\n"
+          "# - Or Contents/Resources/agent/%s (macOS bundle)\n\n"
+          "# You can create a custom prompt here and save it to your bot profile.",
+          active_prompt_file_,
+          content_result.status().message(),
+          active_prompt_file_,
+          active_prompt_file_);
+      
+      prompt_editor_->SetText(placeholder);
+      prompt_editor_initialized_ = true;
     }
   }
   

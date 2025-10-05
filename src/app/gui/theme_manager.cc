@@ -203,9 +203,9 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.resize_grip_active = RGBA(199, 209, 255, 230);  // 0.78f, 0.82f, 1.00f, 0.90f
   
   // Complete ImGui colors with smart defaults using accent colors
-  theme.check_mark = RGBA(230, 230, 230, 128);      // 0.90f, 0.90f, 0.90f, 0.50f
-  theme.slider_grab = RGBA(255, 255, 255, 77);      // 1.00f, 1.00f, 1.00f, 0.30f
-  theme.slider_grab_active = RGBA(92, 115, 92, 153); // Same as scrollbar for consistency
+  theme.check_mark = RGBA(66, 150, 250, 255);       // Solid blue checkmark (visible!)
+  theme.slider_grab = RGBA(66, 150, 250, 200);      // Blue slider grab
+  theme.slider_grab_active = RGBA(92, 115, 92, 255); // Solid green when active
   theme.input_text_cursor = theme.text_primary;      // Use primary text color
   theme.nav_cursor = theme.accent;                   // Use accent color for navigation
   theme.nav_windowing_highlight = theme.accent;      // Accent for window switching

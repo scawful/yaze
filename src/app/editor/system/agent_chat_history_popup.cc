@@ -13,12 +13,13 @@ namespace editor {
 
 namespace {
 
-const ImVec4 kUserColor = ImVec4(0.88f, 0.76f, 0.36f, 1.0f);
-const ImVec4 kAgentColor = ImVec4(0.56f, 0.82f, 0.62f, 1.0f);
-const ImVec4 kTimestampColor = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
-const ImVec4 kAccentColor = ImVec4(0.196f, 0.6f, 0.8f, 1.0f);
-const ImVec4 kBackgroundColor = ImVec4(0.08f, 0.08f, 0.12f, 0.98f);
-const ImVec4 kHeaderColor = ImVec4(0.12f, 0.14f, 0.18f, 1.0f);
+// Theme-matched colors
+const ImVec4 kUserColor = ImVec4(0.90f, 0.70f, 0.00f, 1.0f);  // Gold
+const ImVec4 kAgentColor = ImVec4(0.40f, 0.76f, 0.64f, 1.0f);  // Teal
+const ImVec4 kTimestampColor = ImVec4(0.6f, 0.6f, 0.6f, 0.9f);
+const ImVec4 kAccentColor = ImVec4(0.26f, 0.59f, 0.98f, 1.0f);  // Theme blue
+const ImVec4 kBackgroundColor = ImVec4(0.10f, 0.10f, 0.13f, 0.98f);  // Darker
+const ImVec4 kHeaderColor = ImVec4(0.14f, 0.14f, 0.16f, 1.0f);
 
 }  // namespace
 
@@ -40,11 +41,9 @@ void AgentChatHistoryPopup::Draw() {
                           ImGuiWindowFlags_NoCollapse |
                           ImGuiWindowFlags_NoTitleBar;
 
-  // Beautiful gradient background
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, kBackgroundColor);
-  ImGui::PushStyleColor(ImGuiCol_Border, kAccentColor);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12, 12));
+  // Theme-matched styling
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 10));
   
   if (ImGui::Begin("##AgentChatPopup", &visible_, flags)) {
     // Animated header pulse
@@ -85,7 +84,6 @@ void AgentChatHistoryPopup::Draw() {
   ImGui::End();
   
   ImGui::PopStyleVar(2);
-  ImGui::PopStyleColor(2);
 }
 
 void AgentChatHistoryPopup::DrawMessageList() {
@@ -161,34 +159,30 @@ void AgentChatHistoryPopup::DrawMessage(const cli::agent::ChatMessage& msg, int 
 }
 
 void AgentChatHistoryPopup::DrawHeader() {
-  // Beautiful header with gradient accent
+  // Theme-matched header with subtle gradient
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 header_start = ImGui::GetCursorScreenPos();
-  ImVec2 header_size(ImGui::GetContentRegionAvail().x, 60);
+  ImVec2 header_size(ImGui::GetContentRegionAvail().x, 55);
   
-  // Gradient background
-  ImU32 color_top = ImGui::GetColorU32(ImVec4(0.15f, 0.18f, 0.22f, 1.0f));
-  ImU32 color_bottom = ImGui::GetColorU32(kHeaderColor);
+  // Subtle gradient matching theme
+  ImU32 color_top = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_WindowBg));
+  ImU32 color_bottom = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_ChildBg));
   draw_list->AddRectFilledMultiColor(
       header_start,
       ImVec2(header_start.x + header_size.x, header_start.y + header_size.y),
       color_top, color_top, color_bottom, color_bottom);
   
-  // Accent line with pulse effect
-  float pulse = 0.7f + 0.3f * sinf(header_pulse_);
-  ImVec4 accent_pulse = ImVec4(kAccentColor.x, kAccentColor.y, kAccentColor.z, pulse);
-  ImU32 accent_color = ImGui::GetColorU32(accent_pulse);
+  // Thin accent line (no pulse - matches theme better)
+  ImU32 accent_color = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator));
   draw_list->AddLine(
       ImVec2(header_start.x, header_start.y + header_size.y),
       ImVec2(header_start.x + header_size.x, header_start.y + header_size.y),
-      accent_color, 3.0f);
+      accent_color, 1.5f);
   
-  ImGui::Dummy(ImVec2(0, 10));
+  ImGui::Dummy(ImVec2(0, 8));
   
-  // Title with icon
-  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);  // Default font (bold if available)
-  ImGui::TextColored(kAccentColor, "%s AI Chat", ICON_MD_CHAT);
-  ImGui::PopFont();
+  // Title with theme colors
+  ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_Text), "%s AI Chat", ICON_MD_CHAT);
   
   ImGui::SameLine(ImGui::GetContentRegionAvail().x - 130);
   

@@ -178,8 +178,18 @@ if (APPLE)
   target_link_libraries(yaze PUBLIC ${COCOA_LIBRARY})
 endif()
 
-# Post-build step to copy assets to output directory (Windows/Linux)
-if(NOT APPLE)
+# Post-build step to copy assets to output directory
+if(APPLE)
+  # macOS: Copy to bundle Resources
+  add_custom_command(TARGET yaze POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+    $<TARGET_FILE_DIR:yaze>/../Resources/agent
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets/agent
+    $<TARGET_FILE_DIR:yaze>/../Resources/agent
+    COMMENT "Copying agent assets to macOS bundle"
+  )
+elseif(NOT APPLE)
   # Add post-build commands directly to the yaze target
   # Copy fonts
   add_custom_command(TARGET yaze POST_BUILD
@@ -200,6 +210,18 @@ if(NOT APPLE)
     $<TARGET_FILE_DIR:yaze>/assets/themes
     COMMENT "Copying theme assets"
   )
+  
+  # Copy agent assets (system prompts, etc.)
+  if(EXISTS ${CMAKE_SOURCE_DIR}/assets/agent)
+    add_custom_command(TARGET yaze POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory
+      $<TARGET_FILE_DIR:yaze>/assets/agent
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${CMAKE_SOURCE_DIR}/assets/agent
+      $<TARGET_FILE_DIR:yaze>/assets/agent
+      COMMENT "Copying agent assets (prompts, schemas)"
+    )
+  endif()
   
   # Copy other assets if they exist
   if(EXISTS ${CMAKE_SOURCE_DIR}/assets/layouts)
