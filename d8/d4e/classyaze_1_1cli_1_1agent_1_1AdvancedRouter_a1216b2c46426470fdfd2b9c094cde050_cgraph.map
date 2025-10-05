@@ -1,0 +1,7 @@
+<map id="yaze::cli::agent::AdvancedRouter::RouteHexAnalysis" name="yaze::cli::agent::AdvancedRouter::RouteHexAnalysis">
+<area shape="rect" id="Node000001" title="Route hex data analysis response." alt="" coords="5,39,177,79"/>
+<area shape="rect" id="Node000002" href="$d8/d4e/classyaze_1_1cli_1_1agent_1_1AdvancedRouter.html#a5c3ae1627b07e9eeb9c66cd65955da8f" title=" " alt="" coords="225,5,393,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,43,209,38,209,44,177,49"/>
+<area shape="rect" id="Node000003" href="$d8/d4e/classyaze_1_1cli_1_1agent_1_1AdvancedRouter.html#ae2ab7d1e97934dca4dd3c575842617cb" title=" " alt="" coords="225,71,393,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,69,209,74,209,79,176,74"/>
+</map>

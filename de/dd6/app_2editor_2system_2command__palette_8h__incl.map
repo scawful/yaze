@@ -1,0 +1,11 @@
+<map id="src/app/editor/system/command_palette.h" name="src/app/editor/system/command_palette.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="92,5,239,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,59,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,49,67,88,64,83,131,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="83,94,141,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="154,48,131,83,126,80,150,45"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="165,94,275,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,45,205,79,201,83,177,48"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="299,94,376,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="209,44,298,85,296,90,207,49"/>
+</map>

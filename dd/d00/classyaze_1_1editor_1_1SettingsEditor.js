@@ -16,5 +16,9 @@ var classyaze_1_1editor_1_1SettingsEditor =
     [ "IsRomLoaded", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#af0aac84bad56bfecd39658f52b63aba5", null ],
     [ "DrawGeneralSettings", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a1f4ad9210d7bfaebf191b98e752f8a0b", null ],
     [ "DrawKeyboardShortcuts", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#ab90539b1706c9e00c6070d223623e6b8", null ],
+    [ "DrawThemeSettings", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a5a9c56961475099b3b936b0e84224320", null ],
+    [ "DrawEditorBehavior", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#ae559e0bc08ba91fbb843a65bad3362cc", null ],
+    [ "DrawPerformanceSettings", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a2ab874b477a20715310f54a3f73fde01", null ],
+    [ "DrawAIAgentSettings", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#afc26e7b04312c0fb3e7f96b20e19f8ee", null ],
     [ "rom_", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a2b2f18410f2a93f5e02206da5f0b8805", null ]
 ];

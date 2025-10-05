@@ -62,10 +62,13 @@ var namespaceyaze_1_1cli_1_1agent =
       [ "SAVE_CURSOR", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#adc879b279aa8f258c2c82fcc8688b61b", null ],
       [ "RESTORE_CURSOR", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#a74ae3f6a15871ccb985428727f6ec262", null ]
     ] ],
+    [ "AdvancedRouter", "d8/d4e/classyaze_1_1cli_1_1agent_1_1AdvancedRouter.html", "d8/d4e/classyaze_1_1cli_1_1agent_1_1AdvancedRouter" ],
     [ "AgentConfig", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig" ],
+    [ "AgentPretraining", "d7/d62/classyaze_1_1cli_1_1agent_1_1AgentPretraining.html", "d7/d62/classyaze_1_1cli_1_1agent_1_1AgentPretraining" ],
     [ "ChatMessage", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage" ],
     [ "ConversationalAgentService", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService" ],
     [ "LearnedKnowledgeService", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService" ],
+    [ "PromptManager", "d4/d79/classyaze_1_1cli_1_1agent_1_1PromptManager.html", null ],
     [ "ProposalCreationRequest", "d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest.html", "d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest" ],
     [ "ProposalCreationResult", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult" ],
     [ "SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession" ],
@@ -78,6 +81,11 @@ var namespaceyaze_1_1cli_1_1agent =
       [ "kCompact", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a104573db6e35d80a8a5bacc53b26a4a2", null ],
       [ "kMarkdown", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a30437633d552b7229b65b11ec90cb153", null ],
       [ "kJson", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a319f3b99b8d96c21e2f6b7ebc6fe8d8f", null ]
+    ] ],
+    [ "PromptMode", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a35cbc4e2a28bdee3fd04f391c3ed8001", [
+      [ "kStandard", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a35cbc4e2a28bdee3fd04f391c3ed8001a821da62632c491ea619ead7b31c094bf", null ],
+      [ "kOracleOfSecrets", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a35cbc4e2a28bdee3fd04f391c3ed8001ac7cf00cf740d75270a88d45e3177b98f", null ],
+      [ "kCustom", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a35cbc4e2a28bdee3fd04f391c3ed8001ab8eb7a62834cb1c7fc1b0d02d60bc7fa", null ]
     ] ],
     [ "VimModeType", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a86ad5b9eba2a5917045c923a30a602c4", [
       [ "NORMAL", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a86ad5b9eba2a5917045c923a30a602c4a1e23852820b9154316c7c06e2b7ba051", null ],

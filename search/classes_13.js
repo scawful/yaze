@@ -1,14 +1,10 @@
 var searchData=
 [
-  ['versiondiff_0',['VersionDiff',['../d9/dee/structyaze_1_1app_1_1net_1_1VersionDiff.html',1,'yaze::app::net']]],
-  ['videoportcontrol_1',['VideoPortControl',['../da/dbf/structyaze_1_1emu_1_1VideoPortControl.html',1,'yaze::emu']]],
-  ['vimmode_2',['VimMode',['../d9/dd2/classyaze_1_1cli_1_1agent_1_1VimMode.html',1,'yaze::cli::agent']]],
-  ['visionactionrefiner_3',['VisionActionRefiner',['../df/dcb/classyaze_1_1cli_1_1ai_1_1VisionActionRefiner.html',1,'yaze::cli::ai']]],
-  ['visionanalysisresult_4',['VisionAnalysisResult',['../d2/d07/structyaze_1_1cli_1_1ai_1_1VisionAnalysisResult.html',1,'yaze::cli::ai']]],
-  ['vmaddh_5',['VMADDH',['../dc/da6/structyaze_1_1emu_1_1VMADDH.html',1,'yaze::emu']]],
-  ['vmaddl_6',['VMADDL',['../db/da1/structyaze_1_1emu_1_1VMADDL.html',1,'yaze::emu']]],
-  ['vmain_7',['VMAIN',['../d5/dcb/structyaze_1_1emu_1_1VMAIN.html',1,'yaze::emu']]],
-  ['vmdata_8',['VMDATA',['../d5/d94/structyaze_1_1emu_1_1VMDATA.html',1,'yaze::emu']]],
-  ['vmdatahread_9',['VMDATAHREAD',['../d3/d3e/structyaze_1_1emu_1_1VMDATAHREAD.html',1,'yaze::emu']]],
-  ['vmdatalread_10',['VMDATALREAD',['../db/d62/structyaze_1_1emu_1_1VMDATALREAD.html',1,'yaze::emu']]]
+  ['uitestsuite_0',['UITestSuite',['../df/d1d/classyaze_1_1test_1_1UITestSuite.html',1,'yaze::test']]],
+  ['undopoint_1',['undopoint',['../d7/dbb/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1UndoPoint.html',1,'yaze::zelda3::DungeonEditorSystem::UndoPoint'],['../d6/da4/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1UndoPoint.html',1,'yaze::zelda3::DungeonObjectEditor::UndoPoint']]],
+  ['undorecord_2',['UndoRecord',['../d5/d1e/classTextEditor_1_1UndoRecord.html',1,'TextEditor']]],
+  ['undostate_3',['UndoState',['../d1/d31/structyaze_1_1editor_1_1Tile16Editor_1_1UndoState.html',1,'yaze::editor::Tile16Editor']]],
+  ['unittestsuite_4',['UnitTestSuite',['../d0/d9d/classyaze_1_1test_1_1UnitTestSuite.html',1,'yaze::test']]],
+  ['unsortedasset_5',['UnsortedAsset',['../d5/dc4/structyaze_1_1gui_1_1UnsortedAsset.html',1,'yaze::gui']]],
+  ['userroutine_6',['UserRoutine',['../da/d81/structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html',1,'yaze::editor::zsprite']]]
 ];

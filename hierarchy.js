@@ -1,6 +1,7 @@
 var hierarchy =
 [
     [ "yaze::cli::ai::ActionRefinement", "d4/d66/structyaze_1_1cli_1_1ai_1_1ActionRefinement.html", null ],
+    [ "yaze::cli::agent::AdvancedRouter", "d8/d4e/classyaze_1_1cli_1_1agent_1_1AdvancedRouter.html", null ],
     [ "yaze::editor::AgentChatHistoryCodec", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec.html", null ],
     [ "yaze::app::gui::AgentChatWidget", "d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html", null ],
     [ "yaze::editor::AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", null ],
@@ -8,6 +9,7 @@ var hierarchy =
     [ "yaze::cli::agent::AgentConfig", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html", null ],
     [ "yaze::editor::AgentChatWidget::AgentConfigState", "d2/da5/structyaze_1_1editor_1_1AgentChatWidget_1_1AgentConfigState.html", null ],
     [ "yaze::editor::AgentEditor", "d6/d0d/classyaze_1_1editor_1_1AgentEditor.html", null ],
+    [ "yaze::cli::agent::AgentPretraining", "d7/d62/classyaze_1_1cli_1_1agent_1_1AgentPretraining.html", null ],
     [ "yaze::cli::AgentResponse", "db/d5f/structyaze_1_1cli_1_1AgentResponse.html", null ],
     [ "yaze::core::YazeProject::AgentSettings", "d4/db6/structyaze_1_1core_1_1YazeProject_1_1AgentSettings.html", null ],
     [ "yaze::cli::ai::AIAction", "d3/d8b/structyaze_1_1cli_1_1ai_1_1AIAction.html", null ],
@@ -44,6 +46,7 @@ var hierarchy =
     [ "yaze::emu::AudioRam", "db/dc9/classyaze_1_1emu_1_1AudioRam.html", [
       [ "yaze::emu::AudioRamImpl", "d5/da7/classyaze_1_1emu_1_1AudioRamImpl.html", null ]
     ] ],
+    [ "yaze::cli::AutocompleteEngine", "da/d90/classyaze_1_1cli_1_1AutocompleteEngine.html", null ],
     [ "yaze::cli::AutomationResult", "d4/daf/structyaze_1_1cli_1_1AutomationResult.html", null ],
     [ "yaze::gui::AutoWidgetScope", "db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html", null ],
     [ "yaze::gfx::BackgroundBuffer", "dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html", null ],
@@ -111,6 +114,8 @@ var hierarchy =
     [ "yaze::gui::Color", "d4/dca/structyaze_1_1gui_1_1Color.html", null ],
     [ "yaze::gui::canvas::ColorAnalysisOptions", "d8/de6/structyaze_1_1gui_1_1canvas_1_1ColorAnalysisOptions.html", null ],
     [ "yaze::app::gui::AgentChatWidget::Colors", "d2/dda/structyaze_1_1app_1_1gui_1_1AgentChatWidget_1_1Colors.html", null ],
+    [ "yaze::cli::AutocompleteEngine::CommandDef", "d6/d48/structyaze_1_1cli_1_1AutocompleteEngine_1_1CommandDef.html", null ],
+    [ "yaze::editor::CommandEntry", "dd/dee/structyaze_1_1editor_1_1CommandEntry.html", null ],
     [ "yaze::editor::CommandManager::CommandGroup", "d7/d2a/structyaze_1_1editor_1_1CommandManager_1_1CommandGroup.html", null ],
     [ "yaze::cli::CommandHandler", "dd/d80/classyaze_1_1cli_1_1CommandHandler.html", [
       [ "yaze::cli::Agent", "d9/dee/classyaze_1_1cli_1_1Agent.html", null ],
@@ -150,6 +155,7 @@ var hierarchy =
     [ "yaze::cli::CommandInfo", "dd/d22/structyaze_1_1cli_1_1CommandInfo.html", null ],
     [ "yaze::editor::CommandManager::CommandInfo", "d1/d7c/structyaze_1_1editor_1_1CommandManager_1_1CommandInfo.html", null ],
     [ "yaze::editor::CommandManager", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html", null ],
+    [ "yaze::editor::CommandPalette", "df/db6/classyaze_1_1editor_1_1CommandPalette.html", null ],
     [ "yaze::gfx::lc_lz2::CompressionCommand", "d6/db2/structyaze_1_1gfx_1_1lc__lz2_1_1CompressionCommand.html", null ],
     [ "yaze::gfx::lc_lz2::CompressionContext", "d3/da7/structyaze_1_1gfx_1_1lc__lz2_1_1CompressionContext.html", null ],
     [ "yaze::gfx::lc_lz2::CompressionPiece", "d5/d61/structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html", null ],
@@ -290,6 +296,7 @@ var hierarchy =
     [ "yaze::zelda3::DungeonEditorSystem::ItemData", "d2/d4b/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1ItemData.html", null ],
     [ "yaze::zelda3::ItemTypes::ItemInfo", "d8/d57/structyaze_1_1zelda3_1_1ItemTypes_1_1ItemInfo.html", null ],
     [ "yaze::emu::JoypadRegisters", "d3/d00/structyaze_1_1emu_1_1JoypadRegisters.html", null ],
+    [ "yaze::cli::agent::AgentPretraining::KnowledgeModule", "d4/de6/structyaze_1_1cli_1_1agent_1_1AgentPretraining_1_1KnowledgeModule.html", null ],
     [ "TextEditor::LanguageDefinition", "dd/dd2/structTextEditor_1_1LanguageDefinition.html", null ],
     [ "yaze::emu::Layer", "d9/de3/structyaze_1_1emu_1_1Layer.html", null ],
     [ "yaze::zelda3::LayerMergeType", "d3/d1e/structyaze_1_1zelda3_1_1LayerMergeType.html", null ],
@@ -411,6 +418,7 @@ var hierarchy =
     [ "yaze::core::ProjectMetadata", "d8/d0c/structyaze_1_1core_1_1ProjectMetadata.html", null ],
     [ "yaze::core::ProjectManager::ProjectTemplate", "d1/d47/structyaze_1_1core_1_1ProjectManager_1_1ProjectTemplate.html", null ],
     [ "yaze::cli::PromptBuilder", "d2/d20/classyaze_1_1cli_1_1PromptBuilder.html", null ],
+    [ "yaze::cli::agent::PromptManager", "d4/d79/classyaze_1_1cli_1_1agent_1_1PromptManager.html", null ],
     [ "yaze::app::net::ProposalApprovalManager", "db/d62/classyaze_1_1app_1_1net_1_1ProposalApprovalManager.html", null ],
     [ "yaze::cli::agent::ProposalCreationRequest", "d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest.html", null ],
     [ "yaze::cli::agent::ProposalCreationResult", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html", null ],
@@ -464,6 +472,8 @@ var hierarchy =
     [ "yaze::zelda3::DungeonEditorSystem::RoomProperties", "d4/d8a/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html", null ],
     [ "yaze::zelda3::RoomSize", "d6/df8/structyaze_1_1zelda3_1_1RoomSize.html", null ],
     [ "yaze::zelda3::dungeon::RoomVisualDiagnostic", "d1/d91/classyaze_1_1zelda3_1_1dungeon_1_1RoomVisualDiagnostic.html", null ],
+    [ "yaze::cli::agent::AdvancedRouter::RouteContext", "dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html", null ],
+    [ "yaze::cli::agent::AdvancedRouter::RoutedResponse", "d8/d99/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RoutedResponse.html", null ],
     [ "std::runtime_error", null, [
       [ "yaze::gfx::BitmapError", "df/d71/classyaze_1_1gfx_1_1BitmapError.html", null ]
     ] ],
@@ -532,6 +542,7 @@ var hierarchy =
     [ "yaze::editor::zsprite::SubEditor", "de/d9d/structyaze_1_1editor_1_1zsprite_1_1SubEditor.html", null ],
     [ "yaze::zelda3::SubtypeInfo", "da/d92/structyaze_1_1zelda3_1_1SubtypeInfo.html", null ],
     [ "yaze::zelda3::anonymous_namespace{room_object.cc}::SubtypeTableInfo", "d2/d79/structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html", null ],
+    [ "yaze::cli::Suggestion", "d6/d3a/structyaze_1_1cli_1_1Suggestion.html", null ],
     [ "yaze::gfx::Arena::SurfacePool", "d7/d5d/structyaze_1_1gfx_1_1Arena_1_1SurfacePool.html", null ],
     [ "yaze::gui::Table", "d8/d52/structyaze_1_1gui_1_1Table.html", null ],
     [ "yaze::cli::agent::ChatMessage::TableData", "df/de3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1TableData.html", null ],

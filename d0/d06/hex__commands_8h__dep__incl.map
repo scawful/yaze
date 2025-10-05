@@ -1,5 +1,7 @@
 <map id="src/cli/handlers/agent/hex_commands.h" name="src/cli/handlers/agent/hex_commands.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,151,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="87,5,232,46"/>
 <area shape="rect" id="Node000002" href="$d4/de1/hex__commands_8cc.html" title=" " alt="" coords="5,94,151,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,62,81,94,75,94,75,62"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,59,98,95,94,92,129,56"/>
+<area shape="rect" id="Node000003" href="$d1/d72/cli_2tui_2command__palette_8cc.html" title=" " alt="" coords="174,94,310,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,56,225,92,221,95,187,59"/>
 </map>

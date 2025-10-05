@@ -3,7 +3,7 @@ var dir_1803ec2ac2120f8427544b062f2515ae =
     [ "agent", "dir_58c5d7f17207e6ffb752b92952ac37bb.html", "dir_58c5d7f17207e6ffb752b92952ac37bb" ],
     [ "net", "dir_df9d5316d53adfa5de30514a17ac89a8.html", "dir_df9d5316d53adfa5de30514a17ac89a8" ],
     [ "agent.cc", "d2/d0e/agent_8cc.html", "d2/d0e/agent_8cc" ],
-    [ "command_palette.cc", "d9/dd4/handlers_2command__palette_8cc.html", null ],
+    [ "command_palette.cc", "d7/d97/cli_2handlers_2command__palette_8cc.html", null ],
     [ "compress.cc", "da/d6b/compress_8cc.html", null ],
     [ "dungeon.cc", "dc/d42/dungeon_8cc.html", "dc/d42/dungeon_8cc" ],
     [ "gfx.cc", "d7/dfd/gfx_8cc.html", "d7/dfd/gfx_8cc" ],

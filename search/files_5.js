@@ -15,10 +15,11 @@ var searchData=
   ['emu_2ecc_12',['emu.cc',['../d8/d5b/emu_8cc.html',1,'']]],
   ['emulator_2ecc_13',['emulator.cc',['../d3/d87/emulator_8cc.html',1,'']]],
   ['emulator_2eh_14',['emulator.h',['../db/dc0/emulator_8h.html',1,'']]],
-  ['entity_2ecc_15',['entity.cc',['../d8/d78/entity_8cc.html',1,'']]],
-  ['entity_2eh_16',['entity.h',['../d8/d83/entity_8h.html',1,'']]],
-  ['extension_5fmanager_2ecc_17',['extension_manager.cc',['../d1/d95/extension__manager_8cc.html',1,'']]],
-  ['extension_5fmanager_2eh_18',['extension_manager.h',['../d4/db5/extension__manager_8h.html',1,'']]],
-  ['extract_5fchangelog_2epy_19',['extract_changelog.py',['../d4/d85/extract__changelog_8py.html',1,'']]],
-  ['extract_5fvanilla_5fvalues_2ecc_20',['extract_vanilla_values.cc',['../de/d77/extract__vanilla__values_8cc.html',1,'']]]
+  ['enhanced_5fmenu_2ecc_15',['enhanced_menu.cc',['../d7/d4a/enhanced__menu_8cc.html',1,'']]],
+  ['entity_2ecc_16',['entity.cc',['../d8/d78/entity_8cc.html',1,'']]],
+  ['entity_2eh_17',['entity.h',['../d8/d83/entity_8h.html',1,'']]],
+  ['extension_5fmanager_2ecc_18',['extension_manager.cc',['../d1/d95/extension__manager_8cc.html',1,'']]],
+  ['extension_5fmanager_2eh_19',['extension_manager.h',['../d4/db5/extension__manager_8h.html',1,'']]],
+  ['extract_5fchangelog_2epy_20',['extract_changelog.py',['../d4/d85/extract__changelog_8py.html',1,'']]],
+  ['extract_5fvanilla_5fvalues_2ecc_21',['extract_vanilla_values.cc',['../de/d77/extract__vanilla__values_8cc.html',1,'']]]
 ];
