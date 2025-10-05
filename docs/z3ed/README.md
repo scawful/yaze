@@ -906,6 +906,7 @@ The AI response appears in your chat history and can reference specific details 
 -   **yaze-server v2.0 Protocol**: Extended with proposal voting (`proposal_vote`, `proposal_vote_received`)
 -   **z3ed Network Commands**: CLI commands for remote collaboration (`net connect`, `net join`, `proposal submit/wait`)
 -   **Collaboration UI Panel**: `CollaborationPanel` widget with version history, ROM sync tracking, snapshot gallery, and approval workflow
+-   **gRPC ROM Service**: Complete protocol buffer and implementation for remote ROM manipulation (pending build integration)
 
 #### Build System & Infrastructure
 -   **gRPC Windows Build Optimization**: vcpkg integration for 10-20x faster Windows builds, removed abseil-cpp submodule

@@ -229,21 +229,23 @@
     },
     {
       "name": "win-ai",
-      "displayName": "Windows AI",
-      "description": "Windows with AI agent (z3ed + JSON + gRPC)",
+      "displayName": "1. Windows AI + z3ed",
+      "description": "Windows with AI agent (z3ed + JSON + gRPC + networking)",
       "inherits": "win-dev",
       "cacheVariables": {
         "Z3ED_AI": "ON",
         "YAZE_WITH_JSON": "ON",
         "YAZE_WITH_GRPC": "ON",
         "YAZE_BUILD_Z3ED": "ON",
-        "YAZE_BUILD_EMU": "ON"
+        "YAZE_BUILD_EMU": "ON",
+        "CMAKE_CXX_COMPILER": "cl",
+        "CMAKE_C_COMPILER": "cl"
       }
     },
     {
       "name": "win-z3ed",
-      "displayName": "Windows z3ed",
-      "description": "Windows z3ed CLI with agent support",
+      "displayName": "2. Windows z3ed CLI",
+      "description": "Windows z3ed CLI with agent and networking support",
       "inherits": "win-ai"
     },
     {
@@ -280,7 +282,7 @@
     },
     {
       "name": "ci",
-      "displayName": "CI",
+      "displayName": "9. CI Build",
       "description": "Continuous integration build (no ROM tests)",
       "inherits": ["_base", "_quiet"],
       "cacheVariables": {
@@ -291,7 +293,7 @@
     },
     {
       "name": "asan",
-      "displayName": "AddressSanitizer",
+      "displayName": "8. AddressSanitizer",
       "description": "Debug build with AddressSanitizer",
       "inherits": "_base",
       "cacheVariables": {
@@ -304,7 +306,7 @@
     },
     {
       "name": "coverage",
-      "displayName": "Coverage",
+      "displayName": "7. Coverage",
       "description": "Debug build with code coverage",
       "inherits": "_base",
       "cacheVariables": {
@@ -415,14 +417,14 @@
     {
       "name": "win-ai",
       "configurePreset": "win-ai",
-      "displayName": "Windows AI",
+      "displayName": "1. Windows AI + z3ed",
       "configuration": "Debug",
       "jobs": 12
     },
     {
       "name": "win-z3ed",
       "configurePreset": "win-z3ed",
-      "displayName": "Windows z3ed",
+      "displayName": "2. Windows z3ed CLI",
       "configuration": "Debug",
       "jobs": 12
     },
@@ -441,7 +443,19 @@
     {
       "name": "ci",
       "configurePreset": "ci",
-      "displayName": "CI Build",
+      "displayName": "9. CI Build",
+      "jobs": 12
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "displayName": "8. AddressSanitizer",
+      "jobs": 12
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage",
+      "displayName": "7. Coverage",
       "jobs": 12
     }
   ],
