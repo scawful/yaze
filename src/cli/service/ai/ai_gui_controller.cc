@@ -238,62 +238,19 @@ absl::StatusOr<std::filesystem::path> AIGUIController::CaptureCurrentState(
 
 absl::Status AIGUIController::ExecuteGRPCAction(const AIAction& action) {
   // Convert AI action to gRPC test commands
-  auto grpc_commands = action_generator_.GenerateGRPCCommands({action});
+  auto test_script_result = action_generator_.GenerateTestScript({action});
   
-  if (grpc_commands.empty()) {
-    return absl::InternalError("No gRPC commands generated for action");
+  if (!test_script_result.ok()) {
+    return test_script_result.status();
   }
   
-  // Execute each command
-  for (const auto& command_json : grpc_commands) {
-    // Parse JSON and execute via GUI client
-    // This is a placeholder - actual implementation would parse JSON
-    // and call appropriate GUI client methods
-    
-    if (action.type == AIActionType::kClickButton) {
-      auto button_it = action.parameters.find("button");
-      if (button_it != action.parameters.end()) {
-        auto status = gui_client_->ClickButton(button_it->second);
-        if (!status.ok()) {
-          return status;
-        }
-      }
-    }
-    else if (action.type == AIActionType::kPlaceTile) {
-      // Extract parameters
-      auto x_it = action.parameters.find("x");
-      auto y_it = action.parameters.find("y");
-      auto tile_it = action.parameters.find("tile_id");
-      
-      if (x_it != action.parameters.end() && 
-          y_it != action.parameters.end() &&
-          tile_it != action.parameters.end()) {
-        
-        int x = std::stoi(x_it->second);
-        int y = std::stoi(y_it->second);
-        int tile_id = std::stoi(tile_it->second);
-        
-        // Use GUI client to place tile
-        // (This would need actual implementation in GuiAutomationClient)
-        auto status = gui_client_->ExecuteTestScript(
-            absl::StrFormat("PlaceTile(%d, %d, %d)", x, y, tile_id));
-        if (!status.ok()) {
-          return status;
-        }
-      }
-    }
-    else if (action.type == AIActionType::kWait) {
-      int wait_ms = config_.screenshot_delay_ms;
-      auto wait_it = action.parameters.find("duration_ms");
-      if (wait_it != action.parameters.end()) {
-        wait_ms = std::stoi(wait_it->second);
-      }
-      std::this_thread::sleep_for(std::chrono::milliseconds(wait_ms));
-    }
-  }
-  
-  return absl::OkStatus();
+  // TODO: Implement gRPC GUI automation when GuiAutomationClient is ready
+  // For now, just log the generated test script
+  return absl::UnimplementedError(
+      "gRPC GUI automation not yet fully implemented. "
+      "GuiAutomationClient integration pending.");
 }
+
 
 absl::StatusOr<VisionAnalysisResult> AIGUIController::VerifyActionSuccess(
     const AIAction& action,

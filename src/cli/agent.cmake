@@ -67,10 +67,12 @@ _yaze_ensure_yaml_cpp(YAZE_YAML_CPP_TARGET)
 set(YAZE_AGENT_SOURCES
   cli/service/agent/proposal_executor.cc
   cli/handlers/agent/tool_commands.cc
+  cli/handlers/agent/todo_commands.cc
   cli/service/agent/conversational_agent_service.cc
   cli/service/agent/simple_chat_session.cc
   cli/service/agent/tool_dispatcher.cc
   cli/service/agent/learned_knowledge_service.cc
+  cli/service/agent/todo_manager.cc
   cli/service/ai/ai_service.cc
   cli/service/ai/ai_action_parser.cc
   cli/service/ai/vision_action_refiner.cc
@@ -79,6 +81,7 @@ set(YAZE_AGENT_SOURCES
   cli/service/ai/prompt_builder.cc
   cli/service/ai/service_factory.cc
   cli/service/gui/gui_action_generator.cc
+  cli/service/gui/gui_automation_client.cc
   cli/service/net/z3ed_network_client.cc
   cli/handlers/net/net_commands.cc
   cli/service/planning/policy_evaluator.cc
@@ -149,6 +152,10 @@ endif()
 
 # Add gRPC support for GUI automation
 if(YAZE_WITH_GRPC)
+  # Generate proto files for yaze_agent
+  target_add_protobuf(yaze_agent
+    ${PROJECT_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+  
   target_link_libraries(yaze_agent PUBLIC
     grpc++
     grpc++_reflection
