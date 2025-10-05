@@ -1,4 +1,5 @@
 #include "cli/handlers/agent/commands.h"
+#include "cli/handlers/agent/todo_commands.h"
 #include "cli/z3ed.h"
 
 #include <string>
@@ -66,6 +67,7 @@ constexpr absl::string_view kUsage =
   "  commit                  Commit changes\n"
   "  revert                  Revert changes\n"
   "  describe                Describe agent capabilities\n"
+  "  todo                    Manage tasks and project planning\n"
   "\n"
   "Global Options:\n"
   "  --rom=<path>            Path to Zelda3 ROM file (required for most commands)\n"
@@ -150,6 +152,9 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
   }
   if (subcommand == "simple-chat") {
     return agent::HandleSimpleChatCommand(subcommand_args, &rom_, absl::GetFlag(FLAGS_quiet));
+  }
+  if (subcommand == "todo") {
+    return handlers::HandleTodoCommand(subcommand_args);
   }
   
   // Hex manipulation commands
