@@ -27,11 +27,11 @@ absl::Status CreateWindow(Window& window, int flags) {
   int screen_width = display_mode.w * 0.8;
   int screen_height = display_mode.h * 0.8;
 
-  window.window_ = std::unique_ptr<SDL_Window, SDL_Deleter>(
+  window.window_ = std::unique_ptr<SDL_Window, util::SDL_Deleter>(
       SDL_CreateWindow("Yet Another Zelda3 Editor", SDL_WINDOWPOS_UNDEFINED,
                        SDL_WINDOWPOS_UNDEFINED, screen_width, screen_height,
                        flags),
-      SDL_Deleter());
+      util::SDL_Deleter());
   if (window.window_ == nullptr) {
     return absl::InternalError(
         absl::StrFormat("SDL_CreateWindow: %s\n", SDL_GetError()));

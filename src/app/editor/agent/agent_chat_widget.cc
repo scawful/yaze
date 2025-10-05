@@ -1967,7 +1967,7 @@ void AgentChatWidget::OpenFileInEditor(const std::string& filepath) {
                  filepath.substr(last_slash + 1) : filepath;
   
   // Set language based on extension
-  std::string ext = core::GetFileExtension(filepath);
+  std::string ext = util::GetFileExtension(filepath);
   if (ext == "cpp" || ext == "cc" || ext == "h" || ext == "hpp") {
     tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
   } else if (ext == "c") {
@@ -1994,7 +1994,7 @@ void AgentChatWidget::CreateNewFileInEditor(const std::string& filename) {
   tab.modified = true;
   
   // Set language based on extension
-  std::string ext = core::GetFileExtension(filename);
+  std::string ext = util::GetFileExtension(filename);
   if (ext == "cpp" || ext == "cc" || ext == "h" || ext == "hpp") {
     tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
   } else if (ext == "c") {

@@ -1457,7 +1457,7 @@ void EditorManager::DrawMenuBar() {
               ImGui::Text("%s", util::GetFileName(file).c_str());
 
               ImGui::TableNextColumn();
-              std::string ext = core::GetFileExtension(file);
+              std::string ext = util::GetFileExtension(file);
               if (ext == "sfc" || ext == "smc") {
                 ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s ROM",
                                    ICON_MD_VIDEOGAME_ASSET);

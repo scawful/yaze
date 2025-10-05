@@ -42,9 +42,10 @@ EditorSelectionDialog::EditorSelectionDialog() {
     
     {EditorType::kAssembly, "Assembly", ICON_MD_CODE,
      "Write and edit assembly code", "Ctrl+9", false, false},
-    
-    {EditorType::kMemory, "Hex Editor", ICON_MD_DATA_ARRAY,
-     "Direct ROM memory editing", "Ctrl+0", false, true},
+
+     // TODO: Fix this
+    // {EditorType::kHex, "Hex Editor", ICON_MD_DATA_ARRAY,
+    //  "Direct ROM memory editing", "Ctrl+0", false, true},
     
     {EditorType::kSettings, "Settings", ICON_MD_SETTINGS,
      "Configure ROM and project settings", "", false, true},
@@ -92,14 +93,15 @@ bool EditorSelectionDialog::Show(bool* p_open) {
       for (size_t i = 0; i < editors_.size(); ++i) {
         ImGui::TableNextColumn();
         DrawEditorCard(editors_[i], static_cast<int>(i));
-        
-        if (selected_editor_ != EditorType::kNone) {
-          editor_selected = true;
-          MarkRecentlyUsed(selected_editor_);
-          if (selection_callback_) {
-            selection_callback_(selected_editor_);
-          }
-        }
+     
+        // TODO: Fix this
+        // if (selected_editor_ != EditorType::kNone) {
+        //   editor_selected = true;
+        //   MarkRecentlyUsed(selected_editor_);
+        //   if (selection_callback_) {
+        //     selection_callback_(selected_editor_);
+        //   }
+        // }
       }
       ImGui::EndTable();
     }
@@ -230,7 +232,7 @@ void EditorSelectionDialog::LoadRecentEditors() {
       while (std::getline(ss, line) && 
              recent_editors_.size() < kMaxRecentEditors) {
         int type_int = std::stoi(line);
-        if (type_int >= 0 && type_int < static_cast<int>(EditorType::kLast)) {
+        if (type_int >= 0 && type_int < static_cast<int>(EditorType::kSettings)) {
           recent_editors_.push_back(static_cast<EditorType>(type_int));
         }
       }

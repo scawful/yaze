@@ -25,7 +25,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
-#include "app/gui/widget_id_registry.h"
+#include "app/gui/widgets/widget_id_registry.h"
 #include "app/rom.h"
 #include "app/zelda3/common.h"
 #include "app/zelda3/overworld/overworld.h"

@@ -97,7 +97,7 @@ void MusicEditor::Initialize() {
   // 2. Initialize an audio device/stream using a library like SDL. This will
   //    provide a callback for feeding the APU's output samples.
   // 3. Set up the AssemblyEditor for displaying SPC command text.
-  apu_.Init();
+  // apu_.Init();
   // TODO: Initialize SDL audio here.
 }
 
@@ -110,16 +110,16 @@ absl::Status MusicEditor::Load() {
   // 3. Populate `kGameSongs` (or a dynamic equivalent) with the song list
   //    to be displayed in the UI.
   // 4. Set the default selected song to the first one.
-  music_tracker_.LoadSongs(*rom());
-  // TODO: Populate song list dynamically.
-  song_names_.clear();
-  for (size_t i = 0; i < music_tracker_.songs.size(); ++i) {
-    const auto& song = music_tracker_.songs[i];
-    song_names_.push_back(absl::StrFormat("Song %zu (Addr: 0x%04X)", i + 1, song.addr));
-  }
-  if (!song_names_.empty()) {
-    current_song_index_ = 0;
-  }
+  // music_tracker_.LoadSongs(*rom());
+  // // TODO: Populate song list dynamically.
+  // song_names_.clear();
+  // for (size_t i = 0; i < music_tracker_.songs.size(); ++i) {
+  //   const auto& song = music_tracker_.songs[i];
+  //   song_names_.push_back(absl::StrFormat("Song %zu (Addr: 0x%04X)", i + 1, song.addr));
+  // }
+  // if (!song_names_.empty()) {
+  //   current_song_index_ = 0;
+  // }
 }
 
 absl::Status MusicEditor::Update() {
@@ -316,82 +316,82 @@ void MusicEditor::DrawTrackerView() {
     ImGui::Text("%02X", row);
     ImGui::SameLine();
 
-    for (int channel = 0; channel < num_channels; ++channel) {
-      ImGui::BeginGroup();
-      if (music_tracker_.songs.empty() || current_song_index_ >= music_tracker_.songs.size()) {
-        ImGui::Text("%-4s", "---"); // Fixed width 4 for note
-        ImGui::SameLine();
-        ImGui::Text("%-2s", "--"); // Fixed width 2 for instrument
-        ImGui::SameLine();
-        ImGui::Text("%-4s", "----"); // Fixed width 4 for volume/effect
-      } else {
-        const auto& current_song = music_tracker_.songs[current_song_index_];
-        // TODO: Need to get the SongPart for the current channel.
-        // The Song struct has a `tbl` (table of SongPart pointers).
-        // We need to map `channel` (0-7) to the correct `SongPart` in `current_song.tbl`.
-        // For now, assume `current_song.tbl` is directly indexed by `channel`.
-        if (channel < current_song.numparts) {
-                    const auto* song_part = current_song.tbl[channel];
-                    if (song_part) {
-                      short spc_command_index = song_part->tbl[0]; // The SongPart struct has `tbl[8]` which are indices into the SpcCommand array. For now, we'll just use the first track (index 0) of the SongPart.
-                      short current_row_time = 0; // Accumulate time to map to rows
+    // for (int channel = 0; channel < num_channels; ++channel) {
+    //   ImGui::BeginGroup();
+    //   if (music_tracker_.songs.empty() || current_song_index_ >= music_tracker_.songs.size()) {
+    //     ImGui::Text("%-4s", "---"); // Fixed width 4 for note
+    //     ImGui::SameLine();
+    //     ImGui::Text("%-2s", "--"); // Fixed width 2 for instrument
+    //     ImGui::SameLine();
+    //     ImGui::Text("%-4s", "----"); // Fixed width 4 for volume/effect
+    //   } else {
+    //     const auto& current_song = music_tracker_.songs[current_song_index_];
+    //     // TODO: Need to get the SongPart for the current channel.
+    //     // The Song struct has a `tbl` (table of SongPart pointers).
+    //     // We need to map `channel` (0-7) to the correct `SongPart` in `current_song.tbl`.
+    //     // For now, assume `current_song.tbl` is directly indexed by `channel`.
+    //     if (channel < current_song.numparts) {
+    //                 const auto* song_part = current_song.tbl[channel];
+    //                 if (song_part) {
+    //                   short spc_command_index = song_part->tbl[0]; // The SongPart struct has `tbl[8]` which are indices into the SpcCommand array. For now, we'll just use the first track (index 0) of the SongPart.
+    //                   short current_row_time = 0; // Accumulate time to map to rows
           
-                      // Iterate through SpcCommands
-                      while (spc_command_index != -1 && spc_command_index < music_tracker_.m_size) {
-                        const auto& spc_command = music_tracker_.current_spc_command_[spc_command_index];
+    //                   // Iterate through SpcCommands
+    //                   while (spc_command_index != -1 && spc_command_index < music_tracker_.m_size) {
+    //                     const auto& spc_command = music_tracker_.current_spc_command_[spc_command_index];
           
-                        // TODO: Map spc_command.tim and spc_command.tim2 to rows.
-                        // For now, just display the command itself if it falls on the current row.
-                        // This logic needs to be refined to correctly interpret command durations.
-                        if (current_row_time == row) { // Simplified mapping for now
-                          // TODO: Decode SpcCommand to Note, Instrument, Effect strings
-                          ImGui::Text("%-4s", absl::StrFormat("%02X", spc_command.cmd).data()); // Display command byte
-                          ImGui::SameLine();
-                          ImGui::Text("%-2s", absl::StrFormat("%02X", spc_command.p1).data()); // Display p1
-                          ImGui::SameLine();
-                          ImGui::Text("%-4s", absl::StrFormat("%02X", spc_command.p2).data()); // Display p2
-                        } else if (current_row_time > row) {
-                          // If we've passed the current row, no more commands for this row
-                          break;
-                        }
+    //                     // TODO: Map spc_command.tim and spc_command.tim2 to rows.
+    //                     // For now, just display the command itself if it falls on the current row.
+    //                     // This logic needs to be refined to correctly interpret command durations.
+    //                     if (current_row_time == row) { // Simplified mapping for now
+    //                       // TODO: Decode SpcCommand to Note, Instrument, Effect strings
+    //                       ImGui::Text("%-4s", absl::StrFormat("%02X", spc_command.cmd).data()); // Display command byte
+    //                       ImGui::SameLine();
+    //                       ImGui::Text("%-2s", absl::StrFormat("%02X", spc_command.p1).data()); // Display p1
+    //                       ImGui::SameLine();
+    //                       ImGui::Text("%-4s", absl::StrFormat("%02X", spc_command.p2).data()); // Display p2
+    //                     } else if (current_row_time > row) {
+    //                       // If we've passed the current row, no more commands for this row
+    //                       break;
+    //                     }
           
-                        // Advance time (simplified for now, needs proper GetBlockTime integration)
-                        current_row_time++; // Assume each command takes 1 row for now
+    //                     // Advance time (simplified for now, needs proper GetBlockTime integration)
+    //                     current_row_time++; // Assume each command takes 1 row for now
           
-                        spc_command_index = spc_command.next;
-                      }
+    //                     spc_command_index = spc_command.next;
+    //                   }
           
-                      // If no command was displayed for this row, display empty
-                      if (current_row_time <= row) {
-                        ImGui::Text("%-4s", "---");
-                        ImGui::SameLine();
-                        ImGui::Text("%-2s", "--");
-                        ImGui::SameLine();
-                        ImGui::Text("%-4s", "----");
-                      }
+    //                   // If no command was displayed for this row, display empty
+    //                   if (current_row_time <= row) {
+    //                     ImGui::Text("%-4s", "---");
+    //                     ImGui::SameLine();
+    //                     ImGui::Text("%-2s", "--");
+    //                     ImGui::SameLine();
+    //                     ImGui::Text("%-4s", "----");
+    //                   }
           
-                    } else {
-                      ImGui::Text("%-4s", "---");
-                      ImGui::SameLine();
-                      ImGui::Text("%-2s", "--");
-                      ImGui::SameLine();
-                      ImGui::Text("%-4s", "----");
-                    }        } else {
-          ImGui::Text("%-4s", "---");
-          ImGui::SameLine();
-          ImGui::Text("%-2s", "--");
-          ImGui::SameLine();
-          ImGui::Text("%-4s", "----");
-        }
-      }
-      ImGui::EndGroup();
-      ImGui::SameLine();
-    }
-    ImGui::NewLine(); // Move to the next line after all channels for the row
+    //                 } else {
+    //                   ImGui::Text("%-4s", "---");
+    //                   ImGui::SameLine();
+    //                   ImGui::Text("%-2s", "--");
+    //                   ImGui::SameLine();
+    //                   ImGui::Text("%-4s", "----");
+    //                 }        } else {
+    //       ImGui::Text("%-4s", "---");
+    //       ImGui::SameLine();
+    //       ImGui::Text("%-2s", "--");
+    //       ImGui::SameLine();
+    //       ImGui::Text("%-4s", "----");
+    //     }
+    //   }
+    //   ImGui::EndGroup();
+    //   ImGui::SameLine();
+    // }
+    // ImGui::NewLine(); // Move to the next line after all channels for the row
 
-    if (row == current_pattern_index_) {
-      ImGui::PopStyleColor();
-    }
+    // if (row == current_pattern_index_) {
+    //   ImGui::PopStyleColor();
+    // }
   }
   ImGui::PopStyleVar();
 
