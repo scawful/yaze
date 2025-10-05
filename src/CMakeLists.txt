@@ -456,8 +456,8 @@ else()
     # Only use resource file for x64 Windows builds
     if(WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
       # Generate yaze.res from yaze.rc and yaze.ico for Windows x64 builds
-      set(YAZE_RC_FILE "${CMAKE_CURRENT_SOURCE_DIR}/win32/yaze.rc")
-      set(YAZE_ICO_FILE "${CMAKE_CURRENT_SOURCE_DIR}/win32/yaze.ico")
+      set(YAZE_RC_FILE "${CMAKE_CURRENT_SOURCE_DIR}/app/platform/win32/yaze.rc")
+      set(YAZE_ICO_FILE "${CMAKE_SOURCE_DIR}/assets/yaze.ico")
       set(YAZE_RES_FILE "${CMAKE_CURRENT_BINARY_DIR}/yaze.res")
 
       # Add a custom command to generate the .res file from the .rc and .ico
@@ -1076,9 +1076,7 @@ source_group("API\\Python" FILES
 
 # Platform-specific Resources
 source_group("Platform\\Windows" FILES
-  win32/yaze.ico
-  win32/yaze.rc
-  win32/yaze.res
+  app/platform/win32/yaze.rc
 )
 
 source_group("Platform\\iOS" FILES

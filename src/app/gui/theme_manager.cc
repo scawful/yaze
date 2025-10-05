@@ -263,7 +263,7 @@ absl::Status ThemeManager::LoadThemeFromFile(const std::string& filepath) {
     filepath,                                    // Absolute path
     "assets/themes/" + filepath,                 // Relative from build dir  
     "../assets/themes/" + filepath,              // Relative from bin dir
-    core::GetResourcePath("assets/themes/" + filepath), // Platform-specific resource path
+    util::GetResourcePath("assets/themes/" + filepath), // Platform-specific resource path
   };
   
   std::ifstream file;
@@ -1898,13 +1898,13 @@ std::vector<std::string> ThemeManager::GetThemeSearchPaths() const {
   // Platform-specific resource paths
 #ifdef __APPLE__
   // macOS bundle resource path (this should be the primary path for bundled apps)
-  std::string bundle_themes = core::GetResourcePath("assets/themes/");
+  std::string bundle_themes = util::GetResourcePath("assets/themes/");
   if (!bundle_themes.empty()) {
     search_paths.push_back(bundle_themes);
   }
   
   // Alternative bundle locations
-  std::string bundle_root = core::GetBundleResourcePath();
+  std::string bundle_root = util::GetBundleResourcePath();
   
   search_paths.push_back(bundle_root + "Contents/Resources/themes/");
   search_paths.push_back(bundle_root + "Contents/Resources/assets/themes/");
@@ -1917,7 +1917,7 @@ std::vector<std::string> ThemeManager::GetThemeSearchPaths() const {
 #endif
   
   // User config directory
-  std::string config_themes = core::GetConfigDirectory() + "/themes/";
+  std::string config_themes = util::GetConfigDirectory() + "/themes/";
   search_paths.push_back(config_themes);
   
   return search_paths;
