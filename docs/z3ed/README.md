@@ -135,6 +135,14 @@ The `z3ed` CLI is the foundation for an AI-driven Model-Code-Program (MCP) loop,
 -   `agent simple-chat`: A lightweight, non-TUI chat mode for scripting and automation.
 -   `agent test ...`: Commands for running and managing automated GUI tests.
 -   `agent learn ...`: **NEW**: Manage learned knowledge (preferences, ROM patterns, project context, conversation memory).
+-   `agent todo create "Description" [--category=<category>] [--priority=<n>]`: Create a new TODO item.
+-   `agent todo list [--status=<status>] [--category=<category>]`: List TODOs, with optional filters.
+-   `agent todo update <id> --status=<status>`: Update the status of a TODO item.
+-   `agent todo show <id>`: Display full details of a TODO item.
+-   `agent todo delete <id>`: Delete a TODO item.
+-   `agent todo clear-completed`: Remove all completed TODOs.
+-   `agent todo next`: Get the next actionable TODO based on dependencies and priority.
+-   `agent todo plan`: Generate a topologically-sorted execution plan for all TODOs.
 
 ### Resource Commands
 
@@ -239,7 +247,23 @@ All learned data is stored in `~/.yaze/agent/`:
 - `projects.json`: Project contexts
 - `memories.json`: Conversation summaries
 
-## 9. CLI Output & Help System
+## 9. TODO Management System
+
+The TODO Management System enables the z3ed AI agent to create, track, and execute complex multi-step tasks with dependency management and prioritization.
+
+### Core Capabilities
+- ✅ Create and manage TODO items with priorities
+- ✅ Track task status (pending, in_progress, completed, blocked, cancelled)
+- ✅ Dependency tracking between tasks
+- ✅ Automatic execution plan generation
+- ✅ Persistent storage in JSON format
+- ✅ Category-based organization
+- ✅ Tools/functions tracking per task
+
+### Storage Location
+TODOs are persisted to: `~/.yaze/agent/todos.json` (macOS/Linux) or `%APPDATA%/yaze/agent/todos.json` (Windows)
+
+## 10. CLI Output & Help System
 
 The `z3ed` CLI features a modernized output system designed to be clean for users and informative for developers.
 
@@ -895,6 +919,7 @@ The AI response appears in your chat history and can reference specific details 
 -   **Native Gemini Function Calling**: Upgraded from manual curl to native function calling API with automatic tool schema generation
 -   **Multimodal Vision Testing**: Comprehensive test suite for Gemini vision capabilities with screenshot integration
 -   **AI-Controlled GUI Automation**: Natural language parsing (`AIActionParser`) and test script generation (`GuiActionGenerator`) for automated tile placement
+-   **TODO Management System**: Full `TodoManager` class with CRUD operations, CLI commands, dependency tracking, execution planning, and JSON persistence.
 
 #### Version Management & Protection
 -   **ROM Version Management System**: `RomVersionManager` with automatic snapshots, safe points, corruption detection, and rollback capabilities
@@ -908,11 +933,16 @@ The AI response appears in your chat history and can reference specific details 
 -   **Collaboration UI Panel**: `CollaborationPanel` widget with version history, ROM sync tracking, snapshot gallery, and approval workflow
 -   **gRPC ROM Service**: Complete protocol buffer and implementation for remote ROM manipulation (pending build integration)
 
+#### UI/UX Enhancements
+-   **Welcome Screen Enhancement**: Dynamic theme integration, Zelda-themed animations, and project cards.
+-   **Component Refactoring**: `PaletteWidget` renamed and moved, UI organization improved (`app/editor/ui/` for welcome_screen, editor_selection_dialog, background_renderer).
+
 #### Build System & Infrastructure
 -   **gRPC Windows Build Optimization**: vcpkg integration for 10-20x faster Windows builds, removed abseil-cpp submodule
 -   **Cross-Platform Networking**: Native socket support (ws2_32 on Windows, BSD sockets on Unix)
 -   **Namespace Refactoring**: Created `app/net` namespace for networking components
 -   **Improved Documentation**: Consolidated architecture, enhancement plans, networking guide, and build instructions with JSON-first approach
+-   **Build System Improvements**: `mac-ai` preset, proto fixes, and updated GEMINI.md with AI build policies.
 
 ## 12. Troubleshooting
 

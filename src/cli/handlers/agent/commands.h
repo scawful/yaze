@@ -69,6 +69,22 @@ absl::Status HandleSimpleChatCommand(const std::vector<std::string>&, Rom* rom, 
 absl::Status HandleTestConversationCommand(
 	const std::vector<std::string>& arg_vec);
 
+// Hex manipulation commands
+absl::Status HandleHexRead(const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleHexWrite(const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleHexSearch(const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+
+// Palette manipulation commands
+absl::Status HandlePaletteGetColors(const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandlePaletteSetColor(const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandlePaletteAnalyze(const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+
 }  // namespace agent
 }  // namespace cli
 }  // namespace yaze

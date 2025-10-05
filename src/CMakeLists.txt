@@ -457,9 +457,10 @@ else()
       set(YAZE_RES_FILE "${CMAKE_CURRENT_BINARY_DIR}/yaze.res")
 
       # Add a custom command to generate the .res file from the .rc and .ico
+      # /I adds include directory so RC compiler can find yaze.ico
       add_custom_command(
         OUTPUT ${YAZE_RES_FILE}
-        COMMAND ${CMAKE_RC_COMPILER} /fo ${YAZE_RES_FILE} ${YAZE_RC_FILE}
+        COMMAND ${CMAKE_RC_COMPILER} /fo ${YAZE_RES_FILE} /I "${CMAKE_SOURCE_DIR}/assets" ${YAZE_RC_FILE}
         DEPENDS ${YAZE_RC_FILE} ${YAZE_ICO_FILE}
         COMMENT "Generating yaze.res from yaze.rc and yaze.ico"
         VERBATIM

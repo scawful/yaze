@@ -151,6 +151,28 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
   if (subcommand == "simple-chat") {
     return agent::HandleSimpleChatCommand(subcommand_args, &rom_, absl::GetFlag(FLAGS_quiet));
   }
+  
+  // Hex manipulation commands
+  if (subcommand == "hex-read") {
+    return agent::HandleHexRead(subcommand_args, &rom_);
+  }
+  if (subcommand == "hex-write") {
+    return agent::HandleHexWrite(subcommand_args, &rom_);
+  }
+  if (subcommand == "hex-search") {
+    return agent::HandleHexSearch(subcommand_args, &rom_);
+  }
+  
+  // Palette manipulation commands
+  if (subcommand == "palette-get-colors") {
+    return agent::HandlePaletteGetColors(subcommand_args, &rom_);
+  }
+  if (subcommand == "palette-set-color") {
+    return agent::HandlePaletteSetColor(subcommand_args, &rom_);
+  }
+  if (subcommand == "palette-analyze") {
+    return agent::HandlePaletteAnalyze(subcommand_args, &rom_);
+  }
 
   return absl::InvalidArgumentError(std::string(agent::kUsage));
 }
