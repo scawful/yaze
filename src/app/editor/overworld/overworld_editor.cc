@@ -25,6 +25,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
+#include "app/gui/ui_helpers.h"
 #include "app/gui/widgets/widget_id_registry.h"
 #include "app/rom.h"
 #include "app/zelda3/common.h"
@@ -453,16 +454,15 @@ void OverworldEditor::DrawOverworldMapSettings() {
 
     // Header with ROM version indicator and upgrade option
     if (asm_version == 0xFF) {
-      ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Vanilla ROM");
-      if (ImGui::Button(ICON_MD_UPGRADE " Upgrade to v3")) {
+      gui::RomVersionBadge("Vanilla ROM", true);
+      if (gui::IconButton(ICON_MD_UPGRADE, "Upgrade to v3")) {
         // Show upgrade dialog
         ImGui::OpenPopup("UpgradeROMVersion");
       }
       HOVER_HINT("Upgrade ROM to support ZSCustomOverworld features");
     } else {
-      ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f),
-                         "ZSCustomOverworld v%d", asm_version);
-      if (asm_version < 3 && ImGui::Button(ICON_MD_UPGRADE " Upgrade to v3")) {
+      gui::RomVersionBadge(absl::StrFormat("ZSCustomOverworld v%d", asm_version).c_str(), false);
+      if (asm_version < 3 && gui::IconButton(ICON_MD_UPGRADE, "Upgrade to v3")) {
         ImGui::OpenPopup("UpgradeROMVersion");
       }
     }
@@ -482,23 +482,20 @@ void OverworldEditor::DrawOverworldMapSettings() {
 
       // Show ASM application option if feature flag is enabled
       if (core::FeatureFlags::get().overworld.kApplyZSCustomOverworldASM) {
-        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f),
-                           ICON_MD_CODE " ASM Patch Application Enabled");
-        ImGui::Text(
-            "ZSCustomOverworld ASM will be automatically applied to ROM");
+        gui::SectionHeader(ICON_MD_CODE, "ASM Patch Application Enabled", gui::GetSuccessColor());
+        ImGui::Text("ZSCustomOverworld ASM will be automatically applied to ROM");
         ImGui::Separator();
       } else {
-        ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f),
-                           ICON_MD_INFO " ASM Patch Application Disabled");
+        gui::SectionHeader(ICON_MD_INFO, "ASM Patch Application Disabled", gui::GetWarningColor());
         ImGui::Text("Only version marker will be set. Enable in Feature Flags");
         ImGui::Text("for full ASM functionality.");
         ImGui::Separator();
       }
 
-      ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f),
-                         "Warning: This will modify your ROM!");
+      ImGui::TextColored(gui::GetWarningColor(),
+                         ICON_MD_WARNING " Warning: This will modify your ROM!");
 
-      if (ImGui::Button(ICON_MD_CHECK " Upgrade", ImVec2(120, 0))) {
+      if (gui::ColoredButton(ICON_MD_CHECK " Upgrade", gui::ButtonType::Success, ImVec2(120, 0))) {
         // Apply ASM if feature flag is enabled
         if (core::FeatureFlags::get().overworld.kApplyZSCustomOverworldASM) {
           auto asm_status = ApplyZSCustomOverworldASM(3);
@@ -1611,7 +1608,7 @@ void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
       if (each.is_hole_) {
         color = ImVec4(255, 255, 0, 200);
       }
-      ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16, color);
+      ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16, gui::GetEntranceColor());
       std::string str = util::HexByte(each.entrance_id_);
 
       if (current_mode == EditingMode::ENTRANCES) {
@@ -1673,7 +1670,7 @@ void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
     if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
         each.map_id_ >= (current_world_ * 0x40) && !each.deleted_) {
       ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
-                              ImVec4(255, 255, 255, 150));
+                              gui::GetExitColor());
       if (current_mode == EditingMode::EXITS) {
         each.entity_id_ = i;
         HandleEntityDragging(&each, ow_map_canvas_.zero_point(),
@@ -1724,7 +1721,7 @@ void OverworldEditor::DrawOverworldItems() {
     // Get the item's bitmap and real X and Y positions
     if (item.room_map_id_ < 0x40 + (current_world_ * 0x40) &&
         item.room_map_id_ >= (current_world_ * 0x40) && !item.deleted) {
-      ow_map_canvas_.DrawRect(item.x_, item.y_, 16, 16, ImVec4(255, 0, 0, 150));
+      ow_map_canvas_.DrawRect(item.x_, item.y_, 16, 16, gui::GetItemColor());
 
       if (current_mode == EditingMode::ITEMS) {
         // Check if this item is being clicked and dragged
@@ -1784,7 +1781,7 @@ void OverworldEditor::DrawOverworldSprites() {
       int original_y = sprite.y_;
 
       ow_map_canvas_.DrawRect(sprite_x, sprite_y, kTile16Size, kTile16Size,
-                              /*magenta=*/ImVec4(255, 0, 255, 150));
+                              gui::GetSpriteColor());
       if (current_mode == EditingMode::SPRITES) {
         HandleEntityDragging(&sprite, ow_map_canvas_.zero_point(),
                              ow_map_canvas_.scrolling(), is_dragging_entity_,
@@ -2816,16 +2813,15 @@ void OverworldEditor::DrawOverlayPreview() {
 
 void OverworldEditor::DrawMapLockControls() {
   if (current_map_lock_) {
-    PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
-    Text("Map Locked: %d (0x%02X)", current_map_, current_map_);
-    PopStyleColor();
-
-    if (Button("Unlock Map")) {
+    gui::LockIndicator(true, absl::StrFormat("Map %d (0x%02X)", current_map_, current_map_).c_str());
+    
+    if (gui::IconButton(ICON_MD_LOCK_OPEN, "Unlock Map")) {
       current_map_lock_ = false;
     }
   } else {
-    Text("Map: %d (0x%02X) - Click to lock", current_map_, current_map_);
-    if (Button("Lock Map")) {
+    gui::LockIndicator(false, absl::StrFormat("Map %d (0x%02X)", current_map_, current_map_).c_str());
+    
+    if (gui::IconButton(ICON_MD_LOCK, "Lock Map")) {
       current_map_lock_ = true;
     }
   }
@@ -2957,17 +2953,14 @@ void OverworldEditor::DrawMapPropertiesPanel() {
 
   // Header with map info and lock status
   ImGui::BeginGroup();
-  if (current_map_lock_) {
-    PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.0f, 1.0f));
-    Text("Map Locked: %d (0x%02X)", current_map_, current_map_);
-    PopStyleColor();
-  } else {
-    Text("Current Map: %d (0x%02X)", current_map_, current_map_);
-  }
+  gui::LockIndicator(current_map_lock_, 
+                    absl::StrFormat("Map %d (0x%02X)", current_map_, current_map_).c_str());
 
   SameLine();
-  if (Button(current_map_lock_ ? "Unlock" : "Lock")) {
-    current_map_lock_ = !current_map_lock_;
+  if (gui::ToggleIconButton(ICON_MD_LOCK_OPEN, ICON_MD_LOCK, 
+                            &current_map_lock_, 
+                            current_map_lock_ ? "Unlock Map" : "Lock Map")) {
+    // Toggle handled by helper
   }
   ImGui::EndGroup();
 
@@ -3538,9 +3531,7 @@ void OverworldEditor::DrawUsageGrid() {
 
       // Set highlight color if needed
       if (highlight) {
-        PushStyleColor(ImGuiCol_Button,
-                       ImVec4(1.0f, 0.5f, 0.0f,
-                              1.0f));  // Or any highlight color
+        PushStyleColor(ImGuiCol_Button, gui::GetSelectedColor());
       }
 
       // Create a button or selectable for each square

@@ -25,7 +25,7 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/proposal_drawer.h"
-#include "app/editor/system/agent_chat_history_popup.h"
+#include "app/editor/agent/agent_chat_history_popup.h"
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/agent_editor.h"
 #include "app/editor/agent/automation_bridge.h"
