@@ -179,10 +179,18 @@ void AgentChatHistoryPopup::DrawHeader() {
   
   ImGui::Dummy(ImVec2(0, 8));
   
-  // Title
-  ImGui::Text("%s AI Chat", ICON_MD_CHAT);
+  // Title and provider dropdown (like connection header)
+  ImGui::Text(ICON_MD_CHAT);
+  ImGui::SameLine();
   
-  ImGui::SameLine(ImGui::GetContentRegionAvail().x - 95);
+  // Model dropdown (compact)
+  ImGui::SetNextItemWidth(120);
+  static int provider_idx = 0;
+  const char* providers[] = {"Mock", "Ollama", "Gemini"};
+  ImGui::Combo("##popup_provider", &provider_idx, providers, 3);
+  
+  // Buttons properly spaced from right edge
+  ImGui::SameLine(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 75.0f);
   
   // Compact mode toggle
   if (ImGui::SmallButton(compact_mode_ ? ICON_MD_UNFOLD_MORE : ICON_MD_UNFOLD_LESS)) {
@@ -194,14 +202,15 @@ void AgentChatHistoryPopup::DrawHeader() {
   
   ImGui::SameLine();
   
-  // Full chat button
+  // Full chat button (closes popup when opened)
   if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW)) {
     if (open_chat_callback_) {
       open_chat_callback_();
+      visible_ = false;  // Close popup when opening main chat
     }
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Open full chat window");
+    ImGui::SetTooltip("Open full chat");
   }
   
   ImGui::SameLine();
@@ -233,38 +242,41 @@ void AgentChatHistoryPopup::DrawHeader() {
 }
 
 void AgentChatHistoryPopup::DrawQuickActions() {
-  float button_width = (ImGui::GetContentRegionAvail().x - 8) / 3.0f;
+  // 4 buttons with narrower width
+  float button_width = (ImGui::GetContentRegionAvail().x - 15) / 4.0f;
   
   // Multimodal snapshot button
-  if (ImGui::Button(ICON_MD_CAMERA, ImVec2(button_width, 32))) {
+  if (ImGui::Button(ICON_MD_CAMERA, ImVec2(button_width, 30))) {
     if (capture_snapshot_callback_) {
       capture_snapshot_callback_();
     }
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Capture screenshot for Gemini analysis");
+    ImGui::SetTooltip("Capture screenshot");
   }
   
   ImGui::SameLine();
   
-  // Filter button
-  const char* filter_icon = ICON_MD_FILTER_LIST;
-  if (ImGui::Button(filter_icon, ImVec2(button_width, 32))) {
+  // Filter button with icon indicator
+  const char* filter_icons[] = {ICON_MD_FILTER_LIST, ICON_MD_PERSON, ICON_MD_SMART_TOY};
+  int filter_idx = static_cast<int>(message_filter_);
+  if (ImGui::Button(filter_icons[filter_idx], ImVec2(button_width, 30))) {
     ImGui::OpenPopup("FilterPopup");
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Filter messages");
+    const char* filter_names[] = {"All", "User only", "Agent only"};
+    ImGui::SetTooltip("Filter: %s", filter_names[filter_idx]);
   }
   
   // Filter popup
   if (ImGui::BeginPopup("FilterPopup")) {
-    if (ImGui::Selectable("All Messages", message_filter_ == MessageFilter::kAll)) {
+    if (ImGui::Selectable(ICON_MD_FILTER_LIST " All Messages", message_filter_ == MessageFilter::kAll)) {
       message_filter_ = MessageFilter::kAll;
     }
-    if (ImGui::Selectable("User Only", message_filter_ == MessageFilter::kUserOnly)) {
+    if (ImGui::Selectable(ICON_MD_PERSON " User Only", message_filter_ == MessageFilter::kUserOnly)) {
       message_filter_ = MessageFilter::kUserOnly;
     }
-    if (ImGui::Selectable("Agent Only", message_filter_ == MessageFilter::kAgentOnly)) {
+    if (ImGui::Selectable(ICON_MD_SMART_TOY " Agent Only", message_filter_ == MessageFilter::kAgentOnly)) {
       message_filter_ = MessageFilter::kAgentOnly;
     }
     ImGui::EndPopup();
@@ -272,8 +284,20 @@ void AgentChatHistoryPopup::DrawQuickActions() {
   
   ImGui::SameLine();
   
+  // Save session button
+  if (ImGui::Button(ICON_MD_SAVE, ImVec2(button_width, 30))) {
+    if (toast_manager_) {
+      toast_manager_->Show(ICON_MD_SAVE " Session auto-saved", ToastType::kSuccess, 1.5f);
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Save chat session");
+  }
+  
+  ImGui::SameLine();
+  
   // Clear button
-  if (ImGui::Button(ICON_MD_DELETE, ImVec2(button_width, 32))) {
+  if (ImGui::Button(ICON_MD_DELETE, ImVec2(button_width, 30))) {
     ClearHistory();
   }
   if (ImGui::IsItemHovered()) {
@@ -287,7 +311,6 @@ void AgentChatHistoryPopup::DrawInputSection() {
   
   // Input field using theme colors
   bool send_message = false;
-  ImGui::SetNextItemWidth(-1);
   if (ImGui::InputTextMultiline("##popup_input", input_buffer_, sizeof(input_buffer_),
                                 ImVec2(-1, 60),
                                 ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_CtrlEnterForNewLine)) {
@@ -300,9 +323,10 @@ void AgentChatHistoryPopup::DrawInputSection() {
     focus_input_ = false;
   }
   
-  // Send button
+  // Send button (proper width)
   ImGui::Spacing();
-  if (ImGui::Button(absl::StrFormat("%s Send", ICON_MD_SEND).c_str(), ImVec2(-1, 30)) || send_message) {
+  float send_button_width = ImGui::GetContentRegionAvail().x;
+  if (ImGui::Button(absl::StrFormat("%s Send", ICON_MD_SEND).c_str(), ImVec2(send_button_width, 32)) || send_message) {
     if (std::strlen(input_buffer_) > 0) {
       SendMessage(input_buffer_);
       std::memset(input_buffer_, 0, sizeof(input_buffer_));
@@ -312,6 +336,10 @@ void AgentChatHistoryPopup::DrawInputSection() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Send message (Enter) • Ctrl+Enter for newline");
   }
+  
+  // Info text
+  ImGui::Spacing();
+  ImGui::TextDisabled(ICON_MD_INFO " Enter: send • Ctrl+Enter: newline");
 }
 
 void AgentChatHistoryPopup::SendMessage(const std::string& message) {

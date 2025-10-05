@@ -183,28 +183,34 @@ void AgentEditor::DrawDashboard() {
     if (ImGui::BeginTabItem(ICON_MD_SMART_TOY " Bot Studio")) {
       ImGui::Spacing();
       
-      // Use ImGui table for clean 3-column resizable layout
+      // Three-column layout: Config+Status | Editors | Profiles
       ImGuiTableFlags table_flags = ImGuiTableFlags_Resizable | 
                                     ImGuiTableFlags_BordersInnerV | 
                                     ImGuiTableFlags_SizingStretchProp;
       
       if (ImGui::BeginTable("BotStudioLayout", 3, table_flags)) {
-        ImGui::TableSetupColumn("Config", ImGuiTableColumnFlags_WidthFixed, 380.0f);
+        ImGui::TableSetupColumn("Settings", ImGuiTableColumnFlags_WidthFixed, 320.0f);
         ImGui::TableSetupColumn("Editors", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("Profiles", ImGuiTableColumnFlags_WidthFixed, 320.0f);
+        ImGui::TableSetupColumn("Profiles", ImGuiTableColumnFlags_WidthFixed, 280.0f);
         ImGui::TableNextRow();
         
-        // Column 1: Configuration
+        // Column 1: AI Provider, Behavior, ROM, Tips, Metrics (merged!)
         ImGui::TableNextColumn();
-        ImGui::PushID("ConfigColumn");
+        ImGui::PushID("SettingsColumn");
+        
+        // Provider settings (always visible)
         DrawConfigurationPanel();
+        ImGui::Spacing();
+        
+        // Status cards (always visible)
+        DrawStatusPanel();
+        
         ImGui::PopID();
         
-        // Column 2: Editors (Prompt + Tiles + New)
+        // Column 2: Tabbed Editors
         ImGui::TableNextColumn();
         ImGui::PushID("EditorsColumn");
         
-        // Tabbed editors for better organization
         if (ImGui::BeginTabBar("EditorTabs", ImGuiTabBarFlags_None)) {
           if (ImGui::BeginTabItem(ICON_MD_EDIT " System Prompt")) {
             DrawPromptEditorPanel();
@@ -474,42 +480,57 @@ void AgentEditor::DrawConfigurationPanel() {
 }
 
 void AgentEditor::DrawStatusPanel() {
-  // Chat Status
-  if (ImGui::CollapsingHeader(ICON_MD_CHAT " Chat Status", ImGuiTreeNodeFlags_DefaultOpen)) {
-    if (chat_widget_ && chat_widget_->is_active()) {
-      ImGui::TextColored(ImVec4(0.133f, 0.545f, 0.133f, 1.0f), ICON_MD_CHECK_CIRCLE " Chat Active");
-    } else {
-      ImGui::TextDisabled(ICON_MD_CANCEL " Chat Inactive");
-    }
-    
-    ImGui::Spacing();
-    if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Open Chat", ImVec2(-1, 0))) {
-      OpenChatWindow();
-    }
+  // Always visible status cards (no collapsing)
+  
+  // Chat Status Card
+  ImGui::BeginChild("ChatStatusCard", ImVec2(0, 100), true);
+  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_CHAT " Chat");
+  ImGui::Separator();
+  
+  if (chat_widget_ && chat_widget_->is_active()) {
+    ImGui::TextColored(ImVec4(0.133f, 0.545f, 0.133f, 1.0f), ICON_MD_CHECK_CIRCLE " Active");
+  } else {
+    ImGui::TextDisabled(ICON_MD_CANCEL " Inactive");
   }
   
-  // ROM Context
-  if (ImGui::CollapsingHeader(ICON_MD_GAMEPAD " ROM Context")) {
-    if (rom_ && rom_->is_loaded()) {
-      ImGui::TextColored(ImVec4(0.133f, 0.545f, 0.133f, 1.0f), ICON_MD_CHECK_CIRCLE " ROM Loaded");
-      ImGui::TextDisabled("ROM is ready for agent operations");
-    } else {
-      ImGui::TextColored(ImVec4(0.8f, 0.2f, 0.2f, 1.0f), ICON_MD_WARNING " No ROM");
-      ImGui::TextDisabled("Load a ROM to enable full features");
-    }
+  ImGui::Spacing();
+  if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Open", ImVec2(-1, 0))) {
+    OpenChatWindow();
   }
+  ImGui::EndChild();
   
-  // Collaboration Status
-  if (ImGui::CollapsingHeader(ICON_MD_PEOPLE " Collaboration")) {
-    ImGui::TextDisabled("Mode: %s", current_mode_ == CollaborationMode::kLocal ? "Local" : "Network");
-    if (in_session_) {
-      ImGui::TextColored(ImVec4(0.133f, 0.545f, 0.133f, 1.0f), ICON_MD_CHECK_CIRCLE " In Session");
-      ImGui::TextDisabled("Session: %s", current_session_name_.c_str());
-      ImGui::TextDisabled("Participants: %zu", current_participants_.size());
-    } else {
-      ImGui::TextDisabled(ICON_MD_INFO " Not in session");
-    }
+  ImGui::Spacing();
+  
+  // ROM Context Card
+  ImGui::BeginChild("RomStatusCard", ImVec2(0, 100), true);
+  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_GAMEPAD " ROM");
+  ImGui::Separator();
+  
+  if (rom_ && rom_->is_loaded()) {
+    ImGui::TextColored(ImVec4(0.133f, 0.545f, 0.133f, 1.0f), ICON_MD_CHECK_CIRCLE " Loaded");
+    ImGui::TextDisabled("Title: %s", rom_->title().c_str());
+    ImGui::TextDisabled("Tools: Ready");
+  } else {
+    ImGui::TextColored(ImVec4(0.8f, 0.2f, 0.2f, 1.0f), ICON_MD_WARNING " Not Loaded");
+    ImGui::TextDisabled("Load ROM for AI tools");
   }
+  ImGui::EndChild();
+  
+  ImGui::Spacing();
+  
+  // Quick Tips Card
+  ImGui::BeginChild("QuickTipsCard", ImVec2(0, 150), true);
+  ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f), ICON_MD_TIPS_AND_UPDATES " Quick Tips");
+  ImGui::Separator();
+  ImGui::Spacing();
+  
+  ImGui::BulletText("Ctrl+H: Toggle chat popup");
+  ImGui::BulletText("Ctrl+P: View proposals");
+  ImGui::BulletText("Edit prompts in center");
+  ImGui::BulletText("Create custom bots");
+  ImGui::BulletText("Save/load chat sessions");
+  
+  ImGui::EndChild();
 }
 
 void AgentEditor::DrawMetricsPanel() {
