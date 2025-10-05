@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_MAP_PROPERTIES_H
 #define YAZE_APP_EDITOR_OVERWORLD_MAP_PROPERTIES_H
 
+#include <functional>
+
 #include "app/zelda3/overworld/overworld.h"
 #include "app/rom.h"
 #include "app/gui/canvas.h"
@@ -17,10 +19,23 @@ namespace editor {
 
 class MapPropertiesSystem {
  public:
+  // Callback types for refresh operations
+  using RefreshCallback = std::function<void()>;
+  using RefreshPaletteCallback = std::function<absl::Status()>;
+  
   explicit MapPropertiesSystem(zelda3::Overworld* overworld, Rom* rom,
                               std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp = nullptr,
                               gui::Canvas* canvas = nullptr)
       : overworld_(overworld), rom_(rom), maps_bmp_(maps_bmp), canvas_(canvas) {}
+
+  // Set callbacks for refresh operations
+  void SetRefreshCallbacks(RefreshCallback refresh_map_properties,
+                          RefreshCallback refresh_overworld_map,
+                          RefreshPaletteCallback refresh_map_palette) {
+    refresh_map_properties_ = std::move(refresh_map_properties);
+    refresh_overworld_map_ = std::move(refresh_overworld_map);
+    refresh_map_palette_ = std::move(refresh_map_palette);
+  }
 
   // Main interface methods
   void DrawSimplifiedMapSettings(int& current_world, int& current_map, 
@@ -66,7 +81,7 @@ class MapPropertiesSystem {
   void DrawTileGraphicsTab(int current_map);
   void DrawMusicTab(int current_map);
   
-  // Utility methods
+  // Utility methods - now call the callbacks
   void RefreshMapProperties();
   void RefreshOverworldMap();
   absl::Status RefreshMapPalette();
@@ -75,6 +90,11 @@ class MapPropertiesSystem {
   Rom* rom_;
   std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp_;
   gui::Canvas* canvas_;
+  
+  // Callbacks for refresh operations
+  RefreshCallback refresh_map_properties_;
+  RefreshCallback refresh_overworld_map_;
+  RefreshPaletteCallback refresh_map_palette_;
   
   // Using centralized UI constants from ui_constants.h
 };

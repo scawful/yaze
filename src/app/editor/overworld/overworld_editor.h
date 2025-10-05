@@ -17,7 +17,6 @@
 #include "app/editor/overworld/overworld_editor_manager.h"
 #include "imgui/imgui.h"
 #include <mutex>
-#include <chrono>
 
 namespace yaze {
 namespace editor {
@@ -129,8 +128,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
  private:
   void DrawFullscreenCanvas();
   void DrawToolset();
-  void DrawOverworldMapSettings();
-  void DrawCustomOverworldMapSettings();
 
   void RefreshChildMap(int map_index);
   void RefreshOverworldMap();
@@ -141,8 +138,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void RefreshMapProperties();
   absl::Status RefreshTile16Blockset();
 
-  void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling,
-                              bool holes = false);
+  void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling);
   void DrawOverworldExits(ImVec2 zero, ImVec2 scrolling);
   void DrawOverworldItems();
   void DrawOverworldSprites();
@@ -291,6 +287,15 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool use_area_specific_bg_color_ = false;
   bool show_map_properties_panel_ = false;
   bool show_overlay_preview_ = false;
+  
+  // Card visibility states
+  bool show_tile16_selector_ = true;
+  bool show_tile8_selector_ = false;
+  bool show_area_gfx_ = false;
+  bool show_scratch_ = false;
+  bool show_gfx_groups_ = false;
+  bool show_usage_stats_ = false;
+  bool show_v3_settings_ = false;
 
   // Map properties system for UI organization
   std::unique_ptr<MapPropertiesSystem> map_properties_system_;
