@@ -161,6 +161,204 @@
           }
         }
       }
+    },
+    {
+      "name": "hex-read",
+      "description": "Read bytes from ROM at a specific address in hexadecimal",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "ROM address in hex format (e.g., '0x1C800')"
+          },
+          "length": {
+            "type": "integer",
+            "description": "Number of bytes to read (default: 16)"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["hex", "ascii", "both"],
+            "description": "Output format (default: both)"
+          }
+        },
+        "required": ["address"]
+      }
+    },
+    {
+      "name": "hex-write",
+      "description": "Write bytes to ROM at a specific address (creates a proposal)",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "ROM address in hex format (e.g., '0x1C800')"
+          },
+          "data": {
+            "type": "string",
+            "description": "Hex data to write (space-separated bytes like 'FF 00 12 34')"
+          }
+        },
+        "required": ["address", "data"]
+      }
+    },
+    {
+      "name": "hex-search",
+      "description": "Search for a byte pattern in ROM",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "description": "Hex pattern to search (e.g., 'FF 00 ?? 12' where ?? is wildcard)"
+          },
+          "start_address": {
+            "type": "string",
+            "description": "Start address (default: 0x00000)"
+          },
+          "end_address": {
+            "type": "string",
+            "description": "End address (default: ROM size)"
+          }
+        },
+        "required": ["pattern"]
+      }
+    },
+    {
+      "name": "palette-get-colors",
+      "description": "Get all colors from a specific palette",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "integer",
+            "description": "Palette group index (0-based)"
+          },
+          "palette": {
+            "type": "integer",
+            "description": "Palette index within group (0-7)"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["snes", "rgb", "hex"],
+            "description": "Color format (default: hex)"
+          }
+        },
+        "required": ["group", "palette"]
+      }
+    },
+    {
+      "name": "palette-set-color",
+      "description": "Set a specific color in a palette (creates a proposal)",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "group": {
+            "type": "integer",
+            "description": "Palette group index"
+          },
+          "palette": {
+            "type": "integer",
+            "description": "Palette index within group"
+          },
+          "color_index": {
+            "type": "integer",
+            "description": "Color index in palette (0-15)"
+          },
+          "color": {
+            "type": "string",
+            "description": "Color value in hex format (e.g., '#FF0000' or 'FF0000')"
+          }
+        },
+        "required": ["group", "palette", "color_index", "color"]
+      }
+    },
+    {
+      "name": "palette-analyze",
+      "description": "Analyze color usage and statistics for a palette or bitmap",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "target_type": {
+            "type": "string",
+            "enum": ["palette", "bitmap", "graphics_sheet"],
+            "description": "What to analyze"
+          },
+          "target_id": {
+            "type": "string",
+            "description": "ID or index of target"
+          }
+        },
+        "required": ["target_type", "target_id"]
+      }
+    },
+    {
+      "name": "todo-create",
+      "description": "Create a new TODO task for complex operations",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Task description"
+          },
+          "category": {
+            "type": "string",
+            "description": "Task category (e.g., 'rom_edit', 'ai_task', 'build')"
+          },
+          "priority": {
+            "type": "integer",
+            "description": "Priority level (0-10, higher = more important)"
+          }
+        },
+        "required": ["description"]
+      }
+    },
+    {
+      "name": "todo-list",
+      "description": "List all TODO tasks or filter by status/category",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in_progress", "completed", "blocked", "cancelled"],
+            "description": "Filter by status"
+          },
+          "category": {
+            "type": "string",
+            "description": "Filter by category"
+          }
+        }
+      }
+    },
+    {
+      "name": "todo-update-status",
+      "description": "Update the status of a TODO task",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "TODO ID"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in_progress", "completed", "blocked", "cancelled"],
+            "description": "New status"
+          }
+        },
+        "required": ["id", "status"]
+      }
+    },
+    {
+      "name": "todo-next",
+      "description": "Get the next actionable TODO task (respecting dependencies and priority)",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
     }
   ]
 }

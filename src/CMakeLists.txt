@@ -299,10 +299,6 @@ if (YAZE_BUILD_APP)
     endif()
   endif()
 
-  target_sources(yaze PRIVATE
-    ${CMAKE_SOURCE_DIR}/src/app/gui/widgets/widget_state_capture.cc
-    ${CMAKE_SOURCE_DIR}/src/app/gui/widgets/widget_state_capture.h)
-
   if(YAZE_WITH_GRPC)
     message(STATUS "Adding gRPC ImGuiTestHarness to yaze target")
 
