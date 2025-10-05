@@ -1,302 +1,166 @@
-[
-  {
-    "name": "resource-list",
-    "description": "List all labeled resources of a specific type (dungeons, sprites, palettes)",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string",
-          "description": "Resource type to list",
-          "enum": [
-            "dungeon",
-            "room",
-            "entrance",
-            "overworld",
-            "sprite",
-            "palette",
-            "item",
-            "tile16",
-            "all"
-          ]
+{
+  "function_declarations": [
+    {
+      "name": "resource-list",
+      "description": "List all resources of a specific type from the ROM (rooms, sprites, dungeons, entrances, items, overlords)",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["room", "sprite", "dungeon", "entrance", "item", "overlord"],
+            "description": "Type of resource to list"
+          }
         },
-        "format": {
-          "type": "string",
-          "description": "Output format",
-          "enum": ["json", "table", "text"],
-          "default": "table"
+        "required": ["type"]
+      }
+    },
+    {
+      "name": "resource-search",
+      "description": "Search for resources by name or pattern",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["room", "sprite", "dungeon", "entrance", "item"],
+            "description": "Type of resource to search"
+          },
+          "query": {
+            "type": "string",
+            "description": "Search query or pattern to match"
+          }
+        },
+        "required": ["type", "query"]
+      }
+    },
+    {
+      "name": "dungeon-list-sprites",
+      "description": "List all sprites in a specific dungeon or room",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "dungeon": {
+            "type": "string",
+            "description": "Dungeon name (e.g., 'hyrule_castle', 'eastern_palace') or leave empty for all"
+          },
+          "room_id": {
+            "type": "string",
+            "description": "Specific room ID to query (optional)"
+          }
         }
-      },
-      "required": ["type"]
-    }
-  },
-  {
-    "name": "resource-search",
-    "description": "Search labeled resources by name, ID, or partial match",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "query": {
-          "type": "string",
-          "description": "Search text (case-insensitive substring match)"
+      }
+    },
+    {
+      "name": "dungeon-describe-room",
+      "description": "Get detailed information about a specific dungeon room including sprites, chests, layout, and connections",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room_id": {
+            "type": "string",
+            "description": "Room ID to describe (0-296)"
+          },
+          "include_sprites": {
+            "type": "string",
+            "enum": ["true", "false"],
+            "description": "Include sprite information (default: true)"
+          }
         },
-        "type": {
-          "type": "string",
-          "description": "Optional resource category to filter",
-          "enum": [
-            "dungeon",
-            "room",
-            "entrance",
-            "overworld",
-            "sprite",
-            "palette",
-            "item",
-            "tile16",
-            "all"
-          ],
-          "default": "all"
+        "required": ["room_id"]
+      }
+    },
+    {
+      "name": "overworld-find-tile",
+      "description": "Find all locations where a specific tile16 ID appears in the overworld",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "tile_id": {
+            "type": "string",
+            "description": "Tile16 ID to search for (hex format like '0x42' or decimal)"
+          },
+          "map_id": {
+            "type": "string",
+            "description": "Specific overworld map to search (0-63, optional)"
+          }
         },
-        "format": {
-          "type": "string",
-          "description": "Output format",
-          "enum": ["json", "text"],
-          "default": "json"
-        }
-      },
-      "required": ["query"]
-    }
-  },
-  {
-    "name": "dungeon-list-sprites",
-    "description": "List all sprites in a specific dungeon room",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "room": {
-          "type": "string",
-          "description": "Room ID in hex format (e.g., 0x012)"
+        "required": ["tile_id"]
+      }
+    },
+    {
+      "name": "overworld-describe-map",
+      "description": "Get detailed information about a specific overworld map including tile composition, warps, and sprites",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "map_id": {
+            "type": "string",
+            "description": "Overworld map ID (0-63 for light/dark world)"
+          },
+          "include_tiles": {
+            "type": "string",
+            "enum": ["true", "false"],
+            "description": "Include tile distribution statistics"
+          }
         },
-        "format": {
-          "type": "string",
-          "enum": ["json", "text"],
-          "default": "json"
-        }
-      },
-      "required": ["room"]
-    }
-  },
-  {
-    "name": "dungeon-describe-room",
-    "description": "Summarize dungeon room metadata, hazards, and counts",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "room": {
-          "type": "string",
-          "description": "Room ID in hex format (e.g., 0x012)"
+        "required": ["map_id"]
+      }
+    },
+    {
+      "name": "overworld-list-warps",
+      "description": "List all warp/entrance points for a specific overworld map",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "map_id": {
+            "type": "string",
+            "description": "Overworld map ID (0-63)"
+          }
         },
-        "format": {
-          "type": "string",
-          "enum": ["json", "text"],
-          "default": "json"
-        }
-      },
-      "required": ["room"]
-    }
-  },
-  {
-    "name": "overworld-find-tile",
-    "description": "Find all occurrences of a specific tile16 ID on overworld maps",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "tile": {
-          "type": "string",
-          "description": "Tile16 ID in hex format (e.g., 0x02E)"
+        "required": ["map_id"]
+      }
+    },
+    {
+      "name": "overworld-list-sprites",
+      "description": "List all sprites placed on a specific overworld map",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "map_id": {
+            "type": "string",
+            "description": "Overworld map ID (0-63)"
+          }
         },
-        "map": {
-          "type": "string",
-          "description": "Optional: specific map ID to search (e.g., 0x05)"
+        "required": ["map_id"]
+      }
+    },
+    {
+      "name": "overworld-get-entrance",
+      "description": "Get detailed information about a specific entrance/exit including destination and properties",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "entrance_id": {
+            "type": "string",
+            "description": "Entrance ID to query"
+          }
         },
-        "format": {
-          "type": "string",
-          "enum": ["json", "text"],
-          "default": "json"
-        }
-      },
-      "required": ["tile"]
-    }
-  },
-  {
-    "name": "overworld-describe-map",
-    "description": "Get summary information about an overworld map",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "map": {
-          "type": "string",
-          "description": "Map ID in hex format (e.g., 0x00)"
-        },
-        "format": {
-          "type": "string",
-          "enum": ["json", "text"],
-          "default": "json"
-        }
-      },
-      "required": ["map"]
-    }
-  },
-  {
-    "name": "overworld-list-warps",
-    "description": "List warp/entrance/exit points on the overworld",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "map": {
-          "type": "string",
-          "description": "Optional: filter by map ID"
-        },
-        "type": {
-          "type": "string",
-          "description": "Optional: filter by warp type",
-          "enum": ["entrance", "exit", "hole", "all"],
-          "default": "all"
-        },
-        "format": {
-          "type": "string",
-          "enum": ["json", "text"],
-          "default": "json"
+        "required": ["entrance_id"]
+      }
+    },
+    {
+      "name": "overworld-tile-stats",
+      "description": "Get statistical analysis of tile usage across overworld maps",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "map_id": {
+            "type": "string",
+            "description": "Specific map ID or 'all' for global statistics"
+          }
         }
       }
     }
-  },
-  {
-    "name": "message-list",
-    "description": "List all in-game dialogue and text messages from the ROM",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "range": {
-          "type": "string",
-          "description": "Optional: limit to message ID range in format 'start-end' (e.g., '0-100')"
-        },
-        "format": {
-          "type": "string",
-          "enum": ["json", "text"],
-          "default": "json"
-        }
-      }
-    }
-  },
-  {
-    "name": "message-read",
-    "description": "Read a specific message by its ID",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Message ID number (0-300+)"
-        },
-        "format": {
-          "type": "string",
-          "enum": ["json", "text"],
-          "default": "json"
-        }
-      },
-      "required": ["id"]
-    }
-  },
-  {
-    "name": "message-search",
-    "description": "Search for messages containing specific text",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "query": {
-          "type": "string",
-          "description": "Text to search for within message content (case-insensitive)"
-        },
-        "format": {
-          "type": "string",
-          "enum": ["json", "text"],
-          "default": "json"
-        }
-      },
-      "required": ["query"]
-    }
-  },
-  {
-    "name": "overworld-list-sprites",
-    "description": "List sprites on the overworld with optional filters for map, world, or sprite ID",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "map": {
-          "type": "string",
-          "description": "Optional: filter by map ID (0x00-0x9F)"
-        },
-        "world": {
-          "type": "string",
-          "description": "Optional: filter by world (0=light, 1=dark, 2=special)"
-        },
-        "sprite_id": {
-          "type": "string",
-          "description": "Optional: filter by sprite ID (0x00-0xFF)"
-        },
-        "format": {
-          "type": "string",
-          "enum": ["json", "text"],
-          "default": "json"
-        }
-      }
-    }
-  },
-  {
-    "name": "overworld-get-entrance",
-    "description": "Get detailed information about a specific overworld entrance by its ID",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "entrance_id": {
-          "type": "string",
-          "description": "Entrance ID number (0-128)"
-        },
-        "format": {
-          "type": "string",
-          "enum": ["json", "text"],
-          "default": "json"
-        }
-      },
-      "required": ["entrance_id"]
-    }
-  },
-  {
-    "name": "overworld-tile-stats",
-    "description": "Analyze usage statistics for a specific tile16 ID across the overworld",
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "tile_id": {
-          "type": "string",
-          "description": "Tile16 ID to analyze (0x0000-0xFFFF, hex or decimal)"
-        },
-        "map": {
-          "type": "string",
-          "description": "Optional: limit analysis to specific map ID"
-        },
-        "world": {
-          "type": "string",
-          "description": "Optional: limit analysis to specific world (0=light, 1=dark, 2=special)"
-        },
-        "format": {
-          "type": "string",
-          "enum": ["json", "text"],
-          "default": "json"
-        }
-      },
-      "required": ["tile_id"]
-    }
-  }
-]
-
+  ]
+}
