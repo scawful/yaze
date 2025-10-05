@@ -85,7 +85,7 @@ if(YAZE_WITH_GRPC)
   target_add_protobuf(yaze_core_lib
     ${PROJECT_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
   target_add_protobuf(yaze_core_lib
-    ${PROJECT_SOURCE_DIR}/protos/rom_service.proto)
+    ${PROJECT_SOURCE_DIR}/src/protos/rom_service.proto)
 
   # Add test harness implementation
   target_sources(yaze_core_lib PRIVATE

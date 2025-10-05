@@ -67,7 +67,7 @@ endif()
 
 # Add gRPC support for ROM service
 if(YAZE_WITH_GRPC)
-  target_add_protobuf(yaze_net ${PROJECT_SOURCE_DIR}/protos/rom_service.proto)
+  target_add_protobuf(yaze_net ${PROJECT_SOURCE_DIR}/src/protos/rom_service.proto)
   
   target_link_libraries(yaze_net PUBLIC
     grpc++

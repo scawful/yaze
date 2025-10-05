@@ -1051,7 +1051,7 @@ absl::Status YazeProject::SaveToJsonFormat() {
 
 // RecentFilesManager implementation
 std::string RecentFilesManager::GetFilePath() const {
-  return GetConfigDirectory() + "/" + kRecentFilesFilename;
+  return util::GetConfigDirectory() + "/" + kRecentFilesFilename;
 }
 
 void RecentFilesManager::Save() {

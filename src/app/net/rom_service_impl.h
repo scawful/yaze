@@ -10,6 +10,7 @@
 #ifdef YAZE_WITH_GRPC
 #include <grpcpp/grpcpp.h>
 #include "protos/rom_service.grpc.pb.h"
+// Note: Proto files will be generated to build directory
 #endif
 
 #include "app/rom.h"
