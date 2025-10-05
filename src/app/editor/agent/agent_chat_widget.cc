@@ -12,6 +12,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "util/file_util.h"
@@ -103,12 +104,6 @@ AgentChatWidget::AgentChatWidget() {
   memset(input_buffer_, 0, sizeof(input_buffer_));
   history_path_ = ResolveHistoryPath();
   history_supported_ = AgentChatHistoryCodec::Available();
-  
-  // Enable panels by default for better visibility
-  show_agent_config_ = true;
-  show_z3ed_commands_ = true;
-  show_rom_sync_ = false;  // Keep this one off by default
-  show_snapshot_preview_ = false;
 }
 
 void AgentChatWidget::SetRomContext(Rom* rom) {
@@ -341,7 +336,7 @@ void AgentChatWidget::RenderMessage(const ChatMessage& msg, int index) {
   ImGui::TextDisabled(
       "%s", absl::FormatTime("%H:%M:%S", msg.timestamp, absl::LocalTimeZone())
                 .c_str());
-  
+
   // Add copy button for all messages
   ImGui::SameLine();
   ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.4f, 0.6f));
@@ -352,10 +347,10 @@ void AgentChatWidget::RenderMessage(const ChatMessage& msg, int index) {
       copy_text = *msg.json_pretty;
     }
     ImGui::SetClipboardText(copy_text.c_str());
-    if (toast_manager_) {
+      if (toast_manager_) {
       toast_manager_->Show("Message copied", ToastType::kSuccess, 2.0f);
+      }
     }
-  }
   ImGui::PopStyleColor(2);
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Copy to clipboard");
@@ -502,7 +497,7 @@ void AgentChatWidget::RenderInputBox() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Send message (Ctrl+Enter)");
   }
-  
+
   ImGui::SameLine();
   ImGui::TextDisabled(ICON_MD_INFO " Ctrl+Enter: send • Enter: newline");
   
@@ -637,14 +632,12 @@ void AgentChatWidget::Draw() {
           toast_manager_->Show("Conversation reset", ToastType::kInfo, 2.5f);
         }
       }
-      ImGui::EndMenu();
-    }
-    
-    if (ImGui::BeginMenu(ICON_MD_VIEW_SIDEBAR " Panels")) {
-      ImGui::MenuItem(ICON_MD_SETTINGS " Configuration", nullptr, &show_agent_config_);
-      ImGui::MenuItem(ICON_MD_TERMINAL " Commands", nullptr, &show_z3ed_commands_);
-      ImGui::MenuItem(ICON_MD_SYNC " ROM Sync", nullptr, &show_rom_sync_);
-      ImGui::MenuItem(ICON_MD_PHOTO_CAMERA " Snapshots", nullptr, &show_snapshot_preview_);
+      ImGui::Separator();
+      if (ImGui::MenuItem(ICON_MD_SAVE " Export History")) {
+        if (toast_manager_) {
+          toast_manager_->Show("Export not yet implemented", ToastType::kWarning);
+        }
+      }
       ImGui::EndMenu();
     }
     
@@ -828,14 +821,31 @@ void AgentChatWidget::Draw() {
                         ImGuiTableFlags_ContextMenuInBody)) {
     ImGui::TableSetupColumn("Chat", ImGuiTableColumnFlags_WidthStretch, 0.7f);
     ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthStretch, 0.3f);
-    ImGui::TableHeadersRow();
-    ImGui::TableNextRow();
+        ImGui::TableHeadersRow();
+        ImGui::TableNextRow();
     
-    // LEFT: Chat area (emphasized)
+    // LEFT: Chat area with ROM sync below
     ImGui::TableSetColumnIndex(0);
     ImGui::PushID("ChatColumn");
+    
+    // Chat history and input (main area)
     RenderHistory();
     RenderInputBox();
+    
+    // ROM Sync inline below chat (when active)
+    if (collaboration_state_.active || !rom_sync_state_.current_rom_hash.empty()) {
+      ImGui::Spacing();
+      ImGui::Separator();
+      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
+      ImGui::TextColored(ImVec4(1.0f, 0.647f, 0.0f, 1.0f), ICON_MD_SYNC " ROM Sync");
+      ImGui::SameLine();
+      if (!rom_sync_state_.current_rom_hash.empty()) {
+        ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s", 
+                          rom_sync_state_.current_rom_hash.substr(0, 12).c_str());
+      }
+      ImGui::PopStyleVar();
+    }
+    
     ImGui::PopID();
     
     // RIGHT: Control panels (collapsible sections)
@@ -843,25 +853,17 @@ void AgentChatWidget::Draw() {
     ImGui::PushID("ControlsColumn");
     ImGui::BeginChild("AgentChat_ControlPanels", ImVec2(0, 0), false);
     
-    // Collapsible panels (organized by priority)
-    if (show_agent_config_) {
-      RenderAgentConfigPanel();
-    }
+    // All panels always visible (dense layout)
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));  // Tighter spacing
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 3));  // Compact padding
     
-    if (show_z3ed_commands_) {
-      RenderZ3EDCommandPanel();
-    }
-    
-    // Multimodal before collaboration (more frequently used)
+    RenderAgentConfigPanel();
+    RenderZ3EDCommandPanel();
     RenderMultimodalPanel();
-    
     RenderCollaborationPanel();
-    
-    if (show_rom_sync_) {
-      RenderRomSyncPanel();
-    }
-    
     RenderProposalManagerPanel();
+    
+    ImGui::PopStyleVar(2);
     
     ImGui::EndChild();
     ImGui::PopID();
@@ -883,7 +885,7 @@ void AgentChatWidget::RenderCollaborationPanel() {
     ImGui::PopID();
     return;
   }
-  
+
   // Mode selector (compact inline)
   ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_SETTINGS_ETHERNET " Mode:");
   ImGui::SameLine();
@@ -910,7 +912,7 @@ void AgentChatWidget::RenderCollaborationPanel() {
     ImGui::PushID("StatusColumn");
     
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.2f, 0.18f, 0.4f));
-    ImGui::BeginChild("Collab_SessionDetails", ImVec2(0, 100), true);
+    ImGui::BeginChild("Collab_SessionDetails", ImVec2(0, 80), true);
     ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_INFO " Session Status:");
     ImGui::Spacing();
     if (connected) {
@@ -953,7 +955,7 @@ void AgentChatWidget::RenderCollaborationPanel() {
       ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
           "%s", absl::FormatTime("%H:%M:%S", collaboration_state_.last_synced,
                                  absl::LocalTimeZone())
-              .c_str());
+                    .c_str());
     }
     ImGui::EndChild();
     ImGui::PopStyleColor();
@@ -964,12 +966,12 @@ void AgentChatWidget::RenderCollaborationPanel() {
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.16f, 0.14f, 0.4f));
     ImGui::BeginChild("Collab_ParticipantsList", ImVec2(0, 0), true);
     {
-      if (collaboration_state_.participants.empty()) {
+    if (collaboration_state_.participants.empty()) {
         ImGui::TextDisabled(ICON_MD_PEOPLE " No participants yet");
-      } else {
+    } else {
         ImGui::TextColored(collaboration_status_color_, ICON_MD_PEOPLE " Participants (%zu):",
-                    collaboration_state_.participants.size());
-        ImGui::Separator();
+                  collaboration_state_.participants.size());
+      ImGui::Separator();
         for (size_t i = 0; i < collaboration_state_.participants.size(); ++i) {
           ImGui::PushID(static_cast<int>(i));
           ImGui::BulletText(ICON_MD_PERSON " %s", collaboration_state_.participants[i].c_str());
@@ -1182,53 +1184,31 @@ void AgentChatWidget::RenderMultimodalPanel() {
   ImGui::PushID("MultimodalPanel");
   ImVec4 gemini_color = ImVec4(0.196f, 0.6f, 0.8f, 1.0f);
   
-  if (!ImGui::CollapsingHeader(ICON_MD_CAMERA " Gemini Multimodal Vision",
-                               ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::PopID();
-    return;
-  }
+  // Dense header (no collapsing for small panel)
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.16f, 0.20f, 0.95f));
+  ImGui::BeginChild("Multimodal_Panel", ImVec2(0, 100), true);
+  ImGui::TextColored(gemini_color, ICON_MD_CAMERA " Vision");
+  ImGui::Separator();
 
   bool can_capture = static_cast<bool>(multimodal_callbacks_.capture_snapshot);
   bool can_send = static_cast<bool>(multimodal_callbacks_.send_to_gemini);
 
-  // Organize in table layout
-  if (ImGui::BeginTable("Multimodal_Layout", 1, ImGuiTableFlags_None)) {
-    ImGui::TableSetupColumn("Content", ImGuiTableColumnFlags_WidthStretch);
-    ImGui::TableNextRow();
-    ImGui::TableSetColumnIndex(0);
-    
-    ImGui::BeginGroup();
-    
-    // Capture mode selection with icons
-    ImGui::TextColored(gemini_color, ICON_MD_SCREENSHOT " Capture Mode:");
-    ImGui::RadioButton(ICON_MD_FULLSCREEN " Full Window##mm_radio_full",
-                       reinterpret_cast<int*>(&multimodal_state_.capture_mode),
-                       static_cast<int>(CaptureMode::kFullWindow));
-    ImGui::SameLine();
-    ImGui::RadioButton(ICON_MD_DASHBOARD " Active Editor##mm_radio_active",
-                       reinterpret_cast<int*>(&multimodal_state_.capture_mode),
-                       static_cast<int>(CaptureMode::kActiveEditor));
-    ImGui::SameLine();
-    ImGui::RadioButton(ICON_MD_WINDOW " Specific##mm_radio_specific",
-                       reinterpret_cast<int*>(&multimodal_state_.capture_mode),
-                       static_cast<int>(CaptureMode::kSpecificWindow));
-
-    // If specific window mode, show input for window name
-    if (multimodal_state_.capture_mode == CaptureMode::kSpecificWindow) {
-      ImGui::SetNextItemWidth(-1);
-      ImGui::InputTextWithHint("##mm_window_name_input", "Window name (e.g., Overworld Editor)...", 
-                       multimodal_state_.specific_window_buffer,
-                       IM_ARRAYSIZE(multimodal_state_.specific_window_buffer));
-    }
-
-    ImGui::EndGroup();
-    ImGui::Separator();
+  // Ultra-compact mode selector
+  ImGui::RadioButton("Full##mm_full",
+                     reinterpret_cast<int*>(&multimodal_state_.capture_mode),
+                     static_cast<int>(CaptureMode::kFullWindow));
+  ImGui::SameLine();
+  ImGui::RadioButton("Active##mm_active",
+                     reinterpret_cast<int*>(&multimodal_state_.capture_mode),
+                     static_cast<int>(CaptureMode::kActiveEditor));
+  ImGui::SameLine();
+  ImGui::RadioButton("Window##mm_window",
+                     reinterpret_cast<int*>(&multimodal_state_.capture_mode),
+                     static_cast<int>(CaptureMode::kSpecificWindow));
 
   if (!can_capture)
     ImGui::BeginDisabled();
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.5f, 0.7f, 0.8f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gemini_color);
-  if (ImGui::Button(ICON_MD_PHOTO_CAMERA " Capture Snapshot##mm_capture_btn", ImVec2(-1, 0))) {
+  if (ImGui::SmallButton(ICON_MD_PHOTO_CAMERA " Capture##mm_cap")) {
     if (multimodal_callbacks_.capture_snapshot) {
       std::filesystem::path captured_path;
       absl::Status status =
@@ -1253,36 +1233,23 @@ void AgentChatWidget::RenderMultimodalPanel() {
       }
     }
   }
-  ImGui::PopStyleColor(2);
-  if (!can_capture) {
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip("Provide capture_snapshot callback to enable");
-    }
+  if (!can_capture)
     ImGui::EndDisabled();
-  } else if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Capture a screenshot for vision analysis");
-  }
 
-  ImGui::Spacing();
-
+  ImGui::SameLine();
   if (multimodal_state_.last_capture_path.has_value()) {
-    ImGui::TextColored(gemini_color, ICON_MD_CHECK_CIRCLE " Last capture: %s",
-                        multimodal_state_.last_capture_path->filename().string().c_str());
+    ImGui::TextColored(gemini_color, ICON_MD_CHECK_CIRCLE);
   } else {
-    ImGui::TextDisabled(ICON_MD_CAMERA_ALT " No capture yet");
+    ImGui::TextDisabled(ICON_MD_CAMERA_ALT);
   }
-
-  ImGui::Spacing();
-  ImGui::TextColored(gemini_color, ICON_MD_EDIT " Vision Prompt:");
-  ImGui::InputTextMultiline("##mm_gemini_prompt_textarea", multimodal_prompt_buffer_,
-                            IM_ARRAYSIZE(multimodal_prompt_buffer_),
-                            ImVec2(-1, 60));
+  if (ImGui::IsItemHovered() && multimodal_state_.last_capture_path.has_value()) {
+    ImGui::SetTooltip("%s", multimodal_state_.last_capture_path->filename().string().c_str());
+  }
 
   if (!can_send)
     ImGui::BeginDisabled();
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.5f, 0.7f, 0.8f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gemini_color);
-  if (ImGui::Button(ICON_MD_SEND " Send to Gemini##mm_send_to_gemini_btn", ImVec2(-1, 0))) {
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_SEND " Analyze##mm_send")) {
     if (!multimodal_state_.last_capture_path.has_value()) {
       if (toast_manager_) {
         toast_manager_->Show("Capture a snapshot first", ToastType::kWarning,
@@ -1311,34 +1278,12 @@ void AgentChatWidget::RenderMultimodalPanel() {
       }
     }
   }
-  ImGui::PopStyleColor(2);
-  if (!can_send) {
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip("Provide send_to_gemini callback to enable");
-    }
+  if (!can_send)
     ImGui::EndDisabled();
-  } else if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Send captured image to Gemini for analysis");
-  }
-
-  if (!multimodal_state_.status_message.empty()) {
-    ImGui::Separator();
-    ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), 
-                      ICON_MD_INFO " %s", multimodal_state_.status_message.c_str());
-    if (multimodal_state_.last_updated != absl::InfinitePast()) {
-      ImGui::SameLine();
-      ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
-          ICON_MD_ACCESS_TIME " %s",
-          absl::FormatTime("%H:%M:%S", multimodal_state_.last_updated,
-                           absl::LocalTimeZone())
-              .c_str());
-    }
-  }
   
-    ImGui::EndTable();
-  }
-  
-  ImGui::PopID(); // MultimodalPanel
+  ImGui::EndChild();
+  ImGui::PopStyleColor();
+  ImGui::PopID();
 }
 
 void AgentChatWidget::RefreshCollaboration() {
@@ -1489,67 +1434,51 @@ void AgentChatWidget::UpdateAgentConfig(const AgentConfigState& config) {
 }
 
 void AgentChatWidget::RenderAgentConfigPanel() {
-  if (!ImGui::CollapsingHeader(ICON_MD_SETTINGS " Agent Configuration",
-                               ImGuiTreeNodeFlags_DefaultOpen)) {
-    return;
-  }
-  
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.14f, 0.18f, 1.0f));
-  ImGui::BeginChild("AgentConfig", ImVec2(0, 350), true);
-  
-  ImGui::Text(ICON_MD_SMART_TOY " AI Provider");
+  // Dense header (no collapsing)
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.14f, 0.18f, 0.95f));
+  ImGui::BeginChild("AgentConfig", ImVec2(0, 140), true);  // Reduced from 350
+  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_SETTINGS " Config");
   ImGui::Separator();
   
-  // Provider selection
+  // Compact provider selection
   int provider_idx = 0;
   if (agent_config_.ai_provider == "ollama") provider_idx = 1;
   else if (agent_config_.ai_provider == "gemini") provider_idx = 2;
   
-  if (ImGui::RadioButton("Mock (Testing)", &provider_idx, 0)) {
+  if (ImGui::RadioButton("Mock", &provider_idx, 0)) {
     agent_config_.ai_provider = "mock";
     std::snprintf(agent_config_.provider_buffer, sizeof(agent_config_.provider_buffer), "mock");
   }
   ImGui::SameLine();
-  if (ImGui::RadioButton("Ollama (Local)", &provider_idx, 1)) {
+  if (ImGui::RadioButton("Ollama", &provider_idx, 1)) {
     agent_config_.ai_provider = "ollama";
     std::snprintf(agent_config_.provider_buffer, sizeof(agent_config_.provider_buffer), "ollama");
   }
   ImGui::SameLine();
-  if (ImGui::RadioButton("Gemini (Cloud)", &provider_idx, 2)) {
+  if (ImGui::RadioButton("Gemini", &provider_idx, 2)) {
     agent_config_.ai_provider = "gemini";
     std::snprintf(agent_config_.provider_buffer, sizeof(agent_config_.provider_buffer), "gemini");
   }
   
-  ImGui::Spacing();
-  
-  // Provider-specific settings
+  // Dense provider settings
   if (agent_config_.ai_provider == "ollama") {
-    ImGui::Text(ICON_MD_COMPUTER " Ollama Settings");
-    ImGui::InputText("Model", agent_config_.model_buffer, IM_ARRAYSIZE(agent_config_.model_buffer));
-    ImGui::TextDisabled("Example: qwen2.5-coder:7b, llama3.2:3b");
-    ImGui::InputText("Host", agent_config_.ollama_host_buffer, IM_ARRAYSIZE(agent_config_.ollama_host_buffer));
-    
+    ImGui::InputText("##ollama_model", agent_config_.model_buffer, IM_ARRAYSIZE(agent_config_.model_buffer));
+    ImGui::InputText("##ollama_host", agent_config_.ollama_host_buffer, IM_ARRAYSIZE(agent_config_.ollama_host_buffer));
   } else if (agent_config_.ai_provider == "gemini") {
-    ImGui::Text(ICON_MD_CLOUD " Gemini Settings");
-    ImGui::InputText("Model", agent_config_.model_buffer, IM_ARRAYSIZE(agent_config_.model_buffer));
-    ImGui::TextDisabled("Example: gemini-1.5-flash, gemini-2.5-flash");
-    ImGui::InputText("API Key", agent_config_.gemini_key_buffer, 
+    ImGui::InputText("##gemini_model", agent_config_.model_buffer, IM_ARRAYSIZE(agent_config_.model_buffer));
+    ImGui::InputText("##gemini_key", agent_config_.gemini_key_buffer, 
                      IM_ARRAYSIZE(agent_config_.gemini_key_buffer), 
                      ImGuiInputTextFlags_Password);
   }
   
-  ImGui::Spacing();
   ImGui::Separator();
-  ImGui::Text(ICON_MD_TUNE " Behavior Settings");
+  ImGui::Checkbox("Verbose", &agent_config_.verbose);
+  ImGui::SameLine();
+  ImGui::Checkbox("Reasoning", &agent_config_.show_reasoning);
+  ImGui::SetNextItemWidth(-1);
+  ImGui::SliderInt("##max_iter", &agent_config_.max_tool_iterations, 1, 10, "Iter: %d");
   
-  ImGui::Checkbox("Verbose Output", &agent_config_.verbose);
-  ImGui::Checkbox("Show Reasoning", &agent_config_.show_reasoning);
-  ImGui::SliderInt("Max Tool Iterations", &agent_config_.max_tool_iterations, 1, 10);
-  ImGui::SliderInt("Max Retry Attempts", &agent_config_.max_retry_attempts, 1, 5);
-  
-  ImGui::Spacing();
-  
-  if (ImGui::Button(ICON_MD_CHECK " Apply Configuration", ImVec2(-1, 0))) {
+  if (ImGui::Button(ICON_MD_CHECK " Apply", ImVec2(-1, 0))) {
     agent_config_.ai_model = agent_config_.model_buffer;
     agent_config_.ollama_host = agent_config_.ollama_host_buffer;
     agent_config_.gemini_api_key = agent_config_.gemini_key_buffer;
@@ -1564,125 +1493,72 @@ void AgentChatWidget::RenderZ3EDCommandPanel() {
   ImGui::PushID("Z3EDCmdPanel");
   ImVec4 command_color = ImVec4(1.0f, 0.647f, 0.0f, 1.0f);
   
-  if (!ImGui::CollapsingHeader(ICON_MD_TERMINAL " Z3ED Commands",
-                               ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::PopID();
-    return;
-  }
+  // Dense header (no collapsing)
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.14f, 0.12f, 0.18f, 0.95f));
+  ImGui::BeginChild("Z3ED_CommandsChild", ImVec2(0, 90), true);  // Reduced from 120
   
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.14f, 0.12f, 0.18f, 1.0f));
-  ImGui::BeginChild("Z3ED_CommandsChild", ImVec2(0, 200), true);
-  
-  ImGui::TextColored(command_color, ICON_MD_CODE " Command Palette");
+  ImGui::TextColored(command_color, ICON_MD_TERMINAL " Commands");
   ImGui::Separator();
-  ImGui::Spacing();
   
-  ImGui::SetNextItemWidth(-1);
-  ImGui::InputTextWithHint("##z3ed_cmd_input_field", "Enter z3ed command or prompt...",
+  ImGui::SetNextItemWidth(-60);
+  ImGui::InputTextWithHint("##z3ed_cmd", "Command...",
                            z3ed_command_state_.command_input_buffer,
                            IM_ARRAYSIZE(z3ed_command_state_.command_input_buffer));
-  
+  ImGui::SameLine();
   ImGui::BeginDisabled(z3ed_command_state_.command_running);
-  
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.4f, 0.0f, 0.8f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, command_color);
-  if (ImGui::Button(ICON_MD_PLAY_ARROW " Run Task##z3ed_run_task_btn", ImVec2(-1, 0)) ||
-      (ImGui::IsItemFocused() && ImGui::IsKeyPressed(ImGuiKey_Enter))) {
+  if (ImGui::Button(ICON_MD_PLAY_ARROW "##z3ed_run", ImVec2(50, 0))) {
     if (z3ed_callbacks_.run_agent_task) {
       std::string command = z3ed_command_state_.command_input_buffer;
       z3ed_command_state_.command_running = true;
       auto status = z3ed_callbacks_.run_agent_task(command);
       z3ed_command_state_.command_running = false;
-      
       if (status.ok() && toast_manager_) {
-        toast_manager_->Show(ICON_MD_CHECK_CIRCLE " Task started",
-                             ToastType::kSuccess, 3.0f);
-      } else if (toast_manager_) {
-        toast_manager_->Show(
-            absl::StrFormat(ICON_MD_ERROR " Task failed: %s", status.message()),
-            ToastType::kError, 5.0f);
+        toast_manager_->Show("Task started", ToastType::kSuccess, 2.0f);
       }
     }
   }
-  
-  ImGui::PopStyleColor(2);
   ImGui::EndDisabled();
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Run command");
+  }
   
-  ImGui::Spacing();
-  ImGui::TextColored(command_color, ICON_MD_LIST " Quick Actions");
-  ImGui::Separator();
-  ImGui::Spacing();
-  
-  if (ImGui::BeginTable("Z3ED_QuickActionsTable", 2, ImGuiTableFlags_SizingStretchProp)) {
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.35f, 0.6f, 0.8f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.502f, 0.0f, 0.502f, 1.0f));
-    if (ImGui::Button(ICON_MD_PREVIEW " List##z3ed_list_btn", ImVec2(-1, 0))) {
+  // Compact action buttons (inline)
+  if (ImGui::SmallButton(ICON_MD_PREVIEW)) {
       if (z3ed_callbacks_.list_proposals) {
         auto result = z3ed_callbacks_.list_proposals();
         if (result.ok()) {
           const auto& proposals = *result;
-          std::string output;
-          for (size_t i = 0; i < proposals.size(); ++i) {
-            if (i > 0) output += "\n";
-            output += proposals[i];
-          }
-          z3ed_command_state_.command_output = output;
-        }
+        z3ed_command_state_.command_output = absl::StrJoin(proposals, "\n");
       }
     }
-    ImGui::PopStyleColor(2);
-    
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.5f, 0.7f, 0.8f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.196f, 0.6f, 0.8f, 1.0f));
-    if (ImGui::Button(ICON_MD_DIFFERENCE " Diff##z3ed_diff_btn", ImVec2(-1, 0))) {
+  }
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("List");
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_DIFFERENCE)) {
       if (z3ed_callbacks_.diff_proposal) {
         auto result = z3ed_callbacks_.diff_proposal("");
-        if (result.ok()) {
-          z3ed_command_state_.command_output = *result;
-        }
-      }
+      if (result.ok()) z3ed_command_state_.command_output = *result;
     }
-    ImGui::PopStyleColor(2);
-    
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.5f, 0.1f, 0.8f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.133f, 0.545f, 0.133f, 1.0f));
-    if (ImGui::Button(ICON_MD_CHECK " Accept##z3ed_accept_btn", ImVec2(-1, 0))) {
-      if (z3ed_callbacks_.accept_proposal && proposal_drawer_) {
-        // TODO: Get selected proposal ID from drawer
-        auto status = z3ed_callbacks_.accept_proposal("");
-        (void)status;  // Acknowledge result
-      }
-    }
-    ImGui::PopStyleColor(2);
-    
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.2f, 0.2f, 0.8f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.863f, 0.078f, 0.235f, 1.0f));
-    if (ImGui::Button(ICON_MD_CLOSE " Reject##z3ed_reject_btn", ImVec2(-1, 0))) {
-      if (z3ed_callbacks_.reject_proposal && proposal_drawer_) {
-        // TODO: Get selected proposal ID from drawer
-        auto status = z3ed_callbacks_.reject_proposal("");
-        (void)status;  // Acknowledge result
-      }
-    }
-    ImGui::PopStyleColor(2);  // FIX: Pop the styles before EndTable
-    
-    ImGui::EndTable();
   }
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Diff");
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_CHECK)) {
+    if (z3ed_callbacks_.accept_proposal) {
+      z3ed_callbacks_.accept_proposal("");
+    }
+  }
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Accept");
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_CLOSE)) {
+    if (z3ed_callbacks_.reject_proposal) {
+      z3ed_callbacks_.reject_proposal("");
+    }
+  }
+  if (ImGui::IsItemHovered()) ImGui::SetTooltip("Reject");
   
   if (!z3ed_command_state_.command_output.empty()) {
-    ImGui::Spacing();
-    ImGui::TextColored(command_color, ICON_MD_OUTPUT " Output:");
     ImGui::Separator();
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.1f, 0.12f, 0.8f));
-    ImGui::BeginChild("Z3ED_CommandOutput", ImVec2(0, 100), true,
-                      ImGuiWindowFlags_HorizontalScrollbar);
-    ImGui::TextWrapped("%s", z3ed_command_state_.command_output.c_str());
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
+    ImGui::TextDisabled("%s", z3ed_command_state_.command_output.substr(0, 100).c_str());
   }
   
   ImGui::EndChild();

@@ -72,7 +72,7 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
       chat_widget_->SetRomContext(rom);
     }
   }
-  
+
   SetupChatWidgetCallbacks();
   SetupMultimodalCallbacks();
 }
