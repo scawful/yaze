@@ -10,7 +10,6 @@
       "name": "_base",
       "hidden": true,
       "description": "Base preset with common settings",
-      "generator": "Unix Makefiles",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
@@ -20,6 +19,17 @@
         "YAZE_BUILD_EMU": "OFF",
         "YAZE_BUILD_Z3ED": "OFF",
         "YAZE_USE_MODULAR_BUILD": "ON"
+      }
+    },
+    {
+      "name": "_unix",
+      "hidden": true,
+      "description": "Unix/macOS/Linux base with Makefiles",
+      "generator": "Unix Makefiles",
+      "condition": {
+        "type": "notEquals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
       }
     },
     {
@@ -70,7 +80,7 @@
       "name": "mac-dbg",
       "displayName": "macOS Debug (ARM64)",
       "description": "macOS ARM64 debug build (warnings off)",
-      "inherits": ["_base", "_mac", "_quiet"],
+      "inherits": ["_base", "_unix", "_mac", "_quiet"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_OSX_ARCHITECTURES": "arm64"
@@ -80,7 +90,7 @@
       "name": "mac-dbg-v",
       "displayName": "macOS Debug Verbose (ARM64)",
       "description": "macOS ARM64 debug build with all warnings",
-      "inherits": ["_base", "_mac", "_verbose"],
+      "inherits": ["_base", "_unix", "_mac", "_verbose"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_OSX_ARCHITECTURES": "arm64"
@@ -90,7 +100,7 @@
       "name": "mac-rel",
       "displayName": "macOS Release (ARM64)",
       "description": "macOS ARM64 release build (warnings off)",
-      "inherits": ["_base", "_mac", "_quiet"],
+      "inherits": ["_base", "_unix", "_mac", "_quiet"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_OSX_ARCHITECTURES": "arm64",
@@ -123,8 +133,10 @@
       "name": "mac-dev",
       "displayName": "macOS Dev",
       "description": "macOS development with ROM tests",
-      "inherits": "mac-dbg",
+      "inherits": ["_base", "_unix", "_mac", "_quiet"],
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_OSX_ARCHITECTURES": "arm64",
         "YAZE_ENABLE_ROM_TESTS": "ON",
         "YAZE_TEST_ROM_PATH": "${sourceDir}/zelda3.sfc"
       }
@@ -252,7 +264,7 @@
       "name": "lin-dbg",
       "displayName": "Linux Debug",
       "description": "Linux debug build with GCC (warnings off)",
-      "inherits": ["_base", "_quiet"],
+      "inherits": ["_base", "_unix", "_quiet"],
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -268,7 +280,7 @@
       "name": "lin-clang",
       "displayName": "Linux Clang",
       "description": "Linux debug build with Clang (warnings off)",
-      "inherits": ["_base", "_quiet"],
+      "inherits": ["_base", "_unix", "_quiet"],
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
@@ -284,7 +296,7 @@
       "name": "ci",
       "displayName": "9. CI Build",
       "description": "Continuous integration build (no ROM tests)",
-      "inherits": ["_base", "_quiet"],
+      "inherits": ["_base", "_unix", "_quiet"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "YAZE_ENABLE_ROM_TESTS": "OFF",
@@ -295,7 +307,7 @@
       "name": "asan",
       "displayName": "8. AddressSanitizer",
       "description": "Debug build with AddressSanitizer",
-      "inherits": "_base",
+      "inherits": ["_base", "_unix"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -g",
@@ -308,7 +320,7 @@
       "name": "coverage",
       "displayName": "7. Coverage",
       "description": "Debug build with code coverage",
-      "inherits": "_base",
+      "inherits": ["_base", "_unix"],
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_FLAGS": "--coverage -g -O0",
