@@ -28,6 +28,11 @@ struct EditorContext {
   HistoryManager history_manager;
   PopupManager* popup_manager = nullptr;
   ShortcutManager shortcut_manager;
+  
+  // Session identification for multi-session support
+  // Used by child panels to create unique ImGui IDs
+  size_t session_id = 0;
+  
   // Cross-session shared clipboard for editor data transfers
   struct SharedClipboard {
     // Overworld tile16 selection payload

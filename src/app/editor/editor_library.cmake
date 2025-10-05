@@ -1,7 +1,7 @@
 set(
   YAZE_APP_EDITOR_SRC
   app/editor/editor_manager.cc
-  app/editor/menu_builder.cc
+  app/editor/ui/menu_builder.cc
   app/editor/ui/editor_selection_dialog.cc
   app/editor/ui/welcome_screen.cc
   app/editor/ui/background_renderer.cc

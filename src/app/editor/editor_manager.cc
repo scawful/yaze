@@ -992,18 +992,31 @@ absl::Status EditorManager::Update() {
           }
         }
 
-        // Generate unique window titles for multi-session support
+        // Generate unique window titles and IDs for multi-session support
         std::string window_title =
             GenerateUniqueEditorTitle(editor->type(), session_idx);
+        
+        // Create truly unique ImGui ID combining session index and editor type
+        // This ensures ImGui treats them as completely separate windows
+        ImGui::PushID(static_cast<int>(session_idx * 100 + static_cast<int>(editor->type())));
 
-        if (ImGui::Begin(window_title.c_str(), editor->active())) {
+        // Set window to maximize on first open
+        if (ImGui::IsWindowAppearing()) {
+          ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize, ImGuiCond_Appearing);
+          ImGui::SetNextWindowPos(ImGui::GetMainViewport()->WorkPos, ImGuiCond_Appearing);
+        }
+        
+        if (ImGui::Begin(window_title.c_str(), editor->active(), 
+                        ImGuiWindowFlags_None)) {  // Allow full docking
           // Temporarily switch context for this editor's update
           Rom* prev_rom = current_rom_;
           EditorSet* prev_editor_set = current_editor_set_;
+          size_t prev_session_id = context_.session_id;
 
           current_rom_ = &session.rom;
           current_editor_set_ = &session.editors;
           current_editor_ = editor;
+          context_.session_id = session_idx;  // Set session ID for child panels
 
           status_ = editor->Update();
 
@@ -1034,8 +1047,10 @@ absl::Status EditorManager::Update() {
           // Restore context
           current_rom_ = prev_rom;
           current_editor_set_ = prev_editor_set;
+          context_.session_id = prev_session_id;  // Restore previous session ID
         }
         ImGui::End();
+        ImGui::PopID();  // Pop the unique ID for this session+editor combination
       }
     }
   }
