@@ -4,11 +4,13 @@
 #include <sstream>
 #include <iomanip>
 
+#include "app/core/window.h"
 #include "app/gfx/performance_profiler.h"
 #include "app/gfx/performance_dashboard.h"
 #include "app/gui/widgets/palette_widget.h"
 #include "app/gui/bpp_format_ui.h"
 #include "app/gui/icons.h"
+#include "app/gui/color.h"
 #include "app/gui/canvas/canvas_modals.h"
 #include "imgui/imgui.h"
 
@@ -30,6 +32,7 @@ void CanvasContextMenu::Initialize(const std::string& canvas_id) {
   canvas_id_ = canvas_id;
   enabled_ = true;
   current_usage_ = CanvasUsage::kTilePainting;
+  palette_editor_ = std::make_unique<PaletteWidget>();
   
   // Initialize canvas state
   canvas_size_ = ImVec2(0, 0);
@@ -65,11 +68,10 @@ void CanvasContextMenu::ClearMenuItems() {
   usage_specific_items_.clear();
 }
 
-void CanvasContextMenu::Render(
-    const std::string& context_id, const ImVec2& mouse_pos,
-    const gfx::Bitmap* bitmap, const gfx::SnesPalette* palette,
-    const std::function<void(Command, const CanvasConfig&)>& command_handler,
-    CanvasConfig current_config) {
+void CanvasContextMenu::Render(const std::string& context_id, const ImVec2& mouse_pos, Rom* rom,
+                              const gfx::Bitmap* bitmap, const gfx::SnesPalette* palette,
+                              const std::function<void(Command, const CanvasConfig&)>& command_handler,
+                              CanvasConfig current_config) {
   if (!enabled_) return;
   
   // Context menu (under default mouse threshold)
@@ -98,13 +100,13 @@ void CanvasContextMenu::Render(
     
     // Render bitmap operations if bitmap is available
     if (bitmap) {
-      RenderBitmapOperationsMenu(bitmap);
+      RenderBitmapOperationsMenu(const_cast<gfx::Bitmap*>(bitmap));
       ImGui::Separator();
     }
     
-    // Render palette operations if palette is available
-    if (palette) {
-      RenderPaletteOperationsMenu(palette);
+    // Render palette operations if bitmap is available
+    if (bitmap) {
+      RenderPaletteOperationsMenu(rom, const_cast<gfx::Bitmap*>(bitmap));
       ImGui::Separator();
     }
 
@@ -151,11 +153,11 @@ void CanvasContextMenu::SetCanvasState(const ImVec2& canvas_size,
   global_scale_ = global_scale;
   grid_step_ = grid_step;
   enable_grid_ = enable_grid;
-  enable_hex_labels_ = enable_hex_labels;
-  enable_custom_labels_ = enable_custom_labels;
-  enable_context_menu_ = enable_context_menu;
-  is_draggable_ = is_draggable;
-  auto_resize_ = auto_resize;
+  enable_hex_labels_ = enable_hex_labels_;
+  enable_custom_labels_ = enable_custom_labels_;
+  enable_context_menu_ = enable_context_menu_;
+  is_draggable_ = is_draggable_;
+  auto_resize_ = auto_resize_;
   scrolling_ = scrolling;
 }
 
@@ -289,41 +291,72 @@ void CanvasContextMenu::RenderCanvasPropertiesMenu(
   }
 }
 
-void CanvasContextMenu::RenderBitmapOperationsMenu(const gfx::Bitmap* bitmap) {
-  if (ImGui::BeginMenu(ICON_MD_IMAGE " Bitmap Operations")) {
+void CanvasContextMenu::RenderBitmapOperationsMenu(gfx::Bitmap* bitmap) {
+  if (!bitmap) return;
+
+  if (ImGui::BeginMenu(ICON_MD_IMAGE " Bitmap Properties")) {
     ImGui::Text("Size: %d x %d", bitmap->width(), bitmap->height());
-    ImGui::Text("Format: %s", "Unknown"); // Would need format detection
-    
-    if (ImGui::MenuItem("Edit Bitmap Data...")) {
-      // Open bitmap data editor
+    ImGui::Text("Pitch: %d", bitmap->surface()->pitch);
+    ImGui::Text("BitsPerPixel: %d", bitmap->surface()->format->BitsPerPixel);
+    ImGui::Text("BytesPerPixel: %d", bitmap->surface()->format->BytesPerPixel);
+
+    if (ImGui::BeginMenu("Format")) {
+      if (ImGui::MenuItem("Indexed")) {
+        bitmap->Reformat(gfx::BitmapFormat::kIndexed);
+        core::Renderer::Get().UpdateBitmap(bitmap);
+      }
+      if (ImGui::MenuItem("4BPP")) {
+        bitmap->Reformat(gfx::BitmapFormat::k4bpp);
+        core::Renderer::Get().UpdateBitmap(bitmap);
+      }
+      if (ImGui::MenuItem("8BPP")) {
+        bitmap->Reformat(gfx::BitmapFormat::k8bpp);
+        core::Renderer::Get().UpdateBitmap(bitmap);
+      }
+      ImGui::EndMenu();
     }
-    if (ImGui::MenuItem("Export Bitmap...")) {
-      // Export bitmap
-    }
-    if (ImGui::MenuItem("Import Bitmap...")) {
-      // Import bitmap
-    }
-    
     ImGui::EndMenu();
   }
 }
 
-void CanvasContextMenu::RenderPaletteOperationsMenu(const gfx::SnesPalette* palette) {
+void CanvasContextMenu::RenderPaletteOperationsMenu(Rom* rom, gfx::Bitmap* bitmap) {
+  if (!bitmap) return;
+
   if (ImGui::BeginMenu(ICON_MD_PALETTE " Palette Operations")) {
-    ImGui::Text("Colors: %zu", palette->size());
-    
     if (ImGui::MenuItem("Edit Palette...")) {
-      // Open palette editor
+      palette_editor_->ShowPaletteEditor(*bitmap->mutable_palette(), "Palette Editor");
     }
     if (ImGui::MenuItem("Color Analysis...")) {
-      // Open color analysis
+      palette_editor_->ShowColorAnalysis(*bitmap, "Color Analysis");
     }
-    if (ImGui::MenuItem("Apply ROM Palette...")) {
-      // Apply ROM palette
+
+    if (rom && ImGui::BeginMenu("ROM Palette Selection")) {
+      palette_editor_->Initialize(rom);
+      
+      // Render palette selector inline
+      ImGui::Text("Group:"); ImGui::SameLine();
+      ImGui::InputScalar("##group", ImGuiDataType_U64, &edit_palette_group_name_index_);
+      ImGui::Text("Palette:"); ImGui::SameLine();
+      ImGui::InputScalar("##palette", ImGuiDataType_U64, &edit_palette_index_);
+
+      if (ImGui::Button("Apply to Canvas")) {
+        palette_editor_->ApplyROMPalette(bitmap, edit_palette_group_name_index_, edit_palette_index_);
+      }
+      ImGui::EndMenu();
     }
-    
+
+    if (ImGui::BeginMenu("View Palette")) {
+      DisplayEditablePalette(*bitmap->mutable_palette(), "Palette", true, 8);
+      ImGui::EndMenu();
+    }
     ImGui::EndMenu();
   }
+}
+
+void CanvasContextMenu::DrawROMPaletteSelector() {
+    if (!palette_editor_) return;
+
+    palette_editor_->DrawROMPaletteSelector();
 }
 
 void CanvasContextMenu::RenderBppOperationsMenu(const gfx::Bitmap* bitmap) {
@@ -506,31 +539,31 @@ void CanvasContextMenu::CreateDefaultMenuItems() {
   usage_specific_items_[CanvasUsage::kPerformanceMode].push_back(perf_item);
 }
 
-CanvasContextMenu::ContextMenuItem CanvasContextMenu::CreateViewMenuItem(const std::string& label, 
+canvas::CanvasContextMenu::ContextMenuItem canvas::CanvasContextMenu::CreateViewMenuItem(const std::string& label, 
                                                      const std::string& icon, 
                                                      std::function<void()> callback) {
   return ContextMenuItem(label, icon, callback);
 }
 
-CanvasContextMenu::ContextMenuItem CanvasContextMenu::CreateBitmapMenuItem(const std::string& label, 
+canvas::CanvasContextMenu::ContextMenuItem canvas::CanvasContextMenu::CreateBitmapMenuItem(const std::string& label, 
                                                        const std::string& icon, 
                                                        std::function<void()> callback) {
   return ContextMenuItem(label, icon, callback);
 }
 
-CanvasContextMenu::ContextMenuItem CanvasContextMenu::CreatePaletteMenuItem(const std::string& label, 
+canvas::CanvasContextMenu::ContextMenuItem canvas::CanvasContextMenu::CreatePaletteMenuItem(const std::string& label, 
                                                         const std::string& icon, 
                                                         std::function<void()> callback) {
   return ContextMenuItem(label, icon, callback);
 }
 
-CanvasContextMenu::ContextMenuItem CanvasContextMenu::CreateBppMenuItem(const std::string& label, 
+canvas::CanvasContextMenu::ContextMenuItem canvas::CanvasContextMenu::CreateBppMenuItem(const std::string& label, 
                                                     const std::string& icon, 
                                                     std::function<void()> callback) {
   return ContextMenuItem(label, icon, callback);
 }
 
-CanvasContextMenu::ContextMenuItem CanvasContextMenu::CreatePerformanceMenuItem(const std::string& label, 
+canvas::CanvasContextMenu::ContextMenuItem canvas::CanvasContextMenu::CreatePerformanceMenuItem(const std::string& label, 
                                                             const std::string& icon, 
                                                             std::function<void()> callback) {
   return ContextMenuItem(label, icon, callback);

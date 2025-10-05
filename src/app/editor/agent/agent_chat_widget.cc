@@ -1045,8 +1045,7 @@ void AgentChatWidget::Draw() {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
                         ImVec2(4, 3));  // Compact padding
 
-    // Removed RenderAgentConfigPanel - duplicates connection header
-    if (ImGui::BeginTable("##commands_and_multimodal", 2, ImGuiTableFlags_BordersInnerV)) {
+    if (ImGui::BeginTable("##commands_and_multimodal", 2)) {
       ImGui::TableSetupColumn("Commands", ImGuiTableColumnFlags_WidthFixed, 180);
       ImGui::TableSetupColumn("Multimodal", ImGuiTableColumnFlags_WidthFixed, ImGui::GetContentRegionAvail().x - 180);
       ImGui::TableNextRow();
@@ -1674,8 +1673,8 @@ void AgentChatWidget::RenderZ3EDCommandPanel() {
 
   // Dense header (no collapsing)
   ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.14f, 0.12f, 0.18f, 0.95f));
-  ImGui::BeginChild("Z3ED_CommandsChild", ImVec2(0, 90),
-                    true);  // Reduced from 120
+  ImGui::BeginChild("Z3ED_CommandsChild", ImVec2(0, 100),
+                    true);
 
   ImGui::TextColored(command_color, ICON_MD_TERMINAL " Commands");
   ImGui::Separator();
@@ -1755,7 +1754,7 @@ void AgentChatWidget::RenderZ3EDCommandPanel() {
 
 void AgentChatWidget::RenderRomSyncPanel() {
   ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.14f, 0.12f, 1.0f));
-  ImGui::BeginChild("RomSync", ImVec2(0, 100), true);
+  ImGui::BeginChild("RomSync", ImVec2(0, 130), true);
 
   ImGui::Text(ICON_MD_STORAGE " ROM State");
   ImGui::Separator();
