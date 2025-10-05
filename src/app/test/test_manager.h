@@ -16,7 +16,10 @@
 #include "absl/strings/string_view.h"
 #include "absl/time/time.h"
 #include "app/rom.h"
+
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h"
+
 #include "util/log.h"
 
 // Forward declarations

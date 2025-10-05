@@ -3,9 +3,16 @@
 
 #if defined(YAZE_WITH_GRPC)
 
+#include <string>
+
 #include "absl/synchronization/mutex.h"
-#include "app/editor/agent/agent_chat_widget.h"
 #include "app/test/test_manager.h"
+
+namespace yaze {
+namespace editor {
+class AgentChatWidget;
+}  // namespace editor
+}  // namespace yaze
 
 namespace yaze {
 namespace editor {
