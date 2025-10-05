@@ -244,16 +244,24 @@ public:
   struct ChatSession {
     std::string id;
     std::string name;
+    std::filesystem::path save_path;
     cli::agent::ConversationalAgentService agent_service;
     size_t last_history_size = 0;
     bool history_loaded = false;
     bool history_dirty = false;
     std::filesystem::path history_path;
+    absl::Time created_at = absl::Now();
     absl::Time last_persist_time = absl::InfinitePast();
     
     ChatSession(const std::string& session_id, const std::string& session_name)
         : id(session_id), name(session_name) {}
   };
+  
+  void SaveChatSession(const ChatSession& session);
+  void LoadChatSession(const std::string& session_id);
+  void DeleteChatSession(const std::string& session_id);
+  std::vector<std::string> GetSavedSessions();
+  std::filesystem::path GetSessionsDirectory();
   
   std::vector<ChatSession> chat_sessions_;
   int active_session_index_ = 0;

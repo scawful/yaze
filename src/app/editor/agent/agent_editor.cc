@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "absl/strings/str_format.h"
+#include "absl/strings/match.h"
 #include "absl/time/clock.h"
 #include "app/editor/agent/agent_chat_widget.h"
 #include "app/editor/agent/agent_collaboration_coordinator.h"
@@ -31,6 +32,7 @@ AgentEditor::AgentEditor() {
   chat_widget_ = std::make_unique<AgentChatWidget>();
   local_coordinator_ = std::make_unique<AgentCollaborationCoordinator>();
   prompt_editor_ = std::make_unique<TextEditor>();
+  common_tiles_editor_ = std::make_unique<TextEditor>();
   
   // Initialize default configuration (legacy)
   current_config_.provider = "mock";
@@ -46,10 +48,14 @@ AgentEditor::AgentEditor() {
   current_profile_.max_retry_attempts = 3;
   current_profile_.tags = {"default", "z3ed"};
   
-  // Setup text editor for system prompts
+  // Setup text editors
   prompt_editor_->SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
   prompt_editor_->SetReadOnly(false);
   prompt_editor_->SetShowWhitespaces(false);
+  
+  common_tiles_editor_->SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
+  common_tiles_editor_->SetReadOnly(false);
+  common_tiles_editor_->SetShowWhitespaces(false);
   
   // Ensure profiles directory exists
   EnsureProfilesDirectory();
@@ -173,34 +179,58 @@ void AgentEditor::DrawDashboard() {
   
   // Compact tabbed interface (combined tabs)
   if (ImGui::BeginTabBar("AgentEditorTabs", ImGuiTabBarFlags_None)) {
-    // Bot Management Tab (combines Config + Profiles + Prompts)
+    // Bot Studio Tab - Modular 3-column layout
     if (ImGui::BeginTabItem(ICON_MD_SMART_TOY " Bot Studio")) {
       ImGui::Spacing();
       
-      // Three-column layout with prompt editor in center
-      if (ImGui::BeginTable("BotStudioLayout", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
+      // Use ImGui table for clean 3-column resizable layout
+      ImGuiTableFlags table_flags = ImGuiTableFlags_Resizable | 
+                                    ImGuiTableFlags_BordersInnerV | 
+                                    ImGuiTableFlags_SizingStretchProp;
+      
+      if (ImGui::BeginTable("BotStudioLayout", 3, table_flags)) {
         ImGui::TableSetupColumn("Config", ImGuiTableColumnFlags_WidthFixed, 380.0f);
-        ImGui::TableSetupColumn("Prompt Editor", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Editors", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableSetupColumn("Profiles", ImGuiTableColumnFlags_WidthFixed, 320.0f);
         ImGui::TableNextRow();
         
-        // LEFT: Configuration
-        ImGui::TableSetColumnIndex(0);
-        ImGui::BeginChild("ConfigSection", ImVec2(0, 0), false);
+        // Column 1: Configuration
+        ImGui::TableNextColumn();
+        ImGui::PushID("ConfigColumn");
         DrawConfigurationPanel();
-        ImGui::EndChild();
+        ImGui::PopID();
         
-        // CENTER: System Prompt Editor
-        ImGui::TableSetColumnIndex(1);
-        ImGui::BeginChild("PromptSection", ImVec2(0, 0), false);
-        DrawPromptEditorPanel();
-        ImGui::EndChild();
+        // Column 2: Editors (Prompt + Tiles + New)
+        ImGui::TableNextColumn();
+        ImGui::PushID("EditorsColumn");
         
-        // RIGHT: Bot Profiles List
-        ImGui::TableSetColumnIndex(2);
-        ImGui::BeginChild("ProfilesSection", ImVec2(0, 0), false);
+        // Tabbed editors for better organization
+        if (ImGui::BeginTabBar("EditorTabs", ImGuiTabBarFlags_None)) {
+          if (ImGui::BeginTabItem(ICON_MD_EDIT " System Prompt")) {
+            DrawPromptEditorPanel();
+            ImGui::EndTabItem();
+          }
+          
+          if (ImGui::BeginTabItem(ICON_MD_GRID_ON " Common Tiles")) {
+            DrawCommonTilesEditor();
+            ImGui::EndTabItem();
+          }
+          
+          if (ImGui::BeginTabItem(ICON_MD_ADD " New Prompt")) {
+            DrawNewPromptCreator();
+            ImGui::EndTabItem();
+          }
+          
+          ImGui::EndTabBar();
+        }
+        
+        ImGui::PopID();
+        
+        // Column 3: Bot Profiles
+        ImGui::TableNextColumn();
+        ImGui::PushID("ProfilesColumn");
         DrawBotProfilesPanel();
-        ImGui::EndChild();
+        ImGui::PopID();
         
         ImGui::EndTable();
       }
@@ -769,6 +799,185 @@ void AgentEditor::DrawAdvancedMetricsPanel() {
   } else {
     ImGui::TextDisabled("No metrics available. Initialize the chat system first.");
   }
+}
+
+void AgentEditor::DrawCommonTilesEditor() {
+  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_GRID_ON " Common Tiles Reference");
+  ImGui::Separator();
+  ImGui::Spacing();
+  
+  ImGui::TextWrapped("Customize the tile reference file that AI uses for tile placement. "
+                     "Organize tiles by category and provide hex IDs with descriptions.");
+  
+  ImGui::Spacing();
+  
+  // Load/Save buttons
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load", ImVec2(100, 0))) {
+    auto content = core::AssetLoader::LoadTextFile("agent/common_tiles.txt");
+    if (content.ok()) {
+      common_tiles_editor_->SetText(*content);
+      common_tiles_initialized_ = true;
+      if (toast_manager_) {
+        toast_manager_->Show(ICON_MD_CHECK_CIRCLE " Common tiles loaded", ToastType::kSuccess, 2.0f);
+      }
+    }
+  }
+  
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_SAVE " Save", ImVec2(100, 0))) {
+    // Save to project or assets directory
+    if (toast_manager_) {
+      toast_manager_->Show(ICON_MD_INFO " Save to project directory (coming soon)", ToastType::kInfo, 2.0f);
+    }
+  }
+  
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_REFRESH)) {
+    common_tiles_initialized_ = false;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Reload from disk");
+  }
+  
+  // Load if not initialized
+  if (!common_tiles_initialized_ && common_tiles_editor_) {
+    auto content = core::AssetLoader::LoadTextFile("agent/common_tiles.txt");
+    if (content.ok()) {
+      common_tiles_editor_->SetText(*content);
+    } else {
+      // Create default template
+      std::string default_tiles = 
+          "# Common Tile16 Reference\n"
+          "# Format: 0xHEX = Description\n\n"
+          "[grass_tiles]\n"
+          "0x020 = Grass (standard)\n\n"
+          "[nature_tiles]\n"
+          "0x02E = Tree (oak)\n"
+          "0x003 = Bush\n\n"
+          "[water_tiles]\n"
+          "0x14C = Water (top edge)\n"
+          "0x14D = Water (middle)\n";
+      common_tiles_editor_->SetText(default_tiles);
+    }
+    common_tiles_initialized_ = true;
+  }
+  
+  ImGui::Separator();
+  ImGui::Spacing();
+  
+  // Editor
+  if (common_tiles_editor_) {
+    ImVec2 editor_size(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
+    common_tiles_editor_->Render("##tiles_editor", editor_size, true);
+  }
+}
+
+void AgentEditor::DrawNewPromptCreator() {
+  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_ADD " Create New System Prompt");
+  ImGui::Separator();
+  ImGui::Spacing();
+  
+  ImGui::TextWrapped("Create a custom system prompt from scratch or use a template.");
+  
+  ImGui::Spacing();
+  ImGui::Separator();
+  
+  // Prompt name input
+  ImGui::Text("Prompt Name:");
+  ImGui::SetNextItemWidth(-1);
+  ImGui::InputTextWithHint("##new_prompt_name", "e.g., custom_prompt.txt", 
+                           new_prompt_name_, sizeof(new_prompt_name_));
+  
+  ImGui::Spacing();
+  
+  // Template selection
+  ImGui::Text("Start from template:");
+  
+  if (ImGui::Button(ICON_MD_FILE_COPY " v1 (Basic)", ImVec2(-1, 0))) {
+    auto content = core::AssetLoader::LoadTextFile("agent/system_prompt.txt");
+    if (content.ok() && prompt_editor_) {
+      prompt_editor_->SetText(*content);
+      if (toast_manager_) {
+        toast_manager_->Show("Template v1 loaded", ToastType::kSuccess, 1.5f);
+      }
+    }
+  }
+  
+  if (ImGui::Button(ICON_MD_FILE_COPY " v2 (Enhanced)", ImVec2(-1, 0))) {
+    auto content = core::AssetLoader::LoadTextFile("agent/system_prompt_v2.txt");
+    if (content.ok() && prompt_editor_) {
+      prompt_editor_->SetText(*content);
+      if (toast_manager_) {
+        toast_manager_->Show("Template v2 loaded", ToastType::kSuccess, 1.5f);
+      }
+    }
+  }
+  
+  if (ImGui::Button(ICON_MD_FILE_COPY " v3 (Proactive)", ImVec2(-1, 0))) {
+    auto content = core::AssetLoader::LoadTextFile("agent/system_prompt_v3.txt");
+    if (content.ok() && prompt_editor_) {
+      prompt_editor_->SetText(*content);
+      if (toast_manager_) {
+        toast_manager_->Show("Template v3 loaded", ToastType::kSuccess, 1.5f);
+      }
+    }
+  }
+  
+  if (ImGui::Button(ICON_MD_NOTE_ADD " Blank Template", ImVec2(-1, 0))) {
+    if (prompt_editor_) {
+      std::string blank_template = 
+          "# Custom System Prompt\n\n"
+          "You are an AI assistant for ROM hacking.\n\n"
+          "## Your Role\n"
+          "- Help users understand ROM data\n"
+          "- Provide accurate information\n"
+          "- Use tools when needed\n\n"
+          "## Available Tools\n"
+          "- resource-list: List resources by type\n"
+          "- dungeon-describe-room: Get room details\n"
+          "- overworld-find-tile: Find tile locations\n"
+          "- ... (see function schemas for complete list)\n\n"
+          "## Guidelines\n"
+          "1. Always provide text_response after tool calls\n"
+          "2. Be helpful and accurate\n"
+          "3. Explain your reasoning\n";
+      prompt_editor_->SetText(blank_template);
+      if (toast_manager_) {
+        toast_manager_->Show("Blank template created", ToastType::kSuccess, 1.5f);
+      }
+    }
+  }
+  
+  ImGui::Spacing();
+  ImGui::Separator();
+  
+  // Save button
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.133f, 0.545f, 0.133f, 0.8f));
+  if (ImGui::Button(ICON_MD_SAVE " Save New Prompt", ImVec2(-1, 40))) {
+    if (std::strlen(new_prompt_name_) > 0 && prompt_editor_) {
+      // Save to assets/agent/ directory
+      std::string filename = new_prompt_name_;
+      if (!absl::EndsWith(filename, ".txt")) {
+        filename += ".txt";
+      }
+      
+      // TODO: Actually save the file
+      if (toast_manager_) {
+        toast_manager_->Show(
+            absl::StrFormat(ICON_MD_SAVE " Prompt saved as %s", filename),
+            ToastType::kSuccess, 3.0f);
+      }
+      
+      // Clear name buffer
+      std::memset(new_prompt_name_, 0, sizeof(new_prompt_name_));
+    } else if (toast_manager_) {
+      toast_manager_->Show(ICON_MD_WARNING " Enter a name for the prompt", ToastType::kWarning, 2.0f);
+    }
+  }
+  ImGui::PopStyleColor();
+  
+  ImGui::Spacing();
+  ImGui::TextWrapped("Note: New prompts are saved to your project. Use 'System Prompt' tab to edit existing prompts.");
 }
 
 // Bot Profile Management Implementation

@@ -182,6 +182,8 @@ class AgentEditor : public Editor {
   void DrawBotProfilesPanel();
   void DrawChatHistoryViewer();
   void DrawAdvancedMetricsPanel();
+  void DrawCommonTilesEditor();
+  void DrawNewPromptCreator();
 
   // Setup callbacks
   void SetupChatWidgetCallbacks();
@@ -213,8 +215,11 @@ class AgentEditor : public Editor {
   
   // System Prompt Editor
   std::unique_ptr<TextEditor> prompt_editor_;
+  std::unique_ptr<TextEditor> common_tiles_editor_;
   bool prompt_editor_initialized_ = false;
+  bool common_tiles_initialized_ = false;
   std::string active_prompt_file_ = "system_prompt_v3.txt";
+  char new_prompt_name_[128] = {};
   
   // Collaboration state
   CollaborationMode current_mode_ = CollaborationMode::kLocal;
