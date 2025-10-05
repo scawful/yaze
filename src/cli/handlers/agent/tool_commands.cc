@@ -112,14 +112,19 @@ absl::Status HandleResourceListCommand(
     rom = &rom_storage;
   }
 
-  // Initialize embedded labels if not already loaded
-  if (rom->resource_label() && !rom->resource_label()->labels_loaded_) {
-    core::YazeProject project;
-    auto labels_status = project.InitializeEmbeddedLabels();
-    if (labels_status.ok()) {
-      rom->resource_label()->labels_ = project.resource_labels;
-      rom->resource_label()->labels_loaded_ = true;
+  // Initialize embedded labels if needed
+  if (rom->resource_label()) {
+    if (!rom->resource_label()->labels_loaded_ || rom->resource_label()->labels_.empty()) {
+      core::YazeProject project;
+      project.use_embedded_labels = true;
+      auto labels_status = project.InitializeEmbeddedLabels();
+      if (labels_status.ok()) {
+        rom->resource_label()->labels_ = project.resource_labels;
+        rom->resource_label()->labels_loaded_ = true;
+      }
     }
+  } else {
+    return absl::FailedPreconditionError("ROM has no resource label manager");
   }
 
   ResourceContextBuilder context_builder(rom);

@@ -235,6 +235,11 @@ public:
   // History synchronization
   void SyncHistoryToPopup();
 
+  // AI response state
+  bool waiting_for_response_ = false;
+  float thinking_animation_ = 0.0f;
+  std::string pending_message_;
+  
   // Chat session management
   struct ChatSession {
     std::string id;
