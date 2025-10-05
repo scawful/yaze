@@ -4,24 +4,15 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
-#include "imgui/imgui.h"
-#include "app/gui/icons.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/system/toast_manager.h"
+#include "app/gui/icons.h"
+#include "app/gui/style.h"
+#include "imgui/imgui.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
 namespace editor {
-
-namespace {
-
-// Theme-matched colors
-const ImVec4 kUserColor = ImVec4(0.90f, 0.70f, 0.00f, 1.0f);  // Gold
-const ImVec4 kAgentColor = ImVec4(0.40f, 0.76f, 0.64f, 1.0f);  // Teal
-const ImVec4 kTimestampColor = ImVec4(0.6f, 0.6f, 0.6f, 0.9f);
-const ImVec4 kAccentColor = ImVec4(0.26f, 0.59f, 0.98f, 1.0f);  // Theme blue
-const ImVec4 kBackgroundColor = ImVec4(0.10f, 0.10f, 0.13f, 0.98f);  // Darker
-const ImVec4 kHeaderColor = ImVec4(0.14f, 0.14f, 0.16f, 1.0f);
-
-}  // namespace
 
 AgentChatHistoryPopup::AgentChatHistoryPopup() {
   std::memset(input_buffer_, 0, sizeof(input_buffer_));
@@ -30,6 +21,8 @@ AgentChatHistoryPopup::AgentChatHistoryPopup() {
 void AgentChatHistoryPopup::Draw() {
   if (!visible_) return;
 
+  const auto& theme = AgentUI::GetTheme();
+  
   // Set drawer position on the LEFT side (full height)
   ImGuiIO& io = ImGui::GetIO();
   
@@ -54,7 +47,7 @@ void AgentChatHistoryPopup::Draw() {
     // Calculate proper list height
     float list_height = ImGui::GetContentRegionAvail().y - 220.0f;
     
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.05f, 0.05f, 0.08f, 0.95f));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.code_bg_color);
     ImGui::BeginChild("MessageList", ImVec2(0, list_height), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
     DrawMessageList();
     
