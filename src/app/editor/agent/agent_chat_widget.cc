@@ -1041,7 +1041,7 @@ void AgentChatWidget::Draw() {
     RenderZ3EDCommandPanel();
     RenderMultimodalPanel();
     RenderCollaborationPanel();
-    RenderRomSyncPanel();  // Always visible now
+    RenderRomSyncPanel();
     RenderProposalManagerPanel();
 
     ImGui::PopStyleVar(2);
@@ -1799,11 +1799,6 @@ void AgentChatWidget::RenderZ3EDCommandPanel() {
 }
 
 void AgentChatWidget::RenderRomSyncPanel() {
-  if (!ImGui::CollapsingHeader(ICON_MD_SYNC " ROM Synchronization",
-                               ImGuiTreeNodeFlags_DefaultOpen)) {
-    return;
-  }
-
   ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.14f, 0.12f, 1.0f));
   ImGui::BeginChild("RomSync", ImVec2(0, 200), true);
 

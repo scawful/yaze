@@ -42,6 +42,9 @@
 #ifdef YAZE_ENABLE_GTEST
 #include "app/test/unit_test_suite.h"
 #endif
+#ifdef YAZE_WITH_GRPC
+#include "app/test/z3ed_test_suite.h"
+#endif
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/emu/emulator.h"
@@ -201,6 +204,11 @@ void EditorManager::InitializeTestSuites() {
   // Register Google Test suite if available
 #ifdef YAZE_ENABLE_GTEST
   test_manager.RegisterTestSuite(std::make_unique<test::UnitTestSuite>());
+#endif
+
+  // Register z3ed AI Agent test suites (requires gRPC)
+#ifdef YAZE_WITH_GRPC
+  test::RegisterZ3edTestSuites();
 #endif
 
   // Update resource monitoring to track Arena state
@@ -1072,17 +1080,124 @@ void EditorManager::BuildModernMenu() {
 #endif
   
   // Debug Menu - comprehensive development tools
-  menu_builder_.BeginMenu("Debug")
+  menu_builder_.BeginMenu("Debug");
+  
+#ifdef YAZE_ENABLE_TESTING
+  // Testing and Validation section
+  menu_builder_
+    .Item("Test Dashboard", ICON_MD_SCIENCE,
+          [this]() { show_test_dashboard_ = true; }, "Ctrl+T")
+    .Item("Run All Tests", ICON_MD_PLAY_ARROW,
+          [this]() { [[maybe_unused]] auto status = test::TestManager::Get().RunAllTests(); })
+    .Item("Run Unit Tests", ICON_MD_INTEGRATION_INSTRUCTIONS,
+          [this]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kUnit); })
+    .Item("Run Integration Tests", ICON_MD_MEMORY,
+          [this]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kIntegration); })
+    .Item("Run UI Tests", ICON_MD_VISIBILITY,
+          [this]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kUI); })
+    .Item("Run Performance Tests", ICON_MD_SPEED,
+          [this]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kPerformance); })
+    .Item("Run Memory Tests", ICON_MD_STORAGE,
+          [this]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kMemory); })
+    .Item("Clear Test Results", ICON_MD_CLEAR_ALL,
+          [this]() { test::TestManager::Get().ClearResults(); })
+    .Separator();
+#endif
+  
+  // ROM and ASM Management
+  menu_builder_
+    .BeginSubMenu("ROM Analysis", ICON_MD_STORAGE)
+      .Item("ROM Information", ICON_MD_INFO,
+            [this]() { popup_manager_->Show("ROM Information"); },
+            nullptr,
+            [this]() { return current_rom_ && current_rom_->is_loaded(); })
+#ifdef YAZE_ENABLE_TESTING
+      .Item("Data Integrity Check", ICON_MD_ANALYTICS,
+            [this]() { 
+              if (current_rom_) {
+                [[maybe_unused]] auto status = test::TestManager::Get().RunTestSuite("RomIntegrity");
+                toast_manager_.Show("Running ROM integrity tests...", ToastType::kInfo);
+              }
+            },
+            nullptr,
+            [this]() { return current_rom_ && current_rom_->is_loaded(); })
+      .Item("Test Save/Load", ICON_MD_SAVE_ALT,
+            [this]() { 
+              if (current_rom_) {
+                [[maybe_unused]] auto status = test::TestManager::Get().RunTestSuite("RomSaveLoad");
+                toast_manager_.Show("Running ROM save/load tests...", ToastType::kInfo);
+              }
+            },
+            nullptr,
+            [this]() { return current_rom_ && current_rom_->is_loaded(); })
+#endif
+      .EndMenu()
+    .BeginSubMenu("ZSCustomOverworld", ICON_MD_CODE)
+      .Item("Check ROM Version", ICON_MD_INFO,
+            [this]() { 
+              if (current_rom_) {
+                uint8_t version = (*current_rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+                std::string version_str = (version == 0xFF) ? "Vanilla" : absl::StrFormat("v%d", version);
+                toast_manager_.Show(absl::StrFormat("ROM: %s | ZSCustomOverworld: %s", 
+                                                   current_rom_->title().c_str(), version_str.c_str()), 
+                                   ToastType::kInfo, 5.0f);
+              }
+            },
+            nullptr,
+            [this]() { return current_rom_ && current_rom_->is_loaded(); })
+      .Item("Upgrade ROM", ICON_MD_UPGRADE,
+            [this]() { 
+              if (current_rom_) {
+                toast_manager_.Show("Use Overworld Editor to upgrade ROM version", 
+                                   ToastType::kInfo, 4.0f);
+              }
+            },
+            nullptr,
+            [this]() { return current_rom_ && current_rom_->is_loaded(); })
+      .Item("Toggle Custom Loading", ICON_MD_SETTINGS,
+            [this]() { 
+              auto& flags = core::FeatureFlags::get();
+              flags.overworld.kLoadCustomOverworld = !flags.overworld.kLoadCustomOverworld;
+              toast_manager_.Show(absl::StrFormat("Custom Overworld Loading: %s", 
+                                                 flags.overworld.kLoadCustomOverworld ? "Enabled" : "Disabled"), 
+                                 ToastType::kInfo);
+            })
+      .EndMenu()
+    .BeginSubMenu("Asar Integration", ICON_MD_BUILD)
+      .Item("Asar Status", ICON_MD_INFO,
+            [this]() { popup_manager_->Show("Asar Integration"); })
+      .Item("Toggle ASM Patch", ICON_MD_CODE,
+            [this]() { 
+              if (current_rom_) {
+                auto& flags = core::FeatureFlags::get();
+                flags.overworld.kApplyZSCustomOverworldASM = !flags.overworld.kApplyZSCustomOverworldASM;
+                toast_manager_.Show(absl::StrFormat("ZSCustomOverworld ASM Application: %s", 
+                                                   flags.overworld.kApplyZSCustomOverworldASM ? "Enabled" : "Disabled"), 
+                                   ToastType::kInfo);
+              }
+            },
+            nullptr,
+            [this]() { return current_rom_ && current_rom_->is_loaded(); })
+      .Item("Load ASM File", ICON_MD_FOLDER_OPEN,
+            [this]() { 
+              toast_manager_.Show("ASM file loading not yet implemented", 
+                                 ToastType::kWarning);
+            })
+      .EndMenu()
+    .Separator()
+    // Development Tools
     .Item("Memory Editor", ICON_MD_MEMORY,
           [this]() { show_memory_editor_ = true; })
     .Item("Assembly Editor", ICON_MD_CODE,
           [this]() { show_asm_editor_ = true; })
+    .Item("Feature Flags", ICON_MD_FLAG,
+          [this]() { popup_manager_->Show("Feature Flags"); })
     .Separator()
     .Item("Performance Dashboard", ICON_MD_SPEED,
           [this]() { show_performance_dashboard_ = true; })
-#ifdef YAZE_ENABLE_TESTING
-    .Item("Test Dashboard", ICON_MD_SCIENCE,
-          [this]() { show_test_dashboard_ = true; }, "Ctrl+T")
+#ifdef YAZE_WITH_GRPC
+    .Item("Agent Proposals", ICON_MD_PREVIEW,
+          [this]() { proposal_drawer_.Toggle(); })
 #endif
     .Separator()
     .Item("ImGui Demo", ICON_MD_HELP,
