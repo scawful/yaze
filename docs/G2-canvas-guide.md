@@ -1,4 +1,4 @@
-# Canvas System - Comprehensive Guide
+# Canvas System
 
 ## Overview
 
