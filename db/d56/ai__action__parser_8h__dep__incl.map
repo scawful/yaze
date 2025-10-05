@@ -1,0 +1,12 @@
+<map id="src/cli/service/ai/ai_action_parser.h" name="src/cli/service/ai/ai_action_parser.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="180,5,310,46"/>
+<area shape="rect" id="Node000002" href="$db/ddb/ai__action__parser_8cc.html" title=" " alt="" coords="5,94,143,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,56,114,96,111,91,191,51"/>
+<area shape="rect" id="Node000003" href="$db/d7a/gui__action__generator_8h.html" title=" " alt="" coords="167,94,322,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="247,62,247,94,242,94,242,62"/>
+<area shape="rect" id="Node000005" href="$d4/d1b/test__ai__tile__placement_8cc.html" title=" " alt="" coords="286,183,433,223"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="296,53,318,71,336,93,348,115,355,139,361,182,356,183,350,140,343,117,332,95,314,75,293,57"/>
+<area shape="rect" id="Node000004" href="$d6/d0d/gui__action__generator_8cc.html" title=" " alt="" coords="100,183,262,223"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="223,149,197,184,193,181,219,146"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="284,142,335,180,332,184,281,146"/>
+</map>

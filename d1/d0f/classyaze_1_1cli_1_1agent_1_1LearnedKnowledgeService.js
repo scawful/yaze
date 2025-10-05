@@ -32,6 +32,7 @@ var classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService =
     [ "SavePreferences", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#aac48c0e3cc975188c43ca33b25960d8e", null ],
     [ "SavePatterns", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a6e5c171a63d4b6e5dabdef0cf333c5b4", null ],
     [ "SaveProjects", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a858a1a304f9251225b5f8e478a96fee1", null ],
+    [ "SaveMemories", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a15883016f794b66d8bd2a603c6fe862f", null ],
     [ "GenerateID", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a3109e08237bcdb91f9d9d10ac7c1ae34", null ],
     [ "data_dir_", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a7112d2864c3cebe730a69c2f5b5889ae", null ],
     [ "prefs_file_", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a26081e0d2a6b6d3734235f562208e7c3", null ],
@@ -42,6 +43,5 @@ var classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService =
     [ "patterns_", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#ac66c60bfa90688cd2b8703ac8c56547a", null ],
     [ "projects_", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a300c9e08ca78f7d74bd64670f9196338", null ],
     [ "memories_", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a222692300c3ea08f7f1ecdaee6687540", null ],
-    [ "initialized_", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a8cf293c7e492d6b2ad05db44b3abfe65", null ],
-    [ "__pad0__", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a2c07d113c64f6bbd086ae9f5dd1c4dd2", null ]
+    [ "initialized_", "d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a8cf293c7e492d6b2ad05db44b3abfe65", null ]
 ];

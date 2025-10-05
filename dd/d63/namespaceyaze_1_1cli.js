@@ -1,6 +1,7 @@
 var namespaceyaze_1_1cli =
 [
     [ "agent", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html", "d8/dd3/namespaceyaze_1_1cli_1_1agent" ],
+    [ "ai", "d8/d4c/namespaceyaze_1_1cli_1_1ai.html", "d8/d4c/namespaceyaze_1_1cli_1_1ai" ],
     [ "anonymous_namespace{ai_service.cc}", "d7/d82/namespaceyaze_1_1cli_1_1anonymous__namespace_02ai__service_8cc_03.html", [
       [ "ExtractRoomId", "d7/d82/namespaceyaze_1_1cli_1_1anonymous__namespace_02ai__service_8cc_03.html#a1709f7c7f2a529b4d939bc64d815d9e2", null ],
       [ "ExtractKeyword", "d7/d82/namespaceyaze_1_1cli_1_1anonymous__namespace_02ai__service_8cc_03.html#a0139de3a9ca27b0701c2e765ca945299", null ]
@@ -97,6 +98,7 @@ var namespaceyaze_1_1cli =
       [ "HexViewerComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a65c8418432a92530720b305d96f257ec", null ],
       [ "MainMenuComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548", null ]
     ] ],
+    [ "gui", "d9/db5/namespaceyaze_1_1cli_1_1gui.html", "d9/db5/namespaceyaze_1_1cli_1_1gui" ],
     [ "message", "db/d13/namespaceyaze_1_1cli_1_1message.html", "db/d13/namespaceyaze_1_1cli_1_1message" ],
     [ "overworld", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html", "d5/d93/namespaceyaze_1_1cli_1_1overworld" ],
     [ "tui", "da/d0b/namespaceyaze_1_1cli_1_1tui.html", "da/d0b/namespaceyaze_1_1cli_1_1tui" ],

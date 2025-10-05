@@ -1,0 +1,14 @@
+<map id="src/cli/service/gui/gui_action_generator.h" name="src/cli/service/gui/gui_action_generator.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="97,5,252,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,183,59,208"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,48,62,67,47,80,34,95,27,113,24,131,27,168,22,168,19,131,22,111,30,93,43,76,59,63,95,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="99,183,157,208"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,45,210,87,213,112,208,136,190,159,168,177,165,172,187,155,203,134,208,112,205,89,186,48"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="199,183,345,208"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="194,45,229,93,249,132,265,168,260,170,245,134,224,95,190,48"/>
+<area shape="rect" id="Node000005" href="$de/dd0/ai__action__parser_8h.html" title=" " alt="" coords="44,94,194,135"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="164,48,142,82,137,79,160,45"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="99,137,58,174,55,170,95,133"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="124,135,127,167,122,167,118,135"/>
+<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="158,133,237,173,234,178,156,138"/>
+</map>

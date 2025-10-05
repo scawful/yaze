@@ -12,7 +12,9 @@ var searchData=
   ['graphics_5feditor_2eh_9',['graphics_editor.h',['../dc/d9b/graphics__editor_8h.html',1,'']]],
   ['graphics_5foptimizer_2ecc_10',['graphics_optimizer.cc',['../dc/db4/graphics__optimizer_8cc.html',1,'']]],
   ['graphics_5foptimizer_2eh_11',['graphics_optimizer.h',['../dd/d54/graphics__optimizer_8h.html',1,'']]],
-  ['gui_5fautomation_5fclient_2ecc_12',['gui_automation_client.cc',['../dd/db4/gui__automation__client_8cc.html',1,'']]],
-  ['gui_5fautomation_5fclient_2eh_13',['gui_automation_client.h',['../d1/d51/gui__automation__client_8h.html',1,'']]],
-  ['gui_5fcommands_2ecc_14',['gui_commands.cc',['../d5/d03/gui__commands_8cc.html',1,'']]]
+  ['gui_5faction_5fgenerator_2ecc_12',['gui_action_generator.cc',['../d6/d0d/gui__action__generator_8cc.html',1,'']]],
+  ['gui_5faction_5fgenerator_2eh_13',['gui_action_generator.h',['../db/d7a/gui__action__generator_8h.html',1,'']]],
+  ['gui_5fautomation_5fclient_2ecc_14',['gui_automation_client.cc',['../dd/db4/gui__automation__client_8cc.html',1,'']]],
+  ['gui_5fautomation_5fclient_2eh_15',['gui_automation_client.h',['../d1/d51/gui__automation__client_8h.html',1,'']]],
+  ['gui_5fcommands_2ecc_16',['gui_commands.cc',['../d5/d03/gui__commands_8cc.html',1,'']]]
 ];

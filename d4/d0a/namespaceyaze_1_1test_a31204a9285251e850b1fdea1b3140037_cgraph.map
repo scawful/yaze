@@ -1,0 +1,11 @@
+<map id="yaze::test::TEST_F" name="yaze::test::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,135,72"/>
+<area shape="rect" id="Node000002" href="$df/d9d/classyaze_1_1cli_1_1gui_1_1GuiActionGenerator.html#a55aba84f1fbe4759bde8ec196c59cab0" title=" " alt="" coords="183,5,380,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,46,167,41,168,46,135,51"/>
+<area shape="rect" id="Node000003" href="$df/def/classyaze_1_1cli_1_1ai_1_1AIActionParser.html#a134cfa176aafd51248dd7fadeaa63850" title=" " alt="" coords="193,71,370,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="135,66,178,73,177,78,135,71"/>
+<area shape="rect" id="Node000004" href="$df/def/classyaze_1_1cli_1_1ai_1_1AIActionParser.html#a578d745987775918d2fa43d98ff9a807" title=" " alt="" coords="428,37,611,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="370,76,412,70,413,75,370,81"/>
+<area shape="rect" id="Node000005" href="$df/def/classyaze_1_1cli_1_1ai_1_1AIActionParser.html#a26fb8ac0ebbdb6cbf3625f43ee304cc4" title=" " alt="" coords="432,103,608,143"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="370,100,416,106,416,112,370,106"/>
+</map>

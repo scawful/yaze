@@ -1,9 +1,11 @@
 <map id="yaze::cli::agent::LearnedKnowledgeService::SaveAll" name="yaze::cli::agent::LearnedKnowledgeService::SaveAll">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,186,111"/>
-<area shape="rect" id="Node000002" href="$d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a6e5c171a63d4b6e5dabdef0cf333c5b4" title=" " alt="" coords="244,5,459,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,67,254,48,255,53,179,73"/>
-<area shape="rect" id="Node000003" href="$d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#aac48c0e3cc975188c43ca33b25960d8e" title=" " alt="" coords="234,71,469,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,88,218,88,218,94,186,94"/>
-<area shape="rect" id="Node000004" href="$d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a858a1a304f9251225b5f8e478a96fee1" title=" " alt="" coords="245,136,458,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="179,109,255,129,254,134,177,115"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,104,186,145"/>
+<area shape="rect" id="Node000002" href="$d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a15883016f794b66d8bd2a603c6fe862f" title=" " alt="" coords="240,5,463,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,101,233,57,255,49,257,54,235,61,137,106"/>
+<area shape="rect" id="Node000003" href="$d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a6e5c171a63d4b6e5dabdef0cf333c5b4" title=" " alt="" coords="244,71,459,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,110,228,104,229,110,186,115"/>
+<area shape="rect" id="Node000004" href="$d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#aac48c0e3cc975188c43ca33b25960d8e" title=" " alt="" coords="234,136,469,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="186,133,219,137,218,142,186,138"/>
+<area shape="rect" id="Node000005" href="$d1/d0f/classyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService.html#a858a1a304f9251225b5f8e478a96fee1" title=" " alt="" coords="245,201,458,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="138,143,235,186,257,194,255,199,233,191,136,148"/>
 </map>

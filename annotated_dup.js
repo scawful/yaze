@@ -6,7 +6,11 @@ var annotated_dup =
     [ "yaze", "dc/d46/namespaceyaze.html", [
       [ "app", "d9/d75/namespaceyaze_1_1app.html", [
         [ "gui", "dc/dc3/namespaceyaze_1_1app_1_1gui.html", [
-          [ "AgentChatWidget", "d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html", "d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget" ]
+          [ "AgentChatWidget", "d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html", "d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget" ],
+          [ "CollaborationPanel", "df/d44/classyaze_1_1app_1_1gui_1_1CollaborationPanel.html", "df/d44/classyaze_1_1app_1_1gui_1_1CollaborationPanel" ],
+          [ "ProposalEntry", "d5/dd0/structyaze_1_1app_1_1gui_1_1ProposalEntry.html", "d5/dd0/structyaze_1_1app_1_1gui_1_1ProposalEntry" ],
+          [ "RomSyncEntry", "d8/dc5/structyaze_1_1app_1_1gui_1_1RomSyncEntry.html", "d8/dc5/structyaze_1_1app_1_1gui_1_1RomSyncEntry" ],
+          [ "SnapshotEntry", "db/d39/structyaze_1_1app_1_1gui_1_1SnapshotEntry.html", "db/d39/structyaze_1_1app_1_1gui_1_1SnapshotEntry" ]
         ] ]
       ] ],
       [ "cli", "dd/d63/namespaceyaze_1_1cli.html", [
@@ -25,6 +29,13 @@ var annotated_dup =
           [ "ProposalCreationResult", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult" ],
           [ "SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession" ],
           [ "ToolDispatcher", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher" ]
+        ] ],
+        [ "ai", "d8/d4c/namespaceyaze_1_1cli_1_1ai.html", [
+          [ "AIAction", "d3/d8b/structyaze_1_1cli_1_1ai_1_1AIAction.html", "d3/d8b/structyaze_1_1cli_1_1ai_1_1AIAction" ],
+          [ "AIActionParser", "df/def/classyaze_1_1cli_1_1ai_1_1AIActionParser.html", null ]
+        ] ],
+        [ "gui", "d9/db5/namespaceyaze_1_1cli_1_1gui.html", [
+          [ "GuiActionGenerator", "df/d9d/classyaze_1_1cli_1_1gui_1_1GuiActionGenerator.html", "df/d9d/classyaze_1_1cli_1_1gui_1_1GuiActionGenerator" ]
         ] ],
         [ "overworld", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html", [
           [ "EntranceDetails", "d9/df8/structyaze_1_1cli_1_1overworld_1_1EntranceDetails.html", "d9/df8/structyaze_1_1cli_1_1overworld_1_1EntranceDetails" ],
@@ -447,6 +458,7 @@ var annotated_dup =
           [ "AsarIntegrationTest", "da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html", "da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest" ],
           [ "AsarRomIntegrationTest", "db/d76/classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html", "db/d76/classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest" ]
         ] ],
+        [ "AITilePlacementTest", "d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html", "d0/d89/classyaze_1_1test_1_1AITilePlacementTest" ],
         [ "ArenaTestSuite", "dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html", "dc/de0/classyaze_1_1test_1_1ArenaTestSuite" ],
         [ "DungeonEditorIntegrationTest", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest" ],
         [ "DungeonEditorV2IntegrationTest", "d3/d0a/classyaze_1_1test_1_1DungeonEditorV2IntegrationTest.html", "d3/d0a/classyaze_1_1test_1_1DungeonEditorV2IntegrationTest" ],
@@ -456,6 +468,7 @@ var annotated_dup =
         [ "E2ERomDependentTest", "dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html", "dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest" ],
         [ "E2ETestSuite", "d0/d20/classyaze_1_1test_1_1E2ETestSuite.html", "d0/d20/classyaze_1_1test_1_1E2ETestSuite" ],
         [ "EditorIntegrationTest", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest" ],
+        [ "GeminiVisionTest", "d3/ddd/classyaze_1_1test_1_1GeminiVisionTest.html", "d3/ddd/classyaze_1_1test_1_1GeminiVisionTest" ],
         [ "HarnessTestExecution", "d3/dc3/structyaze_1_1test_1_1HarnessTestExecution.html", "d3/dc3/structyaze_1_1test_1_1HarnessTestExecution" ],
         [ "HarnessTestSummary", "d1/d06/structyaze_1_1test_1_1HarnessTestSummary.html", "d1/d06/structyaze_1_1test_1_1HarnessTestSummary" ],
         [ "IntegratedTestSuite", "d4/d70/classyaze_1_1test_1_1IntegratedTestSuite.html", "d4/d70/classyaze_1_1test_1_1IntegratedTestSuite" ],

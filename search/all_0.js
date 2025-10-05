@@ -20,7 +20,7 @@ var searchData=
   ['0_205_20x_20feature_20expansion_17',['0.5.X - Feature Expansion',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md277',1,'']]],
   ['0_206_20x_20polish_20integration_18',['0.6.X - Polish &amp; Integration',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md279',1,'']]],
   ['0_207_20x_20and_20beyond_20path_20to_201_200_19',['0.7.X and Beyond - Path to 1.0',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md281',1,'']]],
-  ['0_20alpha_20',['✅ Recently Completed (v0.2.0-alpha)',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md521',1,'']]],
+  ['0_20alpha_20october_205_202025_20',['✅ Recently Completed (v0.2.0-alpha - October 5, 2025)',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md521',1,'']]],
   ['01_2dgetting_2dstarted_2emd_21',['01-getting-started.md',['../da/dcb/01-getting-started_8md.html',1,'']]],
   ['02_2dbuild_2dinstructions_2emd_22',['02-build-instructions.md',['../d2/d14/02-build-instructions_8md.html',1,'']]],
   ['04_2dapi_2dreference_2emd_23',['04-api-reference.md',['../da/d6f/04-api-reference_8md.html',1,'']]],

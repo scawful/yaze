@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['2_200_20alpha_0',['✅ Recently Completed (v0.2.0-alpha)',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md521',1,'']]],
+  ['2_200_20alpha_20october_205_202025_0',['✅ Recently Completed (v0.2.0-alpha - October 5, 2025)',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md521',1,'']]],
   ['2_200_20july_202024_1',['0.2.0 (July 2024)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md260',1,'']]],
   ['2_201_20august_202024_2',['0.2.1 (August 2024)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md259',1,'']]],
   ['2_202_20december_202024_3',['0.2.2 (December 2024)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md258',1,'']]],
@@ -18,7 +18,7 @@ var searchData=
   ['20_20minutes_15',['Error 5: Build is Very Slow (15-20 minutes)',['../d9/d41/md_docs_202-build-instructions.html#autotoc_md75',1,'']]],
   ['2023_16',['2023',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md268',1,'0.0.3 (October 2023)'],['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md267',1,'0.0.4 (November 2023)'],['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md266',1,'0.0.5 (November 2023)'],['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md265',1,'0.0.6 (November 2023)']]],
   ['2024_17',['2024',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md264',1,'0.0.7 (January 2024)'],['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md263',1,'0.0.8 (February 2024)'],['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md262',1,'0.0.9 (April 2024)'],['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md261',1,'0.1.0 (May 2024)'],['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md260',1,'0.2.0 (July 2024)'],['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md259',1,'0.2.1 (August 2024)'],['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md258',1,'0.2.2 (December 2024)']]],
-  ['2025_18',['2025',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md252',1,'0.3.0 (September 2025)'],['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md244',1,'0.3.1 (September 2025)']]],
+  ['2025_18',['2025',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md521',1,'✅ Recently Completed (v0.2.0-alpha - October 5, 2025)'],['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md252',1,'0.3.0 (September 2025)'],['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md244',1,'0.3.1 (September 2025)']]],
   ['2025_20in_20development_19',['0.3.2 (December 2025) - In Development',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md236',1,'']]],
   ['256_20color_20overworld_20palette_20structure_20',['256-Color Overworld Palette Structure',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html#autotoc_md317',1,'']]],
   ['2_3a_20cannot_20find_20nlohmann_5fjson_3a_3anlohmann_5fjson_20target_21',['Error 2: &quot;Cannot find nlohmann_json::nlohmann_json target&quot;',['../d9/d41/md_docs_202-build-instructions.html#autotoc_md72',1,'']]],
