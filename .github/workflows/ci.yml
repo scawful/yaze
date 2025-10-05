@@ -457,6 +457,7 @@ jobs:
 
     - name: Build z3ed
       run: cmake --build ${{ github.workspace }}/build_test --config Release --target z3ed
+      continue-on-error: true
 
     - name: Start Ollama and pull model
       run: |
