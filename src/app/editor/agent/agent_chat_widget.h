@@ -278,6 +278,9 @@ public:
   bool show_snapshot_preview_ = false;
   std::vector<uint8_t> snapshot_preview_data_;
   
+  // Reactive UI colors
+  ImVec4 collaboration_status_color_ = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
+  
   // File editing state
   struct FileEditorTab {
     std::string filepath;

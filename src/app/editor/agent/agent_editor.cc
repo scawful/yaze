@@ -9,6 +9,7 @@
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/rom.h"
+#include "app/gui/icons.h"
 
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/network_collaboration_coordinator.h"
@@ -18,20 +19,60 @@ namespace yaze {
 namespace editor {
 
 AgentEditor::AgentEditor() {
+  type_ = EditorType::kAgent;
   chat_widget_ = std::make_unique<AgentChatWidget>();
   local_coordinator_ = std::make_unique<AgentCollaborationCoordinator>();
+  
+  // Initialize default configuration
+  current_config_.provider = "mock";
+  current_config_.show_reasoning = true;
+  current_config_.max_tool_iterations = 4;
 }
 
 AgentEditor::~AgentEditor() = default;
 
-void AgentEditor::Initialize(ToastManager* toast_manager,
-                              ProposalDrawer* proposal_drawer) {
+void AgentEditor::Initialize() {
+  // Base initialization
+}
+
+absl::Status AgentEditor::Load() {
+  // Load agent configuration from project/settings
+  // TODO: Load from config file
+  return absl::OkStatus();
+}
+
+absl::Status AgentEditor::Save() {
+  // Save agent configuration
+  // TODO: Save to config file
+  return absl::OkStatus();
+}
+
+absl::Status AgentEditor::Update() {
+  if (!active_) return absl::OkStatus();
+  
+  // Draw configuration dashboard
+  DrawDashboard();
+  
+  // Chat widget is drawn separately (not here)
+  
+  return absl::OkStatus();
+}
+
+void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
+                                              ProposalDrawer* proposal_drawer,
+                                              Rom* rom) {
   toast_manager_ = toast_manager;
   proposal_drawer_ = proposal_drawer;
-
-  chat_widget_->SetToastManager(toast_manager_);
-  chat_widget_->SetProposalDrawer(proposal_drawer_);
-
+  rom_ = rom;
+  
+  if (chat_widget_) {
+    chat_widget_->SetToastManager(toast_manager);
+    chat_widget_->SetProposalDrawer(proposal_drawer);
+    if (rom) {
+      chat_widget_->SetRomContext(rom);
+    }
+  }
+  
   SetupChatWidgetCallbacks();
   SetupMultimodalCallbacks();
 }
@@ -43,9 +84,194 @@ void AgentEditor::SetRomContext(Rom* rom) {
   }
 }
 
-void AgentEditor::Draw() {
+void AgentEditor::DrawDashboard() {
+  if (!active_) return;
+  
+  ImGui::Begin(ICON_MD_SMART_TOY " AI Agent Configuration", &active_, ImGuiWindowFlags_MenuBar);
+  
+  // Menu bar
+  if (ImGui::BeginMenuBar()) {
+    if (ImGui::BeginMenu(ICON_MD_MENU " Actions")) {
+      if (ImGui::MenuItem(ICON_MD_CHAT " Open Chat Window", "Ctrl+Shift+A")) {
+        OpenChatWindow();
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem(ICON_MD_SAVE " Save Configuration")) {
+        Save();
+      }
+      if (ImGui::MenuItem(ICON_MD_REFRESH " Reset to Defaults")) {
+        current_config_ = AgentConfig{};
+        current_config_.show_reasoning = true;
+        current_config_.max_tool_iterations = 4;
+      }
+      ImGui::EndMenu();
+    }
+    ImGui::EndMenuBar();
+  }
+  
+  // Dashboard content in organized sections
+  if (ImGui::BeginTable("AgentDashboard_Layout", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
+    ImGui::TableSetupColumn("Configuration", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+    ImGui::TableSetupColumn("Info", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+    ImGui::TableNextRow();
+    
+    // LEFT: Configuration
+    ImGui::TableSetColumnIndex(0);
+    ImGui::PushID("ConfigColumn");
+    DrawConfigurationPanel();
+    ImGui::PopID();
+    
+    // RIGHT: Status & Info
+    ImGui::TableSetColumnIndex(1);
+    ImGui::PushID("InfoColumn");
+    DrawStatusPanel();
+    DrawMetricsPanel();
+    ImGui::PopID();
+    
+    ImGui::EndTable();
+  }
+  
+  ImGui::End();
+}
+
+void AgentEditor::DrawConfigurationPanel() {
+  // AI Provider Configuration
+  if (ImGui::CollapsingHeader(ICON_MD_SETTINGS " AI Provider", ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_SMART_TOY " Provider Selection");
+    ImGui::Spacing();
+    
+    // Provider buttons (large, visual)
+    ImVec2 button_size(ImGui::GetContentRegionAvail().x / 3 - 8, 60);
+    
+    bool is_mock = (current_config_.provider == "mock");
+    bool is_ollama = (current_config_.provider == "ollama");
+    bool is_gemini = (current_config_.provider == "gemini");
+    
+    if (is_mock) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0.6f, 0.8f));
+    if (ImGui::Button(ICON_MD_SETTINGS " Mock", button_size)) {
+      current_config_.provider = "mock";
+    }
+    if (is_mock) ImGui::PopStyleColor();
+    
+    ImGui::SameLine();
+    if (is_ollama) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.4f, 0.8f));
+    if (ImGui::Button(ICON_MD_CLOUD " Ollama", button_size)) {
+      current_config_.provider = "ollama";
+    }
+    if (is_ollama) ImGui::PopStyleColor();
+    
+    ImGui::SameLine();
+    if (is_gemini) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.196f, 0.6f, 0.8f, 0.8f));
+    if (ImGui::Button(ICON_MD_SMART_TOY " Gemini", button_size)) {
+      current_config_.provider = "gemini";
+    }
+    if (is_gemini) ImGui::PopStyleColor();
+    
+    ImGui::Separator();
+    ImGui::Spacing();
+    
+    // Provider-specific settings
+    if (current_config_.provider == "ollama") {
+      ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.4f, 1.0f), ICON_MD_SETTINGS " Ollama Settings");
+      ImGui::Text("Model:");
+      ImGui::SetNextItemWidth(-1);
+      static char model_buf[128] = "qwen2.5-coder:7b";
+      ImGui::InputTextWithHint("##ollama_model", "e.g., qwen2.5-coder:7b, llama3.2", model_buf, sizeof(model_buf));
+      current_config_.model = model_buf;
+      
+      ImGui::Text("Host URL:");
+      ImGui::SetNextItemWidth(-1);
+      static char host_buf[256] = "http://localhost:11434";
+      ImGui::InputText("##ollama_host", host_buf, sizeof(host_buf));
+      current_config_.ollama_host = host_buf;
+    } else if (current_config_.provider == "gemini") {
+      ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f), ICON_MD_SMART_TOY " Gemini Settings");
+      ImGui::Text("Model:");
+      ImGui::SetNextItemWidth(-1);
+      static char model_buf[128] = "gemini-1.5-flash";
+      ImGui::InputTextWithHint("##gemini_model", "e.g., gemini-1.5-flash", model_buf, sizeof(model_buf));
+      current_config_.model = model_buf;
+      
+      ImGui::Text("API Key:");
+      ImGui::SetNextItemWidth(-1);
+      static char key_buf[256] = "";
+      ImGui::InputText("##gemini_key", key_buf, sizeof(key_buf), ImGuiInputTextFlags_Password);
+      current_config_.gemini_api_key = key_buf;
+    } else {
+      ImGui::TextDisabled(ICON_MD_INFO " Mock mode - no configuration needed");
+    }
+  }
+  
+  // Behavior Settings
+  if (ImGui::CollapsingHeader(ICON_MD_TUNE " Behavior", ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::Checkbox(ICON_MD_VISIBILITY " Show Reasoning", &current_config_.show_reasoning);
+    ImGui::Checkbox(ICON_MD_ANALYTICS " Verbose Output", &current_config_.verbose);
+    ImGui::SliderInt(ICON_MD_LOOP " Max Iterations", &current_config_.max_tool_iterations, 1, 10);
+  }
+  
+  // Apply button
+  ImGui::Spacing();
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.133f, 0.545f, 0.133f, 0.8f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.133f, 0.545f, 0.133f, 1.0f));
+  if (ImGui::Button(ICON_MD_CHECK " Apply Configuration", ImVec2(-1, 40))) {
+    ApplyConfig(current_config_);
+    if (toast_manager_) {
+      toast_manager_->Show("Agent configuration applied", ToastType::kSuccess);
+    }
+  }
+  ImGui::PopStyleColor(2);
+}
+
+void AgentEditor::DrawStatusPanel() {
+  // Chat Status
+  if (ImGui::CollapsingHeader(ICON_MD_CHAT " Chat Status", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (chat_widget_ && chat_widget_->is_active()) {
+      ImGui::TextColored(ImVec4(0.133f, 0.545f, 0.133f, 1.0f), ICON_MD_CHECK_CIRCLE " Chat Active");
+    } else {
+      ImGui::TextDisabled(ICON_MD_CANCEL " Chat Inactive");
+    }
+    
+    ImGui::Spacing();
+    if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Open Chat", ImVec2(-1, 0))) {
+      OpenChatWindow();
+    }
+  }
+  
+  // Collaboration Status
+  if (ImGui::CollapsingHeader(ICON_MD_PEOPLE " Collaboration")) {
+    ImGui::TextDisabled("Mode: %s", current_mode_ == CollaborationMode::kLocal ? "Local" : "Network");
+    ImGui::TextDisabled(ICON_MD_INFO " Configure in chat window");
+  }
+}
+
+void AgentEditor::DrawMetricsPanel() {
+  if (ImGui::CollapsingHeader(ICON_MD_ANALYTICS " Session Metrics")) {
+    if (chat_widget_) {
+      ImGui::TextDisabled("View metrics in chat window");
+    } else {
+      ImGui::TextDisabled("No metrics available");
+    }
+  }
+}
+
+AgentEditor::AgentConfig AgentEditor::GetCurrentConfig() const {
+  return current_config_;
+}
+
+void AgentEditor::ApplyConfig(const AgentConfig& config) {
+  current_config_ = config;
+  
+  // Apply to chat widget if available
   if (chat_widget_) {
-    chat_widget_->Draw();
+    AgentChatWidget::AgentConfigState chat_config;
+    chat_config.ai_provider = config.provider;
+    chat_config.ai_model = config.model;
+    chat_config.ollama_host = config.ollama_host;
+    chat_config.gemini_api_key = config.gemini_api_key;
+    chat_config.verbose = config.verbose;
+    chat_config.show_reasoning = config.show_reasoning;
+    chat_config.max_tool_iterations = config.max_tool_iterations;
+    chat_widget_->UpdateAgentConfig(chat_config);
   }
 }
 
@@ -61,6 +287,12 @@ void AgentEditor::SetChatActive(bool active) {
 
 void AgentEditor::ToggleChat() {
   SetChatActive(!IsChatActive());
+}
+
+void AgentEditor::OpenChatWindow() {
+  if (chat_widget_) {
+    chat_widget_->set_active(true);
+  }
 }
 
 absl::StatusOr<AgentEditor::SessionInfo> AgentEditor::HostSession(

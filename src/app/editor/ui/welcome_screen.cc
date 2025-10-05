@@ -552,7 +552,7 @@ void WelcomeScreen::DrawRecentProjects() {
   }
   
   // Grid layout for project cards (compact)
-  float card_width = 200.0f;  // Reduced for compactness
+  float card_width = 220.0f;  // Reduced for compactness
   float card_height = 95.0f;   // Reduced for less scrolling
   int columns = std::max(1, (int)(ImGui::GetContentRegionAvail().x / (card_width + 12)));
   
@@ -650,8 +650,8 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
   ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 4, content_pos.y + 58));
   ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
   std::string short_path = project.filepath;
-  if (short_path.length() > 28) {
-    short_path = "..." + short_path.substr(short_path.length() - 25);
+  if (short_path.length() > 26) {
+    short_path = "..." + short_path.substr(short_path.length() - 23);
   }
   ImGui::Text(ICON_MD_FOLDER " %s", short_path.c_str());
   ImGui::PopStyleColor();

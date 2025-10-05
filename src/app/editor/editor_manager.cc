@@ -237,8 +237,10 @@ void EditorManager::Initialize(const std::string& filename) {
   project_file_editor_.SetToastManager(&toast_manager_);
 
 #ifdef YAZE_WITH_GRPC
-  // Initialize the agent editor
-  agent_editor_.Initialize(&toast_manager_, &proposal_drawer_);
+  // Initialize the agent editor as a proper Editor (configuration dashboard)
+  agent_editor_.set_context(&context_);
+  agent_editor_.Initialize();
+  agent_editor_.InitializeWithDependencies(&toast_manager_, &proposal_drawer_, nullptr);
 
   // Set up multimodal (vision) callbacks for Gemini
   AgentChatWidget::MultimodalCallbacks multimodal_callbacks;
@@ -550,7 +552,7 @@ absl::Status EditorManager::Update() {
 
 #ifdef YAZE_WITH_GRPC
   // Draw agent editor (includes chat widget and collaboration UI)
-  agent_editor_.Draw();
+  agent_editor_.Update();
 #endif
 
   // Draw background grid effects for the entire viewport
@@ -711,11 +713,10 @@ absl::Status EditorManager::Update() {
     proposal_drawer_.Draw();
   }
 #ifdef YAZE_WITH_GRPC
-  Rom* rom_context =
-      (current_rom_ != nullptr && current_rom_->is_loaded()) ? current_rom_
-                                                             : nullptr;
-  agent_editor_.SetRomContext(rom_context);
-  agent_editor_.Draw();
+  // Update ROM context for agent editor
+  if (current_rom_ && current_rom_->is_loaded()) {
+    agent_editor_.SetRomContext(current_rom_);
+  }
 #endif
 
   return absl::OkStatus();
@@ -858,6 +859,10 @@ void EditorManager::BuildModernMenu() {
           [this]() { current_editor_set_->screen_editor_.set_active(true); }, "Ctrl+8")
     .Item("Hex Editor", ICON_MD_DATA_ARRAY,
           [this]() { show_memory_editor_ = true; }, "Ctrl+0")
+#ifdef YAZE_WITH_GRPC
+    .Item("AI Agent", ICON_MD_SMART_TOY,
+          [this]() { agent_editor_.set_active(true); }, "Ctrl+Shift+A")
+#endif
     .Separator()
     .Item("Welcome Screen", ICON_MD_HOME,
           [this]() { show_welcome_screen_ = true; })
@@ -1856,7 +1861,8 @@ absl::Status EditorManager::LoadRom() {
   // Hide welcome screen when ROM is successfully loaded - don't reset manual close state
   show_welcome_screen_ = false;
   
-  // Show editor selection dialog after ROM loads
+  // Clear recent editors for fresh start with new ROM and show editor selection dialog
+  editor_selection_dialog_.ClearRecentEditors();
   show_editor_selection_ = true;
 
   return absl::OkStatus();
@@ -1982,6 +1988,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 
     // Hide welcome screen and show editor selection when ROM is loaded
     show_welcome_screen_ = false;
+    editor_selection_dialog_.ClearRecentEditors();
     show_editor_selection_ = true;
   }
   return absl::OkStatus();
@@ -2061,6 +2068,7 @@ absl::Status EditorManager::OpenProject() {
     
     // Hide welcome screen and show editor selection when project ROM is loaded
     show_welcome_screen_ = false;
+    editor_selection_dialog_.ClearRecentEditors();
     show_editor_selection_ = true;
   }
 
