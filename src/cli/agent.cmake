@@ -147,4 +147,14 @@ if(YAZE_WITH_JSON)
   endif()
 endif()
 
+# Add gRPC support for GUI automation
+if(YAZE_WITH_GRPC)
+  target_link_libraries(yaze_agent PUBLIC
+    grpc++
+    grpc++_reflection
+    libprotobuf
+  )
+  message(STATUS "✓ gRPC GUI automation enabled for yaze_agent")
+endif()
+
 set_target_properties(yaze_agent PROPERTIES POSITION_INDEPENDENT_CODE ON)

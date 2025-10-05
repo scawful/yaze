@@ -83,9 +83,13 @@ if(YAZE_WITH_GRPC)
     ${CMAKE_SOURCE_DIR}/third_party/json/include)
   target_compile_definitions(yaze_core_lib PRIVATE YAZE_WITH_JSON)
 
+  # Add proto definitions for test harness and ROM service
   target_add_protobuf(yaze_core_lib
     ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+  target_add_protobuf(yaze_core_lib
+    ${CMAKE_SOURCE_DIR}/protos/rom_service.proto)
 
+  # Add test harness implementation
   target_sources(yaze_core_lib PRIVATE
     ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.cc
     ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.h
@@ -97,6 +101,9 @@ if(YAZE_WITH_GRPC)
     ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_recorder.h
     ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.cc
     ${CMAKE_SOURCE_DIR}/src/app/core/testing/test_script_parser.h
+    # Add unified gRPC server
+    ${CMAKE_SOURCE_DIR}/src/app/core/service/unified_grpc_server.cc
+    ${CMAKE_SOURCE_DIR}/src/app/core/service/unified_grpc_server.h
   )
 
   target_link_libraries(yaze_core_lib PUBLIC
@@ -104,6 +111,8 @@ if(YAZE_WITH_GRPC)
     grpc++_reflection
     libprotobuf
   )
+  
+  message(STATUS "  - gRPC test harness + ROM service enabled")
 endif()
 
 # Platform-specific libraries
