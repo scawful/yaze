@@ -13,6 +13,7 @@ set(
   YAZE_NET_SRC
   app/net/rom_version_manager.cc
   app/net/websocket_client.cc
+  app/net/collaboration_service.cc
 )
 
 add_library(yaze_net STATIC ${YAZE_NET_SRC})

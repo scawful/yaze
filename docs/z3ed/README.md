@@ -889,16 +889,29 @@ The AI response appears in your chat history and can reference specific details 
 
 ### ✅ Recently Completed (v0.2.0-alpha - October 5, 2025)
 
+#### Core AI Features
 -   **Enhanced System Prompt (v3)**: Proactive tool chaining with implicit iteration to minimize back-and-forth conversations
 -   **Learn Command**: Full implementation with preferences, ROM patterns, project context, and conversation memory storage
 -   **Native Gemini Function Calling**: Upgraded from manual curl to native function calling API with automatic tool schema generation
 -   **Multimodal Vision Testing**: Comprehensive test suite for Gemini vision capabilities with screenshot integration
 -   **AI-Controlled GUI Automation**: Natural language parsing (`AIActionParser`) and test script generation (`GuiActionGenerator`) for automated tile placement
--   **gRPC Windows Build Optimization**: vcpkg integration for 10-20x faster Windows builds, removed abseil-cpp submodule  
+
+#### Version Management & Protection
 -   **ROM Version Management System**: `RomVersionManager` with automatic snapshots, safe points, corruption detection, and rollback capabilities
 -   **Proposal Approval Framework**: `ProposalApprovalManager` with host/majority/unanimous voting modes to protect ROM from unwanted changes
+
+#### Networking & Collaboration (NEW)
+-   **Cross-Platform WebSocket Client**: `WebSocketClient` with Windows/macOS/Linux support using httplib
+-   **Collaboration Service**: `CollaborationService` integrating version management with real-time networking
+-   **yaze-server v2.0 Protocol**: Extended with proposal voting (`proposal_vote`, `proposal_vote_received`)
+-   **z3ed Network Commands**: CLI commands for remote collaboration (`net connect`, `net join`, `proposal submit/wait`)
 -   **Collaboration UI Panel**: `CollaborationPanel` widget with version history, ROM sync tracking, snapshot gallery, and approval workflow
--   **Improved Documentation**: Consolidated architecture, enhancement plans, and build instructions with JSON-first approach
+
+#### Build System & Infrastructure
+-   **gRPC Windows Build Optimization**: vcpkg integration for 10-20x faster Windows builds, removed abseil-cpp submodule
+-   **Cross-Platform Networking**: Native socket support (ws2_32 on Windows, BSD sockets on Unix)
+-   **Namespace Refactoring**: Created `app/net` namespace for networking components
+-   **Improved Documentation**: Consolidated architecture, enhancement plans, networking guide, and build instructions with JSON-first approach
 
 ## 12. Troubleshooting
 
