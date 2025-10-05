@@ -141,7 +141,7 @@ var searchData=
   ['yaze_3a_3azelda3_3a_3apalette_5finternal_138',['palette_internal',['../d6/d52/namespaceyaze_1_1zelda3_1_1palette__internal.html',1,'yaze::zelda3']]],
   ['yaze_3a_3azelda3_3a_3aspritetypes_139',['SpriteTypes',['../d1/d1c/namespaceyaze_1_1zelda3_1_1SpriteTypes.html',1,'yaze::zelda3']]],
   ['yaze_3a_3azelda3_3a_3atest_140',['test',['../df/dfe/namespaceyaze_1_1zelda3_1_1test.html',1,'yaze::zelda3']]],
-  ['yaze_5fapp_5fmain_141',['yaze_app_main',['../d0/de1/group__core.html#ga440a6545b01877e0afee7ba8a54ad27e',1,'yaze_app_main(int argc, char **argv):&#160;app_main.cc'],['../d0/de1/group__core.html#ga440a6545b01877e0afee7ba8a54ad27e',1,'yaze_app_main(int argc, char **argv):&#160;app_main.cc']]],
+  ['yaze_5fapp_5fmain_141',['yaze_app_main',['../d0/de1/group__core.html#ga440a6545b01877e0afee7ba8a54ad27e',1,'yaze.h']]],
   ['yaze_5fbitmap_142',['yaze_bitmap',['../d6/de0/group__graphics.html#ga5ba242cd4dc0870e4e4d6f943a1ad7a7',1,'yaze_bitmap:&#160;yaze.h'],['../dd/dd1/structyaze__bitmap.html',1,'yaze_bitmap']]],
   ['yaze_5fcheck_5fversion_5fcompatibility_143',['yaze_check_version_compatibility',['../d0/de1/group__core.html#ga9cdce623ea2e4d9abdb3acf73a4e3f65',1,'yaze_check_version_compatibility(const char *expected_version):&#160;yaze.cc'],['../d0/de1/group__core.html#ga9cdce623ea2e4d9abdb3acf73a4e3f65',1,'yaze_check_version_compatibility(const char *expected_version):&#160;yaze.cc']]],
   ['yaze_5fcleanup_5ffunc_144',['yaze_cleanup_func',['../d9/d89/yaze_8h.html#a75ef22f3a15fb60314f902a5bf7d0b7e',1,'yaze.h']]],
