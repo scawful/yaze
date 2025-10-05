@@ -20,7 +20,7 @@ absl::Status HandleDiffCommand(Rom& rom,
 absl::Status HandleAcceptCommand(const std::vector<std::string>& args, Rom& rom);
 absl::Status HandleTestCommand(const std::vector<std::string>& args);
 absl::Status HandleGuiCommand(const std::vector<std::string>& args);
-absl::Status HandleLearnCommand();
+absl::Status HandleLearnCommand(const std::vector<std::string>& args = {});
 absl::Status HandleListCommand();
 absl::Status HandleCommitCommand(Rom& rom);
 absl::Status HandleRevertCommand(Rom& rom);
