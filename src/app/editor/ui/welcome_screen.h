@@ -106,10 +106,17 @@ class WelcomeScreen {
   int hovered_card_ = -1;
   
   // Interactive triforce positions (smooth interpolation)
-  static constexpr int kNumTriforces = 9;
+  static constexpr int kNumTriforces = 16;
   ImVec2 triforce_positions_[kNumTriforces] = {};
   ImVec2 triforce_base_positions_[kNumTriforces] = {};
   bool triforce_positions_initialized_ = false;
+  
+  // Triforce animation settings
+  bool show_triforce_settings_ = false;
+  float triforce_alpha_multiplier_ = 1.0f;
+  float triforce_speed_multiplier_ = 1.0f;
+  float triforce_size_multiplier_ = 1.0f;
+  bool triforce_mouse_repel_enabled_ = true;
 };
 
 }  // namespace editor

@@ -179,15 +179,22 @@ bool WelcomeScreen::Show(bool* p_open) {
     };
     
     TriforceConfig triforce_configs[] = {
-      {0.10f, 0.15f, 32.0f, 0.035f, 60.0f},   // Top left corner
-      {0.90f, 0.18f, 28.0f, 0.028f, 55.0f},   // Top right corner
-      {0.08f, 0.82f, 24.0f, 0.022f, 50.0f},   // Bottom left
-      {0.92f, 0.78f, 28.0f, 0.030f, 55.0f},   // Bottom right
-      {0.18f, 0.45f, 24.0f, 0.020f, 45.0f},   // Mid left
-      {0.82f, 0.52f, 24.0f, 0.020f, 45.0f},   // Mid right
-      {0.50f, 0.88f, 20.0f, 0.018f, 40.0f},   // Bottom center
-      {0.30f, 0.25f, 20.0f, 0.015f, 40.0f},   // Upper mid-left
-      {0.70f, 0.28f, 20.0f, 0.015f, 40.0f},   // Upper mid-right
+      {0.08f, 0.12f, 32.0f, 0.065f, 80.0f},   // Top left corner
+      {0.92f, 0.15f, 30.0f, 0.055f, 75.0f},   // Top right corner
+      {0.06f, 0.85f, 28.0f, 0.050f, 70.0f},   // Bottom left
+      {0.94f, 0.82f, 30.0f, 0.058f, 75.0f},   // Bottom right
+      {0.15f, 0.48f, 26.0f, 0.048f, 65.0f},   // Mid left
+      {0.85f, 0.52f, 26.0f, 0.048f, 65.0f},   // Mid right
+      {0.50f, 0.92f, 24.0f, 0.040f, 60.0f},   // Bottom center
+      {0.28f, 0.22f, 22.0f, 0.038f, 55.0f},   // Upper mid-left
+      {0.72f, 0.25f, 22.0f, 0.038f, 55.0f},   // Upper mid-right
+      {0.50f, 0.08f, 28.0f, 0.052f, 70.0f},   // Top center
+      {0.22f, 0.65f, 20.0f, 0.035f, 50.0f},   // Mid-lower left
+      {0.78f, 0.68f, 20.0f, 0.035f, 50.0f},   // Mid-lower right
+      {0.12f, 0.35f, 18.0f, 0.030f, 45.0f},   // Upper-mid left
+      {0.88f, 0.38f, 18.0f, 0.030f, 45.0f},   // Upper-mid right
+      {0.38f, 0.75f, 16.0f, 0.028f, 40.0f},   // Lower left-center
+      {0.62f, 0.77f, 16.0f, 0.028f, 40.0f},   // Lower right-center
     };
     
     // Initialize base positions on first frame
@@ -201,42 +208,65 @@ bool WelcomeScreen::Show(bool* p_open) {
       triforce_positions_initialized_ = true;
     }
     
-    // Update triforce positions based on mouse interaction
+    // Update triforce positions based on mouse interaction + floating animation
     for (int i = 0; i < kNumTriforces; ++i) {
       // Update base position in case window moved/resized
       float base_x = window_pos.x + window_size.x * triforce_configs[i].x_pct;
       float base_y = window_pos.y + window_size.y * triforce_configs[i].y_pct;
       triforce_base_positions_[i] = ImVec2(base_x, base_y);
       
+      // Add floating animation using sine waves with unique frequencies per triforce
+      float time_offset = i * 0.5f;  // Offset each triforce's animation
+      float float_speed_x = (0.6f + (i % 4) * 0.25f) * triforce_speed_multiplier_;  // Apply speed multiplier
+      float float_speed_y = (0.5f + ((i + 1) % 4) * 0.2f) * triforce_speed_multiplier_;
+      float float_amount_x = (35.0f + (i % 3) * 20.0f) * triforce_size_multiplier_;  // Apply size multiplier
+      float float_amount_y = (40.0f + ((i + 1) % 3) * 25.0f) * triforce_size_multiplier_;
+      
+      // Create complex orbital/figure-8 motion with more variation
+      float float_x = std::sin(animation_time_ * float_speed_x + time_offset) * float_amount_x;
+      float float_y = std::cos(animation_time_ * float_speed_y + time_offset * 1.5f) * float_amount_y;
+      
+      // Add secondary wave for more complex movement
+      float_x += std::cos(animation_time_ * float_speed_x * 0.7f + time_offset * 2.0f) * (float_amount_x * 0.3f);
+      float_y += std::sin(animation_time_ * float_speed_y * 0.6f + time_offset * 1.8f) * (float_amount_y * 0.3f);
+      
       // Calculate distance from mouse
       float dx = triforce_base_positions_[i].x - mouse_pos.x;
       float dy = triforce_base_positions_[i].y - mouse_pos.y;
       float dist = std::sqrt(dx * dx + dy * dy);
       
-      // Calculate repulsion offset
+      // Calculate repulsion offset with stronger effect
       ImVec2 target_pos = triforce_base_positions_[i];
-      float repel_radius = 150.0f;  // Start repelling within this radius
+      float repel_radius = 200.0f;  // Larger radius for more visible interaction
       
-      if (dist < repel_radius && dist > 0.1f) {
+      // Add floating motion to base position
+      target_pos.x += float_x;
+      target_pos.y += float_y;
+      
+      // Apply mouse repulsion if enabled
+      if (triforce_mouse_repel_enabled_ && dist < repel_radius && dist > 0.1f) {
         // Normalize direction away from mouse
         float dir_x = dx / dist;
         float dir_y = dy / dist;
         
-        // Stronger repulsion when closer
-        float repel_strength = (1.0f - dist / repel_radius) * triforce_configs[i].repel_distance;
+        // Much stronger repulsion when closer with exponential falloff
+        float normalized_dist = dist / repel_radius;
+        float repel_strength = (1.0f - normalized_dist * normalized_dist) * triforce_configs[i].repel_distance;
         
         target_pos.x += dir_x * repel_strength;
         target_pos.y += dir_y * repel_strength;
       }
       
-      // Smooth interpolation to target position
-      float lerp_speed = 6.0f * ImGui::GetIO().DeltaTime;
+      // Smooth interpolation to target position (faster response)
+      float lerp_speed = 8.0f * ImGui::GetIO().DeltaTime;
       triforce_positions_[i].x += (target_pos.x - triforce_positions_[i].x) * lerp_speed;
       triforce_positions_[i].y += (target_pos.y - triforce_positions_[i].y) * lerp_speed;
       
-      // Draw at current position
+      // Draw at current position with alpha multiplier
+      float adjusted_alpha = triforce_configs[i].alpha * triforce_alpha_multiplier_;
+      float adjusted_size = triforce_configs[i].size * triforce_size_multiplier_;
       DrawTriforceBackground(bg_draw_list, triforce_positions_[i], 
-                           triforce_configs[i].size, triforce_configs[i].alpha, 0.0f);
+                           adjusted_size, adjusted_alpha, 0.0f);
     }
     
     DrawHeader();
@@ -318,6 +348,57 @@ bool WelcomeScreen::Show(bool* p_open) {
     
     ImGui::Dummy(ImVec2(0, 5));
     DrawTipsSection();
+    
+    // Triforce animation settings panel
+    ImGui::SameLine(ImGui::GetWindowWidth() - 50);
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5);
+    if (ImGui::SmallButton(show_triforce_settings_ ? ICON_MD_CLOSE : ICON_MD_TUNE)) {
+      show_triforce_settings_ = !show_triforce_settings_;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Triforce Animation Settings");
+    }
+    
+    if (show_triforce_settings_) {
+      ImGui::Separator();
+      ImGui::Spacing();
+      ImGui::BeginChild("TriforceSettings", ImVec2(0, 120), true, ImGuiWindowFlags_NoScrollbar);
+      {
+        ImGui::TextColored(kTriforceGold, ICON_MD_AUTO_AWESOME " Triforce Animation");
+        ImGui::Spacing();
+        
+        ImGui::Columns(2, nullptr, false);
+        
+        // Left column
+        ImGui::Text(ICON_MD_OPACITY " Visibility");
+        ImGui::SetNextItemWidth(-1);
+        ImGui::SliderFloat("##visibility", &triforce_alpha_multiplier_, 0.0f, 3.0f, "%.1fx");
+        
+        ImGui::Text(ICON_MD_SPEED " Speed");
+        ImGui::SetNextItemWidth(-1);
+        ImGui::SliderFloat("##speed", &triforce_speed_multiplier_, 0.1f, 3.0f, "%.1fx");
+        
+        ImGui::NextColumn();
+        
+        // Right column
+        ImGui::Text(ICON_MD_ASPECT_RATIO " Size");
+        ImGui::SetNextItemWidth(-1);
+        ImGui::SliderFloat("##size", &triforce_size_multiplier_, 0.5f, 2.0f, "%.1fx");
+        
+        ImGui::Checkbox(ICON_MD_MOUSE " Mouse Interaction", &triforce_mouse_repel_enabled_);
+        
+        ImGui::Columns(1);
+        
+        ImGui::Spacing();
+        if (ImGui::SmallButton(ICON_MD_REFRESH " Reset to Defaults")) {
+          triforce_alpha_multiplier_ = 1.0f;
+          triforce_speed_multiplier_ = 1.0f;
+          triforce_size_multiplier_ = 1.0f;
+          triforce_mouse_repel_enabled_ = true;
+        }
+      }
+      ImGui::EndChild();
+    }
   }
   ImGui::End();
   
@@ -489,8 +570,8 @@ void WelcomeScreen::DrawRecentProjects() {
   }
   
   // Grid layout for project cards
-  float card_width = 220.0f;
-  float card_height = 140.0f;
+  float card_width = 260.0f;  // Increased from 220.0f
+  float card_height = 120.0f;  // Reduced from 140.0f
   int columns = std::max(1, (int)(ImGui::GetContentRegionAvail().x / (card_width + 15)));
   
   for (size_t i = 0; i < recent_projects_.size(); ++i) {
@@ -504,7 +585,7 @@ void WelcomeScreen::DrawRecentProjects() {
 void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
   ImGui::BeginGroup();
   
-  ImVec2 card_size(220, 140);
+  ImVec2 card_size(260, 120);  // Reduced height from 140 to 120
   ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
   
   // Subtle hover scale (only on actual hover, no animation)
@@ -555,39 +636,38 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
   }
   
   // Draw content
-  ImVec2 content_pos(cursor_pos.x + 15, cursor_pos.y + 15);
+  ImVec2 content_pos(cursor_pos.x + 12, cursor_pos.y + 12);
   
-  // Icon with colored background circle
-  ImVec2 icon_center(content_pos.x + 20, content_pos.y + 20);
+  // Icon with colored background circle (smaller and centered)
+  ImVec2 icon_center(content_pos.x + 16, content_pos.y + 16);
   ImU32 icon_bg = ImGui::GetColorU32(border_color_base);
-  draw_list->AddCircleFilled(icon_center, 25, icon_bg, 32);
+  draw_list->AddCircleFilled(icon_center, 18, icon_bg, 32);  // Reduced from 25 to 18
   
-  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 5, content_pos.y + 8));
+  // Center the icon properly
+  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]); // Medium font for icon
+  ImVec2 icon_size = ImGui::CalcTextSize(ICON_MD_VIDEOGAME_ASSET);
+  ImGui::SetCursorScreenPos(ImVec2(icon_center.x - icon_size.x / 2, icon_center.y - icon_size.y / 2));
   ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
   ImGui::Text(ICON_MD_VIDEOGAME_ASSET);
   ImGui::PopStyleColor();
+  ImGui::PopFont();
   
   // Project name
-  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 50, content_pos.y + 15));
-  ImGui::PushTextWrapPos(cursor_pos.x + card_size.x - 15);
+  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 40, content_pos.y + 12));
+  ImGui::PushTextWrapPos(cursor_pos.x + card_size.x - 12);
   ImGui::TextColored(kTriforceGold, "%s", project.name.c_str());
   ImGui::PopTextWrapPos();
   
   // ROM title
-  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 5, content_pos.y + 55));
+  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 5, content_pos.y + 45));
   ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), ICON_MD_GAMEPAD " %s", project.rom_title.c_str());
   
-  // Last modified with clock icon
-  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 5, content_pos.y + 80));
-  ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), 
-                    ICON_MD_ACCESS_TIME " %s", project.last_modified.c_str());
-  
-  // Path in card
-  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 5, content_pos.y + 105));
+  // Path in card (condensed)
+  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 5, content_pos.y + 70));
   ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
   std::string short_path = project.filepath;
-  if (short_path.length() > 35) {
-    short_path = "..." + short_path.substr(short_path.length() - 32);
+  if (short_path.length() > 38) {
+    short_path = "..." + short_path.substr(short_path.length() - 35);
   }
   ImGui::Text(ICON_MD_FOLDER " %s", short_path.c_str());
   ImGui::PopStyleColor();
@@ -598,8 +678,8 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
     ImGui::TextColored(kMasterSwordBlue, ICON_MD_INFO " Project Details");
     ImGui::Separator();
     ImGui::Text("Name: %s", project.name.c_str());
+    ImGui::Text("ROM: %s", project.rom_title.c_str());
     ImGui::Text("Path: %s", project.filepath.c_str());
-    ImGui::Text("Modified: %s", project.last_modified.c_str());
     ImGui::Separator();
     ImGui::TextColored(kTriforceGold, ICON_MD_TOUCH_APP " Click to open");
     ImGui::EndTooltip();
@@ -666,8 +746,8 @@ void WelcomeScreen::DrawTemplatesSection() {
 void WelcomeScreen::DrawTipsSection() {
   // Static tip (or could rotate based on session start time rather than animation)
   const char* tips[] = {
-    "Press Ctrl+P to open the command palette",
-    "Use z3ed agent for AI-powered ROM editing",
+    "Press Ctrl+Shift+P to open the command palette",
+    "Use z3ed agent for AI-powered ROM editing (Ctrl+Shift+A)",
     "Enable ZSCustomOverworld in Debug menu for expanded features",
     "Check the Performance Dashboard for optimization insights",
     "Collaborate in real-time with yaze-server"
@@ -693,7 +773,7 @@ void WelcomeScreen::DrawWhatsNew() {
   ImGui::Spacing();
   
   // Version badge (no animation)
-  ImGui::TextColored(kMasterSwordBlue, ICON_MD_VERIFIED " yaze v0.2.0-alpha");
+  ImGui::TextColored(kMasterSwordBlue, ICON_MD_VERIFIED "yaze v%s", YAZE_VERSION_STRING);
   ImGui::Spacing();
   
   // Feature list with icons and colors
