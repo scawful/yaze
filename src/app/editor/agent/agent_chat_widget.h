@@ -21,6 +21,20 @@ namespace editor {
 class ProposalDrawer;
 class ToastManager;
 
+/**
+ * @class AgentChatWidget
+ * @brief Modern AI chat widget with comprehensive z3ed and yaze-server integration
+ * 
+ * Features:
+ * - AI Provider Configuration (Ollama, Gemini, Mock)
+ * - Z3ED Command Palette (run, plan, diff, accept, test)
+ * - Real-time Collaboration (Local & Network modes)
+ * - ROM Synchronization and Diff Broadcasting
+ * - Multimodal Vision (Screenshot Analysis)
+ * - Snapshot Sharing with Preview
+ * - Collaborative Proposal Management
+ * - Tabbed Interface with Modern ImGui patterns
+ */
 class AgentChatWidget {
  public:
   AgentChatWidget();
@@ -47,6 +61,23 @@ class AgentChatWidget {
     std::function<absl::Status(const std::filesystem::path&, const std::string&)> send_to_gemini;
   };
 
+  // Z3ED Command Callbacks
+  struct Z3EDCommandCallbacks {
+    std::function<absl::Status(const std::string&)> run_agent_task;
+    std::function<absl::StatusOr<std::string>(const std::string&)> plan_agent_task;
+    std::function<absl::StatusOr<std::string>(const std::string&)> diff_proposal;
+    std::function<absl::Status(const std::string&)> accept_proposal;
+    std::function<absl::Status(const std::string&)> reject_proposal;
+    std::function<absl::StatusOr<std::vector<std::string>>()> list_proposals;
+  };
+
+  // ROM Sync Callbacks
+  struct RomSyncCallbacks {
+    std::function<absl::StatusOr<std::string>()> generate_rom_diff;
+    std::function<absl::Status(const std::string&, const std::string&)> apply_rom_diff;
+    std::function<std::string()> get_rom_hash;
+  };
+
   void SetToastManager(ToastManager* toast_manager);
 
   void SetProposalDrawer(ProposalDrawer* drawer);
@@ -57,6 +88,14 @@ class AgentChatWidget {
 
   void SetMultimodalCallbacks(const MultimodalCallbacks& callbacks) {
     multimodal_callbacks_ = callbacks;
+  }
+
+  void SetZ3EDCommandCallbacks(const Z3EDCommandCallbacks& callbacks) {
+    z3ed_callbacks_ = callbacks;
+  }
+
+  void SetRomSyncCallbacks(const RomSyncCallbacks& callbacks) {
+    rom_sync_callbacks_ = callbacks;
   }
 
   bool* active() { return &active_; }
@@ -94,11 +133,48 @@ public:
     char specific_window_buffer[128] = {};
   };
 
+  // Agent Configuration State
+  struct AgentConfigState {
+    std::string ai_provider = "mock";  // mock, ollama, gemini
+    std::string ai_model;
+    std::string ollama_host = "http://localhost:11434";
+    std::string gemini_api_key;
+    bool verbose = false;
+    bool show_reasoning = true;
+    int max_tool_iterations = 4;
+    int max_retry_attempts = 3;
+    char provider_buffer[32] = "mock";
+    char model_buffer[128] = {};
+    char ollama_host_buffer[256] = "http://localhost:11434";
+    char gemini_key_buffer[256] = {};
+  };
+
+  // ROM Sync State
+  struct RomSyncState {
+    std::string current_rom_hash;
+    absl::Time last_sync_time = absl::InfinitePast();
+    bool auto_sync_enabled = false;
+    int sync_interval_seconds = 30;
+    std::vector<std::string> pending_syncs;
+  };
+
+  // Z3ED Command State
+  struct Z3EDCommandState {
+    std::string last_command;
+    std::string command_output;
+    bool command_running = false;
+    char command_input_buffer[512] = {};
+  };
+
   // Accessors for capture settings
   CaptureMode capture_mode() const { return multimodal_state_.capture_mode; }
   const char* specific_window_name() const { 
     return multimodal_state_.specific_window_buffer; 
   }
+
+  // Agent configuration accessors
+  const AgentConfigState& GetAgentConfig() const { return agent_config_; }
+  void UpdateAgentConfig(const AgentConfigState& config);
 
   // Collaboration history management (public so EditorManager can call them)
   void SwitchToSharedHistory(const std::string& session_id);
@@ -120,12 +196,20 @@ public:
                              int new_total_proposals);
   void RenderCollaborationPanel();
   void RenderMultimodalPanel();
+  void RenderAgentConfigPanel();
+  void RenderZ3EDCommandPanel();
+  void RenderRomSyncPanel();
+  void RenderSnapshotPreviewPanel();
+  void RenderProposalManagerPanel();
   void RefreshCollaboration();
   void ApplyCollaborationSession(
       const CollaborationCallbacks::SessionContext& context,
       bool update_action_timestamp);
   void MarkHistoryDirty();
   void PollSharedHistory();  // For real-time collaboration sync
+  void HandleRomSyncReceived(const std::string& diff_data, const std::string& rom_hash);
+  void HandleSnapshotReceived(const std::string& snapshot_data, const std::string& snapshot_type);
+  void HandleProposalReceived(const std::string& proposal_data);
 
   cli::agent::ConversationalAgentService agent_service_;
   char input_buffer_[1024];
@@ -142,17 +226,38 @@ public:
   ProposalDrawer* proposal_drawer_ = nullptr;
   std::string pending_focus_proposal_id_;
   absl::Time last_persist_time_ = absl::InfinitePast();
+  
+  // Main state
   CollaborationState collaboration_state_;
-  CollaborationCallbacks collaboration_callbacks_;
   MultimodalState multimodal_state_;
+  AgentConfigState agent_config_;
+  RomSyncState rom_sync_state_;
+  Z3EDCommandState z3ed_command_state_;
+  
+  // Callbacks
+  CollaborationCallbacks collaboration_callbacks_;
   MultimodalCallbacks multimodal_callbacks_;
+  Z3EDCommandCallbacks z3ed_callbacks_;
+  RomSyncCallbacks rom_sync_callbacks_;
+  
+  // Input buffers
   char session_name_buffer_[64] = {};
   char join_code_buffer_[64] = {};
   char server_url_buffer_[256] = "ws://localhost:8765";
   char multimodal_prompt_buffer_[256] = {};
+  
+  // Timing
   absl::Time last_collaboration_action_ = absl::InfinitePast();
   absl::Time last_shared_history_poll_ = absl::InfinitePast();
   size_t last_known_history_size_ = 0;
+  
+  // UI state
+  int active_tab_ = 0;  // 0=Chat, 1=Config, 2=Commands, 3=Collab, 4=ROM Sync
+  bool show_agent_config_ = false;
+  bool show_z3ed_commands_ = false;
+  bool show_rom_sync_ = false;
+  bool show_snapshot_preview_ = false;
+  std::vector<uint8_t> snapshot_preview_data_;
 };
 
 }  // namespace editor

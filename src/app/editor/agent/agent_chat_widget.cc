@@ -485,26 +485,178 @@ void AgentChatWidget::Draw() {
   // Poll for new messages in collaborative sessions
   PollSharedHistory();
 
-  ImGui::Begin(title_.c_str(), &active_);
-  if (ImGui::BeginTable("#agent_chat_table", 2,
-                        ImGuiTableFlags_BordersInnerV |
-                            ImGuiTableFlags_Resizable |
-                            ImGuiTableFlags_SizingStretchProp)) {
-    ImGui::TableSetupColumn("Session Details", ImGuiTableColumnFlags_WidthFixed,
-                            450.0f);
-    ImGui::TableSetupColumn("Chat History", ImGuiTableColumnFlags_WidthStretch);
-
-    ImGui::TableNextRow();
-
-    ImGui::TableSetColumnIndex(0);
-    RenderMultimodalPanel();
-    RenderCollaborationPanel();
-
-    ImGui::TableSetColumnIndex(1);
-    RenderHistory();
-    RenderInputBox();
-    ImGui::EndTable();
+  ImGui::SetNextWindowSize(ImVec2(1200, 800), ImGuiCond_FirstUseEver);
+  ImGui::Begin(title_.c_str(), &active_, ImGuiWindowFlags_MenuBar);
+  
+  // Modern menu bar
+  if (ImGui::BeginMenuBar()) {
+    if (ImGui::BeginMenu("File")) {
+      if (ImGui::MenuItem(ICON_MD_SAVE " Export History")) {
+        // TODO: Implement export
+      }
+      if (ImGui::MenuItem(ICON_MD_FOLDER_OPEN " Import History")) {
+        // TODO: Implement import
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem(ICON_MD_DELETE_FOREVER " Clear History")) {
+        agent_service_.ResetConversation();
+        if (toast_manager_) {
+          toast_manager_->Show("Chat history cleared", ToastType::kInfo, 2.5f);
+        }
+      }
+      ImGui::EndMenu();
+    }
+    
+    if (ImGui::BeginMenu("Agent")) {
+      if (ImGui::MenuItem(ICON_MD_SETTINGS " Configure", nullptr, show_agent_config_)) {
+        show_agent_config_ = !show_agent_config_;
+      }
+      if (ImGui::MenuItem(ICON_MD_TERMINAL " Commands", nullptr, show_z3ed_commands_)) {
+        show_z3ed_commands_ = !show_z3ed_commands_;
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem(ICON_MD_REFRESH " Reset Conversation")) {
+        agent_service_.ResetConversation();
+        if (toast_manager_) {
+          toast_manager_->Show("Conversation reset", ToastType::kInfo, 2.5f);
+        }
+      }
+      ImGui::EndMenu();
+    }
+    
+    if (ImGui::BeginMenu("Collaboration")) {
+      if (ImGui::MenuItem(ICON_MD_SYNC " ROM Sync", nullptr, show_rom_sync_)) {
+        show_rom_sync_ = !show_rom_sync_;
+      }
+      if (ImGui::MenuItem(ICON_MD_PHOTO_CAMERA " Snapshot Preview", nullptr, show_snapshot_preview_)) {
+        show_snapshot_preview_ = !show_snapshot_preview_;
+      }
+      ImGui::EndMenu();
+    }
+    
+    if (ImGui::BeginMenu("Help")) {
+      if (ImGui::MenuItem(ICON_MD_HELP " Documentation")) {
+        // TODO: Open docs
+      }
+      if (ImGui::MenuItem(ICON_MD_INFO " About")) {
+        // TODO: Show about dialog
+      }
+      ImGui::EndMenu();
+    }
+    
+    ImGui::EndMenuBar();
   }
+  
+  // Modern tabbed interface
+  if (ImGui::BeginTabBar("AgentChatTabs", ImGuiTabBarFlags_None)) {
+    // Main Chat Tab
+    if (ImGui::BeginTabItem(ICON_MD_CHAT " Chat")) {
+      if (ImGui::BeginTable("#agent_chat_table", 2,
+                            ImGuiTableFlags_BordersInnerV |
+                                ImGuiTableFlags_Resizable |
+                                ImGuiTableFlags_SizingStretchProp)) {
+        ImGui::TableSetupColumn("Panels", ImGuiTableColumnFlags_WidthFixed, 400.0f);
+        ImGui::TableSetupColumn("Conversation", ImGuiTableColumnFlags_WidthStretch);
+
+        ImGui::TableNextRow();
+
+        ImGui::TableSetColumnIndex(0);
+        ImGui::BeginChild("LeftPanels", ImVec2(0, 0), false);
+        
+        if (show_agent_config_) {
+          RenderAgentConfigPanel();
+        }
+        RenderMultimodalPanel();
+        if (show_z3ed_commands_) {
+          RenderZ3EDCommandPanel();
+        }
+        
+        ImGui::EndChild();
+
+        ImGui::TableSetColumnIndex(1);
+        RenderHistory();
+        RenderInputBox();
+        ImGui::EndTable();
+      }
+      ImGui::EndTabItem();
+    }
+    
+    // Collaboration Tab
+    if (ImGui::BeginTabItem(ICON_MD_PEOPLE " Collaboration")) {
+      RenderCollaborationPanel();
+      if (show_rom_sync_) {
+        ImGui::Separator();
+        RenderRomSyncPanel();
+      }
+      if (show_snapshot_preview_) {
+        ImGui::Separator();
+        RenderSnapshotPreviewPanel();
+      }
+      ImGui::EndTabItem();
+    }
+    
+    // Proposals Tab
+    if (ImGui::BeginTabItem(ICON_MD_PREVIEW " Proposals")) {
+      RenderProposalManagerPanel();
+      ImGui::EndTabItem();
+    }
+    
+    // Metrics Tab
+    if (ImGui::BeginTabItem(ICON_MD_ANALYTICS " Metrics")) {
+      auto metrics = agent_service_.GetMetrics();
+      ImGui::Text("Session Statistics");
+      ImGui::Separator();
+      
+      if (ImGui::BeginTable("MetricsTable", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        ImGui::TableSetupColumn("Metric", ImGuiTableColumnFlags_WidthFixed, 200.0f);
+        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableHeadersRow();
+        
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Total Messages");
+        ImGui::TableNextColumn();
+        ImGui::Text("%d user, %d agent", metrics.total_user_messages, metrics.total_agent_messages);
+        
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Tool Calls");
+        ImGui::TableNextColumn();
+        ImGui::Text("%d", metrics.total_tool_calls);
+        
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Commands Executed");
+        ImGui::TableNextColumn();
+        ImGui::Text("%d", metrics.total_commands);
+        
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Proposals Created");
+        ImGui::TableNextColumn();
+        ImGui::Text("%d", metrics.total_proposals);
+        
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Average Latency");
+        ImGui::TableNextColumn();
+        ImGui::Text("%.2f seconds", metrics.average_latency_seconds);
+        
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Total Session Time");
+        ImGui::TableNextColumn();
+        ImGui::Text("%.1f seconds", metrics.total_elapsed_seconds);
+        
+        ImGui::EndTable();
+      }
+      
+      ImGui::EndTabItem();
+    }
+    
+    ImGui::EndTabBar();
+  }
+  
   ImGui::End();
 }
 
@@ -1018,6 +1170,461 @@ void AgentChatWidget::PollSharedHistory() {
                           new_messages, new_messages == 1 ? "" : "s"),
           ToastType::kInfo, 3.0f);
     }
+  }
+}
+
+void AgentChatWidget::UpdateAgentConfig(const AgentConfigState& config) {
+  agent_config_ = config;
+  
+  // Apply configuration to the agent service
+  cli::agent::AgentConfig service_config;
+  service_config.verbose = config.verbose;
+  service_config.show_reasoning = config.show_reasoning;
+  service_config.max_tool_iterations = config.max_tool_iterations;
+  service_config.max_retry_attempts = config.max_retry_attempts;
+  
+  agent_service_.SetConfig(service_config);
+  
+  if (toast_manager_) {
+    toast_manager_->Show("Agent configuration updated", ToastType::kSuccess, 2.5f);
+  }
+}
+
+void AgentChatWidget::RenderAgentConfigPanel() {
+  if (!ImGui::CollapsingHeader(ICON_MD_SETTINGS " Agent Configuration",
+                               ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+  
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.14f, 0.18f, 1.0f));
+  ImGui::BeginChild("AgentConfig", ImVec2(0, 350), true);
+  
+  ImGui::Text(ICON_MD_SMART_TOY " AI Provider");
+  ImGui::Separator();
+  
+  // Provider selection
+  int provider_idx = 0;
+  if (agent_config_.ai_provider == "ollama") provider_idx = 1;
+  else if (agent_config_.ai_provider == "gemini") provider_idx = 2;
+  
+  if (ImGui::RadioButton("Mock (Testing)", &provider_idx, 0)) {
+    agent_config_.ai_provider = "mock";
+    std::snprintf(agent_config_.provider_buffer, sizeof(agent_config_.provider_buffer), "mock");
+  }
+  ImGui::SameLine();
+  if (ImGui::RadioButton("Ollama (Local)", &provider_idx, 1)) {
+    agent_config_.ai_provider = "ollama";
+    std::snprintf(agent_config_.provider_buffer, sizeof(agent_config_.provider_buffer), "ollama");
+  }
+  ImGui::SameLine();
+  if (ImGui::RadioButton("Gemini (Cloud)", &provider_idx, 2)) {
+    agent_config_.ai_provider = "gemini";
+    std::snprintf(agent_config_.provider_buffer, sizeof(agent_config_.provider_buffer), "gemini");
+  }
+  
+  ImGui::Spacing();
+  
+  // Provider-specific settings
+  if (agent_config_.ai_provider == "ollama") {
+    ImGui::Text(ICON_MD_COMPUTER " Ollama Settings");
+    ImGui::InputText("Model", agent_config_.model_buffer, IM_ARRAYSIZE(agent_config_.model_buffer));
+    ImGui::TextDisabled("Example: qwen2.5-coder:7b, llama3.2:3b");
+    ImGui::InputText("Host", agent_config_.ollama_host_buffer, IM_ARRAYSIZE(agent_config_.ollama_host_buffer));
+    
+  } else if (agent_config_.ai_provider == "gemini") {
+    ImGui::Text(ICON_MD_CLOUD " Gemini Settings");
+    ImGui::InputText("Model", agent_config_.model_buffer, IM_ARRAYSIZE(agent_config_.model_buffer));
+    ImGui::TextDisabled("Example: gemini-1.5-flash, gemini-2.5-flash");
+    ImGui::InputText("API Key", agent_config_.gemini_key_buffer, 
+                     IM_ARRAYSIZE(agent_config_.gemini_key_buffer), 
+                     ImGuiInputTextFlags_Password);
+  }
+  
+  ImGui::Spacing();
+  ImGui::Separator();
+  ImGui::Text(ICON_MD_TUNE " Behavior Settings");
+  
+  ImGui::Checkbox("Verbose Output", &agent_config_.verbose);
+  ImGui::Checkbox("Show Reasoning", &agent_config_.show_reasoning);
+  ImGui::SliderInt("Max Tool Iterations", &agent_config_.max_tool_iterations, 1, 10);
+  ImGui::SliderInt("Max Retry Attempts", &agent_config_.max_retry_attempts, 1, 5);
+  
+  ImGui::Spacing();
+  
+  if (ImGui::Button(ICON_MD_CHECK " Apply Configuration", ImVec2(-1, 0))) {
+    agent_config_.ai_model = agent_config_.model_buffer;
+    agent_config_.ollama_host = agent_config_.ollama_host_buffer;
+    agent_config_.gemini_api_key = agent_config_.gemini_key_buffer;
+    UpdateAgentConfig(agent_config_);
+  }
+  
+  ImGui::EndChild();
+  ImGui::PopStyleColor();
+}
+
+void AgentChatWidget::RenderZ3EDCommandPanel() {
+  if (!ImGui::CollapsingHeader(ICON_MD_TERMINAL " Z3ED Commands",
+                               ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+  
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.14f, 0.12f, 0.18f, 1.0f));
+  ImGui::BeginChild("Z3EDCommands", ImVec2(0, 300), true);
+  
+  ImGui::Text(ICON_MD_CODE " Command Palette");
+  ImGui::Separator();
+  
+  ImGui::InputTextWithHint("##z3ed_command", "Enter z3ed command or prompt...",
+                           z3ed_command_state_.command_input_buffer,
+                           IM_ARRAYSIZE(z3ed_command_state_.command_input_buffer));
+  
+  ImGui::BeginDisabled(z3ed_command_state_.command_running);
+  
+  if (ImGui::Button(ICON_MD_PLAY_ARROW " Run Task", ImVec2(-1, 0)) ||
+      (ImGui::IsItemFocused() && ImGui::IsKeyPressed(ImGuiKey_Enter))) {
+    if (z3ed_callbacks_.run_agent_task) {
+      std::string command = z3ed_command_state_.command_input_buffer;
+      z3ed_command_state_.command_running = true;
+      auto status = z3ed_callbacks_.run_agent_task(command);
+      z3ed_command_state_.command_running = false;
+      
+      if (status.ok() && toast_manager_) {
+        toast_manager_->Show(ICON_MD_CHECK_CIRCLE " Task started",
+                             ToastType::kSuccess, 3.0f);
+      } else if (toast_manager_) {
+        toast_manager_->Show(
+            absl::StrFormat(ICON_MD_ERROR " Task failed: %s", status.message()),
+            ToastType::kError, 5.0f);
+      }
+    }
+  }
+  
+  ImGui::EndDisabled();
+  
+  ImGui::Spacing();
+  ImGui::Text(ICON_MD_LIST " Quick Actions");
+  ImGui::Separator();
+  
+  if (ImGui::BeginTable("Z3EDQuickActions", 2, ImGuiTableFlags_SizingStretchProp)) {
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_PREVIEW " List Proposals", ImVec2(-1, 0))) {
+      if (z3ed_callbacks_.list_proposals) {
+        auto result = z3ed_callbacks_.list_proposals();
+        if (result.ok()) {
+          const auto& proposals = *result;
+          std::string output;
+          for (size_t i = 0; i < proposals.size(); ++i) {
+            if (i > 0) output += "\n";
+            output += proposals[i];
+          }
+          z3ed_command_state_.command_output = output;
+        }
+      }
+    }
+    
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_DIFFERENCE " View Diff", ImVec2(-1, 0))) {
+      if (z3ed_callbacks_.diff_proposal) {
+        auto result = z3ed_callbacks_.diff_proposal("");
+        if (result.ok()) {
+          z3ed_command_state_.command_output = *result;
+        }
+      }
+    }
+    
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_CHECK " Accept", ImVec2(-1, 0))) {
+      if (z3ed_callbacks_.accept_proposal && proposal_drawer_) {
+        // TODO: Get selected proposal ID from drawer
+        auto status = z3ed_callbacks_.accept_proposal("");
+        (void)status;  // Acknowledge result
+      }
+    }
+    
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_CLOSE " Reject", ImVec2(-1, 0))) {
+      if (z3ed_callbacks_.reject_proposal && proposal_drawer_) {
+        // TODO: Get selected proposal ID from drawer
+        auto status = z3ed_callbacks_.reject_proposal("");
+        (void)status;  // Acknowledge result
+      }
+    }
+    
+    ImGui::EndTable();
+  }
+  
+  if (!z3ed_command_state_.command_output.empty()) {
+    ImGui::Spacing();
+    ImGui::Text(ICON_MD_TERMINAL " Output");
+    ImGui::Separator();
+    ImGui::BeginChild("CommandOutput", ImVec2(0, 100), true,
+                      ImGuiWindowFlags_HorizontalScrollbar);
+    ImGui::TextWrapped("%s", z3ed_command_state_.command_output.c_str());
+    ImGui::EndChild();
+  }
+  
+  ImGui::EndChild();
+  ImGui::PopStyleColor();
+}
+
+void AgentChatWidget::RenderRomSyncPanel() {
+  if (!ImGui::CollapsingHeader(ICON_MD_SYNC " ROM Synchronization",
+                               ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+  
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.14f, 0.12f, 1.0f));
+  ImGui::BeginChild("RomSync", ImVec2(0, 250), true);
+  
+  ImGui::Text(ICON_MD_STORAGE " ROM State");
+  ImGui::Separator();
+  
+  // Display current ROM hash
+  if (!rom_sync_state_.current_rom_hash.empty()) {
+    ImGui::Text("Hash: %s", rom_sync_state_.current_rom_hash.substr(0, 16).c_str());
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_CONTENT_COPY)) {
+      ImGui::SetClipboardText(rom_sync_state_.current_rom_hash.c_str());
+      if (toast_manager_) {
+        toast_manager_->Show("ROM hash copied", ToastType::kInfo, 2.0f);
+      }
+    }
+  } else {
+    ImGui::TextDisabled("No ROM loaded");
+  }
+  
+  if (rom_sync_state_.last_sync_time != absl::InfinitePast()) {
+    ImGui::Text("Last Sync: %s",
+                absl::FormatTime("%H:%M:%S", rom_sync_state_.last_sync_time,
+                                absl::LocalTimeZone()).c_str());
+  }
+  
+  ImGui::Spacing();
+  ImGui::Checkbox("Auto-sync ROM changes", &rom_sync_state_.auto_sync_enabled);
+  
+  if (rom_sync_state_.auto_sync_enabled) {
+    ImGui::SliderInt("Sync Interval (seconds)", 
+                     &rom_sync_state_.sync_interval_seconds, 10, 120);
+  }
+  
+  ImGui::Spacing();
+  ImGui::Separator();
+  
+  bool can_sync = static_cast<bool>(rom_sync_callbacks_.generate_rom_diff) &&
+                  collaboration_state_.active &&
+                  collaboration_state_.mode == CollaborationMode::kNetwork;
+  
+  if (!can_sync) ImGui::BeginDisabled();
+  
+  if (ImGui::Button(ICON_MD_CLOUD_UPLOAD " Send ROM Sync", ImVec2(-1, 0))) {
+    if (rom_sync_callbacks_.generate_rom_diff) {
+      auto diff_result = rom_sync_callbacks_.generate_rom_diff();
+      if (diff_result.ok()) {
+        std::string hash = rom_sync_callbacks_.get_rom_hash 
+                          ? rom_sync_callbacks_.get_rom_hash() 
+                          : "";
+        
+        rom_sync_state_.current_rom_hash = hash;
+        rom_sync_state_.last_sync_time = absl::Now();
+        
+        // TODO: Send via network coordinator
+        if (toast_manager_) {
+          toast_manager_->Show(ICON_MD_CLOUD_DONE " ROM synced to collaborators",
+                               ToastType::kSuccess, 3.0f);
+        }
+      } else if (toast_manager_) {
+        toast_manager_->Show(
+            absl::StrFormat(ICON_MD_ERROR " Sync failed: %s", 
+                           diff_result.status().message()),
+            ToastType::kError, 5.0f);
+      }
+    }
+  }
+  
+  if (!can_sync) {
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Connect to a network session to sync ROM");
+    }
+  }
+  
+  // Show pending syncs
+  if (!rom_sync_state_.pending_syncs.empty()) {
+    ImGui::Spacing();
+    ImGui::Text(ICON_MD_PENDING " Pending Syncs (%zu)", 
+                rom_sync_state_.pending_syncs.size());
+    ImGui::Separator();
+    
+    ImGui::BeginChild("PendingSyncs", ImVec2(0, 80), true);
+    for (const auto& sync : rom_sync_state_.pending_syncs) {
+      ImGui::BulletText("%s", sync.substr(0, 40).c_str());
+    }
+    ImGui::EndChild();
+  }
+  
+  ImGui::EndChild();
+  ImGui::PopStyleColor();
+}
+
+void AgentChatWidget::RenderSnapshotPreviewPanel() {
+  if (!ImGui::CollapsingHeader(ICON_MD_PHOTO_CAMERA " Snapshot Preview",
+                               ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+  
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.12f, 0.16f, 1.0f));
+  ImGui::BeginChild("SnapshotPreview", ImVec2(0, 300), true);
+  
+  if (multimodal_state_.last_capture_path.has_value()) {
+    ImGui::Text(ICON_MD_IMAGE " Latest Capture");
+    ImGui::Separator();
+    ImGui::TextWrapped("%s", 
+                      multimodal_state_.last_capture_path->filename().string().c_str());
+    
+    // TODO: Load and display image thumbnail
+    ImGui::TextDisabled("Preview: [Image preview not yet implemented]");
+    
+    ImGui::Spacing();
+    
+    bool can_share = collaboration_state_.active && 
+                     collaboration_state_.mode == CollaborationMode::kNetwork;
+    
+    if (!can_share) ImGui::BeginDisabled();
+    
+    if (ImGui::Button(ICON_MD_SHARE " Share with Collaborators", ImVec2(-1, 0))) {
+      // TODO: Share snapshot via network coordinator
+      if (toast_manager_) {
+        toast_manager_->Show(ICON_MD_CHECK " Snapshot shared",
+                             ToastType::kSuccess, 3.0f);
+      }
+    }
+    
+    if (!can_share) {
+      ImGui::EndDisabled();
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Connect to a network session to share snapshots");
+      }
+    }
+  } else {
+    ImGui::TextDisabled(ICON_MD_NO_PHOTOGRAPHY " No snapshot captured yet");
+    ImGui::TextWrapped("Use the Multimodal panel to capture a snapshot");
+  }
+  
+  ImGui::EndChild();
+  ImGui::PopStyleColor();
+}
+
+void AgentChatWidget::RenderProposalManagerPanel() {
+  ImGui::Text(ICON_MD_PREVIEW " Proposal Management");
+  ImGui::Separator();
+  
+  if (z3ed_callbacks_.list_proposals) {
+    auto proposals_result = z3ed_callbacks_.list_proposals();
+    
+    if (proposals_result.ok()) {
+      const auto& proposals = *proposals_result;
+      
+      ImGui::Text("Total Proposals: %zu", proposals.size());
+      ImGui::Spacing();
+      
+      if (proposals.empty()) {
+        ImGui::TextDisabled("No proposals yet. Use the agent to create proposals.");
+      } else {
+        if (ImGui::BeginTable("ProposalsTable", 3,
+                              ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                              ImGuiTableFlags_Resizable)) {
+          ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+          ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 150.0f);
+          ImGui::TableHeadersRow();
+          
+          for (const auto& proposal_id : proposals) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::TextUnformatted(proposal_id.c_str());
+            
+            ImGui::TableNextColumn();
+            ImGui::TextDisabled("Proposal details...");
+            
+            ImGui::TableNextColumn();
+            ImGui::PushID(proposal_id.c_str());
+            
+            if (ImGui::SmallButton(ICON_MD_VISIBILITY)) {
+              FocusProposalDrawer(proposal_id);
+            }
+            ImGui::SameLine();
+            
+            if (ImGui::SmallButton(ICON_MD_CHECK)) {
+              if (z3ed_callbacks_.accept_proposal) {
+                auto status = z3ed_callbacks_.accept_proposal(proposal_id);
+                (void)status;  // Acknowledge result
+              }
+            }
+            ImGui::SameLine();
+            
+            if (ImGui::SmallButton(ICON_MD_CLOSE)) {
+              if (z3ed_callbacks_.reject_proposal) {
+                auto status = z3ed_callbacks_.reject_proposal(proposal_id);
+                (void)status;  // Acknowledge result
+              }
+            }
+            
+            ImGui::PopID();
+          }
+          
+          ImGui::EndTable();
+        }
+      }
+    } else {
+      std::string error_msg(proposals_result.status().message());
+      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+                        "Failed to load proposals: %s",
+                        error_msg.c_str());
+    }
+  } else {
+    ImGui::TextDisabled("Proposal management not available");
+    ImGui::TextWrapped("Set up Z3ED command callbacks to enable this feature");
+  }
+}
+
+void AgentChatWidget::HandleRomSyncReceived(const std::string& diff_data,
+                                            const std::string& rom_hash) {
+  if (rom_sync_callbacks_.apply_rom_diff) {
+    auto status = rom_sync_callbacks_.apply_rom_diff(diff_data, rom_hash);
+    
+    if (status.ok()) {
+      rom_sync_state_.current_rom_hash = rom_hash;
+      rom_sync_state_.last_sync_time = absl::Now();
+      
+      if (toast_manager_) {
+        toast_manager_->Show(ICON_MD_CLOUD_DOWNLOAD " ROM sync applied from collaborator",
+                             ToastType::kInfo, 3.5f);
+      }
+    } else if (toast_manager_) {
+      toast_manager_->Show(
+          absl::StrFormat(ICON_MD_ERROR " ROM sync failed: %s", status.message()),
+          ToastType::kError, 5.0f);
+    }
+  }
+}
+
+void AgentChatWidget::HandleSnapshotReceived(
+    [[maybe_unused]] const std::string& snapshot_data,
+    const std::string& snapshot_type) {
+  // TODO: Decode and store snapshot for preview
+  if (toast_manager_) {
+    toast_manager_->Show(
+        absl::StrFormat(ICON_MD_PHOTO " Snapshot received: %s", snapshot_type),
+        ToastType::kInfo, 3.0f);
+  }
+}
+
+void AgentChatWidget::HandleProposalReceived(
+    [[maybe_unused]] const std::string& proposal_data) {
+  // TODO: Parse and add proposal to local registry
+  if (toast_manager_) {
+    toast_manager_->Show(ICON_MD_LIGHTBULB " New proposal received from collaborator",
+                         ToastType::kInfo, 3.5f);
   }
 }
 
