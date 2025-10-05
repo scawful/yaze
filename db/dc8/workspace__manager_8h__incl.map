@@ -1,0 +1,9 @@
+<map id="src/app/editor/ui/workspace_manager.h" name="src/app/editor/ui/workspace_manager.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="22,5,203,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,62,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,48,58,85,54,81,91,45"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="86,94,139,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="115,46,115,78,110,78,110,46"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="163,94,299,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="143,44,201,83,198,87,140,49"/>
+</map>

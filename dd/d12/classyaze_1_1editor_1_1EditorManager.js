@@ -14,6 +14,7 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "overworld", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#aeea38d7642ff4cd0f8adb37d07cba5a9", null ],
     [ "GetCurrentFeatureFlags", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ada03bbe59d235d9a582cad48597f0109", null ],
     [ "SetFontGlobalScale", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a6bd2531ab0c2a1b04e90bcbaafecf361", null ],
+    [ "BuildModernMenu", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#aeabe1639563bf97b396b704b29cd3345", null ],
     [ "DrawWelcomeScreen", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#aa1e288deb163d1a710c61e7125fbd487", null ],
     [ "DrawRomSelector", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#add1f35c5ca58aa1b9a6839173565cbe0", null ],
     [ "LoadRom", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a9e31d2cdbb2d802bf8f2a8f458cb8edf", null ],
@@ -95,6 +96,7 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "project_file_editor_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a74e62edb85a25578e5134ca56b043a87", null ],
     [ "editor_selection_dialog_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a38526d6612c0966ec0eaa5004eac8596", null ],
     [ "show_editor_selection_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5f1094693321b0ba5a2bb18a7cc2264e", null ],
+    [ "welcome_screen_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#adf7bb30f1300a87171c45548de59639c", null ],
     [ "version_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#affe73c6625559f736677e476796f02a1", null ],
     [ "settings_filename_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ae46e218f8c1ed20a25f9fd54221abbbd", null ],
     [ "font_global_scale_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a17cf51af183dc18ac667e4e5412e3eed", null ],
@@ -112,5 +114,6 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "current_project_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#acaf331711b024516c36111d9f140112e", null ],
     [ "context_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ab37cb559d1924b153f1f758b98ff424f", null ],
     [ "popup_manager_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ae9a431666f10d2734518acc911e504b7", null ],
-    [ "toast_manager_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5dcde8ed3945d5a1e67809388541c97d", null ]
+    [ "toast_manager_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5dcde8ed3945d5a1e67809388541c97d", null ],
+    [ "menu_builder_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a2242f691da0d399de04495bb9c762943", null ]
 ];

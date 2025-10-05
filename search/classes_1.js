@@ -13,7 +13,7 @@ var searchData=
   ['bgvofs_10',['BGVOFS',['../d0/dd5/structyaze_1_1emu_1_1BGVOFS.html',1,'yaze::emu']]],
   ['bitmap_11',['Bitmap',['../df/d0e/classyaze_1_1gfx_1_1Bitmap.html',1,'yaze::gfx']]],
   ['bitmaperror_12',['BitmapError',['../df/d71/classyaze_1_1gfx_1_1BitmapError.html',1,'yaze::gfx']]],
-  ['bookmark_13',['Bookmark',['../d9/da1/structyaze_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::emu::Emulator']]],
+  ['bookmark_13',['bookmark',['../db/df8/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker_1_1Bookmark.html',1,'yaze::editor::MemoryEditorWithDiffChecker::Bookmark'],['../d9/da1/structyaze_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::emu::Emulator::Bookmark']]],
   ['boundromtest_14',['BoundRomTest',['../de/dd6/classyaze_1_1test_1_1TestRomManager_1_1BoundRomTest.html',1,'yaze::test::TestRomManager']]],
   ['bppcomparisontool_15',['BppComparisonTool',['../d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html',1,'yaze::gui']]],
   ['bppconversiondialog_16',['BppConversionDialog',['../db/d56/classyaze_1_1gui_1_1BppConversionDialog.html',1,'yaze::gui']]],

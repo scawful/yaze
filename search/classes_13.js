@@ -6,5 +6,6 @@ var searchData=
   ['undostate_3',['UndoState',['../d1/d31/structyaze_1_1editor_1_1Tile16Editor_1_1UndoState.html',1,'yaze::editor::Tile16Editor']]],
   ['unittestsuite_4',['UnitTestSuite',['../d0/d9d/classyaze_1_1test_1_1UnitTestSuite.html',1,'yaze::test']]],
   ['unsortedasset_5',['UnsortedAsset',['../d5/dc4/structyaze_1_1gui_1_1UnsortedAsset.html',1,'yaze::gui']]],
-  ['userroutine_6',['UserRoutine',['../da/d81/structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html',1,'yaze::editor::zsprite']]]
+  ['userroutine_6',['UserRoutine',['../da/d81/structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html',1,'yaze::editor::zsprite']]],
+  ['usersettings_7',['UserSettings',['../d8/d46/classyaze_1_1editor_1_1UserSettings.html',1,'yaze::editor']]]
 ];

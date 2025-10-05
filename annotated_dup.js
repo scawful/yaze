@@ -272,7 +272,9 @@ var annotated_dup =
         [ "Tile16Editor", "db/d82/classyaze_1_1editor_1_1Tile16Editor.html", "db/d82/classyaze_1_1editor_1_1Tile16Editor" ],
         [ "Toast", "d2/d11/structyaze_1_1editor_1_1Toast.html", "d2/d11/structyaze_1_1editor_1_1Toast" ],
         [ "ToastManager", "d7/d92/classyaze_1_1editor_1_1ToastManager.html", "d7/d92/classyaze_1_1editor_1_1ToastManager" ],
-        [ "WelcomeScreen", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen" ]
+        [ "UserSettings", "d8/d46/classyaze_1_1editor_1_1UserSettings.html", "d8/d46/classyaze_1_1editor_1_1UserSettings" ],
+        [ "WelcomeScreen", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen" ],
+        [ "WorkspaceManager", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager" ]
       ] ],
       [ "emu", "d6/d20/namespaceyaze_1_1emu.html", [
         [ "Apu", "d7/da7/classyaze_1_1emu_1_1Apu.html", "d7/da7/classyaze_1_1emu_1_1Apu" ],

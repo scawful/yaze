@@ -106,7 +106,9 @@ var namespaceyaze_1_1editor =
     [ "Tile16Editor", "db/d82/classyaze_1_1editor_1_1Tile16Editor.html", "db/d82/classyaze_1_1editor_1_1Tile16Editor" ],
     [ "Toast", "d2/d11/structyaze_1_1editor_1_1Toast.html", "d2/d11/structyaze_1_1editor_1_1Toast" ],
     [ "ToastManager", "d7/d92/classyaze_1_1editor_1_1ToastManager.html", "d7/d92/classyaze_1_1editor_1_1ToastManager" ],
+    [ "UserSettings", "d8/d46/classyaze_1_1editor_1_1UserSettings.html", "d8/d46/classyaze_1_1editor_1_1UserSettings" ],
     [ "WelcomeScreen", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen" ],
+    [ "WorkspaceManager", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager" ],
     [ "EditorType", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622a", [
       [ "kAssembly", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aab686a008a9fc3fe70222034bef987ced", null ],
       [ "kDungeon", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa773324726da2f589c757da4c39336156", null ],

@@ -181,6 +181,10 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ad89118eaa120281537e2c70169c48b9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f5c5b1e61ae827846ec415544dffca2" id="r_a0f5c5b1e61ae827846ec415544dffca2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d6f/structyaze_1_1editor_1_1MenuBuilder_1_1Menu.html">Menu</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#a0f5c5b1e61ae827846ec415544dffca2">current_menu_</a> = nullptr</td></tr>
 <tr class="separator:a0f5c5b1e61ae827846ec415544dffca2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf9d38a5e43e9f502c031b8d4d48859c" id="r_adf9d38a5e43e9f502c031b8d4d48859c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#adf9d38a5e43e9f502c031b8d4d48859c">submenu_stack_</a></td></tr>
+<tr class="separator:adf9d38a5e43e9f502c031b8d4d48859c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50dd0efd1db61c74947fa4a3e09823b4" id="r_a50dd0efd1db61c74947fa4a3e09823b4"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#a50dd0efd1db61c74947fa4a3e09823b4">skip_depth_</a> = 0</td></tr>
+<tr class="separator:a50dd0efd1db61c74947fa4a3e09823b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Fluent interface for building <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> menus with icons. </p>
@@ -292,7 +296,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00111">current_menu_</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00106">yaze::editor::MenuBuilder::Menu::icon</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00105">yaze::editor::MenuBuilder::Menu::label</a>, and <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00110">menus_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#a7d8242e705307bc269a3fc369ba07cae">MenuBuilder()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00753">yaze::editor::EditorManager::BuildModernMenu()</a>, and <a class="el" href="../../d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#a7d8242e705307bc269a3fc369ba07cae">MenuBuilder()</a>.</p>
 
 </div>
 </div>
@@ -334,6 +338,8 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00111">current_menu_</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00100">yaze::editor::MenuBuilder::MenuItem::enabled</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00097">yaze::editor::MenuBuilder::MenuItem::icon</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00107">yaze::editor::MenuBuilder::Menu::items</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0ab6f7c0704e6856119f74990ac411dabe">yaze::editor::MenuBuilder::MenuItem::kSubMenuBegin</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00096">yaze::editor::MenuBuilder::MenuItem::label</a>, and <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00095">yaze::editor::MenuBuilder::MenuItem::type</a>.</p>
 
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00753">yaze::editor::EditorManager::BuildModernMenu()</a>.</p>
+
 </div>
 </div>
 <a id="aa6d93dbe7d43378ea08ee012ec0b0721" name="aa6d93dbe7d43378ea08ee012ec0b0721"></a>
@@ -356,6 +362,8 @@ Here is the call graph for this function:</div>
 <p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00034">34</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00111">current_menu_</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00107">yaze::editor::MenuBuilder::Menu::items</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0ab6f7c0704e6856119f74990ac411dabe">yaze::editor::MenuBuilder::MenuItem::kSubMenuBegin</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0a0e930890f1188e618853935c420a602c">yaze::editor::MenuBuilder::MenuItem::kSubMenuEnd</a>, and <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00095">yaze::editor::MenuBuilder::MenuItem::type</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00753">yaze::editor::EditorManager::BuildModernMenu()</a>.</p>
 
 </div>
 </div>
@@ -411,11 +419,11 @@ Here is the call graph for this function:</div>
 
 <p>Add a menu item. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00060">60</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00067">67</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00099">yaze::editor::MenuBuilder::MenuItem::callback</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00101">yaze::editor::MenuBuilder::MenuItem::checked</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00111">current_menu_</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00100">yaze::editor::MenuBuilder::MenuItem::enabled</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00097">yaze::editor::MenuBuilder::MenuItem::icon</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00107">yaze::editor::MenuBuilder::Menu::items</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0a68d2c65d60fa9fb4514ae33805017029">yaze::editor::MenuBuilder::MenuItem::kItem</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00096">yaze::editor::MenuBuilder::MenuItem::label</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00098">yaze::editor::MenuBuilder::MenuItem::shortcut</a>, and <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00095">yaze::editor::MenuBuilder::MenuItem::type</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00081">Item()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00753">yaze::editor::EditorManager::BuildModernMenu()</a>, and <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00088">Item()</a>.</p>
 
 </div>
 </div>
@@ -459,9 +467,9 @@ Here is the call graph for this function:</div>
 
 <p>Add a menu item without icon (convenience) </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00081">81</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00088">88</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00060">Item()</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00067">Item()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -492,9 +500,11 @@ Here is the call graph for this function:</div>
 
 <p>Add a separator. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00086">86</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00093">93</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00111">current_menu_</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00107">yaze::editor::MenuBuilder::Menu::items</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0acbd3f49bc03989a6a6018e75cc97d343">yaze::editor::MenuBuilder::MenuItem::kSeparator</a>, and <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00095">yaze::editor::MenuBuilder::MenuItem::type</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00753">yaze::editor::EditorManager::BuildModernMenu()</a>.</p>
 
 </div>
 </div>
@@ -526,7 +536,7 @@ Here is the call graph for this function:</div>
 
 <p>Add a disabled item (grayed out) </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00095">95</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00102">102</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00111">current_menu_</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00097">yaze::editor::MenuBuilder::MenuItem::icon</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00107">yaze::editor::MenuBuilder::Menu::items</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0a7b04d8795f5fd03c761ce70dab985fee">yaze::editor::MenuBuilder::MenuItem::kDisabled</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00096">yaze::editor::MenuBuilder::MenuItem::label</a>, and <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00095">yaze::editor::MenuBuilder::MenuItem::type</a>.</p>
 
@@ -549,9 +559,11 @@ Here is the call graph for this function:</div>
 
 <p>Draw the menu bar (call in main menu bar) </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00108">108</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00115">115</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00123">DrawMenuItem()</a>, and <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00110">menus_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00131">DrawMenuItem()</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00110">menus_</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00115">skip_depth_</a>, and <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00114">submenu_stack_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00753">yaze::editor::EditorManager::BuildModernMenu()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -582,9 +594,11 @@ Here is the call graph for this function:</div>
 
 <p>Clear all menus. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00181">181</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00226">226</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00111">current_menu_</a>, and <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00110">menus_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00753">yaze::editor::EditorManager::BuildModernMenu()</a>.</p>
 
 </div>
 </div>
@@ -612,11 +626,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00123">123</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00131">131</a> of file <a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00099">yaze::editor::MenuBuilder::MenuItem::callback</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00101">yaze::editor::MenuBuilder::MenuItem::checked</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00100">yaze::editor::MenuBuilder::MenuItem::enabled</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00097">yaze::editor::MenuBuilder::MenuItem::icon</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0a7b04d8795f5fd03c761ce70dab985fee">yaze::editor::MenuBuilder::MenuItem::kDisabled</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0a68d2c65d60fa9fb4514ae33805017029">yaze::editor::MenuBuilder::MenuItem::kItem</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0acbd3f49bc03989a6a6018e75cc97d343">yaze::editor::MenuBuilder::MenuItem::kSeparator</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0ab6f7c0704e6856119f74990ac411dabe">yaze::editor::MenuBuilder::MenuItem::kSubMenuBegin</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0a0e930890f1188e618853935c420a602c">yaze::editor::MenuBuilder::MenuItem::kSubMenuEnd</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00096">yaze::editor::MenuBuilder::MenuItem::label</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00098">yaze::editor::MenuBuilder::MenuItem::shortcut</a>, and <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00095">yaze::editor::MenuBuilder::MenuItem::type</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00099">yaze::editor::MenuBuilder::MenuItem::callback</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00101">yaze::editor::MenuBuilder::MenuItem::checked</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00100">yaze::editor::MenuBuilder::MenuItem::enabled</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00097">yaze::editor::MenuBuilder::MenuItem::icon</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0a7b04d8795f5fd03c761ce70dab985fee">yaze::editor::MenuBuilder::MenuItem::kDisabled</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0a68d2c65d60fa9fb4514ae33805017029">yaze::editor::MenuBuilder::MenuItem::kItem</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0acbd3f49bc03989a6a6018e75cc97d343">yaze::editor::MenuBuilder::MenuItem::kSeparator</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0ab6f7c0704e6856119f74990ac411dabe">yaze::editor::MenuBuilder::MenuItem::kSubMenuBegin</a>, <a class="el" href="../../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0a0e930890f1188e618853935c420a602c">yaze::editor::MenuBuilder::MenuItem::kSubMenuEnd</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00096">yaze::editor::MenuBuilder::MenuItem::label</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00098">yaze::editor::MenuBuilder::MenuItem::shortcut</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00115">skip_depth_</a>, <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00114">submenu_stack_</a>, and <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00095">yaze::editor::MenuBuilder::MenuItem::type</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00108">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00115">Draw()</a>.</p>
 
 </div>
 </div>
@@ -643,7 +657,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00110">110</a> of file <a class="el" href="../../dc/d28/menu__builder_8h_source.html">menu_builder.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00008">BeginMenu()</a>, <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00181">Clear()</a>, and <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00108">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00008">BeginMenu()</a>, <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00226">Clear()</a>, and <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00115">Draw()</a>.</p>
 
 </div>
 </div>
@@ -669,13 +683,65 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00111">111</a> of file <a class="el" href="../../dc/d28/menu__builder_8h_source.html">menu_builder.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00008">BeginMenu()</a>, <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00019">BeginSubMenu()</a>, <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00181">Clear()</a>, <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00095">DisabledItem()</a>, <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00034">EndMenu()</a>, <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00060">Item()</a>, and <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00086">Separator()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00008">BeginMenu()</a>, <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00019">BeginSubMenu()</a>, <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00226">Clear()</a>, <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00102">DisabledItem()</a>, <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00034">EndMenu()</a>, <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00067">Item()</a>, and <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00093">Separator()</a>.</p>
+
+</div>
+</div>
+<a id="adf9d38a5e43e9f502c031b8d4d48859c" name="adf9d38a5e43e9f502c031b8d4d48859c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf9d38a5e43e9f502c031b8d4d48859c">&#9670;&#160;</a></span>submenu_stack_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;bool&gt; yaze::editor::MenuBuilder::submenu_stack_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00114">114</a> of file <a class="el" href="../../dc/d28/menu__builder_8h_source.html">menu_builder.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00115">Draw()</a>, and <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00131">DrawMenuItem()</a>.</p>
+
+</div>
+</div>
+<a id="a50dd0efd1db61c74947fa4a3e09823b4" name="a50dd0efd1db61c74947fa4a3e09823b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50dd0efd1db61c74947fa4a3e09823b4">&#9670;&#160;</a></span>skip_depth_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int yaze::editor::MenuBuilder::skip_depth_ = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dc/d28/menu__builder_8h_source.html#l00115">115</a> of file <a class="el" href="../../dc/d28/menu__builder_8h_source.html">menu_builder.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00115">Draw()</a>, and <a class="el" href="../../d1/dda/menu__builder_8cc_source.html#l00131">DrawMenuItem()</a>.</p>
 
 </div>
 </div>
 <hr/>The documentation for this class was generated from the following files:<ul>
-<li>src/app/editor/<a class="el" href="../../dc/d28/menu__builder_8h_source.html">menu_builder.h</a></li>
-<li>src/app/editor/<a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a></li>
+<li>src/app/editor/ui/<a class="el" href="../../dc/d28/menu__builder_8h_source.html">menu_builder.h</a></li>
+<li>src/app/editor/ui/<a class="el" href="../../d1/dda/menu__builder_8cc_source.html">menu_builder.cc</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

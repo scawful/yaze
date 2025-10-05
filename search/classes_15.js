@@ -28,7 +28,8 @@ var searchData=
   ['windowposition_25',['WindowPosition',['../df/d39/structyaze_1_1emu_1_1WindowPosition.html',1,'yaze::emu']]],
   ['wobjlog_26',['WOBJLOG',['../d4/dd5/structyaze_1_1emu_1_1WOBJLOG.html',1,'yaze::emu']]],
   ['wobjsel_27',['WOBJSEL',['../d6/d04/structyaze_1_1emu_1_1WOBJSEL.html',1,'yaze::emu']]],
-  ['workspacesettings_28',['WorkspaceSettings',['../d1/def/structyaze_1_1core_1_1WorkspaceSettings.html',1,'yaze::core']]],
-  ['wramaccessregisters_29',['WramAccessRegisters',['../d3/d92/structyaze_1_1emu_1_1WramAccessRegisters.html',1,'yaze::emu']]],
-  ['writeaction_30',['WriteAction',['../d6/dea/structyaze_1_1Rom_1_1WriteAction.html',1,'yaze::Rom']]]
+  ['workspacemanager_28',['WorkspaceManager',['../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html',1,'yaze::editor']]],
+  ['workspacesettings_29',['WorkspaceSettings',['../d1/def/structyaze_1_1core_1_1WorkspaceSettings.html',1,'yaze::core']]],
+  ['wramaccessregisters_30',['WramAccessRegisters',['../d3/d92/structyaze_1_1emu_1_1WramAccessRegisters.html',1,'yaze::emu']]],
+  ['writeaction_31',['WriteAction',['../d6/dea/structyaze_1_1Rom_1_1WriteAction.html',1,'yaze::Rom']]]
 ];

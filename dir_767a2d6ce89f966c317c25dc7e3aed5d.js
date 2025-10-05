@@ -13,7 +13,5 @@ var dir_767a2d6ce89f966c317c25dc7e3aed5d =
     [ "editor.h", "dd/d60/editor_8h.html", "dd/d60/editor_8h" ],
     [ "editor_manager.cc", "d0/dd9/editor__manager_8cc.html", "d0/dd9/editor__manager_8cc" ],
     [ "editor_manager.h", "df/d60/editor__manager_8h.html", "df/d60/editor__manager_8h" ],
-    [ "editor_safeguards.h", "dc/ddd/editor__safeguards_8h.html", "dc/ddd/editor__safeguards_8h" ],
-    [ "menu_builder.cc", "d1/dda/menu__builder_8cc.html", null ],
-    [ "menu_builder.h", "dc/d28/menu__builder_8h.html", "dc/d28/menu__builder_8h" ]
+    [ "editor_safeguards.h", "dc/ddd/editor__safeguards_8h.html", "dc/ddd/editor__safeguards_8h" ]
 ];

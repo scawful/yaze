@@ -6,5 +6,6 @@ var structyaze_1_1editor_1_1EditorContext =
     [ "history_manager", "dc/d69/structyaze_1_1editor_1_1EditorContext.html#a8f551fe84f6741f854d00eb2044c417c", null ],
     [ "popup_manager", "dc/d69/structyaze_1_1editor_1_1EditorContext.html#a68ea226ad4983687bb3cd4dee9a84021", null ],
     [ "shortcut_manager", "dc/d69/structyaze_1_1editor_1_1EditorContext.html#a08f13c864f1229c636b7899f742de8fe", null ],
+    [ "session_id", "dc/d69/structyaze_1_1editor_1_1EditorContext.html#a40eb09d051e5f095b90b62499ad16d39", null ],
     [ "shared_clipboard", "dc/d69/structyaze_1_1editor_1_1EditorContext.html#afc99c4f61e247f579aa3cb355a660837", null ]
 ];

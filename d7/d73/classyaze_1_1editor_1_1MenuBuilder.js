@@ -16,5 +16,7 @@ var classyaze_1_1editor_1_1MenuBuilder =
     [ "Clear", "d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#a4522cae39bc4bca2544c18521e0844fb", null ],
     [ "DrawMenuItem", "d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#ad5d37d1294e0a1c4e2e0d7d52f6e004d", null ],
     [ "menus_", "d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#ad89118eaa120281537e2c70169c48b9f", null ],
-    [ "current_menu_", "d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#a0f5c5b1e61ae827846ec415544dffca2", null ]
+    [ "current_menu_", "d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#a0f5c5b1e61ae827846ec415544dffca2", null ],
+    [ "submenu_stack_", "d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#adf9d38a5e43e9f502c031b8d4d48859c", null ],
+    [ "skip_depth_", "d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#a50dd0efd1db61c74947fa4a3e09823b4", null ]
 ];

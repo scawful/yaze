@@ -15,5 +15,7 @@ var dir_6786299e5fb540707e8551af9d97f855 =
     [ "settings_editor.h", "d9/d0a/settings__editor_8h.html", "d9/d0a/settings__editor_8h" ],
     [ "shortcut_manager.cc", "d3/d0d/shortcut__manager_8cc.html", "d3/d0d/shortcut__manager_8cc" ],
     [ "shortcut_manager.h", "d1/d72/shortcut__manager_8h.html", "d1/d72/shortcut__manager_8h" ],
-    [ "toast_manager.h", "de/d7d/toast__manager_8h.html", "de/d7d/toast__manager_8h" ]
+    [ "toast_manager.h", "de/d7d/toast__manager_8h.html", "de/d7d/toast__manager_8h" ],
+    [ "user_settings.cc", "dd/dc5/user__settings_8cc.html", null ],
+    [ "user_settings.h", "da/dd9/user__settings_8h.html", "da/dd9/user__settings_8h" ]
 ];
