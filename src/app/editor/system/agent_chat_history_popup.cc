@@ -30,33 +30,29 @@ AgentChatHistoryPopup::AgentChatHistoryPopup() {
 void AgentChatHistoryPopup::Draw() {
   if (!visible_) return;
 
-  // Set drawer position on the LEFT side with beautiful styling
+  // Set drawer position on the LEFT side (full height)
   ImGuiIO& io = ImGui::GetIO();
+  
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-  ImGui::SetNextWindowSize(ImVec2(drawer_width_, io.DisplaySize.y), 
-                           ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(drawer_width_, io.DisplaySize.y), ImGuiCond_Always);
 
   ImGuiWindowFlags flags = ImGuiWindowFlags_NoMove | 
                           ImGuiWindowFlags_NoResize |
                           ImGuiWindowFlags_NoCollapse |
                           ImGuiWindowFlags_NoTitleBar;
 
-  // Theme-matched styling
+  // Use current theme colors
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 10));
   
   if (ImGui::Begin("##AgentChatPopup", &visible_, flags)) {
-    // Animated header pulse
-    header_pulse_ += io.DeltaTime * 2.0f;
-    float pulse = 0.5f + 0.5f * sinf(header_pulse_);
-    
     DrawHeader();
     
     ImGui::Separator();
     ImGui::Spacing();
     
-    // Message list with gradient background
-    float list_height = io.DisplaySize.y - 280.0f;  // Reserve space for input and actions
+    // Calculate proper list height
+    float list_height = ImGui::GetContentRegionAvail().y - 220.0f;
     
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.05f, 0.05f, 0.08f, 0.95f));
     ImGui::BeginChild("MessageList", ImVec2(0, list_height), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
@@ -116,18 +112,20 @@ void AgentChatHistoryPopup::DrawMessage(const cli::agent::ChatMessage& msg, int 
   ImGui::PushID(index);
   
   bool from_user = (msg.sender == cli::agent::ChatMessage::Sender::kUser);
-  ImVec4 header_color = from_user ? kUserColor : kAgentColor;
+  
+  // Use theme colors with slight tint
+  ImVec4 text_color = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+  ImVec4 header_color = from_user 
+      ? ImVec4(text_color.x * 1.2f, text_color.y * 0.9f, text_color.z * 0.5f, 1.0f)  // Gold tint
+      : ImVec4(text_color.x * 0.7f, text_color.y * 1.0f, text_color.z * 0.9f, 1.0f); // Teal tint
+  
   const char* sender_label = from_user ? ICON_MD_PERSON " You" : ICON_MD_SMART_TOY " Agent";
   
-  // Message header with sender and timestamp
-  ImGui::PushStyleColor(ImGuiCol_Text, header_color);
-  ImGui::Text("%s", sender_label);
-  ImGui::PopStyleColor();
+  // Message header
+  ImGui::TextColored(header_color, "%s", sender_label);
   
   ImGui::SameLine();
-  ImGui::PushStyleColor(ImGuiCol_Text, kTimestampColor);
-  ImGui::Text("%s", absl::FormatTime("%H:%M:%S", msg.timestamp, absl::LocalTimeZone()).c_str());
-  ImGui::PopStyleColor();
+  ImGui::TextDisabled("%s", absl::FormatTime("%H:%M:%S", msg.timestamp, absl::LocalTimeZone()).c_str());
   
   // Message content
   ImGui::Indent(10.0f);
@@ -181,10 +179,10 @@ void AgentChatHistoryPopup::DrawHeader() {
   
   ImGui::Dummy(ImVec2(0, 8));
   
-  // Title with theme colors
-  ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_Text), "%s AI Chat", ICON_MD_CHAT);
+  // Title
+  ImGui::Text("%s AI Chat", ICON_MD_CHAT);
   
-  ImGui::SameLine(ImGui::GetContentRegionAvail().x - 130);
+  ImGui::SameLine(ImGui::GetContentRegionAvail().x - 95);
   
   // Compact mode toggle
   if (ImGui::SmallButton(compact_mode_ ? ICON_MD_UNFOLD_MORE : ICON_MD_UNFOLD_LESS)) {
@@ -197,16 +195,23 @@ void AgentChatHistoryPopup::DrawHeader() {
   ImGui::SameLine();
   
   // Full chat button
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(kAccentColor.x, kAccentColor.y, kAccentColor.z, 0.6f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kAccentColor);
   if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW)) {
     if (open_chat_callback_) {
       open_chat_callback_();
     }
   }
-  ImGui::PopStyleColor(2);
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Open full chat window");
+  }
+  
+  ImGui::SameLine();
+  
+  // Close button
+  if (ImGui::SmallButton(ICON_MD_CLOSE)) {
+    visible_ = false;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Close (Ctrl+H)");
   }
   
   // Message count with badge
@@ -228,9 +233,6 @@ void AgentChatHistoryPopup::DrawHeader() {
 }
 
 void AgentChatHistoryPopup::DrawQuickActions() {
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.15f, 0.2f, 0.8f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.2f, 0.3f, 0.9f));
-  
   float button_width = (ImGui::GetContentRegionAvail().x - 8) / 3.0f;
   
   // Multimodal snapshot button
@@ -277,20 +279,13 @@ void AgentChatHistoryPopup::DrawQuickActions() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Clear popup view");
   }
-  
-  ImGui::PopStyleColor(2);
 }
 
 void AgentChatHistoryPopup::DrawInputSection() {
   ImGui::Separator();
   ImGui::Spacing();
   
-  // Input field with beautiful styling
-  ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.12f, 0.14f, 0.18f, 1.0f));
-  ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.15f, 0.17f, 0.22f, 1.0f));
-  ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.18f, 0.20f, 0.25f, 1.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
-  
+  // Input field using theme colors
   bool send_message = false;
   ImGui::SetNextItemWidth(-1);
   if (ImGui::InputTextMultiline("##popup_input", input_buffer_, sizeof(input_buffer_),
@@ -305,30 +300,18 @@ void AgentChatHistoryPopup::DrawInputSection() {
     focus_input_ = false;
   }
   
-  ImGui::PopStyleVar();
-  ImGui::PopStyleColor(3);
-  
-  // Send button with gradient
+  // Send button
   ImGui::Spacing();
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(kAccentColor.x, kAccentColor.y, kAccentColor.z, 0.7f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kAccentColor);
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.15f, 0.5f, 0.7f, 1.0f));
-  
-  if (ImGui::Button(absl::StrFormat("%s Send", ICON_MD_SEND).c_str(), ImVec2(-1, 32)) || send_message) {
+  if (ImGui::Button(absl::StrFormat("%s Send", ICON_MD_SEND).c_str(), ImVec2(-1, 30)) || send_message) {
     if (std::strlen(input_buffer_) > 0) {
       SendMessage(input_buffer_);
       std::memset(input_buffer_, 0, sizeof(input_buffer_));
     }
   }
   
-  ImGui::PopStyleColor(3);
-  
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Send message (Enter) • Ctrl+Enter for newline");
   }
-  
-  ImGui::Spacing();
-  ImGui::TextDisabled(ICON_MD_INFO " Enter: send • Ctrl+Enter: newline");
 }
 
 void AgentChatHistoryPopup::SendMessage(const std::string& message) {

@@ -799,11 +799,10 @@ void AgentChatWidget::Draw() {
                                     ? ImVec4(0.133f, 0.545f, 0.133f, 1.0f)
                                     : ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
 
-  // Connection status bar at top (compact)
+  // Connection status bar at top (taller for better visibility)
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 bar_start = ImGui::GetCursorScreenPos();
-  ImVec2 bar_size(ImGui::GetContentRegionAvail().x,
-                  55);  // Reduced from 75 to 55
+  ImVec2 bar_size(ImGui::GetContentRegionAvail().x, 90);  // Increased from 55
 
   // Gradient background
   ImU32 color_top = ImGui::GetColorU32(ImVec4(0.18f, 0.22f, 0.28f, 1.0f));
@@ -831,15 +830,14 @@ void AgentChatWidget::Draw() {
     float vertical_padding = (55.0f - content_height) / 2.0f;
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + vertical_padding);
 
-    // Compact single row layout
-    ImGui::TextColored(accent_color, ICON_MD_SMART_TOY);
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(95);
-    const char* providers[] = {"Mock", "Ollama", "Gemini"};
-    int current_provider = (agent_config_.ai_provider == "mock")     ? 0
-                           : (agent_config_.ai_provider == "ollama") ? 1
-                                                                     : 2;
-    if (ImGui::Combo("##main_provider", &current_provider, providers, 3)) {
+      // Two-row layout for better visibility
+      ImGui::Text(ICON_MD_SMART_TOY " AI Provider:");
+      ImGui::SetNextItemWidth(-1);
+      const char* providers[] = {"Mock", "Ollama", "Gemini"};
+      int current_provider = (agent_config_.ai_provider == "mock")     ? 0
+                             : (agent_config_.ai_provider == "ollama") ? 1
+                                                                       : 2;
+      if (ImGui::Combo("##main_provider", &current_provider, providers, 3)) {
       agent_config_.ai_provider = (current_provider == 0)   ? "mock"
                                   : (current_provider == 1) ? "ollama"
                                                             : "gemini";
@@ -2073,6 +2071,99 @@ void AgentChatWidget::SyncHistoryToPopup() {
   const auto& history = agent_service_.GetHistory();
   chat_history_popup_->UpdateHistory(history);
   chat_history_popup_->NotifyNewMessage();
+}
+
+std::filesystem::path AgentChatWidget::GetSessionsDirectory() {
+  std::filesystem::path config_dir(yaze::util::GetConfigDirectory());
+  if (config_dir.empty()) {
+#ifdef _WIN32
+    const char* appdata = std::getenv("APPDATA");
+    if (appdata) {
+      config_dir = std::filesystem::path(appdata) / "yaze";
+    }
+#else
+    const char* home = std::getenv("HOME");
+    if (home) {
+      config_dir = std::filesystem::path(home) / ".yaze";
+    }
+#endif
+  }
+  
+  return config_dir / "chats";
+}
+
+void AgentChatWidget::SaveChatSession(const ChatSession& session) {
+  auto sessions_dir = GetSessionsDirectory();
+  std::error_code ec;
+  std::filesystem::create_directories(sessions_dir, ec);
+  
+  std::filesystem::path save_path = sessions_dir / (session.id + ".json");
+  
+  // Save using existing history codec
+  AgentChatHistoryCodec::Snapshot snapshot;
+  snapshot.history = session.agent_service.GetHistory();
+  
+  auto status = AgentChatHistoryCodec::Save(save_path, snapshot);
+  if (status.ok() && toast_manager_) {
+    toast_manager_->Show(
+        absl::StrFormat(ICON_MD_SAVE " Chat '%s' saved", session.name),
+        ToastType::kSuccess, 2.0f);
+  }
+}
+
+void AgentChatWidget::LoadChatSession(const std::string& session_id) {
+  auto sessions_dir = GetSessionsDirectory();
+  std::filesystem::path load_path = sessions_dir / (session_id + ".json");
+  
+  if (!std::filesystem::exists(load_path)) {
+    if (toast_manager_) {
+      toast_manager_->Show(ICON_MD_WARNING " Session file not found", ToastType::kWarning, 2.5f);
+    }
+    return;
+  }
+  
+  auto snapshot_result = AgentChatHistoryCodec::Load(load_path);
+  if (snapshot_result.ok()) {
+    // Create new session with loaded history
+    ChatSession session(session_id, session_id);
+    session.agent_service.ReplaceHistory(snapshot_result->history);
+    session.history_loaded = true;
+    chat_sessions_.push_back(std::move(session));
+    active_session_index_ = static_cast<int>(chat_sessions_.size() - 1);
+    
+    if (toast_manager_) {
+      toast_manager_->Show(ICON_MD_CHECK_CIRCLE " Chat session loaded", ToastType::kSuccess, 2.0f);
+    }
+  }
+}
+
+void AgentChatWidget::DeleteChatSession(const std::string& session_id) {
+  auto sessions_dir = GetSessionsDirectory();
+  std::filesystem::path session_path = sessions_dir / (session_id + ".json");
+  
+  if (std::filesystem::exists(session_path)) {
+    std::filesystem::remove(session_path);
+    if (toast_manager_) {
+      toast_manager_->Show(ICON_MD_DELETE " Chat deleted", ToastType::kInfo, 2.0f);
+    }
+  }
+}
+
+std::vector<std::string> AgentChatWidget::GetSavedSessions() {
+  std::vector<std::string> sessions;
+  auto sessions_dir = GetSessionsDirectory();
+  
+  if (!std::filesystem::exists(sessions_dir)) {
+    return sessions;
+  }
+  
+  for (const auto& entry : std::filesystem::directory_iterator(sessions_dir)) {
+    if (entry.path().extension() == ".json") {
+      sessions.push_back(entry.path().stem().string());
+    }
+  }
+  
+  return sessions;
 }
 
 void AgentChatWidget::RenderSystemPromptEditor() {
