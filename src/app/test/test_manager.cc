@@ -730,13 +730,16 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
   ImGui::Separator();
 
-  // Enhanced test results list with better formatting
-  if (ImGui::BeginChild("TestResults", ImVec2(0, 0), true)) {
-    if (last_results_.individual_results.empty()) {
-      ImGui::TextColored(
-          ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
-          "No test results to display. Run some tests to see results here.");
-    } else {
+  // Tabs for different test result views
+  if (ImGui::BeginTabBar("TestResultsTabs", ImGuiTabBarFlags_None)) {
+    // Standard test results tab
+    if (ImGui::BeginTabItem("Test Results")) {
+      if (ImGui::BeginChild("TestResults", ImVec2(0, 0), true)) {
+        if (last_results_.individual_results.empty()) {
+          ImGui::TextColored(
+              ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+              "No test results to display. Run some tests to see results here.");
+        } else {
       for (const auto& result : last_results_.individual_results) {
         // Apply filters
         bool category_match =
@@ -809,6 +812,167 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
     }
   }
   ImGui::EndChild();
+      ImGui::EndTabItem();
+    }
+    
+    // Harness Test Results tab (for gRPC GUI automation tests)
+    if (ImGui::BeginTabItem("GUI Automation Tests")) {
+      if (ImGui::BeginChild("HarnessTests", ImVec2(0, 0), true)) {
+        // Display harness test summaries
+        auto summaries = ListHarnessTestSummaries();
+        
+        if (summaries.empty()) {
+          ImGui::TextColored(
+              ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+              "No GUI automation test results yet.\n\n"
+              "These tests are run via the ImGuiTestHarness gRPC service.\n"
+              "Results will appear here after running GUI automation tests.");
+        } else {
+          ImGui::Text("%s GUI Automation Test History", ICON_MD_HISTORY);
+          ImGui::Text("Total Tests: %zu", summaries.size());
+          ImGui::Separator();
+          
+          // Table of harness test results
+          if (ImGui::BeginTable("HarnessTestTable", 6, 
+                                ImGuiTableFlags_Borders | 
+                                ImGuiTableFlags_RowBg |
+                                ImGuiTableFlags_Resizable)) {
+            ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 80);
+            ImGui::TableSetupColumn("Test Name", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthFixed, 100);
+            ImGui::TableSetupColumn("Runs", ImGuiTableColumnFlags_WidthFixed, 60);
+            ImGui::TableSetupColumn("Pass Rate", ImGuiTableColumnFlags_WidthFixed, 80);
+            ImGui::TableSetupColumn("Duration", ImGuiTableColumnFlags_WidthFixed, 80);
+            ImGui::TableHeadersRow();
+            
+            for (const auto& summary : summaries) {
+              const auto& exec = summary.latest_execution;
+              
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              
+              // Status indicator
+              ImVec4 status_color;
+              const char* status_icon;
+              const char* status_text;
+              
+              switch (exec.status) {
+                case HarnessTestStatus::kPassed:
+                  status_color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+                  status_icon = ICON_MD_CHECK_CIRCLE;
+                  status_text = "Passed";
+                  break;
+                case HarnessTestStatus::kFailed:
+                  status_color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+                  status_icon = ICON_MD_ERROR;
+                  status_text = "Failed";
+                  break;
+                case HarnessTestStatus::kTimeout:
+                  status_color = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
+                  status_icon = ICON_MD_TIMER_OFF;
+                  status_text = "Timeout";
+                  break;
+                case HarnessTestStatus::kRunning:
+                  status_color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
+                  status_icon = ICON_MD_PLAY_CIRCLE_FILLED;
+                  status_text = "Running";
+                  break;
+                case HarnessTestStatus::kQueued:
+                  status_color = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
+                  status_icon = ICON_MD_SCHEDULE;
+                  status_text = "Queued";
+                  break;
+                default:
+                  status_color = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
+                  status_icon = ICON_MD_HELP;
+                  status_text = "Unknown";
+                  break;
+              }
+              
+              ImGui::TextColored(status_color, "%s %s", status_icon, status_text);
+              
+              ImGui::TableNextColumn();
+              ImGui::Text("%s", exec.name.c_str());
+              
+              // Show error message if failed
+              if (exec.status == HarnessTestStatus::kFailed && 
+                  !exec.error_message.empty()) {
+                ImGui::SameLine();
+                ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.5f, 1.0f), 
+                                 "(%s)", exec.error_message.c_str());
+              }
+              
+              ImGui::TableNextColumn();
+              ImGui::Text("%s", exec.category.c_str());
+              
+              ImGui::TableNextColumn();
+              ImGui::Text("%d", summary.total_runs);
+              
+              ImGui::TableNextColumn();
+              if (summary.total_runs > 0) {
+                float pass_rate = static_cast<float>(summary.pass_count) / 
+                                summary.total_runs;
+                ImVec4 rate_color = pass_rate >= 0.9f ? ImVec4(0.0f, 1.0f, 0.0f, 1.0f)
+                                  : pass_rate >= 0.7f ? ImVec4(1.0f, 1.0f, 0.0f, 1.0f)
+                                  : ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+                ImGui::TextColored(rate_color, "%.0f%%", pass_rate * 100.0f);
+              } else {
+                ImGui::Text("-");
+              }
+              
+              ImGui::TableNextColumn();
+              double duration_ms = absl::ToDoubleMilliseconds(summary.total_duration);
+              if (summary.total_runs > 0) {
+                ImGui::Text("%.0f ms", duration_ms / summary.total_runs);
+              } else {
+                ImGui::Text("-");
+              }
+              
+              // Expandable details
+              if (ImGui::TreeNode(("Details##" + exec.test_id).c_str())) {
+                ImGui::Text("Test ID: %s", exec.test_id.c_str());
+                ImGui::Text("Total Runs: %d (Pass: %d, Fail: %d)", 
+                           summary.total_runs, summary.pass_count, summary.fail_count);
+                
+                if (!exec.logs.empty()) {
+                  ImGui::Separator();
+                  ImGui::Text("%s Logs:", ICON_MD_DESCRIPTION);
+                  for (const auto& log : exec.logs) {
+                    ImGui::BulletText("%s", log.c_str());
+                  }
+                }
+                
+                if (!exec.assertion_failures.empty()) {
+                  ImGui::Separator();
+                  ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), 
+                                   "%s Assertion Failures:", ICON_MD_ERROR);
+                  for (const auto& failure : exec.assertion_failures) {
+                    ImGui::BulletText("%s", failure.c_str());
+                  }
+                }
+                
+                if (!exec.screenshot_path.empty()) {
+                  ImGui::Separator();
+                  ImGui::Text("%s Screenshot: %s", 
+                             ICON_MD_CAMERA_ALT, exec.screenshot_path.c_str());
+                  ImGui::Text("Size: %.2f KB", 
+                             exec.screenshot_size_bytes / 1024.0);
+                }
+                
+                ImGui::TreePop();
+              }
+            }
+            
+            ImGui::EndTable();
+          }
+        }
+      }
+      ImGui::EndChild();
+      ImGui::EndTabItem();
+    }
+    
+    ImGui::EndTabBar();
+  }
 
   ImGui::End();
 

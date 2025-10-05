@@ -11,6 +11,7 @@
 #include "absl/strings/str_split.h"
 #include "util/file_util.h"
 #include "app/gui/icons.h"
+#include "util/log.h"
 #include "app/zelda3/zelda3_labels.h"
 #include "imgui/imgui.h"
 #include "yaze_config.h"
@@ -126,7 +127,7 @@ absl::Status YazeProject::Open(const std::string& project_path) {
       
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
       if (first_char == '{') {
-        std::cout << "📄 Detected JSON format project file\n";
+        LOG_INFO("Project", "Detected JSON format project file");
         return LoadFromJsonFormat(project_path);
       }
 #endif
@@ -888,12 +889,19 @@ absl::Status YazeProject::InitializeEmbeddedLabels() {
     resource_labels = zelda3::Zelda3Labels::ToResourceLabels();
     use_embedded_labels = true;
     
-    std::cout << "📚 Initialized embedded labels:\n"
-              << "   - " << resource_labels["room"].size() << " room names\n"
-              << "   - " << resource_labels["entrance"].size() << " entrance names\n"
-              << "   - " << resource_labels["sprite"].size() << " sprite names\n"
-              << "   - " << resource_labels["overlord"].size() << " overlord names\n"
-              << "   - " << resource_labels["item"].size() << " item names\n";
+    LOG_INFO("Project", "Initialized embedded labels:");
+    LOG_INFO("Project", "   - %d room names", resource_labels["room"].size());
+    LOG_INFO("Project", "   - %d entrance names", resource_labels["entrance"].size());
+    LOG_INFO("Project", "   - %d sprite names", resource_labels["sprite"].size());
+    LOG_INFO("Project", "   - %d overlord names", resource_labels["overlord"].size());
+    LOG_INFO("Project", "   - %d item names", resource_labels["item"].size());
+    LOG_INFO("Project", "   - %d music names", resource_labels["music"].size());
+    LOG_INFO("Project", "   - %d graphics names", resource_labels["graphics"].size());
+    LOG_INFO("Project", "   - %d room effect names", resource_labels["room_effect"].size());
+    LOG_INFO("Project", "   - %d room tag names", resource_labels["room_tag"].size());
+    LOG_INFO("Project", "   - %d tile type names", resource_labels["tile_type"].size());
+    LOG_INFO("Project", "   - %d overlord names", resource_labels["overlord"].size());
+    LOG_INFO("Project", "   - %d item names", resource_labels["item"].size());
     
     return absl::OkStatus();
   } catch (const std::exception& e) {
@@ -1057,14 +1065,14 @@ std::string RecentFilesManager::GetFilePath() const {
 void RecentFilesManager::Save() {
   // Ensure config directory exists
   if (!util::EnsureConfigDirectoryExists()) {
-    std::cerr << "Warning: Could not create config directory for recent files\n";
+    LOG_WARN("RecentFilesManager", "Could not create config directory for recent files");
     return;
   }
   
   std::string filepath = GetFilePath();
   std::ofstream file(filepath);
   if (!file.is_open()) {
-    std::cerr << "Warning: Could not save recent files to " << filepath << "\n";
+    LOG_WARN("RecentFilesManager", "Could not save recent files to %s", filepath.c_str());
     return;
   }
 
