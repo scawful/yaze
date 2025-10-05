@@ -90,3 +90,4 @@ assets/etc/
 imgui.ini
 .gitignore
 recent_files.txt
+.vs/*

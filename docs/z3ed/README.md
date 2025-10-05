@@ -1,7 +1,7 @@
 # z3ed: AI-Powered CLI for YAZE
 
 **Version**: 0.1.0-alpha
-**Last Updated**: October 4, 2025
+**Last Updated**: October 5, 2025
 
 ## 1. Overview
 
@@ -76,6 +76,15 @@ z3ed agent diff --proposal-id <id>
 z3ed agent accept --proposal-id <id>
 ```
 
+### Hybrid CLI ↔ GUI Workflow
+
+1. **Build once for both surfaces**: `cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON` followed by `cmake --build build --target z3ed` ensures the CLI, editor chat widget, and ImGui test harness share the same AI and gRPC feature set.
+2. **Plan in the CLI**: Use `z3ed agent plan --prompt "Describe the overworld tile 10,10" --rom zelda3.sfc --sandbox` to preview the command sequence the agent intends to execute against an isolated ROM copy.
+3. **Execute and validate**: Run `z3ed agent run ... --sandbox` to apply the plan, then launch YAZE with the same ROM and open **Debug → Agent Chat** to review proposal details, streamed logs, and harness status without leaving the editor.
+4. **Hand off to GUI automation**: From the Agent Chat widget, trigger the same plan or replay the last CLI run by selecting **Replay Last Plan** (uses the shared proposal registry) to watch the ImGui harness drive the UI.
+5. **Tighten the loop**: While the harness executes, use `z3ed agent diff --proposal-id <id>` in the terminal and the Proposal Drawer inside YAZE to compare results side-by-side. Accept or reject directly in either surface—state stays in sync.
+6. **Iterate rapidly**: When adjustments are needed, refine the prompt or modify the generated test script, rerun from the CLI, and immediately observe outcomes in the editor via the gRPC-backed harness telemetry panel.
+
 ## 3. Architecture
 
 The z3ed system is composed of several layers, from the high-level AI agent down to the YAZE GUI and test harness.
@@ -105,6 +114,7 @@ The z3ed system is composed of several layers, from the high-level AI agent down
 │ ImGuiTestHarness (gRPC Server in YAZE)                  │
 │  ├─ Ping, Click, Type, Wait, Assert, Screenshot         │
 │  └─ Introspection & Discovery RPCs                      │
+│  └─ Automation API shared by CLI & Agent Chat           │
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────▼────────────────────────────────────┐
@@ -150,6 +160,14 @@ The `z3ed` CLI is the foundation for an AI-driven Model-Code-Program (MCP) loop,
 -   `palette export|import|list`: Commands for palette manipulation.
 -   `overworld get-tile|find-tile|set-tile`: Commands for overworld editing.
 -   `dungeon list-sprites|list-rooms`: Commands for dungeon inspection.
+
+#### `agent test`: Live Harness Automation
+
+-   **Discover widgets**: `z3ed agent test discover --rom zelda3.sfc --grpc localhost:50051` enumerates ImGui widget IDs through the gRPC-backed harness for later scripting.
+-   **Record interactions**: `z3ed agent test record --suite harness/tests/overworld_entry.jsonl` launches YAZE, mirrors your clicks/keystrokes, and persists an editable JSONL trace.
+-   **Replay & assert**: `z3ed agent test replay harness/tests/overworld_entry.jsonl --watch` drives the GUI in real time and streams pass/fail telemetry back to both the CLI and Agent Chat widget telemetry panel.
+-   **Integrate with proposals**: `z3ed agent test verify --proposal-id <id>` links a recorded scenario with a proposal to guarantee UI state after sandboxed edits.
+-   **Debug in the editor**: While a replay is running, open **Debug → Agent Chat → Harness Monitor** to step through events, capture screenshots, or restart the scenario without leaving ImGui.
 
 ## 6. Chat Modes
 
@@ -853,6 +871,16 @@ The AI response appears in your chat history and can reference specific details 
 - Check firewall settings
 - Confirm server URL is correct
 
+**"Harness client cannot reach gRPC"**
+- Confirm YAZE was built with `-DYAZE_WITH_GRPC=ON` and the harness server is enabled via **Debug → Preferences → Automation**.
+- Run `z3ed agent test ping --grpc localhost:50051` to verify the CLI can reach the embedded harness endpoint; restart YAZE if the ping fails.
+- Inspect the Agent Chat **Harness Monitor** panel for connection status; use **Reconnect** to re-bind if the harness server was restarted.
+
+**"Widget discovery returns empty"**
+- Ensure the target ImGui window is open; the harness only indexes visible widgets.
+- Toggle **Automation → Enable Introspection** in YAZE to allow the gRPC server to expose widget metadata.
+- Run `z3ed agent test discover --window "ProposalDrawer"` to scope discovery to the window you have open.
+
 **"Session not found"**
 - Verify session code is correct (case-insensitive)
 - Check if session expired (server restart clears sessions)
@@ -903,13 +931,25 @@ The AI response appears in your chat history and can reference specific details 
     - Health monitoring and metrics endpoints
     - Rate limiting and security features
 
+### 📌 Current Progress Highlights (October 5, 2025)
+
+-   **Agent Platform Expansion**: AgentEditor now delivers full bot lifecycle controls, live prompt editing, multi-session management, and metrics synchronized with chat history and popup views.
+-   **Enhanced Chat Popup**: Left-side AgentChatHistoryPopup evolved into a theme-aware, fully interactive mini-chat with inline sending, multimodal capture, filtering, and proposal indicators to minimize context switching.
+-   **Proposal Workflow**: Sandbox-backed proposal review is end-to-end with inline quick actions, ProposalDrawer tie-ins, ROM version protections, and collaboration-aware approvals.
+-   **Collaboration & Networking**: yaze-server v2.0 protocol, cross-platform WebSocket client, collaboration panel, and gRPC ROM service unlock real-time edits, diff sharing, and remote automation.
+-   **AI & Automation Stack**: Proactive prompt v3, native Gemini function calling, learn/TODO systems, GUI automation planners, multimodal vision suite, and dashboard-surfaced test harness coverage broaden intelligent tooling.
+
 ### 🚧 Active & Next Steps
 
-1.  **Live LLM Testing (1-2h)**: Verify function calling with real models (Ollama/Gemini).
-2.  **Expand Tool Coverage (8-10h)**: Add new read-only tools for inspecting dialogue, sprites, and regions.
-3.  **Full WebSocket Protocol (2-3 days)**: Upgrade from HTTP polling to true WebSocket frames using ixwebsocket or websocketpp.
-4.  **Collaboration UI Enhancements (1 day)**: Add UI elements for ROM sync, snapshot sharing, and proposal management in the Agent Chat widget.
-5.  **Windows Cross-Platform Testing (8-10h)**: Validate `z3ed` and the test harness on Windows.
+1.  **Harden Live LLM Tooling**: Finalize native function-calling loops with Ollama/Gemini and broaden safe read-only tool coverage for dialogue, sprite, and region introspection.
+2.  **Real-Time Transport Upgrade**: Replace HTTP polling with full WebSocket support across CLI/editor and expose ROM sync, snapshot, and proposal voting controls directly inside the AgentChat widget.
+3.  **Cross-Platform Certification**: Complete Windows validation for AI, gRPC, collaboration, and build presets leveraging the documented vcpkg workflow.
+4.  **UI/UX Roadmap Delivery**: Advance EditorManager menu refactors, enhanced hex/palette tooling, Vim-mode terminal chat, and richer popup affordances such as search, export, and resizing.
+5.  **Collaboration Safeguards**: Layer encrypted sessions, conflict resolution flows, AI-assisted proposal review, and deeper gRPC ROM service integrations to strengthen multi-user safety.
+6.  **Testing & Observability**: Automate multimodal/GUI harness scenarios, add performance benchmarks, and enable export/replay pipelines for the Test Dashboard.
+7.  **Hybrid Workflow Examples**: Document and dogfood end-to-end CLI→GUI automation loops (plan/run/diff + harness replay) with screenshots and recorded sessions.
+8.  **Automation API Unification**: Extract a reusable harness automation API consumed by both CLI `agent test` commands and the Agent Chat widget to prevent serialization drift.
+9.  **UI Abstraction Cleanup**: Introduce dedicated presenter/controller layers so `editor_manager.cc` delegates to automation and collaboration services, keeping ImGui widgets declarative.
 
 ### ✅ Recently Completed (v0.2.0-alpha - October 5, 2025)
 
