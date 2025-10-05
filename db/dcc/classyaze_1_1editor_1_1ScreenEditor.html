@@ -406,7 +406,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000027">Todo:</a></b></dt><dd>Load roomset gfx based on dungeon ID </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000028">Todo:</a></b></dt><dd>Load roomset gfx based on dungeon ID </dd></dl>
 <p>int current_tile8 = 0; int tile_data_offset = 0; for (int i = 0; i &lt; 4; ++i) { for (int j = 0; j &lt; 32; j++) { std::vector&lt;uint8_t&gt; tile_data(64, 0); // 8x8 tile (64 bytes int tile_index = current_tile8 + j; int x = (j % 8) * 8; int y = (j / 8) * 8; sheets_[i].Get8x8Tile(tile_index, x, y, tile_data, tile_data_offset); tile8_individual_.emplace_back(gfx::Bitmap(8, 8, 4, tile_data)); tile8_individual_.back().SetPalette(*rom()-&gt;mutable_dungeon_palette(3)); <a class="el" href="../../da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761">Renderer::Get()</a>.RenderBitmap(&amp;tile8_individual_.back()); } tile_data_offset = 0; }</p>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#aec4a1012c0639bb4b60183a735418b32">yaze::editor::Editor</a>.</p>

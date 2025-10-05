@@ -323,69 +323,73 @@ $(document).ready(function(){initNavTree('da/dbe/resource__context__builder_8cc_
 <div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>  }</div>
 <div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  </div>
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  <span class="keyword">auto</span>* label_mgr = <a class="code hl_variable" href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a2fefa9dd1dceeb8f8db2348802f8ed10">rom_</a>-&gt;<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#aaf2600f3334bb925086268e63e225418">resource_label</a>();</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  <span class="keywordflow">if</span> (!label_mgr || !label_mgr-&gt;labels_loaded_) {</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;No labels file loaded&quot;</span>);</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  <span class="keywordflow">if</span> (!label_mgr) {</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;No resource label manager&quot;</span>);</div>
 <div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  }</div>
 <div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  </div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  std::map&lt;std::string, std::string&gt; result;</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  </div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  <span class="keyword">auto</span> it = label_mgr-&gt;labels_.find(category);</div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>  <span class="keywordflow">if</span> (it != label_mgr-&gt;labels_.end()) {</div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [key, value] : it-&gt;second) {</div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>      result[key] = value;</div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>    }</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>  }</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>  </div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>  <span class="keywordflow">return</span> result;</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>}</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  <span class="keywordflow">if</span> (!label_mgr-&gt;labels_loaded_) {</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;No labels file loaded&quot;</span>);</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  }</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>  </div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>  std::map&lt;std::string, std::string&gt; result;</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>  </div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  <span class="keyword">auto</span> it = label_mgr-&gt;labels_.find(category);</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>  <span class="keywordflow">if</span> (it != label_mgr-&gt;labels_.end()) {</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [key, value] : it-&gt;second) {</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>      result[key] = value;</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>    }</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>  }</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>  </div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>}</div>
 </div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span> </div>
-<div class="foldopen" id="foldopen00224" data-start="{" data-end="}">
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno"><a class="line" href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a6ff63829ceaf5bf42c8d1e548eb71509">  224</a></span>absl::StatusOr&lt;std::string&gt; <a class="code hl_function" href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a6ff63829ceaf5bf42c8d1e548eb71509">ResourceContextBuilder::ExportToJson</a>() {</div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a2fefa9dd1dceeb8f8db2348802f8ed10">rom_</a> || !<a class="code hl_variable" href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a2fefa9dd1dceeb8f8db2348802f8ed10">rom_</a>-&gt;<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">is_loaded</a>()) {</div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(<span class="stringliteral">&quot;ROM not loaded&quot;</span>);</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  }</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  </div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>  <span class="keyword">auto</span>* label_mgr = <a class="code hl_variable" href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a2fefa9dd1dceeb8f8db2348802f8ed10">rom_</a>-&gt;<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#aaf2600f3334bb925086268e63e225418">resource_label</a>();</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>  <span class="keywordflow">if</span> (!label_mgr || !label_mgr-&gt;labels_loaded_) {</div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(<span class="stringliteral">&quot;No labels file loaded&quot;</span>);</div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  }</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>  </div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  std::ostringstream json;</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>  json &lt;&lt; <span class="stringliteral">&quot;{\n&quot;</span>;</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>  </div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>  <span class="keywordtype">bool</span> first_category = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [category, labels] : label_mgr-&gt;labels_) {</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>    <span class="keywordflow">if</span> (!first_category) json &lt;&lt; <span class="stringliteral">&quot;,\n&quot;</span>;</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    first_category = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>    </div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>    json &lt;&lt; <span class="stringliteral">&quot;  \&quot;&quot;</span> &lt;&lt; category &lt;&lt; <span class="stringliteral">&quot;\&quot;: {\n&quot;</span>;</div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>    </div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    <span class="keywordtype">bool</span> first_label = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [key, value] : labels) {</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>      <span class="keywordflow">if</span> (!first_label) json &lt;&lt; <span class="stringliteral">&quot;,\n&quot;</span>;</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>      first_label = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>      </div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>      json &lt;&lt; <span class="stringliteral">&quot;    \&quot;&quot;</span> &lt;&lt; key &lt;&lt; <span class="stringliteral">&quot;\&quot;: \&quot;&quot;</span> &lt;&lt; value &lt;&lt; <span class="stringliteral">&quot;\&quot;&quot;</span>;</div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    }</div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>    </div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>    json &lt;&lt; <span class="stringliteral">&quot;\n  }&quot;</span>;</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>  }</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>  </div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>  json &lt;&lt; <span class="stringliteral">&quot;\n}\n&quot;</span>;</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  </div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>  <span class="keywordflow">return</span> json.str();</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>}</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span> </div>
+<div class="foldopen" id="foldopen00228" data-start="{" data-end="}">
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno"><a class="line" href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a6ff63829ceaf5bf42c8d1e548eb71509">  228</a></span>absl::StatusOr&lt;std::string&gt; <a class="code hl_function" href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a6ff63829ceaf5bf42c8d1e548eb71509">ResourceContextBuilder::ExportToJson</a>() {</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>  <span class="keywordflow">if</span> (!<a class="code hl_variable" href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a2fefa9dd1dceeb8f8db2348802f8ed10">rom_</a> || !<a class="code hl_variable" href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a2fefa9dd1dceeb8f8db2348802f8ed10">rom_</a>-&gt;<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">is_loaded</a>()) {</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(<span class="stringliteral">&quot;ROM not loaded&quot;</span>);</div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>  }</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  </div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>  <span class="keyword">auto</span>* label_mgr = <a class="code hl_variable" href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a2fefa9dd1dceeb8f8db2348802f8ed10">rom_</a>-&gt;<a class="code hl_function" href="../../d6/d30/classyaze_1_1Rom.html#aaf2600f3334bb925086268e63e225418">resource_label</a>();</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  <span class="keywordflow">if</span> (!label_mgr || !label_mgr-&gt;labels_loaded_) {</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(<span class="stringliteral">&quot;No labels file loaded&quot;</span>);</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>  }</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>  </div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  std::ostringstream json;</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>  json &lt;&lt; <span class="stringliteral">&quot;{\n&quot;</span>;</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>  </div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  <span class="keywordtype">bool</span> first_category = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [category, labels] : label_mgr-&gt;labels_) {</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>    <span class="keywordflow">if</span> (!first_category) json &lt;&lt; <span class="stringliteral">&quot;,\n&quot;</span>;</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    first_category = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    </div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>    json &lt;&lt; <span class="stringliteral">&quot;  \&quot;&quot;</span> &lt;&lt; category &lt;&lt; <span class="stringliteral">&quot;\&quot;: {\n&quot;</span>;</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    </div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>    <span class="keywordtype">bool</span> first_label = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [key, value] : labels) {</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>      <span class="keywordflow">if</span> (!first_label) json &lt;&lt; <span class="stringliteral">&quot;,\n&quot;</span>;</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>      first_label = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>      </div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>      json &lt;&lt; <span class="stringliteral">&quot;    \&quot;&quot;</span> &lt;&lt; key &lt;&lt; <span class="stringliteral">&quot;\&quot;: \&quot;&quot;</span> &lt;&lt; value &lt;&lt; <span class="stringliteral">&quot;\&quot;&quot;</span>;</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    }</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    </div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    json &lt;&lt; <span class="stringliteral">&quot;\n  }&quot;</span>;</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>  }</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  </div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>  json &lt;&lt; <span class="stringliteral">&quot;\n}\n&quot;</span>;</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>  </div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>  <span class="keywordflow">return</span> json.str();</div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>}</div>
 </div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span> </div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>}  <span class="comment">// namespace cli</span></div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span> </div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span> </div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>}  <span class="comment">// namespace cli</span></div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span> </div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_aaf2600f3334bb925086268e63e225418"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#aaf2600f3334bb925086268e63e225418">yaze::Rom::resource_label</a></div><div class="ttdeci">core::ResourceLabelManager * resource_label()</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00214">rom.h:214</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_ae35b7dfe4f08ce24c7ee566ed5d3100d"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">yaze::Rom::is_loaded</a></div><div class="ttdeci">bool is_loaded() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00192">rom.h:192</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1ResourceContextBuilder_html_a2fefa9dd1dceeb8f8db2348802f8ed10"><div class="ttname"><a href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a2fefa9dd1dceeb8f8db2348802f8ed10">yaze::cli::ResourceContextBuilder::rom_</a></div><div class="ttdeci">Rom * rom_</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d28/resource__context__builder_8h_source.html#l00078">resource_context_builder.h:78</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1ResourceContextBuilder_html_a6e8d1b1eea41fc5bbbae4b87bea87415"><div class="ttname"><a href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a6e8d1b1eea41fc5bbbae4b87bea87415">yaze::cli::ResourceContextBuilder::ExtractSpriteLabels</a></div><div class="ttdeci">std::string ExtractSpriteLabels()</div><div class="ttdoc">Extract sprite labels.</div><div class="ttdef"><b>Definition</b> <a href="../../da/dbe/resource__context__builder_8cc_source.html#l00137">resource_context_builder.cc:137</a></div></div>
-<div class="ttc" id="aclassyaze_1_1cli_1_1ResourceContextBuilder_html_a6ff63829ceaf5bf42c8d1e548eb71509"><div class="ttname"><a href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a6ff63829ceaf5bf42c8d1e548eb71509">yaze::cli::ResourceContextBuilder::ExportToJson</a></div><div class="ttdeci">absl::StatusOr&lt; std::string &gt; ExportToJson()</div><div class="ttdoc">Export all labels to JSON format.</div><div class="ttdef"><b>Definition</b> <a href="../../da/dbe/resource__context__builder_8cc_source.html#l00224">resource_context_builder.cc:224</a></div></div>
+<div class="ttc" id="aclassyaze_1_1cli_1_1ResourceContextBuilder_html_a6ff63829ceaf5bf42c8d1e548eb71509"><div class="ttname"><a href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a6ff63829ceaf5bf42c8d1e548eb71509">yaze::cli::ResourceContextBuilder::ExportToJson</a></div><div class="ttdeci">absl::StatusOr&lt; std::string &gt; ExportToJson()</div><div class="ttdoc">Export all labels to JSON format.</div><div class="ttdef"><b>Definition</b> <a href="../../da/dbe/resource__context__builder_8cc_source.html#l00228">resource_context_builder.cc:228</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1ResourceContextBuilder_html_a7b5e3f63aaeded48f01b4fbca8deb856"><div class="ttname"><a href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a7b5e3f63aaeded48f01b4fbca8deb856">yaze::cli::ResourceContextBuilder::GetCommonTile16Reference</a></div><div class="ttdeci">std::string GetCommonTile16Reference()</div><div class="ttdoc">Add common tile16 reference for AI.</div><div class="ttdef"><b>Definition</b> <a href="../../da/dbe/resource__context__builder_8cc_source.html#l00008">resource_context_builder.cc:8</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1ResourceContextBuilder_html_a8fffb0b849988566e5a4e8399e40a0fb"><div class="ttname"><a href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#a8fffb0b849988566e5a4e8399e40a0fb">yaze::cli::ResourceContextBuilder::ExtractDungeonLabels</a></div><div class="ttdeci">std::string ExtractDungeonLabels()</div><div class="ttdoc">Extract dungeon labels.</div><div class="ttdef"><b>Definition</b> <a href="../../da/dbe/resource__context__builder_8cc_source.html#l00053">resource_context_builder.cc:53</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1ResourceContextBuilder_html_aae714baef0663d31c21ecfb1a900a409"><div class="ttname"><a href="../../de/d71/classyaze_1_1cli_1_1ResourceContextBuilder.html#aae714baef0663d31c21ecfb1a900a409">yaze::cli::ResourceContextBuilder::ExtractRoomLabels</a></div><div class="ttdeci">std::string ExtractRoomLabels()</div><div class="ttdoc">Extract room labels.</div><div class="ttdef"><b>Definition</b> <a href="../../da/dbe/resource__context__builder_8cc_source.html#l00111">resource_context_builder.cc:111</a></div></div>
