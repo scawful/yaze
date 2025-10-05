@@ -18,6 +18,7 @@
 #include "cli/z3ed_ascii_logo.h"
 #include "cli/service/agent/simple_chat_session.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/agent/todo_manager.h"
 
 namespace yaze {
 namespace cli {
@@ -224,6 +225,89 @@ void GenerateSaveFileComponent(ftxui::ScreenInteractive &screen) {
   });
 
   screen.Loop(renderer);
+}
+
+void TodoManagerComponent(ftxui::ScreenInteractive &screen) {
+    static agent::TodoManager manager;
+    static bool initialized = false;
+    if (!initialized) {
+        manager.Initialize();
+        initialized = true;
+    }
+
+    static std::string new_todo_description;
+    static int selected_todo = 0;
+
+    auto refresh_todos = [&]() {
+        auto todos = manager.GetAllTodos();
+        std::vector<std::string> entries;
+        for (const auto& item : todos) {
+            std::string status_emoji;
+            switch (item.status) {
+                case agent::TodoItem::Status::PENDING: status_emoji = "⏳"; break;
+                case agent::TodoItem::Status::IN_PROGRESS: status_emoji = "🔄"; break;
+                case agent::TodoItem::Status::COMPLETED: status_emoji = "✅"; break;
+                case agent::TodoItem::Status::BLOCKED: status_emoji = "🚫"; break;
+                case agent::TodoItem::Status::CANCELLED: status_emoji = "❌"; break;
+            }
+            entries.push_back(absl::StrFormat("%s [%s] %s", status_emoji, item.id, item.description));
+        }
+        return entries;
+    };
+
+    static std::vector<std::string> todo_entries = refresh_todos();
+
+    auto input_field = Input(&new_todo_description, "New TODO description");
+    auto add_button = Button("Add", [&]() {
+        if (!new_todo_description.empty()) {
+            manager.CreateTodo(new_todo_description);
+            new_todo_description.clear();
+            todo_entries = refresh_todos();
+        }
+    });
+
+    auto complete_button = Button("Complete", [&]() {
+        auto todos = manager.GetAllTodos();
+        if (selected_todo < todos.size()) {
+            manager.UpdateStatus(todos[selected_todo].id, agent::TodoItem::Status::COMPLETED);
+            todo_entries = refresh_todos();
+        }
+    });
+
+    auto delete_button = Button("Delete", [&]() {
+        auto todos = manager.GetAllTodos();
+        if (selected_todo < todos.size()) {
+            manager.DeleteTodo(todos[selected_todo].id);
+            if (selected_todo >= todo_entries.size() -1) {
+                selected_todo--;
+            }
+            todo_entries = refresh_todos();
+        }
+    });
+
+    auto back_button = Button("Back", [&] { SwitchComponents(screen, LayoutID::kMainMenu); });
+
+    auto todo_menu = Menu(&todo_entries, &selected_todo);
+
+    auto container = Container::Vertical({
+        Container::Horizontal({input_field, add_button}),
+        todo_menu,
+        Container::Horizontal({complete_button, delete_button, back_button}),
+    });
+
+    auto renderer = Renderer(container, [&] {
+        return vbox({
+            text("📝 TODO Manager") | bold | center,
+            separator(),
+            hbox({text("New: "), input_field->Render(), add_button->Render()}),
+            separator(),
+            todo_menu->Render() | vscroll_indicator | frame | flex,
+            separator(),
+            hbox({complete_button->Render(), delete_button->Render(), back_button->Render()}) | center,
+        }) | border;
+    });
+
+    screen.Loop(renderer);
 }
 
 
@@ -684,7 +768,7 @@ void HexViewerComponent(ftxui::ScreenInteractive &screen) {
   ReturnIfRomNotLoaded(screen);
 
   auto back_button =
-      Button("Back", [&] { SwitchComponents(screen, LayoutID::kMainMenu); });
+      Button("Back", [&] { SwitchComponents(screen, LayoutID::kDashboard); });
 
   static int offset = 0;
   const int lines_to_show = 20;
@@ -739,11 +823,72 @@ void HexViewerComponent(ftxui::ScreenInteractive &screen) {
     if (event == Event::PageUp) offset = std::max(0, offset - (lines_to_show * 16));
     if (event == Event::PageDown) offset = std::min(static_cast<int>(app_context.rom.size()) - (lines_to_show * 16), offset + (lines_to_show * 16));
     if (event == Event::Character('q')) SwitchComponents(screen, LayoutID::kExit);
-    if (event == Event::Return) SwitchComponents(screen, LayoutID::kMainMenu);
+    if (event == Event::Return) SwitchComponents(screen, LayoutID::kDashboard);
     return false;
   });
 
   screen.Loop(event_handler);
+}
+
+void DashboardComponent(ftxui::ScreenInteractive &screen) {
+    static int selected = 0;
+    MenuOption option;
+    option.focused_entry = &selected;
+    auto menu = Menu(&kMainMenuEntries, &selected, option);
+
+    auto content_renderer = ftxui::Renderer([&] {
+        return vbox({
+            text(GetColoredLogo()) | center,
+            separator(),
+            text("Welcome to the z3ed Dashboard!") | center,
+            text("Select a tool from the menu to begin.") | center | dim,
+        });
+    });
+
+    auto main_container = Container::Horizontal({
+        menu,
+        content_renderer
+    });
+
+    auto layout = Renderer(main_container, [&] {
+        std::string rom_info = app_context.rom.is_loaded() ? app_context.rom.title() : "No ROM";
+        return vbox({
+            hbox({
+                menu->Render() | size(WIDTH, EQUAL, 30) | border,
+                (content_renderer->Render() | center | flex) | border
+            }),
+            hbox({
+                text(rom_info) | bold,
+                filler(),
+                text("q: Quit | ↑/↓: Navigate | Enter: Select")
+            }) | border
+        });
+    });
+
+    auto event_handler = CatchEvent(layout, [&](Event event) {
+        if (event == Event::Character('q')) {
+            SwitchComponents(screen, LayoutID::kExit);
+            return true;
+        }
+        if (event == Event::Return) {
+            // Still use SwitchComponents for now to maintain old behavior
+            switch ((MainMenuEntry)selected) {
+                case MainMenuEntry::kLoadRom: SwitchComponents(screen, LayoutID::kLoadRom); break;
+                case MainMenuEntry::kAIAgentChat: SwitchComponents(screen, LayoutID::kAIAgentChat); break;
+                case MainMenuEntry::kTodoManager: SwitchComponents(screen, LayoutID::kTodoManager); break;
+                case MainMenuEntry::kRomTools: SwitchComponents(screen, LayoutID::kRomTools); break;
+                case MainMenuEntry::kGraphicsTools: SwitchComponents(screen, LayoutID::kGraphicsTools); break;
+                case MainMenuEntry::kTestingTools: SwitchComponents(screen, LayoutID::kTestingTools); break;
+                case MainMenuEntry::kSettings: SwitchComponents(screen, LayoutID::kSettings); break;
+                case MainMenuEntry::kHelp: SwitchComponents(screen, LayoutID::kHelp); break;
+                case MainMenuEntry::kExit: SwitchComponents(screen, LayoutID::kExit); break;
+            }
+            return true;
+        }
+        return false;
+    });
+
+    screen.Loop(event_handler);
 }
 
 void MainMenuComponent(ftxui::ScreenInteractive &screen) {
@@ -845,8 +990,15 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
 
 void ShowMain() {
   auto screen = ScreenInteractive::TerminalOutput();
-  while (true) {
+  while (app_context.current_layout != LayoutID::kExit) {
+    if (app_context.rom.is_loaded() && app_context.current_layout == LayoutID::kMainMenu) {
+        app_context.current_layout = LayoutID::kDashboard;
+    }
+
     switch (app_context.current_layout) {
+      case LayoutID::kDashboard: {
+        DashboardComponent(screen);
+      } break;
       case LayoutID::kMainMenu: {
         MainMenuComponent(screen);
       } break;
@@ -867,9 +1019,7 @@ void ShowMain() {
         app_context.current_layout = LayoutID::kMainMenu;
       } break;
       case LayoutID::kTodoManager: {
-        // TODO: Implement TODO manager TUI
-        app_context.error_message = "TODO Manager TUI coming soon - use CLI commands for now";
-        app_context.current_layout = LayoutID::kError;
+        TodoManagerComponent(screen);
       } break;
       case LayoutID::kRomTools: {
         // Show submenu for ROM tools
