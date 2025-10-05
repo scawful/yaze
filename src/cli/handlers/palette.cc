@@ -127,9 +127,13 @@ absl::Status PaletteImport::Run(const std::vector<std::string>& arg_vec) {
   *pal = snes_palette;
 
   // TODO: Implement saving the modified palette back to the ROM.
+  auto save_status = rom_.SaveToFile({.save_new = false});
+  if (!save_status.ok()) {
+    return save_status;
+  }
 
   std::cout << "Successfully imported palette " << palette_id << " to group " << group_name << " from " << input_file << std::endl;
-  std::cout << "(Saving to ROM not yet implemented)" << std::endl;
+  std::cout << "✅ ROM saved to: " << rom_.filename() << std::endl;
 
   return absl::OkStatus();
 }

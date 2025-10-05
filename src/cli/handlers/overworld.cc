@@ -27,14 +27,22 @@ namespace yaze {
 namespace cli {
 
 absl::Status OverworldGetTile::Run(const std::vector<std::string>& arg_vec) {
-  if (arg_vec.size() < 3) {
-    return absl::InvalidArgumentError("Usage: overworld get-tile --map <map_id> --x <x> --y <y>");
+  int map_id = -1, x = -1, y = -1;
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& arg = arg_vec[i];
+    if ((arg == "--map") && i + 1 < arg_vec.size()) {
+      map_id = std::stoi(arg_vec[++i]);
+    } else if ((arg == "--x") && i + 1 < arg_vec.size()) {
+      x = std::stoi(arg_vec[++i]);
+    } else if ((arg == "--y") && i + 1 < arg_vec.size()) {
+      y = std::stoi(arg_vec[++i]);
+    }
   }
 
-  // TODO: Implement proper argument parsing
-  int map_id = std::stoi(arg_vec[0]);
-  int x = std::stoi(arg_vec[1]);
-  int y = std::stoi(arg_vec[2]);
+  if (map_id == -1 || x == -1 || y == -1) {
+    return absl::InvalidArgumentError("Usage: overworld get-tile --map <map_id> --x <x> --y <y>");
+  }
 
   std::string rom_file = absl::GetFlag(FLAGS_rom);
   if (rom_file.empty()) {
@@ -63,15 +71,24 @@ absl::Status OverworldGetTile::Run(const std::vector<std::string>& arg_vec) {
 }
 
 absl::Status OverworldSetTile::Run(const std::vector<std::string>& arg_vec) {
-  if (arg_vec.size() < 4) {
-    return absl::InvalidArgumentError("Usage: overworld set-tile --map <map_id> --x <x> --y <y> --tile <tile_id>");
+  int map_id = -1, x = -1, y = -1, tile_id = -1;
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& arg = arg_vec[i];
+    if ((arg == "--map") && i + 1 < arg_vec.size()) {
+      map_id = std::stoi(arg_vec[++i]);
+    } else if ((arg == "--x") && i + 1 < arg_vec.size()) {
+      x = std::stoi(arg_vec[++i]);
+    } else if ((arg == "--y") && i + 1 < arg_vec.size()) {
+      y = std::stoi(arg_vec[++i]);
+    } else if ((arg == "--tile") && i + 1 < arg_vec.size()) {
+      tile_id = std::stoi(arg_vec[++i], nullptr, 16);
+    }
   }
 
-  // TODO: Implement proper argument parsing
-  int map_id = std::stoi(arg_vec[0]);
-  int x = std::stoi(arg_vec[1]);
-  int y = std::stoi(arg_vec[2]);
-  int tile_id = std::stoi(arg_vec[3], nullptr, 16);
+  if (map_id == -1 || x == -1 || y == -1 || tile_id == -1) {
+    return absl::InvalidArgumentError("Usage: overworld set-tile --map <map_id> --x <x> --y <y> --tile <tile_id>");
+  }
 
   std::string rom_file = absl::GetFlag(FLAGS_rom);
   if (rom_file.empty()) {
