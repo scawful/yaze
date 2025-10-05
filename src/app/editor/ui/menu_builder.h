@@ -110,6 +110,10 @@ class MenuBuilder {
   std::vector<Menu> menus_;
   Menu* current_menu_ = nullptr;
   
+  // Track which submenus are actually open during drawing
+  mutable std::vector<bool> submenu_stack_;
+  mutable int skip_depth_ = 0;  // Track nesting depth when skipping closed submenus
+  
   void DrawMenuItem(const MenuItem& item);
 };
 

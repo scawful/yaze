@@ -55,7 +55,13 @@ EditorSelectionDialog::EditorSelectionDialog() {
 }
 
 bool EditorSelectionDialog::Show(bool* p_open) {
+  // Sync internal state with external flag
+  if (p_open && *p_open && !is_open_) {
+    is_open_ = true;
+  }
+  
   if (!is_open_) {
+    if (p_open) *p_open = false;
     return false;
   }
   
@@ -66,7 +72,8 @@ bool EditorSelectionDialog::Show(bool* p_open) {
   ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(ImVec2(900, 600), ImGuiCond_Appearing);
   
-  if (ImGui::Begin("Editor Selection", p_open ? p_open : &is_open_,
+  bool* window_open = p_open ? p_open : &is_open_;
+  if (ImGui::Begin("Editor Selection", window_open,
                    ImGuiWindowFlags_NoCollapse)) {
     DrawWelcomeHeader();
     
@@ -92,24 +99,32 @@ bool EditorSelectionDialog::Show(bool* p_open) {
                           ImGuiTableFlags_None)) {
       for (size_t i = 0; i < editors_.size(); ++i) {
         ImGui::TableNextColumn();
+        
+        EditorType prev_selection = selected_editor_;
         DrawEditorCard(editors_[i], static_cast<int>(i));
-     
-        // TODO: Fix this
-        // if (selected_editor_ != EditorType::kNone) {
-        //   editor_selected = true;
-        //   MarkRecentlyUsed(selected_editor_);
-        //   if (selection_callback_) {
-        //     selection_callback_(selected_editor_);
-        //   }
-        // }
+        
+        // Check if an editor was just selected
+        if (selected_editor_ != prev_selection) {
+          editor_selected = true;
+          MarkRecentlyUsed(selected_editor_);
+          if (selection_callback_) {
+            selection_callback_(selected_editor_);
+          }
+        }
       }
       ImGui::EndTable();
     }
   }
   ImGui::End();
   
+  // Sync state back
+  if (p_open && !(*p_open)) {
+    is_open_ = false;
+  }
+  
   if (editor_selected) {
     is_open_ = false;
+    if (p_open) *p_open = false;
   }
   
   return editor_selected;

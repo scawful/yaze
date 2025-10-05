@@ -35,14 +35,21 @@ MenuBuilder& MenuBuilder::EndMenu() {
   if (!current_menu_) return *this;
   
   // Check if we're ending a submenu or top-level menu
+  // We need to track nesting depth to handle nested submenus correctly
   bool is_submenu = false;
+  int depth = 0;
+  
   for (auto it = current_menu_->items.rbegin(); 
        it != current_menu_->items.rend(); ++it) {
-    if (it->type == MenuItem::Type::kSubMenuBegin) {
-      is_submenu = true;
-      break;
-    } else if (it->type == MenuItem::Type::kSubMenuEnd) {
-      break;
+    if (it->type == MenuItem::Type::kSubMenuEnd) {
+      depth++;  // Found an end, so we need to skip its matching begin
+    } else if (it->type == MenuItem::Type::kSubMenuBegin) {
+      if (depth == 0) {
+        // Found an unmatched begin - this is what we're closing
+        is_submenu = true;
+        break;
+      }
+      depth--;  // This begin matches a previous end
     }
   }
   
@@ -107,11 +114,12 @@ MenuBuilder& MenuBuilder::DisabledItem(const char* label, const char* icon) {
 
 void MenuBuilder::Draw() {
   for (const auto& menu : menus_) {
-    std::string menu_label = menu.icon.empty() 
-        ? menu.label 
-        : absl::StrCat(menu.icon, " ", menu.label);
+    // Don't add icons to top-level menus as they get cut off
+    std::string menu_label = menu.label;
     
     if (ImGui::BeginMenu(menu_label.c_str())) {
+      submenu_stack_.clear();  // Reset submenu stack for each top-level menu
+      skip_depth_ = 0;  // Reset skip depth
       for (const auto& item : menu.items) {
         DrawMenuItem(item);
       }
@@ -123,28 +131,16 @@ void MenuBuilder::Draw() {
 void MenuBuilder::DrawMenuItem(const MenuItem& item) {
   switch (item.type) {
     case MenuItem::Type::kSeparator:
-      ImGui::Separator();
+      if (skip_depth_ == 0) {
+        ImGui::Separator();
+      }
       break;
       
     case MenuItem::Type::kDisabled: {
-      std::string label = item.icon.empty()
-          ? item.label
-          : absl::StrCat(item.icon, " ", item.label);
-      ImGui::BeginDisabled();
-      ImGui::MenuItem(label.c_str(), nullptr, false, false);
-      ImGui::EndDisabled();
-      break;
-    }
-      
-    case MenuItem::Type::kSubMenuBegin: {
-      std::string label = item.icon.empty()
-          ? item.label
-          : absl::StrCat(item.icon, " ", item.label);
-      
-      bool enabled = !item.enabled || item.enabled();
-      if (enabled && ImGui::BeginMenu(label.c_str())) {
-        // Submenu items will be drawn in subsequent calls
-      } else if (!enabled) {
+      if (skip_depth_ == 0) {
+        std::string label = item.icon.empty()
+            ? item.label
+            : absl::StrCat(item.icon, " ", item.label);
         ImGui::BeginDisabled();
         ImGui::MenuItem(label.c_str(), nullptr, false, false);
         ImGui::EndDisabled();
@@ -152,11 +148,60 @@ void MenuBuilder::DrawMenuItem(const MenuItem& item) {
       break;
     }
       
+    case MenuItem::Type::kSubMenuBegin: {
+      // If we're already skipping, increment skip depth and continue
+      if (skip_depth_ > 0) {
+        skip_depth_++;
+        submenu_stack_.push_back(false);
+        break;
+      }
+      
+      std::string label = item.icon.empty()
+          ? item.label
+          : absl::StrCat(item.icon, " ", item.label);
+      
+      bool enabled = !item.enabled || item.enabled();
+      bool opened = false;
+      
+      if (!enabled) {
+        // Disabled submenu - show as disabled item but don't open
+        ImGui::BeginDisabled();
+        ImGui::MenuItem(label.c_str(), nullptr, false, false);
+        ImGui::EndDisabled();
+        submenu_stack_.push_back(false);
+        skip_depth_++;  // Skip contents of disabled submenu
+      } else {
+        // BeginMenu returns true if submenu is currently open/visible
+        opened = ImGui::BeginMenu(label.c_str());
+        submenu_stack_.push_back(opened);
+        if (!opened) {
+          skip_depth_++;  // Skip contents of closed submenu
+        }
+      }
+      break;
+    }
+      
     case MenuItem::Type::kSubMenuEnd:
-      ImGui::EndMenu();
+      // Decrement skip depth if we were skipping
+      if (skip_depth_ > 0) {
+        skip_depth_--;
+      }
+      
+      // Pop the stack and call EndMenu only if submenu was opened
+      if (!submenu_stack_.empty()) {
+        bool was_opened = submenu_stack_.back();
+        submenu_stack_.pop_back();
+        if (was_opened && skip_depth_ == 0) {
+          ImGui::EndMenu();
+        }
+      }
       break;
       
     case MenuItem::Type::kItem: {
+      if (skip_depth_ > 0) {
+        break;  // Skip items in closed submenus
+      }
+      
       std::string label = item.icon.empty()
           ? item.label
           : absl::StrCat(item.icon, " ", item.label);

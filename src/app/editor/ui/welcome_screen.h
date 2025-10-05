@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "imgui/imgui.h"
+
 namespace yaze {
 namespace editor {
 
@@ -100,9 +102,14 @@ class WelcomeScreen {
   
   // Animation state
   float animation_time_ = 0.0f;
-  float header_glow_ = 0.0f;
   float card_hover_scale_[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
   int hovered_card_ = -1;
+  
+  // Interactive triforce positions (smooth interpolation)
+  static constexpr int kNumTriforces = 9;
+  ImVec2 triforce_positions_[kNumTriforces] = {};
+  ImVec2 triforce_base_positions_[kNumTriforces] = {};
+  bool triforce_positions_initialized_ = false;
 };
 
 }  // namespace editor
