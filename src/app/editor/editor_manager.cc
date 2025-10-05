@@ -324,6 +324,31 @@ void EditorManager::Initialize(const std::string& filename) {
 #endif
 
   // Load critical user settings first
+  // Initialize welcome screen callbacks
+  welcome_screen_.SetOpenRomCallback([this]() {
+    status_ = LoadRom();
+    if (status_.ok()) {
+      show_welcome_screen_ = false;
+      welcome_screen_manually_closed_ = true;
+    }
+  });
+  
+  welcome_screen_.SetNewProjectCallback([this]() {
+    status_ = CreateNewProject();
+    if (status_.ok()) {
+      show_welcome_screen_ = false;
+      welcome_screen_manually_closed_ = true;
+    }
+  });
+  
+  welcome_screen_.SetOpenProjectCallback([this](const std::string& filepath) {
+    status_ = OpenRomOrProject(filepath);
+    if (status_.ok()) {
+      show_welcome_screen_ = false;
+      welcome_screen_manually_closed_ = true;
+    }
+  });
+
   LoadUserSettings();
 
   // Defer workspace presets loading to avoid initialization crashes
@@ -1159,12 +1184,23 @@ void EditorManager::BuildModernMenu() {
             [this]() { current_editor_set_->sprite_editor_.set_active(true); })
       .Item("Palette", ICON_MD_PALETTE,
             [this]() { current_editor_set_->palette_editor_.set_active(true); })
+      .Item("Message", ICON_MD_CHAT_BUBBLE,
+            [this]() { current_editor_set_->message_editor_.set_active(true); })
+      .Item("Music", ICON_MD_MUSIC_NOTE,
+            [this]() { current_editor_set_->music_editor_.set_active(true); })
       .EndMenu()
     .Separator()
     .Item("Welcome Screen", ICON_MD_HOME,
           [this]() { show_welcome_screen_ = true; })
     .Item("Command Palette", ICON_MD_TERMINAL,
           [this]() { show_command_palette_ = true; }, "Ctrl+Shift+P")
+#ifdef YAZE_WITH_GRPC
+    .Separator()
+    .Item("AI Agent Editor", ICON_MD_SMART_TOY,
+          [this]() { agent_editor_.SetChatActive(true); }, "Ctrl+Shift+A",
+          nullptr,
+          [this]() { return agent_editor_.IsChatActive(); })
+#endif
     .EndMenu();
   
   // Workspace Menu
@@ -1187,6 +1223,98 @@ void EditorManager::BuildModernMenu() {
     .Item("Performance Dashboard", ICON_MD_SPEED,
           [this]() { show_performance_dashboard_ = true; }, "Ctrl+Shift+P")
     .EndMenu();
+  
+#ifdef YAZE_WITH_GRPC
+  // AI Agent Menu
+  menu_builder_.BeginMenu("AI Agent", ICON_MD_SMART_TOY)
+    .Item("Open Agent Chat", ICON_MD_CHAT,
+          [this]() { agent_editor_.SetChatActive(true); }, "Ctrl+Shift+A")
+    .Separator()
+    .BeginSubMenu("Vision & Multimodal", ICON_MD_CAMERA)
+      .Item("Capture Active Editor", ICON_MD_SCREENSHOT,
+            [this]() { 
+              std::filesystem::path output;
+              AgentEditor::CaptureConfig config;
+              config.mode = AgentEditor::CaptureConfig::CaptureMode::kActiveEditor;
+              status_ = agent_editor_.CaptureSnapshot(&output, config);
+            })
+      .Item("Capture Full Window", ICON_MD_FULLSCREEN,
+            [this]() {
+              std::filesystem::path output;
+              AgentEditor::CaptureConfig config;
+              config.mode = AgentEditor::CaptureConfig::CaptureMode::kFullWindow;
+              status_ = agent_editor_.CaptureSnapshot(&output, config);
+            })
+      .EndMenu()
+    .Separator()
+    .Item("Proposal Drawer", ICON_MD_RATE_REVIEW,
+          [this]() { show_proposal_drawer_ = !show_proposal_drawer_; },
+          nullptr, nullptr,
+          [this]() { return show_proposal_drawer_; })
+    .EndMenu();
+  
+  // Collaboration Menu
+  menu_builder_.BeginMenu("Collaboration", ICON_MD_PEOPLE)
+    .BeginSubMenu("Session", ICON_MD_MEETING_ROOM)
+      .Item("Host Session", ICON_MD_ADD_CIRCLE,
+            [this]() {
+              auto result = agent_editor_.HostSession("New Session");
+              if (result.ok()) {
+                toast_manager_.AddToast(ToastType::Success, 
+                    "Hosted session: " + result->session_name);
+              } else {
+                toast_manager_.AddToast(ToastType::Error, 
+                    "Failed to host session: " + std::string(result.status().message()));
+              }
+            })
+      .Item("Join Session", ICON_MD_LOGIN,
+            [this]() { popup_manager_->Show("Join Collaboration Session"); })
+      .Separator()
+      .Item("Leave Session", ICON_MD_LOGOUT,
+            [this]() {
+              status_ = agent_editor_.LeaveSession();
+              if (status_.ok()) {
+                toast_manager_.AddToast(ToastType::Info, "Left collaboration session");
+              }
+            },
+            nullptr,
+            [this]() { return agent_editor_.IsInSession(); })
+      .Item("Refresh Session", ICON_MD_REFRESH,
+            [this]() {
+              auto result = agent_editor_.RefreshSession();
+              if (result.ok()) {
+                toast_manager_.AddToast(ToastType::Success, 
+                    "Session refreshed: " + std::to_string(result->participants.size()) + " participants");
+              }
+            },
+            nullptr,
+            [this]() { return agent_editor_.IsInSession(); })
+      .EndMenu()
+    .Separator()
+    .BeginSubMenu("Network", ICON_MD_CLOUD)
+      .Item("Connect to Server", ICON_MD_CLOUD_UPLOAD,
+            [this]() { popup_manager_->Show("Connect to Server"); })
+      .Item("Disconnect", ICON_MD_CLOUD_OFF,
+            [this]() {
+              agent_editor_.DisconnectFromServer();
+              toast_manager_.AddToast(ToastType::Info, "Disconnected from server");
+            },
+            nullptr,
+            [this]() { return agent_editor_.IsConnectedToServer(); })
+      .EndMenu()
+    .Separator()
+    .BeginSubMenu("Mode", ICON_MD_SETTINGS_ETHERNET)
+      .Item("Local (Filesystem)", ICON_MD_FOLDER,
+            [this]() { /* Set local mode */ },
+            nullptr, nullptr,
+            [this]() { return agent_editor_.GetCurrentMode() == AgentEditor::CollaborationMode::kLocal; })
+      .Item("Network (WebSocket)", ICON_MD_WIFI,
+            [this]() { /* Set network mode */ },
+            nullptr, nullptr,
+            [this]() { return agent_editor_.GetCurrentMode() == AgentEditor::CollaborationMode::kNetwork; })
+      .EndMenu()
+    .EndMenu();
+#endif
   
   // Debug Menu
   menu_builder_.BeginMenu("Debug", ICON_MD_BUG_REPORT)
@@ -3194,391 +3322,15 @@ void EditorManager::DrawSessionRenameDialog() {
 }
 
 void EditorManager::DrawWelcomeScreen() {
-  // Make welcome screen moveable but with a good default position
-  ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
-                          ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
-  ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
-
-  // Create a subtle animated background effect
-  static float animation_time = 0.0f;
-  animation_time += ImGui::GetIO().DeltaTime;
-
-  // Make it moveable and resizable but keep the custom styling
-  ImGuiWindowFlags flags =
-      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoBackground;
-
-  // Use a unique window name to prevent stacking
-  static int welcome_window_id = 0;
-  std::string window_name =
-      absl::StrFormat("Welcome to YAZE##welcome_%d", welcome_window_id);
-
-  bool welcome_was_open = show_welcome_screen_;
-  if (ImGui::Begin(window_name.c_str(), &show_welcome_screen_, flags)) {
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    ImVec2 window_pos = ImGui::GetWindowPos();
-    ImVec2 window_size = ImGui::GetWindowSize();
-
-    // Get theme colors for welcome screen
-    auto& theme_manager = gui::ThemeManager::Get();
-    auto bg_color = theme_manager.GetWelcomeScreenBackground();
-    auto border_color = theme_manager.GetWelcomeScreenBorder();
-    auto accent_color = theme_manager.GetWelcomeScreenAccent();
-
-    // Draw themed gradient background
-    ImU32 bg_top = ImGui::ColorConvertFloat4ToU32(
-        ImVec4(bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha));
-    ImU32 bg_bottom = ImGui::ColorConvertFloat4ToU32(
-        ImVec4(bg_color.red * 0.8f, bg_color.green * 0.8f, bg_color.blue * 0.8f,
-               bg_color.alpha));
-    draw_list->AddRectFilledMultiColor(
-        window_pos,
-        ImVec2(window_pos.x + window_size.x, window_pos.y + window_size.y),
-        bg_top, bg_top, bg_bottom, bg_bottom);
-
-    // Themed animated border
-    float border_thickness = 3.0f;
-    float pulse = 0.8f + 0.2f * sinf(animation_time * 2.0f);
-    ImU32 themed_border = ImGui::ColorConvertFloat4ToU32(
-        ImVec4(border_color.red, border_color.green, border_color.blue,
-               pulse * border_color.alpha));
-    draw_list->AddRect(
-        window_pos,
-        ImVec2(window_pos.x + window_size.x, window_pos.y + window_size.y),
-        themed_border, 12.0f, 0, border_thickness);
-
-    // Enhanced floating particles effect with multiple layers
-    for (int layer = 0; layer < 2; ++layer) {
-      int particle_count = layer == 0 ? 12 : 8;
-      float layer_speed = layer == 0 ? 1.0f : 0.6f;
-      float layer_alpha = layer == 0 ? 0.4f : 0.2f;
-
-      for (int i = 0; i < particle_count; ++i) {
-        float time_offset = layer * 3.14159f + i * 0.8f;
-        float offset_x =
-            sinf(animation_time * 0.5f * layer_speed + time_offset) *
-            (30.0f + layer * 10.0f);
-        float offset_y =
-            cosf(animation_time * 0.3f * layer_speed + time_offset) *
-            (20.0f + layer * 8.0f);
-
-        // Distribute particles across the window
-        float base_x = window_pos.x + (window_size.x / particle_count) * i + 40;
-        float base_y = window_pos.y + 80 + layer * 30;
-
-        ImVec2 particle_pos = ImVec2(base_x + offset_x, base_y + offset_y);
-
-        // Pulsing alpha effect
-        float alpha =
-            layer_alpha + 0.3f * sinf(animation_time * 1.5f + time_offset);
-        ImU32 particle_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
-            accent_color.red, accent_color.green, accent_color.blue, alpha));
-
-        // Varying particle sizes
-        float radius = 1.5f + layer * 0.5f +
-                       sinf(animation_time * 2.0f + time_offset) * 0.8f;
-        draw_list->AddCircleFilled(particle_pos, radius, particle_color);
-
-        // Add subtle glow effect for layer 0
-        if (layer == 0) {
-          ImU32 glow_color = ImGui::ColorConvertFloat4ToU32(
-              ImVec4(accent_color.red, accent_color.green, accent_color.blue,
-                     alpha * 0.3f));
-          draw_list->AddCircleFilled(particle_pos, radius + 1.0f, glow_color);
-        }
-      }
-    }
-
-    // Header with themed styling
-    ImGui::Spacing();
-    ImGui::SetCursorPosX(
-        (window_size.x -
-         ImGui::CalcTextSize("Welcome to Yet Another Zelda3 Editor").x) *
-        0.5f);
-    auto text_color = theme_manager.GetCurrentTheme().text_primary;
-    ImGui::PushStyleColor(
-        ImGuiCol_Text, ImVec4(text_color.red, text_color.green, text_color.blue,
-                              text_color.alpha));
-    ImGui::Text("Welcome to Yet Another Zelda3 Editor");
-    ImGui::PopStyleColor();
-
-    ImGui::SetCursorPosX(
-        (window_size.x -
-         ImGui::CalcTextSize("The Legend of Zelda: A Link to the Past").x) *
-        0.5f);
-    auto subtitle_color = theme_manager.GetCurrentTheme().text_secondary;
-    ImGui::PushStyleColor(
-        ImGuiCol_Text,
-        ImVec4(subtitle_color.red, subtitle_color.green, subtitle_color.blue,
-               subtitle_color.alpha * 0.9f));
-    ImGui::Text("The Legend of Zelda: A Link to the Past");
-    ImGui::PopStyleColor();
-
-    ImGui::Spacing();
-
-    // Themed decorative line with glow effect (positioned closer to header)
-    float line_y =
-        window_pos.y + 30;   // Move even higher for tighter header integration
-    float line_margin = 80;  // Maintain good horizontal balance
-    ImVec2 line_start = ImVec2(window_pos.x + line_margin, line_y);
-    ImVec2 line_end =
-        ImVec2(window_pos.x + window_size.x - line_margin, line_y);
-
-    // Enhanced glow effect with multiple line layers for depth
-    float glow_alpha = 0.6f + 0.4f * sinf(animation_time * 1.5f);
-    ImU32 line_color = ImGui::ColorConvertFloat4ToU32(ImVec4(
-        accent_color.red, accent_color.green, accent_color.blue, glow_alpha));
-
-    // Draw main line with glow effect
-    draw_list->AddLine(
-        line_start, line_end,
-        ImGui::ColorConvertFloat4ToU32(ImVec4(
-            accent_color.red, accent_color.green, accent_color.blue, 0.3f)),
-        4.0f);                                                   // Glow layer
-    draw_list->AddLine(line_start, line_end, line_color, 2.0f);  // Main line
-
-    ImGui::Spacing();
-    ImGui::Spacing();
-
-    // Show different messages based on state
-    if (!sessions_.empty() && !current_rom_) {
-      ImGui::Separator();
-      ImGui::Spacing();
-      ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.0f, 1.0f),
-                         ICON_MD_WARNING " ROM Loading Required");
-      TextWrapped(
-          "A session exists but no ROM is loaded. Please load a ROM file to "
-          "continue editing.");
-      ImGui::Text("Active Sessions: %zu", GetActiveSessionCount());
-    } else {
-      ImGui::Separator();
-      ImGui::Spacing();
-      TextWrapped("No ROM loaded.");
-    }
-
-    ImGui::Spacing();
-
-    // Enhanced primary actions with glowing buttons
-    ImGui::Text("Get Started:");
-    ImGui::Spacing();
-
-    // Themed primary buttons with enhanced effects
-    auto current_theme = theme_manager.GetCurrentTheme();
-    ImGui::PushStyleColor(ImGuiCol_Button,
-                          ConvertColorToImVec4(current_theme.primary));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ConvertColorToImVec4(current_theme.accent));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                          ConvertColorToImVec4(current_theme.secondary));
-
-    if (ImGui::Button(ICON_MD_FILE_OPEN " Open ROM File", ImVec2(200, 40))) {
-      status_ = LoadRom();
-      if (!status_.ok()) {
-        toast_manager_.Show(std::string(status_.message()),
-                            editor::ToastType::kError);
-      }
-    }
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open Project", ImVec2(200, 40))) {
-      auto file_name = util::FileDialogWrapper::ShowOpenFileDialog();
-      if (!file_name.empty()) {
-        status_ = OpenRomOrProject(file_name);
-        if (!status_.ok()) {
-          toast_manager_.Show(std::string(status_.message()),
-                              editor::ToastType::kError);
-        }
-      }
-    }
-
-    ImGui::PopStyleColor(3);
-
-    ImGui::Spacing();
-
-    // Feature flags section (per-session)
-    ImGui::Text("Options:");
-    auto* flags = GetCurrentFeatureFlags();
-    Checkbox("Load custom overworld features",
-             &flags->overworld.kLoadCustomOverworld);
-
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
-
-    // Recent files section (reuse homepage logic)
-    ImGui::Text("Recent Files:");
-    ImGui::BeginChild("RecentFiles", ImVec2(0, 100), true);
-    auto& manager = core::RecentFilesManager::GetInstance();
-    for (const auto& file : manager.GetRecentFiles()) {
-      if (gui::ClickableText(file.c_str())) {
-        status_ = OpenRomOrProject(file);
-        if (!status_.ok()) {
-          toast_manager_.Show(std::string(status_.message()),
-                              editor::ToastType::kError);
-        }
-      }
-    }
-    ImGui::EndChild();
-
-    ImGui::Spacing();
-
-    // Show editor access buttons for loaded sessions
-    bool has_loaded_sessions = false;
-    for (const auto& session : sessions_) {
-      if (session.rom.is_loaded()) {
-        has_loaded_sessions = true;
-        break;
-      }
-    }
-
-    if (has_loaded_sessions) {
-      ImGui::Spacing();
-      ImGui::Separator();
-      ImGui::Text("Available Editors:");
-      ImGui::Text(
-          "Click to open editor windows that can be docked side by side");
-      ImGui::Spacing();
-
-      // Show sessions and their editors
-      for (size_t session_idx = 0; session_idx < sessions_.size();
-           ++session_idx) {
-        const auto& session = sessions_[session_idx];
-        if (!session.rom.is_loaded())
-          continue;
-
-        ImGui::Text("Session: %s", session.GetDisplayName().c_str());
-
-        // Editor buttons in a grid layout for this session
-        if (ImGui::BeginTable(
-                absl::StrFormat("EditorsTable##%zu", session_idx).c_str(), 4,
-                ImGuiTableFlags_SizingFixedFit |
-                    ImGuiTableFlags_NoHostExtendX)) {
-
-          // Row 1: Primary editors
-          ImGui::TableNextColumn();
-          if (ImGui::Button(
-                  absl::StrFormat(ICON_MD_MAP " Overworld##%zu", session_idx)
-                      .c_str(),
-                  ImVec2(120, 30))) {
-            sessions_[session_idx].editors.overworld_editor_.set_active(true);
-          }
-          ImGui::TableNextColumn();
-          if (ImGui::Button(
-                  absl::StrFormat(ICON_MD_DOMAIN " Dungeon##%zu", session_idx)
-                      .c_str(),
-                  ImVec2(120, 30))) {
-            sessions_[session_idx].editors.dungeon_editor_.set_active(true);
-          }
-          ImGui::TableNextColumn();
-          if (ImGui::Button(
-                  absl::StrFormat(ICON_MD_IMAGE " Graphics##%zu", session_idx)
-                      .c_str(),
-                  ImVec2(120, 30))) {
-            sessions_[session_idx].editors.graphics_editor_.set_active(true);
-          }
-          ImGui::TableNextColumn();
-          if (ImGui::Button(
-                  absl::StrFormat(ICON_MD_PALETTE " Palette##%zu", session_idx)
-                      .c_str(),
-                  ImVec2(120, 30))) {
-            sessions_[session_idx].editors.palette_editor_.set_active(true);
-          }
-
-          // Row 2: Secondary editors
-          ImGui::TableNextColumn();
-          if (ImGui::Button(
-                  absl::StrFormat(ICON_MD_MESSAGE " Message##%zu", session_idx)
-                      .c_str(),
-                  ImVec2(120, 30))) {
-            sessions_[session_idx].editors.message_editor_.set_active(true);
-          }
-          ImGui::TableNextColumn();
-          if (ImGui::Button(
-                  absl::StrFormat(ICON_MD_PERSON " Sprite##%zu", session_idx)
-                      .c_str(),
-                  ImVec2(120, 30))) {
-            sessions_[session_idx].editors.sprite_editor_.set_active(true);
-          }
-          ImGui::TableNextColumn();
-          if (ImGui::Button(
-                  absl::StrFormat(ICON_MD_MUSIC_NOTE " Music##%zu", session_idx)
-                      .c_str(),
-                  ImVec2(120, 30))) {
-            sessions_[session_idx].editors.music_editor_.set_active(true);
-          }
-          ImGui::TableNextColumn();
-          if (ImGui::Button(
-                  absl::StrFormat(ICON_MD_MONITOR " Screen##%zu", session_idx)
-                      .c_str(),
-                  ImVec2(120, 30))) {
-            sessions_[session_idx].editors.screen_editor_.set_active(true);
-          }
-
-          ImGui::EndTable();
-        }
-
-        if (session_idx < sessions_.size() - 1) {
-          ImGui::Spacing();
-        }
-      }
-    }
-
-    // Links section
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Text("Help & Support:");
-    if (gui::ClickableText(ICON_MD_HELP " Getting Started Guide")) {
-      gui::OpenUrl(
-          "https://github.com/scawful/yaze/blob/master/docs/"
-          "01-getting-started.md");
-    }
-    if (gui::ClickableText(ICON_MD_BUG_REPORT " Report Issues")) {
-      gui::OpenUrl("https://github.com/scawful/yaze/issues");
-    }
-
-    // Show tip about drag and drop
-    ImGui::Spacing();
-    ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), ICON_MD_TIPS_AND_UPDATES
-                       " Tip: Drag and drop ROM files onto the window");
-
-    // Add settings and customization section (accessible before ROM loading)
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Text("%s Customization & Settings", ICON_MD_SETTINGS);
-
-    // Theme and display settings buttons (always accessible)
-    static bool show_welcome_theme_selector = false;
-    if (ImGui::Button(
-            absl::StrFormat("%s Theme Settings", ICON_MD_PALETTE).c_str(),
-            ImVec2(180, 35))) {
-      show_welcome_theme_selector = true;
-    }
-
-    // Show theme selector if requested
-    if (show_welcome_theme_selector) {
-      auto& theme_manager = gui::ThemeManager::Get();
-      theme_manager.ShowThemeSelector(&show_welcome_theme_selector);
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button(
-            absl::StrFormat("%s Display Settings", ICON_MD_DISPLAY_SETTINGS)
-                .c_str(),
-            ImVec2(180, 35))) {
-      // Open display settings popup (make it accessible without ROM)
-      popup_manager_->Show("Display Settings");
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button(
-            absl::StrFormat("%s Command Palette", ICON_MD_TERMINAL).c_str(),
-            ImVec2(180, 35))) {
-      show_command_palette_ = true;
-    }
-  }
-  ImGui::End();
-
+  // Use the new WelcomeScreen class for a modern, feature-rich experience
+  welcome_screen_.RefreshRecentProjects();
+  bool was_open = show_welcome_screen_;
+  bool action_taken = welcome_screen_.Show(&show_welcome_screen_);
+  
   // Check if the welcome screen was manually closed via the close button
-  if (welcome_was_open && !show_welcome_screen_) {
+  if (was_open && !show_welcome_screen_) {
     welcome_screen_manually_closed_ = true;
+    welcome_screen_.MarkManuallyClosed();
   }
 }
 

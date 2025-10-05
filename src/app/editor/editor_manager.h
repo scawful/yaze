@@ -31,6 +31,7 @@
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/editor/ui/editor_selection_dialog.h"
+#include "app/editor/ui/welcome_screen.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/performance_dashboard.h"
 #include "app/rom.h"
@@ -195,6 +196,9 @@ class EditorManager {
   // Editor selection dialog
   EditorSelectionDialog editor_selection_dialog_;
   bool show_editor_selection_ = false;
+  
+  // Welcome screen
+  WelcomeScreen welcome_screen_;
 
 #ifdef YAZE_WITH_GRPC
   // Agent editor - manages chat, collaboration, and network coordination
