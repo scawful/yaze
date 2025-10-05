@@ -5,15 +5,23 @@ set(CMAKE_POLICY_DEFAULT_CMP0074 NEW)
 # Include FetchContent module
 include(FetchContent)
 
+# Try Windows-optimized path first
+if(WIN32)
+  include(${CMAKE_CURRENT_LIST_DIR}/grpc_windows.cmake)
+  if(YAZE_GRPC_CONFIGURED)
+    return()
+  endif()
+endif()
+
 # Set minimum CMake version for subprojects (fixes c-ares compatibility)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 set(FETCHCONTENT_QUIET OFF)
 
-# CRITICAL: Prevent CMake from finding system-installed protobuf/abseil
+# CRITICAL: Prevent CMake from finding system-installed protobuf
 # This ensures gRPC uses its own bundled versions
+# NOTE: We allow gRPC to use our FetchContent abseil to keep versions in sync
 set(CMAKE_DISABLE_FIND_PACKAGE_Protobuf TRUE)
-set(CMAKE_DISABLE_FIND_PACKAGE_absl TRUE)
 set(CMAKE_DISABLE_FIND_PACKAGE_gRPC TRUE)
 
 # Also prevent pkg-config from finding system packages
