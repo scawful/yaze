@@ -1,7 +1,5 @@
 var dir_6786299e5fb540707e8551af9d97f855 =
 [
-    [ "agent_chat_history_popup.cc", "d8/d92/agent__chat__history__popup_8cc.html", "d8/d92/agent__chat__history__popup_8cc" ],
-    [ "agent_chat_history_popup.h", "d7/d6b/agent__chat__history__popup_8h.html", "d7/d6b/agent__chat__history__popup_8h" ],
     [ "command_manager.cc", "d3/d69/command__manager_8cc.html", null ],
     [ "command_manager.h", "df/d56/command__manager_8h.html", "df/d56/command__manager_8h" ],
     [ "command_palette.cc", "d4/d01/app_2editor_2system_2command__palette_8cc.html", null ],

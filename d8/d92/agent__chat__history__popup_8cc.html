@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/editor/system/agent_chat_history_popup.cc File Reference</title>
+<title>yaze: src/app/editor/agent/agent_chat_history_popup.cc File Reference</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -99,18 +99,20 @@ $(document).ready(function(){initNavTree('d8/d92/agent__chat__history__popup_8cc
 
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle"><div class="title">agent_chat_history_popup.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">app/editor/system/agent_chat_history_popup.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">app/editor/agent/agent_chat_history_popup.h</a>&quot;</code><br />
 <code>#include &lt;cstring&gt;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;absl/time/time.h&quot;</code><br />
-<code>#include &quot;imgui/imgui.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../de/dbf/icons_8h_source.html">app/gui/icons.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d3/d4c/agent__ui__theme_8h_source.html">app/editor/agent/agent_ui_theme.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../de/d7d/toast__manager_8h_source.html">app/editor/system/toast_manager.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../de/dbf/icons_8h_source.html">app/gui/icons.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../de/d12/style_8h_source.html">app/gui/style.h</a>&quot;</code><br />
+<code>#include &quot;imgui/imgui.h&quot;</code><br />
+<code>#include &quot;imgui/misc/cpp/imgui_stdlib.h&quot;</code><br />
 </div>
 <p><a href="../../d8/d92/agent__chat__history__popup_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -122,30 +124,13 @@ Namespaces</h2></td></tr>
 <tr class="memitem:d1/d3e/namespaceyaze_1_1editor" id="r_d1/d3e/namespaceyaze_1_1editor"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html">yaze::editor</a></td></tr>
 <tr class="memdesc:d1/d3e/namespaceyaze_1_1editor"><td class="mdescLeft">&#160;</td><td class="mdescRight">Editors are the view controllers for the application. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03" id="r_d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html">yaze::editor::anonymous_namespace{agent_chat_history_popup.cc}</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:a2b94ba6c837031179d36ed6b174479d3" id="r_a2b94ba6c837031179d36ed6b174479d3"><td class="memItemLeft" align="right" valign="top">const ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a2b94ba6c837031179d36ed6b174479d3">yaze::editor::anonymous_namespace{agent_chat_history_popup.cc}::kUserColor</a> = ImVec4(0.90f, 0.70f, 0.00f, 1.0f)</td></tr>
-<tr class="separator:a2b94ba6c837031179d36ed6b174479d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a119561673433949cbd6e2aea56b5c07c" id="r_a119561673433949cbd6e2aea56b5c07c"><td class="memItemLeft" align="right" valign="top">const ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a119561673433949cbd6e2aea56b5c07c">yaze::editor::anonymous_namespace{agent_chat_history_popup.cc}::kAgentColor</a> = ImVec4(0.40f, 0.76f, 0.64f, 1.0f)</td></tr>
-<tr class="separator:a119561673433949cbd6e2aea56b5c07c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aacf4200246379938a928209db1b42884" id="r_aacf4200246379938a928209db1b42884"><td class="memItemLeft" align="right" valign="top">const ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#aacf4200246379938a928209db1b42884">yaze::editor::anonymous_namespace{agent_chat_history_popup.cc}::kTimestampColor</a> = ImVec4(0.6f, 0.6f, 0.6f, 0.9f)</td></tr>
-<tr class="separator:aacf4200246379938a928209db1b42884"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2284f6aa84b3adae2b058d31ff111d4c" id="r_a2284f6aa84b3adae2b058d31ff111d4c"><td class="memItemLeft" align="right" valign="top">const ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a2284f6aa84b3adae2b058d31ff111d4c">yaze::editor::anonymous_namespace{agent_chat_history_popup.cc}::kAccentColor</a> = ImVec4(0.26f, 0.59f, 0.98f, 1.0f)</td></tr>
-<tr class="separator:a2284f6aa84b3adae2b058d31ff111d4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f424b135c71d64e1c102979db67158b" id="r_a8f424b135c71d64e1c102979db67158b"><td class="memItemLeft" align="right" valign="top">const ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a8f424b135c71d64e1c102979db67158b">yaze::editor::anonymous_namespace{agent_chat_history_popup.cc}::kBackgroundColor</a> = ImVec4(0.10f, 0.10f, 0.13f, 0.98f)</td></tr>
-<tr class="separator:a8f424b135c71d64e1c102979db67158b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a206934959b4d8ad6734f707edece8d5f" id="r_a206934959b4d8ad6734f707edece8d5f"><td class="memItemLeft" align="right" valign="top">const ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a206934959b4d8ad6734f707edece8d5f">yaze::editor::anonymous_namespace{agent_chat_history_popup.cc}::kHeaderColor</a> = ImVec4(0.14f, 0.14f, 0.16f, 1.0f)</td></tr>
-<tr class="separator:a206934959b4d8ad6734f707edece8d5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_767a2d6ce89f966c317c25dc7e3aed5d.html">editor</a></li><li class="navelem"><a class="el" href="../../dir_6786299e5fb540707e8551af9d97f855.html">system</a></li><li class="navelem"><a class="el" href="../../d8/d92/agent__chat__history__popup_8cc.html">agent_chat_history_popup.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_767a2d6ce89f966c317c25dc7e3aed5d.html">editor</a></li><li class="navelem"><a class="el" href="../../dir_c36754bc6a9d2e8a324992736cf355d8.html">agent</a></li><li class="navelem"><a class="el" href="../../d8/d92/agent__chat__history__popup_8cc.html">agent_chat_history_popup.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

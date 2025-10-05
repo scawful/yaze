@@ -769,8 +769,8 @@ $(document).ready(function(){initNavTree('d5/dc5/object__renderer_8cc_source.htm
 <div class="line"><a id="l00571" name="l00571"></a><span class="lineno">  571</span>    }</div>
 <div class="line"><a id="l00572" name="l00572"></a><span class="lineno">  572</span> </div>
 <div class="line"><a id="l00573" name="l00573"></a><span class="lineno">  573</span>    <span class="comment">// Calculate object position in the bitmap</span></div>
-<div class="line"><a id="l00574" name="l00574"></a><span class="lineno">  574</span>    <span class="keywordtype">int</span> obj_x = <span class="keywordtype">object</span>.x_ * 16; <span class="comment">// Convert room coordinates to pixel coordinates</span></div>
-<div class="line"><a id="l00575" name="l00575"></a><span class="lineno">  575</span>    <span class="keywordtype">int</span> obj_y = <span class="keywordtype">object</span>.y_ * 16;</div>
+<div class="line"><a id="l00574" name="l00574"></a><span class="lineno">  574</span>    <span class="keywordtype">int</span> obj_x = <span class="keywordtype">object</span>.x_ * 8; <span class="comment">// Convert room coordinates to pixel coordinates</span></div>
+<div class="line"><a id="l00575" name="l00575"></a><span class="lineno">  575</span>    <span class="keywordtype">int</span> obj_y = <span class="keywordtype">object</span>.y_ * 8;</div>
 <div class="line"><a id="l00576" name="l00576"></a><span class="lineno">  576</span> </div>
 <div class="line"><a id="l00577" name="l00577"></a><span class="lineno">  577</span>    <span class="comment">// Render each tile of the object</span></div>
 <div class="line"><a id="l00578" name="l00578"></a><span class="lineno">  578</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; <span class="keywordtype">object</span>.tiles().size(); ++i) {</div>
@@ -816,7 +816,7 @@ $(document).ready(function(){initNavTree('d5/dc5/object__renderer_8cc_source.htm
 <div class="line"><a id="l00616" name="l00616"></a><span class="lineno">  616</span>        </div>
 <div class="line"><a id="l00617" name="l00617"></a><span class="lineno">  617</span>        <span class="keywordflow">if</span> (tile_x &lt; size_info.<a class="code hl_variable" href="../../da/d08/structyaze_1_1zelda3_1_1ObjectSizeInfo.html#a23be48b7e18195f58aec56992385070f">width_tiles</a> &amp;&amp; tile_y &lt; size_info.<a class="code hl_variable" href="../../da/d08/structyaze_1_1zelda3_1_1ObjectSizeInfo.html#ac267cb14176ebfc690e5a879a1d1c43e">height_tiles</a>) {</div>
 <div class="line"><a id="l00618" name="l00618"></a><span class="lineno">  618</span>          <span class="keyword">auto</span> status = <a class="code hl_function" href="../../d7/dfa/classyaze_1_1zelda3_1_1ObjectRenderer.html#af4b1343639d59561785d52ad72fb03b9">RenderTile</a>(<span class="keywordtype">object</span>.tiles()[i], bitmap, </div>
-<div class="line"><a id="l00619" name="l00619"></a><span class="lineno">  619</span>                                 tile_x * 16, tile_y * 16, palette);</div>
+<div class="line"><a id="l00619" name="l00619"></a><span class="lineno">  619</span>                                 tile_x * 8, tile_y * 8, palette);</div>
 <div class="line"><a id="l00620" name="l00620"></a><span class="lineno">  620</span>          <span class="keywordflow">if</span> (!status.ok()) {</div>
 <div class="line"><a id="l00621" name="l00621"></a><span class="lineno">  621</span>            <span class="keywordflow">return</span> status;</div>
 <div class="line"><a id="l00622" name="l00622"></a><span class="lineno">  622</span>          }</div>
@@ -832,7 +832,7 @@ $(document).ready(function(){initNavTree('d5/dc5/object__renderer_8cc_source.htm
 <div class="line"><a id="l00632" name="l00632"></a><span class="lineno">  632</span>        </div>
 <div class="line"><a id="l00633" name="l00633"></a><span class="lineno">  633</span>        <span class="keywordflow">if</span> (tile_x &lt; size_info.<a class="code hl_variable" href="../../da/d08/structyaze_1_1zelda3_1_1ObjectSizeInfo.html#a23be48b7e18195f58aec56992385070f">width_tiles</a> &amp;&amp; tile_y &lt; size_info.<a class="code hl_variable" href="../../da/d08/structyaze_1_1zelda3_1_1ObjectSizeInfo.html#ac267cb14176ebfc690e5a879a1d1c43e">height_tiles</a>) {</div>
 <div class="line"><a id="l00634" name="l00634"></a><span class="lineno">  634</span>          <span class="keyword">auto</span> status = <a class="code hl_function" href="../../d7/dfa/classyaze_1_1zelda3_1_1ObjectRenderer.html#af4b1343639d59561785d52ad72fb03b9">RenderTile</a>(<span class="keywordtype">object</span>.tiles()[i], bitmap, </div>
-<div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span>                                 tile_x * 16, tile_y * 16, palette);</div>
+<div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span>                                 tile_x * 8, tile_y * 8, palette);</div>
 <div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>          <span class="keywordflow">if</span> (!status.ok()) {</div>
 <div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>            <span class="keywordflow">return</span> status;</div>
 <div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>          }</div>
@@ -1100,8 +1100,8 @@ $(document).ready(function(){initNavTree('d5/dc5/object__renderer_8cc_source.htm
 <div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>  <span class="keywordtype">int</span> max_x = 0, max_y = 0;</div>
 <div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span>  </div>
 <div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; obj : objects) {</div>
-<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>    <span class="keywordtype">int</span> obj_max_x = obj.x_ * 16 + 16;</div>
-<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>    <span class="keywordtype">int</span> obj_max_y = obj.y_ * 16 + 16;</div>
+<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>    <span class="keywordtype">int</span> obj_max_x = obj.x_ * 8 + 16;</div>
+<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>    <span class="keywordtype">int</span> obj_max_y = obj.y_ * 8 + 16;</div>
 <div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>    </div>
 <div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>    max_x = std::max(max_x, obj_max_x);</div>
 <div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>    max_y = std::max(max_y, obj_max_y);</div>
@@ -1124,8 +1124,8 @@ $(document).ready(function(){initNavTree('d5/dc5/object__renderer_8cc_source.htm
 <div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span> </div>
 <div class="foldopen" id="foldopen00906" data-start="{" data-end="}">
 <div class="line"><a id="l00906" name="l00906"></a><span class="lineno"><a class="line" href="../../d7/dfa/classyaze_1_1zelda3_1_1ObjectRenderer.html#aedaa52f50fd81407d4a4d056e8b4b2eb">  906</a></span><span class="keywordtype">bool</span> <a class="code hl_function" href="../../d7/dfa/classyaze_1_1zelda3_1_1ObjectRenderer.html#aedaa52f50fd81407d4a4d056e8b4b2eb">ObjectRenderer::IsObjectInBounds</a>(<span class="keyword">const</span> <a class="code hl_class" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a>&amp; <span class="keywordtype">object</span>, <span class="keywordtype">int</span> bitmap_width, <span class="keywordtype">int</span> bitmap_height) {</div>
-<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>  <span class="keywordtype">int</span> obj_x = <span class="keywordtype">object</span>.x_ * 16;</div>
-<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span>  <span class="keywordtype">int</span> obj_y = <span class="keywordtype">object</span>.y_ * 16;</div>
+<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>  <span class="keywordtype">int</span> obj_x = <span class="keywordtype">object</span>.x_ * 8;</div>
+<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span>  <span class="keywordtype">int</span> obj_y = <span class="keywordtype">object</span>.y_ * 8;</div>
 <div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>  </div>
 <div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span>  <span class="keywordflow">return</span> obj_x &gt;= 0 &amp;&amp; obj_y &gt;= 0 &amp;&amp; </div>
 <div class="line"><a id="l00911" name="l00911"></a><span class="lineno">  911</span>         obj_x &lt; bitmap_width &amp;&amp; obj_y &lt; bitmap_height;</div>
@@ -1300,8 +1300,8 @@ $(document).ready(function(){initNavTree('d5/dc5/object__renderer_8cc_source.htm
 <div class="line"><a id="l01061" name="l01061"></a><span class="lineno"> 1061</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aarena_8h_html"><div class="ttname"><a href="../../da/d0c/arena_8h.html">arena.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html">yaze::Rom</a></div><div class="ttdoc">The Rom class is used to load, save, and modify Rom data.</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00071">rom.h:71</a></div></div>
-<div class="ttc" id="aclassyaze_1_1Rom_html_a93944ed80bd748997b06d82f9b8b050d"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">yaze::Rom::data</a></div><div class="ttdeci">auto data() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00197">rom.h:197</a></div></div>
-<div class="ttc" id="aclassyaze_1_1Rom_html_a971379ba00f55ab9c367abf20c8a9777"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777">yaze::Rom::size</a></div><div class="ttdeci">auto size() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00196">rom.h:196</a></div></div>
+<div class="ttc" id="aclassyaze_1_1Rom_html_a93944ed80bd748997b06d82f9b8b050d"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">yaze::Rom::data</a></div><div class="ttdeci">auto data() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00202">rom.h:202</a></div></div>
+<div class="ttc" id="aclassyaze_1_1Rom_html_a971379ba00f55ab9c367abf20c8a9777"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777">yaze::Rom::size</a></div><div class="ttdeci">auto size() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00201">rom.h:201</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1Arena_html_ae6809b5062da35e7d8f3ff54a79c7b55"><div class="ttname"><a href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55">yaze::gfx::Arena::Get</a></div><div class="ttdeci">static Arena &amp; Get()</div><div class="ttdef"><b>Definition</b> <a href="../../d2/dee/arena_8cc_source.html#l00010">arena.cc:10</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1Bitmap_html"><div class="ttname"><a href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">yaze::gfx::Bitmap</a></div><div class="ttdoc">Represents a bitmap image optimized for SNES ROM hacking.</div><div class="ttdef"><b>Definition</b> <a href="../../da/dcb/bitmap_8h_source.html#l00065">bitmap.h:65</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1Bitmap_html_a2bb925db328fd0eda93b660fad899446"><div class="ttname"><a href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2bb925db328fd0eda93b660fad899446">yaze::gfx::Bitmap::size</a></div><div class="ttdeci">auto size() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/dcb/bitmap_8h_source.html#l00250">bitmap.h:250</a></div></div>

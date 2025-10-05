@@ -1,5 +1,7 @@
 <map id="yaze::editor::AgentChatWidget::RenderSnapshotPreviewPanel" name="yaze::editor::AgentChatWidget::RenderSnapshotPreviewPanel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,209,46"/>
-<area shape="rect" id="Node000002" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="257,5,431,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,23,241,23,241,28,209,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,209,79"/>
+<area shape="rect" id="Node000002" href="$db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a5047157c450c5060330c7b1a3cd915d7" title=" " alt="" coords="274,5,414,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,42,258,35,259,40,209,47"/>
+<area shape="rect" id="Node000003" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="257,71,431,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="209,70,242,75,241,80,209,75"/>
 </map>

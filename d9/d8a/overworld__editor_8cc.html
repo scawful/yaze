@@ -100,7 +100,7 @@ $(document).ready(function(){initNavTree('d9/d8a/overworld__editor_8cc.html','..
 <div class="header">
   <div class="summary">
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#define-members">Macros</a>  </div>
   <div class="headertitle"><div class="title">overworld_editor.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -108,7 +108,6 @@ $(document).ready(function(){initNavTree('d9/d8a/overworld__editor_8cc.html','..
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
-<code>#include &lt;future&gt;</code><br />
 <code>#include &lt;set&gt;</code><br />
 <code>#include &lt;unordered_map&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
@@ -126,10 +125,10 @@ $(document).ready(function(){initNavTree('d9/d8a/overworld__editor_8cc.html','..
 <code>#include &quot;<a class="el" href="../../d8/ddb/snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../dc/d0c/tilemap_8h_source.html">app/gfx/tilemap.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d4/dcf/canvas_8h_source.html">app/gui/canvas.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d5/d1d/editor__layout_8h_source.html">app/gui/editor_layout.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../de/dbf/icons_8h_source.html">app/gui/icons.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../de/ded/input_8h_source.html">app/gui/input.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../de/d12/style_8h_source.html">app/gui/style.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d3/dd9/widget__id__registry_8h_source.html">app/gui/widgets/widget_id_registry.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d1/d95/ui__helpers_8h_source.html">app/gui/ui_helpers.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d4/db5/app_2zelda3_2common_8h_source.html">app/zelda3/common.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d7/d9c/overworld_8h_source.html">app/zelda3/overworld/overworld.h</a>&quot;</code><br />
@@ -151,15 +150,28 @@ Namespaces</h2></td></tr>
 <tr class="memdesc:d1/d3e/namespaceyaze_1_1editor"><td class="mdescLeft">&#160;</td><td class="mdescRight">Editors are the view controllers for the application. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:a2f83c2a119eb923bf2370b838a5eb174" id="r_a2f83c2a119eb923bf2370b838a5eb174"><td class="memItemLeft" align="right" valign="top">constexpr std::array&lt; const char *, 6 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a2f83c2a119eb923bf2370b838a5eb174">yaze::editor::kVanillaMapSettingsColumnNames</a></td></tr>
-<tr class="separator:a2f83c2a119eb923bf2370b838a5eb174"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7be8aefb8632aca43b8e9b9514350f91" id="r_a7be8aefb8632aca43b8e9b9514350f91"><td class="memItemLeft" align="right" valign="top">constexpr std::array&lt; const char *, 7 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a7be8aefb8632aca43b8e9b9514350f91">yaze::editor::kV2MapSettingsColumnNames</a></td></tr>
-<tr class="separator:a7be8aefb8632aca43b8e9b9514350f91"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1bc773a99c947ac1a99d089eb54f8785" id="r_a1bc773a99c947ac1a99d089eb54f8785"><td class="memItemLeft" align="right" valign="top">constexpr std::array&lt; const char *, 9 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a1bc773a99c947ac1a99d089eb54f8785">yaze::editor::kV3MapSettingsColumnNames</a></td></tr>
-<tr class="separator:a1bc773a99c947ac1a99d089eb54f8785"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:ab8de43e3f17a4f0081fa6c2def6af1c1" id="r_ab8de43e3f17a4f0081fa6c2def6af1c1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d8a/overworld__editor_8cc.html#ab8de43e3f17a4f0081fa6c2def6af1c1">IM_PI</a>&#160;&#160;&#160;3.14159265358979323846f</td></tr>
+<tr class="separator:ab8de43e3f17a4f0081fa6c2def6af1c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="ab8de43e3f17a4f0081fa6c2def6af1c1" name="ab8de43e3f17a4f0081fa6c2def6af1c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8de43e3f17a4f0081fa6c2def6af1c1">&#9670;&#160;</a></span>IM_PI</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define IM_PI&#160;&#160;&#160;3.14159265358979323846f</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00004">4</a> of file <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html">overworld_editor.cc</a>.</p>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

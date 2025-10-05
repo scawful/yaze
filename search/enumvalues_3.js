@@ -1,7 +1,7 @@
 var searchData=
 [
   ['data_0',['Data',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#afdec6b6a7b1a5e7eba910f389715f4c6af6068daa29dbb05a7ead1e3b5a48bbee',1,'yaze::emu::Cpu']]],
-  ['default_1',['Default',['../d0/d28/classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a7a1920d61156abc05a60135aefe8bc67',1,'TextEditor']]],
+  ['default_1',['default',['../d0/d28/classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a7a1920d61156abc05a60135aefe8bc67',1,'TextEditor::Default'],['../db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a4e9ad91e75a4f9f2de19c8d60d85311ca7a1920d61156abc05a60135aefe8bc67',1,'yaze::editor::AgentUI::Default'],['../d3/dbf/namespaceyaze_1_1gui.html#a06923b5ae243458c28d9e9203ee2da5aa7a1920d61156abc05a60135aefe8bc67',1,'yaze::gui::Default']]],
   ['door_2',['Door',['../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8af44e14d49cd011d1e873d9fe0c4624f1',1,'yaze::zelda3']]],
   ['draw_3',['DRAW',['../db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#abec6d04064b261e8640910b2e07b9017a2b4807f24940ca2fe73284bc6e864d66',1,'yaze::editor::ScreenEditor']]],
   ['draw_5ftile_4',['DRAW_TILE',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ea2cadd7c52c45cbfcbf4a9642e037cfc6',1,'yaze::editor::OverworldEditor']]],

@@ -64,10 +64,11 @@ var searchData=
   ['toolargument_61',['ToolArgument',['../d6/d40/structyaze_1_1cli_1_1ToolArgument.html',1,'yaze::cli']]],
   ['toolcall_62',['ToolCall',['../df/d6e/structyaze_1_1cli_1_1ToolCall.html',1,'yaze::cli']]],
   ['tooldispatcher_63',['ToolDispatcher',['../d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html',1,'yaze::cli::agent']]],
-  ['toolspecification_64',['ToolSpecification',['../d5/dcb/structyaze_1_1cli_1_1ToolSpecification.html',1,'yaze::cli']]],
-  ['tracker_65',['Tracker',['../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html',1,'yaze::zelda3::music']]],
-  ['transaction_66',['Transaction',['../df/d26/classyaze_1_1Transaction.html',1,'yaze']]],
-  ['ts_67',['TS',['../da/db1/structyaze_1_1emu_1_1TS.html',1,'yaze::emu']]],
-  ['tsw_68',['TSW',['../d2/de5/structyaze_1_1emu_1_1TSW.html',1,'yaze::emu']]],
-  ['tuicomponent_69',['TuiComponent',['../dc/d6b/classyaze_1_1cli_1_1TuiComponent.html',1,'yaze::cli']]]
+  ['toolset_64',['Toolset',['../d7/dcb/classyaze_1_1gui_1_1Toolset.html',1,'yaze::gui']]],
+  ['toolspecification_65',['ToolSpecification',['../d5/dcb/structyaze_1_1cli_1_1ToolSpecification.html',1,'yaze::cli']]],
+  ['tracker_66',['Tracker',['../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html',1,'yaze::zelda3::music']]],
+  ['transaction_67',['Transaction',['../df/d26/classyaze_1_1Transaction.html',1,'yaze']]],
+  ['ts_68',['TS',['../da/db1/structyaze_1_1emu_1_1TS.html',1,'yaze::emu']]],
+  ['tsw_69',['TSW',['../d2/de5/structyaze_1_1emu_1_1TSW.html',1,'yaze::emu']]],
+  ['tuicomponent_70',['TuiComponent',['../dc/d6b/classyaze_1_1cli_1_1TuiComponent.html',1,'yaze::cli']]]
 ];

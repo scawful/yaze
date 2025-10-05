@@ -1,0 +1,9 @@
+<map id="yaze::Rom::InitializeForTesting" name="yaze::Rom::InitializeForTesting">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,158,46"/>
+<area shape="rect" id="Node000002" href="$db/d22/structyaze_1_1RomLoadOptions.html#a1cd666da7b6dbab5e4318c737b3972bd" title=" " alt="" coords="408,5,562,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="158,14,206,11,283,9,360,11,393,13,393,19,360,16,283,14,206,16,158,20"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9" title=" " alt="" coords="206,50,360,76"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="158,37,196,44,195,49,157,42"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="356,47,392,40,393,45,357,52"/>
+<area shape="poly" id="edge4_Node000003_Node000003" title=" " alt="" coords="249,51,243,42,247,32,260,26,283,24,308,26,320,33,318,38,306,31,283,29,262,31,250,36,248,41,253,48"/>
+</map>

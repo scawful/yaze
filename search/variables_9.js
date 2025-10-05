@@ -5,6 +5,7 @@ var searchData=
   ['joypaddata_2',['joypadData',['../d3/d00/structyaze_1_1emu_1_1JoypadRegisters.html#a11184805d9757bc1d776d5d56302b03f',1,'yaze::emu::JoypadRegisters']]],
   ['jp_5fconf_5fconfig_3',['jp_conf_config',['../d6/d2f/structyaze_1_1core_1_1FontConfig.html#a08be7958e34ba664879229db15a29d31',1,'yaze::core::FontConfig']]],
   ['json_5fpretty_4',['json_pretty',['../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#aa16f125bb3d03778e8e8deb5504284ab',1,'yaze::cli::agent::ChatMessage']]],
-  ['jump_5faddress_5f_5',['jump_address_',['../d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html#adbca3194c58841cf7de3f6439739733a',1,'yaze::editor::MemoryEditorWithDiffChecker']]],
-  ['jump_5fto_5ftab_5f_6',['jump_to_tab_',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e',1,'yaze::editor::OverworldEditor']]]
+  ['json_5ftext_5fcolor_5',['json_text_color',['../db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#a320edf244a15576e42e85d9832f79656',1,'yaze::editor::AgentUITheme']]],
+  ['jump_5faddress_5f_6',['jump_address_',['../d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html#adbca3194c58841cf7de3f6439739733a',1,'yaze::editor::MemoryEditorWithDiffChecker']]],
+  ['jump_5fto_5ftab_5f_7',['jump_to_tab_',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e',1,'yaze::editor::OverworldEditor']]]
 ];

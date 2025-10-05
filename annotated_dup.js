@@ -230,6 +230,7 @@ var annotated_dup =
         [ "AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget" ],
         [ "AgentCollaborationCoordinator", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator" ],
         [ "AgentEditor", "d6/d0d/classyaze_1_1editor_1_1AgentEditor.html", "d6/d0d/classyaze_1_1editor_1_1AgentEditor" ],
+        [ "AgentUITheme", "db/d3d/structyaze_1_1editor_1_1AgentUITheme.html", "db/d3d/structyaze_1_1editor_1_1AgentUITheme" ],
         [ "AssemblyEditor", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor" ],
         [ "CommandEntry", "dd/dee/structyaze_1_1editor_1_1CommandEntry.html", "dd/dee/structyaze_1_1editor_1_1CommandEntry" ],
         [ "CommandManager", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html", "d3/d8a/classyaze_1_1editor_1_1CommandManager" ],
@@ -474,6 +475,8 @@ var annotated_dup =
         [ "Color", "d4/dca/structyaze_1_1gui_1_1Color.html", "d4/dca/structyaze_1_1gui_1_1Color" ],
         [ "DockSpaceRenderer", "d9/d95/classyaze_1_1gui_1_1DockSpaceRenderer.html", null ],
         [ "DungeonAsset", "d6/d87/structyaze_1_1gui_1_1DungeonAsset.html", "d6/d87/structyaze_1_1gui_1_1DungeonAsset" ],
+        [ "EditorCard", "d4/d96/classyaze_1_1gui_1_1EditorCard.html", "d4/d96/classyaze_1_1gui_1_1EditorCard" ],
+        [ "EditorLayout", "d8/db6/classyaze_1_1gui_1_1EditorLayout.html", "d8/db6/classyaze_1_1gui_1_1EditorLayout" ],
         [ "EnhancedTheme", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme" ],
         [ "ExampleSelectionWithDeletion", "d4/d4b/structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html", "d4/d4b/structyaze_1_1gui_1_1ExampleSelectionWithDeletion" ],
         [ "FlagsMenu", "d0/df3/structyaze_1_1gui_1_1FlagsMenu.html", "d0/df3/structyaze_1_1gui_1_1FlagsMenu" ],
@@ -489,9 +492,12 @@ var annotated_dup =
         [ "Text", "d7/dc7/structyaze_1_1gui_1_1Text.html", "d7/dc7/structyaze_1_1gui_1_1Text" ],
         [ "TextBox", "d5/d66/structyaze_1_1gui_1_1TextBox.html", "d5/d66/structyaze_1_1gui_1_1TextBox" ],
         [ "ThemeManager", "d3/d27/classyaze_1_1gui_1_1ThemeManager.html", "d3/d27/classyaze_1_1gui_1_1ThemeManager" ],
+        [ "Toolset", "d7/dcb/classyaze_1_1gui_1_1Toolset.html", "d7/dcb/classyaze_1_1gui_1_1Toolset" ],
         [ "UnsortedAsset", "d5/dc4/structyaze_1_1gui_1_1UnsortedAsset.html", "d5/dc4/structyaze_1_1gui_1_1UnsortedAsset" ],
         [ "WidgetIdRegistry", "d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html", "d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry" ],
-        [ "WidgetIdScope", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope.html", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope" ]
+        [ "WidgetIdScope", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope.html", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope" ],
+        [ "WidgetMeasurement", "d4/d03/classyaze_1_1gui_1_1WidgetMeasurement.html", "d4/d03/classyaze_1_1gui_1_1WidgetMeasurement" ],
+        [ "WidgetMetrics", "d6/d47/structyaze_1_1gui_1_1WidgetMetrics.html", "d6/d47/structyaze_1_1gui_1_1WidgetMetrics" ]
       ] ],
       [ "test", "d4/d0a/namespaceyaze_1_1test.html", [
         [ "anonymous_namespace{widget_discovery_service.cc}", "d3/d52/namespaceyaze_1_1test_1_1anonymous__namespace_02widget__discovery__service_8cc_03.html", [

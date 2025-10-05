@@ -1,0 +1,7 @@
+<map id="yaze::gui::LabeledInputHex" name="yaze::gui::LabeledInputHex">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,180,56"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a37cc0a7a170c56923c8167b2ad0de1f3" title=" " alt="" coords="228,5,365,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,30,212,26,213,31,181,35"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a3cbd3c2806a89aaa6ffa1a120488727b" title=" " alt="" coords="233,55,360,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,51,218,56,217,61,180,56"/>
+</map>

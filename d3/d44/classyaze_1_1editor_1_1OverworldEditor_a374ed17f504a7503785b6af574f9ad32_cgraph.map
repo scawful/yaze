@@ -1,0 +1,11 @@
+<map id="yaze::editor::OverworldEditor::DrawUsageGrid" name="yaze::editor::OverworldEditor::DrawUsageGrid">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,189,103"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a474340b2eff5a83efa0c4c1b92cbd1cc" title=" " alt="" coords="237,70,415,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,80,221,80,221,86,189,86"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="477,5,643,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="381,67,461,47,462,52,382,72"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="463,70,656,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="415,80,447,80,447,86,415,86"/>
+<area shape="rect" id="Node000005" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="477,120,643,161"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="382,94,462,114,461,119,381,99"/>
+</map>

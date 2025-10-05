@@ -1,0 +1,9 @@
+<map id="yaze::editor::AgentUI::RefreshTheme" name="yaze::editor::AgentUI::RefreshTheme">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,145,68"/>
+<area shape="rect" id="Node000002" href="$db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#a5e662cb39bf318d1d123833179a76871" title=" " alt="" coords="193,27,372,68"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,45,177,45,177,50,145,50"/>
+<area shape="rect" id="Node000003" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="420,5,613,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="372,34,404,30,405,35,373,39"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="434,55,600,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="373,56,419,61,418,66,372,61"/>
+</map>

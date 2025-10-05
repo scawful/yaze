@@ -27,9 +27,10 @@ var searchData=
   ['sprites_24',['SPRITES',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ea05a245c75cdf9b6a708bad83456be7be',1,'yaze::editor::OverworldEditor']]],
   ['stairs_25',['Stairs',['../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8a0b01cc688e1e0b5f6b70f858a1b389ae',1,'yaze::zelda3']]],
   ['string_26',['String',['../d0/d28/classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a27118326006d3829667a400ad23d5d98',1,'TextEditor']]],
-  ['sw_5fkill_5fenemy_5ffor_5fchest_27',['SW_Kill_Enemy_for_Chest',['../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a7e8d9bcb571b69f4f2cf9842e2e29f96',1,'yaze::zelda3']]],
-  ['sw_5fkill_5fenemy_5fto_5fopen_28',['SW_Kill_Enemy_to_Open',['../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac70933e5b9d0dbe898c6764aebdab3e0',1,'yaze::zelda3']]],
-  ['sw_5fpush_5fblock_5fto_5fopen_29',['SW_Push_Block_to_Open',['../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ab3bd809672191b35e4a2ecd5d213648e',1,'yaze::zelda3']]],
-  ['switch_5fopen_5fdoor_5fhold_30',['Switch_Open_Door_Hold',['../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ae643a5479d4acd17194a33018b20fae2',1,'yaze::zelda3']]],
-  ['switch_5fopen_5fdoor_5ftoggle_31',['Switch_Open_Door_Toggle',['../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac2ecf68c998deaabf707f5a0d906bc80',1,'yaze::zelda3']]]
+  ['success_27',['success',['../db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a4e9ad91e75a4f9f2de19c8d60d85311ca505a83f220c02df2f85c3810cd9ceb38',1,'yaze::editor::AgentUI::Success'],['../d3/dbf/namespaceyaze_1_1gui.html#a06923b5ae243458c28d9e9203ee2da5aa505a83f220c02df2f85c3810cd9ceb38',1,'yaze::gui::Success']]],
+  ['sw_5fkill_5fenemy_5ffor_5fchest_28',['SW_Kill_Enemy_for_Chest',['../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a7e8d9bcb571b69f4f2cf9842e2e29f96',1,'yaze::zelda3']]],
+  ['sw_5fkill_5fenemy_5fto_5fopen_29',['SW_Kill_Enemy_to_Open',['../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac70933e5b9d0dbe898c6764aebdab3e0',1,'yaze::zelda3']]],
+  ['sw_5fpush_5fblock_5fto_5fopen_30',['SW_Push_Block_to_Open',['../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ab3bd809672191b35e4a2ecd5d213648e',1,'yaze::zelda3']]],
+  ['switch_5fopen_5fdoor_5fhold_31',['Switch_Open_Door_Hold',['../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ae643a5479d4acd17194a33018b20fae2',1,'yaze::zelda3']]],
+  ['switch_5fopen_5fdoor_5ftoggle_32',['Switch_Open_Door_Toggle',['../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468ac2ecf68c998deaabf707f5a0d906bc80',1,'yaze::zelda3']]]
 ];

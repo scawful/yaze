@@ -1,6 +1,9 @@
 var classyaze_1_1editor_1_1MapPropertiesSystem =
 [
+    [ "RefreshCallback", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a15c303e1dcee25200c7a937b70efb7dd", null ],
+    [ "RefreshPaletteCallback", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adf8fa3d4464c6c93b9301d7d34d07817", null ],
     [ "MapPropertiesSystem", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a363c5443f9668c862e91ff80858cef95", null ],
+    [ "SetRefreshCallbacks", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#aeeea7126a23a6aee5cd8b68424005997", null ],
     [ "DrawSimplifiedMapSettings", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#af13190b62324d112d646d6c5f91a12d2", null ],
     [ "DrawMapPropertiesPanel", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a526d75aa0e1a930e3d0e51f8331deee0", null ],
     [ "DrawCustomBackgroundColorEditor", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a9f174734623c84d71a6bafc06d70e068", null ],
@@ -27,5 +30,8 @@ var classyaze_1_1editor_1_1MapPropertiesSystem =
     [ "overworld_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#ad621e76e0e77bf6d02efa5754313cc5a", null ],
     [ "rom_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adbb0d6cf262698f546ce52e24130f82c", null ],
     [ "maps_bmp_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a0f88c7b087251df85e84b24ab1a4abfe", null ],
-    [ "canvas_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a1de697d16ae9aa6c2ca6d9cd09daa072", null ]
+    [ "canvas_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a1de697d16ae9aa6c2ca6d9cd09daa072", null ],
+    [ "refresh_map_properties_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a3770c4defa16dfd86ebf2f15facd8362", null ],
+    [ "refresh_overworld_map_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a0ec3f9e62f50eb197e9346a17d186fd6", null ],
+    [ "refresh_map_palette_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a82e98169c794a318bf6aa705e225159d", null ]
 ];

@@ -1,0 +1,11 @@
+<map id="yaze::gui::Toolset::AddV3StatusBadge" name="yaze::gui::Toolset::AddV3StatusBadge">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,147,88"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#ae14fcd91fd8f5ecc89463478bd35944c" title=" " alt="" coords="195,55,346,80"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,65,179,65,179,70,147,70"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a9ab72e888c600d393e246122815a516f" title=" " alt="" coords="406,5,560,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="328,51,409,32,410,38,330,57"/>
+<area shape="rect" id="Node000007" href="$d3/dbf/namespaceyaze_1_1gui.html#ac81be5346761094cc848293d34c6c9e2" title=" " alt="" coords="409,55,558,80"/>
+<area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="346,65,393,65,393,70,346,70"/>
+<area shape="rect" id="Node000008" href="$d3/dbf/namespaceyaze_1_1gui.html#a29c7d5fce5b73991a79370b481981963" title=" " alt="" coords="394,104,572,130"/>
+<area shape="poly" id="edge4_Node000002_Node000008" title=" " alt="" coords="330,78,410,97,409,103,328,84"/>
+</map>

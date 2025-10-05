@@ -1,4 +1,4 @@
-<map id="src/app/editor/system/agent_chat_history_popup.h" name="src/app/editor/system/agent_chat_history_popup.h">
+<map id="src/app/editor/agent/agent_chat_history_popup.h" name="src/app/editor/agent/agent_chat_history_popup.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="54,5,240,46"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,183,59,208"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,49,58,68,34,95,28,112,25,131,28,167,22,167,20,131,22,111,30,93,55,64,87,44"/>

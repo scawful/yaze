@@ -16,13 +16,14 @@ var searchData=
   ['json_13',['json',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md111',1,'clangd can&apos;t find nlohmann/json'],['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md107',1,'Updating compile_commands.json']]],
   ['json_20hpp_3a_20no_20such_20file_20or_20directory_14',['&quot;nlohmann/json.hpp: No such file or directory&quot;',['../d9/d41/md_docs_202-build-instructions.html#autotoc_md34',1,'']]],
   ['json_5fpretty_15',['json_pretty',['../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#aa16f125bb3d03778e8e8deb5504284ab',1,'yaze::cli::agent::ChatMessage']]],
-  ['jsonescape_16',['JsonEscape',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa9e3ca343f9a5ffeab7bc30f20aff921',1,'yaze::cli::agent']]],
-  ['jsontoprofile_17',['JsonToProfile',['../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3611fc5f7367b5346be7dda28c89a08d',1,'yaze::editor::AgentEditor']]],
-  ['jsonvaluetostring_18',['JsonValueToString',['../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#ab0548a61f882b63d453ea1dd303186a2',1,'yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}']]],
-  ['jsr_19',['JSR',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701',1,'yaze::emu::Cpu']]],
-  ['july_202024_20',['0.2.0 (July 2024)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md202',1,'']]],
-  ['jump_5faddress_5f_21',['jump_address_',['../d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html#adbca3194c58841cf7de3f6439739733a',1,'yaze::editor::MemoryEditorWithDiffChecker']]],
-  ['jump_5fto_5ftab_22',['jump_to_tab',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9',1,'yaze::editor::OverworldEditor']]],
-  ['jump_5fto_5ftab_5f_23',['jump_to_tab_',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e',1,'yaze::editor::OverworldEditor']]],
-  ['jumptofunction_24',['JumpToFunction',['../d3/d60/classyaze_1_1zelda3_1_1SpriteInstruction.html#a2435f9ddc0c2c05006e60f9a7408ecf4',1,'yaze::zelda3::SpriteInstruction']]]
+  ['json_5ftext_5fcolor_16',['json_text_color',['../db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#a320edf244a15576e42e85d9832f79656',1,'yaze::editor::AgentUITheme']]],
+  ['jsonescape_17',['JsonEscape',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa9e3ca343f9a5ffeab7bc30f20aff921',1,'yaze::cli::agent']]],
+  ['jsontoprofile_18',['JsonToProfile',['../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3611fc5f7367b5346be7dda28c89a08d',1,'yaze::editor::AgentEditor']]],
+  ['jsonvaluetostring_19',['JsonValueToString',['../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#ab0548a61f882b63d453ea1dd303186a2',1,'yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}']]],
+  ['jsr_20',['JSR',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701',1,'yaze::emu::Cpu']]],
+  ['july_202024_21',['0.2.0 (July 2024)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md202',1,'']]],
+  ['jump_5faddress_5f_22',['jump_address_',['../d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html#adbca3194c58841cf7de3f6439739733a',1,'yaze::editor::MemoryEditorWithDiffChecker']]],
+  ['jump_5fto_5ftab_23',['jump_to_tab',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9',1,'yaze::editor::OverworldEditor']]],
+  ['jump_5fto_5ftab_5f_24',['jump_to_tab_',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e',1,'yaze::editor::OverworldEditor']]],
+  ['jumptofunction_25',['JumpToFunction',['../d3/d60/classyaze_1_1zelda3_1_1SpriteInstruction.html#a2435f9ddc0c2c05006e60f9a7408ecf4',1,'yaze::zelda3::SpriteInstruction']]]
 ];

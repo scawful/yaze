@@ -1,14 +1,27 @@
 var namespaceyaze_1_1editor =
 [
-    [ "anonymous_namespace{agent_chat_history_codec.cc}", "d3/d49/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__codec_8cc_03.html", null ],
-    [ "anonymous_namespace{agent_chat_history_popup.cc}", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html", [
-      [ "kUserColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a2b94ba6c837031179d36ed6b174479d3", null ],
-      [ "kAgentColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a119561673433949cbd6e2aea56b5c07c", null ],
-      [ "kTimestampColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#aacf4200246379938a928209db1b42884", null ],
-      [ "kAccentColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a2284f6aa84b3adae2b058d31ff111d4c", null ],
-      [ "kBackgroundColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a8f424b135c71d64e1c102979db67158b", null ],
-      [ "kHeaderColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a206934959b4d8ad6734f707edece8d5f", null ]
+    [ "AgentUI", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html", [
+      [ "ButtonColor", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a4e9ad91e75a4f9f2de19c8d60d85311c", [
+        [ "Success", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a4e9ad91e75a4f9f2de19c8d60d85311ca505a83f220c02df2f85c3810cd9ceb38", null ],
+        [ "Warning", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a4e9ad91e75a4f9f2de19c8d60d85311ca0eaadb4fcb48a0a0ed7bc9868be9fbaa", null ],
+        [ "Error", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a4e9ad91e75a4f9f2de19c8d60d85311ca902b0d55fddef6f8d651fe1035b7d4bd", null ],
+        [ "Info", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a4e9ad91e75a4f9f2de19c8d60d85311ca4059b0251f66a18cb56f544728796875", null ],
+        [ "Default", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a4e9ad91e75a4f9f2de19c8d60d85311ca7a1920d61156abc05a60135aefe8bc67", null ]
+      ] ],
+      [ "GetTheme", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#aacd59d0c9f923bfee36fe0567c1c52e6", null ],
+      [ "RefreshTheme", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a0d4c8f93a59e331f4947cf5328160c24", null ],
+      [ "PushPanelStyle", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#ac58286456f496461f24ec7bfbc7cc513", null ],
+      [ "PopPanelStyle", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a5047157c450c5060330c7b1a3cd915d7", null ],
+      [ "RenderSectionHeader", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#ab11c58d74ca66df6bfe57c816eeb2a4e", null ],
+      [ "RenderStatusIndicator", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a60f3e5efb99e1ed40ed03da2b5332676", null ],
+      [ "RenderProviderBadge", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#acc4e280dbae8a7362869b01c94a7b916", null ],
+      [ "StatusBadge", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#af98c52c7a8983cc777fdac776037cd87", null ],
+      [ "VerticalSpacing", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#af2501201552f0e2dcb1aaafce030142d", null ],
+      [ "HorizontalSpacing", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#aa8d7cd6d26a303d5edae84a4097a5eb3", null ],
+      [ "StyledButton", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#aa5e114efee648614ee32b22fa48d91b1", null ],
+      [ "IconButton", "db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#aff0dcae94b85fdb197cd2959e488de34", null ]
     ] ],
+    [ "anonymous_namespace{agent_chat_history_codec.cc}", "d3/d49/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__codec_8cc_03.html", null ],
     [ "anonymous_namespace{agent_collaboration_coordinator.cc}", "dc/d0a/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__collaboration__coordinator_8cc_03.html", [
       [ "ExpandUserPath", "dc/d0a/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__collaboration__coordinator_8cc_03.html#a4fc792052e179669716d31413c174cc9", null ],
       [ "Trimmed", "dc/d0a/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__collaboration__coordinator_8cc_03.html#ad3e7f14716b68bcb17c428459e5cc7f0", null ]
@@ -60,6 +73,7 @@ var namespaceyaze_1_1editor =
     [ "AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget" ],
     [ "AgentCollaborationCoordinator", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator" ],
     [ "AgentEditor", "d6/d0d/classyaze_1_1editor_1_1AgentEditor.html", "d6/d0d/classyaze_1_1editor_1_1AgentEditor" ],
+    [ "AgentUITheme", "db/d3d/structyaze_1_1editor_1_1AgentUITheme.html", "db/d3d/structyaze_1_1editor_1_1AgentUITheme" ],
     [ "AssemblyEditor", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor" ],
     [ "CommandEntry", "dd/dee/structyaze_1_1editor_1_1CommandEntry.html", "dd/dee/structyaze_1_1editor_1_1CommandEntry" ],
     [ "CommandManager", "d3/d8a/classyaze_1_1editor_1_1CommandManager.html", "d3/d8a/classyaze_1_1editor_1_1CommandManager" ],
@@ -232,21 +246,14 @@ var namespaceyaze_1_1editor =
     [ "toolset_table_flags_", "d1/d3e/namespaceyaze_1_1editor.html#a77d0c84e9a386f6c31259d53050cd692", null ],
     [ "music_editor_flags_", "d1/d3e/namespaceyaze_1_1editor.html#a1188682b4736f2d9244023ed720ba1c8", null ],
     [ "kInputFieldSize", "d1/d3e/namespaceyaze_1_1editor.html#ac7a7fc55222f64f310b8765b0e813278", null ],
-    [ "kVanillaMapSettingsColumnNames", "d1/d3e/namespaceyaze_1_1editor.html#a2f83c2a119eb923bf2370b838a5eb174", null ],
-    [ "kV2MapSettingsColumnNames", "d1/d3e/namespaceyaze_1_1editor.html#a7be8aefb8632aca43b8e9b9514350f91", null ],
-    [ "kV3MapSettingsColumnNames", "d1/d3e/namespaceyaze_1_1editor.html#a1bc773a99c947ac1a99d089eb54f8785", null ],
     [ "k4BPP", "d1/d3e/namespaceyaze_1_1editor.html#aed55578af70cce23ebf4e0846aba9f05", null ],
     [ "kByteSize", "d1/d3e/namespaceyaze_1_1editor.html#aa19b000d1fccab47624593821858eac0", null ],
     [ "kMessageIdSize", "d1/d3e/namespaceyaze_1_1editor.html#afb0fe3cb3d65d1bbe1466284308ad8bc", null ],
     [ "kNumSheetsToLoad", "d1/d3e/namespaceyaze_1_1editor.html#a6b56576c02ee38f7f1eecd135aa1f43c", null ],
     [ "kOverworldMapSize", "d1/d3e/namespaceyaze_1_1editor.html#a32e9005b4f1ea1908b9fac631338f632", null ],
     [ "kOWMapFlags", "d1/d3e/namespaceyaze_1_1editor.html#a21a3ee57d060881f0c1f7e062418a71f", null ],
-    [ "kToolsetTableFlags", "d1/d3e/namespaceyaze_1_1editor.html#a615aec1dbd7a854131aa04103e8ea5b6", null ],
-    [ "kOWEditFlags", "d1/d3e/namespaceyaze_1_1editor.html#aa788b4bcda80a46b48ff4ac934c58505", null ],
     [ "kWorldList", "d1/d3e/namespaceyaze_1_1editor.html#a509c76430fe7bd64995ca4c2a0004443", null ],
     [ "kGamePartComboString", "d1/d3e/namespaceyaze_1_1editor.html#a547f59f67b587aa557ea5c83a29ca4f9", null ],
-    [ "kTileSelectorTab", "d1/d3e/namespaceyaze_1_1editor.html#add4e4fce8dc72655325d8a50581404dd", null ],
-    [ "kOWEditTable", "d1/d3e/namespaceyaze_1_1editor.html#aa7eb073b2dec436454b35ff273655642", null ],
     [ "kOWMapTable", "d1/d3e/namespaceyaze_1_1editor.html#a1d8e24b671e1338c02fbe726de12a0a3", null ],
     [ "kTile16Size", "d1/d3e/namespaceyaze_1_1editor.html#a8dc3baef6adc771af0290ef25f331bb4", null ],
     [ "kTile8Size", "d1/d3e/namespaceyaze_1_1editor.html#a7e496b12910031cfaa4fb492c4af0ae4", null ],

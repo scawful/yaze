@@ -1,0 +1,5 @@
+<map id="yaze::gui::WidgetMeasurement::WouldToolbarOverflow" name="yaze::gui::WidgetMeasurement::WouldToolbarOverflow">
+<area shape="rect" id="Node000001" title="Check if toolbar would overflow given window width." alt="" coords="5,5,201,46"/>
+<area shape="rect" id="Node000002" href="$d4/d03/classyaze_1_1gui_1_1WidgetMeasurement.html#a1c4e5770b9637896a147231257292196" title="Get total measured width of a toolbar." alt="" coords="249,5,444,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,23,233,23,233,28,201,28"/>
+</map>

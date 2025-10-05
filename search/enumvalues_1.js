@@ -10,8 +10,9 @@ var searchData=
   ['blocked_7',['BLOCKED',['../d0/d0e/structyaze_1_1cli_1_1agent_1_1TodoItem.html#a7c9e705458aea27fbd6bd9b619f8bb07aeecba0068950a2df17c47e851e1eef14',1,'yaze::cli::agent::TodoItem']]],
   ['both_8',['Both',['../d5/d1f/namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496a2a4319d5ee5621ed86d66df859d32370',1,'yaze::zelda3']]],
   ['both_5fwith_5fscroll_9',['Both_With_Scroll',['../d5/d1f/namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496ae9da81d0d4f9ee6d7f82e15372617c52',1,'yaze::zelda3']]],
-  ['bpp_5f2_10',['BPP_2',['../d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782a6e24c2fba60bf0169b9d27e24d696c06',1,'yaze::emu::BackgroundLayer']]],
-  ['bpp_5f4_11',['BPP_4',['../d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782a4d6c2ba87154df13303a36d2df9d0603',1,'yaze::emu::BackgroundLayer']]],
-  ['bpp_5f8_12',['BPP_8',['../d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782a4f648e52e4b46e97723a662b69282c08',1,'yaze::emu::BackgroundLayer']]],
-  ['breakpoint_13',['Breakpoint',['../d0/d28/classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a7129472c5eb598faf47e4e877f2618fd',1,'TextEditor']]]
+  ['bottom_10',['Bottom',['../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba2ad9d63b69c4a10a5cc9cad923133bc4',1,'yaze::gui::EditorCard']]],
+  ['bpp_5f2_11',['BPP_2',['../d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782a6e24c2fba60bf0169b9d27e24d696c06',1,'yaze::emu::BackgroundLayer']]],
+  ['bpp_5f4_12',['BPP_4',['../d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782a4d6c2ba87154df13303a36d2df9d0603',1,'yaze::emu::BackgroundLayer']]],
+  ['bpp_5f8_13',['BPP_8',['../d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782a4f648e52e4b46e97723a662b69282c08',1,'yaze::emu::BackgroundLayer']]],
+  ['breakpoint_14',['Breakpoint',['../d0/d28/classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a7129472c5eb598faf47e4e877f2618fd',1,'TextEditor']]]
 ];

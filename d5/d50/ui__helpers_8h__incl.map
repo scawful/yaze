@@ -1,7 +1,9 @@
 <map id="src/app/gui/ui_helpers.h" name="src/app/gui/ui_helpers.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="24,5,183,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="75,5,233,31"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,79,103,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,33,73,68,69,65,93,30"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,34,85,72,82,67,135,29"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="127,79,181,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="114,30,139,65,135,68,110,33"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="157,31,157,63,151,63,151,31"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="205,79,282,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="171,29,218,67,215,71,167,34"/>
 </map>

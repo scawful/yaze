@@ -9,6 +9,7 @@ var classyaze_1_1Rom =
     [ "LoadZelda3", "d6/d30/classyaze_1_1Rom.html#a557475d265ec948d7d5a565e0d159ac9", null ],
     [ "LoadZelda3", "d6/d30/classyaze_1_1Rom.html#aea7f6cec10d56f397dbbbb9dfb1c6377", null ],
     [ "LoadGfxGroups", "d6/d30/classyaze_1_1Rom.html#a99c1cb4e80c3cafb975d1d74a842c833", null ],
+    [ "InitializeForTesting", "d6/d30/classyaze_1_1Rom.html#ad4c487417b632f34ed81014fdb933255", null ],
     [ "SaveGfxGroups", "d6/d30/classyaze_1_1Rom.html#a98c204a2d036977bfceeee747d1579dd", null ],
     [ "SaveToFile", "d6/d30/classyaze_1_1Rom.html#a85481fc21993edbc298608a66cb70ba9", null ],
     [ "SavePalette", "d6/d30/classyaze_1_1Rom.html#abaa145655ce6535abf0026f785839a55", null ],

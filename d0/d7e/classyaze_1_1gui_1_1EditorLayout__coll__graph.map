@@ -1,0 +1,5 @@
+<map id="yaze::gui::EditorLayout" name="yaze::gui::EditorLayout">
+<area shape="rect" id="Node000001" title="Modern layout manager for editor components." alt="" coords="5,94,154,120"/>
+<area shape="rect" id="Node000002" href="$d7/dcb/classyaze_1_1gui_1_1Toolset.html" title="Ultra&#45;compact toolbar that merges mode buttons with settings." alt="" coords="20,5,139,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="82,47,82,94,77,94,77,47"/>
+</map>

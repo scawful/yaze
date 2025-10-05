@@ -1,9 +1,11 @@
 <map id="yaze::editor::AgentChatWidget::RenderProposalQuickActions" name="yaze::editor::AgentChatWidget::RenderProposalQuickActions">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,203,79"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,203,111"/>
 <area shape="rect" id="Node000002" href="$d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a993dcad5d03dcc0cf4c825d27684936b" title=" " alt="" coords="251,5,443,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,43,235,38,236,44,203,48"/>
-<area shape="rect" id="Node000004" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="260,71,434,111"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="203,69,244,75,244,80,203,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,68,253,48,255,53,183,73"/>
+<area shape="rect" id="Node000004" href="$db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#aacd59d0c9f923bfee36fe0567c1c52e6" title=" " alt="" coords="277,71,417,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="203,88,262,88,262,94,203,94"/>
+<area shape="rect" id="Node000009" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="260,136,434,177"/>
+<area shape="poly" id="edge4_Node000001_Node000009" title=" " alt="" coords="183,109,255,129,253,134,181,114"/>
 <area shape="rect" id="Node000003" href="$dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#ab811cae5845c007ae1fc6faf533e0e3b" title=" " alt="" coords="491,5,674,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="443,23,476,23,476,28,443,28"/>
 </map>

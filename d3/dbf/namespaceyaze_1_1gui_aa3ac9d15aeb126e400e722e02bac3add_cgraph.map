@@ -1,0 +1,11 @@
+<map id="yaze::gui::ToolsetButton" name="yaze::gui::ToolsetButton">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,163,96"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#aee586e138a5b644689e34b4455482c18" title=" " alt="" coords="211,70,379,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,80,195,80,195,86,163,86"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="441,5,607,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="349,67,425,48,426,53,350,72"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="427,70,620,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="379,80,411,80,411,86,379,86"/>
+<area shape="rect" id="Node000005" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="441,120,607,161"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="350,94,426,113,425,118,349,99"/>
+</map>

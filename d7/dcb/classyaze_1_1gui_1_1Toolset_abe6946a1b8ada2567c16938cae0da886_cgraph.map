@@ -1,0 +1,9 @@
+<map id="yaze::gui::Toolset::AddRomBadge" name="yaze::gui::Toolset::AddRomBadge">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,125,64"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a5584f6e7b3ad2c9f5515eab7f749d382" title=" " alt="" coords="173,31,357,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,41,157,41,157,46,125,46"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a29c7d5fce5b73991a79370b481981963" title=" " alt="" coords="405,5,583,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="357,31,389,27,390,32,357,36"/>
+<area shape="rect" id="Node000007" href="$d3/dbf/namespaceyaze_1_1gui.html#aa5fe71a06f516353c07a7d49617e7f46" title=" " alt="" coords="407,55,581,80"/>
+<area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="357,50,392,54,391,59,357,56"/>
+</map>
