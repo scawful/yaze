@@ -1,0 +1,11 @@
+<map id="yaze::editor::AgentEditor::Update" name="yaze::editor::AgentEditor::Update">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,164,111"/>
+<area shape="rect" id="Node000002" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a1725eec020746a6e49f609e5bc4e141b" title=" " alt="" coords="212,71,370,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,88,196,88,196,94,164,94"/>
+<area shape="rect" id="Node000003" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ae795b5cc2e903ca5f22db52e7ae186f3" title=" " alt="" coords="418,5,583,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="357,68,418,49,419,54,359,73"/>
+<area shape="rect" id="Node000006" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a19bcb4383a286fc23e820e31d67cf2b1" title=" " alt="" coords="422,71,580,111"/>
+<area shape="poly" id="edge3_Node000002_Node000006" title=" " alt="" coords="370,88,406,88,406,94,370,94"/>
+<area shape="rect" id="Node000007" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a955dd79315a17476ff8c68d84b992c66" title=" " alt="" coords="422,136,580,177"/>
+<area shape="poly" id="edge4_Node000002_Node000007" title=" " alt="" coords="359,109,419,128,418,133,357,114"/>
+</map>

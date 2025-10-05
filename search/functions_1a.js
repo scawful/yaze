@@ -1,7 +1,7 @@
 var searchData=
 [
   ['_7eagentchatwidget_0',['~AgentChatWidget',['../d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html#a36f7b1ccf5b13057089c69e32dee0dfe',1,'yaze::app::gui::AgentChatWidget']]],
-  ['_7eagenteditor_1',['~AgentEditor',['../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a169bcc1a326f2410cc455ebcbece1f0f',1,'yaze::editor::AgentEditor']]],
+  ['_7eagenteditor_1',['~AgentEditor',['../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ae364061b19a0d76f2418981349aca0bf',1,'yaze::editor::AgentEditor']]],
   ['_7eaiguicontroller_2',['~AIGUIController',['../d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#ad237f4e29407da4bfcab00fafb70fc3d',1,'yaze::cli::ai::AIGUIController']]],
   ['_7eaiservice_3',['~AIService',['../d2/d2a/classyaze_1_1cli_1_1AIService.html#a55b5fceb48e11c1ffc74820689e3cae0',1,'yaze::cli::AIService']]],
   ['_7earena_4',['~Arena',['../d4/de6/classyaze_1_1gfx_1_1Arena.html#ad7dfac47acae071316a9feeb1739c20c',1,'yaze::gfx::Arena']]],

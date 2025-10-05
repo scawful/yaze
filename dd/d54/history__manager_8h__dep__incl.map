@@ -1,11 +1,11 @@
 <map id="src/app/editor/system/history_manager.h" name="src/app/editor/system/history_manager.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="167,5,313,46"/>
-<area shape="rect" id="Node000002" href="$dd/d60/editor_8h.html" title=" " alt="" coords="167,94,313,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="243,62,243,93,238,93,238,62"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="168,5,315,46"/>
+<area shape="rect" id="Node000002" href="$dd/d60/editor_8h.html" title=" " alt="" coords="168,94,315,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="244,62,244,93,239,93,239,62"/>
 <area shape="rect" id="Node000003" href="$d2/dcf/app__delegate_8mm.html" title=" " alt="" coords="5,168,150,208"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="202,129,119,169,117,165,200,125"/>
-<area shape="rect" id="Node000004" href="$d6/dad/assembly__editor_8h.html" title=" " alt="" coords="174,168,306,208"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="243,135,243,167,238,167,238,135"/>
-<area shape="rect" id="Node000024" href="$d6/df5/dungeon__editor_8h.html" title=" " alt="" coords="330,168,484,208"/>
-<area shape="poly" id="edge4_Node000002_Node000024" title=" " alt="" coords="281,124,366,165,364,169,278,129"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="204,129,120,169,117,165,202,124"/>
+<area shape="rect" id="Node000004" href="$d4/d85/agent__editor_8h.html" title=" " alt="" coords="173,168,310,208"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="244,135,244,167,239,167,239,135"/>
+<area shape="rect" id="Node000006" href="$d6/dad/assembly__editor_8h.html" title=" " alt="" coords="334,168,466,208"/>
+<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="281,125,362,165,359,169,278,129"/>
 </map>

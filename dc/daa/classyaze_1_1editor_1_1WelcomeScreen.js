@@ -1,5 +1,6 @@
 var classyaze_1_1editor_1_1WelcomeScreen =
 [
+    [ "Particle", "d8/de3/structyaze_1_1editor_1_1WelcomeScreen_1_1Particle.html", "d8/de3/structyaze_1_1editor_1_1WelcomeScreen_1_1Particle" ],
     [ "WelcomeScreen", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#acfa058a5c1503d8bead7b8b5c0dc4d86", null ],
     [ "Show", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a941f362a577e12ea6c218485c8012e1b", null ],
     [ "SetOpenRomCallback", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a5114457e93d2abb7060f7dcd68751e89", null ],
@@ -28,9 +29,13 @@ var classyaze_1_1editor_1_1WelcomeScreen =
     [ "triforce_positions_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ab239bf12c2e9f2829be866b20ba384a9", null ],
     [ "triforce_base_positions_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a61ec4312c395d014be4960b66f3cacaa", null ],
     [ "triforce_positions_initialized_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#af1a97634d916d499f2c74b106815f345", null ],
+    [ "particles_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a681da1ba8e300b2bbcbdc4a6cc192472", null ],
+    [ "active_particle_count_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#aa5c53ab6f1a35a1c6d564919905ae332", null ],
     [ "show_triforce_settings_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a1d163635c3f0d207de5084e0e1717b0b", null ],
     [ "triforce_alpha_multiplier_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a0fe4757661ffd524fd0d763d6aa5b4c5", null ],
     [ "triforce_speed_multiplier_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a16ec2147ccdad676b46e5c12f7f34e3f", null ],
     [ "triforce_size_multiplier_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a4cd059901b10d4faad1fd2cb478e6c29", null ],
-    [ "triforce_mouse_repel_enabled_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ac5e3175af6077a7a99dd9f01cd57f12f", null ]
+    [ "triforce_mouse_repel_enabled_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ac5e3175af6077a7a99dd9f01cd57f12f", null ],
+    [ "particles_enabled_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a5531b2c798289326ea97db078bf8f614", null ],
+    [ "particle_spawn_rate_", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#aff7afae100036559501136c614bd7920", null ]
 ];

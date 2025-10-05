@@ -10,6 +10,7 @@ var classyaze_1_1editor_1_1EditorSelectionDialog =
     [ "MarkRecentlyUsed", "d9/da8/classyaze_1_1editor_1_1EditorSelectionDialog.html#ad38b8224912e7d07bbc33015b25a3f5e", null ],
     [ "LoadRecentEditors", "d9/da8/classyaze_1_1editor_1_1EditorSelectionDialog.html#a8f962a35e67d46ea7dcc2af571b306e9", null ],
     [ "SaveRecentEditors", "d9/da8/classyaze_1_1editor_1_1EditorSelectionDialog.html#a7ed4630d54dd9f7f207b980d262ad037", null ],
+    [ "ClearRecentEditors", "d9/da8/classyaze_1_1editor_1_1EditorSelectionDialog.html#a2c9e5719bc794157632851f1193c53e3", null ],
     [ "DrawEditorCard", "d9/da8/classyaze_1_1editor_1_1EditorSelectionDialog.html#aab47564b7b6d5e94a47c206e45828856", null ],
     [ "DrawWelcomeHeader", "d9/da8/classyaze_1_1editor_1_1EditorSelectionDialog.html#aea71deb2297c2ab175132ae1d4f35053", null ],
     [ "DrawQuickAccessButtons", "d9/da8/classyaze_1_1editor_1_1EditorSelectionDialog.html#a902e1a8b8d009ac58731d1e894f7b6a8", null ],

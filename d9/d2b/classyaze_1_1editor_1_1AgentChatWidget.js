@@ -107,6 +107,7 @@ var classyaze_1_1editor_1_1AgentChatWidget =
     [ "show_rom_sync_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#aa66f06aa53115b6f52a2ecba5066c663", null ],
     [ "show_snapshot_preview_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a1745c99dfa98494cd0de6634010e0a0e", null ],
     [ "snapshot_preview_data_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#af0d81c5efbb5d6a09b57729fbfcb9db6", null ],
+    [ "collaboration_status_color_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#aa2cb71d26e9d7dfdd5188c393b1e6f14", null ],
     [ "open_files_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#abb8c9a415bbc81d4ced83b4b76e938d8", null ],
     [ "active_file_tab_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ac69759f52f2dcf7c53551cdb7ea01b72", null ]
 ];

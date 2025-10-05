@@ -6,7 +6,7 @@ var searchData=
   ['agentchathistorycodec_3',['AgentChatHistoryCodec',['../d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec.html',1,'yaze::editor']]],
   ['agentchatwidget_4',['agentchatwidget',['../d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html',1,'yaze::app::gui::AgentChatWidget'],['../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html',1,'yaze::editor::AgentChatWidget']]],
   ['agentcollaborationcoordinator_5',['AgentCollaborationCoordinator',['../d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html',1,'yaze::editor']]],
-  ['agentconfig_6',['AgentConfig',['../d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html',1,'yaze::cli::agent']]],
+  ['agentconfig_6',['agentconfig',['../d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html',1,'yaze::cli::agent::AgentConfig'],['../d1/ddf/structyaze_1_1editor_1_1AgentEditor_1_1AgentConfig.html',1,'yaze::editor::AgentEditor::AgentConfig']]],
   ['agentconfigstate_7',['AgentConfigState',['../d2/da5/structyaze_1_1editor_1_1AgentChatWidget_1_1AgentConfigState.html',1,'yaze::editor::AgentChatWidget']]],
   ['agenteditor_8',['AgentEditor',['../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html',1,'yaze::editor']]],
   ['agentpretraining_9',['AgentPretraining',['../d7/d62/classyaze_1_1cli_1_1agent_1_1AgentPretraining.html',1,'yaze::cli::agent']]],

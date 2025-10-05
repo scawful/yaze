@@ -14,7 +14,8 @@ var editor_8h =
       [ "kSprite", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aa7c10e40e40c6c0519ea3066c5c66733a", null ],
       [ "kMessage", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aa9b74dc5b6954a9e2ba62b24c1f8c01e0", null ],
       [ "kHex", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aa6efd98d915ac155955e0416235bcf3f3", null ],
+      [ "kAgent", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aaf76ed811b18a86459694dacf3347d438", null ],
       [ "kSettings", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aac935a934100d15241aefe3f7081e7767", null ]
     ] ],
-    [ "kEditorNames", "dd/d60/editor_8h.html#a740ddd6d34439b9c8119fd6d921daba0", null ]
+    [ "kEditorNames", "dd/d60/editor_8h.html#ad2c9485ee70d3ac474b03e098cbc35da", null ]
 ];

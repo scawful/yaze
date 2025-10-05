@@ -120,6 +120,7 @@ var namespaceyaze_1_1editor =
       [ "kSprite", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa7c10e40e40c6c0519ea3066c5c66733a", null ],
       [ "kMessage", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa9b74dc5b6954a9e2ba62b24c1f8c01e0", null ],
       [ "kHex", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa6efd98d915ac155955e0416235bcf3f3", null ],
+      [ "kAgent", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aaf76ed811b18a86459694dacf3347d438", null ],
       [ "kSettings", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aac935a934100d15241aefe3f7081e7767", null ]
     ] ],
     [ "SpriteItemColumnID", "d1/d3e/namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80", [
@@ -173,7 +174,7 @@ var namespaceyaze_1_1editor =
     [ "kDungeonTabFlags", "d1/d3e/namespaceyaze_1_1editor.html#a618e4e59f9ee17b7a31362d6a425b722", null ],
     [ "kDungeonTabBarFlags", "d1/d3e/namespaceyaze_1_1editor.html#aef9fc3aa4b7cf20402d52bb6e88b644c", null ],
     [ "kDungeonTableFlags", "d1/d3e/namespaceyaze_1_1editor.html#a5fbf9b9f005187d191c8378e6364072c", null ],
-    [ "kEditorNames", "d1/d3e/namespaceyaze_1_1editor.html#a740ddd6d34439b9c8119fd6d921daba0", null ],
+    [ "kEditorNames", "d1/d3e/namespaceyaze_1_1editor.html#ad2c9485ee70d3ac474b03e098cbc35da", null ],
     [ "kOverworldEditorName", "d1/d3e/namespaceyaze_1_1editor.html#a71f5e2369095a77351061be9b7bb8bb1", null ],
     [ "kGraphicsEditorName", "d1/d3e/namespaceyaze_1_1editor.html#a4aeaba1613d291e363d09328be45faf1", null ],
     [ "kPaletteEditorName", "d1/d3e/namespaceyaze_1_1editor.html#adc7da7308bfe85a16a62542ef04a3472", null ],
