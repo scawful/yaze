@@ -72,9 +72,11 @@ set(YAZE_AGENT_SOURCES
   cli/service/agent/tool_dispatcher.cc
   cli/service/agent/learned_knowledge_service.cc
   cli/service/ai/ai_service.cc
+  cli/service/ai/ai_action_parser.cc
   cli/service/ai/ollama_ai_service.cc
   cli/service/ai/prompt_builder.cc
   cli/service/ai/service_factory.cc
+  cli/service/gui/gui_action_generator.cc
   cli/service/planning/policy_evaluator.cc
   cli/service/planning/proposal_registry.cc
   cli/service/planning/tile16_proposal_generator.cc

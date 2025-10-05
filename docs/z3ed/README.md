@@ -887,11 +887,15 @@ The AI response appears in your chat history and can reference specific details 
 4.  **Collaboration UI Enhancements (1 day)**: Add UI elements for ROM sync, snapshot sharing, and proposal management in the Agent Chat widget.
 5.  **Windows Cross-Platform Testing (8-10h)**: Validate `z3ed` and the test harness on Windows.
 
-### ✅ Recently Completed (v0.2.0-alpha)
+### ✅ Recently Completed (v0.2.0-alpha - October 5, 2025)
 
--   **Enhanced System Prompt (v3)**: Proactive tool chaining with implicit iteration to minimize back-and-forth
--   **Learn Command**: Full implementation with preferences, ROM patterns, project context, and conversation memory
--   **gRPC Windows Build Optimization**: Documented vcpkg approach and optimization strategies
+-   **Enhanced System Prompt (v3)**: Proactive tool chaining with implicit iteration to minimize back-and-forth conversations
+-   **Learn Command**: Full implementation with preferences, ROM patterns, project context, and conversation memory storage
+-   **Native Gemini Function Calling**: Upgraded from manual curl to native function calling API with automatic tool schema generation
+-   **Multimodal Vision Testing**: Comprehensive test suite for Gemini vision capabilities with screenshot integration
+-   **AI-Controlled GUI Automation**: Natural language parsing (`AIActionParser`) and test script generation (`GuiActionGenerator`) for automated tile placement
+-   **gRPC Windows Build Optimization**: vcpkg integration for 10-20x faster Windows builds, removed abseil-cpp submodule
+-   **Improved Documentation**: Consolidated architecture, enhancement plans, and build instructions with JSON-first approach
 
 ## 12. Troubleshooting
 

@@ -29,6 +29,7 @@
 #include "cli/service/ai/gemini_ai_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
 #include "cli/service/ai/service_factory.h"
+#include "cli/service/agent/learned_knowledge_service.h"
 #include "cli/service/agent/proposal_executor.h"
 #include "cli/service/agent/simple_chat_session.h"
 #include "cli/service/planning/proposal_registry.h"
@@ -386,9 +387,7 @@ absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args) {
 }
 
 absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
-  using namespace yaze::cli::agent;
-  
-  static LearnedKnowledgeService learn_service;
+  static yaze::cli::agent::LearnedKnowledgeService learn_service;
   static bool initialized = false;
   
   if (!initialized) {
@@ -545,7 +544,7 @@ absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
         std::cout << "\n";
       }
     }
-    return absl::OkStatus();
+  return absl::OkStatus();
   }
   
   return absl::InvalidArgumentError("Unknown learn command. Use 'z3ed agent learn' for usage.");
