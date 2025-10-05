@@ -17,9 +17,8 @@ set(
 )
 
 if(YAZE_WITH_GRPC)
-  # ROM service implementation ready but not compiled yet
-  # Will be integrated with test harness proto build system
-  # Files created: protos/rom_service.proto, app/net/rom_service_impl.{h,cc}
+  # Add ROM service implementation
+  list(APPEND YAZE_NET_SRC app/net/rom_service_impl.cc)
 endif()
 
 add_library(yaze_net STATIC ${YAZE_NET_SRC})
@@ -64,6 +63,19 @@ if(YAZE_WITH_JSON)
     target_link_libraries(yaze_net PUBLIC ws2_32)
     message(STATUS "  - Windows socket support (ws2_32) linked")
   endif()
+endif()
+
+# Add gRPC support for ROM service
+if(YAZE_WITH_GRPC)
+  target_add_protobuf(yaze_net ${CMAKE_SOURCE_DIR}/protos/rom_service.proto)
+  
+  target_link_libraries(yaze_net PUBLIC
+    grpc++
+    grpc++_reflection
+    libprotobuf
+  )
+  
+  message(STATUS "  - gRPC ROM service enabled")
 endif()
 
 set_target_properties(yaze_net PROPERTIES
