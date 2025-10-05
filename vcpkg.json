@@ -8,7 +8,8 @@
       "platform": "!uwp",
       "features": ["vulkan"]
     },
-    "yaml-cpp"
+    "yaml-cpp",
+    "zlib"
   ],
   "builtin-baseline": "4bee3f5aae7aefbc129ca81c33d6a062b02fcf3b",
   "overrides": [],

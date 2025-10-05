@@ -246,8 +246,12 @@ elseif(YAZE_PLATFORM_WINDOWS)
         message(STATUS "         Recommend keeping JSON enabled (it's header-only)")
     endif()
     
-    # Note about httplib configuration
-    message(STATUS "httplib: Using header-only mode (zlib/brotli/zstd disabled)")
+    # Note about httplib and AI features
+    message(STATUS "httplib: Header-only mode (compression libs disabled)")
+    if(Z3ED_AI)
+        message(STATUS "         For Gemini API: curl.exe must be in PATH")
+        message(STATUS "         (Usually included with Windows 10/11 or Git)")
+    endif()
     
     # Windows-specific architecture detection and configuration
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64")
