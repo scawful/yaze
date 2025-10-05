@@ -208,6 +208,10 @@ class OverworldMap : public gfx::GfxContext {
     area_size_ = size;
     large_map_ = (size == AreaSizeEnum::LargeArea);
   }
+  
+  void SetParent(int parent_index) {
+    parent_ = parent_index;
+  }
 
   void Destroy() {
     current_blockset_.clear();

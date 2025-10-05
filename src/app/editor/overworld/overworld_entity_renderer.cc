@@ -13,12 +13,12 @@ namespace editor {
 
 using namespace ImGui;
 
-// Entity colors - these could be theme-dependent in the future
+// Entity colors - solid with good visibility
 namespace {
-ImVec4 GetEntranceColor() { return ImVec4(0.0f, 1.0f, 0.0f, 0.5f); }  // Green
-ImVec4 GetExitColor() { return ImVec4(1.0f, 0.0f, 0.0f, 0.5f); }      // Red
-ImVec4 GetItemColor() { return ImVec4(1.0f, 1.0f, 0.0f, 0.5f); }      // Yellow
-ImVec4 GetSpriteColor() { return ImVec4(1.0f, 0.5f, 0.0f, 0.5f); }    // Orange
+ImVec4 GetEntranceColor() { return ImVec4(0.0f, 255.0f, 0.0f, 255.0f); }  // Solid green
+ImVec4 GetExitColor() { return ImVec4(255.0f, 0.0f, 0.0f, 255.0f); }      // Solid red
+ImVec4 GetItemColor() { return ImVec4(255.0f, 255.0f, 0.0f, 255.0f); }      // Solid yellow
+ImVec4 GetSpriteColor() { return ImVec4(255.0f, 128.0f, 0.0f, 255.0f); }    // Solid orange
 }  // namespace
 
 void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,

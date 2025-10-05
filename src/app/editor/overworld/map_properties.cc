@@ -61,17 +61,42 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
     TableNextColumn();
     static uint8_t asm_version =
         (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-    if (asm_version != 0xFF) {
-      int current_area_size =
-          static_cast<int>(overworld_->overworld_map(current_map)->area_size());
-      ImGui::SetNextItemWidth(kComboAreaSizeWidth);
+    
+    // ALL ROMs support Small/Large. Only v3+ supports Wide/Tall.
+    int current_area_size =
+        static_cast<int>(overworld_->overworld_map(current_map)->area_size());
+    ImGui::SetNextItemWidth(kComboAreaSizeWidth);
+    
+    if (asm_version >= 3 && asm_version != 0xFF) {
+      // v3+ ROM: Show all 4 area size options
       if (ImGui::Combo("##AreaSize", &current_area_size, kAreaSizeNames, 4)) {
-        overworld_->mutable_overworld_map(current_map)
-            ->SetAreaSize(static_cast<zelda3::AreaSizeEnum>(current_area_size));
-        RefreshOverworldMap();
+        auto status = overworld_->ConfigureMultiAreaMap(
+            current_map,
+            static_cast<zelda3::AreaSizeEnum>(current_area_size));
+        if (status.ok()) {
+          RefreshSiblingMapGraphics(current_map, true);
+          RefreshOverworldMap();
+        }
       }
     } else {
-      ImGui::Text("N/A");
+      // Vanilla/v1/v2 ROM: Show only Small/Large (first 2 options)
+      const char* limited_names[] = {"Small (1x1)", "Large (2x2)"};
+      int limited_size = (current_area_size == 0 || current_area_size == 1) ? current_area_size : 0;
+      
+      if (ImGui::Combo("##AreaSize", &limited_size, limited_names, 2)) {
+        // limited_size is 0 (Small) or 1 (Large)
+        auto size = (limited_size == 1) ? zelda3::AreaSizeEnum::LargeArea 
+                                        : zelda3::AreaSizeEnum::SmallArea;
+        auto status = overworld_->ConfigureMultiAreaMap(current_map, size);
+        if (status.ok()) {
+          RefreshSiblingMapGraphics(current_map, true);
+          RefreshOverworldMap();
+        }
+      }
+      
+      if (asm_version == 0xFF || asm_version < 3) {
+        HOVER_HINT("Small (1x1) and Large (2x2) maps. Wide/Tall require v3+");
+      }
     }
 
     TableNextColumn();
@@ -660,32 +685,41 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
     ImGui::Text(ICON_MD_ASPECT_RATIO " Area Configuration");
     ImGui::Separator();
 
+    // ALL ROMs support Small/Large. Only v3+ supports Wide/Tall.
     static uint8_t asm_version =
         (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-    if (asm_version != 0xFF) {
-      int current_area_size =
-          static_cast<int>(overworld_->overworld_map(current_map)->area_size());
-      ImGui::SetNextItemWidth(kComboAreaSizeWidth);
+    
+    int current_area_size =
+        static_cast<int>(overworld_->overworld_map(current_map)->area_size());
+    ImGui::SetNextItemWidth(kComboAreaSizeWidth);
+    
+    if (asm_version >= 3 && asm_version != 0xFF) {
+      // v3+ ROM: Show all 4 area size options
       if (ImGui::Combo(ICON_MD_PHOTO_SIZE_SELECT_LARGE " Size", &current_area_size, kAreaSizeNames, 4)) {
-        overworld_->mutable_overworld_map(current_map)
-            ->SetAreaSize(static_cast<zelda3::AreaSizeEnum>(current_area_size));
-        RefreshOverworldMap();
+        auto status = overworld_->ConfigureMultiAreaMap(
+            current_map,
+            static_cast<zelda3::AreaSizeEnum>(current_area_size));
+        if (status.ok()) {
+          RefreshSiblingMapGraphics(current_map, true);
+          RefreshOverworldMap();
+        }
       }
       HOVER_HINT("Map area size (1x1, 2x2, 2x1, 1x2 screens)");
     } else {
-      // Vanilla ROM - show small/large map controls
-      auto* map = overworld_->mutable_overworld_map(current_map);
-      bool is_small = !map->is_large_map();
-      if (ImGui::Checkbox(ICON_MD_CROP_SQUARE " Small Map", &is_small)) {
-        if (is_small) {
-          map->SetAsSmallMap();
-        } else {
-          // For vanilla, use default parent and quadrant values
-          map->SetAsLargeMap(0, 0);
+      // Vanilla/v1/v2 ROM: Show only Small/Large
+      const char* limited_names[] = {"Small (1x1)", "Large (2x2)"};
+      int limited_size = (current_area_size == 0 || current_area_size == 1) ? current_area_size : 0;
+      
+      if (ImGui::Combo(ICON_MD_PHOTO_SIZE_SELECT_LARGE " Size", &limited_size, limited_names, 2)) {
+        auto size = (limited_size == 1) ? zelda3::AreaSizeEnum::LargeArea 
+                                        : zelda3::AreaSizeEnum::SmallArea;
+        auto status = overworld_->ConfigureMultiAreaMap(current_map, size);
+        if (status.ok()) {
+          RefreshSiblingMapGraphics(current_map, true);
+          RefreshOverworldMap();
         }
-        RefreshOverworldMap();
       }
-      HOVER_HINT("Small (1x1) vs Large (2x2) map size");
+      HOVER_HINT("Small (1x1) and Large (2x2) maps. Wide/Tall require v3+");
     }
 
     // Visual Effects Section
@@ -922,22 +956,49 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
     TableNextColumn();
     ImGui::Text(ICON_MD_PHOTO_SIZE_SELECT_LARGE " Area Size");
     TableNextColumn();
-    static const char* area_size_names[] = {"Small (1x1)", "Large (2x2)",
-                                            "Wide (2x1)", "Tall (1x2)"};
+    // ALL ROMs support Small/Large. Only v3+ supports Wide/Tall.
+    static uint8_t asm_version =
+        (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+    
     int current_area_size =
         static_cast<int>(overworld_->overworld_map(current_map)->area_size());
     ImGui::SetNextItemWidth(130.f);
-    if (ImGui::Combo("##AreaSize", &current_area_size, area_size_names, 4)) {
-      overworld_->mutable_overworld_map(current_map)
-          ->SetAreaSize(static_cast<zelda3::AreaSizeEnum>(current_area_size));
-      RefreshOverworldMap();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Map size in screens (ZSCustomOverworld feature)");
+    
+    if (asm_version >= 3 && asm_version != 0xFF) {
+      // v3+ ROM: Show all 4 area size options
+      static const char* all_sizes[] = {"Small (1x1)", "Large (2x2)",
+                                        "Wide (2x1)", "Tall (1x2)"};
+      if (ImGui::Combo("##AreaSize", &current_area_size, all_sizes, 4)) {
+        auto status = overworld_->ConfigureMultiAreaMap(
+            current_map,
+            static_cast<zelda3::AreaSizeEnum>(current_area_size));
+        if (status.ok()) {
+          RefreshSiblingMapGraphics(current_map, true);
+          RefreshOverworldMap();
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Map size: Small (1x1), Large (2x2), Wide (2x1), Tall (1x2)");
+      }
+    } else {
+      // Vanilla/v1/v2 ROM: Show only Small/Large
+      static const char* limited_sizes[] = {"Small (1x1)", "Large (2x2)"};
+      int limited_size = (current_area_size == 0 || current_area_size == 1) ? current_area_size : 0;
+      
+      if (ImGui::Combo("##AreaSize", &limited_size, limited_sizes, 2)) {
+        auto size = (limited_size == 1) ? zelda3::AreaSizeEnum::LargeArea 
+                                        : zelda3::AreaSizeEnum::SmallArea;
+        auto status = overworld_->ConfigureMultiAreaMap(current_map, size);
+        if (status.ok()) {
+          RefreshSiblingMapGraphics(current_map, true);
+          RefreshOverworldMap();
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Map size: Small (1x1), Large (2x2). Wide/Tall require v3+");
+      }
     }
 
-    static uint8_t asm_version =
-        (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     if (asm_version >= 2) {
       TableNextColumn();
       ImGui::Text(ICON_MD_COLOR_LENS " Main Palette");

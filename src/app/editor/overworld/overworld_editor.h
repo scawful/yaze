@@ -337,9 +337,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   gui::Canvas properties_canvas_;
   gui::Canvas scratch_canvas_{"ScratchSpace", ImVec2(320, 480), gui::CanvasGridSize::k32x32};
 
-  gui::Table map_settings_table_{kOWMapTable.data(), 8, kOWMapFlags,
-                                 ImVec2(0, 0)};
-
   absl::Status status_;
 };
 }  // namespace editor

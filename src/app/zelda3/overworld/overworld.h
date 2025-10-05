@@ -200,6 +200,16 @@ class Overworld {
   absl::Status SaveMusic();
   absl::Status SaveAreaSizes();
   void AssignMapSizes(std::vector<OverworldMap>& maps);
+  
+  /**
+   * @brief Configure a multi-area map structure (Large/Wide/Tall)
+   * @param parent_index The parent map index
+   * @param size The area size to configure
+   * @return Status of the configuration
+   * 
+   * Properly sets up sibling relationships and updates ROM data for v3+.
+   */
+  absl::Status ConfigureMultiAreaMap(int parent_index, AreaSizeEnum size);
 
   auto rom() const { return rom_; }
   auto mutable_rom() { return rom_; }

@@ -1741,8 +1741,11 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
                   overworld_.GetMapTiles(current_world_));
               if (status.ok()) {
                 maps_bmp_[sibling].set_data(sibling_map->bitmap_data());
-                maps_bmp_[sibling].SetPalette(
-                    overworld_.current_area_palette());
+                
+                // SAFETY: Only set palette if bitmap has a valid surface
+                if (maps_bmp_[sibling].is_active() && maps_bmp_[sibling].surface()) {
+                  maps_bmp_[sibling].SetPalette(overworld_.current_area_palette());
+                }
                 maps_bmp_[sibling].set_modified(false);
 
                 // Update texture if it exists
@@ -1836,10 +1839,18 @@ absl::Status OverworldEditor::RefreshMapPalette() {
           sibling_index += 6;
         RETURN_IF_ERROR(
             overworld_.mutable_overworld_map(sibling_index)->LoadPalette());
-        maps_bmp_[sibling_index].SetPalette(current_map_palette);
+        
+        // SAFETY: Only set palette if bitmap has a valid surface
+        if (maps_bmp_[sibling_index].is_active() && maps_bmp_[sibling_index].surface()) {
+          maps_bmp_[sibling_index].SetPalette(current_map_palette);
+        }
       }
     }
-    maps_bmp_[current_map_].SetPalette(current_map_palette);
+    
+    // SAFETY: Only set palette if bitmap has a valid surface
+    if (maps_bmp_[current_map_].is_active() && maps_bmp_[current_map_].surface()) {
+      maps_bmp_[current_map_].SetPalette(current_map_palette);
+    }
   }
 
   return absl::OkStatus();
