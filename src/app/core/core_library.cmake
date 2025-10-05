@@ -83,9 +83,9 @@ if(YAZE_WITH_GRPC)
 
   # Add proto definitions for test harness and ROM service
   target_add_protobuf(yaze_core_lib
-    ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+    ${PROJECT_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
   target_add_protobuf(yaze_core_lib
-    ${CMAKE_SOURCE_DIR}/protos/rom_service.proto)
+    ${PROJECT_SOURCE_DIR}/protos/rom_service.proto)
 
   # Add test harness implementation
   target_sources(yaze_core_lib PRIVATE
