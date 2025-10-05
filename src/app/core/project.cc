@@ -226,6 +226,18 @@ absl::Status YazeProject::LoadFromYazeFormat(const std::string& project_path) {
       else if (key == "saved_layouts") workspace_settings.saved_layouts = ParseStringList(value);
       else if (key == "recent_files") workspace_settings.recent_files = ParseStringList(value);
     }
+    else if (current_section == "agent_settings") {
+      if (key == "ai_provider") agent_settings.ai_provider = value;
+      else if (key == "ai_model") agent_settings.ai_model = value;
+      else if (key == "ollama_host") agent_settings.ollama_host = value;
+      else if (key == "gemini_api_key") agent_settings.gemini_api_key = value;
+      else if (key == "custom_system_prompt") agent_settings.custom_system_prompt = value;
+      else if (key == "use_custom_prompt") agent_settings.use_custom_prompt = ParseBool(value);
+      else if (key == "show_reasoning") agent_settings.show_reasoning = ParseBool(value);
+      else if (key == "verbose") agent_settings.verbose = ParseBool(value);
+      else if (key == "max_tool_iterations") agent_settings.max_tool_iterations = std::stoi(value);
+      else if (key == "max_retry_attempts") agent_settings.max_retry_attempts = std::stoi(value);
+    }
     else if (current_section == "build") {
       if (key == "build_script") build_script = value;
       else if (key == "output_folder") output_folder = value;
@@ -318,6 +330,19 @@ absl::Status YazeProject::SaveToYazeFormat() {
   file << "last_layout_preset=" << workspace_settings.last_layout_preset << "\n";
   file << "saved_layouts=" << absl::StrJoin(workspace_settings.saved_layouts, ",") << "\n";
   file << "recent_files=" << absl::StrJoin(workspace_settings.recent_files, ",") << "\n\n";
+  
+  // AI Agent settings section
+  file << "[agent_settings]\n";
+  file << "ai_provider=" << agent_settings.ai_provider << "\n";
+  file << "ai_model=" << agent_settings.ai_model << "\n";
+  file << "ollama_host=" << agent_settings.ollama_host << "\n";
+  file << "gemini_api_key=" << agent_settings.gemini_api_key << "\n";
+  file << "custom_system_prompt=" << GetRelativePath(agent_settings.custom_system_prompt) << "\n";
+  file << "use_custom_prompt=" << (agent_settings.use_custom_prompt ? "true" : "false") << "\n";
+  file << "show_reasoning=" << (agent_settings.show_reasoning ? "true" : "false") << "\n";
+  file << "verbose=" << (agent_settings.verbose ? "true" : "false") << "\n";
+  file << "max_tool_iterations=" << agent_settings.max_tool_iterations << "\n";
+  file << "max_retry_attempts=" << agent_settings.max_retry_attempts << "\n\n";
   
   // Custom keybindings section
   if (!workspace_settings.custom_keybindings.empty()) {
@@ -1023,6 +1048,47 @@ absl::Status YazeProject::SaveToJsonFormat() {
 }
 
 #endif // YAZE_ENABLE_JSON_PROJECT_FORMAT
+
+// RecentFilesManager implementation
+std::string RecentFilesManager::GetFilePath() const {
+  return GetConfigDirectory() + "/" + kRecentFilesFilename;
+}
+
+void RecentFilesManager::Save() {
+  // Ensure config directory exists
+  if (!EnsureConfigDirectoryExists()) {
+    std::cerr << "Warning: Could not create config directory for recent files\n";
+    return;
+  }
+  
+  std::string filepath = GetFilePath();
+  std::ofstream file(filepath);
+  if (!file.is_open()) {
+    std::cerr << "Warning: Could not save recent files to " << filepath << "\n";
+    return;
+  }
+
+  for (const auto& file_path : recent_files_) {
+    file << file_path << std::endl;
+  }
+}
+
+void RecentFilesManager::Load() {
+  std::string filepath = GetFilePath();
+  std::ifstream file(filepath);
+  if (!file.is_open()) {
+    // File doesn't exist yet, which is fine
+    return;
+  }
+
+  recent_files_.clear();
+  std::string line;
+  while (std::getline(file, line)) {
+    if (!line.empty()) {
+      recent_files_.push_back(line);
+    }
+  }
+}
 
 } // namespace core
 } // namespace yaze

@@ -385,8 +385,7 @@ void EditorManager::Initialize(const std::string& filename) {
 
   context_.shortcut_manager.RegisterShortcut(
       "Load Last ROM", {ImGuiKey_R, ImGuiMod_Ctrl}, [this]() {
-        static core::RecentFilesManager manager("recent_files.txt");
-        manager.Load();
+        auto& manager = core::RecentFilesManager::GetInstance();
         if (!manager.GetRecentFiles().empty()) {
           auto front = manager.GetRecentFiles().front();
           status_ = OpenRomOrProject(front);
@@ -428,8 +427,7 @@ void EditorManager::Initialize(const std::string& filename) {
 
   // Initialize menu items
   std::vector<gui::MenuItem> recent_files;
-  static core::RecentFilesManager manager("recent_files.txt");
-  manager.Load();
+  auto& manager = core::RecentFilesManager::GetInstance();
   if (manager.GetRecentFiles().empty()) {
     recent_files.emplace_back("No Recent Files", "", nullptr);
   } else {
@@ -1414,8 +1412,7 @@ void EditorManager::DrawMenuBar() {
         // Recent Files Tab
         if (ImGui::BeginTabItem(
                 absl::StrFormat("%s Recent Files", ICON_MD_HISTORY).c_str())) {
-          static core::RecentFilesManager manager("recent_files.txt");
-          manager.Load();
+          auto& manager = core::RecentFilesManager::GetInstance();
           auto recent_files = manager.GetRecentFiles();
 
           if (ImGui::BeginTable("RecentFilesTable", 3,
@@ -1823,8 +1820,7 @@ absl::Status EditorManager::LoadRom() {
   test::TestManager::Get().SetCurrentRom(current_rom_);
 #endif
 
-  static core::RecentFilesManager manager("recent_files.txt");
-  manager.Load();
+  auto& manager = core::RecentFilesManager::GetInstance();
   manager.AddFile(file_name);
   manager.Save();
   RETURN_IF_ERROR(LoadAssets());
@@ -1923,8 +1919,7 @@ absl::Status EditorManager::SaveRomAs(const std::string& filename) {
     }
 
     // Add to recent files
-    static core::RecentFilesManager manager("recent_files.txt");
-    manager.Load();
+    auto& manager = core::RecentFilesManager::GetInstance();
     manager.AddFile(filename);
     manager.Save();
 
@@ -2041,8 +2036,7 @@ absl::Status EditorManager::OpenProject() {
   ImGui::GetIO().FontGlobalScale = font_global_scale_;
 
   // Add to recent files
-  static core::RecentFilesManager manager("recent_files.txt");
-  manager.Load();
+  auto& manager = core::RecentFilesManager::GetInstance();
   manager.AddFile(current_project_.filepath);
   manager.Save();
 
@@ -2071,8 +2065,7 @@ absl::Status EditorManager::SaveProject() {
         autosave_interval_secs_;
 
     // Save recent files
-    static core::RecentFilesManager manager("recent_files.txt");
-    manager.Load();
+    auto& manager = core::RecentFilesManager::GetInstance();
     current_project_.workspace_settings.recent_files.clear();
     for (const auto& file : manager.GetRecentFiles()) {
       current_project_.workspace_settings.recent_files.push_back(file);
@@ -2106,8 +2099,7 @@ absl::Status EditorManager::SaveProjectAs() {
   auto save_status = current_project_.Save();
   if (save_status.ok()) {
     // Add to recent files
-    static core::RecentFilesManager manager("recent_files.txt");
-    manager.Load();
+    auto& manager = core::RecentFilesManager::GetInstance();
     manager.AddFile(file_path);
     manager.Save();
 
@@ -3211,8 +3203,7 @@ void EditorManager::DrawWelcomeScreen() {
     // Recent files section (reuse homepage logic)
     ImGui::Text("Recent Files:");
     ImGui::BeginChild("RecentFiles", ImVec2(0, 100), true);
-    static core::RecentFilesManager manager("recent_files.txt");
-    manager.Load();
+    auto& manager = core::RecentFilesManager::GetInstance();
     for (const auto& file : manager.GetRecentFiles()) {
       if (gui::ClickableText(file.c_str())) {
         status_ = OpenRomOrProject(file);

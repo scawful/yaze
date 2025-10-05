@@ -10,6 +10,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
+#include "app/gui/modules/text_editor.h"
 #include "cli/service/agent/conversational_agent_service.h"
 
 namespace yaze {
@@ -179,6 +180,10 @@ public:
   // Collaboration history management (public so EditorManager can call them)
   void SwitchToSharedHistory(const std::string& session_id);
   void SwitchToLocalHistory();
+  
+  // File editing
+  void OpenFileInEditor(const std::string& filepath);
+  void CreateNewFileInEditor(const std::string& filename);
 
  private:
   void EnsureHistoryLoaded();
@@ -201,6 +206,8 @@ public:
   void RenderRomSyncPanel();
   void RenderSnapshotPreviewPanel();
   void RenderProposalManagerPanel();
+  void RenderSystemPromptEditor();
+  void RenderFileEditorTabs();
   void RefreshCollaboration();
   void ApplyCollaborationSession(
       const CollaborationCallbacks::SessionContext& context,
@@ -252,12 +259,23 @@ public:
   size_t last_known_history_size_ = 0;
   
   // UI state
-  int active_tab_ = 0;  // 0=Chat, 1=Config, 2=Commands, 3=Collab, 4=ROM Sync
+  int active_tab_ = 0;  // 0=Chat, 1=Config, 2=Commands, 3=Collab, 4=ROM Sync, 5=Files, 6=Prompt
   bool show_agent_config_ = false;
   bool show_z3ed_commands_ = false;
   bool show_rom_sync_ = false;
   bool show_snapshot_preview_ = false;
   std::vector<uint8_t> snapshot_preview_data_;
+  
+  // File editing state
+  struct FileEditorTab {
+    std::string filepath;
+    std::string filename;
+    TextEditor editor;
+    bool modified = false;
+    bool is_system_prompt = false;
+  };
+  std::vector<FileEditorTab> open_files_;
+  int active_file_tab_ = -1;
 };
 
 }  // namespace editor
