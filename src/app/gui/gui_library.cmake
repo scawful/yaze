@@ -17,7 +17,6 @@ set(
   app/gui/widgets/widget_state_capture.cc
   app/gui/ui_helpers.cc
   app/gui/editor_layout.cc
-  app/gui/widgets/widget_measurement.cc
   # Canvas system components
   app/gui/canvas/canvas_modals.cc
   app/gui/canvas/canvas_context_menu.cc
