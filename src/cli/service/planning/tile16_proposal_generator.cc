@@ -302,6 +302,189 @@ absl::StatusOr<Tile16Change> Tile16ProposalGenerator::ParseSetTileCommand(
   return change;
 }
 
+absl::StatusOr<std::vector<Tile16Change>> Tile16ProposalGenerator::ParseSetAreaCommand(
+    const std::string& command,
+    Rom* rom) {
+  
+  // Expected format: "overworld set-area --map 0 --x 10 --y 20 --width 5 --height 3 --tile 0x02E"
+  std::vector<std::string> parts = absl::StrSplit(command, ' ');
+  
+  if (parts.size() < 12) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Invalid set-area command format: ", command));
+  }
+  
+  if (parts[0] != "overworld" || parts[1] != "set-area") {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Not a set-area command: ", command));
+  }
+  
+  int map_id = 0, x = 0, y = 0, width = 1, height = 1;
+  uint16_t new_tile = 0;
+  
+  // Parse arguments
+  for (size_t i = 2; i < parts.size(); i += 2) {
+    if (i + 1 >= parts.size()) break;
+    
+    const std::string& flag = parts[i];
+    const std::string& value = parts[i + 1];
+    
+    if (flag == "--map") {
+      map_id = std::stoi(value);
+    } else if (flag == "--x") {
+      x = std::stoi(value);
+    } else if (flag == "--y") {
+      y = std::stoi(value);
+    } else if (flag == "--width") {
+      width = std::stoi(value);
+    } else if (flag == "--height") {
+      height = std::stoi(value);
+    } else if (flag == "--tile") {
+      new_tile = static_cast<uint16_t>(std::stoi(value, nullptr, 16));
+    }
+  }
+  
+  // Load the ROM to get the old tile values
+  std::vector<Tile16Change> changes;
+  if (rom && rom->is_loaded()) {
+    zelda3::Overworld overworld(rom);
+    auto status = overworld.Load(rom);
+    if (!status.ok()) {
+      return status;
+    }
+    
+    // Set the correct world based on map_id
+    if (map_id < 0x40) {
+      overworld.set_current_world(0);  // Light World
+    } else if (map_id < 0x80) {
+      overworld.set_current_world(1);  // Dark World
+    } else {
+      overworld.set_current_world(2);  // Special World
+    }
+    
+    // Generate changes for each tile in the area
+    for (int dy = 0; dy < height; ++dy) {
+      for (int dx = 0; dx < width; ++dx) {
+        Tile16Change change;
+        change.map_id = map_id;
+        change.x = x + dx;
+        change.y = y + dy;
+        change.new_tile = new_tile;
+        change.old_tile = overworld.GetTile(change.x, change.y);
+        changes.push_back(change);
+      }
+    }
+  } else {
+    // If ROM not loaded, just create changes with unknown old values
+    for (int dy = 0; dy < height; ++dy) {
+      for (int dx = 0; dx < width; ++dx) {
+        Tile16Change change;
+        change.map_id = map_id;
+        change.x = x + dx;
+        change.y = y + dy;
+        change.new_tile = new_tile;
+        change.old_tile = 0x0000;  // Unknown
+        changes.push_back(change);
+      }
+    }
+  }
+  
+  return changes;
+}
+
+absl::StatusOr<std::vector<Tile16Change>> Tile16ProposalGenerator::ParseReplaceTileCommand(
+    const std::string& command,
+    Rom* rom) {
+  
+  // Expected format: "overworld replace-tile --map 0 --old-tile 0x02E --new-tile 0x030"
+  // Optional bounds: --x-min 0 --y-min 0 --x-max 31 --y-max 31
+  std::vector<std::string> parts = absl::StrSplit(command, ' ');
+  
+  if (parts.size() < 8) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Invalid replace-tile command format: ", command));
+  }
+  
+  if (parts[0] != "overworld" || parts[1] != "replace-tile") {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Not a replace-tile command: ", command));
+  }
+  
+  int map_id = 0;
+  uint16_t old_tile = 0, new_tile = 0;
+  int x_min = 0, y_min = 0, x_max = 31, y_max = 31;
+  
+  // Parse arguments
+  for (size_t i = 2; i < parts.size(); i += 2) {
+    if (i + 1 >= parts.size()) break;
+    
+    const std::string& flag = parts[i];
+    const std::string& value = parts[i + 1];
+    
+    if (flag == "--map") {
+      map_id = std::stoi(value);
+    } else if (flag == "--old-tile") {
+      old_tile = static_cast<uint16_t>(std::stoi(value, nullptr, 16));
+    } else if (flag == "--new-tile") {
+      new_tile = static_cast<uint16_t>(std::stoi(value, nullptr, 16));
+    } else if (flag == "--x-min") {
+      x_min = std::stoi(value);
+    } else if (flag == "--y-min") {
+      y_min = std::stoi(value);
+    } else if (flag == "--x-max") {
+      x_max = std::stoi(value);
+    } else if (flag == "--y-max") {
+      y_max = std::stoi(value);
+    }
+  }
+  
+  if (!rom || !rom->is_loaded()) {
+    return absl::FailedPreconditionError(
+        "ROM must be loaded to scan for tiles to replace");
+  }
+  
+  zelda3::Overworld overworld(rom);
+  auto status = overworld.Load(rom);
+  if (!status.ok()) {
+    return status;
+  }
+  
+  // Set the correct world based on map_id
+  if (map_id < 0x40) {
+    overworld.set_current_world(0);  // Light World
+  } else if (map_id < 0x80) {
+    overworld.set_current_world(1);  // Dark World
+  } else {
+    overworld.set_current_world(2);  // Special World
+  }
+  
+  // Scan the specified area for tiles to replace
+  std::vector<Tile16Change> changes;
+  for (int y = y_min; y <= y_max; ++y) {
+    for (int x = x_min; x <= x_max; ++x) {
+      uint16_t current_tile = overworld.GetTile(x, y);
+      if (current_tile == old_tile) {
+        Tile16Change change;
+        change.map_id = map_id;
+        change.x = x;
+        change.y = y;
+        change.old_tile = old_tile;
+        change.new_tile = new_tile;
+        changes.push_back(change);
+      }
+    }
+  }
+  
+  if (changes.empty()) {
+    std::ostringstream oss;
+    oss << "0x" << std::hex << old_tile;
+    return absl::NotFoundError(
+        absl::StrCat("No tiles matching ", oss.str(), " found in specified area"));
+  }
+  
+  return changes;
+}
+
 absl::StatusOr<Tile16Proposal> Tile16ProposalGenerator::GenerateFromCommands(
     const std::string& prompt,
     const std::vector<std::string>& commands,
@@ -322,7 +505,7 @@ absl::StatusOr<Tile16Proposal> Tile16ProposalGenerator::GenerateFromCommands(
       continue;
     }
     
-    // Check if it's a set-tile command
+    // Check for different command types
     if (absl::StrContains(command, "overworld set-tile")) {
       auto change_or = ParseSetTileCommand(command, rom);
       if (change_or.ok()) {
@@ -330,8 +513,25 @@ absl::StatusOr<Tile16Proposal> Tile16ProposalGenerator::GenerateFromCommands(
       } else {
         return change_or.status();
       }
+    } else if (absl::StrContains(command, "overworld set-area")) {
+      auto changes_or = ParseSetAreaCommand(command, rom);
+      if (changes_or.ok()) {
+        proposal.changes.insert(proposal.changes.end(),
+                               changes_or.value().begin(),
+                               changes_or.value().end());
+      } else {
+        return changes_or.status();
+      }
+    } else if (absl::StrContains(command, "overworld replace-tile")) {
+      auto changes_or = ParseReplaceTileCommand(command, rom);
+      if (changes_or.ok()) {
+        proposal.changes.insert(proposal.changes.end(),
+                               changes_or.value().begin(),
+                               changes_or.value().end());
+      } else {
+        return changes_or.status();
+      }
     }
-    // TODO: Add support for other command types (set-area, replace-tile, etc.)
   }
   
   if (proposal.changes.empty()) {
@@ -381,18 +581,121 @@ absl::Status Tile16ProposalGenerator::ApplyProposal(
 }
 
 absl::StatusOr<gfx::Bitmap> Tile16ProposalGenerator::GenerateDiff(
-    const Tile16Proposal& /* proposal */,
-    Rom* /* before_rom */,
-    Rom* /* after_rom */) {
+    const Tile16Proposal& proposal,
+    Rom* before_rom,
+    Rom* after_rom) {
   
-  // TODO: Implement visual diff generation
-  // This would:
-  // 1. Load overworld from both ROMs
-  // 2. Render the affected regions
-  // 3. Create side-by-side or overlay comparison
-  // 4. Highlight changed tiles
+  if (!before_rom || !before_rom->is_loaded()) {
+    return absl::FailedPreconditionError("Before ROM not loaded");
+  }
   
-  return absl::UnimplementedError("Visual diff generation not yet implemented");
+  if (!after_rom || !after_rom->is_loaded()) {
+    return absl::FailedPreconditionError("After ROM not loaded");
+  }
+  
+  if (proposal.changes.empty()) {
+    return absl::InvalidArgumentError("No changes to visualize");
+  }
+  
+  // Find the bounding box of all changes
+  int min_x = INT_MAX, min_y = INT_MAX;
+  int max_x = INT_MIN, max_y = INT_MIN;
+  int map_id = proposal.changes[0].map_id;
+  
+  for (const auto& change : proposal.changes) {
+    if (change.x < min_x) min_x = change.x;
+    if (change.y < min_y) min_y = change.y;
+    if (change.x > max_x) max_x = change.x;
+    if (change.y > max_y) max_y = change.y;
+  }
+  
+  // Add some padding around the changes
+  int padding = 2;
+  min_x = std::max(0, min_x - padding);
+  min_y = std::max(0, min_y - padding);
+  max_x = std::min(31, max_x + padding);
+  max_y = std::min(31, max_y + padding);
+  
+  int width = (max_x - min_x + 1) * 16;
+  int height = (max_y - min_y + 1) * 16;
+  
+  // Create a side-by-side diff bitmap (before on left, after on right)
+  int diff_width = width * 2 + 8;  // 8 pixels separator
+  int diff_height = height;
+  
+  std::vector<uint8_t> diff_data(diff_width * diff_height, 0x00);
+  gfx::Bitmap diff_bitmap(diff_width, diff_height, 8, diff_data);
+  
+  // Load overworld data from both ROMs
+  zelda3::Overworld before_overworld(before_rom);
+  zelda3::Overworld after_overworld(after_rom);
+  
+  auto before_status = before_overworld.Load(before_rom);
+  if (!before_status.ok()) {
+    return before_status;
+  }
+  
+  auto after_status = after_overworld.Load(after_rom);
+  if (!after_status.ok()) {
+    return after_status;
+  }
+  
+  // Set the correct world for both overworlds
+  int world = 0;
+  if (map_id < 0x40) {
+    world = 0;  // Light World
+  } else if (map_id < 0x80) {
+    world = 1;  // Dark World
+  } else {
+    world = 2;  // Special World
+  }
+  
+  before_overworld.set_current_world(world);
+  after_overworld.set_current_world(world);
+  
+  // For now, create a simple colored diff representation
+  // Red = changed tiles, Green = unchanged tiles
+  // This is a placeholder until full tile rendering is implemented
+  
+  gfx::SnesColor red_color(31, 0, 0);      // Red for changed
+  gfx::SnesColor green_color(0, 31, 0);    // Green for unchanged
+  gfx::SnesColor separator_color(15, 15, 15);  // Gray separator
+  
+  for (int y = min_y; y <= max_y; ++y) {
+    for (int x = min_x; x <= max_x; ++x) {
+      uint16_t before_tile = before_overworld.GetTile(x, y);
+      uint16_t after_tile = after_overworld.GetTile(x, y);
+      
+      bool is_changed = (before_tile != after_tile);
+      gfx::SnesColor color = is_changed ? red_color : green_color;
+      
+      // Draw "before" tile on left side
+      int pixel_x = (x - min_x) * 16;
+      int pixel_y = (y - min_y) * 16;
+      for (int py = 0; py < 16; ++py) {
+        for (int px = 0; px < 16; ++px) {
+          diff_bitmap.SetPixel(pixel_x + px, pixel_y + py, color);
+        }
+      }
+      
+      // Draw "after" tile on right side
+      int right_offset = width + 8;
+      for (int py = 0; py < 16; ++py) {
+        for (int px = 0; px < 16; ++px) {
+          diff_bitmap.SetPixel(right_offset + pixel_x + px, pixel_y + py, color);
+        }
+      }
+    }
+  }
+  
+  // Draw separator line
+  for (int y = 0; y < diff_height; ++y) {
+    for (int x = 0; x < 8; ++x) {
+      diff_bitmap.SetPixel(width + x, y, separator_color);
+    }
+  }
+  
+  return diff_bitmap;
 }
 
 absl::Status Tile16ProposalGenerator::SaveProposal(

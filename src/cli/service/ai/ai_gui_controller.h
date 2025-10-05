@@ -17,9 +17,7 @@ namespace cli {
 
 // Forward declares
 class GeminiAIService;
-namespace gui {
-class GuiAutomationClient;
-}
+class GuiAutomationClient;  // In cli namespace, not cli::gui
 
 namespace ai {
 
@@ -87,7 +85,7 @@ class AIGUIController {
    * @param gui_client gRPC client for GUI automation
    */
   AIGUIController(GeminiAIService* gemini_service,
-                  gui::GuiAutomationClient* gui_client);
+                  GuiAutomationClient* gui_client);
   
   ~AIGUIController() = default;
   
@@ -141,7 +139,7 @@ class AIGUIController {
   
  private:
   GeminiAIService* gemini_service_;  // Not owned
-  gui::GuiAutomationClient* gui_client_;  // Not owned
+  GuiAutomationClient* gui_client_;  // Not owned
   std::unique_ptr<VisionActionRefiner> vision_refiner_;
   gui::GuiActionGenerator action_generator_;
   ControlLoopConfig config_;

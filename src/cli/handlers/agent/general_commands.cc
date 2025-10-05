@@ -261,10 +261,23 @@ absl::Status HandlePlanCommand(const std::vector<std::string>& arg_vec) {
   }
   auto proposal = proposal_or.value();
 
-  // TODO: Save the proposal to disk using ProposalRegistry
-  // For now, just print it.
+  auto& registry = ProposalRegistry::Instance();
+  auto plans_dir = registry.RootDirectory() / "plans";
+  std::error_code ec;
+  std::filesystem::create_directories(plans_dir, ec);
+  if (ec) {
+      return absl::InternalError(absl::StrCat("Failed to create plans directory: ", ec.message()));
+  }
+
+  auto plan_path = plans_dir / (proposal.id + ".json");
+  auto save_status = generator.SaveProposal(proposal, plan_path.string());
+  if (!save_status.ok()) {
+      return save_status;
+  }
+
   std::cout << "AI Agent Plan (Proposal ID: " << proposal.id << "):\n";
   std::cout << proposal.ToJson() << std::endl;
+  std::cout << "\n✅ Plan saved to: " << plan_path.string() << std::endl;
 
   return absl::OkStatus();
 }
