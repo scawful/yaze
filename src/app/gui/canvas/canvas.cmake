@@ -47,11 +47,13 @@ target_link_libraries(yaze_canvas PUBLIC
   SDL2::SDL2
 )
 
-# Compiler-specific options
-if(MSVC)
-  target_compile_options(yaze_canvas PRIVATE /W4)
-else()
-  target_compile_options(yaze_canvas PRIVATE -Wall -Wextra -Wpedantic)
+# Compiler-specific options (respect global warning settings)
+if(NOT YAZE_SUPPRESS_WARNINGS)
+  if(MSVC)
+    target_compile_options(yaze_canvas PRIVATE /W4)
+  else()
+    target_compile_options(yaze_canvas PRIVATE -Wall -Wextra -Wpedantic)
+  endif()
 endif()
 
 # Add canvas to parent GUI library
