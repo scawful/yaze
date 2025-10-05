@@ -671,7 +671,6 @@ void AgentChatWidget::Draw() {
     ImGui::EndTabBar();
   }
 
-  ImGui::PopStyleVar(4); // Pop the 4 style vars we pushed
   ImGui::End();
 }
 
