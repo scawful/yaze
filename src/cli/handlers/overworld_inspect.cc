@@ -386,6 +386,115 @@ absl::StatusOr<std::vector<TileMatch>> FindTileMatches(
   return matches;
 }
 
+absl::StatusOr<std::vector<OverworldSprite>> CollectOverworldSprites(
+    const zelda3::Overworld& overworld, const SpriteQuery& query) {
+  std::vector<OverworldSprite> results;
+
+  // Iterate through all 3 game states (beginning, zelda, agahnim)
+  for (int game_state = 0; game_state < 3; ++game_state) {
+    const auto& sprites = overworld.sprites(game_state);
+    
+    for (const auto& sprite : sprites) {
+      // Apply filters
+      if (query.sprite_id.has_value() && sprite.id() != *query.sprite_id) {
+        continue;
+      }
+      
+      int map_id = sprite.map_id();
+      if (query.map_id.has_value() && map_id != *query.map_id) {
+        continue;
+      }
+      
+      // Determine world from map_id
+      int world = (map_id >= kSpecialWorldOffset) ? 2
+                  : (map_id >= kDarkWorldOffset ? 1 : 0);
+      
+      if (query.world.has_value() && world != *query.world) {
+        continue;
+      }
+      
+      OverworldSprite entry;
+      entry.sprite_id = sprite.id();
+      entry.map_id = map_id;
+      entry.world = world;
+      entry.x = sprite.x();
+      entry.y = sprite.y();
+      // Sprite names would come from a label system if available
+      // entry.sprite_name = GetSpriteName(sprite.id());
+      
+      results.push_back(entry);
+    }
+  }
+
+  return results;
+}
+
+absl::StatusOr<EntranceDetails> GetEntranceDetails(
+    const zelda3::Overworld& overworld, uint8_t entrance_id) {
+  const auto& entrances = overworld.entrances();
+  
+  if (entrance_id >= entrances.size()) {
+    return absl::NotFoundError(
+        absl::StrFormat("Entrance %d not found (max: %d)", 
+                       entrance_id, entrances.size() - 1));
+  }
+  
+  const auto& entrance = entrances[entrance_id];
+  
+  EntranceDetails details;
+  details.entrance_id = entrance_id;
+  details.map_id = entrance.map_id_;
+  
+  // Determine world from map_id
+  details.world = (details.map_id >= kSpecialWorldOffset) ? 2
+                  : (details.map_id >= kDarkWorldOffset ? 1 : 0);
+  
+  details.x = entrance.x_;
+  details.y = entrance.y_;
+  details.area_x = entrance.area_x_;
+  details.area_y = entrance.area_y_;
+  details.map_pos = entrance.map_pos_;
+  details.is_hole = entrance.is_hole_;
+  
+  // Get entrance name if available
+  details.entrance_name = EntranceLabel(entrance_id);
+  
+  return details;
+}
+
+absl::StatusOr<TileStatistics> AnalyzeTileUsage(
+    zelda3::Overworld& overworld, uint16_t tile_id,
+    const TileSearchOptions& options) {
+  
+  // Use FindTileMatches to get all occurrences
+  ASSIGN_OR_RETURN(auto matches, FindTileMatches(overworld, tile_id, options));
+  
+  TileStatistics stats;
+  stats.tile_id = tile_id;
+  stats.count = static_cast<int>(matches.size());
+  
+  // If scoped to a specific map, store that info
+  if (options.map_id.has_value()) {
+    stats.map_id = *options.map_id;
+    if (options.world.has_value()) {
+      stats.world = *options.world;
+    } else {
+      ASSIGN_OR_RETURN(stats.world, InferWorldFromMapId(*options.map_id));
+    }
+  } else {
+    stats.map_id = -1;  // Indicates all maps
+    stats.world = -1;
+  }
+  
+  // Store positions (convert from TileMatch to pair)
+  stats.positions.reserve(matches.size());
+  for (const auto& match : matches) {
+    stats.positions.emplace_back(match.local_x, match.local_y);
+  }
+  
+  return stats;
+}
+
 }  // namespace overworld
 }  // namespace cli
 }  // namespace yaze

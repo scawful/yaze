@@ -257,6 +257,81 @@ You must follow this exact two-step process to avoid errors.
       },
       "required": ["query"]
     }
+  },
+  {
+    "name": "overworld-list-sprites",
+    "description": "List sprites (enemies, NPCs, objects) on the overworld with optional filters. Sprites are placed on specific maps at pixel coordinates. Each sprite has an ID (0x00-0xFF) that determines what entity it is. You can filter by map, world, or sprite ID.",
+    "usage_examples": [
+      "What sprites are on map 0?",
+      "List all Octorok sprites in the Light World",
+      "Show me sprite placements in the Dark World",
+      "Where is sprite ID 0x15?"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "map": {
+          "type": "string",
+          "description": "Optional: filter by map ID (0x00-0x9F). Light World = 0x00-0x3F, Dark World = 0x40-0x7F, Special = 0x80-0x9F."
+        },
+        "world": {
+          "type": "string",
+          "description": "Optional: filter by world. 0 = Light World, 1 = Dark World, 2 = Special World."
+        },
+        "sprite_id": {
+          "type": "string",
+          "description": "Optional: filter by specific sprite ID (0x00-0xFF). Use resource-list tool to look up sprite names by ID."
+        }
+      }
+    }
+  },
+  {
+    "name": "overworld-get-entrance",
+    "description": "Get detailed information about a specific overworld entrance by its entrance ID. Overworld entrances are the doorways, caves, and warps that connect the overworld to dungeons and indoor locations. Each entrance has a unique ID (0-128) and contains information about its map location, pixel coordinates, area position, and whether it's a hole or standard entrance.",
+    "usage_examples": [
+      "Tell me about entrance 0",
+      "What's at entrance ID 67?",
+      "Show me details for entrance 5",
+      "Where does entrance 43 lead?"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "entrance_id": {
+          "type": "string",
+          "description": "Entrance ID number (0-128). Use overworld-list-warps or resource-list tool first if you need to find an entrance by name or location."
+        }
+      },
+      "required": ["entrance_id"]
+    }
+  },
+  {
+    "name": "overworld-tile-stats",
+    "description": "Analyze usage statistics for a specific tile16 ID across the overworld. Shows how many times a tile appears, where it's used, and on which maps. Useful for understanding tile distribution, finding patterns, or analyzing terrain composition. Can be scoped to a specific map or world.",
+    "usage_examples": [
+      "How many times is tile 0x02E used?",
+      "Where does tile 0x14C appear in the Light World?",
+      "Analyze tile usage for tile 0x020 on map 0",
+      "Show me statistics for water tiles"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "tile_id": {
+          "type": "string",
+          "description": "Tile16 ID to analyze (0x0000-0xFFFF, hex or decimal). Common tiles: 0x02E=tree, 0x020=grass, 0x14C=water."
+        },
+        "map": {
+          "type": "string",
+          "description": "Optional: limit analysis to specific map ID (0x00-0x9F)."
+        },
+        "world": {
+          "type": "string",
+          "description": "Optional: limit analysis to specific world (0=light, 1=dark, 2=special)."
+        }
+      },
+      "required": ["tile_id"]
+    }
   }
 ]
 ```

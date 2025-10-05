@@ -225,6 +225,78 @@
       },
       "required": ["query"]
     }
+  },
+  {
+    "name": "overworld-list-sprites",
+    "description": "List sprites on the overworld with optional filters for map, world, or sprite ID",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "map": {
+          "type": "string",
+          "description": "Optional: filter by map ID (0x00-0x9F)"
+        },
+        "world": {
+          "type": "string",
+          "description": "Optional: filter by world (0=light, 1=dark, 2=special)"
+        },
+        "sprite_id": {
+          "type": "string",
+          "description": "Optional: filter by sprite ID (0x00-0xFF)"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json", "text"],
+          "default": "json"
+        }
+      }
+    }
+  },
+  {
+    "name": "overworld-get-entrance",
+    "description": "Get detailed information about a specific overworld entrance by its ID",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "entrance_id": {
+          "type": "string",
+          "description": "Entrance ID number (0-128)"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json", "text"],
+          "default": "json"
+        }
+      },
+      "required": ["entrance_id"]
+    }
+  },
+  {
+    "name": "overworld-tile-stats",
+    "description": "Analyze usage statistics for a specific tile16 ID across the overworld",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "tile_id": {
+          "type": "string",
+          "description": "Tile16 ID to analyze (0x0000-0xFFFF, hex or decimal)"
+        },
+        "map": {
+          "type": "string",
+          "description": "Optional: limit analysis to specific map ID"
+        },
+        "world": {
+          "type": "string",
+          "description": "Optional: limit analysis to specific world (0=light, 1=dark, 2=special)"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json", "text"],
+          "default": "json"
+        }
+      },
+      "required": ["tile_id"]
+    }
   }
 ]
 

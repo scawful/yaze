@@ -43,7 +43,8 @@ absl::StatusOr<Rom> LoadRomFromFlag() {
 }
 
 std::vector<editor::MessageData> LoadMessages(Rom* rom) {
-  return editor::ReadAllTextData(rom->data(), editor::kTextData);
+  // Fix: Cast away constness for ReadAllTextData, which expects uint8_t*
+  return editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()), editor::kTextData);
 }
 
 }  // namespace
