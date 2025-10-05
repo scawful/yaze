@@ -13,6 +13,7 @@
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
+#include "app/editor/ui/menu_builder.h"
 #include "app/editor/code/project_file_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/graphics/graphics_editor.h"
@@ -125,6 +126,8 @@ class EditorManager {
     ImGui::GetIO().FontGlobalScale = scale;
     SaveUserSettings();
   }
+  
+  void BuildModernMenu();
 
  private:
   void DrawWelcomeScreen();
@@ -242,6 +245,7 @@ class EditorManager {
   EditorContext context_;
   std::unique_ptr<PopupManager> popup_manager_;
   ToastManager toast_manager_;
+  MenuBuilder menu_builder_;
 
   // Settings helpers
   void LoadUserSettings();
