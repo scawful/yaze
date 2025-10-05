@@ -29,31 +29,11 @@ void Toolset::Begin() {
   button_count_ = 0;
   current_line_width_ = 0.0f;
   
-  // Begin measurement for debugging and test automation
-  WidgetMeasurement::Instance().BeginToolbarMeasurement("OverworldToolbar");
 }
 
 void Toolset::End() {
   // End the current line
   ImGui::NewLine();
-  
-  // End measurement and check for overflow
-  WidgetMeasurement::Instance().EndToolbarMeasurement();
-  
-  float toolbar_width = WidgetMeasurement::Instance().GetToolbarWidth("OverworldToolbar");
-  float available_width = ImGui::GetContentRegionAvail().x;
-  
-  // Log warning if toolbar overflows (for debugging)
-  if (toolbar_width > available_width && toolbar_width > 0) {
-    // Only log once per second to avoid spam
-    static float last_warning_time = 0.0f;
-    float current_time = ImGui::GetTime();
-    if (current_time - last_warning_time > 1.0f) {
-      ImGui::SetTooltip("⚠️ Toolbar overflow: %.0fpx / %.0fpx available",
-                        toolbar_width, available_width);
-      last_warning_time = current_time;
-    }
-  }
   
   ImGui::PopStyleVar(3);
   ImGui::Separator();
@@ -96,10 +76,6 @@ bool Toolset::ModeButton(const char* icon, bool selected, const char* tooltip) {
   if (selected) {
     ImGui::PopStyleColor();
   }
-  
-  // Measure this widget (without ID scope to avoid PopID issues)
-  std::string widget_id = tooltip ? tooltip : absl::StrFormat("Button_%d", button_count_);
-  WidgetMeasurement::Instance().MeasureLastItem(widget_id, "mode_button");
   
   if (tooltip && ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s", tooltip);
@@ -177,14 +153,10 @@ bool Toolset::AddProperty(const char* icon, const char* label,
 bool Toolset::AddCombo(const char* icon, int* current,
                        const char* const items[], int count) {
   ImGui::Text("%s", icon);
-  WidgetMeasurement::Instance().MeasureLastItem("combo_icon", "text");
-  
   ImGui::SameLine(0, 2);  // Reduce spacing between icon and combo
   ImGui::SetNextItemWidth(100);  // Slightly narrower for better fit
   
   bool changed = ImGui::Combo("##combo", current, items, count);
-  WidgetMeasurement::Instance().MeasureLastItem("combo_selector", "combo");
-  
   ImGui::SameLine();
   
   return changed;
