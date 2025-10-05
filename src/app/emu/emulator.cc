@@ -1,6 +1,7 @@
 #include "app/emu/emulator.h"
 
 #include <cstdint>
+#include <fstream>
 #include <vector>
 
 #include "app/core/platform/file_dialog.h"

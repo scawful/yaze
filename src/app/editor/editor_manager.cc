@@ -514,7 +514,7 @@ void EditorManager::Initialize(const std::string& filename) {
             context_.shortcut_manager.GetKeys("Open"),
             context_.shortcut_manager.GetCallback("Open")},
            {absl::StrCat(ICON_MD_HISTORY, " Open Recent"), "", []() {},
-            []() { return !manager.GetRecentFiles().empty(); }, recent_files},
+            [&manager]() { return !manager.GetRecentFiles().empty(); }, recent_files},
            {absl::StrCat(ICON_MD_FILE_DOWNLOAD, " Save"),
             context_.shortcut_manager.GetKeys("Save"),
             context_.shortcut_manager.GetCallback("Save")},
