@@ -4,12 +4,14 @@
 #include <array>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
 
 #include "util/sdl_deleter.h"
 #include "app/gfx/background_buffer.h"
+#include "app/gfx/bitmap.h"
 
 namespace yaze {
 namespace gfx {
@@ -161,6 +163,41 @@ class Arena {
    */
   auto& bg2() { return bg2_; }
 
+  // Progressive/Deferred Texture Management (for large asset loading)
+  /**
+   * @brief Add a bitmap to the deferred texture queue
+   * @param bitmap Bitmap that needs a texture created
+   * @param priority Higher priority items processed first (0 = highest)
+   * 
+   * Use this for progressive loading of large asset sets (e.g., overworld maps).
+   * Textures are created incrementally per frame to avoid UI freezes.
+   */
+  void QueueDeferredTexture(gfx::Bitmap* bitmap, int priority = 0);
+  
+  /**
+   * @brief Get next batch of deferred textures to process
+   * @param high_priority_limit Max high-priority items to return
+   * @param low_priority_limit Max low-priority items to return
+   * @return Vector of bitmaps to render (caller renders them via Renderer)
+   * 
+   * Call this once per frame in your editor's Update() method, then render each bitmap.
+   * High-priority items (priority 0-10) returned up to high_priority_limit.
+   * Low-priority items (priority 11+) returned up to low_priority_limit.
+   */
+  std::vector<gfx::Bitmap*> GetNextDeferredTextureBatch(int high_priority_limit = 4, 
+                                                        int low_priority_limit = 2);
+  
+  /**
+   * @brief Clear all deferred texture items
+   */
+  void ClearDeferredTextures();
+  
+  /**
+   * @brief Get count of remaining deferred textures
+   * @return Number of bitmaps waiting for textures
+   */
+  size_t GetDeferredTextureCount() const { return deferred_textures_.size(); }
+
  private:
   Arena();
 
@@ -213,6 +250,16 @@ class Arena {
   // Helper methods for resource pooling
   SDL_Texture* CreateNewTexture(SDL_Renderer* renderer, int width, int height);
   SDL_Surface* CreateNewSurface(int width, int height, int depth, int format);
+  
+  // Progressive loading infrastructure
+  struct DeferredTexture {
+    gfx::Bitmap* bitmap;
+    int priority;
+    
+    DeferredTexture(gfx::Bitmap* bmp, int prio) : bitmap(bmp), priority(prio) {}
+  };
+  std::vector<DeferredTexture> deferred_textures_;
+  std::mutex deferred_mutex_;
 };
 
 }  // namespace gfx

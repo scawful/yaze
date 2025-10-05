@@ -18,7 +18,6 @@ set(
   app/editor/dungeon/dungeon_room_loader.cc
   app/editor/dungeon/dungeon_usage_tracker.cc
   app/editor/overworld/overworld_editor.cc
-  app/editor/overworld/overworld_editor_manager.cc
   app/editor/overworld/scratch_space.cc
   app/editor/sprite/sprite_editor.cc
   app/editor/music/music_editor.cc
@@ -36,7 +35,6 @@ set(
   app/editor/graphics/gfx_group_editor.cc
   app/editor/overworld/entity.cc
   app/editor/overworld/overworld_entity_renderer.cc
-  app/editor/overworld/overworld_graphics_manager.cc
   app/editor/system/settings_editor.cc
   app/editor/system/command_manager.cc
   app/editor/system/extension_manager.cc

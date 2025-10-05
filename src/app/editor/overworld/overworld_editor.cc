@@ -59,10 +59,6 @@ void OverworldEditor::Initialize() {
       [this](int map_index) { this->ForceRefreshGraphics(map_index); }
   );
 
-  // Initialize OverworldEditorManager for v3 features
-  overworld_manager_ =
-      std::make_unique<OverworldEditorManager>(&overworld_, rom_, this);
-
   // Initialize OverworldEntityRenderer for entity visualization
   entity_renderer_ = std::make_unique<OverworldEntityRenderer>(
       &overworld_, &ow_map_canvas_, &sprite_previews_);
@@ -220,14 +216,6 @@ absl::Status OverworldEditor::Update() {
     usage_stats_card.End();
   }
   
-  // v3 Settings popup
-  if (show_v3_settings_ && v3_settings_card.Begin(&show_v3_settings_)) {
-    if (rom_->is_loaded()) {
-      status_ = overworld_manager_->DrawV3SettingsPanel();
-    }
-    v3_settings_card.End();
-  }
-
   // Area Configuration Panel (detailed editing)
   if (show_map_properties_panel_) {
     ImGui::SetNextWindowSize(ImVec2(650, 750), ImGuiCond_FirstUseEver);
@@ -1397,9 +1385,26 @@ absl::Status OverworldEditor::LoadGraphics() {
     }
   }
 
-  // Store remaining maps for lazy texture creation
-  deferred_map_textures_.assign(maps_to_texture.begin() + initial_texture_count,
-                                maps_to_texture.end());
+  // Queue remaining maps for progressive loading via Arena
+  // Priority based on current world (0 = current world, 11+ = other worlds)
+  for (size_t i = initial_texture_count; i < maps_to_texture.size(); ++i) {
+    // Determine priority based on which world this map belongs to
+    int map_index = -1;
+    for (int j = 0; j < zelda3::kNumOverworldMaps; ++j) {
+      if (&maps_bmp_[j] == maps_to_texture[i]) {
+        map_index = j;
+        break;
+      }
+    }
+    
+    int priority = 15;  // Default low priority
+    if (map_index >= 0) {
+      int map_world = map_index / 0x40;
+      priority = (map_world == current_world_) ? 5 : 15;  // Current world = priority 5, others = 15
+    }
+    
+    gfx::Arena::Get().QueueDeferredTexture(maps_to_texture[i], priority);
+  }
 
   if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
     {
@@ -1433,75 +1438,29 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
 }
 
 void OverworldEditor::ProcessDeferredTextures() {
-  std::lock_guard<std::mutex> lock(deferred_textures_mutex_);
-
-  if (deferred_map_textures_.empty()) {
-    return;
-  }
-
-  // Priority-based loading: process more textures for visible maps
-  const int textures_per_frame = 8;  // Increased from 2 to 8 for faster loading
-  int processed = 0;
-
-  // First pass: prioritize textures for the current world
-  auto it = deferred_map_textures_.begin();
-  while (it != deferred_map_textures_.end() && processed < textures_per_frame) {
-    if (*it && !(*it)->texture()) {
-      // Check if this texture belongs to the current world
-      int map_index = -1;
-      for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
-        if (&maps_bmp_[i] == *it) {
-          map_index = i;
-          break;
-        }
-      }
-
-      bool is_current_world = false;
-      if (map_index >= 0) {
-        int map_world = map_index / 0x40;  // 64 maps per world
-        is_current_world = (map_world == current_world_);
-      }
-
-      // Prioritize current world maps, but also process others if we have capacity
-      if (is_current_world || processed < textures_per_frame / 2) {
-        Renderer::Get().RenderBitmap(*it);
-        processed++;
-        it = deferred_map_textures_.erase(
-            it);  // Remove immediately after processing
-      } else {
-        ++it;
-      }
-    } else {
-      ++it;
+  // Use Arena's centralized progressive loading system
+  // This makes progressive loading available to all editors
+  auto batch = gfx::Arena::Get().GetNextDeferredTextureBatch(4, 2);
+  
+  for (auto* bitmap : batch) {
+    if (bitmap && !bitmap->texture()) {
+      Renderer::Get().RenderBitmap(bitmap);
     }
   }
-
-  // Second pass: process remaining textures if we still have capacity
-  if (processed < textures_per_frame) {
-    it = deferred_map_textures_.begin();
-    while (it != deferred_map_textures_.end() &&
-           processed < textures_per_frame) {
-      if (*it && !(*it)->texture()) {
-        Renderer::Get().RenderBitmap(*it);
-        processed++;
-        it = deferred_map_textures_.erase(it);
-      } else {
-        ++it;
-      }
-    }
-  }
-
-  // Third pass: process deferred map refreshes for visible maps
-  if (processed < textures_per_frame) {
-    for (int i = 0;
-         i < zelda3::kNumOverworldMaps && processed < textures_per_frame; ++i) {
-      if (maps_bmp_[i].modified() && maps_bmp_[i].is_active()) {
-        // Check if this map is visible
-        bool is_visible = (i == current_map_) || (i / 0x40 == current_world_);
-        if (is_visible) {
-          RefreshOverworldMapOnDemand(i);
-          processed++;
-        }
+  
+  // Also process deferred map refreshes for modified maps
+  int refresh_count = 0;
+  const int max_refreshes_per_frame = 2;
+  
+  for (int i = 0; i < zelda3::kNumOverworldMaps && refresh_count < max_refreshes_per_frame; ++i) {
+    if (maps_bmp_[i].modified() && maps_bmp_[i].is_active()) {
+      // Check if this map is in current world (prioritize)
+      bool is_current_world = (i / 0x40 == current_world_);
+      bool is_current_map = (i == current_map_);
+      
+      if (is_current_map || is_current_world) {
+        RefreshOverworldMapOnDemand(i);
+        refresh_count++;
       }
     }
   }
@@ -1539,14 +1498,7 @@ void OverworldEditor::EnsureMapTexture(int map_index) {
 
   if (!bitmap.texture() && bitmap.is_active()) {
     Renderer::Get().RenderBitmap(&bitmap);
-
-    // Remove from deferred list if it was there
-    std::lock_guard<std::mutex> lock(deferred_textures_mutex_);
-    auto it = std::find(deferred_map_textures_.begin(),
-                        deferred_map_textures_.end(), &bitmap);
-    if (it != deferred_map_textures_.end()) {
-      deferred_map_textures_.erase(it);
-    }
+    // Note: Arena automatically removes from deferred queue when textures are created
   }
 }
 

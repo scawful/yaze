@@ -1,6 +1,7 @@
 #include "app/gfx/arena.h"
 
 #include <SDL.h>
+#include <algorithm>
 
 #include "util/sdl_deleter.h"
 
@@ -441,6 +442,67 @@ void Arena::ProcessBatchTextureUpdates() {
  */
 void Arena::ClearBatchQueue() {
   batch_update_queue_.clear();
+}
+
+// ============================================================================
+// Progressive/Deferred Texture Management
+// ============================================================================
+
+void Arena::QueueDeferredTexture(gfx::Bitmap* bitmap, int priority) {
+  if (!bitmap) return;
+  
+  std::lock_guard<std::mutex> lock(deferred_mutex_);
+  deferred_textures_.emplace_back(bitmap, priority);
+}
+
+std::vector<gfx::Bitmap*> Arena::GetNextDeferredTextureBatch(
+    int high_priority_limit, int low_priority_limit) {
+  std::lock_guard<std::mutex> lock(deferred_mutex_);
+  
+  std::vector<gfx::Bitmap*> batch;
+  
+  if (deferred_textures_.empty()) {
+    return batch;
+  }
+  
+  // Sort by priority (lower number = higher priority)
+  std::sort(deferred_textures_.begin(), deferred_textures_.end(),
+            [](const DeferredTexture& a, const DeferredTexture& b) {
+              return a.priority < b.priority;
+            });
+  
+  // Phase 1: Collect high-priority items (priority 0-10)
+  auto it = deferred_textures_.begin();
+  while (it != deferred_textures_.end() && batch.size() < static_cast<size_t>(high_priority_limit)) {
+    if (it->bitmap && it->priority <= 10 && !it->bitmap->texture()) {
+      batch.push_back(it->bitmap);
+      it = deferred_textures_.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  
+  // Phase 2: Collect low-priority items (priority 11+) if we have capacity
+  if (batch.size() < static_cast<size_t>(high_priority_limit)) {
+    it = deferred_textures_.begin();
+    int low_count = 0;
+    while (it != deferred_textures_.end() && low_count < low_priority_limit) {
+      if (it->bitmap && it->priority > 10 && !it->bitmap->texture()) {
+        batch.push_back(it->bitmap);
+        low_count++;
+        it = deferred_textures_.erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
+  
+  return batch;
+}
+
+void Arena::ClearDeferredTextures() {
+  std::lock_guard<std::mutex> lock(deferred_mutex_);
+  deferred_textures_.clear();
 }
 
 }  // namespace gfx
