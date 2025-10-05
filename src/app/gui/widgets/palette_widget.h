@@ -69,10 +69,10 @@ public:
   bool IsROMLoaded() const { return rom_ != nullptr; }
   int GetCurrentGroupIndex() const { return current_group_index_; }
   int GetCurrentPaletteIndex() const { return current_palette_index_; }
-  
+  void DrawROMPaletteSelector();
+ 
 private:
   void DrawPaletteGrid(gfx::SnesPalette& palette, int cols = 8);
-  void DrawROMPaletteSelector();
   void DrawColorEditControls(gfx::SnesColor& color, int color_index);
   void DrawPaletteAnalysis(const gfx::SnesPalette& palette);
   void LoadROMPalettes();

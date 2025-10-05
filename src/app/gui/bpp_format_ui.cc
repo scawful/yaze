@@ -5,6 +5,7 @@
 
 #include "app/gfx/bpp_format_manager.h"
 #include "app/gfx/bitmap.h"
+#include "app/gui/ui_helpers.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -58,11 +59,11 @@ bool BppFormatUI::RenderFormatSelector(gfx::Bitmap* bitmap, const gfx::SnesPalet
     
     ImVec4 efficiency_color;
     if (efficiency >= 80) {
-      efficiency_color = ImVec4(0, 1, 0, 1); // Green
+      efficiency_color = GetSuccessColor(); // Green
     } else if (efficiency >= 60) {
-      efficiency_color = ImVec4(1, 1, 0, 1); // Yellow
+      efficiency_color = GetWarningColor(); // Yellow
     } else {
-      efficiency_color = ImVec4(1, 0, 0, 1); // Red
+      efficiency_color = GetErrorColor(); // Red
     }
     ImGui::TextColored(efficiency_color, "Quality: %s", 
                       efficiency >= 80 ? "Excellent" : 
@@ -140,13 +141,13 @@ void BppFormatUI::RenderAnalysisPanel(const gfx::Bitmap& bitmap, const gfx::Snes
   ImGui::Text("Format Recommendations:");
   
   if (used_colors <= 4) {
-    ImGui::TextColored(ImVec4(0, 1, 0, 1), "✓ 2BPP format would be optimal");
+    ImGui::TextColored(GetSuccessColor(), "✓ 2BPP format would be optimal");
   } else if (used_colors <= 8) {
-    ImGui::TextColored(ImVec4(0, 1, 0, 1), "✓ 3BPP format would be optimal");
+    ImGui::TextColored(GetSuccessColor(), "✓ 3BPP format would be optimal");
   } else if (used_colors <= 16) {
-    ImGui::TextColored(ImVec4(0, 1, 0, 1), "✓ 4BPP format would be optimal");
+    ImGui::TextColored(GetSuccessColor(), "✓ 4BPP format would be optimal");
   } else {
-    ImGui::TextColored(ImVec4(1, 1, 0, 1), "⚠ 8BPP format is necessary");
+    ImGui::TextColored(GetWarningColor(), "⚠ 8BPP format is necessary");
   }
   
   // Memory usage comparison
@@ -257,10 +258,10 @@ void BppFormatUI::RenderSheetAnalysis(const std::vector<uint8_t>& sheet_data, in
               gfx::BppFormatManager::Get().GetFormatInfo(analysis.current_format).name.c_str());
   
   if (analysis.was_converted) {
-    ImGui::TextColored(ImVec4(1, 1, 0, 1), "⚠ This sheet was converted");
+    ImGui::TextColored(GetWarningColor(), "⚠ This sheet was converted");
     ImGui::Text("Conversion History: %s", analysis.conversion_history.c_str());
   } else {
-    ImGui::TextColored(ImVec4(0, 1, 0, 1), "✓ Original format preserved");
+    ImGui::TextColored(GetSuccessColor(), "✓ Original format preserved");
   }
   
   ImGui::Separator();
@@ -295,13 +296,13 @@ void BppFormatUI::RenderSheetAnalysis(const std::vector<uint8_t>& sheet_data, in
   ImGui::Text("Recommendations:");
   
   if (analysis.was_converted && analysis.palette_entries_used <= 16) {
-    ImGui::TextColored(ImVec4(0, 1, 0, 1), 
+    ImGui::TextColored(GetSuccessColor(), 
                       "✓ Consider reverting to %s format for better compression",
                       gfx::BppFormatManager::Get().GetFormatInfo(analysis.original_format).name.c_str());
   }
   
   if (analysis.palette_entries_used < static_cast<int>(palette.size()) / 2) {
-    ImGui::TextColored(ImVec4(1, 1, 0, 1), 
+    ImGui::TextColored(GetWarningColor(), 
                       "⚠ Palette is underutilized - consider optimization");
   }
   

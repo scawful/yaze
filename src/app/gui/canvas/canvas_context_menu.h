@@ -15,6 +15,10 @@
 
 namespace yaze {
 namespace gui {
+
+// Forward declarations
+class PaletteWidget;
+
 namespace canvas {
 
 class CanvasContextMenu {
@@ -64,6 +68,7 @@ class CanvasContextMenu {
 
   void Render(const std::string& context_id,
               const ImVec2& mouse_pos,
+              Rom* rom,
               const gfx::Bitmap* bitmap,
               const gfx::SnesPalette* palette,
               const std::function<void(Command, const canvas::CanvasConfig&)>& command_handler,
@@ -103,6 +108,14 @@ class CanvasContextMenu {
   bool auto_resize_ = false;
   ImVec2 scrolling_;
 
+  std::unique_ptr<PaletteWidget> palette_editor_;
+  uint64_t edit_palette_group_name_index_ = 0;
+  uint64_t edit_palette_index_ = 0;
+  uint64_t edit_palette_sub_index_ = 0;
+  bool refresh_graphics_ = false;
+
+  void DrawROMPaletteSelector();
+
   std::unordered_map<CanvasUsage, std::vector<ContextMenuItem>> usage_specific_items_;
   std::vector<ContextMenuItem> global_items_;
 
@@ -114,8 +127,8 @@ class CanvasContextMenu {
                               CanvasConfig current_config);
   void RenderCanvasPropertiesMenu(const std::function<void(Command, const CanvasConfig&)>& command_handler,
                                   CanvasConfig current_config);
-  void RenderBitmapOperationsMenu(const gfx::Bitmap* bitmap);
-  void RenderPaletteOperationsMenu(const gfx::SnesPalette* palette);
+  void RenderBitmapOperationsMenu(gfx::Bitmap* bitmap);
+  void RenderPaletteOperationsMenu(Rom* rom, gfx::Bitmap* bitmap);
   void RenderBppOperationsMenu(const gfx::Bitmap* bitmap);
   void RenderPerformanceMenu();
   void RenderGridControlsMenu(const std::function<void(Command, const CanvasConfig&)>& command_handler,
