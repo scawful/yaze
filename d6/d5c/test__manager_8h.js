@@ -5,6 +5,7 @@ var test__manager_8h =
     [ "yaze::test::TestSuite", "d1/de0/classyaze_1_1test_1_1TestSuite.html", "d1/de0/classyaze_1_1test_1_1TestSuite" ],
     [ "yaze::test::ResourceStats", "d3/db6/structyaze_1_1test_1_1ResourceStats.html", "d3/db6/structyaze_1_1test_1_1ResourceStats" ],
     [ "yaze::test::TestManager", "da/d3e/classyaze_1_1test_1_1TestManager.html", "da/d3e/classyaze_1_1test_1_1TestManager" ],
+    [ "IMGUI_DEFINE_MATH_OPERATORS", "d6/d5c/test__manager_8h.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "TestStatus", "d6/d5c/test__manager_8h.html#a24fd08ea41d8314e6fccdb0fdcd9f072", [
       [ "kNotRun", "d6/d5c/test__manager_8h.html#a24fd08ea41d8314e6fccdb0fdcd9f072a8983357689cc2645e40d3e2a29696391", null ],
       [ "kRunning", "d6/d5c/test__manager_8h.html#a24fd08ea41d8314e6fccdb0fdcd9f072a2fc7fbf0d19294f85dd3880460dd3c0a", null ],
