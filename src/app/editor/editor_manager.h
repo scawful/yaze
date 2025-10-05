@@ -48,7 +48,7 @@ class EditorSet {
       : assembly_editor_(rom),
         dungeon_editor_(rom),
         graphics_editor_(rom),
-        music_editor_(rom),
+        music_editor_(),
         overworld_editor_(rom),
         palette_editor_(rom),
         screen_editor_(rom),

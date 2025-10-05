@@ -57,7 +57,8 @@ const ImGuiTableFlags music_editor_flags_ = ImGuiTableFlags_SizingFixedFit |
  */
 class MusicEditor : public Editor {
  public:
-    MusicEditor(Rom* rom) : Editor(rom), assembly_editor_(rom), apu_(rom->memory_impl()) {}
+  MusicEditor() : Editor(EditorType::kMusic) {}
+  
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Save() override { return absl::UnimplementedError("Save"); }
@@ -68,12 +69,6 @@ class MusicEditor : public Editor {
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
-  
-  // Set the ROM pointer
-  void set_rom(Rom* rom) { rom_ = rom; }
-  
-  // Get the ROM pointer
-  Rom* rom() const { return rom_; }
 
  private:
   // UI Drawing Methods

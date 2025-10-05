@@ -1,7 +1,7 @@
 // AppDelegate.mm
 #import "app/core/platform/app_delegate.h"
 #import "app/core/controller.h"
-#import "app/core/platform/file_dialog.h"
+#import "util/file_util.h"
 #import "app/editor/editor.h"
 #import "app/rom.h"
 
