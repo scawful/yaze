@@ -1302,96 +1302,144 @@ void EditorManager::DrawMenuBar() {
     End();
   }
 
-  // Enhanced Command Palette UI
+  // Enhanced Command Palette UI with Fuzzy Search
   if (show_command_palette_) {
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
                             ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowSize(ImVec2(700, 500), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 
-    if (Begin(absl::StrFormat("%s Command Palette", ICON_MD_TERMINAL).c_str(),
+    if (Begin(absl::StrFormat("%s Command Palette", ICON_MD_SEARCH).c_str(),
               &show_command_palette_, ImGuiWindowFlags_NoCollapse)) {
 
       // Search input with focus management
       static char query[256] = {};
+      static int selected_idx = 0;
       ImGui::SetNextItemWidth(-100);
       if (ImGui::IsWindowAppearing()) {
         ImGui::SetKeyboardFocusHere();
+        selected_idx = 0;
       }
 
       bool input_changed = InputTextWithHint(
           "##cmd_query",
-          absl::StrFormat("%s Type a command or search...", ICON_MD_SEARCH)
-              .c_str(),
+          absl::StrFormat("%s Search commands (fuzzy matching enabled)...", ICON_MD_SEARCH).c_str(),
           query, IM_ARRAYSIZE(query));
 
       ImGui::SameLine();
       if (ImGui::Button(absl::StrFormat("%s Clear", ICON_MD_CLEAR).c_str())) {
         query[0] = '\0';
         input_changed = true;
+        selected_idx = 0;
       }
 
       Separator();
 
-      // Filter and categorize commands
-      std::vector<std::pair<std::string, std::string>> filtered_commands;
+      // Fuzzy filter commands with scoring
+      std::vector<std::pair<int, std::pair<std::string, std::string>>> scored_commands;
+      std::string query_lower = query;
+      std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(), ::tolower);
+      
       for (const auto& entry : context_.shortcut_manager.GetShortcuts()) {
         const auto& name = entry.first;
         const auto& shortcut = entry.second;
-
-        if (query[0] == '\0' || name.find(query) != std::string::npos) {
-          std::string shortcut_text =
-              shortcut.keys.empty()
-                  ? ""
-                  : absl::StrFormat("(%s)",
-                                    PrintShortcut(shortcut.keys).c_str());
-          filtered_commands.emplace_back(name, shortcut_text);
-        }
-      }
-
-      // Display results in a table for better organization
-      if (ImGui::BeginTable("CommandPaletteTable", 2,
-                            ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
-                                ImGuiTableFlags_SizingStretchProp,
-                            ImVec2(0, -30))) {  // Reserve space for status bar
-
-        ImGui::TableSetupColumn("Command", ImGuiTableColumnFlags_WidthStretch,
-                                0.7f);
-        ImGui::TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch,
-                                0.3f);
-        ImGui::TableHeadersRow();
-
-        for (size_t i = 0; i < filtered_commands.size(); ++i) {
-          const auto& [command_name, shortcut_text] = filtered_commands[i];
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-
-          ImGui::PushID(static_cast<int>(i));
-          if (Selectable(command_name.c_str(), false,
-                         ImGuiSelectableFlags_SpanAllColumns)) {
-            // Execute the command
-            const auto& shortcuts = context_.shortcut_manager.GetShortcuts();
-            auto it = shortcuts.find(command_name);
-            if (it != shortcuts.end() && it->second.callback) {
-              it->second.callback();
-              show_command_palette_ = false;
+        
+        std::string name_lower = name;
+        std::transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
+        
+        int score = 0;
+        if (query[0] == '\0') {
+          score = 1;  // Show all when no query
+        } else if (name_lower.find(query_lower) == 0) {
+          score = 1000;  // Starts with
+        } else if (name_lower.find(query_lower) != std::string::npos) {
+          score = 500;  // Contains
+        } else {
+          // Fuzzy match - characters in order
+          size_t text_idx = 0, query_idx = 0;
+          while (text_idx < name_lower.length() && query_idx < query_lower.length()) {
+            if (name_lower[text_idx] == query_lower[query_idx]) {
+              score += 10;
+              query_idx++;
             }
+            text_idx++;
           }
-          ImGui::PopID();
-
-          ImGui::TableNextColumn();
-          ImGui::TextDisabled("%s", shortcut_text.c_str());
+          if (query_idx != query_lower.length()) score = 0;
         }
+        
+        if (score > 0) {
+          std::string shortcut_text = shortcut.keys.empty()
+              ? "" : absl::StrFormat("(%s)", PrintShortcut(shortcut.keys).c_str());
+          scored_commands.push_back({score, {name, shortcut_text}});
+        }
+      }
+      
+      std::sort(scored_commands.begin(), scored_commands.end(),
+                [](const auto& a, const auto& b) { return a.first > b.first; });
 
-        ImGui::EndTable();
+      // Display results with categories
+      if (ImGui::BeginTabBar("CommandCategories")) {
+        if (ImGui::BeginTabItem(ICON_MD_LIST " All Commands")) {
+          if (ImGui::BeginTable("CommandPaletteTable", 3,
+                                ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
+                                    ImGuiTableFlags_SizingStretchProp,
+                                ImVec2(0, -30))) {
+
+            ImGui::TableSetupColumn("Command", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+            ImGui::TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch, 0.3f);
+            ImGui::TableSetupColumn("Score", ImGuiTableColumnFlags_WidthStretch, 0.2f);
+            ImGui::TableHeadersRow();
+
+            for (size_t i = 0; i < scored_commands.size(); ++i) {
+              const auto& [score, cmd_pair] = scored_commands[i];
+              const auto& [command_name, shortcut_text] = cmd_pair;
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+
+              ImGui::PushID(static_cast<int>(i));
+              bool is_selected = (static_cast<int>(i) == selected_idx);
+              if (Selectable(command_name.c_str(), is_selected,
+                             ImGuiSelectableFlags_SpanAllColumns)) {
+                selected_idx = i;
+                const auto& shortcuts = context_.shortcut_manager.GetShortcuts();
+                auto it = shortcuts.find(command_name);
+                if (it != shortcuts.end() && it->second.callback) {
+                  it->second.callback();
+                  show_command_palette_ = false;
+                }
+              }
+              ImGui::PopID();
+
+              ImGui::TableNextColumn();
+              ImGui::TextDisabled("%s", shortcut_text.c_str());
+              
+              ImGui::TableNextColumn();
+              if (score > 0) ImGui::TextDisabled("%d", score);
+            }
+
+            ImGui::EndTable();
+          }
+          ImGui::EndTabItem();
+        }
+        
+        if (ImGui::BeginTabItem(ICON_MD_HISTORY " Recent")) {
+          ImGui::Text("Recent commands coming soon...");
+          ImGui::EndTabItem();
+        }
+        
+        if (ImGui::BeginTabItem(ICON_MD_STAR " Frequent")) {
+          ImGui::Text("Frequent commands coming soon...");
+          ImGui::EndTabItem();
+        }
+        
+        ImGui::EndTabBar();
       }
 
-      // Status bar
+      // Status bar with tips
       ImGui::Separator();
-      ImGui::Text("%s %zu commands found", ICON_MD_INFO,
-                  filtered_commands.size());
+      ImGui::Text("%s %zu commands | Score: fuzzy match", ICON_MD_INFO, scored_commands.size());
       ImGui::SameLine();
-      ImGui::TextDisabled("| Press Enter to execute selected command");
+      ImGui::TextDisabled("| ↑↓=Navigate | Enter=Execute | Esc=Close");
     }
     End();
   }
