@@ -20,6 +20,7 @@
 #include "absl/time/time.h"
 #include "app/core/project.h"
 #include "app/editor/agent/agent_chat_history_codec.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/system/agent_chat_history_popup.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/toast_manager.h"
@@ -36,11 +37,6 @@
 namespace {
 
 using yaze::cli::agent::ChatMessage;
-
-const ImVec4 kUserColor = ImVec4(0.88f, 0.76f, 0.36f, 1.0f);
-const ImVec4 kAgentColor = ImVec4(0.56f, 0.82f, 0.62f, 1.0f);
-const ImVec4 kJsonTextColor = ImVec4(0.78f, 0.83f, 0.90f, 1.0f);
-const ImVec4 kProposalPanelColor = ImVec4(0.20f, 0.35f, 0.20f, 0.35f);
 
 std::filesystem::path ExpandUserPath(std::string path) {
   if (!path.empty() && path.front() == '~') {
@@ -423,9 +419,10 @@ void AgentChatWidget::RenderMessage(const ChatMessage& msg, int index) {
   }
 
   ImGui::PushID(index);
+  const auto& theme = AgentUI::GetTheme();
 
   const bool from_user = (msg.sender == ChatMessage::Sender::kUser);
-  const ImVec4 header_color = from_user ? kUserColor : kAgentColor;
+  const ImVec4 header_color = from_user ? theme.user_message_color : theme.agent_message_color;
   const char* header_label = from_user ? "You" : "Agent";
 
   ImGui::TextColored(header_color, "%s", header_label);
@@ -437,8 +434,8 @@ void AgentChatWidget::RenderMessage(const ChatMessage& msg, int index) {
 
   // Add copy button for all messages
   ImGui::SameLine();
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.4f, 0.6f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.5f, 0.8f));
+  ImGui::PushStyleColor(ImGuiCol_Button, theme.button_copy);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, theme.button_copy_hover);
   if (ImGui::SmallButton(ICON_MD_CONTENT_COPY)) {
     std::string copy_text = msg.message;
     if (copy_text.empty() && msg.json_pretty.has_value()) {
@@ -460,7 +457,8 @@ void AgentChatWidget::RenderMessage(const ChatMessage& msg, int index) {
     RenderTable(*msg.table_data);
   } else if (msg.json_pretty.has_value()) {
     // Don't show JSON as a message - it's internal structure
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 0.8f));
+    const auto& theme = AgentUI::GetTheme();
+    ImGui::PushStyleColor(ImGuiCol_Text, theme.json_text_color);
     ImGui::TextDisabled(ICON_MD_DATA_OBJECT " (Structured response)");
     ImGui::PopStyleColor();
   } else {
@@ -483,14 +481,15 @@ void AgentChatWidget::RenderProposalQuickActions(const ChatMessage& msg,
     return;
   }
 
+  const auto& theme = AgentUI::GetTheme();
   const auto& proposal = *msg.proposal;
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, kProposalPanelColor);
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.proposal_panel_bg);
   ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 4.0f);
   ImGui::BeginChild(absl::StrFormat("proposal_panel_%d", index).c_str(),
                     ImVec2(0, ImGui::GetFrameHeight() * 3.2f), true,
                     ImGuiWindowFlags_None);
 
-  ImGui::TextColored(ImVec4(0.8f, 1.0f, 0.8f, 1.0f), "%s Proposal %s",
+  ImGui::TextColored(theme.proposal_accent, "%s Proposal %s",
                      ICON_MD_PREVIEW, proposal.id.c_str());
   ImGui::Text("Changes: %d", proposal.change_count);
   ImGui::Text("Commands: %d", proposal.executed_commands);
@@ -523,12 +522,13 @@ void AgentChatWidget::RenderProposalQuickActions(const ChatMessage& msg,
 }
 
 void AgentChatWidget::RenderHistory() {
+  const auto& theme = AgentUI::GetTheme();
   const auto& history = agent_service_.GetHistory();
   float reserved_height = ImGui::GetFrameHeightWithSpacing() * 4.0f;
   reserved_height += 100.0f;  // Reduced to 100 for much taller chat area
 
   // Styled chat history container
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.08f, 0.08f, 0.10f, 0.95f));
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.code_bg_color);
   if (ImGui::BeginChild("History", ImVec2(0, -reserved_height), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     if (history.empty()) {
@@ -560,9 +560,10 @@ void AgentChatWidget::RenderHistory() {
 }
 
 void AgentChatWidget::RenderInputBox() {
+  const auto& theme = AgentUI::GetTheme();
+  
   ImGui::Separator();
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                     ICON_MD_EDIT " Message:");
+  ImGui::TextColored(theme.command_text_color, ICON_MD_EDIT " Message:");
 
   bool submitted = ImGui::InputTextMultiline(
       "##agent_input", input_buffer_, sizeof(input_buffer_), ImVec2(-1, 60.0f),
@@ -578,10 +579,11 @@ void AgentChatWidget::RenderInputBox() {
 
   ImGui::Spacing();
 
-  // Send button row
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.5f, 0.7f, 0.8f));
+  // Send button row  
+  ImGui::PushStyleColor(ImGuiCol_Button, theme.provider_gemini);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        ImVec4(0.196f, 0.6f, 0.8f, 1.0f));
+                        ImVec4(theme.provider_gemini.x * 1.2f, theme.provider_gemini.y * 1.1f, 
+                               theme.provider_gemini.z, theme.provider_gemini.w));
   if (ImGui::Button(absl::StrFormat("%s Send", ICON_MD_SEND).c_str(),
                     ImVec2(140, 0)) ||
       send) {
@@ -1602,12 +1604,13 @@ void AgentChatWidget::UpdateAgentConfig(const AgentConfigState& config) {
 }
 
 void AgentChatWidget::RenderAgentConfigPanel() {
+  const auto& theme = AgentUI::GetTheme();
+  
   // Dense header (no collapsing)
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.14f, 0.18f, 0.95f));
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_color);
   ImGui::BeginChild("AgentConfig", ImVec2(0, 140), true);  // Reduced from 350
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                     ICON_MD_SETTINGS " Config");
-  ImGui::Separator();
+  AgentUI::RenderSectionHeader(ICON_MD_SETTINGS, "Config", theme.command_text_color);
+  
 
   // Compact provider selection
   int provider_idx = 0;

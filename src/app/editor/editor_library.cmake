@@ -49,6 +49,7 @@ if(YAZE_WITH_GRPC)
   list(APPEND YAZE_APP_EDITOR_SRC
     app/editor/agent/agent_editor.cc
     app/editor/agent/agent_chat_widget.cc
+    app/editor/agent/agent_ui_theme.cc
     app/editor/agent/agent_collaboration_coordinator.cc
     app/editor/agent/network_collaboration_coordinator.cc
     app/editor/agent/automation_bridge.cc
