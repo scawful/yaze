@@ -105,6 +105,12 @@ AgentChatWidget::AgentChatWidget() {
   memset(input_buffer_, 0, sizeof(input_buffer_));
   history_path_ = ResolveHistoryPath();
   history_supported_ = AgentChatHistoryCodec::Available();
+  
+  // Initialize default session
+  if (chat_sessions_.empty()) {
+    chat_sessions_.emplace_back("default", "Main Session");
+    active_session_index_ = 0;
+  }
 }
 
 void AgentChatWidget::SetRomContext(Rom* rom) {
@@ -126,15 +132,42 @@ void AgentChatWidget::SetProposalDrawer(ProposalDrawer* drawer) {
 void AgentChatWidget::SetChatHistoryPopup(AgentChatHistoryPopup* popup) {
   chat_history_popup_ = popup;
   
+  if (!chat_history_popup_) return;
+  
   // Set up callback to open this chat window
-  if (chat_history_popup_) {
-    chat_history_popup_->SetOpenChatCallback([this]() {
-      this->set_active(true);
-    });
-    
-    // Initial sync
-    SyncHistoryToPopup();
-  }
+  chat_history_popup_->SetOpenChatCallback([this]() {
+    this->set_active(true);
+  });
+  
+  // Set up callback to send messages from popup
+  chat_history_popup_->SetSendMessageCallback([this](const std::string& message) {
+    // Send message through the agent service
+    auto response = agent_service_.SendMessage(message);
+    HandleAgentResponse(response);
+    PersistHistory();
+  });
+  
+  // Set up callback to capture snapshots from popup
+  chat_history_popup_->SetCaptureSnapshotCallback([this]() {
+    if (multimodal_callbacks_.capture_snapshot) {
+      std::filesystem::path output_path;
+      auto status = multimodal_callbacks_.capture_snapshot(&output_path);
+      if (status.ok()) {
+        multimodal_state_.last_capture_path = output_path;
+        multimodal_state_.last_updated = absl::Now();
+        if (toast_manager_) {
+          toast_manager_->Show(ICON_MD_PHOTO " Screenshot captured", ToastType::kSuccess, 2.5f);
+        }
+      } else if (toast_manager_) {
+        toast_manager_->Show(
+            absl::StrFormat("Capture failed: %s", status.message()),
+            ToastType::kError, 3.0f);
+      }
+    }
+  });
+  
+  // Initial sync
+  SyncHistoryToPopup();
 }
 
 void AgentChatWidget::EnsureHistoryLoaded() {
@@ -647,6 +680,7 @@ void AgentChatWidget::Draw() {
     if (ImGui::BeginMenu(ICON_MD_MENU " Actions")) {
       if (ImGui::MenuItem(ICON_MD_DELETE_FOREVER " Clear History")) {
         agent_service_.ResetConversation();
+        SyncHistoryToPopup();
         if (toast_manager_) {
           toast_manager_->Show("Chat history cleared", ToastType::kInfo, 2.5f);
         }
@@ -654,6 +688,7 @@ void AgentChatWidget::Draw() {
       ImGui::Separator();
       if (ImGui::MenuItem(ICON_MD_REFRESH " Reset Conversation")) {
         agent_service_.ResetConversation();
+        SyncHistoryToPopup();
         if (toast_manager_) {
           toast_manager_->Show("Conversation reset", ToastType::kInfo, 2.5f);
         }
@@ -664,7 +699,40 @@ void AgentChatWidget::Draw() {
           toast_manager_->Show("Export not yet implemented", ToastType::kWarning);
         }
       }
+      ImGui::Separator();
+      if (ImGui::MenuItem(ICON_MD_ADD " New Session Tab")) {
+        // Create new session
+        if (!chat_sessions_.empty()) {
+          ChatSession new_session(
+              absl::StrFormat("session_%d", chat_sessions_.size()),
+              absl::StrFormat("Session %d", chat_sessions_.size() + 1));
+          chat_sessions_.push_back(std::move(new_session));
+          active_session_index_ = chat_sessions_.size() - 1;
+          if (toast_manager_) {
+            toast_manager_->Show("New session created", ToastType::kSuccess);
+          }
+        }
+      }
       ImGui::EndMenu();
+    }
+    
+    // Session tabs in menu bar (if multiple sessions)
+    if (!chat_sessions_.empty() && chat_sessions_.size() > 1) {
+      ImGui::Separator();
+      for (size_t i = 0; i < chat_sessions_.size(); ++i) {
+        bool is_active = (i == active_session_index_);
+        if (is_active) {
+          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.8f, 0.4f, 1.0f));
+        }
+        if (ImGui::MenuItem(chat_sessions_[i].name.c_str(), nullptr, is_active)) {
+          active_session_index_ = i;
+          history_loaded_ = false;  // Trigger reload
+          SyncHistoryToPopup();
+        }
+        if (is_active) {
+          ImGui::PopStyleColor();
+        }
+      }
     }
     
     ImGui::EndMenuBar();

@@ -55,12 +55,27 @@ class AgentChatHistoryPopup {
   void SetOpenChatCallback(OpenChatCallback callback) {
     open_chat_callback_ = std::move(callback);
   }
+  
+  // Set callback for sending messages
+  using SendMessageCallback = std::function<void(const std::string&)>;
+  void SetSendMessageCallback(SendMessageCallback callback) {
+    send_message_callback_ = std::move(callback);
+  }
+  
+  // Set callback for capturing snapshots
+  using CaptureSnapshotCallback = std::function<void()>;
+  void SetCaptureSnapshotCallback(CaptureSnapshotCallback callback) {
+    capture_snapshot_callback_ = std::move(callback);
+  }
 
  private:
+  void DrawHeader();
   void DrawMessageList();
   void DrawMessage(const cli::agent::ChatMessage& msg, int index);
-  void DrawActionButtons();
+  void DrawInputSection();
+  void DrawQuickActions();
   
+  void SendMessage(const std::string& message);
   void ClearHistory();
   void ExportHistory();
   void ScrollToBottom();
@@ -68,15 +83,21 @@ class AgentChatHistoryPopup {
   bool visible_ = false;
   bool needs_scroll_ = false;
   bool auto_scroll_ = true;
+  bool compact_mode_ = true;
+  bool show_quick_actions_ = true;
   
   // History state
   std::vector<cli::agent::ChatMessage> messages_;
   int display_limit_ = 50;  // Show last 50 messages
   
+  // Input state
+  char input_buffer_[512] = {};
+  bool focus_input_ = false;
+  
   // UI state
-  float drawer_width_ = 400.0f;
+  float drawer_width_ = 420.0f;
   float min_drawer_width_ = 300.0f;
-  float max_drawer_width_ = 600.0f;
+  float max_drawer_width_ = 700.0f;
   bool is_resizing_ = false;
   
   // Filter state
@@ -87,9 +108,15 @@ class AgentChatHistoryPopup {
   };
   MessageFilter message_filter_ = MessageFilter::kAll;
   
+  // Visual state
+  float header_pulse_ = 0.0f;
+  int unread_count_ = 0;
+  
   // Dependencies
   ToastManager* toast_manager_ = nullptr;
   OpenChatCallback open_chat_callback_;
+  SendMessageCallback send_message_callback_;
+  CaptureSnapshotCallback capture_snapshot_callback_;
 };
 
 }  // namespace editor

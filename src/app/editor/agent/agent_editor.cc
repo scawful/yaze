@@ -12,6 +12,7 @@
 #include "app/editor/system/toast_manager.h"
 #include "app/rom.h"
 #include "app/gui/icons.h"
+#include "app/core/platform/asset_loader.h"
 #include "util/file_util.h"
 
 #ifdef YAZE_WITH_GRPC
@@ -170,40 +171,64 @@ void AgentEditor::DrawDashboard() {
     ImGui::EndMenuBar();
   }
   
-  // Tabbed interface for dense organization
+  // Compact tabbed interface (combined tabs)
   if (ImGui::BeginTabBar("AgentEditorTabs", ImGuiTabBarFlags_None)) {
-    // Configuration Tab
-    if (ImGui::BeginTabItem(ICON_MD_SETTINGS " Configuration")) {
+    // Bot Management Tab (combines Config + Profiles + Prompts)
+    if (ImGui::BeginTabItem(ICON_MD_SMART_TOY " Bot Studio")) {
       ImGui::Spacing();
-      DrawConfigurationPanel();
+      
+      // Three-column layout with prompt editor in center
+      if (ImGui::BeginTable("BotStudioLayout", 3, ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
+        ImGui::TableSetupColumn("Config", ImGuiTableColumnFlags_WidthFixed, 380.0f);
+        ImGui::TableSetupColumn("Prompt Editor", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Profiles", ImGuiTableColumnFlags_WidthFixed, 320.0f);
+        ImGui::TableNextRow();
+        
+        // LEFT: Configuration
+        ImGui::TableSetColumnIndex(0);
+        ImGui::BeginChild("ConfigSection", ImVec2(0, 0), false);
+        DrawConfigurationPanel();
+        ImGui::EndChild();
+        
+        // CENTER: System Prompt Editor
+        ImGui::TableSetColumnIndex(1);
+        ImGui::BeginChild("PromptSection", ImVec2(0, 0), false);
+        DrawPromptEditorPanel();
+        ImGui::EndChild();
+        
+        // RIGHT: Bot Profiles List
+        ImGui::TableSetColumnIndex(2);
+        ImGui::BeginChild("ProfilesSection", ImVec2(0, 0), false);
+        DrawBotProfilesPanel();
+        ImGui::EndChild();
+        
+        ImGui::EndTable();
+      }
+      
       ImGui::EndTabItem();
     }
     
-    // System Prompts Tab
-    if (ImGui::BeginTabItem(ICON_MD_EDIT " System Prompts")) {
+    // Session Manager Tab (combines History + Metrics)
+    if (ImGui::BeginTabItem(ICON_MD_HISTORY " Sessions & History")) {
       ImGui::Spacing();
-      DrawPromptEditorPanel();
-      ImGui::EndTabItem();
-    }
-    
-    // Bot Profiles Tab
-    if (ImGui::BeginTabItem(ICON_MD_FOLDER " Bot Profiles")) {
-      ImGui::Spacing();
-      DrawBotProfilesPanel();
-      ImGui::EndTabItem();
-    }
-    
-    // Chat History Tab
-    if (ImGui::BeginTabItem(ICON_MD_HISTORY " Chat History")) {
-      ImGui::Spacing();
-      DrawChatHistoryViewer();
-      ImGui::EndTabItem();
-    }
-    
-    // Metrics Tab
-    if (ImGui::BeginTabItem(ICON_MD_ANALYTICS " Metrics")) {
-      ImGui::Spacing();
-      DrawAdvancedMetricsPanel();
+      
+      // Two-column layout
+      if (ImGui::BeginTable("SessionLayout", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
+        ImGui::TableSetupColumn("History", ImGuiTableColumnFlags_WidthStretch, 0.6f);
+        ImGui::TableSetupColumn("Metrics", ImGuiTableColumnFlags_WidthStretch, 0.4f);
+        ImGui::TableNextRow();
+        
+        // LEFT: Chat History
+        ImGui::TableSetColumnIndex(0);
+        DrawChatHistoryViewer();
+        
+        // RIGHT: Metrics
+        ImGui::TableSetColumnIndex(1);
+        DrawAdvancedMetricsPanel();
+        
+        ImGui::EndTable();
+      }
+      
       ImGui::EndTabItem();
     }
     
@@ -469,13 +494,13 @@ void AgentEditor::DrawMetricsPanel() {
 }
 
 void AgentEditor::DrawPromptEditorPanel() {
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_EDIT " System Prompt Editor");
+  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_EDIT " Prompt Editor");
   ImGui::Separator();
   ImGui::Spacing();
   
-  // Prompt file selector
-  ImGui::Text("Active Prompt:");
-  ImGui::SameLine();
+  // Compact prompt file selector
+  ImGui::Text("File:");
+  ImGui::SetNextItemWidth(-45);
   if (ImGui::BeginCombo("##prompt_file", active_prompt_file_.c_str())) {
     if (ImGui::Selectable("system_prompt.txt", active_prompt_file_ == "system_prompt.txt")) {
       active_prompt_file_ = "system_prompt.txt";
@@ -493,30 +518,34 @@ void AgentEditor::DrawPromptEditorPanel() {
   }
   
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_REFRESH " Reload")) {
+  if (ImGui::SmallButton(ICON_MD_REFRESH)) {
     prompt_editor_initialized_ = false;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Reload from disk");
   }
   
   // Load prompt file if not initialized
   if (!prompt_editor_initialized_ && prompt_editor_) {
-    // Build path to assets/agent directory
-    std::filesystem::path base_path;
-#ifdef __APPLE__
-    base_path = std::filesystem::path(yaze::util::GetBundleResourcePath()) / "Contents" / "Resources" / "agent";
-#else
-    base_path = std::filesystem::path("assets") / "agent";
-#endif
+    std::string asset_path = "agent/" + active_prompt_file_;
+    auto content_result = core::AssetLoader::LoadTextFile(asset_path);
     
-    std::filesystem::path prompt_path = base_path / active_prompt_file_;
-    if (std::filesystem::exists(prompt_path)) {
-      std::ifstream file(prompt_path);
-      if (file.is_open()) {
-        std::string content((std::istreambuf_iterator<char>(file)),
-                           std::istreambuf_iterator<char>());
-        prompt_editor_->SetText(content);
-        current_profile_.system_prompt = content;
-        prompt_editor_initialized_ = true;
+    if (content_result.ok()) {
+      prompt_editor_->SetText(*content_result);
+      current_profile_.system_prompt = *content_result;
+      prompt_editor_initialized_ = true;
+    } else {
+      // Only show error on first attempt (don't spam)
+      static bool error_shown = false;
+      if (!error_shown && toast_manager_) {
+        toast_manager_->Show(
+            absl::StrFormat("Prompt file not found: %s", active_prompt_file_),
+            ToastType::kWarning, 3.0f);
+        error_shown = true;
       }
+      // Set placeholder text
+      prompt_editor_->SetText("# System prompt file not found\n# Please check assets/agent/ directory");
+      prompt_editor_initialized_ = true;  // Don't retry every frame
     }
   }
   

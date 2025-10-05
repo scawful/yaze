@@ -329,6 +329,47 @@ void EditorManager::Initialize(const std::string& filename) {
     return absl::OkStatus();
   };
   agent_editor_.GetChatWidget()->SetMultimodalCallbacks(multimodal_callbacks);
+  
+  // Set up Z3ED command callbacks for proposal management
+  AgentChatWidget::Z3EDCommandCallbacks z3ed_callbacks;
+  
+  z3ed_callbacks.accept_proposal = [this](const std::string& proposal_id) -> absl::Status {
+    // Use ProposalDrawer's existing logic
+    proposal_drawer_.Show();
+    proposal_drawer_.FocusProposal(proposal_id);
+    
+    toast_manager_.Show(
+        absl::StrFormat("%s View proposal %s in drawer to accept", ICON_MD_PREVIEW, proposal_id),
+        ToastType::kInfo, 3.5f);
+    
+    return absl::OkStatus();
+  };
+  
+  z3ed_callbacks.reject_proposal = [this](const std::string& proposal_id) -> absl::Status {
+    // Use ProposalDrawer's existing logic
+    proposal_drawer_.Show();
+    proposal_drawer_.FocusProposal(proposal_id);
+    
+    toast_manager_.Show(
+        absl::StrFormat("%s View proposal %s in drawer to reject", ICON_MD_PREVIEW, proposal_id),
+        ToastType::kInfo, 3.0f);
+    
+    return absl::OkStatus();
+  };
+  
+  z3ed_callbacks.list_proposals = []() -> absl::StatusOr<std::vector<std::string>> {
+    // Return empty for now - ProposalDrawer handles the real list
+    return std::vector<std::string>{};
+  };
+  
+  z3ed_callbacks.diff_proposal = [this](const std::string& proposal_id) -> absl::StatusOr<std::string> {
+    // Open drawer to show diff
+    proposal_drawer_.Show();
+    proposal_drawer_.FocusProposal(proposal_id);
+    return "See diff in proposal drawer";
+  };
+  
+  agent_editor_.GetChatWidget()->SetZ3EDCommandCallbacks(z3ed_callbacks);
 #endif
 
   // Load critical user settings first
