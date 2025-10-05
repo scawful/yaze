@@ -81,9 +81,13 @@ absl::Status GfxImport::Run(const std::vector<std::string>& arg_vec) {
   sheet.set_data(cgx_loaded);
 
   // TODO: Implement saving the modified graphics sheet back to the ROM.
+  auto save_status = rom_.SaveToFile({.save_new = false});
+  if (!save_status.ok()) {
+    return save_status;
+  }
 
   std::cout << "Successfully imported graphics sheet " << sheet_id << " from " << input_file << std::endl;
-  std::cout << "(Saving to ROM not yet implemented)" << std::endl;
+  std::cout << "✅ ROM saved to: " << rom_.filename() << std::endl;
 
   return absl::OkStatus();
 }
