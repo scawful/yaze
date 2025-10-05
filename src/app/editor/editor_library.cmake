@@ -35,6 +35,7 @@ set(
   app/editor/overworld/map_properties.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/overworld/entity.cc
+  app/editor/overworld/overworld_entity_renderer.cc
   app/editor/system/settings_editor.cc
   app/editor/system/command_manager.cc
   app/editor/system/extension_manager.cc

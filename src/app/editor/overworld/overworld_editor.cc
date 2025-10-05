@@ -16,7 +16,6 @@
 #include "app/core/asar_wrapper.h"
 #include "app/core/features.h"
 #include "app/core/window.h"
-#include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/arena.h"
@@ -61,6 +60,10 @@ void OverworldEditor::Initialize() {
   // Initialize OverworldEditorManager for v3 features
   overworld_manager_ =
       std::make_unique<OverworldEditorManager>(&overworld_, rom_, this);
+
+  // Initialize OverworldEntityRenderer for entity visualization
+  entity_renderer_ = std::make_unique<OverworldEntityRenderer>(
+      &overworld_, &ow_map_canvas_, &sprite_previews_);
 
   // Setup overworld canvas context menu
   SetupOverworldCanvasContextMenu();
@@ -1100,10 +1103,24 @@ void OverworldEditor::DrawOverworldCanvas() {
 
   if (overworld_.is_loaded()) {
     DrawOverworldMaps();
-    DrawOverworldExits(ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling());
-    DrawOverworldEntrances(ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling());
-    DrawOverworldItems();
-    DrawOverworldSprites();
+    
+    // Update entity renderer state
+    entity_renderer_->set_current_map(current_map_);
+    
+    // Draw all entities using the entity renderer
+    int mode_int = static_cast<int>(current_mode);
+    entity_renderer_->DrawExits(ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling(),
+                               current_world_, mode_int);
+    entity_renderer_->DrawEntrances(ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling(),
+                                   current_world_, mode_int);
+    entity_renderer_->DrawItems(current_world_, mode_int);
+    entity_renderer_->DrawSprites(current_world_, game_state_, mode_int);
+    
+    // Check if entity renderer wants to jump to a tab (e.g., double-clicked entrance/exit)
+    if (entity_renderer_->jump_to_tab() != -1) {
+      jump_to_tab_ = entity_renderer_->jump_to_tab();
+      entity_renderer_->reset_jump_to_tab();
+    }
 
     // Draw overlay preview if enabled
     if (show_overlay_preview_) {
@@ -1243,237 +1260,8 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
 }
 
 // DrawTileSelector() removed - replaced by individual card system in Update()
-
-void OverworldEditor::DrawOverworldEntrances(ImVec2 canvas_p0, ImVec2 scrolling) {
-  int i = 0;
-  for (auto& each : overworld_.entrances()) {
-    if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
-        each.map_id_ >= (current_world_ * 0x40) && !each.deleted) {
-      // Use theme-aware color with proper transparency
-      ImVec4 entrance_color = gui::GetEntranceColor();
-      if (each.is_hole_) {
-        // Holes are more opaque for visibility
-        entrance_color.w = 0.78f;  // 200/255 alpha
-      }
-      ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16, entrance_color);
-      std::string str = util::HexByte(each.entrance_id_);
-
-      if (current_mode == EditingMode::ENTRANCES) {
-        HandleEntityDragging(&each, canvas_p0, scrolling, is_dragging_entity_,
-                             dragged_entity_, current_entity_);
-
-        if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling) &&
-            ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-          jump_to_tab_ = each.entrance_id_;
-        }
-
-        if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling) &&
-            ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-          current_entrance_id_ = i;
-          current_entrance_ = each;
-        }
-      }
-
-      ow_map_canvas_.DrawText(str, each.x_, each.y_);
-    }
-    i++;
-  }
-
-  if (DrawEntranceInserterPopup()) {
-    // Get the deleted entrance ID and insert it at the mouse position
-    auto deleted_entrance_id = overworld_.deleted_entrances().back();
-    overworld_.deleted_entrances().pop_back();
-    auto& entrance = overworld_.entrances()[deleted_entrance_id];
-    entrance.map_id_ = current_map_;
-    entrance.entrance_id_ = deleted_entrance_id;
-    entrance.x_ = ow_map_canvas_.hover_mouse_pos().x;
-    entrance.y_ = ow_map_canvas_.hover_mouse_pos().y;
-    entrance.deleted = false;
-  }
-
-  if (current_mode == EditingMode::ENTRANCES) {
-    const auto is_hovering =
-        IsMouseHoveringOverEntity(current_entrance_, canvas_p0, scrolling);
-
-    if (!is_hovering && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-      ImGui::OpenPopup("Entrance Inserter");
-    } else {
-      if (DrawOverworldEntrancePopup(
-              overworld_.entrances()[current_entrance_id_])) {
-        overworld_.entrances()[current_entrance_id_] = current_entrance_;
-      }
-
-      if (overworld_.entrances()[current_entrance_id_].deleted) {
-        overworld_.mutable_deleted_entrances()->emplace_back(
-            current_entrance_id_);
-      }
-    }
-  }
-}
-
-void OverworldEditor::DrawOverworldExits(ImVec2 canvas_p0, ImVec2 scrolling) {
-  int i = 0;
-  for (auto& each : *overworld_.mutable_exits()) {
-    if (each.map_id_ < 0x40 + (current_world_ * 0x40) &&
-        each.map_id_ >= (current_world_ * 0x40) && !each.deleted_) {
-      ow_map_canvas_.DrawRect(each.x_, each.y_, 16, 16,
-                              gui::GetExitColor());
-      if (current_mode == EditingMode::EXITS) {
-        each.entity_id_ = i;
-        HandleEntityDragging(&each, ow_map_canvas_.zero_point(),
-                             ow_map_canvas_.scrolling(), is_dragging_entity_,
-                             dragged_entity_, current_entity_, true);
-
-        if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling) &&
-            ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-          jump_to_tab_ = each.room_id_;
-        }
-
-        if (IsMouseHoveringOverEntity(each, canvas_p0, scrolling) &&
-            ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-          current_exit_id_ = i;
-          current_exit_ = each;
-          current_entity_ = &each;
-          current_entity_->entity_id_ = i;
-          ImGui::OpenPopup("Exit editor");
-        }
-      }
-
-      std::string str = util::HexByte(i);
-      ow_map_canvas_.DrawText(str, each.x_, each.y_);
-    }
-    i++;
-  }
-
-  DrawExitInserterPopup();
-  if (current_mode == EditingMode::EXITS) {
-    const auto hovering = IsMouseHoveringOverEntity(
-        overworld_.mutable_exits()->at(current_exit_id_),
-        ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling());
-
-    if (!hovering && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-      ImGui::OpenPopup("Exit Inserter");
-    } else {
-      if (DrawExitEditorPopup(
-              overworld_.mutable_exits()->at(current_exit_id_))) {
-        overworld_.mutable_exits()->at(current_exit_id_) = current_exit_;
-      }
-    }
-  }
-}
-
-void OverworldEditor::DrawOverworldItems() {
-  int i = 0;
-  for (auto& item : *overworld_.mutable_all_items()) {
-    // Get the item's bitmap and real X and Y positions
-    if (item.room_map_id_ < 0x40 + (current_world_ * 0x40) &&
-        item.room_map_id_ >= (current_world_ * 0x40) && !item.deleted) {
-      ow_map_canvas_.DrawRect(item.x_, item.y_, 16, 16, gui::GetItemColor());
-
-      if (current_mode == EditingMode::ITEMS) {
-        // Check if this item is being clicked and dragged
-        HandleEntityDragging(&item, ow_map_canvas_.zero_point(),
-                             ow_map_canvas_.scrolling(), is_dragging_entity_,
-                             dragged_entity_, current_entity_);
-
-        const auto hovering = IsMouseHoveringOverEntity(
-            item, ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling());
-        if (hovering && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-          current_item_id_ = i;
-          current_item_ = item;
-          current_entity_ = &item;
-        }
-      }
-      std::string item_name = "";
-      if (item.id_ < zelda3::kSecretItemNames.size()) {
-        item_name = zelda3::kSecretItemNames[item.id_];
-      } else {
-        item_name = absl::StrFormat("0x%02X", item.id_);
-      }
-      ow_map_canvas_.DrawText(item_name, item.x_, item.y_);
-    }
-    i++;
-  }
-
-  DrawItemInsertPopup();
-  if (current_mode == EditingMode::ITEMS) {
-    const auto hovering = IsMouseHoveringOverEntity(
-        overworld_.mutable_all_items()->at(current_item_id_),
-        ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling());
-
-    if (!hovering && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-      ImGui::OpenPopup("Item Inserter");
-    } else {
-      if (DrawItemEditorPopup(
-              overworld_.mutable_all_items()->at(current_item_id_))) {
-        overworld_.mutable_all_items()->at(current_item_id_) = current_item_;
-      }
-    }
-  }
-}
-
-void OverworldEditor::DrawOverworldSprites() {
-  int i = 0;
-  for (auto& sprite : *overworld_.mutable_sprites(game_state_)) {
-    // Filter sprites by current world - only show sprites for the current world
-    if (!sprite.deleted() && sprite.map_id() < 0x40 + (current_world_ * 0x40) &&
-        sprite.map_id() >= (current_world_ * 0x40)) {
-      // Sprites are already stored with global coordinates (realX, realY from
-      // ROM loading) So we can use sprite.x_ and sprite.y_ directly
-      int sprite_x = sprite.x_;
-      int sprite_y = sprite.y_;
-
-      // Temporarily update sprite coordinates for entity interaction
-      int original_x = sprite.x_;
-      int original_y = sprite.y_;
-
-      ow_map_canvas_.DrawRect(sprite_x, sprite_y, kTile16Size, kTile16Size,
-                              gui::GetSpriteColor());
-      if (current_mode == EditingMode::SPRITES) {
-        HandleEntityDragging(&sprite, ow_map_canvas_.zero_point(),
-                             ow_map_canvas_.scrolling(), is_dragging_entity_,
-                             dragged_entity_, current_entity_);
-        if (IsMouseHoveringOverEntity(sprite, ow_map_canvas_.zero_point(),
-                                      ow_map_canvas_.scrolling()) &&
-            ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-          current_sprite_id_ = i;
-          current_sprite_ = sprite;
-        }
-      }
-      if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
-        if (sprite_previews_[sprite.id()].is_active()) {
-          ow_map_canvas_.DrawBitmap(sprite_previews_[sprite.id()], sprite_x,
-                                    sprite_y, 2.0f);
-        }
-      }
-
-      ow_map_canvas_.DrawText(absl::StrFormat("%s", sprite.name()), sprite_x,
-                              sprite_y);
-
-      // Restore original coordinates
-      sprite.x_ = original_x;
-      sprite.y_ = original_y;
-    }
-    i++;
-  }
-
-  DrawSpriteInserterPopup();
-  if (current_mode == EditingMode::SPRITES) {
-    const auto hovering = IsMouseHoveringOverEntity(
-        overworld_.mutable_sprites(game_state_)->at(current_sprite_id_),
-        ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling());
-
-    if (!hovering && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-      ImGui::OpenPopup("Sprite Inserter");
-    } else {
-      if (DrawSpriteEditorPopup(overworld_.mutable_sprites(game_state_)
-                                    ->at(current_sprite_id_))) {
-        overworld_.mutable_sprites(game_state_)->at(current_sprite_id_) =
-            current_sprite_;
-      }
-    }
-  }
-}
+// DrawOverworldEntrances(), DrawOverworldExits(), DrawOverworldItems(), DrawOverworldSprites()
+// removed - moved to OverworldEntityRenderer
 
 absl::Status OverworldEditor::Save() {
   if (core::FeatureFlags::get().overworld.kSaveOverworldMaps) {
