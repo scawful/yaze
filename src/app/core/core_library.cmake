@@ -10,6 +10,7 @@ set(
 if (WIN32 OR MINGW OR (UNIX AND NOT APPLE))
   list(APPEND YAZE_APP_CORE_SRC
     app/core/platform/font_loader.cc
+    app/core/platform/asset_loader.cc
   )
 endif()
 
@@ -19,6 +20,7 @@ if(APPLE)
       app/core/platform/app_delegate.mm
       app/core/platform/font_loader.cc
       app/core/platform/font_loader.mm
+      app/core/platform/asset_loader.cc
     )
 
     find_library(COCOA_LIBRARY Cocoa)
