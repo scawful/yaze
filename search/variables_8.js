@@ -103,7 +103,7 @@ var searchData=
   ['is_5fdraggable_5f_100',['is_draggable_',['../dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#a50b0b0d0aa685f70778c357e5d471bdb',1,'yaze::gui::canvas::CanvasContextMenu']]],
   ['is_5fdragging_101',['is_dragging',['../d6/dfb/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1SelectionState.html#ae2fb2e840bade02ac8283b2b9eea33e0',1,'yaze::zelda3::DungeonObjectEditor::SelectionState']]],
   ['is_5fdragging_5f_102',['is_dragging_',['../d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a1310b83229a46724a8526470982c2d14',1,'yaze::editor::DungeonObjectInteraction']]],
-  ['is_5fdragging_5fentity_5f_103',['is_dragging_entity_',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a6a201790dc53e63c91e1725826b60b12',1,'yaze::editor::OverworldEditor']]],
+  ['is_5fdragging_5fentity_5f_103',['is_dragging_entity_',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a6a201790dc53e63c91e1725826b60b12',1,'yaze::editor::OverworldEditor::is_dragging_entity_'],['../d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer.html#a4fb11579eaf833cadf7664125009e896',1,'yaze::editor::OverworldEntityRenderer::is_dragging_entity_']]],
   ['is_5fediting_5fposition_104',['is_editing_position',['../d4/d68/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a954811c0f14b2d4ccf58a77871d42625',1,'yaze::zelda3::DungeonObjectEditor::EditingState']]],
   ['is_5fediting_5fsize_105',['is_editing_size',['../d4/d68/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html#a82dfa975a7401bfae34638db0833019f',1,'yaze::zelda3::DungeonObjectEditor::EditingState']]],
   ['is_5ffloor_5f_106',['is_floor_',['../d7/df6/classyaze_1_1zelda3_1_1Room.html#a322e683046befa7f1b015388e5a0f8bd',1,'yaze::zelda3::Room']]],

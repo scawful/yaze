@@ -3,7 +3,6 @@ var tile16__editor_8h =
     [ "yaze::editor::Tile16Editor", "db/d82/classyaze_1_1editor_1_1Tile16Editor.html", "db/d82/classyaze_1_1editor_1_1Tile16Editor" ],
     [ "yaze::editor::Tile16Editor::LayoutScratch", "d7/d4a/structyaze_1_1editor_1_1Tile16Editor_1_1LayoutScratch.html", "d7/d4a/structyaze_1_1editor_1_1Tile16Editor_1_1LayoutScratch" ],
     [ "yaze::editor::Tile16Editor::UndoState", "d1/d31/structyaze_1_1editor_1_1Tile16Editor_1_1UndoState.html", "d1/d31/structyaze_1_1editor_1_1Tile16Editor_1_1UndoState" ],
-    [ "kTile16Size", "de/d8d/tile16__editor_8h.html#a8dc3baef6adc771af0290ef25f331bb4", null ],
     [ "kTile8Size", "de/d8d/tile16__editor_8h.html#a7e496b12910031cfaa4fb492c4af0ae4", null ],
     [ "kTilesheetEditorWidth", "de/d8d/tile16__editor_8h.html#af28f4f6ce975808297fb0f6210efa555", null ],
     [ "kTilesheetEditorHeight", "de/d8d/tile16__editor_8h.html#a824f3d7b414fd53fe5bbd0b2687a811a", null ],

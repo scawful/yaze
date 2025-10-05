@@ -1,5 +1,8 @@
 var searchData=
 [
-  ['palette_0',['Palette',['../d0/d28/classTextEditor.html#af17c3c98577d3b2b921b78c6dfd0b742',1,'TextEditor']]],
-  ['pointer_1',['pointer',['../d5/d46/classyaze_1_1gfx_1_1PoolAllocator.html#a077ad2cc9ce2c15bcdb106ee37dc6b34',1,'yaze::gfx::PoolAllocator']]]
+  ['object_5fdoor_0',['object_door',['../d3/d81/group__dungeon.html#ga13622589acc34cfc8bb4e8ad1bb4a772',1,'zelda.h']]],
+  ['objectchangedcallback_1',['ObjectChangedCallback',['../de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a08b70609072d887b1a71a2c7ba9db6dc',1,'yaze::zelda3::DungeonObjectEditor']]],
+  ['openchatcallback_2',['OpenChatCallback',['../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a396039e095b04fe653aa8933c4e7194c',1,'yaze::editor::AgentChatHistoryPopup']]],
+  ['overworldblockset_3',['OverworldBlockset',['../d5/d1f/namespaceyaze_1_1zelda3.html#ac8076a14b02fe37987d83f6cd9b4ba43',1,'yaze::zelda3']]],
+  ['overworldmaptiles_4',['OverworldMapTiles',['../d5/d1f/namespaceyaze_1_1zelda3.html#a96678ef2cc89582d5d8a7f2b74c5f69b',1,'yaze::zelda3']]]
 ];

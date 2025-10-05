@@ -2,8 +2,9 @@ var classyaze_1_1editor_1_1MapPropertiesSystem =
 [
     [ "RefreshCallback", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a15c303e1dcee25200c7a937b70efb7dd", null ],
     [ "RefreshPaletteCallback", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adf8fa3d4464c6c93b9301d7d34d07817", null ],
+    [ "ForceRefreshGraphicsCallback", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a5fb18f3b4119c1f30f859e0ca6f7850e", null ],
     [ "MapPropertiesSystem", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a363c5443f9668c862e91ff80858cef95", null ],
-    [ "SetRefreshCallbacks", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#aeeea7126a23a6aee5cd8b68424005997", null ],
+    [ "SetRefreshCallbacks", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a7738a24a52d24d2d331b51ae7c5a8689", null ],
     [ "DrawSimplifiedMapSettings", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#af13190b62324d112d646d6c5f91a12d2", null ],
     [ "DrawMapPropertiesPanel", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a526d75aa0e1a930e3d0e51f8331deee0", null ],
     [ "DrawCustomBackgroundColorEditor", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a9f174734623c84d71a6bafc06d70e068", null ],
@@ -27,11 +28,16 @@ var classyaze_1_1editor_1_1MapPropertiesSystem =
     [ "RefreshMapProperties", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a1ae3f21d8a5446c4e4b9039230061039", null ],
     [ "RefreshOverworldMap", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a3f3c216f891a78be9d5f289d2c13e2cc", null ],
     [ "RefreshMapPalette", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#af4a5f8735127f4d5016b22d194bd7e30", null ],
+    [ "RefreshTile16Blockset", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a7068433fb53b2a15f27d602fd3971add", null ],
+    [ "ForceRefreshGraphics", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#ade7d1f19de2955a9561c1af23383e51d", null ],
+    [ "RefreshSiblingMapGraphics", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#ae3404cac2057ef59170d84b3036ac098", null ],
     [ "overworld_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#ad621e76e0e77bf6d02efa5754313cc5a", null ],
     [ "rom_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adbb0d6cf262698f546ce52e24130f82c", null ],
     [ "maps_bmp_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a0f88c7b087251df85e84b24ab1a4abfe", null ],
     [ "canvas_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a1de697d16ae9aa6c2ca6d9cd09daa072", null ],
     [ "refresh_map_properties_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a3770c4defa16dfd86ebf2f15facd8362", null ],
     [ "refresh_overworld_map_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a0ec3f9e62f50eb197e9346a17d186fd6", null ],
-    [ "refresh_map_palette_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a82e98169c794a318bf6aa705e225159d", null ]
+    [ "refresh_map_palette_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a82e98169c794a318bf6aa705e225159d", null ],
+    [ "refresh_tile16_blockset_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a45b19dfbe38133cb18744b551e952e72", null ],
+    [ "force_refresh_graphics_", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#aecd08960e6466ba32d94783cbd5b5ce5", null ]
 ];

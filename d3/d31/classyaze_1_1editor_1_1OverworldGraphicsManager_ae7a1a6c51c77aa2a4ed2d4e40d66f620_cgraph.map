@@ -1,0 +1,5 @@
+<map id="yaze::editor::OverworldGraphicsManager::ForceRefreshGraphics" name="yaze::editor::OverworldGraphicsManager::ForceRefreshGraphics">
+<area shape="rect" id="Node000001" title="Force a graphics refresh for a specific map." alt="" coords="5,5,213,46"/>
+<area shape="rect" id="Node000002" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a90cc1152067e0937c7e48d69e88a563f" title=" " alt="" coords="261,5,429,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,23,245,23,245,28,213,28"/>
+</map>

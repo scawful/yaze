@@ -269,6 +269,8 @@ var annotated_dup =
         [ "MusicEditor", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html", "db/d9a/classyaze_1_1editor_1_1MusicEditor" ],
         [ "OverworldEditor", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html", "d3/d44/classyaze_1_1editor_1_1OverworldEditor" ],
         [ "OverworldEditorManager", "d7/dfb/classyaze_1_1editor_1_1OverworldEditorManager.html", "d7/dfb/classyaze_1_1editor_1_1OverworldEditorManager" ],
+        [ "OverworldEntityRenderer", "d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer.html", "d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer" ],
+        [ "OverworldGraphicsManager", "d3/d31/classyaze_1_1editor_1_1OverworldGraphicsManager.html", "d3/d31/classyaze_1_1editor_1_1OverworldGraphicsManager" ],
         [ "PaletteEditor", "d2/d46/classyaze_1_1editor_1_1PaletteEditor.html", "d2/d46/classyaze_1_1editor_1_1PaletteEditor" ],
         [ "ParsedElement", "da/d5e/structyaze_1_1editor_1_1ParsedElement.html", "da/d5e/structyaze_1_1editor_1_1ParsedElement" ],
         [ "PopupManager", "d3/d8d/classyaze_1_1editor_1_1PopupManager.html", "d3/d8d/classyaze_1_1editor_1_1PopupManager" ],

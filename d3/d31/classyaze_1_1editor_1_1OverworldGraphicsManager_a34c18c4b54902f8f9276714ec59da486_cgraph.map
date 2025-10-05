@@ -1,0 +1,11 @@
+<map id="yaze::editor::OverworldGraphicsManager::LoadSpriteGraphics" name="yaze::editor::OverworldGraphicsManager::LoadSpriteGraphics">
+<area shape="rect" id="Node000001" title="Load sprite graphics for all overworld maps." alt="" coords="5,55,208,96"/>
+<area shape="rect" id="Node000002" href="$da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="256,5,419,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,52,267,33,269,38,192,57"/>
+<area shape="rect" id="Node000003" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#ac60f82068dadc77cf748ad7ec5c90c17" title=" " alt="" coords="260,55,415,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,73,244,73,244,78,208,78"/>
+<area shape="rect" id="Node000004" href="$da/d81/classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Create texture for bitmap on main thread." alt="" coords="269,121,406,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,94,255,115,253,120,180,99"/>
+<area shape="rect" id="Node000005" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#aa2fa6419b66b704db0eba2d6dfcdea6a" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="467,121,590,161"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="406,138,452,138,452,144,406,144"/>
+</map>

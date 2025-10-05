@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['memoryblock_0',['MemoryBlock',['../d0/d27/namespaceyaze_1_1gfx.html#a9964b75c8d017ac7b64d758d8dc0d5cf',1,'yaze::gfx']]],
-  ['menu_1',['Menu',['../d3/dbf/namespaceyaze_1_1gui.html#ad37c26c20977df22794b5cadc9a9cb7e',1,'yaze::gui']]],
-  ['messagecallback_2',['MessageCallback',['../d7/df0/classyaze_1_1app_1_1net_1_1WebSocketClient.html#a76e27d8be45f016dd688d4d17eb2ae55',1,'yaze::app::net::WebSocketClient']]],
-  ['modechangedcallback_3',['ModeChangedCallback',['../d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ad7a74733aed6b7269d008ce8d5b2b65c',1,'yaze::zelda3::DungeonEditorSystem']]]
+  ['layer_0',['Layer',['../d6/d20/namespaceyaze_1_1emu.html#aa137d3787515b802157d6b1af1c83ef7',1,'yaze::emu']]],
+  ['line_1',['Line',['../d0/d28/classTextEditor.html#a7ada0152297f142456309cbce6730465',1,'TextEditor']]],
+  ['lines_2',['Lines',['../d0/d28/classTextEditor.html#a1839e84e88e96c4c4291017ce5de2921',1,'TextEditor']]]
 ];

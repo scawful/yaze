@@ -134,13 +134,15 @@ Public Types</h2></td></tr>
 <tr class="separator:a15c303e1dcee25200c7a937b70efb7dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf8fa3d4464c6c93b9301d7d34d07817" id="r_adf8fa3d4464c6c93b9301d7d34d07817"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adf8fa3d4464c6c93b9301d7d34d07817">RefreshPaletteCallback</a> = std::function&lt; absl::Status()&gt;</td></tr>
 <tr class="separator:adf8fa3d4464c6c93b9301d7d34d07817"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fb18f3b4119c1f30f859e0ca6f7850e" id="r_a5fb18f3b4119c1f30f859e0ca6f7850e"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a5fb18f3b4119c1f30f859e0ca6f7850e">ForceRefreshGraphicsCallback</a> = std::function&lt; void(int)&gt;</td></tr>
+<tr class="separator:a5fb18f3b4119c1f30f859e0ca6f7850e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a363c5443f9668c862e91ff80858cef95" id="r_a363c5443f9668c862e91ff80858cef95"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a363c5443f9668c862e91ff80858cef95">MapPropertiesSystem</a> (<a class="el" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html">zelda3::Overworld</a> *overworld, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom, std::array&lt; <a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a>, <a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a4700b7264866b963a05e2f48dc7797c0">zelda3::kNumOverworldMaps</a> &gt; *maps_bmp=nullptr, <a class="el" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html">gui::Canvas</a> *canvas=nullptr)</td></tr>
 <tr class="separator:a363c5443f9668c862e91ff80858cef95"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeeea7126a23a6aee5cd8b68424005997" id="r_aeeea7126a23a6aee5cd8b68424005997"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#aeeea7126a23a6aee5cd8b68424005997">SetRefreshCallbacks</a> (<a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a15c303e1dcee25200c7a937b70efb7dd">RefreshCallback</a> refresh_map_properties, <a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a15c303e1dcee25200c7a937b70efb7dd">RefreshCallback</a> refresh_overworld_map, <a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adf8fa3d4464c6c93b9301d7d34d07817">RefreshPaletteCallback</a> refresh_map_palette)</td></tr>
-<tr class="separator:aeeea7126a23a6aee5cd8b68424005997"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7738a24a52d24d2d331b51ae7c5a8689" id="r_a7738a24a52d24d2d331b51ae7c5a8689"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a7738a24a52d24d2d331b51ae7c5a8689">SetRefreshCallbacks</a> (<a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a15c303e1dcee25200c7a937b70efb7dd">RefreshCallback</a> refresh_map_properties, <a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a15c303e1dcee25200c7a937b70efb7dd">RefreshCallback</a> refresh_overworld_map, <a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adf8fa3d4464c6c93b9301d7d34d07817">RefreshPaletteCallback</a> refresh_map_palette, <a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adf8fa3d4464c6c93b9301d7d34d07817">RefreshPaletteCallback</a> refresh_tile16_blockset=nullptr, <a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a5fb18f3b4119c1f30f859e0ca6f7850e">ForceRefreshGraphicsCallback</a> force_refresh_graphics=nullptr)</td></tr>
+<tr class="separator:a7738a24a52d24d2d331b51ae7c5a8689"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af13190b62324d112d646d6c5f91a12d2" id="r_af13190b62324d112d646d6c5f91a12d2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#af13190b62324d112d646d6c5f91a12d2">DrawSimplifiedMapSettings</a> (int &amp;current_world, int &amp;current_map, bool &amp;current_map_lock, bool &amp;show_map_properties_panel, bool &amp;show_custom_bg_color_editor, bool &amp;show_overlay_editor, bool &amp;show_overlay_preview, int &amp;game_state, int &amp;current_mode)</td></tr>
 <tr class="separator:af13190b62324d112d646d6c5f91a12d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a526d75aa0e1a930e3d0e51f8331deee0" id="r_a526d75aa0e1a930e3d0e51f8331deee0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a526d75aa0e1a930e3d0e51f8331deee0">DrawMapPropertiesPanel</a> (int current_map, bool &amp;show_map_properties_panel)</td></tr>
@@ -190,6 +192,12 @@ Private Member Functions</h2></td></tr>
 <tr class="separator:a3f3c216f891a78be9d5f289d2c13e2cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af4a5f8735127f4d5016b22d194bd7e30" id="r_af4a5f8735127f4d5016b22d194bd7e30"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#af4a5f8735127f4d5016b22d194bd7e30">RefreshMapPalette</a> ()</td></tr>
 <tr class="separator:af4a5f8735127f4d5016b22d194bd7e30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7068433fb53b2a15f27d602fd3971add" id="r_a7068433fb53b2a15f27d602fd3971add"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a7068433fb53b2a15f27d602fd3971add">RefreshTile16Blockset</a> ()</td></tr>
+<tr class="separator:a7068433fb53b2a15f27d602fd3971add"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ade7d1f19de2955a9561c1af23383e51d" id="r_ade7d1f19de2955a9561c1af23383e51d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#ade7d1f19de2955a9561c1af23383e51d">ForceRefreshGraphics</a> (int map_index)</td></tr>
+<tr class="separator:ade7d1f19de2955a9561c1af23383e51d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3404cac2057ef59170d84b3036ac098" id="r_ae3404cac2057ef59170d84b3036ac098"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#ae3404cac2057ef59170d84b3036ac098">RefreshSiblingMapGraphics</a> (int map_index, bool include_self=false)</td></tr>
+<tr class="separator:ae3404cac2057ef59170d84b3036ac098"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -207,6 +215,10 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a0ec3f9e62f50eb197e9346a17d186fd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a82e98169c794a318bf6aa705e225159d" id="r_a82e98169c794a318bf6aa705e225159d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adf8fa3d4464c6c93b9301d7d34d07817">RefreshPaletteCallback</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a82e98169c794a318bf6aa705e225159d">refresh_map_palette_</a></td></tr>
 <tr class="separator:a82e98169c794a318bf6aa705e225159d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45b19dfbe38133cb18744b551e952e72" id="r_a45b19dfbe38133cb18744b551e952e72"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adf8fa3d4464c6c93b9301d7d34d07817">RefreshPaletteCallback</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a45b19dfbe38133cb18744b551e952e72">refresh_tile16_blockset_</a></td></tr>
+<tr class="separator:a45b19dfbe38133cb18744b551e952e72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aecd08960e6466ba32d94783cbd5b5ce5" id="r_aecd08960e6466ba32d94783cbd5b5ce5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a5fb18f3b4119c1f30f859e0ca6f7850e">ForceRefreshGraphicsCallback</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#aecd08960e6466ba32d94783cbd5b5ce5">force_refresh_graphics_</a></td></tr>
+<tr class="separator:aecd08960e6466ba32d94783cbd5b5ce5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
@@ -241,6 +253,22 @@ Private Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00024">24</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
+
+</div>
+</div>
+<a id="a5fb18f3b4119c1f30f859e0ca6f7850e" name="a5fb18f3b4119c1f30f859e0ca6f7850e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5fb18f3b4119c1f30f859e0ca6f7850e">&#9670;&#160;</a></span>ForceRefreshGraphicsCallback</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a5fb18f3b4119c1f30f859e0ca6f7850e">yaze::editor::MapPropertiesSystem::ForceRefreshGraphicsCallback</a> =  std::function&lt;void(int)&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00025">25</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
 
 </div>
 </div>
@@ -291,13 +319,13 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00026">26</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00027">27</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aeeea7126a23a6aee5cd8b68424005997" name="aeeea7126a23a6aee5cd8b68424005997"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeeea7126a23a6aee5cd8b68424005997">&#9670;&#160;</a></span>SetRefreshCallbacks()</h2>
+<a id="a7738a24a52d24d2d331b51ae7c5a8689" name="a7738a24a52d24d2d331b51ae7c5a8689"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7738a24a52d24d2d331b51ae7c5a8689">&#9670;&#160;</a></span>SetRefreshCallbacks()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -321,7 +349,19 @@ Private Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adf8fa3d4464c6c93b9301d7d34d07817">RefreshPaletteCallback</a>&#160;</td>
-          <td class="paramname"><em>refresh_map_palette</em>&#160;</td>
+          <td class="paramname"><em>refresh_map_palette</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adf8fa3d4464c6c93b9301d7d34d07817">RefreshPaletteCallback</a>&#160;</td>
+          <td class="paramname"><em>refresh_tile16_blockset</em> = <code>nullptr</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a5fb18f3b4119c1f30f859e0ca6f7850e">ForceRefreshGraphicsCallback</a>&#160;</td>
+          <td class="paramname"><em>force_refresh_graphics</em> = <code>nullptr</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -336,9 +376,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00032">32</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00033">33</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00097">refresh_map_palette_</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00095">refresh_map_properties_</a>, and <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00096">refresh_overworld_map_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00109">force_refresh_graphics_</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00107">refresh_map_palette_</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00105">refresh_map_properties_</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00106">refresh_overworld_map_</a>, and <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00108">refresh_tile16_blockset_</a>.</p>
 
 </div>
 </div>
@@ -412,7 +452,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00024">24</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00448">DrawGraphicsPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00522">DrawPalettesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00582">DrawPropertiesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01434">DrawQuickAccessPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01400">DrawViewPopup()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00280">ICON_MD_BOLT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00980">ICON_MD_IMAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01138">ICON_MD_LOCK</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01140">ICON_MD_LOCK_OPEN</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02020">ICON_MD_TUNE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02099">ICON_MD_VISIBILITY</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00022">yaze::editor::kAreaSizeNames</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00053">yaze::editor::kComboAreaSizeWidth</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00052">yaze::editor::kComboWorldWidth</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00057">yaze::editor::kTableButtonGraphics</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00058">yaze::editor::kTableButtonPalettes</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00059">yaze::editor::kTableButtonProperties</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00062">yaze::editor::kTableButtonQuick</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00061">yaze::editor::kTableButtonView</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00042">yaze::editor::kTableColumnAreaSize</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00044">yaze::editor::kTableColumnGraphics</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00043">yaze::editor::kTableColumnLock</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00041">yaze::editor::kTableColumnMap</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00045">yaze::editor::kTableColumnPalettes</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00046">yaze::editor::kTableColumnProperties</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00049">yaze::editor::kTableColumnQuick</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00048">yaze::editor::kTableColumnView</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00040">yaze::editor::kTableColumnWorld</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00015">yaze::editor::kWorldNames</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01080">RefreshOverworldMap()</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00448">DrawGraphicsPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00552">DrawPalettesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00612">DrawPropertiesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01552">DrawQuickAccessPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01518">DrawViewPopup()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00280">ICON_MD_BOLT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00980">ICON_MD_IMAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01138">ICON_MD_LOCK</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01140">ICON_MD_LOCK_OPEN</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02020">ICON_MD_TUNE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02099">ICON_MD_VISIBILITY</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00022">yaze::editor::kAreaSizeNames</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00053">yaze::editor::kComboAreaSizeWidth</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00052">yaze::editor::kComboWorldWidth</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00057">yaze::editor::kTableButtonGraphics</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00058">yaze::editor::kTableButtonPalettes</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00059">yaze::editor::kTableButtonProperties</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00062">yaze::editor::kTableButtonQuick</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00061">yaze::editor::kTableButtonView</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00042">yaze::editor::kTableColumnAreaSize</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00044">yaze::editor::kTableColumnGraphics</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00043">yaze::editor::kTableColumnLock</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00041">yaze::editor::kTableColumnMap</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00045">yaze::editor::kTableColumnPalettes</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00046">yaze::editor::kTableColumnProperties</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00049">yaze::editor::kTableColumnQuick</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00048">yaze::editor::kTableColumnView</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00040">yaze::editor::kTableColumnWorld</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00015">yaze::editor::kWorldNames</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">RefreshOverworldMap()</a>.</p>
 
 </div>
 </div>
@@ -444,7 +484,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00168">168</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00683">DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00881">DrawCustomFeaturesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00990">DrawMusicTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00802">DrawSpritePropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00957">DrawTileGraphicsTab()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00277">yaze::zelda3::Overworld::is_loaded()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, and <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00713">DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00916">DrawCustomFeaturesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01044">DrawMusicTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00837">DrawSpritePropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00992">DrawTileGraphicsTab()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00277">yaze::zelda3::Overworld::is_loaded()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, and <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>.</p>
 
 </div>
 </div>
@@ -476,7 +516,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00223">223</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/de1/color_8cc_source.html#l00015">yaze::gui::ConvertImVec4ToSnesColor()</a>, <a class="el" href="../../d3/de1/color_8cc_source.html#l00010">yaze::gui::ConvertSnesColorToImVec4()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00277">yaze::zelda3::Overworld::is_loaded()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00027">yaze::zelda3::OverworldCustomAreaSpecificBGEnabled</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00024">yaze::zelda3::OverworldCustomAreaSpecificBGPalette</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, and <a class="el" href="../../d5/d52/snes__color_8h_source.html#l00076">yaze::gfx::SnesColor::snes()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/de1/color_8cc_source.html#l00015">yaze::gui::ConvertImVec4ToSnesColor()</a>, <a class="el" href="../../d3/de1/color_8cc_source.html#l00010">yaze::gui::ConvertSnesColorToImVec4()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00277">yaze::zelda3::Overworld::is_loaded()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00027">yaze::zelda3::OverworldCustomAreaSpecificBGEnabled</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00024">yaze::zelda3::OverworldCustomAreaSpecificBGPalette</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, and <a class="el" href="../../d5/d52/snes__color_8h_source.html#l00076">yaze::gfx::SnesColor::snes()</a>.</p>
 
 </div>
 </div>
@@ -508,7 +548,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00278">278</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01298">GetOverlayDescription()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00267">ICON_MD_BLOCK</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00933">ICON_MD_HELP_OUTLINE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01081">ICON_MD_LIGHTBULB</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01449">ICON_MD_PHOTO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02099">ICON_MD_VISIBILITY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02121">ICON_MD_WARNING</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00167">yaze::gui::InputHexWord()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00277">yaze::zelda3::Overworld::is_loaded()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00030">yaze::zelda3::OverworldCustomSubscreenOverlayArray</a>, and <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00031">yaze::zelda3::OverworldCustomSubscreenOverlayEnabled</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01416">GetOverlayDescription()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00267">ICON_MD_BLOCK</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00933">ICON_MD_HELP_OUTLINE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01081">ICON_MD_LIGHTBULB</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01449">ICON_MD_PHOTO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02099">ICON_MD_VISIBILITY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02121">ICON_MD_WARNING</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00167">yaze::gui::InputHexWord()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00277">yaze::zelda3::Overworld::is_loaded()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00030">yaze::zelda3::OverworldCustomSubscreenOverlayArray</a>, and <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00031">yaze::zelda3::OverworldCustomSubscreenOverlayEnabled</a>.</p>
 
 </div>
 </div>
@@ -544,9 +584,9 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01324">1324</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01442">1442</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00092">canvas_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00314">yaze::gui::Canvas::draw_list()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00350">yaze::gui::Canvas::global_scale()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00119">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="../../db/d9f/overworld__editor_8h_source.html#l00028">yaze::editor::kOverworldMapSize</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00091">maps_bmp_</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, and <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00102">canvas_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00314">yaze::gui::Canvas::draw_list()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00350">yaze::gui::Canvas::global_scale()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00119">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="../../db/d9f/overworld__editor_8h_source.html#l00029">yaze::editor::kOverworldMapSize</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00101">maps_bmp_</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, and <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -672,25 +712,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00448">448</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00155">ICON_MD_ANIMATION</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00895">ICON_MD_GRID_VIEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00980">ICON_MD_IMAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01429">ICON_MD_PETS</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00066">yaze::editor::kCompactFramePadding</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00065">yaze::editor::kCompactItemSpacing</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00008">yaze::editor::kGameStateNames</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00031">yaze::editor::kHexByteInputWidth</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01074">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01080">RefreshOverworldMap()</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01154">ForceRefreshGraphics()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00155">ICON_MD_ANIMATION</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00895">ICON_MD_GRID_VIEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00980">ICON_MD_IMAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01429">ICON_MD_PETS</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00066">yaze::editor::kCompactFramePadding</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00065">yaze::editor::kCompactItemSpacing</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00008">yaze::editor::kGameStateNames</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00031">yaze::editor::kHexByteInputWidth</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01128">RefreshMapProperties()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">RefreshOverworldMap()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01160">RefreshSiblingMapGraphics()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01147">RefreshTile16Blockset()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00024">DrawSimplifiedMapSettings()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem_afe8931050f666097ce65591c5eee5d1d_cgraph.png" border="0" usemap="#ad6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem_afe8931050f666097ce65591c5eee5d1d_cgraph" alt=""/></div>
-<map name="ad6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem_afe8931050f666097ce65591c5eee5d1d_cgraph" id="ad6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem_afe8931050f666097ce65591c5eee5d1d_cgraph">
-<area shape="rect" title=" " alt="" coords="5,89,196,129"/>
-<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="267,5,421,31"/>
-<area shape="poly" title=" " alt="" coords="141,86,243,41,268,33,269,38,245,46,143,90"/>
-<area shape="rect" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a90cc1152067e0937c7e48d69e88a563f" title=" " alt="" coords="260,55,428,96"/>
-<area shape="poly" title=" " alt="" coords="196,93,244,86,245,92,197,98"/>
-<area shape="rect" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a1ae3f21d8a5446c4e4b9039230061039" title=" " alt="" coords="244,121,444,161"/>
-<area shape="poly" title=" " alt="" coords="197,119,229,123,228,128,196,124"/>
-<area shape="rect" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a3f3c216f891a78be9d5f289d2c13e2cc" title=" " alt="" coords="244,186,444,227"/>
-<area shape="poly" title=" " alt="" coords="146,127,245,170,264,178,262,183,243,175,144,132"/>
-</map>
-</div>
 
 </div>
 </div>
@@ -734,9 +758,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00522">522</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00552">552</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00438">ICON_MD_COLOR_LENS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00439">ICON_MD_COLORIZE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00828">ICON_MD_FORMAT_COLOR_FILL</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00066">yaze::editor::kCompactFramePadding</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00065">yaze::editor::kCompactItemSpacing</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00008">yaze::editor::kGameStateNames</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00031">yaze::editor::kHexByteInputWidth</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01086">RefreshMapPalette()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01074">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01080">RefreshOverworldMap()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00438">ICON_MD_COLOR_LENS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00439">ICON_MD_COLORIZE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00828">ICON_MD_FORMAT_COLOR_FILL</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00066">yaze::editor::kCompactFramePadding</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00065">yaze::editor::kCompactItemSpacing</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00008">yaze::editor::kGameStateNames</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00031">yaze::editor::kHexByteInputWidth</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01140">RefreshMapPalette()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01128">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">RefreshOverworldMap()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00024">DrawSimplifiedMapSettings()</a>.</p>
 
@@ -788,9 +812,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00582">582</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00612">612</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01093">DrawMosaicControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01121">DrawOverlayControls()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00190">ICON_MD_ASPECT_RATIO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00216">ICON_MD_AUTO_FIX_HIGH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00498">ICON_MD_CROP_SQUARE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00864">ICON_MD_GAMEPAD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01199">ICON_MD_MESSAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01352">ICON_MD_OPEN_IN_NEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01457">ICON_MD_PHOTO_SIZE_SELECT_LARGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02020">ICON_MD_TUNE</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00531">yaze::gui::InputHexWordCustom()</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00022">yaze::editor::kAreaSizeNames</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00053">yaze::editor::kComboAreaSizeWidth</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00054">yaze::editor::kComboGameStateWidth</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00066">yaze::editor::kCompactFramePadding</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00065">yaze::editor::kCompactItemSpacing</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00008">yaze::editor::kGameStateNames</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00032">yaze::editor::kHexWordInputWidth</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01074">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01080">RefreshOverworldMap()</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01211">DrawMosaicControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01239">DrawOverlayControls()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00190">ICON_MD_ASPECT_RATIO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00216">ICON_MD_AUTO_FIX_HIGH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00498">ICON_MD_CROP_SQUARE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00864">ICON_MD_GAMEPAD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01199">ICON_MD_MESSAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01352">ICON_MD_OPEN_IN_NEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01457">ICON_MD_PHOTO_SIZE_SELECT_LARGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02020">ICON_MD_TUNE</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00531">yaze::gui::InputHexWordCustom()</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00022">yaze::editor::kAreaSizeNames</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00053">yaze::editor::kComboAreaSizeWidth</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00054">yaze::editor::kComboGameStateWidth</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00066">yaze::editor::kCompactFramePadding</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00065">yaze::editor::kCompactItemSpacing</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00008">yaze::editor::kGameStateNames</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00032">yaze::editor::kHexWordInputWidth</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01128">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">RefreshOverworldMap()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00024">DrawSimplifiedMapSettings()</a>.</p>
 
@@ -820,11 +844,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01093">1093</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01211">1211</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01074">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01080">RefreshOverworldMap()</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01128">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">RefreshOverworldMap()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00582">DrawPropertiesPopup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00612">DrawPropertiesPopup()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -876,11 +900,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01121">1121</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01239">1239</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01298">GetOverlayDescription()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00267">ICON_MD_BLOCK</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00395">ICON_MD_CHECK</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00648">ICON_MD_EDIT_NOTE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00931">ICON_MD_HELP</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00933">ICON_MD_HELP_OUTLINE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01510">ICON_MD_PREVIEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01863">ICON_MD_STORAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02045">ICON_MD_UPGRADE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02099">ICON_MD_VISIBILITY</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00167">yaze::gui::InputHexWord()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01074">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01080">RefreshOverworldMap()</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01416">GetOverlayDescription()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00267">ICON_MD_BLOCK</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00395">ICON_MD_CHECK</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00648">ICON_MD_EDIT_NOTE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00931">ICON_MD_HELP</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00933">ICON_MD_HELP_OUTLINE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01510">ICON_MD_PREVIEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01863">ICON_MD_STORAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02045">ICON_MD_UPGRADE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02099">ICON_MD_VISIBILITY</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00167">yaze::gui::InputHexWord()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01128">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">RefreshOverworldMap()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00582">DrawPropertiesPopup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00612">DrawPropertiesPopup()</a>.</p>
 
 </div>
 </div>
@@ -908,9 +932,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01298">1298</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01416">1416</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01121">DrawOverlayControls()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00278">DrawOverlayEditor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01239">DrawOverlayControls()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00278">DrawOverlayEditor()</a>.</p>
 
 </div>
 </div>
@@ -963,7 +987,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01400">1400</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01518">1518</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01351">ICON_MD_OPEN_IN_FULL</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02192">ICON_MD_ZOOM_IN</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02194">ICON_MD_ZOOM_OUT</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00066">yaze::editor::kCompactFramePadding</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00065">yaze::editor::kCompactItemSpacing</a>, and <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00034">yaze::editor::kIconButtonWidth</a>.</p>
 
@@ -994,7 +1018,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01434">1434</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01552">1552</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00024">HOVER_HINT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00463">ICON_MD_CONTENT_COPY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00895">ICON_MD_GRID_VIEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01138">ICON_MD_LOCK</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00066">yaze::editor::kCompactFramePadding</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00065">yaze::editor::kCompactItemSpacing</a>, and <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00034">yaze::editor::kIconButtonWidth</a>.</p>
 
@@ -1026,9 +1050,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00683">683</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00713">713</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00279">ICON_MD_BLUR_ON</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00980">ICON_MD_IMAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01199">ICON_MD_MESSAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01262">ICON_MD_MUSIC_NOTE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00167">yaze::gui::InputHexWord()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01086">RefreshMapPalette()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01074">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01080">RefreshOverworldMap()</a>.</p>
+<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00279">ICON_MD_BLUR_ON</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00980">ICON_MD_IMAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01199">ICON_MD_MESSAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01262">ICON_MD_MUSIC_NOTE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00167">yaze::gui::InputHexWord()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01140">RefreshMapPalette()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01128">RefreshMapProperties()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">RefreshOverworldMap()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01160">RefreshSiblingMapGraphics()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01147">RefreshTile16Blockset()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00168">DrawMapPropertiesPanel()</a>.</p>
 
@@ -1058,9 +1082,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00802">802</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00837">837</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00439">ICON_MD_COLORIZE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00864">ICON_MD_GAMEPAD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01429">ICON_MD_PETS</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00008">yaze::editor::kGameStateNames</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01074">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01080">RefreshOverworldMap()</a>.</p>
+<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00439">ICON_MD_COLORIZE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00864">ICON_MD_GAMEPAD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01429">ICON_MD_PETS</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../db/d5d/ui__constants_8h_source.html#l00008">yaze::editor::kGameStateNames</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01128">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">RefreshOverworldMap()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00168">DrawMapPropertiesPanel()</a>.</p>
 <div class="dynheader">
@@ -1106,9 +1130,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00881">881</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00916">916</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00155">ICON_MD_ANIMATION</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00438">ICON_MD_COLOR_LENS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01457">ICON_MD_PHOTO_SIZE_SELECT_LARGE</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00167">yaze::gui::InputHexWord()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01086">RefreshMapPalette()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01074">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01080">RefreshOverworldMap()</a>.</p>
+<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00155">ICON_MD_ANIMATION</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00438">ICON_MD_COLOR_LENS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01457">ICON_MD_PHOTO_SIZE_SELECT_LARGE</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00167">yaze::gui::InputHexWord()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00248">yaze::zelda3::Overworld::overworld_map()</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01140">RefreshMapPalette()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01128">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">RefreshOverworldMap()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00168">DrawMapPropertiesPanel()</a>.</p>
 
@@ -1138,27 +1162,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00957">957</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00992">992</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00895">ICON_MD_GRID_VIEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01074">RefreshMapProperties()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01080">RefreshOverworldMap()</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01154">ForceRefreshGraphics()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00895">ICON_MD_GRID_VIEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d1/d4f/overworld__map_8h_source.html#l00021">yaze::zelda3::OverworldCustomASMHasBeenApplied</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01128">RefreshMapProperties()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">RefreshOverworldMap()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01160">RefreshSiblingMapGraphics()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01147">RefreshTile16Blockset()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00168">DrawMapPropertiesPanel()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem_aeaba82ba7a6ca2a3eadb7e9e74109a95_cgraph.png" border="0" usemap="#ad6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem_aeaba82ba7a6ca2a3eadb7e9e74109a95_cgraph" alt=""/></div>
-<map name="ad6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem_aeaba82ba7a6ca2a3eadb7e9e74109a95_cgraph" id="ad6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem_aeaba82ba7a6ca2a3eadb7e9e74109a95_cgraph">
-<area shape="rect" title=" " alt="" coords="5,89,202,129"/>
-<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="273,5,427,31"/>
-<area shape="poly" title=" " alt="" coords="145,86,249,41,274,33,276,38,251,46,147,90"/>
-<area shape="rect" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a90cc1152067e0937c7e48d69e88a563f" title=" " alt="" coords="266,55,434,96"/>
-<area shape="poly" title=" " alt="" coords="202,93,250,86,250,92,203,98"/>
-<area shape="rect" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a1ae3f21d8a5446c4e4b9039230061039" title=" " alt="" coords="250,121,450,161"/>
-<area shape="poly" title=" " alt="" coords="203,119,235,123,234,128,202,124"/>
-<area shape="rect" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a3f3c216f891a78be9d5f289d2c13e2cc" title=" " alt="" coords="250,186,450,227"/>
-<area shape="poly" title=" " alt="" coords="150,127,251,170,271,178,269,183,249,175,148,132"/>
-</map>
-</div>
 
 </div>
 </div>
@@ -1186,9 +1194,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00990">990</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01044">1044</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00378">ICON_MD_CASTLE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00725">ICON_MD_FAVORITE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00933">ICON_MD_HELP_OUTLINE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01262">ICON_MD_MUSIC_NOTE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01342">ICON_MD_OFFLINE_BOLT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01477">ICON_MD_PLAY_ARROW</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00046">yaze::zelda3::kOverworldMusicAgahnim</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00043">yaze::zelda3::kOverworldMusicBeginning</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00045">yaze::zelda3::kOverworldMusicMasterSword</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00044">yaze::zelda3::kOverworldMusicZelda</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">overworld_</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01074">RefreshMapProperties()</a>.</p>
+<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00378">ICON_MD_CASTLE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00725">ICON_MD_FAVORITE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00933">ICON_MD_HELP_OUTLINE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01262">ICON_MD_MUSIC_NOTE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01342">ICON_MD_OFFLINE_BOLT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01477">ICON_MD_PLAY_ARROW</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00181">yaze::gui::InputHexByte()</a>, <a class="el" href="../../d8/d78/entity_8cc_source.html#l00019">yaze::editor::kInputFieldSize</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00046">yaze::zelda3::kOverworldMusicAgahnim</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00043">yaze::zelda3::kOverworldMusicBeginning</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00045">yaze::zelda3::kOverworldMusicMasterSword</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00044">yaze::zelda3::kOverworldMusicZelda</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01128">RefreshMapProperties()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00168">DrawMapPropertiesPanel()</a>.</p>
 <div class="dynheader">
@@ -1233,11 +1241,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01074">1074</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01128">1128</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00095">refresh_map_properties_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00105">refresh_map_properties_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00683">DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00881">DrawCustomFeaturesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00448">DrawGraphicsPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01093">DrawMosaicControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00990">DrawMusicTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01121">DrawOverlayControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00522">DrawPalettesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00582">DrawPropertiesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00802">DrawSpritePropertiesTab()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00957">DrawTileGraphicsTab()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00713">DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00916">DrawCustomFeaturesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00448">DrawGraphicsPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01211">DrawMosaicControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01044">DrawMusicTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01239">DrawOverlayControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00552">DrawPalettesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00612">DrawPropertiesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00837">DrawSpritePropertiesTab()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00992">DrawTileGraphicsTab()</a>.</p>
 
 </div>
 </div>
@@ -1264,11 +1272,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01080">1080</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">1134</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00096">refresh_overworld_map_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00106">refresh_overworld_map_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00683">DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00881">DrawCustomFeaturesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00448">DrawGraphicsPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01093">DrawMosaicControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01121">DrawOverlayControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00522">DrawPalettesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00582">DrawPropertiesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00024">DrawSimplifiedMapSettings()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00802">DrawSpritePropertiesTab()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00957">DrawTileGraphicsTab()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00713">DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00916">DrawCustomFeaturesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00448">DrawGraphicsPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01211">DrawMosaicControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01239">DrawOverlayControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00552">DrawPalettesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00612">DrawPropertiesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00024">DrawSimplifiedMapSettings()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00837">DrawSpritePropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00992">DrawTileGraphicsTab()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01160">RefreshSiblingMapGraphics()</a>.</p>
 
 </div>
 </div>
@@ -1295,11 +1303,130 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01086">1086</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01140">1140</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00097">refresh_map_palette_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00107">refresh_map_palette_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00683">DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00881">DrawCustomFeaturesTab()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00522">DrawPalettesPopup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00713">DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00916">DrawCustomFeaturesTab()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00552">DrawPalettesPopup()</a>.</p>
+
+</div>
+</div>
+<a id="a7068433fb53b2a15f27d602fd3971add" name="a7068433fb53b2a15f27d602fd3971add"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7068433fb53b2a15f27d602fd3971add">&#9670;&#160;</a></span>RefreshTile16Blockset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::MapPropertiesSystem::RefreshTile16Blockset </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01147">1147</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00108">refresh_tile16_blockset_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00713">DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00448">DrawGraphicsPopup()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00992">DrawTileGraphicsTab()</a>.</p>
+
+</div>
+</div>
+<a id="ade7d1f19de2955a9561c1af23383e51d" name="ade7d1f19de2955a9561c1af23383e51d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ade7d1f19de2955a9561c1af23383e51d">&#9670;&#160;</a></span>ForceRefreshGraphics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::MapPropertiesSystem::ForceRefreshGraphics </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>map_index</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01154">1154</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00109">force_refresh_graphics_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00448">DrawGraphicsPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00992">DrawTileGraphicsTab()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01160">RefreshSiblingMapGraphics()</a>.</p>
+
+</div>
+</div>
+<a id="ae3404cac2057ef59170d84b3036ac098" name="ae3404cac2057ef59170d84b3036ac098"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3404cac2057ef59170d84b3036ac098">&#9670;&#160;</a></span>RefreshSiblingMapGraphics()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::MapPropertiesSystem::RefreshSiblingMapGraphics </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>map_index</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>include_self</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01160">1160</a> of file <a class="el" href="../../d0/da7/map__properties_8cc_source.html">map_properties.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01154">ForceRefreshGraphics()</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00119">yaze::zelda3::kNumOverworldMaps</a>, <a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a607408467c46951f2ab11ba3c694ca3da92676a91b88790d2bd6f6647442d42ff">yaze::zelda3::LargeArea</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00101">maps_bmp_</a>, <a class="el" href="../../d7/d9c/overworld_8h_source.html#l00249">yaze::zelda3::Overworld::mutable_overworld_map()</a>, <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">overworld_</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">RefreshOverworldMap()</a>, <a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a607408467c46951f2ab11ba3c694ca3da97b8dbee9db318b1a93ec42cc8461178">yaze::zelda3::SmallArea</a>, <a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a607408467c46951f2ab11ba3c694ca3dabd47c8dc6ac7236c198f4d982dcb5ac8">yaze::zelda3::TallArea</a>, and <a class="el" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a607408467c46951f2ab11ba3c694ca3da581c8e536ea81bac8a38feeaf8fd5360">yaze::zelda3::WideArea</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00713">DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00448">DrawGraphicsPopup()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00992">DrawTileGraphicsTab()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem_ae3404cac2057ef59170d84b3036ac098_cgraph.png" border="0" usemap="#ad6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem_ae3404cac2057ef59170d84b3036ac098_cgraph" alt=""/></div>
+<map name="ad6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem_ae3404cac2057ef59170d84b3036ac098_cgraph" id="ad6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem_ae3404cac2057ef59170d84b3036ac098_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,238,111"/>
+<area shape="rect" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#ade7d1f19de2955a9561c1af23383e51d" title=" " alt="" coords="286,5,487,46"/>
+<area shape="poly" title=" " alt="" coords="206,67,286,48,287,53,208,73"/>
+<area shape="rect" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a90cc1152067e0937c7e48d69e88a563f" title=" " alt="" coords="302,71,471,111"/>
+<area shape="poly" title=" " alt="" coords="238,88,287,88,287,94,238,94"/>
+<area shape="rect" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a3f3c216f891a78be9d5f289d2c13e2cc" title=" " alt="" coords="286,136,487,177"/>
+<area shape="poly" title=" " alt="" coords="208,109,287,129,286,134,206,115"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1324,9 +1451,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00089">89</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00099">99</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00683">DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00223">DrawCustomBackgroundColorEditor()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00881">DrawCustomFeaturesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00448">DrawGraphicsPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00168">DrawMapPropertiesPanel()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01093">DrawMosaicControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00990">DrawMusicTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01121">DrawOverlayControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00278">DrawOverlayEditor()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01324">DrawOverlayPreviewOnMap()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00522">DrawPalettesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00582">DrawPropertiesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00024">DrawSimplifiedMapSettings()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00802">DrawSpritePropertiesTab()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00957">DrawTileGraphicsTab()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00713">DrawBasicPropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00223">DrawCustomBackgroundColorEditor()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00916">DrawCustomFeaturesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00448">DrawGraphicsPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00168">DrawMapPropertiesPanel()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01211">DrawMosaicControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01044">DrawMusicTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01239">DrawOverlayControls()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00278">DrawOverlayEditor()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01442">DrawOverlayPreviewOnMap()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00552">DrawPalettesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00612">DrawPropertiesPopup()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00024">DrawSimplifiedMapSettings()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00837">DrawSpritePropertiesTab()</a>, <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l00992">DrawTileGraphicsTab()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01160">RefreshSiblingMapGraphics()</a>.</p>
 
 </div>
 </div>
@@ -1350,7 +1477,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00090">90</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00100">100</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
 
 </div>
 </div>
@@ -1374,9 +1501,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00091">91</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00101">101</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01324">DrawOverlayPreviewOnMap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01442">DrawOverlayPreviewOnMap()</a>, and <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01160">RefreshSiblingMapGraphics()</a>.</p>
 
 </div>
 </div>
@@ -1400,9 +1527,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00092">92</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00102">102</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01324">DrawOverlayPreviewOnMap()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01442">DrawOverlayPreviewOnMap()</a>.</p>
 
 </div>
 </div>
@@ -1426,9 +1553,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00095">95</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00105">105</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01074">RefreshMapProperties()</a>, and <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00032">SetRefreshCallbacks()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01128">RefreshMapProperties()</a>, and <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00033">SetRefreshCallbacks()</a>.</p>
 
 </div>
 </div>
@@ -1452,9 +1579,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00096">96</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00106">106</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01080">RefreshOverworldMap()</a>, and <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00032">SetRefreshCallbacks()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01134">RefreshOverworldMap()</a>, and <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00033">SetRefreshCallbacks()</a>.</p>
 
 </div>
 </div>
@@ -1478,9 +1605,61 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00097">97</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00107">107</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01086">RefreshMapPalette()</a>, and <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00032">SetRefreshCallbacks()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01140">RefreshMapPalette()</a>, and <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00033">SetRefreshCallbacks()</a>.</p>
+
+</div>
+</div>
+<a id="a45b19dfbe38133cb18744b551e952e72" name="a45b19dfbe38133cb18744b551e952e72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45b19dfbe38133cb18744b551e952e72">&#9670;&#160;</a></span>refresh_tile16_blockset_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#adf8fa3d4464c6c93b9301d7d34d07817">RefreshPaletteCallback</a> yaze::editor::MapPropertiesSystem::refresh_tile16_blockset_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00108">108</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01147">RefreshTile16Blockset()</a>, and <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00033">SetRefreshCallbacks()</a>.</p>
+
+</div>
+</div>
+<a id="aecd08960e6466ba32d94783cbd5b5ce5" name="aecd08960e6466ba32d94783cbd5b5ce5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aecd08960e6466ba32d94783cbd5b5ce5">&#9670;&#160;</a></span>force_refresh_graphics_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a5fb18f3b4119c1f30f859e0ca6f7850e">ForceRefreshGraphicsCallback</a> yaze::editor::MapPropertiesSystem::force_refresh_graphics_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00109">109</a> of file <a class="el" href="../../d4/dd2/map__properties_8h_source.html">map_properties.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/da7/map__properties_8cc_source.html#l01154">ForceRefreshGraphics()</a>, and <a class="el" href="../../d4/dd2/map__properties_8h_source.html#l00033">SetRefreshCallbacks()</a>.</p>
 
 </div>
 </div>

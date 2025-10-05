@@ -39,6 +39,12 @@ var namespaceyaze_1_1editor =
     [ "anonymous_namespace{message_editor.cc}", "de/dc7/namespaceyaze_1_1editor_1_1anonymous__namespace_02message__editor_8cc_03.html", [
       [ "DisplayTextOverflowError", "de/dc7/namespaceyaze_1_1editor_1_1anonymous__namespace_02message__editor_8cc_03.html#aef9df899003974391ac30afec5b1d4c5", null ]
     ] ],
+    [ "anonymous_namespace{overworld_entity_renderer.cc}", "df/de3/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__entity__renderer_8cc_03.html", [
+      [ "GetEntranceColor", "df/de3/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__entity__renderer_8cc_03.html#a636f46bd1b03edce817117d2a1b3a345", null ],
+      [ "GetExitColor", "df/de3/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__entity__renderer_8cc_03.html#a94fa1081e70a4669a77b7bc87d297de9", null ],
+      [ "GetItemColor", "df/de3/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__entity__renderer_8cc_03.html#a1a7fd2da53fa95eb01e49e9d105b82f1", null ],
+      [ "GetSpriteColor", "df/de3/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__entity__renderer_8cc_03.html#abbf10e85fffce1ef19a6a37f6adc1879", null ]
+    ] ],
     [ "anonymous_namespace{palette_editor.cc}", "df/d4d/namespaceyaze_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html", [
       [ "CustomFormatString", "df/d4d/namespaceyaze_1_1editor_1_1anonymous__namespace_02palette__editor_8cc_03.html#aad315fe6172d8cdfb032f689c7a46bff", null ]
     ] ],
@@ -112,6 +118,8 @@ var namespaceyaze_1_1editor =
     [ "MusicEditor", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html", "db/d9a/classyaze_1_1editor_1_1MusicEditor" ],
     [ "OverworldEditor", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html", "d3/d44/classyaze_1_1editor_1_1OverworldEditor" ],
     [ "OverworldEditorManager", "d7/dfb/classyaze_1_1editor_1_1OverworldEditorManager.html", "d7/dfb/classyaze_1_1editor_1_1OverworldEditorManager" ],
+    [ "OverworldEntityRenderer", "d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer.html", "d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer" ],
+    [ "OverworldGraphicsManager", "d3/d31/classyaze_1_1editor_1_1OverworldGraphicsManager.html", "d3/d31/classyaze_1_1editor_1_1OverworldGraphicsManager" ],
     [ "PaletteEditor", "d2/d46/classyaze_1_1editor_1_1PaletteEditor.html", "d2/d46/classyaze_1_1editor_1_1PaletteEditor" ],
     [ "ParsedElement", "da/d5e/structyaze_1_1editor_1_1ParsedElement.html", "da/d5e/structyaze_1_1editor_1_1ParsedElement" ],
     [ "PopupManager", "d3/d8d/classyaze_1_1editor_1_1PopupManager.html", "d3/d8d/classyaze_1_1editor_1_1PopupManager" ],
@@ -132,6 +140,7 @@ var namespaceyaze_1_1editor =
     [ "UserSettings", "d8/d46/classyaze_1_1editor_1_1UserSettings.html", "d8/d46/classyaze_1_1editor_1_1UserSettings" ],
     [ "WelcomeScreen", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen" ],
     [ "WorkspaceManager", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager" ],
+    [ "Tilemap", "d1/d3e/namespaceyaze_1_1editor.html#aa7118e129748ae3766fedefb02bfbd0e", null ],
     [ "EditorType", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622a", [
       [ "kAssembly", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aab686a008a9fc3fe70222034bef987ced", null ],
       [ "kDungeon", "d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa773324726da2f589c757da4c39336156", null ],

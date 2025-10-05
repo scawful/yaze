@@ -1,5 +1,10 @@
 var searchData=
 [
-  ['uint_0',['uint',['../d4/d9e/macro_8h.html#a69aa29b598b851b0640aa225a9e5d61d',1,'macro.h']]],
-  ['undobuffer_1',['UndoBuffer',['../d0/d28/classTextEditor.html#af92672a0daa068f1174b6b75d383d74c',1,'TextEditor']]]
+  ['text_5fbuf_5fty_0',['text_buf_ty',['../d7/d68/namespaceyaze_1_1zelda3_1_1music.html#a032e72a0b674908fa76224e18868bc8b',1,'yaze::zelda3::music']]],
+  ['tilemap_1',['Tilemap',['../d1/d3e/namespaceyaze_1_1editor.html#aa7118e129748ae3766fedefb02bfbd0e',1,'yaze::editor']]],
+  ['timepoint_2',['TimePoint',['../d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#ac38e2183600ee2d903edf20fd23eb35b',1,'yaze::gfx::PerformanceProfiler']]],
+  ['timer_3',['Timer',['../d6/d20/namespaceyaze_1_1emu.html#a6fbcdae90e5fdeccfd5c260d828e4c56',1,'yaze::emu']]],
+  ['tokenizecallback_4',['TokenizeCallback',['../dd/dd2/structTextEditor_1_1LanguageDefinition.html#a8ab84264ac8f88f35c4de22102507399',1,'TextEditor::LanguageDefinition']]],
+  ['tokenregexstring_5',['TokenRegexString',['../dd/dd2/structTextEditor_1_1LanguageDefinition.html#abfb75894b7d636fc35af95b28127a418',1,'TextEditor::LanguageDefinition']]],
+  ['tokenregexstrings_6',['TokenRegexStrings',['../dd/dd2/structTextEditor_1_1LanguageDefinition.html#a8d9d3b1eff76ed1b7e8192626d1984ec',1,'TextEditor::LanguageDefinition']]]
 ];

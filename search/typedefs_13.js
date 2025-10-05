@@ -1,11 +1,9 @@
 var searchData=
 [
-  ['zelda3_5fbg2_5feffect_0',['zelda3_bg2_effect',['../d3/d81/group__dungeon.html#ga72a70b04654c98659c5fe065b93b9e50',1,'zelda.h']]],
-  ['zelda3_5fdungeon_5froom_1',['zelda3_dungeon_room',['../de/dae/zelda_8h.html#af25424b13374b13fd0cdb07f2f32a42a',1,'zelda.h']]],
-  ['zelda3_5fmessage_2',['zelda3_message',['../d4/d7c/group__messages.html#ga19f9d594bff45e7926bcaff46ed74246',1,'zelda.h']]],
-  ['zelda3_5foverworld_3',['zelda3_overworld',['../d2/df5/group__overworld.html#ga4fb19874710badcf3603558580fd236a',1,'zelda.h']]],
-  ['zelda3_5foverworld_5fmap_4',['zelda3_overworld_map',['../d2/df5/group__overworld.html#ga0fb092c5014355cc0be54729e31a99c7',1,'zelda.h']]],
-  ['zelda3_5from_5',['zelda3_rom',['../d2/d94/group__rom__types.html#ga81a5c5c618a19cfba96f863e14006cf9',1,'zelda.h']]],
-  ['zelda3_5fversion_6',['zelda3_version',['../d2/d94/group__rom__types.html#ga2ffde648b19bdf6d0a369e48ada98ce6',1,'zelda.h']]],
-  ['zelda3_5fversion_5fpointers_7',['zelda3_version_pointers',['../d2/d94/group__rom__types.html#ga80d4b5acfdbaa2e0e0e2e9c68a8896ee',1,'zelda.h']]]
+  ['yaze_5fbitmap_0',['yaze_bitmap',['../d6/de0/group__graphics.html#ga5ba242cd4dc0870e4e4d6f943a1ad7a7',1,'yaze.h']]],
+  ['yaze_5fcleanup_5ffunc_1',['yaze_cleanup_func',['../d9/d89/yaze_8h.html#a75ef22f3a15fb60314f902a5bf7d0b7e',1,'yaze.h']]],
+  ['yaze_5feditor_5fcontext_2',['yaze_editor_context',['../d9/d89/yaze_8h.html#aa5f9c0aba87080afdbdfe7cb6792d89e',1,'yaze.h']]],
+  ['yaze_5fextension_3',['yaze_extension',['../d4/dd5/group__extensions.html#ga84339e67846d381495b6fa1bd47dcf6d',1,'yaze.h']]],
+  ['yaze_5finitialize_5ffunc_4',['yaze_initialize_func',['../d9/d89/yaze_8h.html#ab5ab0deeeaa063d2e5564c5f12900421',1,'yaze.h']]],
+  ['yaze_5fstatus_5',['yaze_status',['../d0/de1/group__core.html#gafa3b4d947347ed413689dcd80458ec0f',1,'yaze.h']]]
 ];

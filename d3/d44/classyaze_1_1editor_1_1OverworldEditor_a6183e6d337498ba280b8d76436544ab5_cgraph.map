@@ -1,0 +1,12 @@
+<map id="yaze::editor::OverworldEditor::RefreshSiblingMapGraphics" name="yaze::editor::OverworldEditor::RefreshSiblingMapGraphics">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,194,75"/>
+<area shape="rect" id="Node000002" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a90cc1152067e0937c7e48d69e88a563f" title=" " alt="" coords="481,5,649,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,46,465,29,466,35,194,52"/>
+<area shape="rect" id="Node000003" href="$d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#adac2da0e5bfc87f31ae50e5c4c3edd2e" title="On&#45;demand child map refresh with selective updates." alt="" coords="242,63,433,103"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="194,63,227,67,226,73,194,69"/>
+<area shape="poly" id="edge5_Node000003_Node000002" title=" " alt="" coords="420,60,466,48,468,53,421,65"/>
+<area shape="rect" id="Node000004" href="$da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="484,70,647,96"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="434,80,468,80,468,86,434,86"/>
+<area shape="rect" id="Node000005" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#aefb0ff6e39728b1484b9b1a70dec656c" title=" " alt="" coords="488,120,643,161"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="421,101,473,114,471,120,420,106"/>
+</map>
