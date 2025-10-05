@@ -6,7 +6,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/ui_helpers.h"
-#include "app/gui/widget_measurement.h"
+#include "app/gui/widgets/widget_measurement.h"
 #include "app/gui/widgets/widget_id_registry.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -19,10 +19,10 @@ namespace gui {
 // ============================================================================
 
 void Toolset::Begin() {
-  // Ultra-compact toolbar with no padding waste
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 3));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 6));
+  // Ultra-compact toolbar with minimal padding
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 2));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(3, 3));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6, 4));
   
   // Don't use BeginGroup - it causes stretching. Just use direct layout.
   in_toolbar_ = true;
@@ -62,10 +62,26 @@ void Toolset::End() {
 }
 
 void Toolset::BeginModeGroup() {
-  // Visual grouping with subtle background - taller for better button visibility
+  // Compact inline mode buttons without child window to avoid scroll issues
+  // Just use a simple colored background rect
   ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.17f, 0.5f));
-  ImGui::BeginChild("##ModeGroup", ImVec2(0, 40), true,
+  
+  // Use a frameless child with exact button height to avoid scrolling
+  const float button_size = 28.0f;  // Smaller buttons to match toolbar height
+  const float padding = 4.0f;
+  const int num_buttons = 8;
+  const float item_spacing = ImGui::GetStyle().ItemSpacing.x;
+  
+  float total_width = (num_buttons * button_size) + 
+                      ((num_buttons - 1) * item_spacing) + 
+                      (padding * 2);
+  
+  ImGui::BeginChild("##ModeGroup", ImVec2(total_width, button_size + padding), 
+                   ImGuiChildFlags_AlwaysUseWindowPadding,
                    ImGuiWindowFlags_NoScrollbar);
+  
+  // Store for button sizing
+  mode_group_button_size_ = button_size;
 }
 
 bool Toolset::ModeButton(const char* icon, bool selected, const char* tooltip) {
@@ -73,22 +89,17 @@ bool Toolset::ModeButton(const char* icon, bool selected, const char* tooltip) {
     ImGui::PushStyleColor(ImGuiCol_Button, GetAccentColor());
   }
   
-  bool clicked = ImGui::Button(icon, ImVec2(32, 32));  // Larger buttons for better usability
+  // Use smaller buttons that fit the toolbar height
+  float size = mode_group_button_size_ > 0 ? mode_group_button_size_ : 28.0f;
+  bool clicked = ImGui::Button(icon, ImVec2(size, size));
   
   if (selected) {
     ImGui::PopStyleColor();
   }
   
-  // Measure this widget
+  // Measure this widget (without ID scope to avoid PopID issues)
   std::string widget_id = tooltip ? tooltip : absl::StrFormat("Button_%d", button_count_);
   WidgetMeasurement::Instance().MeasureLastItem(widget_id, "mode_button");
-  
-  // Register for test automation
-  if (ImGui::GetItemID() != 0 && tooltip) {
-    std::string button_path = absl::StrFormat("ModeButton:%s", tooltip);
-    WidgetIdRegistry::Instance().RegisterWidget(
-        button_path, "button", ImGui::GetItemID(), tooltip);
-  }
   
   if (tooltip && ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s", tooltip);

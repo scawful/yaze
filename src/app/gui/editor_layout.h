@@ -77,6 +77,7 @@ class Toolset {
   bool in_section_ = false;
   int button_count_ = 0;
   float current_line_width_ = 0.0f;
+  float mode_group_button_size_ = 0.0f;
 };
 
 /**
