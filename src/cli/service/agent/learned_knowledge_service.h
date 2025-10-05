@@ -213,7 +213,7 @@ class LearnedKnowledgeService {
   absl::Status SavePreferences();
   absl::Status SavePatterns();
   absl::Status SaveProjects();
-  absl:Status SaveMemories();
+  absl::Status SaveMemories();
   
   std::string GenerateID() const;
 };
