@@ -5,6 +5,7 @@
 #include "app/editor/editor.h"
 #include "app/rom.h"
 #include "app/zelda3/music/tracker.h"
+#include "app/emu/audio/apu.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -56,10 +57,7 @@ const ImGuiTableFlags music_editor_flags_ = ImGuiTableFlags_SizingFixedFit |
  */
 class MusicEditor : public Editor {
  public:
-  explicit MusicEditor(Rom* rom = nullptr) : rom_(rom) { 
-    type_ = EditorType::kMusic; 
-  }
-
+    MusicEditor(Rom* rom) : Editor(rom), assembly_editor_(rom), apu_(rom->memory_impl()) {}
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Save() override { return absl::UnimplementedError("Save"); }
@@ -78,16 +76,37 @@ class MusicEditor : public Editor {
   Rom* rom() const { return rom_; }
 
  private:
-  Rom* rom_;
-  void DrawChannels();
-  void DrawPianoStaff();
-  void DrawPianoRoll();
-  void DrawSongToolset();
+  // UI Drawing Methods
+  void DrawTrackerView();
+  void DrawInstrumentEditor();
+  void DrawSampleEditor();
   void DrawToolset();
 
-  zelda3::music::Tracker music_tracker_;
+  // Playback Control
+  void StartPlayback();
+  void StopPlayback();
+  void UpdatePlayback();
 
   AssemblyEditor assembly_editor_;
+  zelda3::music::Tracker music_tracker_;
+  emu::Apu apu_;
+
+  // UI State
+  int current_song_index_ = 0;
+  int current_pattern_index_ = 0;
+  int current_channel_index_ = 0;
+  bool is_playing_ = false;
+  std::vector<bool> channel_muted_ = std::vector<bool>(8, false);
+  std::vector<bool> channel_soloed_ = std::vector<bool>(8, false);
+  std::vector<std::string> song_names_;
+
+  ImGuiTableFlags music_editor_flags_ =
+      ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersOuter |
+      ImGuiTableFlags_BordersV | ImGuiTableFlags_SizingFixedFit;
+
+  ImGuiTableFlags toolset_table_flags_ =
+      ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersOuter |
+      ImGuiTableFlags_BordersV | ImGuiTableFlags_PadOuterX;
 };
 
 }  // namespace editor

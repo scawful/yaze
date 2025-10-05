@@ -222,6 +222,10 @@ class Tracker {
   SongRange *song_range_;
   SpcCommand *current_spc_command_;
 
+  const SpcCommand& GetSpcCommand(short index) const {
+    return current_spc_command_[index];
+  }
+
   SongSpcBlock **ssblt;
 
   ZeldaWave *waves;
