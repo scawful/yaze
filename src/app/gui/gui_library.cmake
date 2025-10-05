@@ -18,6 +18,7 @@ set(
   app/gui/ui_helpers.cc
   app/gui/toolset.cc
   app/gui/settings_bar.cc
+  app/gui/editor_layout.cc
   # Canvas system components
   app/gui/canvas/canvas_modals.cc
   app/gui/canvas/canvas_context_menu.cc
