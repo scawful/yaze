@@ -499,16 +499,21 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
         // Try to parse as JSON object
         auto parsed_text = nlohmann::json::parse(text_content, nullptr, false);
         if (!parsed_text.is_discarded()) {
+          // Extract text_response
           if (parsed_text.contains("text_response") &&
               parsed_text["text_response"].is_string()) {
             agent_response.text_response =
                 parsed_text["text_response"].get<std::string>();
           }
+          
+          // Extract reasoning
           if (parsed_text.contains("reasoning") &&
               parsed_text["reasoning"].is_string()) {
             agent_response.reasoning =
                 parsed_text["reasoning"].get<std::string>();
           }
+          
+          // Extract commands
           if (parsed_text.contains("commands") &&
               parsed_text["commands"].is_array()) {
             for (const auto& cmd : parsed_text["commands"]) {
@@ -518,6 +523,30 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
                   command = command.substr(5);
                 }
                 agent_response.commands.push_back(command);
+              }
+            }
+          }
+          
+          // Extract tool_calls from the parsed JSON
+          if (parsed_text.contains("tool_calls") &&
+              parsed_text["tool_calls"].is_array()) {
+            for (const auto& call : parsed_text["tool_calls"]) {
+              if (call.contains("tool_name") && call["tool_name"].is_string()) {
+                ToolCall tool_call;
+                tool_call.tool_name = call["tool_name"].get<std::string>();
+                
+                if (call.contains("args") && call["args"].is_object()) {
+                  for (auto& [key, value] : call["args"].items()) {
+                    if (value.is_string()) {
+                      tool_call.args[key] = value.get<std::string>();
+                    } else if (value.is_number()) {
+                      tool_call.args[key] = std::to_string(value.get<double>());
+                    } else if (value.is_boolean()) {
+                      tool_call.args[key] = value.get<bool>() ? "true" : "false";
+                    }
+                  }
+                }
+                agent_response.tool_calls.push_back(tool_call);
               }
             }
           }

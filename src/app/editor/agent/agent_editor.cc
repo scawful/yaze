@@ -218,8 +218,10 @@ void AgentEditor::DrawConfigurationPanel() {
             toast_manager_->Show("GEMINI_API_KEY not found in environment", ToastType::kWarning);
           }
         } else {
+          // Immediately apply to chat widget
+          ApplyConfig(current_config_);
           if (toast_manager_) {
-            toast_manager_->Show("Gemini API key loaded from environment", ToastType::kSuccess);
+            toast_manager_->Show("Gemini API key loaded and applied", ToastType::kSuccess);
           }
         }
       }

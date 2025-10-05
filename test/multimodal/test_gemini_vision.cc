@@ -72,7 +72,7 @@ class GeminiVisionTest : public ::testing::Test {
 TEST_F(GeminiVisionTest, BasicImageAnalysis) {
   cli::GeminiConfig config;
   config.api_key = api_key_;
-  config.model = "gemini-2.0-flash-exp";  // Vision-capable model
+  config.model = "gemini-2.5-flash";  // Vision-capable model
   config.verbose = false;
   
   cli::GeminiAIService service(config);
@@ -96,7 +96,7 @@ TEST_F(GeminiVisionTest, BasicImageAnalysis) {
 TEST_F(GeminiVisionTest, ImageWithSpecificPrompt) {
   cli::GeminiConfig config;
   config.api_key = api_key_;
-  config.model = "gemini-2.0-flash-exp";
+  config.model = "gemini-2.5-flash";
   config.verbose = false;
   
   cli::GeminiAIService service(config);
@@ -124,7 +124,7 @@ TEST_F(GeminiVisionTest, ImageWithSpecificPrompt) {
 TEST_F(GeminiVisionTest, InvalidImagePath) {
   cli::GeminiConfig config;
   config.api_key = api_key_;
-  config.model = "gemini-2.0-flash-exp";
+  config.model = "gemini-2.5-flash";
   
   cli::GeminiAIService service(config);
   
@@ -147,7 +147,7 @@ TEST_F(GeminiVisionTest, ScreenshotCaptureIntegration) {
   
   cli::GeminiConfig config;
   config.api_key = api_key_;
-  config.model = "gemini-2.0-flash-exp";
+  config.model = "gemini-2.5-flash";
   config.verbose = false;
   
   cli::GeminiAIService service(config);
@@ -178,7 +178,7 @@ TEST_F(GeminiVisionTest, ScreenshotCaptureIntegration) {
 TEST_F(GeminiVisionTest, MultipleRequestsSequential) {
   cli::GeminiConfig config;
   config.api_key = api_key_;
-  config.model = "gemini-2.0-flash-exp";
+  config.model = "gemini-2.5-flash";
   config.verbose = false;
   
   cli::GeminiAIService service(config);
@@ -203,7 +203,7 @@ TEST_F(GeminiVisionTest, MultipleRequestsSequential) {
 TEST_F(GeminiVisionTest, RateLimitHandling) {
   cli::GeminiConfig config;
   config.api_key = api_key_;
-  config.model = "gemini-2.0-flash-exp";
+  config.model = "gemini-2.5-flash";
   config.verbose = false;
   
   cli::GeminiAIService service(config);
