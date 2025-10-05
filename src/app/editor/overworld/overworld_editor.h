@@ -15,7 +15,6 @@
 #include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
-#include "app/editor/overworld/overworld_editor_manager.h"
 #include "imgui/imgui.h"
 #include <mutex>
 
@@ -273,7 +272,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   // Map properties system for UI organization
   std::unique_ptr<MapPropertiesSystem> map_properties_system_;
-  std::unique_ptr<OverworldEditorManager> overworld_manager_;
   std::unique_ptr<OverworldEntityRenderer> entity_renderer_;
   
   // Scratch space for large layouts
@@ -313,8 +311,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::vector<gfx::Bitmap> sprite_previews_;
   
   // Deferred texture creation for performance optimization
-  std::vector<gfx::Bitmap*> deferred_map_textures_;
-  std::mutex deferred_textures_mutex_;
+  // Deferred texture management now handled by gfx::Arena::Get()
 
   zelda3::Overworld overworld_{rom_};
   zelda3::OverworldBlockset refresh_blockset_;
