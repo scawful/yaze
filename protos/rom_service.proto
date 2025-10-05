@@ -1,0 +1,223 @@
+syntax = "proto3";
+
+package yaze.proto;
+
+// ROM Manipulation Service
+// Enables remote clients to read, write, and inspect ROM data
+service RomService {
+  // Read bytes from ROM
+  rpc ReadBytes(ReadBytesRequest) returns (ReadBytesResponse);
+  
+  // Write bytes to ROM
+  rpc WriteBytes(WriteBytesRequest) returns (WriteBytesResponse);
+  
+  // Get ROM information
+  rpc GetRomInfo(GetRomInfoRequest) returns (GetRomInfoResponse);
+  
+  // Read specific ROM structures
+  rpc ReadOverworldMap(ReadOverworldMapRequest) returns (ReadOverworldMapResponse);
+  rpc ReadDungeonRoom(ReadDungeonRoomRequest) returns (ReadDungeonRoomResponse);
+  rpc ReadSprite(ReadSpriteRequest) returns (ReadSpriteResponse);
+  
+  // Write specific ROM structures
+  rpc WriteOverworldTile(WriteOverworldTileRequest) returns (WriteOverworldTileResponse);
+  rpc WriteDungeonTile(WriteDungeonTileRequest) returns (WriteDungeonTileResponse);
+  
+  // Proposal-based changes (collaborative mode)
+  rpc SubmitRomProposal(SubmitRomProposalRequest) returns (SubmitRomProposalResponse);
+  rpc GetProposalStatus(GetProposalStatusRequest) returns (GetProposalStatusResponse);
+  
+  // Version management
+  rpc CreateSnapshot(CreateSnapshotRequest) returns (CreateSnapshotResponse);
+  rpc RestoreSnapshot(RestoreSnapshotRequest) returns (RestoreSnapshotResponse);
+  rpc ListSnapshots(ListSnapshotsRequest) returns (ListSnapshotsResponse);
+}
+
+// ============================================================================
+// Basic ROM Operations
+// ============================================================================
+
+message ReadBytesRequest {
+  uint32 offset = 1;
+  uint32 length = 2;
+}
+
+message ReadBytesResponse {
+  bytes data = 1;
+  string error = 2;
+}
+
+message WriteBytesRequest {
+  uint32 offset = 1;
+  bytes data = 2;
+  bool require_approval = 3;  // Submit as proposal if true
+}
+
+message WriteBytesResponse {
+  bool success = 1;
+  string error = 2;
+  string proposal_id = 3;  // Set if submitted as proposal
+}
+
+message GetRomInfoRequest {
+  // Empty for now
+}
+
+message GetRomInfoResponse {
+  string title = 1;
+  uint32 size = 2;
+  string checksum = 3;
+  bool is_expanded = 4;
+  string version = 5;
+}
+
+// ============================================================================
+// Overworld Operations
+// ============================================================================
+
+message ReadOverworldMapRequest {
+  uint32 map_id = 1;  // 0-159
+}
+
+message ReadOverworldMapResponse {
+  uint32 map_id = 1;
+  repeated uint32 tile16_data = 2;  // 512 tiles (32x16)
+  bytes raw_data = 3;
+  string error = 4;
+}
+
+message WriteOverworldTileRequest {
+  uint32 map_id = 1;
+  uint32 x = 2;
+  uint32 y = 3;
+  uint32 tile16_id = 4;
+  bool require_approval = 5;
+  string description = 6;  // For proposal description
+}
+
+message WriteOverworldTileResponse {
+  bool success = 1;
+  string error = 2;
+  string proposal_id = 3;
+}
+
+// ============================================================================
+// Dungeon Operations
+// ============================================================================
+
+message ReadDungeonRoomRequest {
+  uint32 room_id = 1;  // 0-295
+}
+
+message ReadDungeonRoomResponse {
+  uint32 room_id = 1;
+  repeated uint32 tile16_data = 2;
+  bytes raw_data = 3;
+  string error = 4;
+}
+
+message WriteDungeonTileRequest {
+  uint32 room_id = 1;
+  uint32 x = 2;
+  uint32 y = 3;
+  uint32 tile16_id = 4;
+  bool require_approval = 5;
+  string description = 6;
+}
+
+message WriteDungeonTileResponse {
+  bool success = 1;
+  string error = 2;
+  string proposal_id = 3;
+}
+
+// ============================================================================
+// Sprite Operations
+// ============================================================================
+
+message ReadSpriteRequest {
+  uint32 sprite_id = 1;
+}
+
+message ReadSpriteResponse {
+  uint32 sprite_id = 1;
+  bytes sprite_data = 2;
+  string error = 3;
+}
+
+// ============================================================================
+// Proposal System
+// ============================================================================
+
+message SubmitRomProposalRequest {
+  string description = 1;
+  string username = 2;
+  
+  oneof proposal_type {
+    WriteBytesRequest write_bytes = 3;
+    WriteOverworldTileRequest overworld_tile = 4;
+    WriteDungeonTileRequest dungeon_tile = 5;
+  }
+}
+
+message SubmitRomProposalResponse {
+  bool success = 1;
+  string proposal_id = 2;
+  string error = 3;
+}
+
+message GetProposalStatusRequest {
+  string proposal_id = 1;
+}
+
+message GetProposalStatusResponse {
+  string proposal_id = 1;
+  string status = 2;  // pending, approved, rejected, applied
+  repeated string voters = 3;
+  int32 approval_count = 4;
+  int32 rejection_count = 5;
+}
+
+// ============================================================================
+// Version Management
+// ============================================================================
+
+message CreateSnapshotRequest {
+  string description = 1;
+  string username = 2;
+  bool is_checkpoint = 3;
+}
+
+message CreateSnapshotResponse {
+  bool success = 1;
+  string snapshot_id = 2;
+  string error = 3;
+}
+
+message RestoreSnapshotRequest {
+  string snapshot_id = 1;
+}
+
+message RestoreSnapshotResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message ListSnapshotsRequest {
+  uint32 max_results = 1;  // 0 = all
+}
+
+message SnapshotInfo {
+  string snapshot_id = 1;
+  string description = 2;
+  string username = 3;
+  int64 timestamp = 4;
+  bool is_checkpoint = 5;
+  bool is_safe_point = 6;
+  uint64 size_bytes = 7;
+}
+
+message ListSnapshotsResponse {
+  repeated SnapshotInfo snapshots = 1;
+  string error = 2;
+}

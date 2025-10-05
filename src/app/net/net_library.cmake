@@ -16,6 +16,12 @@ set(
   app/net/collaboration_service.cc
 )
 
+if(YAZE_WITH_GRPC)
+  # ROM service implementation ready but not compiled yet
+  # Will be integrated with test harness proto build system
+  # Files created: protos/rom_service.proto, app/net/rom_service_impl.{h,cc}
+endif()
+
 add_library(yaze_net STATIC ${YAZE_NET_SRC})
 
 target_include_directories(yaze_net PUBLIC

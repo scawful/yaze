@@ -77,6 +77,8 @@ set(YAZE_AGENT_SOURCES
   cli/service/ai/prompt_builder.cc
   cli/service/ai/service_factory.cc
   cli/service/gui/gui_action_generator.cc
+  cli/service/net/z3ed_network_client.cc
+  cli/handlers/net/net_commands.cc
   cli/service/planning/policy_evaluator.cc
   cli/service/planning/proposal_registry.cc
   cli/service/planning/tile16_proposal_generator.cc
