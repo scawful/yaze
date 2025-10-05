@@ -147,6 +147,26 @@ void RenderProviderBadge(const char* provider) {
   ImGui::PopStyleColor();
 }
 
+void StatusBadge(const char* text, ButtonColor color) {
+  const auto& theme = GetTheme();
+  
+  ImVec4 badge_color;
+  switch (color) {
+    case ButtonColor::Success: badge_color = theme.status_success; break;
+    case ButtonColor::Warning: badge_color = theme.status_warning; break;
+    case ButtonColor::Error: badge_color = theme.status_error; break;
+    case ButtonColor::Info: badge_color = theme.accent_color; break;
+    default: badge_color = theme.status_inactive; break;
+  }
+  
+  ImGui::PushStyleColor(ImGuiCol_Button, badge_color);
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 10.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 2));
+  ImGui::SmallButton(text);
+  ImGui::PopStyleVar(2);
+  ImGui::PopStyleColor();
+}
+
 void VerticalSpacing(float amount) {
   ImGui::Dummy(ImVec2(0, amount));
 }

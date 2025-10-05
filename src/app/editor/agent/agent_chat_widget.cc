@@ -555,7 +555,7 @@ void AgentChatWidget::RenderHistory() {
     }
   }
   ImGui::EndChild();
-  ImGui::PopStyleColor();
+  AgentUI::PopPanelStyle();
   last_history_size_ = history.size();
 }
 
@@ -1342,7 +1342,7 @@ void AgentChatWidget::RenderCollaborationPanel() {
   }
 
   ImGui::EndChild();
-  ImGui::PopStyleColor();
+  AgentUI::PopPanelStyle();
   ImGui::PopStyleVar(2);
   ImGui::PopID();  // CollabPanel
 }
@@ -1451,7 +1451,7 @@ void AgentChatWidget::RenderMultimodalPanel() {
     ImGui::EndDisabled();
 
   ImGui::EndChild();
-  ImGui::PopStyleColor();
+  AgentUI::PopPanelStyle();
   ImGui::PopID();
 }
 
@@ -1667,7 +1667,7 @@ void AgentChatWidget::RenderAgentConfigPanel() {
   }
 
   ImGui::EndChild();
-  ImGui::PopStyleColor();
+  AgentUI::PopPanelStyle();
 }
 
 void AgentChatWidget::RenderZ3EDCommandPanel() {
@@ -1750,7 +1750,7 @@ void AgentChatWidget::RenderZ3EDCommandPanel() {
   }
 
   ImGui::EndChild();
-  ImGui::PopStyleColor();
+  AgentUI::PopPanelStyle();
 
   ImGui::PopID();  // FIX: Pop the Z3EDCmdPanel ID
 }
@@ -1849,7 +1849,7 @@ void AgentChatWidget::RenderRomSyncPanel() {
   }
 
   ImGui::EndChild();
-  ImGui::PopStyleColor();
+  AgentUI::PopPanelStyle();
 }
 
 void AgentChatWidget::RenderSnapshotPreviewPanel() {
@@ -1899,7 +1899,7 @@ void AgentChatWidget::RenderSnapshotPreviewPanel() {
   }
 
   ImGui::EndChild();
-  ImGui::PopStyleColor();
+  AgentUI::PopPanelStyle();
 }
 
 void AgentChatWidget::RenderProposalManagerPanel() {
@@ -2095,7 +2095,7 @@ void AgentChatWidget::RenderHarnessPanel() {
   }
 
   ImGui::EndChild();
-  ImGui::PopStyleColor();
+  AgentUI::PopPanelStyle();
   ImGui::PopID();
 }
 
