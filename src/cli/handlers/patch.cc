@@ -72,9 +72,13 @@ absl::Status AsarPatch::Run(const std::vector<std::string>& arg_vec) {
     return absl::AbortedError(absl::StrJoin(result.errors, "; "));
   }
 
-  // TODO: Save the patched ROM
+  rom_.LoadFromData(rom_data);
+  auto save_status = rom_.SaveToFile({.save_new = false});
+  if (!save_status.ok()) {
+    return save_status;
+  }
 
-  std::cout << "Patch applied successfully!" << std::endl;
+  std::cout << "✅ Patch applied successfully and ROM saved to: " << rom_.filename() << std::endl;
   return absl::OkStatus();
 }
 
