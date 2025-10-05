@@ -77,9 +77,14 @@ GeminiAIService::GeminiAIService(const GeminiConfig& config)
     }
     
     // Try to load version-specific system prompt file
-    std::string prompt_file = config_.prompt_version == "v2"
-        ? "assets/agent/system_prompt_v2.txt"
-        : "assets/agent/system_prompt.txt";
+    std::string prompt_file;
+    if (config_.prompt_version == "v3") {
+      prompt_file = "assets/agent/system_prompt_v3.txt";
+    } else if (config_.prompt_version == "v2") {
+      prompt_file = "assets/agent/system_prompt_v2.txt";
+    } else {
+      prompt_file = "assets/agent/system_prompt.txt";
+    }
     
     std::vector<std::string> search_paths = {
         prompt_file,
@@ -135,9 +140,15 @@ std::vector<std::string> GeminiAIService::GetAvailableTools() const {
 
 std::string GeminiAIService::BuildFunctionCallSchemas() {
 #ifndef YAZE_WITH_JSON
-  return "[]";  // Empty array if JSON not available
+  return "{}";  // Empty object if JSON not available
 #else
-  // Search for function_schemas.json in multiple locations
+  // Use the prompt builder's schema generation which reads from prompt_catalogue.yaml
+  std::string schemas = prompt_builder_.BuildFunctionCallSchemas();
+  if (!schemas.empty() && schemas != "[]") {
+    return schemas;
+  }
+  
+  // Fallback: Search for function_schemas.json
   const std::vector<std::string> search_paths = {
       "assets/agent/function_schemas.json",
       "../assets/agent/function_schemas.json",
@@ -337,10 +348,30 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
     // Add function calling tools if enabled
     if (function_calling_enabled_) {
       try {
-        nlohmann::json tools = nlohmann::json::parse(BuildFunctionCallSchemas());
-        request_body["tools"] = {{
-          {"function_declarations", tools}
-        }};
+        std::string schemas_str = BuildFunctionCallSchemas();
+        if (config_.verbose) {
+          std::cerr << "[DEBUG] Function calling schemas: " << schemas_str.substr(0, 200) << "..." << std::endl;
+        }
+        
+        nlohmann::json schemas = nlohmann::json::parse(schemas_str);
+        
+        // Build tools array - schemas might be an array of tools or a function_declarations object
+        if (schemas.is_array()) {
+          // If it's already an array of tools, use it directly
+          request_body["tools"] = {{
+            {"function_declarations", schemas}
+          }};
+        } else if (schemas.is_object() && schemas.contains("function_declarations")) {
+          // If it's a wrapper object with function_declarations
+          request_body["tools"] = {{
+            {"function_declarations", schemas["function_declarations"]}
+          }};
+        } else {
+          // Treat as single tool object
+          request_body["tools"] = {{
+            {"function_declarations", nlohmann::json::array({schemas})}
+          }};
+        }
       } catch (const nlohmann::json::exception& e) {
         std::cerr << "⚠️  Failed to parse function schemas: " << e.what() << std::endl;
       }

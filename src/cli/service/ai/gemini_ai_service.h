@@ -19,8 +19,8 @@ struct GeminiConfig {
   int max_output_tokens = 2048;
   mutable std::string system_instruction;  // Mutable to allow lazy initialization
   bool use_enhanced_prompting = true;  // Enable few-shot examples
-  bool use_function_calling = false;  // Use native Gemini function calling
-  std::string prompt_version = "default";  // Which prompt file to use (default, v2, etc.)
+  bool use_function_calling = true;  // Use native Gemini function calling (enabled by default for 2.0+)
+  std::string prompt_version = "v3";  // Which prompt file to use (default, v2, v3, etc.)
   bool verbose = false;  // Enable debug logging
   
   GeminiConfig() = default;
