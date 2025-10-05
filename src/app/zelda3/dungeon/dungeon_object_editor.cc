@@ -13,18 +13,8 @@
 namespace yaze {
 namespace zelda3 {
 
-DungeonObjectEditor::DungeonObjectEditor(Rom* rom) 
-    : rom_(rom)
-    , renderer_(std::make_unique<ObjectRenderer>(rom))
-    , config_{}
-    , editing_state_{}
-    , selection_state_{} {
-  
-  // Initialize editor
-  auto status = InitializeEditor();
-  if (!status.ok()) {
-    // Log error but don't fail construction
-  }
+DungeonObjectEditor::DungeonObjectEditor(Rom* rom) : rom_(rom) {
+  renderer_ = std::make_unique<ObjectRenderer>(rom);
 }
 
 absl::Status DungeonObjectEditor::InitializeEditor() {

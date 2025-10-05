@@ -88,6 +88,11 @@ class Rom {
   absl::Status LoadZelda3(const RomLoadOptions& options);
   absl::Status LoadGfxGroups();
 
+  absl::Status InitializeForTesting() {
+    RETURN_IF_ERROR(LoadZelda3(RomLoadOptions::AppDefaults()));
+    return absl::OkStatus();
+  }
+
   absl::Status SaveGfxGroups();
   absl::Status SaveToFile(const SaveSettings& settings);
   absl::Status SavePalette(int index, const std::string& group_name,
