@@ -81,6 +81,10 @@ void RenderSectionHeader(const char* icon, const char* label, const ImVec4& colo
 void RenderStatusIndicator(const char* label, bool active);
 void RenderProviderBadge(const char* provider);
 
+// Status badge for tests/processes
+enum class ButtonColor { Success, Warning, Error, Info, Default };
+void StatusBadge(const char* text, ButtonColor color);
+
 // Spacing helpers
 void VerticalSpacing(float amount = 8.0f);
 void HorizontalSpacing(float amount = 8.0f);
