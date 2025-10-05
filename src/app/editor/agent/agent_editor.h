@@ -5,10 +5,13 @@
 #include <optional>
 #include <string>
 #include <filesystem>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/editor/editor.h"
+#include "app/gui/modules/text_editor.h"
+#include "cli/service/agent/conversational_agent_service.h"
 
 namespace yaze {
 
@@ -27,18 +30,22 @@ class NetworkCollaborationCoordinator;
 
 /**
  * @class AgentEditor
- * @brief AI Agent Configuration Dashboard (separate from chat)
+ * @brief Comprehensive AI Agent Platform & Bot Creator
  * 
- * A comprehensive configuration editor for the AI agent:
+ * A full-featured bot creation and management platform:
  * - Agent provider configuration (Ollama, Gemini, Mock)
  * - Model selection and parameters  
+ * - System prompt editing with live syntax highlighting
+ * - Bot profile management (create, save, load custom bots)
+ * - Chat history viewer and management
+ * - Session metrics and analytics dashboard
  * - Collaboration settings (Local/Network)
  * - Z3ED command automation presets
  * - Multimodal/vision configuration
- * - Session metrics and monitoring
- * - System prompt customization
+ * - Export/Import bot configurations
  * 
- * The chat widget is separate and managed by EditorManager.
+ * The chat widget is separate and managed by EditorManager, with
+ * a dense/compact mode for focused conversations.
  */
 class AgentEditor : public Editor {
  public:
@@ -67,7 +74,25 @@ class AgentEditor : public Editor {
   // Main rendering (called by Update())
   void DrawDashboard();
 
-  // Get current agent configuration (for chat to use)
+  // Bot Configuration & Profile Management
+  struct BotProfile {
+    std::string name = "Default Bot";
+    std::string description;
+    std::string provider = "mock";
+    std::string model;
+    std::string ollama_host = "http://localhost:11434";
+    std::string gemini_api_key;
+    std::string system_prompt;
+    bool verbose = false;
+    bool show_reasoning = true;
+    int max_tool_iterations = 4;
+    int max_retry_attempts = 3;
+    std::vector<std::string> tags;
+    absl::Time created_at = absl::Now();
+    absl::Time modified_at = absl::Now();
+  };
+
+  // Legacy support
   struct AgentConfig {
     std::string provider = "mock";
     std::string model;
@@ -80,6 +105,16 @@ class AgentEditor : public Editor {
   
   AgentConfig GetCurrentConfig() const;
   void ApplyConfig(const AgentConfig& config);
+
+  // Bot Profile Management
+  absl::Status SaveBotProfile(const BotProfile& profile);
+  absl::Status LoadBotProfile(const std::string& name);
+  absl::Status DeleteBotProfile(const std::string& name);
+  std::vector<BotProfile> GetAllProfiles() const;
+  BotProfile GetCurrentProfile() const { return current_profile_; }
+  void SetCurrentProfile(const BotProfile& profile);
+  absl::Status ExportProfile(const BotProfile& profile, const std::filesystem::path& path);
+  absl::Status ImportProfile(const std::filesystem::path& path);
 
   // Chat widget access (for EditorManager)
   AgentChatWidget* GetChatWidget() { return chat_widget_.get(); }
@@ -143,10 +178,20 @@ class AgentEditor : public Editor {
   void DrawConfigurationPanel();
   void DrawStatusPanel();
   void DrawMetricsPanel();
+  void DrawPromptEditorPanel();
+  void DrawBotProfilesPanel();
+  void DrawChatHistoryViewer();
+  void DrawAdvancedMetricsPanel();
 
   // Setup callbacks
   void SetupChatWidgetCallbacks();
   void SetupMultimodalCallbacks();
+
+  // Bot profile helpers
+  std::filesystem::path GetProfilesDirectory() const;
+  absl::Status EnsureProfilesDirectory();
+  std::string ProfileToJson(const BotProfile& profile) const;
+  absl::StatusOr<BotProfile> JsonToProfile(const std::string& json) const;
 
   // Internal state
   std::unique_ptr<AgentChatWidget> chat_widget_;  // Owned by AgentEditor
@@ -159,8 +204,19 @@ class AgentEditor : public Editor {
   ProposalDrawer* proposal_drawer_ = nullptr;
   Rom* rom_ = nullptr;
 
-  // Configuration state
+  // Configuration state (legacy)
   AgentConfig current_config_;
+  
+  // Bot Profile System
+  BotProfile current_profile_;
+  std::vector<BotProfile> loaded_profiles_;
+  
+  // System Prompt Editor
+  std::unique_ptr<TextEditor> prompt_editor_;
+  bool prompt_editor_initialized_ = false;
+  std::string active_prompt_file_ = "system_prompt_v3.txt";
+  
+  // Collaboration state
   CollaborationMode current_mode_ = CollaborationMode::kLocal;
   bool in_session_ = false;
   std::string current_session_id_;
@@ -169,6 +225,15 @@ class AgentEditor : public Editor {
   
   // UI state
   bool show_advanced_settings_ = false;
+  bool show_prompt_editor_ = false;
+  bool show_bot_profiles_ = false;
+  bool show_chat_history_ = false;
+  bool show_metrics_dashboard_ = false;
+  int selected_tab_ = 0;  // 0=Config, 1=Prompts, 2=Bots, 3=History, 4=Metrics
+  
+  // Chat history viewer state
+  std::vector<cli::agent::ChatMessage> cached_history_;
+  bool history_needs_refresh_ = true;
 };
 
 }  // namespace editor
