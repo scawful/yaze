@@ -25,7 +25,7 @@ void ProjectFileEditor::Draw() {
   
   ImGui::SetNextWindowSize(ImVec2(900, 700), ImGuiCond_FirstUseEver);
   if (!ImGui::Begin(absl::StrFormat("%s Project Editor###ProjectFileEditor",
-                                     ICON_MD_EDIT_DOCUMENT).c_str(),
+                                     ICON_MD_DESCRIPTION).c_str(),
                      &active_)) {
     ImGui::End();
     return;
@@ -239,7 +239,7 @@ void ProjectFileEditor::ValidateContent() {
   
   for (const auto& line : lines) {
     line_num++;
-    std::string trimmed = absl::StripAsciiWhitespace(line);
+    std::string trimmed = std::string(absl::StripAsciiWhitespace(line));
     
     // Skip empty lines and comments
     if (trimmed.empty() || trimmed[0] == '#') continue;

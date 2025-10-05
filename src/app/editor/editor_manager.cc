@@ -232,6 +232,9 @@ void EditorManager::Initialize(const std::string& filename) {
   // Set the popup manager in the context
   context_.popup_manager = popup_manager_.get();
 
+  // Initialize project file editor
+  project_file_editor_.SetToastManager(&toast_manager_);
+
 #ifdef YAZE_WITH_GRPC
   // Initialize the agent editor
   agent_editor_.Initialize(&toast_manager_, &proposal_drawer_);
@@ -481,6 +484,19 @@ void EditorManager::Initialize(const std::string& filename) {
                                      [this]() { status_ = OpenProject(); });
   project_menu_subitems.emplace_back(
       "Save Project", "", [this]() { status_ = SaveProject(); },
+      [this]() { return current_project_.project_opened(); });
+  project_menu_subitems.emplace_back(gui::kSeparator, "", nullptr, []() { return true; });
+  project_menu_subitems.emplace_back(
+      absl::StrCat(ICON_MD_EDIT, " Edit Project File"), "",
+      [this]() { 
+        project_file_editor_.set_active(true);
+        if (current_project_.project_opened() && !current_project_.filepath.empty()) {
+          auto status = project_file_editor_.LoadFile(current_project_.filepath);
+          if (!status.ok()) {
+            toast_manager_.Show(std::string(status.message()), editor::ToastType::kError);
+          }
+        }
+      },
       [this]() { return current_project_.project_opened(); });
   project_menu_subitems.emplace_back("Save Workspace Layout", "", [this]() {
     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
@@ -1249,6 +1265,9 @@ void EditorManager::DrawMenuBar() {
   if (show_asm_editor_ && current_editor_set_) {
     current_editor_set_->assembly_editor_.Update(show_asm_editor_);
   }
+  
+  // Project file editor
+  project_file_editor_.Draw();
   if (show_performance_dashboard_) {
     gfx::PerformanceDashboard::Get().SetVisible(true);
     gfx::PerformanceDashboard::Get().Update();
