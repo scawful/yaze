@@ -3,7 +3,6 @@
 #include "app/gfx/performance_profiler.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/ui_constants.h"
-#include "app/gfx/atlas_renderer.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
 #include "app/gui/icons.h"
@@ -27,6 +26,8 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
     bool& show_map_properties_panel, bool& show_custom_bg_color_editor,
     bool& show_overlay_editor, bool& show_overlay_preview, int& game_state,
     int& current_mode) {
+  (void)show_overlay_editor;  // Reserved for future use
+  (void)current_mode;  // Reserved for future use
   // Enhanced settings table with popup buttons for quick access and integrated toolset
   if (BeginTable("SimplifiedMapSettings", 9,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit,
@@ -124,6 +125,7 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
 
 void MapPropertiesSystem::DrawMapPropertiesPanel(
     int current_map, bool& show_map_properties_panel) {
+  (void)show_map_properties_panel;  // Used by caller for window state
   if (!overworld_->is_loaded()) {
     Text("No overworld loaded");
     return;
@@ -178,6 +180,7 @@ void MapPropertiesSystem::DrawMapPropertiesPanel(
 
 void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
     int current_map, bool& show_custom_bg_color_editor) {
+  (void)show_custom_bg_color_editor;  // Used by caller for window state
   if (!overworld_->is_loaded()) {
     Text("No overworld loaded");
     return;
@@ -232,6 +235,7 @@ void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
 
 void MapPropertiesSystem::DrawOverlayEditor(int current_map,
                                             bool& show_overlay_editor) {
+  (void)show_overlay_editor;  // Used by caller for window state
   if (!overworld_->is_loaded()) {
     Text("No overworld loaded");
     return;
@@ -281,6 +285,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     gui::Canvas& canvas, int current_map, bool current_map_lock,
     bool& show_map_properties_panel, bool& show_custom_bg_color_editor,
     bool& show_overlay_editor) {
+  (void)current_map;  // Used for future context-sensitive menu items
   // Clear any existing context menu items
   canvas.ClearContextMenuItems();
 
@@ -349,16 +354,19 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
     ImGui::Text("Graphics Settings");
     ImGui::Separator();
 
-    if (gui::InputHexByteCustom("Area Graphics",
+    // Area Graphics
+    if (gui::InputHexByteCustom(ICON_MD_IMAGE " Area Graphics",
                                 overworld_->mutable_overworld_map(current_map)
                                     ->mutable_area_graphics(),
                                 kHexByteInputWidth)) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
+    HOVER_HINT("Main tileset graphics for this map area");
 
+    // Sprite Graphics
     if (gui::InputHexByteCustom(
-            absl::StrFormat("Sprite GFX (%s)", kGameStateNames[game_state])
+            absl::StrFormat(ICON_MD_PETS " Sprite GFX (%s)", kGameStateNames[game_state])
                 .c_str(),
             overworld_->mutable_overworld_map(current_map)
                 ->mutable_sprite_graphics(game_state),
@@ -366,32 +374,43 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
+    HOVER_HINT("Sprite graphics sheet for current game state");
 
     static uint8_t asm_version =
         (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     if (asm_version >= 3) {
-      if (gui::InputHexByte("Animated GFX",
-                            overworld_->mutable_overworld_map(current_map)
-                                ->mutable_animated_gfx(),
-                            kInputFieldSize)) {
+      if (gui::InputHexByteCustom(ICON_MD_ANIMATION " Animated GFX",
+                                  overworld_->mutable_overworld_map(current_map)
+                                      ->mutable_animated_gfx(),
+                                  kHexByteInputWidth)) {
         RefreshMapProperties();
         RefreshOverworldMap();
       }
+      HOVER_HINT("Animated tile graphics (water, lava, etc.)");
     }
 
     ImGui::Separator();
-    ImGui::Text("Custom Tile Graphics (8 sheets):");
+    ImGui::Text(ICON_MD_GRID_VIEW " Custom Tile Graphics");
+    ImGui::Separator();
 
-    // Show the 8 custom graphics IDs in a more accessible way
-    for (int i = 0; i < 8; i++) {
-      std::string label = absl::StrFormat("Sheet %d", i);
-      if (gui::InputHexByte(label.c_str(),
-                            overworld_->mutable_overworld_map(current_map)
-                                ->mutable_custom_tileset(i),
-                            80.f)) {
-        RefreshMapProperties();
-        RefreshOverworldMap();
+    // Show the 8 custom graphics IDs in a 2-column layout for density
+    if (BeginTable("CustomTileGraphics", 2,
+                   ImGuiTableFlags_SizingFixedFit)) {
+      for (int i = 0; i < 8; i++) {
+        TableNextColumn();
+        std::string label = absl::StrFormat(ICON_MD_LAYERS " Sheet %d", i);
+        if (gui::InputHexByteCustom(label.c_str(),
+                                    overworld_->mutable_overworld_map(current_map)
+                                        ->mutable_custom_tileset(i),
+                                    90.f)) {
+          RefreshMapProperties();
+          RefreshOverworldMap();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Custom graphics sheet %d (0x00-0xFF)", i);
+        }
       }
+      ImGui::EndTable();
     }
 
     ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
@@ -410,7 +429,8 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
     ImGui::Text("Palette Settings");
     ImGui::Separator();
 
-    if (gui::InputHexByteCustom("Area Palette",
+    // Area Palette
+    if (gui::InputHexByteCustom(ICON_MD_PALETTE " Area Palette",
                                 overworld_->mutable_overworld_map(current_map)
                                     ->mutable_area_palette(),
                                 kHexByteInputWidth)) {
@@ -418,11 +438,12 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
       auto status = RefreshMapPalette();
       RefreshOverworldMap();
     }
+    HOVER_HINT("Main color palette for background tiles");
 
     static uint8_t asm_version =
         (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     if (asm_version >= 2) {
-      if (gui::InputHexByteCustom("Main Palette",
+      if (gui::InputHexByteCustom(ICON_MD_COLOR_LENS " Main Palette",
                                   overworld_->mutable_overworld_map(current_map)
                                       ->mutable_main_palette(),
                                   kHexByteInputWidth)) {
@@ -430,10 +451,12 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
         auto status = RefreshMapPalette();
         RefreshOverworldMap();
       }
+      HOVER_HINT("Extended main palette (ZSCustomOverworld v2+)");
     }
 
+    // Sprite Palette
     if (gui::InputHexByteCustom(
-            absl::StrFormat("Sprite Palette (%s)", kGameStateNames[game_state])
+            absl::StrFormat(ICON_MD_COLORIZE " Sprite Pal (%s)", kGameStateNames[game_state])
                 .c_str(),
             overworld_->mutable_overworld_map(current_map)
                 ->mutable_sprite_palette(game_state),
@@ -441,11 +464,14 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
       RefreshMapProperties();
       RefreshOverworldMap();
     }
+    HOVER_HINT("Color palette for sprites in current game state");
 
     ImGui::Separator();
-    if (ImGui::Button("Background Color")) {
+    if (ImGui::Button(ICON_MD_FORMAT_COLOR_FILL " Custom Background Color", 
+                     ImVec2(-1, 0))) {
       show_custom_bg_color_editor = !show_custom_bg_color_editor;
     }
+    HOVER_HINT("Open custom background color editor (v2+)");
 
     ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::EndPopup();
@@ -462,30 +488,45 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
                         ImVec2(kCompactItemSpacing, kCompactFramePadding));
 
-    ImGui::Text("Map Properties");
+    ImGui::Text(ICON_MD_SETTINGS " Map Properties");
     ImGui::Separator();
 
-    // Basic Map Properties Section
-    ImGui::Text("Basic Properties");
-    ImGui::Separator();
+    // Basic Properties in 2-column layout for density
+    if (BeginTable("BasicProps", 2, ImGuiTableFlags_SizingFixedFit)) {
+      // Message ID
+      TableNextColumn();
+      ImGui::Text(ICON_MD_MESSAGE " Message");
+      TableNextColumn();
+      if (gui::InputHexWordCustom("##MsgId",
+                                  overworld_->mutable_overworld_map(current_map)
+                                      ->mutable_message_id(),
+                                  kHexWordInputWidth)) {
+        RefreshMapProperties();
+        RefreshOverworldMap();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Message ID shown when entering this area");
+      }
 
-    if (gui::InputHexWordCustom("Message ID",
-                                overworld_->mutable_overworld_map(current_map)
-                                    ->mutable_message_id(),
-                                kHexWordInputWidth)) {
-      RefreshMapProperties();
-      RefreshOverworldMap();
-    }
+      // Game State
+      TableNextColumn();
+      ImGui::Text(ICON_MD_GAMEPAD " Game State");
+      TableNextColumn();
+      ImGui::SetNextItemWidth(kComboGameStateWidth);
+      if (ImGui::Combo("##GameState", &game_state, kGameStateNames, 3)) {
+        RefreshMapProperties();
+        RefreshOverworldMap();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Affects sprite graphics/palettes based on story progress");
+      }
 
-    ImGui::SetNextItemWidth(kComboGameStateWidth);
-    if (ImGui::Combo("Game State", &game_state, kGameStateNames, 3)) {
-      RefreshMapProperties();
-      RefreshOverworldMap();
+      ImGui::EndTable();
     }
 
     // Area Configuration Section
     ImGui::Separator();
-    ImGui::Text("Area Configuration");
+    ImGui::Text(ICON_MD_ASPECT_RATIO " Area Configuration");
     ImGui::Separator();
 
     static uint8_t asm_version =
@@ -494,16 +535,17 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
       int current_area_size =
           static_cast<int>(overworld_->overworld_map(current_map)->area_size());
       ImGui::SetNextItemWidth(kComboAreaSizeWidth);
-      if (ImGui::Combo("Area Size", &current_area_size, kAreaSizeNames, 4)) {
+      if (ImGui::Combo(ICON_MD_PHOTO_SIZE_SELECT_LARGE " Size", &current_area_size, kAreaSizeNames, 4)) {
         overworld_->mutable_overworld_map(current_map)
             ->SetAreaSize(static_cast<zelda3::AreaSizeEnum>(current_area_size));
         RefreshOverworldMap();
       }
+      HOVER_HINT("Map area size (1x1, 2x2, 2x1, 1x2 screens)");
     } else {
       // Vanilla ROM - show small/large map controls
       auto* map = overworld_->mutable_overworld_map(current_map);
       bool is_small = !map->is_large_map();
-      if (ImGui::Checkbox("Small Map", &is_small)) {
+      if (ImGui::Checkbox(ICON_MD_CROP_SQUARE " Small Map", &is_small)) {
         if (is_small) {
           map->SetAsSmallMap();
         } else {
@@ -512,11 +554,12 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
         }
         RefreshOverworldMap();
       }
+      HOVER_HINT("Small (1x1) vs Large (2x2) map size");
     }
 
     // Visual Effects Section
     ImGui::Separator();
-    ImGui::Text("Visual Effects");
+    ImGui::Text(ICON_MD_AUTO_FIX_HIGH " Visual Effects");
     ImGui::Separator();
 
     DrawMosaicControls(current_map);
@@ -524,15 +567,12 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
 
     // Advanced Options Section
     ImGui::Separator();
-    ImGui::Text("Advanced Options");
-    ImGui::Separator();
-
-    if (ImGui::Button("Full Properties Panel",
-                      ImVec2(kLargeButtonWidth + 50, 0))) {
+    if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Full Properties Panel",
+                      ImVec2(-1, 0))) {
       show_map_properties_panel = true;
       ImGui::CloseCurrentPopup();
     }
-    HOVER_HINT("Open comprehensive properties editor");
+    HOVER_HINT("Open comprehensive properties editor with all tabs");
 
     ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
     ImGui::EndPopup();
@@ -542,11 +582,11 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
 void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
   if (BeginTable("BasicProperties", 2,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
-    ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 150);
+    ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 180);
     ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
     TableNextColumn();
-    ImGui::Text("Area Graphics");
+    ImGui::Text(ICON_MD_IMAGE " Area Graphics");
     TableNextColumn();
     if (gui::InputHexByte("##AreaGfx",
                           overworld_->mutable_overworld_map(current_map)
@@ -555,9 +595,12 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Main tileset graphics for this map area");
+    }
 
     TableNextColumn();
-    ImGui::Text("Area Palette");
+    ImGui::Text(ICON_MD_PALETTE " Area Palette");
     TableNextColumn();
     if (gui::InputHexByte("##AreaPal",
                           overworld_->mutable_overworld_map(current_map)
@@ -567,9 +610,12 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
       auto status = RefreshMapPalette();
       RefreshOverworldMap();
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Color palette for background tiles");
+    }
 
     TableNextColumn();
-    ImGui::Text("Message ID");
+    ImGui::Text(ICON_MD_MESSAGE " Message ID");
     TableNextColumn();
     if (gui::InputHexWord("##MsgId",
                           overworld_->mutable_overworld_map(current_map)
@@ -578,9 +624,12 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Message displayed when entering this area");
+    }
 
     TableNextColumn();
-    ImGui::Text("Mosaic Effect");
+    ImGui::Text(ICON_MD_BLUR_ON " Mosaic Effect");
     TableNextColumn();
     if (ImGui::Checkbox(
             "##mosaic",
@@ -588,11 +637,13 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
-    HOVER_HINT("Enable Mosaic effect for the current map");
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Enable pixelated mosaic transition effect");
+    }
 
-    // Add music editing controls
+    // Add music editing controls with icons
     TableNextColumn();
-    ImGui::Text("Music (Beginning)");
+    ImGui::Text(ICON_MD_MUSIC_NOTE " Music (Beginning)");
     TableNextColumn();
     if (gui::InputHexByte("##Music0",
                           overworld_->mutable_overworld_map(current_map)
@@ -600,10 +651,12 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
                           kInputFieldSize)) {
       RefreshMapProperties();
     }
-    HOVER_HINT("Music track for game beginning state");
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Music track before rescuing Zelda");
+    }
 
     TableNextColumn();
-    ImGui::Text("Music (Zelda)");
+    ImGui::Text(ICON_MD_MUSIC_NOTE " Music (Zelda)");
     TableNextColumn();
     if (gui::InputHexByte("##Music1",
                           overworld_->mutable_overworld_map(current_map)
@@ -611,10 +664,12 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
                           kInputFieldSize)) {
       RefreshMapProperties();
     }
-    HOVER_HINT("Music track for Zelda rescued state");
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Music track after rescuing Zelda");
+    }
 
     TableNextColumn();
-    ImGui::Text("Music (Master Sword)");
+    ImGui::Text(ICON_MD_MUSIC_NOTE " Music (Master Sword)");
     TableNextColumn();
     if (gui::InputHexByte("##Music2",
                           overworld_->mutable_overworld_map(current_map)
@@ -622,10 +677,12 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
                           kInputFieldSize)) {
       RefreshMapProperties();
     }
-    HOVER_HINT("Music track for Master Sword obtained state");
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Music track after obtaining Master Sword");
+    }
 
     TableNextColumn();
-    ImGui::Text("Music (Agahnim)");
+    ImGui::Text(ICON_MD_MUSIC_NOTE " Music (Agahnim)");
     TableNextColumn();
     if (gui::InputHexByte("##Music3",
                           overworld_->mutable_overworld_map(current_map)
@@ -633,7 +690,9 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
                           kInputFieldSize)) {
       RefreshMapProperties();
     }
-    HOVER_HINT("Music track for Agahnim defeated state");
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Music track after defeating Agahnim (Dark World)");
+    }
 
     ImGui::EndTable();
   }
@@ -642,21 +701,24 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
 void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
   if (BeginTable("SpriteProperties", 2,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
-    ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 150);
+    ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 180);
     ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
     TableNextColumn();
-    ImGui::Text("Game State");
+    ImGui::Text(ICON_MD_GAMEPAD " Game State");
     TableNextColumn();
     static int game_state = 0;
-    ImGui::SetNextItemWidth(100.f);
+    ImGui::SetNextItemWidth(120.f);
     if (ImGui::Combo("##GameState", &game_state, kGameStateNames, 3)) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Affects which sprite graphics/palettes are used");
+    }
 
     TableNextColumn();
-    ImGui::Text("Sprite Graphics 1");
+    ImGui::Text(ICON_MD_PETS " Sprite Graphics 1");
     TableNextColumn();
     if (gui::InputHexByte("##SprGfx1",
                           overworld_->mutable_overworld_map(current_map)
@@ -665,9 +727,12 @@ void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("First sprite graphics sheet for Zelda rescued state");
+    }
 
     TableNextColumn();
-    ImGui::Text("Sprite Graphics 2");
+    ImGui::Text(ICON_MD_PETS " Sprite Graphics 2");
     TableNextColumn();
     if (gui::InputHexByte("##SprGfx2",
                           overworld_->mutable_overworld_map(current_map)
@@ -676,9 +741,12 @@ void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Second sprite graphics sheet for Master Sword obtained state");
+    }
 
     TableNextColumn();
-    ImGui::Text("Sprite Palette 1");
+    ImGui::Text(ICON_MD_COLORIZE " Sprite Palette 1");
     TableNextColumn();
     if (gui::InputHexByte("##SprPal1",
                           overworld_->mutable_overworld_map(current_map)
@@ -687,9 +755,12 @@ void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
       RefreshMapProperties();
       RefreshOverworldMap();
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Color palette for sprites - Zelda rescued state");
+    }
 
     TableNextColumn();
-    ImGui::Text("Sprite Palette 2");
+    ImGui::Text(ICON_MD_COLORIZE " Sprite Palette 2");
     TableNextColumn();
     if (gui::InputHexByte("##SprPal2",
                           overworld_->mutable_overworld_map(current_map)
@@ -697,6 +768,9 @@ void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
                           kInputFieldSize)) {
       RefreshMapProperties();
       RefreshOverworldMap();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Color palette for sprites - Master Sword obtained state");
     }
 
     ImGui::EndTable();
@@ -706,28 +780,31 @@ void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
 void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
   if (BeginTable("CustomFeatures", 2,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
-    ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 150);
+    ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 180);
     ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
     TableNextColumn();
-    ImGui::Text("Area Size");
+    ImGui::Text(ICON_MD_PHOTO_SIZE_SELECT_LARGE " Area Size");
     TableNextColumn();
     static const char* area_size_names[] = {"Small (1x1)", "Large (2x2)",
                                             "Wide (2x1)", "Tall (1x2)"};
     int current_area_size =
         static_cast<int>(overworld_->overworld_map(current_map)->area_size());
-    ImGui::SetNextItemWidth(120.f);
+    ImGui::SetNextItemWidth(130.f);
     if (ImGui::Combo("##AreaSize", &current_area_size, area_size_names, 4)) {
       overworld_->mutable_overworld_map(current_map)
           ->SetAreaSize(static_cast<zelda3::AreaSizeEnum>(current_area_size));
       RefreshOverworldMap();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Map size in screens (ZSCustomOverworld feature)");
     }
 
     static uint8_t asm_version =
         (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     if (asm_version >= 2) {
       TableNextColumn();
-      ImGui::Text("Main Palette");
+      ImGui::Text(ICON_MD_COLOR_LENS " Main Palette");
       TableNextColumn();
       if (gui::InputHexByte("##MainPal",
                             overworld_->mutable_overworld_map(current_map)
@@ -737,11 +814,14 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
         auto status = RefreshMapPalette();
         RefreshOverworldMap();
       }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Extended main palette (ZSCustomOverworld v2+)");
+      }
     }
 
     if (asm_version >= 3) {
       TableNextColumn();
-      ImGui::Text("Animated GFX");
+      ImGui::Text(ICON_MD_ANIMATION " Animated GFX");
       TableNextColumn();
       if (gui::InputHexByte("##AnimGfx",
                             overworld_->mutable_overworld_map(current_map)
@@ -750,9 +830,12 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
         RefreshMapProperties();
         RefreshOverworldMap();
       }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Animated tile graphics ID (water, lava, etc.)");
+      }
 
       TableNextColumn();
-      ImGui::Text("Subscreen Overlay");
+      ImGui::Text(ICON_MD_LAYERS " Subscreen Overlay");
       TableNextColumn();
       if (gui::InputHexWord("##SubOverlay",
                             overworld_->mutable_overworld_map(current_map)
@@ -761,6 +844,9 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
         RefreshMapProperties();
         RefreshOverworldMap();
       }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Visual effects overlay ID (fog, rain, backgrounds)");
+      }
     }
 
     ImGui::EndTable();
@@ -768,19 +854,17 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
 }
 
 void MapPropertiesSystem::DrawTileGraphicsTab(int current_map) {
-  ImGui::Text("Custom Tile Graphics (8 sheets per map):");
+  ImGui::Text(ICON_MD_GRID_VIEW " Custom Tile Graphics (8 sheets)");
   Separator();
 
-  if (BeginTable("TileGraphics", 4,
+  if (BeginTable("TileGraphics", 2,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
-    ImGui::TableSetupColumn("Sheet", ImGuiTableColumnFlags_WidthFixed, 60);
-    ImGui::TableSetupColumn("GFX ID", ImGuiTableColumnFlags_WidthFixed, 80);
-    ImGui::TableSetupColumn("Sheet", ImGuiTableColumnFlags_WidthFixed, 60);
-    ImGui::TableSetupColumn("GFX ID", ImGuiTableColumnFlags_WidthFixed, 80);
+    ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 180);
+    ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 8; i++) {
       TableNextColumn();
-      ImGui::Text("Sheet %d", i);
+      ImGui::Text(ICON_MD_LAYERS " Sheet %d", i);
       TableNextColumn();
       if (gui::InputHexByte(absl::StrFormat("##TileGfx%d", i).c_str(),
                             overworld_->mutable_overworld_map(current_map)
@@ -789,43 +873,41 @@ void MapPropertiesSystem::DrawTileGraphicsTab(int current_map) {
         RefreshMapProperties();
         RefreshOverworldMap();
       }
-
-      TableNextColumn();
-      ImGui::Text("Sheet %d", i + 4);
-      TableNextColumn();
-      if (gui::InputHexByte(absl::StrFormat("##TileGfx%d", i + 4).c_str(),
-                            overworld_->mutable_overworld_map(current_map)
-                                ->mutable_custom_tileset(i + 4),
-                            kInputFieldSize)) {
-        RefreshMapProperties();
-        RefreshOverworldMap();
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Custom graphics sheet %d (0x00-0xFF)", i);
       }
     }
 
     ImGui::EndTable();
   }
+  
+  Separator();
+  ImGui::TextWrapped("These 8 sheets allow custom tile graphics per map. "
+                     "Each sheet references a graphics ID loaded into VRAM.");
 }
 
 void MapPropertiesSystem::DrawMusicTab(int current_map) {
-  ImGui::Text("Music Settings for Different Game States:");
+  ImGui::Text(ICON_MD_MUSIC_NOTE " Music Settings for Game States");
   Separator();
 
   if (BeginTable("MusicSettings", 2,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
     ImGui::TableSetupColumn("Game State", ImGuiTableColumnFlags_WidthFixed,
-                            150);
+                            220);
     ImGui::TableSetupColumn("Music Track ID",
                             ImGuiTableColumnFlags_WidthStretch);
 
-    const char* music_state_names[] = {"Beginning (Pre-Zelda)", "Zelda Rescued",
-                                       "Master Sword Obtained",
-                                       "Agahnim Defeated"};
+    const char* music_state_names[] = {
+        ICON_MD_PLAY_ARROW " Beginning (Pre-Zelda)", 
+        ICON_MD_FAVORITE " Zelda Rescued",
+        ICON_MD_OFFLINE_BOLT " Master Sword Obtained",
+        ICON_MD_CASTLE " Agahnim Defeated"};
 
     const char* music_descriptions[] = {
-        "Music before rescuing Zelda",
+        "Music before rescuing Zelda from the castle",
         "Music after rescuing Zelda from Hyrule Castle",
-        "Music after obtaining the Master Sword",
-        "Music after defeating Agahnim (Dark World)"};
+        "Music after obtaining the Master Sword from the Lost Woods",
+        "Music after defeating Agahnim (Dark World music)"};
 
     for (int i = 0; i < 4; i++) {
       TableNextColumn();
@@ -870,30 +952,40 @@ void MapPropertiesSystem::DrawMusicTab(int current_map) {
   }
 
   Separator();
-  ImGui::Text("Music tracks control the background music for different");
-  ImGui::Text("game progression states on this overworld map.");
+  ImGui::TextWrapped("Music tracks control the background music for different "
+                     "game progression states on this overworld map.");
 
-  // Show common music track IDs for reference
+  // Show common music track IDs for reference in a collapsing section
   Separator();
-  ImGui::Text("Common Music Track IDs:");
-  ImGui::BulletText("0x02 - Overworld Theme");
-  ImGui::BulletText("0x05 - Kakariko Village");
-  ImGui::BulletText("0x07 - Lost Woods");
-  ImGui::BulletText("0x09 - Dark World Theme");
-  ImGui::BulletText("0x0F - Ganon's Tower");
-  ImGui::BulletText("0x11 - Death Mountain");
+  if (ImGui::CollapsingHeader(ICON_MD_HELP_OUTLINE " Common Music Track IDs", 
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::Indent();
+    ImGui::BulletText("0x02 - Overworld Theme");
+    ImGui::BulletText("0x05 - Kakariko Village");
+    ImGui::BulletText("0x07 - Lost Woods");
+    ImGui::BulletText("0x09 - Dark World Theme");
+    ImGui::BulletText("0x0F - Ganon's Tower");
+    ImGui::BulletText("0x11 - Death Mountain");
+    ImGui::Unindent();
+  }
 }
 
 void MapPropertiesSystem::RefreshMapProperties() {
-  // Implementation would refresh map properties
+  if (refresh_map_properties_) {
+    refresh_map_properties_();
+  }
 }
 
 void MapPropertiesSystem::RefreshOverworldMap() {
-  // Implementation would refresh the overworld map display
+  if (refresh_overworld_map_) {
+    refresh_overworld_map_();
+  }
 }
 
 absl::Status MapPropertiesSystem::RefreshMapPalette() {
-  // Implementation would refresh the map palette
+  if (refresh_map_palette_) {
+    return refresh_map_palette_();
+  }
   return absl::OkStatus();
 }
 
