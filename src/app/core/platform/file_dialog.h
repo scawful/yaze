@@ -56,6 +56,8 @@ std::string GetFileName(const std::string &filename);
 std::string LoadFile(const std::string &filename);
 std::string LoadConfigFile(const std::string &filename);
 std::string GetConfigDirectory();
+bool EnsureConfigDirectoryExists();
+std::string ExpandHomePath(const std::string& path);
 std::string GetResourcePath(const std::string &resource_path);
 void SaveFile(const std::string &filename, const std::string &data);
 

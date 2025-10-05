@@ -654,6 +654,18 @@ void AgentChatWidget::Draw() {
       ImGui::EndTabItem();
     }
     
+    // File Editor Tabs
+    if (ImGui::BeginTabItem(ICON_MD_EDIT_NOTE " Files")) {
+      RenderFileEditorTabs();
+      ImGui::EndTabItem();
+    }
+    
+    // System Prompt Editor Tab
+    if (ImGui::BeginTabItem(ICON_MD_SETTINGS_SUGGEST " System Prompt")) {
+      RenderSystemPromptEditor();
+      ImGui::EndTabItem();
+    }
+    
     ImGui::EndTabBar();
   }
   
@@ -1626,6 +1638,285 @@ void AgentChatWidget::HandleProposalReceived(
     toast_manager_->Show(ICON_MD_LIGHTBULB " New proposal received from collaborator",
                          ToastType::kInfo, 3.5f);
   }
+}
+
+void AgentChatWidget::RenderSystemPromptEditor() {
+  ImGui::BeginChild("SystemPromptEditor", ImVec2(0, 0), false);
+  
+  // Toolbar
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load Default")) {
+    // Load system_prompt_v2.txt
+    std::string prompt_path = core::GetConfigDirectory() + "/../assets/agent/system_prompt_v2.txt";
+    std::ifstream file(prompt_path);
+    if (file.is_open()) {
+      // Find or create system prompt tab
+      bool found = false;
+      for (auto& tab : open_files_) {
+        if (tab.is_system_prompt) {
+          std::stringstream buffer;
+          buffer << file.rdbuf();
+          tab.editor.SetText(buffer.str());
+          tab.filepath = prompt_path;
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        FileEditorTab tab;
+        tab.filename = "system_prompt_v2.txt";
+        tab.filepath = prompt_path;
+        tab.is_system_prompt = true;
+        tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        tab.editor.SetText(buffer.str());
+        open_files_.push_back(std::move(tab));
+        active_file_tab_ = static_cast<int>(open_files_.size()) - 1;
+      }
+      
+      if (toast_manager_) {
+        toast_manager_->Show("System prompt loaded", ToastType::kSuccess);
+      }
+    } else if (toast_manager_) {
+      toast_manager_->Show("Could not load system prompt file", ToastType::kError);
+    }
+  }
+  
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_SAVE " Save")) {
+    // Save the current system prompt
+    for (auto& tab : open_files_) {
+      if (tab.is_system_prompt && !tab.filepath.empty()) {
+        std::ofstream file(tab.filepath);
+        if (file.is_open()) {
+          file << tab.editor.GetText();
+          tab.modified = false;
+          if (toast_manager_) {
+            toast_manager_->Show("System prompt saved", ToastType::kSuccess);
+          }
+        } else if (toast_manager_) {
+          toast_manager_->Show("Failed to save system prompt", ToastType::kError);
+        }
+        break;
+      }
+    }
+  }
+  
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_NOTE_ADD " Create New")) {
+    CreateNewFileInEditor("system_prompt_custom.txt");
+    if (!open_files_.empty()) {
+      open_files_.back().is_system_prompt = true;
+      open_files_.back().editor.SetText("# Custom System Prompt\n\nEnter your custom system prompt here...\n");
+    }
+  }
+  
+  ImGui::Separator();
+  
+  // Find and render system prompt editor
+  bool found_prompt = false;
+  for (size_t i = 0; i < open_files_.size(); ++i) {
+    if (open_files_[i].is_system_prompt) {
+      found_prompt = true;
+      ImVec2 editor_size = ImVec2(0, ImGui::GetContentRegionAvail().y);
+      open_files_[i].editor.Render("##SystemPromptEditor", editor_size);
+      if (open_files_[i].editor.IsTextChanged()) {
+        open_files_[i].modified = true;
+      }
+      break;
+    }
+  }
+  
+  if (!found_prompt) {
+    ImGui::TextWrapped("No system prompt loaded. Click 'Load Default' to edit the system prompt.");
+  }
+  
+  ImGui::EndChild();
+}
+
+void AgentChatWidget::RenderFileEditorTabs() {
+  ImGui::BeginChild("FileEditorArea", ImVec2(0, 0), false);
+  
+  // Toolbar
+  if (ImGui::Button(ICON_MD_NOTE_ADD " New File")) {
+    ImGui::OpenPopup("NewFilePopup");
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open File")) {
+    auto filepath = core::FileDialogWrapper::ShowOpenFileDialog();
+    if (!filepath.empty()) {
+      OpenFileInEditor(filepath);
+    }
+  }
+  
+  // New file popup
+  static char new_filename_buffer[256] = {};
+  if (ImGui::BeginPopup("NewFilePopup")) {
+    ImGui::Text("Create New File");
+    ImGui::Separator();
+    ImGui::InputText("Filename", new_filename_buffer, sizeof(new_filename_buffer));
+    if (ImGui::Button("Create")) {
+      if (strlen(new_filename_buffer) > 0) {
+        CreateNewFileInEditor(new_filename_buffer);
+        memset(new_filename_buffer, 0, sizeof(new_filename_buffer));
+        ImGui::CloseCurrentPopup();
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel")) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+  
+  ImGui::Separator();
+  
+  // File tabs
+  if (!open_files_.empty()) {
+    if (ImGui::BeginTabBar("FileTabs", ImGuiTabBarFlags_Reorderable | 
+                                       ImGuiTabBarFlags_FittingPolicyScroll)) {
+      for (size_t i = 0; i < open_files_.size(); ++i) {
+        if (open_files_[i].is_system_prompt) continue;  // Skip system prompt in file tabs
+        
+        bool open = true;
+        std::string tab_label = open_files_[i].filename;
+        if (open_files_[i].modified) {
+          tab_label += " *";
+        }
+        
+        if (ImGui::BeginTabItem(tab_label.c_str(), &open)) {
+          active_file_tab_ = static_cast<int>(i);
+          
+          // File toolbar
+          if (ImGui::Button(ICON_MD_SAVE " Save")) {
+            if (!open_files_[i].filepath.empty()) {
+              std::ofstream file(open_files_[i].filepath);
+              if (file.is_open()) {
+                file << open_files_[i].editor.GetText();
+                open_files_[i].modified = false;
+                if (toast_manager_) {
+                  toast_manager_->Show("File saved", ToastType::kSuccess);
+                }
+              } else if (toast_manager_) {
+                toast_manager_->Show("Failed to save file", ToastType::kError);
+              }
+            } else {
+              auto save_path = core::FileDialogWrapper::ShowSaveFileDialog(
+                  open_files_[i].filename, "");
+              if (!save_path.empty()) {
+                std::ofstream file(save_path);
+                if (file.is_open()) {
+                  file << open_files_[i].editor.GetText();
+                  open_files_[i].filepath = save_path;
+                  open_files_[i].modified = false;
+                  if (toast_manager_) {
+                    toast_manager_->Show("File saved", ToastType::kSuccess);
+                  }
+                }
+              }
+            }
+          }
+          
+          ImGui::SameLine();
+          ImGui::TextDisabled("%s", open_files_[i].filepath.empty() ? 
+                             "(unsaved)" : open_files_[i].filepath.c_str());
+          
+          ImGui::Separator();
+          
+          // Editor
+          ImVec2 editor_size = ImVec2(0, ImGui::GetContentRegionAvail().y);
+          open_files_[i].editor.Render("##FileEditor", editor_size);
+          if (open_files_[i].editor.IsTextChanged()) {
+            open_files_[i].modified = true;
+          }
+          
+          ImGui::EndTabItem();
+        }
+        
+        if (!open) {
+          // Tab was closed
+          open_files_.erase(open_files_.begin() + i);
+          if (active_file_tab_ >= static_cast<int>(i)) {
+            active_file_tab_--;
+          }
+          break;
+        }
+      }
+      ImGui::EndTabBar();
+    }
+  } else {
+    ImGui::TextWrapped("No files open. Create a new file or open an existing one.");
+  }
+  
+  ImGui::EndChild();
+}
+
+void AgentChatWidget::OpenFileInEditor(const std::string& filepath) {
+  // Check if file is already open
+  for (size_t i = 0; i < open_files_.size(); ++i) {
+    if (open_files_[i].filepath == filepath) {
+      active_file_tab_ = static_cast<int>(i);
+      return;
+    }
+  }
+  
+  // Load the file
+  std::ifstream file(filepath);
+  if (!file.is_open()) {
+    if (toast_manager_) {
+      toast_manager_->Show("Could not open file", ToastType::kError);
+    }
+    return;
+  }
+  
+  FileEditorTab tab;
+  tab.filepath = filepath;
+  
+  // Extract filename from path
+  size_t last_slash = filepath.find_last_of("/\\");
+  tab.filename = (last_slash != std::string::npos) ? 
+                 filepath.substr(last_slash + 1) : filepath;
+  
+  // Set language based on extension
+  std::string ext = core::GetFileExtension(filepath);
+  if (ext == "cpp" || ext == "cc" || ext == "h" || ext == "hpp") {
+    tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
+  } else if (ext == "c") {
+    tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::C());
+  } else if (ext == "lua") {
+    tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::Lua());
+  }
+  
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+  tab.editor.SetText(buffer.str());
+  
+  open_files_.push_back(std::move(tab));
+  active_file_tab_ = static_cast<int>(open_files_.size()) - 1;
+  
+  if (toast_manager_) {
+    toast_manager_->Show("File loaded", ToastType::kSuccess);
+  }
+}
+
+void AgentChatWidget::CreateNewFileInEditor(const std::string& filename) {
+  FileEditorTab tab;
+  tab.filename = filename;
+  tab.modified = true;
+  
+  // Set language based on extension
+  std::string ext = core::GetFileExtension(filename);
+  if (ext == "cpp" || ext == "cc" || ext == "h" || ext == "hpp") {
+    tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
+  } else if (ext == "c") {
+    tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::C());
+  } else if (ext == "lua") {
+    tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::Lua());
+  }
+  
+  open_files_.push_back(std::move(tab));
+  active_file_tab_ = static_cast<int>(open_files_.size()) - 1;
 }
 
 }  // namespace editor

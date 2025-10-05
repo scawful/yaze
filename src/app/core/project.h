@@ -2,8 +2,6 @@
 #define YAZE_APP_CORE_PROJECT_H
 
 #include <algorithm>
-#include <chrono>
-#include <fstream>
 #include <map>
 #include <string>
 #include <vector>
@@ -112,6 +110,20 @@ struct YazeProject {
   // Version control integration
   std::string git_repository;
   bool track_changes = true;
+  
+  // AI Agent Settings
+  struct AgentSettings {
+    std::string ai_provider = "auto";  // auto, gemini, ollama, mock
+    std::string ai_model;              // e.g., "gemini-2.0-flash-exp", "llama3:latest"
+    std::string ollama_host = "http://localhost:11434";
+    std::string gemini_api_key;        // Optional, can use env var
+    std::string custom_system_prompt;  // Path to custom prompt (relative to project)
+    bool use_custom_prompt = false;
+    bool show_reasoning = true;
+    bool verbose = false;
+    int max_tool_iterations = 4;
+    int max_retry_attempts = 3;
+  } agent_settings;
   
   // ZScream compatibility (for importing existing projects)
   std::string zscream_project_file; // Path to original .zsproj if importing
@@ -228,49 +240,50 @@ const std::string kRecentFilesFilename = "recent_files.txt";
 
 class RecentFilesManager {
  public:
-  RecentFilesManager() : RecentFilesManager(kRecentFilesFilename) {}
-  RecentFilesManager(const std::string& filename) : filename_(filename) {}
+  // Singleton pattern - get the global instance
+  static RecentFilesManager& GetInstance() {
+    static RecentFilesManager instance;
+    return instance;
+  }
+
+  // Delete copy constructor and assignment operator
+  RecentFilesManager(const RecentFilesManager&) = delete;
+  RecentFilesManager& operator=(const RecentFilesManager&) = delete;
 
   void AddFile(const std::string& file_path) {
     // Add a file to the list, avoiding duplicates
+    // Move to front if already exists (MRU - Most Recently Used)
     auto it = std::find(recent_files_.begin(), recent_files_.end(), file_path);
-    if (it == recent_files_.end()) {
-      recent_files_.push_back(file_path);
+    if (it != recent_files_.end()) {
+      recent_files_.erase(it);
+    }
+    recent_files_.insert(recent_files_.begin(), file_path);
+    
+    // Limit to 20 most recent files
+    if (recent_files_.size() > 20) {
+      recent_files_.resize(20);
     }
   }
 
-  void Save() {
-    std::ofstream file(filename_);
-    if (!file.is_open()) {
-      return;  // Handle the error appropriately
-    }
+  void Save();
 
-    for (const auto& file_path : recent_files_) {
-      file << file_path << std::endl;
-    }
-  }
-
-  void Load() {
-    std::ifstream file(filename_);
-    if (!file.is_open()) {
-      return;
-    }
-
-    recent_files_.clear();
-    std::string line;
-    while (std::getline(file, line)) {
-      if (!line.empty()) {
-        recent_files_.push_back(line);
-      }
-    }
-  }
+  void Load();
 
   const std::vector<std::string>& GetRecentFiles() const {
     return recent_files_;
   }
 
+  void Clear() {
+    recent_files_.clear();
+  }
+
  private:
-  std::string filename_;
+  RecentFilesManager() {
+    Load();  // Load on construction
+  }
+  
+  std::string GetFilePath() const;
+  
   std::vector<std::string> recent_files_;
 };
 

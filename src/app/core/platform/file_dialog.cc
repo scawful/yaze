@@ -7,8 +7,10 @@
 #else  // Linux and MacOS
 #include <dirent.h>
 #include <sys/stat.h>
+#include <cerrno>
 #endif
 
+#include <cstdlib>
 #include <fstream>
 #include <sstream>
 #include <cstring>
@@ -84,6 +86,70 @@ std::string GetResourcePath(const std::string &resource_path) {
 #endif
 }
 
+std::string ExpandHomePath(const std::string& path) {
+  if (path.empty() || path[0] != '~') {
+    return path;
+  }
+  
+  const char* home = nullptr;
+#ifdef _WIN32
+  home = std::getenv("USERPROFILE");
+  if (!home) {
+    home = std::getenv("HOMEDRIVE");
+    const char* homePath = std::getenv("HOMEPATH");
+    if (home && homePath) {
+      static std::string full_path;
+      full_path = std::string(home) + std::string(homePath);
+      home = full_path.c_str();
+    }
+  }
+#else
+  home = std::getenv("HOME");
+#endif
+  
+  if (!home) {
+    return path; // Fallback to original path if HOME not found
+  }
+  
+  // Replace ~ with home directory
+  if (path.size() == 1 || path[1] == '/') {
+    return std::string(home) + path.substr(1);
+  }
+  
+  return path;
+}
+
+bool EnsureConfigDirectoryExists() {
+  std::string config_dir = GetConfigDirectory();
+  
+#ifdef _WIN32
+  // Windows directory creation
+  DWORD attr = GetFileAttributesA(config_dir.c_str());
+  if (attr == INVALID_FILE_ATTRIBUTES) {
+    // Directory doesn't exist, create it
+    if (!CreateDirectoryA(config_dir.c_str(), NULL)) {
+      DWORD error = GetLastError();
+      if (error != ERROR_ALREADY_EXISTS) {
+        return false;
+      }
+    }
+  }
+#else
+  // Unix-like directory creation
+  struct stat st;
+  if (stat(config_dir.c_str(), &st) != 0) {
+    // Directory doesn't exist, create it with 0755 permissions
+    if (mkdir(config_dir.c_str(), 0755) != 0) {
+      if (errno != EEXIST) {
+        return false;
+      }
+    }
+  }
+#endif
+  
+  return true;
+}
+
 std::string GetConfigDirectory() {
   std::string config_directory = ".yaze";
   Platform platform;
@@ -113,7 +179,8 @@ std::string GetConfigDirectory() {
     default:
       break;
   }
-  return config_directory;
+  // Expand the home directory path
+  return ExpandHomePath(config_directory);
 }
 
 #ifdef _WIN32
