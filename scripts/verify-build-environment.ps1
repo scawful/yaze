@@ -82,8 +82,36 @@ function Test-GitSubmodules {
     return $allPresent
 }
 
+function Test-Vcpkg {
+    $vcpkgPath = Join-Path $PSScriptRoot ".." "vcpkg"
+    $vcpkgExe = Join-Path $vcpkgPath "vcpkg.exe"
+    
+    if (Test-Path $vcpkgPath) {
+        if (Test-Path $vcpkgExe) {
+            Write-Status "vcpkg found and bootstrapped" "Success"
+            $script:success += "vcpkg available for dependency management"
+            
+            try {
+                $vcpkgVersion = & $vcpkgExe version 2>&1 | Select-Object -First 1
+                Write-Status "vcpkg version: $vcpkgVersion" "Info"
+            } catch {
+                Write-Status "vcpkg executable found but version check failed" "Warning"
+            }
+            return $true
+        } else {
+            Write-Status "vcpkg directory exists but not bootstrapped" "Warning"
+            $script:warnings += "vcpkg not bootstrapped - run: vcpkg\bootstrap-vcpkg.bat"
+            return $false
+        }
+    } else {
+        Write-Status "vcpkg not found (required for Windows builds)" "Error"
+        $script:issuesFound += "vcpkg not installed - run: git clone https://github.com/microsoft/vcpkg.git && vcpkg\bootstrap-vcpkg.bat"
+        return $false
+    }
+}
+
 function Test-CMakeCache {
-    $buildDirs = @("build", "build_test", "build-grpc-test", "out/build")
+    $buildDirs = @("build", "build-windows", "build-test", "build-grpc-test", "out/build")
     $cacheIssues = $false
     
     foreach ($dir in $buildDirs) {
@@ -389,7 +417,11 @@ if (Test-Path $vswhere) {
     $script:warnings += "Could not detect Visual Studio installation"
 }
 
-# Step 4: Check Git Submodules
+# Step 4: Check vcpkg
+Write-Status "Checking vcpkg availability..." "Step"
+Test-Vcpkg | Out-Null
+
+# Step 5: Check Git Submodules
 Write-Status "Checking git submodules..." "Step"
 $submodulesOk = Test-GitSubmodules
 if ($submodulesOk) {

@@ -112,7 +112,7 @@ function test_git_submodules() {
 }
 
 function test_cmake_cache() {
-    local build_dirs=("build" "build_test" "build-grpc-test" "build_rooms")
+    local build_dirs=("build" "build-test" "build-grpc-test" "build-rooms" "build-windows")
     local cache_issues=0
     
     for dir in "${build_dirs[@]}"; do
@@ -189,7 +189,7 @@ function test_agent_folder_structure() {
 function clean_cmake_cache() {
     write_status "Cleaning CMake cache and build directories..." "Step"
     
-    local build_dirs=("build" "build_test" "build-grpc-test" "build_rooms")
+    local build_dirs=("build" "build-test" "build-grpc-test" "build-rooms" "build-windows")
     local cleaned=0
     
     for dir in "${build_dirs[@]}"; do
@@ -359,10 +359,31 @@ else
     fi
 fi
 
-# Step 7: Check Dependencies
+# Step 7: Check vcpkg (Windows-specific but important)
+write_status "Checking vcpkg availability..." "Step"
+if [[ -d "vcpkg" ]]; then
+    if [[ -f "vcpkg/vcpkg" ]] || [[ -f "vcpkg/vcpkg.exe" ]]; then
+        write_status "vcpkg found and bootstrapped" "Success"
+        SUCCESS+=("vcpkg available for dependency management")
+        
+        # Check vcpkg version if possible
+        if [[ -x "vcpkg/vcpkg" ]]; then
+            vcpkg_version=$(./vcpkg/vcpkg version 2>/dev/null | head -n1 || echo "unknown")
+            write_status "vcpkg version: $vcpkg_version" "Info"
+        fi
+    else
+        write_status "vcpkg directory exists but not bootstrapped" "Warning"
+        WARNINGS+=("vcpkg not bootstrapped - run: cd vcpkg && ./bootstrap-vcpkg.sh")
+    fi
+else
+    write_status "vcpkg not found (optional, required for Windows)" "Info"
+    write_status "To install: git clone https://github.com/microsoft/vcpkg.git && vcpkg/bootstrap-vcpkg.sh" "Info"
+fi
+
+# Step 8: Check Dependencies
 test_dependency_compatibility
 
-# Step 8: Check Agent Folder Structure
+# Step 9: Check Agent Folder Structure
 if test_agent_folder_structure; then
     : # Structure is OK
 else
