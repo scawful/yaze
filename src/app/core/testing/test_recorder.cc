@@ -152,7 +152,7 @@ absl::StatusOr<TestRecorder::StopRecordingSummary> TestRecorder::StopLocked(
       script_step.region = step.region;
       script_step.format = step.format;
       script_step.expect_success = step.success;
-      script_step.expect_status = HarnessStatusToString(step.final_status);
+      script_step.expect_status = ::yaze::test::HarnessStatusToString(step.final_status);
       if (!step.final_error_message.empty()) {
         script_step.expect_message = step.final_error_message;
       } else {

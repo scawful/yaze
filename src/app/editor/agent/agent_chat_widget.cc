@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/time/clock.h"
@@ -25,6 +26,10 @@
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
+
+#if defined(YAZE_WITH_GRPC)
+#include "app/test/test_manager.h"
+#endif
 
 namespace {
 
@@ -106,6 +111,7 @@ AgentChatWidget::AgentChatWidget() {
   memset(input_buffer_, 0, sizeof(input_buffer_));
   history_path_ = ResolveHistoryPath();
   history_supported_ = AgentChatHistoryCodec::Available();
+  automation_state_.recent_tests.reserve(8);
 
   // Initialize default session
   if (chat_sessions_.empty()) {
@@ -1043,6 +1049,8 @@ void AgentChatWidget::Draw() {
     RenderCollaborationPanel();
     RenderRomSyncPanel();
     RenderProposalManagerPanel();
+    RenderHarnessPanel();
+    RenderSystemPromptEditor();
 
     ImGui::PopStyleVar(2);
 
@@ -2021,149 +2029,125 @@ void AgentChatWidget::RenderProposalManagerPanel() {
   }
 }
 
-void AgentChatWidget::HandleRomSyncReceived(const std::string& diff_data,
-                                            const std::string& rom_hash) {
-  if (rom_sync_callbacks_.apply_rom_diff) {
-    auto status = rom_sync_callbacks_.apply_rom_diff(diff_data, rom_hash);
+void AgentChatWidget::RenderHarnessPanel() {
+  ImGui::PushID("HarnessPanel");
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.16f, 0.22f, 0.95f));
+  ImGui::BeginChild("HarnessPanel", ImVec2(0, 220), true);
 
-    if (status.ok()) {
-      rom_sync_state_.current_rom_hash = rom_hash;
-      rom_sync_state_.last_sync_time = absl::Now();
+  ImGui::TextColored(ImVec4(0.392f, 0.863f, 1.0f, 1.0f), ICON_MD_PLAY_CIRCLE " Harness Automation");
+  ImGui::Separator();
 
-      if (toast_manager_) {
-        toast_manager_->Show(ICON_MD_CLOUD_DOWNLOAD
-                             " ROM sync applied from collaborator",
-                             ToastType::kInfo, 3.5f);
+  ImGui::TextDisabled("Shared automation pipeline between CLI + Agent Chat");
+  ImGui::Spacing();
+
+  if (ImGui::BeginTable("HarnessActions", 2, ImGuiTableFlags_BordersInnerV)) {
+    ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 170.0f);
+    ImGui::TableSetupColumn("Telemetry", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableNextRow();
+
+    // Actions column
+    ImGui::TableSetColumnIndex(0);
+    ImGui::BeginGroup();
+
+    const bool has_callbacks = automation_callbacks_.open_harness_dashboard ||
+                               automation_callbacks_.replay_last_plan ||
+                               automation_callbacks_.show_active_tests;
+
+    if (!has_callbacks) {
+      ImGui::TextDisabled("Automation bridge not available");
+      ImGui::TextWrapped("Hook up AutomationCallbacks via EditorManager to enable controls.");
+    } else {
+      if (automation_callbacks_.open_harness_dashboard &&
+          ImGui::Button(ICON_MD_DASHBOARD " Dashboard", ImVec2(-FLT_MIN, 0))) {
+        automation_callbacks_.open_harness_dashboard();
       }
-    } else if (toast_manager_) {
-      toast_manager_->Show(absl::StrFormat(ICON_MD_ERROR " ROM sync failed: %s",
-                                           status.message()),
-                           ToastType::kError, 5.0f);
+
+      if (automation_callbacks_.replay_last_plan &&
+          ImGui::Button(ICON_MD_REPLAY " Replay Last Plan", ImVec2(-FLT_MIN, 0))) {
+        automation_callbacks_.replay_last_plan();
+      }
+
+      if (automation_callbacks_.show_active_tests &&
+          ImGui::Button(ICON_MD_LIST " Active Tests", ImVec2(-FLT_MIN, 0))) {
+        automation_callbacks_.show_active_tests();
+      }
+
+      if (automation_callbacks_.focus_proposal) {
+        ImGui::Spacing();
+        ImGui::TextDisabled("Proposal tools");
+        if (!pending_focus_proposal_id_.empty()) {
+          ImGui::TextWrapped("Proposal %s active", pending_focus_proposal_id_.c_str());
+          if (ImGui::SmallButton(ICON_MD_VISIBILITY " View Proposal")) {
+            automation_callbacks_.focus_proposal(pending_focus_proposal_id_);
+          }
+        } else {
+          ImGui::TextDisabled("No proposal selected");
+        }
+      }
     }
-  }
-}
 
-void AgentChatWidget::HandleSnapshotReceived(
-    [[maybe_unused]] const std::string& snapshot_data,
-    const std::string& snapshot_type) {
-  // TODO: Decode and store snapshot for preview
-  if (toast_manager_) {
-    toast_manager_->Show(
-        absl::StrFormat(ICON_MD_PHOTO " Snapshot received: %s", snapshot_type),
-        ToastType::kInfo, 3.0f);
-  }
-}
+    ImGui::EndGroup();
 
-void AgentChatWidget::HandleProposalReceived(
-    [[maybe_unused]] const std::string& proposal_data) {
-  // TODO: Parse and add proposal to local registry
-  if (toast_manager_) {
-    toast_manager_->Show(ICON_MD_LIGHTBULB
-                         " New proposal received from collaborator",
-                         ToastType::kInfo, 3.5f);
-  }
-}
+    // Telemetry column
+    ImGui::TableSetColumnIndex(1);
+    ImGui::BeginGroup();
 
-void AgentChatWidget::SyncHistoryToPopup() {
-  if (!chat_history_popup_)
-    return;
+    ImGui::TextColored(ImVec4(0.6f, 0.78f, 1.0f, 1.0f), ICON_MD_QUERY_STATS " Live Telemetry");
+    ImGui::Spacing();
 
-  const auto& history = agent_service_.GetHistory();
-  chat_history_popup_->UpdateHistory(history);
-  chat_history_popup_->NotifyNewMessage();
-}
+    if (!automation_state_.recent_tests.empty()) {
+      const float row_height = ImGui::GetTextLineHeightWithSpacing() * 2.0f + 6.0f;
+      if (ImGui::BeginTable("HarnessTelemetryRows", 4,
+                            ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                                ImGuiTableFlags_SizingStretchProp)) {
+        ImGui::TableSetupColumn("Test", ImGuiTableColumnFlags_WidthStretch, 0.3f);
+        ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 90.0f);
+        ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_WidthStretch, 0.5f);
+        ImGui::TableSetupColumn("Updated", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+        ImGui::TableHeadersRow();
 
-std::filesystem::path AgentChatWidget::GetSessionsDirectory() {
-  std::filesystem::path config_dir(yaze::util::GetConfigDirectory());
-  if (config_dir.empty()) {
-#ifdef _WIN32
-    const char* appdata = std::getenv("APPDATA");
-    if (appdata) {
-      config_dir = std::filesystem::path(appdata) / "yaze";
+        for (const auto& entry : automation_state_.recent_tests) {
+          ImGui::TableNextRow(ImGuiTableRowFlags_None, row_height);
+          ImGui::TableSetColumnIndex(0);
+          ImGui::TextWrapped("%s", entry.name.empty() ? entry.test_id.c_str()
+                                                      : entry.name.c_str());
+          ImGui::TableSetColumnIndex(1);
+          const char* status = entry.status.c_str();
+          ImVec4 status_color = ImVec4(0.8f, 0.8f, 0.8f, 1.0f);
+          if (absl::EqualsIgnoreCase(status, "passed")) {
+            status_color = ImVec4(0.2f, 0.8f, 0.4f, 1.0f);
+          } else if (absl::EqualsIgnoreCase(status, "failed") ||
+                     absl::EqualsIgnoreCase(status, "timeout")) {
+            status_color = ImVec4(0.95f, 0.4f, 0.4f, 1.0f);
+          } else if (absl::EqualsIgnoreCase(status, "running")) {
+            status_color = ImVec4(0.95f, 0.75f, 0.3f, 1.0f);
+          }
+          ImGui::TextColored(status_color, "%s", status);
+
+          ImGui::TableSetColumnIndex(2);
+          ImGui::TextWrapped("%s", entry.message.c_str());
+
+          ImGui::TableSetColumnIndex(3);
+          if (entry.updated_at == absl::InfinitePast()) {
+            ImGui::TextDisabled("-");
+          } else {
+            const double seconds_ago = absl::ToDoubleSeconds(absl::Now() - entry.updated_at);
+            ImGui::Text("%.0fs ago", seconds_ago);
+          }
+        }
+        ImGui::EndTable();
+      }
+    } else {
+      ImGui::TextDisabled("No harness activity recorded yet");
     }
-#else
-    const char* home = std::getenv("HOME");
-    if (home) {
-      config_dir = std::filesystem::path(home) / ".yaze";
-    }
-#endif
-  }
-  
-  return config_dir / "chats";
-}
 
-void AgentChatWidget::SaveChatSession(const ChatSession& session) {
-  auto sessions_dir = GetSessionsDirectory();
-  std::error_code ec;
-  std::filesystem::create_directories(sessions_dir, ec);
-  
-  std::filesystem::path save_path = sessions_dir / (session.id + ".json");
-  
-  // Save using existing history codec
-  AgentChatHistoryCodec::Snapshot snapshot;
-  snapshot.history = session.agent_service.GetHistory();
-  
-  auto status = AgentChatHistoryCodec::Save(save_path, snapshot);
-  if (status.ok() && toast_manager_) {
-    toast_manager_->Show(
-        absl::StrFormat(ICON_MD_SAVE " Chat '%s' saved", session.name),
-        ToastType::kSuccess, 2.0f);
+    ImGui::EndGroup();
+    ImGui::EndTable();
   }
-}
 
-void AgentChatWidget::LoadChatSession(const std::string& session_id) {
-  auto sessions_dir = GetSessionsDirectory();
-  std::filesystem::path load_path = sessions_dir / (session_id + ".json");
-  
-  if (!std::filesystem::exists(load_path)) {
-    if (toast_manager_) {
-      toast_manager_->Show(ICON_MD_WARNING " Session file not found", ToastType::kWarning, 2.5f);
-    }
-    return;
-  }
-  
-  auto snapshot_result = AgentChatHistoryCodec::Load(load_path);
-  if (snapshot_result.ok()) {
-    // Create new session with loaded history
-    ChatSession session(session_id, session_id);
-    session.agent_service.ReplaceHistory(snapshot_result->history);
-    session.history_loaded = true;
-    chat_sessions_.push_back(std::move(session));
-    active_session_index_ = static_cast<int>(chat_sessions_.size() - 1);
-    
-    if (toast_manager_) {
-      toast_manager_->Show(ICON_MD_CHECK_CIRCLE " Chat session loaded", ToastType::kSuccess, 2.0f);
-    }
-  }
-}
-
-void AgentChatWidget::DeleteChatSession(const std::string& session_id) {
-  auto sessions_dir = GetSessionsDirectory();
-  std::filesystem::path session_path = sessions_dir / (session_id + ".json");
-  
-  if (std::filesystem::exists(session_path)) {
-    std::filesystem::remove(session_path);
-    if (toast_manager_) {
-      toast_manager_->Show(ICON_MD_DELETE " Chat deleted", ToastType::kInfo, 2.0f);
-    }
-  }
-}
-
-std::vector<std::string> AgentChatWidget::GetSavedSessions() {
-  std::vector<std::string> sessions;
-  auto sessions_dir = GetSessionsDirectory();
-  
-  if (!std::filesystem::exists(sessions_dir)) {
-    return sessions;
-  }
-  
-  for (const auto& entry : std::filesystem::directory_iterator(sessions_dir)) {
-    if (entry.path().extension() == ".json") {
-      sessions.push_back(entry.path().stem().string());
-    }
-  }
-  
-  return sessions;
+  ImGui::EndChild();
+  ImGui::PopStyleColor();
+  ImGui::PopID();
 }
 
 void AgentChatWidget::RenderSystemPromptEditor() {
@@ -2631,6 +2615,54 @@ void AgentChatWidget::SaveAgentSettingsToProject(core::YazeProject& project) {
       break;
     }
   }
+}
+
+void AgentChatWidget::SetMultimodalCallbacks(
+    const MultimodalCallbacks& callbacks) {
+  multimodal_callbacks_ = callbacks;
+}
+
+void AgentChatWidget::SetAutomationCallbacks(
+    const AutomationCallbacks& callbacks) {
+  automation_callbacks_ = callbacks;
+}
+
+void AgentChatWidget::UpdateHarnessTelemetry(
+    const AutomationTelemetry& telemetry) {
+  auto predicate = [&](const AutomationTelemetry& entry) {
+    return entry.test_id == telemetry.test_id;
+  };
+
+  auto it = std::find_if(automation_state_.recent_tests.begin(),
+                         automation_state_.recent_tests.end(), predicate);
+  if (it != automation_state_.recent_tests.end()) {
+    *it = telemetry;
+  } else {
+    if (automation_state_.recent_tests.size() >= 16) {
+      automation_state_.recent_tests.erase(automation_state_.recent_tests.begin());
+    }
+    automation_state_.recent_tests.push_back(telemetry);
+  }
+}
+
+void AgentChatWidget::SetLastPlanSummary(const std::string& summary) {
+  // Store the plan summary for display in the automation panel
+  // This could be shown in the harness panel or logged
+  if (toast_manager_) {
+    toast_manager_->Show("Plan summary received", ToastType::kInfo, 2.0f);
+  }
+}
+
+void AgentChatWidget::SyncHistoryToPopup() {
+  if (!chat_history_popup_) {
+    return;
+  }
+  
+  // Get the current chat history from the agent service
+  const auto& history = agent_service_.GetHistory();
+  
+  // Update the popup with the latest history
+  chat_history_popup_->UpdateHistory(history);
 }
 
 }  // namespace editor

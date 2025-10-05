@@ -1685,7 +1685,7 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
 
     if (!step.expect_status.empty()) {
       HarnessTestStatus expected_status =
-          HarnessStatusFromString(step.expect_status);
+      ::yaze::test::HarnessStatusFromString(step.expect_status);
       if (!have_execution) {
         expectations_met = false;
         if (!expectation_error.empty()) {
@@ -1700,10 +1700,10 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
         }
         expectation_error.append(absl::StrFormat(
             "Expected status %s but observed %s",
-            step.expect_status, HarnessStatusToString(execution.status)));
+            step.expect_status, ::yaze::test::HarnessStatusToString(execution.status)));
       }
       if (have_execution) {
-        assertion->set_actual_value(HarnessStatusToString(execution.status));
+        assertion->set_actual_value(::yaze::test::HarnessStatusToString(execution.status));
         assertion->set_expected_value(step.expect_status);
       }
     }

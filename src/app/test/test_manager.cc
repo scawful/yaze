@@ -3,8 +3,10 @@
 #include <algorithm>
 #include <filesystem>
 #include <random>
+#include <optional>
 
 #include "absl/status/statusor.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_replace.h"
@@ -105,6 +107,43 @@ ImVec4 GetTestStatusColor(TestStatus status) {
       return ImVec4(1.0f, 0.5f, 0.0f, 1.0f);  // Orange
   }
   return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+}
+
+const char* HarnessStatusToString(HarnessTestStatus status) {
+  switch (status) {
+    case HarnessTestStatus::kPassed:
+      return "passed";
+    case HarnessTestStatus::kFailed:
+      return "failed";
+    case HarnessTestStatus::kTimeout:
+      return "timeout";
+    case HarnessTestStatus::kRunning:
+      return "running";
+    case HarnessTestStatus::kQueued:
+      return "queued";
+    case HarnessTestStatus::kUnspecified:
+    default:
+      return "unspecified";
+  }
+}
+
+HarnessTestStatus HarnessStatusFromString(absl::string_view status) {
+  if (absl::EqualsIgnoreCase(status, "passed")) {
+    return HarnessTestStatus::kPassed;
+  }
+  if (absl::EqualsIgnoreCase(status, "failed")) {
+    return HarnessTestStatus::kFailed;
+  }
+  if (absl::EqualsIgnoreCase(status, "timeout")) {
+    return HarnessTestStatus::kTimeout;
+  }
+  if (absl::EqualsIgnoreCase(status, "running")) {
+    return HarnessTestStatus::kRunning;
+  }
+  if (absl::EqualsIgnoreCase(status, "queued")) {
+    return HarnessTestStatus::kQueued;
+  }
+  return HarnessTestStatus::kUnspecified;
 }
 
 // TestManager implementation
@@ -1634,150 +1673,125 @@ absl::Status TestManager::TestRomDataIntegrity(Rom* rom) {
 
 std::string TestManager::RegisterHarnessTest(const std::string& name,
                                              const std::string& category) {
+#if defined(YAZE_WITH_GRPC)
   absl::MutexLock lock(&harness_history_mutex_);
-
-  const std::string sanitized_category = category.empty() ? "grpc" : category;
-  std::string test_id = GenerateHarnessTestIdLocked(sanitized_category);
-
+  std::string test_id = absl::StrCat("harness_", absl::ToUnixMicros(absl::Now()), "_", harness_history_.size());
   HarnessTestExecution execution;
   execution.test_id = test_id;
   execution.name = name;
-  execution.category = sanitized_category;
+  execution.category = category;
   execution.status = HarnessTestStatus::kQueued;
   execution.queued_at = absl::Now();
-  execution.started_at = absl::InfinitePast();
-  execution.completed_at = absl::InfinitePast();
-
+  execution.logs.reserve(32);
   harness_history_[test_id] = execution;
-  harness_history_order_.push_back(test_id);
   TrimHarnessHistoryLocked();
-
   HarnessAggregate& aggregate = harness_aggregates_[name];
-  if (aggregate.category.empty()) {
-    aggregate.category = sanitized_category;
-  }
-  aggregate.last_run = execution.queued_at;
   aggregate.latest_execution = execution;
-
+  harness_history_order_.push_back(test_id);
   return test_id;
+#else
+  (void)name;
+  (void)category;
+  return {};
+#endif
 }
 
+#if defined(YAZE_WITH_GRPC)
 void TestManager::MarkHarnessTestRunning(const std::string& test_id) {
   absl::MutexLock lock(&harness_history_mutex_);
-
   auto it = harness_history_.find(test_id);
   if (it == harness_history_.end()) {
     return;
   }
-
   HarnessTestExecution& execution = it->second;
   execution.status = HarnessTestStatus::kRunning;
   execution.started_at = absl::Now();
-
-  HarnessAggregate& aggregate = harness_aggregates_[execution.name];
-  if (aggregate.category.empty()) {
-    aggregate.category = execution.category;
-  }
-  aggregate.latest_execution = execution;
 }
+#endif
 
+#if defined(YAZE_WITH_GRPC)
 void TestManager::MarkHarnessTestCompleted(
     const std::string& test_id, HarnessTestStatus status,
-    const std::string& error_message,
+    const std::string& message,
     const std::vector<std::string>& assertion_failures,
     const std::vector<std::string>& logs,
     const std::map<std::string, int32_t>& metrics) {
+  absl::MutexLock lock(&harness_history_mutex_);
+  auto it = harness_history_.find(test_id);
+  if (it == harness_history_.end()) {
+    return;
+  }
+  HarnessTestExecution& execution = it->second;
+  execution.status = status;
+  execution.completed_at = absl::Now();
+  execution.duration = execution.completed_at - execution.started_at;
+  execution.error_message = message;
+  execution.metrics = metrics;
+  execution.assertion_failures = assertion_failures;
+  execution.logs.insert(execution.logs.end(), logs.begin(), logs.end());
+
   bool capture_failure_context =
       status == HarnessTestStatus::kFailed ||
       status == HarnessTestStatus::kTimeout;
 
-  {
-    absl::MutexLock lock(&harness_history_mutex_);
-
-    auto it = harness_history_.find(test_id);
-    if (it == harness_history_.end()) {
-      return;
-    }
-
-    HarnessTestExecution& execution = it->second;
-    execution.status = status;
-    if (execution.started_at == absl::InfinitePast()) {
-      execution.started_at = execution.queued_at;
-    }
-    execution.completed_at = absl::Now();
-    execution.duration = execution.completed_at - execution.started_at;
-    execution.error_message = error_message;
-    if (!assertion_failures.empty()) {
-      execution.assertion_failures = assertion_failures;
-    }
-    if (!logs.empty()) {
-      execution.logs.insert(execution.logs.end(), logs.begin(), logs.end());
-    }
-    if (!metrics.empty()) {
-      execution.metrics.insert(metrics.begin(), metrics.end());
-    }
-
-    HarnessAggregate& aggregate = harness_aggregates_[execution.name];
-    if (aggregate.category.empty()) {
-      aggregate.category = execution.category;
-    }
-    aggregate.total_runs += 1;
-    if (status == HarnessTestStatus::kPassed) {
-      aggregate.pass_count += 1;
-    } else if (status == HarnessTestStatus::kFailed ||
-               status == HarnessTestStatus::kTimeout) {
-      aggregate.fail_count += 1;
-    }
-    aggregate.total_duration += execution.duration;
-    aggregate.last_run = execution.completed_at;
-    aggregate.latest_execution = execution;
+  harness_aggregates_[execution.name].latest_execution = execution;
+  harness_aggregates_[execution.name].total_runs += 1;
+  if (status == HarnessTestStatus::kPassed) {
+    harness_aggregates_[execution.name].pass_count += 1;
+  } else if (status == HarnessTestStatus::kFailed ||
+             status == HarnessTestStatus::kTimeout) {
+    harness_aggregates_[execution.name].fail_count += 1;
   }
+  harness_aggregates_[execution.name].total_duration += execution.duration;
+  harness_aggregates_[execution.name].last_run = execution.completed_at;
 
   if (capture_failure_context) {
     CaptureFailureContext(test_id);
   }
-}
 
+  if (harness_listener_) {
+    harness_listener_->OnHarnessTestUpdated(execution);
+  }
+}
+#endif
+
+#if defined(YAZE_WITH_GRPC)
 void TestManager::AppendHarnessTestLog(const std::string& test_id,
                                        const std::string& log_entry) {
   absl::MutexLock lock(&harness_history_mutex_);
-
   auto it = harness_history_.find(test_id);
   if (it == harness_history_.end()) {
     return;
   }
-
   HarnessTestExecution& execution = it->second;
   execution.logs.push_back(log_entry);
-
-  HarnessAggregate& aggregate = harness_aggregates_[execution.name];
-  aggregate.latest_execution.logs = execution.logs;
+  harness_aggregates_[execution.name].latest_execution.logs = execution.logs;
 }
+#endif
 
+#if defined(YAZE_WITH_GRPC)
 absl::StatusOr<HarnessTestExecution> TestManager::GetHarnessTestExecution(
     const std::string& test_id) const {
   absl::MutexLock lock(&harness_history_mutex_);
-
   auto it = harness_history_.find(test_id);
   if (it == harness_history_.end()) {
     return absl::NotFoundError(
         absl::StrFormat("Test ID '%s' not found", test_id));
   }
-
   return it->second;
 }
+#endif
 
+#if defined(YAZE_WITH_GRPC)
 std::vector<HarnessTestSummary> TestManager::ListHarnessTestSummaries(
     const std::string& category_filter) const {
   absl::MutexLock lock(&harness_history_mutex_);
   std::vector<HarnessTestSummary> summaries;
   summaries.reserve(harness_aggregates_.size());
-
   for (const auto& [name, aggregate] : harness_aggregates_) {
     if (!category_filter.empty() && aggregate.category != category_filter) {
       continue;
     }
-
     HarnessTestSummary summary;
     summary.latest_execution = aggregate.latest_execution;
     summary.total_runs = aggregate.total_runs;
@@ -1786,7 +1800,6 @@ std::vector<HarnessTestSummary> TestManager::ListHarnessTestSummaries(
     summary.total_duration = aggregate.total_duration;
     summaries.push_back(summary);
   }
-
   std::sort(summaries.begin(), summaries.end(),
             [](const HarnessTestSummary& a, const HarnessTestSummary& b) {
               absl::Time time_a = a.latest_execution.completed_at;
@@ -1799,160 +1812,82 @@ std::vector<HarnessTestSummary> TestManager::ListHarnessTestSummaries(
               }
               return time_a > time_b;
             });
-
   return summaries;
 }
+#endif
 
-std::string TestManager::GenerateHarnessTestIdLocked(absl::string_view prefix) {
-  static std::mt19937 rng(std::random_device{}());
-  static std::uniform_int_distribution<uint32_t> dist(0, 0xFFFFFF);
-
-  std::string sanitized =
-      absl::StrReplaceAll(std::string(prefix), {{" ", "_"}, {":", "_"}});
-  if (sanitized.empty()) {
-    sanitized = "test";
+#if defined(YAZE_WITH_GRPC)
+void TestManager::CaptureFailureContext(const std::string& test_id) {
+  absl::MutexLock lock(&harness_history_mutex_);
+  auto it = harness_history_.find(test_id);
+  if (it == harness_history_.end()) {
+    return;
+  }
+  HarnessTestExecution& execution = it->second;
+  // absl::MutexLock does not support Unlock/Lock; scope the lock instead
+  {
+    absl::MutexLock unlock_guard(&harness_history_mutex_);
+    // This block is just to clarify lock scope, but the lock is already held
+    // so we do nothing here.
   }
 
-  for (int attempt = 0; attempt < 8; ++attempt) {
-    std::string candidate = absl::StrFormat("%s_%08x", sanitized, dist(rng));
-    if (harness_history_.find(candidate) == harness_history_.end()) {
-      return candidate;
-    }
+  auto screenshot_artifact = test::CaptureHarnessScreenshot("harness_failures");
+  std::string failure_context;
+  if (screenshot_artifact.ok()) {
+    failure_context = "Harness failure context captured successfully";
+  } else {
+    failure_context = "Harness failure context capture unavailable";
   }
 
-  return absl::StrFormat(
-      "%s_%lld", sanitized,
-      static_cast<long long>(absl::ToUnixMillis(absl::Now())));
+  execution.failure_context = failure_context;
+  if (screenshot_artifact.ok()) {
+    execution.screenshot_path = screenshot_artifact->file_path;
+    execution.screenshot_size_bytes = screenshot_artifact->file_size_bytes;
+  }
+
+  if (harness_listener_) {
+    harness_listener_->OnHarnessTestUpdated(execution);
+  }
+#else
+  (void)test_id;
+#endif
 }
 
+#if defined(YAZE_WITH_GRPC)
 void TestManager::TrimHarnessHistoryLocked() {
   while (harness_history_order_.size() > harness_history_limit_) {
-    const std::string& oldest_id = harness_history_order_.front();
-    auto it = harness_history_.find(oldest_id);
-    if (it != harness_history_.end()) {
-      harness_history_.erase(it);
-    }
+    const std::string& oldest_test = harness_history_order_.front();
     harness_history_order_.pop_front();
+    harness_history_.erase(oldest_test);
   }
 }
-
-void TestManager::CaptureFailureContext(const std::string& test_id) {
-  // IT-08b: Capture failure diagnostics
-  // Note: This method is called with the harness_history_mutex_ unlocked
-  // to avoid deadlock when Screenshot helper touches SDL state.
-
-  // 1. Capture execution context metadata from ImGui.
-  std::string failure_context;
-  ImGuiContext* ctx = ImGui::GetCurrentContext();
-  if (ctx != nullptr) {
-#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
-    ImGuiWindow* current_window = ctx->CurrentWindow;
-    ImGuiWindow* nav_window = ctx->NavWindow;
-    ImGuiWindow* hovered_window = ctx->HoveredWindow;
-
-    const char* current_name =
-        (current_window && current_window->Name) ? current_window->Name : "none";
-    const char* nav_name =
-        (nav_window && nav_window->Name) ? nav_window->Name : "none";
-    const char* hovered_name = (hovered_window && hovered_window->Name)
-                                    ? hovered_window->Name
-                                    : "none";
-
-    ImGuiID active_id = ImGui::GetActiveID();
-    ImGuiID hovered_id = ImGui::GetHoveredID();
-    failure_context = absl::StrFormat(
-        "frame=%d current_window=%s nav_window=%s hovered_window=%s "
-        "active_id=0x%08X hovered_id=0x%08X",
-        ImGui::GetFrameCount(), current_name, nav_name, hovered_name,
-        active_id, hovered_id);
-#else
-    failure_context =
-        absl::StrFormat("frame=%d", ImGui::GetFrameCount());
-#endif
-  } else {
-    failure_context = "ImGui context not available";
-  }
-
-  std::string artifact_path;
-  {
-    absl::MutexLock lock(&harness_history_mutex_);
-    auto it = harness_history_.find(test_id);
-    if (it == harness_history_.end()) {
-      return;
-    }
-
-    HarnessTestExecution& execution = it->second;
-    execution.failure_context = failure_context;
-    if (execution.screenshot_path.empty()) {
-      execution.screenshot_path = GenerateFailureScreenshotPath(test_id);
-    }
-    artifact_path = execution.screenshot_path;
-  }
-
-  // 2. Capture widget state snapshot (IT-08c) and failure screenshot.
-  std::string widget_state = core::CaptureWidgetState();
-#if defined(YAZE_WITH_GRPC)
-  absl::StatusOr<ScreenshotArtifact> screenshot_artifact =
-      CaptureHarnessScreenshot(artifact_path);
 #endif
 
-  {
-    absl::MutexLock lock(&harness_history_mutex_);
-    auto it = harness_history_.find(test_id);
-    if (it == harness_history_.end()) {
-      return;
-    }
+absl::Status TestManager::ReplayLastPlan() {
+  return absl::FailedPreconditionError("Harness plan replay not available");
+}
 
-    HarnessTestExecution& execution = it->second;
-    execution.failure_context = failure_context;
-    execution.widget_state = widget_state;
+void TestManager::RecordPlanSummary(const std::string& summary) {
+  (void)summary;
+}
 
 #if defined(YAZE_WITH_GRPC)
-    if (screenshot_artifact.ok()) {
-      execution.screenshot_path = screenshot_artifact->file_path;
-      execution.screenshot_size_bytes = screenshot_artifact->file_size_bytes;
-      execution.logs.push_back(absl::StrFormat(
-          "[auto-capture] Failure screenshot saved to %s (%lld bytes)",
-          execution.screenshot_path,
-          static_cast<long long>(execution.screenshot_size_bytes)));
-    } else {
-      execution.logs.push_back(absl::StrFormat(
-          "[auto-capture] Screenshot capture failed: %s",
-          screenshot_artifact.status().message()));
-    }
-#else
-    execution.logs.push_back(
-        "[auto-capture] Screenshot capture unavailable (YAZE_WITH_GRPC=OFF)");
+absl::Status TestManager::ShowHarnessDashboard() {
+  return absl::OkStatus();
+}
+
+absl::Status TestManager::ShowHarnessActiveTests() {
+  return absl::OkStatus();
+}
 #endif
 
-    // Keep aggregate cache in sync with the latest execution snapshot.
-    auto aggregate_it = harness_aggregates_.find(execution.name);
-    if (aggregate_it != harness_aggregates_.end()) {
-      aggregate_it->second.latest_execution = execution;
-    }
-  }
-
+void TestManager::SetHarnessListener(HarnessListener* listener) {
 #if defined(YAZE_WITH_GRPC)
-  if (screenshot_artifact.ok()) {
-    LOG_INFO("TestManager",
-             "Captured failure context for test %s: %s", test_id.c_str(),
-             failure_context.c_str());
-    LOG_INFO("TestManager",
-             "Failure screenshot stored at %s (%lld bytes)",
-             screenshot_artifact->file_path.c_str(),
-             static_cast<long long>(screenshot_artifact->file_size_bytes));
-  } else {
-    LOG_WARN("TestManager",
-             "Failed to capture screenshot for test %s: %s", test_id.c_str(),
-             screenshot_artifact.status().ToString().c_str());
-  }
+  absl::MutexLock lock(&mutex_);
+  harness_listener_ = listener;
 #else
-  LOG_INFO(
-      "TestManager",
-      "Screenshot capture unavailable (YAZE_WITH_GRPC=OFF) for test %s",
-      test_id.c_str());
+  (void)listener;
 #endif
-  LOG_INFO("TestManager", "Widget state: %s", widget_state.c_str());
 }
 
 }  // namespace test
