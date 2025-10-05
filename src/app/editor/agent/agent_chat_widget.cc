@@ -830,9 +830,10 @@ void AgentChatWidget::Draw() {
     float vertical_padding = (55.0f - content_height) / 2.0f;
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + vertical_padding);
 
-      // Two-row layout for better visibility
-      ImGui::Text(ICON_MD_SMART_TOY " AI Provider:");
-      ImGui::SetNextItemWidth(-1);
+      // Compact single row layout (restored)
+      ImGui::TextColored(accent_color, ICON_MD_SMART_TOY);
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(95);
       const char* providers[] = {"Mock", "Ollama", "Gemini"};
       int current_provider = (agent_config_.ai_provider == "mock")     ? 0
                              : (agent_config_.ai_provider == "ollama") ? 1
@@ -1036,10 +1037,11 @@ void AgentChatWidget::Draw() {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
                         ImVec2(4, 3));  // Compact padding
 
-    RenderAgentConfigPanel();
+    // Removed RenderAgentConfigPanel - duplicates connection header
     RenderZ3EDCommandPanel();
     RenderMultimodalPanel();
     RenderCollaborationPanel();
+    RenderRomSyncPanel();  // Always visible now
     RenderProposalManagerPanel();
 
     ImGui::PopStyleVar(2);
@@ -1056,15 +1058,16 @@ void AgentChatWidget::Draw() {
 void AgentChatWidget::RenderCollaborationPanel() {
   ImGui::PushID("CollabPanel");
 
-  // Update reactive status color based on connection state
+  // Update reactive status color
   const bool connected = collaboration_state_.active;
   collaboration_status_color_ = connected ? ImVec4(0.133f, 0.545f, 0.133f, 1.0f)
                                           : ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
 
-  if (!ImGui::CollapsingHeader(ICON_MD_PEOPLE " Collaboration & Network")) {
-    ImGui::PopID();
-    return;
-  }
+  // Always visible (no collapsing header)
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.14f, 0.18f, 0.95f));
+  ImGui::BeginChild("CollabPanel", ImVec2(0, 200), true);
+  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_PEOPLE " Collaboration");
+  ImGui::Separator();
 
   // Mode selector (compact inline)
   ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
@@ -1383,6 +1386,8 @@ void AgentChatWidget::RenderCollaborationPanel() {
     ImGui::EndTable();
   }
 
+  ImGui::EndChild();
+  ImGui::PopStyleColor();
   ImGui::PopID();  // CollabPanel
 }
 
