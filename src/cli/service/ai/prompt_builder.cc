@@ -120,10 +120,22 @@ absl::StatusOr<std::string> PromptBuilder::ResolveCataloguePath(
   for (const auto& candidate : search_paths) {
     fs::path resolved = candidate;
     if (resolved.is_relative()) {
-      resolved = fs::absolute(resolved);
+      try {
+        resolved = fs::absolute(resolved);
+      } catch (const std::exception& e) {
+        // If we can't resolve the absolute path (e.g., cwd doesn't exist),
+        // just try the relative path as-is
+        continue;
+      }
     }
-    if (fs::exists(resolved)) {
-      return resolved.string();
+    
+    try {
+      if (fs::exists(resolved)) {
+        return resolved.string();
+      }
+    } catch (const std::exception& e) {
+      // If checking existence fails, just continue to next path
+      continue;
     }
   }
 

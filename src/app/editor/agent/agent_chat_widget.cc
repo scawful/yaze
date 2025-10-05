@@ -810,7 +810,7 @@ void AgentChatWidget::Draw() {
   // Connection status bar at top (taller for better visibility)
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 bar_start = ImGui::GetCursorScreenPos();
-  ImVec2 bar_size(ImGui::GetContentRegionAvail().x, 90);  // Increased from 55
+  ImVec2 bar_size(ImGui::GetContentRegionAvail().x, 60);  // Increased from 55
 
   // Gradient background
   ImU32 color_top = ImGui::GetColorU32(ImVec4(0.18f, 0.22f, 0.28f, 1.0f));
@@ -1046,8 +1046,17 @@ void AgentChatWidget::Draw() {
                         ImVec2(4, 3));  // Compact padding
 
     // Removed RenderAgentConfigPanel - duplicates connection header
-    RenderZ3EDCommandPanel();
-    RenderMultimodalPanel();
+    if (ImGui::BeginTable("##commands_and_multimodal", 2, ImGuiTableFlags_BordersInnerV)) {
+      ImGui::TableSetupColumn("Commands", ImGuiTableColumnFlags_WidthFixed, 180);
+      ImGui::TableSetupColumn("Multimodal", ImGuiTableColumnFlags_WidthFixed, ImGui::GetContentRegionAvail().x - 180);
+      ImGui::TableNextRow();
+      ImGui::TableSetColumnIndex(0);
+      RenderZ3EDCommandPanel();
+      ImGui::TableSetColumnIndex(1);
+      RenderMultimodalPanel();
+      ImGui::EndTable();
+    }
+
     RenderCollaborationPanel();
     RenderRomSyncPanel();
     RenderProposalManagerPanel();
@@ -1068,6 +1077,10 @@ void AgentChatWidget::Draw() {
 void AgentChatWidget::RenderCollaborationPanel() {
   ImGui::PushID("CollabPanel");
 
+  // Tighter style for more content
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 3));
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3, 2));
+
   // Update reactive status color
   const bool connected = collaboration_state_.active;
   collaboration_status_color_ = connected ? ImVec4(0.133f, 0.545f, 0.133f, 1.0f)
@@ -1075,13 +1088,10 @@ void AgentChatWidget::RenderCollaborationPanel() {
 
   // Always visible (no collapsing header)
   ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.14f, 0.18f, 0.95f));
-  ImGui::BeginChild("CollabPanel", ImVec2(0, 200), true);
+  ImGui::BeginChild("CollabPanel", ImVec2(0, 140), true); // reduced height
   ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_PEOPLE " Collaboration");
-  ImGui::Separator();
-
-  // Mode selector (compact inline)
-  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                     ICON_MD_SETTINGS_ETHERNET " Mode:");
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_SETTINGS_ETHERNET " Mode:");
   ImGui::SameLine();
   ImGui::RadioButton(ICON_MD_FOLDER " Local##collab_mode_local",
                      reinterpret_cast<int*>(&collaboration_state_.mode),
@@ -1091,13 +1101,11 @@ void AgentChatWidget::RenderCollaborationPanel() {
                      reinterpret_cast<int*>(&collaboration_state_.mode),
                      static_cast<int>(CollaborationMode::kNetwork));
 
-  ImGui::Spacing();
-
   // Main content in table layout (fixed size to prevent auto-resize)
   if (ImGui::BeginTable("Collab_MainTable", 2, ImGuiTableFlags_BordersInnerV)) {
-    ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 180);
+    ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 150);
     ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthFixed,
-                            ImGui::GetContentRegionAvail().x - 180);
+                            ImGui::GetContentRegionAvail().x - 150);
     ImGui::TableNextRow();
 
     // LEFT COLUMN: Session Details
@@ -1106,10 +1114,9 @@ void AgentChatWidget::RenderCollaborationPanel() {
     ImGui::PushID("StatusColumn");
 
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.2f, 0.18f, 0.4f));
-    ImGui::BeginChild("Collab_SessionDetails", ImVec2(0, 80), true);
+    ImGui::BeginChild("Collab_SessionDetails", ImVec2(0, 60), true); // reduced height
     ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                       ICON_MD_INFO " Session Status:");
-    ImGui::Spacing();
+                       ICON_MD_INFO " Session:");
     if (connected) {
       ImGui::TextColored(collaboration_status_color_,
                          ICON_MD_CHECK_CIRCLE " Connected");
@@ -1118,70 +1125,53 @@ void AgentChatWidget::RenderCollaborationPanel() {
     }
 
     if (collaboration_state_.mode == CollaborationMode::kNetwork) {
-      ImGui::Spacing();
       ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f),
                          ICON_MD_CLOUD " Server:");
-      ImGui::TextWrapped("%s", collaboration_state_.server_url.c_str());
+      ImGui::TextUnformatted(collaboration_state_.server_url.c_str());
     }
 
     if (!collaboration_state_.session_name.empty()) {
-      ImGui::Spacing();
       ImGui::TextColored(collaboration_status_color_,
-                         ICON_MD_LABEL " Session:");
-      ImGui::TextWrapped("%s", collaboration_state_.session_name.c_str());
+                         ICON_MD_LABEL " %s", collaboration_state_.session_name.c_str());
     }
 
     if (!collaboration_state_.session_id.empty()) {
-      ImGui::Spacing();
       ImGui::TextColored(collaboration_status_color_,
-                         ICON_MD_KEY " Session Code:");
-      ImGui::TextWrapped("%s", collaboration_state_.session_id.c_str());
+                         ICON_MD_KEY " %s", collaboration_state_.session_id.c_str());
+      ImGui::SameLine();
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.6f, 0.6f));
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
                             ImVec4(0.416f, 0.353f, 0.804f, 1.0f));
-      if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy##copy_session_id")) {
+      if (ImGui::SmallButton(ICON_MD_CONTENT_COPY "##copy_session_id")) {
         ImGui::SetClipboardText(collaboration_state_.session_id.c_str());
         if (toast_manager_) {
-          toast_manager_->Show("Session code copied!", ToastType::kSuccess,
-                               2.0f);
+          toast_manager_->Show("Session code copied!", ToastType::kSuccess, 2.0f);
         }
       }
       ImGui::PopStyleColor(2);
     }
 
     if (collaboration_state_.last_synced != absl::InfinitePast()) {
-      ImGui::Spacing();
       ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
-                         ICON_MD_ACCESS_TIME " Last sync:");
-      ImGui::SameLine();
-      ImGui::TextColored(
-          ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "%s",
-          absl::FormatTime("%H:%M:%S", collaboration_state_.last_synced,
-                           absl::LocalTimeZone())
-              .c_str());
+                         ICON_MD_ACCESS_TIME " %s",
+                         absl::FormatTime("%H:%M:%S", collaboration_state_.last_synced,
+                                          absl::LocalTimeZone()).c_str());
     }
     ImGui::EndChild();
     ImGui::PopStyleColor();
 
-    ImGui::Spacing();
-
     // Participants list below session details
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.16f, 0.14f, 0.4f));
     ImGui::BeginChild("Collab_ParticipantsList", ImVec2(0, 0), true);
-    {
-      if (collaboration_state_.participants.empty()) {
-        ImGui::TextDisabled(ICON_MD_PEOPLE " No participants yet");
-      } else {
-        ImGui::TextColored(collaboration_status_color_,
-                           ICON_MD_PEOPLE " Participants (%zu):",
-                           collaboration_state_.participants.size());
-        ImGui::Separator();
-        for (size_t i = 0; i < collaboration_state_.participants.size(); ++i) {
-          ImGui::PushID(static_cast<int>(i));
-          ImGui::BulletText(ICON_MD_PERSON " %s",
-                            collaboration_state_.participants[i].c_str());
-          ImGui::PopID();
-        }
+    if (collaboration_state_.participants.empty()) {
+      ImGui::TextDisabled(ICON_MD_PEOPLE " No participants");
+    } else {
+      ImGui::TextColored(collaboration_status_color_,
+                         ICON_MD_PEOPLE " %zu", collaboration_state_.participants.size());
+      for (size_t i = 0; i < collaboration_state_.participants.size(); ++i) {
+        ImGui::PushID(static_cast<int>(i));
+        ImGui::BulletText("%s", collaboration_state_.participants[i].c_str());
+        ImGui::PopID();
       }
     }
     ImGui::EndChild();
@@ -1196,8 +1186,6 @@ void AgentChatWidget::RenderCollaborationPanel() {
     ImGui::PushID("ControlsColumn");
     ImGui::BeginChild("Collab_Controls", ImVec2(0, 0), false);
 
-    ImGui::Separator();
-
     const bool can_host =
         static_cast<bool>(collaboration_callbacks_.host_session);
     const bool can_join =
@@ -1209,67 +1197,52 @@ void AgentChatWidget::RenderCollaborationPanel() {
 
     // Network mode: Show server URL input with styling
     if (collaboration_state_.mode == CollaborationMode::kNetwork) {
-      ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f),
-                         ICON_MD_CLOUD " Server URL:");
-      ImGui::SetNextItemWidth(-80);
-      ImGui::InputText("##collab_server_url", server_url_buffer_,
-                       IM_ARRAYSIZE(server_url_buffer_));
+      ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f), ICON_MD_CLOUD);
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(100);
+      ImGui::InputText("##collab_server_url", server_url_buffer_, IM_ARRAYSIZE(server_url_buffer_));
       ImGui::SameLine();
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.5f, 0.7f, 0.8f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                            ImVec4(0.196f, 0.6f, 0.8f, 1.0f));
-      if (ImGui::Button(ICON_MD_LINK "##connect_server_btn")) {
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.196f, 0.6f, 0.8f, 1.0f));
+      if (ImGui::SmallButton(ICON_MD_LINK "##connect_server_btn")) {
         collaboration_state_.server_url = server_url_buffer_;
         if (toast_manager_) {
-          toast_manager_->Show("Connecting to server...", ToastType::kInfo,
-                               3.0f);
+          toast_manager_->Show("Connecting to server...", ToastType::kInfo, 3.0f);
         }
       }
       ImGui::PopStyleColor(2);
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Connect to collaboration server");
       }
-      ImGui::Separator();
     }
 
-    ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f),
-                       ICON_MD_ADD_CIRCLE " Host New Session:");
-    ImGui::SetNextItemWidth(-70);
-    ImGui::InputTextWithHint("##collab_session_name", "Enter session name...",
-                             session_name_buffer_,
-                             IM_ARRAYSIZE(session_name_buffer_));
+    // Host session
+    ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_ADD_CIRCLE);
     ImGui::SameLine();
-    if (!can_host)
-      ImGui::BeginDisabled();
+    ImGui::SetNextItemWidth(100);
+    ImGui::InputTextWithHint("##collab_session_name", "Session name...", session_name_buffer_, IM_ARRAYSIZE(session_name_buffer_));
+    ImGui::SameLine();
+    if (!can_host) ImGui::BeginDisabled();
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.5f, 0.0f, 0.8f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(1.0f, 0.843f, 0.0f, 1.0f));
-    if (ImGui::Button(ICON_MD_ROCKET_LAUNCH "##host_session_btn")) {
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.843f, 0.0f, 1.0f));
+    if (ImGui::SmallButton(ICON_MD_ROCKET_LAUNCH "##host_session_btn")) {
       std::string name = session_name_buffer_;
       if (name.empty()) {
         if (toast_manager_) {
-          toast_manager_->Show("Enter a session name first",
-                               ToastType::kWarning, 3.0f);
+          toast_manager_->Show("Enter a session name first", ToastType::kWarning, 3.0f);
         }
       } else {
         auto session_or = collaboration_callbacks_.host_session(name);
         if (session_or.ok()) {
-          ApplyCollaborationSession(session_or.value(),
-                                    /*update_action_timestamp=*/true);
-          std::snprintf(join_code_buffer_, sizeof(join_code_buffer_), "%s",
-                        collaboration_state_.session_id.c_str());
+          ApplyCollaborationSession(session_or.value(), /*update_action_timestamp=*/true);
+          std::snprintf(join_code_buffer_, sizeof(join_code_buffer_), "%s", collaboration_state_.session_id.c_str());
           session_name_buffer_[0] = '\0';
           if (toast_manager_) {
-            toast_manager_->Show(
-                absl::StrFormat("Hosting session %s",
-                                collaboration_state_.session_id.c_str()),
-                ToastType::kSuccess, 3.5f);
+            toast_manager_->Show(absl::StrFormat("Hosting session %s", collaboration_state_.session_id.c_str()), ToastType::kSuccess, 3.5f);
           }
           MarkHistoryDirty();
         } else if (toast_manager_) {
-          toast_manager_->Show(absl::StrFormat("Failed to host: %s",
-                                               session_or.status().message()),
-                               ToastType::kError, 5.0f);
+          toast_manager_->Show(absl::StrFormat("Failed to host: %s", session_or.status().message()), ToastType::kError, 5.0f);
         }
       }
     }
@@ -1283,44 +1256,32 @@ void AgentChatWidget::RenderCollaborationPanel() {
       ImGui::SetTooltip("Host a new collaboration session");
     }
 
-    ImGui::Spacing();
-    ImGui::TextColored(ImVec4(0.133f, 0.545f, 0.133f, 1.0f),
-                       ICON_MD_LOGIN " Join Existing Session:");
-    ImGui::SetNextItemWidth(-70);
-    ImGui::InputTextWithHint("##collab_join_code", "Enter session code...",
-                             join_code_buffer_,
-                             IM_ARRAYSIZE(join_code_buffer_));
+    // Join session
+    ImGui::TextColored(ImVec4(0.133f, 0.545f, 0.133f, 1.0f), ICON_MD_LOGIN);
     ImGui::SameLine();
-    if (!can_join)
-      ImGui::BeginDisabled();
+    ImGui::SetNextItemWidth(100);
+    ImGui::InputTextWithHint("##collab_join_code", "Session code...", join_code_buffer_, IM_ARRAYSIZE(join_code_buffer_));
+    ImGui::SameLine();
+    if (!can_join) ImGui::BeginDisabled();
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.1f, 0.4f, 0.1f, 0.8f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                          ImVec4(0.133f, 0.545f, 0.133f, 1.0f));
-    if (ImGui::Button(ICON_MD_MEETING_ROOM "##join_session_btn")) {
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.133f, 0.545f, 0.133f, 1.0f));
+    if (ImGui::SmallButton(ICON_MD_MEETING_ROOM "##join_session_btn")) {
       std::string code = join_code_buffer_;
       if (code.empty()) {
         if (toast_manager_) {
-          toast_manager_->Show("Enter a session code first",
-                               ToastType::kWarning, 3.0f);
+          toast_manager_->Show("Enter a session code first", ToastType::kWarning, 3.0f);
         }
       } else {
         auto session_or = collaboration_callbacks_.join_session(code);
         if (session_or.ok()) {
-          ApplyCollaborationSession(session_or.value(),
-                                    /*update_action_timestamp=*/true);
-          std::snprintf(join_code_buffer_, sizeof(join_code_buffer_), "%s",
-                        collaboration_state_.session_id.c_str());
+          ApplyCollaborationSession(session_or.value(), /*update_action_timestamp=*/true);
+          std::snprintf(join_code_buffer_, sizeof(join_code_buffer_), "%s", collaboration_state_.session_id.c_str());
           if (toast_manager_) {
-            toast_manager_->Show(
-                absl::StrFormat("Joined session %s",
-                                collaboration_state_.session_id.c_str()),
-                ToastType::kSuccess, 3.5f);
+            toast_manager_->Show(absl::StrFormat("Joined session %s", collaboration_state_.session_id.c_str()), ToastType::kSuccess, 3.5f);
           }
           MarkHistoryDirty();
         } else if (toast_manager_) {
-          toast_manager_->Show(absl::StrFormat("Failed to join: %s",
-                                               session_or.status().message()),
-                               ToastType::kError, 5.0f);
+          toast_manager_->Show(absl::StrFormat("Failed to join: %s", session_or.status().message()), ToastType::kError, 5.0f);
         }
       }
     }
@@ -1334,17 +1295,12 @@ void AgentChatWidget::RenderCollaborationPanel() {
       ImGui::SetTooltip("Join an existing collaboration session");
     }
 
+    // Leave/Refresh
     if (collaboration_state_.active) {
-      ImGui::Separator();
-      ImGui::Spacing();
-
-      if (!can_leave)
-        ImGui::BeginDisabled();
+      if (!can_leave) ImGui::BeginDisabled();
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.2f, 0.2f, 0.8f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                            ImVec4(0.863f, 0.078f, 0.235f, 1.0f));
-      if (ImGui::Button(ICON_MD_LOGOUT " Leave Session##leave_session_btn",
-                        ImVec2(-1, 0))) {
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.863f, 0.078f, 0.235f, 1.0f));
+      if (ImGui::SmallButton(ICON_MD_LOGOUT "##leave_session_btn")) {
         absl::Status status = collaboration_callbacks_.leave_session
                                   ? collaboration_callbacks_.leave_session()
                                   : absl::OkStatus();
@@ -1352,42 +1308,30 @@ void AgentChatWidget::RenderCollaborationPanel() {
           collaboration_state_ = CollaborationState{};
           join_code_buffer_[0] = '\0';
           if (toast_manager_) {
-            toast_manager_->Show("Left collaborative session", ToastType::kInfo,
-                                 3.0f);
+            toast_manager_->Show("Left collaborative session", ToastType::kInfo, 3.0f);
           }
           MarkHistoryDirty();
         } else if (toast_manager_) {
-          toast_manager_->Show(
-              absl::StrFormat("Failed to leave: %s", status.message()),
-              ToastType::kError, 5.0f);
+          toast_manager_->Show(absl::StrFormat("Failed to leave: %s", status.message()), ToastType::kError, 5.0f);
         }
       }
       ImGui::PopStyleColor(2);
-      if (!can_leave)
-        ImGui::EndDisabled();
+      if (!can_leave) ImGui::EndDisabled();
 
-      ImGui::Spacing();
-      ImGui::Separator();
-      if (!can_refresh)
-        ImGui::BeginDisabled();
+      ImGui::SameLine();
+      if (!can_refresh) ImGui::BeginDisabled();
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.6f, 0.8f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                            ImVec4(0.416f, 0.353f, 0.804f, 1.0f));
-      if (ImGui::Button(ICON_MD_REFRESH " Refresh Session##refresh_collab_btn",
-                        ImVec2(-1, 0))) {
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.416f, 0.353f, 0.804f, 1.0f));
+      if (ImGui::SmallButton(ICON_MD_REFRESH "##refresh_collab_btn")) {
         RefreshCollaboration();
       }
       ImGui::PopStyleColor(2);
-      if (!can_refresh &&
-          ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      if (!can_refresh && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
         ImGui::SetTooltip("Provide refresh_session callback to enable");
       }
-      if (!can_refresh)
-        ImGui::EndDisabled();
+      if (!can_refresh) ImGui::EndDisabled();
     } else {
-      ImGui::Spacing();
-      ImGui::TextDisabled(ICON_MD_INFO
-                          " Start or join a session to collaborate.");
+      ImGui::TextDisabled(ICON_MD_INFO " Start or join a session to collaborate.");
     }
 
     ImGui::EndChild();  // Collab_Controls
@@ -1398,6 +1342,7 @@ void AgentChatWidget::RenderCollaborationPanel() {
 
   ImGui::EndChild();
   ImGui::PopStyleColor();
+  ImGui::PopStyleVar(2);
   ImGui::PopID();  // CollabPanel
 }
 
@@ -1810,7 +1755,7 @@ void AgentChatWidget::RenderZ3EDCommandPanel() {
 
 void AgentChatWidget::RenderRomSyncPanel() {
   ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.14f, 0.12f, 1.0f));
-  ImGui::BeginChild("RomSync", ImVec2(0, 200), true);
+  ImGui::BeginChild("RomSync", ImVec2(0, 100), true);
 
   ImGui::Text(ICON_MD_STORAGE " ROM State");
   ImGui::Separator();
