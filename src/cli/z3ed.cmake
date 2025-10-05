@@ -136,12 +136,14 @@ if(YAZE_USE_MODULAR_BUILD)
   target_link_libraries(
     z3ed PRIVATE
     yaze_core
+    yaze_agent
     ftxui::component
   )
 else()
   target_link_libraries(
     z3ed PRIVATE
     yaze_core
+    yaze_agent
     ftxui::component
     absl::flags
     absl::flags_parse
