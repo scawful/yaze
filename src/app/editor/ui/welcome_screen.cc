@@ -91,35 +91,39 @@ std::string GetRelativeTimeString(const std::filesystem::file_time_type& ftime) 
   }
 }
 
-// Draw a pulsing triforce in the background
+// Draw a pixelated triforce in the background (ALTTP style)
 void DrawTriforceBackground(ImDrawList* draw_list, ImVec2 pos, float size, float alpha, float glow) {
-  float height = size * 0.866f; // sqrt(3)/2 for equilateral triangle
+  // Make it pixelated - round size to nearest 4 pixels
+  size = std::round(size / 4.0f) * 4.0f;
   
-  // Calculate triangle points
+  // Calculate triangle points with pixel-perfect positioning
   auto triangle = [&](ImVec2 center, float s, ImU32 color) {
-    ImVec2 p1(center.x, center.y - height * s / size);
-    ImVec2 p2(center.x - s / 2, center.y + height * s / (2 * size));
-    ImVec2 p3(center.x + s / 2, center.y + height * s / (2 * size));
+    // Round to pixel boundaries for crisp edges
+    float half_s = s / 2.0f;
+    float tri_h = s * 0.866f;  // Height of equilateral triangle
+    
+    // Fixed: Proper equilateral triangle with apex at top
+    ImVec2 p1(std::round(center.x), std::round(center.y - tri_h / 2.0f));  // Top apex
+    ImVec2 p2(std::round(center.x - half_s), std::round(center.y + tri_h / 2.0f));  // Bottom left
+    ImVec2 p3(std::round(center.x + half_s), std::round(center.y + tri_h / 2.0f));  // Bottom right
     
     draw_list->AddTriangleFilled(p1, p2, p3, color);
-    
-    // Glow effect
-    if (glow > 0.0f) {
-      ImU32 glow_color = ImGui::GetColorU32(ImVec4(1.0f, 0.843f, 0.0f, glow * 0.3f));
-      draw_list->AddTriangle(p1, p2, p3, glow_color, 2.0f + glow * 3.0f);
-    }
   };
   
   ImU32 gold = ImGui::GetColorU32(ImVec4(1.0f, 0.843f, 0.0f, alpha));
   
-  // Top triangle
-  triangle(ImVec2(pos.x, pos.y), size, gold);
+  // Proper triforce layout with three triangles
+  float small_size = size / 2.0f;
+  float small_height = small_size * 0.866f;
+  
+  // Top triangle (centered above)
+  triangle(ImVec2(pos.x, pos.y), small_size, gold);
   
   // Bottom left triangle
-  triangle(ImVec2(pos.x - size / 4, pos.y + height / 2), size / 2, gold);
+  triangle(ImVec2(pos.x - small_size / 2.0f, pos.y + small_height), small_size, gold);
   
   // Bottom right triangle
-  triangle(ImVec2(pos.x + size / 4, pos.y + height / 2), size / 2, gold);
+  triangle(ImVec2(pos.x + small_size / 2.0f, pos.y + small_height), small_size, gold);
 }
 
 }  // namespace
@@ -138,17 +142,26 @@ bool WelcomeScreen::Show(bool* p_open) {
   kSpiritOrange = GetThemedColor("spirit_orange", kSpiritOrangeFallback);
   
   UpdateAnimations();
+  
+  // Get mouse position for interactive triforce movement
+  ImVec2 mouse_pos = ImGui::GetMousePos();
+  
   bool action_taken = false;
   
+  // Center the window with responsive size (80% of viewport, max 1400x900)
   ImGuiViewport* viewport = ImGui::GetMainViewport();
-  ImGui::SetNextWindowPos(viewport->WorkPos);
-  ImGui::SetNextWindowSize(viewport->WorkSize);
-  ImGui::SetNextWindowViewport(viewport->ID);
+  ImVec2 center = viewport->GetCenter();
+  ImVec2 viewport_size = viewport->Size;
   
-  ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | 
-                                   ImGuiWindowFlags_NoMove | 
-                                   ImGuiWindowFlags_NoBringToFrontOnFocus |
-                                   ImGuiWindowFlags_NoNavFocus;
+  float width = std::min(viewport_size.x * 0.8f, 1400.0f);
+  float height = std::min(viewport_size.y * 0.85f, 900.0f);
+  
+  ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+  ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
+  
+  ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse | 
+                                   ImGuiWindowFlags_NoResize |
+                                   ImGuiWindowFlags_NoMove;
   
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20, 20));
   
@@ -157,15 +170,73 @@ bool WelcomeScreen::Show(bool* p_open) {
     ImVec2 window_pos = ImGui::GetWindowPos();
     ImVec2 window_size = ImGui::GetWindowSize();
     
-    // Dreamlike animated background with floating triforces
-    for (int i = 0; i < 5; ++i) {
-      float offset = animation_time_ * 0.5f + i * 2.0f;
-      float x = window_pos.x + window_size.x * (0.2f + 0.15f * i + sin(offset) * 0.1f);
-      float y = window_pos.y + window_size.y * (0.3f + cos(offset * 0.7f) * 0.3f);
-      float size = 40.0f + sin(offset * 1.3f) * 20.0f;
-      float alpha = 0.05f + sin(offset) * 0.05f;
+    // Interactive scattered triforces (react to mouse position)
+    struct TriforceConfig {
+      float x_pct, y_pct;  // Base position (percentage of window)
+      float size;
+      float alpha;
+      float repel_distance;  // How far they move away from mouse
+    };
+    
+    TriforceConfig triforce_configs[] = {
+      {0.10f, 0.15f, 32.0f, 0.035f, 60.0f},   // Top left corner
+      {0.90f, 0.18f, 28.0f, 0.028f, 55.0f},   // Top right corner
+      {0.08f, 0.82f, 24.0f, 0.022f, 50.0f},   // Bottom left
+      {0.92f, 0.78f, 28.0f, 0.030f, 55.0f},   // Bottom right
+      {0.18f, 0.45f, 24.0f, 0.020f, 45.0f},   // Mid left
+      {0.82f, 0.52f, 24.0f, 0.020f, 45.0f},   // Mid right
+      {0.50f, 0.88f, 20.0f, 0.018f, 40.0f},   // Bottom center
+      {0.30f, 0.25f, 20.0f, 0.015f, 40.0f},   // Upper mid-left
+      {0.70f, 0.28f, 20.0f, 0.015f, 40.0f},   // Upper mid-right
+    };
+    
+    // Initialize base positions on first frame
+    if (!triforce_positions_initialized_) {
+      for (int i = 0; i < kNumTriforces; ++i) {
+        float x = window_pos.x + window_size.x * triforce_configs[i].x_pct;
+        float y = window_pos.y + window_size.y * triforce_configs[i].y_pct;
+        triforce_base_positions_[i] = ImVec2(x, y);
+        triforce_positions_[i] = triforce_base_positions_[i];
+      }
+      triforce_positions_initialized_ = true;
+    }
+    
+    // Update triforce positions based on mouse interaction
+    for (int i = 0; i < kNumTriforces; ++i) {
+      // Update base position in case window moved/resized
+      float base_x = window_pos.x + window_size.x * triforce_configs[i].x_pct;
+      float base_y = window_pos.y + window_size.y * triforce_configs[i].y_pct;
+      triforce_base_positions_[i] = ImVec2(base_x, base_y);
       
-      DrawTriforceBackground(bg_draw_list, ImVec2(x, y), size, alpha, 0.0f);
+      // Calculate distance from mouse
+      float dx = triforce_base_positions_[i].x - mouse_pos.x;
+      float dy = triforce_base_positions_[i].y - mouse_pos.y;
+      float dist = std::sqrt(dx * dx + dy * dy);
+      
+      // Calculate repulsion offset
+      ImVec2 target_pos = triforce_base_positions_[i];
+      float repel_radius = 150.0f;  // Start repelling within this radius
+      
+      if (dist < repel_radius && dist > 0.1f) {
+        // Normalize direction away from mouse
+        float dir_x = dx / dist;
+        float dir_y = dy / dist;
+        
+        // Stronger repulsion when closer
+        float repel_strength = (1.0f - dist / repel_radius) * triforce_configs[i].repel_distance;
+        
+        target_pos.x += dir_x * repel_strength;
+        target_pos.y += dir_y * repel_strength;
+      }
+      
+      // Smooth interpolation to target position
+      float lerp_speed = 6.0f * ImGui::GetIO().DeltaTime;
+      triforce_positions_[i].x += (target_pos.x - triforce_positions_[i].x) * lerp_speed;
+      triforce_positions_[i].y += (target_pos.y - triforce_positions_[i].y) * lerp_speed;
+      
+      // Draw at current position
+      DrawTriforceBackground(bg_draw_list, triforce_positions_[i], 
+                           triforce_configs[i].size, triforce_configs[i].alpha, 0.0f);
     }
     
     DrawHeader();
@@ -173,16 +244,20 @@ bool WelcomeScreen::Show(bool* p_open) {
     ImGui::Spacing();
     ImGui::Spacing();
     
-    // Main content area with gradient separator
+    // Main content area with subtle gradient separator
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 separator_start = ImGui::GetCursorScreenPos();
-    ImVec2 separator_end(separator_start.x + ImGui::GetContentRegionAvail().x, separator_start.y + 2);
+    ImVec2 separator_end(separator_start.x + ImGui::GetContentRegionAvail().x, separator_start.y + 1);
+    ImVec4 gold_faded = kTriforceGold;
+    gold_faded.w = 0.3f;
+    ImVec4 blue_faded = kMasterSwordBlue;
+    blue_faded.w = 0.3f;
     draw_list->AddRectFilledMultiColor(
         separator_start, separator_end,
-        ImGui::GetColorU32(kTriforceGold),
-        ImGui::GetColorU32(kMasterSwordBlue),
-        ImGui::GetColorU32(kMasterSwordBlue),
-        ImGui::GetColorU32(kTriforceGold));
+        ImGui::GetColorU32(gold_faded),
+        ImGui::GetColorU32(blue_faded),
+        ImGui::GetColorU32(blue_faded),
+        ImGui::GetColorU32(gold_faded));
     
     ImGui::Dummy(ImVec2(0, 10));
     
@@ -194,14 +269,13 @@ bool WelcomeScreen::Show(bool* p_open) {
     DrawQuickActions();
     ImGui::Spacing();
     
-    // Animated separator
+    // Subtle separator
     ImVec2 sep_start = ImGui::GetCursorScreenPos();
-    float pulse = sin(animation_time_ * 2.0f) * 0.5f + 0.5f;
     draw_list->AddLine(
         sep_start,
         ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
-        ImGui::GetColorU32(ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.3f + pulse * 0.3f)),
-        2.0f);
+        ImGui::GetColorU32(ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.2f)),
+        1.0f);
     
     ImGui::Dummy(ImVec2(0, 5));
     DrawTemplatesSection();
@@ -214,13 +288,13 @@ bool WelcomeScreen::Show(bool* p_open) {
     DrawRecentProjects();
     ImGui::Spacing();
     
-    // Another animated separator
+    // Subtle separator
     sep_start = ImGui::GetCursorScreenPos();
     draw_list->AddLine(
         sep_start,
         ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
-        ImGui::GetColorU32(ImVec4(kMasterSwordBlue.x, kMasterSwordBlue.y, kMasterSwordBlue.z, 0.3f + pulse * 0.3f)),
-        2.0f);
+        ImGui::GetColorU32(ImVec4(kMasterSwordBlue.x, kMasterSwordBlue.y, kMasterSwordBlue.z, 0.2f)),
+        1.0f);
     
     ImGui::Dummy(ImVec2(0, 5));
     DrawWhatsNew();
@@ -228,15 +302,19 @@ bool WelcomeScreen::Show(bool* p_open) {
     
     ImGui::EndChild();
     
-    // Footer with gradient
+    // Footer with subtle gradient
     ImVec2 footer_start = ImGui::GetCursorScreenPos();
-    ImVec2 footer_end(footer_start.x + ImGui::GetContentRegionAvail().x, footer_start.y + 2);
+    ImVec2 footer_end(footer_start.x + ImGui::GetContentRegionAvail().x, footer_start.y + 1);
+    ImVec4 red_faded = kHeartRed;
+    red_faded.w = 0.3f;
+    ImVec4 green_faded = kHyruleGreen;
+    green_faded.w = 0.3f;
     draw_list->AddRectFilledMultiColor(
         footer_start, footer_end,
-        ImGui::GetColorU32(kHeartRed),
-        ImGui::GetColorU32(kHyruleGreen),
-        ImGui::GetColorU32(kHyruleGreen),
-        ImGui::GetColorU32(kHeartRed));
+        ImGui::GetColorU32(red_faded),
+        ImGui::GetColorU32(green_faded),
+        ImGui::GetColorU32(green_faded),
+        ImGui::GetColorU32(red_faded));
     
     ImGui::Dummy(ImVec2(0, 5));
     DrawTipsSection();
@@ -250,13 +328,14 @@ bool WelcomeScreen::Show(bool* p_open) {
 
 void WelcomeScreen::UpdateAnimations() {
   animation_time_ += ImGui::GetIO().DeltaTime;
-  header_glow_ = sin(animation_time_ * 2.0f) * 0.5f + 0.5f;
   
-  // Smooth card hover animations
+  // Update hover scale for cards (smooth interpolation)
   for (int i = 0; i < 6; ++i) {
-    float target = (hovered_card_ == i) ? 1.05f : 1.0f;
-    card_hover_scale_[i] += (target - card_hover_scale_[i]) * ImGui::GetIO().DeltaTime * 8.0f;
+    float target = (hovered_card_ == i) ? 1.03f : 1.0f;
+    card_hover_scale_[i] += (target - card_hover_scale_[i]) * ImGui::GetIO().DeltaTime * 10.0f;
   }
+  
+  // Note: Triforce positions are updated in Show() based on mouse position
 }
 
 void WelcomeScreen::RefreshRecentProjects() {
@@ -294,7 +373,7 @@ void WelcomeScreen::DrawHeader() {
   
   ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[2]); // Large font
   
-  // Animated title with glow effect
+  // Simple centered title
   const char* title = ICON_MD_CASTLE " yaze";
   auto windowWidth = ImGui::GetWindowSize().x;
   auto textWidth = ImGui::CalcTextSize(title).x;
@@ -303,41 +382,32 @@ void WelcomeScreen::DrawHeader() {
   ImGui::SetCursorPosX(xPos);
   ImVec2 text_pos = ImGui::GetCursorScreenPos();
   
-  // Glow effect behind text
-  float glow_size = 40.0f * header_glow_;
-  ImU32 glow_color = ImGui::GetColorU32(ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.3f * header_glow_));
+  // Subtle static glow behind text
+  float glow_size = 30.0f;
+  ImU32 glow_color = ImGui::GetColorU32(ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.15f));
   draw_list->AddCircleFilled(
       ImVec2(text_pos.x + textWidth / 2, text_pos.y + 15),
       glow_size,
       glow_color,
       32);
   
-  // Rainbow gradient on title
-  ImVec4 color1 = kTriforceGold;
-  ImVec4 color2 = kMasterSwordBlue;
-  float t = sin(animation_time_ * 1.5f) * 0.5f + 0.5f;
-  ImVec4 title_color(
-      color1.x * (1 - t) + color2.x * t,
-      color1.y * (1 - t) + color2.y * t,
-      color1.z * (1 - t) + color2.z * t,
-      1.0f);
-  
-  ImGui::TextColored(title_color, "%s", title);
+  // Simple gold color for title
+  ImGui::TextColored(kTriforceGold, "%s", title);
   ImGui::PopFont();
   
-  // Animated subtitle
+  // Static subtitle
   const char* subtitle = "Yet Another Zelda3 Editor";
   textWidth = ImGui::CalcTextSize(subtitle).x;
   ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
   
-  float subtitle_alpha = 0.6f + sin(animation_time_ * 3.0f) * 0.2f;
-  ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, subtitle_alpha), "%s", subtitle);
+  ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "%s", subtitle);
   
-  // Draw small decorative triforces on either side of title
-  ImVec2 left_tri_pos(xPos - 50, text_pos.y + 10);
-  ImVec2 right_tri_pos(xPos + textWidth + 20, text_pos.y + 10);
-  DrawTriforceBackground(draw_list, left_tri_pos, 30, 0.5f, header_glow_);
-  DrawTriforceBackground(draw_list, right_tri_pos, 30, 0.5f, header_glow_);
+  // Small decorative triforces flanking the title (static, transparent)
+  // Positioned well away from text to avoid crowding
+  ImVec2 left_tri_pos(xPos - 80, text_pos.y + 20);
+  ImVec2 right_tri_pos(xPos + textWidth + 50, text_pos.y + 20);
+  DrawTriforceBackground(draw_list, left_tri_pos, 20, 0.12f, 0.0f);
+  DrawTriforceBackground(draw_list, right_tri_pos, 20, 0.12f, 0.0f);
   
   ImGui::Spacing();
 }
@@ -404,13 +474,12 @@ void WelcomeScreen::DrawRecentProjects() {
   ImGui::Spacing();
   
   if (recent_projects_.empty()) {
-    // Draw a cute "empty state" with animated icons
+    // Simple empty state
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
     
-    float pulse = sin(animation_time_ * 2.0f) * 0.3f + 0.7f;
     ImVec2 cursor = ImGui::GetCursorPos();
     ImGui::SetCursorPosX(cursor.x + ImGui::GetContentRegionAvail().x * 0.3f);
-    ImGui::TextColored(ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, pulse),
+    ImGui::TextColored(ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.8f),
                       ICON_MD_EXPLORE);
     ImGui::SetCursorPosX(cursor.x);
     
@@ -438,7 +507,7 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
   ImVec2 card_size(220, 140);
   ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
   
-  // Apply hover scale
+  // Subtle hover scale (only on actual hover, no animation)
   float scale = card_hover_scale_[index];
   if (scale != 1.0f) {
     ImVec2 center(cursor_pos.x + card_size.x / 2, cursor_pos.y + card_size.y / 2);
@@ -448,7 +517,7 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
     card_size.y *= scale;
   }
   
-  // Draw card background with Zelda-themed gradient
+  // Draw card background with subtle gradient
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   
   // Gradient background
@@ -459,12 +528,11 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
       ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
       color_top, color_top, color_bottom, color_bottom);
   
-  // Border with animated color
-  float border_t = (sin(animation_time_ + index) * 0.5f + 0.5f);
+  // Static themed border
   ImVec4 border_color_base = (index % 3 == 0) ? kHyruleGreen : 
                              (index % 3 == 1) ? kMasterSwordBlue : kTriforceGold;
   ImU32 border_color = ImGui::GetColorU32(
-      ImVec4(border_color_base.x, border_color_base.y, border_color_base.z, 0.4f + border_t * 0.3f));
+      ImVec4(border_color_base.x, border_color_base.y, border_color_base.z, 0.5f));
   
   draw_list->AddRect(cursor_pos, 
                     ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
@@ -478,24 +546,12 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
   
   hovered_card_ = is_hovered ? index : (hovered_card_ == index ? -1 : hovered_card_);
   
-  // Hover glow effect
+  // Subtle hover glow (no particles)
   if (is_hovered) {
-    ImU32 hover_color = ImGui::GetColorU32(ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.2f));
+    ImU32 hover_color = ImGui::GetColorU32(ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.15f));
     draw_list->AddRectFilled(cursor_pos, 
                             ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
                             hover_color, 6.0f);
-                            
-    // Draw small particles around the card
-    for (int p = 0; p < 5; ++p) {
-      float angle = animation_time_ * 2.0f + p * M_PI * 0.4f;
-      float radius = 10.0f + sin(animation_time_ * 3.0f + p) * 5.0f;
-      ImVec2 particle_pos(
-          cursor_pos.x + card_size.x / 2 + cos(angle) * (card_size.x / 2 + radius),
-          cursor_pos.y + card_size.y / 2 + sin(angle) * (card_size.y / 2 + radius));
-      float particle_alpha = 0.3f + sin(animation_time_ * 4.0f + p) * 0.2f;
-      draw_list->AddCircleFilled(particle_pos, 2.0f, 
-          ImGui::GetColorU32(ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, particle_alpha)));
-    }
   }
   
   // Draw content
@@ -576,12 +632,11 @@ void WelcomeScreen::DrawTemplatesSection() {
   for (int i = 0; i < 3; ++i) {
     bool is_selected = (selected_template_ == i);
     
-    // Animated selection glow
+    // Subtle selection highlight (no animation)
     if (is_selected) {
-      float glow = sin(animation_time_ * 3.0f) * 0.3f + 0.5f;
       ImGui::PushStyleColor(ImGuiCol_Header, 
-          ImVec4(templates[i].color.x * glow, templates[i].color.y * glow, 
-                 templates[i].color.z * glow, 0.8f));
+          ImVec4(templates[i].color.x * 0.6f, templates[i].color.y * 0.6f, 
+                 templates[i].color.z * 0.6f, 0.6f));
     }
     
     if (ImGui::Selectable(absl::StrFormat("%s %s", templates[i].icon, templates[i].name).c_str(), 
@@ -609,7 +664,7 @@ void WelcomeScreen::DrawTemplatesSection() {
 }
 
 void WelcomeScreen::DrawTipsSection() {
-  // Rotating tips
+  // Static tip (or could rotate based on session start time rather than animation)
   const char* tips[] = {
     "Press Ctrl+P to open the command palette",
     "Use z3ed agent for AI-powered ROM editing",
@@ -617,7 +672,7 @@ void WelcomeScreen::DrawTipsSection() {
     "Check the Performance Dashboard for optimization insights",
     "Collaborate in real-time with yaze-server"
   };
-  int tip_index = ((int)(animation_time_ / 5.0f)) % 5;
+  int tip_index = 0;  // Show first tip, or could be random on screen open
   
   ImGui::Text(ICON_MD_LIGHTBULB);
   ImGui::SameLine();
@@ -637,11 +692,8 @@ void WelcomeScreen::DrawWhatsNew() {
   ImGui::TextColored(kHeartRed, ICON_MD_NEW_RELEASES " What's New");
   ImGui::Spacing();
   
-  // Version badge
-  float pulse = sin(animation_time_ * 2.0f) * 0.2f + 0.8f;
-  ImGui::TextColored(ImVec4(kMasterSwordBlue.x * pulse, kMasterSwordBlue.y * pulse, 
-                            kMasterSwordBlue.z * pulse, 1.0f), 
-                    ICON_MD_VERIFIED " yaze v0.2.0-alpha");
+  // Version badge (no animation)
+  ImGui::TextColored(kMasterSwordBlue, ICON_MD_VERIFIED " yaze v0.2.0-alpha");
   ImGui::Spacing();
   
   // Feature list with icons and colors

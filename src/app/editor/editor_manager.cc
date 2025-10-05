@@ -348,6 +348,48 @@ void EditorManager::Initialize(const std::string& filename) {
       welcome_screen_manually_closed_ = true;
     }
   });
+  
+  // Initialize editor selection dialog callback
+  editor_selection_dialog_.SetSelectionCallback([this](EditorType type) {
+    if (!current_editor_set_) return;
+    
+    editor_selection_dialog_.MarkRecentlyUsed(type);
+    
+    switch (type) {
+      case EditorType::kOverworld:
+        current_editor_set_->overworld_editor_.set_active(true);
+        break;
+      case EditorType::kDungeon:
+        current_editor_set_->dungeon_editor_.set_active(true);
+        break;
+      case EditorType::kGraphics:
+        current_editor_set_->graphics_editor_.set_active(true);
+        break;
+      case EditorType::kSprite:
+        current_editor_set_->sprite_editor_.set_active(true);
+        break;
+      case EditorType::kMessage:
+        current_editor_set_->message_editor_.set_active(true);
+        break;
+      case EditorType::kMusic:
+        current_editor_set_->music_editor_.set_active(true);
+        break;
+      case EditorType::kPalette:
+        current_editor_set_->palette_editor_.set_active(true);
+        break;
+      case EditorType::kScreen:
+        current_editor_set_->screen_editor_.set_active(true);
+        break;
+      case EditorType::kAssembly:
+        show_asm_editor_ = true;
+        break;
+      case EditorType::kSettings:
+        current_editor_set_->settings_editor_.set_active(true);
+        break;
+      default:
+        break;
+    }
+  });
 
   LoadUserSettings();
 
@@ -424,6 +466,50 @@ void EditorManager::Initialize(const std::string& filename) {
   context_.shortcut_manager.RegisterShortcut(
       "F1", ImGuiKey_F1, [this]() { popup_manager_->Show("About"); });
 
+  // Editor shortcuts (Ctrl+1-9, Ctrl+0)
+  context_.shortcut_manager.RegisterShortcut(
+      "Overworld Editor", {ImGuiKey_1, ImGuiMod_Ctrl},
+      [this]() { if (current_editor_set_) current_editor_set_->overworld_editor_.set_active(true); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Dungeon Editor", {ImGuiKey_2, ImGuiMod_Ctrl},
+      [this]() { if (current_editor_set_) current_editor_set_->dungeon_editor_.set_active(true); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Graphics Editor", {ImGuiKey_3, ImGuiMod_Ctrl},
+      [this]() { if (current_editor_set_) current_editor_set_->graphics_editor_.set_active(true); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Sprite Editor", {ImGuiKey_4, ImGuiMod_Ctrl},
+      [this]() { if (current_editor_set_) current_editor_set_->sprite_editor_.set_active(true); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Message Editor", {ImGuiKey_5, ImGuiMod_Ctrl},
+      [this]() { if (current_editor_set_) current_editor_set_->message_editor_.set_active(true); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Music Editor", {ImGuiKey_6, ImGuiMod_Ctrl},
+      [this]() { if (current_editor_set_) current_editor_set_->music_editor_.set_active(true); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Palette Editor", {ImGuiKey_7, ImGuiMod_Ctrl},
+      [this]() { if (current_editor_set_) current_editor_set_->palette_editor_.set_active(true); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Screen Editor", {ImGuiKey_8, ImGuiMod_Ctrl},
+      [this]() { if (current_editor_set_) current_editor_set_->screen_editor_.set_active(true); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Assembly Editor", {ImGuiKey_9, ImGuiMod_Ctrl},
+      [this]() { show_asm_editor_ = true; });
+  context_.shortcut_manager.RegisterShortcut(
+      "Settings Editor", {ImGuiKey_0, ImGuiMod_Ctrl},
+      [this]() { if (current_editor_set_) current_editor_set_->settings_editor_.set_active(true); });
+  
+  // Editor Selection Dialog shortcut
+  context_.shortcut_manager.RegisterShortcut(
+      "Editor Selection", {ImGuiKey_E, ImGuiMod_Ctrl},
+      [this]() { show_editor_selection_ = true; });
+
+#ifdef YAZE_WITH_GRPC
+  // Agent Editor shortcut
+  context_.shortcut_manager.RegisterShortcut(
+      "Agent Editor", {ImGuiKey_A, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      [this]() { agent_editor_.SetChatActive(true); });
+#endif
+
   // Testing shortcuts (only when tests are enabled)
 #ifdef YAZE_ENABLE_TESTING
   context_.shortcut_manager.RegisterShortcut(
@@ -453,481 +539,22 @@ void EditorManager::Initialize(const std::string& filename) {
       [this]() { LoadWorkspaceLayout(); });
   context_.shortcut_manager.RegisterShortcut(
       "Maximize Window", ImGuiKey_F11, [this]() { MaximizeCurrentWindow(); });
-
-  // Initialize menu items
-  std::vector<gui::MenuItem> recent_files;
-  auto& manager = core::RecentFilesManager::GetInstance();
-  if (manager.GetRecentFiles().empty()) {
-    recent_files.emplace_back("No Recent Files", "", nullptr);
-  } else {
-    for (const auto& filePath : manager.GetRecentFiles()) {
-      recent_files.emplace_back(filePath, "", [filePath, this]() {
-        status_ = OpenRomOrProject(filePath);
-      });
-    }
-  }
-
-  std::vector<gui::MenuItem> options_subitems;
-  options_subitems.emplace_back(
-      "Backup ROM", "", [this]() { backup_rom_ = !backup_rom_; },
-      [this]() { return backup_rom_; });
-  options_subitems.emplace_back(
-      "Save New Auto", "", [this]() { save_new_auto_ = !save_new_auto_; },
-      [this]() { return save_new_auto_; });
-  options_subitems.emplace_back(
-      "Autosave", "",
-      [this]() {
-        autosave_enabled_ = !autosave_enabled_;
-        toast_manager_.Show(
-            autosave_enabled_ ? "Autosave enabled" : "Autosave disabled",
-            editor::ToastType::kInfo);
-      },
-      [this]() { return autosave_enabled_; });
-  options_subitems.emplace_back(
-      "Autosave Interval", "", [this]() {}, []() { return true; },
-      std::vector<gui::MenuItem>{
-          {"1 min", "",
-           [this]() {
-             autosave_interval_secs_ = 60.0f;
-             SaveUserSettings();
-           }},
-          {"2 min", "",
-           [this]() {
-             autosave_interval_secs_ = 120.0f;
-             SaveUserSettings();
-           }},
-          {"5 min", "",
-           [this]() {
-             autosave_interval_secs_ = 300.0f;
-             SaveUserSettings();
-           }},
-      });
-
-  std::vector<gui::MenuItem> project_menu_subitems;
-  project_menu_subitems.emplace_back(
-      "New Project", "", [this]() { popup_manager_->Show("New Project"); });
-  project_menu_subitems.emplace_back("Open Project", "",
-                                     [this]() { status_ = OpenProject(); });
-  project_menu_subitems.emplace_back(
-      "Save Project", "", [this]() { status_ = SaveProject(); },
-      [this]() { return current_project_.project_opened(); });
-  project_menu_subitems.emplace_back(gui::kSeparator, "", nullptr, []() { return true; });
-  project_menu_subitems.emplace_back(
-      absl::StrCat(ICON_MD_EDIT, " Edit Project File"), "",
-      [this]() { 
-        project_file_editor_.set_active(true);
-        if (current_project_.project_opened() && !current_project_.filepath.empty()) {
-          auto status = project_file_editor_.LoadFile(current_project_.filepath);
-          if (!status.ok()) {
-            toast_manager_.Show(std::string(status.message()), editor::ToastType::kError);
-          }
-        }
-      },
-      [this]() { return current_project_.project_opened(); });
-  project_menu_subitems.emplace_back("Save Workspace Layout", "", [this]() {
-    ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-    ImGui::SaveIniSettingsToDisk("yaze_workspace.ini");
-    toast_manager_.Show("Workspace layout saved", editor::ToastType::kSuccess);
-  });
-  project_menu_subitems.emplace_back("Load Workspace Layout", "", [this]() {
-    ImGui::LoadIniSettingsFromDisk("yaze_workspace.ini");
-    toast_manager_.Show("Workspace layout loaded", editor::ToastType::kSuccess);
-  });
-  project_menu_subitems.emplace_back(
-      "Workspace Presets", "", []() {}, []() { return true; },
-      std::vector<gui::MenuItem>{
-          {"Save Preset", "",
-           [this]() {
-             show_save_workspace_preset_ = true;
-           }},
-          {"Load Preset", "",
-           [this]() {
-             show_load_workspace_preset_ = true;
-           }},
-      });
-
-  gui::kMainMenu = {
-      {"File",
-       {},
-       {},
-       {},
-       {
-           {absl::StrCat(ICON_MD_FILE_OPEN, " Open"),
-            context_.shortcut_manager.GetKeys("Open"),
-            context_.shortcut_manager.GetCallback("Open")},
-           {absl::StrCat(ICON_MD_HISTORY, " Open Recent"), "", []() {},
-            [&manager]() { return !manager.GetRecentFiles().empty(); }, recent_files},
-           {absl::StrCat(ICON_MD_FILE_DOWNLOAD, " Save"),
-            context_.shortcut_manager.GetKeys("Save"),
-            context_.shortcut_manager.GetCallback("Save")},
-           {absl::StrCat(ICON_MD_SAVE_AS, " Save As.."), "",
-            [this]() { popup_manager_->Show("Save As.."); }},
-           {absl::StrCat(ICON_MD_BALLOT, " Project"), "", []() {},
-            []() { return true; }, project_menu_subitems},
-           {absl::StrCat(ICON_MD_CLOSE, " Close"), "",
-            [this]() {
-              if (current_rom_) current_rom_->Close();
-            }},
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           {absl::StrCat(ICON_MD_MISCELLANEOUS_SERVICES, " Options"), "",
-            []() {}, []() { return true; }, options_subitems},
-           {absl::StrCat(ICON_MD_EXIT_TO_APP, " Quit"), "Ctrl+Q",
-            [this]() { quit_ = true; }},
-       }},
-      {"Edit",
-       {},
-       {},
-       {},
-       {
-           {absl::StrCat(ICON_MD_CONTENT_CUT, " Cut"),
-            context_.shortcut_manager.GetKeys("Cut"),
-            context_.shortcut_manager.GetCallback("Cut")},
-           {absl::StrCat(ICON_MD_CONTENT_COPY, " Copy"),
-            context_.shortcut_manager.GetKeys("Copy"),
-            context_.shortcut_manager.GetCallback("Copy")},
-           {absl::StrCat(ICON_MD_CONTENT_PASTE, " Paste"),
-            context_.shortcut_manager.GetKeys("Paste"),
-            context_.shortcut_manager.GetCallback("Paste")},
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           {absl::StrCat(ICON_MD_UNDO, " Undo"),
-            context_.shortcut_manager.GetKeys("Undo"),
-            context_.shortcut_manager.GetCallback("Undo")},
-           {absl::StrCat(ICON_MD_REDO, " Redo"),
-            context_.shortcut_manager.GetKeys("Redo"),
-            context_.shortcut_manager.GetCallback("Redo")},
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           {absl::StrCat(ICON_MD_SEARCH, " Find"),
-            context_.shortcut_manager.GetKeys("Find"),
-            context_.shortcut_manager.GetCallback("Find")},
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           // Context-aware editor options
-           {absl::StrCat(ICON_MD_REFRESH, " Refresh Data"), "F5",
-            [this]() { 
-              if (current_editor_ && current_editor_->type() == EditorType::kOverworld) {
-                // Refresh overworld data
-                auto& ow_editor = static_cast<OverworldEditor&>(*current_editor_);
-                [[maybe_unused]] auto load_status = ow_editor.Load();
-                toast_manager_.Show("Overworld data refreshed", editor::ToastType::kInfo);
-              } else if (current_editor_ && current_editor_->type() == EditorType::kDungeon) {
-                // Refresh dungeon data
-                toast_manager_.Show("Dungeon data refreshed", editor::ToastType::kInfo);
-              }
-            },
-            [this]() { return current_editor_ != nullptr; }},
-           {absl::StrCat(ICON_MD_MAP, " Load All Maps"), "",
-            [this]() { 
-              if (current_editor_ && current_editor_->type() == EditorType::kOverworld) {
-                toast_manager_.Show("Loading all overworld maps...", editor::ToastType::kInfo);
-              }
-            },
-            [this]() { return current_editor_ && current_editor_->type() == EditorType::kOverworld; }},
-       }},
-      {"View",
-       {},
-       {},
-       {},
-       {
-           {kAssemblyEditorName, "", [&]() { show_asm_editor_ = true; },
-            [&]() { return show_asm_editor_; }},
-           {kDungeonEditorName, "",
-            [&]() { current_editor_set_->dungeon_editor_.set_active(true); },
-            [&]() { return *current_editor_set_->dungeon_editor_.active(); }},
-           {kGraphicsEditorName, "",
-            [&]() { current_editor_set_->graphics_editor_.set_active(true); },
-            [&]() { return *current_editor_set_->graphics_editor_.active(); }},
-           {kMusicEditorName, "",
-            [&]() { current_editor_set_->music_editor_.set_active(true); },
-            [&]() { return *current_editor_set_->music_editor_.active(); }},
-           {kOverworldEditorName, "",
-            [&]() { current_editor_set_->overworld_editor_.set_active(true); },
-            [&]() { return *current_editor_set_->overworld_editor_.active(); }},
-           {kPaletteEditorName, "",
-            [&]() { current_editor_set_->palette_editor_.set_active(true); },
-            [&]() { return *current_editor_set_->palette_editor_.active(); }},
-           {kScreenEditorName, "",
-            [&]() { current_editor_set_->screen_editor_.set_active(true); },
-            [&]() { return *current_editor_set_->screen_editor_.active(); }},
-           {kSpriteEditorName, "",
-            [&]() { current_editor_set_->sprite_editor_.set_active(true); },
-            [&]() { return *current_editor_set_->sprite_editor_.active(); }},
-           {kMessageEditorName, "",
-            [&]() { current_editor_set_->message_editor_.set_active(true); },
-            [&]() { return *current_editor_set_->message_editor_.active(); }},
-           {kSettingsEditorName, "",
-            [&]() { current_editor_set_->settings_editor_.set_active(true); },
-            [&]() { return *current_editor_set_->settings_editor_.active(); }},
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           {absl::StrCat(ICON_MD_HOME, " Welcome Screen"), "",
-            [&]() { show_welcome_screen_ = true; }},
-           {absl::StrCat(ICON_MD_GAMEPAD, " Emulator"), "",
-            [&]() { show_emulator_ = true; }},
-       }},
-      {"Workspace",
-       {},
-       {},
-       {},
-       {
-           // Session Management
-           {absl::StrCat(ICON_MD_TAB, " Sessions"), "", []() {}, []() { return true; },
-            std::vector<gui::MenuItem>{
-                {absl::StrCat(ICON_MD_ADD, " New Session"), "Ctrl+Shift+N",
-                 [this]() { CreateNewSession(); }},
-                {absl::StrCat(ICON_MD_CONTENT_COPY, " Duplicate Session"), "",
-                 [this]() { DuplicateCurrentSession(); },
-                 [this]() { return current_rom_ != nullptr; }},
-                {absl::StrCat(ICON_MD_CLOSE, " Close Session"), "Ctrl+Shift+W",
-                 [this]() { CloseCurrentSession(); },
-                 [this]() { return sessions_.size() > 1; }},
-                {gui::kSeparator, "", nullptr, []() { return true; }},
-                {absl::StrCat(ICON_MD_SWITCH_ACCOUNT, " Session Switcher"), "Ctrl+Tab",
-                 [this]() { show_session_switcher_ = true; },
-                 [this]() { return sessions_.size() > 1; }},
-                {absl::StrCat(ICON_MD_VIEW_LIST, " Session Manager"), "",
-                 [this]() { show_session_manager_ = true; }},
-            }},
-           
-           // Layout & Docking
-           {absl::StrCat(ICON_MD_DASHBOARD, " Layout"), "", []() {}, []() { return true; },
-            std::vector<gui::MenuItem>{
-                {absl::StrCat(ICON_MD_SPACE_DASHBOARD, " Layout Editor"), "",
-                 [this]() { show_workspace_layout = true; }},
-                {absl::StrCat(ICON_MD_RESET_TV, " Reset Layout"), "",
-                 [this]() { ResetWorkspaceLayout(); }},
-                {gui::kSeparator, "", nullptr, []() { return true; }},
-                {absl::StrCat(ICON_MD_SAVE, " Save Layout"), "Ctrl+Shift+S",
-                 [this]() { SaveWorkspaceLayout(); }},
-                {absl::StrCat(ICON_MD_FOLDER_OPEN, " Load Layout"), "Ctrl+Shift+O",
-                 [this]() { LoadWorkspaceLayout(); }},
-                {gui::kSeparator, "", nullptr, []() { return true; }},
-                {absl::StrCat(ICON_MD_BOOKMARK, " Layout Presets"), "",
-                 [this]() { show_layout_presets_ = true; }},
-            }},
-           
-           // Window Management
-           {absl::StrCat(ICON_MD_WINDOW, " Windows"), "", []() {}, []() { return true; },
-            std::vector<gui::MenuItem>{
-                {absl::StrCat(ICON_MD_VISIBILITY, " Show All Windows"), "",
-                 [this]() { ShowAllWindows(); }},
-                {absl::StrCat(ICON_MD_VISIBILITY_OFF, " Hide All Windows"), "",
-                 [this]() { HideAllWindows(); }},
-                {gui::kSeparator, "", nullptr, []() { return true; }},
-                {absl::StrCat(ICON_MD_FULLSCREEN, " Maximize Current"), "F11",
-                 [this]() { MaximizeCurrentWindow(); }},
-                {absl::StrCat(ICON_MD_FULLSCREEN_EXIT, " Restore All"), "",
-                 [this]() { RestoreAllWindows(); }},
-                {gui::kSeparator, "", nullptr, []() { return true; }},
-                {absl::StrCat(ICON_MD_CLOSE_FULLSCREEN, " Close All Floating"), "",
-                 [this]() { CloseAllFloatingWindows(); }},
-            }},
-           
-           // Workspace Presets (Enhanced)
-           {absl::StrCat(ICON_MD_BOOKMARK, " Presets"), "", []() {}, []() { return true; },
-            std::vector<gui::MenuItem>{
-                {absl::StrCat(ICON_MD_ADD, " Save Current as Preset"), "",
-                 [this]() { show_save_workspace_preset_ = true; }},
-                {absl::StrCat(ICON_MD_FOLDER_OPEN, " Load Preset"), "",
-                 [this]() { show_load_workspace_preset_ = true; }},
-                {gui::kSeparator, "", nullptr, []() { return true; }},
-                {absl::StrCat(ICON_MD_DEVELOPER_MODE, " Developer Layout"), "",
-                 [this]() { LoadDeveloperLayout(); }},
-                {absl::StrCat(ICON_MD_DESIGN_SERVICES, " Designer Layout"), "",
-                 [this]() { LoadDesignerLayout(); }},
-                {absl::StrCat(ICON_MD_GAMEPAD, " Modder Layout"), "",
-                 [this]() { LoadModderLayout(); }},
-            }},
-       }},
-      {"Debug",
-       {},
-       {},
-       {},
-       {
-           // Testing and Validation (only when tests are enabled)
-           {absl::StrCat(ICON_MD_SCIENCE, " Test Dashboard"), "Ctrl+T",
-            [&]() { show_test_dashboard_ = true; }},
-           {absl::StrCat(ICON_MD_PLAY_ARROW, " Run All Tests"), "",
-            [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunAllTests(); }},
-           {absl::StrCat(ICON_MD_INTEGRATION_INSTRUCTIONS, " Run Unit Tests"), "",
-            [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kUnit); }},
-           {absl::StrCat(ICON_MD_MEMORY, " Run Integration Tests"), "",
-            [&]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kIntegration); }},
-           {absl::StrCat(ICON_MD_CLEAR_ALL, " Clear Test Results"), "",
-            [&]() { test::TestManager::Get().ClearResults(); }},   
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           
-           // ROM and ASM Management
-           {absl::StrCat(ICON_MD_STORAGE, " ROM Analysis"), "", []() {}, []() { return true; },
-            std::vector<gui::MenuItem>{
-                {absl::StrCat(ICON_MD_INFO, " ROM Information"), "",
-                 [&]() { popup_manager_->Show("ROM Information"); },
-                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
-                {absl::StrCat(ICON_MD_ANALYTICS, " Data Integrity Check"), "",
-                 [&]() { 
-                   if (current_rom_) {
-                     [[maybe_unused]] auto status = test::TestManager::Get().TestRomDataIntegrity(current_rom_);
-                   }
-                 },
-                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
-           {absl::StrCat(ICON_MD_SAVE_ALT, " Test Save/Load"), "",
-            [&]() { 
-              if (current_rom_) {
-                [[maybe_unused]] auto status = test::TestManager::Get().TestRomSaveLoad(current_rom_);
-              }
-            },
-            [&]() { return current_rom_ && current_rom_->is_loaded(); }},
-           }},
-           
-          {absl::StrCat(ICON_MD_CODE, " ZSCustomOverworld"), "", []() {}, []() { return true; },
-            std::vector<gui::MenuItem>{
-                {absl::StrCat(ICON_MD_INFO, " Check ROM Version"), "",
-                 [&]() { 
-                   if (current_rom_) {
-                     uint8_t version = (*current_rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-                     std::string version_str = (version == 0xFF) ? "Vanilla" : absl::StrFormat("v%d", version);
-                     toast_manager_.Show(absl::StrFormat("ROM: %s | ZSCustomOverworld: %s", 
-                                                        current_rom_->title().c_str(), version_str.c_str()), 
-                                        editor::ToastType::kInfo, 5.0f);
-                   }
-                 },
-                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
-                {absl::StrCat(ICON_MD_UPGRADE, " Upgrade ROM"), "",
-                 [&]() { 
-                   // This would trigger the upgrade dialog from overworld editor
-                   if (current_rom_) {
-                     toast_manager_.Show("Use Overworld Editor to upgrade ROM version", 
-                                        editor::ToastType::kInfo, 4.0f);
-                   }
-                 },
-                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
-                {absl::StrCat(ICON_MD_SETTINGS, " Feature Flags"), "",
-                 [&]() { 
-                   // Toggle ZSCustomOverworld loading feature
-                   auto& flags = core::FeatureFlags::get();
-                   flags.overworld.kLoadCustomOverworld = !flags.overworld.kLoadCustomOverworld;
-                   toast_manager_.Show(absl::StrFormat("Custom Overworld Loading: %s", 
-                                                      flags.overworld.kLoadCustomOverworld ? "Enabled" : "Disabled"), 
-                                      editor::ToastType::kInfo);
-                 }},
-            }},
-           
-           {absl::StrCat(ICON_MD_BUILD, " Asar Integration"), "", []() {}, []() { return true; },
-            std::vector<gui::MenuItem>{
-                {absl::StrCat(ICON_MD_INFO, " Asar Status"), "",
-                 [&]() { popup_manager_->Show("Asar Integration"); }},
-                {absl::StrCat(ICON_MD_CODE, " Apply ASM Patch"), "",
-                 [&]() { 
-                   if (current_rom_) {
-                     auto& flags = core::FeatureFlags::get();
-                     flags.overworld.kApplyZSCustomOverworldASM = !flags.overworld.kApplyZSCustomOverworldASM;
-                     toast_manager_.Show(absl::StrFormat("ZSCustomOverworld ASM Application: %s", 
-                                                        flags.overworld.kApplyZSCustomOverworldASM ? "Enabled" : "Disabled"), 
-                                        editor::ToastType::kInfo);
-                   }
-                 },
-                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
-                {absl::StrCat(ICON_MD_FOLDER_OPEN, " Load ASM File"), "",
-                 [&]() { 
-                   // Show available ASM files or file dialog
-                   toast_manager_.Show("ASM file loading not yet implemented", 
-                                      editor::ToastType::kWarning);
-                 }},
-            }},
-           
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           
-           // Development Tools
-           {absl::StrCat(ICON_MD_MEMORY, " Memory Editor"), "",
-            [&]() { show_memory_editor_ = true; }},
-           {absl::StrCat(ICON_MD_CODE, " Assembly Editor"), "",
-            [&]() { show_asm_editor_ = true; }},
-           {absl::StrCat(ICON_MD_SETTINGS, " Feature Flags"), "",
-            [&]() { popup_manager_->Show("Feature Flags"); }},
-           
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           
-           // Agent Proposals
-           {absl::StrCat(ICON_MD_PREVIEW, " Agent Proposals"), "",
-            [&]() { proposal_drawer_.Toggle(); }},
-#ifdef YAZE_WITH_GRPC
-           {absl::StrCat(ICON_MD_CHAT, " Agent Chat"), "",
-            [this]() {
-              agent_editor_.ToggleChat();
-            },
-            [this]() { return agent_editor_.IsChatActive(); }},
-#endif
-           
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           
-           {absl::StrCat(ICON_MD_PALETTE, " Graphics Debugging"), "", []() {}, []() { return true; },
-            std::vector<gui::MenuItem>{
-                {absl::StrCat(ICON_MD_REFRESH, " Clear Graphics Cache"), "",
-                 [&]() { 
-                   // Clear and reinitialize graphics cache
-                   if (current_rom_ && current_rom_->is_loaded()) {
-                     toast_manager_.Show("Graphics cache cleared - reload editors to refresh", 
-                                        editor::ToastType::kInfo, 4.0f);
-                   }
-                 },
-                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
-                {absl::StrCat(ICON_MD_MEMORY, " Arena Statistics"), "",
-                 [&]() { 
-                   auto& arena = gfx::Arena::Get();
-                   toast_manager_.Show(absl::StrFormat("Arena: %zu surfaces, %zu textures", 
-                                                      arena.GetSurfaceCount(), arena.GetTextureCount()), 
-                                      editor::ToastType::kInfo, 4.0f);
-                 }},
-            }},
-           
-           // Performance Monitoring
-           {absl::StrCat(ICON_MD_SPEED, " Performance Dashboard"), "Ctrl+Shift+P",
-            [&]() { show_performance_dashboard_ = true; }},
-           
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           
-           // Development Helpers
-           {absl::StrCat(ICON_MD_HELP, " ImGui Demo"), "",
-            [&]() { show_imgui_demo_ = true; }},
-           {absl::StrCat(ICON_MD_ANALYTICS, " ImGui Metrics"), "",
-            [&]() { show_imgui_metrics_ = true; }},
-       }},
-      {"Help",
-       {},
-       {},
-       {},
-       {
-           {absl::StrCat(ICON_MD_HELP, " Getting Started"), "",
-            [&]() { popup_manager_->Show("Getting Started"); }},
-           {absl::StrCat(ICON_MD_WORK_OUTLINE, " Workspace Help"), "",
-            [&]() { popup_manager_->Show("Workspace Help"); }},
-           {absl::StrCat(ICON_MD_INTEGRATION_INSTRUCTIONS, " Asar Integration Guide"), "",
-            [&]() { popup_manager_->Show("Asar Integration"); }},
-           {absl::StrCat(ICON_MD_BUILD, " Build Instructions"), "",
-            [&]() { popup_manager_->Show("Build Instructions"); }},
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           {absl::StrCat(ICON_MD_FILE_OPEN, " How to open a ROM"), "",
-            [&]() { popup_manager_->Show("Open a ROM"); }},
-           {absl::StrCat(ICON_MD_LIST, " Supported Features"), "",
-            [&]() { popup_manager_->Show("Supported Features"); }},
-           {absl::StrCat(ICON_MD_FOLDER_OPEN, " How to manage a project"), "",
-            [&]() { popup_manager_->Show("Manage Project"); }},
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           {absl::StrCat(ICON_MD_TERMINAL, " CLI Tool Usage"), "",
-            [&]() { popup_manager_->Show("CLI Usage"); }},
-           {absl::StrCat(ICON_MD_BUG_REPORT, " Troubleshooting"), "",
-            [&]() { popup_manager_->Show("Troubleshooting"); }},
-           {absl::StrCat(ICON_MD_CODE, " Contributing"), "",
-            [&]() { popup_manager_->Show("Contributing"); }},
-           {gui::kSeparator, "", nullptr, []() { return true; }},
-           {absl::StrCat(ICON_MD_ANNOUNCEMENT, " What's New in v0.3"), "",
-            [&]() { popup_manager_->Show("Whats New v03"); }},
-           {absl::StrCat(ICON_MD_INFO, " About"), "F1",
-            [&]() { popup_manager_->Show("About"); }},
-       }}};
 }
 
 absl::Status EditorManager::Update() {
   popup_manager_->DrawPopups();
   ExecuteShortcuts(context_.shortcut_manager);
   toast_manager_.Draw();
+  
+  // Draw editor selection dialog
+  if (show_editor_selection_) {
+    editor_selection_dialog_.Show(&show_editor_selection_);
+  }
+
+#ifdef YAZE_WITH_GRPC
+  // Draw agent editor (includes chat widget and collaboration UI)
+  agent_editor_.Draw();
+#endif
 
   // Draw background grid effects for the entire viewport
   if (ImGui::GetCurrentContext()) {
@@ -1126,8 +753,8 @@ absl::Status EditorManager::DrawRomSelector() {
 void EditorManager::BuildModernMenu() {
   menu_builder_.Clear();
   
-  // File Menu
-  menu_builder_.BeginMenu("File", ICON_MD_FOLDER)
+  // File Menu (no icon to avoid cutoff)
+  menu_builder_.BeginMenu("File")
     .Item("Open", ICON_MD_FILE_OPEN, 
           [this]() { status_ = LoadRom(); }, "Ctrl+O")
     .Item("Save", ICON_MD_SAVE,
@@ -1148,7 +775,7 @@ void EditorManager::BuildModernMenu() {
     .EndMenu();
   
   // Edit Menu  
-  menu_builder_.BeginMenu("Edit", ICON_MD_EDIT)
+  menu_builder_.BeginMenu("Edit")
     .Item("Undo", ICON_MD_UNDO,
           [this]() { if (current_editor_) status_ = current_editor_->Undo(); }, "Ctrl+Z")
     .Item("Redo", ICON_MD_REDO,
@@ -1169,7 +796,7 @@ void EditorManager::BuildModernMenu() {
     .EndMenu();
   
   // View Menu
-  menu_builder_.BeginMenu("View", ICON_MD_VISIBILITY)
+  menu_builder_.BeginMenu("View")
     .BeginSubMenu("Editors", ICON_MD_APPS)
       .Item("Show Editor Selection", ICON_MD_DASHBOARD,
             [this]() { show_editor_selection_ = true; }, "Ctrl+E")
@@ -1192,6 +819,11 @@ void EditorManager::BuildModernMenu() {
     .Separator()
     .Item("Welcome Screen", ICON_MD_HOME,
           [this]() { show_welcome_screen_ = true; })
+    .Item("Emulator", ICON_MD_GAMEPAD,
+          [this]() { show_emulator_ = true; },
+          nullptr,
+          nullptr,
+          [this]() { return show_emulator_; })
     .Item("Command Palette", ICON_MD_TERMINAL,
           [this]() { show_command_palette_ = true; }, "Ctrl+Shift+P")
 #ifdef YAZE_WITH_GRPC
@@ -1204,7 +836,7 @@ void EditorManager::BuildModernMenu() {
     .EndMenu();
   
   // Workspace Menu
-  menu_builder_.BeginMenu("Workspace", ICON_MD_WORKSPACES)
+  menu_builder_.BeginMenu("Workspace")
     .BeginSubMenu("Sessions", ICON_MD_TAB)
       .Item("New Session", ICON_MD_ADD,
             [this]() { CreateNewSession(); }, "Ctrl+Shift+N")
@@ -1218,6 +850,34 @@ void EditorManager::BuildModernMenu() {
       .Item("Session Switcher", ICON_MD_SWITCH_ACCOUNT,
             [this]() { show_session_switcher_ = true; }, "Ctrl+Tab",
             [this]() { return sessions_.size() > 1; })
+      .Item("Session Manager", ICON_MD_VIEW_LIST,
+            [this]() { show_session_manager_ = true; })
+      .EndMenu()
+    .Separator()
+    .BeginSubMenu("Layout", ICON_MD_DASHBOARD)
+      .Item("Save Layout", ICON_MD_SAVE,
+            [this]() { SaveWorkspaceLayout(); }, "Ctrl+Shift+S")
+      .Item("Load Layout", ICON_MD_FOLDER_OPEN,
+            [this]() { LoadWorkspaceLayout(); }, "Ctrl+Shift+O")
+      .Item("Reset Layout", ICON_MD_RESET_TV,
+            [this]() { ResetWorkspaceLayout(); })
+      .Separator()
+      .Item("Layout Presets", ICON_MD_BOOKMARK,
+            [this]() { show_layout_presets_ = true; })
+      .EndMenu()
+    .BeginSubMenu("Windows", ICON_MD_WINDOW)
+      .Item("Show All", ICON_MD_VISIBILITY,
+            [this]() { ShowAllWindows(); })
+      .Item("Hide All", ICON_MD_VISIBILITY_OFF,
+            [this]() { HideAllWindows(); })
+      .Separator()
+      .Item("Maximize Current", ICON_MD_FULLSCREEN,
+            [this]() { MaximizeCurrentWindow(); }, "F11")
+      .Item("Restore All", ICON_MD_FULLSCREEN_EXIT,
+            [this]() { RestoreAllWindows(); })
+      .Separator()
+      .Item("Close All Floating", ICON_MD_CLOSE_FULLSCREEN,
+            [this]() { CloseAllFloatingWindows(); })
       .EndMenu()
     .Separator()
     .Item("Performance Dashboard", ICON_MD_SPEED,
@@ -1226,7 +886,7 @@ void EditorManager::BuildModernMenu() {
   
 #ifdef YAZE_WITH_GRPC
   // AI Agent Menu
-  menu_builder_.BeginMenu("AI Agent", ICON_MD_SMART_TOY)
+  menu_builder_.BeginMenu("Agent")
     .Item("Open Agent Chat", ICON_MD_CHAT,
           [this]() { agent_editor_.SetChatActive(true); }, "Ctrl+Shift+A")
     .Separator()
@@ -1254,17 +914,17 @@ void EditorManager::BuildModernMenu() {
     .EndMenu();
   
   // Collaboration Menu
-  menu_builder_.BeginMenu("Collaboration", ICON_MD_PEOPLE)
+  menu_builder_.BeginMenu("Network")
     .BeginSubMenu("Session", ICON_MD_MEETING_ROOM)
       .Item("Host Session", ICON_MD_ADD_CIRCLE,
             [this]() {
               auto result = agent_editor_.HostSession("New Session");
               if (result.ok()) {
-                toast_manager_.AddToast(ToastType::Success, 
-                    "Hosted session: " + result->session_name);
+                toast_manager_.Show("Hosted session: " + result->session_name, 
+                    ToastType::kSuccess);
               } else {
-                toast_manager_.AddToast(ToastType::Error, 
-                    "Failed to host session: " + std::string(result.status().message()));
+                toast_manager_.Show("Failed to host session: " + std::string(result.status().message()),
+                    ToastType::kError);
               }
             })
       .Item("Join Session", ICON_MD_LOGIN,
@@ -1274,7 +934,7 @@ void EditorManager::BuildModernMenu() {
             [this]() {
               status_ = agent_editor_.LeaveSession();
               if (status_.ok()) {
-                toast_manager_.AddToast(ToastType::Info, "Left collaboration session");
+                toast_manager_.Show("Left collaboration session", ToastType::kInfo);
               }
             },
             nullptr,
@@ -1283,21 +943,21 @@ void EditorManager::BuildModernMenu() {
             [this]() {
               auto result = agent_editor_.RefreshSession();
               if (result.ok()) {
-                toast_manager_.AddToast(ToastType::Success, 
-                    "Session refreshed: " + std::to_string(result->participants.size()) + " participants");
+                toast_manager_.Show("Session refreshed: " + std::to_string(result->participants.size()) + " participants", 
+                    ToastType::kSuccess);
               }
             },
             nullptr,
             [this]() { return agent_editor_.IsInSession(); })
       .EndMenu()
     .Separator()
-    .BeginSubMenu("Network", ICON_MD_CLOUD)
+    .BeginSubMenu("Server", ICON_MD_CLOUD)
       .Item("Connect to Server", ICON_MD_CLOUD_UPLOAD,
             [this]() { popup_manager_->Show("Connect to Server"); })
       .Item("Disconnect", ICON_MD_CLOUD_OFF,
             [this]() {
               agent_editor_.DisconnectFromServer();
-              toast_manager_.AddToast(ToastType::Info, "Disconnected from server");
+              toast_manager_.Show("Disconnected from server", ToastType::kInfo);
             },
             nullptr,
             [this]() { return agent_editor_.IsConnectedToServer(); })
@@ -1317,14 +977,25 @@ void EditorManager::BuildModernMenu() {
 #endif
   
   // Debug Menu
-  menu_builder_.BeginMenu("Debug", ICON_MD_BUG_REPORT)
+  menu_builder_.BeginMenu("Debug")
+#ifdef YAZE_ENABLE_TESTING
     .Item("Test Dashboard", ICON_MD_SCIENCE,
           [this]() { show_test_dashboard_ = true; }, "Ctrl+T")
     .Separator()
+#endif
     .Item("Memory Editor", ICON_MD_MEMORY,
           [this]() { show_memory_editor_ = true; })
     .Item("Assembly Editor", ICON_MD_CODE,
           [this]() { show_asm_editor_ = true; })
+    .Separator()
+    .Item("ImGui Demo", ICON_MD_HELP,
+          [this]() { show_imgui_demo_ = true; },
+          nullptr, nullptr,
+          [this]() { return show_imgui_demo_; })
+    .Item("ImGui Metrics", ICON_MD_ANALYTICS,
+          [this]() { show_imgui_metrics_ = true; },
+          nullptr, nullptr,
+          [this]() { return show_imgui_metrics_; })
 #ifdef YAZE_WITH_GRPC
     .Separator()
     .Item("Agent Chat", ICON_MD_CHAT,
@@ -1335,7 +1006,7 @@ void EditorManager::BuildModernMenu() {
     .EndMenu();
   
   // Help Menu
-  menu_builder_.BeginMenu("Help", ICON_MD_HELP)
+  menu_builder_.BeginMenu("Help")
     .Item("Getting Started", ICON_MD_PLAY_ARROW,
           [this]() { popup_manager_->Show("Getting Started"); })
     .Item("About", ICON_MD_INFO,
@@ -1356,43 +1027,56 @@ void EditorManager::DrawMenuBar() {
     status_ = DrawRomSelector();
 
     // Calculate proper right-side positioning
+    // With the wider menu (8 top-level items), we need more compact right-side layout
     std::string version_text = absl::StrFormat("v%s", version_.c_str());
     float version_width = CalcTextSize(version_text.c_str()).x;
     float settings_width = CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x + 16;
-    float total_right_width =
-        version_width + settings_width + 40;  // Extra padding
+    float total_right_width = version_width + settings_width + 30;  // Increased padding for visibility
 
-    // Position for ROM status and sessions
-    float session_rom_area_width = 250.0f;  // Reduced width
+    // Allocate space for ROM status and sessions
+    float session_rom_area_width = 220.0f;  // Increased slightly for better spacing
     SameLine(GetWindowWidth() - total_right_width - session_rom_area_width);
 
     // Multi-session indicator
     if (sessions_.size() > 1) {
-      if (SmallButton(absl::StrFormat("%s %zu", ICON_MD_TAB, sessions_.size())
+      if (SmallButton(absl::StrFormat("%s%zu", ICON_MD_TAB, sessions_.size())
                           .c_str())) {
         show_session_switcher_ = true;
       }
       if (IsItemHovered()) {
-        SetTooltip("Sessions: %zu active\nClick to switch between sessions",
-                   sessions_.size());
+        SetTooltip("Sessions: %zu active\nClick to switch", sessions_.size());
+      }
+      SameLine();
+    }
+    
+    // Editor selection quick button (when ROM loaded)
+    if (current_rom_ && current_rom_->is_loaded()) {
+      if (SmallButton(ICON_MD_APPS)) {
+        show_editor_selection_ = true;
+      }
+      if (IsItemHovered()) {
+        SetTooltip("Open Editor Selection (Ctrl+E)");
       }
       SameLine();
       ImGui::Separator();
       SameLine();
     }
 
-    // Enhanced ROM status with metadata popup
+    // Compact ROM status with metadata popup
     if (current_rom_ && current_rom_->is_loaded()) {
+      // Truncate long ROM titles for compact display
       std::string rom_display = current_rom_->title();
+      if (rom_display.length() > 15) {
+        rom_display = rom_display.substr(0, 12) + "...";
+      }
 
       ImVec4 status_color =
           current_rom_->dirty() ? ImVec4(1.0f, 0.5f, 0.0f, 1.0f)
                                 :              // Orange for modified
               ImVec4(0.0f, 0.8f, 0.0f, 1.0f);  // Green for clean
 
-      // Make ROM status clickable for detailed popup
-      if (SmallButton(absl::StrFormat("%s %s%s", ICON_MD_STORAGE,
-                                      rom_display.c_str(),
+      // Compact ROM status button
+      if (SmallButton(absl::StrFormat("%s%s", rom_display.c_str(),
                                       current_rom_->dirty() ? "*" : "")
                           .c_str())) {
         ImGui::OpenPopup("ROM Details");
@@ -1492,8 +1176,7 @@ void EditorManager::DrawMenuBar() {
 
       SameLine();
     } else {
-      TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "%s No ROM",
-                  ICON_MD_HELP_OUTLINE);
+      TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "No ROM");
       SameLine();
     }
 
@@ -2158,6 +1841,10 @@ absl::Status EditorManager::LoadRom() {
 
   // Hide welcome screen when ROM is successfully loaded - don't reset manual close state
   show_welcome_screen_ = false;
+  
+  // Optionally show editor selection dialog after ROM loads
+  // (Can be disabled via settings if users prefer to manually select editors)
+  // show_editor_selection_ = true;  // Uncomment to auto-show after ROM load
 
   return absl::OkStatus();
 }
@@ -3326,7 +3013,7 @@ void EditorManager::DrawWelcomeScreen() {
   welcome_screen_.RefreshRecentProjects();
   bool was_open = show_welcome_screen_;
   bool action_taken = welcome_screen_.Show(&show_welcome_screen_);
-  
+
   // Check if the welcome screen was manually closed via the close button
   if (was_open && !show_welcome_screen_) {
     welcome_screen_manually_closed_ = true;
