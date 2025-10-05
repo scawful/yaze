@@ -3,42 +3,146 @@
 
 #include "imgui/imgui.h"
 #include <string>
+#include <functional>
 
 namespace yaze {
 namespace gui {
 
 // A collection of helper functions and widgets to standardize UI development
-// and reduce boilerplate ImGui code.
+// and reduce boilerplate ImGui code across all editors.
 
-// --- Theming and Colors ---
+// ============================================================================
+// Theme and Semantic Colors
+// ============================================================================
 
-// Gets a color from the current theme.
+// Gets a color from the current theme
 ImVec4 GetThemeColor(ImGuiCol idx);
 
-// Gets a semantic color from the current theme.
+// Semantic colors from current theme
 ImVec4 GetSuccessColor();
 ImVec4 GetWarningColor();
 ImVec4 GetErrorColor();
 ImVec4 GetInfoColor();
 ImVec4 GetAccentColor();
 
-// --- Layout Helpers ---
+// Entity/Map marker colors (for overworld, dungeon)
+ImVec4 GetEntranceColor();
+ImVec4 GetExitColor();
+ImVec4 GetItemColor();
+ImVec4 GetSpriteColor();
+ImVec4 GetSelectedColor();
+ImVec4 GetLockedColor();
 
-// Begins a standard row for a label and a widget.
-void BeginField(const char* label);
-// Ends a field row.
+// Status colors
+ImVec4 GetVanillaRomColor();
+ImVec4 GetCustomRomColor();
+ImVec4 GetModifiedColor();
+
+// ============================================================================
+// Layout Helpers
+// ============================================================================
+
+// Label + widget field pattern
+void BeginField(const char* label, float label_width = 0.0f);
 void EndField();
 
-// --- Widget Wrappers ---
+// Property table pattern (common in editors)
+bool BeginPropertyTable(const char* id, int columns = 2, 
+                       ImGuiTableFlags extra_flags = 0);
+void EndPropertyTable();
 
-// A button with an icon from the Material Design icon font.
-bool IconButton(const char* icon, const char* label, const ImVec2& size = ImVec2(0, 0));
+// Property row helpers
+void PropertyRow(const char* label, const char* value);
+void PropertyRow(const char* label, int value);
+void PropertyRowHex(const char* label, uint8_t value);
+void PropertyRowHex(const char* label, uint16_t value);
 
-// A help marker that shows a tooltip on hover.
+// Section headers with icons
+void SectionHeader(const char* icon, const char* label, 
+                  const ImVec4& color = ImVec4(1, 1, 1, 1));
+
+// ============================================================================
+// Common Widget Patterns
+// ============================================================================
+
+// Button with icon
+bool IconButton(const char* icon, const char* label, 
+               const ImVec2& size = ImVec2(0, 0));
+
+// Colored button for status actions
+enum class ButtonType { Default, Success, Warning, Error, Info };
+bool ColoredButton(const char* label, ButtonType type,
+                  const ImVec2& size = ImVec2(0, 0));
+
+// Toggle button with visual state
+bool ToggleIconButton(const char* icon_on, const char* icon_off,
+                     bool* state, const char* tooltip = nullptr);
+
+// Help marker with tooltip
 void HelpMarker(const char* desc);
 
-// A separator with centered text.
+// Separator with text
 void SeparatorText(const char* label);
+
+// Status badge (pill-shaped colored label)
+void StatusBadge(const char* text, ButtonType type = ButtonType::Default);
+
+// ============================================================================
+// Editor-Specific Patterns
+// ============================================================================
+
+// Toolset table (horizontal button bar)
+void BeginToolset(const char* id);
+void EndToolset();
+void ToolsetButton(const char* icon, bool selected, const char* tooltip,
+                  std::function<void()> on_click);
+
+// Canvas container patterns
+void BeginCanvasContainer(const char* id, bool scrollable = true);
+void EndCanvasContainer();
+
+// Tab pattern for editor modes
+bool EditorTabItem(const char* icon, const char* label, bool* p_open = nullptr);
+
+// Modal confirmation dialog
+bool ConfirmationDialog(const char* id, const char* title, const char* message,
+                       const char* confirm_text = "OK",
+                       const char* cancel_text = "Cancel");
+
+// ============================================================================
+// Visual Indicators
+// ============================================================================
+
+// Status indicator dot + label
+void StatusIndicator(const char* label, bool active,
+                    const char* tooltip = nullptr);
+
+// ROM version badge
+void RomVersionBadge(const char* version, bool is_vanilla);
+
+// Locked/Unlocked indicator
+void LockIndicator(bool locked, const char* label);
+
+// ============================================================================
+// Spacing and Alignment
+// ============================================================================
+
+void VerticalSpacing(float pixels = 8.0f);
+void HorizontalSpacing(float pixels = 8.0f);
+void CenterText(const char* text);
+void RightAlign(float width);
+
+// ============================================================================
+// Input Helpers (complement existing gui::InputHex functions)
+// ============================================================================
+
+// Labeled hex input with automatic formatting
+bool LabeledInputHex(const char* label, uint8_t* value);
+bool LabeledInputHex(const char* label, uint16_t* value);
+
+// Combo with icon
+bool IconCombo(const char* icon, const char* label, int* current,
+              const char* const items[], int count);
 
 } // namespace gui
 } // namespace yaze

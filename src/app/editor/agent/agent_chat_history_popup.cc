@@ -1,4 +1,4 @@
-#include "app/editor/system/agent_chat_history_popup.h"
+#include "app/editor/agent/agent_chat_history_popup.h"
 
 #include <cstring>
 

@@ -21,7 +21,7 @@
 #include "app/core/project.h"
 #include "app/editor/agent/agent_chat_history_codec.h"
 #include "app/editor/agent/agent_ui_theme.h"
-#include "app/editor/system/agent_chat_history_popup.h"
+#include "app/editor/agent/agent_chat_history_popup.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/gui/icons.h"
@@ -1348,14 +1348,13 @@ void AgentChatWidget::RenderCollaborationPanel() {
 }
 
 void AgentChatWidget::RenderMultimodalPanel() {
+  const auto& theme = AgentUI::GetTheme();
   ImGui::PushID("MultimodalPanel");
-  ImVec4 gemini_color = ImVec4(0.196f, 0.6f, 0.8f, 1.0f);
 
   // Dense header (no collapsing for small panel)
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.16f, 0.20f, 0.95f));
-  ImGui::BeginChild("Multimodal_Panel", ImVec2(0, 100), true);
-  ImGui::TextColored(gemini_color, ICON_MD_CAMERA " Vision");
-  ImGui::Separator();
+  AgentUI::PushPanelStyle();
+  ImGui::BeginChild("Multimodal_Panel", ImVec2(0, 120), true);  // Slightly taller
+  AgentUI::RenderSectionHeader(ICON_MD_CAMERA, "Vision", theme.provider_gemini);
 
   bool can_capture = static_cast<bool>(multimodal_callbacks_.capture_snapshot);
   bool can_send = static_cast<bool>(multimodal_callbacks_.send_to_gemini);
@@ -1405,7 +1404,7 @@ void AgentChatWidget::RenderMultimodalPanel() {
 
   ImGui::SameLine();
   if (multimodal_state_.last_capture_path.has_value()) {
-    ImGui::TextColored(gemini_color, ICON_MD_CHECK_CIRCLE);
+    ImGui::TextColored(theme.status_success, ICON_MD_CHECK_CIRCLE);
   } else {
     ImGui::TextDisabled(ICON_MD_CAMERA_ALT);
   }
