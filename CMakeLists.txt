@@ -79,6 +79,9 @@ option(YAZE_WITH_JSON "Enable JSON support for AI integrations" ON)
 # YAZE_WITH_GRPC: gRPC for GUI automation (auto-enables JSON)
 option(YAZE_WITH_GRPC "Enable gRPC-based ImGuiTestHarness for automated GUI testing (experimental)" OFF)
 
+# YAZE_SUPPRESS_WARNINGS: Suppress compiler warnings for cleaner build output
+option(YAZE_SUPPRESS_WARNINGS "Suppress compiler warnings (use -v preset suffix for verbose)" ON)
+
 # Dependency resolution
 if(Z3ED_AI)
     message(STATUS "Z3ED_AI enabled: Activating AI agent dependencies (JSON, YAML, httplib)")
@@ -107,6 +110,18 @@ set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path t
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Apply warning suppression if requested
+if(YAZE_SUPPRESS_WARNINGS)
+  if(MSVC)
+    add_compile_options(/w)
+  else()
+    add_compile_options(-w)
+  endif()
+  message(STATUS "✓ Warnings suppressed (use -v preset suffix for verbose builds)")
+else()
+  message(STATUS "○ Verbose warnings enabled")
+endif()
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
