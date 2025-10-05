@@ -337,8 +337,9 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
               "The tool returned the following data:\n",
               tool_output, "\n\n",
               "Please provide a text_response field in your JSON to summarize this information for the user.");
-          history_.push_back(
-              CreateMessage(ChatMessage::Sender::kUser, marked_output));
+          auto tool_result_msg = CreateMessage(ChatMessage::Sender::kUser, marked_output);
+          tool_result_msg.is_internal = true;  // Don't show this to the human user
+          history_.push_back(tool_result_msg);
         }
         executed_tool = true;
       }

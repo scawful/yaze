@@ -37,6 +37,7 @@ struct ChatMessage {
   absl::Time timestamp;
   std::optional<std::string> json_pretty;
   std::optional<TableData> table_data;
+  bool is_internal = false;  // True for tool results and other messages not meant for user display
   struct SessionMetrics {
     int turn_index = 0;
     int total_user_messages = 0;

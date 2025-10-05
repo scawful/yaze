@@ -159,6 +159,7 @@ absl::StatusOr<AgentChatHistoryCodec::Snapshot> AgentChatHistoryCodec::Load(
                          : cli::agent::ChatMessage::Sender::kAgent;
     message.message = item.value("message", "");
     message.timestamp = ParseTimestamp(item["timestamp"]);
+    message.is_internal = item.value("is_internal", false);
 
     if (item.contains("json_pretty") && item["json_pretty"].is_string()) {
       message.json_pretty = item["json_pretty"].get<std::string>();
@@ -260,6 +261,7 @@ absl::Status AgentChatHistoryCodec::Save(
     entry["timestamp"] = absl::FormatTime(absl::RFC3339_full,
                                            message.timestamp,
                                            absl::UTCTimeZone());
+    entry["is_internal"] = message.is_internal;
 
     if (message.json_pretty.has_value()) {
       entry["json_pretty"] = *message.json_pretty;

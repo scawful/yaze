@@ -324,6 +324,11 @@ void AgentChatWidget::HandleAgentResponse(
 }
 
 void AgentChatWidget::RenderMessage(const ChatMessage& msg, int index) {
+  // Skip internal messages (tool results meant only for the LLM)
+  if (msg.is_internal) {
+    return;
+  }
+  
   ImGui::PushID(index);
 
   const bool from_user = (msg.sender == ChatMessage::Sender::kUser);
