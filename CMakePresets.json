@@ -26,6 +26,7 @@
       "hidden": true,
       "description": "Unix/macOS/Linux base with Makefiles",
       "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build",
       "condition": {
         "type": "notEquals",
         "lhs": "${hostSystemName}",
@@ -144,14 +145,17 @@
     {
       "name": "mac-ai",
       "displayName": "macOS AI",
-      "description": "macOS with AI agent (z3ed + JSON + gRPC)",
+      "description": "macOS with AI agent (z3ed + JSON + gRPC + networking)",
       "inherits": "mac-dev",
+      "binaryDir": "${sourceDir}/build_ai",
       "cacheVariables": {
         "Z3ED_AI": "ON",
         "YAZE_WITH_JSON": "ON",
         "YAZE_WITH_GRPC": "ON",
         "YAZE_BUILD_Z3ED": "ON",
-        "YAZE_BUILD_EMU": "ON"
+        "YAZE_BUILD_EMU": "ON",
+        "YAZE_BUILD_TESTS": "ON",
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
