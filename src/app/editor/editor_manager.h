@@ -25,6 +25,7 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/popup_manager.h"
 #include "app/editor/system/proposal_drawer.h"
+#include "app/editor/system/agent_chat_history_popup.h"
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/agent_editor.h"
 #endif
@@ -189,6 +190,10 @@ class EditorManager {
   // Agent proposal drawer
   ProposalDrawer proposal_drawer_;
   bool show_proposal_drawer_ = false;
+  
+  // Agent chat history popup
+  AgentChatHistoryPopup agent_chat_history_popup_;
+  bool show_chat_history_popup_ = false;
 
   // Project file editor
   ProjectFileEditor project_file_editor_;

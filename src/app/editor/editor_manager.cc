@@ -242,6 +242,12 @@ void EditorManager::Initialize(const std::string& filename) {
   agent_editor_.Initialize();
   agent_editor_.InitializeWithDependencies(&toast_manager_, &proposal_drawer_, nullptr);
 
+  // Initialize and connect the chat history popup
+  agent_chat_history_popup_.SetToastManager(&toast_manager_);
+  if (agent_editor_.GetChatWidget()) {
+    agent_editor_.GetChatWidget()->SetChatHistoryPopup(&agent_chat_history_popup_);
+  }
+
   // Set up multimodal (vision) callbacks for Gemini
   AgentChatWidget::MultimodalCallbacks multimodal_callbacks;
   multimodal_callbacks.capture_snapshot =
@@ -515,6 +521,16 @@ void EditorManager::Initialize(const std::string& filename) {
   context_.shortcut_manager.RegisterShortcut(
       "Agent Editor", {ImGuiKey_A, ImGuiMod_Ctrl, ImGuiMod_Shift},
       [this]() { agent_editor_.SetChatActive(true); });
+  
+  // Agent Chat History Popup shortcut
+  context_.shortcut_manager.RegisterShortcut(
+      "Chat History Popup", {ImGuiKey_H, ImGuiMod_Ctrl},
+      [this]() { agent_chat_history_popup_.Toggle(); });
+  
+  // Agent Proposal Drawer shortcut
+  context_.shortcut_manager.RegisterShortcut(
+      "Proposal Drawer", {ImGuiKey_P, ImGuiMod_Ctrl},
+      [this]() { proposal_drawer_.Toggle(); });
 #endif
 
   // Testing shortcuts (only when tests are enabled)
@@ -876,6 +892,10 @@ void EditorManager::BuildModernMenu() {
 #ifdef YAZE_WITH_GRPC
     .Item("AI Agent", ICON_MD_SMART_TOY,
           [this]() { agent_editor_.set_active(true); }, "Ctrl+Shift+A")
+    .Item("Chat History", ICON_MD_CHAT,
+          [this]() { agent_chat_history_popup_.Toggle(); }, "Ctrl+H")
+    .Item("Proposal Drawer", ICON_MD_PREVIEW,
+          [this]() { proposal_drawer_.Toggle(); }, "Ctrl+P")
 #endif
     .Separator()
     .Item("Welcome Screen", ICON_MD_HOME,
@@ -1266,9 +1286,12 @@ void EditorManager::DrawMenuBar() {
   }
 #endif
 
-  // Agent proposal drawer
+  // Agent proposal drawer (right side)
   proposal_drawer_.SetRom(current_rom_);
   proposal_drawer_.Draw();
+
+  // Agent chat history popup (left side)
+  agent_chat_history_popup_.Draw();
 
   // Welcome screen (accessible from View menu)
   if (show_welcome_screen_) {
