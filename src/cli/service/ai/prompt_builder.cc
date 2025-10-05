@@ -76,10 +76,21 @@ std::vector<fs::path> BuildCatalogueSearchPaths(const std::string& explicit_path
     }
   }
 
+  // Try to get executable directory for better path resolution
+  fs::path exe_dir;
+  try {
+    exe_dir = fs::current_path();
+  } catch (...) {
+    exe_dir = ".";
+  }
+
   const std::vector<std::string> defaults = {
       "assets/agent/prompt_catalogue.yaml",
       "../assets/agent/prompt_catalogue.yaml",
       "../../assets/agent/prompt_catalogue.yaml",
+      "../../../assets/agent/prompt_catalogue.yaml",  // From build/bin/
+      "../../../../assets/agent/prompt_catalogue.yaml",  // From build/bin/yaze.app/Contents/MacOS/
+      "../Resources/assets/agent/prompt_catalogue.yaml",  // macOS app bundle
       "assets/z3ed/prompt_catalogue.yaml",
       "../assets/z3ed/prompt_catalogue.yaml",
   };

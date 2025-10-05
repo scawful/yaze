@@ -229,6 +229,25 @@ public:
   void HandleSnapshotReceived(const std::string& snapshot_data, const std::string& snapshot_type);
   void HandleProposalReceived(const std::string& proposal_data);
 
+  // Chat session management
+  struct ChatSession {
+    std::string id;
+    std::string name;
+    cli::agent::ConversationalAgentService agent_service;
+    size_t last_history_size = 0;
+    bool history_loaded = false;
+    bool history_dirty = false;
+    std::filesystem::path history_path;
+    absl::Time last_persist_time = absl::InfinitePast();
+    
+    ChatSession(const std::string& session_id, const std::string& session_name)
+        : id(session_id), name(session_name) {}
+  };
+  
+  std::vector<ChatSession> chat_sessions_;
+  int active_session_index_ = 0;
+  
+  // Legacy single session support (will migrate to sessions)
   cli::agent::ConversationalAgentService agent_service_;
   char input_buffer_[1024];
   bool active_ = false;

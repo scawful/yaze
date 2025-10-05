@@ -102,7 +102,7 @@ TEST_F(AITilePlacementTest, DISABLED_VisionAnalysisBasic) {
   
   cli::GeminiConfig config;
   config.api_key = api_key;
-  config.model = "gemini-2.0-flash-exp";
+  config.model = "gemini-2.5-flash";
   
   cli::GeminiAIService gemini_service(config);
   cli::ai::VisionActionRefiner refiner(&gemini_service);

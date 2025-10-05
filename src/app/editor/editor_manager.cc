@@ -301,7 +301,7 @@ void EditorManager::Initialize(const std::string& filename) {
     // Create Gemini service
     cli::GeminiConfig config;
     config.api_key = api_key;
-    config.model = "gemini-2.0-flash-exp";  // Use vision-capable model
+    config.model = "gemini-2.5-flash";  // Use vision-capable model
     config.verbose = false;
     
     cli::GeminiAIService gemini_service(config);
@@ -350,9 +350,17 @@ void EditorManager::Initialize(const std::string& filename) {
   
   // Initialize editor selection dialog callback
   editor_selection_dialog_.SetSelectionCallback([this](EditorType type) {
-    if (!current_editor_set_) return;
-    
     editor_selection_dialog_.MarkRecentlyUsed(type);
+    
+    // Handle agent editor separately (doesn't require ROM)
+    if (type == EditorType::kAgent) {
+#ifdef YAZE_WITH_GRPC
+      agent_editor_.set_active(true);
+#endif
+      return;
+    }
+    
+    if (!current_editor_set_) return;
     
     switch (type) {
       case EditorType::kOverworld:

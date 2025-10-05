@@ -103,6 +103,12 @@ AgentChatWidget::AgentChatWidget() {
   memset(input_buffer_, 0, sizeof(input_buffer_));
   history_path_ = ResolveHistoryPath();
   history_supported_ = AgentChatHistoryCodec::Available();
+  
+  // Enable panels by default for better visibility
+  show_agent_config_ = true;
+  show_z3ed_commands_ = true;
+  show_rom_sync_ = false;  // Keep this one off by default
+  show_snapshot_preview_ = false;
 }
 
 void AgentChatWidget::SetRomContext(Rom* rom) {
@@ -335,26 +341,34 @@ void AgentChatWidget::RenderMessage(const ChatMessage& msg, int index) {
   ImGui::TextDisabled(
       "%s", absl::FormatTime("%H:%M:%S", msg.timestamp, absl::LocalTimeZone())
                 .c_str());
+  
+  // Add copy button for all messages
+  ImGui::SameLine();
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.4f, 0.6f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.5f, 0.8f));
+  if (ImGui::SmallButton(ICON_MD_CONTENT_COPY)) {
+    std::string copy_text = msg.message;
+    if (copy_text.empty() && msg.json_pretty.has_value()) {
+      copy_text = *msg.json_pretty;
+    }
+    ImGui::SetClipboardText(copy_text.c_str());
+    if (toast_manager_) {
+      toast_manager_->Show("Message copied", ToastType::kSuccess, 2.0f);
+    }
+  }
+  ImGui::PopStyleColor(2);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Copy to clipboard");
+  }
 
   ImGui::Indent();
-
-  if (msg.json_pretty.has_value()) {
-    if (ImGui::SmallButton("Copy JSON")) {
-      ImGui::SetClipboardText(msg.json_pretty->c_str());
-      if (toast_manager_) {
-        toast_manager_->Show("Copied JSON to clipboard", ToastType::kInfo,
-                             2.5f);
-      }
-    }
-    ImGui::SameLine();
-    ImGui::TextDisabled("Structured response");
-  }
 
   if (msg.table_data.has_value()) {
     RenderTable(*msg.table_data);
   } else if (msg.json_pretty.has_value()) {
-    ImGui::PushStyleColor(ImGuiCol_Text, kJsonTextColor);
-    ImGui::TextUnformatted(msg.json_pretty->c_str());
+    // Don't show JSON as a message - it's internal structure
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 0.8f));
+    ImGui::TextDisabled(ICON_MD_DATA_OBJECT " (Structured response)");
     ImGui::PopStyleColor();
   } else {
     ImGui::TextWrapped("%s", msg.message.c_str());
@@ -418,17 +432,27 @@ void AgentChatWidget::RenderProposalQuickActions(const ChatMessage& msg,
 void AgentChatWidget::RenderHistory() {
   const auto& history = agent_service_.GetHistory();
   float reserved_height = ImGui::GetFrameHeightWithSpacing() * 4.0f;
-  reserved_height += 220.0f;
+  reserved_height += 100.0f;  // Reduced to 100 for much taller chat area
 
-  if (ImGui::BeginChild("History", ImVec2(0, -reserved_height), false,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar |
-                            ImGuiWindowFlags_HorizontalScrollbar)) {
+  // Styled chat history container
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.08f, 0.08f, 0.10f, 0.95f));
+  if (ImGui::BeginChild("History", ImVec2(0, -reserved_height), true,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     if (history.empty()) {
-      ImGui::TextDisabled("No messages yet. Start the conversation below.");
+      // Centered empty state
+      ImVec2 text_size = ImGui::CalcTextSize("No messages yet");
+      ImVec2 avail = ImGui::GetContentRegionAvail();
+      ImGui::SetCursorPosX((avail.x - text_size.x) / 2);
+      ImGui::SetCursorPosY((avail.y - text_size.y) / 2);
+      ImGui::TextDisabled(ICON_MD_CHAT " No messages yet");
+      ImGui::SetCursorPosX((avail.x - ImGui::CalcTextSize("Start typing below to begin").x) / 2);
+      ImGui::TextDisabled("Start typing below to begin");
     } else {
+      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 12));  // More spacing between messages
       for (size_t index = 0; index < history.size(); ++index) {
         RenderMessage(history[index], static_cast<int>(index));
       }
+      ImGui::PopStyleVar();
     }
 
     if (history.size() > last_history_size_) {
@@ -436,31 +460,33 @@ void AgentChatWidget::RenderHistory() {
     }
   }
   ImGui::EndChild();
+  ImGui::PopStyleColor();
   last_history_size_ = history.size();
 }
 
 void AgentChatWidget::RenderInputBox() {
   ImGui::Separator();
-  ImGui::Text("Message:");
+  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_EDIT " Message:");
 
   bool submitted = ImGui::InputTextMultiline(
-      "##agent_input", input_buffer_, sizeof(input_buffer_), ImVec2(-1, 80.0f),
-      ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_EnterReturnsTrue);
+      "##agent_input", input_buffer_, sizeof(input_buffer_), ImVec2(-1, 60.0f),
+      ImGuiInputTextFlags_None);
 
-  bool send = submitted;
-  if (submitted && ImGui::GetIO().KeyShift) {
-    size_t len = std::strlen(input_buffer_);
-    if (len + 1 < sizeof(input_buffer_)) {
-      input_buffer_[len] = '\n';
-      input_buffer_[len + 1] = '\0';
+  // Check for Ctrl+Enter to send (Enter alone adds newline)
+  bool send = false;
+  if (ImGui::IsItemFocused()) {
+    if (ImGui::IsKeyPressed(ImGuiKey_Enter) && ImGui::GetIO().KeyCtrl) {
+      send = true;
     }
-    ImGui::SetKeyboardFocusHere(-1);
-    send = false;
   }
 
   ImGui::Spacing();
+  
+  // Send button row
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.5f, 0.7f, 0.8f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.196f, 0.6f, 0.8f, 1.0f));
   if (ImGui::Button(absl::StrFormat("%s Send", ICON_MD_SEND).c_str(),
-                    ImVec2(120, 0)) ||
+                    ImVec2(140, 0)) ||
       send) {
     if (std::strlen(input_buffer_) > 0) {
       history_dirty_ = true;
@@ -472,9 +498,114 @@ void AgentChatWidget::RenderInputBox() {
       ImGui::SetKeyboardFocusHere(-1);
     }
   }
-
+  ImGui::PopStyleColor(2);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Send message (Ctrl+Enter)");
+  }
+  
   ImGui::SameLine();
-  ImGui::TextDisabled("Enter to send • Shift+Enter for newline");
+  ImGui::TextDisabled(ICON_MD_INFO " Ctrl+Enter: send • Enter: newline");
+  
+  // Action buttons row below
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.5f, 0.0f, 0.7f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.843f, 0.0f, 0.9f));
+  if (ImGui::SmallButton(ICON_MD_DELETE_FOREVER " Clear")) {
+    agent_service_.ResetConversation();
+    if (toast_manager_) {
+      toast_manager_->Show("Conversation cleared", ToastType::kSuccess);
+    }
+  }
+  ImGui::PopStyleColor(2);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Clear all messages from conversation");
+  }
+  
+  ImGui::SameLine();
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.35f, 0.6f, 0.7f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.502f, 0.0f, 0.502f, 0.9f));
+  if (ImGui::SmallButton(ICON_MD_PREVIEW " Proposals")) {
+    if (proposal_drawer_) {
+      // Focus proposal drawer
+    }
+  }
+  ImGui::PopStyleColor(2);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("View code proposals");
+  }
+  
+  // Multimodal Vision controls integrated
+  ImGui::SameLine();
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.5f, 0.7f, 0.7f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.196f, 0.6f, 0.8f, 0.9f));
+  if (ImGui::SmallButton(ICON_MD_PHOTO_CAMERA " Capture")) {
+    // Quick capture with current mode
+    if (multimodal_callbacks_.capture_snapshot) {
+      std::filesystem::path captured_path;
+      auto status = multimodal_callbacks_.capture_snapshot(&captured_path);
+      if (status.ok()) {
+        multimodal_state_.last_capture_path = captured_path;
+        if (toast_manager_) {
+          toast_manager_->Show("Screenshot captured", ToastType::kSuccess);
+        }
+      } else if (toast_manager_) {
+        toast_manager_->Show(absl::StrFormat("Capture failed: %s", status.message()), ToastType::kError);
+      }
+    }
+  }
+  ImGui::PopStyleColor(2);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Capture screenshot for vision analysis");
+  }
+  
+  ImGui::SameLine();
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.3f, 0.3f, 0.7f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.863f, 0.078f, 0.235f, 0.9f));
+  if (ImGui::SmallButton(ICON_MD_STOP " Stop")) {
+    // Stop generation (if implemented)
+    if (toast_manager_) {
+      toast_manager_->Show("Stop not yet implemented", ToastType::kWarning);
+    }
+  }
+  ImGui::PopStyleColor(2);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Stop current generation");
+  }
+  
+  ImGui::SameLine();
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.5f, 0.3f, 0.7f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.133f, 0.545f, 0.133f, 0.9f));
+  if (ImGui::SmallButton(ICON_MD_SAVE " Export")) {
+    // Export conversation
+    if (toast_manager_) {
+      toast_manager_->Show("Export not yet implemented", ToastType::kWarning);
+    }
+  }
+  ImGui::PopStyleColor(2);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Export conversation history");
+  }
+  
+  // Vision prompt (inline when image captured)
+  if (multimodal_state_.last_capture_path.has_value()) {
+    ImGui::Spacing();
+    ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f), ICON_MD_IMAGE " Vision prompt:");
+    ImGui::SetNextItemWidth(-200);
+    ImGui::InputTextWithHint("##quick_vision_prompt", "Ask about the screenshot...", 
+                            multimodal_prompt_buffer_, sizeof(multimodal_prompt_buffer_));
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.5f, 0.7f, 0.8f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.196f, 0.6f, 0.8f, 1.0f));
+    if (ImGui::Button(ICON_MD_SEND " Analyze##vision_send", ImVec2(180, 0))) {
+      if (multimodal_callbacks_.send_to_gemini && !multimodal_state_.last_capture_path->empty()) {
+        std::string prompt = multimodal_prompt_buffer_;
+        auto status = multimodal_callbacks_.send_to_gemini(*multimodal_state_.last_capture_path, prompt);
+        if (status.ok() && toast_manager_) {
+          toast_manager_->Show("Vision analysis requested", ToastType::kSuccess);
+        }
+      }
+    }
+    ImGui::PopStyleColor(2);
+  }
 }
 
 void AgentChatWidget::Draw() {
@@ -487,7 +618,7 @@ void AgentChatWidget::Draw() {
   // Poll for new messages in collaborative sessions
   PollSharedHistory();
 
-  ImGui::SetNextWindowSize(ImVec2(1200, 800), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2(1400, 1000), ImGuiCond_FirstUseEver);
   ImGui::Begin(title_.c_str(), &active_, ImGuiWindowFlags_MenuBar);
   
   // Simplified menu bar
@@ -524,10 +655,10 @@ void AgentChatWidget::Draw() {
   collaboration_status_color_ = collaboration_state_.active ? 
       ImVec4(0.133f, 0.545f, 0.133f, 1.0f) : ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
   
-  // Connection status bar at top
+  // Connection status bar at top (compact)
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 bar_start = ImGui::GetCursorScreenPos();
-  ImVec2 bar_size(ImGui::GetContentRegionAvail().x, 75);
+  ImVec2 bar_size(ImGui::GetContentRegionAvail().x, 55);  // Reduced from 75 to 55
   
   // Gradient background
   ImU32 color_top = ImGui::GetColorU32(ImVec4(0.18f, 0.22f, 0.28f, 1.0f));
@@ -546,37 +677,142 @@ void AgentChatWidget::Draw() {
   ImGui::BeginChild("AgentChat_ConnectionBar", bar_size, false, ImGuiWindowFlags_NoScrollbar);
   ImGui::PushID("ConnectionBar");
   {
-    ImGui::Spacing();
+    // Center content vertically in the 55px bar
+    float content_height = ImGui::GetFrameHeight();
+    float vertical_padding = (55.0f - content_height) / 2.0f;
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + vertical_padding);
     
-    // Provider selection
-    ImGui::TextColored(accent_color, ICON_MD_SMART_TOY " Provider:");
+    // Compact single row layout
+    ImGui::TextColored(accent_color, ICON_MD_SMART_TOY);
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(110);
+    ImGui::SetNextItemWidth(95);
     const char* providers[] = { "Mock", "Ollama", "Gemini" };
     int current_provider = (agent_config_.ai_provider == "mock") ? 0 : 
                           (agent_config_.ai_provider == "ollama") ? 1 : 2;
     if (ImGui::Combo("##main_provider", &current_provider, providers, 3)) {
       agent_config_.ai_provider = (current_provider == 0) ? "mock" : 
                                  (current_provider == 1) ? "ollama" : "gemini";
+      // Auto-populate default models
+      if (agent_config_.ai_provider == "ollama") {
+        strncpy(agent_config_.model_buffer, "qwen2.5-coder:7b", sizeof(agent_config_.model_buffer) - 1);
+        agent_config_.ai_model = agent_config_.model_buffer;
+      } else if (agent_config_.ai_provider == "gemini") {
+        strncpy(agent_config_.model_buffer, "gemini-2.5-flash", sizeof(agent_config_.model_buffer) - 1);
+        agent_config_.ai_model = agent_config_.model_buffer;
+      }
     }
     
     ImGui::SameLine();
     if (agent_config_.ai_provider != "mock") {
-      ImGui::TextColored(accent_color, ICON_MD_PSYCHOLOGY " Model:");
+      ImGui::SetNextItemWidth(150);
+      ImGui::InputTextWithHint("##main_model", "Model name...", agent_config_.model_buffer, sizeof(agent_config_.model_buffer));
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("AI model name");
+      }
+    }
+    
+    // Gemini API key input
+    ImGui::SameLine();
+    if (agent_config_.ai_provider == "gemini") {
+      ImGui::SetNextItemWidth(200);
+      if (ImGui::InputTextWithHint("##main_api_key", "API Key (or load from env)...", 
+                                   agent_config_.gemini_key_buffer, 
+                                   sizeof(agent_config_.gemini_key_buffer),
+                                   ImGuiInputTextFlags_Password)) {
+        agent_config_.gemini_api_key = agent_config_.gemini_key_buffer;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Gemini API Key (hidden)");
+      }
+      
       ImGui::SameLine();
-      ImGui::SetNextItemWidth(180);
-      ImGui::InputText("##main_model", agent_config_.model_buffer, sizeof(agent_config_.model_buffer));
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.15f, 0.5f, 0.7f, 0.7f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.196f, 0.6f, 0.8f, 1.0f));
+      if (ImGui::SmallButton(ICON_MD_REFRESH)) {
+        const char* gemini_key = nullptr;
+#ifdef _WIN32
+        char* env_key = nullptr;
+        size_t len = 0;
+        if (_dupenv_s(&env_key, &len, "GEMINI_API_KEY") == 0 && env_key != nullptr) {
+          strncpy(agent_config_.gemini_key_buffer, env_key, sizeof(agent_config_.gemini_key_buffer) - 1);
+          agent_config_.gemini_api_key = env_key;
+          free(env_key);
+        }
+#else
+        gemini_key = std::getenv("GEMINI_API_KEY");
+        if (gemini_key) {
+          strncpy(agent_config_.gemini_key_buffer, gemini_key, sizeof(agent_config_.gemini_key_buffer) - 1);
+          agent_config_.gemini_api_key = gemini_key;
+        }
+#endif
+        if (!agent_config_.gemini_api_key.empty() && toast_manager_) {
+          toast_manager_->Show("Key loaded", ToastType::kSuccess, 1.5f);
+        }
+      }
+      ImGui::PopStyleColor(2);
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Load from GEMINI_API_KEY");
+      }
     }
     
     ImGui::SameLine();
-    ImGui::Checkbox(ICON_MD_VISIBILITY " Reasoning", &agent_config_.show_reasoning);
+    ImGui::Checkbox(ICON_MD_VISIBILITY, &agent_config_.show_reasoning);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Show reasoning");
+    }
     
-    // Connection status indicator
-    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 100);
+    // Session management button
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.6f, 0.7f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.5f, 0.5f, 0.7f, 0.9f));
+    if (ImGui::SmallButton(absl::StrFormat("%s %d", ICON_MD_TAB, static_cast<int>(chat_sessions_.size())).c_str())) {
+      ImGui::OpenPopup("SessionsPopup");
+    }
+    ImGui::PopStyleColor(2);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Manage chat sessions");
+    }
+    
+    // Sessions popup
+    if (ImGui::BeginPopup("SessionsPopup")) {
+      ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_TAB " Chat Sessions");
+      ImGui::Separator();
+      
+      if (ImGui::Button(ICON_MD_ADD " New Session", ImVec2(200, 0))) {
+        std::string session_id = absl::StrFormat("session_%d", static_cast<int>(chat_sessions_.size() + 1));
+        std::string session_name = absl::StrFormat("Chat %d", static_cast<int>(chat_sessions_.size() + 1));
+        chat_sessions_.emplace_back(session_id, session_name);
+        active_session_index_ = static_cast<int>(chat_sessions_.size() - 1);
+        if (toast_manager_) {
+          toast_manager_->Show("New session created", ToastType::kSuccess);
+        }
+        ImGui::CloseCurrentPopup();
+      }
+      
+      if (!chat_sessions_.empty()) {
+        ImGui::Spacing();
+        ImGui::TextDisabled("Active Sessions:");
+        ImGui::Separator();
+        for (size_t i = 0; i < chat_sessions_.size(); ++i) {
+          ImGui::PushID(static_cast<int>(i));
+          bool is_active = (active_session_index_ == static_cast<int>(i));
+          if (ImGui::Selectable(absl::StrFormat("%s %s%s", ICON_MD_CHAT, 
+                                                chat_sessions_[i].name, 
+                                                is_active ? " (active)" : "").c_str(), 
+                                is_active)) {
+            active_session_index_ = static_cast<int>(i);
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::PopID();
+        }
+      }
+      ImGui::EndPopup();
+    }
+    
+    // Session status (right side)
     if (collaboration_state_.active) {
-      ImGui::TextColored(collaboration_status_color_, ICON_MD_CHECK_CIRCLE " Session Active");
-    } else {
-      ImGui::TextDisabled(ICON_MD_CANCEL " No Session");
+      ImGui::SameLine(ImGui::GetContentRegionAvail().x - 25);
+      ImGui::TextColored(collaboration_status_color_, ICON_MD_CHECK_CIRCLE);
     }
   }
   ImGui::PopID();
@@ -586,9 +822,13 @@ void AgentChatWidget::Draw() {
   
   // Main layout: Chat area (left, 70%) + Control panels (right, 30%)
   if (ImGui::BeginTable("AgentChat_MainLayout", 2, 
-                        ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
+                        ImGuiTableFlags_Resizable | 
+                        ImGuiTableFlags_Reorderable |
+                        ImGuiTableFlags_BordersInnerV |
+                        ImGuiTableFlags_ContextMenuInBody)) {
     ImGui::TableSetupColumn("Chat", ImGuiTableColumnFlags_WidthStretch, 0.7f);
     ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthStretch, 0.3f);
+    ImGui::TableHeadersRow();
     ImGui::TableNextRow();
     
     // LEFT: Chat area (emphasized)
@@ -603,19 +843,7 @@ void AgentChatWidget::Draw() {
     ImGui::PushID("ControlsColumn");
     ImGui::BeginChild("AgentChat_ControlPanels", ImVec2(0, 0), false);
     
-    // Quick Actions
-    if (ImGui::CollapsingHeader(ICON_MD_BOLT " Quick Actions", ImGuiTreeNodeFlags_DefaultOpen)) {
-      ImGui::PushID("QuickActions");
-      if (ImGui::Button(ICON_MD_REFRESH " Reset Chat", ImVec2(-1, 0))) {
-        agent_service_.ResetConversation();
-        if (toast_manager_) {
-          toast_manager_->Show("Conversation reset", ToastType::kInfo);
-        }
-      }
-      ImGui::PopID();
-    }
-    
-    // Collapsible panels
+    // Collapsible panels (organized by priority)
     if (show_agent_config_) {
       RenderAgentConfigPanel();
     }
@@ -624,8 +852,10 @@ void AgentChatWidget::Draw() {
       RenderZ3EDCommandPanel();
     }
     
-    RenderCollaborationPanel();
+    // Multimodal before collaboration (more frequently used)
     RenderMultimodalPanel();
+    
+    RenderCollaborationPanel();
     
     if (show_rom_sync_) {
       RenderRomSyncPanel();
@@ -649,29 +879,29 @@ void AgentChatWidget::RenderCollaborationPanel() {
   const bool connected = collaboration_state_.active;
   collaboration_status_color_ = connected ? ImVec4(0.133f, 0.545f, 0.133f, 1.0f) : ImVec4(0.6f, 0.6f, 0.6f, 1.0f);
   
-  // Top section: Mode selector in a styled box
-  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.18f, 0.22f, 0.8f));
-  ImGui::BeginChild("Collab_ModeSelector", ImVec2(0, 45), true, ImGuiWindowFlags_NoScrollbar);
-  {
-    ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_SETTINGS_ETHERNET " Collaboration Mode:");
-    ImGui::SameLine();
-    ImGui::RadioButton(ICON_MD_FOLDER " Local##collab_mode_local", 
-                       reinterpret_cast<int*>(&collaboration_state_.mode),
-                       static_cast<int>(CollaborationMode::kLocal));
-    ImGui::SameLine();
-    ImGui::RadioButton(ICON_MD_WIFI " Network##collab_mode_network", 
-                       reinterpret_cast<int*>(&collaboration_state_.mode),
-                       static_cast<int>(CollaborationMode::kNetwork));
+  if (!ImGui::CollapsingHeader(ICON_MD_PEOPLE " Collaboration & Network")) {
+    ImGui::PopID();
+    return;
   }
-  ImGui::EndChild();
-  ImGui::PopStyleColor();
+  
+  // Mode selector (compact inline)
+  ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_SETTINGS_ETHERNET " Mode:");
+  ImGui::SameLine();
+  ImGui::RadioButton(ICON_MD_FOLDER " Local##collab_mode_local", 
+                     reinterpret_cast<int*>(&collaboration_state_.mode),
+                     static_cast<int>(CollaborationMode::kLocal));
+  ImGui::SameLine();
+  ImGui::RadioButton(ICON_MD_WIFI " Network##collab_mode_network", 
+                     reinterpret_cast<int*>(&collaboration_state_.mode),
+                     static_cast<int>(CollaborationMode::kNetwork));
   
   ImGui::Spacing();
 
-  // Main content in table layout
-  if (ImGui::BeginTable("Collab_MainTable", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_Resizable)) {
-    ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 320);
-    ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthStretch);
+  // Main content in table layout (fixed size to prevent auto-resize)
+  if (ImGui::BeginTable("Collab_MainTable", 2, ImGuiTableFlags_BordersInnerV)) {
+    ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 180);
+    ImGui::TableSetupColumn("Controls", ImGuiTableColumnFlags_WidthFixed, 
+                           ImGui::GetContentRegionAvail().x - 180);
     ImGui::TableNextRow();
 
     // LEFT COLUMN: Session Details
@@ -680,7 +910,7 @@ void AgentChatWidget::RenderCollaborationPanel() {
     ImGui::PushID("StatusColumn");
     
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.2f, 0.18f, 0.4f));
-    ImGui::BeginChild("Collab_SessionDetails", ImVec2(0, 180), true);
+    ImGui::BeginChild("Collab_SessionDetails", ImVec2(0, 100), true);
     ImGui::TextColored(ImVec4(1.0f, 0.843f, 0.0f, 1.0f), ICON_MD_INFO " Session Status:");
     ImGui::Spacing();
     if (connected) {
@@ -707,7 +937,7 @@ void AgentChatWidget::RenderCollaborationPanel() {
       ImGui::TextWrapped("%s", collaboration_state_.session_id.c_str());
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.4f, 0.4f, 0.6f, 0.6f));
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.416f, 0.353f, 0.804f, 1.0f));
-      if (ImGui::SmallButton(ICON_MD_CONTENT_COPY " Copy##copy_session_id")) {
+      if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy##copy_session_id")) {
         ImGui::SetClipboardText(collaboration_state_.session_id.c_str());
         if (toast_manager_) {
           toast_manager_->Show("Session code copied!", ToastType::kSuccess, 2.0f);
@@ -1046,7 +1276,7 @@ void AgentChatWidget::RenderMultimodalPanel() {
   ImGui::TextColored(gemini_color, ICON_MD_EDIT " Vision Prompt:");
   ImGui::InputTextMultiline("##mm_gemini_prompt_textarea", multimodal_prompt_buffer_,
                             IM_ARRAYSIZE(multimodal_prompt_buffer_),
-                            ImVec2(-1, 80));
+                            ImVec2(-1, 60));
 
   if (!can_send)
     ImGui::BeginDisabled();
@@ -1341,7 +1571,7 @@ void AgentChatWidget::RenderZ3EDCommandPanel() {
   }
   
   ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.14f, 0.12f, 0.18f, 1.0f));
-  ImGui::BeginChild("Z3ED_CommandsChild", ImVec2(0, 300), true);
+  ImGui::BeginChild("Z3ED_CommandsChild", ImVec2(0, 200), true);
   
   ImGui::TextColored(command_color, ICON_MD_CODE " Command Palette");
   ImGui::Separator();
@@ -1438,22 +1668,27 @@ void AgentChatWidget::RenderZ3EDCommandPanel() {
         (void)status;  // Acknowledge result
       }
     }
+    ImGui::PopStyleColor(2);  // FIX: Pop the styles before EndTable
     
     ImGui::EndTable();
   }
   
   if (!z3ed_command_state_.command_output.empty()) {
     ImGui::Spacing();
-    ImGui::Text(ICON_MD_TERMINAL " Output");
+    ImGui::TextColored(command_color, ICON_MD_OUTPUT " Output:");
     ImGui::Separator();
-    ImGui::BeginChild("CommandOutput", ImVec2(0, 100), true,
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.1f, 0.1f, 0.12f, 0.8f));
+    ImGui::BeginChild("Z3ED_CommandOutput", ImVec2(0, 100), true,
                       ImGuiWindowFlags_HorizontalScrollbar);
     ImGui::TextWrapped("%s", z3ed_command_state_.command_output.c_str());
     ImGui::EndChild();
+    ImGui::PopStyleColor();
   }
   
   ImGui::EndChild();
   ImGui::PopStyleColor();
+  
+  ImGui::PopID();  // FIX: Pop the Z3EDCmdPanel ID
 }
 
 void AgentChatWidget::RenderRomSyncPanel() {
@@ -1463,7 +1698,7 @@ void AgentChatWidget::RenderRomSyncPanel() {
   }
   
   ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.14f, 0.12f, 1.0f));
-  ImGui::BeginChild("RomSync", ImVec2(0, 250), true);
+  ImGui::BeginChild("RomSync", ImVec2(0, 200), true);
   
   ImGui::Text(ICON_MD_STORAGE " ROM State");
   ImGui::Separator();
@@ -1562,7 +1797,7 @@ void AgentChatWidget::RenderSnapshotPreviewPanel() {
   }
   
   ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.12f, 0.12f, 0.16f, 1.0f));
-  ImGui::BeginChild("SnapshotPreview", ImVec2(0, 300), true);
+  ImGui::BeginChild("SnapshotPreview", ImVec2(0, 200), true);
   
   if (multimodal_state_.last_capture_path.has_value()) {
     ImGui::Text(ICON_MD_IMAGE " Latest Capture");
