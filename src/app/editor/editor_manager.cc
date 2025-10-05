@@ -835,7 +835,7 @@ void EditorManager::BuildModernMenu() {
           [this]() { show_global_search_ = true; }, "Ctrl+Shift+F")
     .EndMenu();
   
-  // View Menu - editors and layout
+  // View Menu - editors only
   menu_builder_.BeginMenu("View")
     .Item("Editor Selection", ICON_MD_DASHBOARD,
           [this]() { show_editor_selection_ = true; }, "Ctrl+E")
@@ -859,6 +859,35 @@ void EditorManager::BuildModernMenu() {
     .Item("Hex Editor", ICON_MD_DATA_ARRAY,
           [this]() { show_memory_editor_ = true; }, "Ctrl+0")
     .Separator()
+    .Item("Welcome Screen", ICON_MD_HOME,
+          [this]() { show_welcome_screen_ = true; })
+    .Item("Command Palette", ICON_MD_TERMINAL,
+          [this]() { show_command_palette_ = true; }, "Ctrl+Shift+P")
+    .Item("Emulator", ICON_MD_GAMEPAD,
+          [this]() { show_emulator_ = true; },
+          nullptr, nullptr,
+          [this]() { return show_emulator_; })
+    .EndMenu();
+  
+  // Window Menu - layout and session management
+  menu_builder_.BeginMenu("Window")
+    .BeginSubMenu("Sessions", ICON_MD_TAB)
+      .Item("New Session", ICON_MD_ADD,
+            [this]() { CreateNewSession(); }, "Ctrl+Shift+N")
+      .Item("Duplicate Session", ICON_MD_CONTENT_COPY,
+            [this]() { DuplicateCurrentSession(); },
+            nullptr, [this]() { return current_rom_ != nullptr; })
+      .Item("Close Session", ICON_MD_CLOSE,
+            [this]() { CloseCurrentSession(); }, "Ctrl+Shift+W",
+            [this]() { return sessions_.size() > 1; })
+      .Separator()
+      .Item("Session Switcher", ICON_MD_SWITCH_ACCOUNT,
+            [this]() { show_session_switcher_ = true; }, "Ctrl+Tab",
+            [this]() { return sessions_.size() > 1; })
+      .Item("Session Manager", ICON_MD_VIEW_LIST,
+            [this]() { show_session_manager_ = true; })
+      .EndMenu()
+    .Separator()
     .Item("Save Layout", ICON_MD_SAVE,
           [this]() { SaveWorkspaceLayout(); }, "Ctrl+Shift+S")
     .Item("Load Layout", ICON_MD_FOLDER_OPEN,
@@ -874,52 +903,10 @@ void EditorManager::BuildModernMenu() {
           [this]() { HideAllWindows(); })
     .Item("Maximize Current", ICON_MD_FULLSCREEN,
           [this]() { MaximizeCurrentWindow(); }, "F11")
-    .EndMenu();
-  
-  // Tools Menu - developer tools and utilities
-  menu_builder_.BeginMenu("Tools")
-    .Item("Welcome Screen", ICON_MD_HOME,
-          [this]() { show_welcome_screen_ = true; })
-    .Item("Command Palette", ICON_MD_TERMINAL,
-          [this]() { show_command_palette_ = true; }, "Ctrl+Shift+P")
-    .Item("Emulator", ICON_MD_GAMEPAD,
-          [this]() { show_emulator_ = true; },
-          nullptr, nullptr,
-          [this]() { return show_emulator_; })
-    .Separator()
-    .Item("Performance Dashboard", ICON_MD_SPEED,
-          [this]() { show_performance_dashboard_ = true; })
-#ifdef YAZE_ENABLE_TESTING
-    .Item("Test Dashboard", ICON_MD_SCIENCE,
-          [this]() { show_test_dashboard_ = true; }, "Ctrl+T")
-#endif
-    .Separator()
-    .Item("ImGui Demo", ICON_MD_HELP,
-          [this]() { show_imgui_demo_ = true; },
-          nullptr, nullptr,
-          [this]() { return show_imgui_demo_; })
-    .Item("ImGui Metrics", ICON_MD_ANALYTICS,
-          [this]() { show_imgui_metrics_ = true; },
-          nullptr, nullptr,
-          [this]() { return show_imgui_metrics_; })
-    .EndMenu();
-  
-  // Session Menu - workspace session management
-  menu_builder_.BeginMenu("Session")
-    .Item("New Session", ICON_MD_ADD,
-          [this]() { CreateNewSession(); }, "Ctrl+Shift+N")
-    .Item("Duplicate Session", ICON_MD_CONTENT_COPY,
-          [this]() { DuplicateCurrentSession(); },
-          nullptr, [this]() { return current_rom_ != nullptr; })
-    .Item("Close Session", ICON_MD_CLOSE,
-          [this]() { CloseCurrentSession(); }, "Ctrl+Shift+W",
-          [this]() { return sessions_.size() > 1; })
-    .Separator()
-    .Item("Session Switcher", ICON_MD_SWITCH_ACCOUNT,
-          [this]() { show_session_switcher_ = true; }, "Ctrl+Tab",
-          [this]() { return sessions_.size() > 1; })
-    .Item("Session Manager", ICON_MD_VIEW_LIST,
-          [this]() { show_session_manager_ = true; })
+    .Item("Restore All", ICON_MD_FULLSCREEN_EXIT,
+          [this]() { RestoreAllWindows(); })
+    .Item("Close All Floating", ICON_MD_CLOSE_FULLSCREEN,
+          [this]() { CloseAllFloatingWindows(); })
     .EndMenu();
   
   
@@ -1004,12 +991,28 @@ void EditorManager::BuildModernMenu() {
     .EndMenu();
 #endif
   
-  // Debug Menu
+  // Debug Menu - comprehensive development tools
   menu_builder_.BeginMenu("Debug")
     .Item("Memory Editor", ICON_MD_MEMORY,
           [this]() { show_memory_editor_ = true; })
     .Item("Assembly Editor", ICON_MD_CODE,
           [this]() { show_asm_editor_ = true; })
+    .Separator()
+    .Item("Performance Dashboard", ICON_MD_SPEED,
+          [this]() { show_performance_dashboard_ = true; })
+#ifdef YAZE_ENABLE_TESTING
+    .Item("Test Dashboard", ICON_MD_SCIENCE,
+          [this]() { show_test_dashboard_ = true; }, "Ctrl+T")
+#endif
+    .Separator()
+    .Item("ImGui Demo", ICON_MD_HELP,
+          [this]() { show_imgui_demo_ = true; },
+          nullptr, nullptr,
+          [this]() { return show_imgui_demo_; })
+    .Item("ImGui Metrics", ICON_MD_ANALYTICS,
+          [this]() { show_imgui_metrics_ = true; },
+          nullptr, nullptr,
+          [this]() { return show_imgui_metrics_; })
     .EndMenu();
   
   // Help Menu
@@ -1034,15 +1037,12 @@ void EditorManager::DrawMenuBar() {
     status_ = DrawRomSelector();
 
     // Calculate proper right-side positioning
-    // With the wider menu (8 top-level items), we need more compact right-side layout
     std::string version_text = absl::StrFormat("v%s", version_.c_str());
     float version_width = CalcTextSize(version_text.c_str()).x;
-    float settings_width = CalcTextSize(ICON_MD_DISPLAY_SETTINGS).x + 16;
-    float total_right_width = version_width + settings_width + 30;  // Increased padding for visibility
 
-    // Allocate space for ROM status and sessions
-    float session_rom_area_width = 220.0f;  // Increased slightly for better spacing
-    SameLine(GetWindowWidth() - total_right_width - session_rom_area_width);
+    // Allocate space for ROM status and sessions (wider for better ROM title display)
+    float session_rom_area_width = 280.0f;  // Increased for wider ROM title
+    SameLine(GetWindowWidth() - version_width - 10 - session_rom_area_width);
 
     // Multi-session indicator
     if (sessions_.size() > 1) {
@@ -1056,25 +1056,42 @@ void EditorManager::DrawMenuBar() {
       SameLine();
     }
     
-    // Editor selection quick button (when ROM loaded)
+    // Editor selection and display settings quick buttons (when ROM loaded)
     if (current_rom_ && current_rom_->is_loaded()) {
+      // Editor selection button
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.4f, 0.8f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.5f, 1.0f));
       if (SmallButton(ICON_MD_APPS)) {
         show_editor_selection_ = true;
       }
+      ImGui::PopStyleColor(2);
       if (IsItemHovered()) {
-        SetTooltip("Open Editor Selection (Ctrl+E)");
+        SetTooltip(ICON_MD_DASHBOARD " Editor Selection (Ctrl+E)");
       }
       SameLine();
+      
+      // Display settings button
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.4f, 0.8f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.5f, 1.0f));
+      if (SmallButton(ICON_MD_DISPLAY_SETTINGS)) {
+        show_display_settings = !show_display_settings;
+      }
+      ImGui::PopStyleColor(2);
+      if (IsItemHovered()) {
+        SetTooltip(ICON_MD_TUNE " Display Settings");
+      }
+      SameLine();
+      
       ImGui::Separator();
       SameLine();
     }
 
     // Compact ROM status with metadata popup
     if (current_rom_ && current_rom_->is_loaded()) {
-      // Truncate long ROM titles for compact display
+      // Truncate long ROM titles for wider display
       std::string rom_display = current_rom_->title();
-      if (rom_display.length() > 15) {
-        rom_display = rom_display.substr(0, 12) + "...";
+      if (rom_display.length() > 22) {
+        rom_display = rom_display.substr(0, 19) + "...";
       }
 
       ImVec4 status_color =
@@ -1187,18 +1204,8 @@ void EditorManager::DrawMenuBar() {
       SameLine();
     }
 
-    // Settings and version (using pre-calculated positioning)
-    SameLine(GetWindowWidth() - total_right_width);
-    ImGui::Separator();
-    SameLine();
-
-    PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
-    if (Button(ICON_MD_DISPLAY_SETTINGS)) {
-      show_display_settings = !show_display_settings;
-    }
-    PopStyleColor();
-
-    SameLine();
+    // Version display on far right
+    SameLine(GetWindowWidth() - version_width - 10);
     Text("%s", version_text.c_str());
     EndMenuBar();
   }
