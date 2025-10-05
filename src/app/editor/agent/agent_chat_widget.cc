@@ -1649,7 +1649,7 @@ void AgentChatWidget::RenderSystemPromptEditor() {
   // Toolbar
   if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load V1")) {
     // Load embedded system_prompt.txt (v1)
-    std::string prompt_v1 = core::LoadFile("assets/agent/system_prompt.txt");
+    std::string prompt_v1 = util::LoadFile("assets/agent/system_prompt.txt");
     if (!prompt_v1.empty()) {
       // Find or create system prompt tab
       bool found = false;
@@ -1685,7 +1685,7 @@ void AgentChatWidget::RenderSystemPromptEditor() {
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load V2")) {
     // Load embedded system_prompt_v2.txt
-    std::string prompt_v2 = core::LoadFile("assets/agent/system_prompt_v2.txt");
+    std::string prompt_v2 = util::LoadFile("assets/agent/system_prompt_v2.txt");
     if (!prompt_v2.empty()) {
       // Find or create system prompt tab
       bool found = false;
@@ -1730,7 +1730,7 @@ void AgentChatWidget::RenderSystemPromptEditor() {
           if (file.is_open()) {
             file << tab.editor.GetText();
             tab.filepath = save_path;
-            tab.filename = core::GetFileName(save_path);
+            tab.filename = util::GetFileName(save_path);
             tab.modified = false;
             if (toast_manager_) {
               toast_manager_->Show(absl::StrFormat("System prompt saved to %s", save_path), 
@@ -1771,7 +1771,7 @@ void AgentChatWidget::RenderSystemPromptEditor() {
             buffer << file.rdbuf();
             tab.editor.SetText(buffer.str());
             tab.filepath = filepath;
-            tab.filename = core::GetFileName(filepath);
+            tab.filename = util::GetFileName(filepath);
             tab.modified = false;
             found = true;
             break;
@@ -1780,7 +1780,7 @@ void AgentChatWidget::RenderSystemPromptEditor() {
         
         if (!found) {
           FileEditorTab tab;
-          tab.filename = core::GetFileName(filepath);
+          tab.filename = util::GetFileName(filepath);
           tab.filepath = filepath;
           tab.is_system_prompt = true;
           tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
@@ -2042,7 +2042,7 @@ void AgentChatWidget::LoadAgentSettingsFromProject(const core::YazeProject& proj
           buffer << file.rdbuf();
           tab.editor.SetText(buffer.str());
           tab.filepath = prompt_path;
-          tab.filename = core::GetFileName(prompt_path);
+          tab.filename = util::GetFileName(prompt_path);
           found = true;
           break;
         }
@@ -2050,7 +2050,7 @@ void AgentChatWidget::LoadAgentSettingsFromProject(const core::YazeProject& proj
       
       if (!found) {
         FileEditorTab tab;
-        tab.filename = core::GetFileName(prompt_path);
+        tab.filename = util::GetFileName(prompt_path);
         tab.filepath = prompt_path;
         tab.is_system_prompt = true;
         tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());

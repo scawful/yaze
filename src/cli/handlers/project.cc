@@ -52,7 +52,7 @@ absl::Status ProjectBuild::Run(const std::vector<std::string>& arg_vec) {
   for (unsigned int i = 0; i < glob_result.gl_pathc; ++i) {
     std::string patch_file = glob_result.gl_pathv[i];
     std::vector<uint8_t> patch_data;
-    auto patch_contents = core::LoadFile(patch_file);
+    auto patch_contents = util::LoadFile(patch_file);
     std::copy(patch_contents.begin(), patch_contents.end(),
               std::back_inserter(patch_data));
     std::vector<uint8_t> patched_rom;

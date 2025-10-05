@@ -64,11 +64,11 @@ void ApplyBpsPatchComponent(ftxui::ScreenInteractive &screen) {
   // Button to apply the patch.
   auto apply_button = Button("Apply Patch", [&] {
     std::vector<uint8_t> source = app_context.rom.vector();
-    // auto source_contents = core::LoadFile(base_file);
+    // auto source_contents = util::LoadFile(base_file);
     // std::copy(source_contents.begin(), source_contents.end(),
     //           std::back_inserter(source));
     std::vector<uint8_t> patch;
-    auto patch_contents = core::LoadFile(patch_file);
+    auto patch_contents = util::LoadFile(patch_file);
     std::copy(patch_contents.begin(), patch_contents.end(),
               std::back_inserter(patch));
     std::vector<uint8_t> patched;

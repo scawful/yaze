@@ -76,7 +76,7 @@ std::string GetEditorName(EditorType type) {
 // Settings + preset helpers
 void EditorManager::LoadUserSettings() {
   try {
-    auto data = core::LoadConfigFile(settings_filename_);
+    auto data = util::LoadConfigFile(settings_filename_);
     if (!data.empty()) {
       std::istringstream ss(data);
       std::string line;
@@ -103,7 +103,7 @@ void EditorManager::SaveUserSettings() {
   ss << "font_global_scale=" << font_global_scale_ << "\n";
   ss << "autosave_enabled=" << (autosave_enabled_ ? 1 : 0) << "\n";
   ss << "autosave_interval_secs=" << autosave_interval_secs_ << "\n";
-  core::SaveFile(settings_filename_, ss.str());
+  util::SaveFile(settings_filename_, ss.str());
 }
 
 void EditorManager::RefreshWorkspacePresets() {
@@ -114,7 +114,7 @@ void EditorManager::RefreshWorkspacePresets() {
 
     // Try to read a simple index file of presets
     try {
-      auto data = core::LoadConfigFile("workspace_presets.txt");
+      auto data = util::LoadConfigFile("workspace_presets.txt");
       if (!data.empty()) {
         std::istringstream ss(data);
         std::string name;
@@ -164,7 +164,7 @@ void EditorManager::SaveWorkspacePreset(const std::string& name) {
       std::ostringstream ss;
       for (const auto& n : workspace_presets_)
         ss << n << "\n";
-      core::SaveFile("workspace_presets.txt", ss.str());
+      util::SaveFile("workspace_presets.txt", ss.str());
     } catch (const std::exception& e) {
       LOG_WARN("EditorManager", "Failed to save workspace presets: %s", e.what());
     }
@@ -1454,7 +1454,7 @@ void EditorManager::DrawMenuBar() {
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
-              ImGui::Text("%s", core::GetFileName(file).c_str());
+              ImGui::Text("%s", util::GetFileName(file).c_str());
 
               ImGui::TableNextColumn();
               std::string ext = core::GetFileExtension(file);
