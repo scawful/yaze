@@ -208,7 +208,7 @@
 - (void)openFileAction:(id)sender {
   // TODO: Re-implmenent this without the SharedRom singleton 
   // if (!yaze::SharedRom::shared_rom_
-  //          ->LoadFromFile(yaze::core::FileDialogWrapper::ShowOpenFileDialog())
+  //          ->LoadFromFile(yaze::util::FileDialogWrapper::ShowOpenFileDialog())
   //          .ok()) {
   //   NSAlert *alert = [[NSAlert alloc] init];
   //   [alert setMessageText:@"Error"];

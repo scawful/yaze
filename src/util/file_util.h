@@ -1,11 +1,11 @@
-#ifndef YAZE_APP_CORE_PLATFORM_FILE_DIALOG_H
-#define YAZE_APP_CORE_PLATFORM_FILE_DIALOG_H
+#ifndef YAZE_UTIL_FILE_UTIL_H_
+#define YAZE_UTIL_FILE_UTIL_H_
 
 #include <string>
 #include <vector>
 
 namespace yaze {
-namespace core {
+namespace util {
 
 class FileDialogWrapper {
  public:
@@ -61,7 +61,7 @@ std::string ExpandHomePath(const std::string& path);
 std::string GetResourcePath(const std::string &resource_path);
 void SaveFile(const std::string &filename, const std::string &data);
 
-}  // namespace core
+}  // namespace util
 }  // namespace yaze
 
-#endif  // YAZE_APP_CORE_PLATFORM_FILE_DIALOG_H
+#endif  // YAZE_UTIL_FILE_UTIL_H_

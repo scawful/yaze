@@ -9,7 +9,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/gui/icons.h"
 #include "imgui/imgui.h"
 #include "util/macro.h"
@@ -33,10 +33,10 @@ namespace {
 std::string SetFontPath(const std::string& font_path) {
 #ifdef __APPLE__
 #if TARGET_OS_IOS == 1
-  const std::string kBundlePath = GetBundleResourcePath();
+  const std::string kBundlePath = util::GetBundleResourcePath();
   return kBundlePath + font_path;
 #else
-  return absl::StrCat(GetBundleResourcePath(), "Contents/Resources/font/",
+  return absl::StrCat(util::GetBundleResourcePath(), "Contents/Resources/font/",
                       font_path);
 #endif
 #else

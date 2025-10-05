@@ -9,7 +9,7 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/gui/icons.h"
 #include "app/gui/style.h"  // For ColorsYaze function
 #include "imgui/imgui.h"
@@ -466,7 +466,7 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
     
     ImGui::SameLine();
     if (ImGui::Button(absl::StrFormat("%s Load Custom Theme", ICON_MD_FOLDER_OPEN).c_str())) {
-      auto file_path = core::FileDialogWrapper::ShowOpenFileDialog();
+      auto file_path = util::FileDialogWrapper::ShowOpenFileDialog();
       if (!file_path.empty()) {
         auto status = LoadThemeFromFile(file_path);
         if (!status.ok()) {
@@ -1007,7 +1007,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
           ApplyClassicYazeTheme();
         }
         if (ImGui::MenuItem(absl::StrFormat("%s Load Theme", ICON_MD_FOLDER_OPEN).c_str())) {
-          auto file_path = core::FileDialogWrapper::ShowOpenFileDialog();
+          auto file_path = util::FileDialogWrapper::ShowOpenFileDialog();
           if (!file_path.empty()) {
             LoadThemeFromFile(file_path);
           }
@@ -1023,7 +1023,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
               }
             } else {
               // No existing file, prompt for new location
-              auto file_path = core::FileDialogWrapper::ShowSaveFileDialog(current_theme_.name, "theme");
+              auto file_path = util::FileDialogWrapper::ShowSaveFileDialog(current_theme_.name, "theme");
               if (!file_path.empty()) {
                 auto status = SaveThemeToFile(current_theme_, file_path);
                 if (!status.ok()) {
@@ -1034,7 +1034,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
           }
           if (ImGui::MenuItem(absl::StrFormat("%s Save As...", ICON_MD_SAVE_AS).c_str())) {
             // Save theme to new file
-            auto file_path = core::FileDialogWrapper::ShowSaveFileDialog(current_theme_.name, "theme");
+            auto file_path = util::FileDialogWrapper::ShowSaveFileDialog(current_theme_.name, "theme");
             if (!file_path.empty()) {
               auto status = SaveThemeToFile(current_theme_, file_path);
               if (!status.ok()) {
@@ -1859,7 +1859,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       
       // Use save file dialog with proper defaults
       std::string safe_name = edit_theme.name.empty() ? "custom_theme" : edit_theme.name;
-      auto file_path = core::FileDialogWrapper::ShowSaveFileDialog(safe_name, "theme");
+      auto file_path = util::FileDialogWrapper::ShowSaveFileDialog(safe_name, "theme");
       
       if (!file_path.empty()) {
         // Ensure .theme extension
@@ -1957,7 +1957,7 @@ std::vector<std::string> ThemeManager::DiscoverAvailableThemeFiles() const {
     try {
       // Use platform-specific file discovery instead of glob
 #ifdef __APPLE__
-      auto files_in_folder = core::FileDialogWrapper::GetFilesInFolder(search_path);
+      auto files_in_folder = util::FileDialogWrapper::GetFilesInFolder(search_path);
       for (const auto& file : files_in_folder) {
         if (file.length() > 6 && file.substr(file.length() - 6) == ".theme") {
           std::string full_path = search_path + file;

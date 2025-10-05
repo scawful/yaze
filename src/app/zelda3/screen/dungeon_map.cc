@@ -3,7 +3,7 @@
 #include <fstream>
 #include <vector>
 
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/core/window.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
@@ -165,7 +165,7 @@ absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
                                          gfx::Tilemap &tile16_blockset,
                                          std::array<gfx::Bitmap, 4> &sheets,
                                          std::vector<uint8_t> &gfx_bin_data) {
-  std::string bin_file = core::FileDialogWrapper::ShowOpenFileDialog();
+  std::string bin_file = util::FileDialogWrapper::ShowOpenFileDialog();
   if (bin_file.empty()) {
     return absl::InternalError("No file selected");
   }

@@ -14,7 +14,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/editor/agent/agent_chat_history_codec.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/toast_manager.h"
@@ -48,7 +48,7 @@ std::filesystem::path ExpandUserPath(std::string path) {
 }
 
 std::filesystem::path ResolveHistoryPath(const std::string& session_id = "") {
-  std::filesystem::path base = ExpandUserPath(yaze::core::GetConfigDirectory());
+  std::filesystem::path base = ExpandUserPath(yaze::util::GetConfigDirectory());
   if (base.empty()) {
     base = ExpandUserPath(".yaze");
   }
@@ -1723,7 +1723,7 @@ void AgentChatWidget::RenderSystemPromptEditor() {
     // Save the current system prompt to project directory
     for (auto& tab : open_files_) {
       if (tab.is_system_prompt) {
-        auto save_path = core::FileDialogWrapper::ShowSaveFileDialog(
+        auto save_path = util::FileDialogWrapper::ShowSaveFileDialog(
             "custom_system_prompt", "txt");
         if (!save_path.empty()) {
           std::ofstream file(save_path);
@@ -1760,7 +1760,7 @@ void AgentChatWidget::RenderSystemPromptEditor() {
   
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load Custom")) {
-    auto filepath = core::FileDialogWrapper::ShowOpenFileDialog();
+    auto filepath = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!filepath.empty()) {
       std::ifstream file(filepath);
       if (file.is_open()) {
@@ -1832,7 +1832,7 @@ void AgentChatWidget::RenderFileEditorTabs() {
   }
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open File")) {
-    auto filepath = core::FileDialogWrapper::ShowOpenFileDialog();
+    auto filepath = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!filepath.empty()) {
       OpenFileInEditor(filepath);
     }
@@ -1890,7 +1890,7 @@ void AgentChatWidget::RenderFileEditorTabs() {
                 toast_manager_->Show("Failed to save file", ToastType::kError);
               }
             } else {
-              auto save_path = core::FileDialogWrapper::ShowSaveFileDialog(
+              auto save_path = util::FileDialogWrapper::ShowSaveFileDialog(
                   open_files_[i].filename, "");
               if (!save_path.empty()) {
                 std::ofstream file(save_path);

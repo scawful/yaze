@@ -1,7 +1,7 @@
 #include "sprite_editor.h"
 
 #include "app/gfx/performance_profiler.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/gfx/arena.h"
 #include "app/gui/icons.h"
@@ -254,7 +254,7 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
   // ZSprite Maker format open file dialog
   if (ImGui::Button("Open ZSprite")) {
     // Open ZSprite file
-    std::string file_path = core::FileDialogWrapper::ShowOpenFileDialog();
+    std::string file_path = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!file_path.empty()) {
       zsprite::ZSprite zsprite;
       status_ = zsprite.Load(file_path);

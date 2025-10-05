@@ -1,4 +1,4 @@
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 
 #include <iostream>
 #include <string>
@@ -46,21 +46,21 @@ std::string ShowOpenFileDialogSync() {
 }
 }  // namespace
 
-std::string yaze::core::FileDialogWrapper::ShowOpenFileDialog() { return ShowOpenFileDialogSync(); }
+std::string yaze::util::FileDialogWrapper::ShowOpenFileDialog() { return ShowOpenFileDialogSync(); }
 
-std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialog() { return ""; }
+std::string yaze::util::FileDialogWrapper::ShowOpenFolderDialog() { return ""; }
 
-std::vector<std::string> yaze::core::FileDialogWrapper::GetFilesInFolder(
+std::vector<std::string> yaze::util::FileDialogWrapper::GetFilesInFolder(
     const std::string &folder) {
   return {};
 }
 
-std::vector<std::string> yaze::core::FileDialogWrapper::GetSubdirectoriesInFolder(
+std::vector<std::string> yaze::util::FileDialogWrapper::GetSubdirectoriesInFolder(
     const std::string &folder) {
   return {};
 }
 
-std::string yaze::core::GetBundleResourcePath() {
+std::string yaze::util::GetBundleResourcePath() {
   NSBundle* bundle = [NSBundle mainBundle];
   NSString* resourceDirectoryPath = [bundle bundlePath];
   NSString* path = [resourceDirectoryPath stringByAppendingString:@"/"];
@@ -73,7 +73,7 @@ std::string yaze::core::GetBundleResourcePath() {
 #import <Cocoa/Cocoa.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-std::string yaze::core::FileDialogWrapper::ShowOpenFileDialogBespoke() {
+std::string yaze::util::FileDialogWrapper::ShowOpenFileDialogBespoke() {
   NSOpenPanel* openPanel = [NSOpenPanel openPanel];
   [openPanel setCanChooseFiles:YES];
   [openPanel setCanChooseDirectories:NO];
@@ -88,7 +88,7 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFileDialogBespoke() {
   return "";
 }
 
-std::string yaze::core::FileDialogWrapper::ShowSaveFileDialogBespoke(const std::string& default_name, 
+std::string yaze::util::FileDialogWrapper::ShowSaveFileDialogBespoke(const std::string& default_name, 
                                                                     const std::string& default_extension) {
   NSSavePanel* savePanel = [NSSavePanel savePanel];
   
@@ -111,7 +111,7 @@ std::string yaze::core::FileDialogWrapper::ShowSaveFileDialogBespoke(const std::
 }
 
 // Global feature flag-based dispatch methods
-std::string yaze::core::FileDialogWrapper::ShowOpenFileDialog() {
+std::string yaze::util::FileDialogWrapper::ShowOpenFileDialog() {
   if (FeatureFlags::get().kUseNativeFileDialog) {
     return ShowOpenFileDialogNFD();
   } else {
@@ -119,7 +119,7 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFileDialog() {
   }
 }
 
-std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialog() {
+std::string yaze::util::FileDialogWrapper::ShowOpenFolderDialog() {
   if (FeatureFlags::get().kUseNativeFileDialog) {
     return ShowOpenFolderDialogNFD();
   } else {
@@ -127,7 +127,7 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialog() {
   }
 }
 
-std::string yaze::core::FileDialogWrapper::ShowSaveFileDialog(const std::string& default_name, 
+std::string yaze::util::FileDialogWrapper::ShowSaveFileDialog(const std::string& default_name, 
                                                              const std::string& default_extension) {
   if (FeatureFlags::get().kUseNativeFileDialog) {
     return ShowSaveFileDialogNFD(default_name, default_extension);
@@ -137,7 +137,7 @@ std::string yaze::core::FileDialogWrapper::ShowSaveFileDialog(const std::string&
 }
 
 // NFD implementation for macOS (fallback to bespoke if NFD not available)
-std::string yaze::core::FileDialogWrapper::ShowOpenFileDialogNFD() {
+std::string yaze::util::FileDialogWrapper::ShowOpenFileDialogNFD() {
 #if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
   NFD_Init();
   nfdu8char_t *out_path = NULL;
@@ -164,7 +164,7 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFileDialogNFD() {
 #endif
 }
 
-std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialogNFD() {
+std::string yaze::util::FileDialogWrapper::ShowOpenFolderDialogNFD() {
 #if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
   NFD_Init();
   nfdu8char_t *out_path = NULL;
@@ -187,7 +187,7 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialogNFD() {
 #endif
 }
 
-std::string yaze::core::FileDialogWrapper::ShowSaveFileDialogNFD(const std::string& default_name, 
+std::string yaze::util::FileDialogWrapper::ShowSaveFileDialogNFD(const std::string& default_name, 
                                                                 const std::string& default_extension) {
 #if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
   NFD_Init();
@@ -236,7 +236,7 @@ std::string yaze::core::FileDialogWrapper::ShowSaveFileDialogNFD(const std::stri
 #endif
 }
 
-std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialogBespoke() {
+std::string yaze::util::FileDialogWrapper::ShowOpenFolderDialogBespoke() {
   NSOpenPanel* openPanel = [NSOpenPanel openPanel];
   [openPanel setCanChooseFiles:NO];
   [openPanel setCanChooseDirectories:YES];
@@ -251,7 +251,7 @@ std::string yaze::core::FileDialogWrapper::ShowOpenFolderDialogBespoke() {
   return "";
 }
 
-std::vector<std::string> yaze::core::FileDialogWrapper::GetFilesInFolder(
+std::vector<std::string> yaze::util::FileDialogWrapper::GetFilesInFolder(
     const std::string& folder) {
   std::vector<std::string> filenames;
   NSFileManager* fileManager = [NSFileManager defaultManager];
@@ -267,7 +267,7 @@ std::vector<std::string> yaze::core::FileDialogWrapper::GetFilesInFolder(
   return filenames;
 }
 
-std::vector<std::string> yaze::core::FileDialogWrapper::GetSubdirectoriesInFolder(
+std::vector<std::string> yaze::util::FileDialogWrapper::GetSubdirectoriesInFolder(
     const std::string& folder) {
   std::vector<std::string> subdirectories;
   NSFileManager* fileManager = [NSFileManager defaultManager];
@@ -289,7 +289,7 @@ std::vector<std::string> yaze::core::FileDialogWrapper::GetSubdirectoriesInFolde
   return subdirectories;
 }
 
-std::string yaze::core::GetBundleResourcePath() {
+std::string yaze::util::GetBundleResourcePath() {
   NSBundle* bundle = [NSBundle mainBundle];
   NSString* resourceDirectoryPath = [bundle bundlePath];
   NSString* path = [resourceDirectoryPath stringByAppendingString:@"/"];

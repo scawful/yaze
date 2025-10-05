@@ -6,13 +6,13 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/match.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/gui/icons.h"
 #include "app/gui/modules/text_editor.h"
 
 namespace yaze::editor {
 
-using core::FileDialogWrapper;
+using util::FileDialogWrapper;
 
 namespace {
 
@@ -283,7 +283,7 @@ void AssemblyEditor::DrawFileTabView() {
 void AssemblyEditor::DrawFileMenu() {
   if (ImGui::BeginMenu("File")) {
     if (ImGui::MenuItem("Open", "Ctrl+O")) {
-      auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+      auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
       ChangeActiveFile(filename);
     }
     if (ImGui::MenuItem("Save", "Ctrl+S")) {

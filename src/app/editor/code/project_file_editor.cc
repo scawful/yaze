@@ -6,7 +6,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/gui/icons.h"
 #include "imgui/imgui.h"
@@ -40,7 +40,7 @@ void ProjectFileEditor::Draw() {
     
     ImGui::TableNextColumn();
     if (ImGui::Button(absl::StrFormat("%s Open", ICON_MD_FOLDER_OPEN).c_str())) {
-      auto file = core::FileDialogWrapper::ShowOpenFileDialog();
+      auto file = util::FileDialogWrapper::ShowOpenFileDialog();
       if (!file.empty()) {
         auto status = LoadFile(file);
         if (!status.ok() && toast_manager_) {
@@ -65,7 +65,7 @@ void ProjectFileEditor::Draw() {
     
     ImGui::TableNextColumn();
     if (ImGui::Button(absl::StrFormat("%s Save As", ICON_MD_SAVE_AS).c_str())) {
-      auto file = core::FileDialogWrapper::ShowSaveFileDialog(
+      auto file = util::FileDialogWrapper::ShowSaveFileDialog(
           filepath_.empty() ? "project" : filepath_, "yaze");
       if (!file.empty()) {
         auto status = SaveFileAs(file);

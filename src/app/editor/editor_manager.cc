@@ -11,7 +11,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "app/core/features.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor.h"
@@ -62,7 +62,7 @@ namespace yaze {
 namespace editor {
 
 using namespace ImGui;
-using core::FileDialogWrapper;
+using util::FileDialogWrapper;
 
 namespace {
 
@@ -1620,7 +1620,7 @@ void EditorManager::DrawMenuBar() {
                gui::kDefaultModalSize)) {
       // Use save file dialog for ROM files
       auto file_path =
-          core::FileDialogWrapper::ShowSaveFileDialog(save_as_filename, "sfc");
+          util::FileDialogWrapper::ShowSaveFileDialog(save_as_filename, "sfc");
       if (!file_path.empty()) {
         save_as_filename = file_path;
       }
@@ -1698,7 +1698,7 @@ void EditorManager::DrawMenuBar() {
                    .c_str(),
                gui::kDefaultModalSize)) {
       auto project_file_path =
-          core::FileDialogWrapper::ShowSaveFileDialog(save_as_filename, "yaze");
+          util::FileDialogWrapper::ShowSaveFileDialog(save_as_filename, "yaze");
       if (!project_file_path.empty()) {
         // Ensure .yaze extension
         if (project_file_path.find(".yaze") == std::string::npos) {
@@ -1975,7 +1975,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 }
 
 absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
-  auto dialog_path = core::FileDialogWrapper::ShowOpenFolderDialog();
+  auto dialog_path = util::FileDialogWrapper::ShowOpenFolderDialog();
   if (dialog_path.empty()) {
     return absl::OkStatus();  // User cancelled
   }
@@ -1986,7 +1986,7 @@ absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
 }
 
 absl::Status EditorManager::OpenProject() {
-  auto file_path = core::FileDialogWrapper::ShowOpenFileDialog();
+  auto file_path = util::FileDialogWrapper::ShowOpenFileDialog();
   if (file_path.empty()) {
     return absl::OkStatus();
   }
@@ -2101,7 +2101,7 @@ absl::Status EditorManager::SaveProjectAs() {
                                  : "untitled_project";
 
   auto file_path =
-      core::FileDialogWrapper::ShowSaveFileDialog(default_name, "yaze");
+      util::FileDialogWrapper::ShowSaveFileDialog(default_name, "yaze");
   if (file_path.empty()) {
     return absl::OkStatus();
   }
@@ -3195,7 +3195,7 @@ void EditorManager::DrawWelcomeScreen() {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open Project", ImVec2(200, 40))) {
-      auto file_name = core::FileDialogWrapper::ShowOpenFileDialog();
+      auto file_name = util::FileDialogWrapper::ShowOpenFileDialog();
       if (!file_name.empty()) {
         status_ = OpenRomOrProject(file_name);
         if (!status_.ok()) {

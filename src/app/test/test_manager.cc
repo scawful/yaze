@@ -14,7 +14,7 @@
 #include "app/core/service/screenshot_utils.h"
 #include "app/gui/widgets/widget_state_capture.h"
 #include "app/core/features.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/gfx/arena.h"
 #include "app/gui/icons.h"
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
@@ -1011,7 +1011,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
                        : "Bespoke");
 
           // Actually test the file dialog
-          auto result = core::FileDialogWrapper::ShowOpenFileDialog();
+          auto result = util::FileDialogWrapper::ShowOpenFileDialog();
           if (!result.empty()) {
             LOG_INFO("TestManager", "File dialog test successful: %s",
                      result.c_str());
@@ -1023,7 +1023,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
         ImGui::SameLine();
         if (ImGui::Button("Test NFD Directly")) {
-          auto result = core::FileDialogWrapper::ShowOpenFileDialogNFD();
+          auto result = util::FileDialogWrapper::ShowOpenFileDialogNFD();
           if (!result.empty()) {
             LOG_INFO("TestManager", "NFD test successful: %s", result.c_str());
           } else {
@@ -1035,7 +1035,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
         ImGui::SameLine();
         if (ImGui::Button("Test Bespoke Directly")) {
-          auto result = core::FileDialogWrapper::ShowOpenFileDialogBespoke();
+          auto result = util::FileDialogWrapper::ShowOpenFileDialogBespoke();
           if (!result.empty()) {
             LOG_INFO("TestManager", "Bespoke test successful: %s",
                      result.c_str());
@@ -1187,13 +1187,13 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
         ImGui::Text("Test Both Implementations:");
 
         if (ImGui::Button("Quick Test NFD")) {
-          auto result = core::FileDialogWrapper::ShowOpenFileDialogNFD();
+          auto result = util::FileDialogWrapper::ShowOpenFileDialogNFD();
           LOG_INFO("TestManager", "NFD test result: %s",
                    result.empty() ? "Failed/Canceled" : result.c_str());
         }
         ImGui::SameLine();
         if (ImGui::Button("Quick Test Bespoke")) {
-          auto result = core::FileDialogWrapper::ShowOpenFileDialogBespoke();
+          auto result = util::FileDialogWrapper::ShowOpenFileDialogBespoke();
           LOG_INFO("TestManager", "Bespoke test result: %s",
                    result.empty() ? "Failed/Not Implemented" : result.c_str());
         }
