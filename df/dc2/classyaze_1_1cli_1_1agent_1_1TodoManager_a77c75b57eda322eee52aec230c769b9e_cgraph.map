@@ -1,0 +1,9 @@
+<map id="yaze::cli::agent::TodoManager::CreateTodo" name="yaze::cli::agent::TodoManager::CreateTodo">
+<area shape="rect" id="Node000001" title="Create a new TODO item." alt="" coords="5,71,195,111"/>
+<area shape="rect" id="Node000002" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a05d07cc21bd2126464376bd1440bd6db" title=" " alt="" coords="243,5,432,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,68,246,48,247,53,177,73"/>
+<area shape="rect" id="Node000003" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a68400b4c226d998a1628420a20082f7e" title=" " alt="" coords="243,71,432,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,88,227,88,227,94,195,94"/>
+<area shape="rect" id="Node000004" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a357a05137ebfd3eb9b51461a2b4044eb" title="Save TODOs to persistent storage." alt="" coords="243,136,432,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="177,109,247,129,246,134,176,114"/>
+</map>

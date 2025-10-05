@@ -1,0 +1,13 @@
+<map id="yaze::cli::handlers::anonymous_namespace{todo_commands::cc}::GetTodoManager" name="yaze::cli::handlers::anonymous_namespace{todo_commands::cc}::GetTodoManager">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,48,207,118"/>
+<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="58,46,60,37,70,28,85,23,106,21,131,24,146,31,144,36,129,29,106,26,86,28,72,33,65,39,63,48"/>
+<area shape="rect" id="Node000002" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#aa4d7b22359c0374507ce1359ec2fceb4" title="Initialize the TODO manager and load persisted data." alt="" coords="255,63,444,103"/>
+<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="207,80,239,80,239,86,207,86"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a84dcfd258a5319e7fbf34fe53081b87e" title="Ensure a directory exists, creating it if necessary." alt="" coords="507,5,666,46"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="435,60,491,46,493,51,437,65"/>
+<area shape="rect" id="Node000004" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#ac630fae629aa23f1e48d8242b3fa7df2" title="Check if a file or directory exists." alt="" coords="729,35,889,75"/>
+<area shape="poly" id="edge5_Node000002_Node000004" title=" " alt="" coords="444,75,713,58,714,63,444,80"/>
+<area shape="rect" id="Node000005" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a8b53da98f73eb2558201538d2e58b31b" title="Load TODOs from persistent storage." alt="" coords="492,120,681,161"/>
+<area shape="poly" id="edge6_Node000002_Node000005" title=" " alt="" coords="437,101,485,113,484,118,435,106"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="667,34,714,40,714,45,666,39"/>
+</map>

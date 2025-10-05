@@ -1,11 +1,11 @@
 <map id="yaze::gui::ThemeManager::DiscoverAvailableThemeFiles" name="yaze::gui::ThemeManager::DiscoverAvailableThemeFiles">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,55,205,96"/>
-<area shape="rect" id="Node000002" href="$db/d33/namespaceyaze_1_1core.html#a91b15ab541fc413b5208c32d750b87c8" title=" " alt="" coords="267,5,428,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,52,274,33,275,38,194,57"/>
-<area shape="rect" id="Node000003" href="$d5/d6c/classyaze_1_1core_1_1FileDialogWrapper.html#a338f0a33e9a71750671cb3d4a3177f76" title=" " alt="" coords="253,55,442,96"/>
+<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#a70b26eeecc8d2802527d0587241f6f4c" title=" " alt="" coords="267,5,420,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,52,271,33,273,38,193,57"/>
+<area shape="rect" id="Node000003" href="$d2/d3f/classyaze_1_1util_1_1FileDialogWrapper.html#aabbbf2592bf7d7e55dae770afeaad66d" title=" " alt="" coords="253,55,434,96"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,73,237,73,237,78,205,78"/>
-<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#aa2e1248d86460a354b1b46205bf02ab7" title=" " alt="" coords="264,121,431,161"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="184,94,255,113,254,118,182,99"/>
-<area shape="rect" id="Node000005" href="$db/d33/namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="490,128,717,154"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="431,138,474,138,474,144,431,144"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#aa2e1248d86460a354b1b46205bf02ab7" title=" " alt="" coords="260,121,427,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="182,94,253,113,251,118,181,99"/>
+<area shape="rect" id="Node000005" href="$d4/de1/namespaceyaze_1_1util.html#af39466acaa761050d58692560db0f3e6" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="482,128,701,154"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="427,138,466,138,466,144,427,144"/>
 </map>

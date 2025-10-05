@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="../../yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.1</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.2</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -109,7 +109,7 @@ $(document).ready(function(){initNavTree('d1/de8/canvas__modals_8cc_source.html'
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="../../dd/db2/performance__profiler_8h.html">app/gfx/performance_profiler.h</a>&quot;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="../../db/d5c/performance__dashboard_8h.html">app/gfx/performance_dashboard.h</a>&quot;</span></div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="../../d5/d21/enhanced__palette__editor_8h.html">app/gui/enhanced_palette_editor.h</a>&quot;</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="../../d8/dbb/palette__widget_8h.html">app/gui/widgets/palette_widget.h</a>&quot;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="../../db/da7/bpp__format__ui_8h.html">app/gui/bpp_format_ui.h</a>&quot;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="../../de/dbf/icons_8h.html">app/gui/icons.h</a>&quot;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;imgui/imgui.h&quot;</span></div>
@@ -553,9 +553,9 @@ $(document).ready(function(){initNavTree('d1/de8/canvas__modals_8cc_source.html'
 <div class="line"><a id="l00421" name="l00421"></a><span class="lineno">  421</span>    ImGui::Text(<span class="stringliteral">&quot;%s %s&quot;</span>, <a class="code hl_define" href="../../de/dbf/icons_8h.html#ad6ecee664ddafe14f73868b7a5ec8a01">ICON_MD_PALETTE</a>, modal_title.c_str());</div>
 <div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span>    ImGui::Separator();</div>
 <div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span>    </div>
-<div class="line"><a id="l00424" name="l00424"></a><span class="lineno">  424</span>    <span class="comment">// Use the existing EnhancedPaletteEditor</span></div>
-<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span>    <span class="keyword">static</span> std::unique_ptr&lt;gui::EnhancedPaletteEditor&gt; palette_editor = </div>
-<div class="line"><a id="l00426" name="l00426"></a><span class="lineno">  426</span>        std::make_unique&lt;gui::EnhancedPaletteEditor&gt;();</div>
+<div class="line"><a id="l00424" name="l00424"></a><span class="lineno">  424</span>    <span class="comment">// Use the existing PaletteWidget</span></div>
+<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span>    <span class="keyword">static</span> std::unique_ptr&lt;gui::PaletteWidget&gt; palette_editor = </div>
+<div class="line"><a id="l00426" name="l00426"></a><span class="lineno">  426</span>        std::make_unique&lt;gui::PaletteWidget&gt;();</div>
 <div class="line"><a id="l00427" name="l00427"></a><span class="lineno">  427</span>    </div>
 <div class="line"><a id="l00428" name="l00428"></a><span class="lineno">  428</span>    <span class="keywordflow">if</span> (options.<a class="code hl_variable" href="../../df/de1/structyaze_1_1gui_1_1canvas_1_1PaletteEditorOptions.html#a8514ce5c0c7ddfdbb5f311c010cb44a5">palette</a>) {</div>
 <div class="line"><a id="l00429" name="l00429"></a><span class="lineno">  429</span>      palette_editor-&gt;ShowPaletteEditor(*options.<a class="code hl_variable" href="../../df/de1/structyaze_1_1gui_1_1canvas_1_1PaletteEditorOptions.html#a8514ce5c0c7ddfdbb5f311c010cb44a5">palette</a>, modal_title);</div>
@@ -588,9 +588,9 @@ $(document).ready(function(){initNavTree('d1/de8/canvas__modals_8cc_source.html'
 <div class="line"><a id="l00454" name="l00454"></a><span class="lineno">  454</span>    ImGui::Text(<span class="stringliteral">&quot;%s %s&quot;</span>, <a class="code hl_define" href="../../de/dbf/icons_8h.html#aca4ed0c7c69f9b6e0da2410d0de5fb79">ICON_MD_ZOOM_IN</a>, modal_title.c_str());</div>
 <div class="line"><a id="l00455" name="l00455"></a><span class="lineno">  455</span>    ImGui::Separator();</div>
 <div class="line"><a id="l00456" name="l00456"></a><span class="lineno">  456</span>    </div>
-<div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span>    <span class="comment">// Use the existing EnhancedPaletteEditor for color analysis</span></div>
-<div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span>    <span class="keyword">static</span> std::unique_ptr&lt;gui::EnhancedPaletteEditor&gt; palette_editor = </div>
-<div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>        std::make_unique&lt;gui::EnhancedPaletteEditor&gt;();</div>
+<div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span>    <span class="comment">// Use the existing PaletteWidget for color analysis</span></div>
+<div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span>    <span class="keyword">static</span> std::unique_ptr&lt;gui::PaletteWidget&gt; palette_editor = </div>
+<div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>        std::make_unique&lt;gui::PaletteWidget&gt;();</div>
 <div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>    </div>
 <div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span>    <span class="keywordflow">if</span> (options.<a class="code hl_variable" href="../../d8/de6/structyaze_1_1gui_1_1canvas_1_1ColorAnalysisOptions.html#a0e5609186059fa55ae85b759b3fc35ce">bitmap</a>) {</div>
 <div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span>      palette_editor-&gt;ShowColorAnalysis(*options.<a class="code hl_variable" href="../../d8/de6/structyaze_1_1gui_1_1canvas_1_1ColorAnalysisOptions.html#a0e5609186059fa55ae85b759b3fc35ce">bitmap</a>, modal_title);</div>
@@ -767,7 +767,6 @@ $(document).ready(function(){initNavTree('d1/de8/canvas__modals_8cc_source.html'
 <div class="ttc" id="aclassyaze_1_1gui_1_1canvas_1_1CanvasModals_html_aea65dd9f2d71cfb48aa6d1f4d03dc30c"><div class="ttname"><a href="../../d5/dd8/classyaze_1_1gui_1_1canvas_1_1CanvasModals.html#aea65dd9f2d71cfb48aa6d1f4d03dc30c">yaze::gui::canvas::CanvasModals::ShowAdvancedProperties</a></div><div class="ttdeci">void ShowAdvancedProperties(const std::string &amp;canvas_id, const CanvasConfig &amp;config, const gfx::Bitmap *bitmap=nullptr)</div><div class="ttdoc">Show advanced canvas properties modal.</div><div class="ttdef"><b>Definition</b> <a href="../../d1/de8/canvas__modals_8cc_source.html#l00034">canvas_modals.cc:34</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gui_1_1canvas_1_1CanvasModals_html_afa2903930b4ef08813ed16bfcddebf79"><div class="ttname"><a href="../../d5/dd8/classyaze_1_1gui_1_1canvas_1_1CanvasModals.html#afa2903930b4ef08813ed16bfcddebf79">yaze::gui::canvas::CanvasModals::CloseModal</a></div><div class="ttdeci">void CloseModal(const std::string &amp;id)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/de8/canvas__modals_8cc_source.html#l00535">canvas_modals.cc:535</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gui_1_1canvas_1_1CanvasModals_html_afccc4940eb62c3671c48c925c1613ea5"><div class="ttname"><a href="../../d5/dd8/classyaze_1_1gui_1_1canvas_1_1CanvasModals.html#afccc4940eb62c3671c48c925c1613ea5">yaze::gui::canvas::CanvasModals::RenderScalingControlsModal</a></div><div class="ttdeci">void RenderScalingControlsModal(const std::string &amp;canvas_id, CanvasConfig &amp;config, const gfx::Bitmap *bitmap)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/de8/canvas__modals_8cc_source.html#l00292">canvas_modals.cc:292</a></div></div>
-<div class="ttc" id="aenhanced__palette__editor_8h_html"><div class="ttname"><a href="../../d5/d21/enhanced__palette__editor_8h.html">enhanced_palette_editor.h</a></div></div>
 <div class="ttc" id="aicons_8h_html"><div class="ttname"><a href="../../de/dbf/icons_8h.html">icons.h</a></div></div>
 <div class="ttc" id="aicons_8h_html_a136a1b3826957308f86ba22452e28add"><div class="ttname"><a href="../../de/dbf/icons_8h.html#a136a1b3826957308f86ba22452e28add">ICON_MD_FUNCTIONS</a></div><div class="ttdeci">#define ICON_MD_FUNCTIONS</div><div class="ttdef"><b>Definition</b> <a href="../../de/dbf/icons_8h_source.html#l00861">icons.h:861</a></div></div>
 <div class="ttc" id="aicons_8h_html_a14ded7148bef481ff6b688f261157597"><div class="ttname"><a href="../../de/dbf/icons_8h.html#a14ded7148bef481ff6b688f261157597">ICON_MD_SETTINGS</a></div><div class="ttdeci">#define ICON_MD_SETTINGS</div><div class="ttdef"><b>Definition</b> <a href="../../de/dbf/icons_8h_source.html#l01697">icons.h:1697</a></div></div>
@@ -793,6 +792,7 @@ $(document).ready(function(){initNavTree('d1/de8/canvas__modals_8cc_source.html'
 <div class="ttc" id="anamespaceyaze_1_1gui_1_1canvas_html_a78f7b978c11b1f7a4d3006ed9dbfd926"><div class="ttname"><a href="../../db/dc3/namespaceyaze_1_1gui_1_1canvas.html#a78f7b978c11b1f7a4d3006ed9dbfd926">yaze::gui::canvas::DispatchConfigCallback</a></div><div class="ttdeci">void DispatchConfigCallback(const std::function&lt; void(const CanvasConfig &amp;)&gt; &amp;callback, const CanvasConfig &amp;config)</div></div>
 <div class="ttc" id="anamespaceyaze_1_1gui_1_1canvas_html_ac85c5d84b8dd6f8c3f612bd5a1396d0c"><div class="ttname"><a href="../../db/dc3/namespaceyaze_1_1gui_1_1canvas.html#ac85c5d84b8dd6f8c3f612bd5a1396d0c">yaze::gui::canvas::DispatchScaleCallback</a></div><div class="ttdeci">void DispatchScaleCallback(const std::function&lt; void(const CanvasConfig &amp;)&gt; &amp;callback, const CanvasConfig &amp;config)</div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
+<div class="ttc" id="apalette__widget_8h_html"><div class="ttname"><a href="../../d8/dbb/palette__widget_8h.html">palette_widget.h</a></div></div>
 <div class="ttc" id="aperformance__dashboard_8h_html"><div class="ttname"><a href="../../db/d5c/performance__dashboard_8h.html">performance_dashboard.h</a></div></div>
 <div class="ttc" id="aperformance__profiler_8h_html"><div class="ttname"><a href="../../dd/db2/performance__profiler_8h.html">performance_profiler.h</a></div></div>
 <div class="ttc" id="astructyaze_1_1gui_1_1canvas_1_1BppConversionOptions_html"><div class="ttname"><a href="../../d4/d68/structyaze_1_1gui_1_1canvas_1_1BppConversionOptions.html">yaze::gui::canvas::BppConversionOptions</a></div><div class="ttdoc">BPP conversion options.</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d07/canvas__modals_8h_source.html#l00046">canvas_modals.h:46</a></div></div>

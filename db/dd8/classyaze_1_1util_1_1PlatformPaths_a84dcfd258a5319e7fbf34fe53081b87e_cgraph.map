@@ -1,0 +1,5 @@
+<map id="yaze::util::PlatformPaths::EnsureDirectoryExists" name="yaze::util::PlatformPaths::EnsureDirectoryExists">
+<area shape="rect" id="Node000001" title="Ensure a directory exists, creating it if necessary." alt="" coords="5,5,165,46"/>
+<area shape="rect" id="Node000002" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#ac630fae629aa23f1e48d8242b3fa7df2" title="Check if a file or directory exists." alt="" coords="213,5,372,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,23,197,23,197,28,165,28"/>
+</map>

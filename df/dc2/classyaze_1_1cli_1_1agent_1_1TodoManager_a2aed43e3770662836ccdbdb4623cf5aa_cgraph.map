@@ -1,0 +1,7 @@
+<map id="yaze::cli::agent::TodoManager::ImportFromJson" name="yaze::cli::agent::TodoManager::ImportFromJson">
+<area shape="rect" id="Node000001" title="Import TODOs from JSON string." alt="" coords="5,39,195,79"/>
+<area shape="rect" id="Node000002" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a357a05137ebfd3eb9b51461a2b4044eb" title="Save TODOs to persistent storage." alt="" coords="243,5,432,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,43,227,39,227,44,195,48"/>
+<area shape="rect" id="Node000003" href="$d0/d0e/structyaze_1_1cli_1_1agent_1_1TodoItem.html#aaf5ed90bfd50f7f8d9970a10620b58c8" title=" " alt="" coords="255,71,420,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,69,240,75,239,80,195,74"/>
+</map>

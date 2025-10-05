@@ -1,12 +1,12 @@
 <map id="src/app/emu/audio/apu.h" name="src/app/emu/audio/apu.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="132,5,295,31"/>
-<area shape="rect" id="Node000002" href="$da/ddf/apu_8cc.html" title=" " alt="" coords="5,79,176,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,41,113,81,110,76,178,37"/>
-<area shape="rect" id="Node000003" href="$dc/dbe/snes_8cc.html" title=" " alt="" coords="142,153,284,178"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="216,47,216,152,211,152,211,47"/>
-<area shape="rect" id="Node000004" href="$d2/de3/emu_2snes_8h.html" title=" " alt="" coords="251,79,386,105"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="245,38,302,76,299,81,242,42"/>
-<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="290,116,233,154,230,150,287,111"/>
-<area shape="rect" id="Node000005" href="$d8/d5b/emu_8cc.html" title=" " alt="" coords="309,153,448,178"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="340,115,370,150,366,154,336,118"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="233,5,397,31"/>
+<area shape="rect" id="Node000002" href="$d5/de8/music__editor_8h.html" title=" " alt="" coords="5,79,145,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="265,39,136,81,134,76,263,34"/>
+<area shape="rect" id="Node000021" href="$da/ddf/apu_8cc.html" title=" " alt="" coords="169,87,339,112"/>
+<area shape="poly" id="edge2_Node000001_Node000021" title=" " alt="" coords="299,45,265,88,261,84,294,42"/>
+<area shape="rect" id="Node000022" href="$dc/dbe/snes_8cc.html" title=" " alt="" coords="357,168,500,193"/>
+<area shape="poly" id="edge3_Node000001_Node000022" title=" " alt="" coords="334,42,422,165,418,169,330,45"/>
+<area shape="rect" id="Node000023" href="$d2/de3/emu_2snes_8h.html" title=" " alt="" coords="414,87,549,112"/>
+<area shape="poly" id="edge4_Node000001_Node000023" title=" " alt="" coords="355,36,457,84,455,88,353,40"/>
+<area shape="poly" id="edge5_Node000023_Node000022" title=" " alt="" coords="467,127,439,169,434,166,463,124"/>
 </map>

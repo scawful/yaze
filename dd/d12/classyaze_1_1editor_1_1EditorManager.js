@@ -93,6 +93,8 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "proposal_drawer_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#adc78de39c74455edc3c905d2df263625", null ],
     [ "show_proposal_drawer_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a0e7bbc07457a33d7fd6e82bfb458f288", null ],
     [ "project_file_editor_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a74e62edb85a25578e5134ca56b043a87", null ],
+    [ "editor_selection_dialog_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a38526d6612c0966ec0eaa5004eac8596", null ],
+    [ "show_editor_selection_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5f1094693321b0ba5a2bb18a7cc2264e", null ],
     [ "version_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#affe73c6625559f736677e476796f02a1", null ],
     [ "settings_filename_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ae46e218f8c1ed20a25f9fd54221abbbd", null ],
     [ "font_global_scale_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a17cf51af183dc18ac667e4e5412e3eed", null ],

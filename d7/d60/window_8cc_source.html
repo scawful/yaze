@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="../../yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.1</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.2</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -106,7 +106,7 @@ $(document).ready(function(){initNavTree('d7/d60/window_8cc_source.html','../../
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &quot;absl/strings/str_format.h&quot;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &quot;<a class="code" href="../../d2/d36/font__loader_8h.html">app/core/platform/font_loader.h</a>&quot;</span></div>
-<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;<a class="code" href="../../d5/dd7/sdl__deleter_8h.html">app/core/platform/sdl_deleter.h</a>&quot;</span></div>
+<div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#include &quot;<a class="code" href="../../d5/dd7/sdl__deleter_8h.html">util/sdl_deleter.h</a>&quot;</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="../../da/d0c/arena_8h.html">app/gfx/arena.h</a>&quot;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="../../de/d12/style_8h.html">app/gui/style.h</a>&quot;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="../../d8/d65/theme__manager_8h.html">app/gui/theme_manager.h</a>&quot;</span></div>
@@ -131,11 +131,11 @@ $(document).ready(function(){initNavTree('d7/d60/window_8cc_source.html','../../
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  <span class="keywordtype">int</span> screen_width = display_mode.w * 0.8;</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>  <span class="keywordtype">int</span> screen_height = display_mode.h * 0.8;</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  window.<a class="code hl_variable" href="../../de/d86/structyaze_1_1core_1_1Window.html#a10f471fcb56fd4388fb62b37fc7a3c1d">window_</a> = std::unique_ptr&lt;SDL_Window, SDL_Deleter&gt;(</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  window.<a class="code hl_variable" href="../../de/d86/structyaze_1_1core_1_1Window.html#a10f471fcb56fd4388fb62b37fc7a3c1d">window_</a> = std::unique_ptr&lt;SDL_Window, util::SDL_Deleter&gt;(</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>      SDL_CreateWindow(<span class="stringliteral">&quot;Yet Another Zelda3 Editor&quot;</span>, SDL_WINDOWPOS_UNDEFINED,</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>                       SDL_WINDOWPOS_UNDEFINED, screen_width, screen_height,</div>
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>                       flags),</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>      <a class="code hl_struct" href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html">SDL_Deleter</a>());</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>      <a class="code hl_struct" href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html">util::SDL_Deleter</a>());</div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  <span class="keywordflow">if</span> (window.<a class="code hl_variable" href="../../de/d86/structyaze_1_1core_1_1Window.html#a10f471fcb56fd4388fb62b37fc7a3c1d">window_</a> == <span class="keyword">nullptr</span>) {</div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>    <span class="keywordflow">return</span> absl::InternalError(</div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>        absl::StrFormat(<span class="stringliteral">&quot;SDL_CreateWindow: %s\n&quot;</span>, SDL_GetError()));</div>
@@ -290,12 +290,12 @@ $(document).ready(function(){initNavTree('d7/d60/window_8cc_source.html','../../
 <div class="ttc" id="anamespaceyaze_1_1gui_html_abd9a49ec6350e33700334b783e0c9cad"><div class="ttname"><a href="../../d3/dbf/namespaceyaze_1_1gui.html#abd9a49ec6350e33700334b783e0c9cad">yaze::gui::ColorsYaze</a></div><div class="ttdeci">void ColorsYaze()</div><div class="ttdef"><b>Definition</b> <a href="../../d8/d05/style_8cc_source.html#l00032">style.cc:32</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="asdl__deleter_8h_html"><div class="ttname"><a href="../../d5/dd7/sdl__deleter_8h.html">sdl_deleter.h</a></div></div>
-<div class="ttc" id="astructyaze_1_1core_1_1SDL__Deleter_html"><div class="ttname"><a href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html">yaze::core::SDL_Deleter</a></div><div class="ttdoc">Deleter for SDL_Window and SDL_Renderer.</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00012">sdl_deleter.h:12</a></div></div>
 <div class="ttc" id="astructyaze_1_1core_1_1Window_html"><div class="ttname"><a href="../../de/d86/structyaze_1_1core_1_1Window.html">yaze::core::Window</a></div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00016">window.h:16</a></div></div>
 <div class="ttc" id="astructyaze_1_1core_1_1Window_html_a10f471fcb56fd4388fb62b37fc7a3c1d"><div class="ttname"><a href="../../de/d86/structyaze_1_1core_1_1Window.html#a10f471fcb56fd4388fb62b37fc7a3c1d">yaze::core::Window::window_</a></div><div class="ttdeci">std::shared_ptr&lt; SDL_Window &gt; window_</div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00017">window.h:17</a></div></div>
 <div class="ttc" id="astructyaze_1_1core_1_1Window_html_a1a317b8784c222c4343d20a56f09ab79"><div class="ttname"><a href="../../de/d86/structyaze_1_1core_1_1Window.html#a1a317b8784c222c4343d20a56f09ab79">yaze::core::Window::audio_buffer_</a></div><div class="ttdeci">std::shared_ptr&lt; int16_t &gt; audio_buffer_</div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00019">window.h:19</a></div></div>
 <div class="ttc" id="astructyaze_1_1core_1_1Window_html_a7819c4d497845fc3c7a0f4150a21b1da"><div class="ttname"><a href="../../de/d86/structyaze_1_1core_1_1Window.html#a7819c4d497845fc3c7a0f4150a21b1da">yaze::core::Window::audio_device_</a></div><div class="ttdeci">SDL_AudioDeviceID audio_device_</div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00018">window.h:18</a></div></div>
 <div class="ttc" id="astructyaze_1_1core_1_1Window_html_a96a352e05fe2ec25be69af88094507e2"><div class="ttname"><a href="../../de/d86/structyaze_1_1core_1_1Window.html#a96a352e05fe2ec25be69af88094507e2">yaze::core::Window::active_</a></div><div class="ttdeci">bool active_</div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00020">window.h:20</a></div></div>
+<div class="ttc" id="astructyaze_1_1util_1_1SDL__Deleter_html"><div class="ttname"><a href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html">yaze::util::SDL_Deleter</a></div><div class="ttdoc">Deleter for SDL_Window and SDL_Renderer.</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00012">sdl_deleter.h:12</a></div></div>
 <div class="ttc" id="astyle_8h_html"><div class="ttname"><a href="../../de/d12/style_8h.html">style.h</a></div></div>
 <div class="ttc" id="atest__manager_8h_html"><div class="ttname"><a href="../../d6/d5c/test__manager_8h.html">test_manager.h</a></div></div>
 <div class="ttc" id="atheme__manager_8h_html"><div class="ttname"><a href="../../d8/d65/theme__manager_8h.html">theme_manager.h</a></div></div>

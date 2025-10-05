@@ -1,9 +1,0 @@
-<map id="src/cli/service/ai/gemini_ai_service.h" name="src/cli/service/ai/gemini_ai_service.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="188,5,327,46"/>
-<area shape="rect" id="Node000002" href="$d9/d8d/general__commands_8cc.html" title=" " alt="" coords="5,94,161,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,56,124,96,121,91,203,51"/>
-<area shape="rect" id="Node000003" href="$df/df3/gemini__ai__service_8cc.html" title=" " alt="" coords="185,94,331,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="260,62,260,94,255,94,255,62"/>
-<area shape="rect" id="Node000004" href="$da/d28/test__gemini__vision_8cc.html" title=" " alt="" coords="355,94,491,135"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="310,51,387,91,384,96,307,56"/>
-</map>

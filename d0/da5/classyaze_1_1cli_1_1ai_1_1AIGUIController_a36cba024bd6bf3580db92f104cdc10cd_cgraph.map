@@ -1,0 +1,7 @@
+<map id="yaze::cli::ai::AIGUIController::Initialize" name="yaze::cli::ai::AIGUIController::Initialize">
+<area shape="rect" id="Node000001" title="Initialize the controller with configuration." alt="" coords="5,39,186,79"/>
+<area shape="rect" id="Node000002" href="$d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#ac6eebe05a2b8deffacb2fb1aa98e3f1e" title="Get the current configuration." alt="" coords="239,5,420,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,43,223,38,224,43,187,49"/>
+<area shape="rect" id="Node000003" href="$d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#af96f4ff473c6e7df13c76c8bc01e9d5b" title=" " alt="" coords="234,71,425,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,69,218,73,218,78,186,74"/>
+</map>

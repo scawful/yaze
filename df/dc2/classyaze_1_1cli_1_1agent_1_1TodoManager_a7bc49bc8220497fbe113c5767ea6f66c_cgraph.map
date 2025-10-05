@@ -1,0 +1,7 @@
+<map id="yaze::cli::agent::TodoManager::GetNextActionableTodo" name="yaze::cli::agent::TodoManager::GetNextActionableTodo">
+<area shape="rect" id="Node000001" title="Get the next actionable TODO (respecting dependencies and priority)" alt="" coords="5,5,195,46"/>
+<area shape="rect" id="Node000002" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a88d5a64d5ceb07d099d4fe459caf0fe2" title=" " alt="" coords="243,5,432,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,23,227,23,227,28,195,28"/>
+<area shape="rect" id="Node000003" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#ae88ff713098c5e209ae7515a5728c84c" title="Get a TODO item by ID." alt="" coords="480,5,669,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="432,23,464,23,464,28,432,28"/>
+</map>

@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="../../yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.1</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.2</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -114,11 +114,11 @@ $(document).ready(function(){initNavTree('d8/d5b/emu_8cc_source.html','../../');
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;absl/debugging/failure_signal_handler.h&quot;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;absl/debugging/symbolize.h&quot;</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;absl/status/status.h&quot;</span></div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="../../d5/dd7/sdl__deleter_8h.html">app/core/platform/sdl_deleter.h</a>&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="../../d5/dd7/sdl__deleter_8h.html">util/sdl_deleter.h</a>&quot;</span></div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;<a class="code" href="../../d2/de3/emu_2snes_8h.html">app/emu/snes.h</a>&quot;</span></div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &quot;<a class="code" href="../../da/de5/rom_8h.html">app/rom.h</a>&quot;</span></div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keyword">using </span><a class="code hl_struct" href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html">yaze::core::SDL_Deleter</a>;</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="keyword">using </span><a class="code hl_struct" href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html">yaze::util::SDL_Deleter</a>;</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
 <div class="foldopen" id="foldopen00020" data-start="{" data-end="}">
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno"><a class="line" href="../../d2/dd9/controller_8h.html#a3c04138a5bfe5d72780bb7e82a18e627">   20</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="../../d1/dd0/test__conversation__minimal_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span> **argv) {</div>
@@ -149,7 +149,7 @@ $(document).ready(function(){initNavTree('d8/d5b/emu_8cc_source.html','../../');
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>                         512,                      <span class="comment">// width, in pixels</span></div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>                         480,                      <span class="comment">// height, in pixels</span></div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>                         SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI),</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        <a class="code hl_struct" href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html">SDL_Deleter</a>());</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        <a class="code hl_struct" href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html">SDL_Deleter</a>());</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    <span class="keywordflow">if</span> (window_ == <span class="keyword">nullptr</span>) {</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>      <span class="keywordflow">return</span> EXIT_FAILURE;</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    }</div>
@@ -158,7 +158,7 @@ $(document).ready(function(){initNavTree('d8/d5b/emu_8cc_source.html','../../');
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>  renderer_ = std::unique_ptr&lt;SDL_Renderer, SDL_Deleter&gt;(</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>      SDL_CreateRenderer(window_.get(), -1,</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>                         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      <a class="code hl_struct" href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html">SDL_Deleter</a>());</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>      <a class="code hl_struct" href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html">SDL_Deleter</a>());</div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  <span class="keywordflow">if</span> (renderer_ == <span class="keyword">nullptr</span>) {</div>
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    <span class="keywordflow">return</span> EXIT_FAILURE;</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  } <span class="keywordflow">else</span> {</div>
@@ -311,7 +311,7 @@ $(document).ready(function(){initNavTree('d8/d5b/emu_8cc_source.html','../../');
 <div class="ttc" id="aemu_2snes_8h_html"><div class="ttname"><a href="../../d2/de3/emu_2snes_8h.html">snes.h</a></div></div>
 <div class="ttc" id="arom_8h_html"><div class="ttname"><a href="../../da/de5/rom_8h.html">rom.h</a></div></div>
 <div class="ttc" id="asdl__deleter_8h_html"><div class="ttname"><a href="../../d5/dd7/sdl__deleter_8h.html">sdl_deleter.h</a></div></div>
-<div class="ttc" id="astructyaze_1_1core_1_1SDL__Deleter_html"><div class="ttname"><a href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html">yaze::core::SDL_Deleter</a></div><div class="ttdoc">Deleter for SDL_Window and SDL_Renderer.</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00012">sdl_deleter.h:12</a></div></div>
+<div class="ttc" id="astructyaze_1_1util_1_1SDL__Deleter_html"><div class="ttname"><a href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html">yaze::util::SDL_Deleter</a></div><div class="ttdoc">Deleter for SDL_Window and SDL_Renderer.</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00012">sdl_deleter.h:12</a></div></div>
 <div class="ttc" id="atest__conversation__minimal_8cc_html_ae66f6b31b5ad750f1fe042a706a4e3d4"><div class="ttname"><a href="../../d1/dd0/test__conversation__minimal_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a></div><div class="ttdeci">int main()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/dd0/test__conversation__minimal_8cc_source.html#l00010">test_conversation_minimal.cc:10</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

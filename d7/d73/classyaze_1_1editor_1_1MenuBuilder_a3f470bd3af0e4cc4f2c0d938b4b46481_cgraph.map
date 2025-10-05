@@ -1,0 +1,5 @@
+<map id="yaze::editor::MenuBuilder::Draw" name="yaze::editor::MenuBuilder::Draw">
+<area shape="rect" id="Node000001" title="Draw the menu bar (call in main menu bar)" alt="" coords="5,5,169,46"/>
+<area shape="rect" id="Node000002" href="$d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#ad5d37d1294e0a1c4e2e0d7d52f6e004d" title=" " alt="" coords="217,5,380,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,23,201,23,201,28,169,28"/>
+</map>

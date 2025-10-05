@@ -26,5 +26,11 @@ var commands_8h =
     [ "HandleMessageSearchCommand", "d5/d90/commands_8h.html#ad185639839873e6666c4499b3156dfef", null ],
     [ "HandleChatCommand", "d5/d90/commands_8h.html#ab9c0a392ce6c066aca8d36eac12dc2b9", null ],
     [ "HandleSimpleChatCommand", "d5/d90/commands_8h.html#aa5dce5122f99bd7671e44280148683fb", null ],
-    [ "HandleTestConversationCommand", "d5/d90/commands_8h.html#a815e0cf4982c5a6618608dfd1198645b", null ]
+    [ "HandleTestConversationCommand", "d5/d90/commands_8h.html#a815e0cf4982c5a6618608dfd1198645b", null ],
+    [ "HandleHexRead", "d5/d90/commands_8h.html#ab03077c3d8792b56e8f084e3a5fff8c5", null ],
+    [ "HandleHexWrite", "d5/d90/commands_8h.html#a3574743b33452471230ffdefeeafe391", null ],
+    [ "HandleHexSearch", "d5/d90/commands_8h.html#ab406d62299b4cb03d8d3550b1b7079ac", null ],
+    [ "HandlePaletteGetColors", "d5/d90/commands_8h.html#a6fabb87088f131985bfba062ccfa04fc", null ],
+    [ "HandlePaletteSetColor", "d5/d90/commands_8h.html#aa1247e440f881ab8d857d62aa71758e9", null ],
+    [ "HandlePaletteAnalyze", "d5/d90/commands_8h.html#ad056234d6fd54434fd19533c4f76257c", null ]
 ];

@@ -1,0 +1,7 @@
+<map id="yaze::gui::PaletteWidget::DrawColorEditControls" name="yaze::gui::PaletteWidget::DrawColorEditControls">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,163,68"/>
+<area shape="rect" id="Node000002" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#a0a6bc657e8a8778b7672d2e6102771e2" title=" " alt="" coords="211,5,371,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,34,195,29,196,34,163,39"/>
+<area shape="rect" id="Node000003" href="$d5/d31/classyaze_1_1gfx_1_1SnesColor.html#ade9df7154cb3707cffe5e644c995f090" title=" " alt="" coords="223,55,359,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,56,208,62,207,67,163,61"/>
+</map>

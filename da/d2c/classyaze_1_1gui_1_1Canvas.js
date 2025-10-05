@@ -138,7 +138,7 @@ var classyaze_1_1gui_1_1Canvas =
     [ "interaction_handler_", "da/d2c/classyaze_1_1gui_1_1Canvas.html#af1437cc5f015575ff74b1dbcf43d930c", null ],
     [ "config_", "da/d2c/classyaze_1_1gui_1_1Canvas.html#a25f4b68bee362a792f340e0806a21769", null ],
     [ "selection_", "da/d2c/classyaze_1_1gui_1_1Canvas.html#acff9ff29e359d683290dacf352b541d9", null ],
-    [ "palette_editor_", "da/d2c/classyaze_1_1gui_1_1Canvas.html#a7ada5bf6c278dbaf0e8763961b8593a4", null ],
+    [ "palette_editor_", "da/d2c/classyaze_1_1gui_1_1Canvas.html#ab3ec1d2c65cb59c9881e0c33882fb4a8", null ],
     [ "is_hovered_", "da/d2c/classyaze_1_1gui_1_1Canvas.html#a0bd0ffdc93c0678c83d09c357468707f", null ],
     [ "refresh_graphics_", "da/d2c/classyaze_1_1gui_1_1Canvas.html#ab81b8137889ce22635514f1d74b7cae5", null ],
     [ "context_menu_items_", "da/d2c/classyaze_1_1gui_1_1Canvas.html#a3a5aed3afc06107584452c807cd20112", null ],

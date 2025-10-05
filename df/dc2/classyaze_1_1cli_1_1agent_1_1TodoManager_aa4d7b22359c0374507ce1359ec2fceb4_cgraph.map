@@ -1,0 +1,12 @@
+<map id="yaze::cli::agent::TodoManager::Initialize" name="yaze::cli::agent::TodoManager::Initialize">
+<area shape="rect" id="Node000001" title="Initialize the TODO manager and load persisted data." alt="" coords="5,63,195,103"/>
+<area shape="rect" id="Node000002" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a84dcfd258a5319e7fbf34fe53081b87e" title="Ensure a directory exists, creating it if necessary." alt="" coords="258,5,417,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,60,242,46,243,51,187,65"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#ac630fae629aa23f1e48d8242b3fa7df2" title="Check if a file or directory exists." alt="" coords="483,31,642,71"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="195,74,467,55,468,60,195,79"/>
+<area shape="rect" id="Node000004" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a8b53da98f73eb2558201538d2e58b31b" title="Load TODOs from persistent storage." alt="" coords="243,120,432,161"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="187,101,236,113,235,118,186,106"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="417,32,468,38,467,43,417,37"/>
+<area shape="rect" id="Node000005" href="$d0/d0e/structyaze_1_1cli_1_1agent_1_1TodoItem.html#aaf5ed90bfd50f7f8d9970a10620b58c8" title=" " alt="" coords="480,120,645,161"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="432,138,464,138,464,143,432,143"/>
+</map>

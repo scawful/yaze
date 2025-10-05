@@ -6,7 +6,7 @@
 <area shape="poly" id="edge4_Node000000_Node000002" title=" " alt="" coords="50,815,52,674,63,471,74,367,90,271,113,192,127,161,144,137,158,124,174,115,177,120,161,129,148,140,132,163,118,193,96,272,79,367,68,471,57,674,55,815"/>
 <area shape="rect" id="Node000003" href="$de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html" title=" " alt="" coords="167,150,367,191"/>
 <area shape="poly" id="edge5_Node000000_Node000003" title=" " alt="" coords="50,815,54,686,66,502,78,407,94,321,116,250,129,222,144,201,165,184,168,188,148,204,133,225,121,252,99,322,83,408,71,502,59,686,56,816"/>
-<area shape="rect" id="Node000004" href="$d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html" title=" " alt="" coords="165,215,369,241"/>
+<area shape="rect" id="Node000004" href="$d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html" title="Integration tests for AI&#45;controlled tile placement." alt="" coords="165,215,369,241"/>
 <area shape="poly" id="edge6_Node000000_Node000004" title=" " alt="" coords="51,815,55,694,68,525,80,439,96,360,117,296,129,270,144,251,163,237,166,241,148,255,134,273,122,298,101,361,85,440,73,525,60,694,56,815"/>
 <area shape="rect" id="Node000005" href="$d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html" title="Integration test framework using real ROM data." alt="" coords="184,265,350,306"/>
 <area shape="poly" id="edge7_Node000000_Node000005" title=" " alt="" coords="51,815,58,707,74,558,86,482,101,413,120,356,144,317,162,302,183,292,185,297,165,307,148,320,125,358,106,414,91,483,79,558,63,707,57,816"/>

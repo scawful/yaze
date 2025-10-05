@@ -1,5 +1,5 @@
-<map id="src/app/gui/widget_auto_register.h" name="src/app/gui/widget_auto_register.h">
-<area shape="rect" id="Node000001" title="Automatic widget registration helpers for ImGui Test Engine integration." alt="" coords="5,5,133,46"/>
-<area shape="rect" id="Node000002" href="$d5/d3e/widget__auto__register_8cc.html" title=" " alt="" coords="5,94,133,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="72,62,72,94,66,94,66,62"/>
+<map id="src/app/gui/widgets/widget_auto_register.h" name="src/app/gui/widgets/widget_auto_register.h">
+<area shape="rect" id="Node000001" title="Automatic widget registration helpers for ImGui Test Engine integration." alt="" coords="9,5,164,46"/>
+<area shape="rect" id="Node000002" href="$d5/d3e/widget__auto__register_8cc.html" title=" " alt="" coords="5,94,168,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,62,89,94,84,94,84,62"/>
 </map>

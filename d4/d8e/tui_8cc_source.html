@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="../../yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.1</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.2</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -113,7 +113,7 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;absl/strings/str_cat.h&quot;</span></div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;absl/strings/str_format.h&quot;</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;<a class="code" href="../../db/d90/bps_8h.html">util/bps.h</a>&quot;</span></div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="../../d0/d77/file__dialog_8h.html">app/core/platform/file_dialog.h</a>&quot;</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="../../d0/dae/file__util_8h.html">util/file_util.h</a>&quot;</span></div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="../../de/d62/asar__wrapper_8h.html">app/core/asar_wrapper.h</a>&quot;</span></div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &quot;<a class="code" href="../../d7/d9c/overworld_8h.html">app/zelda3/overworld/overworld.h</a>&quot;</span></div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &quot;<a class="code" href="../../d8/d43/modern__cli_8h.html">cli/modern_cli.h</a>&quot;</span></div>
@@ -175,11 +175,11 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  <span class="comment">// Button to apply the patch.</span></div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  <span class="keyword">auto</span> apply_button = Button(<span class="stringliteral">&quot;Apply Patch&quot;</span>, [&amp;] {</div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    std::vector&lt;uint8_t&gt; source = app_context.rom.vector();</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="comment">// auto source_contents = core::LoadFile(base_file);</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="comment">// auto source_contents = util::LoadFile(base_file);</span></div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="comment">// std::copy(source_contents.begin(), source_contents.end(),</span></div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <span class="comment">//           std::back_inserter(source));</span></div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    std::vector&lt;uint8_t&gt; patch;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keyword">auto</span> patch_contents = <a class="code hl_function" href="../../db/d33/namespaceyaze_1_1core.html#a52189778cda85a731116f50ab603ca6c">core::LoadFile</a>(patch_file);</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keyword">auto</span> patch_contents = <a class="code hl_function" href="../../d4/de1/namespaceyaze_1_1util.html#affcb30b4249275bfec576ab198b29d83">util::LoadFile</a>(patch_file);</div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    std::copy(patch_contents.begin(), patch_contents.end(),</div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>              std::back_inserter(patch));</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    std::vector&lt;uint8_t&gt; patched;</div>
@@ -1056,7 +1056,7 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="ttc" id="aclassyaze_1_1cli_1_1PaletteEditorComponent_html"><div class="ttname"><a href="../../d8/d3c/classyaze_1_1cli_1_1PaletteEditorComponent.html">yaze::cli::PaletteEditorComponent</a></div><div class="ttdef"><b>Definition</b> <a href="../../d4/df6/cli_2tui_2palette__editor_8h_source.html#l00009">palette_editor.h:9</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Renderer_html"><div class="ttname"><a href="../../da/d81/classyaze_1_1core_1_1Renderer.html">yaze::core::Renderer</a></div><div class="ttdoc">The Renderer class represents the renderer for the Yaze application.</div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00045">window.h:45</a></div></div>
 <div class="ttc" id="acommand__palette_8h_html"><div class="ttname"><a href="../../d8/d28/command__palette_8h.html">command_palette.h</a></div></div>
-<div class="ttc" id="afile__dialog_8h_html"><div class="ttname"><a href="../../d0/d77/file__dialog_8h.html">file_dialog.h</a></div></div>
+<div class="ttc" id="afile__util_8h_html"><div class="ttname"><a href="../../d0/dae/file__util_8h.html">file_util.h</a></div></div>
 <div class="ttc" id="amodern__cli_8h_html"><div class="ttname"><a href="../../d8/d43/modern__cli_8h.html">modern_cli.h</a></div></div>
 <div class="ttc" id="anamespaceftxui_html"><div class="ttname"><a href="../../dc/d1b/namespaceftxui.html">ftxui</a></div><div class="ttdef"><b>Definition</b> <a href="../../d3/dfa/z3ed_8h_source.html#l00017">z3ed.h:17</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03_html_a2c1dc8ab15f8e8bbcf375a362c11d942"><div class="ttname"><a href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a2c1dc8ab15f8e8bbcf375a362c11d942">yaze::cli::anonymous_namespace{tui.cc}::HandleInput</a></div><div class="ttdeci">bool HandleInput(ftxui::ScreenInteractive &amp;screen, ftxui::Event &amp;event, int &amp;selected)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d8e/tui_8cc_source.html#l00032">tui.cc:32</a></div></div>
@@ -1079,8 +1079,8 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="ttc" id="anamespaceyaze_1_1cli_html_ab3acc1b59e84abb18e2d438f7ed2ad33a90bfbb340d0004281b380b5058c652fd"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33a90bfbb340d0004281b380b5058c652fd">yaze::cli::LayoutID::kMainMenu</a></div><div class="ttdeci">@ kMainMenu</div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_ab3acc1b59e84abb18e2d438f7ed2ad33ac2477f77de6d38233af46d78ec777846"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33ac2477f77de6d38233af46d78ec777846">yaze::cli::LayoutID::kExit</a></div><div class="ttdeci">@ kExit</div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_ab3acc1b59e84abb18e2d438f7ed2ad33ae3587c730cc1aa530fa4ddc9c4204e97"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33ae3587c730cc1aa530fa4ddc9c4204e97">yaze::cli::LayoutID::kError</a></div><div class="ttdeci">@ kError</div></div>
-<div class="ttc" id="anamespaceyaze_1_1core_html_a52189778cda85a731116f50ab603ca6c"><div class="ttname"><a href="../../db/d33/namespaceyaze_1_1core.html#a52189778cda85a731116f50ab603ca6c">yaze::core::LoadFile</a></div><div class="ttdeci">std::string LoadFile(const std::string &amp;filename)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/ddf/file__dialog_8cc_source.html#l00039">file_dialog.cc:39</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1util_html_a02f0b319c52c7737a993173bb2a6a435"><div class="ttname"><a href="../../d4/de1/namespaceyaze_1_1util.html#a02f0b319c52c7737a993173bb2a6a435">yaze::util::ApplyBpsPatch</a></div><div class="ttdeci">absl::Status ApplyBpsPatch(const std::vector&lt; uint8_t &gt; &amp;source, const std::vector&lt; uint8_t &gt; &amp;patch, std::vector&lt; uint8_t &gt; &amp;output)</div><div class="ttdef"><b>Definition</b> <a href="../../d3/d8f/bps_8cc_source.html#l00079">bps.cc:79</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1util_html_affcb30b4249275bfec576ab198b29d83"><div class="ttname"><a href="../../d4/de1/namespaceyaze_1_1util.html#affcb30b4249275bfec576ab198b29d83">yaze::util::LoadFile</a></div><div class="ttdeci">std::string LoadFile(const std::string &amp;filename)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2b/file__util_8cc_source.html#l00039">file_util.cc:39</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="aoverworld_8h_html"><div class="ttname"><a href="../../d7/d9c/overworld_8h.html">overworld.h</a></div></div>
 <div class="ttc" id="atui_8h_html"><div class="ttname"><a href="../../de/dab/tui_8h.html">tui.h</a></div></div>

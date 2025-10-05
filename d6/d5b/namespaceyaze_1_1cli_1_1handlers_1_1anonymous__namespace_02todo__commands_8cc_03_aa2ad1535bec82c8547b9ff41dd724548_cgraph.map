@@ -1,0 +1,14 @@
+<map id="yaze::cli::handlers::anonymous_namespace{todo_commands::cc}::HandleTodoCreate" name="yaze::cli::handlers::anonymous_namespace{todo_commands::cc}::HandleTodoCreate">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,85,227,156"/>
+<area shape="poly" id="edge4_Node000001_Node000001" title=" " alt="" coords="64,84,67,74,77,66,93,61,116,59,143,61,159,69,157,74,141,67,116,64,94,66,80,71,72,77,69,85"/>
+<area shape="rect" id="Node000002" href="$d6/d5b/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02todo__commands_8cc_03.html#adab7a6c5147a257c4f83f754bec2f025" title=" " alt="" coords="278,29,479,100"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,94,262,87,263,92,228,100"/>
+<area shape="rect" id="Node000008" href="$d6/d5b/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02todo__commands_8cc_03.html#a4d665e45d6fa8d8fb60d2c9f2df68067" title=" " alt="" coords="275,148,482,203"/>
+<area shape="poly" id="edge5_Node000001_Node000008" title=" " alt="" coords="228,141,260,148,259,153,227,146"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="330,28,332,18,342,10,357,5,378,3,404,5,419,13,417,18,402,11,378,8,358,10,344,15,337,21,335,29"/>
+<area shape="rect" id="Node000003" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#aa4d7b22359c0374507ce1359ec2fceb4" title="Initialize the TODO manager and load persisted data." alt="" coords="530,44,719,85"/>
+<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="479,62,514,62,514,67,479,67"/>
+<area shape="poly" id="edge6_Node000008_Node000008" title=" " alt="" coords="330,147,331,137,340,128,355,123,378,121,404,123,420,130,418,135,403,129,378,126,357,128,342,133,336,139,336,147"/>
+<area shape="rect" id="Node000009" href="$d0/d0e/structyaze_1_1cli_1_1agent_1_1TodoItem.html#af5e9eb5dac35e88e3bc944444cfe508c" title=" " alt="" coords="542,155,707,196"/>
+<area shape="poly" id="edge7_Node000008_Node000009" title=" " alt="" coords="483,173,526,173,526,178,483,178"/>
+</map>

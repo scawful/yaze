@@ -1,0 +1,7 @@
+<map id="yaze::util::PlatformPaths::GetTempDirectory" name="yaze::util::PlatformPaths::GetTempDirectory">
+<area shape="rect" id="Node000001" title="Get a temporary directory for the application." alt="" coords="5,5,165,46"/>
+<area shape="rect" id="Node000002" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a84dcfd258a5319e7fbf34fe53081b87e" title="Ensure a directory exists, creating it if necessary." alt="" coords="213,5,372,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,23,197,23,197,28,165,28"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#ac630fae629aa23f1e48d8242b3fa7df2" title="Check if a file or directory exists." alt="" coords="420,5,579,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="372,23,405,23,405,28,372,28"/>
+</map>

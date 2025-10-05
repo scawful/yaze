@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="../../yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.1</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.2</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -191,6 +191,24 @@ Functions</h2></td></tr>
 <tr class="separator:aa5dce5122f99bd7671e44280148683fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a815e0cf4982c5a6618608dfd1198645b" id="r_a815e0cf4982c5a6618608dfd1198645b"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a815e0cf4982c5a6618608dfd1198645b">yaze::cli::agent::HandleTestConversationCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
 <tr class="separator:a815e0cf4982c5a6618608dfd1198645b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab03077c3d8792b56e8f084e3a5fff8c5" id="r_ab03077c3d8792b56e8f084e3a5fff8c5"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab03077c3d8792b56e8f084e3a5fff8c5">yaze::cli::agent::HandleHexRead</a> (const std::vector&lt; std::string &gt; &amp;args, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom_context=nullptr)</td></tr>
+<tr class="memdesc:ab03077c3d8792b56e8f084e3a5fff8c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read bytes from ROM at a specific address.  <br /></td></tr>
+<tr class="separator:ab03077c3d8792b56e8f084e3a5fff8c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3574743b33452471230ffdefeeafe391" id="r_a3574743b33452471230ffdefeeafe391"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a3574743b33452471230ffdefeeafe391">yaze::cli::agent::HandleHexWrite</a> (const std::vector&lt; std::string &gt; &amp;args, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom_context=nullptr)</td></tr>
+<tr class="memdesc:a3574743b33452471230ffdefeeafe391"><td class="mdescLeft">&#160;</td><td class="mdescRight">Write bytes to ROM at a specific address (creates proposal)  <br /></td></tr>
+<tr class="separator:a3574743b33452471230ffdefeeafe391"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab406d62299b4cb03d8d3550b1b7079ac" id="r_ab406d62299b4cb03d8d3550b1b7079ac"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab406d62299b4cb03d8d3550b1b7079ac">yaze::cli::agent::HandleHexSearch</a> (const std::vector&lt; std::string &gt; &amp;args, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom_context=nullptr)</td></tr>
+<tr class="memdesc:ab406d62299b4cb03d8d3550b1b7079ac"><td class="mdescLeft">&#160;</td><td class="mdescRight">Search for a byte pattern in ROM.  <br /></td></tr>
+<tr class="separator:ab406d62299b4cb03d8d3550b1b7079ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6fabb87088f131985bfba062ccfa04fc" id="r_a6fabb87088f131985bfba062ccfa04fc"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6fabb87088f131985bfba062ccfa04fc">yaze::cli::agent::HandlePaletteGetColors</a> (const std::vector&lt; std::string &gt; &amp;args, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom_context=nullptr)</td></tr>
+<tr class="memdesc:a6fabb87088f131985bfba062ccfa04fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all colors from a specific palette.  <br /></td></tr>
+<tr class="separator:a6fabb87088f131985bfba062ccfa04fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa1247e440f881ab8d857d62aa71758e9" id="r_aa1247e440f881ab8d857d62aa71758e9"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa1247e440f881ab8d857d62aa71758e9">yaze::cli::agent::HandlePaletteSetColor</a> (const std::vector&lt; std::string &gt; &amp;args, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom_context=nullptr)</td></tr>
+<tr class="memdesc:aa1247e440f881ab8d857d62aa71758e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a specific color in a palette (creates proposal)  <br /></td></tr>
+<tr class="separator:aa1247e440f881ab8d857d62aa71758e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad056234d6fd54434fd19533c4f76257c" id="r_ad056234d6fd54434fd19533c4f76257c"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ad056234d6fd54434fd19533c4f76257c">yaze::cli::agent::HandlePaletteAnalyze</a> (const std::vector&lt; std::string &gt; &amp;args, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom_context=nullptr)</td></tr>
+<tr class="memdesc:ad056234d6fd54434fd19533c4f76257c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Analyze color usage and statistics for a palette or bitmap.  <br /></td></tr>
+<tr class="separator:ad056234d6fd54434fd19533c4f76257c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

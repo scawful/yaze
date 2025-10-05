@@ -11,6 +11,7 @@ var classyaze_1_1zelda3_1_1music_1_1Tracker =
     [ "WriteSpcData", "d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a6e425cf578c8769ae95e3b8e85f808a1", null ],
     [ "EditTrack", "d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a00fe0dca9c2b5ecc54054fa4ff03f48c", null ],
     [ "NewSR", "d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#abe403497078acd2c084a4c506a850c9d", null ],
+    [ "GetSpcCommand", "d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#acb916e9dd8a388b524bb2baa95642a51", null ],
     [ "modf", "d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#ae063ef5bea652de0be5647b37b076c47", null ],
     [ "mark_sr", "d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#ae12795bd9a74745277196bb0ede9a93e", null ],
     [ "mark_start", "d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#afc7142cd417cdd0d8220b602d3c8ddeb", null ],

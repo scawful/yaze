@@ -1,0 +1,10 @@
+<map id="yaze::cli::agent::TodoManager::TodoManager" name="yaze::cli::agent::TodoManager::TodoManager">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,195,46"/>
+<area shape="rect" id="Node000002" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a36902bd3e9ca5cd6ca77ca63b50f1dc3" title="Get a subdirectory within the app data folder." alt="" coords="243,5,413,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,23,227,23,227,28,195,28"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a84dcfd258a5319e7fbf34fe53081b87e" title="Ensure a directory exists, creating it if necessary." alt="" coords="668,5,828,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="413,20,461,19,620,19,653,20,653,25,620,24,461,24,414,25"/>
+<area shape="rect" id="Node000005" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a12f8860efbb23052a82006f24b221c6f" title="Get application data directory for YAZE." alt="" coords="461,33,620,74"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="414,34,446,39,445,44,413,40"/>
+<area shape="poly" id="edge4_Node000005_Node000003" title=" " alt="" coords="620,40,652,36,653,41,621,46"/>
+</map>

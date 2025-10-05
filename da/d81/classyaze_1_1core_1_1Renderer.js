@@ -12,5 +12,5 @@ var classyaze_1_1core_1_1Renderer =
     [ "Clear", "da/d81/classyaze_1_1core_1_1Renderer.html#ab67317aeec1530597f99599ab0489ac8", null ],
     [ "Present", "da/d81/classyaze_1_1core_1_1Renderer.html#ad0537d6180745ffe6a92b4e0ae9c5dc6", null ],
     [ "operator=", "da/d81/classyaze_1_1core_1_1Renderer.html#a13c91b0c5bbe796e7eff5e1076dee785", null ],
-    [ "renderer_", "da/d81/classyaze_1_1core_1_1Renderer.html#a422d8800d6d3521697a6b2d394807c42", null ]
+    [ "renderer_", "da/d81/classyaze_1_1core_1_1Renderer.html#a7455e049be3294d8cc073a371a96e2b5", null ]
 ];

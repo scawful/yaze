@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['b_0',['b',['../d8/d72/structyaze_1_1emu_1_1Color.html#ae21f87ce751f581f450d28d405247800',1,'yaze::emu::Color::b'],['../d9/dd4/structyaze_1_1emu_1_1Spc700_1_1Flags.html#a37ad3b16c25497c840b84b6375280a16',1,'yaze::emu::Spc700::Flags::B']]],
-  ['b1_1',['b1',['../d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a3defc654952bb759cb80c8c410db299c',1,'yaze::zelda3::music::SpcCommand::b1'],['../d1/d0e/structyaze_1_1zelda3_1_1RoomObject_1_1ObjectBytes.html#a5692c41a8c5e33814d281f4b30018c72',1,'yaze::zelda3::RoomObject::ObjectBytes::b1']]],
+  ['b_0',['b',['../d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html#aa369ad3a514eefbab9ec4b61db7edf41',1,'yaze::cli::agent::anonymous_namespace{palette_commands.cc}::RGB::b'],['../d8/d72/structyaze_1_1emu_1_1Color.html#ae21f87ce751f581f450d28d405247800',1,'yaze::emu::Color::b'],['../d9/dd4/structyaze_1_1emu_1_1Spc700_1_1Flags.html#a37ad3b16c25497c840b84b6375280a16',1,'yaze::emu::Spc700::Flags::B']]],
+  ['b1_1',['b1',['../d1/d0e/structyaze_1_1zelda3_1_1RoomObject_1_1ObjectBytes.html#a5692c41a8c5e33814d281f4b30018c72',1,'yaze::zelda3::RoomObject::ObjectBytes::b1'],['../d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a3defc654952bb759cb80c8c410db299c',1,'yaze::zelda3::music::SpcCommand::b1']]],
   ['b2_2',['b2',['../d1/d0e/structyaze_1_1zelda3_1_1RoomObject_1_1ObjectBytes.html#a404109d48f537b7d2a92819bffdf94a8',1,'yaze::zelda3::RoomObject::ObjectBytes::b2'],['../d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a631845029edd5d39b402d64ba609577b',1,'yaze::zelda3::music::SpcCommand::b2']]],
   ['b3_3',['b3',['../d1/d0e/structyaze_1_1zelda3_1_1RoomObject_1_1ObjectBytes.html#acd0a7b56c81f9d4d3c6a029c00f95663',1,'yaze::zelda3::RoomObject::ObjectBytes']]],
   ['b_5faddr_4',['b_addr',['../d0/d16/structyaze_1_1emu_1_1DmaChannel.html#afa8ce2714ca5b33c903611841b1842b6',1,'yaze::emu::DmaChannel']]],
@@ -13,7 +13,7 @@ var searchData=
   ['background_5ftype_5f_10',['background_type_',['../db/d00/classyaze_1_1editor_1_1DungeonToolset.html#ae48314b74c45b9a9b12125c92b63df26',1,'yaze::editor::DungeonToolset']]],
   ['backup_11',['backup',['../d9/d36/structyaze_1_1Rom_1_1SaveSettings.html#a3855ed07bf6f7953b619cf5da68f5fb5',1,'yaze::Rom::SaveSettings']]],
   ['backup_5fon_5fsave_12',['backup_on_save',['../d1/def/structyaze_1_1core_1_1WorkspaceSettings.html#a7cb004b5abe83bedabfc4732ed8f2d19',1,'yaze::core::WorkspaceSettings']]],
-  ['backup_5fpalette_5f_13',['backup_palette_',['../df/d20/classyaze_1_1gui_1_1EnhancedPaletteEditor.html#afc50acf9180b3bd35b98417a0628286b',1,'yaze::gui::EnhancedPaletteEditor']]],
+  ['backup_5fpalette_5f_13',['backup_palette_',['../d9/d7f/classyaze_1_1gui_1_1PaletteWidget.html#aff9694144918d91aadb783426a3565d2',1,'yaze::gui::PaletteWidget']]],
   ['backup_5from_5f_14',['backup_rom_',['../dd/d12/classyaze_1_1editor_1_1EditorManager.html#a39f57090d59dfd0c039f61e38d4dd471',1,'yaze::editor::EditorManager']]],
   ['backup_5from_5fpath_5f_15',['backup_rom_path_',['../dd/dfa/classyaze_1_1test_1_1E2ERomDependentTest.html#a847106b3abd1aef361a6d789ddaeb430',1,'yaze::test::E2ERomDependentTest']]],
   ['bank_16',['bank',['../d3/d90/structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html#a6b5d019d6089378da3bc1e5e04be3585',1,'yaze::zelda3::music::SongSpcBlock::bank'],['../d5/d60/structyaze_1_1zelda3_1_1music_1_1SongRange.html#ab272163dfd7dae39b36b94b7c8d38ad5',1,'yaze::zelda3::music::SongRange::bank']]],

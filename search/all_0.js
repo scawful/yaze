@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['0_0',['0',['../d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md577',1,'Advanced Features (v2.0)'],['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md484',1,'Advanced Features (v2.0)'],['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md487',1,'Database Schema (Server v2.0)'],['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md479',1,'Network Collaboration Mode (yaze-server v2.0)']]],
+  ['0_0',['0',['../d6/d3a/md_docs_2z3ed_2NETWORKING.html#autotoc_md403',1,'3.1. WebSocket Protocol (yaze-server v2.0)'],['../d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md550',1,'Advanced Features (v2.0)'],['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md456',1,'Advanced Features (v2.0)'],['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md459',1,'Database Schema (Server v2.0)'],['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md451',1,'Network Collaboration Mode (yaze-server v2.0)']]],
   ['0_200_203_20october_202023_1',['0.0.3 (October 2023)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md210',1,'']]],
   ['0_200_204_20november_202023_2',['0.0.4 (November 2023)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md209',1,'']]],
   ['0_200_205_20november_202023_3',['0.0.5 (November 2023)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md208',1,'']]],
@@ -15,11 +15,11 @@ var searchData=
   ['0_203_200_20september_202025_12',['0.3.0 (September 2025)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md194',1,'']]],
   ['0_203_201_20september_202025_13',['0.3.1 (September 2025)',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md186',1,'']]],
   ['0_203_202_20december_202025_20in_20development_14',['0.3.2 (December 2025) - In Development',['../d7/d6f/md_docs_2C1-changelog.html#autotoc_md178',1,'']]],
-  ['0_203_202_20release_15',['Version 0.3.2 - Release',['../d0/d30/md_README.html#autotoc_md513',1,'']]],
+  ['0_203_202_20release_15',['Version 0.3.2 - Release',['../d0/d30/md_README.html#autotoc_md486',1,'']]],
   ['0_204_20x_20next_20major_20release_20advanced_20tooling_20ux_16',['0.4.X (Next Major Release) - Advanced Tooling &amp; UX',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md214',1,'']]],
   ['0_205_20x_20feature_20expansion_17',['0.5.X - Feature Expansion',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md219',1,'']]],
   ['0_206_20x_20content_20integration_18',['0.6.X - Content &amp; Integration',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md221',1,'']]],
-  ['0_20alpha_20october_205_202025_19',['✅ Recently Completed (v0.2.0-alpha - October 5, 2025)',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md506',1,'']]],
+  ['0_20alpha_20october_205_202025_19',['✅ Recently Completed (v0.2.0-alpha - October 5, 2025)',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md478',1,'']]],
   ['01_2dgetting_2dstarted_2emd_20',['01-getting-started.md',['../da/dcb/01-getting-started_8md.html',1,'']]],
   ['02_2dbuild_2dinstructions_2emd_21',['02-build-instructions.md',['../d2/d14/02-build-instructions_8md.html',1,'']]],
   ['04_2dapi_2dreference_2emd_22',['04-api-reference.md',['../da/d6f/04-api-reference_8md.html',1,'']]],

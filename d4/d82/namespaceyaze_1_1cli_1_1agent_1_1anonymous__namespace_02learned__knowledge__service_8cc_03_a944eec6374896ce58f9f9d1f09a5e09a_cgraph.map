@@ -1,4 +1,6 @@
 <map id="yaze::cli::agent::anonymous_namespace{learned_knowledge_service::cc}::FileExists" name="yaze::cli::agent::anonymous_namespace{learned_knowledge_service::cc}::FileExists">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,29,216,85"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="69,29,70,19,77,10,91,5,111,3,133,5,146,12,144,17,131,10,110,8,92,10,80,15,75,21,74,29"/>
+<area shape="poly" id="edge2_Node000001_Node000001" title=" " alt="" coords="65,29,65,19,74,10,89,5,111,3,135,5,150,12,148,17,134,10,110,8,90,10,77,15,70,21,70,29"/>
+<area shape="rect" id="Node000002" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#ac630fae629aa23f1e48d8242b3fa7df2" title="Check if a file or directory exists." alt="" coords="264,37,423,78"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,55,248,55,248,60,216,60"/>
 </map>

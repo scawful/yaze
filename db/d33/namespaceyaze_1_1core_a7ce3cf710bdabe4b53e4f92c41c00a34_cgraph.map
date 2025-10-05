@@ -1,5 +1,0 @@
-<map id="yaze::core::GetResourcePath" name="yaze::core::GetResourcePath">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,193,31"/>
-<area shape="rect" id="Node000002" href="$db/d33/namespaceyaze_1_1core.html#a00e77355a028aee0d2e98d928c4931f5" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="241,5,468,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="193,16,225,16,225,21,193,21"/>
-</map>

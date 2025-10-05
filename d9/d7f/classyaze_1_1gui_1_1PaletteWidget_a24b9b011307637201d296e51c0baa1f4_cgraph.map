@@ -1,0 +1,7 @@
+<map id="yaze::gui::PaletteWidget::DrawROMPaletteSelector" name="yaze::gui::PaletteWidget::DrawROMPaletteSelector">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,182,46"/>
+<area shape="rect" id="Node000002" href="$d9/d7f/classyaze_1_1gui_1_1PaletteWidget.html#a3407e812f17fc136e8449caf0d0096f6" title=" " alt="" coords="230,5,387,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="182,23,214,23,214,28,182,28"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="435,5,560,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="387,23,419,23,419,28,387,28"/>
+</map>

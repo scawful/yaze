@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/platform/sdl_deleter.h Source File</title>
+<title>yaze: src/util/sdl_deleter.h Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="../../yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.1</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.2</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -101,26 +101,26 @@ $(document).ready(function(){initNavTree('d5/dd7/sdl__deleter_8h_source.html','.
   <div class="headertitle"><div class="title">sdl_deleter.h</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../d5/dd7/sdl__deleter_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_UTILS_SDL_DELETER_H_</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_APP_CORE_UTILS_SDL_DELETER_H_</span></div>
+<a href="../../d5/dd7/sdl__deleter_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_UTIL_SDL_DELETER_H_</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_UTIL_SDL_DELETER_H_</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;SDL.h&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span> </div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span>core {</div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="keyword">namespace </span>util {</div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
 <div class="foldopen" id="foldopen00012" data-start="{" data-end="};">
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html">   12</a></span><span class="keyword">struct </span><a class="code hl_struct" href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html">SDL_Deleter</a> {</div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2">   13</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2">operator()</a>(SDL_Window* p)<span class="keyword"> const </span>{ SDL_DestroyWindow(p); }</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html#a04c7124e69f1a613c2905ae0d9846999">   14</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html#a04c7124e69f1a613c2905ae0d9846999">operator()</a>(SDL_Renderer* p)<span class="keyword"> const </span>{ SDL_DestroyRenderer(p); }</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html">   12</a></span><span class="keyword">struct </span><a class="code hl_struct" href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html">SDL_Deleter</a> {</div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno"><a class="line" href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html#a7dfd04dbf420613331977f65d92fcba1">   13</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html#a7dfd04dbf420613331977f65d92fcba1">operator()</a>(SDL_Window* p)<span class="keyword"> const </span>{ SDL_DestroyWindow(p); }</div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno"><a class="line" href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html#a387e2b3ca9d13abed48223fbfc410540">   14</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html#a387e2b3ca9d13abed48223fbfc410540">operator()</a>(SDL_Renderer* p)<span class="keyword"> const </span>{ SDL_DestroyRenderer(p); }</div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>};</div>
 </div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="comment">// Custom deleter for SDL_Surface</span></div>
 <div class="foldopen" id="foldopen00018" data-start="{" data-end="};">
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="../../df/dc2/structyaze_1_1core_1_1SDL__Surface__Deleter.html">   18</a></span><span class="keyword">struct </span><a class="code hl_struct" href="../../df/dc2/structyaze_1_1core_1_1SDL__Surface__Deleter.html">SDL_Surface_Deleter</a> {</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno"><a class="line" href="../../df/d22/structyaze_1_1util_1_1SDL__Surface__Deleter.html">   18</a></span><span class="keyword">struct </span><a class="code hl_struct" href="../../df/d22/structyaze_1_1util_1_1SDL__Surface__Deleter.html">SDL_Surface_Deleter</a> {</div>
 <div class="foldopen" id="foldopen00019" data-start="{" data-end="}">
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="../../df/dc2/structyaze_1_1core_1_1SDL__Surface__Deleter.html#a8ee568452a4b35496de028e8d057aa87">   19</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="../../df/dc2/structyaze_1_1core_1_1SDL__Surface__Deleter.html#a8ee568452a4b35496de028e8d057aa87">operator()</a>(SDL_Surface* p)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno"><a class="line" href="../../df/d22/structyaze_1_1util_1_1SDL__Surface__Deleter.html#a040d31c278484ee45e661d511746b2c0">   19</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="../../df/d22/structyaze_1_1util_1_1SDL__Surface__Deleter.html#a040d31c278484ee45e661d511746b2c0">operator()</a>(SDL_Surface* p)<span class="keyword"> const </span>{</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    <span class="keywordflow">if</span> (p) {</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>      SDL_FreeSurface(p);</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    }</div>
@@ -131,9 +131,9 @@ $(document).ready(function(){initNavTree('d5/dd7/sdl__deleter_8h_source.html','.
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="comment">// Custom deleter for SDL_Texture</span></div>
 <div class="foldopen" id="foldopen00027" data-start="{" data-end="};">
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="../../d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter.html">   27</a></span><span class="keyword">struct </span><a class="code hl_struct" href="../../d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter.html">SDL_Texture_Deleter</a> {</div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="../../db/dac/structyaze_1_1util_1_1SDL__Texture__Deleter.html">   27</a></span><span class="keyword">struct </span><a class="code hl_struct" href="../../db/dac/structyaze_1_1util_1_1SDL__Texture__Deleter.html">SDL_Texture_Deleter</a> {</div>
 <div class="foldopen" id="foldopen00028" data-start="{" data-end="}">
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="../../d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4">   28</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="../../d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4">operator()</a>(SDL_Texture* p)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="../../db/dac/structyaze_1_1util_1_1SDL__Texture__Deleter.html#a22614b7c4da0f97cc9fde847302df6a6">   28</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="../../db/dac/structyaze_1_1util_1_1SDL__Texture__Deleter.html#a22614b7c4da0f97cc9fde847302df6a6">operator()</a>(SDL_Texture* p)<span class="keyword"> const </span>{</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    <span class="keywordflow">if</span> (p) {</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>      SDL_DestroyTexture(p);</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    }</div>
@@ -142,24 +142,24 @@ $(document).ready(function(){initNavTree('d5/dd7/sdl__deleter_8h_source.html','.
 <div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>};</div>
 </div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span> </div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>}  <span class="comment">// namespace core</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>}  <span class="comment">// namespace util</span></div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_CORE_UTILS_SDL_DELETER_H_</span></div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_UTIL_SDL_DELETER_H_</span></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
-<div class="ttc" id="astructyaze_1_1core_1_1SDL__Deleter_html"><div class="ttname"><a href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html">yaze::core::SDL_Deleter</a></div><div class="ttdoc">Deleter for SDL_Window and SDL_Renderer.</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00012">sdl_deleter.h:12</a></div></div>
-<div class="ttc" id="astructyaze_1_1core_1_1SDL__Deleter_html_a04c7124e69f1a613c2905ae0d9846999"><div class="ttname"><a href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html#a04c7124e69f1a613c2905ae0d9846999">yaze::core::SDL_Deleter::operator()</a></div><div class="ttdeci">void operator()(SDL_Renderer *p) const</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00014">sdl_deleter.h:14</a></div></div>
-<div class="ttc" id="astructyaze_1_1core_1_1SDL__Deleter_html_aa03c4eebf864506a380a5a49b7f791f2"><div class="ttname"><a href="../../d3/d69/structyaze_1_1core_1_1SDL__Deleter.html#aa03c4eebf864506a380a5a49b7f791f2">yaze::core::SDL_Deleter::operator()</a></div><div class="ttdeci">void operator()(SDL_Window *p) const</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00013">sdl_deleter.h:13</a></div></div>
-<div class="ttc" id="astructyaze_1_1core_1_1SDL__Surface__Deleter_html"><div class="ttname"><a href="../../df/dc2/structyaze_1_1core_1_1SDL__Surface__Deleter.html">yaze::core::SDL_Surface_Deleter</a></div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00018">sdl_deleter.h:18</a></div></div>
-<div class="ttc" id="astructyaze_1_1core_1_1SDL__Surface__Deleter_html_a8ee568452a4b35496de028e8d057aa87"><div class="ttname"><a href="../../df/dc2/structyaze_1_1core_1_1SDL__Surface__Deleter.html#a8ee568452a4b35496de028e8d057aa87">yaze::core::SDL_Surface_Deleter::operator()</a></div><div class="ttdeci">void operator()(SDL_Surface *p) const</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00019">sdl_deleter.h:19</a></div></div>
-<div class="ttc" id="astructyaze_1_1core_1_1SDL__Texture__Deleter_html"><div class="ttname"><a href="../../d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter.html">yaze::core::SDL_Texture_Deleter</a></div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00027">sdl_deleter.h:27</a></div></div>
-<div class="ttc" id="astructyaze_1_1core_1_1SDL__Texture__Deleter_html_afaf4558073914dd66982c67533f012e4"><div class="ttname"><a href="../../d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter.html#afaf4558073914dd66982c67533f012e4">yaze::core::SDL_Texture_Deleter::operator()</a></div><div class="ttdeci">void operator()(SDL_Texture *p) const</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00028">sdl_deleter.h:28</a></div></div>
+<div class="ttc" id="astructyaze_1_1util_1_1SDL__Deleter_html"><div class="ttname"><a href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html">yaze::util::SDL_Deleter</a></div><div class="ttdoc">Deleter for SDL_Window and SDL_Renderer.</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00012">sdl_deleter.h:12</a></div></div>
+<div class="ttc" id="astructyaze_1_1util_1_1SDL__Deleter_html_a387e2b3ca9d13abed48223fbfc410540"><div class="ttname"><a href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html#a387e2b3ca9d13abed48223fbfc410540">yaze::util::SDL_Deleter::operator()</a></div><div class="ttdeci">void operator()(SDL_Renderer *p) const</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00014">sdl_deleter.h:14</a></div></div>
+<div class="ttc" id="astructyaze_1_1util_1_1SDL__Deleter_html_a7dfd04dbf420613331977f65d92fcba1"><div class="ttname"><a href="../../db/d66/structyaze_1_1util_1_1SDL__Deleter.html#a7dfd04dbf420613331977f65d92fcba1">yaze::util::SDL_Deleter::operator()</a></div><div class="ttdeci">void operator()(SDL_Window *p) const</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00013">sdl_deleter.h:13</a></div></div>
+<div class="ttc" id="astructyaze_1_1util_1_1SDL__Surface__Deleter_html"><div class="ttname"><a href="../../df/d22/structyaze_1_1util_1_1SDL__Surface__Deleter.html">yaze::util::SDL_Surface_Deleter</a></div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00018">sdl_deleter.h:18</a></div></div>
+<div class="ttc" id="astructyaze_1_1util_1_1SDL__Surface__Deleter_html_a040d31c278484ee45e661d511746b2c0"><div class="ttname"><a href="../../df/d22/structyaze_1_1util_1_1SDL__Surface__Deleter.html#a040d31c278484ee45e661d511746b2c0">yaze::util::SDL_Surface_Deleter::operator()</a></div><div class="ttdeci">void operator()(SDL_Surface *p) const</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00019">sdl_deleter.h:19</a></div></div>
+<div class="ttc" id="astructyaze_1_1util_1_1SDL__Texture__Deleter_html"><div class="ttname"><a href="../../db/dac/structyaze_1_1util_1_1SDL__Texture__Deleter.html">yaze::util::SDL_Texture_Deleter</a></div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00027">sdl_deleter.h:27</a></div></div>
+<div class="ttc" id="astructyaze_1_1util_1_1SDL__Texture__Deleter_html_a22614b7c4da0f97cc9fde847302df6a6"><div class="ttname"><a href="../../db/dac/structyaze_1_1util_1_1SDL__Texture__Deleter.html#a22614b7c4da0f97cc9fde847302df6a6">yaze::util::SDL_Texture_Deleter::operator()</a></div><div class="ttdeci">void operator()(SDL_Texture *p) const</div><div class="ttdef"><b>Definition</b> <a href="../../d5/dd7/sdl__deleter_8h_source.html#l00028">sdl_deleter.h:28</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../dir_f454b90621a5a35d9d5ef5e042a20159.html">platform</a></li><li class="navelem"><a class="el" href="../../d5/dd7/sdl__deleter_8h.html">sdl_deleter.h</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_b7878ad5ecbf2506f4125b9d34c97e45.html">util</a></li><li class="navelem"><a class="el" href="../../d5/dd7/sdl__deleter_8h.html">sdl_deleter.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

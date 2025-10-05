@@ -1,0 +1,9 @@
+<map id="yaze::editor::WelcomeScreen::WelcomeScreen" name="yaze::editor::WelcomeScreen::WelcomeScreen">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,192,79"/>
+<area shape="rect" id="Node000002" href="$dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a0d44360e1e66e25a0770c5e1e93471a5" title="Refresh recent projects list from the project manager." alt="" coords="240,39,426,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,56,224,56,224,62,192,62"/>
+<area shape="rect" id="Node000003" href="$d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html#a5d27da46038aed6b42243f1010ee043d" title=" " alt="" coords="474,5,677,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="426,44,458,39,459,44,427,49"/>
+<area shape="rect" id="Node000004" href="$d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html#af39fda2f363c71393d931e218fe43e9b" title=" " alt="" coords="474,71,677,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="427,69,459,73,458,78,426,74"/>
+</map>

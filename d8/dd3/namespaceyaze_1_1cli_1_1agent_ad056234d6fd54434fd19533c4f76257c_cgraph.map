@@ -1,0 +1,7 @@
+<map id="yaze::cli::agent::HandlePaletteAnalyze" name="yaze::cli::agent::HandlePaletteAnalyze">
+<area shape="rect" id="Node000001" title="Analyze color usage and statistics for a palette or bitmap." alt="" coords="5,23,157,64"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="207,5,349,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,31,192,27,192,32,157,36"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a6bd8ce3b192c32b2ed6c58f7b154787e" title=" " alt="" coords="205,55,351,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="157,50,190,54,189,59,157,55"/>
+</map>

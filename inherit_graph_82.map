@@ -1,3 +1,69 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html" title="Aggregated metadata about a harness test." alt="" coords="5,5,208,31"/>
+<area shape="rect" id="Node000000" href="$dd/d80/classyaze_1_1cli_1_1CommandHandler.html" title=" " alt="" coords="5,795,182,820"/>
+<area shape="rect" id="Node000001" href="$d9/dee/classyaze_1_1cli_1_1Agent.html" title=" " alt="" coords="280,5,387,31"/>
+<area shape="poly" id="edge40_Node000000_Node000001" title=" " alt="" coords="93,779,102,626,123,404,140,290,163,185,192,99,209,66,228,40,252,24,279,16,281,22,254,29,232,44,213,69,197,101,168,187,146,291,128,405,107,626,98,779"/>
+<area shape="rect" id="Node000002" href="$dd/d64/classyaze_1_1cli_1_1ApplyPatch.html" title=" " alt="" coords="264,55,403,80"/>
+<area shape="poly" id="edge41_Node000000_Node000002" title=" " alt="" coords="93,779,103,635,126,428,144,322,166,224,194,144,210,113,228,90,244,77,263,70,265,74,247,82,232,93,214,116,199,146,171,226,149,323,131,429,109,636,99,779"/>
+<area shape="rect" id="Node000003" href="$d7/d3f/classyaze_1_1cli_1_1AsarPatch.html" title=" " alt="" coords="267,104,400,130"/>
+<area shape="poly" id="edge42_Node000000_Node000003" title=" " alt="" coords="94,779,105,644,129,451,147,353,169,263,196,189,211,161,228,139,245,126,265,118,267,123,248,131,232,143,216,164,201,192,174,265,152,354,135,452,111,644,99,779"/>
+<area shape="rect" id="Node000004" href="$d5/d4f/classyaze_1_1cli_1_1Backup.html" title=" " alt="" coords="275,153,392,179"/>
+<area shape="poly" id="edge43_Node000000_Node000004" title=" " alt="" coords="94,779,107,653,133,475,150,385,172,302,198,235,212,208,228,188,249,174,274,166,276,171,252,178,231,192,217,211,202,237,177,304,156,386,138,476,112,653,100,779"/>
+<area shape="rect" id="Node000005" href="$d7/d60/classyaze_1_1cli_1_1CommandPalette.html" title=" " alt="" coords="247,203,420,228"/>
+<area shape="poly" id="edge44_Node000000_Node000005" title=" " alt="" coords="95,779,109,662,136,499,154,417,175,341,200,280,213,256,228,238,245,225,248,229,231,241,218,259,204,282,180,343,159,418,141,500,114,663,100,780"/>
+<area shape="rect" id="Node000006" href="$de/d92/classyaze_1_1cli_1_1Compress.html" title=" " alt="" coords="268,252,399,278"/>
+<area shape="poly" id="edge45_Node000000_Node000006" title=" " alt="" coords="96,779,111,671,139,523,157,448,178,380,202,325,228,287,246,274,266,267,268,272,248,279,232,291,206,327,183,382,162,450,144,524,117,672,101,780"/>
+<area shape="rect" id="Node000007" href="$d7/d65/classyaze_1_1cli_1_1CreatePatch.html" title=" " alt="" coords="261,301,406,327"/>
+<area shape="poly" id="edge46_Node000000_Node000007" title=" " alt="" coords="91,779,94,693,100,636,110,574,127,510,151,446,185,388,228,336,243,325,260,318,262,323,246,330,231,340,189,391,156,449,132,511,116,575,105,637,99,694,97,780"/>
+<area shape="rect" id="Node000008" href="$dc/db3/classyaze_1_1cli_1_1Decompress.html" title=" " alt="" coords="261,351,406,376"/>
+<area shape="poly" id="edge47_Node000000_Node000008" title=" " alt="" coords="92,779,98,701,105,650,117,594,134,538,157,482,188,430,228,386,243,375,259,368,261,373,245,380,231,389,193,434,162,485,139,539,122,596,110,651,103,701,98,779"/>
+<area shape="rect" id="Node000009" href="$d7/dc5/classyaze_1_1cli_1_1DungeonExport.html" title=" " alt="" coords="254,400,413,426"/>
+<area shape="poly" id="edge48_Node000000_Node000009" title=" " alt="" coords="94,779,102,709,123,616,141,566,163,518,192,474,228,435,252,420,254,425,231,439,196,477,168,521,146,568,128,617,107,710,99,779"/>
+<area shape="rect" id="Node000010" href="$da/dc4/classyaze_1_1cli_1_1DungeonListObjects.html" title=" " alt="" coords="238,449,429,475"/>
+<area shape="poly" id="edge49_Node000000_Node000010" title=" " alt="" coords="95,779,107,718,130,638,147,596,169,555,196,517,228,484,245,473,248,478,231,488,200,520,174,558,152,598,135,639,112,719,101,780"/>
+<area shape="rect" id="Node000011" href="$d7/d30/classyaze_1_1cli_1_1Expand.html" title="Expand a Rom file." alt="" coords="276,499,391,524"/>
+<area shape="poly" id="edge50_Node000000_Node000011" title=" " alt="" coords="98,779,112,726,137,659,175,591,200,560,228,533,251,520,275,513,277,518,253,525,231,538,203,564,180,594,142,662,117,727,103,780"/>
+<area shape="rect" id="Node000012" href="$dd/d8b/classyaze_1_1cli_1_1GfxExport.html" title=" " alt="" coords="269,548,398,574"/>
+<area shape="poly" id="edge51_Node000000_Node000012" title=" " alt="" coords="101,780,118,736,144,682,181,628,203,604,228,583,247,572,268,565,269,570,249,577,231,587,207,608,185,632,149,685,123,738,106,781"/>
+<area shape="rect" id="Node000013" href="$d2/d55/classyaze_1_1cli_1_1GfxImport.html" title=" " alt="" coords="269,597,398,623"/>
+<area shape="poly" id="edge52_Node000000_Node000013" title=" " alt="" coords="106,779,125,745,153,705,187,665,228,632,267,616,269,621,231,636,191,669,157,708,130,748,110,782"/>
+<area shape="rect" id="Node000014" href="$de/d8f/classyaze_1_1cli_1_1Open.html" title=" " alt="" coords="282,647,385,672"/>
+<area shape="poly" id="edge53_Node000000_Node000014" title=" " alt="" coords="113,781,162,730,194,703,228,681,254,670,281,663,282,669,256,676,231,686,197,708,165,734,117,784"/>
+<area shape="rect" id="Node000015" href="$d6/dbf/classyaze_1_1cli_1_1OverworldDescribeMap.html" title=" " alt="" coords="230,696,437,722"/>
+<area shape="poly" id="edge54_Node000000_Node000015" title=" " alt="" coords="126,784,174,756,229,730,262,720,264,725,231,735,176,761,129,788"/>
+<area shape="rect" id="Node000016" href="$d0/d1b/classyaze_1_1cli_1_1OverworldFindTile.html" title=" " alt="" coords="245,745,422,771"/>
+<area shape="poly" id="edge55_Node000000_Node000016" title=" " alt="" coords="174,788,267,769,268,774,175,794"/>
+<area shape="rect" id="Node000017" href="$d7/d09/classyaze_1_1cli_1_1OverworldGetTile.html" title=" " alt="" coords="247,795,420,820"/>
+<area shape="poly" id="edge56_Node000000_Node000017" title=" " alt="" coords="197,805,246,805,246,810,197,810"/>
+<area shape="rect" id="Node000018" href="$d7/d5d/classyaze_1_1cli_1_1OverworldListWarps.html" title=" " alt="" coords="257,845,410,885"/>
+<area shape="poly" id="edge57_Node000000_Node000018" title=" " alt="" coords="166,822,257,844,255,849,164,827"/>
+<area shape="rect" id="Node000019" href="$da/d7a/classyaze_1_1cli_1_1OverworldSetTile.html" title=" " alt="" coords="247,909,420,935"/>
+<area shape="poly" id="edge58_Node000000_Node000019" title=" " alt="" coords="124,828,172,862,231,894,265,906,263,911,229,899,170,867,121,832"/>
+<area shape="rect" id="Node000020" href="$d3/d6c/classyaze_1_1cli_1_1Palette.html" title=" " alt="" coords="277,959,390,984"/>
+<area shape="poly" id="edge59_Node000000_Node000020" title=" " alt="" coords="114,831,162,889,195,920,231,945,253,955,277,962,275,967,251,960,228,950,191,924,158,893,110,835"/>
+<area shape="rect" id="Node000021" href="$da/d77/classyaze_1_1cli_1_1PaletteExport.html" title=" " alt="" coords="259,1008,408,1034"/>
+<area shape="poly" id="edge60_Node000000_Node000021" title=" " alt="" coords="109,833,127,870,154,914,189,958,231,995,259,1008,257,1013,228,999,185,962,150,917,123,873,104,836"/>
+<area shape="rect" id="Node000022" href="$d7/d47/classyaze_1_1cli_1_1PaletteImport.html" title=" " alt="" coords="258,1057,409,1083"/>
+<area shape="poly" id="edge61_Node000000_Node000022" title=" " alt="" coords="105,834,121,881,147,938,183,996,206,1022,231,1044,259,1058,256,1063,228,1048,202,1025,179,999,142,940,116,883,100,836"/>
+<area shape="rect" id="Node000023" href="$dd/d06/classyaze_1_1cli_1_1PcToSnesCommand.html" title="Convert a PC address to a SNES address." alt="" coords="237,1107,430,1132"/>
+<area shape="poly" id="edge62_Node000000_Node000023" title=" " alt="" coords="102,835,115,891,140,961,157,997,178,1033,202,1065,231,1093,248,1104,246,1108,228,1098,198,1069,173,1036,152,1000,135,963,110,892,97,836"/>
+<area shape="rect" id="Node000024" href="$d4/d4b/classyaze_1_1cli_1_1ProjectBuild.html" title=" " alt="" coords="262,1156,405,1182"/>
+<area shape="poly" id="edge63_Node000000_Node000024" title=" " alt="" coords="100,836,111,900,133,983,150,1027,172,1070,199,1109,231,1143,246,1153,263,1159,261,1164,243,1157,228,1147,195,1112,167,1072,145,1029,128,985,105,901,95,836"/>
+<area shape="rect" id="Node000025" href="$d9/d3b/classyaze_1_1cli_1_1ProjectInit.html" title=" " alt="" coords="268,1205,399,1231"/>
+<area shape="poly" id="edge64_Node000000_Node000025" title=" " alt="" coords="99,836,106,908,126,1005,143,1056,166,1106,195,1152,231,1192,248,1203,268,1211,266,1216,246,1208,228,1196,191,1155,161,1109,138,1058,121,1006,101,909,93,836"/>
+<area shape="rect" id="Node000026" href="$d1/d72/classyaze_1_1cli_1_1ReadFromRom.html" title="Read from a Rom file." alt="" coords="254,1255,413,1280"/>
+<area shape="poly" id="edge65_Node000000_Node000026" title=" " alt="" coords="97,836,102,917,109,969,120,1026,137,1085,160,1142,192,1195,231,1241,255,1256,252,1260,228,1246,187,1199,156,1145,132,1087,115,1028,103,970,96,917,92,836"/>
+<area shape="rect" id="Node000027" href="$d1/d9c/classyaze_1_1cli_1_1RomDiff.html" title=" " alt="" coords="274,1304,393,1330"/>
+<area shape="poly" id="edge66_Node000000_Node000027" title=" " alt="" coords="101,835,118,937,147,1074,165,1144,185,1206,207,1257,232,1291,251,1304,274,1311,273,1317,249,1309,228,1295,203,1260,180,1208,160,1145,141,1076,113,938,96,836"/>
+<area shape="rect" id="Node000028" href="$d2/d4a/classyaze_1_1cli_1_1RomGenerateGolden.html" title=" " alt="" coords="237,1353,430,1379"/>
+<area shape="poly" id="edge67_Node000000_Node000028" title=" " alt="" coords="101,835,116,946,143,1098,161,1175,182,1245,206,1302,232,1340,246,1351,243,1355,228,1344,201,1305,177,1247,156,1177,138,1099,111,947,95,836"/>
+<area shape="rect" id="Node000029" href="$d2/de6/classyaze_1_1cli_1_1RomInfo.html" title=" " alt="" coords="273,1403,394,1428"/>
+<area shape="poly" id="edge68_Node000000_Node000029" title=" " alt="" coords="100,835,114,955,140,1123,158,1207,179,1285,204,1348,217,1372,231,1390,251,1403,273,1410,271,1415,248,1407,228,1393,213,1375,199,1350,174,1286,153,1209,135,1123,109,956,95,836"/>
+<area shape="rect" id="Node000030" href="$d6/d8e/classyaze_1_1cli_1_1RomValidate.html" title=" " alt="" coords="260,1452,407,1478"/>
+<area shape="poly" id="edge69_Node000000_Node000030" title=" " alt="" coords="100,836,112,965,137,1147,155,1239,176,1324,202,1393,216,1419,232,1439,245,1449,261,1456,259,1461,242,1454,228,1443,212,1422,197,1395,171,1325,149,1241,131,1147,107,965,94,836"/>
+<area shape="rect" id="Node000031" href="$d9/d12/classyaze_1_1cli_1_1SnesToPcCommand.html" title="Convert a SNES address to a PC address." alt="" coords="237,1501,430,1527"/>
+<area shape="poly" id="edge70_Node000000_Node000031" title=" " alt="" coords="99,835,110,973,133,1170,151,1271,173,1363,200,1438,215,1467,232,1488,245,1499,242,1503,228,1492,211,1470,195,1440,168,1364,146,1272,128,1171,105,974,94,836"/>
+<area shape="rect" id="Node000032" href="$da/d30/classyaze_1_1cli_1_1SpriteCreate.html" title=" " alt="" coords="261,1551,406,1576"/>
+<area shape="poly" id="edge71_Node000000_Node000032" title=" " alt="" coords="99,836,108,983,130,1194,148,1303,170,1402,198,1483,214,1514,232,1538,245,1548,262,1556,260,1560,243,1553,228,1541,210,1517,193,1485,165,1404,143,1304,125,1195,103,983,93,836"/>
+<area shape="rect" id="Node000033" href="$d8/d7c/classyaze_1_1cli_1_1Tile16Transfer.html" title=" " alt="" coords="256,1600,411,1626"/>
+<area shape="poly" id="edge72_Node000000_Node000033" title=" " alt="" coords="98,836,106,991,127,1218,145,1334,167,1441,196,1528,213,1562,231,1587,257,1603,254,1608,228,1591,209,1565,191,1530,162,1442,139,1335,122,1218,101,991,93,836"/>
 </map>

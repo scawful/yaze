@@ -8,6 +8,10 @@ var dir_57b6497acbb25a197901046b40c3e447 =
     [ "proposal_executor.h", "d9/d55/proposal__executor_8h.html", "d9/d55/proposal__executor_8h" ],
     [ "simple_chat_session.cc", "da/de7/simple__chat__session_8cc.html", "da/de7/simple__chat__session_8cc" ],
     [ "simple_chat_session.h", "d5/dee/simple__chat__session_8h.html", "d5/dee/simple__chat__session_8h" ],
+    [ "todo_manager.cc", "d9/dde/todo__manager_8cc.html", "d9/dde/todo__manager_8cc" ],
+    [ "todo_manager.h", "d5/de7/todo__manager_8h.html", "d5/de7/todo__manager_8h" ],
     [ "tool_dispatcher.cc", "d3/d79/tool__dispatcher_8cc.html", null ],
-    [ "tool_dispatcher.h", "d3/d12/tool__dispatcher_8h.html", "d3/d12/tool__dispatcher_8h" ]
+    [ "tool_dispatcher.h", "d3/d12/tool__dispatcher_8h.html", "d3/d12/tool__dispatcher_8h" ],
+    [ "vim_mode.cc", "d3/dd5/vim__mode_8cc.html", "d3/dd5/vim__mode_8cc" ],
+    [ "vim_mode.h", "dc/d0f/vim__mode_8h.html", "dc/d0f/vim__mode_8h" ]
 ];

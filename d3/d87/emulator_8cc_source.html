@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="../../yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.1</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.2</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -107,7 +107,7 @@ $(document).ready(function(){initNavTree('d3/d87/emulator_8cc_source.html','../.
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;fstream&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span> </div>
-<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="../../d0/d77/file__dialog_8h.html">app/core/platform/file_dialog.h</a>&quot;</span></div>
+<div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="../../d0/dae/file__util_8h.html">util/file_util.h</a>&quot;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;<a class="code" href="../../d3/df1/window_8h.html">app/core/window.h</a>&quot;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="../../dc/d02/cpu_2internal_2opcodes_8h.html">app/emu/cpu/internal/opcodes.h</a>&quot;</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="../../de/dbf/icons_8h.html">app/gui/icons.h</a>&quot;</span></div>
@@ -430,7 +430,7 @@ $(document).ready(function(){initNavTree('d3/d87/emulator_8cc_source.html','../.
 <div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>  }</div>
 <div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span> </div>
 <div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>  <span class="keywordflow">if</span> (open_file) {</div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>    <span class="keyword">auto</span> file_name = <a class="code hl_function" href="../../d5/d6c/classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">core::FileDialogWrapper::ShowOpenFileDialog</a>();</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>    <span class="keyword">auto</span> file_name = <a class="code hl_function" href="../../d2/d3f/classyaze_1_1util_1_1FileDialogWrapper.html#a6b6052a259965e33017135077dad1205">util::FileDialogWrapper::ShowOpenFileDialog</a>();</div>
 <div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>    <span class="keywordflow">if</span> (!file_name.empty()) {</div>
 <div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>      std::ifstream file(file_name, std::ios::binary);</div>
 <div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span>      <span class="comment">// Load the data directly into rom_data</span></div>
@@ -733,7 +733,6 @@ $(document).ready(function(){initNavTree('d3/d87/emulator_8cc_source.html','../.
 <div class="line"><a id="l00610" name="l00610"></a><span class="lineno">  610</span> </div>
 <div class="line"><a id="l00611" name="l00611"></a><span class="lineno">  611</span>}  <span class="comment">// namespace emu</span></div>
 <div class="line"><a id="l00612" name="l00612"></a><span class="lineno">  612</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1FileDialogWrapper_html_a7b4d614b899cb30f3becd1fd4a04caf8"><div class="ttname"><a href="../../d5/d6c/classyaze_1_1core_1_1FileDialogWrapper.html#a7b4d614b899cb30f3becd1fd4a04caf8">yaze::core::FileDialogWrapper::ShowOpenFileDialog</a></div><div class="ttdeci">static std::string ShowOpenFileDialog()</div><div class="ttdoc">ShowOpenFileDialog opens a file dialog and returns the selected filepath. Uses global feature flag to...</div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1Renderer_html_abcae4ea3f9c358d55ec88b46cec37761"><div class="ttname"><a href="../../da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761">yaze::core::Renderer::Get</a></div><div class="ttdeci">static Renderer &amp; Get()</div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00047">window.h:47</a></div></div>
 <div class="ttc" id="aclassyaze_1_1emu_1_1Emulator_html_a0dec3e42fe398a7275373df8a38384fb"><div class="ttname"><a href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a0dec3e42fe398a7275373df8a38384fb">yaze::emu::Emulator::turbo_mode_</a></div><div class="ttdeci">bool turbo_mode_</div><div class="ttdef"><b>Definition</b> <a href="../../db/dc0/emulator_8h_source.html#l00075">emulator.h:75</a></div></div>
 <div class="ttc" id="aclassyaze_1_1emu_1_1Emulator_html_a123fbe1bb0092c69bbd461cbd6314565"><div class="ttname"><a href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a123fbe1bb0092c69bbd461cbd6314565">yaze::emu::Emulator::snes_</a></div><div class="ttdeci">Snes snes_</div><div class="ttdef"><b>Definition</b> <a href="../../db/dc0/emulator_8h_source.html#l00092">emulator.h:92</a></div></div>
@@ -776,10 +775,11 @@ $(document).ready(function(){initNavTree('d3/d87/emulator_8cc_source.html','../.
 <div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html_ad2f26298fae68793dba09322210f1aee"><div class="ttname"><a href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#ad2f26298fae68793dba09322210f1aee">yaze::emu::Snes::Init</a></div><div class="ttdeci">void Init(std::vector&lt; uint8_t &gt; &amp;rom_data)</div><div class="ttdef"><b>Definition</b> <a href="../../dc/dbe/snes_8cc_source.html#l00028">snes.cc:28</a></div></div>
 <div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html_ae55211e6c9c0884f73b2890da336fe82"><div class="ttname"><a href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#ae55211e6c9c0884f73b2890da336fe82">yaze::emu::Snes::memory</a></div><div class="ttdeci">auto memory() -&gt; MemoryImpl &amp;</div><div class="ttdef"><b>Definition</b> <a href="../../d2/de3/emu_2snes_8h_source.html#l00066">snes.h:66</a></div></div>
 <div class="ttc" id="aclassyaze_1_1emu_1_1Snes_html_ae9938c9f8448dd65dba24d06fe2b5d57"><div class="ttname"><a href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#ae9938c9f8448dd65dba24d06fe2b5d57">yaze::emu::Snes::SetPixels</a></div><div class="ttdeci">void SetPixels(uint8_t *pixel_data)</div><div class="ttdef"><b>Definition</b> <a href="../../dc/dbe/snes_8cc_source.html#l00541">snes.cc:541</a></div></div>
+<div class="ttc" id="aclassyaze_1_1util_1_1FileDialogWrapper_html_a6b6052a259965e33017135077dad1205"><div class="ttname"><a href="../../d2/d3f/classyaze_1_1util_1_1FileDialogWrapper.html#a6b6052a259965e33017135077dad1205">yaze::util::FileDialogWrapper::ShowOpenFileDialog</a></div><div class="ttdeci">static std::string ShowOpenFileDialog()</div><div class="ttdoc">ShowOpenFileDialog opens a file dialog and returns the selected filepath. Uses global feature flag to...</div></div>
 <div class="ttc" id="acpu_2internal_2opcodes_8h_html"><div class="ttname"><a href="../../dc/d02/cpu_2internal_2opcodes_8h.html">opcodes.h</a></div></div>
 <div class="ttc" id="acpu_2internal_2opcodes_8h_html_a2897f080989f16f7558398964f9934dd"><div class="ttname"><a href="../../dc/d02/cpu_2internal_2opcodes_8h.html#a2897f080989f16f7558398964f9934dd">opcode_to_mnemonic</a></div><div class="ttdeci">const std::unordered_map&lt; uint8_t, std::string &gt; opcode_to_mnemonic</div><div class="ttdef"><b>Definition</b> <a href="../../dc/d02/cpu_2internal_2opcodes_8h_source.html#l00007">opcodes.h:7</a></div></div>
 <div class="ttc" id="aemulator_8h_html"><div class="ttname"><a href="../../db/dc0/emulator_8h.html">emulator.h</a></div></div>
-<div class="ttc" id="afile__dialog_8h_html"><div class="ttname"><a href="../../d0/d77/file__dialog_8h.html">file_dialog.h</a></div></div>
+<div class="ttc" id="afile__util_8h_html"><div class="ttname"><a href="../../d0/dae/file__util_8h.html">file_util.h</a></div></div>
 <div class="ttc" id="aicons_8h_html"><div class="ttname"><a href="../../de/dbf/icons_8h.html">icons.h</a></div></div>
 <div class="ttc" id="aicons_8h_html_a0e0d0775e35bcd6358d12c0d27a29f88"><div class="ttname"><a href="../../de/dbf/icons_8h.html#a0e0d0775e35bcd6358d12c0d27a29f88">ICON_MD_PAUSE</a></div><div class="ttdeci">#define ICON_MD_PAUSE</div><div class="ttdef"><b>Definition</b> <a href="../../de/dbf/icons_8h_source.html#l01387">icons.h:1387</a></div></div>
 <div class="ttc" id="aicons_8h_html_a14ded7148bef481ff6b688f261157597"><div class="ttname"><a href="../../de/dbf/icons_8h.html#a14ded7148bef481ff6b688f261157597">ICON_MD_SETTINGS</a></div><div class="ttdeci">#define ICON_MD_SETTINGS</div><div class="ttdef"><b>Definition</b> <a href="../../de/dbf/icons_8h_source.html#l01697">icons.h:1697</a></div></div>

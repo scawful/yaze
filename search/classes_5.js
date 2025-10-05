@@ -2,7 +2,7 @@ var searchData=
 [
   ['featureflags_0',['FeatureFlags',['../d8/d3f/classyaze_1_1core_1_1FeatureFlags.html',1,'yaze::core']]],
   ['fewshotexample_1',['FewShotExample',['../db/de0/structyaze_1_1cli_1_1FewShotExample.html',1,'yaze::cli']]],
-  ['filedialogwrapper_2',['FileDialogWrapper',['../d5/d6c/classyaze_1_1core_1_1FileDialogWrapper.html',1,'yaze::core']]],
+  ['filedialogwrapper_2',['FileDialogWrapper',['../d2/d3f/classyaze_1_1util_1_1FileDialogWrapper.html',1,'yaze::util']]],
   ['fileeditortab_3',['FileEditorTab',['../de/dab/structyaze_1_1editor_1_1AgentChatWidget_1_1FileEditorTab.html',1,'yaze::editor::AgentChatWidget']]],
   ['flag_4',['Flag',['../d7/dc5/classyaze_1_1util_1_1Flag.html',1,'yaze::util']]],
   ['flagparser_5',['FlagParser',['../d1/d71/classyaze_1_1util_1_1FlagParser.html',1,'yaze::util']]],

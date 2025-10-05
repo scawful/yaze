@@ -1,0 +1,12 @@
+<map id="yaze::cli::ai::AIGUIController::ExecuteActions" name="yaze::cli::ai::AIGUIController::ExecuteActions">
+<area shape="rect" id="Node000001" title="Execute a sequence of pre&#45;parsed actions." alt="" coords="5,35,186,75"/>
+<area shape="rect" id="Node000002" href="$d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#a6b5be8ff114b1f6aea8ff143de951a6b" title=" " alt="" coords="462,5,642,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,47,446,30,447,35,186,52"/>
+<area shape="rect" id="Node000004" href="$d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#aae341822d95fa9a06159d8bdb339a5af" title="Execute a single action with optional vision verification." alt="" coords="234,63,414,103"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="186,63,218,67,218,73,186,69"/>
+<area shape="rect" id="Node000003" href="$d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#a4beec552c089395c2ec18c5f2c0f3fc6" title=" " alt="" coords="690,5,871,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="643,23,675,23,675,28,643,28"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="407,60,453,48,454,53,408,65"/>
+<area shape="rect" id="Node000005" href="$d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html#a202ee64010b221e2356a876d06db5bf9" title=" " alt="" coords="462,71,642,111"/>
+<area shape="poly" id="edge5_Node000004_Node000005" title=" " alt="" coords="414,83,447,85,446,90,414,89"/>
+</map>

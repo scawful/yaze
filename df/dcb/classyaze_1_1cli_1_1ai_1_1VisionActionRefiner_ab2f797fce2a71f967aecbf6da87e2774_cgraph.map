@@ -1,0 +1,11 @@
+<map id="yaze::cli::ai::VisionActionRefiner::LocateUIElement" name="yaze::cli::ai::VisionActionRefiner::LocateUIElement">
+<area shape="rect" id="Node000001" title="Find a specific UI element in a screenshot." alt="" coords="5,39,174,79"/>
+<area shape="rect" id="Node000002" href="$df/dcb/classyaze_1_1cli_1_1ai_1_1VisionActionRefiner.html#addd880e37fbfe0457d3dcf4908d7d1ad" title=" " alt="" coords="222,5,457,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,45,206,41,207,46,175,50"/>
+<area shape="rect" id="Node000003" href="$db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a0767d7fb1097b5c331c386b88ae9099e" title=" " alt="" coords="239,71,440,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="175,67,224,73,223,79,174,72"/>
+<area shape="rect" id="Node000004" href="$db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a747ba76fe2ab26b5dff56e6b587eb95f" title=" " alt="" coords="505,37,675,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="440,75,490,68,490,74,441,80"/>
+<area shape="rect" id="Node000005" href="$db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a8fabee613135908e8ef20253f8261658" title=" " alt="" coords="505,103,675,143"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="441,101,490,108,490,113,440,107"/>
+</map>

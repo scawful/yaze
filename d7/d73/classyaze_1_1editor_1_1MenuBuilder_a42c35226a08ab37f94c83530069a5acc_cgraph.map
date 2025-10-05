@@ -1,0 +1,5 @@
+<map id="yaze::editor::MenuBuilder::Item" name="yaze::editor::MenuBuilder::Item">
+<area shape="rect" id="Node000001" title="Add a menu item without icon (convenience)" alt="" coords="5,5,169,46"/>
+<area shape="rect" id="Node000002" href="$d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#a2631d349ada5abbe7fa077a8580ebe41" title="Add a menu item." alt="" coords="217,5,380,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="169,23,201,23,201,28,169,28"/>
+</map>

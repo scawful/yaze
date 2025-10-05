@@ -17,12 +17,17 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "anonymous_namespace{gui_commands.cc}", "d3/d47/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02gui__commands_8cc_03.html", [
       [ "HandleGuiDiscoverCommand", "d3/d47/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02gui__commands_8cc_03.html#a7241457d6dd22a00fd53178092478187", null ]
     ] ],
+    [ "anonymous_namespace{hex_commands.cc}", "df/df3/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02hex__commands_8cc_03.html", [
+      [ "ParseHexAddress", "df/df3/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02hex__commands_8cc_03.html#aa59b2cf4318124ee167a8a8288a6bd4b", null ],
+      [ "ParseHexPattern", "df/df3/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02hex__commands_8cc_03.html#a0b3dee1a68f5ce68a6bbe3cfe5f38a66", null ],
+      [ "FormatHexBytes", "df/df3/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02hex__commands_8cc_03.html#abd15b51e443dacfd52ec6af6e8f976e6", null ]
+    ] ],
     [ "anonymous_namespace{learned_knowledge_service.cc}", "d4/d82/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02learned__knowledge__service_8cc_03.html", [
       [ "CurrentTimestamp", "d4/d82/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02learned__knowledge__service_8cc_03.html#a4308c6d91dcb8e164537872f67bcae2e", null ],
       [ "GenerateRandomID", "d4/d82/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02learned__knowledge__service_8cc_03.html#a2f92b471f03f349d791272f07bda9ce0", null ],
-      [ "FileExists", "d4/d82/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02learned__knowledge__service_8cc_03.html#a944eec6374896ce58f9f9d1f09a5e09a", null ],
-      [ "EnsureDirectoryExists", "d4/d82/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02learned__knowledge__service_8cc_03.html#a479d03fb52d9c0756131c3085326cb5e", null ]
+      [ "FileExists", "d4/d82/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02learned__knowledge__service_8cc_03.html#a944eec6374896ce58f9f9d1f09a5e09a", null ]
     ] ],
+    [ "anonymous_namespace{palette_commands.cc}", "d0/d09/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03.html", "d0/d09/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03" ],
     [ "anonymous_namespace{proposal_executor.cc}", "d0/d0c/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02proposal__executor_8cc_03.html", [
       [ "InferProvider", "d0/d0c/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02proposal__executor_8cc_03.html#ade5192c0be31590469f1ced3857da287", null ],
       [ "IsExecutableCommand", "d0/d0c/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02proposal__executor_8cc_03.html#a4d82734bb4d51cef3b3307533d07afba", null ]
@@ -37,9 +42,25 @@ var namespaceyaze_1_1cli_1_1agent =
       [ "PrintMarkdownMetrics", "d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#a6bfef8db73c77ae80117dc35c6ca0c7e", null ],
       [ "SessionMetricsToJson", "d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#ab3cf7c800704640d2d1401da1c250723", null ]
     ] ],
+    [ "anonymous_namespace{todo_manager.cc}", "d6/dc6/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02todo__manager_8cc_03.html", [
+      [ "CurrentTimestamp", "d6/dc6/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02todo__manager_8cc_03.html#a1281d34de8757404d99a8dccb71656b1", null ]
+    ] ],
     [ "anonymous_namespace{tool_commands.cc}", "d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html", [
       [ "LoadRomFromFlag", "d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html#aacabbc0ab80e144c2a381ebad5dbf938", null ],
       [ "LoadRomFromPathOrFlag", "d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html#abfae29bd727b8759e06d2e7a728e72a8", null ]
+    ] ],
+    [ "anonymous_namespace{vim_mode.cc}", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html", [
+      [ "SetRawMode", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#a5608b1970aa86259a8a9953a12a7fc63", null ],
+      [ "KEY_ESC", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#af2c63137c45d5fe54ff8125005b671de", null ],
+      [ "KEY_ENTER", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#a7a27692f33888eacf23ddf9c46b70c2d", null ],
+      [ "KEY_BACKSPACE", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#aa83fb4e85d4d77a259332994afb3565b", null ],
+      [ "KEY_CTRL_P", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#a6232b3b48f7eb993e8f71b64eec076c1", null ],
+      [ "KEY_CTRL_N", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#a94e4316d88ad9dcb193d2b7e601ad160", null ],
+      [ "KEY_TAB", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#a4850bc8b5905e5be51b641c6bd0ccdda", null ],
+      [ "CLEAR_LINE", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#af8e81159a3f8a53fb6d5e4fbeb82ba8b", null ],
+      [ "MOVE_CURSOR_HOME", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#ab807de69ecb0d8a74c214b5e38000dec", null ],
+      [ "SAVE_CURSOR", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#adc879b279aa8f258c2c82fcc8688b61b", null ],
+      [ "RESTORE_CURSOR", "de/d7a/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02vim__mode_8cc_03.html#a74ae3f6a15871ccb985428727f6ec262", null ]
     ] ],
     [ "AgentConfig", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig" ],
     [ "ChatMessage", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage" ],
@@ -48,12 +69,21 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "ProposalCreationRequest", "d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest.html", "d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest" ],
     [ "ProposalCreationResult", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult" ],
     [ "SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession" ],
+    [ "TodoItem", "d0/d0e/structyaze_1_1cli_1_1agent_1_1TodoItem.html", "d0/d0e/structyaze_1_1cli_1_1agent_1_1TodoItem" ],
+    [ "TodoManager", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager" ],
     [ "ToolDispatcher", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher" ],
+    [ "VimMode", "d9/dd2/classyaze_1_1cli_1_1agent_1_1VimMode.html", "d9/dd2/classyaze_1_1cli_1_1agent_1_1VimMode" ],
     [ "AgentOutputFormat", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7", [
       [ "kFriendly", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a1a115fc122d4846ead8cc4b1255cbf44", null ],
       [ "kCompact", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a104573db6e35d80a8a5bacc53b26a4a2", null ],
       [ "kMarkdown", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a30437633d552b7229b65b11ec90cb153", null ],
       [ "kJson", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7a319f3b99b8d96c21e2f6b7ebc6fe8d8f", null ]
+    ] ],
+    [ "VimModeType", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a86ad5b9eba2a5917045c923a30a602c4", [
+      [ "NORMAL", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a86ad5b9eba2a5917045c923a30a602c4a1e23852820b9154316c7c06e2b7ba051", null ],
+      [ "INSERT", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a86ad5b9eba2a5917045c923a30a602c4a61ee777e7f71dc466c3b2c685d8d313b", null ],
+      [ "VISUAL", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a86ad5b9eba2a5917045c923a30a602c4a8daf3496602a64f00b16ce266e7084dc", null ],
+      [ "COMMAND_LINE", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a86ad5b9eba2a5917045c923a30a602c4a17c0d60311af7eb6f176ae236481a02d", null ]
     ] ],
     [ "HandleRunCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a4c88dbe6c96f20bba8fd432738e1a528", null ],
     [ "HandlePlanCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#af164e32341de8c5ac58d6836bb3bc483", null ],
@@ -82,6 +112,12 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "HandleChatCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab9c0a392ce6c066aca8d36eac12dc2b9", null ],
     [ "HandleSimpleChatCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa5dce5122f99bd7671e44280148683fb", null ],
     [ "HandleTestConversationCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a815e0cf4982c5a6618608dfd1198645b", null ],
+    [ "HandleHexRead", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab03077c3d8792b56e8f084e3a5fff8c5", null ],
+    [ "HandleHexWrite", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a3574743b33452471230ffdefeeafe391", null ],
+    [ "HandleHexSearch", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab406d62299b4cb03d8d3550b1b7079ac", null ],
+    [ "HandlePaletteGetColors", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6fabb87088f131985bfba062ccfa04fc", null ],
+    [ "HandlePaletteSetColor", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa1247e440f881ab8d857d62aa71758e9", null ],
+    [ "HandlePaletteAnalyze", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ad056234d6fd54434fd19533c4f76257c", null ],
     [ "HarnessAddress", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a63bb222c347948e80015db67a5e2731f", null ],
     [ "JsonEscape", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa9e3ca343f9a5ffeab7bc30f20aff921", null ],
     [ "YamlQuote", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a46743186d4f2968bccf1cf0cb7a57bfa", null ],

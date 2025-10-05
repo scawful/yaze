@@ -1,6 +1,6 @@
 var sdl__deleter_8h =
 [
-    [ "yaze::core::SDL_Deleter", "d3/d69/structyaze_1_1core_1_1SDL__Deleter.html", "d3/d69/structyaze_1_1core_1_1SDL__Deleter" ],
-    [ "yaze::core::SDL_Surface_Deleter", "df/dc2/structyaze_1_1core_1_1SDL__Surface__Deleter.html", "df/dc2/structyaze_1_1core_1_1SDL__Surface__Deleter" ],
-    [ "yaze::core::SDL_Texture_Deleter", "d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter.html", "d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter" ]
+    [ "yaze::util::SDL_Deleter", "db/d66/structyaze_1_1util_1_1SDL__Deleter.html", "db/d66/structyaze_1_1util_1_1SDL__Deleter" ],
+    [ "yaze::util::SDL_Surface_Deleter", "df/d22/structyaze_1_1util_1_1SDL__Surface__Deleter.html", "df/d22/structyaze_1_1util_1_1SDL__Surface__Deleter" ],
+    [ "yaze::util::SDL_Texture_Deleter", "db/dac/structyaze_1_1util_1_1SDL__Texture__Deleter.html", "db/dac/structyaze_1_1util_1_1SDL__Texture__Deleter" ]
 ];

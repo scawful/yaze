@@ -9,5 +9,5 @@ var searchData=
   ['teststeptype_6',['TestStepType',['../dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fce',1,'yaze::cli']]],
   ['tileinteractionmode_7',['TileInteractionMode',['../db/dc3/namespaceyaze_1_1gui_1_1canvas.html#a7cd25682920de9e3b6559931b14f461e',1,'yaze::gui::canvas']]],
   ['toasttype_8',['ToastType',['../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7',1,'yaze::editor']]],
-  ['type_9',['Type',['../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6',1,'yaze::zelda3::RoomLayoutObject']]]
+  ['type_9',['type',['../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0',1,'yaze::editor::MenuBuilder::MenuItem::Type'],['../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6',1,'yaze::zelda3::RoomLayoutObject::Type']]]
 ];

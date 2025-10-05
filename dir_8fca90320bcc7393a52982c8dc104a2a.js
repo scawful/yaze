@@ -3,8 +3,6 @@ var dir_8fca90320bcc7393a52982c8dc104a2a =
     [ "canvas", "dir_2e70ebb92041ee9a8b6891199983e337.html", "dir_2e70ebb92041ee9a8b6891199983e337" ],
     [ "modules", "dir_5135344c6c8014219232547b6844b904.html", "dir_5135344c6c8014219232547b6844b904" ],
     [ "widgets", "dir_6d885699addaf9c45f1674a8d2e992c3.html", "dir_6d885699addaf9c45f1674a8d2e992c3" ],
-    [ "background_renderer.cc", "de/dea/background__renderer_8cc.html", "de/dea/background__renderer_8cc" ],
-    [ "background_renderer.h", "d6/d91/background__renderer_8h.html", "d6/d91/background__renderer_8h" ],
     [ "bpp_format_ui.cc", "db/d3e/bpp__format__ui_8cc.html", null ],
     [ "bpp_format_ui.h", "db/da7/bpp__format__ui_8h.html", "db/da7/bpp__format__ui_8h" ],
     [ "canvas.cc", "da/dbb/canvas_8cc.html", "da/dbb/canvas_8cc" ],
@@ -13,8 +11,6 @@ var dir_8fca90320bcc7393a52982c8dc104a2a =
     [ "canvas_utils.h", "d1/d39/canvas__utils_8h.html", "d1/d39/canvas__utils_8h" ],
     [ "color.cc", "d3/de1/color_8cc.html", "d3/de1/color_8cc" ],
     [ "color.h", "da/dec/color_8h.html", "da/dec/color_8h" ],
-    [ "enhanced_palette_editor.cc", "de/dd4/enhanced__palette__editor_8cc.html", null ],
-    [ "enhanced_palette_editor.h", "d5/d21/enhanced__palette__editor_8h.html", "d5/d21/enhanced__palette__editor_8h" ],
     [ "feature_flags_menu.h", "d3/d47/feature__flags__menu_8h.html", "d3/d47/feature__flags__menu_8h" ],
     [ "icons.h", "de/dbf/icons_8h.html", "de/dbf/icons_8h" ],
     [ "input.cc", "de/d4c/input_8cc.html", "de/d4c/input_8cc" ],
@@ -22,9 +18,5 @@ var dir_8fca90320bcc7393a52982c8dc104a2a =
     [ "style.cc", "d8/d05/style_8cc.html", "d8/d05/style_8cc" ],
     [ "style.h", "de/d12/style_8h.html", "de/d12/style_8h" ],
     [ "theme_manager.cc", "dd/d4c/theme__manager_8cc.html", "dd/d4c/theme__manager_8cc" ],
-    [ "theme_manager.h", "d8/d65/theme__manager_8h.html", "d8/d65/theme__manager_8h" ],
-    [ "widget_auto_register.cc", "d5/d3e/widget__auto__register_8cc.html", "d5/d3e/widget__auto__register_8cc" ],
-    [ "widget_auto_register.h", "dd/d7f/widget__auto__register_8h.html", "dd/d7f/widget__auto__register_8h" ],
-    [ "widget_id_registry.cc", "d3/d10/widget__id__registry_8cc.html", "d3/d10/widget__id__registry_8cc" ],
-    [ "widget_id_registry.h", "d3/dd9/widget__id__registry_8h.html", "d3/dd9/widget__id__registry_8h" ]
+    [ "theme_manager.h", "d8/d65/theme__manager_8h.html", "d8/d65/theme__manager_8h" ]
 ];

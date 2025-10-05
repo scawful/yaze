@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="../../yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.1</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.2</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -105,18 +105,18 @@ $(document).ready(function(){initNavTree('d4/d1b/test__ai__tile__placement_8cc.h
   <div class="headertitle"><div class="title">test_ai_tile_placement.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;filesystem&gt;</code><br />
-<code>#include &lt;fstream&gt;</code><br />
-<code>#include &quot;gtest/gtest.h&quot;</code><br />
-<code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
+<div class="textblock"><code>#include &quot;gtest/gtest.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../de/dd0/ai__action__parser_8h_source.html">cli/service/ai/ai_action_parser.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../db/d7a/gui__action__generator_8h_source.html">cli/service/gui/gui_action_generator.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d8/db9/vision__action__refiner_8h_source.html">cli/service/ai/vision_action_refiner.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d6/d00/ai__gui__controller_8h_source.html">cli/service/ai/ai_gui_controller.h</a>&quot;</code><br />
 </div>
 <p><a href="../../d4/d1b/test__ai__tile__placement_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html">yaze::test::AITilePlacementTest</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Integration tests for AI-controlled tile placement.  <a href="../../d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
@@ -131,46 +131,19 @@ Namespaces</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:ace04d2a1c7aa7ced870dbaf614655252" id="r_ace04d2a1c7aa7ced870dbaf614655252"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#ace04d2a1c7aa7ced870dbaf614655252">yaze::test::TEST_F</a> (<a class="el" href="../../d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html">AITilePlacementTest</a>, ParsePlaceTileCommand)</td></tr>
 <tr class="separator:ace04d2a1c7aa7ced870dbaf614655252"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a31204a9285251e850b1fdea1b3140037" id="r_a31204a9285251e850b1fdea1b3140037"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a31204a9285251e850b1fdea1b3140037">yaze::test::TEST_F</a> (<a class="el" href="../../d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html">AITilePlacementTest</a>, GenerateTestScript)</td></tr>
-<tr class="separator:a31204a9285251e850b1fdea1b3140037"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2c08db9404a14a504bf504754d7d70a3" id="r_a2c08db9404a14a504bf504754d7d70a3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a2c08db9404a14a504bf504754d7d70a3">yaze::test::TEST_F</a> (<a class="el" href="../../d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html">AITilePlacementTest</a>, ParseMultipleFormats)</td></tr>
-<tr class="separator:a2c08db9404a14a504bf504754d7d70a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1ba98095567f4015e4da25b473159b1c" id="r_a1ba98095567f4015e4da25b473159b1c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a1ba98095567f4015e4da25b473159b1c">yaze::test::TEST_F</a> (<a class="el" href="../../d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html">AITilePlacementTest</a>, GenerateActionDescription)</td></tr>
-<tr class="separator:a1ba98095567f4015e4da25b473159b1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c04138a5bfe5d72780bb7e82a18e627" id="r_a3c04138a5bfe5d72780bb7e82a18e627"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d1b/test__ai__tile__placement_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a> (int argc, char **argv)</td></tr>
-<tr class="separator:a3c04138a5bfe5d72780bb7e82a18e627"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff42aec9e4f69609fb11468be4c4dd53" id="r_aff42aec9e4f69609fb11468be4c4dd53"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#aff42aec9e4f69609fb11468be4c4dd53">yaze::test::TEST_F</a> (<a class="el" href="../../d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html">AITilePlacementTest</a>, ParseSelectTileCommand)</td></tr>
+<tr class="separator:aff42aec9e4f69609fb11468be4c4dd53"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a534c3b01aea2c40704109eac235a71b0" id="r_a534c3b01aea2c40704109eac235a71b0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a534c3b01aea2c40704109eac235a71b0">yaze::test::TEST_F</a> (<a class="el" href="../../d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html">AITilePlacementTest</a>, ParseOpenEditorCommand)</td></tr>
+<tr class="separator:a534c3b01aea2c40704109eac235a71b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af73ab549b50841744b17df3d5ad1c60a" id="r_af73ab549b50841744b17df3d5ad1c60a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#af73ab549b50841744b17df3d5ad1c60a">yaze::test::TEST_F</a> (<a class="el" href="../../d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html">AITilePlacementTest</a>, ActionToStringRoundtrip)</td></tr>
+<tr class="separator:af73ab549b50841744b17df3d5ad1c60a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e726839306dcfe6fad22ab30e1a0f26" id="r_a8e726839306dcfe6fad22ab30e1a0f26"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a8e726839306dcfe6fad22ab30e1a0f26">yaze::test::TEST_F</a> (<a class="el" href="../../d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html">AITilePlacementTest</a>, ActionRefinement)</td></tr>
+<tr class="separator:a8e726839306dcfe6fad22ab30e1a0f26"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f4a1722f3f06ca539d1685d6aeb42e0" id="r_a1f4a1722f3f06ca539d1685d6aeb42e0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a1f4a1722f3f06ca539d1685d6aeb42e0">yaze::test::TEST_F</a> (<a class="el" href="../../d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html">AITilePlacementTest</a>, MultipleCommandsParsing)</td></tr>
+<tr class="separator:a1f4a1722f3f06ca539d1685d6aeb42e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a271d3cf77ad9ba94e81866b846537ae0" id="r_a271d3cf77ad9ba94e81866b846537ae0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a271d3cf77ad9ba94e81866b846537ae0">yaze::test::TEST_F</a> (<a class="el" href="../../d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html">AITilePlacementTest</a>, HexAndDecimalParsing)</td></tr>
+<tr class="separator:a271d3cf77ad9ba94e81866b846537ae0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Function Documentation</h2>
-<a id="a3c04138a5bfe5d72780bb7e82a18e627" name="a3c04138a5bfe5d72780bb7e82a18e627"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3c04138a5bfe5d72780bb7e82a18e627">&#9670;&#160;</a></span>main()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int main </td>
-          <td>(</td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>argc</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">char **&#160;</td>
-          <td class="paramname"><em>argv</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p class="definition">Definition at line <a class="el" href="../../d4/d1b/test__ai__tile__placement_8cc_source.html#l00161">161</a> of file <a class="el" href="../../d4/d1b/test__ai__tile__placement_8cc_source.html">test_ai_tile_placement.cc</a>.</p>
-
-</div>
-</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

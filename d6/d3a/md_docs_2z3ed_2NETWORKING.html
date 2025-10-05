@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: Z3ED Networking &amp; Collaboration</title>
+<title>yaze: z3ed Networking, Collaboration, and Remote Access</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -33,7 +33,7 @@
  <tr id="projectrow">
   <td id="projectlogo"><img alt="Logo" src="../../yaze.ico"/></td>
   <td id="projectalign">
-   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.1</span>
+   <div id="projectname">yaze<span id="projectnumber">&#160;0.3.2</span>
    </div>
    <div id="projectbrief">Link to the Past ROM Editor</div>
   </td>
@@ -98,35 +98,28 @@ $(document).ready(function(){initNavTree('d6/d3a/md_docs_2z3ed_2NETWORKING.html'
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">Z3ED Networking &amp; Collaboration</div></div>
+  <div class="headertitle"><div class="title">z3ed Networking, Collaboration, and Remote Access</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md397"></a> </p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md397"></a> <b>Version</b>: 0.2.0-alpha <b>Last Updated</b>: October 5, 2025</p>
 <h1><a class="anchor" id="autotoc_md398"></a>
-Overview</h1>
-<p>Z3ED provides comprehensive networking capabilities across all three components:</p><ul>
-<li><b>yaze app</b>: GUI application with real-time collaboration</li>
-<li><b>z3ed CLI</b>: Command-line interface for remote operations</li>
-<li><b>yaze-server</b>: WebSocket server for coordination</li>
-</ul>
+1. Overview</h1>
+<p>This document provides a comprehensive overview of the networking, collaboration, and remote access features within the z3ed ecosystem. These systems are designed to enable everything from real-time collaborative ROM hacking to powerful AI-driven remote automation.</p>
+<p>The architecture is composed of three main communication layers:</p><ol type="1">
+<li><b>WebSocket Protocol</b>: A real-time messaging layer for multi-user collaboration, managed by the <code>yaze-server</code>.</li>
+<li><b>gRPC Service</b>: A high-performance RPC layer for programmatic remote ROM manipulation, primarily used by the <code>z3ed</code> CLI and automated testing harnesses.</li>
+<li><b>Collaboration Service</b>: A high-level C++ API within the YAZE application that integrates version management with the networking protocols.</li>
+</ol>
 <h1><a class="anchor" id="autotoc_md399"></a>
-Architecture</h1>
+2. Architecture</h1>
 <h2><a class="anchor" id="autotoc_md400"></a>
-Cross-Platform Design</h2>
-<p>All networking code is designed to work on:</p><ul>
-<li>✅ <b>Windows</b> - Using native Win32 sockets (ws2_32)</li>
-<li>✅ <b>macOS</b> - Using native BSD sockets</li>
-<li>✅ <b>Linux</b> - Using native BSD sockets</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md401"></a>
-Components</h2>
+2.1. System Diagram</h2>
 <div class="fragment"><div class="line">┌─────────────┐         WebSocket          ┌──────────────┐</div>
 <div class="line">│  yaze app   │◄────────────────────────────►│ yaze-server  │</div>
 <div class="line">│  (GUI)      │                             │  (Node.js)   │</div>
 <div class="line">└─────────────┘                             └──────────────┘</div>
 <div class="line">       ▲                                            ▲</div>
-<div class="line">       │                                            │</div>
-<div class="line">       │         WebSocket                          │</div>
+<div class="line">       │ gRPC (for GUI testing)                     │ WebSocket</div>
 <div class="line">       │                                            │</div>
 <div class="line">       └─────────────┐                              │</div>
 <div class="line">                     │                              │</div>
@@ -134,405 +127,188 @@ Components</h2>
 <div class="line">              │  z3ed CLI   │◄──────────────────────┘</div>
 <div class="line">              │             │</div>
 <div class="line">              └─────────────┘</div>
-<div class="line"> </div>
-<div class="line">       gRPC (for GUI testing)</div>
-<div class="line">              │</div>
-<div class="line">              │</div>
-<div class="line">       ┌──────▼──────┐</div>
-<div class="line">       │  yaze app   │</div>
-<div class="line">       │  (ImGui)    │</div>
-<div class="line">       └─────────────┘</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md402"></a>
-WebSocket Protocol</h1>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md401"></a>
+2.2. Core Components</h2>
+<p>The collaboration system is built on two key C++ components:</p>
+<ol type="1">
+<li><b>ROM Version Manager</b> (<code><a class="el" href="../../dd/d30/rom__version__manager_8h.html">app/net/rom_version_manager.h</a></code>)<ul>
+<li><b>Purpose</b>: Protects the ROM from corruption and unwanted changes.</li>
+<li><b>Features</b>:<ul>
+<li>Automatic periodic snapshots and manual checkpoints.</li>
+<li>"Safe points" to mark host-verified versions.</li>
+<li>Corruption detection and automatic recovery to the last safe point.</li>
+<li>Ability to roll back to any previous version.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><b>Proposal Approval Manager</b> (<code><a class="el" href="../../dd/d30/rom__version__manager_8h.html">app/net/rom_version_manager.h</a></code>)<ul>
+<li><b>Purpose</b>: Manages a collaborative voting system for applying changes.</li>
+<li><b>Features</b>:<ul>
+<li>Multiple approval modes: <code>Host-Only</code> (default), <code>Majority</code>, and <code>Unanimous</code>.</li>
+<li>Automatically creates snapshots before and after a proposal is applied.</li>
+<li>Handles the submission, voting, and application/rejection of proposals.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><b>Collaboration Panel</b> (<code><a class="el" href="../../d8/df4/collaboration__panel_8h.html">app/gui/widgets/collaboration_panel.h</a></code>)<ul>
+<li><b>Purpose</b>: Provides a dedicated UI within the YAZE editor for managing collaboration.</li>
+<li><b>Features</b>:<ul>
+<li>Version history timeline with one-click restore.</li>
+<li>ROM synchronization tracking.</li>
+<li>Visual snapshot gallery.</li>
+<li>A voting and approval interface for pending proposals.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h1><a class="anchor" id="autotoc_md402"></a>
+3. Protocols</h1>
 <h2><a class="anchor" id="autotoc_md403"></a>
-Connection</h2>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="../../dd/d1b/websocket__client_8h.html">app/net/websocket_client.h</a>&quot;</span></div>
+3.1. WebSocket Protocol (yaze-server v2.0)</h2>
+<p>Used for real-time, multi-user collaboration.</p>
+<p><b>Connection</b>: </p><div class="fragment"><div class="line">const ws = new WebSocket(&#39;ws://localhost:8765&#39;);</div>
+</div><!-- fragment --><p><b>Message Types</b>:</p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadLeft">Type   </th><th class="markdownTableHeadLeft">Sender   </th><th class="markdownTableHeadLeft">Payload Description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft"><code>host_session</code>   </td><td class="markdownTableBodyLeft">Client   </td><td class="markdownTableBodyLeft">Initiates a new session with a name, username, and optional ROM hash.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft"><code>join_session</code>   </td><td class="markdownTableBodyLeft">Client   </td><td class="markdownTableBodyLeft">Joins an existing session using a 6-character code.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft"><code>rom_sync</code>   </td><td class="markdownTableBodyLeft">Client   </td><td class="markdownTableBodyLeft">Broadcasts a base64-encoded ROM diff to all participants.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft"><code>proposal_share</code>   </td><td class="markdownTableBodyLeft">Client   </td><td class="markdownTableBodyLeft">Shares a new proposal (e.g., from an AI agent) with the group.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft"><code>proposal_vote</code>   </td><td class="markdownTableBodyLeft">Client   </td><td class="markdownTableBodyLeft">Submits a vote (approve/reject) for a specific proposal.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft"><code>snapshot_share</code>   </td><td class="markdownTableBodyLeft">Client   </td><td class="markdownTableBodyLeft">Shares a snapshot (e.g., a screenshot) with the group.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft"><code>proposal_update</code>   </td><td class="markdownTableBodyLeft">Server   </td><td class="markdownTableBodyLeft">Broadcasts the new status of a proposal (<code>approved</code>, <code>rejected</code>).    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft"><code>proposal_vote_received</code>   </td><td class="markdownTableBodyLeft">Server   </td><td class="markdownTableBodyLeft">Confirms a vote was received and shows the current vote tally.    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyLeft"><code>session_hosted</code>   </td><td class="markdownTableBodyLeft">Server   </td><td class="markdownTableBodyLeft">Confirms a session was created and returns its code.    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyLeft"><code>session_joined</code>   </td><td class="markdownTableBodyLeft">Server   </td><td class="markdownTableBodyLeft">Confirms a user joined and provides session state (participants, history).   </td></tr>
+</table>
+<h2><a class="anchor" id="autotoc_md404"></a>
+3.2. gRPC Service (Remote ROM Manipulation)</h2>
+<p>Provides a high-performance API for programmatic access to the ROM, used by the <code>z3ed</code> CLI and test harnesses.</p>
+<p><b>Status</b>: ✅ Designed and Implemented. Pending final build system integration.</p>
+<p>**Protocol Buffer (<code>protos/rom_service.proto</code>)**:</p>
+<div class="fragment"><div class="line">service RomService {</div>
+<div class="line">  // Core</div>
+<div class="line">  rpc ReadBytes(ReadBytesRequest) returns (ReadBytesResponse);</div>
+<div class="line">  rpc WriteBytes(WriteBytesRequest) returns (WriteBytesResponse);</div>
+<div class="line">  rpc GetRomInfo(GetRomInfoRequest) returns (GetRomInfoResponse);</div>
 <div class="line"> </div>
-<div class="line">net::WebSocketClient client;</div>
+<div class="line">  // Overworld</div>
+<div class="line">  rpc ReadOverworldMap(ReadOverworldMapRequest) returns (ReadOverworldMapResponse);</div>
+<div class="line">  rpc WriteOverworldTile(WriteOverworldTileRequest) returns (WriteOverworldTileResponse);</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// Connect to server</span></div>
-<div class="line"><span class="keyword">auto</span> status = client.Connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8765);</div>
+<div class="line">  // Dungeon</div>
+<div class="line">  rpc ReadDungeonRoom(ReadDungeonRoomRequest) returns (ReadDungeonRoomResponse);</div>
+<div class="line">  rpc WriteDungeonTile(WriteDungeonTileRequest) returns (WriteDungeonTileResponse);</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// Set up callbacks</span></div>
-<div class="line">client.OnMessage(<span class="stringliteral">&quot;rom_sync&quot;</span>, [](<span class="keyword">const</span> nlohmann::json&amp; payload) {</div>
-<div class="line">    <span class="comment">// Handle ROM sync</span></div>
-<div class="line">});</div>
+<div class="line">  // Proposals</div>
+<div class="line">  rpc SubmitRomProposal(SubmitRomProposalRequest) returns (SubmitRomProposalResponse);</div>
+<div class="line">  rpc GetProposalStatus(GetProposalStatusRequest) returns (GetProposalStatusResponse);</div>
 <div class="line"> </div>
-<div class="line">client.OnStateChange([](net::ConnectionState state) {</div>
-<div class="line">    <span class="comment">// Handle state changes</span></div>
-<div class="line">});</div>
-<div class="ttc" id="awebsocket__client_8h_html"><div class="ttname"><a href="../../dd/d1b/websocket__client_8h.html">websocket_client.h</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md404"></a>
-Message Types</h2>
-<h3><a class="anchor" id="autotoc_md405"></a>
-1. Session Management</h3>
-<p><b>Host Session</b>: </p><div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;type&quot;: &quot;host_session&quot;,</div>
-<div class="line">  &quot;payload&quot;: {</div>
-<div class="line">    &quot;session_name&quot;: &quot;My ROM Hack&quot;,</div>
-<div class="line">    &quot;username&quot;: &quot;host&quot;,</div>
-<div class="line">    &quot;rom_hash&quot;: &quot;abc123&quot;,</div>
-<div class="line">    &quot;ai_enabled&quot;: true</div>
-<div class="line">  }</div>
+<div class="line">  // Version Management</div>
+<div class="line">  rpc CreateSnapshot(CreateSnapshotRequest) returns (CreateSnapshotResponse);</div>
+<div class="line">  rpc RestoreSnapshot(RestoreSnapshotRequest) returns (RestoreSnapshotResponse);</div>
+<div class="line">  rpc ListSnapshots(ListSnapshotsRequest) returns (ListSnapshotsResponse);</div>
 <div class="line">}</div>
-</div><!-- fragment --><p><b>Join Session</b>: </p><div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;type&quot;: &quot;join_session&quot;,</div>
-<div class="line">  &quot;payload&quot;: {</div>
-<div class="line">    &quot;session_code&quot;: &quot;ABC123&quot;,</div>
-<div class="line">    &quot;username&quot;: &quot;participant&quot;</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md406"></a>
-2. Proposal System (NEW)</h3>
-<p><b>Share Proposal</b>: </p><div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;type&quot;: &quot;proposal_share&quot;,</div>
-<div class="line">  &quot;payload&quot;: {</div>
-<div class="line">    &quot;sender&quot;: &quot;username&quot;,</div>
-<div class="line">    &quot;proposal_data&quot;: {</div>
-<div class="line">      &quot;description&quot;: &quot;Place tile 0x42 at (5,7)&quot;,</div>
-<div class="line">      &quot;type&quot;: &quot;tile_edit&quot;,</div>
-<div class="line">      &quot;data&quot;: {...}</div>
-<div class="line">    }</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><p><b>Vote on Proposal</b> (NEW): </p><div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;type&quot;: &quot;proposal_vote&quot;,</div>
-<div class="line">  &quot;payload&quot;: {</div>
-<div class="line">    &quot;proposal_id&quot;: &quot;prop_123&quot;,</div>
-<div class="line">    &quot;approved&quot;: true,</div>
-<div class="line">    &quot;username&quot;: &quot;voter&quot;</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><p>Response: </p><div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;type&quot;: &quot;proposal_vote_received&quot;,</div>
-<div class="line">  &quot;payload&quot;: {</div>
-<div class="line">    &quot;proposal_id&quot;: &quot;prop_123&quot;,</div>
-<div class="line">    &quot;username&quot;: &quot;voter&quot;,</div>
-<div class="line">    &quot;approved&quot;: true,</div>
-<div class="line">    &quot;votes&quot;: {</div>
-<div class="line">      &quot;host&quot;: true,</div>
-<div class="line">      &quot;user1&quot;: true,</div>
-<div class="line">      &quot;user2&quot;: false</div>
-<div class="line">    },</div>
-<div class="line">    &quot;timestamp&quot;: 1234567890</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><p><b>Update Proposal Status</b>: </p><div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;type&quot;: &quot;proposal_update&quot;,</div>
-<div class="line">  &quot;payload&quot;: {</div>
-<div class="line">    &quot;proposal_id&quot;: &quot;prop_123&quot;,</div>
-<div class="line">    &quot;status&quot;: &quot;approved&quot;  // or &quot;rejected&quot;, &quot;applied&quot;</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md407"></a>
-3. ROM Synchronization</h3>
-<p><b>Send ROM Sync</b>: </p><div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;type&quot;: &quot;rom_sync&quot;,</div>
-<div class="line">  &quot;payload&quot;: {</div>
-<div class="line">    &quot;sender&quot;: &quot;username&quot;,</div>
-<div class="line">    &quot;diff_data&quot;: &quot;base64_encoded_diff&quot;,</div>
-<div class="line">    &quot;rom_hash&quot;: &quot;new_hash&quot;</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md408"></a>
-4. Snapshots</h3>
-<p><b>Share Snapshot</b>: </p><div class="fragment"><div class="line">{</div>
-<div class="line">  &quot;type&quot;: &quot;snapshot_share&quot;,</div>
-<div class="line">  &quot;payload&quot;: {</div>
-<div class="line">    &quot;sender&quot;: &quot;username&quot;,</div>
-<div class="line">    &quot;snapshot_data&quot;: &quot;base64_encoded_image&quot;,</div>
-<div class="line">    &quot;snapshot_type&quot;: &quot;screenshot&quot;</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md409"></a>
-YAZE App Integration</h1>
-<h2><a class="anchor" id="autotoc_md410"></a>
-Using WebSocketClient</h2>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="../../dd/d1b/websocket__client_8h.html">app/net/websocket_client.h</a>&quot;</span></div>
+</div><!-- fragment --><p><b>Use Case: Write with Approval via <code>z3ed</code></b> The <code>z3ed</code> CLI can submit a change as a proposal via gRPC and wait for a host to approve it in the YAZE GUI.</p>
+<div class="fragment"><div class="line"># 1. CLI connects and submits a proposal via gRPC</div>
+<div class="line">z3ed net connect --host server.example.com --port 50051</div>
+<div class="line">z3ed agent run --prompt &quot;Make dungeon 5 harder&quot; --submit-grpc-proposal</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// Create client</span></div>
-<div class="line"><span class="keyword">auto</span> client = std::make_unique&lt;net::WebSocketClient&gt;();</div>
+<div class="line"># 2. The YAZE GUI receives the proposal and the host approves it.</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// Connect</span></div>
-<div class="line"><span class="keywordflow">if</span> (<span class="keyword">auto</span> status = client-&gt;Connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8765); !status.ok()) {</div>
-<div class="line">    <span class="comment">// Handle error</span></div>
-<div class="line">}</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Host a session</span></div>
-<div class="line"><span class="keyword">auto</span> session_info = client-&gt;HostSession(</div>
-<div class="line">    <span class="stringliteral">&quot;My Hack&quot;</span>,</div>
-<div class="line">    <span class="stringliteral">&quot;username&quot;</span>,</div>
-<div class="line">    rom-&gt;GetHash(),</div>
-<div class="line">    <span class="keyword">true</span>  <span class="comment">// AI enabled</span></div>
-<div class="line">);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Set up proposal callback</span></div>
-<div class="line">client-&gt;OnMessage(<span class="stringliteral">&quot;proposal_shared&quot;</span>, [<span class="keyword">this</span>](<span class="keyword">const</span> nlohmann::json&amp; payload) {</div>
-<div class="line">    std::string proposal_id = payload[<span class="stringliteral">&quot;proposal_id&quot;</span>];</div>
-<div class="line">    nlohmann::json proposal_data = payload[<span class="stringliteral">&quot;proposal_data&quot;</span>];</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment">// Add to approval manager</span></div>
-<div class="line">    approval_mgr-&gt;SubmitProposal(</div>
-<div class="line">        proposal_id,</div>
-<div class="line">        payload[<span class="stringliteral">&quot;sender&quot;</span>],</div>
-<div class="line">        proposal_data[<span class="stringliteral">&quot;description&quot;</span>],</div>
-<div class="line">        proposal_data</div>
-<div class="line">    );</div>
-<div class="line">});</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Vote on proposal</span></div>
-<div class="line">client-&gt;VoteOnProposal(proposal_id, <span class="keyword">true</span>, <span class="stringliteral">&quot;my_username&quot;</span>);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md411"></a>
-Using CollaborationService</h2>
+<div class="line"># 3. The z3ed CLI polls for the status and receives the approval.</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md405"></a>
+4. Client Integration</h1>
+<h2><a class="anchor" id="autotoc_md406"></a>
+4.1. YAZE App Integration</h2>
+<p>The <code>CollaborationService</code> provides a high-level API that integrates the version manager, approval manager, and WebSocket client.</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="../../d8/dec/collaboration__service_8h.html">app/net/collaboration_service.h</a>&quot;</span></div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// High-level service that integrates everything</span></div>
 <div class="line"><span class="keyword">auto</span> collab_service = std::make_unique&lt;net::CollaborationService&gt;(rom);</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// Initialize with version manager and approval manager</span></div>
+<div class="line"><span class="comment">// Initialize with managers</span></div>
 <div class="line">collab_service-&gt;Initialize(config, version_mgr, approval_mgr);</div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Connect and host</span></div>
 <div class="line">collab_service-&gt;Connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8765);</div>
 <div class="line">collab_service-&gt;HostSession(<span class="stringliteral">&quot;My Hack&quot;</span>, <span class="stringliteral">&quot;username&quot;</span>);</div>
 <div class="line"> </div>
-<div class="line"><span class="comment">// Submit local changes as proposal</span></div>
-<div class="line">collab_service-&gt;SubmitChangesAsProposal(</div>
-<div class="line">    <span class="stringliteral">&quot;Modified dungeon room 5&quot;</span>,</div>
-<div class="line">    <span class="stringliteral">&quot;username&quot;</span></div>
-<div class="line">);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Auto-sync is handled automatically</span></div>
+<div class="line"><span class="comment">// Submit local changes as a proposal to the group</span></div>
+<div class="line">collab_service-&gt;SubmitChangesAsProposal(<span class="stringliteral">&quot;Modified dungeon room 5&quot;</span>, <span class="stringliteral">&quot;username&quot;</span>);</div>
 <div class="ttc" id="acollaboration__service_8h_html"><div class="ttname"><a href="../../d8/dec/collaboration__service_8h.html">collaboration_service.h</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md412"></a>
-Z3ED CLI Integration</h1>
-<h2><a class="anchor" id="autotoc_md413"></a>
-Connection Commands</h2>
-<div class="fragment"><div class="line"># Connect to collaboration server</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md407"></a>
+4.2. z3ed CLI Integration</h2>
+<p>The CLI provides <code>net</code> commands for interacting with the collaboration server.</p>
+<div class="fragment"><div class="line"># Connect to a collaboration server</div>
 <div class="line">z3ed net connect --host localhost --port 8765</div>
 <div class="line"> </div>
-<div class="line"># Join session</div>
+<div class="line"># Join an existing session</div>
 <div class="line">z3ed net join --code ABC123 --username myname</div>
 <div class="line"> </div>
-<div class="line"># Leave session</div>
-<div class="line">z3ed net leave</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md414"></a>
-Proposal Commands</h2>
-<div class="fragment"><div class="line"># Submit proposal from z3ed</div>
-<div class="line">z3ed agent run --prompt &quot;Place tile 42 at (5,7)&quot; --submit-proposal</div>
+<div class="line"># Submit an AI-generated change as a proposal and wait for it to be approved</div>
+<div class="line">z3ed agent run --prompt &quot;Make boss room more challenging&quot; --submit-proposal --wait-approval</div>
 <div class="line"> </div>
-<div class="line"># Check proposal status</div>
+<div class="line"># Manually check a proposal&#39;s status</div>
 <div class="line">z3ed net proposal status --id prop_123</div>
-<div class="line"> </div>
-<div class="line"># Wait for approval (blocking)</div>
-<div class="line">z3ed net proposal wait --id prop_123 --timeout 60</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md415"></a>
-Example Workflow</h2>
-<div class="fragment"><div class="line"># 1. Connect to server</div>
-<div class="line">z3ed net connect --host localhost</div>
-<div class="line"> </div>
-<div class="line"># 2. Join session</div>
-<div class="line">z3ed net join --code XYZ789 --username alice</div>
-<div class="line"> </div>
-<div class="line"># 3. Submit AI-generated proposal</div>
-<div class="line">z3ed agent run --prompt &quot;Make boss room more challenging&quot; \</div>
-<div class="line">    --submit-proposal --wait-approval</div>
-<div class="line"> </div>
-<div class="line"># 4. If approved, changes are applied</div>
-<div class="line"># If rejected, original ROM is preserved</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md416"></a>
-Windows-Specific Notes</h1>
-<h2><a class="anchor" id="autotoc_md417"></a>
-Building on Windows</h2>
-<p>The networking library automatically links Windows socket support:</p>
-<div class="fragment"><div class="line">if(WIN32)</div>
-<div class="line">  target_link_libraries(yaze_net PUBLIC ws2_32)</div>
-<div class="line">endif()</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md418"></a>
-vcpkg Dependencies</h2>
-<p>For Windows with vcpkg:</p>
-<div class="fragment"><div class="line"># Install dependencies</div>
-<div class="line">vcpkg install openssl:x64-windows</div>
-<div class="line"> </div>
-<div class="line"># CMake will automatically detect and use them</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md419"></a>
-Windows Firewall</h2>
-<p>You may need to allow connections:</p>
-<div class="fragment"><div class="line"># Allow yaze-server</div>
-<div class="line">netsh advfirewall firewall add rule name=&quot;YAZE Server&quot; dir=in action=allow protocol=TCP localport=8765</div>
-<div class="line"> </div>
-<div class="line"># Or through UI: Windows Defender Firewall → Allow an app</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md420"></a>
-Security Considerations</h1>
-<h2><a class="anchor" id="autotoc_md421"></a>
-Transport Security</h2>
-<ol type="1">
-<li><b>Use WSS (WebSocket Secure)</b> in production: <div class="fragment"><div class="line">client-&gt;Connect(<span class="stringliteral">&quot;wss://server.example.com&quot;</span>, 443);</div>
-</div><!-- fragment --></li>
-<li><b>Server configuration</b> with SSL: <div class="fragment"><div class="line">const https = require(&#39;https&#39;);</div>
-<div class="line">const fs = require(&#39;fs&#39;);</div>
-<div class="line"> </div>
-<div class="line">const server = https.createServer({</div>
-<div class="line">  cert: fs.readFileSync(&#39;cert.pem&#39;),</div>
-<div class="line">  key: fs.readFileSync(&#39;key.pem&#39;)</div>
-<div class="line">});</div>
-</div><!-- fragment --></li>
-</ol>
-<h2><a class="anchor" id="autotoc_md422"></a>
-Approval Security</h2>
-<ol type="1">
-<li><b>Host-only mode</b> (safest): <div class="fragment"><div class="line">approval_mgr-&gt;SetApprovalMode(ApprovalMode::kHostOnly);</div>
-</div><!-- fragment --></li>
-<li><b>Verify identities</b>: Use authentication tokens</li>
-<li><b>Rate limiting</b>: Server limits messages to 100/minute</li>
-</ol>
-<h2><a class="anchor" id="autotoc_md423"></a>
-ROM Protection</h2>
-<ol type="1">
-<li><b>Always create snapshots</b> before applying proposals: <div class="fragment"><div class="line">config.create_snapshot_before_sync = <span class="keyword">true</span>;</div>
-</div><!-- fragment --></li>
-<li><b>Mark safe points</b> after verification: <div class="fragment"><div class="line">version_mgr-&gt;MarkAsSafePoint(snapshot_id);</div>
-</div><!-- fragment --></li>
-<li><b>Auto-rollback</b> on errors: <div class="fragment"><div class="line"><span class="keywordflow">if</span> (error) {</div>
-<div class="line">  version_mgr-&gt;RestoreSnapshot(snapshot_before);</div>
-<div class="line">}</div>
-</div><!-- fragment --></li>
-</ol>
-<h1><a class="anchor" id="autotoc_md424"></a>
-Platform-Specific Implementation</h1>
-<h2><a class="anchor" id="autotoc_md425"></a>
-httplib WebSocket Support</h2>
-<p>The implementation uses <code>cpp-httplib</code> for cross-platform support:</p>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md408"></a>
+5. Best Practices &amp; Troubleshooting</h1>
+<h2><a class="anchor" id="autotoc_md409"></a>
+Best Practices</h2>
 <ul>
-<li><b>Windows</b>: Uses Winsock2 (ws2_32.dll)</li>
-<li><b>macOS/Linux</b>: Uses BSD sockets</li>
-<li><b>SSL/TLS</b>: Optional OpenSSL support</li>
+<li><b>For Hosts</b>: Enable auto-backups, mark safe points after playtesting, and use <code>Host-Only</code> approval mode for maximum control.</li>
+<li><b>For Participants</b>: Submit all changes as proposals, wait for approval, and use descriptive names.</li>
+<li><b>For Everyone</b>: Test changes in an emulator before submitting, make small atomic changes, and communicate with the team.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md426"></a>
-Threading</h2>
-<p>All platforms use C++11 threads:</p>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &lt;thread&gt;</span></div>
-<div class="line"><span class="preprocessor">#include &lt;mutex&gt;</span></div>
-<div class="line"> </div>
-<div class="line">std::thread receive_thread([<span class="keyword">this</span>]() {</div>
-<div class="line">    <span class="comment">// Platform-independent receive loop</span></div>
-<div class="line">});</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md427"></a>
-Error Handling</h1>
-<h2><a class="anchor" id="autotoc_md428"></a>
-Connection Errors</h2>
-<div class="fragment"><div class="line"><span class="keyword">auto</span> status = client-&gt;Connect(host, port);</div>
-<div class="line"><span class="keywordflow">if</span> (!status.ok()) {</div>
-<div class="line">    <span class="keywordflow">if</span> (absl::IsUnavailable(status)) {</div>
-<div class="line">        <span class="comment">// Server not reachable</span></div>
-<div class="line">    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (absl::IsDeadlineExceeded(status)) {</div>
-<div class="line">        <span class="comment">// Connection timeout</span></div>
-<div class="line">    }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md429"></a>
-Network State</h2>
-<div class="fragment"><div class="line">client-&gt;OnStateChange([](ConnectionState state) {</div>
-<div class="line">    <span class="keywordflow">switch</span> (state) {</div>
-<div class="line">        <span class="keywordflow">case</span> ConnectionState::kConnected:</div>
-<div class="line">            <span class="comment">// Ready to use</span></div>
-<div class="line">            <span class="keywordflow">break</span>;</div>
-<div class="line">        <span class="keywordflow">case</span> ConnectionState::kDisconnected:</div>
-<div class="line">            <span class="comment">// Clean shutdown</span></div>
-<div class="line">            <span class="keywordflow">break</span>;</div>
-<div class="line">        <span class="keywordflow">case</span> ConnectionState::kReconnecting:</div>
-<div class="line">            <span class="comment">// Attempting reconnect</span></div>
-<div class="line">            <span class="keywordflow">break</span>;</div>
-<div class="line">        <span class="keywordflow">case</span> ConnectionState::kError:</div>
-<div class="line">            <span class="comment">// Fatal error</span></div>
-<div class="line">            <span class="keywordflow">break</span>;</div>
-<div class="line">    }</div>
-<div class="line">});</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md430"></a>
-Performance</h1>
-<h2><a class="anchor" id="autotoc_md431"></a>
-Compression</h2>
-<p>Large messages are compressed:</p>
-<div class="fragment"><div class="line"><span class="comment">// ROM diffs are compressed before sending</span></div>
-<div class="line">std::string compressed = CompressDiff(diff_data);</div>
-<div class="line">client-&gt;SendRomSync(compressed, hash, sender);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md432"></a>
-Batching</h2>
-<p>Small changes are batched:</p>
-<div class="fragment"><div class="line">config.sync_interval_ms = 5000;  <span class="comment">// Batch changes over 5 seconds</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md433"></a>
-Rate Limiting</h2>
-<p>Server enforces:</p><ul>
-<li>100 messages per minute per client</li>
-<li>5MB max ROM diff size</li>
-<li>10MB max snapshot size</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md434"></a>
-Testing</h1>
-<h2><a class="anchor" id="autotoc_md435"></a>
-Unit Tests</h2>
-<div class="fragment"><div class="line">TEST(WebSocketClientTest, ConnectAndDisconnect) {</div>
-<div class="line">    net::WebSocketClient client;</div>
-<div class="line">    ASSERT_TRUE(client.Connect(<span class="stringliteral">&quot;localhost&quot;</span>, 8765).ok());</div>
-<div class="line">    EXPECT_TRUE(client.IsConnected());</div>
-<div class="line">    client.Disconnect();</div>
-<div class="line">    EXPECT_FALSE(client.IsConnected());</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md436"></a>
-Integration Tests</h2>
-<div class="fragment"><div class="line"># Start server</div>
-<div class="line">cd yaze-server</div>
-<div class="line">npm start</div>
-<div class="line"> </div>
-<div class="line"># Run tests</div>
-<div class="line">cd yaze</div>
-<div class="line">cmake --build build --target yaze_net_tests</div>
-<div class="line">./build/bin/yaze_net_tests</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md437"></a>
-Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md438"></a>
-"Failed to connect"</h2>
+<h2><a class="anchor" id="autotoc_md410"></a>
+Troubleshooting</h2>
 <ul>
-<li>Check server is running: <code>ps aux | grep node</code></li>
-<li>Check port is available: <code>netstat -an | grep 8765</code></li>
-<li>Check firewall settings</li>
+<li>**"Failed to connect"**: Check that the <code>yaze-server</code> is running and the port is not blocked by a firewall.</li>
+<li>**"Corruption detected"**: Use <code>version_mgr-&gt;AutoRecover()</code> or manually restore the last known safe point from the Collaboration Panel.</li>
+<li>**"Snapshot not found"**: Verify the snapshot ID is correct and wasn't deleted due to storage limits.</li>
+<li>**"SSL handshake failed"**: Ensure you are using a <code>wss://</code> URL and that a valid SSL certificate is configured on the server.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md439"></a>
-"Connection timeout"</h2>
+<h1><a class="anchor" id="autotoc_md411"></a>
+6. Security Considerations</h1>
 <ul>
-<li>Increase timeout: <code>client-&gt;SetTimeout(10);</code></li>
-<li>Check network connectivity</li>
-<li>Verify server address</li>
+<li><b>Transport Security</b>: Production environments should use WebSocket Secure (<code>wss://</code>) with a valid SSL/TLS certificate.</li>
+<li><b>Approval Security</b>: <code>Host-Only</code> mode is the safest. For more open collaboration, consider a token-based authentication system.</li>
+<li><b>ROM Protection</b>: The <code>RomVersionManager</code> is the primary defense. Always create snapshots before applying proposals and mark safe points often.<ul>
+<li><b>Rate Limiting</b>: The <code>yaze-server</code> enforces a rate limit (default: 100 messages/minute) to prevent abuse.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md440"></a>
-"SSL handshake failed"</h2>
-<ul>
-<li>Verify OpenSSL is installed</li>
-<li>Check certificate validity</li>
-<li>Use WSS URL: <code>wss://</code> not <code>ws://</code></li>
+</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md441"></a>
-Windows-specific: "ws2_32.dll not found"</h2>
+<h1><a class="anchor" id="autotoc_md412"></a>
+7. Future Enhancements</h1>
 <ul>
-<li>Reinstall Windows SDK</li>
-<li>Check PATH environment variable</li>
-<li>Use vcpkg for dependencies</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md442"></a>
-Future Enhancements</h1>
-<ul>
-<li>[ ] WebRTC for peer-to-peer connections</li>
-<li>[ ] Binary protocol for faster ROM syncs</li>
-<li>[ ] Automatic reconnection with exponential backoff</li>
-<li>[ ] Connection pooling for multiple sessions</li>
-<li>[ ] NAT traversal for home networks</li>
-<li>[ ] End-to-end encryption for proposals</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md443"></a>
-See Also</h1>
-<ul>
-<li>Collaboration Guide - Version management and approval</li>
-<li><a class="el" href="../../d0/d30/md_README.html">Z3ED README</a> - Main documentation</li>
-<li>yaze-server README - Server setup </li>
+<li><b>Encrypted WebSocket (WSS) support</b></li>
+<li><b>Diff visualization in UI</b></li>
+<li><b>Merge conflict resolution</b></li>
+<li><b>Branch/fork support for experimental changes</b></li>
+<li><b>AI-assisted proposal review</b></li>
+<li><b>Cloud snapshot backup</b></li>
+<li><b>Multi-host sessions</b></li>
+<li><b>Access control lists (ACLs)</b></li>
+<li><b>WebRTC for peer-to-peer connections</b></li>
+<li><b>Binary protocol for faster ROM syncs</b></li>
+<li><b>Automatic reconnection with exponential backoff</b></li>
+<li><b>Connection pooling for multiple sessions</b></li>
+<li><b>NAT traversal for home networks</b></li>
+<li><b>End-to-end encryption for proposals</b> </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->

@@ -1,0 +1,28 @@
+var classyaze_1_1cli_1_1agent_1_1TodoManager =
+[
+    [ "TodoManager", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#ad7aa98ac3f724bd96882aa5cd9395af0", null ],
+    [ "TodoManager", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a9e5dee05202abd8b5cd3084d30825af2", null ],
+    [ "Initialize", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#aa4d7b22359c0374507ce1359ec2fceb4", null ],
+    [ "CreateTodo", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a77c75b57eda322eee52aec230c769b9e", null ],
+    [ "UpdateTodo", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a0d00655e9186418b4d6f9bf047a0781a", null ],
+    [ "UpdateStatus", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a9f499da273986a1f819a2f01a0d8feba", null ],
+    [ "GetTodo", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#ae88ff713098c5e209ae7515a5728c84c", null ],
+    [ "GetAllTodos", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#af767df0886636b476ddaa7e875e7c5a0", null ],
+    [ "GetTodosByStatus", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#aac7dbaffd37559c3b75a6a9fdea2dafd", null ],
+    [ "GetTodosByCategory", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a80d9bc5c5e76ff1de3c4fc692b7b5166", null ],
+    [ "GetNextActionableTodo", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7bc49bc8220497fbe113c5767ea6f66c", null ],
+    [ "DeleteTodo", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a9464aa3b6c191e50910b315e34a13a53", null ],
+    [ "ClearCompleted", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a2a9f56c83231eaafd4fef0c0e4d4f8e0", null ],
+    [ "Save", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a357a05137ebfd3eb9b51461a2b4044eb", null ],
+    [ "Load", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a8b53da98f73eb2558201538d2e58b31b", null ],
+    [ "GenerateExecutionPlan", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a4f0c8fadc1c843fe3ae98668f99f5de6", null ],
+    [ "ExportAsJson", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7ee3828fbad973b4098bda48c7297e0d", null ],
+    [ "ImportFromJson", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a2aed43e3770662836ccdbdb4623cf5aa", null ],
+    [ "GenerateId", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a05d07cc21bd2126464376bd1440bd6db", null ],
+    [ "GetTimestamp", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a68400b4c226d998a1628420a20082f7e", null ],
+    [ "CanExecute", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a88d5a64d5ceb07d099d4fe459caf0fe2", null ],
+    [ "data_dir_", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a26db30c145f3c96bb93f7bd964569854", null ],
+    [ "todos_file_", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7b22449ce4587132c3874d5422328a1e", null ],
+    [ "todos_", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#aee64fa7d76df4e168135007cd05fff3e", null ],
+    [ "next_id_", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#aa8abb5e278deca1c87a80aa4972a4545", null ]
+];

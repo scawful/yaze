@@ -1,0 +1,11 @@
+<map id="yaze::cli::ai::VisionActionRefiner::AnalyzeScreenshot" name="yaze::cli::ai::VisionActionRefiner::AnalyzeScreenshot">
+<area shape="rect" id="Node000001" title="Analyze the current GUI state from a screenshot." alt="" coords="5,71,184,111"/>
+<area shape="rect" id="Node000002" href="$df/dcb/classyaze_1_1cli_1_1ai_1_1VisionActionRefiner.html#ad707abea32bb415b8971ead9ba2066a9" title=" " alt="" coords="242,5,430,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,68,242,48,244,53,173,73"/>
+<area shape="rect" id="Node000003" href="$db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a0767d7fb1097b5c331c386b88ae9099e" title=" " alt="" coords="235,71,437,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,88,220,88,220,94,184,94"/>
+<area shape="rect" id="Node000006" href="$df/dcb/classyaze_1_1cli_1_1ai_1_1VisionActionRefiner.html#a2469076be844872c2164b083328aa06a" title=" " alt="" coords="232,136,440,177"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="173,109,244,129,242,134,171,114"/>
+<area shape="rect" id="Node000004" href="$db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a747ba76fe2ab26b5dff56e6b587eb95f" title=" " alt="" coords="488,71,658,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="437,88,472,88,472,94,437,94"/>
+</map>

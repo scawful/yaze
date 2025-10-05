@@ -1,0 +1,11 @@
+<map id="yaze::cli::ai::VisionActionRefiner" name="yaze::cli::ai::VisionActionRefiner">
+<area shape="rect" id="Node000001" title="Uses Gemini Vision to analyze GUI screenshots and refine AI actions." alt="" coords="153,183,315,223"/>
+<area shape="rect" id="Node000002" href="$db/d2d/classyaze_1_1cli_1_1GeminiAIService.html" title=" " alt="" coords="149,94,319,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="237,135,237,182,231,182,231,135"/>
+<area shape="rect" id="Node000003" href="$d2/d2a/classyaze_1_1cli_1_1AIService.html" title=" " alt="" coords="5,5,135,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="108,36,212,91,210,96,105,41"/>
+<area shape="rect" id="Node000004" href="$dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html" title=" " alt="" coords="159,5,309,31"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="237,47,237,94,231,94,231,47"/>
+<area shape="rect" id="Node000005" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html" title=" " alt="" coords="333,5,487,31"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="373,41,260,96,258,91,370,36"/>
+</map>

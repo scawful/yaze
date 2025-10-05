@@ -1,0 +1,11 @@
+<map id="yaze::cli::ai::VisionActionRefiner::ExtractVisibleWidgets" name="yaze::cli::ai::VisionActionRefiner::ExtractVisibleWidgets">
+<area shape="rect" id="Node000001" title="Extract all visible widgets from a screenshot." alt="" coords="5,39,199,79"/>
+<area shape="rect" id="Node000002" href="$df/dcb/classyaze_1_1cli_1_1ai_1_1VisionActionRefiner.html#a1958be26e7f39af4f77d90f57a811482" title=" " alt="" coords="247,5,482,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,44,231,40,231,45,200,49"/>
+<area shape="rect" id="Node000003" href="$db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a0767d7fb1097b5c331c386b88ae9099e" title=" " alt="" coords="264,71,465,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="200,68,249,74,248,80,199,73"/>
+<area shape="rect" id="Node000004" href="$db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a747ba76fe2ab26b5dff56e6b587eb95f" title=" " alt="" coords="530,37,700,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="465,75,515,68,515,74,466,80"/>
+<area shape="rect" id="Node000005" href="$db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a8fabee613135908e8ef20253f8261658" title=" " alt="" coords="530,103,700,143"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="466,101,515,108,515,113,465,107"/>
+</map>

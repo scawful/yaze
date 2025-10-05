@@ -32,8 +32,8 @@ var classyaze_1_1gfx_1_1Arena =
     [ "layer1_buffer_", "d4/de6/classyaze_1_1gfx_1_1Arena.html#ac4e2011a2e3310f093861f6d1e558fa1", null ],
     [ "layer2_buffer_", "d4/de6/classyaze_1_1gfx_1_1Arena.html#a56c7243e3f809866903126bc0bb05667", null ],
     [ "gfx_sheets_", "d4/de6/classyaze_1_1gfx_1_1Arena.html#aab6900ef8dd2d0815a657a1fe5e0228a", null ],
-    [ "textures_", "d4/de6/classyaze_1_1gfx_1_1Arena.html#a869dc42aedfa5f8debcc5b7e2284014b", null ],
-    [ "surfaces_", "d4/de6/classyaze_1_1gfx_1_1Arena.html#a8ec5dee5a6d3293d06f31655d0adfdf0", null ],
+    [ "textures_", "d4/de6/classyaze_1_1gfx_1_1Arena.html#a24baf90430273296f006f93aa4d6ed4f", null ],
+    [ "surfaces_", "d4/de6/classyaze_1_1gfx_1_1Arena.html#a0a33bab6442a2d148686522a366a51d5", null ],
     [ "texture_pool_", "d4/de6/classyaze_1_1gfx_1_1Arena.html#a0bcd3b965edadeb0d3f8fbe893f41d7a", null ],
     [ "surface_pool_", "d4/de6/classyaze_1_1gfx_1_1Arena.html#ad1e8755d810c5d3b845e7a0801cb6ea3", null ],
     [ "batch_update_queue_", "d4/de6/classyaze_1_1gfx_1_1Arena.html#ac0361a60394b05ba32449415ff04c968", null ]

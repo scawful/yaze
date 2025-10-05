@@ -99,6 +99,7 @@ var namespaceyaze_1_1cli =
       [ "MainMenuComponent", "d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#a7dfff14a075ea3b86b67ea5eeb640548", null ]
     ] ],
     [ "gui", "d9/db5/namespaceyaze_1_1cli_1_1gui.html", "d9/db5/namespaceyaze_1_1cli_1_1gui" ],
+    [ "handlers", "d0/db7/namespaceyaze_1_1cli_1_1handlers.html", "d0/db7/namespaceyaze_1_1cli_1_1handlers" ],
     [ "message", "db/d13/namespaceyaze_1_1cli_1_1message.html", "db/d13/namespaceyaze_1_1cli_1_1message" ],
     [ "net", "d3/dc3/namespaceyaze_1_1cli_1_1net.html", "d3/dc3/namespaceyaze_1_1cli_1_1net" ],
     [ "overworld", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html", "d5/d93/namespaceyaze_1_1cli_1_1overworld" ],

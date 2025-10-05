@@ -1,0 +1,11 @@
+<map id="yaze::cli::ai::VisionActionRefiner::VerifyAction" name="yaze::cli::ai::VisionActionRefiner::VerifyAction">
+<area shape="rect" id="Node000001" title="Verify an action was successful by comparing before/after screenshots." alt="" coords="5,71,167,111"/>
+<area shape="rect" id="Node000002" href="$df/dcb/classyaze_1_1cli_1_1ai_1_1VisionActionRefiner.html#a6d0f6165dd194373c48ecdb914c08769" title=" " alt="" coords="225,5,428,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,68,234,48,235,53,164,73"/>
+<area shape="rect" id="Node000004" href="$db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a0767d7fb1097b5c331c386b88ae9099e" title=" " alt="" coords="226,71,427,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="167,88,210,88,210,94,167,94"/>
+<area shape="rect" id="Node000007" href="$df/dcb/classyaze_1_1cli_1_1ai_1_1VisionActionRefiner.html#afeadf7834a185c8541ca4d065f13e937" title=" " alt="" coords="215,136,438,177"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="164,109,235,129,234,134,162,114"/>
+<area shape="rect" id="Node000003" href="$df/def/classyaze_1_1cli_1_1ai_1_1AIActionParser.html#aa5095eb5dab1ad9aabdedb4913eaaa40" title=" " alt="" coords="486,5,662,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="428,23,470,23,470,28,428,28"/>
+</map>

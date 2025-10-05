@@ -30,6 +30,9 @@ var annotated_dup =
           [ "anonymous_namespace{general_commands.cc}", "d1/ddf/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03.html", [
             [ "DescribeOptions", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions" ]
           ] ],
+          [ "anonymous_namespace{palette_commands.cc}", "d0/d09/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03.html", [
+            [ "RGB", "d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html", "d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB" ]
+          ] ],
           [ "AgentConfig", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html", "d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig" ],
           [ "ChatMessage", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html", "d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage" ],
           [ "ConversationalAgentService", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService" ],
@@ -37,11 +40,20 @@ var annotated_dup =
           [ "ProposalCreationRequest", "d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest.html", "d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest" ],
           [ "ProposalCreationResult", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html", "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult" ],
           [ "SimpleChatSession", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession" ],
-          [ "ToolDispatcher", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher" ]
+          [ "TodoItem", "d0/d0e/structyaze_1_1cli_1_1agent_1_1TodoItem.html", "d0/d0e/structyaze_1_1cli_1_1agent_1_1TodoItem" ],
+          [ "TodoManager", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html", "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager" ],
+          [ "ToolDispatcher", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html", "d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher" ],
+          [ "VimMode", "d9/dd2/classyaze_1_1cli_1_1agent_1_1VimMode.html", "d9/dd2/classyaze_1_1cli_1_1agent_1_1VimMode" ]
         ] ],
         [ "ai", "d8/d4c/namespaceyaze_1_1cli_1_1ai.html", [
+          [ "ActionRefinement", "d4/d66/structyaze_1_1cli_1_1ai_1_1ActionRefinement.html", "d4/d66/structyaze_1_1cli_1_1ai_1_1ActionRefinement" ],
           [ "AIAction", "d3/d8b/structyaze_1_1cli_1_1ai_1_1AIAction.html", "d3/d8b/structyaze_1_1cli_1_1ai_1_1AIAction" ],
-          [ "AIActionParser", "df/def/classyaze_1_1cli_1_1ai_1_1AIActionParser.html", null ]
+          [ "AIActionParser", "df/def/classyaze_1_1cli_1_1ai_1_1AIActionParser.html", null ],
+          [ "AIGUIController", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController.html", "d0/da5/classyaze_1_1cli_1_1ai_1_1AIGUIController" ],
+          [ "ControlLoopConfig", "d2/d73/structyaze_1_1cli_1_1ai_1_1ControlLoopConfig.html", "d2/d73/structyaze_1_1cli_1_1ai_1_1ControlLoopConfig" ],
+          [ "ControlResult", "d0/dfd/structyaze_1_1cli_1_1ai_1_1ControlResult.html", "d0/dfd/structyaze_1_1cli_1_1ai_1_1ControlResult" ],
+          [ "VisionActionRefiner", "df/dcb/classyaze_1_1cli_1_1ai_1_1VisionActionRefiner.html", "df/dcb/classyaze_1_1cli_1_1ai_1_1VisionActionRefiner" ],
+          [ "VisionAnalysisResult", "d2/d07/structyaze_1_1cli_1_1ai_1_1VisionAnalysisResult.html", "d2/d07/structyaze_1_1cli_1_1ai_1_1VisionAnalysisResult" ]
         ] ],
         [ "gui", "d9/db5/namespaceyaze_1_1cli_1_1gui.html", [
           [ "GuiActionGenerator", "df/d9d/classyaze_1_1cli_1_1gui_1_1GuiActionGenerator.html", "df/d9d/classyaze_1_1cli_1_1gui_1_1GuiActionGenerator" ]
@@ -168,7 +180,6 @@ var annotated_dup =
         [ "AsarWrapper", "da/dd2/classyaze_1_1core_1_1AsarWrapper.html", "da/dd2/classyaze_1_1core_1_1AsarWrapper" ],
         [ "Controller", "d4/d84/classyaze_1_1core_1_1Controller.html", "d4/d84/classyaze_1_1core_1_1Controller" ],
         [ "FeatureFlags", "d8/d3f/classyaze_1_1core_1_1FeatureFlags.html", "d8/d3f/classyaze_1_1core_1_1FeatureFlags" ],
-        [ "FileDialogWrapper", "d5/d6c/classyaze_1_1core_1_1FileDialogWrapper.html", null ],
         [ "FontConfig", "d6/d2f/structyaze_1_1core_1_1FontConfig.html", "d6/d2f/structyaze_1_1core_1_1FontConfig" ],
         [ "FontState", "d6/df8/structyaze_1_1core_1_1FontState.html", "d6/df8/structyaze_1_1core_1_1FontState" ],
         [ "ProjectManager", "d9/d7f/classyaze_1_1core_1_1ProjectManager.html", "d9/d7f/classyaze_1_1core_1_1ProjectManager" ],
@@ -176,9 +187,6 @@ var annotated_dup =
         [ "RecentFilesManager", "d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html", "d8/d4b/classyaze_1_1core_1_1RecentFilesManager" ],
         [ "Renderer", "da/d81/classyaze_1_1core_1_1Renderer.html", "da/d81/classyaze_1_1core_1_1Renderer" ],
         [ "ResourceLabelManager", "d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html", "d8/d4d/structyaze_1_1core_1_1ResourceLabelManager" ],
-        [ "SDL_Deleter", "d3/d69/structyaze_1_1core_1_1SDL__Deleter.html", "d3/d69/structyaze_1_1core_1_1SDL__Deleter" ],
-        [ "SDL_Surface_Deleter", "df/dc2/structyaze_1_1core_1_1SDL__Surface__Deleter.html", "df/dc2/structyaze_1_1core_1_1SDL__Surface__Deleter" ],
-        [ "SDL_Texture_Deleter", "d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter.html", "d3/d05/structyaze_1_1core_1_1SDL__Texture__Deleter" ],
         [ "WidgetState", "d1/d17/structyaze_1_1core_1_1WidgetState.html", "d1/d17/structyaze_1_1core_1_1WidgetState" ],
         [ "Window", "de/d86/structyaze_1_1core_1_1Window.html", "de/d86/structyaze_1_1core_1_1Window" ],
         [ "WorkspaceSettings", "d1/def/structyaze_1_1core_1_1WorkspaceSettings.html", "d1/def/structyaze_1_1core_1_1WorkspaceSettings" ],
@@ -219,7 +227,9 @@ var annotated_dup =
         [ "DungeonUsageTracker", "dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html", "dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker" ],
         [ "Editor", "d3/d9f/classyaze_1_1editor_1_1Editor.html", "d3/d9f/classyaze_1_1editor_1_1Editor" ],
         [ "EditorContext", "dc/d69/structyaze_1_1editor_1_1EditorContext.html", "dc/d69/structyaze_1_1editor_1_1EditorContext" ],
+        [ "EditorInfo", "d1/dc6/structyaze_1_1editor_1_1EditorInfo.html", "d1/dc6/structyaze_1_1editor_1_1EditorInfo" ],
         [ "EditorManager", "dd/d12/classyaze_1_1editor_1_1EditorManager.html", "dd/d12/classyaze_1_1editor_1_1EditorManager" ],
+        [ "EditorSelectionDialog", "d9/da8/classyaze_1_1editor_1_1EditorSelectionDialog.html", "d9/da8/classyaze_1_1editor_1_1EditorSelectionDialog" ],
         [ "EditorSet", "d3/d21/classyaze_1_1editor_1_1EditorSet.html", "d3/d21/classyaze_1_1editor_1_1EditorSet" ],
         [ "ExampleAppPropertyEditor", "de/d7d/structyaze_1_1editor_1_1ExampleAppPropertyEditor.html", "de/d7d/structyaze_1_1editor_1_1ExampleAppPropertyEditor" ],
         [ "ExampleMemberInfo", "d5/db2/structyaze_1_1editor_1_1ExampleMemberInfo.html", "d5/db2/structyaze_1_1editor_1_1ExampleMemberInfo" ],
@@ -231,6 +241,7 @@ var annotated_dup =
         [ "HistoryManager", "d9/d6c/classyaze_1_1editor_1_1HistoryManager.html", "d9/d6c/classyaze_1_1editor_1_1HistoryManager" ],
         [ "MapPropertiesSystem", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem" ],
         [ "MemoryEditorWithDiffChecker", "d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html", "d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker" ],
+        [ "MenuBuilder", "d7/d73/classyaze_1_1editor_1_1MenuBuilder.html", "d7/d73/classyaze_1_1editor_1_1MenuBuilder" ],
         [ "MessageData", "d3/d89/structyaze_1_1editor_1_1MessageData.html", "d3/d89/structyaze_1_1editor_1_1MessageData" ],
         [ "MessageEditor", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html", "d3/d6c/classyaze_1_1editor_1_1MessageEditor" ],
         [ "MessagePreview", "dc/dd1/structyaze_1_1editor_1_1MessagePreview.html", "dc/dd1/structyaze_1_1editor_1_1MessagePreview" ],
@@ -243,6 +254,7 @@ var annotated_dup =
         [ "PopupParams", "df/dc2/structyaze_1_1editor_1_1PopupParams.html", "df/dc2/structyaze_1_1editor_1_1PopupParams" ],
         [ "ProjectFileEditor", "d8/ddf/classyaze_1_1editor_1_1ProjectFileEditor.html", "d8/ddf/classyaze_1_1editor_1_1ProjectFileEditor" ],
         [ "ProposalDrawer", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html", "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer" ],
+        [ "RecentProject", "d6/d7f/structyaze_1_1editor_1_1RecentProject.html", "d6/d7f/structyaze_1_1editor_1_1RecentProject" ],
         [ "ScreenEditor", "db/dcc/classyaze_1_1editor_1_1ScreenEditor.html", "db/dcc/classyaze_1_1editor_1_1ScreenEditor" ],
         [ "SettingsEditor", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html", "dd/d00/classyaze_1_1editor_1_1SettingsEditor" ],
         [ "Shortcut", "d5/d87/structyaze_1_1editor_1_1Shortcut.html", "d5/d87/structyaze_1_1editor_1_1Shortcut" ],
@@ -252,7 +264,8 @@ var annotated_dup =
         [ "TextElement", "d8/dbd/structyaze_1_1editor_1_1TextElement.html", "d8/dbd/structyaze_1_1editor_1_1TextElement" ],
         [ "Tile16Editor", "db/d82/classyaze_1_1editor_1_1Tile16Editor.html", "db/d82/classyaze_1_1editor_1_1Tile16Editor" ],
         [ "Toast", "d2/d11/structyaze_1_1editor_1_1Toast.html", "d2/d11/structyaze_1_1editor_1_1Toast" ],
-        [ "ToastManager", "d7/d92/classyaze_1_1editor_1_1ToastManager.html", "d7/d92/classyaze_1_1editor_1_1ToastManager" ]
+        [ "ToastManager", "d7/d92/classyaze_1_1editor_1_1ToastManager.html", "d7/d92/classyaze_1_1editor_1_1ToastManager" ],
+        [ "WelcomeScreen", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen" ]
       ] ],
       [ "emu", "d6/d20/namespaceyaze_1_1emu.html", [
         [ "Apu", "d7/da7/classyaze_1_1emu_1_1Apu.html", "d7/da7/classyaze_1_1emu_1_1Apu" ],
@@ -443,7 +456,6 @@ var annotated_dup =
         [ "Color", "d4/dca/structyaze_1_1gui_1_1Color.html", "d4/dca/structyaze_1_1gui_1_1Color" ],
         [ "DockSpaceRenderer", "d9/d95/classyaze_1_1gui_1_1DockSpaceRenderer.html", null ],
         [ "DungeonAsset", "d6/d87/structyaze_1_1gui_1_1DungeonAsset.html", "d6/d87/structyaze_1_1gui_1_1DungeonAsset" ],
-        [ "EnhancedPaletteEditor", "df/d20/classyaze_1_1gui_1_1EnhancedPaletteEditor.html", "df/d20/classyaze_1_1gui_1_1EnhancedPaletteEditor" ],
         [ "EnhancedTheme", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme" ],
         [ "ExampleSelectionWithDeletion", "d4/d4b/structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html", "d4/d4b/structyaze_1_1gui_1_1ExampleSelectionWithDeletion" ],
         [ "FlagsMenu", "d0/df3/structyaze_1_1gui_1_1FlagsMenu.html", "d0/df3/structyaze_1_1gui_1_1FlagsMenu" ],
@@ -452,6 +464,7 @@ var annotated_dup =
         [ "MenuItem", "d7/dc5/structyaze_1_1gui_1_1MenuItem.html", "d7/dc5/structyaze_1_1gui_1_1MenuItem" ],
         [ "MultiSelect", "d2/d39/classyaze_1_1gui_1_1MultiSelect.html", "d2/d39/classyaze_1_1gui_1_1MultiSelect" ],
         [ "OverworldAsset", "d7/d14/structyaze_1_1gui_1_1OverworldAsset.html", "d7/d14/structyaze_1_1gui_1_1OverworldAsset" ],
+        [ "PaletteWidget", "d9/d7f/classyaze_1_1gui_1_1PaletteWidget.html", "d9/d7f/classyaze_1_1gui_1_1PaletteWidget" ],
         [ "ScopedCanvas", "da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html", "da/dbd/classyaze_1_1gui_1_1ScopedCanvas" ],
         [ "SpriteAsset", "d5/d30/structyaze_1_1gui_1_1SpriteAsset.html", "d5/d30/structyaze_1_1gui_1_1SpriteAsset" ],
         [ "Table", "d8/d52/structyaze_1_1gui_1_1Table.html", "d8/d52/structyaze_1_1gui_1_1Table" ],
@@ -514,13 +527,18 @@ var annotated_dup =
         [ "ZSCustomOverworldUpgradeTest", "d1/de2/classyaze_1_1test_1_1ZSCustomOverworldUpgradeTest.html", "d1/de2/classyaze_1_1test_1_1ZSCustomOverworldUpgradeTest" ]
       ] ],
       [ "util", "d4/de1/namespaceyaze_1_1util.html", [
+        [ "FileDialogWrapper", "d2/d3f/classyaze_1_1util_1_1FileDialogWrapper.html", null ],
         [ "Flag", "d7/dc5/classyaze_1_1util_1_1Flag.html", "d7/dc5/classyaze_1_1util_1_1Flag" ],
         [ "FlagParser", "d1/d71/classyaze_1_1util_1_1FlagParser.html", "d1/d71/classyaze_1_1util_1_1FlagParser" ],
         [ "FlagRegistry", "d5/d1f/classyaze_1_1util_1_1FlagRegistry.html", "d5/d1f/classyaze_1_1util_1_1FlagRegistry" ],
         [ "HexStringParams", "da/df6/structyaze_1_1util_1_1HexStringParams.html", "da/df6/structyaze_1_1util_1_1HexStringParams" ],
         [ "IFlag", "d7/df7/classyaze_1_1util_1_1IFlag.html", "d7/df7/classyaze_1_1util_1_1IFlag" ],
         [ "LogManager", "d1/d42/classyaze_1_1util_1_1LogManager.html", "d1/d42/classyaze_1_1util_1_1LogManager" ],
-        [ "NotifyValue", "de/d82/classyaze_1_1util_1_1NotifyValue.html", "de/d82/classyaze_1_1util_1_1NotifyValue" ]
+        [ "NotifyValue", "de/d82/classyaze_1_1util_1_1NotifyValue.html", "de/d82/classyaze_1_1util_1_1NotifyValue" ],
+        [ "PlatformPaths", "db/dd8/classyaze_1_1util_1_1PlatformPaths.html", null ],
+        [ "SDL_Deleter", "db/d66/structyaze_1_1util_1_1SDL__Deleter.html", "db/d66/structyaze_1_1util_1_1SDL__Deleter" ],
+        [ "SDL_Surface_Deleter", "df/d22/structyaze_1_1util_1_1SDL__Surface__Deleter.html", "df/d22/structyaze_1_1util_1_1SDL__Surface__Deleter" ],
+        [ "SDL_Texture_Deleter", "db/dac/structyaze_1_1util_1_1SDL__Texture__Deleter.html", "db/dac/structyaze_1_1util_1_1SDL__Texture__Deleter" ]
       ] ],
       [ "zelda3", "d5/d1f/namespaceyaze_1_1zelda3.html", [
         [ "anonymous_namespace{room_object.cc}", "d5/da6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03.html", [

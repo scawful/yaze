@@ -1,0 +1,5 @@
+<map id="yaze::cli::agent::TodoManager::Load" name="yaze::cli::agent::TodoManager::Load">
+<area shape="rect" id="Node000001" title="Load TODOs from persistent storage." alt="" coords="5,5,195,46"/>
+<area shape="rect" id="Node000002" href="$d0/d0e/structyaze_1_1cli_1_1agent_1_1TodoItem.html#aaf5ed90bfd50f7f8d9970a10620b58c8" title=" " alt="" coords="243,5,408,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,23,227,23,227,28,195,28"/>
+</map>
