@@ -41,6 +41,7 @@ set(
   app/editor/system/shortcut_manager.cc
   app/editor/system/popup_manager.cc
   app/editor/system/proposal_drawer.cc
+  app/editor/system/agent_chat_history_popup.cc
   app/editor/agent/agent_chat_history_codec.cc
 )
 

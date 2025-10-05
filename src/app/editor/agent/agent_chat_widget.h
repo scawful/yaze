@@ -25,6 +25,7 @@ namespace editor {
 
 class ProposalDrawer;
 class ToastManager;
+class AgentChatHistoryPopup;
 
 /**
  * @class AgentChatWidget
@@ -86,6 +87,8 @@ class AgentChatWidget {
   void SetToastManager(ToastManager* toast_manager);
 
   void SetProposalDrawer(ProposalDrawer* drawer);
+  
+  void SetChatHistoryPopup(AgentChatHistoryPopup* popup);
 
   void SetCollaborationCallbacks(const CollaborationCallbacks& callbacks) {
     collaboration_callbacks_ = callbacks;
@@ -228,6 +231,9 @@ public:
   void HandleRomSyncReceived(const std::string& diff_data, const std::string& rom_hash);
   void HandleSnapshotReceived(const std::string& snapshot_data, const std::string& snapshot_type);
   void HandleProposalReceived(const std::string& proposal_data);
+  
+  // History synchronization
+  void SyncHistoryToPopup();
 
   // Chat session management
   struct ChatSession {
@@ -261,6 +267,7 @@ public:
   int last_proposal_count_ = 0;
   ToastManager* toast_manager_ = nullptr;
   ProposalDrawer* proposal_drawer_ = nullptr;
+  AgentChatHistoryPopup* chat_history_popup_ = nullptr;
   std::string pending_focus_proposal_id_;
   absl::Time last_persist_time_ = absl::InfinitePast();
   
