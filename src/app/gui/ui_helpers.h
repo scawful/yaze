@@ -133,6 +133,38 @@ void CenterText(const char* text);
 void RightAlign(float width);
 
 // ============================================================================
+// Animation Helpers
+// ============================================================================
+
+// Pulsing alpha animation (for loading indicators, etc.)
+float GetPulseAlpha(float speed = 1.0f);
+
+// Fade-in animation (for panel transitions)
+float GetFadeIn(float duration = 0.3f);
+
+// Apply pulsing effect to next widget
+void PushPulseEffect(float speed = 1.0f);
+void PopPulseEffect();
+
+// Loading spinner (animated circle)
+void LoadingSpinner(const char* label = nullptr, float radius = 10.0f);
+
+// ============================================================================
+// Responsive Layout Helpers
+// ============================================================================
+
+// Get responsive width based on available space
+float GetResponsiveWidth(float min_width, float max_width, float ratio = 0.5f);
+
+// Auto-fit table columns
+void SetupResponsiveColumns(int count, float min_col_width = 100.0f);
+
+// Responsive two-column layout
+void BeginTwoColumns(const char* id, float split_ratio = 0.6f);
+void SwitchColumn();
+void EndTwoColumns();
+
+// ============================================================================
 // Input Helpers (complement existing gui::InputHex functions)
 // ============================================================================
 
