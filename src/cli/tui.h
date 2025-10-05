@@ -58,6 +58,7 @@ enum class LayoutID {
   kHelp,
   kExit,
   kMainMenu,
+  kDashboard,
   kError,
 };
 
