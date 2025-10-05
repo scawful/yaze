@@ -1,4 +1,4 @@
-# z3ed Networking, Collaboration, and Remote Access
+# Networking and Collaboration 
 
 **Version**: 0.2.0-alpha
 **Last Updated**: October 5, 2025

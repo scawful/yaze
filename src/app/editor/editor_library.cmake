@@ -51,6 +51,7 @@ if(YAZE_WITH_GRPC)
     app/editor/agent/agent_chat_widget.cc
     app/editor/agent/agent_collaboration_coordinator.cc
     app/editor/agent/network_collaboration_coordinator.cc
+    app/editor/agent/automation_bridge.cc
   )
 endif()
 

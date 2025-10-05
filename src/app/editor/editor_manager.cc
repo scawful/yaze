@@ -56,6 +56,9 @@
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/ai/gemini_ai_service.h"
 #endif
+#ifdef YAZE_WITH_GRPC
+#include "app/editor/agent/automation_bridge.h"
+#endif
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/log.h"
@@ -378,6 +381,25 @@ void EditorManager::Initialize(const std::string& filename) {
   };
   
   agent_editor_.GetChatWidget()->SetZ3EDCommandCallbacks(z3ed_callbacks);
+
+  AgentChatWidget::AutomationCallbacks automation_callbacks;
+  automation_callbacks.open_harness_dashboard = [this]() {
+    test::TestManager::Get().ShowHarnessDashboard();
+  };
+  automation_callbacks.show_active_tests = [this]() {
+    test::TestManager::Get().ShowHarnessActiveTests();
+  };
+  automation_callbacks.replay_last_plan = [this]() {
+    test::TestManager::Get().ReplayLastPlan();
+  };
+  automation_callbacks.focus_proposal = [this](const std::string& proposal_id) {
+    proposal_drawer_.Show();
+    proposal_drawer_.FocusProposal(proposal_id);
+  };
+  agent_editor_.GetChatWidget()->SetAutomationCallbacks(automation_callbacks);
+
+  harness_telemetry_bridge_.SetChatWidget(agent_editor_.GetChatWidget());
+  test::TestManager::Get().SetHarnessListener(&harness_telemetry_bridge_);
 #endif
 
   // Load critical user settings first

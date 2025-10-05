@@ -118,6 +118,7 @@ struct ResourceStats {
 };
 
 // Test harness execution tracking for gRPC automation (IT-05)
+#if defined(YAZE_WITH_GRPC)
 enum class HarnessTestStatus {
   kUnspecified,
   kQueued,
@@ -126,6 +127,9 @@ enum class HarnessTestStatus {
   kFailed,
   kTimeout,
 };
+
+const char* HarnessStatusToString(HarnessTestStatus status);
+HarnessTestStatus HarnessStatusFromString(absl::string_view status);
 
 struct HarnessTestExecution {
   std::string test_id;
@@ -155,6 +159,14 @@ struct HarnessTestSummary {
   int fail_count = 0;
   absl::Duration total_duration = absl::ZeroDuration();
 };
+
+class HarnessListener {
+ public:
+  virtual ~HarnessListener() = default;
+  virtual void OnHarnessTestUpdated(const HarnessTestExecution& execution) = 0;
+  virtual void OnHarnessPlanSummary(const std::string& summary) = 0;
+};
+#endif  // defined(YAZE_WITH_GRPC)
 
 // Main test manager - singleton
 class TestManager {
@@ -255,6 +267,7 @@ class TestManager {
   // File dialog mode now uses global feature flags
 
   // Harness test introspection (IT-05)
+#if defined(YAZE_WITH_GRPC)
   std::string RegisterHarnessTest(const std::string& name,
                                   const std::string& category)
       ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
@@ -280,6 +293,14 @@ class TestManager {
   // IT-08b: Capture failure diagnostics
   void CaptureFailureContext(const std::string& test_id)
       ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
+
+  void SetHarnessListener(HarnessListener* listener);
+
+  absl::Status ReplayLastPlan();
+#endif
+  absl::Status ShowHarnessDashboard();
+  absl::Status ShowHarnessActiveTests();
+  void RecordPlanSummary(const std::string& summary);
 
  private:
   TestManager();
@@ -337,6 +358,7 @@ class TestManager {
   std::unordered_map<std::string, bool> disabled_tests_;
 
   // Harness test tracking
+#if defined(YAZE_WITH_GRPC)
   struct HarnessAggregate {
   int total_runs = 0;
   int pass_count = 0;
@@ -351,15 +373,20 @@ class TestManager {
     ABSL_GUARDED_BY(harness_history_mutex_);
   std::unordered_map<std::string, HarnessAggregate> harness_aggregates_
     ABSL_GUARDED_BY(harness_history_mutex_);
-  std::deque<std::string> harness_history_order_
-    ABSL_GUARDED_BY(harness_history_mutex_);
+  std::deque<std::string> harness_history_order_;
   size_t harness_history_limit_ = 200;
   mutable absl::Mutex harness_history_mutex_;
+#if defined(YAZE_WITH_GRPC)
+  HarnessListener* harness_listener_ ABSL_GUARDED_BY(mutex_) = nullptr;
+#endif
+#endif  // defined(YAZE_WITH_GRPC)
 
   std::string GenerateHarnessTestIdLocked(absl::string_view prefix)
     ABSL_EXCLUSIVE_LOCKS_REQUIRED(harness_history_mutex_);
   void TrimHarnessHistoryLocked()
     ABSL_EXCLUSIVE_LOCKS_REQUIRED(harness_history_mutex_);
+
+    absl::Mutex mutex_;
 };
 
 // Utility functions for test result formatting

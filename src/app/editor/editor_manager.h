@@ -28,6 +28,7 @@
 #include "app/editor/system/agent_chat_history_popup.h"
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/agent_editor.h"
+#include "app/editor/agent/automation_bridge.h"
 #endif
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
@@ -37,6 +38,9 @@
 #include "app/gfx/performance_dashboard.h"
 #include "app/rom.h"
 #include "yaze_config.h"
+
+#ifdef YAZE_WITH_GRPC
+#endif
 
 namespace yaze {
 namespace editor {
@@ -190,7 +194,11 @@ class EditorManager {
   // Agent proposal drawer
   ProposalDrawer proposal_drawer_;
   bool show_proposal_drawer_ = false;
-  
+
+#ifdef YAZE_WITH_GRPC
+  AutomationBridge harness_telemetry_bridge_;
+#endif
+
   // Agent chat history popup
   AgentChatHistoryPopup agent_chat_history_popup_;
   bool show_chat_history_popup_ = false;

@@ -67,6 +67,21 @@ class AgentChatWidget {
     std::function<absl::Status(const std::filesystem::path&, const std::string&)> send_to_gemini;
   };
 
+  struct AutomationCallbacks {
+    std::function<void()> open_harness_dashboard;
+    std::function<void()> replay_last_plan;
+    std::function<void(const std::string&)> focus_proposal;
+    std::function<void()> show_active_tests;
+  };
+
+  struct AutomationTelemetry {
+    std::string test_id;
+    std::string name;
+    std::string status;
+    std::string message;
+    absl::Time updated_at = absl::InfinitePast();
+  };
+
   // Z3ED Command Callbacks
   struct Z3EDCommandCallbacks {
     std::function<absl::Status(const std::string&)> run_agent_task;
@@ -84,6 +99,8 @@ class AgentChatWidget {
     std::function<std::string()> get_rom_hash;
   };
 
+  void RenderSnapshotPreviewPanel();
+
   void SetToastManager(ToastManager* toast_manager);
 
   void SetProposalDrawer(ProposalDrawer* drawer);
@@ -94,9 +111,11 @@ class AgentChatWidget {
     collaboration_callbacks_ = callbacks;
   }
 
-  void SetMultimodalCallbacks(const MultimodalCallbacks& callbacks) {
-    multimodal_callbacks_ = callbacks;
-  }
+  void SetMultimodalCallbacks(const MultimodalCallbacks& callbacks);
+  void SetAutomationCallbacks(const AutomationCallbacks& callbacks);
+
+  void UpdateHarnessTelemetry(const AutomationTelemetry& telemetry);
+  void SetLastPlanSummary(const std::string& summary);
 
   void SetZ3EDCommandCallbacks(const Z3EDCommandCallbacks& callbacks) {
     z3ed_callbacks_ = callbacks;
@@ -139,6 +158,12 @@ public:
     absl::Time last_updated = absl::InfinitePast();
     CaptureMode capture_mode = CaptureMode::kActiveEditor;
     char specific_window_buffer[128] = {};
+  };
+
+  struct AutomationState {
+    std::vector<AutomationTelemetry> recent_tests;
+    bool harness_connected = false;
+    absl::Time last_poll = absl::InfinitePast();
   };
 
   // Agent Configuration State
@@ -218,8 +243,8 @@ public:
   void RenderAgentConfigPanel();
   void RenderZ3EDCommandPanel();
   void RenderRomSyncPanel();
-  void RenderSnapshotPreviewPanel();
   void RenderProposalManagerPanel();
+  void RenderHarnessPanel();
   void RenderSystemPromptEditor();
   void RenderFileEditorTabs();
   void RefreshCollaboration();
@@ -287,6 +312,7 @@ public:
   // Main state
   CollaborationState collaboration_state_;
   MultimodalState multimodal_state_;
+  AutomationState automation_state_;
   AgentConfigState agent_config_;
   RomSyncState rom_sync_state_;
   Z3EDCommandState z3ed_command_state_;
@@ -294,6 +320,7 @@ public:
   // Callbacks
   CollaborationCallbacks collaboration_callbacks_;
   MultimodalCallbacks multimodal_callbacks_;
+  AutomationCallbacks automation_callbacks_;
   Z3EDCommandCallbacks z3ed_callbacks_;
   RomSyncCallbacks rom_sync_callbacks_;
   
