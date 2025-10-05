@@ -1,0 +1,12 @@
+<map id="yaze::editor::AgentEditor::DrawBotProfilesPanel" name="yaze::editor::AgentEditor::DrawBotProfilesPanel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,164,111"/>
+<area shape="rect" id="Node000002" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a942fba38138cdcf9fcc31d620fa5dfa9" title=" " alt="" coords="220,5,378,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,68,214,49,216,54,154,73"/>
+<area shape="rect" id="Node000008" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ad76b56426075ca2331d4103333cae707" title=" " alt="" coords="220,71,378,111"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="164,88,204,88,204,94,164,94"/>
+<area shape="rect" id="Node000010" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="212,136,386,177"/>
+<area shape="poly" id="edge5_Node000001_Node000010" title=" " alt="" coords="154,109,216,128,214,133,153,114"/>
+<area shape="rect" id="Node000003" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="434,39,592,79"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="379,35,419,42,418,47,378,41"/>
+<area shape="poly" id="edge4_Node000008_Node000003" title=" " alt="" coords="378,77,418,70,419,76,379,82"/>
+</map>

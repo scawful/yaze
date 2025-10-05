@@ -93,6 +93,8 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "show_performance_dashboard_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#af05c8e8a051155c07e93e258e4ef3cb7", null ],
     [ "proposal_drawer_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#adc78de39c74455edc3c905d2df263625", null ],
     [ "show_proposal_drawer_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a0e7bbc07457a33d7fd6e82bfb458f288", null ],
+    [ "agent_chat_history_popup_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a56464282ceb8039bbdf124b78d975bff", null ],
+    [ "show_chat_history_popup_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a9f702701539d98e23ef88810fc5e6d25", null ],
     [ "project_file_editor_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a74e62edb85a25578e5134ca56b043a87", null ],
     [ "editor_selection_dialog_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a38526d6612c0966ec0eaa5004eac8596", null ],
     [ "show_editor_selection_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5f1094693321b0ba5a2bb18a7cc2264e", null ],

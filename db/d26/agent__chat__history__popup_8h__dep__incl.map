@@ -1,0 +1,11 @@
+<map id="src/app/editor/system/agent_chat_history_popup.h" name="src/app/editor/system/agent_chat_history_popup.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="156,5,342,46"/>
+<area shape="rect" id="Node000002" href="$d5/dde/editor_2agent_2agent__chat__widget_8cc.html" title=" " alt="" coords="5,94,157,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,56,120,96,118,91,196,51"/>
+<area shape="rect" id="Node000003" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="181,94,317,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="252,62,252,94,246,94,246,62"/>
+<area shape="rect" id="Node000020" href="$d8/d92/agent__chat__history__popup_8cc.html" title=" " alt="" coords="342,94,535,135"/>
+<area shape="poly" id="edge4_Node000001_Node000020" title=" " alt="" coords="307,50,397,91,394,96,305,55"/>
+<area shape="rect" id="Node000004" href="$da/d0c/controller_8cc.html" title=" " alt="" coords="165,183,333,208"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="252,150,252,182,246,182,246,150"/>
+</map>

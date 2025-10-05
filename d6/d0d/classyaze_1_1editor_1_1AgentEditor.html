@@ -109,7 +109,7 @@ $(document).ready(function(){initNavTree('d6/d0d/classyaze_1_1editor_1_1AgentEdi
 </div><!--header-->
 <div class="contents">
 
-<p>AI Agent Configuration Dashboard (separate from chat)  
+<p>Comprehensive AI Agent Platform &amp; Bot Creator.  
  <a href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>&gt;</code></p>
@@ -118,7 +118,7 @@ Inheritance diagram for yaze::editor::AgentEditor:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d2/d06/classyaze_1_1editor_1_1AgentEditor__inherit__graph.png" border="0" usemap="#ayaze_1_1editor_1_1AgentEditor_inherit__map" alt="Inheritance graph"/></div>
 <map name="ayaze_1_1editor_1_1AgentEditor_inherit__map" id="ayaze_1_1editor_1_1AgentEditor_inherit__map">
-<area shape="rect" title="AI Agent Configuration Dashboard (separate from chat)" alt="" coords="5,79,164,105"/>
+<area shape="rect" title="Comprehensive AI Agent Platform &amp; Bot Creator." alt="" coords="5,79,164,105"/>
 <area shape="rect" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="22,5,147,31"/>
 <area shape="poly" title=" " alt="" coords="87,46,87,79,82,79,82,46"/>
 </map>
@@ -127,6 +127,8 @@ Inheritance diagram for yaze::editor::AgentEditor:</div>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/ddf/structyaze_1_1editor_1_1AgentEditor_1_1AgentConfig.html">AgentConfig</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d9a/structyaze_1_1editor_1_1AgentEditor_1_1CaptureConfig.html">CaptureConfig</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -176,6 +178,22 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aa41bd0d2b7965ded8c5d6b7b799e5038"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0e04130f7073c71a3ffab038b66de547" id="r_a0e04130f7073c71a3ffab038b66de547"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0e04130f7073c71a3ffab038b66de547">ApplyConfig</a> (const <a class="el" href="../../d1/ddf/structyaze_1_1editor_1_1AgentEditor_1_1AgentConfig.html">AgentConfig</a> &amp;config)</td></tr>
 <tr class="separator:a0e04130f7073c71a3ffab038b66de547"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c44023f31a2cee02418292ef4dd7357" id="r_a8c44023f31a2cee02418292ef4dd7357"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a8c44023f31a2cee02418292ef4dd7357">SaveBotProfile</a> (const <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> &amp;profile)</td></tr>
+<tr class="separator:a8c44023f31a2cee02418292ef4dd7357"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad76b56426075ca2331d4103333cae707" id="r_ad76b56426075ca2331d4103333cae707"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ad76b56426075ca2331d4103333cae707">LoadBotProfile</a> (const std::string &amp;name)</td></tr>
+<tr class="separator:ad76b56426075ca2331d4103333cae707"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a942fba38138cdcf9fcc31d620fa5dfa9" id="r_a942fba38138cdcf9fcc31d620fa5dfa9"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a942fba38138cdcf9fcc31d620fa5dfa9">DeleteBotProfile</a> (const std::string &amp;name)</td></tr>
+<tr class="separator:a942fba38138cdcf9fcc31d620fa5dfa9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad86dab9867728522dc05b48926f5ef5b" id="r_ad86dab9867728522dc05b48926f5ef5b"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ad86dab9867728522dc05b48926f5ef5b">GetAllProfiles</a> () const</td></tr>
+<tr class="separator:ad86dab9867728522dc05b48926f5ef5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7256c21725a64333afdb2353cc9cc2ea" id="r_a7256c21725a64333afdb2353cc9cc2ea"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a7256c21725a64333afdb2353cc9cc2ea">GetCurrentProfile</a> () const</td></tr>
+<tr class="separator:a7256c21725a64333afdb2353cc9cc2ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a09522413e3c76b378b6f8d23e97434da" id="r_a09522413e3c76b378b6f8d23e97434da"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a09522413e3c76b378b6f8d23e97434da">SetCurrentProfile</a> (const <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> &amp;profile)</td></tr>
+<tr class="separator:a09522413e3c76b378b6f8d23e97434da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86427800cdf8642e3c290acf83b44f88" id="r_a86427800cdf8642e3c290acf83b44f88"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a86427800cdf8642e3c290acf83b44f88">ExportProfile</a> (const <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> &amp;profile, const std::filesystem::path &amp;path)</td></tr>
+<tr class="separator:a86427800cdf8642e3c290acf83b44f88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3a3ee00a96a0c652956093eb50f98e9b" id="r_a3a3ee00a96a0c652956093eb50f98e9b"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3a3ee00a96a0c652956093eb50f98e9b">ImportProfile</a> (const std::filesystem::path &amp;path)</td></tr>
+<tr class="separator:a3a3ee00a96a0c652956093eb50f98e9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58095bb3d1d460ec1f45a344444b36d3" id="r_a58095bb3d1d460ec1f45a344444b36d3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html">AgentChatWidget</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a58095bb3d1d460ec1f45a344444b36d3">GetChatWidget</a> ()</td></tr>
 <tr class="separator:a58095bb3d1d460ec1f45a344444b36d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3bcf6912b2633111805b5a387173b924" id="r_a3bcf6912b2633111805b5a387173b924"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3bcf6912b2633111805b5a387173b924">IsChatActive</a> () const</td></tr>
@@ -234,10 +252,26 @@ Private Member Functions</h2></td></tr>
 <tr class="separator:a955dd79315a17476ff8c68d84b992c66"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a19bcb4383a286fc23e820e31d67cf2b1" id="r_a19bcb4383a286fc23e820e31d67cf2b1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a19bcb4383a286fc23e820e31d67cf2b1">DrawMetricsPanel</a> ()</td></tr>
 <tr class="separator:a19bcb4383a286fc23e820e31d67cf2b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59ec935876218565755b65fa327db6bc" id="r_a59ec935876218565755b65fa327db6bc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a59ec935876218565755b65fa327db6bc">DrawPromptEditorPanel</a> ()</td></tr>
+<tr class="separator:a59ec935876218565755b65fa327db6bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae23dc7184a9eab4537e0cd99a2e3b090" id="r_ae23dc7184a9eab4537e0cd99a2e3b090"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ae23dc7184a9eab4537e0cd99a2e3b090">DrawBotProfilesPanel</a> ()</td></tr>
+<tr class="separator:ae23dc7184a9eab4537e0cd99a2e3b090"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbcc6a9a344cc69e6cdd0419d66bd770" id="r_adbcc6a9a344cc69e6cdd0419d66bd770"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#adbcc6a9a344cc69e6cdd0419d66bd770">DrawChatHistoryViewer</a> ()</td></tr>
+<tr class="separator:adbcc6a9a344cc69e6cdd0419d66bd770"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c0193990c16fc111ca7b969bce429ec" id="r_a1c0193990c16fc111ca7b969bce429ec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a1c0193990c16fc111ca7b969bce429ec">DrawAdvancedMetricsPanel</a> ()</td></tr>
+<tr class="separator:a1c0193990c16fc111ca7b969bce429ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd5a000ea1b272574686f5e7504c6e7e" id="r_afd5a000ea1b272574686f5e7504c6e7e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#afd5a000ea1b272574686f5e7504c6e7e">SetupChatWidgetCallbacks</a> ()</td></tr>
 <tr class="separator:afd5a000ea1b272574686f5e7504c6e7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c8528fd426e46156687f8d8ef7b6f4d" id="r_a3c8528fd426e46156687f8d8ef7b6f4d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3c8528fd426e46156687f8d8ef7b6f4d">SetupMultimodalCallbacks</a> ()</td></tr>
 <tr class="separator:a3c8528fd426e46156687f8d8ef7b6f4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a961395e40466148d6be9d99bbeef6fc4" id="r_a961395e40466148d6be9d99bbeef6fc4"><td class="memItemLeft" align="right" valign="top">std::filesystem::path&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4">GetProfilesDirectory</a> () const</td></tr>
+<tr class="separator:a961395e40466148d6be9d99bbeef6fc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a644a6c031a2ea3f247079b315be08b54" id="r_a644a6c031a2ea3f247079b315be08b54"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a644a6c031a2ea3f247079b315be08b54">EnsureProfilesDirectory</a> ()</td></tr>
+<tr class="separator:a644a6c031a2ea3f247079b315be08b54"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6a41d096c63147816c1071bbe8431e2" id="r_ab6a41d096c63147816c1071bbe8431e2"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ab6a41d096c63147816c1071bbe8431e2">ProfileToJson</a> (const <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> &amp;profile) const</td></tr>
+<tr class="separator:ab6a41d096c63147816c1071bbe8431e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3611fc5f7367b5346be7dda28c89a08d" id="r_a3611fc5f7367b5346be7dda28c89a08d"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3611fc5f7367b5346be7dda28c89a08d">JsonToProfile</a> (const std::string &amp;json) const</td></tr>
+<tr class="separator:a3611fc5f7367b5346be7dda28c89a08d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -253,6 +287,16 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a010751866d6a67e61a9fed3b4611b0f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a52e395b0b5fa09d8cef9b3c0345738ba" id="r_a52e395b0b5fa09d8cef9b3c0345738ba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d1/ddf/structyaze_1_1editor_1_1AgentEditor_1_1AgentConfig.html">AgentConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a52e395b0b5fa09d8cef9b3c0345738ba">current_config_</a></td></tr>
 <tr class="separator:a52e395b0b5fa09d8cef9b3c0345738ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5287846f8fe54184e58dc1294eca812" id="r_ad5287846f8fe54184e58dc1294eca812"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ad5287846f8fe54184e58dc1294eca812">current_profile_</a></td></tr>
+<tr class="separator:ad5287846f8fe54184e58dc1294eca812"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aec1c95c5821ce4fb5df8c763012b5520" id="r_aec1c95c5821ce4fb5df8c763012b5520"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#aec1c95c5821ce4fb5df8c763012b5520">loaded_profiles_</a></td></tr>
+<tr class="separator:aec1c95c5821ce4fb5df8c763012b5520"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab82197008e6c8e4e6ae6de27f3fd6a9e" id="r_ab82197008e6c8e4e6ae6de27f3fd6a9e"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="../../d0/d28/classTextEditor.html">TextEditor</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ab82197008e6c8e4e6ae6de27f3fd6a9e">prompt_editor_</a></td></tr>
+<tr class="separator:ab82197008e6c8e4e6ae6de27f3fd6a9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d500ebf108f9183f1330311776c5da7" id="r_a3d500ebf108f9183f1330311776c5da7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3d500ebf108f9183f1330311776c5da7">prompt_editor_initialized_</a> = false</td></tr>
+<tr class="separator:a3d500ebf108f9183f1330311776c5da7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8f2fb6f0a772803a866d303a7583fe58" id="r_a8f2fb6f0a772803a866d303a7583fe58"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a8f2fb6f0a772803a866d303a7583fe58">active_prompt_file_</a> = &quot;system_prompt_v3.txt&quot;</td></tr>
+<tr class="separator:a8f2fb6f0a772803a866d303a7583fe58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8bd3e0f76e0304973f6d7887547430ae" id="r_a8bd3e0f76e0304973f6d7887547430ae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551">CollaborationMode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a8bd3e0f76e0304973f6d7887547430ae">current_mode_</a> = <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551afcf37e733f29d6aa14fb34fa737a809a">CollaborationMode::kLocal</a></td></tr>
 <tr class="separator:a8bd3e0f76e0304973f6d7887547430ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8fab2a6cd2364f06aebc69fff04bc35b" id="r_a8fab2a6cd2364f06aebc69fff04bc35b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a8fab2a6cd2364f06aebc69fff04bc35b">in_session_</a> = false</td></tr>
@@ -265,6 +309,20 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ae09141145d7aa6d378f45b58c4f0aff8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf16e2ea22f646523d01081f68667abf" id="r_abf16e2ea22f646523d01081f68667abf"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#abf16e2ea22f646523d01081f68667abf">show_advanced_settings_</a> = false</td></tr>
 <tr class="separator:abf16e2ea22f646523d01081f68667abf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67d8471b5e836ec423b3baf32179eb0f" id="r_a67d8471b5e836ec423b3baf32179eb0f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a67d8471b5e836ec423b3baf32179eb0f">show_prompt_editor_</a> = false</td></tr>
+<tr class="separator:a67d8471b5e836ec423b3baf32179eb0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1aafb3d1f6f66eb2f963a0dbc0f646b2" id="r_a1aafb3d1f6f66eb2f963a0dbc0f646b2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a1aafb3d1f6f66eb2f963a0dbc0f646b2">show_bot_profiles_</a> = false</td></tr>
+<tr class="separator:a1aafb3d1f6f66eb2f963a0dbc0f646b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad29f78a95c9916b1327a7e200ba7b323" id="r_ad29f78a95c9916b1327a7e200ba7b323"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ad29f78a95c9916b1327a7e200ba7b323">show_chat_history_</a> = false</td></tr>
+<tr class="separator:ad29f78a95c9916b1327a7e200ba7b323"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49b5b6023c87486fe84dd2150f39ce75" id="r_a49b5b6023c87486fe84dd2150f39ce75"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a49b5b6023c87486fe84dd2150f39ce75">show_metrics_dashboard_</a> = false</td></tr>
+<tr class="separator:a49b5b6023c87486fe84dd2150f39ce75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4f33f1c13e267ae6ffd93a1e845b431" id="r_af4f33f1c13e267ae6ffd93a1e845b431"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#af4f33f1c13e267ae6ffd93a1e845b431">selected_tab_</a> = 0</td></tr>
+<tr class="separator:af4f33f1c13e267ae6ffd93a1e845b431"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4e339b5cffa031c4961decff25fd658f" id="r_a4e339b5cffa031c4961decff25fd658f"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">cli::agent::ChatMessage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a4e339b5cffa031c4961decff25fd658f">cached_history_</a></td></tr>
+<tr class="separator:a4e339b5cffa031c4961decff25fd658f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d64ebca7ac3b32b4a9e5fae9ff1865d" id="r_a7d64ebca7ac3b32b4a9e5fae9ff1865d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a7d64ebca7ac3b32b4a9e5fae9ff1865d">history_needs_refresh_</a> = true</td></tr>
+<tr class="separator:a7d64ebca7ac3b32b4a9e5fae9ff1865d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="inherited" name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -281,20 +339,23 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:afe8b2977196af9ee2d7f7892fbddc1b6 inherit pro_attribs_classyaze_1_1editor_1_1Editor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>AI Agent Configuration Dashboard (separate from chat) </p>
-<p>A comprehensive configuration editor for the AI agent:</p><ul>
+<div class="textblock"><p>Comprehensive AI Agent Platform &amp; Bot Creator. </p>
+<p>A full-featured bot creation and management platform:</p><ul>
 <li>Agent provider configuration (Ollama, Gemini, Mock)</li>
 <li>Model selection and parameters <br  />
 </li>
+<li>System prompt editing with live syntax highlighting</li>
+<li>Bot profile management (create, save, load custom bots)</li>
+<li>Chat history viewer and management</li>
+<li>Session metrics and analytics dashboard</li>
 <li>Collaboration settings (Local/Network)</li>
 <li>Z3ED command automation presets</li>
 <li>Multimodal/vision configuration</li>
-<li>Session metrics and monitoring</li>
-<li>System prompt customization</li>
+<li>Export/Import bot configurations</li>
 </ul>
-<p>The chat widget is separate and managed by <a class="el" href="../../dd/d12/classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes.">EditorManager</a>. </p>
+<p>The chat widget is separate and managed by <a class="el" href="../../dd/d12/classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes.">EditorManager</a>, with a dense/compact mode for focused conversations. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00043">43</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00050">50</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 </div><h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="a0b6935712243d6d81a935e5f1afd6551" name="a0b6935712243d6d81a935e5f1afd6551"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0b6935712243d6d81a935e5f1afd6551">&#9670;&#160;</a></span>CollaborationMode</h2>
@@ -320,7 +381,7 @@ Additional Inherited Members</h2></td></tr>
 <tr><td class="fieldname"><a id="a0b6935712243d6d81a935e5f1afd6551a62f22144de8e8a0bac264d00f661d8ec" name="a0b6935712243d6d81a935e5f1afd6551a62f22144de8e8a0bac264d00f661d8ec"></a>kNetwork&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00092">92</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00127">127</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
 </div>
 </div>
@@ -340,9 +401,23 @@ Additional Inherited Members</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00021">21</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00028">28</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00163">current_config_</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aaf76ed811b18a86459694dacf3347d438">yaze::editor::kAgent</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00153">local_coordinator_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00078">yaze::editor::AgentEditor::AgentConfig::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00072">yaze::editor::AgentEditor::AgentConfig::provider</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00077">yaze::editor::AgentEditor::AgentConfig::show_reasoning</a>, and <a class="el" href="../../dd/d60/editor_8h_source.html#l00120">yaze::editor::Editor::type_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>, <a class="el" href="../../dd/d5a/text__editor_8cc_source.html#l02478">TextEditor::LanguageDefinition::CPlusPlus()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00208">current_config_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00211">current_profile_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00080">yaze::editor::AgentEditor::BotProfile::description</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00879">EnsureProfilesDirectory()</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aaf76ed811b18a86459694dacf3347d438">yaze::editor::kAgent</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00198">local_coordinator_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00089">yaze::editor::AgentEditor::BotProfile::max_retry_attempts</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00088">yaze::editor::AgentEditor::BotProfile::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00103">yaze::editor::AgentEditor::AgentConfig::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00079">yaze::editor::AgentEditor::BotProfile::name</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00215">prompt_editor_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00081">yaze::editor::AgentEditor::BotProfile::provider</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00097">yaze::editor::AgentEditor::AgentConfig::provider</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00087">yaze::editor::AgentEditor::BotProfile::show_reasoning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00102">yaze::editor::AgentEditor::AgentConfig::show_reasoning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00090">yaze::editor::AgentEditor::BotProfile::tags</a>, and <a class="el" href="../../dd/d60/editor_8h_source.html#l00120">yaze::editor::Editor::type_</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_a250340e33c60079d5139b51aa0f89769_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a250340e33c60079d5139b51aa0f89769_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a250340e33c60079d5139b51aa0f89769_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a250340e33c60079d5139b51aa0f89769_cgraph">
+<area shape="rect" title=" " alt="" coords="5,39,164,79"/>
+<area shape="rect" href="../../dd/dd2/structTextEditor_1_1LanguageDefinition.html#aba26ce5704845dd024521fed8c19a9c9" title=" " alt="" coords="212,5,407,46"/>
+<area shape="poly" title=" " alt="" coords="164,45,196,40,197,45,165,50"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a644a6c031a2ea3f247079b315be08b54" title=" " alt="" coords="229,71,390,111"/>
+<area shape="poly" title=" " alt="" coords="165,68,214,75,213,80,164,73"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="455,71,613,111"/>
+<area shape="poly" title=" " alt="" coords="390,88,440,88,440,94,390,94"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -397,7 +472,21 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#a5c1b245617554f101535e1deb3cb5547">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00034">34</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00059">59</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00879">EnsureProfilesDirectory()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_a45fcf49a8df94575ad93af7738917015_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a45fcf49a8df94575ad93af7738917015_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a45fcf49a8df94575ad93af7738917015_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a45fcf49a8df94575ad93af7738917015_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,164,46"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a644a6c031a2ea3f247079b315be08b54" title=" " alt="" coords="212,5,373,46"/>
+<area shape="poly" title=" " alt="" coords="164,23,196,23,196,28,164,28"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="421,5,579,46"/>
+<area shape="poly" title=" " alt="" coords="374,23,405,23,405,28,374,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -423,11 +512,28 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000012">Todo:</a></b></dt><dd>Load from config file </dd></dl>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#aec4a1012c0639bb4b60183a735418b32">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00038">38</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00064">64</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00860">GetProfilesDirectory()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00913">JsonToProfile()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00212">loaded_profiles_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00790">DeleteBotProfile()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00732">SaveBotProfile()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_ad316a0a705b2bb919c6382e599f97fa9_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_ad316a0a705b2bb919c6382e599f97fa9_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_ad316a0a705b2bb919c6382e599f97fa9_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_ad316a0a705b2bb919c6382e599f97fa9_cgraph">
+<area shape="rect" title=" " alt="" coords="5,39,164,79"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="212,5,370,46"/>
+<area shape="poly" title=" " alt="" coords="164,44,196,38,197,44,164,49"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3611fc5f7367b5346be7dda28c89a08d" title=" " alt="" coords="212,71,370,111"/>
+<area shape="poly" title=" " alt="" coords="164,69,197,74,196,79,164,74"/>
+<area shape="rect" href="../../d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="418,13,602,39"/>
+<area shape="poly" title=" " alt="" coords="370,23,402,23,402,28,370,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -453,13 +559,32 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000013">Todo:</a></b></dt><dd>Save to config file </dd></dl>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#a89afe8fdd51463ff3d4259f40c98d464">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00044">44</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00086">86</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00087">DrawDashboard()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00211">current_profile_</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00732">SaveBotProfile()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00216">DrawConfigurationPanel()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_a5588fc59437e5ae5720bf31d2ef0d7c5_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a5588fc59437e5ae5720bf31d2ef0d7c5_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a5588fc59437e5ae5720bf31d2ef0d7c5_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a5588fc59437e5ae5720bf31d2ef0d7c5_cgraph">
+<area shape="rect" title=" " alt="" coords="5,63,164,103"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a8c44023f31a2cee02418292ef4dd7357" title=" " alt="" coords="212,63,370,103"/>
+<area shape="poly" title=" " alt="" coords="164,80,196,80,196,86,164,86"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a644a6c031a2ea3f247079b315be08b54" title=" " alt="" coords="418,5,579,46"/>
+<area shape="poly" title=" " alt="" coords="366,60,407,48,408,53,368,65"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="627,63,786,103"/>
+<area shape="poly" title=" " alt="" coords="370,80,612,80,612,86,370,86"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ad316a0a705b2bb919c6382e599f97fa9" title=" " alt="" coords="420,120,578,161"/>
+<area shape="poly" title=" " alt="" coords="368,101,408,113,407,118,366,106"/>
+<area shape="poly" title=" " alt="" coords="575,44,616,55,615,61,574,49"/>
+<area shape="poly" title=" " alt="" coords="574,117,615,105,616,111,575,122"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -488,9 +613,9 @@ Additional Inherited Members</h2></td></tr>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#aed50bffbba9a0d98f8f3d24ad753f887">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00050">50</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00091">91</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/d60/editor_8h_source.html#l00119">yaze::editor::Editor::active_</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00087">DrawDashboard()</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/d60/editor_8h_source.html#l00119">yaze::editor::Editor::active_</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -499,12 +624,12 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,71,164,111"/>
 <area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a1725eec020746a6e49f609e5bc4e141b" title=" " alt="" coords="212,71,370,111"/>
 <area shape="poly" title=" " alt="" coords="164,88,196,88,196,94,164,94"/>
-<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ae795b5cc2e903ca5f22db52e7ae186f3" title=" " alt="" coords="418,5,583,46"/>
-<area shape="poly" title=" " alt="" coords="357,68,418,49,419,54,359,73"/>
-<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a19bcb4383a286fc23e820e31d67cf2b1" title=" " alt="" coords="422,71,580,111"/>
-<area shape="poly" title=" " alt="" coords="370,88,406,88,406,94,370,94"/>
-<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a955dd79315a17476ff8c68d84b992c66" title=" " alt="" coords="422,136,580,177"/>
-<area shape="poly" title=" " alt="" coords="359,109,419,128,418,133,357,114"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a1c0193990c16fc111ca7b969bce429ec" title=" " alt="" coords="418,5,609,46"/>
+<area shape="poly" title=" " alt="" coords="362,68,426,48,428,54,363,73"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ae23dc7184a9eab4537e0cd99a2e3b090" title=" " alt="" coords="435,71,593,111"/>
+<area shape="poly" title=" " alt="" coords="370,88,419,88,419,94,370,94"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#adbcc6a9a344cc69e6cdd0419d66bd770" title=" " alt="" coords="431,136,596,177"/>
+<area shape="poly" title=" " alt="" coords="363,109,428,128,426,134,362,114"/>
 </map>
 </div>
 
@@ -535,7 +660,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#a0c8c0eae68a91298050a709c146a9472">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00053">53</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00060">60</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
 </div>
 </div>
@@ -564,7 +689,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#a0d1cad7dc7377bcf699c76dc1da4bd2f">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00054">54</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00061">61</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
 </div>
 </div>
@@ -593,7 +718,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#adcc475a4870b75a9db44e78244c6fc4e">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00055">55</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00062">62</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
 </div>
 </div>
@@ -622,7 +747,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#af70b26886a360613f59e8f45b4bfcdec">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00056">56</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00063">63</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
 </div>
 </div>
@@ -651,7 +776,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#a127b4d84d1a76c5af2998a1a30f45e95">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00057">57</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00064">64</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
 </div>
 </div>
@@ -680,7 +805,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00058">58</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00065">65</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
 </div>
 </div>
@@ -716,9 +841,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00061">61</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00102">102</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00159">proposal_drawer_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00160">rom_</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">SetupChatWidgetCallbacks()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00680">SetupMultimodalCallbacks()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00158">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00204">proposal_drawer_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00205">rom_</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01274">SetupChatWidgetCallbacks()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01323">SetupMultimodalCallbacks()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00203">toast_manager_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -754,9 +879,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00080">80</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00121">121</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00160">rom_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00205">rom_</a>.</p>
 
 </div>
 </div>
@@ -774,12 +899,14 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000010">Todo:</a></b></dt><dd>Open file dialog for export </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000011">Todo:</a></b></dt><dd>Open file dialog for import </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00087">87</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">128</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/d60/editor_8h_source.html#l00119">yaze::editor::Editor::active_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00163">current_config_</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00137">DrawConfigurationPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00303">DrawMetricsPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00281">DrawStatusPanel()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00392">ICON_MD_CHAT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01194">ICON_MD_MENU</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01642">ICON_MD_SAVE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01779">ICON_MD_SMART_TOY</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00078">yaze::editor::AgentEditor::AgentConfig::max_tool_iterations</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00348">OpenChatWindow()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00044">Save()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00077">yaze::editor::AgentEditor::AgentConfig::show_reasoning</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/d60/editor_8h_source.html#l00119">yaze::editor::Editor::active_</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00684">DrawAdvancedMetricsPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00545">DrawBotProfilesPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">DrawChatHistoryViewer()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00216">DrawConfigurationPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00471">DrawPromptEditorPanel()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00152">ICON_MD_ANALYTICS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00392">ICON_MD_CHAT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00643">ICON_MD_EDIT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00742">ICON_MD_FILE_DOWNLOAD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00747">ICON_MD_FILE_UPLOAD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00807">ICON_MD_FOLDER</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00944">ICON_MD_HISTORY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01194">ICON_MD_MENU</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01642">ICON_MD_SAVE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01697">ICON_MD_SETTINGS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01779">ICON_MD_SMART_TOY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02090">ICON_MD_VIEW_LIST</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00996">OpenChatWindow()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00086">Save()</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00229">show_bot_profiles_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00230">show_chat_history_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00231">show_metrics_dashboard_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00228">show_prompt_editor_</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00203">toast_manager_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00050">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00091">Update()</a>.</p>
 
 </div>
 </div>
@@ -798,9 +925,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00313">313</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00961">961</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00163">current_config_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00208">current_config_</a>.</p>
 
 </div>
 </div>
@@ -820,11 +947,287 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00317">317</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00965">965</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00144">yaze::editor::AgentChatWidget::AgentConfigState::ai_model</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00143">yaze::editor::AgentChatWidget::AgentConfigState::ai_provider</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00163">current_config_</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00146">yaze::editor::AgentChatWidget::AgentConfigState::gemini_api_key</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00075">yaze::editor::AgentEditor::AgentConfig::gemini_api_key</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00149">yaze::editor::AgentChatWidget::AgentConfigState::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00078">yaze::editor::AgentEditor::AgentConfig::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00073">yaze::editor::AgentEditor::AgentConfig::model</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00145">yaze::editor::AgentChatWidget::AgentConfigState::ollama_host</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00074">yaze::editor::AgentEditor::AgentConfig::ollama_host</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00072">yaze::editor::AgentEditor::AgentConfig::provider</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00148">yaze::editor::AgentChatWidget::AgentConfigState::show_reasoning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00077">yaze::editor::AgentEditor::AgentConfig::show_reasoning</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00147">yaze::editor::AgentChatWidget::AgentConfigState::verbose</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00076">yaze::editor::AgentEditor::AgentConfig::verbose</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00147">yaze::editor::AgentChatWidget::AgentConfigState::ai_model</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00146">yaze::editor::AgentChatWidget::AgentConfigState::ai_provider</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00208">current_config_</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00149">yaze::editor::AgentChatWidget::AgentConfigState::gemini_api_key</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00100">yaze::editor::AgentEditor::AgentConfig::gemini_api_key</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00152">yaze::editor::AgentChatWidget::AgentConfigState::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00103">yaze::editor::AgentEditor::AgentConfig::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00098">yaze::editor::AgentEditor::AgentConfig::model</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00148">yaze::editor::AgentChatWidget::AgentConfigState::ollama_host</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00099">yaze::editor::AgentEditor::AgentConfig::ollama_host</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00097">yaze::editor::AgentEditor::AgentConfig::provider</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00151">yaze::editor::AgentChatWidget::AgentConfigState::show_reasoning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00102">yaze::editor::AgentEditor::AgentConfig::show_reasoning</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00150">yaze::editor::AgentChatWidget::AgentConfigState::verbose</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00101">yaze::editor::AgentEditor::AgentConfig::verbose</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00137">DrawConfigurationPanel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00216">DrawConfigurationPanel()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00754">LoadBotProfile()</a>.</p>
+
+</div>
+</div>
+<a id="a8c44023f31a2cee02418292ef4dd7357" name="a8c44023f31a2cee02418292ef4dd7357"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c44023f31a2cee02418292ef4dd7357">&#9670;&#160;</a></span>SaveBotProfile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::AgentEditor::SaveBotProfile </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> &amp;&#160;</td>
+          <td class="paramname"><em>profile</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00732">732</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00879">EnsureProfilesDirectory()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00860">GetProfilesDirectory()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00064">Load()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00079">yaze::editor::AgentEditor::BotProfile::name</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00889">ProfileToJson()</a>, and <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00837">ImportProfile()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00086">Save()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_a8c44023f31a2cee02418292ef4dd7357_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a8c44023f31a2cee02418292ef4dd7357_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a8c44023f31a2cee02418292ef4dd7357_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a8c44023f31a2cee02418292ef4dd7357_cgraph">
+<area shape="rect" title=" " alt="" coords="5,92,164,133"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a644a6c031a2ea3f247079b315be08b54" title=" " alt="" coords="212,5,373,46"/>
+<area shape="poly" title=" " alt="" coords="134,89,226,50,228,55,137,94"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="421,63,579,103"/>
+<area shape="poly" title=" " alt="" coords="164,104,405,87,406,92,164,109"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ad316a0a705b2bb919c6382e599f97fa9" title=" " alt="" coords="213,120,372,161"/>
+<area shape="poly" title=" " alt="" coords="164,120,198,125,197,130,164,126"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ab6a41d096c63147816c1071bbe8431e2" title=" " alt="" coords="213,185,372,226"/>
+<area shape="poly" title=" " alt="" coords="129,131,213,170,227,176,225,181,211,175,127,136"/>
+<area shape="poly" title=" " alt="" coords="369,44,410,55,409,61,368,49"/>
+<area shape="poly" title=" " alt="" coords="368,117,409,105,410,111,369,122"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ad76b56426075ca2331d4103333cae707" name="ad76b56426075ca2331d4103333cae707"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad76b56426075ca2331d4103333cae707">&#9670;&#160;</a></span>LoadBotProfile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::AgentEditor::LoadBotProfile </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00754">754</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00965">ApplyConfig()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00208">current_config_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00211">current_profile_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00100">yaze::editor::AgentEditor::AgentConfig::gemini_api_key</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00860">GetProfilesDirectory()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00913">JsonToProfile()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00103">yaze::editor::AgentEditor::AgentConfig::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00098">yaze::editor::AgentEditor::AgentConfig::model</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00099">yaze::editor::AgentEditor::AgentConfig::ollama_host</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00097">yaze::editor::AgentEditor::AgentConfig::provider</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00102">yaze::editor::AgentEditor::AgentConfig::show_reasoning</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00101">yaze::editor::AgentEditor::AgentConfig::verbose</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00545">DrawBotProfilesPanel()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_ad76b56426075ca2331d4103333cae707_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_ad76b56426075ca2331d4103333cae707_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_ad76b56426075ca2331d4103333cae707_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_ad76b56426075ca2331d4103333cae707_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,164,111"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0e04130f7073c71a3ffab038b66de547" title=" " alt="" coords="212,5,370,46"/>
+<area shape="poly" title=" " alt="" coords="150,68,209,49,210,54,152,73"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="212,71,370,111"/>
+<area shape="poly" title=" " alt="" coords="164,88,196,88,196,94,164,94"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3611fc5f7367b5346be7dda28c89a08d" title=" " alt="" coords="212,136,370,177"/>
+<area shape="poly" title=" " alt="" coords="152,109,210,128,209,133,150,114"/>
+<area shape="rect" href="../../d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="418,78,602,104"/>
+<area shape="poly" title=" " alt="" coords="370,88,402,88,402,94,370,94"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a942fba38138cdcf9fcc31d620fa5dfa9" name="a942fba38138cdcf9fcc31d620fa5dfa9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a942fba38138cdcf9fcc31d620fa5dfa9">&#9670;&#160;</a></span>DeleteBotProfile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::AgentEditor::DeleteBotProfile </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00790">790</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00860">GetProfilesDirectory()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00064">Load()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00545">DrawBotProfilesPanel()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_a942fba38138cdcf9fcc31d620fa5dfa9_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a942fba38138cdcf9fcc31d620fa5dfa9_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a942fba38138cdcf9fcc31d620fa5dfa9_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a942fba38138cdcf9fcc31d620fa5dfa9_cgraph">
+<area shape="rect" title=" " alt="" coords="5,35,164,75"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="418,5,576,46"/>
+<area shape="poly" title=" " alt="" coords="164,47,402,30,403,35,164,52"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ad316a0a705b2bb919c6382e599f97fa9" title=" " alt="" coords="212,63,370,103"/>
+<area shape="poly" title=" " alt="" coords="164,63,197,68,196,73,164,68"/>
+<area shape="rect" href="../../d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="624,13,809,39"/>
+<area shape="poly" title=" " alt="" coords="577,23,609,23,609,28,577,28"/>
+<area shape="poly" title=" " alt="" coords="366,60,406,48,408,53,367,65"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3611fc5f7367b5346be7dda28c89a08d" title=" " alt="" coords="418,71,576,111"/>
+<area shape="poly" title=" " alt="" coords="370,83,403,85,402,90,370,89"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ad86dab9867728522dc05b48926f5ef5b" name="ad86dab9867728522dc05b48926f5ef5b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad86dab9867728522dc05b48926f5ef5b">&#9670;&#160;</a></span>GetAllProfiles()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">AgentEditor::BotProfile</a> &gt; yaze::editor::AgentEditor::GetAllProfiles </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00804">804</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00212">loaded_profiles_</a>.</p>
+
+</div>
+</div>
+<a id="a7256c21725a64333afdb2353cc9cc2ea" name="a7256c21725a64333afdb2353cc9cc2ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7256c21725a64333afdb2353cc9cc2ea">&#9670;&#160;</a></span>GetCurrentProfile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> yaze::editor::AgentEditor::GetCurrentProfile </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00114">114</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00211">current_profile_</a>.</p>
+
+</div>
+</div>
+<a id="a09522413e3c76b378b6f8d23e97434da" name="a09522413e3c76b378b6f8d23e97434da"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a09522413e3c76b378b6f8d23e97434da">&#9670;&#160;</a></span>SetCurrentProfile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::AgentEditor::SetCurrentProfile </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> &amp;&#160;</td>
+          <td class="paramname"><em>profile</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00808">808</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00208">current_config_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00211">current_profile_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00084">yaze::editor::AgentEditor::BotProfile::gemini_api_key</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00100">yaze::editor::AgentEditor::AgentConfig::gemini_api_key</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00088">yaze::editor::AgentEditor::BotProfile::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00103">yaze::editor::AgentEditor::AgentConfig::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00082">yaze::editor::AgentEditor::BotProfile::model</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00098">yaze::editor::AgentEditor::AgentConfig::model</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00083">yaze::editor::AgentEditor::BotProfile::ollama_host</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00099">yaze::editor::AgentEditor::AgentConfig::ollama_host</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00081">yaze::editor::AgentEditor::BotProfile::provider</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00097">yaze::editor::AgentEditor::AgentConfig::provider</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00087">yaze::editor::AgentEditor::BotProfile::show_reasoning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00102">yaze::editor::AgentEditor::AgentConfig::show_reasoning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00086">yaze::editor::AgentEditor::BotProfile::verbose</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00101">yaze::editor::AgentEditor::AgentConfig::verbose</a>.</p>
+
+</div>
+</div>
+<a id="a86427800cdf8642e3c290acf83b44f88" name="a86427800cdf8642e3c290acf83b44f88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86427800cdf8642e3c290acf83b44f88">&#9670;&#160;</a></span>ExportProfile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::AgentEditor::ExportProfile </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> &amp;&#160;</td>
+          <td class="paramname"><em>profile</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::filesystem::path &amp;&#160;</td>
+          <td class="paramname"><em>path</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00821">821</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00889">ProfileToJson()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_a86427800cdf8642e3c290acf83b44f88_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a86427800cdf8642e3c290acf83b44f88_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a86427800cdf8642e3c290acf83b44f88_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a86427800cdf8642e3c290acf83b44f88_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,164,46"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ab6a41d096c63147816c1071bbe8431e2" title=" " alt="" coords="212,5,370,46"/>
+<area shape="poly" title=" " alt="" coords="164,23,196,23,196,28,164,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a3a3ee00a96a0c652956093eb50f98e9b" name="a3a3ee00a96a0c652956093eb50f98e9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3a3ee00a96a0c652956093eb50f98e9b">&#9670;&#160;</a></span>ImportProfile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::AgentEditor::ImportProfile </td>
+          <td>(</td>
+          <td class="paramtype">const std::filesystem::path &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00837">837</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00913">JsonToProfile()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00732">SaveBotProfile()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_a3a3ee00a96a0c652956093eb50f98e9b_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a3a3ee00a96a0c652956093eb50f98e9b_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a3a3ee00a96a0c652956093eb50f98e9b_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a3a3ee00a96a0c652956093eb50f98e9b_cgraph">
+<area shape="rect" title=" " alt="" coords="5,39,164,79"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3611fc5f7367b5346be7dda28c89a08d" title=" " alt="" coords="212,5,370,46"/>
+<area shape="poly" title=" " alt="" coords="164,44,196,38,197,44,164,49"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a8c44023f31a2cee02418292ef4dd7357" title=" " alt="" coords="212,71,370,111"/>
+<area shape="poly" title=" " alt="" coords="164,69,197,74,196,79,164,74"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a644a6c031a2ea3f247079b315be08b54" title=" " alt="" coords="418,41,579,82"/>
+<area shape="poly" title=" " alt="" coords="370,77,402,73,403,78,371,82"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="627,71,786,111"/>
+<area shape="poly" title=" " alt="" coords="370,90,418,91,579,91,612,91,612,96,579,96,418,96,370,96"/>
+<area shape="poly" title=" " alt="" coords="580,70,612,75,611,80,580,76"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -851,9 +1254,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00085">85</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00120">120</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>.</p>
 
 </div>
 </div>
@@ -872,11 +1275,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00334">334</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00982">982</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00344">ToggleChat()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00992">ToggleChat()</a>.</p>
 
 </div>
 </div>
@@ -896,11 +1299,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00338">338</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00986">986</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/d60/editor_8h_source.html#l00111">yaze::editor::Editor::active()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/d60/editor_8h_source.html#l00111">yaze::editor::Editor::active()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00344">ToggleChat()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00992">ToggleChat()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -929,9 +1332,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00344">344</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00992">992</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00334">IsChatActive()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00338">SetChatActive()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00982">IsChatActive()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00986">SetChatActive()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -964,11 +1367,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00348">348</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00996">996</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00087">DrawDashboard()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00281">DrawStatusPanel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00421">DrawStatusPanel()</a>.</p>
 
 </div>
 </div>
@@ -998,11 +1401,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00354">354</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01002">1002</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00164">current_mode_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00168">current_participants_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00166">current_session_id_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00167">current_session_name_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00165">in_session_</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551afcf37e733f29d6aa14fb34fa737a809a">kLocal</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551a62f22144de8e8a0bac264d00f661d8ec">kNetwork</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00153">local_coordinator_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00100">yaze::editor::AgentEditor::SessionInfo::participants</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00098">yaze::editor::AgentEditor::SessionInfo::session_id</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00099">yaze::editor::AgentEditor::SessionInfo::session_name</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00158">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00220">current_mode_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00224">current_participants_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00222">current_session_id_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00223">current_session_name_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00221">in_session_</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551afcf37e733f29d6aa14fb34fa737a809a">kLocal</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551a62f22144de8e8a0bac264d00f661d8ec">kNetwork</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00198">local_coordinator_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00135">yaze::editor::AgentEditor::SessionInfo::participants</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00133">yaze::editor::AgentEditor::SessionInfo::session_id</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00134">yaze::editor::AgentEditor::SessionInfo::session_name</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00203">toast_manager_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">SetupChatWidgetCallbacks()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01274">SetupChatWidgetCallbacks()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1042,11 +1445,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00427">427</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01074">1074</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00164">current_mode_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00168">current_participants_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00166">current_session_id_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00167">current_session_name_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00165">in_session_</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551afcf37e733f29d6aa14fb34fa737a809a">kLocal</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551a62f22144de8e8a0bac264d00f661d8ec">kNetwork</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00153">local_coordinator_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00100">yaze::editor::AgentEditor::SessionInfo::participants</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00098">yaze::editor::AgentEditor::SessionInfo::session_id</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00099">yaze::editor::AgentEditor::SessionInfo::session_name</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00158">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00220">current_mode_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00224">current_participants_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00222">current_session_id_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00223">current_session_name_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00221">in_session_</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551afcf37e733f29d6aa14fb34fa737a809a">kLocal</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551a62f22144de8e8a0bac264d00f661d8ec">kNetwork</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00198">local_coordinator_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00135">yaze::editor::AgentEditor::SessionInfo::participants</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00133">yaze::editor::AgentEditor::SessionInfo::session_id</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00134">yaze::editor::AgentEditor::SessionInfo::session_name</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00203">toast_manager_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">SetupChatWidgetCallbacks()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01274">SetupChatWidgetCallbacks()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1075,11 +1478,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00499">499</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01146">1146</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00164">current_mode_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00168">current_participants_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00166">current_session_id_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00167">current_session_name_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00165">in_session_</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551afcf37e733f29d6aa14fb34fa737a809a">kLocal</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551a62f22144de8e8a0bac264d00f661d8ec">kNetwork</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00153">local_coordinator_</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00158">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00220">current_mode_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00224">current_participants_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00222">current_session_id_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00223">current_session_name_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00221">in_session_</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551afcf37e733f29d6aa14fb34fa737a809a">kLocal</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551a62f22144de8e8a0bac264d00f661d8ec">kNetwork</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00198">local_coordinator_</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00203">toast_manager_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">SetupChatWidgetCallbacks()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01274">SetupChatWidgetCallbacks()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1108,11 +1511,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00532">532</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01179">1179</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00164">current_mode_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00168">current_participants_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00166">current_session_id_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00167">current_session_name_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00165">in_session_</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551afcf37e733f29d6aa14fb34fa737a809a">kLocal</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00153">local_coordinator_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00100">yaze::editor::AgentEditor::SessionInfo::participants</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00098">yaze::editor::AgentEditor::SessionInfo::session_id</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00099">yaze::editor::AgentEditor::SessionInfo::session_name</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00220">current_mode_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00224">current_participants_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00222">current_session_id_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00223">current_session_name_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00221">in_session_</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551afcf37e733f29d6aa14fb34fa737a809a">kLocal</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00198">local_coordinator_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00135">yaze::editor::AgentEditor::SessionInfo::participants</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00133">yaze::editor::AgentEditor::SessionInfo::session_id</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00134">yaze::editor::AgentEditor::SessionInfo::session_name</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">SetupChatWidgetCallbacks()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01274">SetupChatWidgetCallbacks()</a>.</p>
 
 </div>
 </div>
@@ -1142,7 +1545,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00558">558</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01205">1205</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
 </div>
 </div>
@@ -1172,7 +1575,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00567">567</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01212">1212</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
 </div>
 </div>
@@ -1191,9 +1594,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00610">610</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01254">1254</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00165">in_session_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00221">in_session_</a>.</p>
 
 </div>
 </div>
@@ -1212,9 +1615,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00614">614</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01258">1258</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00164">current_mode_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00220">current_mode_</a>.</p>
 
 </div>
 </div>
@@ -1233,9 +1636,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00618">618</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01262">1262</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00168">current_participants_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00166">current_session_id_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00167">current_session_name_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00165">in_session_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00100">yaze::editor::AgentEditor::SessionInfo::participants</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00098">yaze::editor::AgentEditor::SessionInfo::session_id</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00099">yaze::editor::AgentEditor::SessionInfo::session_name</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00224">current_participants_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00222">current_session_id_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00223">current_session_name_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00221">in_session_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00135">yaze::editor::AgentEditor::SessionInfo::participants</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00133">yaze::editor::AgentEditor::SessionInfo::session_id</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00134">yaze::editor::AgentEditor::SessionInfo::session_name</a>.</p>
 
 </div>
 </div>
@@ -1262,9 +1665,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00136">136</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00171">171</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00153">local_coordinator_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00198">local_coordinator_</a>.</p>
 
 </div>
 </div>
@@ -1291,23 +1694,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00137">137</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00216">216</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00317">ApplyConfig()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00163">current_config_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00075">yaze::editor::AgentEditor::AgentConfig::gemini_api_key</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00152">ICON_MD_ANALYTICS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00395">ICON_MD_CHECK</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00398">ICON_MD_CHECK_CIRCLE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00421">ICON_MD_CLOUD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01154">ICON_MD_LOOP</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01697">ICON_MD_SETTINGS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01779">ICON_MD_SMART_TOY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02020">ICON_MD_TUNE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02099">ICON_MD_VISIBILITY</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7aec0da41f4e48b52c362303eb27ed5dee">yaze::editor::kWarning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00078">yaze::editor::AgentEditor::AgentConfig::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00073">yaze::editor::AgentEditor::AgentConfig::model</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00074">yaze::editor::AgentEditor::AgentConfig::ollama_host</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00072">yaze::editor::AgentEditor::AgentConfig::provider</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00077">yaze::editor::AgentEditor::AgentConfig::show_reasoning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00158">toast_manager_</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00076">yaze::editor::AgentEditor::AgentConfig::verbose</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00965">ApplyConfig()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00208">current_config_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00211">current_profile_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00080">yaze::editor::AgentEditor::BotProfile::description</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00460">DrawMetricsPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00421">DrawStatusPanel()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00084">yaze::editor::AgentEditor::BotProfile::gemini_api_key</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00100">yaze::editor::AgentEditor::AgentConfig::gemini_api_key</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00152">ICON_MD_ANALYTICS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00395">ICON_MD_CHECK</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00398">ICON_MD_CHECK_CIRCLE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00421">ICON_MD_CLOUD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01154">ICON_MD_LOOP</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01697">ICON_MD_SETTINGS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01779">ICON_MD_SMART_TOY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02020">ICON_MD_TUNE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02099">ICON_MD_VISIBILITY</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7aec0da41f4e48b52c362303eb27ed5dee">yaze::editor::kWarning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00089">yaze::editor::AgentEditor::BotProfile::max_retry_attempts</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00088">yaze::editor::AgentEditor::BotProfile::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00103">yaze::editor::AgentEditor::AgentConfig::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00082">yaze::editor::AgentEditor::BotProfile::model</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00098">yaze::editor::AgentEditor::AgentConfig::model</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00079">yaze::editor::AgentEditor::BotProfile::name</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00083">yaze::editor::AgentEditor::BotProfile::ollama_host</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00099">yaze::editor::AgentEditor::AgentConfig::ollama_host</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00081">yaze::editor::AgentEditor::BotProfile::provider</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00097">yaze::editor::AgentEditor::AgentConfig::provider</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00086">Save()</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00087">yaze::editor::AgentEditor::BotProfile::show_reasoning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00102">yaze::editor::AgentEditor::AgentConfig::show_reasoning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00090">yaze::editor::AgentEditor::BotProfile::tags</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00203">toast_manager_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00086">yaze::editor::AgentEditor::BotProfile::verbose</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00101">yaze::editor::AgentEditor::AgentConfig::verbose</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00087">DrawDashboard()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_ae795b5cc2e903ca5f22db52e7ae186f3_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_ae795b5cc2e903ca5f22db52e7ae186f3_cgraph" alt=""/></div>
-<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_ae795b5cc2e903ca5f22db52e7ae186f3_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_ae795b5cc2e903ca5f22db52e7ae186f3_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,171,79"/>
-<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0e04130f7073c71a3ffab038b66de547" title=" " alt="" coords="227,5,385,46"/>
-<area shape="poly" title=" " alt="" coords="171,44,211,37,212,43,172,49"/>
-<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="219,71,393,111"/>
-<area shape="poly" title=" " alt="" coords="172,69,204,73,203,79,171,74"/>
-</map>
-</div>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>.</p>
 
 </div>
 </div>
@@ -1334,19 +1725,21 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00281">281</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00421">421</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00164">current_mode_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00362">ICON_MD_CANCEL</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00392">ICON_MD_CHAT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00398">ICON_MD_CHECK_CIRCLE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01352">ICON_MD_OPEN_IN_NEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01399">ICON_MD_PEOPLE</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551afcf37e733f29d6aa14fb34fa737a809a">kLocal</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00348">OpenChatWindow()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00220">current_mode_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00224">current_participants_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00223">current_session_name_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00362">ICON_MD_CANCEL</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00392">ICON_MD_CHAT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00398">ICON_MD_CHECK_CIRCLE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00864">ICON_MD_GAMEPAD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01352">ICON_MD_OPEN_IN_NEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01399">ICON_MD_PEOPLE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02121">ICON_MD_WARNING</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00221">in_session_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00192">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551afcf37e733f29d6aa14fb34fa737a809a">kLocal</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00996">OpenChatWindow()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00205">rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00087">DrawDashboard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00216">DrawConfigurationPanel()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_a955dd79315a17476ff8c68d84b992c66_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a955dd79315a17476ff8c68d84b992c66_cgraph" alt=""/></div>
 <map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a955dd79315a17476ff8c68d84b992c66_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a955dd79315a17476ff8c68d84b992c66_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,164,46"/>
-<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a7f2f7bf2a19b66cdff05c2599b94cabb" title=" " alt="" coords="212,5,370,46"/>
-<area shape="poly" title=" " alt="" coords="164,23,196,23,196,28,164,28"/>
+<area shape="rect" title=" " alt="" coords="5,27,164,68"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="220,5,362,31"/>
+<area shape="poly" title=" " alt="" coords="164,34,204,28,205,33,164,39"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a7f2f7bf2a19b66cdff05c2599b94cabb" title=" " alt="" coords="212,55,370,96"/>
+<area shape="poly" title=" " alt="" coords="164,56,197,60,196,65,164,61"/>
 </map>
 </div>
 
@@ -1375,11 +1768,174 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00303">303</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00460">460</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>, and <a class="el" href="../../de/dbf/icons_8h_source.html#l00152">ICON_MD_ANALYTICS</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>, and <a class="el" href="../../de/dbf/icons_8h_source.html#l00152">ICON_MD_ANALYTICS</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00087">DrawDashboard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00216">DrawConfigurationPanel()</a>.</p>
+
+</div>
+</div>
+<a id="a59ec935876218565755b65fa327db6bc" name="a59ec935876218565755b65fa327db6bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59ec935876218565755b65fa327db6bc">&#9670;&#160;</a></span>DrawPromptEditorPanel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::AgentEditor::DrawPromptEditorPanel </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00471">471</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00217">active_prompt_file_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00211">current_profile_</a>, <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#af39466acaa761050d58692560db0f3e6">yaze::util::GetBundleResourcePath()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00643">ICON_MD_EDIT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01642">ICON_MD_SAVE</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00215">prompt_editor_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00216">prompt_editor_initialized_</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00085">yaze::editor::AgentEditor::BotProfile::system_prompt</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00203">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_a59ec935876218565755b65fa327db6bc_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a59ec935876218565755b65fa327db6bc_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a59ec935876218565755b65fa327db6bc_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a59ec935876218565755b65fa327db6bc_cgraph">
+<area shape="rect" title=" " alt="" coords="5,27,171,68"/>
+<area shape="rect" href="../../d4/de1/namespaceyaze_1_1util.html#af39466acaa761050d58692560db0f3e6" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="219,5,438,31"/>
+<area shape="poly" title=" " alt="" coords="171,35,203,31,204,36,171,40"/>
+<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="241,55,416,96"/>
+<area shape="poly" title=" " alt="" coords="171,54,226,61,225,66,171,60"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ae23dc7184a9eab4537e0cd99a2e3b090" name="ae23dc7184a9eab4537e0cd99a2e3b090"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae23dc7184a9eab4537e0cd99a2e3b090">&#9670;&#160;</a></span>DrawBotProfilesPanel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::AgentEditor::DrawBotProfilesPanel </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00545">545</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00091">yaze::editor::AgentEditor::BotProfile::created_at</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00211">current_profile_</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00790">DeleteBotProfile()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00080">yaze::editor::AgentEditor::BotProfile::description</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00528">ICON_MD_DELETE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00807">ICON_MD_FOLDER</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01092">ICON_MD_LIST</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01846">ICON_MD_STAR</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00754">LoadBotProfile()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00212">loaded_profiles_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00082">yaze::editor::AgentEditor::BotProfile::model</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00092">yaze::editor::AgentEditor::BotProfile::modified_at</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00079">yaze::editor::AgentEditor::BotProfile::name</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00081">yaze::editor::AgentEditor::BotProfile::provider</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00203">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_ae23dc7184a9eab4537e0cd99a2e3b090_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_ae23dc7184a9eab4537e0cd99a2e3b090_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_ae23dc7184a9eab4537e0cd99a2e3b090_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_ae23dc7184a9eab4537e0cd99a2e3b090_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,164,111"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a942fba38138cdcf9fcc31d620fa5dfa9" title=" " alt="" coords="220,5,378,46"/>
+<area shape="poly" title=" " alt="" coords="153,68,214,49,216,54,154,73"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ad76b56426075ca2331d4103333cae707" title=" " alt="" coords="220,71,378,111"/>
+<area shape="poly" title=" " alt="" coords="164,88,204,88,204,94,164,94"/>
+<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="212,136,386,177"/>
+<area shape="poly" title=" " alt="" coords="154,109,216,128,214,133,153,114"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="434,39,592,79"/>
+<area shape="poly" title=" " alt="" coords="379,35,419,42,418,47,378,41"/>
+<area shape="poly" title=" " alt="" coords="378,77,418,70,419,76,379,82"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="adbcc6a9a344cc69e6cdd0419d66bd770" name="adbcc6a9a344cc69e6cdd0419d66bd770"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adbcc6a9a344cc69e6cdd0419d66bd770">&#9670;&#160;</a></span>DrawChatHistoryViewer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::AgentEditor::DrawChatHistoryViewer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">630</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00235">cached_history_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00236">history_needs_refresh_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00528">ICON_MD_DELETE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00944">ICON_MD_HISTORY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2a3ea6f9f6140b78f0c5a050d926097f56">yaze::cli::agent::ChatMessage::kUser</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00203">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_adbcc6a9a344cc69e6cdd0419d66bd770_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_adbcc6a9a344cc69e6cdd0419d66bd770_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_adbcc6a9a344cc69e6cdd0419d66bd770_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_adbcc6a9a344cc69e6cdd0419d66bd770_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,171,46"/>
+<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="219,5,393,46"/>
+<area shape="poly" title=" " alt="" coords="171,23,203,23,203,28,171,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a1c0193990c16fc111ca7b969bce429ec" name="a1c0193990c16fc111ca7b969bce429ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1c0193990c16fc111ca7b969bce429ec">&#9670;&#160;</a></span>DrawAdvancedMetricsPanel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::AgentEditor::DrawAdvancedMetricsPanel </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00684">684</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00152">ICON_MD_ANALYTICS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00326">ICON_MD_BUILD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00392">ICON_MD_CHAT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01510">ICON_MD_PREVIEW</a>, and <a class="el" href="../../de/dbf/icons_8h_source.html#l01980">ICON_MD_TIMER</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>.</p>
 
 </div>
 </div>
@@ -1406,11 +1962,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">630</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01274">1274</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00164">current_mode_</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00058">yaze::editor::AgentChatWidget::CollaborationCallbacks::host_session</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00354">HostSession()</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00059">yaze::editor::AgentChatWidget::CollaborationCallbacks::join_session</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00427">JoinSession()</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00060">yaze::editor::AgentChatWidget::CollaborationCallbacks::leave_session</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00499">LeaveSession()</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00055">yaze::editor::AgentChatWidget::CollaborationCallbacks::SessionContext::participants</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00061">yaze::editor::AgentChatWidget::CollaborationCallbacks::refresh_session</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00532">RefreshSession()</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00053">yaze::editor::AgentChatWidget::CollaborationCallbacks::SessionContext::session_id</a>, and <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00054">yaze::editor::AgentChatWidget::CollaborationCallbacks::SessionContext::session_name</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">chat_widget_</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00220">current_mode_</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00059">yaze::editor::AgentChatWidget::CollaborationCallbacks::host_session</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01002">HostSession()</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00060">yaze::editor::AgentChatWidget::CollaborationCallbacks::join_session</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01074">JoinSession()</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00061">yaze::editor::AgentChatWidget::CollaborationCallbacks::leave_session</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01146">LeaveSession()</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00056">yaze::editor::AgentChatWidget::CollaborationCallbacks::SessionContext::participants</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00062">yaze::editor::AgentChatWidget::CollaborationCallbacks::refresh_session</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01179">RefreshSession()</a>, <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00054">yaze::editor::AgentChatWidget::CollaborationCallbacks::SessionContext::session_id</a>, and <a class="el" href="../../d1/dee/editor_2agent_2agent__chat__widget_8h_source.html#l00055">yaze::editor::AgentChatWidget::CollaborationCallbacks::SessionContext::session_name</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00061">InitializeWithDependencies()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00102">InitializeWithDependencies()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1453,9 +2009,159 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00680">680</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01323">1323</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00061">InitializeWithDependencies()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00102">InitializeWithDependencies()</a>.</p>
+
+</div>
+</div>
+<a id="a961395e40466148d6be9d99bbeef6fc4" name="a961395e40466148d6be9d99bbeef6fc4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a961395e40466148d6be9d99bbeef6fc4">&#9670;&#160;</a></span>GetProfilesDirectory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::filesystem::path yaze::editor::AgentEditor::GetProfilesDirectory </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00860">860</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d1/d2b/file__util_8cc_source.html#l00153">yaze::util::GetConfigDirectory()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00790">DeleteBotProfile()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00879">EnsureProfilesDirectory()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00064">Load()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00754">LoadBotProfile()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00732">SaveBotProfile()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_a961395e40466148d6be9d99bbeef6fc4_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a961395e40466148d6be9d99bbeef6fc4_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a961395e40466148d6be9d99bbeef6fc4_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a961395e40466148d6be9d99bbeef6fc4_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,164,46"/>
+<area shape="rect" href="../../d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="212,13,396,39"/>
+<area shape="poly" title=" " alt="" coords="164,23,196,23,196,28,164,28"/>
+<area shape="rect" href="../../d4/de1/namespaceyaze_1_1util.html#a80fd0ef42172aad687b3f22ddb997194" title=" " alt="" coords="444,13,624,39"/>
+<area shape="poly" title=" " alt="" coords="396,23,428,23,428,28,396,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a644a6c031a2ea3f247079b315be08b54" name="a644a6c031a2ea3f247079b315be08b54"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a644a6c031a2ea3f247079b315be08b54">&#9670;&#160;</a></span>EnsureProfilesDirectory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::editor::AgentEditor::EnsureProfilesDirectory </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00879">879</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00860">GetProfilesDirectory()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00028">AgentEditor()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00059">Initialize()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00732">SaveBotProfile()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor_a644a6c031a2ea3f247079b315be08b54_cgraph.png" border="0" usemap="#ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a644a6c031a2ea3f247079b315be08b54_cgraph" alt=""/></div>
+<map name="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a644a6c031a2ea3f247079b315be08b54_cgraph" id="ad6/d0d/classyaze_1_1editor_1_1AgentEditor_a644a6c031a2ea3f247079b315be08b54_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,167,46"/>
+<area shape="rect" href="../../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="215,5,373,46"/>
+<area shape="poly" title=" " alt="" coords="167,23,199,23,199,28,167,28"/>
+<area shape="rect" href="../../d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="421,13,605,39"/>
+<area shape="poly" title=" " alt="" coords="373,23,405,23,405,28,373,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ab6a41d096c63147816c1071bbe8431e2" name="ab6a41d096c63147816c1071bbe8431e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6a41d096c63147816c1071bbe8431e2">&#9670;&#160;</a></span>ProfileToJson()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::editor::AgentEditor::ProfileToJson </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> &amp;&#160;</td>
+          <td class="paramname"><em>profile</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00889">889</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00091">yaze::editor::AgentEditor::BotProfile::created_at</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00080">yaze::editor::AgentEditor::BotProfile::description</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00084">yaze::editor::AgentEditor::BotProfile::gemini_api_key</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00089">yaze::editor::AgentEditor::BotProfile::max_retry_attempts</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00088">yaze::editor::AgentEditor::BotProfile::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00082">yaze::editor::AgentEditor::BotProfile::model</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00092">yaze::editor::AgentEditor::BotProfile::modified_at</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00079">yaze::editor::AgentEditor::BotProfile::name</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00083">yaze::editor::AgentEditor::BotProfile::ollama_host</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00081">yaze::editor::AgentEditor::BotProfile::provider</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00087">yaze::editor::AgentEditor::BotProfile::show_reasoning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00085">yaze::editor::AgentEditor::BotProfile::system_prompt</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00090">yaze::editor::AgentEditor::BotProfile::tags</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00086">yaze::editor::AgentEditor::BotProfile::verbose</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00821">ExportProfile()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00732">SaveBotProfile()</a>.</p>
+
+</div>
+</div>
+<a id="a3611fc5f7367b5346be7dda28c89a08d" name="a3611fc5f7367b5346be7dda28c89a08d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3611fc5f7367b5346be7dda28c89a08d">&#9670;&#160;</a></span>JsonToProfile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::StatusOr&lt; <a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">AgentEditor::BotProfile</a> &gt; yaze::editor::AgentEditor::JsonToProfile </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>json</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00913">913</a> of file <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html">agent_editor.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00091">yaze::editor::AgentEditor::BotProfile::created_at</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00080">yaze::editor::AgentEditor::BotProfile::description</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00084">yaze::editor::AgentEditor::BotProfile::gemini_api_key</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00089">yaze::editor::AgentEditor::BotProfile::max_retry_attempts</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00088">yaze::editor::AgentEditor::BotProfile::max_tool_iterations</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00082">yaze::editor::AgentEditor::BotProfile::model</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00092">yaze::editor::AgentEditor::BotProfile::modified_at</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00079">yaze::editor::AgentEditor::BotProfile::name</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00083">yaze::editor::AgentEditor::BotProfile::ollama_host</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00081">yaze::editor::AgentEditor::BotProfile::provider</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00087">yaze::editor::AgentEditor::BotProfile::show_reasoning</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00085">yaze::editor::AgentEditor::BotProfile::system_prompt</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00090">yaze::editor::AgentEditor::BotProfile::tags</a>, and <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00086">yaze::editor::AgentEditor::BotProfile::verbose</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00837">ImportProfile()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00064">Load()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00754">LoadBotProfile()</a>.</p>
 
 </div>
 </div>
@@ -1480,9 +2186,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00152">152</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00197">197</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00021">AgentEditor()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00317">ApplyConfig()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00303">DrawMetricsPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00281">DrawStatusPanel()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00085">GetChatWidget()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00354">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00061">InitializeWithDependencies()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00334">IsChatActive()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00427">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00499">LeaveSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00348">OpenChatWindow()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00338">SetChatActive()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00080">SetRomContext()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">SetupChatWidgetCallbacks()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00028">AgentEditor()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00965">ApplyConfig()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00684">DrawAdvancedMetricsPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">DrawChatHistoryViewer()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00460">DrawMetricsPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00421">DrawStatusPanel()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00120">GetChatWidget()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01002">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00102">InitializeWithDependencies()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00982">IsChatActive()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01074">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01146">LeaveSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00996">OpenChatWindow()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00986">SetChatActive()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00121">SetRomContext()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01274">SetupChatWidgetCallbacks()</a>.</p>
 
 </div>
 </div>
@@ -1506,9 +2212,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00153">153</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00198">198</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00021">AgentEditor()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00136">GetLocalCoordinator()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00354">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00427">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00499">LeaveSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00532">RefreshSession()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00028">AgentEditor()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00171">GetLocalCoordinator()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01002">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01074">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01146">LeaveSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01179">RefreshSession()</a>.</p>
 
 </div>
 </div>
@@ -1532,9 +2238,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00158">158</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00203">203</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00137">DrawConfigurationPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00354">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00061">InitializeWithDependencies()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00427">JoinSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00499">LeaveSession()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00545">DrawBotProfilesPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">DrawChatHistoryViewer()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00216">DrawConfigurationPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00471">DrawPromptEditorPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01002">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00102">InitializeWithDependencies()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01074">JoinSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01146">LeaveSession()</a>.</p>
 
 </div>
 </div>
@@ -1558,9 +2264,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00159">159</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00204">204</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00061">InitializeWithDependencies()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00102">InitializeWithDependencies()</a>.</p>
 
 </div>
 </div>
@@ -1584,9 +2290,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00160">160</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00205">205</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00061">InitializeWithDependencies()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00080">SetRomContext()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00421">DrawStatusPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00102">InitializeWithDependencies()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00121">SetRomContext()</a>.</p>
 
 </div>
 </div>
@@ -1610,9 +2316,139 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00163">163</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00208">208</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00021">AgentEditor()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00317">ApplyConfig()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00137">DrawConfigurationPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00087">DrawDashboard()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00313">GetCurrentConfig()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00028">AgentEditor()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00965">ApplyConfig()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00216">DrawConfigurationPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00961">GetCurrentConfig()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00754">LoadBotProfile()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00808">SetCurrentProfile()</a>.</p>
+
+</div>
+</div>
+<a id="ad5287846f8fe54184e58dc1294eca812" name="ad5287846f8fe54184e58dc1294eca812"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5287846f8fe54184e58dc1294eca812">&#9670;&#160;</a></span>current_profile_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a> yaze::editor::AgentEditor::current_profile_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00211">211</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00028">AgentEditor()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00545">DrawBotProfilesPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00216">DrawConfigurationPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00471">DrawPromptEditorPanel()</a>, <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00114">GetCurrentProfile()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00754">LoadBotProfile()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00086">Save()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00808">SetCurrentProfile()</a>.</p>
+
+</div>
+</div>
+<a id="aec1c95c5821ce4fb5df8c763012b5520" name="aec1c95c5821ce4fb5df8c763012b5520"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aec1c95c5821ce4fb5df8c763012b5520">&#9670;&#160;</a></span>loaded_profiles_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;<a class="el" href="../../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html">BotProfile</a>&gt; yaze::editor::AgentEditor::loaded_profiles_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00212">212</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00545">DrawBotProfilesPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00804">GetAllProfiles()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00064">Load()</a>.</p>
+
+</div>
+</div>
+<a id="ab82197008e6c8e4e6ae6de27f3fd6a9e" name="ab82197008e6c8e4e6ae6de27f3fd6a9e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab82197008e6c8e4e6ae6de27f3fd6a9e">&#9670;&#160;</a></span>prompt_editor_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt;<a class="el" href="../../d0/d28/classTextEditor.html">TextEditor</a>&gt; yaze::editor::AgentEditor::prompt_editor_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00215">215</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00028">AgentEditor()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00471">DrawPromptEditorPanel()</a>.</p>
+
+</div>
+</div>
+<a id="a3d500ebf108f9183f1330311776c5da7" name="a3d500ebf108f9183f1330311776c5da7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d500ebf108f9183f1330311776c5da7">&#9670;&#160;</a></span>prompt_editor_initialized_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::AgentEditor::prompt_editor_initialized_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00216">216</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00471">DrawPromptEditorPanel()</a>.</p>
+
+</div>
+</div>
+<a id="a8f2fb6f0a772803a866d303a7583fe58" name="a8f2fb6f0a772803a866d303a7583fe58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8f2fb6f0a772803a866d303a7583fe58">&#9670;&#160;</a></span>active_prompt_file_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string yaze::editor::AgentEditor::active_prompt_file_ = &quot;system_prompt_v3.txt&quot;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00217">217</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00471">DrawPromptEditorPanel()</a>.</p>
 
 </div>
 </div>
@@ -1636,9 +2472,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00164">164</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00220">220</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00281">DrawStatusPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00614">GetCurrentMode()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00354">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00427">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00499">LeaveSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00532">RefreshSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">SetupChatWidgetCallbacks()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00421">DrawStatusPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01258">GetCurrentMode()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01002">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01074">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01146">LeaveSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01179">RefreshSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01274">SetupChatWidgetCallbacks()</a>.</p>
 
 </div>
 </div>
@@ -1662,9 +2498,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00165">165</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00221">221</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00618">GetCurrentSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00354">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00610">IsInSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00427">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00499">LeaveSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00532">RefreshSession()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00421">DrawStatusPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01262">GetCurrentSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01002">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01254">IsInSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01074">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01146">LeaveSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01179">RefreshSession()</a>.</p>
 
 </div>
 </div>
@@ -1688,9 +2524,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00166">166</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00222">222</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00618">GetCurrentSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00354">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00427">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00499">LeaveSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00532">RefreshSession()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01262">GetCurrentSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01002">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01074">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01146">LeaveSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01179">RefreshSession()</a>.</p>
 
 </div>
 </div>
@@ -1714,9 +2550,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00167">167</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00223">223</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00618">GetCurrentSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00354">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00427">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00499">LeaveSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00532">RefreshSession()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00421">DrawStatusPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01262">GetCurrentSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01002">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01074">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01146">LeaveSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01179">RefreshSession()</a>.</p>
 
 </div>
 </div>
@@ -1740,9 +2576,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00168">168</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00224">224</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00618">GetCurrentSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00354">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00427">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00499">LeaveSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00532">RefreshSession()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00421">DrawStatusPanel()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01262">GetCurrentSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01002">HostSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01074">JoinSession()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01146">LeaveSession()</a>, and <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01179">RefreshSession()</a>.</p>
 
 </div>
 </div>
@@ -1766,7 +2602,187 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00171">171</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00227">227</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+</div>
+</div>
+<a id="a67d8471b5e836ec423b3baf32179eb0f" name="a67d8471b5e836ec423b3baf32179eb0f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67d8471b5e836ec423b3baf32179eb0f">&#9670;&#160;</a></span>show_prompt_editor_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::AgentEditor::show_prompt_editor_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00228">228</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>.</p>
+
+</div>
+</div>
+<a id="a1aafb3d1f6f66eb2f963a0dbc0f646b2" name="a1aafb3d1f6f66eb2f963a0dbc0f646b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1aafb3d1f6f66eb2f963a0dbc0f646b2">&#9670;&#160;</a></span>show_bot_profiles_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::AgentEditor::show_bot_profiles_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00229">229</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>.</p>
+
+</div>
+</div>
+<a id="ad29f78a95c9916b1327a7e200ba7b323" name="ad29f78a95c9916b1327a7e200ba7b323"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad29f78a95c9916b1327a7e200ba7b323">&#9670;&#160;</a></span>show_chat_history_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::AgentEditor::show_chat_history_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00230">230</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>.</p>
+
+</div>
+</div>
+<a id="a49b5b6023c87486fe84dd2150f39ce75" name="a49b5b6023c87486fe84dd2150f39ce75"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49b5b6023c87486fe84dd2150f39ce75">&#9670;&#160;</a></span>show_metrics_dashboard_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::AgentEditor::show_metrics_dashboard_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00231">231</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00128">DrawDashboard()</a>.</p>
+
+</div>
+</div>
+<a id="af4f33f1c13e267ae6ffd93a1e845b431" name="af4f33f1c13e267ae6ffd93a1e845b431"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af4f33f1c13e267ae6ffd93a1e845b431">&#9670;&#160;</a></span>selected_tab_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int yaze::editor::AgentEditor::selected_tab_ = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00232">232</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+</div>
+</div>
+<a id="a4e339b5cffa031c4961decff25fd658f" name="a4e339b5cffa031c4961decff25fd658f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4e339b5cffa031c4961decff25fd658f">&#9670;&#160;</a></span>cached_history_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;<a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">cli::agent::ChatMessage</a>&gt; yaze::editor::AgentEditor::cached_history_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00235">235</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">DrawChatHistoryViewer()</a>.</p>
+
+</div>
+</div>
+<a id="a7d64ebca7ac3b32b4a9e5fae9ff1865d" name="a7d64ebca7ac3b32b4a9e5fae9ff1865d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d64ebca7ac3b32b4a9e5fae9ff1865d">&#9670;&#160;</a></span>history_needs_refresh_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::AgentEditor::history_needs_refresh_ = true</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/d85/agent__editor_8h_source.html#l00236">236</a> of file <a class="el" href="../../d4/d85/agent__editor_8h_source.html">agent_editor.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l00630">DrawChatHistoryViewer()</a>.</p>
 
 </div>
 </div>

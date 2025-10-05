@@ -1,11 +1,11 @@
 <map id="yaze::core::Controller" name="yaze::core::Controller">
-<area shape="rect" id="Node000001" title="Main controller for the application." alt="" coords="44,198,183,223"/>
-<area shape="rect" id="Node000002" href="$de/d86/structyaze_1_1core_1_1Window.html" title=" " alt="" coords="5,109,136,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,147,110,196,105,198,81,150"/>
-<area shape="rect" id="Node000003" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="159,109,334,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="217,146,133,199,131,195,214,141"/>
-<area shape="rect" id="Node000004" href="$dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html" title="ImGui drawer for displaying and managing agent proposals." alt="" coords="59,13,242,39"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="175,48,210,83,235,107,231,110,206,87,171,52"/>
-<area shape="rect" id="Node000010" href="$d8/ddf/classyaze_1_1editor_1_1ProjectFileEditor.html" title="Editor for .yaze project files with syntax highlighting and validation." alt="" coords="266,5,419,46"/>
-<area shape="poly" id="edge4_Node000003_Node000010" title=" " alt="" coords="332,62,315,87,298,101,280,111,277,106,295,96,311,83,328,59"/>
+<area shape="rect" id="Node000001" title="Main controller for the application." alt="" coords="44,213,183,238"/>
+<area shape="rect" id="Node000002" href="$de/d86/structyaze_1_1core_1_1Window.html" title=" " alt="" coords="5,124,136,150"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,162,110,211,105,213,81,165"/>
+<area shape="rect" id="Node000003" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html" title="The EditorManager controls the main editor window and manages the various editor classes." alt="" coords="159,124,334,150"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="217,161,133,214,131,210,214,156"/>
+<area shape="rect" id="Node000004" href="$dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html" title="ImGui drawer for displaying and managing agent proposals." alt="" coords="50,13,233,39"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="165,48,237,122,233,126,161,52"/>
+<area shape="rect" id="Node000010" href="$d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html" title="ImGui popup drawer for displaying chat history on the left side." alt="" coords="257,5,450,46"/>
+<area shape="poly" id="edge4_Node000003_Node000010" title=" " alt="" coords="346,62,337,83,323,102,305,116,286,126,284,121,303,111,319,98,332,80,342,60"/>
 </map>

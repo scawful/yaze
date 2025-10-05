@@ -1,7 +1,0 @@
-<map id="yaze::editor::AgentEditor::DrawConfigurationPanel" name="yaze::editor::AgentEditor::DrawConfigurationPanel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,171,79"/>
-<area shape="rect" id="Node000002" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0e04130f7073c71a3ffab038b66de547" title=" " alt="" coords="227,5,385,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,44,211,37,212,43,172,49"/>
-<area shape="rect" id="Node000003" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="219,71,393,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="172,69,204,73,203,79,171,74"/>
-</map>

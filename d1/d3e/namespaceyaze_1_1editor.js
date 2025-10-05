@@ -1,6 +1,11 @@
 var namespaceyaze_1_1editor =
 [
     [ "anonymous_namespace{agent_chat_history_codec.cc}", "d3/d49/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__codec_8cc_03.html", null ],
+    [ "anonymous_namespace{agent_chat_history_popup.cc}", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html", [
+      [ "kUserColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a2b94ba6c837031179d36ed6b174479d3", null ],
+      [ "kAgentColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a119561673433949cbd6e2aea56b5c07c", null ],
+      [ "kTimestampColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#aacf4200246379938a928209db1b42884", null ]
+    ] ],
     [ "anonymous_namespace{agent_collaboration_coordinator.cc}", "dc/d0a/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__collaboration__coordinator_8cc_03.html", [
       [ "ExpandUserPath", "dc/d0a/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__collaboration__coordinator_8cc_03.html#a4fc792052e179669716d31413c174cc9", null ],
       [ "Trimmed", "dc/d0a/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__collaboration__coordinator_8cc_03.html#ad3e7f14716b68bcb17c428459e5cc7f0", null ]
@@ -48,6 +53,7 @@ var namespaceyaze_1_1editor =
     [ "test", "d1/dac/namespaceyaze_1_1editor_1_1test.html", "d1/dac/namespaceyaze_1_1editor_1_1test" ],
     [ "zsprite", "d8/d17/namespaceyaze_1_1editor_1_1zsprite.html", "d8/d17/namespaceyaze_1_1editor_1_1zsprite" ],
     [ "AgentChatHistoryCodec", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec.html", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec" ],
+    [ "AgentChatHistoryPopup", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup" ],
     [ "AgentChatWidget", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget" ],
     [ "AgentCollaborationCoordinator", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html", "d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator" ],
     [ "AgentEditor", "d6/d0d/classyaze_1_1editor_1_1AgentEditor.html", "d6/d0d/classyaze_1_1editor_1_1AgentEditor" ],

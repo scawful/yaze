@@ -11,5 +11,6 @@ var editor_2agent_2agent__chat__widget_8h =
     [ "yaze::editor::AgentChatWidget::AgentConfigState", "d2/da5/structyaze_1_1editor_1_1AgentChatWidget_1_1AgentConfigState.html", "d2/da5/structyaze_1_1editor_1_1AgentChatWidget_1_1AgentConfigState" ],
     [ "yaze::editor::AgentChatWidget::RomSyncState", "dc/d3f/structyaze_1_1editor_1_1AgentChatWidget_1_1RomSyncState.html", "dc/d3f/structyaze_1_1editor_1_1AgentChatWidget_1_1RomSyncState" ],
     [ "yaze::editor::AgentChatWidget::Z3EDCommandState", "dc/deb/structyaze_1_1editor_1_1AgentChatWidget_1_1Z3EDCommandState.html", "dc/deb/structyaze_1_1editor_1_1AgentChatWidget_1_1Z3EDCommandState" ],
+    [ "yaze::editor::AgentChatWidget::ChatSession", "d0/d1b/structyaze_1_1editor_1_1AgentChatWidget_1_1ChatSession.html", "d0/d1b/structyaze_1_1editor_1_1AgentChatWidget_1_1ChatSession" ],
     [ "yaze::editor::AgentChatWidget::FileEditorTab", "de/dab/structyaze_1_1editor_1_1AgentChatWidget_1_1FileEditorTab.html", "de/dab/structyaze_1_1editor_1_1AgentChatWidget_1_1FileEditorTab" ]
 ];

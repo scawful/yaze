@@ -1,0 +1,38 @@
+var classyaze_1_1editor_1_1AgentChatHistoryPopup =
+[
+    [ "OpenChatCallback", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a396039e095b04fe653aa8933c4e7194c", null ],
+    [ "MessageFilter", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2", [
+      [ "kAll", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2a34bdbffdb1c0e1b603f58fc0d49548b6", null ],
+      [ "kUserOnly", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2a1a821ac3683242e6ca14989ce03d2601", null ],
+      [ "kAgentOnly", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2afad6657cb04032874429899f0f45eb98", null ]
+    ] ],
+    [ "AgentChatHistoryPopup", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a338870f9d50aa747e7be01f9a16f92b5", null ],
+    [ "~AgentChatHistoryPopup", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a2337e6dcb2f34c65690ccc9aec229329", null ],
+    [ "SetToastManager", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a2e1adbc464fd11bf2c929b6c9cb1366a", null ],
+    [ "Draw", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#adb7882db13246e3d9cd13a3a64aa5b36", null ],
+    [ "Show", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a730e63f7a6fdc73004df70e02f422e2e", null ],
+    [ "Hide", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a203fbafe5b42c14a3aef31df836d04c2", null ],
+    [ "Toggle", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#aaef532538920698af5fa70f7f6e080fd", null ],
+    [ "IsVisible", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a4091d336fb322de207a1b2bfeb16d2f8", null ],
+    [ "UpdateHistory", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a58acd2e0bb253f0a802fc2163077311e", null ],
+    [ "NotifyNewMessage", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a57a53769524a7dd6378c536a6bcce28c", null ],
+    [ "SetOpenChatCallback", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#ac108f436e5a341aa31f6db3a3e41ef36", null ],
+    [ "DrawMessageList", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a74ca96efcfb7d991763b6e279f192f58", null ],
+    [ "DrawMessage", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a897bf40b4f6275f8d25a4b341e460718", null ],
+    [ "DrawActionButtons", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a47d886ef15ad06c3c72a61eb035bcfad", null ],
+    [ "ClearHistory", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#abf6589fb7b562573b0e33b63bc7416b9", null ],
+    [ "ExportHistory", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a569fd4528180a2c681b04921c33ae740", null ],
+    [ "ScrollToBottom", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a68c9bc728f36fdc1940a9ea3f3bf4dbf", null ],
+    [ "visible_", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#aeecaff5f9db1aab2f15d7ecaf5d6188b", null ],
+    [ "needs_scroll_", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a6a7cb192b5c83e6d0d64c33ad0bafd6b", null ],
+    [ "auto_scroll_", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a7396e6124d5e02f73adb5bbcba534f1e", null ],
+    [ "messages_", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#ad9d2710097009e0f2b050507cc37601e", null ],
+    [ "display_limit_", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a3a39fe3031b29e4d3672ace6c49580f7", null ],
+    [ "drawer_width_", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a3ee509f9d829ca39ee4c4664b93ebf95", null ],
+    [ "min_drawer_width_", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a61df7a3e3de317a0b7b8919ff28424db", null ],
+    [ "max_drawer_width_", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a6c99618f9921ed53a8a879f5e7a7168b", null ],
+    [ "is_resizing_", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a9dc7e5b9a4bd6c1a1361782dbd47338c", null ],
+    [ "message_filter_", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a360d56fb93700882f932a1b456fc841b", null ],
+    [ "toast_manager_", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a5520e4d9686c3a1972496b555def14e8", null ],
+    [ "open_chat_callback_", "d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#ad1e0bdb0e15583e9650929febfa3a335", null ]
+];

@@ -1,0 +1,9 @@
+<map id="yaze::editor::AgentEditor::AgentEditor" name="yaze::editor::AgentEditor::AgentEditor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,164,79"/>
+<area shape="rect" id="Node000002" href="$dd/dd2/structTextEditor_1_1LanguageDefinition.html#aba26ce5704845dd024521fed8c19a9c9" title=" " alt="" coords="212,5,407,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,45,196,40,197,45,165,50"/>
+<area shape="rect" id="Node000003" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a644a6c031a2ea3f247079b315be08b54" title=" " alt="" coords="229,71,390,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="165,68,214,75,213,80,164,73"/>
+<area shape="rect" id="Node000004" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="455,71,613,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="390,88,440,88,440,94,390,94"/>
+</map>

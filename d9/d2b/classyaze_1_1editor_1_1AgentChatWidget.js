@@ -1,6 +1,7 @@
 var classyaze_1_1editor_1_1AgentChatWidget =
 [
     [ "AgentConfigState", "d2/da5/structyaze_1_1editor_1_1AgentChatWidget_1_1AgentConfigState.html", "d2/da5/structyaze_1_1editor_1_1AgentChatWidget_1_1AgentConfigState" ],
+    [ "ChatSession", "d0/d1b/structyaze_1_1editor_1_1AgentChatWidget_1_1ChatSession.html", "d0/d1b/structyaze_1_1editor_1_1AgentChatWidget_1_1ChatSession" ],
     [ "CollaborationCallbacks", "dd/d80/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationCallbacks.html", "dd/d80/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationCallbacks" ],
     [ "CollaborationState", "d7/dc8/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationState.html", "d7/dc8/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationState" ],
     [ "FileEditorTab", "de/dab/structyaze_1_1editor_1_1AgentChatWidget_1_1FileEditorTab.html", "de/dab/structyaze_1_1editor_1_1AgentChatWidget_1_1FileEditorTab" ],
@@ -24,6 +25,7 @@ var classyaze_1_1editor_1_1AgentChatWidget =
     [ "SetRomContext", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a907aa6670f36fdad4b02cb5773fb4385", null ],
     [ "SetToastManager", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ae03a2797633816650de4a3c07f43a8c3", null ],
     [ "SetProposalDrawer", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a7e2175f9664d643664a00192dda25203", null ],
+    [ "SetChatHistoryPopup", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#af5bbf5e2702a9516994daf8a11e4cd49", null ],
     [ "SetCollaborationCallbacks", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#accf7f72794a10bf6af6c0155e117e519", null ],
     [ "SetMultimodalCallbacks", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a22cde721b036f3d9d4dbe72c2d80f821", null ],
     [ "SetZ3EDCommandCallbacks", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#aa46d7a493d151e97c4c8f0debf1fc6c9", null ],
@@ -69,6 +71,9 @@ var classyaze_1_1editor_1_1AgentChatWidget =
     [ "HandleRomSyncReceived", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#af151d061b9691f3138a9b533bb7b7991", null ],
     [ "HandleSnapshotReceived", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ad54aa70e6a53fc4d454bc6c659fe0308", null ],
     [ "HandleProposalReceived", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#aa64d3256608f17ecd82328890065a990", null ],
+    [ "SyncHistoryToPopup", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a34cf16d6412ad61b10fdfd0fe5377fc2", null ],
+    [ "chat_sessions_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a51e4cdfa7e3c394f5b31ed0b8caba02e", null ],
+    [ "active_session_index_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a8561db2cccf055852cc973a7716ad1ec", null ],
     [ "agent_service_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a89a217078fca0cdaa24bb971b860ef4e", null ],
     [ "input_buffer_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ae7b62bd0d119cdc555ebfdec0888b6e8", null ],
     [ "active_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ac493372d406a2b1b5c02378b367c4f4a", null ],
@@ -82,6 +87,7 @@ var classyaze_1_1editor_1_1AgentChatWidget =
     [ "last_proposal_count_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#affa0210f28a2335ebb9e9064bd7731aa", null ],
     [ "toast_manager_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a7eefe1d223935d8bf829af26bbe897ba", null ],
     [ "proposal_drawer_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ae1939911e4567b39dfa2facfa9026df2", null ],
+    [ "chat_history_popup_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#abf26fa533f5a6f023dd94cb0cf664fcc", null ],
     [ "pending_focus_proposal_id_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a99a0436e43474357b761fadf273a6933", null ],
     [ "last_persist_time_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a30f2282efbb708336920d5257d411d0d", null ],
     [ "collaboration_state_", "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ab89d66e6fdf8c20e054c0bdf11800834", null ],

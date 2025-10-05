@@ -1,0 +1,12 @@
+<map id="yaze::editor::AgentEditor::DeleteBotProfile" name="yaze::editor::AgentEditor::DeleteBotProfile">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,164,75"/>
+<area shape="rect" id="Node000002" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="418,5,576,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,47,402,30,403,35,164,52"/>
+<area shape="rect" id="Node000005" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ad316a0a705b2bb919c6382e599f97fa9" title=" " alt="" coords="212,63,370,103"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="164,63,197,68,196,73,164,68"/>
+<area shape="rect" id="Node000003" href="$d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="624,13,809,39"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="577,23,609,23,609,28,577,28"/>
+<area shape="poly" id="edge4_Node000005_Node000002" title=" " alt="" coords="366,60,406,48,408,53,367,65"/>
+<area shape="rect" id="Node000006" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3611fc5f7367b5346be7dda28c89a08d" title=" " alt="" coords="418,71,576,111"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="370,83,403,85,402,90,370,89"/>
+</map>
