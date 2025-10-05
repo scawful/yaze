@@ -1990,7 +1990,7 @@ std::vector<std::string> ThemeManager::DiscoverAvailableThemeFiles() const {
   std::set<std::string> seen_basenames;
   
   for (const auto& file : theme_files) {
-    std::string basename = core::GetFileName(file);
+    std::string basename = util::GetFileName(file);
     if (seen_basenames.find(basename) == seen_basenames.end()) {
       unique_files.push_back(file);
       seen_basenames.insert(basename);

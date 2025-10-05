@@ -17,8 +17,8 @@ set(
 )
 
 if(YAZE_WITH_GRPC)
-  # Add ROM service implementation
-  list(APPEND YAZE_NET_SRC app/net/rom_service_impl.cc)
+  # Add ROM service implementation (disabled - proto field mismatch)
+  # list(APPEND YAZE_NET_SRC app/net/rom_service_impl.cc)
 endif()
 
 add_library(yaze_net STATIC ${YAZE_NET_SRC})

@@ -89,7 +89,7 @@ class EditorSelectionDialog {
   void DrawQuickAccessButtons();
   
   std::vector<EditorInfo> editors_;
-  EditorType selected_editor_ = EditorType::kNone;
+  EditorType selected_editor_ = static_cast<EditorType>(0);
   bool is_open_ = false;
   std::function<void(EditorType)> selection_callback_;
   

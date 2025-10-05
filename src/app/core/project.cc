@@ -1056,7 +1056,7 @@ std::string RecentFilesManager::GetFilePath() const {
 
 void RecentFilesManager::Save() {
   // Ensure config directory exists
-  if (!EnsureConfigDirectoryExists()) {
+  if (!util::EnsureConfigDirectoryExists()) {
     std::cerr << "Warning: Could not create config directory for recent files\n";
     return;
   }
