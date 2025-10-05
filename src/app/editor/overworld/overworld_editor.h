@@ -7,6 +7,7 @@
 #include "app/editor/graphics/palette_editor.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/map_properties.h"
+#include "app/editor/overworld/overworld_entity_renderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/tilemap.h"
@@ -122,11 +123,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status RefreshMapPalette();
   void RefreshMapProperties();
   absl::Status RefreshTile16Blockset();
-
-  void DrawOverworldEntrances(ImVec2 canvas_p, ImVec2 scrolling);
-  void DrawOverworldExits(ImVec2 zero, ImVec2 scrolling);
-  void DrawOverworldItems();
-  void DrawOverworldSprites();
 
   void DrawOverworldMaps();
   void DrawOverworldEdits();
@@ -276,6 +272,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Map properties system for UI organization
   std::unique_ptr<MapPropertiesSystem> map_properties_system_;
   std::unique_ptr<OverworldEditorManager> overworld_manager_;
+  std::unique_ptr<OverworldEntityRenderer> entity_renderer_;
   
   // Scratch space for large layouts
   // Scratch space canvas for tile16 drawing (like a mini overworld)
