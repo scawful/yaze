@@ -6,6 +6,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/ui_helpers.h"
+#include "app/gui/widget_measurement.h"
 #include "app/gui/widgets/widget_id_registry.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -14,35 +15,60 @@ namespace yaze {
 namespace gui {
 
 // ============================================================================
-// CompactToolbar Implementation
+// Toolset Implementation
 // ============================================================================
 
-void CompactToolbar::Begin() {
+void Toolset::Begin() {
   // Ultra-compact toolbar with no padding waste
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 3));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 6));
   
-  ImGui::BeginGroup();
+  // Don't use BeginGroup - it causes stretching. Just use direct layout.
   in_toolbar_ = true;
   button_count_ = 0;
+  current_line_width_ = 0.0f;
+  
+  // Begin measurement for debugging and test automation
+  WidgetMeasurement::Instance().BeginToolbarMeasurement("OverworldToolbar");
 }
 
-void CompactToolbar::End() {
-  ImGui::EndGroup();
+void Toolset::End() {
+  // End the current line
+  ImGui::NewLine();
+  
+  // End measurement and check for overflow
+  WidgetMeasurement::Instance().EndToolbarMeasurement();
+  
+  float toolbar_width = WidgetMeasurement::Instance().GetToolbarWidth("OverworldToolbar");
+  float available_width = ImGui::GetContentRegionAvail().x;
+  
+  // Log warning if toolbar overflows (for debugging)
+  if (toolbar_width > available_width && toolbar_width > 0) {
+    // Only log once per second to avoid spam
+    static float last_warning_time = 0.0f;
+    float current_time = ImGui::GetTime();
+    if (current_time - last_warning_time > 1.0f) {
+      ImGui::SetTooltip("⚠️ Toolbar overflow: %.0fpx / %.0fpx available",
+                        toolbar_width, available_width);
+      last_warning_time = current_time;
+    }
+  }
+  
   ImGui::PopStyleVar(3);
   ImGui::Separator();
   in_toolbar_ = false;
+  current_line_width_ = 0.0f;
 }
 
-void CompactToolbar::BeginModeGroup() {
+void Toolset::BeginModeGroup() {
   // Visual grouping with subtle background - taller for better button visibility
   ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.17f, 0.5f));
   ImGui::BeginChild("##ModeGroup", ImVec2(0, 40), true,
                    ImGuiWindowFlags_NoScrollbar);
 }
 
-bool CompactToolbar::ModeButton(const char* icon, bool selected, const char* tooltip) {
+bool Toolset::ModeButton(const char* icon, bool selected, const char* tooltip) {
   if (selected) {
     ImGui::PushStyleColor(ImGuiCol_Button, GetAccentColor());
   }
@@ -52,6 +78,10 @@ bool CompactToolbar::ModeButton(const char* icon, bool selected, const char* too
   if (selected) {
     ImGui::PopStyleColor();
   }
+  
+  // Measure this widget
+  std::string widget_id = tooltip ? tooltip : absl::StrFormat("Button_%d", button_count_);
+  WidgetMeasurement::Instance().MeasureLastItem(widget_id, "mode_button");
   
   // Register for test automation
   if (ImGui::GetItemID() != 0 && tooltip) {
@@ -70,25 +100,26 @@ bool CompactToolbar::ModeButton(const char* icon, bool selected, const char* too
   return clicked;
 }
 
-void CompactToolbar::EndModeGroup() {
+void Toolset::EndModeGroup() {
   ImGui::EndChild();
   ImGui::PopStyleColor();
   ImGui::SameLine();
   AddSeparator();
 }
 
-void CompactToolbar::AddSeparator() {
-  ImGui::TextDisabled("|");
+void Toolset::AddSeparator() {
+  // Use a proper separator that doesn't stretch
+  ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
   ImGui::SameLine();
 }
 
-void CompactToolbar::AddRomBadge(uint8_t version, std::function<void()> on_upgrade) {
+void Toolset::AddRomBadge(uint8_t version, std::function<void()> on_upgrade) {
   RomVersionBadge(version == 0xFF ? "Vanilla" : 
                  absl::StrFormat("v%d", version).c_str(), 
                  version == 0xFF);
   
   if (on_upgrade && (version == 0xFF || version < 3)) {
-    ImGui::SameLine();
+    ImGui::SameLine(0, 2);  // Tighter spacing
     if (ImGui::SmallButton(ICON_MD_UPGRADE)) {
       on_upgrade();
     }
@@ -98,12 +129,11 @@ void CompactToolbar::AddRomBadge(uint8_t version, std::function<void()> on_upgra
   }
   
   ImGui::SameLine();
-  AddSeparator();
 }
 
-bool CompactToolbar::AddProperty(const char* icon, const char* label,
-                                 uint8_t* value,
-                                 std::function<void()> on_change) {
+bool Toolset::AddProperty(const char* icon, const char* label,
+                          uint8_t* value,
+                          std::function<void()> on_change) {
   ImGui::Text("%s", icon);
   ImGui::SameLine();
   ImGui::SetNextItemWidth(55);
@@ -117,9 +147,9 @@ bool CompactToolbar::AddProperty(const char* icon, const char* label,
   return changed;
 }
 
-bool CompactToolbar::AddProperty(const char* icon, const char* label,
-                                 uint16_t* value,
-                                 std::function<void()> on_change) {
+bool Toolset::AddProperty(const char* icon, const char* label,
+                          uint16_t* value,
+                          std::function<void()> on_change) {
   ImGui::Text("%s", icon);
   ImGui::SameLine();
   ImGui::SetNextItemWidth(70);
@@ -133,25 +163,29 @@ bool CompactToolbar::AddProperty(const char* icon, const char* label,
   return changed;
 }
 
-bool CompactToolbar::AddCombo(const char* icon, int* current,
-                             const char* const items[], int count) {
+bool Toolset::AddCombo(const char* icon, int* current,
+                       const char* const items[], int count) {
   ImGui::Text("%s", icon);
-  ImGui::SameLine();
-  ImGui::SetNextItemWidth(110);
+  WidgetMeasurement::Instance().MeasureLastItem("combo_icon", "text");
+  
+  ImGui::SameLine(0, 2);  // Reduce spacing between icon and combo
+  ImGui::SetNextItemWidth(100);  // Slightly narrower for better fit
   
   bool changed = ImGui::Combo("##combo", current, items, count);
+  WidgetMeasurement::Instance().MeasureLastItem("combo_selector", "combo");
+  
   ImGui::SameLine();
   
   return changed;
 }
 
-bool CompactToolbar::AddToggle(const char* icon, bool* state, const char* tooltip) {
+bool Toolset::AddToggle(const char* icon, bool* state, const char* tooltip) {
   bool result = ToggleIconButton(icon, icon, state, tooltip);
   ImGui::SameLine();
   return result;
 }
 
-bool CompactToolbar::AddAction(const char* icon, const char* tooltip) {
+bool Toolset::AddAction(const char* icon, const char* tooltip) {
   bool clicked = ImGui::SmallButton(icon);
   
   // Register for test automation
@@ -169,7 +203,7 @@ bool CompactToolbar::AddAction(const char* icon, const char* tooltip) {
   return clicked;
 }
 
-bool CompactToolbar::BeginCollapsibleSection(const char* label, bool* p_open) {
+bool Toolset::BeginCollapsibleSection(const char* label, bool* p_open) {
   ImGui::NewLine();  // Start on new line
   bool is_open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_None);
   if (p_open) *p_open = is_open;
@@ -177,11 +211,11 @@ bool CompactToolbar::BeginCollapsibleSection(const char* label, bool* p_open) {
   return is_open;
 }
 
-void CompactToolbar::EndCollapsibleSection() {
+void Toolset::EndCollapsibleSection() {
   in_section_ = false;
 }
 
-void CompactToolbar::AddV3StatusBadge(uint8_t version, std::function<void()> on_settings) {
+void Toolset::AddV3StatusBadge(uint8_t version, std::function<void()> on_settings) {
   if (version >= 3 && version != 0xFF) {
     StatusBadge("v3 Active", ButtonType::Success);
     ImGui::SameLine();
@@ -198,7 +232,7 @@ void CompactToolbar::AddV3StatusBadge(uint8_t version, std::function<void()> on_
   ImGui::SameLine();
 }
 
-bool CompactToolbar::AddUsageStatsButton(const char* tooltip) {
+bool Toolset::AddUsageStatsButton(const char* tooltip) {
   bool clicked = ImGui::SmallButton(ICON_MD_ANALYTICS " Usage");
   if (tooltip && ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s", tooltip);

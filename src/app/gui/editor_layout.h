@@ -11,7 +11,7 @@ namespace yaze {
 namespace gui {
 
 /**
- * @class CompactToolbar
+ * @class Toolset
  * @brief Ultra-compact toolbar that merges mode buttons with settings
  * 
  * Design Philosophy:
@@ -23,9 +23,9 @@ namespace gui {
  * 
  * Layout: [Mode Icons] | [ROM Badge] [World] [GFX] [Pal] [Spr] ... | [Quick Actions]
  */
-class CompactToolbar {
+class Toolset {
  public:
-  CompactToolbar() = default;
+  Toolset() = default;
   
   // Begin the toolbar
   void Begin();
@@ -76,6 +76,7 @@ class CompactToolbar {
   bool in_toolbar_ = false;
   bool in_section_ = false;
   int button_count_ = 0;
+  float current_line_width_ = 0.0f;
 };
 
 /**
@@ -162,7 +163,7 @@ class EditorLayout {
   void End();
   
   // Get toolbar reference
-  CompactToolbar& GetToolbar() { return toolbar_; }
+  Toolset& GetToolbar() { return toolbar_; }
   
   // Begin main canvas area
   void BeginMainCanvas();
@@ -172,7 +173,7 @@ class EditorLayout {
   void RegisterCard(EditorCard* card);
   
  private:
-  CompactToolbar toolbar_;
+  Toolset toolbar_;
   std::vector<EditorCard*> cards_;
   bool in_layout_ = false;
 };
