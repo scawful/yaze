@@ -1,0 +1,99 @@
+# ALTTP ROM Structure Expert Knowledge
+
+## Memory Map (Critical Addresses)
+- 0x00000-0x07FFF: Header + Low ROM
+- 0x08000-0x0FFFF: Character data  
+- 0x10000-0x1FFFF: Overworld maps
+- 0x1C800-0x1D7FF: Overworld tile16 data (4096 tiles * 8 bytes)
+- 0x20000-0x2FFFF: Dungeon rooms (296 rooms, 0x00-0x127)
+- 0xDE6C8-0xDEDC7: Overworld palettes (8 groups * 8 palettes * 16 colors * 2 bytes)
+- 0xDD308-0xDD3C7: Dungeon palettes
+
+## 65816 Processor Essentials
+**M Flag (bit 5)**: Accumulator size (0=16-bit, 1=8-bit)
+**X Flag (bit 4)**: Index register size (0=16-bit, 1=8-bit)
+
+Critical: SEP #$20 = 8-bit A, REP #$20 = 16-bit A
+Always use PHP/PLP when crossing function boundaries!
+
+## WRAM Key Variables
+- $7E0010 (MODE): Main game state (0x09=Overworld, 0x07=Underworld)
+- $7E0011 (SUBMODE): Sub-state for current mode
+- $7E001B (INDOORS): 0x01=inside, 0x00=outside
+- $7E005D (LINKDO): Link's state machine (0x00=walking, 0x04=swimming, etc.)
+- $7E008A (OWSCR): Current overworld screen (0x00-0x3F)
+- $7E00A0 (ROOM): Current dungeon room (0x00-0x127)
+- $7E0DD0,X (SprState): Sprite state array
+- $7E0E20,X (SprType): Sprite ID array
+- $7E0E50,X (SprHealth): Sprite health array
+
+## Data Structures
+
+### Sprite Data (3 bytes per sprite, up to 16/room)
+Byte 0: Sprite ID (0x00-0xFF)
+Byte 1: X position in room (0x00-0x1F)
+Byte 2: Y position in room (0x00-0x1F)
+Example: 09 48 56 = Sprite 0x09 at (72, 86)
+
+### Tile16 Structure (8 bytes)
+Bytes 0-1: Top-left tile8 (ID + properties)
+Bytes 2-3: Top-right tile8
+Bytes 4-5: Bottom-left tile8
+Bytes 6-7: Bottom-right tile8
+Format: HVEEEETT TTTTTTTT (H=HFlip, V=VFlip, E=Palette, T=Tile8 ID)
+
+### SNES Palette Format (16-bit, little-endian)
+Format: 0bbbbbgg gggrrrrr (5 bits per channel)
+Conversion to RGB8: R8 = (val & 0x1F) << 3
+
+## Bank Organization
+- Bank $00: Main loop, NMI, state machine
+- Bank $01: Dungeon engine (room loading, object drawing)
+- Bank $02: Overworld engine, transitions
+- Bank $06: Main sprite engine, shared helpers
+- Bank $07: Link's state machine and controls
+- Bank $09: Ancilla spawning, item giving
+- Bank $1B: Overworld entrances, hidden items, palette data
+
+## Common Patterns
+
+### Finding Sprites in ROM
+Search pattern: XX ?? ?? where XX = sprite ID
+Context: Look for 3-byte sequences with coordinate ranges 0x00-0x1F
+
+### Finding Tile Usage
+Use overworld-find-tile with tile16 ID (0x000-0xFFF)
+Cross-reference with map data to see placement
+
+### Palette Analysis
+Group/Palette format: Each group has 8 palettes, each palette has 16 colors
+Address = 0xDE6C8 + (group * 8 * 16 * 2) + (palette * 16 * 2) + (color * 2)
+
+### Room Header Structure (14 bytes)
+Byte 0: BG2 property
+Byte 1: Collision type
+Byte 2-3: Layer1 data address
+Byte 4-5: Layer2 data address
+Byte 6-7: Sprite data address
+Byte 8: Palette ID
+Byte 9: Blockset ID
+Byte 10: Spriteset ID
+Byte 11-12: Effect tags
+Byte 13: Properties
+
+## Tool Usage for ROM Analysis
+
+When user asks about sprites/enemies:
+1. dungeon-describe-room OR overworld-describe-map
+2. resource-list --type=sprite for names
+3. hex-read at sprite data address for exact data
+
+When user asks about tiles/graphics:
+1. overworld-find-tile with tile ID
+2. hex-read at 0x1C800 + (tile_id * 8) for structure
+3. palette-get-colors for color info
+
+When user asks about rooms/dungeons:
+1. resource-list --type=dungeon for IDs
+2. dungeon-describe-room with full details
+3. dungeon-list-sprites for enemy composition
