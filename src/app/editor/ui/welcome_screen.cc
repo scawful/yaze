@@ -179,22 +179,12 @@ bool WelcomeScreen::Show(bool* p_open) {
     };
     
     TriforceConfig triforce_configs[] = {
-      {0.08f, 0.12f, 32.0f, 0.065f, 80.0f},   // Top left corner
-      {0.92f, 0.15f, 30.0f, 0.055f, 75.0f},   // Top right corner
-      {0.06f, 0.85f, 28.0f, 0.050f, 70.0f},   // Bottom left
-      {0.94f, 0.82f, 30.0f, 0.058f, 75.0f},   // Bottom right
-      {0.15f, 0.48f, 26.0f, 0.048f, 65.0f},   // Mid left
-      {0.85f, 0.52f, 26.0f, 0.048f, 65.0f},   // Mid right
-      {0.50f, 0.92f, 24.0f, 0.040f, 60.0f},   // Bottom center
-      {0.28f, 0.22f, 22.0f, 0.038f, 55.0f},   // Upper mid-left
-      {0.72f, 0.25f, 22.0f, 0.038f, 55.0f},   // Upper mid-right
-      {0.50f, 0.08f, 28.0f, 0.052f, 70.0f},   // Top center
-      {0.22f, 0.65f, 20.0f, 0.035f, 50.0f},   // Mid-lower left
-      {0.78f, 0.68f, 20.0f, 0.035f, 50.0f},   // Mid-lower right
-      {0.12f, 0.35f, 18.0f, 0.030f, 45.0f},   // Upper-mid left
-      {0.88f, 0.38f, 18.0f, 0.030f, 45.0f},   // Upper-mid right
-      {0.38f, 0.75f, 16.0f, 0.028f, 40.0f},   // Lower left-center
-      {0.62f, 0.77f, 16.0f, 0.028f, 40.0f},   // Lower right-center
+      {0.08f, 0.12f, 36.0f, 0.025f, 50.0f},   // Top left corner
+      {0.92f, 0.15f, 34.0f, 0.022f, 50.0f},   // Top right corner
+      {0.06f, 0.88f, 32.0f, 0.020f, 45.0f},   // Bottom left
+      {0.94f, 0.85f, 34.0f, 0.023f, 50.0f},   // Bottom right
+      {0.50f, 0.08f, 38.0f, 0.028f, 55.0f},   // Top center
+      {0.50f, 0.92f, 32.0f, 0.020f, 45.0f},   // Bottom center
     };
     
     // Initialize base positions on first frame
@@ -215,20 +205,16 @@ bool WelcomeScreen::Show(bool* p_open) {
       float base_y = window_pos.y + window_size.y * triforce_configs[i].y_pct;
       triforce_base_positions_[i] = ImVec2(base_x, base_y);
       
-      // Add floating animation using sine waves with unique frequencies per triforce
-      float time_offset = i * 0.5f;  // Offset each triforce's animation
-      float float_speed_x = (0.6f + (i % 4) * 0.25f) * triforce_speed_multiplier_;  // Apply speed multiplier
-      float float_speed_y = (0.5f + ((i + 1) % 4) * 0.2f) * triforce_speed_multiplier_;
-      float float_amount_x = (35.0f + (i % 3) * 20.0f) * triforce_size_multiplier_;  // Apply size multiplier
-      float float_amount_y = (40.0f + ((i + 1) % 3) * 25.0f) * triforce_size_multiplier_;
+      // Slow, subtle floating animation
+      float time_offset = i * 1.2f;  // Offset each triforce's animation
+      float float_speed_x = (0.15f + (i % 2) * 0.1f) * triforce_speed_multiplier_;  // Very slow
+      float float_speed_y = (0.12f + ((i + 1) % 2) * 0.08f) * triforce_speed_multiplier_;
+      float float_amount_x = (20.0f + (i % 2) * 10.0f) * triforce_size_multiplier_;  // Smaller amplitude
+      float float_amount_y = (25.0f + ((i + 1) % 2) * 15.0f) * triforce_size_multiplier_;
       
-      // Create complex orbital/figure-8 motion with more variation
+      // Create gentle orbital motion
       float float_x = std::sin(animation_time_ * float_speed_x + time_offset) * float_amount_x;
-      float float_y = std::cos(animation_time_ * float_speed_y + time_offset * 1.5f) * float_amount_y;
-      
-      // Add secondary wave for more complex movement
-      float_x += std::cos(animation_time_ * float_speed_x * 0.7f + time_offset * 2.0f) * (float_amount_x * 0.3f);
-      float_y += std::sin(animation_time_ * float_speed_y * 0.6f + time_offset * 1.8f) * (float_amount_y * 0.3f);
+      float float_y = std::cos(animation_time_ * float_speed_y + time_offset * 1.2f) * float_amount_y;
       
       // Calculate distance from mouse
       float dx = triforce_base_positions_[i].x - mouse_pos.x;
@@ -267,6 +253,61 @@ bool WelcomeScreen::Show(bool* p_open) {
       float adjusted_size = triforce_configs[i].size * triforce_size_multiplier_;
       DrawTriforceBackground(bg_draw_list, triforce_positions_[i], 
                            adjusted_size, adjusted_alpha, 0.0f);
+    }
+    
+    // Update and draw particle system
+    if (particles_enabled_) {
+      // Spawn new particles
+      static float spawn_accumulator = 0.0f;
+      spawn_accumulator += ImGui::GetIO().DeltaTime * particle_spawn_rate_;
+      while (spawn_accumulator >= 1.0f && active_particle_count_ < kMaxParticles) {
+        // Find inactive particle slot
+        for (int i = 0; i < kMaxParticles; ++i) {
+          if (particles_[i].lifetime <= 0.0f) {
+            // Spawn from random triforce
+            int source_triforce = rand() % kNumTriforces;
+            particles_[i].position = triforce_positions_[source_triforce];
+            
+            // Random direction and speed
+            float angle = (rand() % 360) * (M_PI / 180.0f);
+            float speed = 20.0f + (rand() % 40);
+            particles_[i].velocity = ImVec2(std::cos(angle) * speed, std::sin(angle) * speed);
+            
+            particles_[i].size = 2.0f + (rand() % 4);
+            particles_[i].alpha = 0.4f + (rand() % 40) / 100.0f;
+            particles_[i].max_lifetime = 2.0f + (rand() % 30) / 10.0f;
+            particles_[i].lifetime = particles_[i].max_lifetime;
+            active_particle_count_++;
+            break;
+          }
+        }
+        spawn_accumulator -= 1.0f;
+      }
+      
+      // Update and draw particles
+      float dt = ImGui::GetIO().DeltaTime;
+      for (int i = 0; i < kMaxParticles; ++i) {
+        if (particles_[i].lifetime > 0.0f) {
+          // Update lifetime
+          particles_[i].lifetime -= dt;
+          if (particles_[i].lifetime <= 0.0f) {
+            active_particle_count_--;
+            continue;
+          }
+          
+          // Update position
+          particles_[i].position.x += particles_[i].velocity.x * dt;
+          particles_[i].position.y += particles_[i].velocity.y * dt;
+          
+          // Fade out near end of life
+          float life_ratio = particles_[i].lifetime / particles_[i].max_lifetime;
+          float alpha = particles_[i].alpha * life_ratio * triforce_alpha_multiplier_;
+          
+          // Draw particle as small golden circle
+          ImU32 particle_color = ImGui::GetColorU32(ImVec4(1.0f, 0.843f, 0.0f, alpha));
+          bg_draw_list->AddCircleFilled(particles_[i].position, particles_[i].size, particle_color, 8);
+        }
+      }
     }
     
     DrawHeader();
@@ -348,57 +389,6 @@ bool WelcomeScreen::Show(bool* p_open) {
     
     ImGui::Dummy(ImVec2(0, 5));
     DrawTipsSection();
-    
-    // Triforce animation settings panel
-    ImGui::SameLine(ImGui::GetWindowWidth() - 50);
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 5);
-    if (ImGui::SmallButton(show_triforce_settings_ ? ICON_MD_CLOSE : ICON_MD_TUNE)) {
-      show_triforce_settings_ = !show_triforce_settings_;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Triforce Animation Settings");
-    }
-    
-    if (show_triforce_settings_) {
-      ImGui::Separator();
-      ImGui::Spacing();
-      ImGui::BeginChild("TriforceSettings", ImVec2(0, 120), true, ImGuiWindowFlags_NoScrollbar);
-      {
-        ImGui::TextColored(kTriforceGold, ICON_MD_AUTO_AWESOME " Triforce Animation");
-        ImGui::Spacing();
-        
-        ImGui::Columns(2, nullptr, false);
-        
-        // Left column
-        ImGui::Text(ICON_MD_OPACITY " Visibility");
-        ImGui::SetNextItemWidth(-1);
-        ImGui::SliderFloat("##visibility", &triforce_alpha_multiplier_, 0.0f, 3.0f, "%.1fx");
-        
-        ImGui::Text(ICON_MD_SPEED " Speed");
-        ImGui::SetNextItemWidth(-1);
-        ImGui::SliderFloat("##speed", &triforce_speed_multiplier_, 0.1f, 3.0f, "%.1fx");
-        
-        ImGui::NextColumn();
-        
-        // Right column
-        ImGui::Text(ICON_MD_ASPECT_RATIO " Size");
-        ImGui::SetNextItemWidth(-1);
-        ImGui::SliderFloat("##size", &triforce_size_multiplier_, 0.5f, 2.0f, "%.1fx");
-        
-        ImGui::Checkbox(ICON_MD_MOUSE " Mouse Interaction", &triforce_mouse_repel_enabled_);
-        
-        ImGui::Columns(1);
-        
-        ImGui::Spacing();
-        if (ImGui::SmallButton(ICON_MD_REFRESH " Reset to Defaults")) {
-          triforce_alpha_multiplier_ = 1.0f;
-          triforce_speed_multiplier_ = 1.0f;
-          triforce_size_multiplier_ = 1.0f;
-          triforce_mouse_repel_enabled_ = true;
-        }
-      }
-      ImGui::EndChild();
-    }
   }
   ImGui::End();
   
@@ -416,7 +406,7 @@ void WelcomeScreen::UpdateAnimations() {
     card_hover_scale_[i] += (target - card_hover_scale_[i]) * ImGui::GetIO().DeltaTime * 10.0f;
   }
   
-  // Note: Triforce positions are updated in Show() based on mouse position
+  // Note: Triforce positions and particles are updated in Show() based on mouse position
 }
 
 void WelcomeScreen::RefreshRecentProjects() {
@@ -499,7 +489,7 @@ void WelcomeScreen::DrawQuickActions() {
   
   float button_width = ImGui::GetContentRegionAvail().x;
   
-  // Animated button colors
+  // Animated button colors (compact height)
   auto draw_action_button = [&](const char* icon, const char* text, 
                                const ImVec4& color, bool enabled,
                                std::function<void()> callback) {
@@ -510,7 +500,7 @@ void WelcomeScreen::DrawQuickActions() {
     if (!enabled) ImGui::BeginDisabled();
     
     bool clicked = ImGui::Button(absl::StrFormat("%s %s", icon, text).c_str(), 
-                                 ImVec2(button_width, 45));
+                                 ImVec2(button_width, 38));  // Reduced from 45 to 38
     
     if (!enabled) ImGui::EndDisabled();
     
@@ -540,14 +530,6 @@ void WelcomeScreen::DrawQuickActions() {
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(ICON_MD_INFO " Create a new ROM hacking project");
   }
-  
-  ImGui::Spacing();
-  
-  // Clone Project button - Blue like water/ice dungeon
-  draw_action_button(ICON_MD_CLOUD_DOWNLOAD, "Clone Project", kMasterSwordBlue, false, nullptr);
-  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    ImGui::SetTooltip(ICON_MD_CONSTRUCTION " Clone a project from git (Coming soon)");
-  }
 }
 
 void WelcomeScreen::DrawRecentProjects() {
@@ -569,10 +551,10 @@ void WelcomeScreen::DrawRecentProjects() {
     return;
   }
   
-  // Grid layout for project cards
-  float card_width = 260.0f;  // Increased from 220.0f
-  float card_height = 120.0f;  // Reduced from 140.0f
-  int columns = std::max(1, (int)(ImGui::GetContentRegionAvail().x / (card_width + 15)));
+  // Grid layout for project cards (compact)
+  float card_width = 200.0f;  // Reduced for compactness
+  float card_height = 95.0f;   // Reduced for less scrolling
+  int columns = std::max(1, (int)(ImGui::GetContentRegionAvail().x / (card_width + 12)));
   
   for (size_t i = 0; i < recent_projects_.size(); ++i) {
     if (i % columns != 0) {
@@ -585,7 +567,7 @@ void WelcomeScreen::DrawRecentProjects() {
 void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
   ImGui::BeginGroup();
   
-  ImVec2 card_size(260, 120);  // Reduced height from 140 to 120
+  ImVec2 card_size(200, 95);  // Compact size
   ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
   
   // Subtle hover scale (only on actual hover, no animation)
@@ -635,39 +617,41 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
                             hover_color, 6.0f);
   }
   
-  // Draw content
-  ImVec2 content_pos(cursor_pos.x + 12, cursor_pos.y + 12);
+  // Draw content (tighter layout)
+  ImVec2 content_pos(cursor_pos.x + 8, cursor_pos.y + 8);
   
-  // Icon with colored background circle (smaller and centered)
-  ImVec2 icon_center(content_pos.x + 16, content_pos.y + 16);
+  // Icon with colored background circle (compact)
+  ImVec2 icon_center(content_pos.x + 13, content_pos.y + 13);
   ImU32 icon_bg = ImGui::GetColorU32(border_color_base);
-  draw_list->AddCircleFilled(icon_center, 18, icon_bg, 32);  // Reduced from 25 to 18
+  draw_list->AddCircleFilled(icon_center, 15, icon_bg, 24);
   
   // Center the icon properly
-  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]); // Medium font for icon
   ImVec2 icon_size = ImGui::CalcTextSize(ICON_MD_VIDEOGAME_ASSET);
   ImGui::SetCursorScreenPos(ImVec2(icon_center.x - icon_size.x / 2, icon_center.y - icon_size.y / 2));
   ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1, 1, 1, 1));
   ImGui::Text(ICON_MD_VIDEOGAME_ASSET);
   ImGui::PopStyleColor();
-  ImGui::PopFont();
   
-  // Project name
-  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 40, content_pos.y + 12));
-  ImGui::PushTextWrapPos(cursor_pos.x + card_size.x - 12);
+  // Project name (compact)
+  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 32, content_pos.y + 8));
+  ImGui::PushTextWrapPos(cursor_pos.x + card_size.x - 8);
+  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); // Default font
   ImGui::TextColored(kTriforceGold, "%s", project.name.c_str());
+  ImGui::PopFont();
   ImGui::PopTextWrapPos();
   
-  // ROM title
-  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 5, content_pos.y + 45));
-  ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), ICON_MD_GAMEPAD " %s", project.rom_title.c_str());
+  // ROM title (compact)
+  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 4, content_pos.y + 35));
+  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.65f, 0.65f, 0.65f, 1.0f));
+  ImGui::Text(ICON_MD_GAMEPAD " %s", project.rom_title.c_str());
+  ImGui::PopStyleColor();
   
-  // Path in card (condensed)
-  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 5, content_pos.y + 70));
+  // Path in card (compact)
+  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 4, content_pos.y + 58));
   ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
   std::string short_path = project.filepath;
-  if (short_path.length() > 38) {
-    short_path = "..." + short_path.substr(short_path.length() - 35);
+  if (short_path.length() > 28) {
+    short_path = "..." + short_path.substr(short_path.length() - 25);
   }
   ImGui::Text(ICON_MD_FOLDER " %s", short_path.c_str());
   ImGui::PopStyleColor();
@@ -694,7 +678,53 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
 }
 
 void WelcomeScreen::DrawTemplatesSection() {
+  // Header with visual settings button
+  float content_width = ImGui::GetContentRegionAvail().x;
   ImGui::TextColored(kGanonPurple, ICON_MD_LAYERS " Templates");
+  ImGui::SameLine(content_width - 25);
+  if (ImGui::SmallButton(show_triforce_settings_ ? ICON_MD_CLOSE : ICON_MD_TUNE)) {
+    show_triforce_settings_ = !show_triforce_settings_;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(ICON_MD_AUTO_AWESOME " Visual Effects Settings");
+  }
+  
+  ImGui::Spacing();
+  
+  // Visual effects settings panel (when opened)
+  if (show_triforce_settings_) {
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.15f, 0.22f, 0.4f));
+    ImGui::BeginChild("VisualSettingsCompact", ImVec2(0, 115), true, ImGuiWindowFlags_NoScrollbar);
+    {
+      ImGui::TextColored(kGanonPurple, ICON_MD_AUTO_AWESOME " Visual Effects");
+      ImGui::Spacing();
+      
+      ImGui::Text(ICON_MD_OPACITY " Visibility");
+      ImGui::SetNextItemWidth(-1);
+      ImGui::SliderFloat("##visibility", &triforce_alpha_multiplier_, 0.0f, 3.0f, "%.1fx");
+      
+      ImGui::Text(ICON_MD_SPEED " Speed");
+      ImGui::SetNextItemWidth(-1);
+      ImGui::SliderFloat("##speed", &triforce_speed_multiplier_, 0.05f, 1.0f, "%.2fx");
+      
+      ImGui::Checkbox(ICON_MD_MOUSE " Mouse Interaction", &triforce_mouse_repel_enabled_);
+      ImGui::SameLine();
+      ImGui::Checkbox(ICON_MD_AUTO_FIX_HIGH " Particles", &particles_enabled_);
+      
+      if (ImGui::SmallButton(ICON_MD_REFRESH " Reset")) {
+        triforce_alpha_multiplier_ = 1.0f;
+        triforce_speed_multiplier_ = 0.3f;
+        triforce_size_multiplier_ = 1.0f;
+        triforce_mouse_repel_enabled_ = true;
+        particles_enabled_ = true;
+        particle_spawn_rate_ = 2.0f;
+      }
+    }
+    ImGui::EndChild();
+    ImGui::PopStyleColor();
+    ImGui::Spacing();
+  }
+  
   ImGui::Spacing();
   
   struct Template {
@@ -706,10 +736,9 @@ void WelcomeScreen::DrawTemplatesSection() {
   Template templates[] = {
     {ICON_MD_COTTAGE, "Vanilla ALTTP", kHyruleGreen},
     {ICON_MD_MAP, "ZSCustomOverworld v3", kMasterSwordBlue},
-    {ICON_MD_PUBLIC, "Parallel Worlds Base", kGanonPurple},
   };
   
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 2; ++i) {
     bool is_selected = (selected_template_ == i);
     
     // Subtle selection highlight (no animation)
@@ -738,7 +767,7 @@ void WelcomeScreen::DrawTemplatesSection() {
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kSpiritOrange);
   ImGui::BeginDisabled(true);
   ImGui::Button(absl::StrFormat("%s Use Template", ICON_MD_ROCKET_LAUNCH).c_str(), 
-               ImVec2(-1, 35));
+               ImVec2(-1, 30));  // Reduced from 35 to 30
   ImGui::EndDisabled();
   ImGui::PopStyleColor(2);
 }

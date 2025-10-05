@@ -106,17 +106,32 @@ class WelcomeScreen {
   int hovered_card_ = -1;
   
   // Interactive triforce positions (smooth interpolation)
-  static constexpr int kNumTriforces = 16;
+  static constexpr int kNumTriforces = 6;
   ImVec2 triforce_positions_[kNumTriforces] = {};
   ImVec2 triforce_base_positions_[kNumTriforces] = {};
   bool triforce_positions_initialized_ = false;
   
+  // Particle system
+  static constexpr int kMaxParticles = 50;
+  struct Particle {
+    ImVec2 position;
+    ImVec2 velocity;
+    float size;
+    float alpha;
+    float lifetime;
+    float max_lifetime;
+  };
+  Particle particles_[kMaxParticles] = {};
+  int active_particle_count_ = 0;
+  
   // Triforce animation settings
   bool show_triforce_settings_ = false;
   float triforce_alpha_multiplier_ = 1.0f;
-  float triforce_speed_multiplier_ = 1.0f;
+  float triforce_speed_multiplier_ = 0.3f;  // Default slower speed
   float triforce_size_multiplier_ = 1.0f;
   bool triforce_mouse_repel_enabled_ = true;
+  bool particles_enabled_ = true;
+  float particle_spawn_rate_ = 2.0f;  // Particles per second
 };
 
 }  // namespace editor
