@@ -8,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <fstream>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
@@ -18,6 +19,7 @@
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/gui/icons.h"
+#include "app/core/project.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
@@ -1644,19 +1646,17 @@ void AgentChatWidget::RenderSystemPromptEditor() {
   ImGui::BeginChild("SystemPromptEditor", ImVec2(0, 0), false);
   
   // Toolbar
-  if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load Default")) {
-    // Load system_prompt_v2.txt
-    std::string prompt_path = core::GetConfigDirectory() + "/../assets/agent/system_prompt_v2.txt";
-    std::ifstream file(prompt_path);
-    if (file.is_open()) {
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load V1")) {
+    // Load embedded system_prompt.txt (v1)
+    std::string prompt_v1 = core::LoadFile("assets/agent/system_prompt.txt");
+    if (!prompt_v1.empty()) {
       // Find or create system prompt tab
       bool found = false;
       for (auto& tab : open_files_) {
         if (tab.is_system_prompt) {
-          std::stringstream buffer;
-          buffer << file.rdbuf();
-          tab.editor.SetText(buffer.str());
-          tab.filepath = prompt_path;
+          tab.editor.SetText(prompt_v1);
+          tab.filepath = "";  // Not saved to disk
+          tab.filename = "system_prompt_v1.txt (built-in)";
           found = true;
           break;
         }
@@ -1664,39 +1664,80 @@ void AgentChatWidget::RenderSystemPromptEditor() {
       
       if (!found) {
         FileEditorTab tab;
-        tab.filename = "system_prompt_v2.txt";
-        tab.filepath = prompt_path;
+        tab.filename = "system_prompt_v1.txt (built-in)";
+        tab.filepath = "";
         tab.is_system_prompt = true;
         tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
-        std::stringstream buffer;
-        buffer << file.rdbuf();
-        tab.editor.SetText(buffer.str());
+        tab.editor.SetText(prompt_v1);
         open_files_.push_back(std::move(tab));
         active_file_tab_ = static_cast<int>(open_files_.size()) - 1;
       }
       
       if (toast_manager_) {
-        toast_manager_->Show("System prompt loaded", ToastType::kSuccess);
+        toast_manager_->Show("System prompt V1 loaded", ToastType::kSuccess);
       }
     } else if (toast_manager_) {
-      toast_manager_->Show("Could not load system prompt file", ToastType::kError);
+      toast_manager_->Show("Could not load system prompt V1", ToastType::kError);
     }
   }
   
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_SAVE " Save")) {
-    // Save the current system prompt
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load V2")) {
+    // Load embedded system_prompt_v2.txt
+    std::string prompt_v2 = core::LoadFile("assets/agent/system_prompt_v2.txt");
+    if (!prompt_v2.empty()) {
+      // Find or create system prompt tab
+      bool found = false;
+      for (auto& tab : open_files_) {
+        if (tab.is_system_prompt) {
+          tab.editor.SetText(prompt_v2);
+          tab.filepath = "";  // Not saved to disk
+          tab.filename = "system_prompt_v2.txt (built-in)";
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        FileEditorTab tab;
+        tab.filename = "system_prompt_v2.txt (built-in)";
+        tab.filepath = "";
+        tab.is_system_prompt = true;
+        tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
+        tab.editor.SetText(prompt_v2);
+        open_files_.push_back(std::move(tab));
+        active_file_tab_ = static_cast<int>(open_files_.size()) - 1;
+      }
+      
+      if (toast_manager_) {
+        toast_manager_->Show("System prompt V2 loaded", ToastType::kSuccess);
+      }
+    } else if (toast_manager_) {
+      toast_manager_->Show("Could not load system prompt V2", ToastType::kError);
+    }
+  }
+  
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_SAVE " Save to Project")) {
+    // Save the current system prompt to project directory
     for (auto& tab : open_files_) {
-      if (tab.is_system_prompt && !tab.filepath.empty()) {
-        std::ofstream file(tab.filepath);
-        if (file.is_open()) {
-          file << tab.editor.GetText();
-          tab.modified = false;
-          if (toast_manager_) {
-            toast_manager_->Show("System prompt saved", ToastType::kSuccess);
+      if (tab.is_system_prompt) {
+        auto save_path = core::FileDialogWrapper::ShowSaveFileDialog(
+            "custom_system_prompt", "txt");
+        if (!save_path.empty()) {
+          std::ofstream file(save_path);
+          if (file.is_open()) {
+            file << tab.editor.GetText();
+            tab.filepath = save_path;
+            tab.filename = core::GetFileName(save_path);
+            tab.modified = false;
+            if (toast_manager_) {
+              toast_manager_->Show(absl::StrFormat("System prompt saved to %s", save_path), 
+                                  ToastType::kSuccess);
+            }
+          } else if (toast_manager_) {
+            toast_manager_->Show("Failed to save system prompt", ToastType::kError);
           }
-        } else if (toast_manager_) {
-          toast_manager_->Show("Failed to save system prompt", ToastType::kError);
         }
         break;
       }
@@ -1705,10 +1746,56 @@ void AgentChatWidget::RenderSystemPromptEditor() {
   
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_NOTE_ADD " Create New")) {
-    CreateNewFileInEditor("system_prompt_custom.txt");
-    if (!open_files_.empty()) {
-      open_files_.back().is_system_prompt = true;
-      open_files_.back().editor.SetText("# Custom System Prompt\n\nEnter your custom system prompt here...\n");
+    FileEditorTab tab;
+    tab.filename = "custom_system_prompt.txt (unsaved)";
+    tab.filepath = "";
+    tab.is_system_prompt = true;
+    tab.modified = true;
+    tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
+    tab.editor.SetText("# Custom System Prompt\n\nEnter your custom system prompt here...\n");
+    open_files_.push_back(std::move(tab));
+    active_file_tab_ = static_cast<int>(open_files_.size()) - 1;
+  }
+  
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load Custom")) {
+    auto filepath = core::FileDialogWrapper::ShowOpenFileDialog();
+    if (!filepath.empty()) {
+      std::ifstream file(filepath);
+      if (file.is_open()) {
+        bool found = false;
+        for (auto& tab : open_files_) {
+          if (tab.is_system_prompt) {
+            std::stringstream buffer;
+            buffer << file.rdbuf();
+            tab.editor.SetText(buffer.str());
+            tab.filepath = filepath;
+            tab.filename = core::GetFileName(filepath);
+            tab.modified = false;
+            found = true;
+            break;
+          }
+        }
+        
+        if (!found) {
+          FileEditorTab tab;
+          tab.filename = core::GetFileName(filepath);
+          tab.filepath = filepath;
+          tab.is_system_prompt = true;
+          tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
+          std::stringstream buffer;
+          buffer << file.rdbuf();
+          tab.editor.SetText(buffer.str());
+          open_files_.push_back(std::move(tab));
+          active_file_tab_ = static_cast<int>(open_files_.size()) - 1;
+        }
+        
+        if (toast_manager_) {
+          toast_manager_->Show("Custom system prompt loaded", ToastType::kSuccess);
+        }
+      } else if (toast_manager_) {
+        toast_manager_->Show("Could not load file", ToastType::kError);
+      }
     }
   }
   
@@ -1917,6 +2004,84 @@ void AgentChatWidget::CreateNewFileInEditor(const std::string& filename) {
   
   open_files_.push_back(std::move(tab));
   active_file_tab_ = static_cast<int>(open_files_.size()) - 1;
+}
+
+void AgentChatWidget::LoadAgentSettingsFromProject(const core::YazeProject& project) {
+  // Load AI provider settings from project
+  agent_config_.ai_provider = project.agent_settings.ai_provider;
+  agent_config_.ai_model = project.agent_settings.ai_model;
+  agent_config_.ollama_host = project.agent_settings.ollama_host;
+  agent_config_.gemini_api_key = project.agent_settings.gemini_api_key;
+  agent_config_.show_reasoning = project.agent_settings.show_reasoning;
+  agent_config_.verbose = project.agent_settings.verbose;
+  agent_config_.max_tool_iterations = project.agent_settings.max_tool_iterations;
+  agent_config_.max_retry_attempts = project.agent_settings.max_retry_attempts;
+  
+  // Copy to buffer for ImGui
+  strncpy(agent_config_.provider_buffer, agent_config_.ai_provider.c_str(), 
+          sizeof(agent_config_.provider_buffer) - 1);
+  strncpy(agent_config_.model_buffer, agent_config_.ai_model.c_str(), 
+          sizeof(agent_config_.model_buffer) - 1);
+  strncpy(agent_config_.ollama_host_buffer, agent_config_.ollama_host.c_str(), 
+          sizeof(agent_config_.ollama_host_buffer) - 1);
+  strncpy(agent_config_.gemini_key_buffer, agent_config_.gemini_api_key.c_str(), 
+          sizeof(agent_config_.gemini_key_buffer) - 1);
+  
+  // Load custom system prompt if specified
+  if (project.agent_settings.use_custom_prompt && 
+      !project.agent_settings.custom_system_prompt.empty()) {
+    std::string prompt_path = project.GetAbsolutePath(project.agent_settings.custom_system_prompt);
+    std::ifstream file(prompt_path);
+    if (file.is_open()) {
+      // Load into system prompt tab
+      bool found = false;
+      for (auto& tab : open_files_) {
+        if (tab.is_system_prompt) {
+          std::stringstream buffer;
+          buffer << file.rdbuf();
+          tab.editor.SetText(buffer.str());
+          tab.filepath = prompt_path;
+          tab.filename = core::GetFileName(prompt_path);
+          found = true;
+          break;
+        }
+      }
+      
+      if (!found) {
+        FileEditorTab tab;
+        tab.filename = core::GetFileName(prompt_path);
+        tab.filepath = prompt_path;
+        tab.is_system_prompt = true;
+        tab.editor.SetLanguageDefinition(TextEditor::LanguageDefinition::CPlusPlus());
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        tab.editor.SetText(buffer.str());
+        open_files_.push_back(std::move(tab));
+      }
+    }
+  }
+}
+
+void AgentChatWidget::SaveAgentSettingsToProject(core::YazeProject& project) {
+  // Save AI provider settings to project
+  project.agent_settings.ai_provider = agent_config_.ai_provider;
+  project.agent_settings.ai_model = agent_config_.ai_model;
+  project.agent_settings.ollama_host = agent_config_.ollama_host;
+  project.agent_settings.gemini_api_key = agent_config_.gemini_api_key;
+  project.agent_settings.show_reasoning = agent_config_.show_reasoning;
+  project.agent_settings.verbose = agent_config_.verbose;
+  project.agent_settings.max_tool_iterations = agent_config_.max_tool_iterations;
+  project.agent_settings.max_retry_attempts = agent_config_.max_retry_attempts;
+  
+  // Check if a custom system prompt is loaded
+  for (const auto& tab : open_files_) {
+    if (tab.is_system_prompt && !tab.filepath.empty()) {
+      project.agent_settings.custom_system_prompt = 
+          project.GetRelativePath(tab.filepath);
+      project.agent_settings.use_custom_prompt = true;
+      break;
+    }
+  }
 }
 
 }  // namespace editor

@@ -25,6 +25,7 @@
 #include "cli/handlers/message.h"
 #include "cli/handlers/overworld_inspect.h"
 #include "cli/service/resources/resource_context_builder.h"
+#include "nlohmann/json.hpp"
 #include "util/macro.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
@@ -1353,22 +1354,20 @@ absl::Status HandleOverworldGetEntranceCommand(
                                                                  static_cast<uint8_t>(entrance_id)));
 
   if (format == "json") {
-    std::cout << "{\n";
-    std::cout << absl::StrFormat("  \"entrance_id\": %d,\n", entrance.entrance_id);
-    std::cout << absl::StrFormat("  \"map\": \"0x%02X\",\n", entrance.map_id);
-    std::cout << absl::StrFormat("  \"world\": \"%s\",\n", overworld::WorldName(entrance.world));
-    std::cout << absl::StrFormat("  \"position\": {\"x\": %d, \"y\": %d},\n", entrance.x, entrance.y);
-    std::cout << absl::StrFormat("  \"room_id\": \"0x%04X\",\n", entrance.room_id);
-    std::cout << absl::StrFormat("  \"door_type_1\": \"0x%04X\",\n", entrance.door_type_1);
-    std::cout << absl::StrFormat("  \"door_type_2\": \"0x%04X\",\n", entrance.door_type_2);
-    std::cout << absl::StrFormat("  \"is_hole\": %s", entrance.is_hole ? "true" : "false");
+    nlohmann::json j;
+    j["entrance_id"] = entrance.entrance_id;
+    j["map"] = absl::StrFormat("0x%02X", entrance.map_id);
+    j["world"] = overworld::WorldName(entrance.world);
+    j["position"] = {{"x", entrance.x}, {"y", entrance.y}};
+    j["area"] = {{"x", static_cast<int>(entrance.area_x)}, {"y", static_cast<int>(entrance.area_y)}};
+    j["map_pos"] = absl::StrFormat("0x%04X", entrance.map_pos);
+    j["is_hole"] = entrance.is_hole;
+    
     if (entrance.entrance_name.has_value()) {
-      std::cout << absl::StrFormat(",\n  \"entrance_name\": \"%s\"", *entrance.entrance_name);
+      j["entrance_name"] = *entrance.entrance_name;
     }
-    if (entrance.room_name.has_value()) {
-      std::cout << absl::StrFormat(",\n  \"room_name\": \"%s\"", *entrance.room_name);
-    }
-    std::cout << "\n}\n";
+    
+    std::cout << j.dump(2) << std::endl;
   } else {
     std::cout << absl::StrFormat("🚪 Entrance #%d\n", entrance.entrance_id);
     if (entrance.entrance_name.has_value()) {
@@ -1377,13 +1376,10 @@ absl::Status HandleOverworldGetEntranceCommand(
     std::cout << absl::StrFormat("Map: 0x%02X (%s World)\n", entrance.map_id, 
                                  overworld::WorldName(entrance.world));
     std::cout << absl::StrFormat("Position: (%d, %d)\n", entrance.x, entrance.y);
-    std::cout << absl::StrFormat("→ Leads to Room 0x%04X", entrance.room_id);
-    if (entrance.room_name.has_value()) {
-      std::cout << " (" << *entrance.room_name << ")";
-    }
-    std::cout << "\n";
-    std::cout << absl::StrFormat("Door Types: 0x%04X / 0x%04X\n", 
-                                 entrance.door_type_1, entrance.door_type_2);
+    std::cout << absl::StrFormat("Area: (%d, %d)\n", 
+                                 static_cast<int>(entrance.area_x), 
+                                 static_cast<int>(entrance.area_y));
+    std::cout << absl::StrFormat("Map Pos: 0x%04X\n", entrance.map_pos);
     std::cout << absl::StrFormat("Is Hole: %s\n", entrance.is_hole ? "yes" : "no");
   }
 

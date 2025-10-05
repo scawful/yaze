@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "asar-dll-bindings/c/asar.h"
 #include "cli/z3ed.h"
 #include "cli/tui/asar_patch.h"

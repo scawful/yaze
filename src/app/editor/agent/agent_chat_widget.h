@@ -12,6 +12,7 @@
 #include "absl/time/time.h"
 #include "app/gui/modules/text_editor.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "core/project.h"
 
 namespace yaze {
 
@@ -176,6 +177,10 @@ public:
   // Agent configuration accessors
   const AgentConfigState& GetAgentConfig() const { return agent_config_; }
   void UpdateAgentConfig(const AgentConfigState& config);
+  
+  // Load agent settings from project
+  void LoadAgentSettingsFromProject(const core::YazeProject& project);
+  void SaveAgentSettingsToProject(core::YazeProject& project);
 
   // Collaboration history management (public so EditorManager can call them)
   void SwitchToSharedHistory(const std::string& session_id);

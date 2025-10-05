@@ -1,4 +1,7 @@
 #include "cli/z3ed.h"
+
+#include <fstream>
+
 #include "absl/flags/flag.h"
 #include "absl/flags/declare.h"
 #include "absl/strings/str_format.h"
