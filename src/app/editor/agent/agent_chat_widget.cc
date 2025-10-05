@@ -1,3 +1,5 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 #include "app/editor/agent/agent_chat_widget.h"
 
 #include <algorithm>

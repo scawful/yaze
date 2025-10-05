@@ -477,10 +477,15 @@ endif()
 
 # Yaze Core Library (for testing and C API)
 if (YAZE_BUILD_LIB)
-  # Sources shared by the C API library
+  # Sources shared by the C API library (minimal dependencies)
   set(YAZE_C_SOURCES
     ./yaze.cc
     cli/service/gui/gui_automation_client.cc
+  )
+  
+  # Application main entry point (uses controller and full dependencies)
+  set(YAZE_APP_MAIN_SOURCES
+    ./app_main.cc
   )
 
   if(YAZE_USE_MODULAR_BUILD)

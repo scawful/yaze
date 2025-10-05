@@ -1,10 +1,13 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 #include "app/editor/agent/automation_bridge.h"
 
 #if defined(YAZE_WITH_GRPC)
 
 #include "absl/time/time.h"
 #include "app/editor/agent/agent_chat_widget.h"
-#include "app/test/test_manager.h"
+
+// test_manager.h already included in automation_bridge.h
 
 namespace yaze {
 namespace editor {
