@@ -234,6 +234,10 @@ class SettingsEditor : public Editor {
   Rom* rom_;
   void DrawGeneralSettings();
   void DrawKeyboardShortcuts();
+  void DrawThemeSettings();
+  void DrawEditorBehavior();
+  void DrawPerformanceSettings();
+  void DrawAIAgentSettings();
 };
 
 }  // namespace editor
