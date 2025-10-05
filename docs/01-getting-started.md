@@ -1,56 +1,65 @@
 # Getting Started
 
-This software allows you to modify "The Legend of Zelda: A Link to the Past" (US or JP) ROMs. Built for compatibility with ZScream projects and designed to be cross-platform.
+This software allows you to modify "The Legend of Zelda: A Link to the Past" (US or JP) ROMs. It is built for compatibility with ZScream projects and designed to be cross-platform.
 
 ## Quick Start
 
-1. **Download** the latest release for your platform
-2. **Load ROM** via File > Open ROM
-3. **Select Editor** from the toolbar (Overworld, Dungeon, Graphics, etc.)
-4. **Make Changes** and save your project
+1.  **Download** the latest release for your platform from the [releases page](https://github.com/scawful/yaze/releases).
+2.  **Load ROM** via `File > Open ROM`.
+3.  **Select an Editor** from the main toolbar (e.g., Overworld, Dungeon, Graphics).
+4.  **Make Changes** and save your project.
 
 ## General Tips
 
-- **Experiment Flags**: Enable/disable features in File > Options > Experiment Flags
-- **Backup Files**: Enabled by default - each save creates a timestamped backup
-- **Extensions**: Load custom tools via the Extensions menu (C library and Python module support)
+-   **Experiment Flags**: Enable or disable new features in `File > Options > Experiment Flags`.
+-   **Backup Files**: Enabled by default. Each save creates a timestamped backup of your ROM.
+-   **Extensions**: Load custom tools via the `Extensions` menu (C library and Python module support is planned).
 
-## Supported Features
+## Feature Status
 
 | Feature | Status | Details |
-|---------|--------|---------|
-| Overworld Maps | ✅ Complete | Edit and save tile32 data |
-| OW Map Properties | ✅ Complete | Edit and save map properties |
-| OW Entrances | ✅ Complete | Edit and save entrance data |
-| OW Exits | ✅ Complete | Edit and save exit data |
-| OW Sprites | 🔄 In Progress | Edit sprite positions, add/remove sprites |
-| Dungeon Editor | 🔄 In Progress | View room metadata and edit room data |
-| Palette Editor | 🔄 In Progress | Edit and save palettes, palette groups |
-| Graphics Sheets | 🔄 In Progress | Edit and save graphics sheets |
-| Graphics Groups | ✅ Complete | Edit and save graphics groups |
-| Hex Editor | ✅ Complete | View and edit ROM data in hex |
-| Asar Patching | ✅ Complete | Apply Asar 65816 assembly patches to ROM |
+|---|---|---|
+| Overworld Editor | ✅ Complete | Full support for vanilla and ZSCustomOverworld v2/v3. |
+| Dungeon Editor | ✅ Complete | Stable, component-based editor for rooms, objects, and sprites. |
+| Tile16 Editor | ✅ Complete | Professional-grade tile editor with advanced palette management. |
+| Palette Editor | ✅ Complete | Edit and save all SNES palette groups. |
+| Graphics Editor | ✅ Complete | View and edit graphics sheets and groups. |
+| Sprite Editor | ✅ Complete | Edit sprite properties and attributes. |
+| Message Editor | ✅ Complete | Edit in-game text and dialogue. |
+| Hex Editor | ✅ Complete | View and edit raw ROM data. |
+| Asar Patching | ✅ Complete | Apply Asar 65816 assembly patches to the ROM. |
 
-## Command Line Interface
+## Command-Line Interface (`z3ed`)
 
-The `z3ed` CLI tool provides ROM operations:
+`z3ed` is a powerful, AI-driven CLI for inspecting and editing ROMs.
+
+### AI Agent Chat
+Chat with an AI to perform edits using natural language.
 
 ```bash
-# Apply Asar assembly patch
-z3ed asar patch.asm --rom=zelda3.sfc
+# Start an interactive chat session with the AI agent
+z3ed agent chat --rom zelda3.sfc
+```
+> **Prompt:** "What sprites are in dungeon 2?"
 
-# Extract symbols from assembly
-z3ed extract patch.asm
+### Resource Inspection
+Directly query ROM data.
 
-# Validate assembly syntax
-z3ed validate patch.asm
+```bash
+# List all sprites in the Eastern Palace (dungeon 2)
+z3ed dungeon list-sprites --rom zelda3.sfc --dungeon 2
 
-# Launch interactive TUI
-z3ed --tui
+# Get information about a specific overworld map area
+z3ed overworld describe-map --rom zelda3.sfc --map 80
+```
+
+### Patching
+Apply assembly patches using the integrated Asar assembler.
+```bash
+# Apply an assembly patch to the ROM
+z3ed asar patch.asm --rom zelda3.sfc
 ```
 
 ## Extending Functionality
 
-YAZE provides a pure C library interface and Python module for building extensions and custom sprites without assembly. Load these under the Extensions menu.
-
-This feature is still in development and not fully documented yet.
+YAZE is designed to be extensible. Future versions will support a full plugin architecture, allowing developers to create custom tools and editors. The C API, while available, is still under development.

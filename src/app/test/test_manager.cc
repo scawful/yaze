@@ -12,7 +12,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/core/service/screenshot_utils.h"
-#include "app/core/widget_state_capture.h"
+#include "app/gui/widgets/widget_state_capture.h"
 #include "app/core/features.h"
 #include "app/core/platform/file_dialog.h"
 #include "app/gfx/arena.h"

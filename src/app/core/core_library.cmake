@@ -5,7 +5,6 @@ set(
   app/core/project.cc
   app/core/window.cc
   app/core/asar_wrapper.cc
-  app/core/widget_state_capture.cc
 )
 
 if (WIN32 OR MINGW OR (UNIX AND NOT APPLE))

@@ -3,6 +3,7 @@ set(
   app/gui/modules/asset_browser.cc
   app/gui/modules/text_editor.cc
   app/gui/widgets/agent_chat_widget.cc
+  app/gui/widgets/collaboration_panel.cc
   app/gui/canvas.cc
   app/gui/canvas_utils.cc
   app/gui/enhanced_palette_editor.cc
@@ -60,6 +61,7 @@ target_link_libraries(yaze_gui PUBLIC
   yaze_gfx
   yaze_util
   yaze_common
+  yaze_net
   ImGui
   ${SDL_TARGETS}
 )

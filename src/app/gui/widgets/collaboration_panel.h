@@ -6,6 +6,8 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/net/rom_version_manager.h"
+#include "app/rom.h"
 #include "imgui/imgui.h"
 
 #ifdef YAZE_WITH_JSON
@@ -81,6 +83,12 @@ class CollaborationPanel {
   ~CollaborationPanel();
   
   /**
+   * Initialize with ROM and version manager
+   */
+  void Initialize(Rom* rom, net::RomVersionManager* version_mgr,
+                  net::ProposalApprovalManager* approval_mgr);
+  
+  /**
    * Render the collaboration panel
    */
   void Render(bool* p_open = nullptr);
@@ -119,10 +127,19 @@ class CollaborationPanel {
   void RenderRomSyncTab();
   void RenderSnapshotsTab();
   void RenderProposalsTab();
+  void RenderVersionHistoryTab();
+  void RenderApprovalTab();
   
   void RenderRomSyncEntry(const RomSyncEntry& entry, int index);
   void RenderSnapshotEntry(const SnapshotEntry& entry, int index);
   void RenderProposalEntry(const ProposalEntry& entry, int index);
+  void RenderVersionSnapshot(const net::RomSnapshot& snapshot, int index);
+  void RenderApprovalProposal(const net::ProposalApprovalManager::ApprovalStatus& status, int index);
+  
+  // Integration components
+  Rom* rom_;
+  net::RomVersionManager* version_mgr_;
+  net::ProposalApprovalManager* approval_mgr_;
   
   // Tab selection
   int selected_tab_;

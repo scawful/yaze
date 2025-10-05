@@ -1,5 +1,5 @@
-#ifndef YAZE_CORE_WIDGET_STATE_CAPTURE_H
-#define YAZE_CORE_WIDGET_STATE_CAPTURE_H
+#ifndef YAZE_APP_GUI_WIDGETS_WIDGET_STATE_CAPTURE_H_
+#define YAZE_APP_GUI_WIDGETS_WIDGET_STATE_CAPTURE_H_
 
 #include <string>
 #include <vector>
@@ -51,4 +51,4 @@ std::string SerializeWidgetStateToJson(const WidgetState& state);
 }  // namespace core
 }  // namespace yaze
 
-#endif  // YAZE_CORE_WIDGET_STATE_CAPTURE_H
+#endif  // YAZE_APP_GUI_WIDGETS_WIDGET_STATE_CAPTURE_H_

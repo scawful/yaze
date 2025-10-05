@@ -12,7 +12,10 @@ namespace app {
 namespace gui {
 
 CollaborationPanel::CollaborationPanel()
-    : selected_tab_(0),
+    : rom_(nullptr),
+      version_mgr_(nullptr),
+      approval_mgr_(nullptr),
+      selected_tab_(0),
       selected_rom_sync_(-1),
       selected_snapshot_(-1),
       selected_proposal_(-1),
@@ -45,6 +48,15 @@ CollaborationPanel::~CollaborationPanel() {
   }
 }
 
+void CollaborationPanel::Initialize(
+    Rom* rom,
+    net::RomVersionManager* version_mgr,
+    net::ProposalApprovalManager* approval_mgr) {
+  rom_ = rom;
+  version_mgr_ = version_mgr;
+  approval_mgr_ = approval_mgr;
+}
+
 void CollaborationPanel::Render(bool* p_open) {
   if (!ImGui::Begin("Collaboration", p_open, ImGuiWindowFlags_None)) {
     ImGui::End();
@@ -59,15 +71,27 @@ void CollaborationPanel::Render(bool* p_open) {
       ImGui::EndTabItem();
     }
     
-    if (ImGui::BeginTabItem("Snapshots")) {
+    if (ImGui::BeginTabItem("Version History")) {
       selected_tab_ = 1;
+      RenderVersionHistoryTab();
+      ImGui::EndTabItem();
+    }
+    
+    if (ImGui::BeginTabItem("Snapshots")) {
+      selected_tab_ = 2;
       RenderSnapshotsTab();
       ImGui::EndTabItem();
     }
     
     if (ImGui::BeginTabItem("Proposals")) {
-      selected_tab_ = 2;
+      selected_tab_ = 3;
       RenderProposalsTab();
+      ImGui::EndTabItem();
+    }
+    
+    if (ImGui::BeginTabItem("🔒 Approvals")) {
+      selected_tab_ = 4;
+      RenderApprovalTab();
       ImGui::EndTabItem();
     }
     
@@ -438,6 +462,201 @@ ImVec4 CollaborationPanel::GetProposalStatusColor(const std::string& status) {
   if (status == "rejected") return colors_.proposal_rejected;
   if (status == "applied") return colors_.proposal_applied;
   return ImVec4(0.7f, 0.7f, 0.7f, 1.0f);
+}
+
+void CollaborationPanel::RenderVersionHistoryTab() {
+  if (!version_mgr_) {
+    ImGui::TextWrapped("Version management not initialized");
+    return;
+  }
+  
+  ImGui::TextWrapped("ROM Version History & Protection");
+  ImGui::Separator();
+  
+  // Stats
+  auto stats = version_mgr_->GetStats();
+  ImGui::Text("Total Snapshots: %zu", stats.total_snapshots);
+  ImGui::SameLine();
+  ImGui::TextColored(colors_.sync_applied, "Safe Points: %zu", stats.safe_points);
+  ImGui::SameLine();
+  ImGui::TextColored(colors_.sync_pending, "Auto-Backups: %zu", stats.auto_backups);
+  
+  ImGui::Text("Storage Used: %s", FormatFileSize(stats.total_storage_bytes).c_str());
+  
+  ImGui::Separator();
+  
+  // Toolbar
+  if (ImGui::Button("💾 Create Checkpoint")) {
+    auto result = version_mgr_->CreateSnapshot(
+        "Manual checkpoint",
+        "user",
+        true);
+    // TODO: Show result in UI
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("🛡️ Mark Current as Safe Point")) {
+    std::string current_hash = version_mgr_->GetCurrentHash();
+    // TODO: Find snapshot with this hash and mark as safe
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("🔍 Check for Corruption")) {
+    auto result = version_mgr_->DetectCorruption();
+    // TODO: Show result
+  }
+  
+  ImGui::Separator();
+  
+  // Version list
+  if (ImGui::BeginChild("VersionList", ImVec2(0, 0), true)) {
+    auto snapshots = version_mgr_->GetSnapshots();
+    
+    for (size_t i = 0; i < snapshots.size(); ++i) {
+      RenderVersionSnapshot(snapshots[i], i);
+    }
+  }
+  ImGui::EndChild();
+}
+
+void CollaborationPanel::RenderApprovalTab() {
+  if (!approval_mgr_) {
+    ImGui::TextWrapped("Approval management not initialized");
+    return;
+  }
+  
+  ImGui::TextWrapped("Proposal Approval System");
+  ImGui::Separator();
+  
+  // Pending proposals that need votes
+  auto pending = approval_mgr_->GetPendingProposals();
+  
+  if (pending.empty()) {
+    ImGui::TextWrapped("No proposals pending approval.");
+    return;
+  }
+  
+  ImGui::Text("Pending Proposals: %zu", pending.size());
+  ImGui::Separator();
+  
+  if (ImGui::BeginChild("ApprovalList", ImVec2(0, 0), true)) {
+    for (size_t i = 0; i < pending.size(); ++i) {
+      RenderApprovalProposal(pending[i], i);
+    }
+  }
+  ImGui::EndChild();
+}
+
+void CollaborationPanel::RenderVersionSnapshot(
+    const net::RomSnapshot& snapshot, int index) {
+  ImGui::PushID(index);
+  
+  // Icon based on type
+  const char* icon;
+  ImVec4 color;
+  
+  if (snapshot.is_safe_point) {
+    icon = "🛡️";
+    color = colors_.sync_applied;
+  } else if (snapshot.is_checkpoint) {
+    icon = "💾";
+    color = colors_.proposal_approved;
+  } else {
+    icon = "📝";
+    color = colors_.sync_pending;
+  }
+  
+  ImGui::TextColored(color, "%s", icon);
+  ImGui::SameLine();
+  
+  // Collapsible header
+  bool is_open = ImGui::TreeNode(snapshot.description.c_str());
+  
+  if (is_open) {
+    ImGui::Indent();
+    
+    ImGui::Text("Creator: %s", snapshot.creator.c_str());
+    ImGui::Text("Time: %s", FormatTimestamp(snapshot.timestamp).c_str());
+    ImGui::Text("Hash: %s", snapshot.rom_hash.substr(0, 16).c_str());
+    ImGui::Text("Size: %s", FormatFileSize(snapshot.compressed_size).c_str());
+    
+    if (snapshot.is_safe_point) {
+      ImGui::TextColored(colors_.sync_applied, "✓ Safe Point (Host Verified)");
+    }
+    
+    ImGui::Separator();
+    
+    // Actions
+    if (ImGui::Button("↩️ Restore This Version")) {
+      auto result = version_mgr_->RestoreSnapshot(snapshot.snapshot_id);
+      // TODO: Show result
+    }
+    ImGui::SameLine();
+    if (!snapshot.is_safe_point && ImGui::Button("🛡️ Mark as Safe")) {
+      version_mgr_->MarkAsSafePoint(snapshot.snapshot_id);
+    }
+    ImGui::SameLine();
+    if (!snapshot.is_safe_point && ImGui::Button("🗑️ Delete")) {
+      version_mgr_->DeleteSnapshot(snapshot.snapshot_id);
+    }
+    
+    ImGui::Unindent();
+    ImGui::TreePop();
+  }
+  
+  ImGui::Separator();
+  ImGui::PopID();
+}
+
+void CollaborationPanel::RenderApprovalProposal(
+    const net::ProposalApprovalManager::ApprovalStatus& status, int index) {
+  ImGui::PushID(index);
+  
+  // Status indicator
+  ImGui::TextColored(colors_.proposal_pending, "[⏳]");
+  ImGui::SameLine();
+  
+  // Proposal ID (shortened)
+  std::string short_id = status.proposal_id.substr(0, 8);
+  bool is_open = ImGui::TreeNode(absl::StrFormat("Proposal %s", short_id.c_str()).c_str());
+  
+  if (is_open) {
+    ImGui::Indent();
+    
+    ImGui::Text("Created: %s", FormatTimestamp(status.created_at).c_str());
+    ImGui::Text("Snapshot Before: %s", status.snapshot_before.substr(0, 8).c_str());
+    
+    ImGui::Separator();
+    ImGui::TextWrapped("Votes:");
+    
+    for (const auto& [username, approved] : status.votes) {
+      ImVec4 vote_color = approved ? colors_.proposal_approved : colors_.proposal_rejected;
+      const char* vote_icon = approved ? "✓" : "✗";
+      ImGui::TextColored(vote_color, "  %s %s", vote_icon, username.c_str());
+    }
+    
+    ImGui::Separator();
+    
+    // Voting actions
+    if (ImGui::Button("✓ Approve")) {
+      // TODO: Send approval vote
+      // approval_mgr_->VoteOnProposal(status.proposal_id, "current_user", true);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("✗ Reject")) {
+      // TODO: Send rejection vote
+      // approval_mgr_->VoteOnProposal(status.proposal_id, "current_user", false);
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("↩️ Rollback")) {
+      // Restore snapshot from before this proposal
+      version_mgr_->RestoreSnapshot(status.snapshot_before);
+    }
+    
+    ImGui::Unindent();
+    ImGui::TreePop();
+  }
+  
+  ImGui::Separator();
+  ImGui::PopID();
 }
 
 }  // namespace gui
