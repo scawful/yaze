@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🎨_20new_20features_20added_20or_20doesn_20t_20provide_20a_20tt_20text_5fresponse_20tt_20field_20in_20the_20json_0',['🎨 New Features Added  - OR doesn&apos;t provide a &lt;tt&gt;text_response&lt;/tt&gt; field in the JSON',['../da/d40/md_docs_2ollama__integration__status.html#autotoc_md494',1,'']]]
+  ['🍎_20macos_20arm64_20presets_20recommended_20for_20apple_20silicon_0',['🍎 macOS ARM64 Presets (Recommended for Apple Silicon)',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md145',1,'']]]
 ];

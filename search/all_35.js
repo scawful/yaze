@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🙏_20acknowledgments_0',['🙏 Acknowledgments',['../d0/d30/md_README.html#autotoc_md604',1,'']]]
+  ['🔧_20why_20this_20fixes_20architecture_20errors_0',['🔧 Why This Fixes Architecture Errors',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md148',1,'']]]
 ];

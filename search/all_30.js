@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['📋_20available_20presets_0',['📋 Available Presets',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md131',1,'']]]
+  ['📊_20performance_20codellama_3a7b_0',['📊 Performance   - codellama:7b',['../da/d40/md_docs_2ollama__integration__status.html#autotoc_md517',1,'']]]
 ];

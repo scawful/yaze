@@ -101,11 +101,11 @@ $(document).ready(function(){initNavTree('d7/daf/md_docs_2build__modularization_
   <div class="headertitle"><div class="title">Build Modularization Plan for Yaze</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md241"></a> </p>
-<h1><a class="anchor" id="autotoc_md242"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md259"></a> </p>
+<h1><a class="anchor" id="autotoc_md260"></a>
 Executive Summary</h1>
 <p>This document outlines a comprehensive plan to modularize the yaze build system, reducing build times by 40-60% through the creation of intermediate libraries and improved dependency management.</p>
-<h1><a class="anchor" id="autotoc_md243"></a>
+<h1><a class="anchor" id="autotoc_md261"></a>
 Current Problems</h1>
 <ol type="1">
 <li><b>Monolithic Build</b>: All subsystems compile directly into final executables</li>
@@ -114,9 +114,9 @@ Current Problems</h1>
 <li><b>Long Link Times</b>: Large monolithic targets take longer to link</li>
 <li><b>Parallel Build Limitations</b>: Cannot parallelize subsystem builds effectively</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md244"></a>
+<h1><a class="anchor" id="autotoc_md262"></a>
 Proposed Architecture</h1>
-<h2><a class="anchor" id="autotoc_md245"></a>
+<h2><a class="anchor" id="autotoc_md263"></a>
 Library Hierarchy</h2>
 <div class="fragment"><div class="line">yaze_common (INTERFACE)</div>
 <div class="line">    ├── yaze_util (STATIC)</div>
@@ -156,29 +156,29 @@ Library Hierarchy</h2>
 <div class="line">        ├── yaze_emu - Links subset</div>
 <div class="line">        ├── z3ed (CLI) - Links subset</div>
 <div class="line">        └── yaze_test - Links all for testing</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md246"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md264"></a>
 Implementation Guide</h1>
 <p>This section provides step-by-step instructions for implementing the modularized build system for yaze.</p>
-<h2><a class="anchor" id="autotoc_md247"></a>
+<h2><a class="anchor" id="autotoc_md265"></a>
 Quick Start</h2>
-<h3><a class="anchor" id="autotoc_md248"></a>
+<h3><a class="anchor" id="autotoc_md266"></a>
 Option 1: Enable Modular Build (Recommended)</h3>
 <p>Add this option to enable the new modular build system:</p>
 <div class="fragment"><div class="line">cmake -B build -DYAZE_USE_MODULAR_BUILD=ON</div>
 <div class="line">cmake --build build</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md249"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md267"></a>
 Option 2: Keep Existing Build (Default)</h3>
 <p>The existing build system remains the default for stability:</p>
 <div class="fragment"><div class="line">cmake -B build</div>
 <div class="line">cmake --build build</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md250"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md268"></a>
 Implementation Steps</h2>
-<h3><a class="anchor" id="autotoc_md251"></a>
+<h3><a class="anchor" id="autotoc_md269"></a>
 Step 1: Add Build Option</h3>
 <p>Add to <b>root <code>CMakeLists.txt</code></b> (around line 45, after other options):</p>
 <div class="fragment"><div class="line"># Build system options</div>
 <div class="line">option(YAZE_USE_MODULAR_BUILD &quot;Use modularized library build system for faster builds&quot; OFF)</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md252"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md270"></a>
 Step 2: Update src/CMakeLists.txt</h3>
 <p>Replace the current monolithic build with a library-based approach. Add near the top of <code>src/CMakeLists.txt</code>:</p>
 <div class="fragment"><div class="line"># ==============================================================================</div>
@@ -233,7 +233,7 @@ Step 2: Update src/CMakeLists.txt</h3>
 <div class="line">  message(STATUS &quot;Using traditional monolithic build system&quot;)</div>
 <div class="line">  # Keep existing build (current code in src/CMakeLists.txt)</div>
 <div class="line">endif()</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md253"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md271"></a>
 Step 3: Update yaze Application Linking</h3>
 <p>In <code>src/app/app.cmake</code>, update the main yaze target:</p>
 <div class="fragment"><div class="line">if(YAZE_USE_MODULAR_BUILD)</div>
@@ -251,7 +251,7 @@ Step 3: Update yaze Application Linking</h3>
 <div class="line">else()</div>
 <div class="line">  target_link_libraries(yaze PRIVATE yaze_core)</div>
 <div class="line">endif()</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md254"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md272"></a>
 Step 4: Update Test Executable</h3>
 <p>In <code>test/CMakeLists.txt</code>, update the test linking:</p>
 <div class="fragment"><div class="line">if(YAZE_BUILD_LIB)</div>
@@ -273,9 +273,9 @@ Step 4: Update Test Executable</h3>
 <div class="line">    target_link_libraries(yaze_test yaze_core)</div>
 <div class="line">  endif()</div>
 <div class="line">endif()</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md255"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md273"></a>
 Expected Performance Improvements</h1>
-<h2><a class="anchor" id="autotoc_md256"></a>
+<h2><a class="anchor" id="autotoc_md274"></a>
 Build Time Reductions</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -295,14 +295,14 @@ Build Time Reductions</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Incremental test   </td><td class="markdownTableBodyNone">100% relink   </td><td class="markdownTableBodyNone">Cached libs   </td><td class="markdownTableBodyNone"><b>70% faster</b>   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md257"></a>
+<h2><a class="anchor" id="autotoc_md275"></a>
 CI/CD Benefits</h2>
 <ul>
 <li><b>Cached Artifacts</b>: Libraries can be cached between CI runs</li>
 <li><b>Selective Testing</b>: Only rebuild/test changed modules</li>
 <li><b>Faster Iteration</b>: Developers see results sooner</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md258"></a>
+<h1><a class="anchor" id="autotoc_md276"></a>
 Rollback Procedure</h1>
 <p>If issues arise, you can revert to the traditional build:</p>
 <div class="fragment"><div class="line"># Option 1: Just disable the flag</div>

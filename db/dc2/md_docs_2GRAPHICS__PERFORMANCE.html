@@ -101,11 +101,11 @@ $(document).ready(function(){initNavTree('db/dc2/md_docs_2GRAPHICS__PERFORMANCE.
   <div class="headertitle"><div class="title">Graphics System Performance &amp; Optimization</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md474"></a> This document provides a comprehensive overview of the analysis, implementation, and results of performance optimizations applied to the YAZE graphics system.</p>
-<h1><a class="anchor" id="autotoc_md475"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md492"></a> This document provides a comprehensive overview of the analysis, implementation, and results of performance optimizations applied to the YAZE graphics system.</p>
+<h1><a class="anchor" id="autotoc_md493"></a>
 1. Executive Summary</h1>
 <p>Massive performance improvements were achieved across the application, dramatically improving the user experience, especially during resource-intensive operations like ROM loading and dungeon editing.</p>
-<h2><a class="anchor" id="autotoc_md476"></a>
+<h2><a class="anchor" id="autotoc_md494"></a>
 Overall Performance Results</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -117,7 +117,7 @@ Overall Performance Results</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><b>User Experience</b>   </td><td class="markdownTableBodyNone">18-second freeze   </td><td class="markdownTableBodyNone">Near-instant   </td><td class="markdownTableBodyNone"><b>Dramatic improvement</b>   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md477"></a>
+<h1><a class="anchor" id="autotoc_md495"></a>
 2. Implemented Optimizations</h1>
 <p>The following key optimizations were successfully implemented:</p>
 <ol type="1">
@@ -131,15 +131,15 @@ Overall Performance Results</h2>
 <li><b>Parallel &amp; Incremental Loading</b>: Dungeon rooms and overworld maps are now loaded in parallel or incrementally to prevent UI blocking.</li>
 <li><b>Performance Monitoring</b>: A <code>PerformanceProfiler</code> and <code>PerformanceDashboard</code> were created to measure the impact of these optimizations and detect regressions.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md478"></a>
+<h1><a class="anchor" id="autotoc_md496"></a>
 3. Future Optimization Recommendations</h1>
-<h2><a class="anchor" id="autotoc_md479"></a>
+<h2><a class="anchor" id="autotoc_md497"></a>
 High Priority</h2>
 <ol type="1">
 <li><b>Multi-threaded Updates</b>: Move texture processing to a background thread to further reduce main thread workload.</li>
 <li><b>GPU-based Operations</b>: Offload more graphics operations, like palette lookups or tile composition, to the GPU using shaders.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md480"></a>
+<h2><a class="anchor" id="autotoc_md498"></a>
 Medium Priority</h2>
 <ol type="1">
 <li><b>Advanced Caching</b>: Implement predictive tile preloading based on camera movement or user interaction.</li>

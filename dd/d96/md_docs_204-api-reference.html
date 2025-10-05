@@ -101,10 +101,10 @@ $(document).ready(function(){initNavTree('dd/d96/md_docs_204-api-reference.html'
   <div class="headertitle"><div class="title">API Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md70"></a> Comprehensive reference for the YAZE C API and C++ interfaces.</p>
-<h1><a class="anchor" id="autotoc_md71"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md88"></a> Comprehensive reference for the YAZE C API and C++ interfaces.</p>
+<h1><a class="anchor" id="autotoc_md89"></a>
 C API (&lt;tt&gt;incl/yaze.h&lt;/tt&gt;, &lt;tt&gt;incl/zelda.h&lt;/tt&gt;)</h1>
-<h2><a class="anchor" id="autotoc_md72"></a>
+<h2><a class="anchor" id="autotoc_md90"></a>
 Core Library Functions</h2>
 <div class="fragment"><div class="line"><span class="comment">// Initialization</span></div>
 <div class="line"><a class="code hl_enumeration" href="../../d0/de1/group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a> <a class="code hl_function" href="../../d0/de1/group__core.html#ga3a3a4e60f272ceed1dea6ccaefd39e65">yaze_library_init</a>(<span class="keywordtype">void</span>);</div>
@@ -124,7 +124,7 @@ Core Library Functions</h2>
 <div class="ttc" id="agroup__core_html_ga9cdce623ea2e4d9abdb3acf73a4e3f65"><div class="ttname"><a href="../../d0/de1/group__core.html#ga9cdce623ea2e4d9abdb3acf73a4e3f65">yaze_check_version_compatibility</a></div><div class="ttdeci">bool yaze_check_version_compatibility(const char *expected_version)</div><div class="ttdoc">Check if the current YAZE version is compatible with the expected version.</div><div class="ttdef"><b>Definition</b> <a href="../../df/d84/yaze_8cc_source.html#l00152">yaze.cc:152</a></div></div>
 <div class="ttc" id="agroup__core_html_gaf4d341e1ae32594ade9fc4a3e3e8ba16"><div class="ttname"><a href="../../d0/de1/group__core.html#gaf4d341e1ae32594ade9fc4a3e3e8ba16">yaze_status_to_string</a></div><div class="ttdeci">const char * yaze_status_to_string(yaze_status status)</div><div class="ttdoc">Convert a status code to a human-readable string.</div><div class="ttdef"><b>Definition</b> <a href="../../df/d84/yaze_8cc_source.html#l00121">yaze.cc:121</a></div></div>
 <div class="ttc" id="agroup__core_html_gaf7a72f08554c06a14ffa7114aac200f9"><div class="ttname"><a href="../../d0/de1/group__core.html#gaf7a72f08554c06a14ffa7114aac200f9">yaze_library_shutdown</a></div><div class="ttdeci">void yaze_library_shutdown(void)</div><div class="ttdoc">Shutdown the YAZE library.</div><div class="ttdef"><b>Definition</b> <a href="../../df/d84/yaze_8cc_source.html#l00110">yaze.cc:110</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md73"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md91"></a>
 ROM Operations</h2>
 <div class="fragment"><div class="line"><span class="comment">// ROM loading and management</span></div>
 <div class="line"><a class="code hl_struct" href="../../de/dad/structzelda3__rom.html">zelda3_rom</a>* <a class="code hl_function" href="../../d7/d60/group__rom__functions.html#gac870fb2b7713b670247082c171053148">yaze_load_rom</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* filename);</div>
@@ -135,7 +135,7 @@ ROM Operations</h2>
 <div class="ttc" id="agroup__rom__functions_html_gac870fb2b7713b670247082c171053148"><div class="ttname"><a href="../../d7/d60/group__rom__functions.html#gac870fb2b7713b670247082c171053148">yaze_load_rom</a></div><div class="ttdeci">zelda3_rom * yaze_load_rom(const char *filename)</div><div class="ttdoc">Load a ROM file.</div><div class="ttdef"><b>Definition</b> <a href="../../df/d84/yaze_8cc_source.html#l00199">yaze.cc:199</a></div></div>
 <div class="ttc" id="agroup__rom__functions_html_gafa82266eb6f9e734bb7aa406a687e1d4"><div class="ttname"><a href="../../d7/d60/group__rom__functions.html#gafa82266eb6f9e734bb7aa406a687e1d4">yaze_save_rom</a></div><div class="ttdeci">int yaze_save_rom(zelda3_rom *rom, const char *filename)</div><div class="ttdoc">Save ROM to file.</div><div class="ttdef"><b>Definition</b> <a href="../../df/d84/yaze_8cc_source.html#l00232">yaze.cc:232</a></div></div>
 <div class="ttc" id="astructzelda3__rom_html"><div class="ttname"><a href="../../de/dad/structzelda3__rom.html">zelda3_rom</a></div><div class="ttdoc">ROM data structure.</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/zelda_8h_source.html#l00210">zelda.h:210</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md74"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md92"></a>
 Graphics Operations</h2>
 <div class="fragment"><div class="line"><span class="comment">// SNES color management</span></div>
 <div class="line"><a class="code hl_struct" href="../../df/d71/structsnes__color.html">snes_color</a> <a class="code hl_function" href="../../d6/de0/group__graphics.html#ga08621044e51f101bd18ea388c85f5eb9">yaze_rgb_to_snes_color</a>(uint8_t r, uint8_t g, uint8_t b);</div>
@@ -150,7 +150,7 @@ Graphics Operations</h2>
 <div class="ttc" id="agroup__graphics_html_gaefa71f38cc28578cb8876442d0a7ffa7"><div class="ttname"><a href="../../d6/de0/group__graphics.html#gaefa71f38cc28578cb8876442d0a7ffa7">yaze_snes_color_to_rgb</a></div><div class="ttdeci">void yaze_snes_color_to_rgb(snes_color color, uint8_t *r, uint8_t *g, uint8_t *b)</div><div class="ttdoc">Convert SNES color to RGB888.</div><div class="ttdef"><b>Definition</b> <a href="../../df/d84/yaze_8cc_source.html#l00395">yaze.cc:395</a></div></div>
 <div class="ttc" id="astructsnes__color_html"><div class="ttname"><a href="../../df/d71/structsnes__color.html">snes_color</a></div><div class="ttdoc">SNES color in 15-bit RGB format (BGR555)</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00208">yaze.h:208</a></div></div>
 <div class="ttc" id="astructyaze__bitmap_html"><div class="ttname"><a href="../../dd/dd1/structyaze__bitmap.html">yaze_bitmap</a></div><div class="ttdoc">Bitmap data structure.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00161">yaze.h:161</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md75"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md93"></a>
 Palette System</h2>
 <div class="fragment"><div class="line"><span class="comment">// Palette creation and management</span></div>
 <div class="line"><a class="code hl_struct" href="../../d0/dad/structsnes__palette.html">snes_palette</a>* <a class="code hl_function" href="../../d6/de0/group__graphics.html#ga627b7e870106c8cc04cd669eaf994754">yaze_create_palette</a>(uint8_t <span class="keywordtype">id</span>, uint8_t size);</div>
@@ -160,19 +160,19 @@ Palette System</h2>
 <div class="ttc" id="agroup__graphics_html_ga627b7e870106c8cc04cd669eaf994754"><div class="ttname"><a href="../../d6/de0/group__graphics.html#ga627b7e870106c8cc04cd669eaf994754">yaze_create_palette</a></div><div class="ttdeci">snes_palette * yaze_create_palette(uint16_t id, uint16_t size)</div><div class="ttdoc">Create an empty palette.</div></div>
 <div class="ttc" id="agroup__graphics_html_gae0ba0ca438a5fdfa39721a579c861808"><div class="ttname"><a href="../../d6/de0/group__graphics.html#gae0ba0ca438a5fdfa39721a579c861808">yaze_free_palette</a></div><div class="ttdeci">void yaze_free_palette(snes_palette *palette)</div><div class="ttdoc">Free palette memory.</div></div>
 <div class="ttc" id="astructsnes__palette_html"><div class="ttname"><a href="../../d0/dad/structsnes__palette.html">snes_palette</a></div><div class="ttdoc">SNES color palette.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00240">yaze.h:240</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md76"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md94"></a>
 Message System</h2>
 <div class="fragment"><div class="line"><span class="comment">// Message handling</span></div>
 <div class="line"><a class="code hl_struct" href="../../dd/dde/structzelda3__message.html">zelda3_message</a>* yaze_load_message(<span class="keyword">const</span> <a class="code hl_struct" href="../../de/dad/structzelda3__rom.html">zelda3_rom</a>* rom, uint16_t message_id);</div>
 <div class="line"><span class="keywordtype">void</span> yaze_free_message(<a class="code hl_struct" href="../../dd/dde/structzelda3__message.html">zelda3_message</a>* message);</div>
 <div class="line"><a class="code hl_enumeration" href="../../d0/de1/group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a> yaze_save_message(<a class="code hl_struct" href="../../de/dad/structzelda3__rom.html">zelda3_rom</a>* rom, <span class="keyword">const</span> <a class="code hl_struct" href="../../dd/dde/structzelda3__message.html">zelda3_message</a>* message);</div>
 <div class="ttc" id="astructzelda3__message_html"><div class="ttname"><a href="../../dd/dde/structzelda3__message.html">zelda3_message</a></div><div class="ttdoc">In-game text message data.</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/zelda_8h_source.html#l00271">zelda.h:271</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md77"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md95"></a>
 C++ API</h1>
-<h2><a class="anchor" id="autotoc_md78"></a>
+<h2><a class="anchor" id="autotoc_md96"></a>
 AsarWrapper (&lt;tt&gt;src/app/core/asar_wrapper.h&lt;/tt&gt;)</h2>
 <p>Complete cross-platform ROM patching with assembly code support, symbol extraction, and validation.</p>
-<h3><a class="anchor" id="autotoc_md79"></a>
+<h3><a class="anchor" id="autotoc_md97"></a>
 Quick Examples</h3>
 <p><b>Command Line</b> </p><div class="fragment"><div class="line"># Apply assembly patch to ROM</div>
 <div class="line">z3ed asar my_patch.asm --rom=zelda3.sfc</div>
@@ -198,7 +198,7 @@ Quick Examples</h3>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html">yaze::core::AsarWrapper</a></div><div class="ttdoc">Modern C++ wrapper for Asar 65816 assembler integration.</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00048">asar_wrapper.h:48</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a9696c9ed3e363b0a989213d0d0862010"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a9696c9ed3e363b0a989213d0d0862010">yaze::core::AsarWrapper::Initialize</a></div><div class="ttdeci">absl::Status Initialize()</div><div class="ttdoc">Initialize the Asar library.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00025">asar_wrapper.cc:25</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a970cffb421b3db4f9697edbfa5027828"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828">yaze::core::AsarWrapper::ApplyPatch</a></div><div class="ttdeci">absl::StatusOr&lt; AsarPatchResult &gt; ApplyPatch(const std::string &amp;patch_path, std::vector&lt; uint8_t &gt; &amp;rom_data, const std::vector&lt; std::string &gt; &amp;include_paths={})</div><div class="ttdoc">Apply an assembly patch to a ROM.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00068">asar_wrapper.cc:68</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md80"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md98"></a>
 AsarWrapper Class</h3>
 <div class="fragment"><div class="line"><span class="keyword">namespace </span><a class="code hl_namespace" href="../../db/d33/namespaceyaze_1_1core.html">yaze::core</a> {</div>
 <div class="line"> </div>
@@ -241,7 +241,7 @@ AsarWrapper Class</h3>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ad8d8a1b351b04389dfb11a4db38cc034"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ad8d8a1b351b04389dfb11a4db38cc034">yaze::core::AsarWrapper::GetSymbolsAtAddress</a></div><div class="ttdeci">std::vector&lt; AsarSymbol &gt; GetSymbolsAtAddress(uint32_t address) const</div><div class="ttdoc">Get symbols at a specific address.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00191">asar_wrapper.cc:191</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ade7b3915a5246e8c8e32c01008125094"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ade7b3915a5246e8c8e32c01008125094">yaze::core::AsarWrapper::GetSymbolTable</a></div><div class="ttdeci">std::map&lt; std::string, AsarSymbol &gt; GetSymbolTable() const</div><div class="ttdoc">Get all available symbols from the last patch operation.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00179">asar_wrapper.cc:179</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1core_html"><div class="ttname"><a href="../../db/d33/namespaceyaze_1_1core.html">yaze::core</a></div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00015">asar_wrapper.cc:15</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md81"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md99"></a>
 Error Handling</h3>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -255,9 +255,9 @@ Error Handling</h3>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>Buffer too small</code>   </td><td class="markdownTableBodyNone">ROM needs expansion   </td><td class="markdownTableBodyNone">Check if ROM needs to be larger   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md82"></a>
+<h2><a class="anchor" id="autotoc_md100"></a>
 Data Structures</h2>
-<h3><a class="anchor" id="autotoc_md83"></a>
+<h3><a class="anchor" id="autotoc_md101"></a>
 ROM Version Support</h3>
 <div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">enum</span> <a class="code hl_enumeration" href="../../d2/d94/group__rom__types.html#ga9b154d4f0904082e537a24b5ae25575d">zelda3_version</a> {</div>
 <div class="line">    <a class="code hl_enumvalue" href="../../d2/d94/group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da92b836748459feaa481e0f105c74fd73">ZELDA3_VERSION_US</a> = 1,</div>
@@ -277,7 +277,7 @@ ROM Version Support</h3>
 <div class="ttc" id="agroup__rom__types_html_gga9b154d4f0904082e537a24b5ae25575da92b836748459feaa481e0f105c74fd73"><div class="ttname"><a href="../../d2/d94/group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da92b836748459feaa481e0f105c74fd73">ZELDA3_VERSION_US</a></div><div class="ttdeci">@ ZELDA3_VERSION_US</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/zelda_8h_source.html#l00035">zelda.h:35</a></div></div>
 <div class="ttc" id="agroup__rom__types_html_gga9b154d4f0904082e537a24b5ae25575daad9bcb06fffaf3416d2484ce5dc97500"><div class="ttname"><a href="../../d2/d94/group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575daad9bcb06fffaf3416d2484ce5dc97500">RANDO</a></div><div class="ttdeci">@ RANDO</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/zelda_8h_source.html#l00045">zelda.h:45</a></div></div>
 <div class="ttc" id="agroup__rom__types_html_gga9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561"><div class="ttname"><a href="../../d2/d94/group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561">JP</a></div><div class="ttdeci">@ JP</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/zelda_8h_source.html#l00043">zelda.h:43</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md84"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md102"></a>
 SNES Graphics</h3>
 <div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="../../df/d71/structsnes__color.html">snes_color</a> {</div>
 <div class="line">    uint16_t raw;               <span class="comment">// Raw 15-bit SNES color</span></div>
@@ -297,7 +297,7 @@ SNES Graphics</h3>
 <div class="ttc" id="astructsnes__palette_html_a4d2abb2c4e2c85cf76da9b02b8646a8a"><div class="ttname"><a href="../../d0/dad/structsnes__palette.html#a4d2abb2c4e2c85cf76da9b02b8646a8a">snes_palette::id</a></div><div class="ttdeci">uint16_t id</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00241">yaze.h:241</a></div></div>
 <div class="ttc" id="astructsnes__palette_html_ad3e26012129a3fb96f250157d58e2928"><div class="ttname"><a href="../../d0/dad/structsnes__palette.html#ad3e26012129a3fb96f250157d58e2928">snes_palette::size</a></div><div class="ttdeci">uint16_t size</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00242">yaze.h:242</a></div></div>
 <div class="ttc" id="astructsnes__palette_html_ad4057af514d8aab3c6a429b693bb9ac6"><div class="ttname"><a href="../../d0/dad/structsnes__palette.html#ad4057af514d8aab3c6a429b693bb9ac6">snes_palette::colors</a></div><div class="ttdeci">snes_color * colors</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00243">yaze.h:243</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md85"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md103"></a>
 Message System</h3>
 <div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="../../dd/dde/structzelda3__message.html">zelda3_message</a> {</div>
 <div class="line">    uint16_t <a class="code hl_variable" href="../../dd/dde/structzelda3__message.html#a8e6473e55f809b8813e0b32e919ecbd5">id</a>;                <span class="comment">// Message ID (0-65535)</span></div>
@@ -315,9 +315,9 @@ Message System</h3>
 <div class="ttc" id="astructzelda3__message_html_ab165c3cd0c512a2457fd0a5dd2f49acf"><div class="ttname"><a href="../../dd/dde/structzelda3__message.html#ab165c3cd0c512a2457fd0a5dd2f49acf">zelda3_message::is_compressed</a></div><div class="ttdeci">bool is_compressed</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/zelda_8h_source.html#l00277">zelda.h:277</a></div></div>
 <div class="ttc" id="astructzelda3__message_html_adf739cca315eb1c3507bb3b70b2b4865"><div class="ttname"><a href="../../dd/dde/structzelda3__message.html#adf739cca315eb1c3507bb3b70b2b4865">zelda3_message::parsed_text</a></div><div class="ttdeci">char * parsed_text</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/zelda_8h_source.html#l00276">zelda.h:276</a></div></div>
 <div class="ttc" id="astructzelda3__message_html_af5bf5fe89e44f0cdc289dd77dda0fef4"><div class="ttname"><a href="../../dd/dde/structzelda3__message.html#af5bf5fe89e44f0cdc289dd77dda0fef4">zelda3_message::length</a></div><div class="ttdeci">uint16_t length</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/zelda_8h_source.html#l00274">zelda.h:274</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md86"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md104"></a>
 Error Handling</h1>
-<h2><a class="anchor" id="autotoc_md87"></a>
+<h2><a class="anchor" id="autotoc_md105"></a>
 Status Codes</h2>
 <div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">enum</span> <a class="code hl_enumeration" href="../../d0/de1/group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a> {</div>
 <div class="line">    <a class="code hl_enumvalue" href="../../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0a07a60c9eac361f06ec1a03be228225ed">YAZE_OK</a> = 0,                   <span class="comment">// Success</span></div>
@@ -337,7 +337,7 @@ Status Codes</h2>
 <div class="ttc" id="agroup__core_html_gga8b8638fa48e18e420ef66414847265c0aa417c4bc0c4411826af3a501f608fca4"><div class="ttname"><a href="../../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0aa417c4bc0c4411826af3a501f608fca4">YAZE_ERROR_MEMORY</a></div><div class="ttdeci">@ YAZE_ERROR_MEMORY</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00060">yaze.h:60</a></div></div>
 <div class="ttc" id="agroup__core_html_gga8b8638fa48e18e420ef66414847265c0ac2d0ae3485a71218d2746a810879fe55"><div class="ttname"><a href="../../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0ac2d0ae3485a71218d2746a810879fe55">YAZE_ERROR_NOT_INITIALIZED</a></div><div class="ttdeci">@ YAZE_ERROR_NOT_INITIALIZED</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00063">yaze.h:63</a></div></div>
 <div class="ttc" id="agroup__core_html_gga8b8638fa48e18e420ef66414847265c0af82920677ab3ffbe060b219da27359c1"><div class="ttname"><a href="../../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0af82920677ab3ffbe060b219da27359c1">YAZE_ERROR_UNKNOWN</a></div><div class="ttdeci">@ YAZE_ERROR_UNKNOWN</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00057">yaze.h:57</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md88"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md106"></a>
 Error Handling Pattern</h2>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="../../d0/de1/group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a> status = <a class="code hl_function" href="../../d0/de1/group__core.html#ga3a3a4e60f272ceed1dea6ccaefd39e65">yaze_library_init</a>();</div>
 <div class="line"><span class="keywordflow">if</span> (status != <a class="code hl_enumvalue" href="../../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0a07a60c9eac361f06ec1a03be228225ed">YAZE_OK</a>) {</div>
@@ -354,9 +354,9 @@ Error Handling Pattern</h2>
 <div class="line"><span class="comment">// Use ROM...</span></div>
 <div class="line"><a class="code hl_function" href="../../d7/d60/group__rom__functions.html#ga0c0dfb85f1e87702458d4dbaae0beef3">yaze_unload_rom</a>(rom);</div>
 <div class="line"><a class="code hl_function" href="../../d0/de1/group__core.html#gaf7a72f08554c06a14ffa7114aac200f9">yaze_library_shutdown</a>();</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md89"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md107"></a>
 Extension System</h1>
-<h2><a class="anchor" id="autotoc_md90"></a>
+<h2><a class="anchor" id="autotoc_md108"></a>
 Plugin Architecture</h2>
 <div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="../../da/d74/structyaze__extension.html">yaze_extension</a> {</div>
 <div class="line">    <span class="keyword">const</span> <span class="keywordtype">char</span>* <a class="code hl_variable" href="../../da/d74/structyaze__extension.html#af08fb5a1a5551c79898ebd6a3d375d8c">name</a>;           <span class="comment">// Extension name</span></div>
@@ -379,14 +379,14 @@ Plugin Architecture</h2>
 <div class="ttc" id="astructyaze__extension_html_a93cdd908fb3c54b68fa54307fcf3a090"><div class="ttname"><a href="../../da/d74/structyaze__extension.html#a93cdd908fb3c54b68fa54307fcf3a090">yaze_extension::api_version</a></div><div class="ttdeci">int api_version</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00521">yaze.h:521</a></div></div>
 <div class="ttc" id="astructyaze__extension_html_aab3644cf16c4a7db79229ad20118d9f5"><div class="ttname"><a href="../../da/d74/structyaze__extension.html#aab3644cf16c4a7db79229ad20118d9f5">yaze_extension::initialize</a></div><div class="ttdeci">yaze_status(* initialize)(yaze_editor_context *context)</div><div class="ttdoc">Initialize the extension.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00532">yaze.h:532</a></div></div>
 <div class="ttc" id="astructyaze__extension_html_af08fb5a1a5551c79898ebd6a3d375d8c"><div class="ttname"><a href="../../da/d74/structyaze__extension.html#af08fb5a1a5551c79898ebd6a3d375d8c">yaze_extension::name</a></div><div class="ttdeci">const char * name</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00517">yaze.h:517</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md91"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md109"></a>
 Capability Flags</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#define YAZE_EXT_CAP_ROM_EDITING     0x0001  </span><span class="comment">// ROM modification</span></div>
 <div class="line"><span class="preprocessor">#define YAZE_EXT_CAP_GRAPHICS        0x0002  </span><span class="comment">// Graphics operations</span></div>
 <div class="line"><span class="preprocessor">#define YAZE_EXT_CAP_AUDIO           0x0004  </span><span class="comment">// Audio processing</span></div>
 <div class="line"><span class="preprocessor">#define YAZE_EXT_CAP_SCRIPTING       0x0008  </span><span class="comment">// Scripting support</span></div>
 <div class="line"><span class="preprocessor">#define YAZE_EXT_CAP_IMPORT_EXPORT   0x0010  </span><span class="comment">// Data import/export</span></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md92"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md110"></a>
 Backward Compatibility</h1>
 <p>All existing code continues to work without modification due to:</p><ul>
 <li>Legacy enum aliases (<code>US</code>, <code>JP</code>, <code>SD</code>, <code>RANDO</code>)</li>

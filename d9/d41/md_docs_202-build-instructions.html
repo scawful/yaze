@@ -238,72 +238,159 @@ Linux (Ubuntu/Debian)</h2>
 <div class="line">  libgtk-3-dev libdbus-1-dev</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md22"></a>
 Windows</h2>
+<p>YAZE provides comprehensive Windows support with Visual Studio integration, automated environment verification, and detailed troubleshooting guides.</p>
 <h3><a class="anchor" id="autotoc_md23"></a>
+Quick Start</h3>
+<div class="fragment"><div class="line"># 1. Verify environment</div>
+<div class="line">.\scripts\verify-build-environment.ps1</div>
+<div class="line"> </div>
+<div class="line"># 2. Build (choose one)</div>
+<div class="line"># Basic editor:</div>
+<div class="line">cmake --preset windows-debug</div>
+<div class="line">cmake --build build --config Debug</div>
+<div class="line"> </div>
+<div class="line"># With AI features:</div>
+<div class="line">cmake --preset windows-ai-debug</div>
+<div class="line">cmake --build build --config Debug</div>
+<div class="line"> </div>
+<div class="line"># 3. Run</div>
+<div class="line">build\bin\Debug\yaze.exe</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md24"></a>
 Requirements</h3>
-<ul>
-<li>Visual Studio 2022 with "Desktop development with C++" workload</li>
-<li>CMake 3.16+ (included with Visual Studio)</li>
-<li>Git (for cloning and submodules)</li>
+<p><b>Essential:</b></p><ul>
+<li><b>Windows 10/11</b> (64-bit)</li>
+<li><b>Visual Studio 2022</b> or <b>Visual Studio 2019</b> with:<ul>
+<li>Desktop development with C++</li>
+<li>C++ CMake tools for Windows</li>
+<li>Windows 10/11 SDK</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md24"></a>
-Optional: vcpkg for SDL2</h3>
-<p>The project uses bundled dependencies by default. Optionally, you can use vcpkg for SDL2:</p>
-<div class="fragment"><div class="line"># Setup vcpkg (optional)</div>
-<div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md25"></a>
+</li>
+<li><b>Git</b> for cloning and submodules</li>
+</ul>
+<p><b>Optional:</b></p><ul>
+<li><b>vcpkg</b> for easier dependency management</li>
+<li><b>Node.js</b> for collaboration server features</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md25"></a>
+Build Options</h3>
+<p>YAZE offers multiple build configurations for different use cases:</p>
+<p><b>Option A: Basic Editor (Recommended for first build)</b> </p><div class="fragment"><div class="line">cmake --preset windows-debug</div>
+<div class="line">cmake --build build --config Debug</div>
+</div><!-- fragment --><ul>
+<li>Full ROM editor with all core features</li>
+<li>Fastest build time (~5 minutes)</li>
+<li>No external dependencies beyond Visual Studio</li>
+</ul>
+<p><b>Option B: Editor with AI Features</b> </p><div class="fragment"><div class="line">cmake --preset windows-ai-debug</div>
+<div class="line">cmake --build build --config Debug</div>
+</div><!-- fragment --><ul>
+<li>ROM editor + AI chat assistant + code generation</li>
+<li>Requires bundled JSON library (included)</li>
+<li>Build time: ~7 minutes</li>
+</ul>
+<p><b>Option C: Full Build (AI + Collaboration)</b> </p><div class="fragment"><div class="line">cmake --preset windows-collab-debug</div>
+<div class="line">cmake --build build --config Debug</div>
+</div><!-- fragment --><ul>
+<li>Everything + network collaboration + automated testing</li>
+<li>Compiles gRPC from source</li>
+<li>First build: 15-20 minutes (subsequent builds much faster)</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md26"></a>
+Available CMake Presets</h3>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Preset   </th><th class="markdownTableHeadNone">JSON   </th><th class="markdownTableHeadNone">gRPC   </th><th class="markdownTableHeadNone">Use Case   </th><th class="markdownTableHeadNone">Build Time    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>windows-debug</code>   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">Basic ROM editing   </td><td class="markdownTableBodyNone">~5 min    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>windows-release</code>   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">Production build   </td><td class="markdownTableBodyNone">~5 min    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>windows-dev</code>   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">Core development   </td><td class="markdownTableBodyNone">~5 min    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>windows-ai-debug</code>   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">AI features   </td><td class="markdownTableBodyNone">~7 min    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>windows-ai-release</code>   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">AI production   </td><td class="markdownTableBodyNone">~7 min    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>windows-collab-debug</code>   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">Full features + collaboration   </td><td class="markdownTableBodyNone">~20 min*    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>windows-arm64-debug</code>   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">ARM64 Windows   </td><td class="markdownTableBodyNone">~5 min   </td></tr>
+</table>
+<p>*First build only; subsequent builds: ~1 min</p>
+<h3><a class="anchor" id="autotoc_md27"></a>
 vcpkg Integration (Optional)</h3>
 <p><b>Setup vcpkg for SDL2:</b> </p><div class="fragment"><div class="line"># PowerShell</div>
 <div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
 <div class="line"> </div>
 <div class="line"># Command Prompt</div>
 <div class="line">.\scripts\setup-vcpkg-windows.bat</div>
-</div><!-- fragment --><p><b>Dependencies (vcpkg.json):</b></p><ul>
-<li>sdl2 (graphics/input) - optional, bundled version available</li>
+<div class="line"> </div>
+<div class="line"># Install dependencies</div>
+<div class="line">vcpkg install sdl2:x64-windows yaml-cpp:x64-windows</div>
+</div><!-- fragment --><p><b>Note</b>: vcpkg is optional. YAZE bundles most dependencies and can build without it.</p>
+<h3><a class="anchor" id="autotoc_md28"></a>
+Platform-Specific Considerations</h3>
+<p><b>Windows Compatibility Features:</b></p><ul>
+<li>✅ Native path separator handling via <code>std::filesystem</code></li>
+<li>✅ Platform-specific process management (<code>tasklist</code> vs <code>pgrep</code>)</li>
+<li>✅ Correct home directory resolution (<code>USERPROFILE%</code> vs <code>$HOME</code>)</li>
+<li>✅ MSVC-compatible warning directives</li>
+<li>✅ Cross-platform thread management with <code>std::thread</code></li>
+<li>✅ Unicode support for file paths and names</li>
 </ul>
-<p><b>Note</b>: All other dependencies (Abseil, GoogleTest, <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a>, Asar) are built from source via CMake for better compatibility.</p>
-<h1><a class="anchor" id="autotoc_md26"></a>
+<p><b>Known Platform Differences:</b></p><ul>
+<li><b>File Locking</b>: Windows has stricter file locking than Unix</li>
+<li><b>Process Spawning</b>: Uses <code>cmd.exe</code> instead of <code>bash</code></li>
+<li><b>Background Processes</b>: Server runs in foreground (no <code>&amp;</code> operator)</li>
+<li><b>Path Case Sensitivity</b>: NTFS is case-preserving but case-insensitive</li>
+</ul>
+<p><b>Supported Architectures:</b></p><ul>
+<li><b>x64 (64-bit)</b>: Primary target for modern systems</li>
+<li><b>ARM64</b>: For ARM-based Windows devices (Surface Pro X, etc.)</li>
+<li><b>x86 (32-bit)</b>: Not supported</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md29"></a>
 Build Targets</h1>
-<h2><a class="anchor" id="autotoc_md27"></a>
+<h2><a class="anchor" id="autotoc_md30"></a>
 Applications</h2>
 <ul>
 <li><b>yaze</b>: Main GUI editor application</li>
 <li><b>z3ed</b>: Command-line interface tool</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md28"></a>
+<h2><a class="anchor" id="autotoc_md31"></a>
 Libraries</h2>
 <ul>
 <li><b>yaze_c</b>: C API library for extensions</li>
 <li><b>asar-static</b>: 65816 assembler library</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md29"></a>
+<h2><a class="anchor" id="autotoc_md32"></a>
 Development (Debug Builds Only)</h2>
 <ul>
 <li><b>yaze_emu</b>: Standalone SNES emulator</li>
 <li><b>yaze_test</b>: Comprehensive test suite</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md30"></a>
+<h1><a class="anchor" id="autotoc_md33"></a>
 Build Configurations</h1>
-<h2><a class="anchor" id="autotoc_md31"></a>
+<h2><a class="anchor" id="autotoc_md34"></a>
 Debug (Full Features)</h2>
 <div class="fragment"><div class="line">cmake --preset debug  # macOS</div>
 <div class="line"># OR</div>
 <div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Debug  # All platforms</div>
 </div><!-- fragment --><p> <b>Includes</b>: NFD, ImGuiTestEngine, PNG support, emulator, all tools</p>
-<h2><a class="anchor" id="autotoc_md32"></a>
+<h2><a class="anchor" id="autotoc_md35"></a>
 Minimal (CI/Fast Builds)</h2>
 <div class="fragment"><div class="line">cmake -B build -DYAZE_MINIMAL_BUILD=ON</div>
 </div><!-- fragment --><p> <b>Excludes</b>: Emulator, CLI tools, UI tests, optional dependencies</p>
-<h2><a class="anchor" id="autotoc_md33"></a>
+<h2><a class="anchor" id="autotoc_md36"></a>
 Release</h2>
 <div class="fragment"><div class="line">cmake --preset release  # macOS</div>
 <div class="line"># OR  </div>
 <div class="line">cmake -B build -DCMAKE_BUILD_TYPE=Release  # All platforms</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md34"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md37"></a>
 Testing System</h1>
 <p>YAZE includes a comprehensive testing system with different test categories designed for various use cases:</p>
-<h2><a class="anchor" id="autotoc_md35"></a>
+<h2><a class="anchor" id="autotoc_md38"></a>
 Test Categories</h2>
-<h3><a class="anchor" id="autotoc_md36"></a>
+<h3><a class="anchor" id="autotoc_md39"></a>
 Unit Tests</h3>
 <ul>
 <li><b>Core functionality</b>: AsarWrapper, ROM operations, SNES tiles, palettes</li>
@@ -311,23 +398,23 @@ Unit Tests</h3>
 <li><b>Zelda3 components</b>: Message system, overworld, object parsing</li>
 <li><b>Location</b>: <code>test/unit/</code></li>
 </ul>
-<h3><a class="anchor" id="autotoc_md37"></a>
+<h3><a class="anchor" id="autotoc_md40"></a>
 Integration Tests</h3>
 <ul>
 <li><b>ASAR integration</b>: Assembly compilation and ROM patching</li>
 <li><b>Editor integration</b>: Tile16 editor, dungeon editor</li>
 <li><b>Location</b>: <code>test/integration/</code></li>
 </ul>
-<h3><a class="anchor" id="autotoc_md38"></a>
+<h3><a class="anchor" id="autotoc_md41"></a>
 End-to-End (E2E) Tests</h3>
 <ul>
 <li><b>ROM-dependent tests</b>: Load, edit, save, reload, verify integrity</li>
 <li><b>ZSCustomOverworld upgrade tests</b>: Vanilla → v2 → v3 upgrade paths</li>
 <li><b>Location</b>: <code>test/e2e/</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md39"></a>
+<h2><a class="anchor" id="autotoc_md42"></a>
 Running Tests</h2>
-<h3><a class="anchor" id="autotoc_md40"></a>
+<h3><a class="anchor" id="autotoc_md43"></a>
 Local Development</h3>
 <div class="fragment"><div class="line"># Run all tests</div>
 <div class="line">./build/test/yaze_test</div>
@@ -342,7 +429,7 @@ Local Development</h3>
 <div class="line"> </div>
 <div class="line"># Get help</div>
 <div class="line">./build/test/yaze_test --help</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md41"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md44"></a>
 CI/CD Environment</h3>
 <p>The CI builds use a simplified test executable (<code><a class="el" href="../../d9/d50/yaze__test__ci_8cc.html">yaze_test_ci.cc</a></code>) that:</p><ul>
 <li>Excludes ROM-dependent tests (no ROM files available)</li>
@@ -350,7 +437,7 @@ CI/CD Environment</h3>
 <li>Focuses on unit tests and core functionality</li>
 <li>Uses minimal configuration for reliability</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md42"></a>
+<h3><a class="anchor" id="autotoc_md45"></a>
 ROM-Dependent Tests</h3>
 <p>These tests require actual ROM files and are only available in local development:</p>
 <div class="fragment"><div class="line"># E2E ROM tests (requires zelda3.sfc)</div>
@@ -359,7 +446,7 @@ ROM-Dependent Tests</h3>
 <div class="line"># ZSCustomOverworld upgrade tests</div>
 <div class="line">./build/test/yaze_test --zscustomoverworld --rom-path zelda3.sfc</div>
 </div><!-- fragment --><p><b>Note</b>: ROM-dependent tests are automatically skipped in CI builds and minimal builds.</p>
-<h2><a class="anchor" id="autotoc_md43"></a>
+<h2><a class="anchor" id="autotoc_md46"></a>
 Test Organization</h2>
 <div class="fragment"><div class="line">test/</div>
 <div class="line">├── unit/                    # Unit tests (CI-safe)</div>
@@ -373,9 +460,9 @@ Test Organization</h2>
 <div class="line">├── mocks/                  # Mock objects for testing</div>
 <div class="line">├── assets/                 # Test assets and ROMs</div>
 <div class="line">└── deprecated/             # Outdated tests (moved from emu/)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md44"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md47"></a>
 Test Executables</h2>
-<h3><a class="anchor" id="autotoc_md45"></a>
+<h3><a class="anchor" id="autotoc_md48"></a>
 Development Build (&lt;tt&gt;yaze_test.cc&lt;/tt&gt;)</h3>
 <ul>
 <li>Full argument parsing for AI agents</li>
@@ -384,7 +471,7 @@ Development Build (&lt;tt&gt;yaze_test.cc&lt;/tt&gt;)</h3>
 <li>ROM path configuration</li>
 <li>Verbose output options</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md46"></a>
+<h3><a class="anchor" id="autotoc_md49"></a>
 CI Build (&lt;tt&gt;yaze_test_ci.cc&lt;/tt&gt;)</h3>
 <ul>
 <li>Simplified main function</li>
@@ -393,16 +480,16 @@ CI Build (&lt;tt&gt;yaze_test_ci.cc&lt;/tt&gt;)</h3>
 <li>Minimal configuration for reliability</li>
 <li>Used when <code>YAZE_MINIMAL_BUILD=ON</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md47"></a>
+<h2><a class="anchor" id="autotoc_md50"></a>
 Test Configuration</h2>
-<h3><a class="anchor" id="autotoc_md48"></a>
+<h3><a class="anchor" id="autotoc_md51"></a>
 CMake Options</h3>
 <div class="fragment"><div class="line"># Enable/disable test categories</div>
 <div class="line">-DYAZE_ENABLE_ROM_TESTS=ON          # Enable ROM-dependent tests</div>
 <div class="line">-DYAZE_ENABLE_UI_TESTS=ON           # Enable ImGui Test Engine</div>
 <div class="line">-DYAZE_ENABLE_EXPERIMENTAL_TESTS=ON # Enable experimental tests</div>
 <div class="line">-DYAZE_MINIMAL_BUILD=ON             # Use CI test executable</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md49"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md52"></a>
 Test Filters</h3>
 <p>The test system supports Google Test filters for selective execution:</p>
 <div class="fragment"><div class="line"># Run only core tests</div>
@@ -413,9 +500,9 @@ Test Filters</h3>
 <div class="line"> </div>
 <div class="line"># Run specific test suite</div>
 <div class="line">./build/test/yaze_test --gtest_filter=&quot;AsarWrapperTest.*&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md50"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md53"></a>
 IDE Integration</h1>
-<h2><a class="anchor" id="autotoc_md51"></a>
+<h2><a class="anchor" id="autotoc_md54"></a>
 Visual Studio (Windows)</h2>
 <p><b>CMake Workflow (Recommended):</b></p><ol type="1">
 <li><b>File → Open → Folder</b></li>
@@ -438,26 +525,26 @@ Visual Studio (Windows)</h2>
 <li>Multi-architecture support (x64, x86, ARM64)</li>
 <li>CMakeSettings.json for custom configurations</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md52"></a>
+<h2><a class="anchor" id="autotoc_md55"></a>
 VS Code</h2>
 <ol type="1">
 <li>Install CMake Tools extension</li>
 <li>Open project, select "Debug" preset</li>
 <li>Language server uses <code>compile_commands.json</code> automatically</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md53"></a>
+<h2><a class="anchor" id="autotoc_md56"></a>
 CLion</h2>
 <ul>
 <li>Opens CMake projects directly</li>
 <li>Select Debug configuration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md54"></a>
+<h2><a class="anchor" id="autotoc_md57"></a>
 Xcode (macOS)</h2>
 <div class="fragment"><div class="line">cmake --preset debug -G Xcode</div>
 <div class="line">open build/yaze.xcodeproj</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md55"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md58"></a>
 Windows Development Scripts</h1>
-<h2><a class="anchor" id="autotoc_md56"></a>
+<h2><a class="anchor" id="autotoc_md59"></a>
 vcpkg Setup (Optional)</h2>
 <ul>
 <li>**<code>setup-vcpkg-windows.ps1</code>**: Setup vcpkg for SDL2 dependency</li>
@@ -468,7 +555,7 @@ vcpkg Setup (Optional)</h2>
 <div class="line"> </div>
 <div class="line"># Or using batch</div>
 <div class="line">.\scripts\setup-vcpkg-windows.bat</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md57"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md60"></a>
 Features by Build Type</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -490,9 +577,9 @@ Features by Build Type</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">ROM Tests   </td><td class="markdownTableBodyNone">✅   </td><td class="markdownTableBodyNone">❌   </td><td class="markdownTableBodyNone">❌   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md58"></a>
+<h1><a class="anchor" id="autotoc_md61"></a>
 CMake Compatibility</h1>
-<h2><a class="anchor" id="autotoc_md59"></a>
+<h2><a class="anchor" id="autotoc_md62"></a>
 Submodule Compatibility Issues</h2>
 <p>YAZE includes several submodules (abseil-cpp, SDL) that may have CMake compatibility issues. The project automatically handles these with:</p>
 <p><b>Automatic Policy Management:</b></p><ul>
@@ -509,16 +596,16 @@ Submodule Compatibility Issues</h2>
 <div class="line">  -DABSL_PROPAGATE_CXX_STD=ON \</div>
 <div class="line">  -DTHREADS_PREFER_PTHREAD_FLAG=OFF \</div>
 <div class="line">  -DCMAKE_BUILD_TYPE=Debug</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md60"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md63"></a>
 CI/CD and Release Builds</h1>
-<h2><a class="anchor" id="autotoc_md61"></a>
+<h2><a class="anchor" id="autotoc_md64"></a>
 GitHub Actions Workflows</h2>
 <p>The project includes comprehensive CI/CD workflows:</p>
 <ul>
 <li>**<code>ci.yml</code>**: Multi-platform CI with test execution</li>
 <li>**<code>release.yml</code>**: Automated release builds with packaging</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md62"></a>
+<h2><a class="anchor" id="autotoc_md65"></a>
 Test Execution in CI</h2>
 <p><b>CI Test Strategy:</b></p><ul>
 <li><b>Core Tests</b>: Always run (AsarWrapper, SnesTile, Compression, SnesPalette, Hex, Message)</li>
@@ -531,7 +618,7 @@ Test Execution in CI</h2>
 <div class="line"> </div>
 <div class="line"># Additional unit tests (informational)</div>
 <div class="line">ctest -R &quot;.*Test&quot; -E &quot;.*RomTest.*|.*E2E.*|.*ZSCustomOverworld.*|.*IntegrationTest.*&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md63"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md66"></a>
 vcpkg Fallback Mechanisms</h2>
 <p>All Windows CI/CD builds include automatic fallback mechanisms:</p>
 <p><b>When vcpkg succeeds:</b></p><ul>
@@ -543,7 +630,7 @@ vcpkg Fallback Mechanisms</h2>
 <li>Uses source-built dependencies (Abseil, etc.)</li>
 <li>Still produces functional executables</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md64"></a>
+<h2><a class="anchor" id="autotoc_md67"></a>
 Supported Architectures</h2>
 <p><b>Windows:</b></p><ul>
 <li>x64 (64-bit) - Primary target for modern systems</li>
@@ -555,29 +642,248 @@ Supported Architectures</h2>
 <p><b>Linux:</b></p><ul>
 <li>x64 (64-bit)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md65"></a>
+<h1><a class="anchor" id="autotoc_md68"></a>
+Windows Troubleshooting</h1>
+<p>This section provides detailed solutions for common Windows build issues.</p>
+<h2><a class="anchor" id="autotoc_md69"></a>
+Quick Diagnostics</h2>
+<p>Always start with the verification script to identify issues:</p>
+<div class="fragment"><div class="line">.\scripts\verify-build-environment.ps1</div>
+<div class="line"> </div>
+<div class="line"># With verbose output</div>
+<div class="line">.\scripts\verify-build-environment.ps1 -Verbose</div>
+<div class="line"> </div>
+<div class="line"># With automatic fixes</div>
+<div class="line">.\scripts\verify-build-environment.ps1 -FixIssues</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md70"></a>
+Common Errors and Solutions</h2>
+<h3><a class="anchor" id="autotoc_md71"></a>
+Error 1: "nlohmann/json.hpp: No such file or directory"</h3>
+<p><b>Full Error:</b> </p><div class="fragment"><div class="line">fatal error C1083: Cannot open include file: &#39;nlohmann/json.hpp&#39;: No such file or directory</div>
+</div><!-- fragment --><p><b>Cause</b>: Building code that uses JSON without enabling JSON support.</p>
+<p><b>Solutions:</b></p>
+<ol type="1">
+<li><b>Use AI preset</b> (enables JSON automatically): <div class="fragment"><div class="line">cmake --preset windows-ai-debug</div>
+<div class="line">cmake --build build --config Debug</div>
+</div><!-- fragment --></li>
+<li><b>Enable JSON manually</b>: <div class="fragment"><div class="line">cmake --preset windows-debug -DYAZE_WITH_JSON=ON</div>
+<div class="line">cmake --build build --config Debug</div>
+</div><!-- fragment --></li>
+<li><b>Verify JSON library exists</b>: <div class="fragment"><div class="line">dir third_party\json\include\nlohmann\json.hpp</div>
+</div><!-- fragment --></li>
+<li><b>Initialize submodules</b> (if file is missing): <div class="fragment"><div class="line">git submodule update --init --recursive</div>
+</div><!-- fragment --></li>
+<li><b>Build without AI</b> (if you don't need it): <div class="fragment"><div class="line">cmake --preset windows-debug</div>
+<div class="line">cmake --build build --config Debug</div>
+</div><!-- fragment --></li>
+</ol>
+<h3><a class="anchor" id="autotoc_md72"></a>
+Error 2: "Cannot find nlohmann_json::nlohmann_json target"</h3>
+<p><b>Full Error:</b> </p><div class="fragment"><div class="line">CMake Error: The following imported targets are referenced, but are missing:</div>
+<div class="line">nlohmann_json::nlohmann_json</div>
+</div><!-- fragment --><p><b>Cause</b>: CMake isn't creating the JSON library target.</p>
+<p><b>Solutions:</b></p>
+<ol type="1">
+<li><b>Clean and rebuild</b>: <div class="fragment"><div class="line">rmdir /s /q build</div>
+<div class="line">cmake --preset windows-ai-debug</div>
+<div class="line">cmake --build build --config Debug</div>
+</div><!-- fragment --></li>
+<li><b>Check CMake output</b>: <div class="fragment"><div class="line">cmake --preset windows-ai-debug 2&gt;&amp;1 | findstr &quot;json&quot;</div>
+</div><!-- fragment --> Should show: <code>✓ JSON support enabled (nlohmann/json)</code></li>
+<li><b>Verify submodule</b>: <div class="fragment"><div class="line">git submodule status third_party/json</div>
+</div><!-- fragment --> Should show a commit hash (no <code>-</code> prefix)</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md73"></a>
+Error 3: "vcpkg toolchain file not found"</h3>
+<p><b>Full Error:</b> </p><div class="fragment"><div class="line">CMake Warning: CMAKE_TOOLCHAIN_FILE is set but file does not exist</div>
+</div><!-- fragment --><p><b>Cause</b>: Preset expects vcpkg but it's not installed.</p>
+<p><b>Solution 1: Use bundled dependencies</b> (recommended): </p><div class="fragment"><div class="line">cmake --preset windows-debug -DCMAKE_TOOLCHAIN_FILE=&quot;&quot;</div>
+<div class="line">cmake --build build --config Debug</div>
+</div><!-- fragment --><p><b>Solution 2: Install vcpkg</b>: </p><div class="fragment"><div class="line">git clone https://github.com/Microsoft/vcpkg.git C:\vcpkg</div>
+<div class="line">cd C:\vcpkg</div>
+<div class="line">.\bootstrap-vcpkg.bat</div>
+<div class="line">setx VCPKG_ROOT &quot;C:\vcpkg&quot;</div>
+<div class="line"> </div>
+<div class="line"># Restart shell, then:</div>
+<div class="line">vcpkg install sdl2:x64-windows yaml-cpp:x64-windows</div>
+<div class="line">cmake --preset windows-debug</div>
+</div><!-- fragment --><p><b>Solution 3: Point to your vcpkg installation</b>: </p><div class="fragment"><div class="line">cmake --preset windows-debug ^</div>
+<div class="line">  -DCMAKE_TOOLCHAIN_FILE=&quot;D:\your\path\to\vcpkg\scripts\buildsystems\vcpkg.cmake&quot;</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md74"></a>
+Error 4: "SDL2 not found"</h3>
+<p><b>Full Error:</b> </p><div class="fragment"><div class="line">CMake Error: Could not find a package configuration file provided by &quot;SDL2&quot;</div>
+</div><!-- fragment --><p><b>Solution 1: With vcpkg</b>: </p><div class="fragment"><div class="line">vcpkg install sdl2:x64-windows</div>
+<div class="line">cmake --preset windows-debug</div>
+</div><!-- fragment --><p><b>Solution 2: Manual installation</b>:</p><ol type="1">
+<li>Download SDL2 from <a href="https://libsdl.org/download-2.0.php">https://libsdl.org/download-2.0.php</a></li>
+<li>Choose "SDL2-devel-2.x.x-VC.zip"</li>
+<li>Extract to <code>C:\SDL2</code></li>
+<li>Set environment variable: <div class="fragment"><div class="line">setx SDL2_DIR &quot;C:\SDL2\cmake&quot;</div>
+</div><!-- fragment --></li>
+<li>Restart shell and rebuild</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md75"></a>
+Error 5: Build is Very Slow (15-20 minutes)</h3>
+<p><b>Cause</b>: Building with gRPC enabled compiles gRPC + Protobuf from source.</p>
+<p><b>Solutions:</b></p>
+<ol type="1">
+<li><b>Be patient</b>: First build is slow, subsequent builds are ~1 minute</li>
+<li><b>Use precompiled gRPC via vcpkg</b>: <div class="fragment"><div class="line">vcpkg install grpc:x64-windows</div>
+<div class="line">cmake --preset windows-collab-debug</div>
+</div><!-- fragment --> (Note: vcpkg gRPC install also takes 15-20 mins, but only once)</li>
+<li><b>Build without gRPC</b> (if you don't need collaboration): <div class="fragment"><div class="line">cmake --preset windows-ai-debug</div>
+</div><!-- fragment --></li>
+<li><b>Use parallel builds</b>: <div class="fragment"><div class="line">cmake --build build --config Debug -j 12</div>
+</div><!-- fragment --></li>
+</ol>
+<h3><a class="anchor" id="autotoc_md76"></a>
+Error 6: "Cannot open file 'yaze.exe': Permission denied"</h3>
+<p><b>Full Error:</b> </p><div class="fragment"><div class="line">LINK : fatal error LNK1168: cannot open yaze.exe for writing</div>
+</div><!-- fragment --><p><b>Cause</b>: Previous instance of <code>yaze.exe</code> is still running.</p>
+<p><b>Solutions:</b></p>
+<ol type="1">
+<li><b>Kill all instances</b>: <div class="fragment"><div class="line">taskkill /F /IM yaze.exe</div>
+<div class="line">cmake --build build --config Debug</div>
+</div><!-- fragment --></li>
+<li><b>Use Task Manager</b>:<ul>
+<li>Open Task Manager (Ctrl+Shift+Esc)</li>
+<li>Find <code>yaze.exe</code> processes</li>
+<li>End tasks</li>
+<li>Rebuild</li>
+</ul>
+</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md77"></a>
+Error 7: "C++ standard 'cxx_std_23' not supported"</h3>
+<p><b>Full Error:</b> </p><div class="fragment"><div class="line">CMake Error: The C++ compiler does not support C++23</div>
+</div><!-- fragment --><p><b>Cause</b>: Visual Studio version is too old.</p>
+<p><b>Solutions:</b></p>
+<ol type="1">
+<li><b>Update Visual Studio</b>:<ul>
+<li>Open Visual Studio Installer</li>
+<li>Update to latest version (VS2022 17.4+ recommended)</li>
+<li>Ensure "C++ CMake tools" workload is installed</li>
+</ul>
+</li>
+<li><b>Temporary workaround</b> (use C++20): Edit <code>CMakeLists.txt</code> line 106: <div class="fragment"><div class="line">set(CMAKE_CXX_STANDARD 20)  # Changed from 23</div>
+</div><!-- fragment --> (May cause compilation issues with newer features)</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md78"></a>
+Error 8: Visual Studio Can't Find CMakePresets.json</h3>
+<p><b>Observation</b>: VS doesn't show any build configurations.</p>
+<p><b>Solutions:</b></p>
+<ol type="1">
+<li><b>Reload project</b>:<ul>
+<li>File → Close Folder</li>
+<li>File → Open → Folder</li>
+<li>Select yaze directory</li>
+<li>Wait for CMake to configure</li>
+</ul>
+</li>
+<li><b>Use CMake GUI</b> (alternative):<ul>
+<li>Open CMake GUI</li>
+<li>Set source: <code>&lt;path to yaze&gt;</code></li>
+<li>Set build: <code>&lt;path to yaze&gt;/build</code></li>
+<li>Click Configure</li>
+<li>Choose "Visual Studio 17 2022"</li>
+<li>Set options (YAZE_WITH_JSON, etc.)</li>
+<li>Click Generate</li>
+<li>Open <code>build/yaze.sln</code> in VS</li>
+</ul>
+</li>
+<li><b>Check CMakePresets.json exists</b>: <div class="fragment"><div class="line">dir CMakePresets.json</div>
+</div><!-- fragment --></li>
+</ol>
+<h3><a class="anchor" id="autotoc_md79"></a>
+Error 9: "error MSB8066: Custom build exited with code 1"</h3>
+<p><b>Full Error:</b> </p><div class="fragment"><div class="line">error MSB8066: Custom build for &#39;CMakeLists.txt&#39; exited with code 1</div>
+</div><!-- fragment --><p><b>Cause</b>: CMake configuration failed, but VS doesn't show the actual error.</p>
+<p><b>Solutions:</b></p>
+<ol type="1">
+<li><b>Run CMake from command line</b>: <div class="fragment"><div class="line">cmake --preset windows-debug 2&gt;&amp;1 | more</div>
+</div><!-- fragment --> This shows the actual CMake error.</li>
+<li><b>Check CMake output in VS</b>:<ul>
+<li>View → Output</li>
+<li>Show output from: CMake</li>
+<li>Scroll up to find actual error message</li>
+</ul>
+</li>
+<li><b>Clean CMake cache</b>: <div class="fragment"><div class="line">rmdir /s /q build</div>
+<div class="line">cmake --preset windows-debug</div>
+</div><!-- fragment --></li>
+</ol>
+<h2><a class="anchor" id="autotoc_md80"></a>
+Debugging CMake Configuration</h2>
+<p><b>Enable verbose CMake output:</b> </p><div class="fragment"><div class="line">cmake --preset windows-debug --trace-expand &gt; cmake_trace.txt</div>
+</div><!-- fragment --><p> Look through <code>cmake_trace.txt</code> for errors.</p>
+<p><b>Check what's being built:</b> </p><div class="fragment"><div class="line">cmake --preset windows-debug</div>
+<div class="line">cmake --build build --config Debug --verbose</div>
+</div><!-- fragment --><p><b>Verify preset settings:</b> </p><div class="fragment"><div class="line">cmake --preset windows-debug --trace-expand | findstr &quot;YAZE_WITH_JSON&quot;</div>
+<div class="line">cmake --preset windows-debug --trace-expand | findstr &quot;Z3ED_AI&quot;</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md81"></a>
+Tips for Successful Builds</h2>
+<ol type="1">
+<li><b>Start simple</b>: <div class="fragment"><div class="line">cmake --preset windows-debug</div>
+<div class="line">cmake --build build --config Debug</div>
+</div><!-- fragment --></li>
+<li><b>Add features incrementally</b>: <div class="fragment"><div class="line"># Once basic build works, add JSON:</div>
+<div class="line">cmake --preset windows-ai-debug</div>
+<div class="line">cmake --build build --config Debug</div>
+<div class="line"> </div>
+<div class="line"># Then add gRPC if needed:</div>
+<div class="line">cmake --preset windows-collab-debug</div>
+<div class="line">cmake --build build --config Debug</div>
+</div><!-- fragment --></li>
+<li><b>Clean between major changes</b>: <div class="fragment"><div class="line">rmdir /s /q build</div>
+<div class="line">cmake --preset &lt;new-preset&gt;</div>
+<div class="line">cmake --build build --config Debug</div>
+</div><!-- fragment --></li>
+<li><b>Use parallel builds</b>: <div class="fragment"><div class="line">cmake --build build --config Debug -j 12</div>
+</div><!-- fragment --></li>
+<li><b>Watch for warnings</b>: <div class="fragment"><div class="line">cmake --build build --config Debug 2&gt;&amp;1 | findstr &quot;warning&quot;</div>
+</div><!-- fragment --></li>
+</ol>
+<h2><a class="anchor" id="autotoc_md82"></a>
+Still Having Issues?</h2>
+<p><b>Collect diagnostic information:</b></p>
+<ol type="1">
+<li>Run verification script: <div class="fragment"><div class="line">.\scripts\verify-build-environment.ps1 -Verbose &gt; diagnostic.txt</div>
+</div><!-- fragment --></li>
+<li>Get CMake configuration: <div class="fragment"><div class="line">cmake --preset windows-debug 2&gt;&amp;1 &gt;&gt; diagnostic.txt</div>
+</div><!-- fragment --></li>
+<li>Get build output: <div class="fragment"><div class="line">cmake --build build --config Debug 2&gt;&amp;1 &gt;&gt; diagnostic.txt</div>
+</div><!-- fragment --></li>
+</ol>
+<p><b>Create a GitHub Issue</b> with:</p><ul>
+<li>Windows version (run <code>winver</code>)</li>
+<li>Visual Studio version</li>
+<li>Contents of <code>diagnostic.txt</code></li>
+<li>Which preset you're using</li>
+<li>Full error message</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md83"></a>
 Contributing</h1>
-<h2><a class="anchor" id="autotoc_md66"></a>
+<h2><a class="anchor" id="autotoc_md84"></a>
 Code Style</h2>
 <ul>
 <li><b>C++23</b>: Use modern language features</li>
 <li><b>Google C++ Style</b>: Follow Google C++ style guide</li>
 <li><b>Naming</b>: Use descriptive names, avoid abbreviations</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md67"></a>
+<h2><a class="anchor" id="autotoc_md85"></a>
 Error Handling</h2>
 <ul>
 <li><b>Use absl::Status</b> for error handling</li>
 <li><b>Use absl::StatusOr</b> for operations that return values</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md68"></a>
+<h2><a class="anchor" id="autotoc_md86"></a>
 Pull Request Process</h2>
 <ol type="1">
 <li><b>Run tests</b>: Ensure all stable tests pass (<code>ctest --preset stable</code>)</li>
 <li><b>Check formatting</b>: Use <code>clang-format</code></li>
 <li><b>Update documentation</b>: If your changes affect behavior or APIs</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md69"></a>
+<h2><a class="anchor" id="autotoc_md87"></a>
 Commit Messages</h2>
 <div class="fragment"><div class="line">type(scope): brief description</div>
 <div class="line"> </div>

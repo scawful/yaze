@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🧪_20testing_20commands_20priority_201_3a_20fix_20tool_20calling_20loop_20high_20priority_0',['🧪 Testing Commands### Priority 1: Fix Tool Calling Loop (High Priority)',['../da/d40/md_docs_2ollama__integration__status.html#autotoc_md498',1,'']]]
+  ['🛠️_20ide_20integration_0',['🛠️ IDE Integration',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md151',1,'']]]
 ];
