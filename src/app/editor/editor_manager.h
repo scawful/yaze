@@ -29,6 +29,7 @@
 #endif
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
+#include "app/editor/ui/editor_selection_dialog.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/performance_dashboard.h"
 #include "app/rom.h"
@@ -187,6 +188,10 @@ class EditorManager {
 
   // Project file editor
   ProjectFileEditor project_file_editor_;
+  
+  // Editor selection dialog
+  EditorSelectionDialog editor_selection_dialog_;
+  bool show_editor_selection_ = false;
 
 #ifdef YAZE_WITH_GRPC
   // Agent editor - manages chat, collaboration, and network coordination

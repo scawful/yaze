@@ -67,7 +67,7 @@ void Canvas::InitializeDefaults() {
   selection_.Clear();
 
   // Initialize palette editor
-  palette_editor_ = std::make_unique<EnhancedPaletteEditor>();
+  palette_editor_ = std::make_unique<PaletteWidget>();
 
   // Initialize interaction handler
   interaction_handler_.Initialize(canvas_id_);
@@ -1744,7 +1744,7 @@ void Canvas::ShowAdvancedCanvasProperties() {
   }
 }
 
-// Old ShowPaletteManager method removed - now handled by EnhancedPaletteEditor
+// Old ShowPaletteManager method removed - now handled by PaletteWidget
 
 void Canvas::ShowScalingControls() {
   // Use the new modal system if available

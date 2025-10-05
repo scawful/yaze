@@ -926,8 +926,6 @@ source_group("Application\\Graphics" FILES
 
 # GUI System
 source_group("Application\\GUI" FILES
-  app/gui/background_renderer.cc
-  app/gui/background_renderer.h
   app/gui/canvas_utils.cc
   app/gui/canvas_utils.h
   app/gui/canvas.cc
@@ -935,7 +933,7 @@ source_group("Application\\GUI" FILES
   app/gui/color.cc
   app/gui/color.h
   app/gui/enhanced_palette_editor.cc
-  app/gui/enhanced_palette_editor.h
+  app/gui/widgets/palette_widget.h
   app/gui/icons.h
   app/gui/input.cc
   app/gui/input.h

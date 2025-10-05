@@ -6,15 +6,14 @@ set(
   app/gui/widgets/collaboration_panel.cc
   app/gui/canvas.cc
   app/gui/canvas_utils.cc
-  app/gui/enhanced_palette_editor.cc
+  app/gui/widgets/palette_widget.cc
   app/gui/input.cc
   app/gui/style.cc
   app/gui/color.cc
   app/gui/theme_manager.cc
-  app/gui/background_renderer.cc
   app/gui/bpp_format_ui.cc
-  app/gui/widget_id_registry.cc
-  app/gui/widget_auto_register.cc
+  app/gui/widgets/widget_id_registry.cc
+  app/gui/widgets/widget_auto_register.cc
   # Canvas system components
   app/gui/canvas/canvas_modals.cc
   app/gui/canvas/canvas_context_menu.cc

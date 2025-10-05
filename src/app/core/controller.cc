@@ -5,7 +5,7 @@
 #include "absl/status/status.h"
 #include "app/core/window.h"
 #include "app/editor/editor_manager.h"
-#include "app/gui/background_renderer.h"
+#include "app/editor/ui/background_renderer.h"
 #include "app/gui/theme_manager.h"
 #include "app/gui/widgets/widget_id_registry.h"
 #include "imgui/backends/imgui_impl_sdl2.h"

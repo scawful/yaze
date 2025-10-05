@@ -12,7 +12,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/rom.h"
 #include "app/gui/canvas_utils.h"
-#include "app/gui/enhanced_palette_editor.h"
+#include "app/gui/widgets/palette_widget.h"
 #include "app/gfx/bpp_format_manager.h"
 #include "app/gui/bpp_format_ui.h"
 #include "app/gui/canvas/canvas_modals.h"
@@ -412,7 +412,7 @@ class Canvas {
   // Modular configuration and state
   CanvasConfig config_;
   CanvasSelection selection_;
-  std::unique_ptr<EnhancedPaletteEditor> palette_editor_;
+  std::unique_ptr<PaletteWidget> palette_editor_;
   
   // Core canvas state
   bool is_hovered_ = false;

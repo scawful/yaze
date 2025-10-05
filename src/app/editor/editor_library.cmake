@@ -1,6 +1,10 @@
 set(
   YAZE_APP_EDITOR_SRC
   app/editor/editor_manager.cc
+  app/editor/menu_builder.cc
+  app/editor/ui/editor_selection_dialog.cc
+  app/editor/ui/welcome_screen.cc
+  app/editor/ui/background_renderer.cc
   app/editor/dungeon/dungeon_editor.cc
   app/editor/dungeon/dungeon_editor_v2.cc
   app/editor/dungeon/dungeon_room_selector.cc

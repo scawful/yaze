@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_GUI_ENHANCED_PALETTE_EDITOR_H
-#define YAZE_APP_GUI_ENHANCED_PALETTE_EDITOR_H
+#ifndef YAZE_APP_GUI_PALETTE_WIDGET_H
+#define YAZE_APP_GUI_PALETTE_WIDGET_H
 
 #include <vector>
 #include <map>
@@ -12,11 +12,18 @@ namespace yaze {
 namespace gui {
 
 /**
- * @brief Enhanced palette editor with ROM integration and analysis tools
+ * @brief Palette widget with ROM integration, analysis tools, and AI tool call support
+ * 
+ * This widget provides comprehensive palette editing capabilities including:
+ * - Grid-based color editing with preview
+ * - ROM palette browser and manager
+ * - Color analysis and statistics
+ * - Export/import functionality
+ * - AI agent tool call integration for programmatic palette access
  */
-class EnhancedPaletteEditor {
+class PaletteWidget {
 public:
-  EnhancedPaletteEditor() = default;
+  PaletteWidget() = default;
   
   /**
    * @brief Initialize the palette editor with ROM data
@@ -89,4 +96,4 @@ private:
 } // namespace gui
 } // namespace yaze
 
-#endif // YAZE_APP_GUI_ENHANCED_PALETTE_EDITOR_H
+#endif // YAZE_APP_GUI_WIDGETS_PALETTE_WIDGET_H

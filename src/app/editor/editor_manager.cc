@@ -21,10 +21,11 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
+#include "app/editor/ui/editor_selection_dialog.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/performance_profiler.h"
-#include "app/gui/background_renderer.h"
+#include "app/editor/ui/background_renderer.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"
@@ -741,16 +742,16 @@ void EditorManager::Initialize(const std::string& filename) {
                    }
                  },
                  [&]() { return current_rom_ && current_rom_->is_loaded(); }},
-                {absl::StrCat(ICON_MD_SAVE_ALT, " Test Save/Load"), "",
-                 [&]() { 
-                   if (current_rom_) {
-                     [[maybe_unused]] auto status = test::TestManager::Get().TestRomSaveLoad(current_rom_);
-                   }
-                 },
-                 [&]() { return current_rom_ && current_rom_->is_loaded(); }},
-            }},
+           {absl::StrCat(ICON_MD_SAVE_ALT, " Test Save/Load"), "",
+            [&]() { 
+              if (current_rom_) {
+                [[maybe_unused]] auto status = test::TestManager::Get().TestRomSaveLoad(current_rom_);
+              }
+            },
+            [&]() { return current_rom_ && current_rom_->is_loaded(); }},
+           }},
            
-           {absl::StrCat(ICON_MD_CODE, " ZSCustomOverworld"), "", []() {}, []() { return true; },
+          {absl::StrCat(ICON_MD_CODE, " ZSCustomOverworld"), "", []() {}, []() { return true; },
             std::vector<gui::MenuItem>{
                 {absl::StrCat(ICON_MD_INFO, " Check ROM Version"), "",
                  [&]() { 

@@ -6,7 +6,7 @@
 
 #include "app/gfx/performance_profiler.h"
 #include "app/gfx/performance_dashboard.h"
-#include "app/gui/enhanced_palette_editor.h"
+#include "app/gui/widgets/palette_widget.h"
 #include "app/gui/bpp_format_ui.h"
 #include "app/gui/icons.h"
 #include "app/gui/canvas/canvas_modals.h"
