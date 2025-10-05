@@ -1,48 +1,92 @@
-.favorites.json
+# Build directories - organized by platform
 build/
-.cache/
+build-*/
+out/
+build*/
+docs/html/
+docs/latex/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+CPackConfig.cmake
+CPackSourceConfig.cmake
+CTestTestfile.cmake
+Testing/
+
+# Build artifacts
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.app
+*.out
+
+# IDE files
 .vscode/
-disasm/
-src/etc
-checks.json
-assets/lib/libasar.dll
-cmake/yaze.plist.in
-etc/
-latex/
-html/
-docs/zarby_algos.md
-docs/overworld-expansion.md
-assets/asm/EditorCore.asm
-src/app/emu/cpu/internal/old_cpu.cc
-build-windows
-src/lib/libpng
-src/lib/zlib
-assets/layouts/ow_toolset.zeml
-build_minimal/
-build_test/
-src/lib/cmake/glew/CopyImportedTargetProperties.cmake
-src/lib/cmake/glew/glew-config.cmake
-src/lib/cmake/glew/glew-targets-release.cmake
-src/lib/cmake/glew/glew-targets.cmake
-src/lib/cmake/SDL2/sdl2-config-version.cmake
-src/lib/cmake/SDL2/sdl2-config.cmake
-src/lib/GL/glew.h
-src/lib/GL/glxew.h
-src/lib/GL/wglew.h
-src/lib/libGLEW.2.2.0.dylib
-src/lib/libGLEW.2.2.dylib
-src/lib/libGLEW.a
-src/lib/libGLEW.dylib
-src/lib/libSDL2_test.a
-src/lib/libSDL2-2.0.0.dylib
-src/lib/libSDL2.a
-src/lib/libSDL2.dylib
-src/lib/libSDL2main.a
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test outputs
+test_screenshots/
+test_temp_rom.sfc
+zelda3_v3_test.sfc
+
+# Logs
+yaze_log.txt
+*.log
+
+# vcpkg
+vcpkg_installed/
+
+# Agent learned knowledge (user-specific)
+.agent_knowledge/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Generated files
+gens/
+*.pb.h
+*.pb.cc
+*.grpc.pb.h
+*.grpc.pb.cc
+
+# Cache
+.cache/
+
+# local dependencies
+src/lib/cmake/
+src/lib/GL/
+src/lib/libpng/
+src/lib/zlib/
 src/app/gui/modules/component.h
 src/ios/macOS/Info-macOS.plist
 src/ios/macOS/MainMenu.storyboard
-yaze_log.txt
-build_test/
-compile_commands.json
-build*/
+src/app/emu/cpu/internal/old_cpu.cc
+.favorites.json
+checks.json
+assets/etc/
 *.sfc
+imgui.ini
+.gitignore
+recent_files.txt
