@@ -8,6 +8,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/editor/editor.h"
 
 namespace yaze {
 
@@ -26,33 +27,68 @@ class NetworkCollaborationCoordinator;
 
 /**
  * @class AgentEditor
- * @brief Manages all agent-related functionality including chat, collaboration,
- *        and network coordination for the Z3ED editor.
+ * @brief AI Agent Configuration Dashboard (separate from chat)
  * 
- * This class serves as a high-level manager for:
- * - Agent chat widget and conversations
- * - Local filesystem-based collaboration
- * - Network-based (WebSocket) collaboration
- * - Coordination between multiple collaboration modes
+ * A comprehensive configuration editor for the AI agent:
+ * - Agent provider configuration (Ollama, Gemini, Mock)
+ * - Model selection and parameters  
+ * - Collaboration settings (Local/Network)
+ * - Z3ED command automation presets
+ * - Multimodal/vision configuration
+ * - Session metrics and monitoring
+ * - System prompt customization
+ * 
+ * The chat widget is separate and managed by EditorManager.
  */
-class AgentEditor {
+class AgentEditor : public Editor {
  public:
   AgentEditor();
-  ~AgentEditor();
+  ~AgentEditor() override;
 
-  // Initialization
-  void Initialize(ToastManager* toast_manager, ProposalDrawer* proposal_drawer);
+  // Editor interface implementation
+  void Initialize() override;
+  absl::Status Load() override;
+  absl::Status Save() override;
+  absl::Status Update() override;
+  absl::Status Cut() override { return absl::UnimplementedError("Not applicable"); }
+  absl::Status Copy() override { return absl::UnimplementedError("Not applicable"); }
+  absl::Status Paste() override { return absl::UnimplementedError("Not applicable"); }
+  absl::Status Undo() override { return absl::UnimplementedError("Not applicable"); }
+  absl::Status Redo() override { return absl::UnimplementedError("Not applicable"); }
+  absl::Status Find() override { return absl::UnimplementedError("Not applicable"); }
+
+  // Initialization with dependencies
+  void InitializeWithDependencies(ToastManager* toast_manager, 
+                                   ProposalDrawer* proposal_drawer,
+                                   Rom* rom);
   void SetRomContext(Rom* rom);
 
-  // Main rendering
-  void Draw();
 
-  // Chat widget access
+  // Main rendering (called by Update())
+  void DrawDashboard();
+
+  // Get current agent configuration (for chat to use)
+  struct AgentConfig {
+    std::string provider = "mock";
+    std::string model;
+    std::string ollama_host = "http://localhost:11434";
+    std::string gemini_api_key;
+    bool verbose = false;
+    bool show_reasoning = true;
+    int max_tool_iterations = 4;
+  };
+  
+  AgentConfig GetCurrentConfig() const;
+  void ApplyConfig(const AgentConfig& config);
+
+  // Chat widget access (for EditorManager)
+  AgentChatWidget* GetChatWidget() { return chat_widget_.get(); }
   bool IsChatActive() const;
   void SetChatActive(bool active);
   void ToggleChat();
-
-  // Collaboration management
+  void OpenChatWindow();
+  
+  // Collaboration and session management  
   enum class CollaborationMode {
     kLocal,   // Filesystem-based collaboration
     kNetwork  // WebSocket-based collaboration
@@ -64,21 +100,13 @@ class AgentEditor {
     std::vector<std::string> participants;
   };
 
-  // Host a new collaboration session
   absl::StatusOr<SessionInfo> HostSession(const std::string& session_name,
                                           CollaborationMode mode = CollaborationMode::kLocal);
-
-  // Join an existing collaboration session
   absl::StatusOr<SessionInfo> JoinSession(const std::string& session_code,
                                           CollaborationMode mode = CollaborationMode::kLocal);
-
-  // Leave the current collaboration session
   absl::Status LeaveSession();
-
-  // Refresh session information
   absl::StatusOr<SessionInfo> RefreshSession();
-
-  // Multimodal (vision/screenshot) support
+  
   struct CaptureConfig {
     enum class CaptureMode {
       kFullWindow,
@@ -94,32 +122,34 @@ class AgentEditor {
   absl::Status SendToGemini(const std::filesystem::path& image_path,
                             const std::string& prompt);
 
-  // Server management for network mode
 #ifdef YAZE_WITH_GRPC
   absl::Status ConnectToServer(const std::string& server_url);
   void DisconnectFromServer();
   bool IsConnectedToServer() const;
 #endif
 
-  // State queries
   bool IsInSession() const;
   CollaborationMode GetCurrentMode() const;
   std::optional<SessionInfo> GetCurrentSession() const;
 
-  // Access to underlying components (for advanced use)
-  AgentChatWidget* GetChatWidget() { return chat_widget_.get(); }
+  // Access to underlying components
   AgentCollaborationCoordinator* GetLocalCoordinator() { return local_coordinator_.get(); }
 #ifdef YAZE_WITH_GRPC
   NetworkCollaborationCoordinator* GetNetworkCoordinator() { return network_coordinator_.get(); }
 #endif
 
  private:
-  // Setup callbacks for the chat widget
+  // Dashboard panel rendering
+  void DrawConfigurationPanel();
+  void DrawStatusPanel();
+  void DrawMetricsPanel();
+
+  // Setup callbacks
   void SetupChatWidgetCallbacks();
   void SetupMultimodalCallbacks();
 
   // Internal state
-  std::unique_ptr<AgentChatWidget> chat_widget_;
+  std::unique_ptr<AgentChatWidget> chat_widget_;  // Owned by AgentEditor
   std::unique_ptr<AgentCollaborationCoordinator> local_coordinator_;
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<NetworkCollaborationCoordinator> network_coordinator_;
@@ -129,11 +159,16 @@ class AgentEditor {
   ProposalDrawer* proposal_drawer_ = nullptr;
   Rom* rom_ = nullptr;
 
+  // Configuration state
+  AgentConfig current_config_;
   CollaborationMode current_mode_ = CollaborationMode::kLocal;
   bool in_session_ = false;
   std::string current_session_id_;
   std::string current_session_name_;
   std::vector<std::string> current_participants_;
+  
+  // UI state
+  bool show_advanced_settings_ = false;
 };
 
 }  // namespace editor

@@ -85,6 +85,14 @@ class EditorSelectionDialog {
    */
   void SaveRecentEditors();
   
+  /**
+   * @brief Clear recent editors (for new ROM sessions)
+   */
+  void ClearRecentEditors() {
+    recent_editors_.clear();
+    SaveRecentEditors();
+  }
+  
  private:
   void DrawEditorCard(const EditorInfo& info, int index);
   void DrawWelcomeHeader();

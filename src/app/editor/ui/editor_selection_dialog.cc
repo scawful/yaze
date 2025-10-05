@@ -55,6 +55,10 @@ EditorSelectionDialog::EditorSelectionDialog() {
     {EditorType::kHex, "Hex Editor", ICON_MD_DATA_ARRAY,
      "Direct ROM memory editing and comparison", "Ctrl+0", false, true,
      ImVec4(0.2f, 0.8f, 0.4f, 1.0f)},  // Matrix green
+
+    {EditorType::kAgent, "AI Agent", ICON_MD_SMART_TOY,
+     "Configure AI agent, collaboration, and automation", "Ctrl+Shift+A", false, false,
+     ImVec4(0.8f, 0.4f, 1.0f, 1.0f)},  // Purple/magenta
     
     {EditorType::kSettings, "Settings", ICON_MD_SETTINGS,
      "Configure ROM and project settings", "", false, true,
