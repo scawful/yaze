@@ -14,6 +14,7 @@ set(
   app/gui/bpp_format_ui.cc
   app/gui/widgets/widget_id_registry.cc
   app/gui/widgets/widget_auto_register.cc
+  app/gui/widgets/widget_state_capture.cc
   # Canvas system components
   app/gui/canvas/canvas_modals.cc
   app/gui/canvas/canvas_context_menu.cc

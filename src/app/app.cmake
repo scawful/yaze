@@ -226,13 +226,6 @@ if(NOT APPLE)
 endif()
 
 # ============================================================================
-# Test harness utilities shared across builds (IT-08 widget state capture)
-# ============================================================================
-target_sources(yaze PRIVATE
-  ${CMAKE_SOURCE_DIR}/src/app/gui/widgets/widget_state_capture.cc
-  ${CMAKE_SOURCE_DIR}/src/app/gui/widgets/widget_state_capture.h)
-
-# ============================================================================
 # Optional gRPC Support for ImGuiTestHarness
 # ============================================================================
 if(YAZE_WITH_GRPC)
