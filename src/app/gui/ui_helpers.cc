@@ -1,6 +1,5 @@
 #include "app/gui/ui_helpers.h"
 
-#include "absl/strings/str_format.h"
 #include "app/gui/color.h"
 #include "app/gui/icons.h"
 #include "app/gui/theme_manager.h"
@@ -43,21 +42,25 @@ ImVec4 GetAccentColor() {
   return ConvertColorToImVec4(theme.accent);
 }
 
-// Entity/Map marker colors (normalized RGB + proper alpha)
+// Entity/Map marker colors (vibrant with good visibility)
 ImVec4 GetEntranceColor() {
-  return ImVec4(1.0f, 1.0f, 0.0f, 0.39f);  // Yellow, 100/255 alpha
+  // Bright yellow with strong visibility
+  return ImVec4(1.0f, 0.9f, 0.0f, 0.85f);  // Yellow-gold, high visibility
 }
 
 ImVec4 GetExitColor() {
-  return ImVec4(1.0f, 1.0f, 1.0f, 0.59f);  // White, 150/255 alpha
+  // Bright cyan-white for contrast
+  return ImVec4(0.9f, 1.0f, 1.0f, 0.85f);  // Cyan-white, high visibility
 }
 
 ImVec4 GetItemColor() {
-  return ImVec4(1.0f, 0.0f, 0.0f, 0.59f);  // Red, 150/255 alpha
+  // Vibrant red for items
+  return ImVec4(1.0f, 0.2f, 0.2f, 0.85f);  // Bright red, high visibility
 }
 
 ImVec4 GetSpriteColor() {
-  return ImVec4(1.0f, 0.0f, 1.0f, 0.59f);  // Magenta, 150/255 alpha
+  // Bright magenta for sprites  
+  return ImVec4(1.0f, 0.3f, 1.0f, 0.85f);  // Bright magenta, high visibility
 }
 
 ImVec4 GetSelectedColor() {
