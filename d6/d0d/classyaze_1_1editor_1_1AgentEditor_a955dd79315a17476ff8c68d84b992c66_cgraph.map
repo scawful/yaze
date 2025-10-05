@@ -1,7 +1,9 @@
 <map id="yaze::editor::AgentEditor::DrawStatusPanel" name="yaze::editor::AgentEditor::DrawStatusPanel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,164,68"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,164,96"/>
 <area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="220,5,362,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,34,204,28,205,33,164,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,52,227,33,228,38,161,57"/>
 <area shape="rect" id="Node000003" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a7f2f7bf2a19b66cdff05c2599b94cabb" title=" " alt="" coords="212,55,370,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,56,197,60,196,65,164,61"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,73,196,73,196,78,164,78"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="237,120,345,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="161,94,228,113,227,118,159,99"/>
 </map>
