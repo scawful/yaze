@@ -245,6 +245,8 @@ Functions</h2></td></tr>
 <tr class="separator:ab70ac6f409f576ced9a92c8e8a8514a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad185639839873e6666c4499b3156dfef" id="r_ad185639839873e6666c4499b3156dfef"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ad185639839873e6666c4499b3156dfef">HandleMessageSearchCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom_context=nullptr)</td></tr>
 <tr class="separator:ad185639839873e6666c4499b3156dfef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a76ead55b8322b7d277768ae223badec0" id="r_a76ead55b8322b7d277768ae223badec0"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a76ead55b8322b7d277768ae223badec0">HandleGuiPlaceTileCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom_context=nullptr)</td></tr>
+<tr class="separator:a76ead55b8322b7d277768ae223badec0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9c0a392ce6c066aca8d36eac12dc2b9" id="r_ab9c0a392ce6c066aca8d36eac12dc2b9"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab9c0a392ce6c066aca8d36eac12dc2b9">HandleChatCommand</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
 <tr class="separator:ab9c0a392ce6c066aca8d36eac12dc2b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa5dce5122f99bd7671e44280148683fb" id="r_aa5dce5122f99bd7671e44280148683fb"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa5dce5122f99bd7671e44280148683fb">HandleSimpleChatCommand</a> (const std::vector&lt; std::string &gt; &amp;, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom, bool quiet)</td></tr>
@@ -1332,6 +1334,50 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="180,47,212,47,212,52,180,52"/>
 <area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="497,37,638,63"/>
 <area shape="poly" title=" " alt="" coords="449,47,482,47,482,52,449,52"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a76ead55b8322b7d277768ae223badec0" name="a76ead55b8322b7d277768ae223badec0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a76ead55b8322b7d277768ae223badec0">&#9670;&#160;</a></span>HandleGuiPlaceTileCommand()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::Status yaze::cli::agent::HandleGuiPlaceTileCommand </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
+          <td class="paramname"><em>arg_vec</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *&#160;</td>
+          <td class="paramname"><em>rom_context</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dba/gui__tool__commands_8cc_source.html#l00022">22</a> of file <a class="el" href="../../d4/dba/gui__tool__commands_8cc_source.html">gui_tool_commands.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d6/d0d/gui__action__generator_8cc_source.html#l00010">yaze::cli::gui::GuiActionGenerator::GenerateTestScript()</a>, <a class="el" href="../../d8/d4c/namespaceyaze_1_1cli_1_1ai.html#a1f11a35fa89a6a0bcb4eb991863a31c0ac3fe1a17ed1644d602f381c7456f1145">yaze::cli::ai::kPlaceTile</a>, <a class="el" href="../../d8/d4c/namespaceyaze_1_1cli_1_1ai.html#a1f11a35fa89a6a0bcb4eb991863a31c0ab94bd6800354a5dc21cbf1f1f3337d5d">yaze::cli::ai::kSaveTile</a>, <a class="el" href="../../d8/d4c/namespaceyaze_1_1cli_1_1ai.html#a1f11a35fa89a6a0bcb4eb991863a31c0ab7984681807720354a2123c9aff16a7a">yaze::cli::ai::kSelectTile</a>, and <a class="el" href="../../de/dd0/ai__action__parser_8h_source.html#l00036">yaze::cli::ai::AIAction::parameters</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d3/d79/tool__dispatcher_8cc_source.html#l00014">yaze::cli::agent::ToolDispatcher::Dispatch()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/dd3/namespaceyaze_1_1cli_1_1agent_a76ead55b8322b7d277768ae223badec0_cgraph.png" border="0" usemap="#ad8/dd3/namespaceyaze_1_1cli_1_1agent_a76ead55b8322b7d277768ae223badec0_cgraph" alt=""/></div>
+<map name="ad8/dd3/namespaceyaze_1_1cli_1_1agent_a76ead55b8322b7d277768ae223badec0_cgraph" id="ad8/dd3/namespaceyaze_1_1cli_1_1agent_a76ead55b8322b7d277768ae223badec0_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,160,46"/>
+<area shape="rect" href="../../df/d9d/classyaze_1_1cli_1_1gui_1_1GuiActionGenerator.html#a55aba84f1fbe4759bde8ec196c59cab0" title=" " alt="" coords="208,5,405,46"/>
+<area shape="poly" title=" " alt="" coords="160,23,192,23,192,28,160,28"/>
 </map>
 </div>
 

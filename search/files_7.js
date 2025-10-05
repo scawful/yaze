@@ -16,5 +16,6 @@ var searchData=
   ['gui_5faction_5fgenerator_2eh_13',['gui_action_generator.h',['../db/d7a/gui__action__generator_8h.html',1,'']]],
   ['gui_5fautomation_5fclient_2ecc_14',['gui_automation_client.cc',['../dd/db4/gui__automation__client_8cc.html',1,'']]],
   ['gui_5fautomation_5fclient_2eh_15',['gui_automation_client.h',['../d1/d51/gui__automation__client_8h.html',1,'']]],
-  ['gui_5fcommands_2ecc_16',['gui_commands.cc',['../d5/d03/gui__commands_8cc.html',1,'']]]
+  ['gui_5fcommands_2ecc_16',['gui_commands.cc',['../d5/d03/gui__commands_8cc.html',1,'']]],
+  ['gui_5ftool_5fcommands_2ecc_17',['gui_tool_commands.cc',['../d4/dba/gui__tool__commands_8cc.html',1,'']]]
 ];

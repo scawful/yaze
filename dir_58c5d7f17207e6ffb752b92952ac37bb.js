@@ -6,6 +6,7 @@ var dir_58c5d7f17207e6ffb752b92952ac37bb =
     [ "conversation_test.cc", "de/d20/conversation__test_8cc.html", "de/d20/conversation__test_8cc" ],
     [ "general_commands.cc", "d9/d8d/general__commands_8cc.html", "d9/d8d/general__commands_8cc" ],
     [ "gui_commands.cc", "d5/d03/gui__commands_8cc.html", "d5/d03/gui__commands_8cc" ],
+    [ "gui_tool_commands.cc", "d4/dba/gui__tool__commands_8cc.html", "d4/dba/gui__tool__commands_8cc" ],
     [ "hex_commands.cc", "d4/de1/hex__commands_8cc.html", "d4/de1/hex__commands_8cc" ],
     [ "hex_commands.h", "d1/de4/hex__commands_8h.html", "d1/de4/hex__commands_8h" ],
     [ "palette_commands.cc", "d3/dba/palette__commands_8cc.html", "d3/dba/palette__commands_8cc" ],

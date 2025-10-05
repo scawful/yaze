@@ -128,6 +128,10 @@ Collaboration diagram for yaze::editor::AgentChatHistoryPopup:</div>
 Public Types</h2></td></tr>
 <tr class="memitem:a396039e095b04fe653aa8933c4e7194c" id="r_a396039e095b04fe653aa8933c4e7194c"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a396039e095b04fe653aa8933c4e7194c">OpenChatCallback</a> = std::function&lt; void()&gt;</td></tr>
 <tr class="separator:a396039e095b04fe653aa8933c4e7194c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a37eadafd97522a58e469ac25c743512e" id="r_a37eadafd97522a58e469ac25c743512e"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a37eadafd97522a58e469ac25c743512e">SendMessageCallback</a> = std::function&lt; void(const std::string &amp;)&gt;</td></tr>
+<tr class="separator:a37eadafd97522a58e469ac25c743512e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84ace1e8382de09e0e554867ecb699f0" id="r_a84ace1e8382de09e0e554867ecb699f0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a84ace1e8382de09e0e554867ecb699f0">CaptureSnapshotCallback</a> = std::function&lt; void()&gt;</td></tr>
+<tr class="separator:a84ace1e8382de09e0e554867ecb699f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -153,6 +157,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a57a53769524a7dd6378c536a6bcce28c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac108f436e5a341aa31f6db3a3e41ef36" id="r_ac108f436e5a341aa31f6db3a3e41ef36"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#ac108f436e5a341aa31f6db3a3e41ef36">SetOpenChatCallback</a> (<a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a396039e095b04fe653aa8933c4e7194c">OpenChatCallback</a> callback)</td></tr>
 <tr class="separator:ac108f436e5a341aa31f6db3a3e41ef36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a258c19e9480ca8b4764c8b01d064be7b" id="r_a258c19e9480ca8b4764c8b01d064be7b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a258c19e9480ca8b4764c8b01d064be7b">SetSendMessageCallback</a> (<a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a37eadafd97522a58e469ac25c743512e">SendMessageCallback</a> callback)</td></tr>
+<tr class="separator:a258c19e9480ca8b4764c8b01d064be7b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0942f603ff8f588e17be283724fb7747" id="r_a0942f603ff8f588e17be283724fb7747"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a0942f603ff8f588e17be283724fb7747">SetCaptureSnapshotCallback</a> (<a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a84ace1e8382de09e0e554867ecb699f0">CaptureSnapshotCallback</a> callback)</td></tr>
+<tr class="separator:a0942f603ff8f588e17be283724fb7747"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-types" name="pri-types"></a>
 Private Types</h2></td></tr>
@@ -164,12 +172,18 @@ Private Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
+<tr class="memitem:a277e8f24c7695329be222c401257e86e" id="r_a277e8f24c7695329be222c401257e86e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a277e8f24c7695329be222c401257e86e">DrawHeader</a> ()</td></tr>
+<tr class="separator:a277e8f24c7695329be222c401257e86e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a74ca96efcfb7d991763b6e279f192f58" id="r_a74ca96efcfb7d991763b6e279f192f58"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a74ca96efcfb7d991763b6e279f192f58">DrawMessageList</a> ()</td></tr>
 <tr class="separator:a74ca96efcfb7d991763b6e279f192f58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a897bf40b4f6275f8d25a4b341e460718" id="r_a897bf40b4f6275f8d25a4b341e460718"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a897bf40b4f6275f8d25a4b341e460718">DrawMessage</a> (const <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">cli::agent::ChatMessage</a> &amp;msg, int index)</td></tr>
 <tr class="separator:a897bf40b4f6275f8d25a4b341e460718"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47d886ef15ad06c3c72a61eb035bcfad" id="r_a47d886ef15ad06c3c72a61eb035bcfad"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a47d886ef15ad06c3c72a61eb035bcfad">DrawActionButtons</a> ()</td></tr>
-<tr class="separator:a47d886ef15ad06c3c72a61eb035bcfad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2aea4bc1b9dc64c63eb94782529b739e" id="r_a2aea4bc1b9dc64c63eb94782529b739e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a2aea4bc1b9dc64c63eb94782529b739e">DrawInputSection</a> ()</td></tr>
+<tr class="separator:a2aea4bc1b9dc64c63eb94782529b739e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35e9bbbc13647d0b33c985f2695acf7e" id="r_a35e9bbbc13647d0b33c985f2695acf7e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a35e9bbbc13647d0b33c985f2695acf7e">DrawQuickActions</a> ()</td></tr>
+<tr class="separator:a35e9bbbc13647d0b33c985f2695acf7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a506fd4e551e74ef1ead865d3a6a1d2d0" id="r_a506fd4e551e74ef1ead865d3a6a1d2d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a506fd4e551e74ef1ead865d3a6a1d2d0">SendMessage</a> (const std::string &amp;message)</td></tr>
+<tr class="separator:a506fd4e551e74ef1ead865d3a6a1d2d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abf6589fb7b562573b0e33b63bc7416b9" id="r_abf6589fb7b562573b0e33b63bc7416b9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#abf6589fb7b562573b0e33b63bc7416b9">ClearHistory</a> ()</td></tr>
 <tr class="separator:abf6589fb7b562573b0e33b63bc7416b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a569fd4528180a2c681b04921c33ae740" id="r_a569fd4528180a2c681b04921c33ae740"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a569fd4528180a2c681b04921c33ae740">ExportHistory</a> ()</td></tr>
@@ -185,24 +199,40 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a6a7cb192b5c83e6d0d64c33ad0bafd6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7396e6124d5e02f73adb5bbcba534f1e" id="r_a7396e6124d5e02f73adb5bbcba534f1e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a7396e6124d5e02f73adb5bbcba534f1e">auto_scroll_</a> = true</td></tr>
 <tr class="separator:a7396e6124d5e02f73adb5bbcba534f1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24aab08c2fcdcc9183c893dc00cd3164" id="r_a24aab08c2fcdcc9183c893dc00cd3164"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a24aab08c2fcdcc9183c893dc00cd3164">compact_mode_</a> = true</td></tr>
+<tr class="separator:a24aab08c2fcdcc9183c893dc00cd3164"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e82bfc257191d7887c6edbc84bbd2f0" id="r_a8e82bfc257191d7887c6edbc84bbd2f0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a8e82bfc257191d7887c6edbc84bbd2f0">show_quick_actions_</a> = true</td></tr>
+<tr class="separator:a8e82bfc257191d7887c6edbc84bbd2f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad9d2710097009e0f2b050507cc37601e" id="r_ad9d2710097009e0f2b050507cc37601e"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html">cli::agent::ChatMessage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#ad9d2710097009e0f2b050507cc37601e">messages_</a></td></tr>
 <tr class="separator:ad9d2710097009e0f2b050507cc37601e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a39fe3031b29e4d3672ace6c49580f7" id="r_a3a39fe3031b29e4d3672ace6c49580f7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a3a39fe3031b29e4d3672ace6c49580f7">display_limit_</a> = 50</td></tr>
 <tr class="separator:a3a39fe3031b29e4d3672ace6c49580f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3ee509f9d829ca39ee4c4664b93ebf95" id="r_a3ee509f9d829ca39ee4c4664b93ebf95"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a3ee509f9d829ca39ee4c4664b93ebf95">drawer_width_</a> = 400.0f</td></tr>
+<tr class="memitem:a938fc8eeb14a46852784aecfcf7498a8" id="r_a938fc8eeb14a46852784aecfcf7498a8"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a938fc8eeb14a46852784aecfcf7498a8">input_buffer_</a> [512] = {}</td></tr>
+<tr class="separator:a938fc8eeb14a46852784aecfcf7498a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab1f648d85720d9815c174762f5f7ee87" id="r_ab1f648d85720d9815c174762f5f7ee87"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#ab1f648d85720d9815c174762f5f7ee87">focus_input_</a> = false</td></tr>
+<tr class="separator:ab1f648d85720d9815c174762f5f7ee87"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ee509f9d829ca39ee4c4664b93ebf95" id="r_a3ee509f9d829ca39ee4c4664b93ebf95"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a3ee509f9d829ca39ee4c4664b93ebf95">drawer_width_</a> = 420.0f</td></tr>
 <tr class="separator:a3ee509f9d829ca39ee4c4664b93ebf95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a61df7a3e3de317a0b7b8919ff28424db" id="r_a61df7a3e3de317a0b7b8919ff28424db"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a61df7a3e3de317a0b7b8919ff28424db">min_drawer_width_</a> = 300.0f</td></tr>
 <tr class="separator:a61df7a3e3de317a0b7b8919ff28424db"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6c99618f9921ed53a8a879f5e7a7168b" id="r_a6c99618f9921ed53a8a879f5e7a7168b"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a6c99618f9921ed53a8a879f5e7a7168b">max_drawer_width_</a> = 600.0f</td></tr>
+<tr class="memitem:a6c99618f9921ed53a8a879f5e7a7168b" id="r_a6c99618f9921ed53a8a879f5e7a7168b"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a6c99618f9921ed53a8a879f5e7a7168b">max_drawer_width_</a> = 700.0f</td></tr>
 <tr class="separator:a6c99618f9921ed53a8a879f5e7a7168b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9dc7e5b9a4bd6c1a1361782dbd47338c" id="r_a9dc7e5b9a4bd6c1a1361782dbd47338c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a9dc7e5b9a4bd6c1a1361782dbd47338c">is_resizing_</a> = false</td></tr>
 <tr class="separator:a9dc7e5b9a4bd6c1a1361782dbd47338c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a360d56fb93700882f932a1b456fc841b" id="r_a360d56fb93700882f932a1b456fc841b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2">MessageFilter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a360d56fb93700882f932a1b456fc841b">message_filter_</a> = <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2a34bdbffdb1c0e1b603f58fc0d49548b6">MessageFilter::kAll</a></td></tr>
 <tr class="separator:a360d56fb93700882f932a1b456fc841b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9bbb7a2d109318c4d9d40f17318d6b5" id="r_af9bbb7a2d109318c4d9d40f17318d6b5"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af9bbb7a2d109318c4d9d40f17318d6b5">header_pulse_</a> = 0.0f</td></tr>
+<tr class="separator:af9bbb7a2d109318c4d9d40f17318d6b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c3fc52634a0a101ed8841047c115b2a" id="r_a0c3fc52634a0a101ed8841047c115b2a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a0c3fc52634a0a101ed8841047c115b2a">unread_count_</a> = 0</td></tr>
+<tr class="separator:a0c3fc52634a0a101ed8841047c115b2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5520e4d9686c3a1972496b555def14e8" id="r_a5520e4d9686c3a1972496b555def14e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html">ToastManager</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a5520e4d9686c3a1972496b555def14e8">toast_manager_</a> = nullptr</td></tr>
 <tr class="separator:a5520e4d9686c3a1972496b555def14e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad1e0bdb0e15583e9650929febfa3a335" id="r_ad1e0bdb0e15583e9650929febfa3a335"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a396039e095b04fe653aa8933c4e7194c">OpenChatCallback</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#ad1e0bdb0e15583e9650929febfa3a335">open_chat_callback_</a></td></tr>
 <tr class="separator:ad1e0bdb0e15583e9650929febfa3a335"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72f960708c5d29cc41c78c5d35450e24" id="r_a72f960708c5d29cc41c78c5d35450e24"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a37eadafd97522a58e469ac25c743512e">SendMessageCallback</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a72f960708c5d29cc41c78c5d35450e24">send_message_callback_</a></td></tr>
+<tr class="separator:a72f960708c5d29cc41c78c5d35450e24"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53ed72ae8daba14a3f6beed88401408b" id="r_a53ed72ae8daba14a3f6beed88401408b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a84ace1e8382de09e0e554867ecb699f0">CaptureSnapshotCallback</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a53ed72ae8daba14a3f6beed88401408b">capture_snapshot_callback_</a></td></tr>
+<tr class="separator:a53ed72ae8daba14a3f6beed88401408b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> popup drawer for displaying chat history on the left side. </p>
@@ -233,6 +263,38 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a37eadafd97522a58e469ac25c743512e" name="a37eadafd97522a58e469ac25c743512e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a37eadafd97522a58e469ac25c743512e">&#9670;&#160;</a></span>SendMessageCallback</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a37eadafd97522a58e469ac25c743512e">yaze::editor::AgentChatHistoryPopup::SendMessageCallback</a> =  std::function&lt;void(const std::string&amp;)&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00060">60</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+
+</div>
+</div>
+<a id="a84ace1e8382de09e0e554867ecb699f0" name="a84ace1e8382de09e0e554867ecb699f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a84ace1e8382de09e0e554867ecb699f0">&#9670;&#160;</a></span>CaptureSnapshotCallback</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a84ace1e8382de09e0e554867ecb699f0">yaze::editor::AgentChatHistoryPopup::CaptureSnapshotCallback</a> =  std::function&lt;void()&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00066">66</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+
+</div>
+</div>
 <h2 class="groupheader">Member Enumeration Documentation</h2>
 <a id="af6957cf5b5c0741e55cda69616f9d2e2" name="af6957cf5b5c0741e55cda69616f9d2e2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af6957cf5b5c0741e55cda69616f9d2e2">&#9670;&#160;</a></span>MessageFilter</h2>
@@ -259,7 +321,7 @@ Private Attributes</h2></td></tr>
 <tr><td class="fieldname"><a id="af6957cf5b5c0741e55cda69616f9d2e2afad6657cb04032874429899f0f45eb98" name="af6957cf5b5c0741e55cda69616f9d2e2afad6657cb04032874429899f0f45eb98"></a>kAgentOnly&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00083">83</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00104">104</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
 </div>
 </div>
@@ -279,7 +341,9 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00020">20</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00025">25</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00094">input_buffer_</a>.</p>
 
 </div>
 </div>
@@ -335,7 +399,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00034">34</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00091">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00116">toast_manager_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00221">yaze::editor::EditorManager::Initialize()</a>.</p>
 
@@ -356,26 +420,25 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00022">22</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00029">29</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00070">auto_scroll_</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00178">DrawActionButtons()</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00077">drawer_width_</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00106">DrawMessageList()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00392">ICON_MD_CHAT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01352">ICON_MD_OPEN_IN_NEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2af76ed811b18a86459694dacf3347d438">yaze::cli::agent::ChatMessage::kAgent</a>, <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2afad6657cb04032874429899f0f45eb98">kAgentOnly</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2a3ea6f9f6140b78f0c5a050d926097f56">yaze::cli::agent::ChatMessage::kUser</a>, <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2a1a821ac3683242e6ca14989ce03d2601">kUserOnly</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00088">message_filter_</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00073">messages_</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00069">needs_scroll_</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00092">open_chat_callback_</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00091">toast_manager_</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00068">visible_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00098">drawer_width_</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00163">DrawHeader()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00290">DrawInputSection()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00091">DrawMessageList()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00236">DrawQuickActions()</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00112">header_pulse_</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00084">needs_scroll_</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00087">show_quick_actions_</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00083">visible_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01068">yaze::editor::EditorManager::DrawMenuBar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01109">yaze::editor::EditorManager::DrawMenuBar()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_adb7882db13246e3d9cd13a3a64aa5b36_cgraph.png" border="0" usemap="#ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_adb7882db13246e3d9cd13a3a64aa5b36_cgraph" alt=""/></div>
 <map name="ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_adb7882db13246e3d9cd13a3a64aa5b36_cgraph" id="ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_adb7882db13246e3d9cd13a3a64aa5b36_cgraph">
-<area shape="rect" title=" " alt="" coords="5,63,199,103"/>
-<area shape="rect" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a47d886ef15ad06c3c72a61eb035bcfad" title=" " alt="" coords="247,5,440,46"/>
-<area shape="poly" title=" " alt="" coords="190,59,239,48,240,53,191,65"/>
-<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="729,35,904,75"/>
-<area shape="poly" title=" " alt="" coords="199,77,714,56,714,62,199,82"/>
-<area shape="rect" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a74ca96efcfb7d991763b6e279f192f58" title=" " alt="" coords="247,120,440,161"/>
-<area shape="poly" title=" " alt="" coords="191,101,240,113,239,118,190,107"/>
-<area shape="rect" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#abf6589fb7b562573b0e33b63bc7416b9" title=" " alt="" coords="488,5,681,46"/>
-<area shape="poly" title=" " alt="" coords="440,23,473,23,473,28,440,28"/>
-<area shape="poly" title=" " alt="" coords="682,35,714,39,714,45,682,41"/>
+<area shape="rect" title=" " alt="" coords="5,104,199,145"/>
+<area shape="rect" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a277e8f24c7695329be222c401257e86e" title=" " alt="" coords="247,5,440,46"/>
+<area shape="poly" title=" " alt="" coords="145,101,246,57,265,49,267,54,248,61,147,106"/>
+<area shape="rect" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a2aea4bc1b9dc64c63eb94782529b739e" title=" " alt="" coords="247,71,440,111"/>
+<area shape="poly" title=" " alt="" coords="199,108,231,104,232,109,199,114"/>
+<area shape="rect" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a74ca96efcfb7d991763b6e279f192f58" title=" " alt="" coords="247,136,440,177"/>
+<area shape="poly" title=" " alt="" coords="199,135,232,139,231,144,199,140"/>
+<area shape="rect" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a35e9bbbc13647d0b33c985f2695acf7e" title=" " alt="" coords="247,201,440,242"/>
+<area shape="poly" title=" " alt="" coords="149,143,248,186,267,193,265,198,246,191,146,148"/>
 </map>
 </div>
 
@@ -406,7 +469,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00042">42</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00068">visible_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00083">visible_</a>.</p>
 
 </div>
 </div>
@@ -435,7 +498,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00043">43</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00068">visible_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00083">visible_</a>.</p>
 
 </div>
 </div>
@@ -464,9 +527,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00044">44</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00068">visible_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00083">visible_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00781">yaze::editor::EditorManager::BuildModernMenu()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00221">yaze::editor::EditorManager::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00822">yaze::editor::EditorManager::BuildModernMenu()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00221">yaze::editor::EditorManager::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -495,7 +558,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00045">45</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00068">visible_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00083">visible_</a>.</p>
 
 </div>
 </div>
@@ -515,11 +578,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00188">188</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00353">353</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00070">auto_scroll_</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00073">messages_</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00069">needs_scroll_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00085">auto_scroll_</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00090">messages_</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00084">needs_scroll_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/dde/editor_2agent_2agent__chat__widget_8cc_source.html#l01857">yaze::editor::AgentChatWidget::SyncHistoryToPopup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/dde/editor_2agent_2agent__chat__widget_8cc_source.html#l01950">yaze::editor::AgentChatWidget::SyncHistoryToPopup()</a>.</p>
 
 </div>
 </div>
@@ -538,11 +601,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00200">200</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00365">365</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00070">auto_scroll_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00392">ICON_MD_CHAT</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00069">needs_scroll_</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00091">toast_manager_</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00068">visible_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00085">auto_scroll_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00392">ICON_MD_CHAT</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00084">needs_scroll_</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00116">toast_manager_</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00083">visible_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/dde/editor_2agent_2agent__chat__widget_8cc_source.html#l01857">yaze::editor::AgentChatWidget::SyncHistoryToPopup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/dde/editor_2agent_2agent__chat__widget_8cc_source.html#l01950">yaze::editor::AgentChatWidget::SyncHistoryToPopup()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -582,9 +645,104 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00055">55</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00092">open_chat_callback_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00117">open_chat_callback_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/dde/editor_2agent_2agent__chat__widget_8cc_source.html#l00126">yaze::editor::AgentChatWidget::SetChatHistoryPopup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/dde/editor_2agent_2agent__chat__widget_8cc_source.html#l00157">yaze::editor::AgentChatWidget::SetChatHistoryPopup()</a>.</p>
+
+</div>
+</div>
+<a id="a258c19e9480ca8b4764c8b01d064be7b" name="a258c19e9480ca8b4764c8b01d064be7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a258c19e9480ca8b4764c8b01d064be7b">&#9670;&#160;</a></span>SetSendMessageCallback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::AgentChatHistoryPopup::SetSendMessageCallback </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a37eadafd97522a58e469ac25c743512e">SendMessageCallback</a>&#160;</td>
+          <td class="paramname"><em>callback</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00061">61</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00118">send_message_callback_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/dde/editor_2agent_2agent__chat__widget_8cc_source.html#l00157">yaze::editor::AgentChatWidget::SetChatHistoryPopup()</a>.</p>
+
+</div>
+</div>
+<a id="a0942f603ff8f588e17be283724fb7747" name="a0942f603ff8f588e17be283724fb7747"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0942f603ff8f588e17be283724fb7747">&#9670;&#160;</a></span>SetCaptureSnapshotCallback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::AgentChatHistoryPopup::SetCaptureSnapshotCallback </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a84ace1e8382de09e0e554867ecb699f0">CaptureSnapshotCallback</a>&#160;</td>
+          <td class="paramname"><em>callback</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00067">67</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00119">capture_snapshot_callback_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/dde/editor_2agent_2agent__chat__widget_8cc_source.html#l00157">yaze::editor::AgentChatWidget::SetChatHistoryPopup()</a>.</p>
+
+</div>
+</div>
+<a id="a277e8f24c7695329be222c401257e86e" name="a277e8f24c7695329be222c401257e86e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a277e8f24c7695329be222c401257e86e">&#9670;&#160;</a></span>DrawHeader()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::AgentChatHistoryPopup::DrawHeader </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00163">163</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00086">compact_mode_</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00112">header_pulse_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00392">ICON_MD_CHAT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01352">ICON_MD_OPEN_IN_NEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02038">ICON_MD_UNFOLD_LESS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02039">ICON_MD_UNFOLD_MORE</a>, <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2af76ed811b18a86459694dacf3347d438">yaze::cli::agent::ChatMessage::kAgent</a>, <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2afad6657cb04032874429899f0f45eb98">kAgentOnly</a>, <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2a3ea6f9f6140b78f0c5a050d926097f56">yaze::cli::agent::ChatMessage::kUser</a>, <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2a1a821ac3683242e6ca14989ce03d2601">kUserOnly</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00109">message_filter_</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00090">messages_</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00117">open_chat_callback_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00029">Draw()</a>.</p>
 
 </div>
 </div>
@@ -611,11 +769,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00106">106</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00091">91</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00074">display_limit_</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00132">DrawMessage()</a>, <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2af76ed811b18a86459694dacf3347d438">yaze::cli::agent::ChatMessage::kAgent</a>, <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2afad6657cb04032874429899f0f45eb98">kAgentOnly</a>, <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2a3ea6f9f6140b78f0c5a050d926097f56">yaze::cli::agent::ChatMessage::kUser</a>, <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2a1a821ac3683242e6ca14989ce03d2601">kUserOnly</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00088">message_filter_</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00073">messages_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00091">display_limit_</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00117">DrawMessage()</a>, <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2af76ed811b18a86459694dacf3347d438">yaze::cli::agent::ChatMessage::kAgent</a>, <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2afad6657cb04032874429899f0f45eb98">kAgentOnly</a>, <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2a3ea6f9f6140b78f0c5a050d926097f56">yaze::cli::agent::ChatMessage::kUser</a>, <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2a1a821ac3683242e6ca14989ce03d2601">kUserOnly</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00109">message_filter_</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00090">messages_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00022">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00029">Draw()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -663,16 +821,16 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00132">132</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00117">117</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00519">ICON_MD_DATA_OBJECT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01413">ICON_MD_PERSON</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01510">ICON_MD_PREVIEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01779">ICON_MD_SMART_TOY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01931">ICON_MD_TABLE_CHART</a>, <a class="el" href="../../d1/dad/conversational__agent__service_8h_source.html#l00038">yaze::cli::agent::ChatMessage::json_pretty</a>, <a class="el" href="../../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2a3ea6f9f6140b78f0c5a050d926097f56">yaze::cli::agent::ChatMessage::kUser</a>, <a class="el" href="../../d1/dad/conversational__agent__service_8h_source.html#l00036">yaze::cli::agent::ChatMessage::message</a>, <a class="el" href="../../d1/dad/conversational__agent__service_8h_source.html#l00052">yaze::cli::agent::ChatMessage::proposal</a>, <a class="el" href="../../d1/dad/conversational__agent__service_8h_source.html#l00035">yaze::cli::agent::ChatMessage::sender</a>, <a class="el" href="../../d1/dad/conversational__agent__service_8h_source.html#l00039">yaze::cli::agent::ChatMessage::table_data</a>, and <a class="el" href="../../d1/dad/conversational__agent__service_8h_source.html#l00037">yaze::cli::agent::ChatMessage::timestamp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00106">DrawMessageList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00091">DrawMessageList()</a>.</p>
 
 </div>
 </div>
-<a id="a47d886ef15ad06c3c72a61eb035bcfad" name="a47d886ef15ad06c3c72a61eb035bcfad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a47d886ef15ad06c3c72a61eb035bcfad">&#9670;&#160;</a></span>DrawActionButtons()</h2>
+<a id="a2aea4bc1b9dc64c63eb94782529b739e" name="a2aea4bc1b9dc64c63eb94782529b739e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2aea4bc1b9dc64c63eb94782529b739e">&#9670;&#160;</a></span>DrawInputSection()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -681,7 +839,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::editor::AgentChatHistoryPopup::DrawActionButtons </td>
+          <td class="memname">void yaze::editor::AgentChatHistoryPopup::DrawInputSection </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -694,21 +852,106 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00178">178</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00290">290</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00211">ClearHistory()</a>, and <a class="el" href="../../de/dbf/icons_8h_source.html#l00528">ICON_MD_DELETE</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00095">focus_input_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01681">ICON_MD_SEND</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00094">input_buffer_</a>, and <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00340">SendMessage()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00022">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00029">Draw()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a47d886ef15ad06c3c72a61eb035bcfad_cgraph.png" border="0" usemap="#ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a47d886ef15ad06c3c72a61eb035bcfad_cgraph" alt=""/></div>
-<map name="ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a47d886ef15ad06c3c72a61eb035bcfad_cgraph" id="ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a47d886ef15ad06c3c72a61eb035bcfad_cgraph">
+<div class="center"><img src="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a2aea4bc1b9dc64c63eb94782529b739e_cgraph.png" border="0" usemap="#ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a2aea4bc1b9dc64c63eb94782529b739e_cgraph" alt=""/></div>
+<map name="ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a2aea4bc1b9dc64c63eb94782529b739e_cgraph" id="ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a2aea4bc1b9dc64c63eb94782529b739e_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,199,46"/>
+<area shape="rect" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a506fd4e551e74ef1ead865d3a6a1d2d0" title=" " alt="" coords="247,5,440,46"/>
+<area shape="poly" title=" " alt="" coords="199,23,231,23,231,28,199,28"/>
+<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="488,5,662,46"/>
+<area shape="poly" title=" " alt="" coords="441,23,472,23,472,28,441,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a35e9bbbc13647d0b33c985f2695acf7e" name="a35e9bbbc13647d0b33c985f2695acf7e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a35e9bbbc13647d0b33c985f2695acf7e">&#9670;&#160;</a></span>DrawQuickActions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::AgentChatHistoryPopup::DrawQuickActions </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00236">236</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00119">capture_snapshot_callback_</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00376">ClearHistory()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00352">ICON_MD_CAMERA</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00528">ICON_MD_DELETE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00766">ICON_MD_FILTER_LIST</a>, <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2afad6657cb04032874429899f0f45eb98">kAgentOnly</a>, <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2a34bdbffdb1c0e1b603f58fc0d49548b6">kAll</a>, <a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2a1a821ac3683242e6ca14989ce03d2601">kUserOnly</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00109">message_filter_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00029">Draw()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a35e9bbbc13647d0b33c985f2695acf7e_cgraph.png" border="0" usemap="#ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a35e9bbbc13647d0b33c985f2695acf7e_cgraph" alt=""/></div>
+<map name="ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a35e9bbbc13647d0b33c985f2695acf7e_cgraph" id="ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a35e9bbbc13647d0b33c985f2695acf7e_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,199,46"/>
 <area shape="rect" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#abf6589fb7b562573b0e33b63bc7416b9" title=" " alt="" coords="247,5,440,46"/>
 <area shape="poly" title=" " alt="" coords="199,23,231,23,231,28,199,28"/>
 <area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="488,5,662,46"/>
 <area shape="poly" title=" " alt="" coords="441,23,472,23,472,28,441,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a506fd4e551e74ef1ead865d3a6a1d2d0" name="a506fd4e551e74ef1ead865d3a6a1d2d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a506fd4e551e74ef1ead865d3a6a1d2d0">&#9670;&#160;</a></span>SendMessage()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::AgentChatHistoryPopup::SendMessage </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>message</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00340">340</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l01681">ICON_MD_SEND</a>, <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a8c632159fa131f09d04f94e3cbcd8782">yaze::editor::kSuccess</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00084">needs_scroll_</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00118">send_message_callback_</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00116">toast_manager_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00290">DrawInputSection()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a506fd4e551e74ef1ead865d3a6a1d2d0_cgraph.png" border="0" usemap="#ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a506fd4e551e74ef1ead865d3a6a1d2d0_cgraph" alt=""/></div>
+<map name="ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a506fd4e551e74ef1ead865d3a6a1d2d0_cgraph" id="ad2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup_a506fd4e551e74ef1ead865d3a6a1d2d0_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,199,46"/>
+<area shape="rect" href="../../d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="247,5,421,46"/>
+<area shape="poly" title=" " alt="" coords="199,23,231,23,231,28,199,28"/>
 </map>
 </div>
 
@@ -737,11 +980,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00211">211</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00376">376</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00073">messages_</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00091">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00090">messages_</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00116">toast_manager_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00178">DrawActionButtons()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00236">DrawQuickActions()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -779,9 +1022,9 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000031">Todo:</a></b></dt><dd>Implement export functionality </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00219">219</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00384">384</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00091">toast_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7a176a473e63c17ccdac91640c67f149bf">yaze::editor::kInfo</a>, <a class="el" href="../../de/d7d/toast__manager_8h_source.html#l00022">yaze::editor::ToastManager::Show()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00116">toast_manager_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -818,9 +1061,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00226">226</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00391">391</a> of file <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html">agent_chat_history_popup.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00069">needs_scroll_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00084">needs_scroll_</a>.</p>
 
 </div>
 </div>
@@ -845,9 +1088,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00068">68</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00083">83</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00022">Draw()</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00043">Hide()</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00045">IsVisible()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00200">NotifyNewMessage()</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00042">Show()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00044">Toggle()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00029">Draw()</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00043">Hide()</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00045">IsVisible()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00365">NotifyNewMessage()</a>, <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00042">Show()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00044">Toggle()</a>.</p>
 
 </div>
 </div>
@@ -871,9 +1114,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00069">69</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00084">84</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00022">Draw()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00200">NotifyNewMessage()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00226">ScrollToBottom()</a>, and <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00188">UpdateHistory()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00029">Draw()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00365">NotifyNewMessage()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00391">ScrollToBottom()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00340">SendMessage()</a>, and <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00353">UpdateHistory()</a>.</p>
 
 </div>
 </div>
@@ -897,9 +1140,61 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00070">70</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00085">85</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00022">Draw()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00200">NotifyNewMessage()</a>, and <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00188">UpdateHistory()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00365">NotifyNewMessage()</a>, and <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00353">UpdateHistory()</a>.</p>
+
+</div>
+</div>
+<a id="a24aab08c2fcdcc9183c893dc00cd3164" name="a24aab08c2fcdcc9183c893dc00cd3164"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24aab08c2fcdcc9183c893dc00cd3164">&#9670;&#160;</a></span>compact_mode_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::AgentChatHistoryPopup::compact_mode_ = true</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00086">86</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00163">DrawHeader()</a>.</p>
+
+</div>
+</div>
+<a id="a8e82bfc257191d7887c6edbc84bbd2f0" name="a8e82bfc257191d7887c6edbc84bbd2f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8e82bfc257191d7887c6edbc84bbd2f0">&#9670;&#160;</a></span>show_quick_actions_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::AgentChatHistoryPopup::show_quick_actions_ = true</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00087">87</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00029">Draw()</a>.</p>
 
 </div>
 </div>
@@ -923,9 +1218,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00073">73</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00090">90</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00211">ClearHistory()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00022">Draw()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00106">DrawMessageList()</a>, and <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00188">UpdateHistory()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00376">ClearHistory()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00163">DrawHeader()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00091">DrawMessageList()</a>, and <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00353">UpdateHistory()</a>.</p>
 
 </div>
 </div>
@@ -949,9 +1244,61 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00074">74</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00091">91</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00106">DrawMessageList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00091">DrawMessageList()</a>.</p>
+
+</div>
+</div>
+<a id="a938fc8eeb14a46852784aecfcf7498a8" name="a938fc8eeb14a46852784aecfcf7498a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a938fc8eeb14a46852784aecfcf7498a8">&#9670;&#160;</a></span>input_buffer_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">char yaze::editor::AgentChatHistoryPopup::input_buffer_[512] = {}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00094">94</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00025">AgentChatHistoryPopup()</a>, and <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00290">DrawInputSection()</a>.</p>
+
+</div>
+</div>
+<a id="ab1f648d85720d9815c174762f5f7ee87" name="ab1f648d85720d9815c174762f5f7ee87"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab1f648d85720d9815c174762f5f7ee87">&#9670;&#160;</a></span>focus_input_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::AgentChatHistoryPopup::focus_input_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00095">95</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00290">DrawInputSection()</a>.</p>
 
 </div>
 </div>
@@ -965,7 +1312,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">float yaze::editor::AgentChatHistoryPopup::drawer_width_ = 400.0f</td>
+          <td class="memname">float yaze::editor::AgentChatHistoryPopup::drawer_width_ = 420.0f</td>
         </tr>
       </table>
   </td>
@@ -975,9 +1322,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00077">77</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00098">98</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00022">Draw()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00029">Draw()</a>.</p>
 
 </div>
 </div>
@@ -1001,7 +1348,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00078">78</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00099">99</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
 </div>
 </div>
@@ -1015,7 +1362,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">float yaze::editor::AgentChatHistoryPopup::max_drawer_width_ = 600.0f</td>
+          <td class="memname">float yaze::editor::AgentChatHistoryPopup::max_drawer_width_ = 700.0f</td>
         </tr>
       </table>
   </td>
@@ -1025,7 +1372,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00079">79</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00100">100</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
 </div>
 </div>
@@ -1049,7 +1396,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00080">80</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00101">101</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
 </div>
 </div>
@@ -1073,9 +1420,59 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00088">88</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00109">109</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00022">Draw()</a>, and <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00106">DrawMessageList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00163">DrawHeader()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00091">DrawMessageList()</a>, and <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00236">DrawQuickActions()</a>.</p>
+
+</div>
+</div>
+<a id="af9bbb7a2d109318c4d9d40f17318d6b5" name="af9bbb7a2d109318c4d9d40f17318d6b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9bbb7a2d109318c4d9d40f17318d6b5">&#9670;&#160;</a></span>header_pulse_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">float yaze::editor::AgentChatHistoryPopup::header_pulse_ = 0.0f</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00112">112</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00029">Draw()</a>, and <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00163">DrawHeader()</a>.</p>
+
+</div>
+</div>
+<a id="a0c3fc52634a0a101ed8841047c115b2a" name="a0c3fc52634a0a101ed8841047c115b2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c3fc52634a0a101ed8841047c115b2a">&#9670;&#160;</a></span>unread_count_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int yaze::editor::AgentChatHistoryPopup::unread_count_ = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00113">113</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
 </div>
 </div>
@@ -1099,9 +1496,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00091">91</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00116">116</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00211">ClearHistory()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00022">Draw()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00219">ExportHistory()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00200">NotifyNewMessage()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00034">SetToastManager()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00376">ClearHistory()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00384">ExportHistory()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00365">NotifyNewMessage()</a>, <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00340">SendMessage()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00034">SetToastManager()</a>.</p>
 
 </div>
 </div>
@@ -1125,9 +1522,61 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00092">92</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00117">117</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00022">Draw()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00055">SetOpenChatCallback()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00163">DrawHeader()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00055">SetOpenChatCallback()</a>.</p>
+
+</div>
+</div>
+<a id="a72f960708c5d29cc41c78c5d35450e24" name="a72f960708c5d29cc41c78c5d35450e24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72f960708c5d29cc41c78c5d35450e24">&#9670;&#160;</a></span>send_message_callback_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a37eadafd97522a58e469ac25c743512e">SendMessageCallback</a> yaze::editor::AgentChatHistoryPopup::send_message_callback_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00118">118</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00340">SendMessage()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00061">SetSendMessageCallback()</a>.</p>
+
+</div>
+</div>
+<a id="a53ed72ae8daba14a3f6beed88401408b" name="a53ed72ae8daba14a3f6beed88401408b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53ed72ae8daba14a3f6beed88401408b">&#9670;&#160;</a></span>capture_snapshot_callback_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a84ace1e8382de09e0e554867ecb699f0">CaptureSnapshotCallback</a> yaze::editor::AgentChatHistoryPopup::capture_snapshot_callback_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00119">119</a> of file <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html">agent_chat_history_popup.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d8/d92/agent__chat__history__popup_8cc_source.html#l00236">DrawQuickActions()</a>, and <a class="el" href="../../d7/d6b/agent__chat__history__popup_8h_source.html#l00067">SetCaptureSnapshotCallback()</a>.</p>
 
 </div>
 </div>

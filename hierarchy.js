@@ -34,6 +34,7 @@ var hierarchy =
     [ "yaze::core::AsarWrapper", "da/dd2/classyaze_1_1core_1_1AsarWrapper.html", null ],
     [ "yaze::emu::AsmParser", "da/dbc/classyaze_1_1emu_1_1AsmParser.html", null ],
     [ "yaze::cli::AssertionOutcome", "d4/dae/structyaze_1_1cli_1_1AssertionOutcome.html", null ],
+    [ "yaze::core::AssetLoader", "d9/d5b/classyaze_1_1core_1_1AssetLoader.html", null ],
     [ "yaze::gui::AssetObject", "d5/d23/structyaze_1_1gui_1_1AssetObject.html", [
       [ "yaze::gui::DungeonAsset", "d6/d87/structyaze_1_1gui_1_1DungeonAsset.html", null ],
       [ "yaze::gui::OverworldAsset", "d7/d14/structyaze_1_1gui_1_1OverworldAsset.html", null ],

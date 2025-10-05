@@ -1,7 +1,9 @@
 <map id="yaze::editor::AgentEditor::DrawPromptEditorPanel" name="yaze::editor::AgentEditor::DrawPromptEditorPanel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,171,68"/>
-<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#af39466acaa761050d58692560db0f3e6" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="219,5,438,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,35,203,31,204,36,171,40"/>
-<area shape="rect" id="Node000003" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="241,55,416,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="171,54,226,61,225,66,171,60"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,171,79"/>
+<area shape="rect" id="Node000002" href="$d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a5ecd67e5ff824200bdb92a3083fd32b1" title=" " alt="" coords="227,5,385,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,44,211,37,212,43,172,49"/>
+<area shape="rect" id="Node000006" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="219,71,393,111"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="172,69,204,73,203,79,171,74"/>
+<area shape="rect" id="Node000003" href="$d9/d5b/classyaze_1_1core_1_1AssetLoader.html#aafa8da7c8efe78053dd89e43dd0b8e84" title=" " alt="" coords="441,5,599,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="385,23,426,23,426,28,385,28"/>
 </map>

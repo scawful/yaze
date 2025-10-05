@@ -183,6 +183,7 @@ var annotated_dup =
         [ "AsarPatchResult", "de/d0c/structyaze_1_1core_1_1AsarPatchResult.html", "de/d0c/structyaze_1_1core_1_1AsarPatchResult" ],
         [ "AsarSymbol", "de/da4/structyaze_1_1core_1_1AsarSymbol.html", "de/da4/structyaze_1_1core_1_1AsarSymbol" ],
         [ "AsarWrapper", "da/dd2/classyaze_1_1core_1_1AsarWrapper.html", "da/dd2/classyaze_1_1core_1_1AsarWrapper" ],
+        [ "AssetLoader", "d9/d5b/classyaze_1_1core_1_1AssetLoader.html", null ],
         [ "Controller", "d4/d84/classyaze_1_1core_1_1Controller.html", "d4/d84/classyaze_1_1core_1_1Controller" ],
         [ "FeatureFlags", "d8/d3f/classyaze_1_1core_1_1FeatureFlags.html", "d8/d3f/classyaze_1_1core_1_1FeatureFlags" ],
         [ "FontConfig", "d6/d2f/structyaze_1_1core_1_1FontConfig.html", "d6/d2f/structyaze_1_1core_1_1FontConfig" ],

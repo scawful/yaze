@@ -117,6 +117,7 @@ var namespaceyaze_1_1cli_1_1agent =
     [ "HandleMessageListCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aee328822b63b38646c3b8284f3fe01ee", null ],
     [ "HandleMessageReadCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab70ac6f409f576ced9a92c8e8a8514a7", null ],
     [ "HandleMessageSearchCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ad185639839873e6666c4499b3156dfef", null ],
+    [ "HandleGuiPlaceTileCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a76ead55b8322b7d277768ae223badec0", null ],
     [ "HandleChatCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ab9c0a392ce6c066aca8d36eac12dc2b9", null ],
     [ "HandleSimpleChatCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa5dce5122f99bd7671e44280148683fb", null ],
     [ "HandleTestConversationCommand", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a815e0cf4982c5a6618608dfd1198645b", null ],

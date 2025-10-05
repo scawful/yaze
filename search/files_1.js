@@ -10,7 +10,7 @@ var searchData=
   ['agent_5fchat_5fhistory_5fpopup_2ecc_7',['agent_chat_history_popup.cc',['../d8/d92/agent__chat__history__popup_8cc.html',1,'']]],
   ['agent_5fchat_5fhistory_5fpopup_2eh_8',['agent_chat_history_popup.h',['../d7/d6b/agent__chat__history__popup_8h.html',1,'']]],
   ['agent_5fchat_5fwidget_2ecc_9',['agent_chat_widget.cc',['../d4/d0a/gui_2widgets_2agent__chat__widget_8cc.html',1,'(Global Namespace)'],['../d5/dde/editor_2agent_2agent__chat__widget_8cc.html',1,'(Global Namespace)']]],
-  ['agent_5fchat_5fwidget_2eh_10',['agent_chat_widget.h',['../d6/dae/gui_2widgets_2agent__chat__widget_8h.html',1,'(Global Namespace)'],['../d1/dee/editor_2agent_2agent__chat__widget_8h.html',1,'(Global Namespace)']]],
+  ['agent_5fchat_5fwidget_2eh_10',['agent_chat_widget.h',['../d1/dee/editor_2agent_2agent__chat__widget_8h.html',1,'(Global Namespace)'],['../d6/dae/gui_2widgets_2agent__chat__widget_8h.html',1,'(Global Namespace)']]],
   ['agent_5fcollaboration_5fcoordinator_2ecc_11',['agent_collaboration_coordinator.cc',['../d0/daa/agent__collaboration__coordinator_8cc.html',1,'']]],
   ['agent_5fcollaboration_5fcoordinator_2eh_12',['agent_collaboration_coordinator.h',['../d2/d25/agent__collaboration__coordinator_8h.html',1,'']]],
   ['agent_5feditor_2ecc_13',['agent_editor.cc',['../d5/d8c/agent__editor_8cc.html',1,'']]],
@@ -41,9 +41,11 @@ var searchData=
   ['assembly_5feditor_2eh_38',['assembly_editor.h',['../d6/dad/assembly__editor_8h.html',1,'']]],
   ['asset_5fbrowser_2ecc_39',['asset_browser.cc',['../d4/d4a/asset__browser_8cc.html',1,'']]],
   ['asset_5fbrowser_2eh_40',['asset_browser.h',['../d0/d16/asset__browser_8h.html',1,'']]],
-  ['atlas_5frenderer_2ecc_41',['atlas_renderer.cc',['../dd/d53/atlas__renderer_8cc.html',1,'']]],
-  ['atlas_5frenderer_2eh_42',['atlas_renderer.h',['../d1/d35/atlas__renderer_8h.html',1,'']]],
-  ['autocomplete_2ecc_43',['autocomplete.cc',['../d1/d90/autocomplete_8cc.html',1,'']]],
-  ['autocomplete_2eh_44',['autocomplete.h',['../d7/d82/autocomplete_8h.html',1,'']]],
-  ['autocomplete_5fui_2ecc_45',['autocomplete_ui.cc',['../df/dc9/autocomplete__ui_8cc.html',1,'']]]
+  ['asset_5floader_2ecc_41',['asset_loader.cc',['../db/d08/asset__loader_8cc.html',1,'']]],
+  ['asset_5floader_2eh_42',['asset_loader.h',['../d8/dd0/asset__loader_8h.html',1,'']]],
+  ['atlas_5frenderer_2ecc_43',['atlas_renderer.cc',['../dd/d53/atlas__renderer_8cc.html',1,'']]],
+  ['atlas_5frenderer_2eh_44',['atlas_renderer.h',['../d1/d35/atlas__renderer_8h.html',1,'']]],
+  ['autocomplete_2ecc_45',['autocomplete.cc',['../d1/d90/autocomplete_8cc.html',1,'']]],
+  ['autocomplete_2eh_46',['autocomplete.h',['../d7/d82/autocomplete_8h.html',1,'']]],
+  ['autocomplete_5fui_2ecc_47',['autocomplete_ui.cc',['../df/dc9/autocomplete__ui_8cc.html',1,'']]]
 ];

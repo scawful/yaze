@@ -1,6 +1,6 @@
-<map id="yaze::editor::AgentChatHistoryPopup::DrawActionButtons" name="yaze::editor::AgentChatHistoryPopup::DrawActionButtons">
+<map id="yaze::editor::AgentChatHistoryPopup::DrawInputSection" name="yaze::editor::AgentChatHistoryPopup::DrawInputSection">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,199,46"/>
-<area shape="rect" id="Node000002" href="$d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#abf6589fb7b562573b0e33b63bc7416b9" title=" " alt="" coords="247,5,440,46"/>
+<area shape="rect" id="Node000002" href="$d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a506fd4e551e74ef1ead865d3a6a1d2d0" title=" " alt="" coords="247,5,440,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,23,231,23,231,28,199,28"/>
 <area shape="rect" id="Node000003" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="488,5,662,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="441,23,472,23,472,28,441,28"/>

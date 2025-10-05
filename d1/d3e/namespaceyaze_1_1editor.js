@@ -4,7 +4,10 @@ var namespaceyaze_1_1editor =
     [ "anonymous_namespace{agent_chat_history_popup.cc}", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html", [
       [ "kUserColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a2b94ba6c837031179d36ed6b174479d3", null ],
       [ "kAgentColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a119561673433949cbd6e2aea56b5c07c", null ],
-      [ "kTimestampColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#aacf4200246379938a928209db1b42884", null ]
+      [ "kTimestampColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#aacf4200246379938a928209db1b42884", null ],
+      [ "kAccentColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a2284f6aa84b3adae2b058d31ff111d4c", null ],
+      [ "kBackgroundColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a8f424b135c71d64e1c102979db67158b", null ],
+      [ "kHeaderColor", "d6/dac/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__chat__history__popup_8cc_03.html#a206934959b4d8ad6734f707edece8d5f", null ]
     ] ],
     [ "anonymous_namespace{agent_collaboration_coordinator.cc}", "dc/d0a/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__collaboration__coordinator_8cc_03.html", [
       [ "ExpandUserPath", "dc/d0a/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__collaboration__coordinator_8cc_03.html#a4fc792052e179669716d31413c174cc9", null ],
