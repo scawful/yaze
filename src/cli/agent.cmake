@@ -73,6 +73,8 @@ set(YAZE_AGENT_SOURCES
   cli/service/agent/learned_knowledge_service.cc
   cli/service/ai/ai_service.cc
   cli/service/ai/ai_action_parser.cc
+  cli/service/ai/vision_action_refiner.cc
+  cli/service/ai/ai_gui_controller.cc
   cli/service/ai/ollama_ai_service.cc
   cli/service/ai/prompt_builder.cc
   cli/service/ai/service_factory.cc
