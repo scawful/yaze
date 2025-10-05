@@ -4,7 +4,7 @@
 #include <fstream>
 #include <vector>
 
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/core/window.h"
 #include "app/emu/cpu/internal/opcodes.h"
 #include "app/gui/icons.h"
@@ -316,7 +316,7 @@ void Emulator::RenderNavBar() {
   }
 
   if (open_file) {
-    auto file_name = core::FileDialogWrapper::ShowOpenFileDialog();
+    auto file_name = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!file_name.empty()) {
       std::ifstream file(file_name, std::ios::binary);
       // Load the data directly into rom_data

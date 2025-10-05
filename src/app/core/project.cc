@@ -9,7 +9,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/gui/icons.h"
 #include "app/zelda3/zelda3_labels.h"
 #include "imgui/imgui.h"

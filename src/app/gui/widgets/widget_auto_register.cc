@@ -1,4 +1,4 @@
-#include "app/gui/widget_auto_register.h"
+#include "app/gui/widgets/widget_auto_register.h"
 
 #include <vector>
 

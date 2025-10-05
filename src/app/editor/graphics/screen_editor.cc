@@ -7,7 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "app/gfx/performance_profiler.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/atlas_renderer.h"
@@ -474,7 +474,7 @@ void ScreenEditor::DrawDungeonMapsEditor() {
 }
 
 void ScreenEditor::LoadBinaryGfx() {
-  std::string bin_file = core::FileDialogWrapper::ShowOpenFileDialog();
+  std::string bin_file = util::FileDialogWrapper::ShowOpenFileDialog();
   if (!bin_file.empty()) {
     std::ifstream file(bin_file, std::ios::binary);
     if (file.is_open()) {

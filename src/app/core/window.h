@@ -7,7 +7,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/core/platform/sdl_deleter.h"
+#include "util/sdl_deleter.h"
 #include "app/gfx/bitmap.h"
 
 namespace yaze {

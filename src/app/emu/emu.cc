@@ -11,11 +11,11 @@
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
 #include "absl/status/status.h"
-#include "app/core/platform/sdl_deleter.h"
+#include "util/sdl_deleter.h"
 #include "app/emu/snes.h"
 #include "app/rom.h"
 
-using yaze::core::SDL_Deleter;
+using yaze::util::SDL_Deleter;
 
 int main(int argc, char **argv) {
   absl::InitializeSymbolizer(argv[0]);

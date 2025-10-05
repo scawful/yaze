@@ -7,7 +7,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/gfx/performance_profiler.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/core/window.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
@@ -243,7 +243,7 @@ void MessageEditor::DrawExpandedMessageSettings() {
   ImGui::Text("Expanded Messages");
   static std::string expanded_message_path = "";
   if (ImGui::Button("Load Expanded Message")) {
-    expanded_message_path = core::FileDialogWrapper::ShowOpenFileDialog();
+    expanded_message_path = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!expanded_message_path.empty()) {
       if (!LoadExpandedMessages(expanded_message_path, parsed_messages_,
                                 expanded_messages_,

@@ -10,14 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-
-#ifdef _WIN32
-#include <direct.h>
-#define mkdir(path, mode) _mkdir(path)
-#else
-#include <sys/stat.h>
-#include <sys/types.h>
-#endif
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace cli {
@@ -36,25 +29,26 @@ std::string GenerateRandomID() {
 }
 
 bool FileExists(const std::filesystem::path& path) {
-  return std::filesystem::exists(path);
-}
-
-absl::Status EnsureDirectoryExists(const std::filesystem::path& path) {
-  if (!std::filesystem::exists(path)) {
-    std::error_code ec;
-    if (!std::filesystem::create_directories(path, ec)) {
-      return absl::InternalError(
-          absl::StrCat("Failed to create directory: ", path.string(),
-                      " - ", ec.message()));
-    }
-  }
-  return absl::OkStatus();
+  return util::PlatformPaths::Exists(path);
 }
 
 }  // namespace
 
-LearnedKnowledgeService::LearnedKnowledgeService()
-    : LearnedKnowledgeService(std::filesystem::path(getenv("HOME") ? getenv("HOME") : ".") / ".yaze" / "agent") {}
+LearnedKnowledgeService::LearnedKnowledgeService() {
+  // Get app data directory in a cross-platform way
+  auto app_data_result = util::PlatformPaths::GetAppDataSubdirectory("agent");
+  if (app_data_result.ok()) {
+    data_dir_ = *app_data_result;
+  } else {
+    // Fallback to current directory
+    data_dir_ = std::filesystem::current_path() / ".yaze" / "agent";
+  }
+  
+  prefs_file_ = data_dir_ / "preferences.json";
+  patterns_file_ = data_dir_ / "patterns.json";
+  projects_file_ = data_dir_ / "projects.json";
+  memories_file_ = data_dir_ / "memories.json";
+}
 
 LearnedKnowledgeService::LearnedKnowledgeService(
     const std::filesystem::path& data_dir)
@@ -70,7 +64,7 @@ absl::Status LearnedKnowledgeService::Initialize() {
   }
   
   // Ensure data directory exists
-  auto status = EnsureDirectoryExists(data_dir_);
+  auto status = util::PlatformPaths::EnsureDirectoryExists(data_dir_);
   if (!status.ok()) {
     return status;
   }

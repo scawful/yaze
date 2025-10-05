@@ -6,7 +6,7 @@
 
 #include "absl/strings/string_view.h"
 #include "app/core/proto/imgui_test_harness.pb.h"
-#include "app/gui/widget_id_registry.h"
+#include "app/gui/widgets/widget_id_registry.h"
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_context.h"

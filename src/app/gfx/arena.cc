@@ -2,7 +2,7 @@
 
 #include <SDL.h>
 
-#include "app/core/platform/sdl_deleter.h"
+#include "util/sdl_deleter.h"
 
 namespace yaze {
 namespace gfx {
@@ -58,7 +58,7 @@ SDL_Texture* Arena::AllocateTexture(SDL_Renderer* renderer, int width,
       
       // Store in hash map with automatic cleanup
       textures_[texture] =
-          std::unique_ptr<SDL_Texture, core::SDL_Texture_Deleter>(texture);
+          std::unique_ptr<SDL_Texture, util::SDL_Texture_Deleter>(texture);
       return texture;
     }
   }
@@ -146,9 +146,9 @@ void Arena::UpdateTexture(SDL_Texture* texture, SDL_Surface* surface) {
 
   // Convert surface to RGBA8888 format for texture compatibility
   auto converted_surface =
-      std::unique_ptr<SDL_Surface, core::SDL_Surface_Deleter>(
+      std::unique_ptr<SDL_Surface, util::SDL_Surface_Deleter>(
           SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA8888, 0),
-          core::SDL_Surface_Deleter());
+          util::SDL_Surface_Deleter());
 
   if (!converted_surface) {
     SDL_Log("SDL_ConvertSurfaceFormat failed: %s", SDL_GetError());
@@ -228,7 +228,7 @@ SDL_Surface* Arena::AllocateSurface(int width, int height, int depth,
       
       // Store in hash map with automatic cleanup
       surfaces_[surface] =
-          std::unique_ptr<SDL_Surface, core::SDL_Surface_Deleter>(surface);
+          std::unique_ptr<SDL_Surface, util::SDL_Surface_Deleter>(surface);
       return surface;
     }
   }
@@ -278,7 +278,7 @@ SDL_Texture* Arena::CreateNewTexture(SDL_Renderer* renderer, int width, int heig
 
   // Store in hash map with automatic cleanup
   textures_[texture] =
-      std::unique_ptr<SDL_Texture, core::SDL_Texture_Deleter>(texture);
+      std::unique_ptr<SDL_Texture, util::SDL_Texture_Deleter>(texture);
   return texture;
 }
 
@@ -300,7 +300,7 @@ SDL_Surface* Arena::CreateNewSurface(int width, int height, int depth, int forma
 
   // Store in hash map with automatic cleanup
   surfaces_[surface] =
-      std::unique_ptr<SDL_Surface, core::SDL_Surface_Deleter>(surface);
+      std::unique_ptr<SDL_Surface, util::SDL_Surface_Deleter>(surface);
   return surface;
 }
 
@@ -327,9 +327,9 @@ void Arena::UpdateTextureRegion(SDL_Texture* texture, SDL_Surface* surface, SDL_
 
   // Convert surface to RGBA8888 format for texture compatibility
   auto converted_surface =
-      std::unique_ptr<SDL_Surface, core::SDL_Surface_Deleter>(
+      std::unique_ptr<SDL_Surface, util::SDL_Surface_Deleter>(
           SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA8888, 0),
-          core::SDL_Surface_Deleter());
+          util::SDL_Surface_Deleter());
 
   if (!converted_surface) {
     return;

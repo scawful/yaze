@@ -3,7 +3,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/core/platform/font_loader.h"
-#include "app/core/platform/sdl_deleter.h"
+#include "util/sdl_deleter.h"
 #include "app/gfx/arena.h"
 #include "app/gui/style.h"
 #include "app/gui/theme_manager.h"

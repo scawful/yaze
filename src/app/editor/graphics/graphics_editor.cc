@@ -5,7 +5,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
@@ -549,7 +549,7 @@ absl::Status GraphicsEditor::DrawCgxImport() {
   SameLine();
 
   if (ImGui::Button("Open CGX")) {
-    auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+    auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     cgx_file_name_ = filename;
     cgx_file_path_ = std::filesystem::absolute(filename).string();
     is_open_ = true;
@@ -578,7 +578,7 @@ absl::Status GraphicsEditor::DrawScrImport() {
   InputText("##ScrFile", &scr_file_name_);
 
   if (ImGui::Button("Open SCR")) {
-    auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+    auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     scr_file_name_ = filename;
     scr_file_path_ = std::filesystem::absolute(filename).string();
     is_open_ = true;
@@ -610,7 +610,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   SameLine();
 
   if (ImGui::Button("Open COL")) {
-    auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+    auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     col_file_name_ = filename;
     col_file_path_ = std::filesystem::absolute(filename).string();
     status_ = temp_rom_.LoadFromFile(col_file_path_,
@@ -659,7 +659,7 @@ absl::Status GraphicsEditor::DrawObjImport() {
   SameLine();
 
   if (ImGui::Button("Open OBJ")) {
-    auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+    auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     obj_file_path_ = std::filesystem::absolute(filename).string();
     status_ = temp_rom_.LoadFromFile(obj_file_path_);
     is_open_ = true;
@@ -677,7 +677,7 @@ absl::Status GraphicsEditor::DrawTilemapImport() {
   SameLine();
 
   if (ImGui::Button("Open Tilemap")) {
-    auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+    auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     tilemap_file_path_ = std::filesystem::absolute(filename).string();
     status_ = tilemap_rom_.LoadFromFile(tilemap_file_path_);
     status_ = tilemap_rom_.LoadFromFile(tilemap_file_path_);
@@ -700,7 +700,7 @@ absl::Status GraphicsEditor::DrawFileImport() {
   SameLine();
 
   if (ImGui::Button("Open BIN")) {
-    auto filename = core::FileDialogWrapper::ShowOpenFileDialog();
+    auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     file_path_ = filename;
     status_ = temp_rom_.LoadFromFile(file_path_);
     is_open_ = true;

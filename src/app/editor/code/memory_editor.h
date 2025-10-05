@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_EDITOR_CODE_MEMORY_EDITOR_H
 #define YAZE_APP_EDITOR_CODE_MEMORY_EDITOR_H
 
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/snes.h"
@@ -25,7 +25,7 @@ struct MemoryEditorWithDiffChecker {
     static Rom comparison_rom;
     ImGui::Begin("Hex Editor", &show_memory_editor);
     if (ImGui::Button("Compare Rom")) {
-      auto file_name = core::FileDialogWrapper::ShowOpenFileDialog();
+      auto file_name = util::FileDialogWrapper::ShowOpenFileDialog();
       PRINT_IF_ERROR(comparison_rom.LoadFromFile(file_name));
       show_compare_rom = true;
     }

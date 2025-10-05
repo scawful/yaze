@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "app/core/platform/sdl_deleter.h"
+#include "util/sdl_deleter.h"
 #include "app/gfx/background_buffer.h"
 
 namespace yaze {
@@ -177,11 +177,11 @@ class Arena {
   std::array<gfx::Bitmap, 223> gfx_sheets_;
 
   std::unordered_map<SDL_Texture*,
-                     std::unique_ptr<SDL_Texture, core::SDL_Texture_Deleter>>
+                     std::unique_ptr<SDL_Texture, util::SDL_Texture_Deleter>>
       textures_;
 
   std::unordered_map<SDL_Surface*,
-                     std::unique_ptr<SDL_Surface, core::SDL_Surface_Deleter>>
+                     std::unique_ptr<SDL_Surface, util::SDL_Surface_Deleter>>
       surfaces_;
 
   // Resource pooling for efficient memory management

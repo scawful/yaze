@@ -1,4 +1,4 @@
-#include "file_dialog.h"
+#include "util/file_util.h"
 
 #ifdef _WIN32
 // Include Windows-specific headers
@@ -18,7 +18,7 @@
 #include "app/core/features.h"
 
 namespace yaze {
-namespace core {
+namespace util {
 
 std::string GetFileExtension(const std::string &filename) {
   size_t dot = filename.find_last_of('.');
@@ -723,5 +723,5 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
 
 #endif
 
-}  // namespace core
+}  // namespace util
 }  // namespace yaze

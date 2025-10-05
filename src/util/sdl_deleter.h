@@ -1,10 +1,10 @@
-#ifndef YAZE_APP_CORE_UTILS_SDL_DELETER_H_
-#define YAZE_APP_CORE_UTILS_SDL_DELETER_H_
+#ifndef YAZE_UTIL_SDL_DELETER_H_
+#define YAZE_UTIL_SDL_DELETER_H_
 
 #include <SDL.h>
 
 namespace yaze {
-namespace core {
+namespace util {
 
 /**
  * @brief Deleter for SDL_Window and SDL_Renderer.
@@ -32,7 +32,7 @@ struct SDL_Texture_Deleter {
   }
 };
 
-}  // namespace core
+}  // namespace util
 }  // namespace yaze
 
-#endif  // YAZE_APP_CORE_UTILS_SDL_DELETER_H_
+#endif  // YAZE_UTIL_SDL_DELETER_H_

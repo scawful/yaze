@@ -10,7 +10,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "util/bps.h"
-#include "app/core/platform/file_dialog.h"
+#include "util/file_util.h"
 #include "app/core/asar_wrapper.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "cli/modern_cli.h"
