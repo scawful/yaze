@@ -16,9 +16,8 @@ set(
   app/gui/widgets/widget_auto_register.cc
   app/gui/widgets/widget_state_capture.cc
   app/gui/ui_helpers.cc
-  app/gui/toolset.cc
-  app/gui/settings_bar.cc
   app/gui/editor_layout.cc
+  app/gui/widget_measurement.cc
   # Canvas system components
   app/gui/canvas/canvas_modals.cc
   app/gui/canvas/canvas_context_menu.cc
