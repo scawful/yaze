@@ -60,6 +60,9 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(
     status = HandleMessageReadCommand(args, rom_context_);
   } else if (tool_call.tool_name == "message-search") {
     status = HandleMessageSearchCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "gui-place-tile") {
+    // GUI automation tool for placing tiles via test harness
+    status = HandleGuiPlaceTileCommand(args, rom_context_);
   } else {
     status = absl::UnimplementedError(
         absl::StrFormat("Unknown tool: %s", tool_call.tool_name));

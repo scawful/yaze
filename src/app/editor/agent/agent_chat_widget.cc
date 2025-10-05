@@ -22,6 +22,7 @@
 #include "app/editor/system/toast_manager.h"
 #include "app/gui/icons.h"
 #include "app/core/project.h"
+#include "app/rom.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
@@ -115,6 +116,30 @@ AgentChatWidget::AgentChatWidget() {
 
 void AgentChatWidget::SetRomContext(Rom* rom) {
   agent_service_.SetRomContext(rom);
+  
+  // ALWAYS initialize embedded labels for resource tools (default Zelda3 labels)
+  if (rom && rom->is_loaded() && rom->resource_label()) {
+    if (!rom->resource_label()->labels_loaded_) {
+      core::YazeProject project;
+      
+      // Initialize embedded default labels (all Zelda3 resources)
+      auto labels_status = project.InitializeEmbeddedLabels();
+      if (labels_status.ok()) {
+        rom->resource_label()->labels_ = project.resource_labels;
+        rom->resource_label()->labels_loaded_ = true;
+        
+        if (toast_manager_) {
+          toast_manager_->Show(
+              ICON_MD_CHECK_CIRCLE " Default Zelda3 labels loaded for AI tools",
+              ToastType::kSuccess, 2.5f);
+        }
+      } else if (toast_manager_) {
+        toast_manager_->Show(
+            ICON_MD_WARNING " Warning: Could not load default labels",
+            ToastType::kWarning, 3.0f);
+      }
+    }
+  }
 }
 
 void AgentChatWidget::SetToastManager(ToastManager* toast_manager) {

@@ -41,9 +41,15 @@ absl::StatusOr<std::filesystem::path> AssetLoader::FindAssetFile(const std::stri
     }
   }
   
+  // Debug: Print searched paths
+  std::string searched_paths;
+  for (const auto& path : search_paths) {
+    searched_paths += "\n  - " + path.string();
+  }
+  
   return absl::NotFoundError(
-      absl::StrFormat("Asset file not found: %s (searched %d paths)", 
-                      relative_path, search_paths.size()));
+      absl::StrFormat("Asset file not found: %s\nSearched paths:%s", 
+                      relative_path, searched_paths));
 }
 
 absl::StatusOr<std::string> AssetLoader::LoadTextFile(const std::string& relative_path) {
