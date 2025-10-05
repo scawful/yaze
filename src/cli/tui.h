@@ -65,6 +65,8 @@ struct Context {
   Rom rom;
   LayoutID current_layout = LayoutID::kMainMenu;
   std::string error_message;
+  bool use_autocomplete = true;
+  bool show_suggestions = true;
 };
 
 static Context app_context;

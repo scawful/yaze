@@ -1098,13 +1098,133 @@ absl::Status EditorManager::DrawRomSelector() {
   return absl::OkStatus();
 }
 
+void EditorManager::BuildModernMenu() {
+  menu_builder_.Clear();
+  
+  // File Menu
+  menu_builder_.BeginMenu("File", ICON_MD_FOLDER)
+    .Item("Open", ICON_MD_FILE_OPEN, 
+          [this]() { status_ = LoadRom(); }, "Ctrl+O")
+    .Item("Save", ICON_MD_SAVE,
+          [this]() { status_ = SaveRom(); }, "Ctrl+S",
+          [this]() { return current_rom_ && current_rom_->is_loaded(); })
+    .Item("Save As...", ICON_MD_SAVE_AS,
+          [this]() { popup_manager_->Show("Save As.."); })
+    .Separator()
+    .BeginSubMenu("Project", ICON_MD_FOLDER_SPECIAL)
+      .Item("New Project", ICON_MD_CREATE_NEW_FOLDER,
+            [this]() { status_ = CreateNewProject(); })
+      .Item("Open Project", ICON_MD_FOLDER_OPEN,
+            [this]() { status_ = OpenProject(); })
+      .EndMenu()
+    .Separator()
+    .Item("Quit", ICON_MD_EXIT_TO_APP,
+          [this]() { quit_ = true; }, "Ctrl+Q")
+    .EndMenu();
+  
+  // Edit Menu  
+  menu_builder_.BeginMenu("Edit", ICON_MD_EDIT)
+    .Item("Undo", ICON_MD_UNDO,
+          [this]() { if (current_editor_) status_ = current_editor_->Undo(); }, "Ctrl+Z")
+    .Item("Redo", ICON_MD_REDO,
+          [this]() { if (current_editor_) status_ = current_editor_->Redo(); }, "Ctrl+Y")
+    .Separator()
+    .Item("Cut", ICON_MD_CONTENT_CUT,
+          [this]() { if (current_editor_) status_ = current_editor_->Cut(); }, "Ctrl+X")
+    .Item("Copy", ICON_MD_CONTENT_COPY,
+          [this]() { if (current_editor_) status_ = current_editor_->Copy(); }, "Ctrl+C")
+    .Item("Paste", ICON_MD_CONTENT_PASTE,
+          [this]() { if (current_editor_) status_ = current_editor_->Paste(); }, "Ctrl+V")
+    .Separator()
+    .Item("Find", ICON_MD_SEARCH,
+          [this]() { if (current_editor_) status_ = current_editor_->Find(); }, "Ctrl+F")
+    .Separator()
+    .Item("Settings", ICON_MD_SETTINGS,
+          [this]() { current_editor_set_->settings_editor_.set_active(true); })
+    .EndMenu();
+  
+  // View Menu
+  menu_builder_.BeginMenu("View", ICON_MD_VISIBILITY)
+    .BeginSubMenu("Editors", ICON_MD_APPS)
+      .Item("Show Editor Selection", ICON_MD_DASHBOARD,
+            [this]() { show_editor_selection_ = true; }, "Ctrl+E")
+      .Separator()
+      .Item("Overworld", ICON_MD_MAP,
+            [this]() { current_editor_set_->overworld_editor_.set_active(true); })
+      .Item("Dungeon", ICON_MD_CASTLE,
+            [this]() { current_editor_set_->dungeon_editor_.set_active(true); })
+      .Item("Graphics", ICON_MD_IMAGE,
+            [this]() { current_editor_set_->graphics_editor_.set_active(true); })
+      .Item("Sprite", ICON_MD_TOYS,
+            [this]() { current_editor_set_->sprite_editor_.set_active(true); })
+      .Item("Palette", ICON_MD_PALETTE,
+            [this]() { current_editor_set_->palette_editor_.set_active(true); })
+      .EndMenu()
+    .Separator()
+    .Item("Welcome Screen", ICON_MD_HOME,
+          [this]() { show_welcome_screen_ = true; })
+    .Item("Command Palette", ICON_MD_TERMINAL,
+          [this]() { show_command_palette_ = true; }, "Ctrl+Shift+P")
+    .EndMenu();
+  
+  // Workspace Menu
+  menu_builder_.BeginMenu("Workspace", ICON_MD_WORKSPACES)
+    .BeginSubMenu("Sessions", ICON_MD_TAB)
+      .Item("New Session", ICON_MD_ADD,
+            [this]() { CreateNewSession(); }, "Ctrl+Shift+N")
+      .Item("Duplicate Session", ICON_MD_CONTENT_COPY,
+            [this]() { DuplicateCurrentSession(); },
+            nullptr, [this]() { return current_rom_ != nullptr; })
+      .Item("Close Session", ICON_MD_CLOSE,
+            [this]() { CloseCurrentSession(); }, "Ctrl+Shift+W",
+            [this]() { return sessions_.size() > 1; })
+      .Separator()
+      .Item("Session Switcher", ICON_MD_SWITCH_ACCOUNT,
+            [this]() { show_session_switcher_ = true; }, "Ctrl+Tab",
+            [this]() { return sessions_.size() > 1; })
+      .EndMenu()
+    .Separator()
+    .Item("Performance Dashboard", ICON_MD_SPEED,
+          [this]() { show_performance_dashboard_ = true; }, "Ctrl+Shift+P")
+    .EndMenu();
+  
+  // Debug Menu
+  menu_builder_.BeginMenu("Debug", ICON_MD_BUG_REPORT)
+    .Item("Test Dashboard", ICON_MD_SCIENCE,
+          [this]() { show_test_dashboard_ = true; }, "Ctrl+T")
+    .Separator()
+    .Item("Memory Editor", ICON_MD_MEMORY,
+          [this]() { show_memory_editor_ = true; })
+    .Item("Assembly Editor", ICON_MD_CODE,
+          [this]() { show_asm_editor_ = true; })
+#ifdef YAZE_WITH_GRPC
+    .Separator()
+    .Item("Agent Chat", ICON_MD_CHAT,
+          [this]() { agent_editor_.ToggleChat(); },
+          nullptr, nullptr,
+          [this]() { return agent_editor_.IsChatActive(); })
+#endif
+    .EndMenu();
+  
+  // Help Menu
+  menu_builder_.BeginMenu("Help", ICON_MD_HELP)
+    .Item("Getting Started", ICON_MD_PLAY_ARROW,
+          [this]() { popup_manager_->Show("Getting Started"); })
+    .Item("About", ICON_MD_INFO,
+          [this]() { popup_manager_->Show("About"); }, "F1")
+    .EndMenu();
+  
+  menu_builder_.Draw();
+}
+
 void EditorManager::DrawMenuBar() {
   static bool show_display_settings = false;
   static bool save_as_menu = false;
 
   if (BeginMenuBar()) {
-    gui::DrawMenu(gui::kMainMenu);
-
+    BuildModernMenu();
+    
+    // Inline ROM selector and status
     status_ = DrawRomSelector();
 
     // Calculate proper right-side positioning

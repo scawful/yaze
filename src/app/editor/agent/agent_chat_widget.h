@@ -12,6 +12,9 @@
 #include "absl/time/time.h"
 #include "app/gui/modules/text_editor.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/agent/advanced_routing.h"
+#include "cli/service/agent/agent_pretraining.h"
+#include "cli/service/agent/prompt_manager.h"
 #include "core/project.h"
 
 namespace yaze {
@@ -167,6 +170,9 @@ public:
     bool command_running = false;
     char command_input_buffer[512] = {};
   };
+  
+  void SetPromptMode(cli::agent::PromptMode mode) { prompt_mode_ = mode; }
+  cli::agent::PromptMode GetPromptMode() const { return prompt_mode_; }
 
   // Accessors for capture settings
   CaptureMode capture_mode() const { return multimodal_state_.capture_mode; }
@@ -266,6 +272,7 @@ public:
   // UI state
   int active_tab_ = 0;  // 0=Chat, 1=Config, 2=Commands, 3=Collab, 4=ROM Sync, 5=Files, 6=Prompt
   bool show_agent_config_ = false;
+  cli::agent::PromptMode prompt_mode_ = cli::agent::PromptMode::kStandard;
   bool show_z3ed_commands_ = false;
   bool show_rom_sync_ = false;
   bool show_snapshot_preview_ = false;
