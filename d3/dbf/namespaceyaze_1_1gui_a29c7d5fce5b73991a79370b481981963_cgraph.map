@@ -1,0 +1,9 @@
+<map id="yaze::gui::GetSuccessColor" name="yaze::gui::GetSuccessColor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,184,96"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="245,5,412,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,67,229,47,231,52,151,72"/>
+<area shape="rect" id="Node000003" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="232,70,425,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,80,216,80,216,86,184,86"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="245,120,412,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="151,94,231,114,229,119,149,99"/>
+</map>

@@ -11,7 +11,6 @@ var structyaze_1_1gui_1_1canvas_1_1CanvasConfig =
     [ "is_draggable", "d3/d8f/structyaze_1_1gui_1_1canvas_1_1CanvasConfig.html#acd1594d7729be8fab5d297a147033681", null ],
     [ "auto_resize", "d3/d8f/structyaze_1_1gui_1_1canvas_1_1CanvasConfig.html#a40d6e6c7b00bd864e0e26acf69569d3c", null ],
     [ "scrolling", "d3/d8f/structyaze_1_1gui_1_1canvas_1_1CanvasConfig.html#ab5acf831fd3bb2d5532aa2a19cf20126", null ],
-    [ "on_config_changed", "d3/d8f/structyaze_1_1gui_1_1canvas_1_1CanvasConfig.html#a8704be8268f5a2f53b9ac9efd657c78c", null ],
-    [ "on_scale_changed", "d3/d8f/structyaze_1_1gui_1_1canvas_1_1CanvasConfig.html#aa5e59eaeb9c635c4447fe2610d04f25f", null ],
-    [ "custom_canvas_size", "d3/d8f/structyaze_1_1gui_1_1canvas_1_1CanvasConfig.html#a88660dac01e7ff609fd5d5610947ca8b", null ]
+    [ "on_config_changed", "d3/d8f/structyaze_1_1gui_1_1canvas_1_1CanvasConfig.html#a6269792abc6852e7f95df47f35a4f6fb", null ],
+    [ "on_scale_changed", "d3/d8f/structyaze_1_1gui_1_1canvas_1_1CanvasConfig.html#a97f237f771bcd30c6ce3afe03e8a93c0", null ]
 ];

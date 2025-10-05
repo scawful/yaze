@@ -9,7 +9,5 @@ var dir_2e70ebb92041ee9a8b6891199983e337 =
     [ "canvas_performance_integration.cc", "d6/d44/canvas__performance__integration_8cc.html", null ],
     [ "canvas_performance_integration.h", "d5/d75/canvas__performance__integration_8h.html", "d5/d75/canvas__performance__integration_8h" ],
     [ "canvas_usage_tracker.cc", "da/d11/canvas__usage__tracker_8cc.html", null ],
-    [ "canvas_usage_tracker.h", "d3/dbf/canvas__usage__tracker_8h.html", "d3/dbf/canvas__usage__tracker_8h" ],
-    [ "canvas_utils_moved.cc", "d6/d0a/canvas__utils__moved_8cc.html", "d6/d0a/canvas__utils__moved_8cc" ],
-    [ "canvas_utils_moved.h", "d9/dbd/canvas__utils__moved_8h.html", "d9/dbd/canvas__utils__moved_8h" ]
+    [ "canvas_usage_tracker.h", "d3/dbf/canvas__usage__tracker_8h.html", "d3/dbf/canvas__usage__tracker_8h" ]
 ];

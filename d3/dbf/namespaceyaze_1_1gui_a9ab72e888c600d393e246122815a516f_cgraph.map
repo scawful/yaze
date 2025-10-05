@@ -1,0 +1,9 @@
+<map id="yaze::gui::GetErrorColor" name="yaze::gui::GetErrorColor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,160,96"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="221,5,388,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,67,208,48,209,53,136,72"/>
+<area shape="rect" id="Node000003" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="208,70,401,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="160,80,192,80,192,86,160,86"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ad706e6146dd664adffe3350c520f397b" title=" " alt="" coords="221,120,388,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="136,94,209,113,208,118,135,99"/>
+</map>

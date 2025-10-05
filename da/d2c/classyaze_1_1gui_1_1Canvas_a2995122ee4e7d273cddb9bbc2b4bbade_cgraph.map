@@ -1,7 +1,7 @@
 <map id="yaze::gui::Canvas::DrawOutlineWithColor" name="yaze::gui::Canvas::DrawOutlineWithColor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,154,54"/>
-<area shape="rect" id="Node000002" href="$da/dc3/namespaceyaze_1_1gui_1_1canvas_1_1CanvasUtils.html#a5ae9a4ef2df4b3fccf04d3e83e585c96" title=" " alt="" coords="202,5,415,61"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,31,186,31,186,36,154,36"/>
-<area shape="rect" id="Node000003" href="$da/dc3/namespaceyaze_1_1gui_1_1canvas_1_1CanvasUtils.html#ac3ebc8805dda51ce6e4562baa95cd6ee" title=" " alt="" coords="463,13,676,54"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="416,31,448,31,448,36,416,36"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,154,46"/>
+<area shape="rect" id="Node000002" href="$d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a9c72df99a1c2eebb453ed22f39d92b95" title=" " alt="" coords="202,5,400,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,23,186,23,186,28,154,28"/>
+<area shape="rect" id="Node000003" href="$d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a8ceb52571f7d28aff6121cd21779e3e3" title=" " alt="" coords="448,5,595,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="400,23,432,23,432,28,400,28"/>
 </map>

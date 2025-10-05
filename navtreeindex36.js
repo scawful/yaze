@@ -1,5 +1,11 @@
 var NAVTREEINDEX36 =
 {
+"d5/d1f/namespaceyaze_1_1zelda3.html#a6710b1d0fba084c4af9d1e067753773c":[25,0,6,10,322],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a683777016b10ae5998e7c5f9fe946769":[25,0,6,10,465],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a68adf6fe4308d3ef799a9c5f67b170ea":[25,0,6,10,400],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468":[25,0,6,10,66],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a067a2c9dbc2ed811337777b3e1f29369":[25,0,6,10,66,63],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a091363ea0d1c6fd45f9913f8757a0581":[25,0,6,10,66,28],
 "d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a09be56922301e46e8561f2b35b14fb62":[25,0,6,10,66,37],
 "d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a0a79eaa676a7668fa8d9b6453d3e73d4":[25,0,6,10,66,2],
 "d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468a126e28827ef1590b842f7d7fe141a1d4":[25,0,6,10,66,48],
@@ -243,11 +249,5 @@ var NAVTREEINDEX36 =
 "d5/d1f/namespaceyaze_1_1zelda3.html#ac7a625fa7deb8db0d9fcddb77ff13cd6":[25,0,6,10,313],
 "d5/d1f/namespaceyaze_1_1zelda3.html#ac8076a14b02fe37987d83f6cd9b4ba43":[25,0,6,10,61],
 "d5/d1f/namespaceyaze_1_1zelda3.html#ac90508fc1717a623e930c68776f43080":[25,0,6,10,222],
-"d5/d1f/namespaceyaze_1_1zelda3.html#aca2ddf66c6a403ee202b1d5390b3b6b2":[25,0,6,10,236],
-"d5/d1f/namespaceyaze_1_1zelda3.html#aca63e600c9d70992849bc376f7502c93":[25,0,6,10,245],
-"d5/d1f/namespaceyaze_1_1zelda3.html#acbd549e1691fc9f4bcef8d4b2970507a":[25,0,6,10,200],
-"d5/d1f/namespaceyaze_1_1zelda3.html#acc39ec0dac72d2c8e7aac79c6f02e832":[25,0,6,10,393],
-"d5/d1f/namespaceyaze_1_1zelda3.html#accf290a6933195fe6e3d681d5f5d3f05":[25,0,6,10,479],
-"d5/d1f/namespaceyaze_1_1zelda3.html#acd37ce49857c19fa6b48645d6c96f35c":[25,0,6,10,263],
-"d5/d1f/namespaceyaze_1_1zelda3.html#acd7274a6b4ad71fc86fe4f7a81bcd4c4":[25,0,6,10,168]
+"d5/d1f/namespaceyaze_1_1zelda3.html#aca2ddf66c6a403ee202b1d5390b3b6b2":[25,0,6,10,236]
 };

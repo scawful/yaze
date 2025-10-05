@@ -1,9 +1,9 @@
 <map id="yaze::gui::Canvas::ReserveTableSpace" name="yaze::gui::Canvas::ReserveTableSpace">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,49,144,90"/>
-<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a9084927e7e6b80627d9f2b2f1d655b67" title=" " alt="" coords="224,13,350,54"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,55,208,44,209,49,144,60"/>
-<area shape="rect" id="Node000004" href="$da/dc3/namespaceyaze_1_1gui_1_1canvas_1_1CanvasUtils.html#a67eba177018309bc98609873bed4ebcf" title=" " alt="" coords="192,77,382,133"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="144,78,177,84,176,89,143,83"/>
-<area shape="rect" id="Node000003" href="$da/dc3/namespaceyaze_1_1gui_1_1canvas_1_1CanvasUtils.html#a3ed2f6b4e39a3550fedafb1eefd33051" title=" " alt="" coords="430,5,635,61"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="350,31,414,31,414,36,350,36"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,144,79"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a9084927e7e6b80627d9f2b2f1d655b67" title=" " alt="" coords="207,5,333,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,45,191,36,192,42,145,50"/>
+<area shape="rect" id="Node000004" href="$d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a1284021a5bd3ac8263f10246b37af928" title=" " alt="" coords="192,71,348,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="145,68,176,73,176,78,144,73"/>
+<area shape="rect" id="Node000003" href="$d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#abe23e23eed53addb8e822f1ebf1e5709" title=" " alt="" coords="396,5,599,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="333,23,381,23,381,28,333,28"/>
 </map>
