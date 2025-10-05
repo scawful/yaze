@@ -16,6 +16,8 @@
 #include "cli/modern_cli.h"
 #include "cli/tui/command_palette.h"
 #include "cli/z3ed_ascii_logo.h"
+#include "cli/service/agent/simple_chat_session.h"
+#include "cli/service/agent/conversational_agent_service.h"
 
 namespace yaze {
 namespace cli {
@@ -802,29 +804,23 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
         case MainMenuEntry::kLoadRom:
           SwitchComponents(screen, LayoutID::kLoadRom);
           return true;
-        case MainMenuEntry::kApplyAsarPatch:
-          SwitchComponents(screen, LayoutID::kApplyAsarPatch);
+        case MainMenuEntry::kAIAgentChat:
+          SwitchComponents(screen, LayoutID::kAIAgentChat);
           return true;
-        case MainMenuEntry::kApplyBpsPatch:
-          SwitchComponents(screen, LayoutID::kApplyBpsPatch);
+        case MainMenuEntry::kTodoManager:
+          SwitchComponents(screen, LayoutID::kTodoManager);
           return true;
-        case MainMenuEntry::kExtractSymbols:
-          SwitchComponents(screen, LayoutID::kExtractSymbols);
+        case MainMenuEntry::kRomTools:
+          SwitchComponents(screen, LayoutID::kRomTools);
           return true;
-        case MainMenuEntry::kValidateAssembly:
-          SwitchComponents(screen, LayoutID::kValidateAssembly);
+        case MainMenuEntry::kGraphicsTools:
+          SwitchComponents(screen, LayoutID::kGraphicsTools);
           return true;
-        case MainMenuEntry::kGenerateSaveFile:
-          SwitchComponents(screen, LayoutID::kGenerateSaveFile);
+        case MainMenuEntry::kTestingTools:
+          SwitchComponents(screen, LayoutID::kTestingTools);
           return true;
-        case MainMenuEntry::kPaletteEditor:
-          SwitchComponents(screen, LayoutID::kPaletteEditor);
-          return true;
-        case MainMenuEntry::kHexViewer:
-          SwitchComponents(screen, LayoutID::kHexViewer);
-          return true;
-        case MainMenuEntry::kCommandPalette:
-          SwitchComponents(screen, LayoutID::kCommandPalette);
+        case MainMenuEntry::kSettings:
+          SwitchComponents(screen, LayoutID::kSettings);
           return true;
         case MainMenuEntry::kHelp:
           SwitchComponents(screen, LayoutID::kHelp);
@@ -856,6 +852,74 @@ void ShowMain() {
       } break;
       case LayoutID::kLoadRom: {
         LoadRomComponent(screen);
+      } break;
+      case LayoutID::kAIAgentChat: {
+        // Launch simple chat session for agent interaction
+        agent::SimpleChatSession chat;
+        chat.SetRomContext(&app_context.rom);
+        agent::AgentConfig config;
+        config.output_format = agent::AgentOutputFormat::kFriendly;
+        chat.SetConfig(config);
+        
+        std::cout << "\n🤖 AI Agent Chat (type 'back' to return to menu)\n" << std::endl;
+        chat.RunInteractive();
+        
+        app_context.current_layout = LayoutID::kMainMenu;
+      } break;
+      case LayoutID::kTodoManager: {
+        // TODO: Implement TODO manager TUI
+        app_context.error_message = "TODO Manager TUI coming soon - use CLI commands for now";
+        app_context.current_layout = LayoutID::kError;
+      } break;
+      case LayoutID::kRomTools: {
+        // Show submenu for ROM tools
+        int submenu_selected = 0;
+        static const std::vector<std::string> tools = {
+          "Apply Asar Patch", "Apply BPS Patch", "Extract Symbols",
+          "Validate Assembly", "Generate Save", "Back"
+        };
+        auto submenu = Menu(&tools, &submenu_selected);
+        auto submenu_component = CatchEvent(submenu, [&](Event event) {
+          if (event == Event::Return) {
+            if (submenu_selected == 0) app_context.current_layout = LayoutID::kApplyAsarPatch;
+            else if (submenu_selected == 1) app_context.current_layout = LayoutID::kApplyBpsPatch;
+            else if (submenu_selected == 2) app_context.current_layout = LayoutID::kExtractSymbols;
+            else if (submenu_selected == 3) app_context.current_layout = LayoutID::kValidateAssembly;
+            else if (submenu_selected == 4) app_context.current_layout = LayoutID::kGenerateSaveFile;
+            else app_context.current_layout = LayoutID::kMainMenu;
+            screen.ExitLoopClosure()();
+            return true;
+          }
+          return false;
+        });
+        screen.Loop(submenu_component);
+      } break;
+      case LayoutID::kGraphicsTools: {
+        // Show submenu for graphics tools
+        int submenu_selected = 0;
+        static const std::vector<std::string> tools = {
+          "Palette Editor", "Hex Viewer", "Back"
+        };
+        auto submenu = Menu(&tools, &submenu_selected);
+        auto submenu_component = CatchEvent(submenu, [&](Event event) {
+          if (event == Event::Return) {
+            if (submenu_selected == 0) app_context.current_layout = LayoutID::kPaletteEditor;
+            else if (submenu_selected == 1) app_context.current_layout = LayoutID::kHexViewer;
+            else app_context.current_layout = LayoutID::kMainMenu;
+            screen.ExitLoopClosure()();
+            return true;
+          }
+          return false;
+        });
+        screen.Loop(submenu_component);
+      } break;
+      case LayoutID::kTestingTools: {
+        app_context.error_message = "Testing tools coming soon";
+        app_context.current_layout = LayoutID::kError;
+      } break;
+      case LayoutID::kSettings: {
+        app_context.error_message = "Settings TUI coming soon - use GUI for now";
+        app_context.current_layout = LayoutID::kError;
       } break;
       case LayoutID::kApplyAsarPatch: {
         ApplyAsarPatchComponent(screen);
@@ -895,9 +959,9 @@ void ShowMain() {
 
         auto error_renderer = Renderer(error_button, [&] {
           return vbox({
-            text("Error") | center | bold | color(Color::Red),
+            text("⚠️  Error") | center | bold | color(Color::Red),
             separator(),
-            text(app_context.error_message) | color(Color::Yellow),
+            text(app_context.error_message) | color(Color::Yellow) | center,
             separator(),
             error_button->Render() | center
           }) | center | border;
