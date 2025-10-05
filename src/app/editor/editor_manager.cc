@@ -551,8 +551,13 @@ absl::Status EditorManager::Update() {
   }
 
 #ifdef YAZE_WITH_GRPC
-  // Draw agent editor (includes chat widget and collaboration UI)
-  agent_editor_.Update();
+  // Update agent editor dashboard
+  status_ = agent_editor_.Update();
+  
+  // Draw chat widget separately (always visible when active)
+  if (agent_editor_.GetChatWidget()) {
+    agent_editor_.GetChatWidget()->Draw();
+  }
 #endif
 
   // Draw background grid effects for the entire viewport
@@ -709,9 +714,10 @@ absl::Status EditorManager::Update() {
   if (show_performance_dashboard_) {
     gfx::PerformanceDashboard::Get().Render();
   }
-  if (show_proposal_drawer_) {
-    proposal_drawer_.Draw();
-  }
+  
+  // Always draw proposal drawer (it manages its own visibility)
+  proposal_drawer_.Draw();
+  
 #ifdef YAZE_WITH_GRPC
   // Update ROM context for agent editor
   if (current_rom_ && current_rom_->is_loaded()) {
