@@ -46,6 +46,15 @@ absl::Status HandleOverworldDescribeMapCommand(
 absl::Status HandleOverworldListWarpsCommand(
 	const std::vector<std::string>& arg_vec,
 	Rom* rom_context = nullptr);
+absl::Status HandleMessageListCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleMessageReadCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleMessageSearchCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
 absl::Status HandleChatCommand(Rom& rom);
 absl::Status HandleSimpleChatCommand(const std::vector<std::string>&, Rom* rom, bool quiet);
 absl::Status HandleTestConversationCommand(

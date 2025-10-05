@@ -22,6 +22,7 @@
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/overworld/overworld.h"
+#include "cli/handlers/message.h"
 #include "cli/handlers/overworld_inspect.h"
 #include "cli/service/resources/resource_context_builder.h"
 #include "util/macro.h"
@@ -1177,6 +1178,21 @@ absl::Status HandleOverworldListWarpsCommand(
   }
 
   return absl::OkStatus();
+}
+
+absl::Status HandleMessageListCommand(
+  const std::vector<std::string>& arg_vec, Rom* rom_context) {
+  return yaze::cli::message::HandleMessageListCommand(arg_vec, rom_context);
+}
+
+absl::Status HandleMessageReadCommand(
+  const std::vector<std::string>& arg_vec, Rom* rom_context) {
+  return yaze::cli::message::HandleMessageReadCommand(arg_vec, rom_context);
+}
+
+absl::Status HandleMessageSearchCommand(
+  const std::vector<std::string>& arg_vec, Rom* rom_context) {
+  return yaze::cli::message::HandleMessageSearchCommand(arg_vec, rom_context);
 }
 
 }  // namespace agent

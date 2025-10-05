@@ -201,6 +201,62 @@ You must follow this exact two-step process to avoid errors.
         }
       }
     }
+  },
+  {
+    "name": "message-list",
+    "description": "List all in-game dialogue and text messages from the ROM. Messages are the text that NPCs speak, signs display, and item descriptions show. There are typically 300+ messages in the ROM. Use --range to limit output.",
+    "usage_examples": [
+      "What are all the game messages?",
+      "List messages 0 through 50",
+      "Show all dialogue in the ROM"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "range": {
+          "type": "string",
+          "description": "Optional: limit to message ID range in format 'start-end' (e.g., '0-100'). Omit to list all messages."
+        }
+      }
+    }
+  },
+  {
+    "name": "message-read",
+    "description": "Read a specific message by its ID. Messages contain the exact text shown in-game, including special formatting like line breaks and commands. Message IDs range from 0 to 300+.",
+    "usage_examples": [
+      "What does message 42 say?",
+      "Read the text of message 0",
+      "Show me message 157"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Message ID number (0-300+). Use message-list first if you don't know the ID."
+        }
+      },
+      "required": ["id"]
+    }
+  },
+  {
+    "name": "message-search",
+    "description": "Search for messages containing specific text or phrases. Case-insensitive search across all message dialogue. Returns all matching messages with their IDs and content.",
+    "usage_examples": [
+      "Find messages about the Master Sword",
+      "Search for messages containing 'treasure'",
+      "Which messages mention 'princess'?"
+    ],
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Text to search for within message content. Case-insensitive."
+        }
+      },
+      "required": ["query"]
+    }
   }
 ]
 ```
