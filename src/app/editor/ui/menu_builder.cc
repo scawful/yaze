@@ -1,4 +1,4 @@
-#include "app/editor/menu_builder.h"
+#include "app/editor/ui/menu_builder.h"
 
 #include "absl/strings/str_cat.h"
 
