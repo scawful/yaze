@@ -22,6 +22,7 @@ class MapPropertiesSystem {
   // Callback types for refresh operations
   using RefreshCallback = std::function<void()>;
   using RefreshPaletteCallback = std::function<absl::Status()>;
+  using ForceRefreshGraphicsCallback = std::function<void(int)>;
   
   explicit MapPropertiesSystem(zelda3::Overworld* overworld, Rom* rom,
                               std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp = nullptr,
@@ -31,10 +32,14 @@ class MapPropertiesSystem {
   // Set callbacks for refresh operations
   void SetRefreshCallbacks(RefreshCallback refresh_map_properties,
                           RefreshCallback refresh_overworld_map,
-                          RefreshPaletteCallback refresh_map_palette) {
+                          RefreshPaletteCallback refresh_map_palette,
+                          RefreshPaletteCallback refresh_tile16_blockset = nullptr,
+                          ForceRefreshGraphicsCallback force_refresh_graphics = nullptr) {
     refresh_map_properties_ = std::move(refresh_map_properties);
     refresh_overworld_map_ = std::move(refresh_overworld_map);
     refresh_map_palette_ = std::move(refresh_map_palette);
+    refresh_tile16_blockset_ = std::move(refresh_tile16_blockset);
+    force_refresh_graphics_ = std::move(force_refresh_graphics);
   }
 
   // Main interface methods
@@ -85,6 +90,11 @@ class MapPropertiesSystem {
   void RefreshMapProperties();
   void RefreshOverworldMap();
   absl::Status RefreshMapPalette();
+  absl::Status RefreshTile16Blockset();
+  void ForceRefreshGraphics(int map_index);
+  
+  // Helper to refresh sibling map graphics for multi-area maps
+  void RefreshSiblingMapGraphics(int map_index, bool include_self = false);
   
   zelda3::Overworld* overworld_;
   Rom* rom_;
@@ -95,6 +105,8 @@ class MapPropertiesSystem {
   RefreshCallback refresh_map_properties_;
   RefreshCallback refresh_overworld_map_;
   RefreshPaletteCallback refresh_map_palette_;
+  RefreshPaletteCallback refresh_tile16_blockset_;
+  ForceRefreshGraphicsCallback force_refresh_graphics_;
   
   // Using centralized UI constants from ui_constants.h
 };

@@ -53,12 +53,6 @@ class OverworldItem : public GameEntity {
 
     game_x_ = static_cast<uint8_t>(std::abs(x_ - (map_x * 512)) / 16);
     game_y_ = static_cast<uint8_t>(std::abs(y_ - (map_y * 512)) / 16);
-
-    std::cout << "Item:      " << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(id_) << " MapId: " << std::hex << std::setw(2)
-              << std::setfill('0') << static_cast<int>(room_map_id_)
-              << " X: " << static_cast<int>(game_x_)
-              << " Y: " << static_cast<int>(game_y_) << std::endl;
   }
 
   bool bg2_ = false;

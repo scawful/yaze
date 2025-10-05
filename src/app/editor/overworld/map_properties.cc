@@ -460,7 +460,22 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
                                 overworld_->mutable_overworld_map(current_map)
                                     ->mutable_area_graphics(),
                                 kHexByteInputWidth)) {
+      // CORRECT ORDER: Properties first, then graphics reload
+      
+      // 1. Propagate properties to siblings FIRST (calls LoadAreaGraphics on siblings)
       RefreshMapProperties();
+      
+      // 2. Force immediate refresh of current map
+      (*maps_bmp_)[current_map].set_modified(true);
+      overworld_->mutable_overworld_map(current_map)->LoadAreaGraphics();
+      
+      // 3. Refresh siblings immediately
+      RefreshSiblingMapGraphics(current_map);
+      
+      // 4. Update tile selector  
+      RefreshTile16Blockset();
+      
+      // 5. Final refresh
       RefreshOverworldMap();
     }
     HOVER_HINT("Main tileset graphics for this map area");
@@ -472,6 +487,7 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
             overworld_->mutable_overworld_map(current_map)
                 ->mutable_sprite_graphics(game_state),
             kHexByteInputWidth)) {
+      ForceRefreshGraphics(current_map);
       RefreshMapProperties();
       RefreshOverworldMap();
     }
@@ -484,34 +500,48 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
                                   overworld_->mutable_overworld_map(current_map)
                                       ->mutable_animated_gfx(),
                                   kHexByteInputWidth)) {
+        ForceRefreshGraphics(current_map);
         RefreshMapProperties();
+        RefreshTile16Blockset();
         RefreshOverworldMap();
       }
       HOVER_HINT("Animated tile graphics (water, lava, etc.)");
     }
 
-    ImGui::Separator();
-    ImGui::Text(ICON_MD_GRID_VIEW " Custom Tile Graphics");
-    ImGui::Separator();
+    // Custom Tile Graphics - Only available for v1+ ROMs
+    if (asm_version >= 1 && asm_version != 0xFF) {
+      ImGui::Separator();
+      ImGui::Text(ICON_MD_GRID_VIEW " Custom Tile Graphics");
+      ImGui::Separator();
 
-    // Show the 8 custom graphics IDs in a 2-column layout for density
-    if (BeginTable("CustomTileGraphics", 2,
-                   ImGuiTableFlags_SizingFixedFit)) {
-      for (int i = 0; i < 8; i++) {
-        TableNextColumn();
-        std::string label = absl::StrFormat(ICON_MD_LAYERS " Sheet %d", i);
-        if (gui::InputHexByte(label.c_str(),
-                                    overworld_->mutable_overworld_map(current_map)
-                                        ->mutable_custom_tileset(i),
-                                    90.f)) {
-          RefreshMapProperties();
-          RefreshOverworldMap();
+      // Show the 8 custom graphics IDs in a 2-column layout for density
+      if (BeginTable("CustomTileGraphics", 2,
+                     ImGuiTableFlags_SizingFixedFit)) {
+        for (int i = 0; i < 8; i++) {
+          TableNextColumn();
+          std::string label = absl::StrFormat(ICON_MD_LAYERS " Sheet %d", i);
+          if (gui::InputHexByte(label.c_str(),
+                                      overworld_->mutable_overworld_map(current_map)
+                                          ->mutable_custom_tileset(i),
+                                      90.f)) {
+            ForceRefreshGraphics(current_map);
+            RefreshMapProperties();
+            RefreshTile16Blockset();
+            RefreshOverworldMap();
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Custom graphics sheet %d (0x00-0xFF)", i);
+          }
         }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Custom graphics sheet %d (0x00-0xFF)", i);
-        }
+        ImGui::EndTable();
       }
-      ImGui::EndTable();
+    } else if (asm_version == 0xFF) {
+      ImGui::Separator();
+      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), 
+                         ICON_MD_INFO " Custom Tile Graphics");
+      ImGui::TextWrapped(
+          "Custom tile graphics require ZSCustomOverworld v1+.\n"
+          "Upgrade your ROM to access 8 customizable graphics sheets.");
     }
 
     ImGui::PopStyleVar(2);  // Pop the 2 style variables we pushed
@@ -693,7 +723,12 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
                           overworld_->mutable_overworld_map(current_map)
                               ->mutable_area_graphics(),
                           kInputFieldSize)) {
+      // CORRECT ORDER: Properties first, then graphics reload
       RefreshMapProperties();
+      (*maps_bmp_)[current_map].set_modified(true);
+      overworld_->mutable_overworld_map(current_map)->LoadAreaGraphics();
+      RefreshSiblingMapGraphics(current_map);
+      RefreshTile16Blockset();
       RefreshOverworldMap();
     }
     if (ImGui::IsItemHovered()) {
@@ -955,36 +990,55 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
 }
 
 void MapPropertiesSystem::DrawTileGraphicsTab(int current_map) {
-  ImGui::Text(ICON_MD_GRID_VIEW " Custom Tile Graphics (8 sheets)");
-  Separator();
-
-  if (BeginTable("TileGraphics", 2,
-                 ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
-    ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 180);
-    ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
-    for (int i = 0; i < 8; i++) {
-      TableNextColumn();
-      ImGui::Text(ICON_MD_LAYERS " Sheet %d", i);
-      TableNextColumn();
-      if (gui::InputHexByte(absl::StrFormat("##TileGfx%d", i).c_str(),
-                            overworld_->mutable_overworld_map(current_map)
-                                ->mutable_custom_tileset(i),
-                            kInputFieldSize)) {
-        RefreshMapProperties();
-        RefreshOverworldMap();
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Custom graphics sheet %d (0x00-0xFF)", i);
-      }
-    }
-
-    ImGui::EndTable();
-  }
+  static uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   
-  Separator();
-  ImGui::TextWrapped("These 8 sheets allow custom tile graphics per map. "
-                     "Each sheet references a graphics ID loaded into VRAM.");
+  // Only show custom tile graphics for v1+ ROMs
+  if (asm_version >= 1 && asm_version != 0xFF) {
+    ImGui::Text(ICON_MD_GRID_VIEW " Custom Tile Graphics (8 sheets)");
+    Separator();
+
+    if (BeginTable("TileGraphics", 2,
+                   ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit)) {
+      ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 180);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+
+      for (int i = 0; i < 8; i++) {
+        TableNextColumn();
+        ImGui::Text(ICON_MD_LAYERS " Sheet %d", i);
+        TableNextColumn();
+        if (gui::InputHexByte(absl::StrFormat("##TileGfx%d", i).c_str(),
+                              overworld_->mutable_overworld_map(current_map)
+                                  ->mutable_custom_tileset(i),
+                              kInputFieldSize)) {
+          overworld_->mutable_overworld_map(current_map)->LoadAreaGraphics();
+          ForceRefreshGraphics(current_map);
+          RefreshSiblingMapGraphics(current_map);
+          RefreshMapProperties();
+          RefreshTile16Blockset();
+          RefreshOverworldMap();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Custom graphics sheet %d (0x00-0xFF)", i);
+        }
+      }
+
+      ImGui::EndTable();
+    }
+    
+    Separator();
+    ImGui::TextWrapped("These 8 sheets allow custom tile graphics per map. "
+                       "Each sheet references a graphics ID loaded into VRAM.");
+  } else {
+    // Vanilla ROM - show info message
+    ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+                       ICON_MD_INFO " Custom Tile Graphics");
+    ImGui::Separator();
+    ImGui::TextWrapped(
+        "Custom tile graphics are not available in vanilla ROMs.\n\n"
+        "To enable this feature, upgrade your ROM to ZSCustomOverworld v1+, "
+        "which provides 8 customizable graphics sheets per map for advanced "
+        "tileset customization.");
+  }
 }
 
 void MapPropertiesSystem::DrawMusicTab(int current_map) {
@@ -1088,6 +1142,70 @@ absl::Status MapPropertiesSystem::RefreshMapPalette() {
     return refresh_map_palette_();
   }
   return absl::OkStatus();
+}
+
+absl::Status MapPropertiesSystem::RefreshTile16Blockset() {
+  if (refresh_tile16_blockset_) {
+    return refresh_tile16_blockset_();
+  }
+  return absl::OkStatus();
+}
+
+void MapPropertiesSystem::ForceRefreshGraphics(int map_index) {
+  if (force_refresh_graphics_) {
+    force_refresh_graphics_(map_index);
+  }
+}
+
+void MapPropertiesSystem::RefreshSiblingMapGraphics(int map_index, bool include_self) {
+  if (!overworld_ || !maps_bmp_ || map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+  
+  auto* map = overworld_->mutable_overworld_map(map_index);
+  if (map->area_size() == zelda3::AreaSizeEnum::SmallArea) {
+    return;  // No siblings for small areas
+  }
+  
+  int parent_id = map->parent();
+  std::vector<int> siblings;
+  
+  switch (map->area_size()) {
+    case zelda3::AreaSizeEnum::LargeArea:
+      siblings = {parent_id, parent_id + 1, parent_id + 8, parent_id + 9};
+      break;
+    case zelda3::AreaSizeEnum::WideArea:
+      siblings = {parent_id, parent_id + 1};
+      break;
+    case zelda3::AreaSizeEnum::TallArea:
+      siblings = {parent_id, parent_id + 8};
+      break;
+    default:
+      return;
+  }
+  
+  for (int sibling : siblings) {
+    if (sibling >= 0 && sibling < zelda3::kNumOverworldMaps) {
+      // Skip self unless include_self is true
+      if (sibling == map_index && !include_self) {
+        continue;
+      }
+      
+      // Mark as modified FIRST
+      (*maps_bmp_)[sibling].set_modified(true);
+      
+      // Load graphics from ROM
+      overworld_->mutable_overworld_map(sibling)->LoadAreaGraphics();
+      
+      // CRITICAL FIX: Force immediate refresh on the sibling
+      // This will trigger the callback to OverworldEditor's RefreshChildMapOnDemand
+      ForceRefreshGraphics(sibling);
+    }
+  }
+  
+  // After marking all siblings, trigger a refresh
+  // This ensures all marked maps get processed
+  RefreshOverworldMap();
 }
 
 void MapPropertiesSystem::DrawMosaicControls(int current_map) {

@@ -54,7 +54,9 @@ void OverworldEditor::Initialize() {
   map_properties_system_->SetRefreshCallbacks(
       [this]() { this->RefreshMapProperties(); },
       [this]() { this->RefreshOverworldMap(); },
-      [this]() -> absl::Status { return this->RefreshMapPalette(); }
+      [this]() -> absl::Status { return this->RefreshMapPalette(); },
+      [this]() -> absl::Status { return this->RefreshTile16Blockset(); },
+      [this](int map_index) { this->ForceRefreshGraphics(map_index); }
   );
 
   // Initialize OverworldEditorManager for v3 features
@@ -343,18 +345,30 @@ void OverworldEditor::DrawToolset() {
   toolbar.AddSeparator();
   
   // Inline map properties with icon labels - use toolbar methods for consistency
-  if (toolbar.AddProperty(ICON_MD_IMAGE, "##gfx", 
+  if (toolbar.AddProperty(ICON_MD_IMAGE, " Gfx",
                          overworld_.mutable_overworld_map(current_map_)->mutable_area_graphics(),
                          [this]() {
+    // CORRECT ORDER: Properties first, then graphics reload
+    
+    // 1. Propagate properties to siblings FIRST (this also calls LoadAreaGraphics on siblings)
     RefreshMapProperties();
-    RefreshOverworldMap();
+    
+    // 2. Force immediate refresh of current map and all siblings
+    maps_bmp_[current_map_].set_modified(true);
+    RefreshChildMapOnDemand(current_map_);
+    RefreshSiblingMapGraphics(current_map_);
+    
+    // 3. Update tile selector
+    RefreshTile16Blockset();
   })) {
     // Property changed
   }
   
-  if (toolbar.AddProperty(ICON_MD_PALETTE, "##pal",
+  if (toolbar.AddProperty(ICON_MD_PALETTE, " Pal",
                          overworld_.mutable_overworld_map(current_map_)->mutable_area_palette(),
                          [this]() {
+    // Palette changes also need to propagate to siblings  
+    RefreshSiblingMapGraphics(current_map_);
     RefreshMapProperties();
     status_ = RefreshMapPalette();
     RefreshOverworldMap();
@@ -405,13 +419,6 @@ void OverworldEditor::DrawToolset() {
   if (toolbar.AddAction(ICON_MD_COLLECTIONS, "Open Graphics Groups")) {
     show_gfx_groups_ = !show_gfx_groups_;
   }
-  
-  toolbar.AddSeparator();
-  
-  // v3 Settings and Usage Statistics
-  toolbar.AddV3StatusBadge(asm_version, [this]() {
-    show_v3_settings_ = !show_v3_settings_;
-  });
   
   if (toolbar.AddUsageStatsButton("Open Usage Statistics")) {
     show_usage_stats_ = !show_usage_stats_;
@@ -1639,13 +1646,11 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
                map_index);
     }
 
-    // Update texture on main thread
-    if (maps_bmp_[map_index].texture()) {
-      Renderer::Get().UpdateBitmap(&maps_bmp_[map_index]);
-    } else {
-      // Create texture if it doesn't exist
-      EnsureMapTexture(map_index);
-    }
+    // CRITICAL FIX: Force COMPLETE texture recreation for immediate visibility
+    // UpdateBitmap() was still deferred - we need to force a full re-render
+    
+    // Always recreate the texture to ensure immediate GPU update
+    Renderer::Get().RenderBitmap(&maps_bmp_[map_index]);
   }
 
   // Handle multi-area maps (large, wide, tall) with safe coordination
@@ -1888,6 +1893,67 @@ absl::Status OverworldEditor::RefreshMapPalette() {
   return absl::OkStatus();
 }
 
+void OverworldEditor::ForceRefreshGraphics(int map_index) {
+  // Mark the bitmap as modified to force refresh on next update
+  if (map_index >= 0 && map_index < static_cast<int>(maps_bmp_.size())) {
+    maps_bmp_[map_index].set_modified(true);
+    
+    // Clear blockset cache
+    current_blockset_ = 0xFF;
+    
+    LOG_INFO("OverworldEditor", "ForceRefreshGraphics: Map %d marked for refresh", map_index);
+  }
+}
+
+void OverworldEditor::RefreshSiblingMapGraphics(int map_index, bool include_self) {
+  if (map_index < 0 || map_index >= static_cast<int>(maps_bmp_.size())) {
+    return;
+  }
+  
+  auto* map = overworld_.mutable_overworld_map(map_index);
+  if (map->area_size() == zelda3::AreaSizeEnum::SmallArea) {
+    return;  // No siblings for small areas
+  }
+  
+  int parent_id = map->parent();
+  std::vector<int> siblings;
+  
+  switch (map->area_size()) {
+    case zelda3::AreaSizeEnum::LargeArea:
+      siblings = {parent_id, parent_id + 1, parent_id + 8, parent_id + 9};
+      break;
+    case zelda3::AreaSizeEnum::WideArea:
+      siblings = {parent_id, parent_id + 1};
+      break;
+    case zelda3::AreaSizeEnum::TallArea:
+      siblings = {parent_id, parent_id + 8};
+      break;
+    default:
+      return;
+  }
+  
+  for (int sibling : siblings) {
+    if (sibling >= 0 && sibling < 0xA0) {
+      // Skip self unless include_self is true
+      if (sibling == map_index && !include_self) {
+        continue;
+      }
+      
+      // Mark as modified FIRST before loading
+      maps_bmp_[sibling].set_modified(true);
+      
+      // Load graphics from ROM
+      overworld_.mutable_overworld_map(sibling)->LoadAreaGraphics();
+      
+      // CRITICAL FIX: Bypass visibility check - force immediate refresh
+      // Call RefreshChildMapOnDemand() directly instead of RefreshOverworldMapOnDemand()
+      RefreshChildMapOnDemand(sibling);
+      
+      LOG_INFO("OverworldEditor", "RefreshSiblingMapGraphics: Refreshed sibling map %d", sibling);
+    }
+  }
+}
+
 void OverworldEditor::RefreshMapProperties() {
   const auto& current_ow_map = *overworld_.mutable_overworld_map(current_map_);
 
@@ -1935,6 +2001,9 @@ void OverworldEditor::RefreshMapProperties() {
         map.set_sprite_palette(game_state_,
                                current_ow_map.sprite_palette(game_state_));
         map.set_message_id(current_ow_map.message_id());
+        
+        // CRITICAL FIX: Reload graphics after changing properties
+        map.LoadAreaGraphics();
       }
     }
   } else {
@@ -1954,6 +2023,9 @@ void OverworldEditor::RefreshMapProperties() {
         map.set_sprite_palette(game_state_,
                                current_ow_map.sprite_palette(game_state_));
         map.set_message_id(current_ow_map.message_id());
+        
+        // CRITICAL FIX: Reload graphics after changing properties
+        map.LoadAreaGraphics();
       }
     }
   }

@@ -194,10 +194,6 @@ class OverworldExit : public GameEntity {
 
     map_pos_ = (uint16_t)(((vram_y_scroll & 0xFFF0) << 3) |
                           ((vram_x_scroll & 0xFFF0) >> 3));
-
-    std::cout << "Exit:      " << room_id_ << " MapId: " << std::hex << mapid
-              << " X: " << static_cast<int>(area_x_)
-              << " Y: " << static_cast<int>(area_y_) << std::endl;
   }
 };
 
