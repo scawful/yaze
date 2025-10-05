@@ -2,7 +2,7 @@ var searchData=
 [
   ['4_201_20yaze_20app_20integration_0',['4.1. YAZE App Integration',['../d6/d3a/md_docs_2z3ed_2NETWORKING.html#autotoc_md406',1,'']]],
   ['4_202_20z3ed_20cli_20integration_1',['4.2. z3ed CLI Integration',['../d6/d3a/md_docs_2z3ed_2NETWORKING.html#autotoc_md407',1,'']]],
-  ['4_20agentic_20generative_20workflow_20mcp_2',['4. Agentic &amp; Generative Workflow (MCP)',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md422',1,'']]],
+  ['4_20agentic_20generative_20workflow_20mcp_2',['4. Agentic &amp; Generative Workflow (MCP)',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md423',1,'']]],
   ['4_20client_20integration_3',['4. Client Integration',['../d6/d3a/md_docs_2z3ed_2NETWORKING.html#autotoc_md405',1,'']]],
   ['4_20custom_20data_20loading_4',['4. Custom Data Loading',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md310',1,'']]],
   ['4_20graphics_20processing_5',['4. Graphics Processing',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md322',1,'']]],

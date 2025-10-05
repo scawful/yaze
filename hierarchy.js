@@ -49,7 +49,10 @@ var hierarchy =
       [ "yaze::emu::AudioRamImpl", "d5/da7/classyaze_1_1emu_1_1AudioRamImpl.html", null ]
     ] ],
     [ "yaze::cli::AutocompleteEngine", "da/d90/classyaze_1_1cli_1_1AutocompleteEngine.html", null ],
+    [ "yaze::editor::AgentChatWidget::AutomationCallbacks", "d7/de3/structyaze_1_1editor_1_1AgentChatWidget_1_1AutomationCallbacks.html", null ],
     [ "yaze::cli::AutomationResult", "d4/daf/structyaze_1_1cli_1_1AutomationResult.html", null ],
+    [ "yaze::editor::AgentChatWidget::AutomationState", "d3/d4a/structyaze_1_1editor_1_1AgentChatWidget_1_1AutomationState.html", null ],
+    [ "yaze::editor::AgentChatWidget::AutomationTelemetry", "dd/d56/structyaze_1_1editor_1_1AgentChatWidget_1_1AutomationTelemetry.html", null ],
     [ "yaze::gui::AutoWidgetScope", "db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html", null ],
     [ "yaze::gfx::BackgroundBuffer", "dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html", null ],
     [ "yaze::emu::BackgroundLayer", "d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html", null ],
@@ -109,6 +112,7 @@ var hierarchy =
     [ "chest", "d4/d5f/structchest.html", null ],
     [ "chest_data", "d7/d34/structchest__data.html", null ],
     [ "yaze::zelda3::DungeonEditorSystem::ChestData", "dc/d40/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1ChestData.html", null ],
+    [ "build_cleaner.CMakeSourceBlock", "db/d75/classbuild__cleaner_1_1CMakeSourceBlock.html", null ],
     [ "yaze::emu::COLDATA", "d9/dd1/structyaze_1_1emu_1_1COLDATA.html", null ],
     [ "yaze::editor::AgentChatWidget::CollaborationCallbacks", "dd/d80/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationCallbacks.html", null ],
     [ "yaze::app::gui::CollaborationPanel", "df/d44/classyaze_1_1app_1_1gui_1_1CollaborationPanel.html", null ],
@@ -183,6 +187,7 @@ var hierarchy =
     [ "yaze::cli::agent::anonymous_namespace{general_commands.cc}::DescribeOptions", "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html", null ],
     [ "destination", "d0/dd9/structdestination.html", null ],
     [ "yaze::editor::DictionaryEntry", "d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html", null ],
+    [ "build_cleaner.DirectorySpec", "dc/d1c/classbuild__cleaner_1_1DirectorySpec.html", null ],
     [ "yaze::gfx::Bitmap::DirtyRegion", "d7/d95/structyaze_1_1gfx_1_1Bitmap_1_1DirtyRegion.html", null ],
     [ "yaze::cli::DiscoveredWindowInfo", "d9/d5d/structyaze_1_1cli_1_1DiscoveredWindowInfo.html", null ],
     [ "yaze::cli::DiscoverWidgetsQuery", "d1/d3b/structyaze_1_1cli_1_1DiscoverWidgetsQuery.html", null ],
@@ -281,10 +286,7 @@ var hierarchy =
     [ "yaze::cli::GuiAutomationClient", "d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html", [
       [ "yaze::cli::ai::anonymous_namespace{ai_gui_controller_test.cc}::MockGuiAutomationClient", "d9/d8f/classyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__gui__controller__test_8cc_03_1_1MockGuiAutomationClient.html", null ]
     ] ],
-    [ "yaze::test::TestManager::HarnessAggregate", "dc/d71/structyaze_1_1test_1_1TestManager_1_1HarnessAggregate.html", null ],
-    [ "yaze::test::HarnessTestExecution", "d3/dc3/structyaze_1_1test_1_1HarnessTestExecution.html", null ],
     [ "yaze::cli::HarnessTestSummary", "db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html", null ],
-    [ "yaze::test::HarnessTestSummary", "d1/d06/structyaze_1_1test_1_1HarnessTestSummary.html", null ],
     [ "yaze::util::HexStringParams", "da/df6/structyaze_1_1util_1_1HexStringParams.html", null ],
     [ "yaze::editor::HistoryManager", "d9/d6c/classyaze_1_1editor_1_1HistoryManager.html", null ],
     [ "TextEditor::Identifier", "d6/dcb/structTextEditor_1_1Identifier.html", null ],

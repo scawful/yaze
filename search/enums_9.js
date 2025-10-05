@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['mainmenuentry_0',['MainMenuEntry',['../dd/d63/namespaceyaze_1_1cli.html#a556e883eb9174f820cdce1c4e8ac7395',1,'yaze::cli']]],
-  ['messagefilter_1',['MessageFilter',['../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#af6957cf5b5c0741e55cda69616f9d2e2',1,'yaze::editor::AgentChatHistoryPopup']]],
-  ['mode_2',['Mode',['../de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a8b449a11bd225d0ba823743124904b6c',1,'yaze::zelda3::DungeonObjectEditor']]]
+  ['objectoption_0',['ObjectOption',['../d5/d1f/namespaceyaze_1_1zelda3.html#aacf2dac35353426c864a8a4cefe412a8',1,'yaze::zelda3']]],
+  ['operationtype_1',['OperationType',['../df/d26/classyaze_1_1Transaction.html#ab3014197a44fc2397913b7ad9e61d7b5',1,'yaze::Transaction']]],
+  ['optimizationstrategy_2',['OptimizationStrategy',['../d0/d27/namespaceyaze_1_1gfx.html#a29ba92486c82108e08959f64864d2f61',1,'yaze::gfx']]],
+  ['overworldproperty_3',['OverworldProperty',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1',1,'yaze::editor::OverworldEditor']]]
 ];

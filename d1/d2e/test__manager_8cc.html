@@ -100,7 +100,8 @@ $(document).ready(function(){initNavTree('d1/d2e/test__manager_8cc.html','../../
 <div class="header">
   <div class="summary">
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">test_manager.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -108,7 +109,9 @@ $(document).ready(function(){initNavTree('d1/d2e/test__manager_8cc.html','../../
 <code>#include &lt;algorithm&gt;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &lt;random&gt;</code><br />
+<code>#include &lt;optional&gt;</code><br />
 <code>#include &quot;absl/status/statusor.h&quot;</code><br />
+<code>#include &quot;absl/strings/match.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_replace.h&quot;</code><br />
@@ -141,7 +144,7 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a9f2a4fa037a04b4add59e985a5df4a37" id="r_a9f2a4fa037a04b4add59e985a5df4a37"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d93/namespaceyaze_1_1test_1_1anonymous__namespace_02test__manager_8cc_03.html#a9f2a4fa037a04b4add59e985a5df4a37">yaze::test::anonymous_namespace{test_manager.cc}::GenerateFailureScreenshotPath</a> (const std::string &amp;test_id)</td></tr>
+<tr class="memitem:a9f2a4fa037a04b4add59e985a5df4a37" id="r_a9f2a4fa037a04b4add59e985a5df4a37"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d93/namespaceyaze_1_1test_1_1anonymous__namespace_02test__manager_8cc_03.html#a9f2a4fa037a04b4add59e985a5df4a37">yaze::test::anonymous_namespace{test_manager.cc}::GenerateFailureScreenshotPath</a> (const std::string &amp;<a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>)</td></tr>
 <tr class="separator:a9f2a4fa037a04b4add59e985a5df4a37"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a058eaf5116bdab8de369f76e7a0af0d2" id="r_a058eaf5116bdab8de369f76e7a0af0d2"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a058eaf5116bdab8de369f76e7a0af0d2">yaze::test::TestStatusToString</a> (<a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a24fd08ea41d8314e6fccdb0fdcd9f072">TestStatus</a> status)</td></tr>
 <tr class="separator:a058eaf5116bdab8de369f76e7a0af0d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -149,6 +152,15 @@ Functions</h2></td></tr>
 <tr class="separator:a68a6024d219a6e3927991ad286dd1500"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78c70b999b0c45c674c6457ef7fb6a3a" id="r_a78c70b999b0c45c674c6457ef7fb6a3a"><td class="memItemLeft" align="right" valign="top">ImVec4&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a78c70b999b0c45c674c6457ef7fb6a3a">yaze::test::GetTestStatusColor</a> (<a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a24fd08ea41d8314e6fccdb0fdcd9f072">TestStatus</a> status)</td></tr>
 <tr class="separator:a78c70b999b0c45c674c6457ef7fb6a3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afac246c83263232d9fd33e3d84257a44" id="r_afac246c83263232d9fd33e3d84257a44"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#afac246c83263232d9fd33e3d84257a44">yaze::test::HarnessStatusToString</a> (HarnessTestStatus status)</td></tr>
+<tr class="separator:afac246c83263232d9fd33e3d84257a44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a83b20a98be952d2a824e558e6869a2cb" id="r_a83b20a98be952d2a824e558e6869a2cb"><td class="memItemLeft" align="right" valign="top">HarnessTestStatus&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#a83b20a98be952d2a824e558e6869a2cb">yaze::test::HarnessStatusFromString</a> (absl::string_view status)</td></tr>
+<tr class="separator:a83b20a98be952d2a824e558e6869a2cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:aa6ec55282cc2943ead16117c4104bfe3" id="r_aa6ec55282cc2943ead16117c4104bfe3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">yaze::test::test_id</a></td></tr>
+<tr class="separator:aa6ec55282cc2943ead16117c4104bfe3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

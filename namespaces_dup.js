@@ -10,6 +10,7 @@ var namespaces_dup =
       [ "kProposalPanelColor", "df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#a52ca0dae2c5ebc04512a3390d626d7ea", null ]
     ] ],
     [ "anonymous_namespace{cli_main.cc}", "da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html", "da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03" ],
+    [ "build_cleaner", "db/d7d/namespacebuild__cleaner.html", "db/d7d/namespacebuild__cleaner" ],
     [ "extract_changelog", "df/d6c/namespaceextract__changelog.html", [
       [ "extract_version_changelog", "df/d6c/namespaceextract__changelog.html#af0484ad211279dc459fc067553a0f98f", null ],
       [ "main", "df/d6c/namespaceextract__changelog.html#acda8a6283bdc25c5bae76b6a726601dd", null ]

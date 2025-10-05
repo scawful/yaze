@@ -45,8 +45,6 @@ var namespaceyaze_1_1test =
     [ "E2ETestSuite", "d0/d20/classyaze_1_1test_1_1E2ETestSuite.html", "d0/d20/classyaze_1_1test_1_1E2ETestSuite" ],
     [ "EditorIntegrationTest", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest" ],
     [ "GeminiVisionTest", "d3/ddd/classyaze_1_1test_1_1GeminiVisionTest.html", "d3/ddd/classyaze_1_1test_1_1GeminiVisionTest" ],
-    [ "HarnessTestExecution", "d3/dc3/structyaze_1_1test_1_1HarnessTestExecution.html", "d3/dc3/structyaze_1_1test_1_1HarnessTestExecution" ],
-    [ "HarnessTestSummary", "d1/d06/structyaze_1_1test_1_1HarnessTestSummary.html", "d1/d06/structyaze_1_1test_1_1HarnessTestSummary" ],
     [ "IntegratedTestSuite", "d4/d70/classyaze_1_1test_1_1IntegratedTestSuite.html", "d4/d70/classyaze_1_1test_1_1IntegratedTestSuite" ],
     [ "MessageRomTest", "d2/df4/classyaze_1_1test_1_1MessageRomTest.html", "d2/df4/classyaze_1_1test_1_1MessageRomTest" ],
     [ "MockRom", "df/df5/classyaze_1_1test_1_1MockRom.html", "df/df5/classyaze_1_1test_1_1MockRom" ],
@@ -90,14 +88,6 @@ var namespaceyaze_1_1test =
       [ "kPerformance", "d4/d0a/namespaceyaze_1_1test.html#a0cda2abf7030eef1095ab53508a246aeaa566f7318735301730fac1cad8addd3b", null ],
       [ "kMemory", "d4/d0a/namespaceyaze_1_1test.html#a0cda2abf7030eef1095ab53508a246aea10bc3eeea6471cd730616a1dda9e2cd4", null ]
     ] ],
-    [ "HarnessTestStatus", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8c", [
-      [ "kUnspecified", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca8536661e94a42d4d95dcb9058b9936b5", null ],
-      [ "kQueued", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca023506f9e1203a14ea275f5e6acb2e1a", null ],
-      [ "kRunning", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca2fc7fbf0d19294f85dd3880460dd3c0a", null ],
-      [ "kPassed", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca2e1165dab7cbb5e985ea3b1e5d64f619", null ],
-      [ "kFailed", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8cab62fa3c9492b6dae76c23d6dfa466611", null ],
-      [ "kTimeout", "d4/d0a/namespaceyaze_1_1test.html#a0d815abcfee12ca155f245c971134a8ca7f27861ff1d3f550c6aa77150d7edabd", null ]
-    ] ],
     [ "TestMode", "d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817", [
       [ "kAll", "d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a34bdbffdb1c0e1b603f58fc0d49548b6", null ],
       [ "kUnit", "d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a4383f9f429063405fc69bdc8ff4b7ee8", null ],
@@ -114,6 +104,8 @@ var namespaceyaze_1_1test =
     [ "TestStatusToString", "d4/d0a/namespaceyaze_1_1test.html#a058eaf5116bdab8de369f76e7a0af0d2", null ],
     [ "TestCategoryToString", "d4/d0a/namespaceyaze_1_1test.html#a68a6024d219a6e3927991ad286dd1500", null ],
     [ "GetTestStatusColor", "d4/d0a/namespaceyaze_1_1test.html#a78c70b999b0c45c674c6457ef7fb6a3a", null ],
+    [ "HarnessStatusToString", "d4/d0a/namespaceyaze_1_1test.html#afac246c83263232d9fd33e3d84257a44", null ],
+    [ "HarnessStatusFromString", "d4/d0a/namespaceyaze_1_1test.html#a83b20a98be952d2a824e558e6869a2cb", null ],
     [ "RegisterZ3edTestSuites", "d4/d0a/namespaceyaze_1_1test.html#af99a07bc806bef3cb66962c1ac456014", null ],
     [ "RegisterObjectBrowserTests_SelectObject", "d4/d0a/namespaceyaze_1_1test.html#a713763ead5bd63e570512f2d9ad31231", null ],
     [ "RegisterObjectBrowserTests_SearchFilter", "d4/d0a/namespaceyaze_1_1test.html#ad5e89372590f398d80b5ee2149ef8b8f", null ],
@@ -341,5 +333,6 @@ var namespaceyaze_1_1test =
     [ "TEST_F", "d4/d0a/namespaceyaze_1_1test.html#a056da21b811700468814682012bdfe6d", null ],
     [ "ParseArguments", "d4/d0a/namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951", null ],
     [ "SetupTestEnvironment", "d4/d0a/namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2", null ],
-    [ "ConfigureTestFilters", "d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8", null ]
+    [ "ConfigureTestFilters", "d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8", null ],
+    [ "test_id", "d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3", null ]
 ];

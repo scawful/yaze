@@ -8,6 +8,8 @@ var dir_c36754bc6a9d2e8a324992736cf355d8 =
     [ "agent_collaboration_coordinator.h", "d2/d25/agent__collaboration__coordinator_8h.html", "d2/d25/agent__collaboration__coordinator_8h" ],
     [ "agent_editor.cc", "d5/d8c/agent__editor_8cc.html", null ],
     [ "agent_editor.h", "d4/d85/agent__editor_8h.html", "d4/d85/agent__editor_8h" ],
+    [ "automation_bridge.cc", "dc/d74/automation__bridge_8cc.html", null ],
+    [ "automation_bridge.h", "de/d0f/automation__bridge_8h.html", null ],
     [ "network_collaboration_coordinator.cc", "d2/d6a/network__collaboration__coordinator_8cc.html", null ],
     [ "network_collaboration_coordinator.h", "db/ddb/network__collaboration__coordinator_8h.html", null ]
 ];

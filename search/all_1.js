@@ -16,14 +16,14 @@ var searchData=
   ['1_20version_20specific_20code_13',['1. Version-Specific Code',['../dc/d12/md_docs_2F1-overworld-loading.html#autotoc_md331',1,'']]],
   ['1_20websocket_20protocol_20yaze_20server_20v2_200_14',['3.1. WebSocket Protocol (yaze-server v2.0)',['../d6/d3a/md_docs_2z3ed_2NETWORKING.html#autotoc_md403',1,'']]],
   ['1_20yaze_20app_20integration_15',['4.1. YAZE App Integration',['../d6/d3a/md_docs_2z3ed_2NETWORKING.html#autotoc_md406',1,'']]],
-  ['10_20cli_20output_20help_20system_16',['10. CLI Output &amp; Help System',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md440',1,'']]],
-  ['10_20collaborative_20sessions_20multimodal_20vision_17',['10. Collaborative Sessions &amp; Multimodal Vision',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md443',1,'']]],
+  ['10_20cli_20output_20help_20system_16',['10. CLI Output &amp; Help System',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md442',1,'']]],
+  ['10_20collaborative_20sessions_20multimodal_20vision_17',['10. Collaborative Sessions &amp; Multimodal Vision',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md445',1,'']]],
   ['100_20pass_20rate_18',['5. Testing: 100% Pass Rate',['../d5/d47/md_docs_2D2-dungeon-editor-guide.html#autotoc_md236',1,'']]],
-  ['11_20roadmap_20implementation_20status_19',['11. Roadmap &amp; Implementation Status',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md475',1,'']]],
-  ['12_20troubleshooting_20',['12. Troubleshooting',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md484',1,'']]],
+  ['11_20roadmap_20implementation_20status_19',['11. Roadmap &amp; Implementation Status',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md477',1,'']]],
+  ['12_20troubleshooting_20',['12. Troubleshooting',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md487',1,'']]],
   ['1_3a_20basic_20bitmap_20display_21',['Pattern 1: Basic Bitmap Display',['../d0/d7d/md_docs_2G2-canvas-guide.html#autotoc_md342',1,'']]],
   ['1_3a_20editor_20features_20ux_22',['Priority 1: Editor Features &amp; UX',['../d6/db4/md_docs_2D1-roadmap.html#autotoc_md215',1,'']]],
   ['1_3a_20overworld_20tile_20painting_23',['Workflow 1: Overworld Tile Painting',['../d0/d7d/md_docs_2G2-canvas-guide.html#autotoc_md364',1,'']]],
   ['1_3a_20the_20coordinate_20system_24',['Critical Fix 1: The Coordinate System',['../d5/d47/md_docs_2D2-dungeon-editor-guide.html#autotoc_md231',1,'']]],
-  ['1_3a_20visual_20studio_20recommended_25',['Option 1: Visual Studio (Recommended)',['../de/d82/md_scripts_2README.html#autotoc_md514',1,'']]]
+  ['1_3a_20visual_20studio_20recommended_25',['Option 1: Visual Studio (Recommended)',['../de/d82/md_scripts_2README.html#autotoc_md517',1,'']]]
 ];

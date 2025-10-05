@@ -49,6 +49,9 @@ var searchData=
   ['audioram_46',['AudioRam',['../db/dc9/classyaze_1_1emu_1_1AudioRam.html',1,'yaze::emu']]],
   ['audioramimpl_47',['AudioRamImpl',['../d5/da7/classyaze_1_1emu_1_1AudioRamImpl.html',1,'yaze::emu']]],
   ['autocompleteengine_48',['AutocompleteEngine',['../da/d90/classyaze_1_1cli_1_1AutocompleteEngine.html',1,'yaze::cli']]],
-  ['automationresult_49',['AutomationResult',['../d4/daf/structyaze_1_1cli_1_1AutomationResult.html',1,'yaze::cli']]],
-  ['autowidgetscope_50',['AutoWidgetScope',['../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html',1,'yaze::gui']]]
+  ['automationcallbacks_49',['AutomationCallbacks',['../d7/de3/structyaze_1_1editor_1_1AgentChatWidget_1_1AutomationCallbacks.html',1,'yaze::editor::AgentChatWidget']]],
+  ['automationresult_50',['AutomationResult',['../d4/daf/structyaze_1_1cli_1_1AutomationResult.html',1,'yaze::cli']]],
+  ['automationstate_51',['AutomationState',['../d3/d4a/structyaze_1_1editor_1_1AgentChatWidget_1_1AutomationState.html',1,'yaze::editor::AgentChatWidget']]],
+  ['automationtelemetry_52',['AutomationTelemetry',['../dd/d56/structyaze_1_1editor_1_1AgentChatWidget_1_1AutomationTelemetry.html',1,'yaze::editor::AgentChatWidget']]],
+  ['autowidgetscope_53',['AutoWidgetScope',['../db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html',1,'yaze::gui']]]
 ];

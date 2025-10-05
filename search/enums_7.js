@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['itemtype_0',['ItemType',['../d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a3a5a44df3b1b4d6ead99a4b5f1630555',1,'yaze::zelda3::DungeonEditorSystem']]]
+  ['layertype_0',['LayerType',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a9271f3a50b053b6f15f5c2b4733dde6d',1,'yaze::zelda3::RoomObject']]],
+  ['layoutid_1',['LayoutID',['../dd/d63/namespaceyaze_1_1cli.html#ab3acc1b59e84abb18e2d438f7ed2ad33',1,'yaze::cli']]],
+  ['loglevel_2',['LogLevel',['../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3',1,'yaze::util']]]
 ];

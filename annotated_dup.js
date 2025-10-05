@@ -3,6 +3,10 @@ var annotated_dup =
     [ "anonymous_namespace{cli_main.cc}", "da/dfe/namespaceanonymous__namespace_02cli__main_8cc_03.html", [
       [ "ParsedGlobals", "da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals.html", "da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals" ]
     ] ],
+    [ "build_cleaner", "db/d7d/namespacebuild__cleaner.html", [
+      [ "CMakeSourceBlock", "db/d75/classbuild__cleaner_1_1CMakeSourceBlock.html", null ],
+      [ "DirectorySpec", "dc/d1c/classbuild__cleaner_1_1DirectorySpec.html", "dc/d1c/classbuild__cleaner_1_1DirectorySpec" ]
+    ] ],
     [ "yaze", "dc/d46/namespaceyaze.html", [
       [ "app", "d9/d75/namespaceyaze_1_1app.html", [
         [ "gui", "dc/dc3/namespaceyaze_1_1app_1_1gui.html", [
@@ -512,8 +516,6 @@ var annotated_dup =
         [ "E2ETestSuite", "d0/d20/classyaze_1_1test_1_1E2ETestSuite.html", "d0/d20/classyaze_1_1test_1_1E2ETestSuite" ],
         [ "EditorIntegrationTest", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html", "dd/d13/classyaze_1_1test_1_1EditorIntegrationTest" ],
         [ "GeminiVisionTest", "d3/ddd/classyaze_1_1test_1_1GeminiVisionTest.html", "d3/ddd/classyaze_1_1test_1_1GeminiVisionTest" ],
-        [ "HarnessTestExecution", "d3/dc3/structyaze_1_1test_1_1HarnessTestExecution.html", "d3/dc3/structyaze_1_1test_1_1HarnessTestExecution" ],
-        [ "HarnessTestSummary", "d1/d06/structyaze_1_1test_1_1HarnessTestSummary.html", "d1/d06/structyaze_1_1test_1_1HarnessTestSummary" ],
         [ "IntegratedTestSuite", "d4/d70/classyaze_1_1test_1_1IntegratedTestSuite.html", "d4/d70/classyaze_1_1test_1_1IntegratedTestSuite" ],
         [ "MessageRomTest", "d2/df4/classyaze_1_1test_1_1MessageRomTest.html", "d2/df4/classyaze_1_1test_1_1MessageRomTest" ],
         [ "MockRom", "df/df5/classyaze_1_1test_1_1MockRom.html", "df/df5/classyaze_1_1test_1_1MockRom" ],

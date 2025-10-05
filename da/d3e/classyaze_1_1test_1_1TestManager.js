@@ -1,6 +1,5 @@
 var classyaze_1_1test_1_1TestManager =
 [
-    [ "HarnessAggregate", "dc/d71/structyaze_1_1test_1_1TestManager_1_1HarnessAggregate.html", "dc/d71/structyaze_1_1test_1_1TestManager_1_1HarnessAggregate" ],
     [ "TestManager", "da/d3e/classyaze_1_1test_1_1TestManager.html#a2c642eb77f5ecd3a3867997f6c78f5e1", null ],
     [ "~TestManager", "da/d3e/classyaze_1_1test_1_1TestManager.html#aaadff49f02206c0a11b5543ea7c69e95", null ],
     [ "RunAllTests", "da/d3e/classyaze_1_1test_1_1TestManager.html#ab99bef8efee2fae2db5f1f5c6fcd06d0", null ],
@@ -38,20 +37,13 @@ var classyaze_1_1test_1_1TestManager =
     [ "DisableTest", "da/d3e/classyaze_1_1test_1_1TestManager.html#acdefeaf65383cc782c7fa8f8cee95348", null ],
     [ "EnableTest", "da/d3e/classyaze_1_1test_1_1TestManager.html#ac660d2fbeaed222a359443b13417492b", null ],
     [ "IsTestEnabled", "da/d3e/classyaze_1_1test_1_1TestManager.html#a695c24b9d5606fd4dee4d65162014c30", null ],
-    [ "RegisterHarnessTest", "da/d3e/classyaze_1_1test_1_1TestManager.html#af0c788ddc22fc3138174f45fff54a236", null ],
-    [ "MarkHarnessTestRunning", "da/d3e/classyaze_1_1test_1_1TestManager.html#aad40e6145bfd2ebec60a1729ee41b458", null ],
-    [ "MarkHarnessTestCompleted", "da/d3e/classyaze_1_1test_1_1TestManager.html#adb12ae7bf27b4e3c0a06828590b1d09c", null ],
-    [ "AppendHarnessTestLog", "da/d3e/classyaze_1_1test_1_1TestManager.html#afae4d4774f4b78417bfed23653598e9f", null ],
-    [ "GetHarnessTestExecution", "da/d3e/classyaze_1_1test_1_1TestManager.html#a754e78e960ad976b47f434bf16313c24", null ],
-    [ "ListHarnessTestSummaries", "da/d3e/classyaze_1_1test_1_1TestManager.html#a4451fb626335c12607dc1353051838ac", null ],
-    [ "CaptureFailureContext", "da/d3e/classyaze_1_1test_1_1TestManager.html#ac388d5c294ad7d81c955cda9e956995b", null ],
+    [ "ShowHarnessDashboard", "da/d3e/classyaze_1_1test_1_1TestManager.html#a3b3f5d465b79757b0bc3cc7e66062889", null ],
+    [ "ShowHarnessActiveTests", "da/d3e/classyaze_1_1test_1_1TestManager.html#a28c493ae18069164bf0ff3ff67f5268c", null ],
+    [ "RecordPlanSummary", "da/d3e/classyaze_1_1test_1_1TestManager.html#a30446565f6398b79d5194531e25546c2", null ],
     [ "ExecuteTestSuite", "da/d3e/classyaze_1_1test_1_1TestManager.html#a7db45a242780d055d1d12cbc23df3d62", null ],
     [ "UpdateProgress", "da/d3e/classyaze_1_1test_1_1TestManager.html#ae7cbaf88ee1e98b4e2fa8c598fc21442", null ],
     [ "CollectResourceStats", "da/d3e/classyaze_1_1test_1_1TestManager.html#accb083bc4e5f9205954fa5c0059e4ba5", null ],
     [ "TrimResourceHistory", "da/d3e/classyaze_1_1test_1_1TestManager.html#aac8ba5225045f940a57ed1f7bfa1e774", null ],
-    [ "ABSL_GUARDED_BY", "da/d3e/classyaze_1_1test_1_1TestManager.html#aaac784300c56347a81b50b4a6c5791b7", null ],
-    [ "ABSL_GUARDED_BY", "da/d3e/classyaze_1_1test_1_1TestManager.html#a48b370467177c8a090674ac0a77f47ed", null ],
-    [ "ABSL_GUARDED_BY", "da/d3e/classyaze_1_1test_1_1TestManager.html#a2c57960e3685cc500c2c74f59ae28a64", null ],
     [ "GenerateHarnessTestIdLocked", "da/d3e/classyaze_1_1test_1_1TestManager.html#ac8e5edad535ca7a83dab427ae0276970", null ],
     [ "TrimHarnessHistoryLocked", "da/d3e/classyaze_1_1test_1_1TestManager.html#a2409be0114ce93166356857aaa252ab2", null ],
     [ "test_suites_", "da/d3e/classyaze_1_1test_1_1TestManager.html#ad2bc07d046bb17a276c28ba1f9857f32", null ],
@@ -75,6 +67,5 @@ var classyaze_1_1test_1_1TestManager =
     [ "show_test_configuration_", "da/d3e/classyaze_1_1test_1_1TestManager.html#a1a2f23afc297f032320873c3d0a1d224", null ],
     [ "test_rom_path_for_session_", "da/d3e/classyaze_1_1test_1_1TestManager.html#a99f8623a9031c8314d18562296591d17", null ],
     [ "disabled_tests_", "da/d3e/classyaze_1_1test_1_1TestManager.html#aec4c5b1c8acd5e051d270eb08f02ea67", null ],
-    [ "harness_history_limit_", "da/d3e/classyaze_1_1test_1_1TestManager.html#a5fae14e8d99865c34dd855103830c951", null ],
-    [ "harness_history_mutex_", "da/d3e/classyaze_1_1test_1_1TestManager.html#abdef146257e85fce603ec37b97de0e40", null ]
+    [ "mutex_", "da/d3e/classyaze_1_1test_1_1TestManager.html#aadb50b63c9df259c24c881b64652712e", null ]
 ];

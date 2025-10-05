@@ -9,8 +9,8 @@ var searchData=
   ['agent_5fchat_5fhistory_5fcodec_2eh_6',['agent_chat_history_codec.h',['../d3/d74/agent__chat__history__codec_8h.html',1,'']]],
   ['agent_5fchat_5fhistory_5fpopup_2ecc_7',['agent_chat_history_popup.cc',['../d8/d92/agent__chat__history__popup_8cc.html',1,'']]],
   ['agent_5fchat_5fhistory_5fpopup_2eh_8',['agent_chat_history_popup.h',['../d7/d6b/agent__chat__history__popup_8h.html',1,'']]],
-  ['agent_5fchat_5fwidget_2ecc_9',['agent_chat_widget.cc',['../d4/d0a/gui_2widgets_2agent__chat__widget_8cc.html',1,'(Global Namespace)'],['../d5/dde/editor_2agent_2agent__chat__widget_8cc.html',1,'(Global Namespace)']]],
-  ['agent_5fchat_5fwidget_2eh_10',['agent_chat_widget.h',['../d1/dee/editor_2agent_2agent__chat__widget_8h.html',1,'(Global Namespace)'],['../d6/dae/gui_2widgets_2agent__chat__widget_8h.html',1,'(Global Namespace)']]],
+  ['agent_5fchat_5fwidget_2ecc_9',['agent_chat_widget.cc',['../d5/dde/editor_2agent_2agent__chat__widget_8cc.html',1,'(Global Namespace)'],['../d4/d0a/gui_2widgets_2agent__chat__widget_8cc.html',1,'(Global Namespace)']]],
+  ['agent_5fchat_5fwidget_2eh_10',['agent_chat_widget.h',['../d6/dae/gui_2widgets_2agent__chat__widget_8h.html',1,'(Global Namespace)'],['../d1/dee/editor_2agent_2agent__chat__widget_8h.html',1,'(Global Namespace)']]],
   ['agent_5fcollaboration_5fcoordinator_2ecc_11',['agent_collaboration_coordinator.cc',['../d0/daa/agent__collaboration__coordinator_8cc.html',1,'']]],
   ['agent_5fcollaboration_5fcoordinator_2eh_12',['agent_collaboration_coordinator.h',['../d2/d25/agent__collaboration__coordinator_8h.html',1,'']]],
   ['agent_5feditor_2ecc_13',['agent_editor.cc',['../d5/d8c/agent__editor_8cc.html',1,'']]],
@@ -48,5 +48,7 @@ var searchData=
   ['atlas_5frenderer_2eh_45',['atlas_renderer.h',['../d1/d35/atlas__renderer_8h.html',1,'']]],
   ['autocomplete_2ecc_46',['autocomplete.cc',['../d1/d90/autocomplete_8cc.html',1,'']]],
   ['autocomplete_2eh_47',['autocomplete.h',['../d7/d82/autocomplete_8h.html',1,'']]],
-  ['autocomplete_5fui_2ecc_48',['autocomplete_ui.cc',['../df/dc9/autocomplete__ui_8cc.html',1,'']]]
+  ['autocomplete_5fui_2ecc_48',['autocomplete_ui.cc',['../df/dc9/autocomplete__ui_8cc.html',1,'']]],
+  ['automation_5fbridge_2ecc_49',['automation_bridge.cc',['../dc/d74/automation__bridge_8cc.html',1,'']]],
+  ['automation_5fbridge_2eh_50',['automation_bridge.h',['../de/d0f/automation__bridge_8h.html',1,'']]]
 ];

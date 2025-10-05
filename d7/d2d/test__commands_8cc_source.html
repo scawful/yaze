@@ -369,13 +369,13 @@ $(document).ready(function(){initNavTree('d7/d2d/test__commands_8cc_source.html'
 <div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>}</div>
 <div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span> </div>
 <div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>absl::Status HandleTestStatusCommand(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; args) {</div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>  std::string test_id;</div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>  std::string <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>;</div>
 <div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>  std::string host = <span class="stringliteral">&quot;localhost&quot;</span>;</div>
 <div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>  <span class="keywordtype">int</span> port = 50052;</div>
 <div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span> </div>
 <div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; args.size(); ++i) {</div>
 <div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>    <span class="keywordflow">if</span> (args[i] == <span class="stringliteral">&quot;--test-id&quot;</span> &amp;&amp; i + 1 &lt; args.size()) {</div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>      test_id = args[++i];</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>      <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a> = args[++i];</div>
 <div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (args[i] == <span class="stringliteral">&quot;--host&quot;</span> &amp;&amp; i + 1 &lt; args.size()) {</div>
 <div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>      host = args[++i];</div>
 <div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (args[i] == <span class="stringliteral">&quot;--port&quot;</span> &amp;&amp; i + 1 &lt; args.size()) {</div>
@@ -383,7 +383,7 @@ $(document).ready(function(){initNavTree('d7/d2d/test__commands_8cc_source.html'
 <div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>    }</div>
 <div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>  }</div>
 <div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span> </div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>  <span class="keywordflow">if</span> (test_id.empty()) {</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>.empty()) {</div>
 <div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(</div>
 <div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>        <span class="stringliteral">&quot;Usage: agent test status --test-id &lt;id&gt; [--host &lt;host&gt;] [--port &lt;port&gt;]&quot;</span>);</div>
 <div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>  }</div>
@@ -400,7 +400,7 @@ $(document).ready(function(){initNavTree('d7/d2d/test__commands_8cc_source.html'
 <div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>  }</div>
 <div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span> </div>
 <div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;\n=== Test Status ===\n&quot;</span>;</div>
-<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Test ID: &quot;</span> &lt;&lt; test_id &lt;&lt; <span class="stringliteral">&quot;\n&quot;</span>;</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Test ID: &quot;</span> &lt;&lt; <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a> &lt;&lt; <span class="stringliteral">&quot;\n&quot;</span>;</div>
 <div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Status: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a7ed3a4be75f94497282b02ab3f913e6c">TestRunStatusToString</a>(details.value().status) &lt;&lt; <span class="stringliteral">&quot;\n&quot;</span>;</div>
 <div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Started: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a26becb072f8972e42a5df41ca44821e9">FormatOptionalTime</a>(details.value().started_at) &lt;&lt; <span class="stringliteral">&quot;\n&quot;</span>;</div>
 <div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Completed: &quot;</span> &lt;&lt; <a class="code hl_function" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a26becb072f8972e42a5df41ca44821e9">FormatOptionalTime</a>(details.value().completed_at) &lt;&lt; <span class="stringliteral">&quot;\n&quot;</span>;</div>
@@ -450,14 +450,14 @@ $(document).ready(function(){initNavTree('d7/d2d/test__commands_8cc_source.html'
 <div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>}</div>
 <div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span> </div>
 <div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>absl::Status HandleTestResultsCommand(<span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; args) {</div>
-<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>  std::string test_id;</div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>  std::string <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>;</div>
 <div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>  std::string host = <span class="stringliteral">&quot;localhost&quot;</span>;</div>
 <div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>  <span class="keywordtype">int</span> port = 50052;</div>
 <div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>  <span class="keywordtype">bool</span> include_logs = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span> </div>
 <div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; args.size(); ++i) {</div>
 <div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>    <span class="keywordflow">if</span> (args[i] == <span class="stringliteral">&quot;--test-id&quot;</span> &amp;&amp; i + 1 &lt; args.size()) {</div>
-<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>      test_id = args[++i];</div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>      <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a> = args[++i];</div>
 <div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (args[i] == <span class="stringliteral">&quot;--host&quot;</span> &amp;&amp; i + 1 &lt; args.size()) {</div>
 <div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>      host = args[++i];</div>
 <div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (args[i] == <span class="stringliteral">&quot;--port&quot;</span> &amp;&amp; i + 1 &lt; args.size()) {</div>
@@ -467,7 +467,7 @@ $(document).ready(function(){initNavTree('d7/d2d/test__commands_8cc_source.html'
 <div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>    }</div>
 <div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>  }</div>
 <div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span> </div>
-<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>  <span class="keywordflow">if</span> (test_id.empty()) {</div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>.empty()) {</div>
 <div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(</div>
 <div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>        <span class="stringliteral">&quot;Usage: agent test results --test-id &lt;id&gt; [--include-logs] [--host &lt;host&gt;] [--port &lt;port&gt;]&quot;</span>);</div>
 <div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>  }</div>
@@ -750,6 +750,7 @@ $(document).ready(function(){initNavTree('d7/d2d/test__commands_8cc_source.html'
 <div class="ttc" id="anamespaceyaze_1_1cli_html_a0be616999fa8e675f482f53ca1830fcea2146194a4ced927d6327c1625c175554"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcea2146194a4ced927d6327c1625c175554">yaze::cli::TestStepType::kAssert</a></div><div class="ttdeci">@ kAssert</div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_a0be616999fa8e675f482f53ca1830fcea307b2f90e031951851ef07da7fe12144"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcea307b2f90e031951851ef07da7fe12144">yaze::cli::TestStepType::kClick</a></div><div class="ttdeci">@ kClick</div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_a0be616999fa8e675f482f53ca1830fcead554146c5ee004ffbbf78a5acc40af0b"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fcead554146c5ee004ffbbf78a5acc40af0b">yaze::cli::TestStepType::kType</a></div><div class="ttdeci">@ kType</div></div>
+<div class="ttc" id="anamespaceyaze_1_1test_html_aa6ec55282cc2943ead16117c4104bfe3"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">yaze::test::test_id</a></div><div class="ttdeci">void test_id</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01852">test_manager.cc:1852</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="atest__workflow__generator_8h_html"><div class="ttname"><a href="../../d8/dfb/test__workflow__generator_8h.html">test_workflow_generator.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->

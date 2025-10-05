@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['ftxui_0',['ftxui',['../dc/d1b/namespaceftxui.html',1,'']]]
+  ['extract_5fchangelog_0',['extract_changelog',['../df/d6c/namespaceextract__changelog.html',1,'']]]
 ];
