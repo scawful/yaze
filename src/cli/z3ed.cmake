@@ -59,6 +59,7 @@ add_executable(
   cli/handlers/sprite.cc
   cli/handlers/project.cc
   cli/handlers/command_palette.cc
+  cli/handlers/message.cc
   cli/handlers/agent.cc
   cli/handlers/agent/common.cc
   cli/handlers/agent/general_commands.cc

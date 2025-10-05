@@ -169,6 +169,62 @@
         }
       }
     }
+  },
+  {
+    "name": "message-list",
+    "description": "List all in-game dialogue and text messages from the ROM",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "range": {
+          "type": "string",
+          "description": "Optional: limit to message ID range in format 'start-end' (e.g., '0-100')"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json", "text"],
+          "default": "json"
+        }
+      }
+    }
+  },
+  {
+    "name": "message-read",
+    "description": "Read a specific message by its ID",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Message ID number (0-300+)"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json", "text"],
+          "default": "json"
+        }
+      },
+      "required": ["id"]
+    }
+  },
+  {
+    "name": "message-search",
+    "description": "Search for messages containing specific text",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Text to search for within message content (case-insensitive)"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["json", "text"],
+          "default": "json"
+        }
+      },
+      "required": ["query"]
+    }
   }
 ]
 
