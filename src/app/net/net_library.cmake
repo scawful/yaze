@@ -12,6 +12,7 @@
 set(
   YAZE_NET_SRC
   app/net/rom_version_manager.cc
+  app/net/websocket_client.cc
 )
 
 add_library(yaze_net STATIC ${YAZE_NET_SRC})
@@ -30,11 +31,32 @@ target_link_libraries(yaze_net PUBLIC
   ${ABSL_TARGETS}
 )
 
-# Add JSON support if enabled
+# Add JSON and httplib support if enabled
 if(YAZE_WITH_JSON)
   target_include_directories(yaze_net PUBLIC
-    ${CMAKE_SOURCE_DIR}/third_party/json/include)
+    ${CMAKE_SOURCE_DIR}/third_party/json/include
+    ${CMAKE_SOURCE_DIR}/third_party/httplib)
   target_compile_definitions(yaze_net PUBLIC YAZE_WITH_JSON)
+  
+  # Add threading support (cross-platform)
+  find_package(Threads REQUIRED)
+  target_link_libraries(yaze_net PUBLIC Threads::Threads)
+  
+  # Add OpenSSL for HTTPS/WSS support (optional but recommended)
+  find_package(OpenSSL QUIET)
+  if(OpenSSL_FOUND)
+    target_link_libraries(yaze_net PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+    target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+    message(STATUS "  - WebSocket with SSL/TLS support enabled")
+  else()
+    message(STATUS "  - WebSocket without SSL/TLS (OpenSSL not found)")
+  endif()
+  
+  # Windows-specific socket library
+  if(WIN32)
+    target_link_libraries(yaze_net PUBLIC ws2_32)
+    message(STATUS "  - Windows socket support (ws2_32) linked")
+  endif()
 endif()
 
 set_target_properties(yaze_net PROPERTIES
