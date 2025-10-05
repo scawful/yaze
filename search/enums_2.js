@@ -10,5 +10,6 @@ var searchData=
   ['collaborationmode_7',['collaborationmode',['../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#ae5fe8223fb00b6329102b05c39bc9db6',1,'yaze::editor::AgentChatWidget::CollaborationMode'],['../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a0b6935712243d6d81a935e5f1afd6551',1,'yaze::editor::AgentEditor::CollaborationMode']]],
   ['collisionkey_8',['CollisionKey',['../d5/d1f/namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496',1,'yaze::zelda3']]],
   ['colordepth_9',['ColorDepth',['../d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782',1,'yaze::emu::BackgroundLayer']]],
-  ['command_10',['Command',['../dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#a728e925cc68d6c08332b2f55f4146715',1,'yaze::gui::canvas::CanvasContextMenu']]]
+  ['command_10',['Command',['../dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#a728e925cc68d6c08332b2f55f4146715',1,'yaze::gui::canvas::CanvasContextMenu']]],
+  ['connectionstate_11',['ConnectionState',['../d5/dde/namespaceyaze_1_1app_1_1net.html#ae4a8b62ff69641828f43ee104e85ce0a',1,'yaze::app::net']]]
 ];

@@ -101,10 +101,10 @@ $(document).ready(function(){initNavTree('d9/db0/md_test_2e2e_2README.html','../
   <div class="headertitle"><div class="title">End-to-End (E2E) Tests</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md598"></a> This directory contains E2E tests using <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Test Engine to validate complete user workflows.</p>
-<h1><a class="anchor" id="autotoc_md599"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md587"></a> This directory contains E2E tests using <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Test Engine to validate complete user workflows.</p>
+<h1><a class="anchor" id="autotoc_md588"></a>
 Active Tests</h1>
-<h2><a class="anchor" id="autotoc_md600"></a>
+<h2><a class="anchor" id="autotoc_md589"></a>
 ✅ Working Tests</h2>
 <ol type="1">
 <li><b><a class="el" href="../../da/d8d/framework__smoke__test_8cc.html">framework_smoke_test.cc</a></b> - Basic framework validation</li>
@@ -115,7 +115,7 @@ Active Tests</h1>
 <li><b><a class="el" href="../../d1/d20/e2e__rom__test_8cc.html">rom_dependent/e2e_rom_test.cc</a></b> - ROM-dependent functionality tests</li>
 <li><b><a class="el" href="../../d7/db2/zscustomoverworld__upgrade__test_8cc.html">zscustomoverworld/zscustomoverworld_upgrade_test.cc</a></b> - ZSCustomOverworld upgrade tests</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md601"></a>
+<h2><a class="anchor" id="autotoc_md590"></a>
 📝 Dungeon Editor Smoke Test</h2>
 <p><b>File</b>: <code><a class="el" href="../../d4/dd0/dungeon__editor__smoke__test_8cc.html">dungeon_editor_smoke_test.cc</a></code> <br  />
  <b>Status</b>: ✅ Working and registered</p>
@@ -128,20 +128,20 @@ Active Tests</h1>
 <li>Mode button verification (Select, Insert, Edit)</li>
 <li>Detailed logging at each step</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md602"></a>
+<h1><a class="anchor" id="autotoc_md591"></a>
 Running Tests</h1>
-<h2><a class="anchor" id="autotoc_md603"></a>
+<h2><a class="anchor" id="autotoc_md592"></a>
 All E2E Tests (GUI Mode)</h2>
 <div class="fragment"><div class="line">./build/bin/yaze_test --show-gui</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md604"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md593"></a>
 Specific Test Category</h2>
 <div class="fragment"><div class="line">./build/bin/yaze_test --show-gui --gtest_filter=&quot;E2ETest*&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md605"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md594"></a>
 Dungeon Editor Test Only</h2>
 <div class="fragment"><div class="line">./build/bin/yaze_test --show-gui --gtest_filter=&quot;*DungeonEditorSmokeTest&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md606"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md595"></a>
 Test Development</h1>
-<h2><a class="anchor" id="autotoc_md607"></a>
+<h2><a class="anchor" id="autotoc_md596"></a>
 Creating New Tests</h2>
 <p>Follow the pattern in <code><a class="el" href="../../d4/dd0/dungeon__editor__smoke__test_8cc.html">dungeon_editor_smoke_test.cc</a></code>:</p>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;e2e/my_new_test.h&quot;</span></div>
@@ -165,7 +165,7 @@ Creating New Tests</h2>
 <div class="ttc" id="anamespaceyaze_1_1test_1_1gui_html_ae62d5a7e55450297c7b7efdb5c9448bc"><div class="ttname"><a href="../../d7/d79/namespaceyaze_1_1test_1_1gui.html#ae62d5a7e55450297c7b7efdb5c9448bc">yaze::test::gui::LoadRomInTest</a></div><div class="ttdeci">void LoadRomInTest(ImGuiTestContext *ctx, const std::string &amp;rom_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d83/test__utils_8cc_source.html#l00008">test_utils.cc:8</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_1_1gui_html_af12c501448079ffb3ab9d73d71237882"><div class="ttname"><a href="../../d7/d79/namespaceyaze_1_1test_1_1gui.html#af12c501448079ffb3ab9d73d71237882">yaze::test::gui::OpenEditorInTest</a></div><div class="ttdeci">void OpenEditorInTest(ImGuiTestContext *ctx, const std::string &amp;editor_name)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d83/test__utils_8cc_source.html#l00013">test_utils.cc:13</a></div></div>
 <div class="ttc" id="atest__utils_8h_html"><div class="ttname"><a href="../../df/dfd/test__utils_8h.html">test_utils.h</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md608"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md597"></a>
 Register in yaze_test.cc</h2>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;e2e/my_new_test.h&quot;</span></div>
 <div class="line"> </div>
@@ -173,7 +173,7 @@ Register in yaze_test.cc</h2>
 <div class="line">ImGuiTest* my_test = IM_REGISTER_TEST(engine, <span class="stringliteral">&quot;E2ETest&quot;</span>, <span class="stringliteral">&quot;MyNewTest&quot;</span>);</div>
 <div class="line">my_test-&gt;TestFunc = E2ETest_MyNewTest;</div>
 <div class="line">my_test-&gt;UserData = &amp;controller;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md609"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md598"></a>
 ImGui Test Engine API</h2>
 <p>Key methods available:</p><ul>
 <li><code>ctx-&gt;WindowFocus("WindowName")</code> - Focus a window</li>
@@ -186,7 +186,7 @@ ImGui Test Engine API</h2>
 <li><code>ctx-&gt;Yield()</code> - Yield to allow UI to update</li>
 </ul>
 <p>Full API: <code>src/lib/imgui_test_engine/imgui_te_engine.h</code></p>
-<h1><a class="anchor" id="autotoc_md610"></a>
+<h1><a class="anchor" id="autotoc_md599"></a>
 Test Logging</h1>
 <p>Tests log detailed information during execution. View logs:</p><ul>
 <li>In GUI mode: Check <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Test Engine window</li>
@@ -197,9 +197,9 @@ Test Logging</h1>
 <div class="line">2025-10-04 14:03:38 INFO: Loading ROM...</div>
 <div class="line">2025-10-04 14:03:38 INFO: ROM loaded successfully</div>
 <div class="line">2025-10-04 14:03:38 INFO: Opening Dungeon Editor...</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md611"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md600"></a>
 Test Infrastructure</h1>
-<h2><a class="anchor" id="autotoc_md612"></a>
+<h2><a class="anchor" id="autotoc_md601"></a>
 File Organization</h2>
 <div class="fragment"><div class="line">test/e2e/</div>
 <div class="line">├── README.md (this file)</div>
@@ -212,13 +212,13 @@ File Organization</h2>
 <div class="line">│   └── e2e_rom_test.cc</div>
 <div class="line">└── zscustomoverworld/</div>
 <div class="line">    └── zscustomoverworld_upgrade_test.cc</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md613"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md602"></a>
 Helper Functions</h2>
 <p>Available in <code><a class="el" href="../../df/dfd/test__utils_8h.html">test_utils.h</a></code>:</p><ul>
 <li><code><a class="el" href="../../d7/d79/namespaceyaze_1_1test_1_1gui.html#ae62d5a7e55450297c7b7efdb5c9448bc">yaze::test::gui::LoadRomInTest</a>(ctx, "zelda3.sfc")</code> - Load ROM for testing</li>
 <li><code><a class="el" href="../../d7/d79/namespaceyaze_1_1test_1_1gui.html#af12c501448079ffb3ab9d73d71237882">yaze::test::gui::OpenEditorInTest</a>(ctx, "Editor Name")</code> - Open an editor window</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md614"></a>
+<h1><a class="anchor" id="autotoc_md603"></a>
 Future Test Ideas</h1>
 <p>Potential tests to add:</p><ul>
 <li>[ ] Object placement workflow</li>
@@ -229,30 +229,30 @@ Future Test Ideas</h1>
 <li>[ ] Palette editor workflows</li>
 <li>[ ] Music editor workflows</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md615"></a>
+<h1><a class="anchor" id="autotoc_md604"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md616"></a>
+<h2><a class="anchor" id="autotoc_md605"></a>
 Test Crashes in GUI Mode</h2>
 <ul>
 <li>Ensure ROM exists at <code>assets/zelda3.sfc</code></li>
 <li>Check logs for specific error messages</li>
 <li>Try running without <code>--show-gui</code> first</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md617"></a>
+<h2><a class="anchor" id="autotoc_md606"></a>
 Tests Not Found</h2>
 <ul>
 <li>Verify test is registered in <code><a class="el" href="../../de/d3d/yaze__test_8cc.html">yaze_test.cc</a></code></li>
 <li>Check that files are added to CMakeLists.txt</li>
 <li>Rebuild: <code>make -C build yaze_test</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md618"></a>
+<h2><a class="anchor" id="autotoc_md607"></a>
 ImGui Items Not Found</h2>
 <ul>
 <li>Use <code>ctx-&gt;ItemExists("ItemName")</code> to check availability</li>
 <li>Ensure window is focused with <code>ctx-&gt;WindowFocus()</code></li>
 <li>Check actual widget IDs in source code (look for <code>##</code> suffixes)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md619"></a>
+<h1><a class="anchor" id="autotoc_md608"></a>
 References</h1>
 <ul>
 <li><b><a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Test Engine</b>: <code>src/lib/imgui_test_engine/</code></li>
@@ -260,7 +260,7 @@ References</h1>
 <li><b>Test Utilities</b>: <code><a class="el" href="../../df/dfd/test__utils_8h.html">test/test_utils.h</a></code></li>
 <li><b>Working Examples</b>: See existing tests in this directory</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md620"></a>
+<h1><a class="anchor" id="autotoc_md609"></a>
 Status</h1>
 <p><b>Current State</b>: E2E testing infrastructure is working with 6+ active tests. <b>Test Coverage</b>: Basic workflows covered; opportunity for expansion. <b>Stability</b>: Tests run reliably in both GUI and CI modes. </p>
 </div></div><!-- contents -->

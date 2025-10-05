@@ -1,4 +1,7 @@
 var searchData=
 [
-  ['⚡_20build_20environment_20verification_0',['⚡ Build Environment Verification',['../d9/d41/md_docs_202-build-instructions.html#autotoc_md7',1,'']]]
+  ['✅_0',['✅',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html#autotoc_md279',1,'Completed Items ✅'],['../d0/d7d/md_docs_2G2-canvas-guide.html#autotoc_md383',1,'DO ✅']]],
+  ['✅_20completed_1',['✅ Completed',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md504',1,'']]],
+  ['✅_20recently_20completed_20v0_202_200_20alpha_20october_205_202025_2',['✅ Recently Completed (v0.2.0-alpha - October 5, 2025)',['../d3/d63/md_docs_2z3ed_2README.html#autotoc_md506',1,'']]],
+  ['✅_20working_20tests_3',['✅ Working Tests',['../d9/db0/md_test_2e2e_2README.html#autotoc_md589',1,'']]]
 ];

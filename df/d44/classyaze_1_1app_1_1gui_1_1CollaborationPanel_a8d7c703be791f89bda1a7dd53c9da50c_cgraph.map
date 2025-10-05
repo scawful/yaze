@@ -1,0 +1,11 @@
+<map id="yaze::app::gui::CollaborationPanel::RenderApprovalProposal" name="yaze::app::gui::CollaborationPanel::RenderApprovalProposal">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,209,79"/>
+<area shape="rect" id="Node000002" href="$df/d44/classyaze_1_1app_1_1gui_1_1CollaborationPanel.html#a03ca7c422a4367dac01e6ccd057b793a" title=" " alt="" coords="257,5,435,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,42,241,38,242,43,210,47"/>
+<area shape="rect" id="Node000003" href="$d6/dd9/classyaze_1_1app_1_1net_1_1RomVersionManager.html#a20b189544cec08e8c2d6803fa1f3bab0" title=" " alt="" coords="257,71,435,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="210,70,242,74,241,80,209,75"/>
+<area shape="rect" id="Node000004" href="$d6/dd9/classyaze_1_1app_1_1net_1_1RomVersionManager.html#a6e670b4834fcbbd14b3b5263b4fb7b1e" title=" " alt="" coords="484,37,659,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="434,75,468,70,469,76,435,81"/>
+<area shape="rect" id="Node000011" href="$d6/dd9/classyaze_1_1app_1_1net_1_1RomVersionManager.html#ac93586b87e0267849c17eb89128f55a6" title=" " alt="" coords="483,103,660,143"/>
+<area shape="poly" id="edge4_Node000003_Node000011" title=" " alt="" coords="435,101,468,106,467,111,434,106"/>
+</map>

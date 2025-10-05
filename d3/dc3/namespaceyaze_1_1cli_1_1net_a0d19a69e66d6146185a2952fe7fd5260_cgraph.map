@@ -1,0 +1,9 @@
+<map id="yaze::cli::net::HandleNetProposal" name="yaze::cli::net::HandleNetProposal">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,164,111"/>
+<area shape="rect" id="Node000002" href="$d3/dc3/namespaceyaze_1_1cli_1_1net.html#a6fe19572f0ac4e6c73c690074fc3a4f9" title=" " alt="" coords="225,5,413,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,68,228,48,229,53,160,73"/>
+<area shape="rect" id="Node000003" href="$d3/dc3/namespaceyaze_1_1cli_1_1net.html#a6d2d25b95257f5fd1a3d0d508a8da205" title=" " alt="" coords="225,71,413,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,88,209,88,209,94,164,94"/>
+<area shape="rect" id="Node000004" href="$d3/dc3/namespaceyaze_1_1cli_1_1net.html#a256ca5acb1125b741583662306fa9b75" title=" " alt="" coords="212,136,426,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="165,109,212,120,247,129,245,134,211,126,164,114"/>
+</map>

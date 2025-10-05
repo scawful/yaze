@@ -1,0 +1,9 @@
+<map id="src/app/net/websocket_client.h" name="src/app/net/websocket_client.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="101,5,254,46"/>
+<area shape="rect" id="Node000002" href="$d8/dec/collaboration__service_8h.html" title=" " alt="" coords="5,94,169,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,59,109,95,106,92,145,55"/>
+<area shape="rect" id="Node000004" href="$d2/d4e/websocket__client_8cc.html" title=" " alt="" coords="193,94,346,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="211,55,251,92,247,96,208,59"/>
+<area shape="rect" id="Node000003" href="$d8/d27/collaboration__service_8cc.html" title=" " alt="" coords="5,183,169,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="90,150,90,182,84,182,84,150"/>
+</map>

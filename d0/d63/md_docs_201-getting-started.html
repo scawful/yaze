@@ -101,68 +101,72 @@ $(document).ready(function(){initNavTree('d0/d63/md_docs_201-getting-started.htm
   <div class="headertitle"><div class="title">Getting Started</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md0"></a> This software allows you to modify "The Legend of Zelda: A Link to the Past" (US or JP) ROMs. Built for compatibility with ZScream projects and designed to be cross-platform.</p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md0"></a> This software allows you to modify "The Legend of Zelda: A Link to the Past" (US or JP) ROMs. It is built for compatibility with ZScream projects and designed to be cross-platform.</p>
 <h1><a class="anchor" id="autotoc_md1"></a>
 Quick Start</h1>
 <ol type="1">
-<li><b>Download</b> the latest release for your platform</li>
-<li><b>Load ROM</b> via File &gt; Open ROM</li>
-<li><b>Select Editor</b> from the toolbar (Overworld, Dungeon, Graphics, etc.)</li>
-<li><b>Make Changes</b> and save your project</li>
+<li><b>Download</b> the latest release for your platform from the <a href="https://github.com/scawful/yaze/releases">releases page</a>.</li>
+<li><b>Load ROM</b> via <code>File &gt; Open ROM</code>.</li>
+<li><b>Select an Editor</b> from the main toolbar (e.g., Overworld, Dungeon, Graphics).</li>
+<li><b>Make Changes</b> and save your project.</li>
 </ol>
 <h1><a class="anchor" id="autotoc_md2"></a>
 General Tips</h1>
 <ul>
-<li><b>Experiment Flags</b>: Enable/disable features in File &gt; Options &gt; Experiment Flags</li>
-<li><b>Backup Files</b>: Enabled by default - each save creates a timestamped backup</li>
-<li><b>Extensions</b>: Load custom tools via the Extensions menu (C library and Python module support)</li>
+<li><b>Experiment Flags</b>: Enable or disable new features in <code>File &gt; Options &gt; Experiment Flags</code>.</li>
+<li><b>Backup Files</b>: Enabled by default. Each save creates a timestamped backup of your ROM.</li>
+<li><b>Extensions</b>: Load custom tools via the <code>Extensions</code> menu (C library and Python module support is planned).</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md3"></a>
-Supported Features</h1>
+Feature Status</h1>
 <table class="markdownTable">
 <tr class="markdownTableHead">
 <th class="markdownTableHeadNone">Feature   </th><th class="markdownTableHeadNone">Status   </th><th class="markdownTableHeadNone">Details    </th></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Overworld Maps   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Edit and save tile32 data    </td></tr>
+<td class="markdownTableBodyNone">Overworld Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Full support for vanilla and ZSCustomOverworld v2/v3.    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">OW Map Properties   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Edit and save map properties    </td></tr>
+<td class="markdownTableBodyNone">Dungeon Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Stable, component-based editor for rooms, objects, and sprites.    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">OW Entrances   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Edit and save entrance data    </td></tr>
+<td class="markdownTableBodyNone">Tile16 Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Professional-grade tile editor with advanced palette management.    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">OW Exits   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Edit and save exit data    </td></tr>
+<td class="markdownTableBodyNone">Palette Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Edit and save all SNES palette groups.    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">OW Sprites   </td><td class="markdownTableBodyNone">🔄 In Progress   </td><td class="markdownTableBodyNone">Edit sprite positions, add/remove sprites    </td></tr>
+<td class="markdownTableBodyNone">Graphics Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">View and edit graphics sheets and groups.    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Dungeon Editor   </td><td class="markdownTableBodyNone">🔄 In Progress   </td><td class="markdownTableBodyNone">View room metadata and edit room data    </td></tr>
+<td class="markdownTableBodyNone">Sprite Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Edit sprite properties and attributes.    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Palette Editor   </td><td class="markdownTableBodyNone">🔄 In Progress   </td><td class="markdownTableBodyNone">Edit and save palettes, palette groups    </td></tr>
+<td class="markdownTableBodyNone">Message Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Edit in-game text and dialogue.    </td></tr>
 <tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Graphics Sheets   </td><td class="markdownTableBodyNone">🔄 In Progress   </td><td class="markdownTableBodyNone">Edit and save graphics sheets    </td></tr>
+<td class="markdownTableBodyNone">Hex Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">View and edit raw ROM data.    </td></tr>
 <tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Graphics Groups   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Edit and save graphics groups    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Hex Editor   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">View and edit ROM data in hex    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Asar Patching   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Apply Asar 65816 assembly patches to ROM   </td></tr>
+<td class="markdownTableBodyNone">Asar Patching   </td><td class="markdownTableBodyNone">✅ Complete   </td><td class="markdownTableBodyNone">Apply Asar 65816 assembly patches to the ROM.   </td></tr>
 </table>
 <h1><a class="anchor" id="autotoc_md4"></a>
-Command Line Interface</h1>
-<p>The <code>z3ed</code> CLI tool provides ROM operations:</p>
-<div class="fragment"><div class="line"># Apply Asar assembly patch</div>
-<div class="line">z3ed asar patch.asm --rom=zelda3.sfc</div>
+Command-Line Interface (&lt;tt&gt;z3ed&lt;/tt&gt;)</h1>
+<p><code>z3ed</code> is a powerful, AI-driven CLI for inspecting and editing ROMs.</p>
+<h2><a class="anchor" id="autotoc_md5"></a>
+AI Agent Chat</h2>
+<p>Chat with an AI to perform edits using natural language.</p>
+<div class="fragment"><div class="line"># Start an interactive chat session with the AI agent</div>
+<div class="line">z3ed agent chat --rom zelda3.sfc</div>
+</div><!-- fragment --> <blockquote class="doxtable">
+<p>&zwj;<b>Prompt:</b> "What sprites are in dungeon 2?" </p>
+</blockquote>
+<h2><a class="anchor" id="autotoc_md6"></a>
+Resource Inspection</h2>
+<p>Directly query ROM data.</p>
+<div class="fragment"><div class="line"># List all sprites in the Eastern Palace (dungeon 2)</div>
+<div class="line">z3ed dungeon list-sprites --rom zelda3.sfc --dungeon 2</div>
 <div class="line"> </div>
-<div class="line"># Extract symbols from assembly</div>
-<div class="line">z3ed extract patch.asm</div>
-<div class="line"> </div>
-<div class="line"># Validate assembly syntax</div>
-<div class="line">z3ed validate patch.asm</div>
-<div class="line"> </div>
-<div class="line"># Launch interactive TUI</div>
-<div class="line">z3ed --tui</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md5"></a>
+<div class="line"># Get information about a specific overworld map area</div>
+<div class="line">z3ed overworld describe-map --rom zelda3.sfc --map 80</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md7"></a>
+Patching</h2>
+<p>Apply assembly patches using the integrated Asar assembler. </p><div class="fragment"><div class="line"># Apply an assembly patch to the ROM</div>
+<div class="line">z3ed asar patch.asm --rom zelda3.sfc</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md8"></a>
 Extending Functionality</h1>
-<p>YAZE provides a pure C library interface and Python module for building extensions and custom sprites without assembly. Load these under the Extensions menu.</p>
-<p>This feature is still in development and not fully documented yet. </p>
+<p>YAZE is designed to be extensible. Future versions will support a full plugin architecture, allowing developers to create custom tools and editors. The C API, while available, is still under development. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

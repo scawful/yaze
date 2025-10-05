@@ -1,0 +1,9 @@
+<map id="yaze::app::net::RomVersionManager::ComputeRomHash" name="yaze::app::net::RomVersionManager::ComputeRomHash">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,193,88"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="256,5,367,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,44,240,32,241,37,190,49"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="241,55,382,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,65,225,65,225,70,193,70"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="257,104,366,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="190,86,242,98,241,103,189,91"/>
+</map>

@@ -1,8 +1,6 @@
 var searchData=
 [
-  ['scripts_0',['yaze Build Scripts',['../de/d82/md_scripts_2README.html',1,'']]],
-  ['started_1',['Getting Started',['../d0/d63/md_docs_201-getting-started.html',1,'']]],
-  ['style_20guide_2',['Asm Style Guide',['../d7/d9a/md_docs_2E1-asm-style-guide.html',1,'']]],
-  ['suite_3',['yaze Test Suite',['../d0/d46/md_test_2README.html',1,'']]],
-  ['system_4',['system',['../d0/d7d/md_docs_2G2-canvas-guide.html',1,'Canvas System'],['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html',1,'Tile16 Editor Palette System']]]
+  ['reference_0',['API Reference',['../dd/d96/md_docs_204-api-reference.html',1,'']]],
+  ['release_20workflows_20documentation_1',['Release Workflows Documentation',['../d3/d49/md_docs_2B4-release-workflows.html',1,'']]],
+  ['roadmap_2',['Roadmap',['../d6/db4/md_docs_2D1-roadmap.html',1,'']]]
 ];

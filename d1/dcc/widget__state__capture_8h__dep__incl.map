@@ -1,7 +1,7 @@
-<map id="src/app/core/widget_state_capture.h" name="src/app/core/widget_state_capture.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="99,5,234,46"/>
-<area shape="rect" id="Node000002" href="$da/ded/widget__state__capture_8cc.html" title=" " alt="" coords="5,94,141,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,59,96,96,92,92,132,55"/>
-<area shape="rect" id="Node000003" href="$d1/d2e/test__manager_8cc.html" title=" " alt="" coords="165,102,355,127"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="200,55,249,99,245,103,197,59"/>
+<map id="src/app/gui/widgets/widget_state_capture.h" name="src/app/gui/widgets/widget_state_capture.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="110,5,270,46"/>
+<area shape="rect" id="Node000002" href="$da/ded/widget__state__capture_8cc.html" title=" " alt="" coords="5,94,172,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,58,113,96,110,92,154,54"/>
+<area shape="rect" id="Node000003" href="$d1/d2e/test__manager_8cc.html" title=" " alt="" coords="196,102,386,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="226,54,279,99,276,103,222,58"/>
 </map>

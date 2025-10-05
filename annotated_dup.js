@@ -11,6 +11,15 @@ var annotated_dup =
           [ "ProposalEntry", "d5/dd0/structyaze_1_1app_1_1gui_1_1ProposalEntry.html", "d5/dd0/structyaze_1_1app_1_1gui_1_1ProposalEntry" ],
           [ "RomSyncEntry", "d8/dc5/structyaze_1_1app_1_1gui_1_1RomSyncEntry.html", "d8/dc5/structyaze_1_1app_1_1gui_1_1RomSyncEntry" ],
           [ "SnapshotEntry", "db/d39/structyaze_1_1app_1_1gui_1_1SnapshotEntry.html", "db/d39/structyaze_1_1app_1_1gui_1_1SnapshotEntry" ]
+        ] ],
+        [ "net", "d5/dde/namespaceyaze_1_1app_1_1net.html", [
+          [ "CollaborationService", "d1/da6/classyaze_1_1app_1_1net_1_1CollaborationService.html", "d1/da6/classyaze_1_1app_1_1net_1_1CollaborationService" ],
+          [ "ProposalApprovalManager", "db/d62/classyaze_1_1app_1_1net_1_1ProposalApprovalManager.html", "db/d62/classyaze_1_1app_1_1net_1_1ProposalApprovalManager" ],
+          [ "RomSnapshot", "d0/d10/structyaze_1_1app_1_1net_1_1RomSnapshot.html", "d0/d10/structyaze_1_1app_1_1net_1_1RomSnapshot" ],
+          [ "RomVersionManager", "d6/dd9/classyaze_1_1app_1_1net_1_1RomVersionManager.html", "d6/dd9/classyaze_1_1app_1_1net_1_1RomVersionManager" ],
+          [ "SessionInfo", "d8/da4/structyaze_1_1app_1_1net_1_1SessionInfo.html", "d8/da4/structyaze_1_1app_1_1net_1_1SessionInfo" ],
+          [ "VersionDiff", "d9/dee/structyaze_1_1app_1_1net_1_1VersionDiff.html", "d9/dee/structyaze_1_1app_1_1net_1_1VersionDiff" ],
+          [ "WebSocketClient", "d7/df0/classyaze_1_1app_1_1net_1_1WebSocketClient.html", "d7/df0/classyaze_1_1app_1_1net_1_1WebSocketClient" ]
         ] ]
       ] ],
       [ "cli", "dd/d63/namespaceyaze_1_1cli.html", [
@@ -36,6 +45,9 @@ var annotated_dup =
         ] ],
         [ "gui", "d9/db5/namespaceyaze_1_1cli_1_1gui.html", [
           [ "GuiActionGenerator", "df/d9d/classyaze_1_1cli_1_1gui_1_1GuiActionGenerator.html", "df/d9d/classyaze_1_1cli_1_1gui_1_1GuiActionGenerator" ]
+        ] ],
+        [ "net", "d3/dc3/namespaceyaze_1_1cli_1_1net.html", [
+          [ "Z3edNetworkClient", "da/dfb/classyaze_1_1cli_1_1net_1_1Z3edNetworkClient.html", "da/dfb/classyaze_1_1cli_1_1net_1_1Z3edNetworkClient" ]
         ] ],
         [ "overworld", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html", [
           [ "EntranceDetails", "d9/df8/structyaze_1_1cli_1_1overworld_1_1EntranceDetails.html", "d9/df8/structyaze_1_1cli_1_1overworld_1_1EntranceDetails" ],

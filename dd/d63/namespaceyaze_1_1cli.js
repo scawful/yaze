@@ -100,6 +100,7 @@ var namespaceyaze_1_1cli =
     ] ],
     [ "gui", "d9/db5/namespaceyaze_1_1cli_1_1gui.html", "d9/db5/namespaceyaze_1_1cli_1_1gui" ],
     [ "message", "db/d13/namespaceyaze_1_1cli_1_1message.html", "db/d13/namespaceyaze_1_1cli_1_1message" ],
+    [ "net", "d3/dc3/namespaceyaze_1_1cli_1_1net.html", "d3/dc3/namespaceyaze_1_1cli_1_1net" ],
     [ "overworld", "d5/d93/namespaceyaze_1_1cli_1_1overworld.html", "d5/d93/namespaceyaze_1_1cli_1_1overworld" ],
     [ "tui", "da/d0b/namespaceyaze_1_1cli_1_1tui.html", "da/d0b/namespaceyaze_1_1cli_1_1tui" ],
     [ "util", "d1/d87/namespaceyaze_1_1cli_1_1util.html", "d1/d87/namespaceyaze_1_1cli_1_1util" ],

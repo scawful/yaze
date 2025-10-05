@@ -1,0 +1,13 @@
+<map id="yaze::app::net::CollaborationService::SubmitChangesAsProposal" name="yaze::app::net::CollaborationService::SubmitChangesAsProposal">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,236,103"/>
+<area shape="rect" id="Node000002" href="$d1/da6/classyaze_1_1app_1_1net_1_1CollaborationService.html#ace4bdb836305e8e093e97b3dfe32cdea" title=" " alt="" coords="284,5,463,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,59,268,47,269,52,214,65"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="511,70,652,96"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="236,80,495,80,495,86,236,86"/>
+<area shape="rect" id="Node000004" href="$d6/dd9/classyaze_1_1app_1_1net_1_1RomVersionManager.html#a46da377670e4769d0dd671de8bcd71bd" title=" " alt="" coords="286,120,461,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="214,101,271,114,270,120,213,107"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="450,44,518,63,517,68,449,49"/>
+<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="449,117,517,98,518,103,450,122"/>
+<area shape="rect" id="Node000005" href="$d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="526,128,637,153"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="461,138,510,138,510,143,461,143"/>
+</map>

@@ -63,10 +63,10 @@ var namespaceyaze_1_1core =
     [ "LoadPackageFonts", "db/d33/namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd", null ],
     [ "ReloadPackageFont", "db/d33/namespaceyaze_1_1core.html#a171a8a94e8642f977ca04cf54245cd13", null ],
     [ "LoadSystemFonts", "db/d33/namespaceyaze_1_1core.html#aa408d383ff33494e29ea06e0e6774f4c", null ],
-    [ "CaptureWidgetState", "db/d33/namespaceyaze_1_1core.html#afd7b0c7907c3c40350d164a541651f13", null ],
-    [ "SerializeWidgetStateToJson", "db/d33/namespaceyaze_1_1core.html#adfa425625ae6d14a5f9da8c00bd7fcaf", null ],
     [ "CreateWindow", "db/d33/namespaceyaze_1_1core.html#a14f2050902009800d7995d94a8c169fc", null ],
     [ "ShutdownWindow", "db/d33/namespaceyaze_1_1core.html#a0f3dc6283ebf6a0957247ec1ca09c657", null ],
     [ "HandleEvents", "db/d33/namespaceyaze_1_1core.html#ad4a900088575fbf46321559795839a51", null ],
+    [ "CaptureWidgetState", "db/d33/namespaceyaze_1_1core.html#afd7b0c7907c3c40350d164a541651f13", null ],
+    [ "SerializeWidgetStateToJson", "db/d33/namespaceyaze_1_1core.html#adfa425625ae6d14a5f9da8c00bd7fcaf", null ],
     [ "kRecentFilesFilename", "db/d33/namespaceyaze_1_1core.html#a3529a0c0bdd833f9ac318e43d3ca26ca", null ]
 ];

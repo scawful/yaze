@@ -5,5 +5,6 @@ var searchData=
   ['addressingmode_2',['AddressingMode',['../d6/d20/namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836',1,'yaze::emu']]],
   ['agentoutputformat_3',['AgentOutputFormat',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6a3d696815c6e8d815849cfb27cc7cc7',1,'yaze::cli::agent']]],
   ['aiactiontype_4',['AIActionType',['../d8/d4c/namespaceyaze_1_1cli_1_1ai.html#a1f11a35fa89a6a0bcb4eb991863a31c0',1,'yaze::cli::ai']]],
-  ['areasizeenum_5',['AreaSizeEnum',['../d5/d1f/namespaceyaze_1_1zelda3.html#a607408467c46951f2ab11ba3c694ca3d',1,'yaze::zelda3']]]
+  ['approvalmode_5',['ApprovalMode',['../db/d62/classyaze_1_1app_1_1net_1_1ProposalApprovalManager.html#a51439de9ebce1d85faadffb3663e08fb',1,'yaze::app::net::ProposalApprovalManager']]],
+  ['areasizeenum_6',['AreaSizeEnum',['../d5/d1f/namespaceyaze_1_1zelda3.html#a607408467c46951f2ab11ba3c694ca3d',1,'yaze::zelda3']]]
 ];

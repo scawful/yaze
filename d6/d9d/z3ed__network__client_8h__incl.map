@@ -1,0 +1,11 @@
+<map id="src/cli/service/net/z3ed_network_client.h" name="src/cli/service/net/z3ed_network_client.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="105,5,258,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,73,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,49,76,88,73,84,145,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="96,94,150,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="169,48,143,83,139,80,165,45"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="174,94,309,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="199,45,225,80,221,83,194,48"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="334,94,480,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="239,44,359,86,357,91,237,49"/>
+</map>
