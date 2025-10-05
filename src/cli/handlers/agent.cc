@@ -110,7 +110,7 @@ absl::Status Agent::Run(const std::vector<std::string>& arg_vec) {
     return agent::HandleGuiCommand(subcommand_args);
   }
   if (subcommand == "learn") {
-    return agent::HandleLearnCommand();
+    return agent::HandleLearnCommand(subcommand_args);
   }
   if (subcommand == "list") {
     return agent::HandleListCommand();

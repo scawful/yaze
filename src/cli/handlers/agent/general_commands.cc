@@ -385,9 +385,170 @@ absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args) {
   return absl::OkStatus();
 }
 
-absl::Status HandleLearnCommand() {
-  std::cout << "Agent learn not yet implemented." << std::endl;
-  return absl::OkStatus();
+absl::Status HandleLearnCommand(const std::vector<std::string>& args) {
+  using namespace yaze::cli::agent;
+  
+  static LearnedKnowledgeService learn_service;
+  static bool initialized = false;
+  
+  if (!initialized) {
+    auto status = learn_service.Initialize();
+    if (!status.ok()) {
+      std::cerr << "Failed to initialize learned knowledge service: " 
+                << status.message() << std::endl;
+      return status;
+    }
+    initialized = true;
+  }
+  
+  if (args.empty()) {
+    // Show usage
+    std::cout << "\nUsage: z3ed agent learn [options]\n\n";
+    std::cout << "Options:\n";
+    std::cout << "  --preference <key>=<value>     Set a preference\n";
+    std::cout << "  --get-preference <key>         Get a preference value\n";
+    std::cout << "  --list-preferences             List all preferences\n";
+    std::cout << "  --pattern <type> --data <json> Learn a ROM pattern\n";
+    std::cout << "  --query-patterns <type>        Query learned patterns\n";
+    std::cout << "  --project <name> --context <text>  Save project context\n";
+    std::cout << "  --get-project <name>           Get project context\n";
+    std::cout << "  --list-projects                List all projects\n";
+    std::cout << "  --memory <topic> --summary <text>  Store conversation memory\n";
+    std::cout << "  --search-memories <query>      Search memories\n";
+    std::cout << "  --recent-memories [limit]      Show recent memories\n";
+    std::cout << "  --export <file>                Export all data to JSON\n";
+    std::cout << "  --import <file>                Import data from JSON\n";
+    std::cout << "  --stats                        Show statistics\n";
+    std::cout << "  --clear                        Clear all learned data\n";
+    return absl::OkStatus();
+  }
+  
+  // Parse arguments
+  std::string command = args[0];
+  
+  if (command == "--preference" && args.size() >= 2) {
+    std::string pref = args[1];
+    size_t eq_pos = pref.find('=');
+    if (eq_pos == std::string::npos) {
+      return absl::InvalidArgumentError("Preference must be in format key=value");
+    }
+    std::string key = pref.substr(0, eq_pos);
+    std::string value = pref.substr(eq_pos + 1);
+    auto status = learn_service.SetPreference(key, value);
+    if (status.ok()) {
+      std::cout << "✓ Preference '" << key << "' set to '" << value << "'\n";
+    }
+    return status;
+  }
+  
+  if (command == "--get-preference" && args.size() >= 2) {
+    auto value = learn_service.GetPreference(args[1]);
+    if (value) {
+      std::cout << args[1] << " = " << *value << "\n";
+    } else {
+      std::cout << "Preference '" << args[1] << "' not found\n";
+    }
+    return absl::OkStatus();
+  }
+  
+  if (command == "--list-preferences") {
+    auto prefs = learn_service.GetAllPreferences();
+    if (prefs.empty()) {
+      std::cout << "No preferences stored.\n";
+    } else {
+      std::cout << "\n=== Stored Preferences ===\n";
+      for (const auto& [key, value] : prefs) {
+        std::cout << "  " << key << " = " << value << "\n";
+      }
+    }
+    return absl::OkStatus();
+  }
+  
+  if (command == "--stats") {
+    auto stats = learn_service.GetStats();
+    std::cout << "\n=== Learned Knowledge Statistics ===\n";
+    std::cout << "  Preferences: " << stats.preference_count << "\n";
+    std::cout << "  ROM Patterns: " << stats.pattern_count << "\n";
+    std::cout << "  Projects: " << stats.project_count << "\n";
+    std::cout << "  Memories: " << stats.memory_count << "\n";
+    std::cout << "  First learned: " << absl::FormatTime(absl::FromUnixMillis(stats.first_learned_at)) << "\n";
+    std::cout << "  Last updated: " << absl::FormatTime(absl::FromUnixMillis(stats.last_updated_at)) << "\n";
+    return absl::OkStatus();
+  }
+  
+  if (command == "--export" && args.size() >= 2) {
+    auto json = learn_service.ExportToJSON();
+    if (!json.ok()) {
+      return json.status();
+    }
+    std::ofstream file(args[1]);
+    if (!file.is_open()) {
+      return absl::InternalError("Failed to open file for writing");
+    }
+    file << *json;
+    std::cout << "✓ Exported learned data to " << args[1] << "\n";
+    return absl::OkStatus();
+  }
+  
+  if (command == "--import" && args.size() >= 2) {
+    std::ifstream file(args[1]);
+    if (!file.is_open()) {
+      return absl::NotFoundError("File not found: " + args[1]);
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    auto status = learn_service.ImportFromJSON(buffer.str());
+    if (status.ok()) {
+      std::cout << "✓ Imported learned data from " << args[1] << "\n";
+    }
+    return status;
+  }
+  
+  if (command == "--clear") {
+    auto status = learn_service.ClearAll();
+    if (status.ok()) {
+      std::cout << "✓ All learned data cleared\n";
+    }
+    return status;
+  }
+  
+  if (command == "--list-projects") {
+    auto projects = learn_service.GetAllProjects();
+    if (projects.empty()) {
+      std::cout << "No projects stored.\n";
+    } else {
+      std::cout << "\n=== Stored Projects ===\n";
+      for (const auto& proj : projects) {
+        std::cout << "  " << proj.project_name << "\n";
+        std::cout << "    ROM Hash: " << proj.rom_hash.substr(0, 16) << "...\n";
+        std::cout << "    Last Accessed: " << absl::FormatTime(absl::FromUnixMillis(proj.last_accessed)) << "\n";
+      }
+    }
+    return absl::OkStatus();
+  }
+  
+  if (command == "--recent-memories") {
+    int limit = 10;
+    if (args.size() >= 2) {
+      limit = std::stoi(args[1]);
+    }
+    auto memories = learn_service.GetRecentMemories(limit);
+    if (memories.empty()) {
+      std::cout << "No memories stored.\n";
+    } else {
+      std::cout << "\n=== Recent Memories ===\n";
+      for (const auto& mem : memories) {
+        std::cout << "  Topic: " << mem.topic << "\n";
+        std::cout << "  Summary: " << mem.summary << "\n";
+        std::cout << "  Facts: " << mem.key_facts.size() << " key facts\n";
+        std::cout << "  Created: " << absl::FormatTime(absl::FromUnixMillis(mem.created_at)) << "\n";
+        std::cout << "\n";
+      }
+    }
+    return absl::OkStatus();
+  }
+  
+  return absl::InvalidArgumentError("Unknown learn command. Use 'z3ed agent learn' for usage.");
 }
 
 absl::Status HandleListCommand() {

@@ -134,6 +134,7 @@ The `z3ed` CLI is the foundation for an AI-driven Model-Code-Program (MCP) loop,
 -   `agent chat`: Opens an interactive terminal chat (TUI) with the AI agent.
 -   `agent simple-chat`: A lightweight, non-TUI chat mode for scripting and automation.
 -   `agent test ...`: Commands for running and managing automated GUI tests.
+-   `agent learn ...`: **NEW**: Manage learned knowledge (preferences, ROM patterns, project context, conversation memory).
 
 ### Resource Commands
 
@@ -163,11 +164,82 @@ Accessible from **Debug → Agent Chat** inside YAZE. Provides the same conversa
 Z3ED supports multiple AI providers. Configuration is resolved with command-line flags taking precedence over environment variables.
 
 -   `--ai_provider=<provider>`: Selects the AI provider (`mock`, `ollama`, `gemini`).
--   `--ai_model=<model>`: Specifies the model name (e.g., `qwen2.5-coder:7b`, `gemini-1.5-flash`).
+-   `--ai_model=<model>`: Specifies the model name (e.g., `qwen2.5-coder:7b`, `gemini-2.5-flash`).
 -   `--gemini_api_key=<key>`: Your Gemini API key.
 -   `--ollama_host=<url>`: The URL for your Ollama server (default: `http://localhost:11434`).
 
-## 8. CLI Output & Help System
+### System Prompt Versions
+
+Z3ED includes multiple system prompt versions for different use cases:
+
+-   **v1 (default)**: Original reactive prompt with basic tool calling
+-   **v2**: Enhanced with better JSON formatting and error handling
+-   **v3 (latest)**: Proactive prompt with intelligent tool chaining and implicit iteration - **RECOMMENDED**
+
+To use v3 prompt: Set environment variable `Z3ED_PROMPT_VERSION=v3` or it will be auto-selected for Gemini 2.0+ models.
+
+## 8. Learn Command - Knowledge Management
+
+The learn command enables the AI agent to remember preferences, patterns, and context across sessions.
+
+### Basic Usage
+
+```bash
+# Store a preference
+z3ed agent learn --preference "default_palette=2"
+
+# Get a preference
+z3ed agent learn --get-preference default_palette
+
+# List all preferences
+z3ed agent learn --list-preferences
+
+# View statistics
+z3ed agent learn --stats
+
+# Export all learned data
+z3ed agent learn --export my_learned_data.json
+
+# Import learned data
+z3ed agent learn --import my_learned_data.json
+```
+
+### Project Context
+
+Store project-specific information that the agent can reference:
+
+```bash
+# Save project context
+z3ed agent learn --project "myrom" --context "Vanilla+ difficulty hack, focus on dungeon redesign"
+
+# List projects
+z3ed agent learn --list-projects
+
+# Get project details
+z3ed agent learn --get-project "myrom"
+```
+
+### Conversation Memory
+
+The agent automatically stores summaries of conversations for future reference:
+
+```bash
+# View recent memories
+z3ed agent learn --recent-memories 10
+
+# Search memories by topic
+z3ed agent learn --search-memories "room 5"
+```
+
+### Storage Location
+
+All learned data is stored in `~/.yaze/agent/`:
+- `preferences.json`: User preferences
+- `patterns.json`: Learned ROM patterns
+- `projects.json`: Project contexts
+- `memories.json`: Conversation summaries
+
+## 9. CLI Output & Help System
 
 The `z3ed` CLI features a modernized output system designed to be clean for users and informative for developers.
 
@@ -205,7 +277,7 @@ The help system is organized by category for easy navigation.
 -   **Main Help**: `z3ed --help` or `z3ed -h` shows a high-level overview of command categories.
 -   **Category Help**: `z3ed help <category>` provides detailed information for a specific group of commands (e.g., `agent`, `patch`, `rom`).
 
-## 9. Collaborative Sessions & Multimodal Vision
+## 10. Collaborative Sessions & Multimodal Vision
 
 ### Overview
 
@@ -784,7 +856,7 @@ The AI response appears in your chat history and can reference specific details 
 - **Agent Editor Docs**: `src/app/editor/agent/README.md`
 - **Integration Guide**: `docs/z3ed/YAZE_SERVER_V2_INTEGRATION.md`
 
-## 10. Roadmap & Implementation Status
+## 11. Roadmap & Implementation Status
 
 **Last Updated**: October 4, 2025
 
@@ -815,7 +887,13 @@ The AI response appears in your chat history and can reference specific details 
 4.  **Collaboration UI Enhancements (1 day)**: Add UI elements for ROM sync, snapshot sharing, and proposal management in the Agent Chat widget.
 5.  **Windows Cross-Platform Testing (8-10h)**: Validate `z3ed` and the test harness on Windows.
 
-## 11. Troubleshooting
+### ✅ Recently Completed (v0.2.0-alpha)
+
+-   **Enhanced System Prompt (v3)**: Proactive tool chaining with implicit iteration to minimize back-and-forth
+-   **Learn Command**: Full implementation with preferences, ROM patterns, project context, and conversation memory
+-   **gRPC Windows Build Optimization**: Documented vcpkg approach and optimization strategies
+
+## 12. Troubleshooting
 
 -   **"Build with -DZ3ED_AI=ON" warning**: AI features are disabled. Rebuild with the flag to enable them.
 -   **"gRPC not available" error**: GUI testing is disabled. Rebuild with `-DYAZE_WITH_GRPC=ON`.
