@@ -182,8 +182,8 @@ function Test-AgentFolderStructure {
     )
     
     $oldSystemFiles = @(
-        "src/app/editor/system/agent_chat_widget.h",
-        "src/app/editor/system/agent_collaboration_coordinator.h"
+        "src/app/editor/agent/agent_chat_widget.h",
+        "src/app/editor/agent/agent_collaboration_coordinator.h"
     )
     
     $allPresent = $true

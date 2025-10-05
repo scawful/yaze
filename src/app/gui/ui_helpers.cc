@@ -43,21 +43,21 @@ ImVec4 GetAccentColor() {
   return ConvertColorToImVec4(theme.accent);
 }
 
-// Entity/Map marker colors
+// Entity/Map marker colors (normalized RGB + proper alpha)
 ImVec4 GetEntranceColor() {
-  return ImVec4(1.0f, 1.0f, 0.0f, 0.6f);  // Yellow with transparency
+  return ImVec4(1.0f, 1.0f, 0.0f, 0.39f);  // Yellow, 100/255 alpha
 }
 
 ImVec4 GetExitColor() {
-  return ImVec4(1.0f, 1.0f, 1.0f, 0.6f);  // White with transparency
+  return ImVec4(1.0f, 1.0f, 1.0f, 0.59f);  // White, 150/255 alpha
 }
 
 ImVec4 GetItemColor() {
-  return ImVec4(1.0f, 0.0f, 0.0f, 0.6f);  // Red with transparency
+  return ImVec4(1.0f, 0.0f, 0.0f, 0.59f);  // Red, 150/255 alpha
 }
 
 ImVec4 GetSpriteColor() {
-  return ImVec4(1.0f, 0.0f, 1.0f, 0.6f);  // Magenta with transparency
+  return ImVec4(1.0f, 0.0f, 1.0f, 0.59f);  // Magenta, 150/255 alpha
 }
 
 ImVec4 GetSelectedColor() {
@@ -376,6 +376,120 @@ void CenterText(const char* text) {
 void RightAlign(float width) {
   ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 
                        ImGui::GetContentRegionAvail().x - width);
+}
+
+// ============================================================================
+// Animation Helpers
+// ============================================================================
+
+float GetPulseAlpha(float speed) {
+  return 0.5f + 0.5f * sinf(static_cast<float>(ImGui::GetTime()) * speed * 2.0f);
+}
+
+float GetFadeIn(float duration) {
+  static double start_time = 0.0;
+  double current_time = ImGui::GetTime();
+  
+  if (start_time == 0.0) {
+    start_time = current_time;
+  }
+  
+  float elapsed = static_cast<float>(current_time - start_time);
+  float alpha = ImClamp(elapsed / duration, 0.0f, 1.0f);
+  
+  // Reset after complete
+  if (alpha >= 1.0f) {
+    start_time = 0.0;
+  }
+  
+  return alpha;
+}
+
+void PushPulseEffect(float speed) {
+  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 
+                     ImGui::GetStyle().Alpha * GetPulseAlpha(speed));
+}
+
+void PopPulseEffect() {
+  ImGui::PopStyleVar();
+}
+
+void LoadingSpinner(const char* label, float radius) {
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 pos = ImGui::GetCursorScreenPos();
+  pos.x += radius + 4;
+  pos.y += radius + 4;
+  
+  const float rotation = static_cast<float>(ImGui::GetTime()) * 3.0f;
+  const int segments = 16;
+  const float thickness = 3.0f;
+  
+  const float start_angle = rotation;
+  const float end_angle = rotation + IM_PI * 1.5f;
+  
+  draw_list->PathArcTo(pos, radius, start_angle, end_angle, segments);
+  draw_list->PathStroke(ImGui::GetColorU32(GetAccentColor()), 0, thickness);
+  
+  if (label) {
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + radius * 2 + 8);
+    ImGui::Text("%s", label);
+  } else {
+    ImGui::Dummy(ImVec2(radius * 2 + 8, radius * 2 + 8));
+  }
+}
+
+// ============================================================================
+// Responsive Layout Helpers
+// ============================================================================
+
+float GetResponsiveWidth(float min_width, float max_width, float ratio) {
+  float available = ImGui::GetContentRegionAvail().x;
+  float target = available * ratio;
+  
+  if (target < min_width) return min_width;
+  if (target > max_width) return max_width;
+  return target;
+}
+
+void SetupResponsiveColumns(int count, float min_col_width) {
+  float available = ImGui::GetContentRegionAvail().x;
+  float col_width = available / count;
+  
+  if (col_width < min_col_width) {
+    col_width = min_col_width;
+  }
+  
+  for (int i = 0; i < count; ++i) {
+    ImGui::TableSetupColumn("##col", ImGuiTableColumnFlags_WidthFixed, col_width);
+  }
+}
+
+static int g_two_col_table_active = 0;
+
+void BeginTwoColumns(const char* id, float split_ratio) {
+  ImGuiTableFlags flags = ImGuiTableFlags_Resizable | 
+                         ImGuiTableFlags_BordersInnerV |
+                         ImGuiTableFlags_SizingStretchProp;
+  
+  if (ImGui::BeginTable(id, 2, flags)) {
+    float available = ImGui::GetContentRegionAvail().x;
+    ImGui::TableSetupColumn("##left", ImGuiTableColumnFlags_None, 
+                          available * split_ratio);
+    ImGui::TableSetupColumn("##right", ImGuiTableColumnFlags_None,
+                          available * (1.0f - split_ratio));
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    g_two_col_table_active++;
+  }
+}
+
+void SwitchColumn() {
+  ImGui::TableNextColumn();
+}
+
+void EndTwoColumns() {
+  ImGui::EndTable();
+  g_two_col_table_active--;
 }
 
 // ============================================================================

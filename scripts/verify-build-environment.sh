@@ -148,8 +148,8 @@ function test_agent_folder_structure() {
     )
     
     local old_system_files=(
-        "src/app/editor/system/agent_chat_widget.h"
-        "src/app/editor/system/agent_collaboration_coordinator.h"
+        "src/app/editor/agent/agent_chat_widget.h"
+        "src/app/editor/agent/agent_collaboration_coordinator.h"
     )
     
     local all_present=1
