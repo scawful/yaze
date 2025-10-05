@@ -633,14 +633,6 @@ absl::Status Overworld::LoadExits() {
     uint16_t px = (uint16_t)((rom_data[OWExitXPlayer + (i * 2) + 1] << 8) +
                              rom_data[OWExitXPlayer + (i * 2)]);
 
-    // util::logf(
-    //     "Exit: %d RoomID: %d MapID: %d VRAM: %d YScroll: %d XScroll: "
-    //     "%d YPlayer: %d XPlayer: %d YCamera: %d XCamera: %d "
-    //     "ScrollModY: %d ScrollModX: %d DoorType1: %d DoorType2: %d",
-    //     i, exit_room_id, exit_map_id, exit_vram, exit_y_scroll, exit_x_scroll,
-    //     py, px, exit_y_camera, exit_x_camera, exit_scroll_mod_y,
-    //     exit_scroll_mod_x, exit_door_type_1, exit_door_type_2);
-
     exits.emplace_back(exit_room_id, exit_map_id, exit_vram, exit_y_scroll,
                        exit_x_scroll, py, px, exit_y_camera, exit_x_camera,
                        exit_scroll_mod_y, exit_scroll_mod_x, exit_door_type_1,
