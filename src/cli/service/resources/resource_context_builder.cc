@@ -205,7 +205,11 @@ ResourceContextBuilder::GetLabels(const std::string& category) {
   }
   
   auto* label_mgr = rom_->resource_label();
-  if (!label_mgr || !label_mgr->labels_loaded_) {
+  if (!label_mgr) {
+    return absl::FailedPreconditionError("No resource label manager");
+  }
+  
+  if (!label_mgr->labels_loaded_) {
     return absl::FailedPreconditionError("No labels file loaded");
   }
   
