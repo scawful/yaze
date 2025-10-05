@@ -19,6 +19,8 @@ struct MemoryEditorWithDiffChecker {
   explicit MemoryEditorWithDiffChecker(Rom* rom = nullptr) : rom_(rom) {}
   
   void Update(bool &show_memory_editor) {
+    DrawToolbar();
+    ImGui::Separator();
     static MemoryEditor mem_edit;
     static MemoryEditor comp_edit;
     static bool show_compare_rom = false;
@@ -66,7 +68,24 @@ struct MemoryEditorWithDiffChecker {
   Rom* rom() const { return rom_; }
 
  private:
+  void DrawToolbar();
+  void DrawJumpToAddressPopup();
+  void DrawSearchPopup();
+  void DrawBookmarksPopup();
+  
   Rom* rom_;
+  
+  // Toolbar state
+  char jump_address_[16] = "0x000000";
+  char search_pattern_[256] = "";
+  uint32_t current_address_ = 0;
+  
+  struct Bookmark {
+    uint32_t address;
+    std::string name;
+    std::string description;
+  };
+  std::vector<Bookmark> bookmarks_;
 };
 
 }  // namespace editor

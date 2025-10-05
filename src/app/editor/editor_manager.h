@@ -13,7 +13,6 @@
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
-#include "app/editor/code/memory_editor_enhanced.h"
 #include "app/editor/code/project_file_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/graphics/graphics_editor.h"

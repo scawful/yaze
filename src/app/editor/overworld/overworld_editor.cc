@@ -304,40 +304,70 @@ void OverworldEditor::DrawToolset() {
   gui::DrawTable(toolset_table_);
 
   if (show_tile16_editor_) {
-    ImGui::Begin("Tile16 Editor", &show_tile16_editor_,
+    // Create unique window name using session ID from context
+    std::string tile16_window_name = context_
+        ? absl::StrFormat("Tile16 Editor###Tile16_S%zu", context_->session_id)
+        : "Tile16 Editor";
+    
+    ImGui::Begin(tile16_window_name.c_str(), &show_tile16_editor_,
                  ImGuiWindowFlags_MenuBar);
+    
+    // Use WidgetIdScope for test automation
+    gui::WidgetIdScope tile16_scope("Tile16Editor");
     status_ = tile16_editor_.Update();
+    
     ImGui::End();
   }
 
   if (show_gfx_group_editor_) {
-    gui::BeginWindowWithDisplaySettings("Gfx Group Editor",
+    std::string gfx_window_name = context_
+        ? absl::StrFormat("Gfx Group Editor###GfxGroup_S%zu", context_->session_id)
+        : "Gfx Group Editor";
+    gui::BeginWindowWithDisplaySettings(gfx_window_name.c_str(),
                                         &show_gfx_group_editor_);
     status_ = gfx_group_editor_.Update();
     gui::EndWindowWithDisplaySettings();
   }
 
   if (show_properties_editor_) {
-    ImGui::Begin("Properties", &show_properties_editor_);
+    std::string props_window_name = context_
+        ? absl::StrFormat("Properties###Props_S%zu", context_->session_id)
+        : "Properties";
+    ImGui::Begin(props_window_name.c_str(), &show_properties_editor_);
     DrawOverworldProperties();
     ImGui::End();
   }
 
   if (show_custom_bg_color_editor_) {
-    ImGui::Begin("Custom Background Colors", &show_custom_bg_color_editor_);
+    std::string bg_window_name = context_
+        ? absl::StrFormat("Custom Background Colors###BG_S%zu", context_->session_id)
+        : "Custom Background Colors";
+    ImGui::Begin(bg_window_name.c_str(), &show_custom_bg_color_editor_);
     DrawCustomBackgroundColorEditor();
     ImGui::End();
   }
 
   if (show_overlay_editor_) {
-    ImGui::Begin("Overlay Editor", &show_overlay_editor_);
+    std::string overlay_window_name = context_
+        ? absl::StrFormat("Overlay Editor###Overlay_S%zu", context_->session_id)
+        : "Overlay Editor";
+    ImGui::Begin(overlay_window_name.c_str(), &show_overlay_editor_);
     DrawOverlayEditor();
     ImGui::End();
   }
 
   if (show_map_properties_panel_) {
-    ImGui::Begin("Map Properties Panel", &show_map_properties_panel_);
+    // Create unique window name using session ID from context
+    std::string map_props_window_name = context_
+        ? absl::StrFormat("Map Properties###MapProps_S%zu", context_->session_id)
+        : "Map Properties";
+    
+    ImGui::Begin(map_props_window_name.c_str(), &show_map_properties_panel_);
+    
+    // Use WidgetIdScope for test automation
+    gui::WidgetIdScope map_props_scope("MapProperties");
     DrawMapPropertiesPanel();
+    
     ImGui::End();
   }
 
