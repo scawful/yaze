@@ -18,6 +18,9 @@ add_library(yaze_net STATIC ${YAZE_NET_SRC})
 
 target_include_directories(yaze_net PUBLIC
   ${CMAKE_SOURCE_DIR}/src
+  ${CMAKE_SOURCE_DIR}/src/lib
+  ${CMAKE_SOURCE_DIR}/src/lib/imgui
+  ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}
 )
 
