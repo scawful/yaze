@@ -571,8 +571,8 @@ absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObjects(
     }
 
     // Calculate object position in the bitmap
-    int obj_x = object.x_ * 16; // Convert room coordinates to pixel coordinates
-    int obj_y = object.y_ * 16;
+    int obj_x = object.x_ * 8; // Convert room coordinates to pixel coordinates
+    int obj_y = object.y_ * 8;
 
     // Render each tile of the object
     for (size_t i = 0; i < object.tiles().size(); ++i) {
@@ -616,7 +616,7 @@ absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObjectWithSize(
         
         if (tile_x < size_info.width_tiles && tile_y < size_info.height_tiles) {
           auto status = RenderTile(object.tiles()[i], bitmap, 
-                                 tile_x * 16, tile_y * 16, palette);
+                                 tile_x * 8, tile_y * 8, palette);
           if (!status.ok()) {
             return status;
           }
@@ -632,7 +632,7 @@ absl::StatusOr<gfx::Bitmap> ObjectRenderer::RenderObjectWithSize(
         
         if (tile_x < size_info.width_tiles && tile_y < size_info.height_tiles) {
           auto status = RenderTile(object.tiles()[i], bitmap, 
-                                 tile_x * 16, tile_y * 16, palette);
+                                 tile_x * 8, tile_y * 8, palette);
           if (!status.ok()) {
             return status;
           }
@@ -882,8 +882,8 @@ std::pair<int, int> ObjectRenderer::CalculateOptimalBitmapSize(const std::vector
   int max_x = 0, max_y = 0;
   
   for (const auto& obj : objects) {
-    int obj_max_x = obj.x_ * 16 + 16;
-    int obj_max_y = obj.y_ * 16 + 16;
+    int obj_max_x = obj.x_ * 8 + 16;
+    int obj_max_y = obj.y_ * 8 + 16;
     
     max_x = std::max(max_x, obj_max_x);
     max_y = std::max(max_y, obj_max_y);
@@ -904,8 +904,8 @@ std::pair<int, int> ObjectRenderer::CalculateOptimalBitmapSize(const std::vector
 }
 
 bool ObjectRenderer::IsObjectInBounds(const RoomObject& object, int bitmap_width, int bitmap_height) {
-  int obj_x = object.x_ * 16;
-  int obj_y = object.y_ * 16;
+  int obj_x = object.x_ * 8;
+  int obj_y = object.y_ * 8;
   
   return obj_x >= 0 && obj_y >= 0 && 
          obj_x < bitmap_width && obj_y < bitmap_height;

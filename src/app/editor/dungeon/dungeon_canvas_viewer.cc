@@ -204,9 +204,9 @@ void DungeonCanvasViewer::RenderObjectInCanvas(const zelda3::RoomObject &object,
       break;
   }
   
-  // Calculate object size (16x16 is base, size affects width/height)
-  int object_width = 16 + (object.size_ & 0x0F) * 8;
-  int object_height = 16 + ((object.size_ >> 4) & 0x0F) * 8;
+  // Calculate object size (8x8 is base, size affects width/height)
+  int object_width = 8 + (object.size_ & 0x0F) * 8;
+  int object_height = 8 + ((object.size_ >> 4) & 0x0F) * 8;
   
   canvas_.DrawRect(canvas_x, canvas_y, object_width, object_height, object_color);
   canvas_.DrawRect(canvas_x, canvas_y, object_width, object_height, 
@@ -259,12 +259,12 @@ void DungeonCanvasViewer::RenderStairObjects(const zelda3::Room& room,
 }
 
 void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
-  // Render sprites as simple 16x16 squares with sprite name/ID
+  // Render sprites as simple 8x8 squares with sprite name/ID
   for (const auto& sprite : room.GetSprites()) {
     auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(sprite.x(), sprite.y());
     
-    if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
-      // Draw 16x16 square for sprite
+    if (IsWithinCanvasBounds(canvas_x, canvas_y, 8)) {
+      // Draw 8x8 square for sprite
       ImVec4 sprite_color;
       
       // Color-code sprites based on layer
@@ -274,10 +274,10 @@ void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
         sprite_color = ImVec4(0.2f, 0.2f, 0.8f, 0.8f); // Blue for layer 1
       }
       
-      canvas_.DrawRect(canvas_x, canvas_y, 16, 16, sprite_color);
+      canvas_.DrawRect(canvas_x, canvas_y, 8, 8, sprite_color);
       
       // Draw sprite border
-      canvas_.DrawRect(canvas_x, canvas_y, 16, 16, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+      canvas_.DrawRect(canvas_x, canvas_y, 8, 8, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
       
       // Draw sprite ID and name
       std::string sprite_text;
@@ -319,21 +319,21 @@ void DungeonCanvasViewer::RenderChests(const zelda3::Room& room) {
           ImVec4(0.8f, 0.6f, 0.2f, 0.9f) : // Gold for big chest
           ImVec4(0.6f, 0.4f, 0.2f, 0.9f);  // Brown for small chest
         
-        int chest_size = is_big_chest ? 24 : 16; // Big chests are larger
-        canvas_.DrawRect(canvas_x, canvas_y + 8, chest_size, 8, chest_color);
+        int chest_size = is_big_chest ? 16 : 8; // Big chests are larger
+        canvas_.DrawRect(canvas_x, canvas_y + 4, chest_size, 4, chest_color);
         
         // Draw chest lid (slightly lighter)
         ImVec4 lid_color = is_big_chest ? 
           ImVec4(0.9f, 0.7f, 0.3f, 0.9f) : 
           ImVec4(0.7f, 0.5f, 0.3f, 0.9f);
-        canvas_.DrawRect(canvas_x, canvas_y + 4, chest_size, 6, lid_color);
+        canvas_.DrawRect(canvas_x, canvas_y + 2, chest_size, 3, lid_color);
         
         // Draw chest borders
-        canvas_.DrawRect(canvas_x, canvas_y + 4, chest_size, 12, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+        canvas_.DrawRect(canvas_x, canvas_y + 2, chest_size, 6, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
         
         // Draw text label
         std::string chest_text = is_big_chest ? "BIG\nCHEST" : "CHEST";
-        canvas_.DrawText(chest_text, canvas_x + chest_size + 2, canvas_y + 6);
+        canvas_.DrawText(chest_text, canvas_x + chest_size + 2, canvas_y + 3);
       }
     }
   }
@@ -355,19 +355,19 @@ void DungeonCanvasViewer::RenderDoorObjects(const zelda3::Room& room) {
     if (is_door) {
       auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
       
-      if (IsWithinCanvasBounds(canvas_x, canvas_y, 32)) {
+      if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
         // Draw door frame
-        canvas_.DrawRect(canvas_x, canvas_y, 32, 32, ImVec4(0.5f, 0.3f, 0.2f, 0.8f)); // Brown frame
+        canvas_.DrawRect(canvas_x, canvas_y, 16, 16, ImVec4(0.5f, 0.3f, 0.2f, 0.8f)); // Brown frame
         
         // Draw door opening (darker)
-        canvas_.DrawRect(canvas_x + 4, canvas_y + 4, 24, 24, ImVec4(0.1f, 0.1f, 0.1f, 0.9f));
+        canvas_.DrawRect(canvas_x + 2, canvas_y + 2, 12, 12, ImVec4(0.1f, 0.1f, 0.1f, 0.9f));
         
         // Draw door border
-        canvas_.DrawRect(canvas_x, canvas_y, 32, 32, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+        canvas_.DrawRect(canvas_x, canvas_y, 16, 16, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
         
         // Draw text label
         std::string door_text = absl::StrFormat("DOOR\n0x%X", object.id_);
-        canvas_.DrawText(door_text, canvas_x + 34, canvas_y + 8);
+        canvas_.DrawText(door_text, canvas_x + 18, canvas_y + 4);
       }
     }
   }
@@ -405,27 +405,28 @@ void DungeonCanvasViewer::RenderWallObjects(const zelda3::Room& room) {
         
         // Calculate wall size with proper length handling
         int wall_width, wall_height;
-        // For walls, use the size field to determine length
+        // For walls, use the size field to determine length and orientation
         if (object.id_ >= 0x10 && object.id_ <= 0x1F) {
           uint8_t size_x = object.size_ & 0x0F;
           uint8_t size_y = (object.size_ >> 4) & 0x0F;
           
           if (size_x > size_y) {
             // Horizontal wall
-            wall_width = 16 + size_x * 16;
-            wall_height = 16;
+            wall_width = 8 + size_x * 8;
+            wall_height = 8;
           } else if (size_y > size_x) {
             // Vertical wall
-            wall_width = 16;
-            wall_height = 16 + size_y * 16;
+            wall_width = 8;
+            wall_height = 8 + size_y * 8;
           } else {
             // Square wall or corner
-            wall_width = 16 + size_x * 8;
-            wall_height = 16 + size_y * 8;
+            wall_width = 8 + size_x * 4;
+            wall_height = 8 + size_y * 4;
           }
         } else {
-          wall_width = 16 + (object.size_ & 0x0F) * 8;
-          wall_height = 16 + ((object.size_ >> 4) & 0x0F) * 8;
+          // For other objects, use standard size calculation
+          wall_width = 8 + (object.size_ & 0x0F) * 4;
+          wall_height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
         }
         wall_width = std::min(wall_width, 256);
         wall_height = std::min(wall_height, 256);
@@ -455,22 +456,22 @@ void DungeonCanvasViewer::RenderPotObjects(const zelda3::Room& room) {
     if (object.id_ == 0x2F || object.id_ == 0x2B) { // Pot objects from assembly
       auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
       
-      if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
+      if (IsWithinCanvasBounds(canvas_x, canvas_y, 8)) {
         // Draw pot base (wider at bottom)
-        canvas_.DrawRect(canvas_x + 2, canvas_y + 10, 12, 6, ImVec4(0.7f, 0.5f, 0.3f, 0.8f)); // Brown base
+        canvas_.DrawRect(canvas_x + 1, canvas_y + 5, 6, 3, ImVec4(0.7f, 0.5f, 0.3f, 0.8f)); // Brown base
         
         // Draw pot middle
-        canvas_.DrawRect(canvas_x + 3, canvas_y + 6, 10, 6, ImVec4(0.8f, 0.6f, 0.4f, 0.8f)); // Lighter middle
+        canvas_.DrawRect(canvas_x + 2, canvas_y + 3, 4, 3, ImVec4(0.8f, 0.6f, 0.4f, 0.8f)); // Lighter middle
         
         // Draw pot rim
-        canvas_.DrawRect(canvas_x + 4, canvas_y + 4, 8, 4, ImVec4(0.9f, 0.7f, 0.5f, 0.8f)); // Lightest top
+        canvas_.DrawRect(canvas_x + 2, canvas_y + 2, 4, 2, ImVec4(0.9f, 0.7f, 0.5f, 0.8f)); // Lightest top
         
         // Draw pot outline
-        canvas_.DrawRect(canvas_x + 2, canvas_y + 4, 12, 12, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+        canvas_.DrawRect(canvas_x + 1, canvas_y + 2, 6, 6, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
         
         // Draw text label
         std::string pot_text = absl::StrFormat("POT\n0x%X", object.id_);
-        canvas_.DrawText(pot_text, canvas_x + 18, canvas_y + 6);
+        canvas_.DrawText(pot_text, canvas_x + 9, canvas_y + 3);
       }
     }
   }
@@ -517,8 +518,8 @@ bool DungeonCanvasViewer::IsWithinCanvasBounds(int canvas_x, int canvas_y,
 
 void DungeonCanvasViewer::CalculateWallDimensions(const zelda3::RoomObject& object, int& width, int& height) {
   // Default base size
-  width = 16;
-  height = 16;
+  width = 8;
+  height = 8;
   
   // For walls, use the size field to determine length and orientation
   if (object.id_ >= 0x10 && object.id_ <= 0x1F) {
@@ -529,21 +530,21 @@ void DungeonCanvasViewer::CalculateWallDimensions(const zelda3::RoomObject& obje
     // Walls can be horizontal or vertical based on size parameters
     if (size_x > size_y) {
       // Horizontal wall
-      width = 16 + size_x * 16; // Each unit adds 16 pixels
-      height = 16;
+      width = 8 + size_x * 8; // Each unit adds 8 pixels
+      height = 8;
     } else if (size_y > size_x) {
       // Vertical wall
-      width = 16;
-      height = 16 + size_y * 16;
+      width = 8;
+      height = 8 + size_y * 8;
     } else {
       // Square wall or corner
-      width = 16 + size_x * 8;
-      height = 16 + size_y * 8;
+      width = 8 + size_x * 4;
+      height = 8 + size_y * 4;
     }
   } else {
     // For other objects, use standard size calculation
-    width = 16 + (object.size_ & 0x0F) * 8;
-    height = 16 + ((object.size_ >> 4) & 0x0F) * 8;
+    width = 8 + (object.size_ & 0x0F) * 4;
+    height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
   }
   
   // Clamp to reasonable limits

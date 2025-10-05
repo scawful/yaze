@@ -28,6 +28,7 @@ class DungeonEditorIntegrationTest : public ::testing::Test {
       status = rom_->LoadFromFile("zelda3.sfc");
     }
     ASSERT_TRUE(status.ok()) << "Could not load zelda3.sfc from any location";
+    ASSERT_TRUE(rom_->InitializeForTesting().ok());
     
     // Pass ROM to constructor so all components are initialized with it
     dungeon_editor_ = std::make_unique<editor::DungeonEditor>(rom_.get());

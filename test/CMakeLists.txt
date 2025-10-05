@@ -149,8 +149,6 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
     )
   endif()
 
-
-
   # Configure test executable only when tests are enabled
   target_include_directories(
     yaze_test PUBLIC
