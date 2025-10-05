@@ -38,14 +38,24 @@ void Palette::RunTUI(ftxui::ScreenInteractive& screen) {
 }
 
 absl::Status PaletteExport::Run(const std::vector<std::string>& arg_vec) {
-  if (arg_vec.size() < 3) {
-    return absl::InvalidArgumentError("Usage: palette export --group <group> --id <id> --to <file>");
+  std::string group_name;
+  int palette_id = -1;
+  std::string output_file;
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& arg = arg_vec[i];
+    if ((arg == "--group") && i + 1 < arg_vec.size()) {
+      group_name = arg_vec[++i];
+    } else if ((arg == "--id") && i + 1 < arg_vec.size()) {
+      palette_id = std::stoi(arg_vec[++i]);
+    } else if ((arg == "--to") && i + 1 < arg_vec.size()) {
+      output_file = arg_vec[++i];
+    }
   }
 
-  // TODO: Implement proper argument parsing
-  std::string group_name = arg_vec[0];
-  int palette_id = std::stoi(arg_vec[1]);
-  std::string output_file = arg_vec[2];
+  if (group_name.empty() || palette_id == -1 || output_file.empty()) {
+    return absl::InvalidArgumentError("Usage: palette export --group <group> --id <id> --to <file>");
+  }
 
   std::string rom_file = absl::GetFlag(FLAGS_rom);
   if (rom_file.empty()) {
@@ -88,14 +98,24 @@ absl::Status PaletteExport::Run(const std::vector<std::string>& arg_vec) {
 }
 
 absl::Status PaletteImport::Run(const std::vector<std::string>& arg_vec) {
-  if (arg_vec.size() < 3) {
-    return absl::InvalidArgumentError("Usage: palette import --group <group> --id <id> --from <file>");
+  std::string group_name;
+  int palette_id = -1;
+  std::string input_file;
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& arg = arg_vec[i];
+    if ((arg == "--group") && i + 1 < arg_vec.size()) {
+      group_name = arg_vec[++i];
+    } else if ((arg == "--id") && i + 1 < arg_vec.size()) {
+      palette_id = std::stoi(arg_vec[++i]);
+    } else if ((arg == "--from") && i + 1 < arg_vec.size()) {
+      input_file = arg_vec[++i];
+    }
   }
 
-  // TODO: Implement proper argument parsing
-  std::string group_name = arg_vec[0];
-  int palette_id = std::stoi(arg_vec[1]);
-  std::string input_file = arg_vec[2];
+  if (group_name.empty() || palette_id == -1 || input_file.empty()) {
+    return absl::InvalidArgumentError("Usage: palette import --group <group> --id <id> --from <file>");
+  }
 
   std::string rom_file = absl::GetFlag(FLAGS_rom);
   if (rom_file.empty()) {
