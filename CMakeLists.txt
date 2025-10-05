@@ -163,6 +163,20 @@ option(YAZE_FORCE_BUNDLED_ABSL
 # Create a common interface target for shared settings
 add_library(yaze_common INTERFACE)
 target_compile_features(yaze_common INTERFACE cxx_std_23)
+
+# Configure httplib before including it (header-only, minimal dependencies)
+# Disable optional compression features to avoid Windows build issues
+if (WIN32)
+set(HTTPLIB_COMPILE OFF CACHE BOOL "Use httplib as header-only library" FORCE)
+set(HTTPLIB_USE_ZLIB_IF_AVAILABLE OFF CACHE BOOL "Disable zlib to avoid Windows issues" FORCE)
+set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF CACHE BOOL "Disable brotli" FORCE)
+set(HTTPLIB_USE_ZSTD_IF_AVAILABLE OFF CACHE BOOL "Disable zstd" FORCE)
+set(HTTPLIB_REQUIRE_OPENSSL OFF CACHE BOOL "Don't require OpenSSL" FORCE)
+set(HTTPLIB_REQUIRE_ZLIB OFF CACHE BOOL "Don't require zlib" FORCE)
+set(HTTPLIB_REQUIRE_BROTLI OFF CACHE BOOL "Don't require brotli" FORCE)
+set(HTTPLIB_REQUIRE_ZSTD OFF CACHE BOOL "Don't require zstd" FORCE)
+endif()
+
 target_include_directories(yaze_common INTERFACE ${CMAKE_SOURCE_DIR}/third_party/httplib)
 
 if(YAZE_WITH_JSON)
@@ -231,6 +245,9 @@ elseif(YAZE_PLATFORM_WINDOWS)
         message(STATUS "Warning: JSON disabled - some features may not compile")
         message(STATUS "         Recommend keeping JSON enabled (it's header-only)")
     endif()
+    
+    # Note about httplib configuration
+    message(STATUS "httplib: Using header-only mode (zlib/brotli/zstd disabled)")
     
     # Windows-specific architecture detection and configuration
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "ARM64|aarch64")
