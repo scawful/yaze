@@ -48,6 +48,12 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(
     status = HandleOverworldDescribeMapCommand(args, rom_context_);
   } else if (tool_call.tool_name == "overworld-list-warps") {
     status = HandleOverworldListWarpsCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "overworld-list-sprites") {
+    status = HandleOverworldListSpritesCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "overworld-get-entrance") {
+    status = HandleOverworldGetEntranceCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "overworld-tile-stats") {
+    status = HandleOverworldTileStatsCommand(args, rom_context_);
   } else if (tool_call.tool_name == "message-list") {
     status = HandleMessageListCommand(args, rom_context_);
   } else if (tool_call.tool_name == "message-read") {

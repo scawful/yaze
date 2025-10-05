@@ -5,8 +5,8 @@
 ABSL_FLAG(std::string, rom, "", "Path to the ROM file");
 
 // AI Service Configuration Flags
-ABSL_FLAG(std::string, ai_provider, "mock",
-          "AI provider to use: 'mock' (default), 'ollama', or 'gemini'");
+ABSL_FLAG(std::string, ai_provider, "auto",
+          "AI provider to use: 'auto' (try gemini→ollama→mock), 'gemini', 'ollama', or 'mock'");
 ABSL_FLAG(std::string, ai_model, "",
           "AI model to use (provider-specific, e.g., 'llama3' for Ollama, "
           "'gemini-1.5-flash' for Gemini)");

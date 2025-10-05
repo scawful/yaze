@@ -46,6 +46,15 @@ absl::Status HandleOverworldDescribeMapCommand(
 absl::Status HandleOverworldListWarpsCommand(
 	const std::vector<std::string>& arg_vec,
 	Rom* rom_context = nullptr);
+absl::Status HandleOverworldListSpritesCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleOverworldGetEntranceCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleOverworldTileStatsCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
 absl::Status HandleMessageListCommand(
 	const std::vector<std::string>& arg_vec,
 	Rom* rom_context = nullptr);

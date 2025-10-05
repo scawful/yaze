@@ -1180,6 +1180,346 @@ absl::Status HandleOverworldListWarpsCommand(
   return absl::OkStatus();
 }
 
+absl::Status HandleOverworldListSpritesCommand(
+  const std::vector<std::string>& arg_vec, Rom* rom_context) {
+  std::optional<std::string> map_value;
+  std::optional<std::string> world_value;
+  std::string format = "json";
+  std::optional<std::string> rom_override;
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--map") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--map requires a value.");
+      }
+      map_value = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--map=")) {
+      map_value = token.substr(6);
+    } else if (token == "--world") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--world requires a value.");
+      }
+      world_value = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--world=")) {
+      world_value = token.substr(8);
+    } else if (token == "--format") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--format requires a value.");
+      }
+      format = absl::AsciiStrToLower(arg_vec[++i]);
+    } else if (absl::StartsWith(token, "--format=")) {
+      format = absl::AsciiStrToLower(token.substr(9));
+    } else if (token == "--rom") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--rom requires a value.");
+      }
+      rom_override = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--rom=")) {
+      rom_override = token.substr(6);
+    }
+  }
+
+  if (format != "json" && format != "text") {
+    return absl::InvalidArgumentError("--format must be either json or text");
+  }
+
+  Rom rom_storage;
+  Rom* rom = nullptr;
+  if (rom_context != nullptr && rom_context->is_loaded() && !rom_override.has_value()) {
+    rom = rom_context;
+  } else {
+    ASSIGN_OR_RETURN(auto rom_or, LoadRomFromPathOrFlag(rom_override));
+    rom_storage = std::move(rom_or);
+    rom = &rom_storage;
+  }
+
+  zelda3::Overworld overworld_data(rom);
+  auto load_status = overworld_data.Load(rom);
+  if (!load_status.ok()) {
+    return load_status;
+  }
+
+  overworld::SpriteQuery query;
+  if (map_value.has_value()) {
+    ASSIGN_OR_RETURN(int map_id, overworld::ParseNumeric(*map_value));
+    query.map_id = map_id;
+  }
+  if (world_value.has_value()) {
+    ASSIGN_OR_RETURN(int world_id, overworld::ParseWorldSpecifier(*world_value));
+    query.world = world_id;
+  }
+
+  ASSIGN_OR_RETURN(auto sprites, overworld::CollectOverworldSprites(overworld_data, query));
+
+  if (format == "json") {
+    std::cout << "{\n";
+    std::cout << absl::StrFormat("  \"count\": %zu,\n", sprites.size());
+    std::cout << "  \"sprites\": [\n";
+    for (size_t i = 0; i < sprites.size(); ++i) {
+      const auto& sprite = sprites[i];
+      std::cout << "    {\n";
+      std::cout << absl::StrFormat("      \"sprite_id\": \"0x%02X\",\n", sprite.sprite_id);
+      std::cout << absl::StrFormat("      \"map\": \"0x%02X\",\n", sprite.map_id);
+      std::cout << absl::StrFormat("      \"world\": \"%s\",\n", overworld::WorldName(sprite.world));
+      std::cout << absl::StrFormat("      \"position\": {\"x\": %d, \"y\": %d}", sprite.x, sprite.y);
+      if (sprite.sprite_name.has_value()) {
+        std::cout << absl::StrFormat(",\n      \"name\": \"%s\"", *sprite.sprite_name);
+      }
+      std::cout << "\n    }" << (i + 1 == sprites.size() ? "" : ",") << "\n";
+    }
+    std::cout << "  ]\n";
+    std::cout << "}\n";
+  } else {
+    std::cout << absl::StrFormat("🎮 Overworld Sprites (%zu)\n", sprites.size());
+    for (const auto& sprite : sprites) {
+      std::cout << absl::StrFormat("  • Sprite 0x%02X @ Map 0x%02X (%s) pos(%d,%d)",
+                                  sprite.sprite_id, sprite.map_id,
+                                  overworld::WorldName(sprite.world),
+                                  sprite.x, sprite.y);
+      if (sprite.sprite_name.has_value()) {
+        std::cout << " - " << *sprite.sprite_name;
+      }
+      std::cout << "\n";
+    }
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status HandleOverworldGetEntranceCommand(
+  const std::vector<std::string>& arg_vec, Rom* rom_context) {
+  std::optional<std::string> entrance_id_str;
+  std::string format = "json";
+  std::optional<std::string> rom_override;
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--id") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--id requires a value.");
+      }
+      entrance_id_str = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--id=")) {
+      entrance_id_str = token.substr(5);
+    } else if (token == "--format") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--format requires a value.");
+      }
+      format = absl::AsciiStrToLower(arg_vec[++i]);
+    } else if (absl::StartsWith(token, "--format=")) {
+      format = absl::AsciiStrToLower(token.substr(9));
+    } else if (token == "--rom") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--rom requires a value.");
+      }
+      rom_override = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--rom=")) {
+      rom_override = token.substr(6);
+    }
+  }
+
+  if (!entrance_id_str.has_value()) {
+    return absl::InvalidArgumentError(
+        "Usage: overworld-get-entrance --id <entrance_id> [--format <json|text>]");
+  }
+
+  if (format != "json" && format != "text") {
+    return absl::InvalidArgumentError("--format must be either json or text");
+  }
+
+  ASSIGN_OR_RETURN(int entrance_id, overworld::ParseNumeric(*entrance_id_str));
+  if (entrance_id < 0 || entrance_id > 255) {
+    return absl::InvalidArgumentError("Entrance ID must be between 0 and 255");
+  }
+
+  Rom rom_storage;
+  Rom* rom = nullptr;
+  if (rom_context != nullptr && rom_context->is_loaded() && !rom_override.has_value()) {
+    rom = rom_context;
+  } else {
+    ASSIGN_OR_RETURN(auto rom_or, LoadRomFromPathOrFlag(rom_override));
+    rom_storage = std::move(rom_or);
+    rom = &rom_storage;
+  }
+
+  zelda3::Overworld overworld_data(rom);
+  auto load_status = overworld_data.Load(rom);
+  if (!load_status.ok()) {
+    return load_status;
+  }
+
+  ASSIGN_OR_RETURN(auto entrance, overworld::GetEntranceDetails(overworld_data, 
+                                                                 static_cast<uint8_t>(entrance_id)));
+
+  if (format == "json") {
+    std::cout << "{\n";
+    std::cout << absl::StrFormat("  \"entrance_id\": %d,\n", entrance.entrance_id);
+    std::cout << absl::StrFormat("  \"map\": \"0x%02X\",\n", entrance.map_id);
+    std::cout << absl::StrFormat("  \"world\": \"%s\",\n", overworld::WorldName(entrance.world));
+    std::cout << absl::StrFormat("  \"position\": {\"x\": %d, \"y\": %d},\n", entrance.x, entrance.y);
+    std::cout << absl::StrFormat("  \"room_id\": \"0x%04X\",\n", entrance.room_id);
+    std::cout << absl::StrFormat("  \"door_type_1\": \"0x%04X\",\n", entrance.door_type_1);
+    std::cout << absl::StrFormat("  \"door_type_2\": \"0x%04X\",\n", entrance.door_type_2);
+    std::cout << absl::StrFormat("  \"is_hole\": %s", entrance.is_hole ? "true" : "false");
+    if (entrance.entrance_name.has_value()) {
+      std::cout << absl::StrFormat(",\n  \"entrance_name\": \"%s\"", *entrance.entrance_name);
+    }
+    if (entrance.room_name.has_value()) {
+      std::cout << absl::StrFormat(",\n  \"room_name\": \"%s\"", *entrance.room_name);
+    }
+    std::cout << "\n}\n";
+  } else {
+    std::cout << absl::StrFormat("🚪 Entrance #%d\n", entrance.entrance_id);
+    if (entrance.entrance_name.has_value()) {
+      std::cout << "Name: " << *entrance.entrance_name << "\n";
+    }
+    std::cout << absl::StrFormat("Map: 0x%02X (%s World)\n", entrance.map_id, 
+                                 overworld::WorldName(entrance.world));
+    std::cout << absl::StrFormat("Position: (%d, %d)\n", entrance.x, entrance.y);
+    std::cout << absl::StrFormat("→ Leads to Room 0x%04X", entrance.room_id);
+    if (entrance.room_name.has_value()) {
+      std::cout << " (" << *entrance.room_name << ")";
+    }
+    std::cout << "\n";
+    std::cout << absl::StrFormat("Door Types: 0x%04X / 0x%04X\n", 
+                                 entrance.door_type_1, entrance.door_type_2);
+    std::cout << absl::StrFormat("Is Hole: %s\n", entrance.is_hole ? "yes" : "no");
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status HandleOverworldTileStatsCommand(
+  const std::vector<std::string>& arg_vec, Rom* rom_context) {
+  std::optional<std::string> tile_value;
+  std::optional<std::string> map_value;
+  std::optional<std::string> world_value;
+  std::string format = "json";
+  std::optional<std::string> rom_override;
+
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--tile") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--tile requires a value.");
+      }
+      tile_value = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--tile=")) {
+      tile_value = token.substr(7);
+    } else if (token == "--map") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--map requires a value.");
+      }
+      map_value = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--map=")) {
+      map_value = token.substr(6);
+    } else if (token == "--world") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--world requires a value.");
+      }
+      world_value = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--world=")) {
+      world_value = token.substr(8);
+    } else if (token == "--format") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--format requires a value.");
+      }
+      format = absl::AsciiStrToLower(arg_vec[++i]);
+    } else if (absl::StartsWith(token, "--format=")) {
+      format = absl::AsciiStrToLower(token.substr(9));
+    } else if (token == "--rom") {
+      if (i + 1 >= arg_vec.size()) {
+        return absl::InvalidArgumentError("--rom requires a value.");
+      }
+      rom_override = arg_vec[++i];
+    } else if (absl::StartsWith(token, "--rom=")) {
+      rom_override = token.substr(6);
+    }
+  }
+
+  if (!tile_value.has_value()) {
+    return absl::InvalidArgumentError(
+        "Usage: overworld-tile-stats --tile <id> [--map <id>] [--world <light|dark|special>] [--format <json|text>]");
+  }
+
+  if (format != "json" && format != "text") {
+    return absl::InvalidArgumentError("--format must be either json or text");
+  }
+
+  ASSIGN_OR_RETURN(int tile_numeric, overworld::ParseNumeric(*tile_value));
+  if (tile_numeric < 0 || tile_numeric > 0xFFFF) {
+    return absl::InvalidArgumentError("Tile ID must be between 0x0000 and 0xFFFF");
+  }
+
+  overworld::TileSearchOptions options;
+  if (map_value.has_value()) {
+    ASSIGN_OR_RETURN(int map_id, overworld::ParseNumeric(*map_value));
+    options.map_id = map_id;
+  }
+  if (world_value.has_value()) {
+    ASSIGN_OR_RETURN(int world_id, overworld::ParseWorldSpecifier(*world_value));
+    options.world = world_id;
+  }
+
+  Rom rom_storage;
+  Rom* rom = nullptr;
+  if (rom_context != nullptr && rom_context->is_loaded() && !rom_override.has_value()) {
+    rom = rom_context;
+  } else {
+    ASSIGN_OR_RETURN(auto rom_or, LoadRomFromPathOrFlag(rom_override));
+    rom_storage = std::move(rom_or);
+    rom = &rom_storage;
+  }
+
+  zelda3::Overworld overworld_data(rom);
+  auto load_status = overworld_data.Load(rom);
+  if (!load_status.ok()) {
+    return load_status;
+  }
+
+  ASSIGN_OR_RETURN(auto stats, overworld::AnalyzeTileUsage(overworld_data, 
+                                                           static_cast<uint16_t>(tile_numeric), 
+                                                           options));
+
+  if (format == "json") {
+    std::cout << "{\n";
+    std::cout << absl::StrFormat("  \"tile\": \"0x%04X\",\n", stats.tile_id);
+    if (stats.map_id >= 0) {
+      std::cout << absl::StrFormat("  \"map\": \"0x%02X\",\n", stats.map_id);
+      std::cout << absl::StrFormat("  \"world\": \"%s\",\n", overworld::WorldName(stats.world));
+    }
+    std::cout << absl::StrFormat("  \"total_count\": %d,\n", stats.count);
+    std::cout << "  \"sample_positions\": [\n";
+    size_t limit = std::min<size_t>(stats.positions.size(), 10);
+    for (size_t i = 0; i < limit; ++i) {
+      const auto& pos = stats.positions[i];
+      std::cout << absl::StrFormat("    {\"x\": %d, \"y\": %d}", pos.first, pos.second);
+      if (i + 1 < limit) std::cout << ",";
+      std::cout << "\n";
+    }
+    std::cout << "  ]\n";
+    std::cout << "}\n";
+  } else {
+    std::cout << absl::StrFormat("📊 Tile 0x%04X Statistics\n", stats.tile_id);
+    if (stats.map_id >= 0) {
+      std::cout << absl::StrFormat("Map: 0x%02X (%s World)\n", stats.map_id,
+                                   overworld::WorldName(stats.world));
+    }
+    std::cout << absl::StrFormat("Total Count: %d occurrences\n", stats.count);
+    if (!stats.positions.empty()) {
+      std::cout << "Sample Positions (first 10):\n";
+      size_t limit = std::min<size_t>(stats.positions.size(), 10);
+      for (size_t i = 0; i < limit; ++i) {
+        const auto& pos = stats.positions[i];
+        std::cout << absl::StrFormat("  (%d, %d)\n", pos.first, pos.second);
+      }
+    }
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status HandleMessageListCommand(
   const std::vector<std::string>& arg_vec, Rom* rom_context) {
   return yaze::cli::message::HandleMessageListCommand(arg_vec, rom_context);
