@@ -176,27 +176,83 @@ void AgentEditor::DrawConfigurationPanel() {
       ImGui::Text("Model:");
       ImGui::SetNextItemWidth(-1);
       static char model_buf[128] = "qwen2.5-coder:7b";
-      ImGui::InputTextWithHint("##ollama_model", "e.g., qwen2.5-coder:7b, llama3.2", model_buf, sizeof(model_buf));
-      current_config_.model = model_buf;
+      if (model_buf[0] == '\0' || !current_config_.model.empty()) {
+        strncpy(model_buf, current_config_.model.c_str(), sizeof(model_buf) - 1);
+      }
+      if (ImGui::InputTextWithHint("##ollama_model", "e.g., qwen2.5-coder:7b, llama3.2", model_buf, sizeof(model_buf))) {
+        current_config_.model = model_buf;
+      }
       
       ImGui::Text("Host URL:");
       ImGui::SetNextItemWidth(-1);
       static char host_buf[256] = "http://localhost:11434";
-      ImGui::InputText("##ollama_host", host_buf, sizeof(host_buf));
-      current_config_.ollama_host = host_buf;
+      if (host_buf[0] == '\0' || strncmp(host_buf, "http://", 7) != 0) {
+        strncpy(host_buf, current_config_.ollama_host.c_str(), sizeof(host_buf) - 1);
+      }
+      if (ImGui::InputText("##ollama_host", host_buf, sizeof(host_buf))) {
+        current_config_.ollama_host = host_buf;
+      }
     } else if (current_config_.provider == "gemini") {
       ImGui::TextColored(ImVec4(0.196f, 0.6f, 0.8f, 1.0f), ICON_MD_SMART_TOY " Gemini Settings");
+      
+      // Load from environment button
+      if (ImGui::Button(ICON_MD_REFRESH " Load from Environment")) {
+        const char* gemini_key = nullptr;
+#ifdef _WIN32
+        // Windows: try both getenv and _dupenv_s for security
+        char* env_key = nullptr;
+        size_t len = 0;
+        if (_dupenv_s(&env_key, &len, "GEMINI_API_KEY") == 0 && env_key != nullptr) {
+          current_config_.gemini_api_key = env_key;
+          free(env_key);
+        }
+#else
+        // Unix/Mac: use getenv
+        gemini_key = std::getenv("GEMINI_API_KEY");
+        if (gemini_key) {
+          current_config_.gemini_api_key = gemini_key;
+        }
+#endif
+        if (current_config_.gemini_api_key.empty()) {
+          if (toast_manager_) {
+            toast_manager_->Show("GEMINI_API_KEY not found in environment", ToastType::kWarning);
+          }
+        } else {
+          if (toast_manager_) {
+            toast_manager_->Show("Gemini API key loaded from environment", ToastType::kSuccess);
+          }
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Load API key from GEMINI_API_KEY environment variable");
+      }
+      
+      ImGui::Spacing();
+      
       ImGui::Text("Model:");
       ImGui::SetNextItemWidth(-1);
       static char model_buf[128] = "gemini-1.5-flash";
-      ImGui::InputTextWithHint("##gemini_model", "e.g., gemini-1.5-flash", model_buf, sizeof(model_buf));
-      current_config_.model = model_buf;
+      if (model_buf[0] == '\0' || !current_config_.model.empty()) {
+        strncpy(model_buf, current_config_.model.c_str(), sizeof(model_buf) - 1);
+      }
+      if (ImGui::InputTextWithHint("##gemini_model", "e.g., gemini-1.5-flash", model_buf, sizeof(model_buf))) {
+        current_config_.model = model_buf;
+      }
       
       ImGui::Text("API Key:");
       ImGui::SetNextItemWidth(-1);
       static char key_buf[256] = "";
-      ImGui::InputText("##gemini_key", key_buf, sizeof(key_buf), ImGuiInputTextFlags_Password);
-      current_config_.gemini_api_key = key_buf;
+      static bool initialized_from_config = false;
+      if (!initialized_from_config && !current_config_.gemini_api_key.empty()) {
+        strncpy(key_buf, current_config_.gemini_api_key.c_str(), sizeof(key_buf) - 1);
+        initialized_from_config = true;
+      }
+      if (ImGui::InputText("##gemini_key", key_buf, sizeof(key_buf), ImGuiInputTextFlags_Password)) {
+        current_config_.gemini_api_key = key_buf;
+      }
+      if (!current_config_.gemini_api_key.empty()) {
+        ImGui::TextColored(ImVec4(0.133f, 0.545f, 0.133f, 1.0f), ICON_MD_CHECK_CIRCLE " API key configured");
+      }
     } else {
       ImGui::TextDisabled(ICON_MD_INFO " Mock mode - no configuration needed");
     }
