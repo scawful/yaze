@@ -1,10 +1,5 @@
 var yaze_8cc =
 [
-    [ "DEFINE_FLAG", "df/d84/yaze_8cc.html#a396799212dcd857614ee23b702a94f3b", null ],
-    [ "DEFINE_FLAG", "df/d84/yaze_8cc.html#a1a94ca889d49f659aad7012b2fd874f0", null ],
-    [ "DEFINE_FLAG", "df/d84/yaze_8cc.html#a384cb77903ce48091eb6bf224c2d9234", null ],
-    [ "DEFINE_FLAG", "df/d84/yaze_8cc.html#a6afd6b49c12b7f2a3a3d38ed8f10e3da", null ],
-    [ "yaze_app_main", "d0/de1/group__core.html#ga440a6545b01877e0afee7ba8a54ad27e", null ],
     [ "yaze_library_init", "d0/de1/group__core.html#ga3a3a4e60f272ceed1dea6ccaefd39e65", null ],
     [ "yaze_library_shutdown", "d0/de1/group__core.html#gaf7a72f08554c06a14ffa7114aac200f9", null ],
     [ "yaze_status_to_string", "d0/de1/group__core.html#gaf4d341e1ae32594ade9fc4a3e3e8ba16", null ],

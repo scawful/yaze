@@ -1,9 +1,9 @@
 <map id="src/util/flag.h" name="src/util/flag.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="147,5,241,31"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="154,5,248,31"/>
 <area shape="rect" id="Node000002" href="$d9/d0f/main_8cc.html" title=" " alt="" coords="5,79,119,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,41,86,81,83,76,157,36"/>
-<area shape="rect" id="Node000003" href="$dd/de5/flag_8cc.html" title=" " alt="" coords="143,79,245,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,46,197,79,191,79,191,46"/>
-<area shape="rect" id="Node000004" href="$df/d84/yaze_8cc.html" title=" " alt="" coords="268,79,355,105"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="228,37,293,76,290,81,225,42"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,41,87,81,84,76,162,36"/>
+<area shape="rect" id="Node000003" href="$d8/dd0/app__main_8cc.html" title=" " alt="" coords="143,79,259,105"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="203,46,203,79,198,79,198,46"/>
+<area shape="rect" id="Node000004" href="$dd/de5/flag_8cc.html" title=" " alt="" coords="283,79,385,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="238,36,313,76,310,81,235,41"/>
 </map>
