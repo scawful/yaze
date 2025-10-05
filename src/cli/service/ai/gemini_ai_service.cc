@@ -364,7 +364,11 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
       std::cerr << "[DEBUG] Executing API request..." << std::endl;
     }
     
+#ifdef _WIN32
+    FILE* pipe = _popen(curl_cmd.c_str(), "r");
+#else
     FILE* pipe = popen(curl_cmd.c_str(), "r");
+#endif
     if (!pipe) {
       return absl::InternalError("Failed to execute curl command");
     }
@@ -375,7 +379,11 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
       response_str += buffer;
     }
     
+#ifdef _WIN32
+    int status = _pclose(pipe);
+#else
     int status = pclose(pipe);
+#endif
     std::remove(temp_file.c_str());
     
     if (status != 0) {
@@ -672,7 +680,11 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
       std::cerr << "[DEBUG] Executing multimodal API request..." << std::endl;
     }
     
+#ifdef _WIN32
+    FILE* pipe = _popen(curl_cmd.c_str(), "r");
+#else
     FILE* pipe = popen(curl_cmd.c_str(), "r");
+#endif
     if (!pipe) {
       return absl::InternalError("Failed to execute curl command");
     }
@@ -683,7 +695,11 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
       response_str += buffer;
     }
     
+#ifdef _WIN32
+    int status = _pclose(pipe);
+#else
     int status = pclose(pipe);
+#endif
     std::remove(temp_file.c_str());
     
     if (status != 0) {
