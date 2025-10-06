@@ -57,17 +57,19 @@ void Spc700::RunOpcode() {
     // Debug: Comprehensive IPL ROM tracing for transfer protocol debugging
     static int spc_exec_count = 0;
     bool in_critical_range = (PC >= 0xFFCF && PC <= 0xFFFF);
-    bool is_transfer_loop = (PC >= 0xFFDB && PC <= 0xFFEB);
+    bool is_transfer_loop = (PC >= 0xFFD6 && PC <= 0xFFED);
     
-    if (in_critical_range && spc_exec_count++ < 10) {
+    // Increased logging limits to capture full transfer (112 bytes)
+    if (in_critical_range && spc_exec_count++ < 200) {
       LOG_INFO("SPC", "Execute: PC=$%04X step=0 bstep=%d Y=%02X A=%02X", PC, bstep, Y, A);
     }
-    if (is_transfer_loop && spc_exec_count < 20) {
-      // Read ports to log transfer state
+    if (is_transfer_loop && spc_exec_count < 300) {
+      // Read ports and RAM[$00] to track transfer state
       uint8_t f4_val = callbacks_.read(0xF4);
       uint8_t f5_val = callbacks_.read(0xF5);
-      LOG_INFO("SPC", "TRANSFER LOOP: PC=$%04X Y=%02X F4=%02X F5=%02X", 
-               PC, Y, f4_val, f5_val);
+      uint8_t ram0_val = callbacks_.read(0x00);
+      LOG_INFO("SPC", "TRANSFER LOOP: PC=$%04X Y=%02X A=%02X F4=%02X F5=%02X RAM0=%02X bstep=%d", 
+               PC, Y, A, f4_val, f5_val, ram0_val, bstep);
     }
     
     // Only read new opcode if previous instruction is complete
@@ -1171,7 +1173,11 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xd7: {  // movs idy
-      MOVS(idy());
+      // CRITICAL: Only call idy() once in bstep=0, reuse saved address in bstep=1
+      if (bstep == 0) {
+        adr = idy();  // Save address for bstep=1
+      }
+      MOVS(adr);  // Use saved address
       break;
     }
     case 0xd8: {  // movsx dp
@@ -1336,10 +1342,16 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xfc: {  // incy imp
+      uint8_t old_y = Y;
       read(PC);
       Y++;
       PSW.Z = (Y == 0);
       PSW.N = (Y & 0x80);
+      // Critical: Log Y increment in transfer loop (FFE4 is INC Y in IPL ROM)
+      if (PC >= 0xFFE4 && PC <= 0xFFE6) {
+        LOG_INFO("SPC", "INC Y executed at PC=$%04X: Y changed from $%02X to $%02X (Z=%d N=%d)",
+                 PC - 1, old_y, Y, PSW.Z, PSW.N);
+      }
       break;
     }
     case 0xfd: {  // movya imp
