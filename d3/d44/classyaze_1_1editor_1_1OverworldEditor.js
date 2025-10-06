@@ -2,14 +2,17 @@ var classyaze_1_1editor_1_1OverworldEditor =
 [
     [ "ScratchSpaceSlot", "db/dfa/structyaze_1_1editor_1_1OverworldEditor_1_1ScratchSpaceSlot.html", "db/dfa/structyaze_1_1editor_1_1OverworldEditor_1_1ScratchSpaceSlot" ],
     [ "EditingMode", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8e", [
-      [ "DRAW_TILE", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ea2cadd7c52c45cbfcbf4a9642e037cfc6", null ],
-      [ "ENTRANCES", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8eacbf379de389a64412c5353c6e7157c46", null ],
-      [ "EXITS", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8eae6ee5369534ca2bd9eab6e8c01407356", null ],
-      [ "ITEMS", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ea9a932d55199939bfa5c0df5a8830fc1d", null ],
-      [ "SPRITES", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ea05a245c75cdf9b6a708bad83456be7be", null ],
-      [ "TRANSPORTS", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8eaaec0196e5daedbe7f7ed5702a21da0d2", null ],
-      [ "MUSIC", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ead74c735013cdd2b883e25ccca502a2e9", null ],
-      [ "PAN", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ead74461db15255d85a44ffd72419646b3", null ]
+      [ "MOUSE", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ea2ec2be318cc86a1224c0e9dcc71321e4", null ],
+      [ "DRAW_TILE", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7651ac8fd6e5bcb126af837d95465f8ea2cadd7c52c45cbfcbf4a9642e037cfc6", null ]
+    ] ],
+    [ "EntityEditMode", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2e69c2a1cc9d97253715c18ddb58e975", [
+      [ "NONE", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2e69c2a1cc9d97253715c18ddb58e975ab50339a10e1de285ac99d4c3990b8693", null ],
+      [ "ENTRANCES", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2e69c2a1cc9d97253715c18ddb58e975acbf379de389a64412c5353c6e7157c46", null ],
+      [ "EXITS", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2e69c2a1cc9d97253715c18ddb58e975ae6ee5369534ca2bd9eab6e8c01407356", null ],
+      [ "ITEMS", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2e69c2a1cc9d97253715c18ddb58e975a9a932d55199939bfa5c0df5a8830fc1d", null ],
+      [ "SPRITES", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2e69c2a1cc9d97253715c18ddb58e975a05a245c75cdf9b6a708bad83456be7be", null ],
+      [ "TRANSPORTS", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2e69c2a1cc9d97253715c18ddb58e975aaec0196e5daedbe7f7ed5702a21da0d2", null ],
+      [ "MUSIC", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2e69c2a1cc9d97253715c18ddb58e975ad74c735013cdd2b883e25ccca502a2e9", null ]
     ] ],
     [ "OverworldProperty", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1", [
       [ "LW_AREA_GFX", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1a8a35f921e9fc95bedb53233711bf5d8e", null ],
@@ -77,6 +80,10 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "HandleOverworldZoom", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#ae79b9c5928dc15ed52c1d8193742a067", null ],
     [ "ResetOverworldView", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a3ae0c341badaeb28015c6033e0140d64", null ],
     [ "CenterOverworldView", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a184ae05fbd73685d5c4e5c1a1791e428", null ],
+    [ "SetupCanvasAutomation", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a7d2a8a1d11c779bc96719697f5ece7dd", null ],
+    [ "GetOverworldCanvas", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a6c650a67653e62e534e90840b9f5896d", null ],
+    [ "AutomationSetTile", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a8f05f092ac01f62d92d6aba5d48c5b78", null ],
+    [ "AutomationGetTile", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af4d6a64961a693ddc1890b739b4cacc3", null ],
     [ "ScrollBlocksetCanvasToCurrentTile", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#acdb3cf1f6971383c1e73bc3390f6d3da", null ],
     [ "DrawScratchSpace", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a16ca27cc07fead3f30ba0789460bc402", null ],
     [ "SaveCurrentSelectionToScratch", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a6cef930fc01fed78c28ae32c3057b187", null ],
@@ -93,6 +100,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "selected_tile16_ids_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2a624d3d6d72347a47b888d1eeeaeb90", null ],
     [ "current_mode", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a3542b48a05a29ca04015badae5336835", null ],
     [ "previous_mode", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#ace50d203cb202e7509ec9af3eb7ad566", null ],
+    [ "entity_edit_mode_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#abb4a50705e6fe07801e8ab1e584d6deb", null ],
     [ "current_world_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a136f4a855e2b8baf01ba6b0256cb8733", null ],
     [ "current_map_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aaf2aada67e6ca22ed036c562c722f85f", null ],
     [ "current_parent_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a0630e0b14adfe3dc400bfce64bd3eebc", null ],

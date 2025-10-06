@@ -1,0 +1,9 @@
+<map id="yaze::editor::AssemblyEditor::AssemblyEditor" name="yaze::editor::AssemblyEditor::AssemblyEditor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,187,88"/>
+<area shape="rect" id="Node000002" href="$d0/d28/classTextEditor.html#a36a929a82d045b43480326c73f383cb8" title=" " alt="" coords="254,5,429,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,47,258,32,260,37,188,52"/>
+<area shape="rect" id="Node000003" href="$d0/d28/classTextEditor.html#a8d5d8543bd078aa1c22a0b35c45c197d" title=" " alt="" coords="268,55,415,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,65,253,65,253,70,187,70"/>
+<area shape="rect" id="Node000004" href="$d0/d28/classTextEditor.html#a500e234d757174662eec44ce6ee650b2" title=" " alt="" coords="235,104,448,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="188,83,260,98,258,103,186,88"/>
+</map>

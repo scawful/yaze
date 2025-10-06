@@ -1,8 +1,21 @@
 var searchData=
 [
-  ['view_5fcontroller_2eh_0',['view_controller.h',['../dd/dc9/view__controller_8h.html',1,'']]],
-  ['vim_5fmode_2ecc_1',['vim_mode.cc',['../d3/dd5/vim__mode_8cc.html',1,'']]],
-  ['vim_5fmode_2eh_2',['vim_mode.h',['../dc/d0f/vim__mode_8h.html',1,'']]],
-  ['vision_5faction_5frefiner_2ecc_3',['vision_action_refiner.cc',['../de/d57/vision__action__refiner_8cc.html',1,'']]],
-  ['vision_5faction_5frefiner_2eh_4',['vision_action_refiner.h',['../d8/db9/vision__action__refiner_8h.html',1,'']]]
+  ['websocket_5fclient_2ecc_0',['websocket_client.cc',['../d2/d4e/websocket__client_8cc.html',1,'']]],
+  ['websocket_5fclient_2eh_1',['websocket_client.h',['../dd/d1b/websocket__client_8h.html',1,'']]],
+  ['welcome_5fscreen_2ecc_2',['welcome_screen.cc',['../d0/d62/welcome__screen_8cc.html',1,'']]],
+  ['welcome_5fscreen_2eh_3',['welcome_screen.h',['../d2/df1/welcome__screen_8h.html',1,'']]],
+  ['widget_5fauto_5fregister_2ecc_4',['widget_auto_register.cc',['../d5/d3e/widget__auto__register_8cc.html',1,'']]],
+  ['widget_5fauto_5fregister_2eh_5',['widget_auto_register.h',['../dd/d7f/widget__auto__register_8h.html',1,'']]],
+  ['widget_5fdiscovery_5fservice_2ecc_6',['widget_discovery_service.cc',['../d3/dfc/widget__discovery__service_8cc.html',1,'']]],
+  ['widget_5fdiscovery_5fservice_2eh_7',['widget_discovery_service.h',['../d6/d6a/widget__discovery__service_8h.html',1,'']]],
+  ['widget_5fid_5fregistry_2ecc_8',['widget_id_registry.cc',['../d3/d10/widget__id__registry_8cc.html',1,'']]],
+  ['widget_5fid_5fregistry_2eh_9',['widget_id_registry.h',['../d3/dd9/widget__id__registry_8h.html',1,'']]],
+  ['widget_5fmeasurement_2ecc_10',['widget_measurement.cc',['../da/db1/widget__measurement_8cc.html',1,'']]],
+  ['widget_5fmeasurement_2eh_11',['widget_measurement.h',['../da/d50/widget__measurement_8h.html',1,'']]],
+  ['widget_5fstate_5fcapture_2ecc_12',['widget_state_capture.cc',['../da/ded/widget__state__capture_8cc.html',1,'']]],
+  ['widget_5fstate_5fcapture_2eh_13',['widget_state_capture.h',['../d0/da3/widget__state__capture_8h.html',1,'']]],
+  ['window_2ecc_14',['window.cc',['../d7/d60/window_8cc.html',1,'']]],
+  ['window_2eh_15',['window.h',['../d3/df1/window_8h.html',1,'']]],
+  ['workspace_5fmanager_2ecc_16',['workspace_manager.cc',['../d5/d7e/workspace__manager_8cc.html',1,'']]],
+  ['workspace_5fmanager_2eh_17',['workspace_manager.h',['../d1/dbf/workspace__manager_8h.html',1,'']]]
 ];

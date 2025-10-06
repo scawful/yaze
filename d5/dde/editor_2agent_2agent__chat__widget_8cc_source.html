@@ -693,7 +693,7 @@ $(document).ready(function(){initNavTree('d5/dde/editor_2agent_2agent__chat__wid
 <div class="line"><a id="l00555" name="l00555"></a><span class="lineno">  555</span>    }</div>
 <div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span>  }</div>
 <div class="line"><a id="l00557" name="l00557"></a><span class="lineno">  557</span>  ImGui::EndChild();</div>
-<div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span>  <a class="code hl_function" href="../../db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a5047157c450c5060330c7b1a3cd915d7">AgentUI::PopPanelStyle</a>();</div>
+<div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span>  ImGui::PopStyleColor();  <span class="comment">// Pop the color we pushed at line 531</span></div>
 <div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span>  <a class="code hl_variable" href="../../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a18b11c05517fae261aa1c6703334f909">last_history_size_</a> = history.size();</div>
 <div class="line"><a id="l00560" name="l00560"></a><span class="lineno">  560</span>}</div>
 </div>
@@ -1486,8 +1486,8 @@ $(document).ready(function(){initNavTree('d5/dde/editor_2agent_2agent__chat__wid
 <div class="line"><a id="l01342" name="l01342"></a><span class="lineno"> 1342</span>  }</div>
 <div class="line"><a id="l01343" name="l01343"></a><span class="lineno"> 1343</span> </div>
 <div class="line"><a id="l01344" name="l01344"></a><span class="lineno"> 1344</span>  ImGui::EndChild();</div>
-<div class="line"><a id="l01345" name="l01345"></a><span class="lineno"> 1345</span>  <a class="code hl_function" href="../../db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a5047157c450c5060330c7b1a3cd915d7">AgentUI::PopPanelStyle</a>();</div>
-<div class="line"><a id="l01346" name="l01346"></a><span class="lineno"> 1346</span>  ImGui::PopStyleVar(2);</div>
+<div class="line"><a id="l01345" name="l01345"></a><span class="lineno"> 1345</span>  ImGui::PopStyleColor();  <span class="comment">// Pop the ChildBg color from line 1091</span></div>
+<div class="line"><a id="l01346" name="l01346"></a><span class="lineno"> 1346</span>  ImGui::PopStyleVar(2);   <span class="comment">// Pop the 2 StyleVars from lines 1082-1083</span></div>
 <div class="line"><a id="l01347" name="l01347"></a><span class="lineno"> 1347</span>  ImGui::PopID();  <span class="comment">// CollabPanel</span></div>
 <div class="line"><a id="l01348" name="l01348"></a><span class="lineno"> 1348</span>}</div>
 </div>
@@ -1828,7 +1828,7 @@ $(document).ready(function(){initNavTree('d5/dde/editor_2agent_2agent__chat__wid
 <div class="line"><a id="l01666" name="l01666"></a><span class="lineno"> 1666</span>  }</div>
 <div class="line"><a id="l01667" name="l01667"></a><span class="lineno"> 1667</span> </div>
 <div class="line"><a id="l01668" name="l01668"></a><span class="lineno"> 1668</span>  ImGui::EndChild();</div>
-<div class="line"><a id="l01669" name="l01669"></a><span class="lineno"> 1669</span>  <a class="code hl_function" href="../../db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a5047157c450c5060330c7b1a3cd915d7">AgentUI::PopPanelStyle</a>();</div>
+<div class="line"><a id="l01669" name="l01669"></a><span class="lineno"> 1669</span>  ImGui::PopStyleColor();  <span class="comment">// Pop the ChildBg color from line 1609</span></div>
 <div class="line"><a id="l01670" name="l01670"></a><span class="lineno"> 1670</span>}</div>
 </div>
 <div class="line"><a id="l01671" name="l01671"></a><span class="lineno"> 1671</span> </div>
@@ -1913,9 +1913,9 @@ $(document).ready(function(){initNavTree('d5/dde/editor_2agent_2agent__chat__wid
 <div class="line"><a id="l01749" name="l01749"></a><span class="lineno"> 1749</span>  }</div>
 <div class="line"><a id="l01750" name="l01750"></a><span class="lineno"> 1750</span> </div>
 <div class="line"><a id="l01751" name="l01751"></a><span class="lineno"> 1751</span>  ImGui::EndChild();</div>
-<div class="line"><a id="l01752" name="l01752"></a><span class="lineno"> 1752</span>  <a class="code hl_function" href="../../db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a5047157c450c5060330c7b1a3cd915d7">AgentUI::PopPanelStyle</a>();</div>
+<div class="line"><a id="l01752" name="l01752"></a><span class="lineno"> 1752</span>  ImGui::PopStyleColor();  <span class="comment">// Pop the ChildBg color from line 1677</span></div>
 <div class="line"><a id="l01753" name="l01753"></a><span class="lineno"> 1753</span> </div>
-<div class="line"><a id="l01754" name="l01754"></a><span class="lineno"> 1754</span>  ImGui::PopID();  <span class="comment">// FIX: Pop the Z3EDCmdPanel ID</span></div>
+<div class="line"><a id="l01754" name="l01754"></a><span class="lineno"> 1754</span>  ImGui::PopID();  <span class="comment">// Pop the Z3EDCmdPanel ID</span></div>
 <div class="line"><a id="l01755" name="l01755"></a><span class="lineno"> 1755</span>}</div>
 </div>
 <div class="line"><a id="l01756" name="l01756"></a><span class="lineno"> 1756</span> </div>
@@ -2014,7 +2014,7 @@ $(document).ready(function(){initNavTree('d5/dde/editor_2agent_2agent__chat__wid
 <div class="line"><a id="l01848" name="l01848"></a><span class="lineno"> 1848</span>  }</div>
 <div class="line"><a id="l01849" name="l01849"></a><span class="lineno"> 1849</span> </div>
 <div class="line"><a id="l01850" name="l01850"></a><span class="lineno"> 1850</span>  ImGui::EndChild();</div>
-<div class="line"><a id="l01851" name="l01851"></a><span class="lineno"> 1851</span>  <a class="code hl_function" href="../../db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a5047157c450c5060330c7b1a3cd915d7">AgentUI::PopPanelStyle</a>();</div>
+<div class="line"><a id="l01851" name="l01851"></a><span class="lineno"> 1851</span>  ImGui::PopStyleColor();  <span class="comment">// Pop the ChildBg color from line 1758</span></div>
 <div class="line"><a id="l01852" name="l01852"></a><span class="lineno"> 1852</span>}</div>
 </div>
 <div class="line"><a id="l01853" name="l01853"></a><span class="lineno"> 1853</span> </div>
@@ -2066,7 +2066,7 @@ $(document).ready(function(){initNavTree('d5/dde/editor_2agent_2agent__chat__wid
 <div class="line"><a id="l01898" name="l01898"></a><span class="lineno"> 1898</span>  }</div>
 <div class="line"><a id="l01899" name="l01899"></a><span class="lineno"> 1899</span> </div>
 <div class="line"><a id="l01900" name="l01900"></a><span class="lineno"> 1900</span>  ImGui::EndChild();</div>
-<div class="line"><a id="l01901" name="l01901"></a><span class="lineno"> 1901</span>  <a class="code hl_function" href="../../db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a5047157c450c5060330c7b1a3cd915d7">AgentUI::PopPanelStyle</a>();</div>
+<div class="line"><a id="l01901" name="l01901"></a><span class="lineno"> 1901</span>  ImGui::PopStyleColor();  <span class="comment">// Pop the ChildBg color from line 1860</span></div>
 <div class="line"><a id="l01902" name="l01902"></a><span class="lineno"> 1902</span>}</div>
 </div>
 <div class="line"><a id="l01903" name="l01903"></a><span class="lineno"> 1903</span> </div>
@@ -2266,7 +2266,7 @@ $(document).ready(function(){initNavTree('d5/dde/editor_2agent_2agent__chat__wid
 <div class="line"><a id="l02094" name="l02094"></a><span class="lineno"> 2094</span>  }</div>
 <div class="line"><a id="l02095" name="l02095"></a><span class="lineno"> 2095</span> </div>
 <div class="line"><a id="l02096" name="l02096"></a><span class="lineno"> 2096</span>  ImGui::EndChild();</div>
-<div class="line"><a id="l02097" name="l02097"></a><span class="lineno"> 2097</span>  <a class="code hl_function" href="../../db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a5047157c450c5060330c7b1a3cd915d7">AgentUI::PopPanelStyle</a>();</div>
+<div class="line"><a id="l02097" name="l02097"></a><span class="lineno"> 2097</span>  ImGui::PopStyleColor();  <span class="comment">// Pop the ChildBg color from line 1982</span></div>
 <div class="line"><a id="l02098" name="l02098"></a><span class="lineno"> 2098</span>  ImGui::PopID();</div>
 <div class="line"><a id="l02099" name="l02099"></a><span class="lineno"> 2099</span>}</div>
 </div>

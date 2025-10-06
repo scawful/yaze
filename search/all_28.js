@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['⚠️_0',['Active Issues ⚠️',['../d7/d0d/md_docs_2E7-tile16-editor-palette-system.html#autotoc_md364',1,'']]],
-  ['⚠️_20rectangle_20selection_20wrapping_1',['⚠️ Rectangle Selection Wrapping',['../d0/d7d/md_docs_2G2-canvas-guide.html#autotoc_md457',1,'']]]
+  ['⏳_20after_20full_20build_20strong_20pending_20assembly_5feditor_20fix_0',['&lt;strong&gt;⏳ After Full Build&lt;/strong&gt; (Pending assembly_editor fix)',['../d7/df2/md_docs_2GRPC__INTEGRATION__COMPLETE.html#autotoc_md425',1,'']]]
 ];

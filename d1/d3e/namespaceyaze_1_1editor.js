@@ -27,6 +27,7 @@ var namespaceyaze_1_1editor =
       [ "Trimmed", "dc/d0a/namespaceyaze_1_1editor_1_1anonymous__namespace_02agent__collaboration__coordinator_8cc_03.html#ad3e7f14716b68bcb17c428459e5cc7f0", null ]
     ] ],
     [ "anonymous_namespace{assembly_editor.cc}", "d1/d33/namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html", [
+      [ "GetAssemblyLanguageDef", "d1/d33/namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#a70f3b0ed1652a4d18e2c80b5f24f00b7", null ],
       [ "RemoveIgnoredFiles", "d1/d33/namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#afb9e8d9b03590a412db61ef023a6e689", null ],
       [ "LoadFolder", "d1/d33/namespaceyaze_1_1editor_1_1anonymous__namespace_02assembly__editor_8cc_03.html#a892d14f134c77a3840951d2cfa0f7ce7", null ]
     ] ],

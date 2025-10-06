@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['for_20yaze_0',['z3ed: AI-Powered CLI for YAZE',['../d0/dc8/md_docs_2A2-z3ed-agent-readme.html',1,'']]]
+  ['for_20yaze_0',['z3ed: AI-Powered CLI for YAZE',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html',1,'']]]
 ];

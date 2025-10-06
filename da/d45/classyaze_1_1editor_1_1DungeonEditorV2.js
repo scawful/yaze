@@ -18,6 +18,7 @@ var classyaze_1_1editor_1_1DungeonEditorV2 =
     [ "GetRomStatus", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a461b41076e81b89802ef618466d3c659", null ],
     [ "DrawLayout", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a296b5b9dce67ab3ddf0e582845b40488", null ],
     [ "DrawRoomTab", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a9d525ddcd63b6e011250427637ad2a8f", null ],
+    [ "DrawToolset", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#aaed5a94b8f872e6c09265dce4f25dbf7", null ],
     [ "OnRoomSelected", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#af5b46bb90815fb2548d1f2e4344abe97", null ],
     [ "rom_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#aa784f56c2215fd5a05309d92bd1f76ea", null ],
     [ "rooms_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a0db4ec012391c7ce940a819e2f1ee0a9", null ],

@@ -1,21 +1,12 @@
 var searchData=
 [
-  ['g2_2dcanvas_2dguide_2emd_0',['G2-canvas-guide.md',['../d0/d1b/G2-canvas-guide_8md.html',1,'']]],
-  ['gemini_5fai_5fservice_2ecc_1',['gemini_ai_service.cc',['../df/df3/gemini__ai__service_8cc.html',1,'']]],
-  ['gemini_5fai_5fservice_2eh_2',['gemini_ai_service.h',['../d3/d22/gemini__ai__service_8h.html',1,'']]],
-  ['general_5fcommands_2ecc_3',['general_commands.cc',['../d9/d8d/general__commands_8cc.html',1,'']]],
-  ['gfx_2ecc_4',['gfx.cc',['../d7/dfd/gfx_8cc.html',1,'']]],
-  ['gfx_5fgroup_5feditor_2ecc_5',['gfx_group_editor.cc',['../db/d1b/gfx__group__editor_8cc.html',1,'']]],
-  ['gfx_5fgroup_5feditor_2eh_6',['gfx_group_editor.h',['../d9/d17/gfx__group__editor_8h.html',1,'']]],
-  ['gfx_5foptimization_5fbenchmarks_2ecc_7',['gfx_optimization_benchmarks.cc',['../d6/def/gfx__optimization__benchmarks_8cc.html',1,'']]],
-  ['graphics_5feditor_2ecc_8',['graphics_editor.cc',['../d4/dbe/graphics__editor_8cc.html',1,'']]],
-  ['graphics_5feditor_2eh_9',['graphics_editor.h',['../dc/d9b/graphics__editor_8h.html',1,'']]],
-  ['graphics_5foptimizer_2ecc_10',['graphics_optimizer.cc',['../dc/db4/graphics__optimizer_8cc.html',1,'']]],
-  ['graphics_5foptimizer_2eh_11',['graphics_optimizer.h',['../dd/d54/graphics__optimizer_8h.html',1,'']]],
-  ['gui_5faction_5fgenerator_2ecc_12',['gui_action_generator.cc',['../d6/d0d/gui__action__generator_8cc.html',1,'']]],
-  ['gui_5faction_5fgenerator_2eh_13',['gui_action_generator.h',['../db/d7a/gui__action__generator_8h.html',1,'']]],
-  ['gui_5fautomation_5fclient_2ecc_14',['gui_automation_client.cc',['../dd/db4/gui__automation__client_8cc.html',1,'']]],
-  ['gui_5fautomation_5fclient_2eh_15',['gui_automation_client.h',['../d1/d51/gui__automation__client_8h.html',1,'']]],
-  ['gui_5fcommands_2ecc_16',['gui_commands.cc',['../d5/d03/gui__commands_8cc.html',1,'']]],
-  ['gui_5ftool_5fcommands_2ecc_17',['gui_tool_commands.cc',['../d4/dba/gui__tool__commands_8cc.html',1,'']]]
+  ['h1_2dchangelog_2emd_0',['H1-changelog.md',['../d8/d48/H1-changelog_8md.html',1,'']]],
+  ['hex_2ecc_1',['hex.cc',['../df/dcb/hex_8cc.html',1,'']]],
+  ['hex_2eh_2',['hex.h',['../d0/d84/hex_8h.html',1,'']]],
+  ['hex_5fcommands_2ecc_3',['hex_commands.cc',['../d4/de1/hex__commands_8cc.html',1,'']]],
+  ['hex_5fcommands_2eh_4',['hex_commands.h',['../d1/de4/hex__commands_8h.html',1,'']]],
+  ['hex_5ftest_2ecc_5',['hex_test.cc',['../d6/ded/hex__test_8cc.html',1,'']]],
+  ['history_5fmanager_2eh_6',['history_manager.h',['../d4/d82/history__manager_8h.html',1,'']]],
+  ['hyrule_5fmagic_2ecc_7',['hyrule_magic.cc',['../da/d37/hyrule__magic_8cc.html',1,'']]],
+  ['hyrule_5fmagic_2eh_8',['hyrule_magic.h',['../db/d03/hyrule__magic_8h.html',1,'']]]
 ];

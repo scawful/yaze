@@ -1,11 +1,8 @@
 var searchData=
 [
-  ['ui_5fconstants_2eh_0',['ui_constants.h',['../db/d5d/ui__constants_8h.html',1,'']]],
-  ['ui_5fhelpers_2ecc_1',['ui_helpers.cc',['../d8/dfa/ui__helpers_8cc.html',1,'']]],
-  ['ui_5fhelpers_2eh_2',['ui_helpers.h',['../d1/d95/ui__helpers_8h.html',1,'']]],
-  ['unified_5fgrpc_5fserver_2ecc_3',['unified_grpc_server.cc',['../d6/d1a/unified__grpc__server_8cc.html',1,'']]],
-  ['unified_5fgrpc_5fserver_2eh_4',['unified_grpc_server.h',['../db/d04/unified__grpc__server_8h.html',1,'']]],
-  ['unit_5ftest_5fsuite_2eh_5',['unit_test_suite.h',['../dc/dc8/unit__test__suite_8h.html',1,'']]],
-  ['user_5fsettings_2ecc_6',['user_settings.cc',['../dd/dc5/user__settings_8cc.html',1,'']]],
-  ['user_5fsettings_2eh_7',['user_settings.h',['../da/dd9/user__settings_8h.html',1,'']]]
+  ['view_5fcontroller_2eh_0',['view_controller.h',['../dd/dc9/view__controller_8h.html',1,'']]],
+  ['vim_5fmode_2ecc_1',['vim_mode.cc',['../d3/dd5/vim__mode_8cc.html',1,'']]],
+  ['vim_5fmode_2eh_2',['vim_mode.h',['../dc/d0f/vim__mode_8h.html',1,'']]],
+  ['vision_5faction_5frefiner_2ecc_3',['vision_action_refiner.cc',['../de/d57/vision__action__refiner_8cc.html',1,'']]],
+  ['vision_5faction_5frefiner_2eh_4',['vision_action_refiner.h',['../d8/db9/vision__action__refiner_8h.html',1,'']]]
 ];

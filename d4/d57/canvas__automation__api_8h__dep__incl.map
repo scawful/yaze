@@ -1,9 +1,11 @@
 <map id="src/app/gui/canvas/canvas_automation_api.h" name="src/app/gui/canvas/canvas_automation_api.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="181,5,354,46"/>
-<area shape="rect" id="Node000002" href="$da/dbb/canvas_8cc.html" title=" " alt="" coords="5,102,154,127"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,55,107,103,105,99,210,50"/>
-<area shape="rect" id="Node000003" href="$d1/d50/canvas__automation__api_8cc.html" title=" " alt="" coords="178,94,357,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="270,62,270,94,265,94,265,62"/>
-<area shape="rect" id="Node000004" href="$d9/d54/canvas__automation__api__test_8cc.html" title=" " alt="" coords="381,94,543,135"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="327,50,419,91,417,96,325,55"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="271,5,444,46"/>
+<area shape="rect" id="Node000002" href="$d9/d8a/overworld__editor_8cc.html" title=" " alt="" coords="5,94,166,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="282,54,148,96,146,91,280,49"/>
+<area shape="rect" id="Node000003" href="$da/dbb/canvas_8cc.html" title=" " alt="" coords="190,102,338,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="327,59,279,103,275,99,324,55"/>
+<area shape="rect" id="Node000004" href="$d1/d50/canvas__automation__api_8cc.html" title=" " alt="" coords="363,94,542,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="392,55,433,92,429,96,388,59"/>
+<area shape="rect" id="Node000005" href="$d9/d54/canvas__automation__api__test_8cc.html" title=" " alt="" coords="566,94,728,135"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="439,48,582,91,580,96,437,53"/>
 </map>

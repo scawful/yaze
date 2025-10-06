@@ -1,7 +1,0 @@
-<map id="src/app/gui/editor_layout.h" name="src/app/gui/editor_layout.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="108,5,229,46"/>
-<area shape="rect" id="Node000002" href="$d9/d8a/overworld__editor_8cc.html" title=" " alt="" coords="5,94,166,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,59,106,95,102,92,137,56"/>
-<area shape="rect" id="Node000003" href="$d5/ddd/editor__layout_8cc.html" title=" " alt="" coords="190,94,312,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="199,56,234,92,230,95,196,59"/>
-</map>
