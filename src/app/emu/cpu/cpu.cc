@@ -102,9 +102,26 @@ void Cpu::RunOpcode() {
     static int instruction_count = 0;
     instruction_count++;
     
-    // Log first 500 fully, then every 10th until 3000, then stop
-    bool should_log = (instruction_count < 500) || 
-                      (instruction_count < 3000 && instruction_count % 10 == 0);
+    // Log first 50 fully, then every 100th until 3000, then stop
+    bool should_log = (instruction_count < 50) || 
+                      (instruction_count < 3000 && instruction_count % 100 == 0);
+    
+    // CRITICAL: Log LoadSongBank routine ($8888-$88FF) to trace data reads
+    uint16_t cur_pc = PC - 1;
+    if (PB == 0x00 && cur_pc >= 0x8888 && cur_pc <= 0x88FF) {
+      // Detailed logging at critical handshake points
+      static int handshake_log_count = 0;
+      if (cur_pc == 0x88B3 || cur_pc == 0x88B6) {
+        if (handshake_log_count++ < 5 || handshake_log_count % 1000 == 0) {
+          // At $88B3: CMP.w APUIO0 - comparing A with F4
+          // At $88B6: BNE .wait_for_sync_a - branch if not equal
+          uint8_t f4_val = callbacks_.read_byte(0x2140);  // Read F4 directly
+          LOG_WARN("CPU", "Handshake wait: PC=$%04X A(counter)=$%02X F4(SPC)=$%02X X(remain)=$%04X",
+                   cur_pc, A & 0xFF, f4_val, X);
+        }
+      }
+      should_log = (cur_pc >= 0x88CF && cur_pc <= 0x88E0);  // Only log setup, not tight loop
+    }
     
     if (should_log) {
       LOG_INFO("CPU", "Exec #%d: $%02X:%04X opcode=$%02X", 
@@ -1372,10 +1389,26 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
       Ldx(low, high);
       break;
     }
-    case 0xb7: {  // lda ily
+    case 0xb7: {  // lda ily ([dp],Y)
+      // CRITICAL: Log LDA [$00],Y at $88CF and $88D4 to trace upload data reads
+      uint16_t cur_pc = PC - 1;
+      if (PB == 0x00 && (cur_pc == 0x88CF || cur_pc == 0x88D4)) {
+        // Read the 24-bit pointer from zero page
+        uint8_t dp0 = ReadByte(D + 0x00);
+        uint8_t dp1 = ReadByte(D + 0x01);
+        uint8_t dp2 = ReadByte(D + 0x02);
+        uint32_t ptr = dp0 | (dp1 << 8) | (dp2 << 16);
+        LOG_WARN("CPU", "LDA [$00],Y at PC=$%04X: DP=$%04X, [$00]=$%02X:$%04X, Y=$%04X",
+                 cur_pc, D, dp2, (uint16_t)(dp0 | (dp1 << 8)), Y);
+        LOG_WARN("CPU", "  -> Reading 16-bit value from address $%06X", ptr + Y);
+      }
       uint32_t low = 0;
       uint32_t high = AdrIly(&low);
       Lda(low, high);
+      // Log the value read
+      if (PB == 0x00 && (cur_pc == 0x88CF || cur_pc == 0x88D4)) {
+        LOG_WARN("CPU", "  -> Read value A=$%04X", A);
+      }
       break;
     }
     case 0xb8: {  // clv imp

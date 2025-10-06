@@ -66,62 +66,68 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
   }
 
+  // Initialize SDL subsystems
   SDL_SetMainReady();
-
-  std::unique_ptr<SDL_Window, SDL_Deleter> window_;
-  std::unique_ptr<SDL_Renderer, SDL_Deleter> renderer_;
-  if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+  if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS) != 0) {
+    printf("SDL_Init failed: %s\n", SDL_GetError());
     return EXIT_FAILURE;
-  } else {
-    SDL_DisplayMode displayMode;
-    SDL_GetCurrentDisplayMode(0, &displayMode);
-    window_ = std::unique_ptr<SDL_Window, SDL_Deleter>(
-        SDL_CreateWindow("Yaze Emulator",          // window title
-                         SDL_WINDOWPOS_UNDEFINED,  // initial x position
-                         SDL_WINDOWPOS_UNDEFINED,  // initial y position
-                         512,                      // width, in pixels
-                         480,                      // height, in pixels
-                         SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI),
-        SDL_Deleter());
-    if (window_ == nullptr) {
-      return EXIT_FAILURE;
-    }
   }
 
-  renderer_ = std::unique_ptr<SDL_Renderer, SDL_Deleter>(
+  // Create window and renderer with RAII smart pointers
+  std::unique_ptr<SDL_Window, SDL_Deleter> window_(
+      SDL_CreateWindow("Yaze Emulator",
+                       SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                       512, 480,
+                       SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI),
+      SDL_Deleter());
+  if (!window_) {
+    printf("SDL_CreateWindow failed: %s\n", SDL_GetError());
+    SDL_Quit();
+    return EXIT_FAILURE;
+  }
+
+  std::unique_ptr<SDL_Renderer, SDL_Deleter> renderer_(
       SDL_CreateRenderer(window_.get(), -1,
                          SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC),
       SDL_Deleter());
-  if (renderer_ == nullptr) {
+  if (!renderer_) {
+    printf("SDL_CreateRenderer failed: %s\n", SDL_GetError());
+    SDL_Quit();
     return EXIT_FAILURE;
-  } else {
-    SDL_SetRenderDrawBlendMode(renderer_.get(), SDL_BLENDMODE_BLEND);
-    SDL_SetRenderDrawColor(renderer_.get(), 0x00, 0x00, 0x00, 0x00);
   }
+  SDL_SetRenderDrawBlendMode(renderer_.get(), SDL_BLENDMODE_BLEND);
+  SDL_SetRenderDrawColor(renderer_.get(), 0x00, 0x00, 0x00, 0xFF);
 
-  int audio_frequency_ = 48000;
-  SDL_AudioSpec want, have;
-  SDL_memset(&want, 0, sizeof(want));
-  want.freq = audio_frequency_;
+  // Initialize audio system
+  constexpr int kAudioFrequency = 48000;
+  SDL_AudioSpec want = {};
+  want.freq = kAudioFrequency;
   want.format = AUDIO_S16;
   want.channels = 2;
   want.samples = 2048;
-  want.callback = NULL;  // Uses the queue
-  auto audio_device_ = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-  if (audio_device_ == 0) {
+  want.callback = nullptr;  // Use audio queue
+
+  SDL_AudioSpec have;
+  SDL_AudioDeviceID audio_device = SDL_OpenAudioDevice(nullptr, 0, &want, &have, 0);
+  if (audio_device == 0) {
+    printf("SDL_OpenAudioDevice failed: %s\n", SDL_GetError());
+    SDL_Quit();
     return EXIT_FAILURE;
   }
-  auto audio_buffer_ = new int16_t[audio_frequency_ / 50 * 4];
-  SDL_PauseAudioDevice(audio_device_, 0);
+  
+  // Allocate audio buffer using unique_ptr for automatic cleanup
+  std::unique_ptr<int16_t[]> audio_buffer(new int16_t[kAudioFrequency / 50 * 4]);
+  SDL_PauseAudioDevice(audio_device, 0);
 
-// Cocoa initialization not needed for standalone SDL emulator
-// (Handled by SDL_SetMainReady)
-
-  auto ppu_texture_ =
-      SDL_CreateTexture(renderer_.get(), SDL_PIXELFORMAT_RGBX8888,
-                        SDL_TEXTUREACCESS_STREAMING, 512, 480);
-  if (ppu_texture_ == NULL) {
-    printf("Failed to create texture: %s\n", SDL_GetError());
+  // Create PPU texture for rendering
+  SDL_Texture* ppu_texture = SDL_CreateTexture(renderer_.get(), 
+                                                SDL_PIXELFORMAT_RGBX8888,
+                                                SDL_TEXTUREACCESS_STREAMING, 
+                                                512, 480);
+  if (!ppu_texture) {
+    printf("SDL_CreateTexture failed: %s\n", SDL_GetError());
+    SDL_CloseAudioDevice(audio_device);
+    SDL_Quit();
     return EXIT_FAILURE;
   }
 
@@ -129,15 +135,18 @@ int main(int argc, char **argv) {
   yaze::emu::Snes snes_;
   std::vector<uint8_t> rom_data_;
 
+  // Emulator state
   bool running = true;
   bool loaded = false;
-  auto count_frequency = SDL_GetPerformanceFrequency();
-  auto last_count = SDL_GetPerformanceCounter();
-  auto time_adder = 0.0;
-  int wanted_frames_ = 0;
-  int wanted_samples_ = 0;
   int frame_count = 0;
-  int max_frames = absl::GetFlag(FLAGS_emu_max_frames);
+  const int max_frames = absl::GetFlag(FLAGS_emu_max_frames);
+  
+  // Timing management
+  const uint64_t count_frequency = SDL_GetPerformanceFrequency();
+  uint64_t last_count = SDL_GetPerformanceCounter();
+  double time_adder = 0.0;
+  double wanted_frame_time = 0.0;
+  int wanted_samples = 0;
   SDL_Event event;
 
   // Load ROM from command-line argument or default
@@ -155,8 +164,14 @@ int main(int argc, char **argv) {
     printf("Loaded ROM: %s (%zu bytes)\n", rom_path.c_str(), rom_.size());
     rom_data_ = rom_.vector();
     snes_.Init(rom_data_);
-    wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
-    wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
+    
+    // Calculate timing based on PAL/NTSC
+    const bool is_pal = snes_.memory().pal_timing();
+    const double refresh_rate = is_pal ? 50.0 : 60.0;
+    wanted_frame_time = 1.0 / refresh_rate;
+    wanted_samples = kAudioFrequency / static_cast<int>(refresh_rate);
+    
+    printf("Emulator initialized: %s mode (%.1f Hz)\n", is_pal ? "PAL" : "NTSC", refresh_rate);
     loaded = true;
   }
 
@@ -164,12 +179,17 @@ int main(int argc, char **argv) {
     while (SDL_PollEvent(&event)) {
       switch (event.type) {
         case SDL_DROPFILE:
-          rom_.LoadFromFile(event.drop.file);
-          if (rom_.is_loaded()) {
+          if (rom_.LoadFromFile(event.drop.file).ok() && rom_.is_loaded()) {
             rom_data_ = rom_.vector();
             snes_.Init(rom_data_);
-            wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
-            wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
+            
+            const bool is_pal = snes_.memory().pal_timing();
+            const double refresh_rate = is_pal ? 50.0 : 60.0;
+            wanted_frame_time = 1.0 / refresh_rate;
+            wanted_samples = kAudioFrequency / static_cast<int>(refresh_rate);
+            
+            printf("Loaded new ROM via drag-and-drop: %s\n", event.drop.file);
+            frame_count = 0;  // Reset frame counter
             loaded = true;
           }
           SDL_free(event.drop.file);
@@ -194,14 +214,15 @@ int main(int argc, char **argv) {
       }
     }
 
-    uint64_t current_count = SDL_GetPerformanceCounter();
-    uint64_t delta = current_count - last_count;
+    const uint64_t current_count = SDL_GetPerformanceCounter();
+    const uint64_t delta = current_count - last_count;
     last_count = current_count;
-    float seconds = delta / (float)count_frequency;
+    const double seconds = static_cast<double>(delta) / static_cast<double>(count_frequency);
     time_adder += seconds;
-    // allow 2 ms earlier, to prevent skipping due to being just below wanted
-    while (time_adder >= wanted_frames_ - 0.002) {
-      time_adder -= wanted_frames_;
+    
+    // Run frame if enough time has elapsed (allow 2ms grace period)
+    while (time_adder >= wanted_frame_time - 0.002) {
+      time_adder -= wanted_frame_time;
 
       if (loaded) {
         snes_.RunFrame();
@@ -239,46 +260,52 @@ int main(int argc, char **argv) {
           break;  // Exit inner loop immediately
         }
 
-        snes_.SetSamples(audio_buffer_, wanted_samples_);
-        if (SDL_GetQueuedAudioSize(audio_device_) <= wanted_samples_ * 4 * 6) {
-          SDL_QueueAudio(audio_device_, audio_buffer_, wanted_samples_ * 4);
+        // Generate audio samples and queue them
+        snes_.SetSamples(audio_buffer.get(), wanted_samples);
+        const uint32_t queued_size = SDL_GetQueuedAudioSize(audio_device);
+        const uint32_t max_queued = wanted_samples * 4 * 6;  // Keep up to 6 frames queued
+        if (queued_size <= max_queued) {
+          SDL_QueueAudio(audio_device, audio_buffer.get(), wanted_samples * 4);
         }
 
-        void *ppu_pixels_;
-        int ppu_pitch_;
-        if (SDL_LockTexture(ppu_texture_, NULL, &ppu_pixels_, &ppu_pitch_) !=
-            0) {
+        // Render PPU output to texture
+        void *ppu_pixels = nullptr;
+        int ppu_pitch = 0;
+        if (SDL_LockTexture(ppu_texture, nullptr, &ppu_pixels, &ppu_pitch) != 0) {
           printf("Failed to lock texture: %s\n", SDL_GetError());
-          return EXIT_FAILURE;
+          running = false;
+          break;
         }
-        snes_.SetPixels(static_cast<uint8_t *>(ppu_pixels_));
-        SDL_UnlockTexture(ppu_texture_);
+        snes_.SetPixels(static_cast<uint8_t*>(ppu_pixels));
+        SDL_UnlockTexture(ppu_texture);
       }
     }
 
+    // Present rendered frame
     SDL_RenderClear(renderer_.get());
-    SDL_RenderCopy(renderer_.get(), ppu_texture_, NULL, NULL);
-    SDL_RenderPresent(renderer_.get());  // should vsync
+    SDL_RenderCopy(renderer_.get(), ppu_texture, nullptr, nullptr);
+    SDL_RenderPresent(renderer_.get());
   }
 
-  printf("[EMULATOR] Cleaning up SDL resources...\n");
-  
-  // Clean up audio
-  SDL_PauseAudioDevice(audio_device_, 1);
-  SDL_ClearQueuedAudio(audio_device_);
-  SDL_CloseAudioDevice(audio_device_);
-  delete[] audio_buffer_;
+  // === Cleanup SDL resources (in reverse order of initialization) ===
+  printf("\n[EMULATOR] Shutting down...\n");
   
   // Clean up texture
-  if (ppu_texture_) {
-    SDL_DestroyTexture(ppu_texture_);
+  if (ppu_texture) {
+    SDL_DestroyTexture(ppu_texture);
+    ppu_texture = nullptr;
   }
   
-  // Clean up renderer and window (done by unique_ptr destructors)
+  // Clean up audio (audio_buffer cleaned up automatically by unique_ptr)
+  SDL_PauseAudioDevice(audio_device, 1);
+  SDL_ClearQueuedAudio(audio_device);
+  SDL_CloseAudioDevice(audio_device);
+  
+  // Clean up renderer and window (done automatically by unique_ptr destructors)
   renderer_.reset();
   window_.reset();
   
-  // Quit SDL
+  // Quit SDL subsystems
   SDL_Quit();
   
   printf("[EMULATOR] Shutdown complete.\n");

@@ -87,6 +87,10 @@ class Apu {
 
   uint8_t dsp_adr_ = 0;
   uint32_t cycles_ = 0;
+  
+  // IPL ROM transfer tracking for proper termination
+  uint8_t transfer_size_ = 0;
+  bool in_transfer_ = false;
 
   MemoryImpl &memory_;
   std::array<Timer, 3> timer_;

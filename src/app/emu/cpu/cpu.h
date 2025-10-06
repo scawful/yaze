@@ -147,6 +147,15 @@ class Cpu {
 
   // Memory access routines
   uint8_t ReadByte(uint32_t address) { return callbacks_.read_byte(address); }
+  
+  // Read 16-bit value from consecutive addresses (little-endian)
+  uint16_t ReadWord(uint32_t address) {
+    uint8_t low = ReadByte(address);
+    uint8_t high = ReadByte(address + 1);
+    return low | (high << 8);
+  }
+  
+  // Read 16-bit value from two separate addresses (for wrapping/crossing boundaries)
   uint16_t ReadWord(uint32_t address, uint32_t address_high,
                     bool int_check = false) {
     uint8_t value = ReadByte(address);
