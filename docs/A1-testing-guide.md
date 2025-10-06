@@ -1,14 +1,16 @@
-# Testing Guide
+# A1 - Testing Guide
 
-Comprehensive testing framework with efficient CI/CD integration and ROM-dependent test separation.
+This guide provides a comprehensive overview of the testing framework for the yaze project, including unit tests, integration tests, and the end-to-end GUI automation system.
 
-## Test Categories
+## 1. Test Categories
+
+Tests are organized into three categories using labels to allow for flexible and efficient execution.
 
 ### Stable Tests (STABLE)
 **Always run in CI/CD - Required for releases**
 
 - **AsarWrapperTest**: Core Asar functionality tests
-- **SnesTileTest**: SNES tile format handling  
+- **SnesTileTest**: SNES tile format handling
 - **CompressionTest**: Data compression/decompression
 - **SnesPaletteTest**: SNES palette operations
 - **HexTest**: Hexadecimal utilities
@@ -43,46 +45,45 @@ Comprehensive testing framework with efficient CI/CD integration and ROM-depende
 - Test advanced/experimental features
 - Allowed to fail without blocking releases
 
-## Command Line Usage
+## 2. Running Tests
+
+### Using CMake Presets
+
+The easiest way to run tests is with `ctest` presets.
 
 ```bash
-# Run only stable tests (release-ready)
-ctest --test-dir build --label-regex "STABLE"
+# Configure a development build (enables ROM-dependent tests)
+cmake --preset mac-dev -DYAZE_TEST_ROM_PATH=/path/to/your/zelda3.sfc
 
-# Run experimental tests (allowed to fail)
-ctest --test-dir build --label-regex "EXPERIMENTAL"
+# Build the tests
+cmake --build --preset mac-dev --target yaze_test
 
-# Run Asar-specific tests
-ctest --test-dir build -R "*Asar*"
-
-# Run tests excluding ROM-dependent ones
-ctest --test-dir build --label-exclude "ROM_DEPENDENT"
-
-# Run with specific preset
-ctest --preset stable
-ctest --preset experimental
-```
-
-## CMake Presets
-
-```bash
-# Development workflow
-cmake --preset dev
-cmake --build --preset dev
+# Run stable tests (fast, run in CI)
 ctest --preset dev
 
-# CI workflow  
-cmake --preset ci
-cmake --build --preset ci
-ctest --preset ci
-
-# Release workflow
-cmake --preset release
-cmake --build --preset release
-ctest --preset stable
+# Run all tests, including ROM-dependent and experimental
+ctest --preset all
 ```
 
-## Writing Tests
+### Manual Execution
+
+You can also run tests by invoking the test executable directly or using CTest with labels.
+
+```bash
+# Run all tests via the executable
+./build/bin/yaze_test
+
+# Run only stable tests using CTest labels
+ctest --test-dir build --label-regex "STABLE"
+
+# Run tests matching a name
+ctest --test-dir build -R "AsarWrapperTest"
+
+# Exclude ROM-dependent tests
+ctest --test-dir build --label-exclude "ROM_DEPENDENT"
+```
+
+## 3. Writing Tests
 
 ### Stable Tests
 ```cpp
@@ -110,55 +111,7 @@ YAZE_ROM_TEST(AsarIntegration, RealRomPatching) {
 }
 ```
 
-### Experimental Tests
-```cpp
-TEST(CpuTest, InstructionExecution) {
-    // Complex emulation tests
-    // May be timing-sensitive or platform-dependent
-}
-```
-
-## CI/CD Integration
-
-### GitHub Actions
-```yaml
-# Main CI pipeline
-- name: Run Stable Tests
-  run: ctest --label-regex "STABLE"
-
-# Experimental tests (allowed to fail)
-- name: Run Experimental Tests
-  run: ctest --label-regex "EXPERIMENTAL"
-  continue-on-error: true
-```
-
-### Test Execution Strategy
-1. **Stable tests run first** - Quick feedback for developers
-2. **Experimental tests run in parallel** - Don't block on unstable tests
-3. **ROM tests skipped** - No dependency on external files
-4. **Selective test execution** - Only run relevant tests for changes
-
-## Test Development Guidelines
-
-### Writing Stable Tests
-- **Fast execution**: Aim for < 1 second per test
-- **No external dependencies**: Self-contained test data
-- **Deterministic**: Same results every run
-- **Core functionality**: Test essential features only
-
-### Writing ROM-Dependent Tests
-- **Use TestRomManager**: Proper ROM file handling
-- **Graceful skipping**: Skip if ROM not available
-- **Real-world scenarios**: Test with actual game data
-- **Label appropriately**: Always include ROM_DEPENDENT label
-
-### Writing Experimental Tests
-- **Complex scenarios**: Multi-component integration
-- **Advanced features**: Emulation, complex algorithms
-- **Performance tests**: May vary by system
-- **GUI components**: May require display context
-
-## E2E GUI Testing Framework
+## 4. E2E GUI Testing Framework
 
 An agent-friendly, end-to-end testing framework built on `ImGuiTestEngine` to automate UI interaction testing for the YAZE editor.
 
@@ -195,32 +148,6 @@ All EditorCard windows are registered as discoverable windows:
 **State Introspection:**
 Card visibility states are tracked for test automation:
 - `OverworldToolbar/state:tile16_selector_visible`
-
-### Writing E2E Tests
-
-```cpp
-// Example: Canvas selection test
-#include "test/test_utils.h"
-
-void RegisterCanvasSelectionTest() {
-  ImGuiTestEngine* engine = ImGuiTestEngine_GetCurrentContext();
-  
-  ImGuiTest* t = IM_REGISTER_TEST(engine, "e2e", "canvas_selection");
-  t->GuiFunc = [](ImGuiTestContext* ctx) {
-    // Load ROM and open editor
-    LoadRomInTest(ctx, "zelda3.sfc");
-    OpenEditorInTest(ctx, "Overworld Editor");
-    
-    // Perform actions
-    ctx->MouseMove("##OverworldCanvas");
-    ctx->MouseClick(ImGuiMouseButton_Left);
-    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_C);  // Copy
-    
-    // Assertions
-    IM_CHECK(VerifyTileData(ctx, expected_data));
-  };
-}
-```
 
 ### Running GUI Tests with `z3ed`
 
@@ -266,13 +193,22 @@ The agent can leverage the GUI testing framework to perform actions.
 2.  **Interact with UI**: `Agent> click toolbar button "Toggle Tile16 Selector"`
 3.  **Monitor State**: `Agent> check if "Tile16 Selector" is visible`
 
-### Visual Testing
+### GUI Automation Scenarios
 
-For vision-based testing, overworld entities are rendered with high-visibility colors:
-- **Entrances**: Bright yellow-gold
-- **Exits**: Cyan-white
-- **Items**: Bright red
-- **Sprites**: Bright magenta
+Scenarios are defined in JSONL files, where each line is a JSON action.
 
-### Performance
-Widget registration has zero runtime overhead, using efficient hash map lookups and automatic cleanup of stale widgets.
+**Example Scenario (`overworld_single_tile_paint.jsonl`):**
+```jsonl
+{"action": "start_test", "name": "overworld_single_tile_paint", "description": "Paint single tile and verify"}
+{"action": "setup", "rom": "zelda3.sfc", "window": "Overworld Editor", "map": 0}
+{"action": "wait_for_window", "window_name": "Overworld Editor", "timeout_ms": 5000}
+{"action": "select_tile", "tile_id": 66, "tile_id_hex": "0x0042"}
+{"action": "click_canvas_tile", "canvas_id": "Overworld Canvas", "x": 10, "y": 10}
+{"action": "assert_tile", "x": 10, "y": 10, "expected_tile_id": 66}
+{"action": "end_test", "status": "pass"}
+```
+
+**Run a scenario:**
+```bash
+z3ed agent test replay overworld_single_tile_paint.jsonl --rom zelda3.sfc --grpc localhost:50051
+```
