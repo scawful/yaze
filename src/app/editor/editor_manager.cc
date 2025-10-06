@@ -11,6 +11,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "app/core/features.h"
+#include "app/core/timing.h"
 #include "util/file_util.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
@@ -636,6 +637,10 @@ void EditorManager::Initialize(const std::string& filename) {
 }
 
 absl::Status EditorManager::Update() {
+  // Update timing manager for accurate delta time across the application
+  // This fixes animation timing issues that occur when mouse isn't moving
+  core::TimingManager::Get().Update();
+  
   popup_manager_->DrawPopups();
   ExecuteShortcuts(context_.shortcut_manager);
   toast_manager_.Draw();
@@ -1475,7 +1480,7 @@ void EditorManager::DrawMenuBar() {
 
   if (show_emulator_) {
     Begin("Emulator", &show_emulator_, ImGuiWindowFlags_MenuBar);
-    emulator_.Run();
+    emulator_.Run(current_rom_);
     End();
   }
 
