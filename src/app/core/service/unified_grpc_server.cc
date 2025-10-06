@@ -7,27 +7,31 @@
 
 #include "absl/strings/str_format.h"
 #include "app/core/service/imgui_test_harness_service.h"
+#include "app/core/service/canvas_automation_service.h"
 #include "app/net/rom_service_impl.h"
 #include "app/rom.h"
 
 #include <grpcpp/grpcpp.h>
+#include "protos/canvas_automation.grpc.pb.h"
 
 namespace yaze {
 
-UnifiedGRPCServer::UnifiedGRPCServer()
+YazeGRPCServer::YazeGRPCServer()
     : is_running_(false) {
 }
 
-UnifiedGRPCServer::~UnifiedGRPCServer() {
+// Destructor defined here so CanvasAutomationServiceGrpc is a complete type
+YazeGRPCServer::~YazeGRPCServer() {
   Shutdown();
 }
 
-absl::Status UnifiedGRPCServer::Initialize(
+absl::Status YazeGRPCServer::Initialize(
     int port,
     test::TestManager* test_manager,
     app::Rom* rom,
     app::net::RomVersionManager* version_mgr,
-    app::net::ProposalApprovalManager* approval_mgr) {
+    app::net::ProposalApprovalManager* approval_mgr,
+    CanvasAutomationServiceImpl* canvas_service) {
   
   if (is_running_) {
     return absl::FailedPreconditionError("Server is already running");
@@ -59,7 +63,16 @@ absl::Status UnifiedGRPCServer::Initialize(
     std::cout << "⚠ ROM service requested but no ROM provided\n";
   }
   
-  if (!test_harness_service_ && !rom_service_) {
+  // Create Canvas Automation service if canvas_service provided
+  if (config_.enable_canvas_automation && canvas_service) {
+    // Store the provided service (not owned by us)
+    canvas_service_ = std::unique_ptr<CanvasAutomationServiceImpl>(canvas_service);
+    std::cout << "✓ Canvas Automation service initialized\n";
+  } else if (config_.enable_canvas_automation) {
+    std::cout << "⚠ Canvas Automation requested but no service provided\n";
+  }
+  
+  if (!test_harness_service_ && !rom_service_ && !canvas_service_) {
     return absl::InvalidArgumentError(
         "At least one service must be enabled and initialized");
   }
@@ -67,19 +80,22 @@ absl::Status UnifiedGRPCServer::Initialize(
   return absl::OkStatus();
 }
 
-absl::Status UnifiedGRPCServer::Start() {
+absl::Status YazeGRPCServer::Start() {
   auto status = BuildServer();
   if (!status.ok()) {
     return status;
   }
   
-  std::cout << "✓ Unified gRPC server listening on 0.0.0.0:" << config_.port << "\n";
+  std::cout << "✓ YAZE gRPC automation server listening on 0.0.0.0:" << config_.port << "\n";
   
   if (test_harness_service_) {
     std::cout << "  ✓ ImGuiTestHarness available\n";
   }
   if (rom_service_) {
     std::cout << "  ✓ ROM service available\n";
+  }
+  if (canvas_service_) {
+    std::cout << "  ✓ Canvas Automation available\n";
   }
   
   std::cout << "\nServer is ready to accept requests...\n";
@@ -90,7 +106,7 @@ absl::Status UnifiedGRPCServer::Start() {
   return absl::OkStatus();
 }
 
-absl::Status UnifiedGRPCServer::StartAsync() {
+absl::Status YazeGRPCServer::StartAsync() {
   auto status = BuildServer();
   if (!status.ok()) {
     return status;
@@ -102,7 +118,7 @@ absl::Status UnifiedGRPCServer::StartAsync() {
   return absl::OkStatus();
 }
 
-void UnifiedGRPCServer::Shutdown() {
+void YazeGRPCServer::Shutdown() {
   if (server_ && is_running_) {
     std::cout << "⏹ Shutting down unified gRPC server...\n";
     server_->Shutdown();
@@ -112,11 +128,11 @@ void UnifiedGRPCServer::Shutdown() {
   }
 }
 
-bool UnifiedGRPCServer::IsRunning() const {
+bool YazeGRPCServer::IsRunning() const {
   return is_running_;
 }
 
-absl::Status UnifiedGRPCServer::BuildServer() {
+absl::Status YazeGRPCServer::BuildServer() {
   if (is_running_) {
     return absl::FailedPreconditionError("Server already running");
   }
@@ -140,6 +156,13 @@ absl::Status UnifiedGRPCServer::BuildServer() {
   if (rom_service_) {
     std::cout << "  Registering ROM service...\n";
     builder.RegisterService(rom_service_.get());
+  }
+  
+  if (canvas_service_) {
+    std::cout << "  Registering Canvas Automation service...\n";
+    // Create gRPC wrapper using factory function
+    canvas_grpc_service_ = CreateCanvasAutomationServiceGrpc(canvas_service_.get());
+    builder.RegisterService(canvas_grpc_service_.get());
   }
   
   // Build and start

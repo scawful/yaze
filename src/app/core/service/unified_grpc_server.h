@@ -8,6 +8,9 @@
 #include "absl/status/status.h"
 #include "app/net/rom_version_manager.h"
 
+// Include grpcpp for grpc::Service forward declaration
+#include <grpcpp/impl/service_type.h>
+
 namespace grpc {
 class Server;
 }
@@ -15,6 +18,8 @@ class Server;
 namespace yaze {
 
 // Forward declarations
+class CanvasAutomationServiceImpl;
+
 namespace app {
 class Rom;
 namespace net {
@@ -29,26 +34,28 @@ class ImGuiTestHarnessServiceImpl;
 }
 
 /**
- * @class UnifiedGRPCServer
- * @brief Unified gRPC server hosting both ImGuiTestHarness and RomService
+ * @class YazeGRPCServer
+ * @brief YAZE's unified gRPC server for Zelda3 editor automation
  * 
- * This server combines:
+ * This server combines multiple automation services for the Zelda editor:
  * 1. ImGuiTestHarness - GUI test automation (widget discovery, screenshots, etc.)
  * 2. RomService - ROM manipulation (read/write, proposals, version management)
+ * 3. CanvasAutomation - Canvas operations (tiles, selection, zoom, pan)
  * 
- * Both services share the same gRPC server instance and port, allowing
- * clients to interact with both the GUI and ROM data simultaneously.
+ * All services share the same gRPC server instance and port, allowing
+ * clients (CLI, AI agents, remote scripts) to interact with GUI, ROM data, 
+ * and canvas operations simultaneously.
  * 
  * Example usage:
  * ```cpp
- * UnifiedGRPCServer server;
- * server.Initialize(50051, test_manager, rom, version_mgr, approval_mgr);
+ * YazeGRPCServer server;
+ * server.Initialize(50051, test_manager, rom, version_mgr, approval_mgr, canvas_service);
  * server.Start();
  * // ... do work ...
  * server.Shutdown();
  * ```
  */
-class UnifiedGRPCServer {
+class YazeGRPCServer {
  public:
   /**
    * @brief Configuration for the unified server
@@ -57,11 +64,13 @@ class UnifiedGRPCServer {
     int port = 50051;
     bool enable_test_harness = true;
     bool enable_rom_service = true;
+    bool enable_canvas_automation = true;
     bool require_approval_for_rom_writes = true;
   };
   
-  UnifiedGRPCServer();
-  ~UnifiedGRPCServer();
+  YazeGRPCServer();
+  // Destructor must be defined in .cc file to allow deletion of incomplete types
+  ~YazeGRPCServer();
   
   /**
    * @brief Initialize the server with all required services
@@ -70,6 +79,7 @@ class UnifiedGRPCServer {
    * @param rom ROM instance for ROM service (optional)
    * @param version_mgr Version manager for ROM snapshots (optional)
    * @param approval_mgr Approval manager for proposals (optional)
+   * @param canvas_service Canvas automation service implementation (optional)
    * @return OK status if initialized successfully
    */
   absl::Status Initialize(
@@ -77,7 +87,8 @@ class UnifiedGRPCServer {
       test::TestManager* test_manager = nullptr,
       app::Rom* rom = nullptr,
       app::net::RomVersionManager* version_mgr = nullptr,
-      app::net::ProposalApprovalManager* approval_mgr = nullptr);
+      app::net::ProposalApprovalManager* approval_mgr = nullptr,
+      CanvasAutomationServiceImpl* canvas_service = nullptr);
   
   /**
    * @brief Start the gRPC server (blocking)
@@ -116,9 +127,12 @@ class UnifiedGRPCServer {
   std::unique_ptr<grpc::Server> server_;
   std::unique_ptr<test::ImGuiTestHarnessServiceImpl> test_harness_service_;
   std::unique_ptr<app::net::RomServiceImpl> rom_service_;
+  std::unique_ptr<CanvasAutomationServiceImpl> canvas_service_;
+  // Store as base grpc::Service* to avoid incomplete type issues
+  std::unique_ptr<grpc::Service> canvas_grpc_service_;
   bool is_running_;
   
-  // Build the gRPC server with both services
+  // Build the gRPC server with all services
   absl::Status BuildServer();
 };
 
@@ -126,3 +140,10 @@ class UnifiedGRPCServer {
 
 #endif  // YAZE_WITH_GRPC
 #endif  // YAZE_APP_CORE_SERVICE_UNIFIED_GRPC_SERVER_H_
+
+// Backwards compatibility alias
+#ifdef YAZE_WITH_GRPC
+namespace yaze {
+using UnifiedGRPCServer = YazeGRPCServer;
+}
+#endif
