@@ -105,8 +105,9 @@ class Dsp {
   void GetSamples(int16_t* sample_data, int samples_per_frame, bool pal_timing);
 
  private:
-  int16_t sample_buffer_[0x400 * 2];  // (1024 samples, *2 for stereo)
-  int16_t sample_offset_;             // current offset in samplebuffer
+  // sample ring buffer (1024 samples, *2 for stereo)
+  int16_t sampleBuffer[0x400 * 2];
+  uint16_t sampleOffset;  // current offset in samplebuffer
 
   std::vector<uint8_t>& aram_;
 
@@ -143,9 +144,6 @@ class Dsp {
   int8_t firValues[8];
   int16_t firBufferL[8];
   int16_t firBufferR[8];
-  // sample ring buffer (1024 samples, *2 for stereo)
-  int16_t sampleBuffer[0x400 * 2];
-  uint16_t sampleOffset;  // current offset in samplebuffer
   uint32_t lastFrameBoundary;
 };
 
