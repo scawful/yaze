@@ -59,8 +59,8 @@ void MapPropertiesSystem::DrawSimplifiedMapSettings(
     ImGui::Text("%d (0x%02X)", current_map, current_map);
 
     TableNextColumn();
-    static uint8_t asm_version =
-        (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+    // IMPORTANT: Don't cache - read fresh to reflect ROM upgrades
+    uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     
     // ALL ROMs support Small/Large. Only v3+ supports Wide/Tall.
     int current_area_size =
@@ -222,7 +222,7 @@ void MapPropertiesSystem::DrawMapPropertiesPanel(
     }
 
     // Custom Overworld Features Tab
-    static uint8_t asm_version =
+    uint8_t asm_version =
         (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     if (asm_version != 0xFF && ImGui::BeginTabItem("Custom Features")) {
       DrawCustomFeaturesTab(current_map);
@@ -253,7 +253,7 @@ void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
     return;
   }
 
-  static uint8_t asm_version =
+  uint8_t asm_version =
       (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   if (asm_version < 2) {
     Text("Custom background colors require ZSCustomOverworld v2+");
@@ -308,7 +308,7 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
     return;
   }
 
-  static uint8_t asm_version =
+  uint8_t asm_version =
       (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   
   ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f),
@@ -432,7 +432,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   canvas.AddContextMenuItem(properties_item);
 
   // Custom overworld features (only show if v3+)
-  static uint8_t asm_version =
+  uint8_t asm_version =
       (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   if (asm_version >= 3 && asm_version != 0xFF) {
     // Custom Background Color
@@ -518,7 +518,7 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
     }
     HOVER_HINT("Sprite graphics sheet for current game state");
 
-    static uint8_t asm_version =
+    uint8_t asm_version =
         (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     if (asm_version >= 3) {
       if (gui::InputHexByte(ICON_MD_ANIMATION " Animated GFX",
@@ -596,8 +596,8 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
     }
     HOVER_HINT("Main color palette for background tiles");
 
-    static uint8_t asm_version =
-        (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+    // Read fresh to reflect ROM upgrades
+    uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     if (asm_version >= 2) {
       if (gui::InputHexByte(ICON_MD_COLOR_LENS " Main Palette",
                                   overworld_->mutable_overworld_map(current_map)
@@ -686,7 +686,7 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
     ImGui::Separator();
 
     // ALL ROMs support Small/Large. Only v3+ supports Wide/Tall.
-    static uint8_t asm_version =
+    uint8_t asm_version =
         (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     
     int current_area_size =
@@ -957,7 +957,7 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
     ImGui::Text(ICON_MD_PHOTO_SIZE_SELECT_LARGE " Area Size");
     TableNextColumn();
     // ALL ROMs support Small/Large. Only v3+ supports Wide/Tall.
-    static uint8_t asm_version =
+    uint8_t asm_version =
         (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
     
     int current_area_size =
@@ -1051,7 +1051,7 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
 }
 
 void MapPropertiesSystem::DrawTileGraphicsTab(int current_map) {
-  static uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   
   // Only show custom tile graphics for v1+ ROMs
   if (asm_version >= 1 && asm_version != 0xFF) {
@@ -1270,7 +1270,7 @@ void MapPropertiesSystem::RefreshSiblingMapGraphics(int map_index, bool include_
 }
 
 void MapPropertiesSystem::DrawMosaicControls(int current_map) {
-  static uint8_t asm_version =
+  uint8_t asm_version =
       (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   if (asm_version >= 2) {
     ImGui::Separator();
@@ -1299,7 +1299,7 @@ void MapPropertiesSystem::DrawMosaicControls(int current_map) {
 
 void MapPropertiesSystem::DrawOverlayControls(int current_map,
                                               bool& show_overlay_preview) {
-  static uint8_t asm_version =
+  uint8_t asm_version =
       (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
 
   // Determine if this is a special overworld map (0x80-0x9F)
@@ -1512,7 +1512,7 @@ void MapPropertiesSystem::DrawOverlayPreviewOnMap(int current_map,
   uint16_t overlay_id = 0x00FF;
   bool has_subscreen_overlay = false;
 
-  static uint8_t asm_version =
+  uint8_t asm_version =
       (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   bool is_special_overworld_map = (current_map >= 0x80 && current_map < 0xA0);
 

@@ -272,7 +272,9 @@ void OverworldEditor::DrawFullscreenCanvas() {
 void OverworldEditor::DrawToolset() {
   // Modern adaptive toolbar with inline mode switching and properties
   static gui::Toolset toolbar;
-  static uint8_t asm_version = 0xFF;
+  
+  // IMPORTANT: Don't make asm_version static - it needs to update after ROM upgrade
+  uint8_t asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
   
   // Don't use WidgetIdScope here - it conflicts with ImGui::Begin/End ID stack in cards
   // Widgets register themselves individually instead
@@ -317,8 +319,7 @@ void OverworldEditor::DrawToolset() {
   
   toolbar.EndModeGroup();
   
-  // ROM version badge
-  asm_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  // ROM version badge (already read above)
   toolbar.AddRomBadge(asm_version, [this]() {
     ImGui::OpenPopup("UpgradeROMVersion");
   });
@@ -417,6 +418,46 @@ void OverworldEditor::DrawToolset() {
   }
   
   toolbar.End();
+  
+  // ROM Upgrade Popup (rendered outside toolbar to avoid ID conflicts)
+  if (ImGui::BeginPopupModal("UpgradeROMVersion", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text(ICON_MD_UPGRADE " Upgrade ROM to ZSCustomOverworld");
+    ImGui::Separator();
+    ImGui::TextWrapped(
+        "This will apply the ZSCustomOverworld ASM patch to your ROM,\n"
+        "enabling advanced features like custom tile graphics, animated GFX,\n"
+        "wide/tall areas, and more.");
+    ImGui::Separator();
+    
+    uint8_t current_version = (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+    ImGui::Text("Current Version: %s", 
+                current_version == 0xFF ? "Vanilla" : absl::StrFormat("v%d", current_version).c_str());
+    
+    static int target_version = 3;
+    ImGui::RadioButton("v2 (Basic features)", &target_version, 2);
+    ImGui::SameLine();
+    ImGui::RadioButton("v3 (All features)", &target_version, 3);
+    
+    ImGui::Separator();
+    
+    if (ImGui::Button(ICON_MD_CHECK " Apply Upgrade", ImVec2(150, 0))) {
+      auto status = ApplyZSCustomOverworldASM(target_version);
+      if (status.ok()) {
+        // CRITICAL: Reload the editor to reflect changes
+        status_ = Clear();
+        status_ = Load();
+        ImGui::CloseCurrentPopup();
+      } else {
+        LOG_ERROR("OverworldEditor", "Upgrade failed: %s", status.message().data());
+      }
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_CANCEL " Cancel", ImVec2(150, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    
+    ImGui::EndPopup();
+  }
 
   // All editor windows are now rendered in Update() using either EditorCard system
   // or MapPropertiesSystem for map-specific panels. This keeps the toolset clean
