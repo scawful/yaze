@@ -20,6 +20,7 @@
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
+#include "app/gui/widgets/tile_selector_widget.h"
 #include "app/gfx/performance_profiler.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/tilemap.h"
@@ -64,8 +65,8 @@ void OverworldEditor::Initialize() {
   entity_renderer_ = std::make_unique<OverworldEntityRenderer>(
       &overworld_, &ow_map_canvas_, &sprite_previews_);
 
-  // Setup overworld canvas context menu
-  SetupOverworldCanvasContextMenu();
+  // Note: Context menu is now setup dynamically in DrawOverworldCanvas()
+  // for context-aware menu items based on current map state
   
   // Old toolset initialization removed - using modern CompactToolbar instead
 }
@@ -324,15 +325,6 @@ void OverworldEditor::DrawToolset() {
   toolbar.AddRomBadge(asm_version, [this]() {
     ImGui::OpenPopup("UpgradeROMVersion");
   });
-  
-  // World selector
-  const char* worlds[] = {"Light", "Dark", "Extra"};
-  if (toolbar.AddCombo(ICON_MD_PUBLIC, &current_world_, worlds, 3)) {
-    RefreshMapProperties();
-    RefreshOverworldMap();
-  }
-  
-  toolbar.AddSeparator();
   
   // Inline map properties with icon labels - use toolbar methods for consistency
   if (toolbar.AddProperty(ICON_MD_IMAGE, " Gfx",
@@ -709,7 +701,8 @@ void OverworldEditor::CheckForOverworldEdits() {
 
   // User has selected a tile they want to draw from the blockset
   // and clicked on the canvas.
-  if (!blockset_canvas_.points().empty() &&
+  // Note: With TileSelectorWidget, we check if a valid tile is selected instead of canvas points
+  if (current_tile16_ >= 0 &&
       !ow_map_canvas_.select_rect_active() &&
       ow_map_canvas_.DrawTilemapPainter(tile16_blockset_, current_tile16_)) {
     DrawOverworldEdits();
@@ -1099,19 +1092,136 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
   return absl::OkStatus();
 }
 
-void OverworldEditor::CheckForMousePan() {
+// Overworld Canvas Pan/Zoom Helpers
+
+namespace {
+
+// Calculate the total canvas content size based on world layout
+ImVec2 CalculateOverworldContentSize(float scale) {
+  // 8x8 grid of 512x512 maps = 4096x4096 total
+  constexpr float kWorldSize = 512.0f * 8.0f;  // 4096
+  return ImVec2(kWorldSize * scale, kWorldSize * scale);
+}
+
+// Clamp scroll position to valid bounds
+ImVec2 ClampScrollPosition(ImVec2 scroll, ImVec2 content_size, ImVec2 visible_size) {
+  // Calculate maximum scroll values
+  float max_scroll_x = std::max(0.0f, content_size.x - visible_size.x);
+  float max_scroll_y = std::max(0.0f, content_size.y - visible_size.y);
+  
+  // Clamp to valid range [min_scroll, 0]
+  // Note: Canvas uses negative scrolling for right/down
+  float clamped_x = std::clamp(scroll.x, -max_scroll_x, 0.0f);
+  float clamped_y = std::clamp(scroll.y, -max_scroll_y, 0.0f);
+  
+  return ImVec2(clamped_x, clamped_y);
+}
+
+}  // namespace
+
+void OverworldEditor::HandleOverworldPan() {
+  // Middle mouse button panning
   if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
-    previous_mode = current_mode;
-    current_mode = EditingMode::PAN;
-    ow_map_canvas_.set_draggable(true);
-    middle_mouse_dragging_ = true;
+    if (!middle_mouse_dragging_) {
+      previous_mode = current_mode;
+      current_mode = EditingMode::PAN;
+      middle_mouse_dragging_ = true;
+    }
+    
+    // Get mouse delta and apply to scroll
+    ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
+    ImVec2 current_scroll = ow_map_canvas_.scrolling();
+    ImVec2 new_scroll = ImVec2(
+        current_scroll.x + mouse_delta.x,
+        current_scroll.y + mouse_delta.y
+    );
+    
+    // Clamp scroll to boundaries
+    ImVec2 content_size = CalculateOverworldContentSize(ow_map_canvas_.global_scale());
+    ImVec2 visible_size = ow_map_canvas_.canvas_size();
+    new_scroll = ClampScrollPosition(new_scroll, content_size, visible_size);
+    
+    ow_map_canvas_.set_scrolling(new_scroll);
   }
-  if (ImGui::IsMouseReleased(ImGuiMouseButton_Middle) &&
-      current_mode == EditingMode::PAN && middle_mouse_dragging_) {
+  
+  if (ImGui::IsMouseReleased(ImGuiMouseButton_Middle) && middle_mouse_dragging_) {
     current_mode = previous_mode;
-    ow_map_canvas_.set_draggable(false);
     middle_mouse_dragging_ = false;
   }
+  
+}
+
+void OverworldEditor::HandleOverworldZoom() {
+  if (!ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+    return;
+  }
+  
+  const ImGuiIO& io = ImGui::GetIO();
+  
+  // Mouse wheel zoom with Ctrl key
+  if (io.MouseWheel != 0.0f && io.KeyCtrl) {
+    float current_scale = ow_map_canvas_.global_scale();
+    float zoom_delta = io.MouseWheel * 0.1f;
+    float new_scale = current_scale + zoom_delta;
+    
+    // Clamp zoom range (0.25x to 2.0x)
+    new_scale = std::clamp(new_scale, 0.25f, 2.0f);
+    
+    if (new_scale != current_scale) {
+      // Get mouse position relative to canvas
+      ImVec2 mouse_pos_canvas = ImVec2(
+          io.MousePos.x - ow_map_canvas_.zero_point().x,
+          io.MousePos.y - ow_map_canvas_.zero_point().y
+      );
+      
+      // Calculate content position under mouse before zoom
+      ImVec2 scroll = ow_map_canvas_.scrolling();
+      ImVec2 content_pos_before = ImVec2(
+          (mouse_pos_canvas.x - scroll.x) / current_scale,
+          (mouse_pos_canvas.y - scroll.y) / current_scale
+      );
+      
+      // Apply new scale
+      ow_map_canvas_.set_global_scale(new_scale);
+      
+      // Calculate new scroll to keep same content under mouse
+      ImVec2 new_scroll = ImVec2(
+          mouse_pos_canvas.x - (content_pos_before.x * new_scale),
+          mouse_pos_canvas.y - (content_pos_before.y * new_scale)
+      );
+      
+      // Clamp scroll to boundaries with new scale
+      ImVec2 content_size = CalculateOverworldContentSize(new_scale);
+      ImVec2 visible_size = ow_map_canvas_.canvas_size();
+      new_scroll = ClampScrollPosition(new_scroll, content_size, visible_size);
+      
+      ow_map_canvas_.set_scrolling(new_scroll);
+    }
+  }
+}
+
+void OverworldEditor::ResetOverworldView() {
+  ow_map_canvas_.set_global_scale(1.0f);
+  ow_map_canvas_.set_scrolling(ImVec2(0, 0));
+}
+
+void OverworldEditor::CenterOverworldView() {
+  float scale = ow_map_canvas_.global_scale();
+  ImVec2 content_size = CalculateOverworldContentSize(scale);
+  ImVec2 visible_size = ow_map_canvas_.canvas_size();
+  
+  // Center the view
+  ImVec2 centered_scroll = ImVec2(
+      -(content_size.x - visible_size.x) / 2.0f,
+      -(content_size.y - visible_size.y) / 2.0f
+  );
+  
+  ow_map_canvas_.set_scrolling(centered_scroll);
+}
+
+void OverworldEditor::CheckForMousePan() {
+  // Legacy wrapper - now calls HandleOverworldPan
+  HandleOverworldPan();
 }
 
 void OverworldEditor::DrawOverworldCanvas() {
@@ -1129,12 +1239,38 @@ void OverworldEditor::DrawOverworldCanvas() {
   ow_map_canvas_.DrawBackground();
   gui::EndNoPadding();
 
-  CheckForMousePan();
+  // Setup dynamic context menu based on current map state (Phase 3B)
+  if (rom_->is_loaded() && overworld_.is_loaded() && map_properties_system_) {
+    map_properties_system_->SetupCanvasContextMenu(
+        ow_map_canvas_, current_map_, current_map_lock_,
+        show_map_properties_panel_, show_custom_bg_color_editor_,
+        show_overlay_editor_);
+  }
+
+  // Handle pan and zoom
+  HandleOverworldPan();
+  HandleOverworldZoom();
+  
   if (current_mode == EditingMode::PAN) {
+    // In PAN mode, allow right-click drag for panning
+    if (ImGui::IsMouseDragging(ImGuiMouseButton_Right) && ImGui::IsItemHovered()) {
+      ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
+      ImVec2 current_scroll = ow_map_canvas_.scrolling();
+      ImVec2 new_scroll = ImVec2(
+          current_scroll.x + mouse_delta.x,
+          current_scroll.y + mouse_delta.y
+      );
+      
+      // Clamp scroll to boundaries
+      ImVec2 content_size = CalculateOverworldContentSize(ow_map_canvas_.global_scale());
+      ImVec2 visible_size = ow_map_canvas_.canvas_size();
+      new_scroll = ClampScrollPosition(new_scroll, content_size, visible_size);
+      
+      ow_map_canvas_.set_scrolling(new_scroll);
+    }
     ow_map_canvas_.DrawContextMenu();
   } else {
-    ow_map_canvas_.set_draggable(false);
-    // Handle map interaction with middle-click instead of right-click
+    // Handle map interaction (tile painting, etc.)
     HandleMapInteraction();
   }
 
@@ -1175,62 +1311,45 @@ void OverworldEditor::DrawOverworldCanvas() {
   ow_map_canvas_.DrawGrid();
   ow_map_canvas_.DrawOverlay();
   EndChild();
-
-  // Handle mouse wheel activity
-  if (ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) &&
-      ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
-    ImGui::SetScrollX(ImGui::GetScrollX() + ImGui::GetIO().MouseWheelH * 16.0f);
-    ImGui::SetScrollY(ImGui::GetScrollY() + ImGui::GetIO().MouseWheel * 16.0f);
-  }
 }
 
 absl::Status OverworldEditor::DrawTile16Selector() {
   gui::BeginPadding(3);
   ImGui::BeginGroup();
   gui::BeginChildWithScrollbar("##Tile16SelectorScrollRegion");
-  blockset_canvas_.DrawBackground();
-  gui::EndPadding();  // Fixed: was EndNoPadding()
+  gui::EndPadding();
 
-  blockset_canvas_.DrawContextMenu();
-  blockset_canvas_.DrawBitmap(tile16_blockset_.atlas, /*x_offset=*/2,
-                              map_blockset_loaded_, /*scale=*/2);
-  bool tile_selected = false;
+  if (!blockset_selector_) {
+    gui::TileSelectorWidget::Config selector_config;
+    selector_config.tile_size = 16;
+    selector_config.display_scale = 2.0f;
+    selector_config.tiles_per_row = 8;
+    selector_config.total_tiles = zelda3::kNumTile16Individual;
+    selector_config.draw_offset = ImVec2(2.0f, 0.0f);
+    selector_config.highlight_color = ImVec4(0.95f, 0.75f, 0.3f, 1.0f);
 
-  // Call DrawTileSelector after event detection for visual feedback
-  if (blockset_canvas_.DrawTileSelector(32.0f)) {
-    tile_selected = true;
+    blockset_selector_ = std::make_unique<gui::TileSelectorWidget>(
+        "OwBlocksetSelector", selector_config);
+    blockset_selector_->AttachCanvas(&blockset_canvas_);
+  }
+
+  UpdateBlocksetSelectorState();
+
+  gfx::Bitmap& atlas = tile16_blockset_.atlas;
+  bool atlas_ready = map_blockset_loaded_ && atlas.is_active();
+  auto result = blockset_selector_->Render(atlas, atlas_ready);
+
+  if (result.selection_changed) {
+    current_tile16_ = result.selected_tile;
+    RETURN_IF_ERROR(tile16_editor_.SetCurrentTile(current_tile16_));
+    // Note: We do NOT auto-scroll here because it breaks user interaction.
+    // The canvas should only scroll when explicitly requested (e.g., when
+    // selecting a tile from the overworld canvas via ScrollBlocksetCanvasToCurrentTile).
+  }
+
+  if (result.tile_double_clicked) {
     show_tile16_editor_ = true;
   }
-
-  // Then check for single click (if not double-click)
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
-      blockset_canvas_.IsMouseHovering()) {
-    tile_selected = true;
-  }
-
-  if (tile_selected) {
-    // Get mouse position relative to canvas
-    const ImGuiIO& io = ImGui::GetIO();
-    ImVec2 canvas_pos = blockset_canvas_.zero_point();
-    ImVec2 mouse_pos =
-        ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
-
-    // Calculate grid position (32x32 tiles in blockset)
-    int x_offset = static_cast<int>(mouse_pos.x / 32);
-    int grid_y = static_cast<int>(mouse_pos.y / 32);
-    int id = x_offset + grid_y * 8;  // 8 tiles per row in blockset
-
-    if (id != current_tile16_ && id >= 0 && id < 512) {
-      current_tile16_ = id;
-      RETURN_IF_ERROR(tile16_editor_.SetCurrentTile(id));
-
-      // Scroll blockset canvas to show the selected tile
-      ScrollBlocksetCanvasToCurrentTile();
-    }
-  }
-
-  blockset_canvas_.DrawGrid();
-  blockset_canvas_.DrawOverlay();
 
   EndChild();
   ImGui::EndGroup();
@@ -2089,126 +2208,33 @@ void OverworldEditor::HandleMapInteraction() {
   }
 }
 
-void OverworldEditor::SetupOverworldCanvasContextMenu() {
-  // Clear any existing context menu items
-  ow_map_canvas_.ClearContextMenuItems();
-
-  // Add overworld-specific context menu items
-  gui::Canvas::ContextMenuItem lock_item;
-  lock_item.label = current_map_lock_ ? "Unlock Map" : "Lock to This Map";
-  lock_item.callback = [this]() {
-    current_map_lock_ = !current_map_lock_;
-    if (current_map_lock_) {
-      // Get the current map from mouse position
-      auto mouse_position = ow_map_canvas_.drawn_tile_position();
-      int map_x = mouse_position.x / kOverworldMapSize;
-      int map_y = mouse_position.y / kOverworldMapSize;
-      int hovered_map = map_x + map_y * 8;
-      if (current_world_ == 1) {
-        hovered_map += 0x40;
-      } else if (current_world_ == 2) {
-        hovered_map += 0x80;
-      }
-      if (hovered_map >= 0 && hovered_map < 0xA0) {
-        current_map_ = hovered_map;
-      }
-    }
-  };
-  ow_map_canvas_.AddContextMenuItem(lock_item);
-
-  // Map Properties
-  gui::Canvas::ContextMenuItem properties_item;
-  properties_item.label = "Map Properties";
-  properties_item.callback = [this]() {
-    show_map_properties_panel_ = true;
-  };
-  ow_map_canvas_.AddContextMenuItem(properties_item);
-
-  // Custom overworld features (only show if v3+)
-  static uint8_t asm_version =
-      (*rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  if (asm_version >= 3 && asm_version != 0xFF) {
-    // Custom Background Color
-    gui::Canvas::ContextMenuItem bg_color_item;
-    bg_color_item.label = "Custom Background Color";
-    bg_color_item.callback = [this]() {
-      show_custom_bg_color_editor_ = true;
-    };
-    ow_map_canvas_.AddContextMenuItem(bg_color_item);
-
-    // Overlay Settings
-    gui::Canvas::ContextMenuItem overlay_item;
-    overlay_item.label = "Overlay Settings";
-    overlay_item.callback = [this]() {
-      show_overlay_editor_ = true;
-    };
-    ow_map_canvas_.AddContextMenuItem(overlay_item);
-  }
-
-  // Map editing controls
-  gui::Canvas::ContextMenuItem refresh_map_item;
-  refresh_map_item.label = "Refresh Map Changes";
-  refresh_map_item.callback = [this]() {
-    RefreshOverworldMap();
-    auto status = RefreshTile16Blockset();
-    if (!status.ok()) {
-      LOG_ERROR("OverworldEditor", "Failed to refresh tile16 blockset: %s",
-                status.message().data());
-    }
-  };
-  ow_map_canvas_.AddContextMenuItem(refresh_map_item);
-
-  // Canvas controls
-  gui::Canvas::ContextMenuItem reset_pos_item;
-  reset_pos_item.label = "Reset Canvas Position";
-  reset_pos_item.callback = [this]() {
-    ow_map_canvas_.set_scrolling(ImVec2(0, 0));
-  };
-  ow_map_canvas_.AddContextMenuItem(reset_pos_item);
-
-  gui::Canvas::ContextMenuItem zoom_fit_item;
-  zoom_fit_item.label = "Zoom to Fit";
-  zoom_fit_item.callback = [this]() {
-    ow_map_canvas_.set_global_scale(1.0f);
-    ow_map_canvas_.set_scrolling(ImVec2(0, 0));
-  };
-  ow_map_canvas_.AddContextMenuItem(zoom_fit_item);
-}
+// Note: SetupOverworldCanvasContextMenu has been removed (Phase 3B).
+// Context menu is now setup dynamically in DrawOverworldCanvas() via
+// MapPropertiesSystem::SetupCanvasContextMenu() for context-aware menu items.
 
 void OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {
-  // Calculate the position of the current tile in the blockset canvas
-  // Blockset is arranged in an 8-tile-per-row grid, each tile is 16x16 pixels
-  constexpr int kTilesPerRow = 8;
-  constexpr int kTileDisplaySize =
-      32;  // Each tile displayed at 32x32 (16x16 at 2x scale)
+  if (blockset_selector_) {
+    blockset_selector_->ScrollToTile(current_tile16_);
+    return;
+  }
 
-  // Calculate tile position in canvas coordinates (absolute position in the grid)
+  // Fallback: maintain legacy behavior when the selector is unavailable.
+  constexpr int kTilesPerRow = 8;
+  constexpr int kTileDisplaySize = 32;
+
   int tile_col = current_tile16_ % kTilesPerRow;
   int tile_row = current_tile16_ / kTilesPerRow;
   float tile_x = static_cast<float>(tile_col * kTileDisplaySize);
   float tile_y = static_cast<float>(tile_row * kTileDisplaySize);
 
-  // Get the canvas dimensions
   ImVec2 canvas_size = blockset_canvas_.canvas_size();
-
-  // Calculate the scroll position to center the tile in the viewport
   float scroll_x = tile_x - (canvas_size.x / 2.0F) + (kTileDisplaySize / 2.0F);
   float scroll_y = tile_y - (canvas_size.y / 2.0F) + (kTileDisplaySize / 2.0F);
 
-  // Clamp scroll to valid ranges (don't scroll beyond bounds)
-  if (scroll_x < 0)
-    scroll_x = 0;
-  if (scroll_y < 0)
-    scroll_y = 0;
+  if (scroll_x < 0) scroll_x = 0;
+  if (scroll_y < 0) scroll_y = 0;
 
-  // Update the blockset canvas scrolling position first
-  blockset_canvas_.set_scrolling(ImVec2(-1, -scroll_y));
-
-  // Set the points to draw the white outline box around the current tile
-  // Points are in canvas coordinates (not screen coordinates)
-  // blockset_canvas_.mutable_points()->clear();
-  // blockset_canvas_.mutable_points()->push_back(ImVec2(tile_x, tile_y));
-  // blockset_canvas_.mutable_points()->push_back(ImVec2(tile_x + kTileDisplaySize, tile_y + kTileDisplaySize));
+  blockset_canvas_.set_scrolling(ImVec2(-scroll_x, -scroll_y));
 }
 
 void OverworldEditor::DrawOverworldProperties() {
@@ -2608,6 +2634,15 @@ absl::Status OverworldEditor::UpdateROMVersionMarkers(int target_version) {
 
   LOG_INFO("OverworldEditor", "ROM version markers updated to v%d", target_version);
   return absl::OkStatus();
+}
+
+void OverworldEditor::UpdateBlocksetSelectorState() {
+  if (!blockset_selector_) {
+    return;
+  }
+
+  blockset_selector_->SetTileCount(zelda3::kNumTile16Individual);
+  blockset_selector_->SetSelectedTile(current_tile16_);
 }
 
 }  // namespace yaze::editor

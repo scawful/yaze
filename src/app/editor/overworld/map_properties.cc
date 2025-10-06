@@ -453,20 +453,29 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
   }
 
   // Canvas controls
-  gui::Canvas::ContextMenuItem reset_pos_item;
-  reset_pos_item.label = "Reset Canvas Position";
-  reset_pos_item.callback = [&canvas]() {
-    canvas.set_scrolling(ImVec2(0, 0));
-  };
-  canvas.AddContextMenuItem(reset_pos_item);
-
-  gui::Canvas::ContextMenuItem zoom_fit_item;
-  zoom_fit_item.label = "Zoom to Fit";
-  zoom_fit_item.callback = [&canvas]() {
+  gui::Canvas::ContextMenuItem reset_view_item;
+  reset_view_item.label = ICON_MD_RESTORE " Reset View";
+  reset_view_item.callback = [&canvas]() {
     canvas.set_global_scale(1.0f);
     canvas.set_scrolling(ImVec2(0, 0));
   };
-  canvas.AddContextMenuItem(zoom_fit_item);
+  canvas.AddContextMenuItem(reset_view_item);
+
+  gui::Canvas::ContextMenuItem zoom_in_item;
+  zoom_in_item.label = ICON_MD_ZOOM_IN " Zoom In";
+  zoom_in_item.callback = [&canvas]() {
+    float scale = std::min(2.0f, canvas.global_scale() + 0.25f);
+    canvas.set_global_scale(scale);
+  };
+  canvas.AddContextMenuItem(zoom_in_item);
+
+  gui::Canvas::ContextMenuItem zoom_out_item;
+  zoom_out_item.label = ICON_MD_ZOOM_OUT " Zoom Out";
+  zoom_out_item.callback = [&canvas]() {
+    float scale = std::max(0.25f, canvas.global_scale() - 0.25f);
+    canvas.set_global_scale(scale);
+  };
+  canvas.AddContextMenuItem(zoom_out_item);
 }
 
 // Private method implementations

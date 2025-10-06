@@ -34,6 +34,7 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       unit/gfx/snes_tile_test.cc
       unit/gfx/compression_test.cc
       unit/gfx/snes_palette_test.cc
+      unit/gui/tile_selector_widget_test.cc
       unit/zelda3/message_test.cc
       unit/zelda3/overworld_test.cc
       unit/zelda3/object_parser_test.cc
@@ -97,6 +98,7 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
       unit/gfx/snes_tile_test.cc
       unit/gfx/compression_test.cc
       unit/gfx/snes_palette_test.cc
+      unit/gui/tile_selector_widget_test.cc
       unit/zelda3/message_test.cc
       unit/zelda3/overworld_test.cc
       unit/zelda3/object_parser_test.cc
