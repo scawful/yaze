@@ -1,12 +1,16 @@
 #include "app/emu/snes.h"
 
 #include <cstdint>
+#include <fstream>
 
 #include "app/emu/audio/apu.h"
 #include "app/emu/memory/dma.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
 #include "util/log.h"
+
+#define WRITE_STATE(file, member) file.write(reinterpret_cast<const char*>(&member), sizeof(member))
+#define READ_STATE(file, member) file.read(reinterpret_cast<char*>(&member), sizeof(member))
 
 namespace yaze {
 namespace emu {
@@ -420,6 +424,10 @@ void Snes::WriteBBus(uint8_t adr, uint8_t val) {
       LOG_INFO("SNES", "CPU wrote APU port $21%02X (F%d) = $%02X at PC=$%02X:%04X",
                0x40 + (adr & 0x3), (adr & 0x3) + 4, val, cpu_.PB, cpu_.PC);
     }
+    
+    // NOTE: Auto-reset disabled - relying on complete IPL ROM with counter protocol
+    // The IPL ROM will handle multi-upload sequences via its transfer loop
+    
     return;
   }
   switch (adr) {
@@ -618,21 +626,99 @@ void Snes::SetSamples(int16_t* sample_data, int wanted_samples) {
 
 void Snes::SetPixels(uint8_t* pixel_data) { ppu_.PutPixels(pixel_data); }
 
-void Snes::SetButtonState(int player, int button, bool pressed) {
-  // set key in controller
-  if (player == 1) {
-    if (pressed) {
-      input1.current_state_ |= 1 << button;
-    } else {
-      input1.current_state_ &= ~(1 << button);
-    }
-  } else {
-    if (pressed) {
-      input2.current_state_ |= 1 << button;
-    } else {
-      input2.current_state_ &= ~(1 << button);
-    }
+void Snes::SetButtonState(int player, int button, bool pressed) {}
+
+void Snes::loadState(const std::string& path) {
+  std::ifstream file(path, std::ios::binary);
+  if (!file) {
+    return;
   }
+
+  uint32_t version;
+  READ_STATE(file, version);
+  if (version != 1) {
+    return;
+  }
+
+  // SNES state
+  READ_STATE(file, ram);
+  READ_STATE(file, ram_adr_);
+  READ_STATE(file, cycles_);
+  READ_STATE(file, sync_cycle_);
+  READ_STATE(file, apu_catchup_cycles_);
+  READ_STATE(file, h_irq_enabled_);
+  READ_STATE(file, v_irq_enabled_);
+  READ_STATE(file, nmi_enabled_);
+  READ_STATE(file, h_timer_);
+  READ_STATE(file, v_timer_);
+  READ_STATE(file, in_nmi_);
+  READ_STATE(file, irq_condition_);
+  READ_STATE(file, in_irq_);
+  READ_STATE(file, in_vblank_);
+  READ_STATE(file, port_auto_read_);
+  READ_STATE(file, auto_joy_read_);
+  READ_STATE(file, auto_joy_timer_);
+  READ_STATE(file, ppu_latch_);
+  READ_STATE(file, multiply_a_);
+  READ_STATE(file, multiply_result_);
+  READ_STATE(file, divide_a_);
+  READ_STATE(file, divide_result_);
+  READ_STATE(file, fast_mem_);
+  READ_STATE(file, next_horiz_event);
+
+  // CPU state
+  READ_STATE(file, cpu_);
+
+  // PPU state
+  READ_STATE(file, ppu_);
+
+  // APU state
+  READ_STATE(file, apu_);
+}
+
+void Snes::saveState(const std::string& path) {
+  std::ofstream file(path, std::ios::binary);
+  if (!file) {
+    return;
+  }
+
+  uint32_t version = 1;
+  WRITE_STATE(file, version);
+
+  // SNES state
+  WRITE_STATE(file, ram);
+  WRITE_STATE(file, ram_adr_);
+  WRITE_STATE(file, cycles_);
+  WRITE_STATE(file, sync_cycle_);
+  WRITE_STATE(file, apu_catchup_cycles_);
+  WRITE_STATE(file, h_irq_enabled_);
+  WRITE_STATE(file, v_irq_enabled_);
+  WRITE_STATE(file, nmi_enabled_);
+  WRITE_STATE(file, h_timer_);
+  WRITE_STATE(file, v_timer_);
+  WRITE_STATE(file, in_nmi_);
+  WRITE_STATE(file, irq_condition_);
+  WRITE_STATE(file, in_irq_);
+  WRITE_STATE(file, in_vblank_);
+  WRITE_STATE(file, port_auto_read_);
+  WRITE_STATE(file, auto_joy_read_);
+  WRITE_STATE(file, auto_joy_timer_);
+  WRITE_STATE(file, ppu_latch_);
+  WRITE_STATE(file, multiply_a_);
+  WRITE_STATE(file, multiply_result_);
+  WRITE_STATE(file, divide_a_);
+  WRITE_STATE(file, divide_result_);
+  WRITE_STATE(file, fast_mem_);
+  WRITE_STATE(file, next_horiz_event);
+
+  // CPU state
+  WRITE_STATE(file, cpu_);
+
+  // PPU state
+  WRITE_STATE(file, ppu_);
+
+  // APU state
+  WRITE_STATE(file, apu_);
 }
 
 void Snes::InitAccessTime(bool recalc) {

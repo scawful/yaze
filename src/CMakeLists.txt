@@ -334,7 +334,7 @@ if (YAZE_BUILD_APP)
   endif()
 endif()
 
-if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC)
+if(YAZE_BUILD_EMU)
   if (NOT YAZE_MINIMAL_BUILD AND APPLE)
     add_executable(
       yaze_emu
@@ -354,6 +354,7 @@ if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC)
       cli/service/rom/rom_sandbox_manager.cc
     )
     target_link_libraries(yaze_emu PUBLIC ${COCOA_LIBRARY})
+    target_compile_definitions(yaze_emu PRIVATE IMGUI_DEFINE_MATH_OPERATORS)
   elseif(NOT YAZE_MINIMAL_BUILD)
     add_executable(
       yaze_emu
@@ -383,27 +384,43 @@ if(YAZE_BUILD_EMU AND NOT YAZE_WITH_GRPC)
       ${CMAKE_SOURCE_DIR}/incl/
       ${CMAKE_SOURCE_DIR}/src/
       ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
+      ${CMAKE_SOURCE_DIR}/third_party/httplib
       ${PNG_INCLUDE_DIRS}
       ${SDL2_INCLUDE_DIR}
       ${CMAKE_CURRENT_BINARY_DIR}
       ${PROJECT_BINARY_DIR}
     )
 
-    target_link_libraries(
-      yaze_emu PUBLIC
+target_link_libraries(yaze_emu PUBLIC
       ${ABSL_TARGETS}
       ${SDL_TARGETS}
       ${PNG_LIBRARIES}
       ${CMAKE_DL_LIBS}
       ImGui
       asar-static
+      nlohmann_json::nlohmann_json
+      yaze_agent
+      yaze_editor
+      yaze_zelda3
+      yaze_gui
+      yaze_gfx
+      yaze_core_lib
+      yaze_util
+      yaze_test_support
     )
 
-    if(YAZE_ENABLE_UI_TESTS)
-      target_link_libraries(yaze_emu PUBLIC ImGuiTestEngine)
-      target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=1)
-    else()
-      target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=0)
+    if(YAZE_WITH_GRPC)
+      target_compile_definitions(yaze_emu PRIVATE YAZE_WITH_JSON)
+      target_include_directories(yaze_emu PRIVATE ${CMAKE_SOURCE_DIR}/third_party/json/include)
+
+      target_add_protobuf(yaze_emu
+        ${CMAKE_SOURCE_DIR}/src/protos/imgui_test_harness.proto
+        ${CMAKE_SOURCE_DIR}/src/protos/canvas_automation.proto)
+
+      target_link_libraries(yaze_emu PRIVATE
+        grpc++
+        grpc++_reflection
+        libprotobuf)
     endif()
   endif()
 endif()
@@ -1040,6 +1057,12 @@ source_group("CLI" FILES
   cli/cli_main.cc
   cli/tui/tui.cc
   cli/tui/tui.h
+  cli/tui/unified_layout.cc
+  cli/tui/unified_layout.h
+  cli/tui/enhanced_chat_component.cc
+  cli/tui/enhanced_chat_component.h
+  cli/tui/enhanced_status_panel.cc
+  cli/tui/enhanced_status_panel.h
   cli/cli.cc
   cli/cli.h
 )

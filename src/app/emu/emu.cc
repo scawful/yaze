@@ -10,10 +10,20 @@
 
 #include "absl/debugging/failure_signal_handler.h"
 #include "absl/debugging/symbolize.h"
-#include "absl/status/status.h"
-#include "util/sdl_deleter.h"
+#include "absl/flags/flag.h"
+#include "absl/flags/parse.h"
 #include "app/emu/snes.h"
 #include "app/rom.h"
+#include "util/sdl_deleter.h"
+
+ABSL_FLAG(std::string, rom, "", "Path to the ROM file to load.");
+ABSL_FLAG(bool, no_gui, false, "Disable GUI and run in headless mode.");
+ABSL_FLAG(std::string, load_state, "", "Load emulator state from a file.");
+ABSL_FLAG(std::string, dump_state, "", "Dump emulator state to a file.");
+ABSL_FLAG(int, frames, 0, "Number of frames to run the emulator for.");
+ABSL_FLAG(int, max_frames, 600, "Maximum frames to run before auto-exit (0=infinite, default=600/10 seconds).");
+ABSL_FLAG(bool, debug_apu, false, "Enable detailed APU/SPC700 logging.");
+ABSL_FLAG(bool, debug_cpu, false, "Enable detailed CPU execution logging.");
 
 using yaze::util::SDL_Deleter;
 
@@ -28,6 +38,33 @@ int main(int argc, char **argv) {
       false;  // Disable alarm to avoid false positives during SDL cleanup
   options.call_previous_handler = true;
   absl::InstallFailureSignalHandler(options);
+
+  absl::ParseCommandLine(argc, argv);
+
+  if (absl::GetFlag(FLAGS_no_gui)) {
+    yaze::Rom rom;
+    if (!rom.LoadFromFile(absl::GetFlag(FLAGS_rom)).ok()) {
+      return EXIT_FAILURE;
+    }
+
+    yaze::emu::Snes snes;
+    std::vector<uint8_t> rom_data = rom.vector();
+    snes.Init(rom_data);
+
+    if (!absl::GetFlag(FLAGS_load_state).empty()) {
+      snes.loadState(absl::GetFlag(FLAGS_load_state));
+    }
+
+    for (int i = 0; i < absl::GetFlag(FLAGS_frames); ++i) {
+      snes.RunFrame();
+    }
+
+    if (!absl::GetFlag(FLAGS_dump_state).empty()) {
+      snes.saveState(absl::GetFlag(FLAGS_dump_state));
+    }
+
+    return EXIT_SUCCESS;
+  }
 
   SDL_SetMainReady();
 
@@ -100,13 +137,23 @@ int main(int argc, char **argv) {
   auto time_adder = 0.0;
   int wanted_frames_ = 0;
   int wanted_samples_ = 0;
+  int frame_count = 0;
+  int max_frames = absl::GetFlag(FLAGS_max_frames);
   SDL_Event event;
 
-  if (!rom_.LoadFromFile("inidisp_hammer_0f00.sfc").ok()) {
+  // Load ROM from command-line argument or default
+  std::string rom_path = absl::GetFlag(FLAGS_rom);
+  if (rom_path.empty()) {
+    rom_path = "assets/zelda3.sfc";  // Default to zelda3 in assets
+  }
+  
+  if (!rom_.LoadFromFile(rom_path).ok()) {
+    printf("Failed to load ROM: %s\n", rom_path.c_str());
     return EXIT_FAILURE;
   }
 
   if (rom_.is_loaded()) {
+    printf("Loaded ROM: %s (%zu bytes)\n", rom_path.c_str(), rom_.size());
     rom_data_ = rom_.vector();
     snes_.Init(rom_data_);
     wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
@@ -159,6 +206,22 @@ int main(int argc, char **argv) {
 
       if (loaded) {
         snes_.RunFrame();
+        frame_count++;
+
+        // Print status every 60 frames (1 second)
+        if (frame_count % 60 == 0) {
+          printf("[Frame %d] CPU=$%02X:%04X SPC=$%04X APU_cycles=%llu\n", 
+                 frame_count, snes_.cpu().PB, snes_.cpu().PC, 
+                 snes_.apu().spc700().PC, snes_.apu().GetCycles());
+        }
+
+        // Auto-exit after max_frames (if set)
+        if (max_frames > 0 && frame_count >= max_frames) {
+          printf("\nReached max frames (%d), exiting...\n", max_frames);
+          printf("Final state: CPU=$%02X:%04X SPC=$%04X\n",
+                 snes_.cpu().PB, snes_.cpu().PC, snes_.apu().spc700().PC);
+          running = false;
+        }
 
         snes_.SetSamples(audio_buffer_, wanted_samples_);
         if (SDL_GetQueuedAudioSize(audio_device_) <= wanted_samples_ * 4 * 6) {

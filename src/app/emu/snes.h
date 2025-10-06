@@ -59,6 +59,9 @@ class Snes {
   void SetPixels(uint8_t* pixel_data);
   void SetButtonState(int player, int button, bool pressed);
 
+  void loadState(const std::string& path);
+  void saveState(const std::string& path);
+
   bool running() const { return running_; }
   auto cpu() -> Cpu& { return cpu_; }
   auto ppu() -> Ppu& { return ppu_; }
