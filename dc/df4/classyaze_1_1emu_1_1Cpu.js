@@ -39,6 +39,7 @@ var classyaze_1_1emu_1_1Cpu =
     [ "ReadOpcode", "dc/df4/classyaze_1_1emu_1_1Cpu.html#a44ce3b48fcbd8e3c100a649bf1372177", null ],
     [ "ReadOpcodeWord", "dc/df4/classyaze_1_1emu_1_1Cpu.html#adbb54e45e350b0b7f22631df58de96e5", null ],
     [ "ReadByte", "dc/df4/classyaze_1_1emu_1_1Cpu.html#a2ef3e26830cc01fa5401e964e933547a", null ],
+    [ "ReadWord", "dc/df4/classyaze_1_1emu_1_1Cpu.html#a29aa0272ea48c305221806ac2868a4d1", null ],
     [ "ReadWord", "dc/df4/classyaze_1_1emu_1_1Cpu.html#a3e3b87fa6336bc75d02535ba77e4fdba", null ],
     [ "ReadWordLong", "dc/df4/classyaze_1_1emu_1_1Cpu.html#ab0a1da5f723404c6af2e9bf5f5a0e646", null ],
     [ "WriteByte", "dc/df4/classyaze_1_1emu_1_1Cpu.html#a57b769978d8770c64733d36c33fc78c9", null ],

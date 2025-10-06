@@ -23,6 +23,8 @@ var classyaze_1_1emu_1_1Apu =
     [ "rom_readable_", "d7/da7/classyaze_1_1emu_1_1Apu.html#af442e153f924430fdf8a9aa5651b65be", null ],
     [ "dsp_adr_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a3161fbd7074971356df920a0a0a895df", null ],
     [ "cycles_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a1cdd7fdb4dcb5b4af1db60c849726f5a", null ],
+    [ "transfer_size_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a66074bda51f3d2a307faf0380fa7797f", null ],
+    [ "in_transfer_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a01a3dc00e23d3054fa61a4e7e17269f4", null ],
     [ "memory_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a2782614192cfb79d5b0e9cb32f65651b", null ],
     [ "timer_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a05ba1105dda55417c09b696f9ebca9e0", null ],
     [ "callbacks_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a248312b56cd2c2fed588e7911d2d4c54", null ],

@@ -11,6 +11,5 @@ var searchData=
   ['api_20reference_8',['API Reference',['../d8/d73/md_docs_2E3-api-reference.html',1,'']]],
   ['architecture_20and_20networking_9',['B5 - Architecture and Networking',['../dd/de3/md_docs_2B5-architecture-and-networking.html',1,'']]],
   ['asm_20style_20guide_10',['Asm Style Guide',['../d7/d9a/md_docs_2E1-asm-style-guide.html',1,'']]],
-  ['automation_11',['G1 - Canvas System and Automation',['../d1/dc6/md_docs_2G1-canvas-guide.html',1,'']]],
-  ['automation_20integration_20complete_20✅_12',['gRPC Canvas Automation Integration - COMPLETE ✅',['../d7/df2/md_docs_2GRPC__INTEGRATION__COMPLETE.html',1,'']]]
+  ['automation_11',['G1 - Canvas System and Automation',['../d1/dc6/md_docs_2G1-canvas-guide.html',1,'']]]
 ];
