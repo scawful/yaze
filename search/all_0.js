@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['0_0',['0',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md218',1,'Advanced Features (v2.0)'],['../d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md665',1,'Advanced Features (v2.0)'],['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md221',1,'Database Schema (Server v2.0)'],['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md213',1,'Network Collaboration Mode (yaze-server v2.0)']]],
+  ['0_0',['0',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md218',1,'Advanced Features (v2.0)'],['../d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md666',1,'Advanced Features (v2.0)'],['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md221',1,'Database Schema (Server v2.0)'],['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md213',1,'Network Collaboration Mode (yaze-server v2.0)']]],
   ['0_200_203_20october_202023_1',['0.0.3 (October 2023)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md496',1,'']]],
   ['0_200_204_20november_202023_2',['0.0.4 (November 2023)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md495',1,'']]],
   ['0_200_205_20november_202023_3',['0.0.5 (November 2023)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md494',1,'']]],
@@ -15,7 +15,7 @@ var searchData=
   ['0_203_200_20september_202025_12',['0.3.0 (September 2025)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md480',1,'']]],
   ['0_203_201_20september_202025_13',['0.3.1 (September 2025)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md472',1,'']]],
   ['0_203_202_20december_202025_20in_20development_14',['0.3.2 (December 2025) - In Development',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md464',1,'']]],
-  ['0_203_202_20release_15',['Version 0.3.2 - Release',['../d0/d30/md_README.html#autotoc_md601',1,'']]],
+  ['0_203_202_20release_15',['Version 0.3.2 - Release',['../d0/d30/md_README.html#autotoc_md602',1,'']]],
   ['0_203_203_20october_202025_16',['0.3.3 (October 2025)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md460',1,'']]],
   ['0_204_20x_20next_20major_20release_20advanced_20tooling_20ux_17',['0.4.X (Next Major Release) - Advanced Tooling &amp; UX',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md500',1,'']]],
   ['0_205_20x_20feature_20expansion_18',['0.5.X - Feature Expansion',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md505',1,'']]],

@@ -2,7 +2,7 @@ var searchData=
 [
   ['a1_2dgetting_2dstarted_2emd_0',['A1-getting-started.md',['../d8/d47/A1-getting-started_8md.html',1,'']]],
   ['a1_2dtesting_2dguide_2emd_1',['A1-testing-guide.md',['../d6/d46/A1-testing-guide_8md.html',1,'']]],
-  ['addressing_2ecc_2',['addressing.cc',['../da/d53/cpu_2internal_2addressing_8cc.html',1,'(Global Namespace)'],['../df/da9/audio_2internal_2addressing_8cc.html',1,'(Global Namespace)']]],
+  ['addressing_2ecc_2',['addressing.cc',['../df/da9/audio_2internal_2addressing_8cc.html',1,'(Global Namespace)'],['../da/d53/cpu_2internal_2addressing_8cc.html',1,'(Global Namespace)']]],
   ['advanced_5frouting_2ecc_3',['advanced_routing.cc',['../dd/d0c/advanced__routing_8cc.html',1,'']]],
   ['advanced_5frouting_2eh_4',['advanced_routing.h',['../db/d6c/advanced__routing_8h.html',1,'']]],
   ['agent_2ecc_5',['agent.cc',['../d2/d0e/agent_8cc.html',1,'']]],
@@ -10,7 +10,7 @@ var searchData=
   ['agent_5fchat_5fhistory_5fcodec_2eh_7',['agent_chat_history_codec.h',['../d3/d74/agent__chat__history__codec_8h.html',1,'']]],
   ['agent_5fchat_5fhistory_5fpopup_2ecc_8',['agent_chat_history_popup.cc',['../d8/d92/agent__chat__history__popup_8cc.html',1,'']]],
   ['agent_5fchat_5fhistory_5fpopup_2eh_9',['agent_chat_history_popup.h',['../d7/d6b/agent__chat__history__popup_8h.html',1,'']]],
-  ['agent_5fchat_5fwidget_2ecc_10',['agent_chat_widget.cc',['../d4/d0a/gui_2widgets_2agent__chat__widget_8cc.html',1,'(Global Namespace)'],['../d5/dde/editor_2agent_2agent__chat__widget_8cc.html',1,'(Global Namespace)']]],
+  ['agent_5fchat_5fwidget_2ecc_10',['agent_chat_widget.cc',['../d5/dde/editor_2agent_2agent__chat__widget_8cc.html',1,'(Global Namespace)'],['../d4/d0a/gui_2widgets_2agent__chat__widget_8cc.html',1,'(Global Namespace)']]],
   ['agent_5fchat_5fwidget_2eh_11',['agent_chat_widget.h',['../d1/dee/editor_2agent_2agent__chat__widget_8h.html',1,'(Global Namespace)'],['../d6/dae/gui_2widgets_2agent__chat__widget_8h.html',1,'(Global Namespace)']]],
   ['agent_5fcollaboration_5fcoordinator_2ecc_12',['agent_collaboration_coordinator.cc',['../d0/daa/agent__collaboration__coordinator_8cc.html',1,'']]],
   ['agent_5fcollaboration_5fcoordinator_2eh_13',['agent_collaboration_coordinator.h',['../d2/d25/agent__collaboration__coordinator_8h.html',1,'']]],
@@ -52,6 +52,7 @@ var searchData=
   ['autocomplete_2ecc_49',['autocomplete.cc',['../d1/d90/autocomplete_8cc.html',1,'']]],
   ['autocomplete_2eh_50',['autocomplete.h',['../d7/d82/autocomplete_8h.html',1,'']]],
   ['autocomplete_5fui_2ecc_51',['autocomplete_ui.cc',['../df/dc9/autocomplete__ui_8cc.html',1,'']]],
-  ['automation_5fbridge_2ecc_52',['automation_bridge.cc',['../dc/d74/automation__bridge_8cc.html',1,'']]],
-  ['automation_5fbridge_2eh_53',['automation_bridge.h',['../de/d0f/automation__bridge_8h.html',1,'']]]
+  ['autocomplete_5fui_2eh_52',['autocomplete_ui.h',['../d8/d0a/autocomplete__ui_8h.html',1,'']]],
+  ['automation_5fbridge_2ecc_53',['automation_bridge.cc',['../dc/d74/automation__bridge_8cc.html',1,'']]],
+  ['automation_5fbridge_2eh_54',['automation_bridge.h',['../de/d0f/automation__bridge_8h.html',1,'']]]
 ];

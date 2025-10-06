@@ -10,6 +10,9 @@ var classyaze_1_1cli_1_1agent_1_1SimpleChatSession =
     [ "Reset", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a3d3a5aede741200c7a3c2e6de5b075b8", null ],
     [ "PrintMessage", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#aab5189016f89bfc5638e9df279344073", null ],
     [ "PrintTable", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a5714dfa3d076dfe98c3980d7d571a4fc", null ],
+    [ "ReadLineWithVim", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#af9c0f86e077ba1375a4e0b3ba08cdaeb", null ],
+    [ "GetAutocompleteOptions", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#a353ef929f222ba2129b8667bbf9ce873", null ],
     [ "agent_service_", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#ac0af4aab81db9fbb851026134bf68097", null ],
-    [ "config_", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#aa248c3485aafbc7cb86a30d9e77e4f29", null ]
+    [ "config_", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#aa248c3485aafbc7cb86a30d9e77e4f29", null ],
+    [ "vim_mode_", "db/dbd/classyaze_1_1cli_1_1agent_1_1SimpleChatSession.html#af0804348b9b602f33dcefa6abc0ab2fd", null ]
 ];

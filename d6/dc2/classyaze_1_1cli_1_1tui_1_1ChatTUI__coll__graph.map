@@ -1,13 +1,13 @@
 <map id="yaze::cli::tui::ChatTUI" name="yaze::cli::tui::ChatTUI">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,286,147,312"/>
-<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html" title=" " alt="" coords="102,183,298,223"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,235,93,288,90,284,161,230"/>
-<area shape="rect" id="Node000003" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html" title=" " alt="" coords="227,94,424,120"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="299,131,228,184,225,180,296,127"/>
-<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="81,5,162,31"/>
-<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="108,46,84,90,64,144,60,184,62,224,75,285,70,286,57,225,55,184,59,143,79,88,103,43"/>
-<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="123,46,126,82,136,119,157,153,181,180,177,184,152,156,131,121,121,82,118,47"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="165,35,298,91,296,96,163,40"/>
-<area shape="rect" id="Node000008" href="$d8/db1/structyaze_1_1cli_1_1agent_1_1AgentConfig.html" title=" " alt="" coords="449,94,629,120"/>
-<area shape="poly" id="edge5_Node000002_Node000008" title=" " alt="" coords="490,128,382,161,290,185,288,179,381,156,489,122"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="935,54,1077,80"/>
+<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html" title=" " alt="" coords="558,47,754,87"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="770,64,935,64,935,70,770,70"/>
+<area shape="rect" id="Node000003" href="$d0/d4a/classyaze_1_1cli_1_1agent_1_1ToolDispatcher.html" title=" " alt="" coords="215,110,412,136"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="427,108,534,93,570,85,571,91,534,98,428,114"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="5,49,86,75"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="100,43,109,42,290,21,431,17,573,23,754,32,833,36,912,44,948,51,947,56,911,50,833,41,754,38,573,29,431,23,290,27,110,47,101,48"/>
+<area shape="poly" id="edge4_Node000002_Node000004" title=" " alt="" coords="101,59,558,63,558,69,101,65"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="81,80,111,93,162,106,215,114,214,119,161,111,109,98,79,85"/>
+<area shape="rect" id="Node000010" href="$da/d90/classyaze_1_1cli_1_1AutocompleteEngine.html" title=" " alt="" coords="561,112,752,137"/>
+<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="767,107,911,85,946,78,947,83,912,90,768,113"/>
 </map>

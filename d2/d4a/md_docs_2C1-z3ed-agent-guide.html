@@ -252,10 +252,35 @@ Resource Commands</h2>
 <h2><a class="anchor" id="autotoc_md189"></a>
 FTXUI Chat (&lt;tt&gt;agent chat&lt;/tt&gt;)</h2>
 <p>Full-screen interactive terminal with table rendering, syntax highlighting, and scrollable history. Best for manual exploration.</p>
+<p><b>Features:</b></p><ul>
+<li><b>Autocomplete</b>: Real-time command suggestions as you type</li>
+<li><b>Fuzzy matching</b>: Intelligent command completion with scoring</li>
+<li><b>Context-aware help</b>: Suggestions adapt based on command prefix</li>
+<li><b>History navigation</b>: Up/down arrows to cycle through previous commands</li>
+<li><b>Syntax highlighting</b>: Color-coded responses and tables</li>
+<li><b>Metrics display</b>: Real-time performance stats and turn counters</li>
+</ul>
 <h2><a class="anchor" id="autotoc_md190"></a>
 Simple Chat (&lt;tt&gt;agent simple-chat&lt;/tt&gt;)</h2>
 <p>Lightweight, scriptable text-based REPL that supports single messages, interactive sessions, piped input, and batch files.</p>
-<h2><a class="anchor" id="autotoc_md191"></a>
+<p><b>✨ New Feature: Vim Mode</b> Enable vim-style line editing with <code>--vim</code> flag for enhanced terminal UX:</p><ul>
+<li><b>Normal mode</b> (<code>ESC</code>): Navigate with <code>hjkl</code>, <code>w</code>/<code>b</code> word movement, <code>0</code>/<code>$</code> line start/end</li>
+<li><b>Insert mode</b> (<code>i</code>, <code>a</code>, <code>o</code>): Regular text input with vim keybindings</li>
+<li><b>Editing</b>: <code>x</code> delete char, <code>dd</code> delete line, <code>yy</code> yank line, <code>p</code>/<code>P</code> paste</li>
+<li><b>History</b>: Navigate with <code>Ctrl+P</code>/<code>Ctrl+N</code> or <code>j</code>/<code>k</code> in normal mode</li>
+<li><b>Autocomplete</b>: Press <code>Tab</code> in insert mode for command suggestions</li>
+<li><b>Undo/Redo</b>: <code>u</code> to undo changes in normal mode</li>
+</ul>
+<div class="fragment"><div class="line"># Enable vim mode in simple chat</div>
+<div class="line">z3ed agent simple-chat --rom zelda3.sfc --vim</div>
+<div class="line"> </div>
+<div class="line"># Example workflow:</div>
+<div class="line"># 1. Start in INSERT mode, type your message</div>
+<div class="line"># 2. Press ESC to enter NORMAL mode</div>
+<div class="line"># 3. Use hjkl to navigate, w/b for word movement</div>
+<div class="line"># 4. Press i to return to INSERT mode</div>
+<div class="line"># 5. Press Enter to send message</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md191"></a>
 GUI Chat Widget (Editor Integration)</h2>
 <p>Accessible from <b>Debug → Agent Chat</b> inside YAZE. Provides the same conversation loop as the CLI, including streaming history, JSON/table inspection, and ROM-aware tool dispatch.</p>
 <p><b>✨ New Features:</b></p><ul>

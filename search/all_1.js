@@ -1,7 +1,7 @@
 var searchData=
 [
   ['1_200_20may_202024_0',['0.1.0 (May 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md489',1,'']]],
-  ['1_20always_20analyze_20before_20editing_1',['1. Always Analyze Before Editing',['../db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md563',1,'']]],
+  ['1_20always_20analyze_20before_20editing_1',['1. Always Analyze Before Editing',['../db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md564',1,'']]],
   ['1_20august_202024_2',['0.2.1 (August 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md487',1,'']]],
   ['1_20core_20architectural_20patterns_3',['1. Core Architectural Patterns',['../d5/d18/md_docs_2E2-development-guide.html#autotoc_md260',1,'']]],
   ['1_20core_20concepts_4',['1. Core Concepts',['../d1/dc6/md_docs_2G1-canvas-guide.html#autotoc_md389',1,'']]],
@@ -26,11 +26,11 @@ var searchData=
   ['100_20pass_20rate_23',['5. Testing: 100% Pass Rate',['../d5/d83/md_docs_2F1-dungeon-editor-guide.html#autotoc_md299',1,'']]],
   ['11_20roadmap_20implementation_20status_24',['11. Roadmap &amp; Implementation Status',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md237',1,'']]],
   ['12_20troubleshooting_25',['12. Troubleshooting',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md247',1,'']]],
-  ['1_3a_20capture_20canvas_20screenshot_26',['Step 1: Capture Canvas Screenshot',['../db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md542',1,'']]],
-  ['1_3a_20create_20forest_20area_27',['Workflow 1: Create Forest Area',['../db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md549',1,'']]],
+  ['1_3a_20capture_20canvas_20screenshot_26',['Step 1: Capture Canvas Screenshot',['../db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md543',1,'']]],
+  ['1_3a_20create_20forest_20area_27',['Workflow 1: Create Forest Area',['../db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md550',1,'']]],
   ['1_3a_20editor_20features_20ux_28',['Priority 1: Editor Features &amp; UX',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md501',1,'']]],
   ['1_3a_20modular_20systems_29',['Pattern 1: Modular Systems',['../d5/d18/md_docs_2E2-development-guide.html#autotoc_md261',1,'']]],
-  ['1_3a_20pattern_20recognition_30',['Technique 1: Pattern Recognition',['../db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md581',1,'']]],
+  ['1_3a_20pattern_20recognition_30',['Technique 1: Pattern Recognition',['../db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md582',1,'']]],
   ['1_3a_20the_20coordinate_20system_31',['Critical Fix 1: The Coordinate System',['../d5/d83/md_docs_2F1-dungeon-editor-guide.html#autotoc_md294',1,'']]],
-  ['1_3a_20visual_20studio_20recommended_32',['Option 1: Visual Studio (Recommended)',['../de/d82/md_scripts_2README.html#autotoc_md629',1,'']]]
+  ['1_3a_20visual_20studio_20recommended_32',['Option 1: Visual Studio (Recommended)',['../de/d82/md_scripts_2README.html#autotoc_md630',1,'']]]
 ];

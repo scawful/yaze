@@ -613,240 +613,241 @@ var NAVTREE =
       ] ],
       [ "0.5.X - Feature Expansion", "d8/d97/md_docs_2I1-roadmap.html#autotoc_md505", null ],
       [ "0.6.X - Content & Integration", "d8/d97/md_docs_2I1-roadmap.html#autotoc_md507", null ],
-      [ "Recently Completed (v0.3.2)", "d8/d97/md_docs_2I1-roadmap.html#autotoc_md509", null ]
+      [ "Recently Completed (v0.3.3 - October 6, 2025)", "d8/d97/md_docs_2I1-roadmap.html#autotoc_md509", null ],
+      [ "Recently Completed (v0.3.2)", "d8/d97/md_docs_2I1-roadmap.html#autotoc_md510", null ]
     ] ],
     [ "yaze Documentation", "d3/d4c/md_docs_2index.html", [
-      [ "A: Getting Started & Testing", "d3/d4c/md_docs_2index.html#autotoc_md511", null ],
-      [ "B: Build & Platform", "d3/d4c/md_docs_2index.html#autotoc_md512", null ],
-      [ "C: <tt>z3ed</tt> CLI", "d3/d4c/md_docs_2index.html#autotoc_md513", null ],
-      [ "E: Development & API", "d3/d4c/md_docs_2index.html#autotoc_md514", null ],
-      [ "F: Technical Documentation", "d3/d4c/md_docs_2index.html#autotoc_md515", null ],
-      [ "G: GUI Guides", "d3/d4c/md_docs_2index.html#autotoc_md516", null ],
-      [ "H: Project Info", "d3/d4c/md_docs_2index.html#autotoc_md517", null ],
-      [ "I: Roadmap", "d3/d4c/md_docs_2index.html#autotoc_md518", null ]
+      [ "A: Getting Started & Testing", "d3/d4c/md_docs_2index.html#autotoc_md512", null ],
+      [ "B: Build & Platform", "d3/d4c/md_docs_2index.html#autotoc_md513", null ],
+      [ "C: <tt>z3ed</tt> CLI", "d3/d4c/md_docs_2index.html#autotoc_md514", null ],
+      [ "E: Development & API", "d3/d4c/md_docs_2index.html#autotoc_md515", null ],
+      [ "F: Technical Documentation", "d3/d4c/md_docs_2index.html#autotoc_md516", null ],
+      [ "G: GUI Guides", "d3/d4c/md_docs_2index.html#autotoc_md517", null ],
+      [ "H: Project Info", "d3/d4c/md_docs_2index.html#autotoc_md518", null ],
+      [ "I: Roadmap", "d3/d4c/md_docs_2index.html#autotoc_md519", null ]
     ] ],
     [ "Overworld Agent Guide - AI-Powered Overworld Editing", "db/d8f/md_docs_2overworld__agent__guide.html", [
-      [ "Overview", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md522", null ],
-      [ "Quick Start", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md524", [
-        [ "Prerequisites", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md525", null ],
-        [ "First Agent Interaction", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md526", null ]
+      [ "Overview", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md523", null ],
+      [ "Quick Start", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md525", [
+        [ "Prerequisites", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md526", null ],
+        [ "First Agent Interaction", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md527", null ]
       ] ],
-      [ "Available Tools", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md528", [
-        [ "Read-Only Tools (Safe for AI)", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md529", [
-          [ "overworld-get-tile", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md530", null ],
-          [ "overworld-get-visible-region", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md532", null ],
-          [ "overworld-analyze-region", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md534", null ]
+      [ "Available Tools", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md529", [
+        [ "Read-Only Tools (Safe for AI)", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md530", [
+          [ "overworld-get-tile", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md531", null ],
+          [ "overworld-get-visible-region", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md533", null ],
+          [ "overworld-analyze-region", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md535", null ]
         ] ],
-        [ "Write Tools (Sandboxed - Creates Proposals)", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md536", [
-          [ "overworld-set-tile", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md537", null ],
-          [ "overworld-set-tiles-batch", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md539", null ]
+        [ "Write Tools (Sandboxed - Creates Proposals)", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md537", [
+          [ "overworld-set-tile", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md538", null ],
+          [ "overworld-set-tiles-batch", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md540", null ]
         ] ]
       ] ],
-      [ "Multimodal Vision Workflow", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md541", [
-        [ "Step 1: Capture Canvas Screenshot", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md542", null ],
-        [ "Step 2: AI Analyzes Screenshot", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md543", null ],
-        [ "Step 3: Generate Edit Plan", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md544", null ],
-        [ "Step 4: Execute Plan (Sandbox)", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md545", null ],
-        [ "Step 5: Human Review", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md546", null ]
+      [ "Multimodal Vision Workflow", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md542", [
+        [ "Step 1: Capture Canvas Screenshot", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md543", null ],
+        [ "Step 2: AI Analyzes Screenshot", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md544", null ],
+        [ "Step 3: Generate Edit Plan", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md545", null ],
+        [ "Step 4: Execute Plan (Sandbox)", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md546", null ],
+        [ "Step 5: Human Review", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md547", null ]
       ] ],
-      [ "Example Workflows", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md548", [
-        [ "Workflow 1: Create Forest Area", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md549", null ],
-        [ "Workflow 2: Fix Tile Placement Errors", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md551", null ],
-        [ "Workflow 3: Generate Path", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md553", null ]
+      [ "Example Workflows", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md549", [
+        [ "Workflow 1: Create Forest Area", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md550", null ],
+        [ "Workflow 2: Fix Tile Placement Errors", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md552", null ],
+        [ "Workflow 3: Generate Path", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md554", null ]
       ] ],
-      [ "Common Tile IDs Reference", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md555", [
-        [ "Grass & Ground", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md556", null ],
-        [ "Trees & Plants", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md557", null ],
-        [ "Water", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md558", null ],
-        [ "Paths & Roads", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md559", null ],
-        [ "Structures", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md560", null ]
+      [ "Common Tile IDs Reference", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md556", [
+        [ "Grass & Ground", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md557", null ],
+        [ "Trees & Plants", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md558", null ],
+        [ "Water", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md559", null ],
+        [ "Paths & Roads", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md560", null ],
+        [ "Structures", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md561", null ]
       ] ],
-      [ "Best Practices for AI Agents", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md562", [
-        [ "1. Always Analyze Before Editing", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md563", null ],
-        [ "2. Use Batch Operations", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md564", null ],
-        [ "3. Provide Clear Reasoning", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md565", null ],
-        [ "4. Respect Tile Boundaries", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md566", null ],
-        [ "5. Check Visibility", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md567", null ],
-        [ "6. Create Reversible Edits", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md568", null ]
+      [ "Best Practices for AI Agents", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md563", [
+        [ "1. Always Analyze Before Editing", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md564", null ],
+        [ "2. Use Batch Operations", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md565", null ],
+        [ "3. Provide Clear Reasoning", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md566", null ],
+        [ "4. Respect Tile Boundaries", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md567", null ],
+        [ "5. Check Visibility", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md568", null ],
+        [ "6. Create Reversible Edits", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md569", null ]
       ] ],
-      [ "Error Handling", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md570", [
-        [ "\"Tile ID out of range\"", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md571", null ],
-        [ "\"Coordinates out of bounds\"", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md572", null ],
-        [ "\"Proposal rejected\"", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md573", null ],
-        [ "\"ROM file locked\"", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md574", null ]
+      [ "Error Handling", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md571", [
+        [ "\"Tile ID out of range\"", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md572", null ],
+        [ "\"Coordinates out of bounds\"", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md573", null ],
+        [ "\"Proposal rejected\"", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md574", null ],
+        [ "\"ROM file locked\"", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md575", null ]
       ] ],
-      [ "Testing AI-Generated Edits", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md576", [
-        [ "Manual Testing", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md577", null ],
-        [ "Automated Testing", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md578", null ]
+      [ "Testing AI-Generated Edits", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md577", [
+        [ "Manual Testing", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md578", null ],
+        [ "Automated Testing", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md579", null ]
       ] ],
-      [ "Advanced Techniques", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md580", [
-        [ "Technique 1: Pattern Recognition", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md581", null ],
-        [ "Technique 2: Style Transfer", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md582", null ],
-        [ "Technique 3: Procedural Generation", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md583", null ]
+      [ "Advanced Techniques", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md581", [
+        [ "Technique 1: Pattern Recognition", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md582", null ],
+        [ "Technique 2: Style Transfer", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md583", null ],
+        [ "Technique 3: Procedural Generation", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md584", null ]
       ] ],
-      [ "Integration with GUI Automation", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md585", [
-        [ "Record Human Edits", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md586", null ],
-        [ "Replay for AI Training", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md587", null ],
-        [ "Validate AI Edits", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md588", null ]
+      [ "Integration with GUI Automation", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md586", [
+        [ "Record Human Edits", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md587", null ],
+        [ "Replay for AI Training", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md588", null ],
+        [ "Validate AI Edits", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md589", null ]
       ] ],
-      [ "Collaboration Features", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md590", [
-        [ "Network Collaboration", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md591", null ],
-        [ "Proposal Voting", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md592", null ]
+      [ "Collaboration Features", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md591", [
+        [ "Network Collaboration", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md592", null ],
+        [ "Proposal Voting", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md593", null ]
       ] ],
-      [ "Troubleshooting", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md594", [
-        [ "Agent Not Responding", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md595", null ],
-        [ "Tools Not Available", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md596", null ],
-        [ "gRPC Connection Failed", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md597", null ]
+      [ "Troubleshooting", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md595", [
+        [ "Agent Not Responding", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md596", null ],
+        [ "Tools Not Available", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md597", null ],
+        [ "gRPC Connection Failed", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md598", null ]
       ] ],
-      [ "See Also", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md599", null ]
+      [ "See Also", "db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md600", null ]
     ] ],
     [ "yaze - Yet Another Zelda3 Editor", "d0/d30/md_README.html", [
-      [ "Version 0.3.2 - Release", "d0/d30/md_README.html#autotoc_md601", null ],
-      [ "Quick Start", "d0/d30/md_README.html#autotoc_md606", [
-        [ "Build", "d0/d30/md_README.html#autotoc_md607", null ],
-        [ "Applications", "d0/d30/md_README.html#autotoc_md608", null ]
+      [ "Version 0.3.2 - Release", "d0/d30/md_README.html#autotoc_md602", null ],
+      [ "Quick Start", "d0/d30/md_README.html#autotoc_md607", [
+        [ "Build", "d0/d30/md_README.html#autotoc_md608", null ],
+        [ "Applications", "d0/d30/md_README.html#autotoc_md609", null ]
       ] ],
-      [ "Usage", "d0/d30/md_README.html#autotoc_md609", [
-        [ "GUI Editor", "d0/d30/md_README.html#autotoc_md610", null ],
-        [ "Command Line Tool", "d0/d30/md_README.html#autotoc_md611", null ],
-        [ "C++ API", "d0/d30/md_README.html#autotoc_md612", null ]
+      [ "Usage", "d0/d30/md_README.html#autotoc_md610", [
+        [ "GUI Editor", "d0/d30/md_README.html#autotoc_md611", null ],
+        [ "Command Line Tool", "d0/d30/md_README.html#autotoc_md612", null ],
+        [ "C++ API", "d0/d30/md_README.html#autotoc_md613", null ]
       ] ],
-      [ "Documentation", "d0/d30/md_README.html#autotoc_md613", null ],
-      [ "Supported Platforms", "d0/d30/md_README.html#autotoc_md614", null ],
-      [ "ROM Compatibility", "d0/d30/md_README.html#autotoc_md615", null ],
-      [ "Contributing", "d0/d30/md_README.html#autotoc_md616", null ],
-      [ "License", "d0/d30/md_README.html#autotoc_md617", null ],
-      [ "🙏 Acknowledgments", "d0/d30/md_README.html#autotoc_md618", null ],
-      [ "📸 Screenshots", "d0/d30/md_README.html#autotoc_md619", null ]
+      [ "Documentation", "d0/d30/md_README.html#autotoc_md614", null ],
+      [ "Supported Platforms", "d0/d30/md_README.html#autotoc_md615", null ],
+      [ "ROM Compatibility", "d0/d30/md_README.html#autotoc_md616", null ],
+      [ "Contributing", "d0/d30/md_README.html#autotoc_md617", null ],
+      [ "License", "d0/d30/md_README.html#autotoc_md618", null ],
+      [ "🙏 Acknowledgments", "d0/d30/md_README.html#autotoc_md619", null ],
+      [ "📸 Screenshots", "d0/d30/md_README.html#autotoc_md620", null ]
     ] ],
     [ "yaze Build Scripts", "de/d82/md_scripts_2README.html", [
-      [ "Windows Scripts", "de/d82/md_scripts_2README.html#autotoc_md622", [
-        [ "vcpkg Setup (Optional)", "de/d82/md_scripts_2README.html#autotoc_md623", null ]
+      [ "Windows Scripts", "de/d82/md_scripts_2README.html#autotoc_md623", [
+        [ "vcpkg Setup (Optional)", "de/d82/md_scripts_2README.html#autotoc_md624", null ]
       ] ],
-      [ "Windows Build Workflow", "de/d82/md_scripts_2README.html#autotoc_md624", [
-        [ "Recommended: Visual Studio CMake Mode", "de/d82/md_scripts_2README.html#autotoc_md625", null ],
-        [ "Command Line Build", "de/d82/md_scripts_2README.html#autotoc_md626", null ],
-        [ "Compiler Notes", "de/d82/md_scripts_2README.html#autotoc_md627", null ]
+      [ "Windows Build Workflow", "de/d82/md_scripts_2README.html#autotoc_md625", [
+        [ "Recommended: Visual Studio CMake Mode", "de/d82/md_scripts_2README.html#autotoc_md626", null ],
+        [ "Command Line Build", "de/d82/md_scripts_2README.html#autotoc_md627", null ],
+        [ "Compiler Notes", "de/d82/md_scripts_2README.html#autotoc_md628", null ]
       ] ],
-      [ "Quick Start (Windows)", "de/d82/md_scripts_2README.html#autotoc_md628", [
-        [ "Option 1: Visual Studio (Recommended)", "de/d82/md_scripts_2README.html#autotoc_md629", null ],
-        [ "Option 2: Command Line", "de/d82/md_scripts_2README.html#autotoc_md630", null ],
-        [ "Option 3: With vcpkg (Optional)", "de/d82/md_scripts_2README.html#autotoc_md631", null ]
+      [ "Quick Start (Windows)", "de/d82/md_scripts_2README.html#autotoc_md629", [
+        [ "Option 1: Visual Studio (Recommended)", "de/d82/md_scripts_2README.html#autotoc_md630", null ],
+        [ "Option 2: Command Line", "de/d82/md_scripts_2README.html#autotoc_md631", null ],
+        [ "Option 3: With vcpkg (Optional)", "de/d82/md_scripts_2README.html#autotoc_md632", null ]
       ] ],
-      [ "Troubleshooting", "de/d82/md_scripts_2README.html#autotoc_md632", [
-        [ "Common Issues", "de/d82/md_scripts_2README.html#autotoc_md633", null ],
-        [ "Getting Help", "de/d82/md_scripts_2README.html#autotoc_md634", null ]
+      [ "Troubleshooting", "de/d82/md_scripts_2README.html#autotoc_md633", [
+        [ "Common Issues", "de/d82/md_scripts_2README.html#autotoc_md634", null ],
+        [ "Getting Help", "de/d82/md_scripts_2README.html#autotoc_md635", null ]
       ] ],
-      [ "Other Scripts", "de/d82/md_scripts_2README.html#autotoc_md635", null ],
-      [ "Build Environment Verification", "de/d82/md_scripts_2README.html#autotoc_md636", [
-        [ "<tt>verify-build-environment.ps1</tt> / <tt>.sh</tt>", "de/d82/md_scripts_2README.html#autotoc_md637", null ],
-        [ "Usage", "de/d82/md_scripts_2README.html#autotoc_md638", null ]
+      [ "Other Scripts", "de/d82/md_scripts_2README.html#autotoc_md636", null ],
+      [ "Build Environment Verification", "de/d82/md_scripts_2README.html#autotoc_md637", [
+        [ "<tt>verify-build-environment.ps1</tt> / <tt>.sh</tt>", "de/d82/md_scripts_2README.html#autotoc_md638", null ],
+        [ "Usage", "de/d82/md_scripts_2README.html#autotoc_md639", null ]
       ] ]
     ] ],
     [ "Agent Editor Module", "d6/df7/md_src_2app_2editor_2agent_2README.html", [
-      [ "Overview", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md640", null ],
-      [ "Architecture", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md641", [
-        [ "Core Components", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md642", [
-          [ "AgentEditor (<tt>agent_editor.h/cc</tt>)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md643", null ],
-          [ "AgentChatWidget (<tt>agent_chat_widget.h/cc</tt>)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md644", null ],
-          [ "AgentChatHistoryCodec (<tt>agent_chat_history_codec.h/cc</tt>)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md645", null ]
+      [ "Overview", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md641", null ],
+      [ "Architecture", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md642", [
+        [ "Core Components", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md643", [
+          [ "AgentEditor (<tt>agent_editor.h/cc</tt>)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md644", null ],
+          [ "AgentChatWidget (<tt>agent_chat_widget.h/cc</tt>)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md645", null ],
+          [ "AgentChatHistoryCodec (<tt>agent_chat_history_codec.h/cc</tt>)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md646", null ]
         ] ],
-        [ "Collaboration Coordinators", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md646", [
-          [ "AgentCollaborationCoordinator (<tt>agent_collaboration_coordinator.h/cc</tt>)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md647", null ],
-          [ "NetworkCollaborationCoordinator (<tt>network_collaboration_coordinator.h/cc</tt>)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md648", null ]
+        [ "Collaboration Coordinators", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md647", [
+          [ "AgentCollaborationCoordinator (<tt>agent_collaboration_coordinator.h/cc</tt>)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md648", null ],
+          [ "NetworkCollaborationCoordinator (<tt>network_collaboration_coordinator.h/cc</tt>)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md649", null ]
         ] ]
       ] ],
-      [ "Usage", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md649", [
-        [ "Initialization", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md650", null ],
-        [ "Drawing", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md651", null ],
-        [ "Session Management", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md652", null ],
-        [ "Network Mode (requires YAZE_WITH_GRPC and YAZE_WITH_JSON)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md653", null ]
+      [ "Usage", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md650", [
+        [ "Initialization", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md651", null ],
+        [ "Drawing", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md652", null ],
+        [ "Session Management", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md653", null ],
+        [ "Network Mode (requires YAZE_WITH_GRPC and YAZE_WITH_JSON)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md654", null ]
       ] ],
-      [ "File Structure", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md654", null ],
-      [ "Build Configuration", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md655", [
-        [ "Required", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md656", null ],
-        [ "Optional", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md657", null ]
+      [ "File Structure", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md655", null ],
+      [ "Build Configuration", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md656", [
+        [ "Required", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md657", null ],
+        [ "Optional", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md658", null ]
       ] ],
-      [ "Data Files", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md658", [
-        [ "Local Storage", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md659", null ],
-        [ "Session File Format", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md660", null ]
+      [ "Data Files", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md659", [
+        [ "Local Storage", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md660", null ],
+        [ "Session File Format", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md661", null ]
       ] ],
-      [ "Integration with EditorManager", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md661", null ],
-      [ "Dependencies", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md662", [
-        [ "Internal", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md663", null ],
-        [ "External (when enabled)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md664", null ]
+      [ "Integration with EditorManager", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md662", null ],
+      [ "Dependencies", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md663", [
+        [ "Internal", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md664", null ],
+        [ "External (when enabled)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md665", null ]
       ] ],
-      [ "Advanced Features (v2.0)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md665", [
-        [ "ROM Synchronization", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md666", null ],
-        [ "Multimodal Snapshot Sharing", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md667", null ],
-        [ "Proposal Management", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md668", null ],
-        [ "AI Agent Integration", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md669", null ],
-        [ "Health Monitoring", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md670", null ]
+      [ "Advanced Features (v2.0)", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md666", [
+        [ "ROM Synchronization", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md667", null ],
+        [ "Multimodal Snapshot Sharing", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md668", null ],
+        [ "Proposal Management", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md669", null ],
+        [ "AI Agent Integration", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md670", null ],
+        [ "Health Monitoring", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md671", null ]
       ] ],
-      [ "Future Enhancements", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md671", null ],
-      [ "Server Protocol", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md672", [
-        [ "Client → Server", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md673", null ],
-        [ "Server → Client", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md674", null ]
+      [ "Future Enhancements", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md672", null ],
+      [ "Server Protocol", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md673", [
+        [ "Client → Server", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md674", null ],
+        [ "Server → Client", "d6/df7/md_src_2app_2editor_2agent_2README.html#autotoc_md675", null ]
       ] ]
     ] ],
     [ "End-to-End (E2E) Tests", "d9/db0/md_test_2e2e_2README.html", [
-      [ "Active Tests", "d9/db0/md_test_2e2e_2README.html#autotoc_md676", [
-        [ "✅ Working Tests", "d9/db0/md_test_2e2e_2README.html#autotoc_md677", null ],
-        [ "📝 Dungeon Editor Smoke Test", "d9/db0/md_test_2e2e_2README.html#autotoc_md678", null ]
+      [ "Active Tests", "d9/db0/md_test_2e2e_2README.html#autotoc_md677", [
+        [ "✅ Working Tests", "d9/db0/md_test_2e2e_2README.html#autotoc_md678", null ],
+        [ "📝 Dungeon Editor Smoke Test", "d9/db0/md_test_2e2e_2README.html#autotoc_md679", null ]
       ] ],
-      [ "Running Tests", "d9/db0/md_test_2e2e_2README.html#autotoc_md679", [
-        [ "All E2E Tests (GUI Mode)", "d9/db0/md_test_2e2e_2README.html#autotoc_md680", null ],
-        [ "Specific Test Category", "d9/db0/md_test_2e2e_2README.html#autotoc_md681", null ],
-        [ "Dungeon Editor Test Only", "d9/db0/md_test_2e2e_2README.html#autotoc_md682", null ]
+      [ "Running Tests", "d9/db0/md_test_2e2e_2README.html#autotoc_md680", [
+        [ "All E2E Tests (GUI Mode)", "d9/db0/md_test_2e2e_2README.html#autotoc_md681", null ],
+        [ "Specific Test Category", "d9/db0/md_test_2e2e_2README.html#autotoc_md682", null ],
+        [ "Dungeon Editor Test Only", "d9/db0/md_test_2e2e_2README.html#autotoc_md683", null ]
       ] ],
-      [ "Test Development", "d9/db0/md_test_2e2e_2README.html#autotoc_md683", [
-        [ "Creating New Tests", "d9/db0/md_test_2e2e_2README.html#autotoc_md684", null ],
-        [ "Register in yaze_test.cc", "d9/db0/md_test_2e2e_2README.html#autotoc_md685", null ],
-        [ "ImGui Test Engine API", "d9/db0/md_test_2e2e_2README.html#autotoc_md686", null ]
+      [ "Test Development", "d9/db0/md_test_2e2e_2README.html#autotoc_md684", [
+        [ "Creating New Tests", "d9/db0/md_test_2e2e_2README.html#autotoc_md685", null ],
+        [ "Register in yaze_test.cc", "d9/db0/md_test_2e2e_2README.html#autotoc_md686", null ],
+        [ "ImGui Test Engine API", "d9/db0/md_test_2e2e_2README.html#autotoc_md687", null ]
       ] ],
-      [ "Test Logging", "d9/db0/md_test_2e2e_2README.html#autotoc_md687", null ],
-      [ "Test Infrastructure", "d9/db0/md_test_2e2e_2README.html#autotoc_md688", [
-        [ "File Organization", "d9/db0/md_test_2e2e_2README.html#autotoc_md689", null ],
-        [ "Helper Functions", "d9/db0/md_test_2e2e_2README.html#autotoc_md690", null ]
+      [ "Test Logging", "d9/db0/md_test_2e2e_2README.html#autotoc_md688", null ],
+      [ "Test Infrastructure", "d9/db0/md_test_2e2e_2README.html#autotoc_md689", [
+        [ "File Organization", "d9/db0/md_test_2e2e_2README.html#autotoc_md690", null ],
+        [ "Helper Functions", "d9/db0/md_test_2e2e_2README.html#autotoc_md691", null ]
       ] ],
-      [ "Future Test Ideas", "d9/db0/md_test_2e2e_2README.html#autotoc_md691", null ],
-      [ "Troubleshooting", "d9/db0/md_test_2e2e_2README.html#autotoc_md692", [
-        [ "Test Crashes in GUI Mode", "d9/db0/md_test_2e2e_2README.html#autotoc_md693", null ],
-        [ "Tests Not Found", "d9/db0/md_test_2e2e_2README.html#autotoc_md694", null ],
-        [ "ImGui Items Not Found", "d9/db0/md_test_2e2e_2README.html#autotoc_md695", null ]
+      [ "Future Test Ideas", "d9/db0/md_test_2e2e_2README.html#autotoc_md692", null ],
+      [ "Troubleshooting", "d9/db0/md_test_2e2e_2README.html#autotoc_md693", [
+        [ "Test Crashes in GUI Mode", "d9/db0/md_test_2e2e_2README.html#autotoc_md694", null ],
+        [ "Tests Not Found", "d9/db0/md_test_2e2e_2README.html#autotoc_md695", null ],
+        [ "ImGui Items Not Found", "d9/db0/md_test_2e2e_2README.html#autotoc_md696", null ]
       ] ],
-      [ "References", "d9/db0/md_test_2e2e_2README.html#autotoc_md696", null ],
-      [ "Status", "d9/db0/md_test_2e2e_2README.html#autotoc_md697", null ]
+      [ "References", "d9/db0/md_test_2e2e_2README.html#autotoc_md697", null ],
+      [ "Status", "d9/db0/md_test_2e2e_2README.html#autotoc_md698", null ]
     ] ],
     [ "yaze Test Suite", "d0/d46/md_test_2README.html", [
-      [ "Directory Structure", "d0/d46/md_test_2README.html#autotoc_md699", null ],
-      [ "Test Categories", "d0/d46/md_test_2README.html#autotoc_md700", [
-        [ "Unit Tests (<tt>unit/</tt>)", "d0/d46/md_test_2README.html#autotoc_md701", null ],
-        [ "Integration Tests (<tt>integration/</tt>)", "d0/d46/md_test_2README.html#autotoc_md702", null ],
-        [ "End-to-End Tests (<tt>e2e/</tt>)", "d0/d46/md_test_2README.html#autotoc_md703", null ]
+      [ "Directory Structure", "d0/d46/md_test_2README.html#autotoc_md700", null ],
+      [ "Test Categories", "d0/d46/md_test_2README.html#autotoc_md701", [
+        [ "Unit Tests (<tt>unit/</tt>)", "d0/d46/md_test_2README.html#autotoc_md702", null ],
+        [ "Integration Tests (<tt>integration/</tt>)", "d0/d46/md_test_2README.html#autotoc_md703", null ],
+        [ "End-to-End Tests (<tt>e2e/</tt>)", "d0/d46/md_test_2README.html#autotoc_md704", null ]
       ] ],
-      [ "Enhanced Test Runner", "d0/d46/md_test_2README.html#autotoc_md704", [
-        [ "Usage Examples", "d0/d46/md_test_2README.html#autotoc_md705", null ],
-        [ "Test Modes", "d0/d46/md_test_2README.html#autotoc_md706", null ],
-        [ "Options", "d0/d46/md_test_2README.html#autotoc_md707", null ]
+      [ "Enhanced Test Runner", "d0/d46/md_test_2README.html#autotoc_md705", [
+        [ "Usage Examples", "d0/d46/md_test_2README.html#autotoc_md706", null ],
+        [ "Test Modes", "d0/d46/md_test_2README.html#autotoc_md707", null ],
+        [ "Options", "d0/d46/md_test_2README.html#autotoc_md708", null ]
       ] ],
-      [ "E2E ROM Testing", "d0/d46/md_test_2README.html#autotoc_md708", [
-        [ "Test Cases", "d0/d46/md_test_2README.html#autotoc_md709", null ]
+      [ "E2E ROM Testing", "d0/d46/md_test_2README.html#autotoc_md709", [
+        [ "Test Cases", "d0/d46/md_test_2README.html#autotoc_md710", null ]
       ] ],
-      [ "ZSCustomOverworld Upgrade Testing", "d0/d46/md_test_2README.html#autotoc_md710", [
-        [ "Supported Upgrades", "d0/d46/md_test_2README.html#autotoc_md711", null ],
-        [ "Test Cases", "d0/d46/md_test_2README.html#autotoc_md712", null ],
-        [ "Version-Specific Features", "d0/d46/md_test_2README.html#autotoc_md713", [
-          [ "Vanilla", "d0/d46/md_test_2README.html#autotoc_md714", null ],
-          [ "v2", "d0/d46/md_test_2README.html#autotoc_md715", null ],
-          [ "v3", "d0/d46/md_test_2README.html#autotoc_md716", null ]
+      [ "ZSCustomOverworld Upgrade Testing", "d0/d46/md_test_2README.html#autotoc_md711", [
+        [ "Supported Upgrades", "d0/d46/md_test_2README.html#autotoc_md712", null ],
+        [ "Test Cases", "d0/d46/md_test_2README.html#autotoc_md713", null ],
+        [ "Version-Specific Features", "d0/d46/md_test_2README.html#autotoc_md714", [
+          [ "Vanilla", "d0/d46/md_test_2README.html#autotoc_md715", null ],
+          [ "v2", "d0/d46/md_test_2README.html#autotoc_md716", null ],
+          [ "v3", "d0/d46/md_test_2README.html#autotoc_md717", null ]
         ] ]
       ] ],
-      [ "Environment Variables", "d0/d46/md_test_2README.html#autotoc_md717", null ],
-      [ "CI/CD Integration", "d0/d46/md_test_2README.html#autotoc_md718", null ],
-      [ "Deprecated Tests", "d0/d46/md_test_2README.html#autotoc_md719", null ],
-      [ "Best Practices", "d0/d46/md_test_2README.html#autotoc_md720", null ],
-      [ "AI Agent Testing", "d0/d46/md_test_2README.html#autotoc_md721", null ]
+      [ "Environment Variables", "d0/d46/md_test_2README.html#autotoc_md718", null ],
+      [ "CI/CD Integration", "d0/d46/md_test_2README.html#autotoc_md719", null ],
+      [ "Deprecated Tests", "d0/d46/md_test_2README.html#autotoc_md720", null ],
+      [ "Best Practices", "d0/d46/md_test_2README.html#autotoc_md721", null ],
+      [ "AI Agent Testing", "d0/d46/md_test_2README.html#autotoc_md722", null ]
     ] ],
     [ "Deprecated List", "da/d58/deprecated.html", null ],
     [ "Todo List", "dd/da0/todo.html", null ],
@@ -920,96 +921,96 @@ var NAVTREEINDEX =
 "d3/d5c/conversational__agent__service_8cc_source.html",
 "d3/d73/snes__tile_8cc.html#aa5ae49b02472150a2ad972abf1f7d35a",
 "d3/d92/structyaze_1_1emu_1_1WramAccessRegisters.html#acdc6e85785d270b82750b50a4b5b98e5",
-"d3/db6/structyaze_1_1test_1_1ResourceStats.html#a7078739129ab69fc88a031a3527d8541",
-"d3/dc3/namespaceyaze_1_1cli_1_1net.html#a0d19a69e66d6146185a2952fe7fd5260",
-"d3/ded/classyaze_1_1emu_1_1Ppu.html#a928b56309b4d0da7a9d28dfb2ef16cf0",
-"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a8322a60bf0a8800b147f083e25988b51",
-"d4/d0a/namespaceyaze_1_1test.html#acad07e96698e1030fd6c5a1cabc6f1cb",
-"d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html#ad1e827000c2ccbb1bd096c18d0992c0e",
-"d4/d79/app_2rom_8cc_source.html",
-"d4/d9f/performance__dashboard_8cc_source.html",
-"d4/dd5/structyaze_1_1emu_1_1WOBJLOG.html",
-"d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#ad7027ba3cd263f3bd12be049fb7ea93b",
-"d5/d1f/namespaceyaze_1_1zelda3.html#a4700b7264866b963a05e2f48dc7797c0",
-"d5/d1f/namespaceyaze_1_1zelda3.html#aa690411421b72e058ca24ef51ebfe8f4",
-"d5/d3c/classyaze_1_1gfx_1_1GraphicsBuffer.html#a7ec25f885dce0b1cf81b1a221e11d565",
-"d5/d6b/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#a7dd3fc59cdea3d266300f7b0171f30fb",
-"d5/da0/structyaze_1_1emu_1_1DspChannel.html#a4acbf03e6fa3a0cb92b2c80ff1d3fd53",
-"d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html#af3809b36e8164237ae172c25bebece1f",
-"d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a206b12848d450877b19f57aafa13f5db",
-"d6/d20/namespaceyaze_1_1emu.html#a7ee6d65c178e28558735b7004a10939f",
-"d6/d30/classyaze_1_1Rom.html#a2a4ba7137dfced685cd4b6432c5fe047",
-"d6/d40/structyaze_1_1cli_1_1ToolArgument.html#a4724247f90712124fd00837a47ae9b88",
-"d6/d74/rom__test_8cc.html#a243cabcc5b9f6777ac97619b2521a7a6",
-"d6/db1/classyaze_1_1zelda3_1_1Sprite.html#a13104bc60eb62488d427b77e7295d0fd",
-"d6/dcb/classyaze_1_1gui_1_1canvas_1_1CanvasPerformanceIntegration.html#acd69435def766e230872717e6e86c087",
-"d6/df6/structyaze_1_1emu_1_1MainSubScreenDesignation.html#ae2ecbcfd6c66116a666479887d24e5af",
-"d7/d51/md_docs_2B3-build-presets.html#autotoc_md86",
-"d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#aae14cf1aef0ce987b7e6a59be757fd53",
-"d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#ad89118eaa120281537e2c70169c48b9f",
-"d7/da7/classyaze_1_1emu_1_1Apu.html#a0fc510255750895c85bb6dc035baec71",
-"d7/dce/structyaze_1_1cli_1_1ListTestsResult.html#a3f900c92a64716cb483fde2e6f5e4e4b",
-"d7/df6/classyaze_1_1zelda3_1_1Room.html#a0819cbe434484811507f1846da2d3be9",
-"d7/df6/classyaze_1_1zelda3_1_1Room.html#af6b23b07160ceb1f89b7c91affc5e8dc",
-"d8/d1c/structyaze_1_1cli_1_1Tile16Proposal.html#a86717cf96ce8a4fe63906f2a47760983",
-"d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html",
-"d8/d7c/classyaze_1_1cli_1_1Tile16Transfer.html#a42885dc226ed92f6bd6eb02a91868ca2",
-"d8/d9a/overworld__test_8cc.html#abdd516737496637f907aa46b74b54877",
-"d8/dc8/structyaze_1_1gfx_1_1PerformanceDashboard_1_1OptimizationStatus.html#a08a72350602845732222adc5bef680f7",
-"d8/ddb/snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dbad2d78692099223ba9f44829c75a6cbf9",
-"d9/d17/gfx__group__editor_8h_source.html",
-"d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#af2ee887e67a787b30a39246d5cff1f54",
-"d9/d7f/classyaze_1_1gui_1_1PaletteWidget.html#a2bd9a54545c21297c9010ca057f56f96",
-"d9/da7/namespaceyaze_1_1cli_1_1util_1_1colors.html#a53dfa907139fd88685725fd4fff0e5d6",
-"d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a02855e7271f124ed965dd2640dc985a8",
-"d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#a18e1d932c058a79b861fb4aa2a483b33",
-"d9/dd2/classyaze_1_1cli_1_1agent_1_1VimMode.html#a2990d1e3d15adc215db13d19016b2051",
-"d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a70e3cf98236fc12db51f856391d1d674",
-"da/d2c/classyaze_1_1gui_1_1Canvas.html#a401e3bebaabb7d192f9466835c86f3ab",
-"da/d2c/classyaze_1_1gui_1_1Canvas.html#af7b95c6c5a82d79926e00105dcc1cb14",
-"da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a83f71940529e7260f54e799aa863e2c9",
-"da/d68/classyaze_1_1gfx_1_1SnesPalette.html#aa1a0b63e4451628a9b295ddd1ba1677a",
-"da/dab/inventory_8h_source.html",
-"da/de5/rom_8h.html#acd38081a0d3a77b20abfb9375574d1b9",
-"db/d0a/structyaze_1_1gfx_1_1Tilemap.html#ad1dcf60d4ca3d385ee232da8af4281ea",
-"db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#af9c2ebf69090da4056b63240e9be37d6",
-"db/d76/classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html",
-"db/d82/classyaze_1_1editor_1_1Tile16Editor.html#adcca2bb829584c68e107682e89a9db1e",
-"db/d9f/overworld__editor_8h.html#afb0fe3cb3d65d1bbe1466284308ad8bc",
-"db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a75206045bde5d90bfaffd6e1b29e0fad",
-"db/dfa/structyaze_1_1editor_1_1OverworldEditor_1_1ScratchSpaceSlot.html#acb7c6590094467a2406de942ef2ff2e7",
-"dc/d2c/structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a5101f9d19e9670a88e4ad1e12d5367ce",
-"dc/d39/classyaze_1_1editor_1_1palette__internal_1_1PaletteEditorHistory.html#a1f321f6e99b2def363bc8e2edb9ae4b1",
-"dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#afda70acb6d4f2e00b026f000702d5614",
-"dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a2e70944b7ce7dedf3e4e8253983fc834",
-"dc/ded/structyaze_1_1zelda3_1_1SpriteTypes_1_1SpriteInfo.html#a183949f4ac149aba3fb13cace719a684",
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a7555540aff8fe7922b0598a8e6c3ad0e",
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#af21cbd72bf0b381db886219f6f4f8cc6",
-"dd/d12/classyaze_1_1editor_1_1EditorManager.html#a7e2ae557339751a24198a517b4726144",
-"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#ae9ad32ccab85c461298a7c71fb272e59",
-"dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html#aa4f2f1c32f8ea6d2c12b5459a1d5294b",
-"dd/d7f/widget__auto__register_8h.html#a05b5841c88a2c37c558bb6527cd958ec",
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#adc48da05baadefbac3d433fbd167e3b7",
-"dd/de3/message__editor_8h_source.html",
-"de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#a0bf6ff9e51253aaf97bb3517258e83ae",
-"de/d4c/input_8cc.html#a7b898e6c361ce2d367d1e1570f8f6c03",
-"de/d82/md_scripts_2README.html#autotoc_md629",
-"de/dbf/icons_8h.html#a0072996e4e2f3586242ebebd6a756b6f",
-"de/dbf/icons_8h.html#a1edfa766a30c82c9aa5f0cfb8d478e2c",
-"de/dbf/icons_8h.html#a3cf2e0f50abd9bffb9a7b8b29e5a560b",
-"de/dbf/icons_8h.html#a59f24f21bc4442899334861bd41da848",
-"de/dbf/icons_8h.html#a788b29a14b9ed2c566a6a943fe6c2e55",
-"de/dbf/icons_8h.html#a979611caea3e3c9ad69d61287add5da6",
-"de/dbf/icons_8h.html#ab4598815a683cbf099a872ab66f81fa4",
-"de/dbf/icons_8h.html#ad10045b8b74a8b0b12546efba17267e3",
-"de/dbf/icons_8h.html#aeb001ec5f5b602e6b0423eb193246943",
-"de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a73b971e3c683d2d97f5dbea623498bce",
-"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#acaabbf711d0fc4d8341a9070d149ca4b",
-"df/d12/overworld__inspect_8h.html#a488562d98c871126f559038f340ba8cbaa300b71af23bae0362ebfb23ebb3708c",
-"df/d44/classyaze_1_1app_1_1gui_1_1CollaborationPanel.html#a59fab36f58a0e9f005cb68205ab38251",
-"df/da6/structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a31b00e7329517c92218754dfc83f4bd9",
-"df/dcd/test__suite__writer_8cc.html#a1607877a9d9643ce652cc247fa6dec78",
-"dir_d6ff204a1e2980f727e0884e04308341.html"
+"d3/db6/structyaze_1_1test_1_1ResourceStats.html#a65fe72c18ecb9d8800f25748edb2452a",
+"d3/dbf/namespaceyaze_1_1gui.html#afea67083a7c7849f3c690d3002c24856",
+"d3/ded/classyaze_1_1emu_1_1Ppu.html#a8e0d5ab5d836158bcc1f411cf7a61a8e",
+"d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html#a82266eed252e0c24c4b2adaa73775bba",
+"d4/d0a/namespaceyaze_1_1test.html#aca1f98078ce11204661642f62da79f95",
+"d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html#ace1408deb89a487ea16be40084057d93",
+"d4/d79/app_2rom_8cc.html#aeb8ae3fba1064ff2cf19393b113fac1c",
+"d4/d9e/macro_8h_source.html",
+"d4/dd5/group__extensions.html#gac6a6e5150401d18712958dad45567030",
+"d5/d03/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02simple__chat__session_8cc_03.html#ab3cf7c800704640d2d1401da1c250723",
+"d5/d1f/namespaceyaze_1_1zelda3.html#a463ec4251a34bd3d40ec7f7f4efc4459",
+"d5/d1f/namespaceyaze_1_1zelda3.html#aa4da74674da6fc43477ef7092d6ae9a2",
+"d5/d3c/classyaze_1_1gfx_1_1GraphicsBuffer.html#a7b9987df02c1c1ab67ef0b400170047e",
+"d5/d6b/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditorConfig.html#a7c0c6a7f32455bb3da77cd8b0c885501",
+"d5/da0/structyaze_1_1emu_1_1DspChannel.html#a466d092d0065c96495c85d52f7e36d04",
+"d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html#aecafbbcd3956bf788ed55ca5e7a8b774",
+"d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a1c0193990c16fc111ca7b969bce429ec",
+"d6/d20/namespaceyaze_1_1emu.html#a7a0ddab1f520f694d9b745feaada86e4",
+"d6/d30/classyaze_1_1Rom.html#a25988f8127d85751e13e15a97a16c181",
+"d6/d40/structyaze_1_1cli_1_1ToolArgument.html",
+"d6/d74/rom__test_8cc.html#a133541ce48bc235998bf42f760a71f11",
+"d6/db1/classyaze_1_1zelda3_1_1Sprite.html#a12825a0f19deeee6cfd7fbb9622759d4",
+"d6/dcb/classyaze_1_1gui_1_1canvas_1_1CanvasPerformanceIntegration.html#acb1edad3bc2183d5abb7bdf0c86e9ba4",
+"d6/df6/structyaze_1_1emu_1_1MainSubScreenDesignation.html#adb342cbd1b01c5166d8d98cda438a841",
+"d7/d51/md_docs_2B3-build-presets.html#autotoc_md84",
+"d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#aad124c7e23b1307ddc7029feef98a8ba",
+"d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#ad5d37d1294e0a1c4e2e0d7d52f6e004d",
+"d7/da7/classyaze_1_1emu_1_1Apu.html#a05ba1105dda55417c09b696f9ebca9e0",
+"d7/dce/structyaze_1_1cli_1_1ListTestsResult.html#a2ccdbf83de08b3821d3c0c4d2242799b",
+"d7/df6/classyaze_1_1zelda3_1_1Room.html#a0676b8754d8a7dae5892f5b6518f109b",
+"d7/df6/classyaze_1_1zelda3_1_1Room.html#af5dd502688aa9186523a3eb669a9c5ad",
+"d8/d1c/structyaze_1_1cli_1_1Tile16Proposal.html#a25a8735aa0c48ac4c47d2e9cd8c1a67a",
+"d8/d46/classyaze_1_1editor_1_1UserSettings.html#aa7da4b5b62ed4bc86377a311067a60ae",
+"d8/d78/entity_8cc.html#a8a6a91874dd1ed2bf561ad8dae3a41e5",
+"d8/d9a/overworld__test_8cc.html#a40ad4b2610e12938667d9de3b6e9b1b7",
+"d8/dc5/structyaze_1_1app_1_1gui_1_1RomSyncEntry.html#abee8435cada1950e37e8dcac31a97dbd",
+"d8/ddb/snes__palette_8h.html#a82a8956476ffc04750bcfc4120c8b8dba2f71fb69e2115f386b5f356665f8eadc",
+"d9/d0f/main_8cc.html#adf4d73301961430d50d7edd96f92ce38",
+"d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#aea96ed46429ddfac39fe5e8a180247b2",
+"d9/d7f/classyaze_1_1gui_1_1PaletteWidget.html",
+"d9/da7/namespaceyaze_1_1cli_1_1util_1_1colors.html#a150b35e92c13ac68d71e10fdc4f3939d",
+"d9/dc1/framework__smoke__test_8h.html",
+"d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#a0597c89dde252676d3f7347c1ff42c2a",
+"d9/dd2/classyaze_1_1cli_1_1agent_1_1VimMode.html#a00175263a3e3236de0531ed1b16df85d",
+"d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#a11b2978256ad7bda2c4c71b92d27bce9",
+"da/d2c/classyaze_1_1gui_1_1Canvas.html#a3a5aed3afc06107584452c807cd20112",
+"da/d2c/classyaze_1_1gui_1_1Canvas.html#aed199b3747d8584c7d92e1cebb27734b",
+"da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a461b41076e81b89802ef618466d3c659",
+"da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a837443013432f47923f16a4d671f1563",
+"da/da8/test__dungeon__objects_8cc.html#a7426142a80faa5705a5a3498c4579ee5",
+"da/de5/rom_8h.html#a30653b94f9a3bf78bee51a203e141dd4",
+"db/d08/sprite_8h.html",
+"db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html#a3bb7e4bbdc8bdab7b2fd0f4606a6cd28",
+"db/d71/classyaze_1_1editor_1_1GfxGroupEditor.html#abd737ba276ab2a87bdabd6791917d260",
+"db/d82/classyaze_1_1editor_1_1Tile16Editor.html#ad12a99c5b3dd62c401b43a6c5f944ad1",
+"db/d9f/overworld__editor_8h.html",
+"db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a4c8d9774eab55724de8a0d02131d3591",
+"db/df8/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker_1_1Bookmark.html#a56737f97ef7c06ac2857c4edb31c9085",
+"dc/d21/structyaze_1_1test_1_1TestScript.html#a756c0990ecaf82ad4b798faff90f7071",
+"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#af43d671e88e319d9a63aedeeb9d437c2",
+"dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#ad63d5f2053281f68612d8f6e06743886",
+"dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a0253184cf5bf4e3d5eadf7a852e4c173",
+"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#acb66570f3ec8b4c7f0fbbabe55748ca6",
+"dc/df4/classyaze_1_1emu_1_1Cpu.html#a60e38acbf46cbd15b0e02d794be66d90",
+"dc/df4/classyaze_1_1emu_1_1Cpu.html#ae648c53e53fdb62afb60c063424a716e",
+"dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5e505c03d894fb42fe96880d66861690",
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a8f03affb1e8daf2e8b50296fea0a9885",
+"dd/d54/graphics__optimizer_8h_source.html",
+"dd/d76/asar__wrapper__test_8cc.html#acae6a914a30c10d90b75a3e9f2cc1492",
+"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a978f19434fe5fbe87726de84d30a6637",
+"dd/de3/md_docs_2B5-architecture-and-networking.html#autotoc_md162",
+"de/d0d/structzelda3__version__pointers.html#ab4a30d9ca45ee8294ca7d2d0b0522bce",
+"de/d3e/structyaze_1_1emu_1_1SpriteAttributes.html#aac8fc7bf7ab208c5ecdbd45bd22531b1",
+"de/d82/classyaze_1_1util_1_1NotifyValue.html#ab5d55898c301f0fda400db7f8e70f43e",
+"de/dab/tui_8h_source.html",
+"de/dbf/icons_8h.html#a1da2ba318ac947c633c833b76f6dde9b",
+"de/dbf/icons_8h.html#a3bd3c5ce65d91d651615bbcdb5bd6e15",
+"de/dbf/icons_8h.html#a5794b8d3fe958d2de78ff26a10188f7e",
+"de/dbf/icons_8h.html#a7536bc1ba545e3086dab601d23f24610",
+"de/dbf/icons_8h.html#a951a883f65dea1d26315d3e8ab079d93",
+"de/dbf/icons_8h.html#ab23a4c24350d22df98095923750642ee",
+"de/dbf/icons_8h.html#acf1891b92c59680bfee68adc27ef26de",
+"de/dbf/icons_8h.html#ae99af413b53057f56cf1682d2175b37c",
+"de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a35ea789ed0667b0a69a01f80a36331ff",
+"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#aa6424ce197379b9d60267cd430116377",
+"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#adab34aa5b35c696b6b5831263c6dfc6a",
+"df/d44/classyaze_1_1app_1_1gui_1_1CollaborationPanel.html#a15cf9d17848551cd54baf34401addd6f",
+"df/da2/classyaze_1_1gfx_1_1OamTile.html#a9bcd9f22e517cb53e23d84b192c9549f",
+"df/dcb/classyaze_1_1cli_1_1ai_1_1VisionActionRefiner.html#aa3d1b2e44179e9193535f1da06194739",
+"dir_9965619be4639aeb71151b78c570bcd6.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

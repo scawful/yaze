@@ -19,6 +19,7 @@ var classyaze_1_1editor_1_1Editor =
     [ "set_active", "d3/d9f/classyaze_1_1editor_1_1Editor.html#a71ffe102a71543805133c5c9eccd493e", null ],
     [ "IsRomLoaded", "d3/d9f/classyaze_1_1editor_1_1Editor.html#a97b9351230a4009008f1e53b135acc1f", null ],
     [ "GetRomStatus", "d3/d9f/classyaze_1_1editor_1_1Editor.html#a8293165f236b0d03875df48a3de943ff", null ],
+    [ "MakeCardTitle", "d3/d9f/classyaze_1_1editor_1_1Editor.html#a92fa83dc085ca24b0645b35013e5b06f", null ],
     [ "SafeRomAccess", "d3/d9f/classyaze_1_1editor_1_1Editor.html#aa4444a268047e82e40ae536ecf805fa0", null ],
     [ "active_", "d3/d9f/classyaze_1_1editor_1_1Editor.html#aec6da79cc0133af242f05ea5286e527a", null ],
     [ "type_", "d3/d9f/classyaze_1_1editor_1_1Editor.html#a84126d69916364100eece497a4ced26e", null ],
