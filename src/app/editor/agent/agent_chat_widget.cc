@@ -27,8 +27,9 @@
 #include "app/gui/icons.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
-#include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
+
+#include <SDL.h>
 
 #if defined(YAZE_WITH_GRPC)
 #include "app/test/test_manager.h"
@@ -1561,7 +1562,7 @@ void AgentChatWidget::RenderAutomationPanel() {
           action_color = theme.status_error;
           status_icon = ICON_MD_ERROR;
         } else {
-          action_color = theme.text_secondary;
+          action_color = theme.text_secondary_color;
           status_icon = ICON_MD_HELP;
         }
         
@@ -2741,8 +2742,9 @@ void AgentChatWidget::UpdateHarnessTelemetry(
   }
 }
 
-void AgentChatWidget::SetLastPlanSummary(const std::string& summary) {
+void AgentChatWidget::SetLastPlanSummary(const std::string& /* summary */) {
   // Store the plan summary for display in the automation panel
+  // TODO: Implement plan summary storage and display
   // This could be shown in the harness panel or logged
   if (toast_manager_) {
     toast_manager_->Show("Plan summary received", ToastType::kInfo, 2.0f);
@@ -2763,23 +2765,70 @@ void AgentChatWidget::SyncHistoryToPopup() {
 
 // Screenshot Preview Implementation
 void AgentChatWidget::LoadScreenshotPreview(const std::filesystem::path& image_path) {
-  // For now, store the path and mark as loaded
-  // Actual texture loading would need to use SDL_image or stb_image
-  // and then upload to GPU via ImGui backend
+  // Unload any existing preview first
+  UnloadScreenshotPreview();
+  
+  // Load the image using SDL
+  SDL_Surface* surface = SDL_LoadBMP(image_path.string().c_str());
+  if (!surface) {
+    if (toast_manager_) {
+      toast_manager_->Show(absl::StrFormat("Failed to load image: %s", SDL_GetError()), 
+                           ToastType::kError, 3.0f);
+    }
+    return;
+  }
+  
+  // Get the renderer from ImGui backend
+  ImGuiIO& io = ImGui::GetIO();
+  auto* backend_data = static_cast<void**>(io.BackendRendererUserData);
+  SDL_Renderer* renderer = nullptr;
+  
+  if (backend_data) {
+    // Assuming SDL renderer backend
+    // The backend data structure has renderer as first member
+    renderer = *reinterpret_cast<SDL_Renderer**>(backend_data);
+  }
+  
+  if (!renderer) {
+    SDL_FreeSurface(surface);
+    if (toast_manager_) {
+      toast_manager_->Show("Failed to get SDL renderer", ToastType::kError, 3.0f);
+    }
+    return;
+  }
+  
+  // Create texture from surface
+  SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+  if (!texture) {
+    SDL_FreeSurface(surface);
+    if (toast_manager_) {
+      toast_manager_->Show(absl::StrFormat("Failed to create texture: %s", SDL_GetError()), 
+                           ToastType::kError, 3.0f);
+    }
+    return;
+  }
+  
+  // Store texture info
+  multimodal_state_.preview.texture_id = reinterpret_cast<void*>(texture);
+  multimodal_state_.preview.width = surface->w;
+  multimodal_state_.preview.height = surface->h;
   multimodal_state_.preview.loaded = true;
   multimodal_state_.preview.show_preview = true;
   
-  // TODO: Implement actual texture loading using SDL_image or stb_image
-  // For now, just track that we have a valid image path
+  SDL_FreeSurface(surface);
+  
   if (toast_manager_) {
-    toast_manager_->Show("Screenshot preview loaded", ToastType::kInfo, 2.0f);
+    toast_manager_->Show(absl::StrFormat("Screenshot preview loaded (%dx%d)", 
+                                         surface->w, surface->h), 
+                         ToastType::kSuccess, 2.0f);
   }
 }
 
 void AgentChatWidget::UnloadScreenshotPreview() {
   if (multimodal_state_.preview.texture_id != nullptr) {
-    // TODO: Free the texture from GPU
-    // This requires backend-specific cleanup
+    // Destroy the SDL texture
+    SDL_Texture* texture = reinterpret_cast<SDL_Texture*>(multimodal_state_.preview.texture_id);
+    SDL_DestroyTexture(texture);
     multimodal_state_.preview.texture_id = nullptr;
   }
   multimodal_state_.preview.loaded = false;
@@ -2797,7 +2846,7 @@ void AgentChatWidget::RenderScreenshotPreview() {
   
   // Display filename
   std::string filename = multimodal_state_.last_capture_path->filename().string();
-  ImGui::TextColored(theme.text_secondary, "%s", filename.c_str());
+  ImGui::TextColored(theme.text_secondary_color, "%s", filename.c_str());
   
   // Preview controls
   if (ImGui::SmallButton(ICON_MD_CLOSE " Hide")) {
@@ -2821,7 +2870,7 @@ void AgentChatWidget::RenderScreenshotPreview() {
     // Placeholder when texture not loaded
     ImGui::BeginChild("PreviewPlaceholder", ImVec2(200, 150), true);
     ImGui::SetCursorPos(ImVec2(60, 60));
-    ImGui::TextColored(theme.text_secondary, ICON_MD_IMAGE);
+    ImGui::TextColored(theme.text_secondary_color, ICON_MD_IMAGE);
     ImGui::SetCursorPosX(40);
     ImGui::TextWrapped("Preview placeholder");
     ImGui::TextDisabled("(Texture loading not yet implemented)");
@@ -2952,21 +3001,104 @@ void AgentChatWidget::CaptureSelectedRegion() {
     return;
   }
   
-  // TODO: Implement actual region capture
-  // This would involve:
-  // 1. Capturing the full screenshot
-  // 2. Cropping to the selected region
-  // 3. Saving the cropped image
+  // Get the renderer from ImGui backend
+  ImGuiIO& io = ImGui::GetIO();
+  auto* backend_data = static_cast<void**>(io.BackendRendererUserData);
+  SDL_Renderer* renderer = nullptr;
+  
+  if (backend_data) {
+    renderer = *reinterpret_cast<SDL_Renderer**>(backend_data);
+  }
+  
+  if (!renderer) {
+    if (toast_manager_) {
+      toast_manager_->Show("Failed to get SDL renderer", ToastType::kError, 3.0f);
+    }
+    return;
+  }
+  
+  // Get renderer size
+  int full_width = 0;
+  int full_height = 0;
+  if (SDL_GetRendererOutputSize(renderer, &full_width, &full_height) != 0) {
+    if (toast_manager_) {
+      toast_manager_->Show(absl::StrFormat("Failed to get renderer size: %s", SDL_GetError()), 
+                           ToastType::kError, 3.0f);
+    }
+    return;
+  }
+  
+  // Clamp region to renderer bounds
+  int capture_x = std::max(0, static_cast<int>(min.x));
+  int capture_y = std::max(0, static_cast<int>(min.y));
+  int capture_width = std::min(static_cast<int>(width), full_width - capture_x);
+  int capture_height = std::min(static_cast<int>(height), full_height - capture_y);
+  
+  if (capture_width <= 0 || capture_height <= 0) {
+    if (toast_manager_) {
+      toast_manager_->Show("Invalid capture region", ToastType::kError);
+    }
+    return;
+  }
+  
+  // Create surface for the capture region
+  SDL_Surface* surface = SDL_CreateRGBSurface(0, capture_width, capture_height, 
+                                              32, 0x00FF0000, 0x0000FF00, 
+                                              0x000000FF, 0xFF000000);
+  if (!surface) {
+    if (toast_manager_) {
+      toast_manager_->Show(absl::StrFormat("Failed to create surface: %s", SDL_GetError()), 
+                           ToastType::kError, 3.0f);
+    }
+    return;
+  }
+  
+  // Read pixels from the selected region
+  SDL_Rect region_rect = {capture_x, capture_y, capture_width, capture_height};
+  if (SDL_RenderReadPixels(renderer, &region_rect, SDL_PIXELFORMAT_ARGB8888,
+                           surface->pixels, surface->pitch) != 0) {
+    SDL_FreeSurface(surface);
+    if (toast_manager_) {
+      toast_manager_->Show(absl::StrFormat("Failed to read pixels: %s", SDL_GetError()), 
+                           ToastType::kError, 3.0f);
+    }
+    return;
+  }
+  
+  // Generate output path
+  std::filesystem::path screenshot_dir = std::filesystem::temp_directory_path() / "yaze" / "screenshots";
+  std::error_code ec;
+  std::filesystem::create_directories(screenshot_dir, ec);
+  
+  const int64_t timestamp_ms = absl::ToUnixMillis(absl::Now());
+  std::filesystem::path output_path = screenshot_dir / 
+      std::filesystem::path(absl::StrFormat("region_%lld.bmp", static_cast<long long>(timestamp_ms)));
+  
+  // Save the cropped image
+  if (SDL_SaveBMP(surface, output_path.string().c_str()) != 0) {
+    SDL_FreeSurface(surface);
+    if (toast_manager_) {
+      toast_manager_->Show(absl::StrFormat("Failed to save screenshot: %s", SDL_GetError()), 
+                           ToastType::kError, 3.0f);
+    }
+    return;
+  }
+  
+  SDL_FreeSurface(surface);
+  
+  // Store the capture path and load preview
+  multimodal_state_.last_capture_path = output_path;
+  LoadScreenshotPreview(output_path);
   
   if (toast_manager_) {
     toast_manager_->Show(
-      absl::StrFormat("Region captured: %.0fx%.0f", width, height),
+      absl::StrFormat("Region captured: %dx%d", capture_width, capture_height),
       ToastType::kSuccess, 3.0f
     );
   }
   
-  // For now, just call the regular capture callback
-  if (multimodal_callbacks_.capture_snapshot) {
+  // Call the Gemini callback if available
+  if (multimodal_callbacks_.send_to_gemini) {
     std::filesystem::path captured_path;
     auto status = multimodal_callbacks_.capture_snapshot(&captured_path);
     if (status.ok()) {
