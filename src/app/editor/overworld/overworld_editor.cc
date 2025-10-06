@@ -34,6 +34,7 @@
 #include "app/zelda3/overworld/overworld_map.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
+#include "util/file_util.h"
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -215,7 +216,7 @@ absl::Status OverworldEditor::Update() {
     }
     usage_stats_card.End();
   }
-  
+
   // Area Configuration Panel (detailed editing)
   if (show_map_properties_panel_) {
     ImGui::SetNextWindowSize(ImVec2(650, 750), ImGuiCond_FirstUseEver);
@@ -1494,13 +1495,13 @@ void OverworldEditor::ProcessDeferredTextures() {
   const int max_refreshes_per_frame = 2;
   
   for (int i = 0; i < zelda3::kNumOverworldMaps && refresh_count < max_refreshes_per_frame; ++i) {
-    if (maps_bmp_[i].modified() && maps_bmp_[i].is_active()) {
+      if (maps_bmp_[i].modified() && maps_bmp_[i].is_active()) {
       // Check if this map is in current world (prioritize)
       bool is_current_world = (i / 0x40 == current_world_);
       bool is_current_map = (i == current_map_);
       
       if (is_current_map || is_current_world) {
-        RefreshOverworldMapOnDemand(i);
+          RefreshOverworldMapOnDemand(i);
         refresh_count++;
       }
     }
@@ -1883,14 +1884,14 @@ absl::Status OverworldEditor::RefreshMapPalette() {
         
         // SAFETY: Only set palette if bitmap has a valid surface
         if (maps_bmp_[sibling_index].is_active() && maps_bmp_[sibling_index].surface()) {
-          maps_bmp_[sibling_index].SetPalette(current_map_palette);
-        }
+        maps_bmp_[sibling_index].SetPalette(current_map_palette);
       }
+    }
     }
     
     // SAFETY: Only set palette if bitmap has a valid surface
     if (maps_bmp_[current_map_].is_active() && maps_bmp_[current_map_].surface()) {
-      maps_bmp_[current_map_].SetPalette(current_map_palette);
+    maps_bmp_[current_map_].SetPalette(current_map_palette);
     }
   }
 
@@ -2453,10 +2454,8 @@ absl::Status OverworldEditor::Clear() {
 }
 
 absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
-  if (!core::FeatureFlags::get().overworld.kApplyZSCustomOverworldASM) {
-    return absl::FailedPreconditionError(
-        "ZSCustomOverworld ASM application is disabled in feature flags");
-  }
+  // Feature flag deprecated - ROM version gating is sufficient
+  // User explicitly clicked upgrade button, so respect their request
 
   // Validate target version
   if (target_version < 2 || target_version > 3) {
@@ -2483,18 +2482,23 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
   std::vector<uint8_t> working_rom_data = original_rom_data;
 
   try {
-    // Determine which ASM file to apply
-    std::string asm_file_path;
-    if (target_version == 3) {
-      asm_file_path = "assets/asm/yaze.asm";  // Master file with v3
-    } else {
-      asm_file_path = "assets/asm/ZSCustomOverworld.asm";  // v2 standalone
-    }
-
-    // Check if ASM file exists
+    // Determine which ASM file to apply and use GetResourcePath for proper resolution
+    std::string asm_file_name = (target_version == 3) 
+        ? "asm/yaze.asm"              // Master file with v3
+        : "asm/ZSCustomOverworld.asm";  // v2 standalone
+    
+    // Use GetResourcePath to handle app bundles and various deployment scenarios
+    std::string asm_file_path = util::GetResourcePath(asm_file_name);
+    
+    LOG_INFO("OverworldEditor", "Using ASM file: %s", asm_file_path.c_str());
+    
+    // Verify file exists
     if (!std::filesystem::exists(asm_file_path)) {
-      return absl::NotFoundError(
-          absl::StrFormat("ASM file not found: %s", asm_file_path));
+      return absl::NotFoundError(absl::StrFormat(
+          "ASM file not found at: %s\n\n"
+          "Expected location: assets/%s\n"
+          "Make sure the assets directory is accessible.",
+          asm_file_path, asm_file_name));
     }
 
     // Apply the ASM patch
