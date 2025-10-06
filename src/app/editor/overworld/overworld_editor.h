@@ -192,6 +192,14 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void ResetOverworldView();
   void CenterOverworldView();
   
+  // Canvas Automation API integration (Phase 4)
+  void SetupCanvasAutomation();
+  gui::Canvas* GetOverworldCanvas() { return &ow_map_canvas_; }
+  
+  // Tile operations for automation callbacks
+  bool AutomationSetTile(int x, int y, int tile_id);
+  int AutomationGetTile(int x, int y);
+  
   /**
    * @brief Scroll the blockset canvas to show the current selected tile16
    */
@@ -212,18 +220,25 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawDebugWindow();
 
   enum class EditingMode {
-    DRAW_TILE,
+    MOUSE,      // Navigation, selection, entity management via context menu
+    DRAW_TILE   // Tile painting mode
+  };
+
+  EditingMode current_mode = EditingMode::DRAW_TILE;
+  EditingMode previous_mode = EditingMode::DRAW_TILE;
+  
+  // Entity editing state (managed via context menu now)
+  enum class EntityEditMode {
+    NONE,
     ENTRANCES,
     EXITS,
     ITEMS,
     SPRITES,
     TRANSPORTS,
-    MUSIC,
-    PAN
+    MUSIC
   };
-
-  EditingMode current_mode = EditingMode::DRAW_TILE;
-  EditingMode previous_mode = EditingMode::DRAW_TILE;
+  
+  EntityEditMode entity_edit_mode_ = EntityEditMode::NONE;
 
   enum OverworldProperty {
     LW_AREA_GFX,

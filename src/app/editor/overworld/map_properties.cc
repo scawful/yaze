@@ -476,6 +476,9 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     canvas.set_global_scale(scale);
   };
   canvas.AddContextMenuItem(zoom_out_item);
+  
+  // Entity Operations submenu will be added in future iteration
+  // For now, users can use keyboard shortcuts (3-8) to activate entity editing
 }
 
 // Private method implementations
