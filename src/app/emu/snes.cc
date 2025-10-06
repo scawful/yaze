@@ -420,7 +420,7 @@ void Snes::WriteBBus(uint8_t adr, uint8_t val) {
     CatchUpApu();  // catch up the apu before writing
     apu_.in_ports_[adr & 0x3] = val;
     static int cpu_port_write_count = 0;
-    if (cpu_port_write_count++ < 200) {  // Increased to see full boot sequence
+    if (cpu_port_write_count++ < 10) {  // Reduced to prevent crash
       LOG_INFO("SNES", "CPU wrote APU port $21%02X (F%d) = $%02X at PC=$%02X:%04X",
                0x40 + (adr & 0x3), (adr & 0x3) + 4, val, cpu_.PB, cpu_.PC);
     }
