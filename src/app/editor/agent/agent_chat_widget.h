@@ -270,6 +270,7 @@ public:
                              int new_total_proposals);
   void RenderCollaborationPanel();
   void RenderMultimodalPanel();
+  void RenderAutomationPanel();
   void RenderAgentConfigPanel();
   void RenderZ3EDCommandPanel();
   void RenderRomSyncPanel();
