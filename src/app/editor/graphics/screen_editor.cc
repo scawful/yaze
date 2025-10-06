@@ -74,25 +74,35 @@ absl::Status ScreenEditor::Update() {
   static gui::EditorCard title_screen_card("Title Screen", ICON_MD_TITLE);
   static gui::EditorCard naming_screen_card("Naming Screen", ICON_MD_EDIT_ATTRIBUTES);
 
-  if (show_dungeon_maps_ && dungeon_maps_card.Begin(&show_dungeon_maps_)) {
-    DrawDungeonMapsEditor();
-    dungeon_maps_card.End();
+  if (show_dungeon_maps_) {
+    if (dungeon_maps_card.Begin(&show_dungeon_maps_)) {
+      DrawDungeonMapsEditor();
+    }
+    dungeon_maps_card.End();  // ALWAYS call End after Begin
   }
-  if (show_inventory_menu_ && inventory_menu_card.Begin(&show_inventory_menu_)) {
-    DrawInventoryMenuEditor();
-    inventory_menu_card.End();
+  if (show_inventory_menu_) {
+    if (inventory_menu_card.Begin(&show_inventory_menu_)) {
+      DrawInventoryMenuEditor();
+    }
+    inventory_menu_card.End();  // ALWAYS call End after Begin
   }
-  if (show_overworld_map_ && overworld_map_card.Begin(&show_overworld_map_)) {
-    DrawOverworldMapEditor();
-    overworld_map_card.End();
+  if (show_overworld_map_) {
+    if (overworld_map_card.Begin(&show_overworld_map_)) {
+      DrawOverworldMapEditor();
+    }
+    overworld_map_card.End();  // ALWAYS call End after Begin
   }
-  if (show_title_screen_ && title_screen_card.Begin(&show_title_screen_)) {
-    DrawTitleScreenEditor();
-    title_screen_card.End();
+  if (show_title_screen_) {
+    if (title_screen_card.Begin(&show_title_screen_)) {
+      DrawTitleScreenEditor();
+    }
+    title_screen_card.End();  // ALWAYS call End after Begin
   }
-  if (show_naming_screen_ && naming_screen_card.Begin(&show_naming_screen_)) {
-    DrawNamingScreenEditor();
-    naming_screen_card.End();
+  if (show_naming_screen_) {
+    if (naming_screen_card.Begin(&show_naming_screen_)) {
+      DrawNamingScreenEditor();
+    }
+    naming_screen_card.End();  // ALWAYS call End after Begin
   }
 
   return status_;

@@ -228,8 +228,8 @@ void AssemblyEditor::UpdateCodeView() {
         current_folder_ = LoadFolder(FileDialogWrapper::ShowOpenFolderDialog());
       }
     }
-    file_browser_card.End();
   }
+  file_browser_card.End();  // ALWAYS call End after Begin
 
   // Draw open files as individual, dockable EditorCards
   for (int i = 0; i < active_files_.Size; i++) {
@@ -253,8 +253,8 @@ void AssemblyEditor::UpdateCodeView() {
             active_file_id_ = file_id;
         }
         open_files_[file_id].Render(absl::StrCat("##", card_name).c_str());
-        file_card.End();
     }
+    file_card.End();  // ALWAYS call End after Begin
 
     if (!open) {
       active_files_.erase(active_files_.Data + i);

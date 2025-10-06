@@ -555,7 +555,7 @@ void AgentChatWidget::RenderHistory() {
     }
   }
   ImGui::EndChild();
-  AgentUI::PopPanelStyle();
+  ImGui::PopStyleColor();  // Pop the color we pushed at line 531
   last_history_size_ = history.size();
 }
 
@@ -1342,8 +1342,8 @@ void AgentChatWidget::RenderCollaborationPanel() {
   }
 
   ImGui::EndChild();
-  AgentUI::PopPanelStyle();
-  ImGui::PopStyleVar(2);
+  ImGui::PopStyleColor();  // Pop the ChildBg color from line 1091
+  ImGui::PopStyleVar(2);   // Pop the 2 StyleVars from lines 1082-1083
   ImGui::PopID();  // CollabPanel
 }
 
@@ -1666,7 +1666,7 @@ void AgentChatWidget::RenderAgentConfigPanel() {
   }
 
   ImGui::EndChild();
-  AgentUI::PopPanelStyle();
+  ImGui::PopStyleColor();  // Pop the ChildBg color from line 1609
 }
 
 void AgentChatWidget::RenderZ3EDCommandPanel() {
@@ -1749,9 +1749,9 @@ void AgentChatWidget::RenderZ3EDCommandPanel() {
   }
 
   ImGui::EndChild();
-  AgentUI::PopPanelStyle();
+  ImGui::PopStyleColor();  // Pop the ChildBg color from line 1677
 
-  ImGui::PopID();  // FIX: Pop the Z3EDCmdPanel ID
+  ImGui::PopID();  // Pop the Z3EDCmdPanel ID
 }
 
 void AgentChatWidget::RenderRomSyncPanel() {
@@ -1848,7 +1848,7 @@ void AgentChatWidget::RenderRomSyncPanel() {
   }
 
   ImGui::EndChild();
-  AgentUI::PopPanelStyle();
+  ImGui::PopStyleColor();  // Pop the ChildBg color from line 1758
 }
 
 void AgentChatWidget::RenderSnapshotPreviewPanel() {
@@ -1898,7 +1898,7 @@ void AgentChatWidget::RenderSnapshotPreviewPanel() {
   }
 
   ImGui::EndChild();
-  AgentUI::PopPanelStyle();
+  ImGui::PopStyleColor();  // Pop the ChildBg color from line 1860
 }
 
 void AgentChatWidget::RenderProposalManagerPanel() {
@@ -2094,7 +2094,7 @@ void AgentChatWidget::RenderHarnessPanel() {
   }
 
   ImGui::EndChild();
-  AgentUI::PopPanelStyle();
+  ImGui::PopStyleColor();  // Pop the ChildBg color from line 1982
   ImGui::PopID();
 }
 
