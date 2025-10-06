@@ -260,7 +260,8 @@ if(YAZE_WITH_GRPC)
   if(NOT YAZE_USE_MODULAR_BUILD)
     # Generate C++ code from .proto using the helper function from cmake/grpc.cmake
     target_add_protobuf(yaze 
-      ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+      ${CMAKE_SOURCE_DIR}/src/protos/imgui_test_harness.proto
+      ${CMAKE_SOURCE_DIR}/src/protos/canvas_automation.proto)
 
     # Add service implementation sources
     target_sources(yaze PRIVATE

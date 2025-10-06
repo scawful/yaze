@@ -49,7 +49,7 @@ void Toolset::BeginModeGroup() {
   // Use a frameless child with exact button height to avoid scrolling
   const float button_size = 28.0f;  // Smaller buttons to match toolbar height
   const float padding = 4.0f;
-  const int num_buttons = 8;
+  const int num_buttons = 2;
   const float item_spacing = ImGui::GetStyle().ItemSpacing.x;
   
   float total_width = (num_buttons * button_size) + 
@@ -230,6 +230,11 @@ bool Toolset::AddUsageStatsButton(const char* tooltip) {
 
 EditorCard::EditorCard(const char* title, const char* icon)
     : title_(title), icon_(icon ? icon : ""), default_size_(400, 300) {}
+
+EditorCard::EditorCard(const char* title, const char* icon, bool* p_open)
+    : title_(title), icon_(icon ? icon : ""), default_size_(400, 300) {
+  p_open_ = p_open;
+}
 
 void EditorCard::SetDefaultSize(float width, float height) {
   default_size_ = ImVec2(width, height);
