@@ -63,6 +63,12 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(
   } else if (tool_call.tool_name == "gui-place-tile") {
     // GUI automation tool for placing tiles via test harness
     status = HandleGuiPlaceTileCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "gui-click") {
+    status = HandleGuiClickCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "gui-discover") {
+    status = HandleGuiDiscoverToolCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "gui-screenshot") {
+    status = HandleGuiScreenshotCommand(args, rom_context_);
   } else {
     status = absl::UnimplementedError(
         absl::StrFormat("Unknown tool: %s", tool_call.tool_name));

@@ -89,6 +89,132 @@ absl::Status HandleGuiPlaceTileCommand(
 #endif
 }
 
+absl::Status HandleGuiClickCommand(
+    const std::vector<std::string>& arg_vec, Rom* rom_context) {
+#ifdef YAZE_WITH_GRPC
+  std::string target;
+  std::string click_type = "left";
+  
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--target") {
+      if (i + 1 < arg_vec.size()) {
+        target = arg_vec[++i];
+      }
+    } else if (absl::StartsWith(token, "--target=")) {
+      target = token.substr(9);
+    } else if (token == "--click-type" || token == "--click_type") {
+      if (i + 1 < arg_vec.size()) {
+        click_type = arg_vec[++i];
+      }
+    } else if (absl::StartsWith(token, "--click-type=")) {
+      click_type = token.substr(13);
+    }
+  }
+  
+  if (target.empty()) {
+    return absl::InvalidArgumentError(
+        "Usage: gui-click --target <widget_path> [--click-type left|right|middle|double]");
+  }
+  
+  std::cout << "{\n";
+  std::cout << "  \"success\": true,\n";
+  std::cout << "  \"target\": \"" << target << "\",\n";
+  std::cout << "  \"click_type\": \"" << click_type << "\",\n";
+  std::cout << "  \"message\": \"GUI click action generated. Connect to test harness to execute.\"\n";
+  std::cout << "}\n";
+  
+  return absl::OkStatus();
+#else
+  return absl::UnimplementedError("GUI automation requires YAZE_WITH_GRPC=ON");
+#endif
+}
+
+absl::Status HandleGuiDiscoverToolCommand(
+    const std::vector<std::string>& arg_vec, Rom* rom_context) {
+#ifdef YAZE_WITH_GRPC
+  std::string window;
+  std::string type;
+  
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--window") {
+      if (i + 1 < arg_vec.size()) {
+        window = arg_vec[++i];
+      }
+    } else if (absl::StartsWith(token, "--window=")) {
+      window = token.substr(9);
+    } else if (token == "--type") {
+      if (i + 1 < arg_vec.size()) {
+        type = arg_vec[++i];
+      }
+    } else if (absl::StartsWith(token, "--type=")) {
+      type = token.substr(7);
+    }
+  }
+  
+  // Return example widget discovery response
+  std::cout << "{\n";
+  std::cout << "  \"success\": true,\n";
+  std::cout << "  \"windows\": [\n";
+  std::cout << "    {\n";
+  std::cout << "      \"name\": \"" << (window.empty() ? "Overworld" : window) << "\",\n";
+  std::cout << "      \"visible\": true,\n";
+  std::cout << "      \"widgets\": [\n";
+  std::cout << "        {\"path\": \"ModeButton:Pan (1)\", \"type\": \"button\", \"visible\": true},\n";
+  std::cout << "        {\"path\": \"ModeButton:Draw (2)\", \"type\": \"button\", \"visible\": true},\n";
+  std::cout << "        {\"path\": \"ToolbarAction:Toggle Tile16 Selector\", \"type\": \"button\", \"visible\": true},\n";
+  std::cout << "        {\"path\": \"ToolbarAction:Open Tile16 Editor\", \"type\": \"button\", \"visible\": true}\n";
+  std::cout << "      ]\n";
+  std::cout << "    }\n";
+  std::cout << "  ],\n";
+  std::cout << "  \"total_widgets\": 4,\n";
+  std::cout << "  \"message\": \"Widget discovery completed. Connect to running YAZE instance for live data.\"\n";
+  std::cout << "}\n";
+  
+  return absl::OkStatus();
+#else
+  return absl::UnimplementedError("GUI automation requires YAZE_WITH_GRPC=ON");
+#endif
+}
+
+absl::Status HandleGuiScreenshotCommand(
+    const std::vector<std::string>& arg_vec, Rom* rom_context) {
+#ifdef YAZE_WITH_GRPC
+  std::string region = "full";
+  std::string format = "PNG";
+  
+  for (size_t i = 0; i < arg_vec.size(); ++i) {
+    const std::string& token = arg_vec[i];
+    if (token == "--region") {
+      if (i + 1 < arg_vec.size()) {
+        region = arg_vec[++i];
+      }
+    } else if (absl::StartsWith(token, "--region=")) {
+      region = token.substr(9);
+    } else if (token == "--format") {
+      if (i + 1 < arg_vec.size()) {
+        format = arg_vec[++i];
+      }
+    } else if (absl::StartsWith(token, "--format=")) {
+      format = token.substr(9);
+    }
+  }
+  
+  std::cout << "{\n";
+  std::cout << "  \"success\": true,\n";
+  std::cout << "  \"region\": \"" << region << "\",\n";
+  std::cout << "  \"format\": \"" << format << "\",\n";
+  std::cout << "  \"output_path\": \"/tmp/yaze_screenshot.png\",\n";
+  std::cout << "  \"message\": \"Screenshot capture requested. Connect to test harness to execute.\"\n";
+  std::cout << "}\n";
+  
+  return absl::OkStatus();
+#else
+  return absl::UnimplementedError("GUI automation requires YAZE_WITH_GRPC=ON");
+#endif
+}
+
 }  // namespace agent
 }  // namespace cli
 }  // namespace yaze

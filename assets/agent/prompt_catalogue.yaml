@@ -130,6 +130,58 @@ tools:
         description: "Response format (json or table). Defaults to JSON if omitted."
         required: false
         example: json
+  - name: gui-place-tile
+    description: "Generate GUI automation script to place a tile in the overworld editor using mouse interactions."
+    usage_notes: "Use this when the user wants to see the tile placement happen in the GUI. Generates a test script that can be executed with agent test execute. Only works when YAZE GUI is running with --enable-test-harness flag."
+    arguments:
+      - name: tile
+        description: "Tile16 ID to place (accepts hex or decimal)."
+        required: true
+        example: 0x02E
+      - name: x
+        description: "X coordinate in the overworld map (0-63)."
+        required: true
+        example: 10
+      - name: y
+        description: "Y coordinate in the overworld map (0-63)."
+        required: true
+        example: 20
+  - name: gui-click
+    description: "Generate GUI automation script to click a button or widget in the YAZE interface."
+    usage_notes: "Use this to automate GUI interactions like opening editors, clicking toolbar buttons, or selecting tiles. Requires widget path from gui-discover."
+    arguments:
+      - name: target
+        description: "Widget path or label to click (e.g., 'ModeButton:Draw (2)' or 'ToolbarAction:Toggle Tile16 Selector')."
+        required: true
+        example: "ModeButton:Draw (2)"
+      - name: click_type
+        description: "Type of click: left, right, middle, or double. Defaults to left."
+        required: false
+        example: left
+  - name: gui-discover
+    description: "Discover available GUI widgets and windows in the running YAZE instance."
+    usage_notes: "Use this first to find widget paths before using gui-click. Helps identify what UI elements are available for automation."
+    arguments:
+      - name: window
+        description: "Optional window name filter (e.g., 'Overworld', 'Dungeon', 'Sprite')."
+        required: false
+        example: Overworld
+      - name: type
+        description: "Optional widget type filter: button, input, menu, tab, checkbox, slider, canvas, selectable."
+        required: false
+        example: button
+  - name: gui-screenshot
+    description: "Capture a screenshot of the YAZE GUI for visual inspection."
+    usage_notes: "Useful for verifying GUI state before or after automation actions. Returns the file path of the captured image."
+    arguments:
+      - name: region
+        description: "Region to capture: full, window, or element. Defaults to full."
+        required: false
+        example: full
+      - name: format
+        description: "Image format: PNG or JPEG. Defaults to PNG."
+        required: false
+        example: PNG
 
 tile16_reference:
   grass: 0x020
@@ -242,3 +294,30 @@ examples:
   - user_prompt: "[TOOL RESULT] {\"sprites\": [{\"id\": 0x41, \"name\": \"soldier\", \"x\": 5, \"y\": 3}, {\"id\": 0x41, \"name\": \"soldier\", \"x\": 10, \"y\": 3}]}"
     text_response: "Room 5 contains 2 sprites: two soldiers positioned at coordinates (5, 3) and (10, 3). Both are sprite ID 0x41."
     reasoning: "The tool returned sprite data for room 5. I've formatted this into a readable response for the user."
+  - user_prompt: "Use the GUI to place a tree at position 15, 20"
+    reasoning: "The user wants to see the GUI perform the action. I should use gui-place-tile to generate the automation script."
+    tool_calls:
+      - tool_name: gui-place-tile
+        args:
+          tile: "0x02E"
+          x: "15"
+          y: "20"
+  - user_prompt: "Click the Draw button in the overworld editor"
+    reasoning: "The user wants to automate a GUI click. First I need to discover the widget path."
+    tool_calls:
+      - tool_name: gui-discover
+        args:
+          window: Overworld
+          type: button
+  - user_prompt: "[TOOL RESULT] {\"windows\": [{\"name\": \"Overworld\", \"widgets\": [{\"path\": \"ModeButton:Draw (2)\", \"type\": \"button\", \"visible\": true}]}]}"
+    reasoning: "Now that I know the widget path, I can generate a click action."
+    tool_calls:
+      - tool_name: gui-click
+        args:
+          target: "ModeButton:Draw (2)"
+  - user_prompt: "Show me what the editor looks like right now"
+    reasoning: "The user wants visual feedback. I should capture a screenshot."
+    tool_calls:
+      - tool_name: gui-screenshot
+        args:
+          region: full

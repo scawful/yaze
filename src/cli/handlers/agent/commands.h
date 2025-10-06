@@ -65,8 +65,17 @@ absl::Status HandleMessageSearchCommand(
 	const std::vector<std::string>& arg_vec,
 	Rom* rom_context = nullptr);
 
-// GUI Automation Tool
+// GUI Automation Tools
 absl::Status HandleGuiPlaceTileCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleGuiClickCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleGuiDiscoverToolCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleGuiScreenshotCommand(
 	const std::vector<std::string>& arg_vec,
 	Rom* rom_context = nullptr);
 absl::Status HandleChatCommand(Rom& rom);
