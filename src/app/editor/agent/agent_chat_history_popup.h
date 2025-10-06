@@ -112,6 +112,12 @@ class AgentChatHistoryPopup {
   float header_pulse_ = 0.0f;
   int unread_count_ = 0;
   
+  // Retro hacker aesthetic animations
+  float pulse_animation_ = 0.0f;
+  float scanline_offset_ = 0.0f;
+  float glitch_animation_ = 0.0f;
+  int blink_counter_ = 0;
+  
   // Dependencies
   ToastManager* toast_manager_ = nullptr;
   OpenChatCallback open_chat_callback_;

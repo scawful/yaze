@@ -103,6 +103,12 @@ class AgentEditor : public Editor {
     int max_tool_iterations = 4;
   };
   
+  // Retro hacker animation state
+  float pulse_animation_ = 0.0f;
+  float scanline_offset_ = 0.0f;
+  float glitch_timer_ = 0.0f;
+  int blink_counter_ = 0;
+  
   AgentConfig GetCurrentConfig() const;
   void ApplyConfig(const AgentConfig& config);
 

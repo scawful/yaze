@@ -68,6 +68,9 @@ set(YAZE_AGENT_SOURCES
   cli/service/agent/proposal_executor.cc
   cli/handlers/agent/tool_commands.cc
   cli/handlers/agent/gui_tool_commands.cc
+  cli/handlers/agent/dialogue_tool_commands.cc
+  cli/handlers/agent/music_tool_commands.cc
+  cli/handlers/agent/sprite_tool_commands.cc
   cli/handlers/agent/todo_commands.cc
   cli/handlers/agent/hex_commands.cc
   cli/handlers/agent/palette_commands.cc

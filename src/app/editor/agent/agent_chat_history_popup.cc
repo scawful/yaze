@@ -23,9 +23,15 @@ void AgentChatHistoryPopup::Draw() {
 
   const auto& theme = AgentUI::GetTheme();
   
-  // Set drawer position on the LEFT side (full height)
+  // Animate retro effects
   ImGuiIO& io = ImGui::GetIO();
+  pulse_animation_ += io.DeltaTime * 2.0f;
+  scanline_offset_ += io.DeltaTime * 0.3f;
+  if (scanline_offset_ > 1.0f) scanline_offset_ -= 1.0f;
+  glitch_animation_ += io.DeltaTime * 5.0f;
+  blink_counter_ = static_cast<int>(pulse_animation_ * 2.0f) % 2;
   
+  // Set drawer position on the LEFT side (full height)
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
   ImGui::SetNextWindowSize(ImVec2(drawer_width_, io.DisplaySize.y), ImGuiCond_Always);
 
@@ -34,9 +40,18 @@ void AgentChatHistoryPopup::Draw() {
                           ImGuiWindowFlags_NoCollapse |
                           ImGuiWindowFlags_NoTitleBar;
 
-  // Use current theme colors
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+  // Use current theme colors with slight glow
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 10));
+  
+  // Pulsing border color
+  float border_pulse = 0.7f + 0.3f * std::sin(pulse_animation_ * 0.5f);
+  ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(
+    theme.provider_ollama.x * border_pulse,
+    theme.provider_ollama.y * border_pulse,
+    theme.provider_ollama.z * border_pulse + 0.2f,
+    0.8f
+  ));
   
   if (ImGui::Begin("##AgentChatPopup", &visible_, flags)) {
     DrawHeader();
@@ -47,8 +62,30 @@ void AgentChatHistoryPopup::Draw() {
     // Calculate proper list height
     float list_height = ImGui::GetContentRegionAvail().y - 220.0f;
     
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.code_bg_color);
+    // Dark terminal background
+    ImVec4 terminal_bg = theme.code_bg_color;
+    terminal_bg.x *= 0.9f;
+    terminal_bg.y *= 0.9f;
+    terminal_bg.z *= 0.95f;
+    
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, terminal_bg);
     ImGui::BeginChild("MessageList", ImVec2(0, list_height), true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    
+    // Draw scanline effect
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 win_pos = ImGui::GetWindowPos();
+    ImVec2 win_size = ImGui::GetWindowSize();
+    
+    for (float y = 0; y < win_size.y; y += 3.0f) {
+      float offset_y = y + scanline_offset_ * 3.0f;
+      if (offset_y < win_size.y) {
+        draw_list->AddLine(
+          ImVec2(win_pos.x, win_pos.y + offset_y),
+          ImVec2(win_pos.x + win_size.x, win_pos.y + offset_y),
+          IM_COL32(0, 0, 0, 15));
+      }
+    }
+    
     DrawMessageList();
     
     if (needs_scroll_) {
@@ -72,6 +109,7 @@ void AgentChatHistoryPopup::Draw() {
   }
   ImGui::End();
   
+  ImGui::PopStyleColor();  // Border color
   ImGui::PopStyleVar(2);
 }
 
@@ -106,88 +144,128 @@ void AgentChatHistoryPopup::DrawMessage(const cli::agent::ChatMessage& msg, int 
   
   bool from_user = (msg.sender == cli::agent::ChatMessage::Sender::kUser);
   
-  // Use theme colors with slight tint
-  ImVec4 text_color = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+  // Retro terminal colors
   ImVec4 header_color = from_user 
-      ? ImVec4(text_color.x * 1.2f, text_color.y * 0.9f, text_color.z * 0.5f, 1.0f)  // Gold tint
-      : ImVec4(text_color.x * 0.7f, text_color.y * 1.0f, text_color.z * 0.9f, 1.0f); // Teal tint
+      ? ImVec4(1.0f, 0.85f, 0.0f, 1.0f)  // Amber/Gold for user
+      : ImVec4(0.0f, 1.0f, 0.7f, 1.0f);   // Cyan/Green for agent
   
-  const char* sender_label = from_user ? ICON_MD_PERSON " You" : ICON_MD_SMART_TOY " Agent";
+  const char* sender_label = from_user ? "> USER:" : "> AGENT:";
   
-  // Message header
+  // Message header with terminal prefix
   ImGui::TextColored(header_color, "%s", sender_label);
   
   ImGui::SameLine();
-  ImGui::TextDisabled("%s", absl::FormatTime("%H:%M:%S", msg.timestamp, absl::LocalTimeZone()).c_str());
+  ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), 
+                    "[%s]", absl::FormatTime("%H:%M:%S", msg.timestamp, absl::LocalTimeZone()).c_str());
   
-  // Message content
-  ImGui::Indent(10.0f);
+  // Message content with terminal styling
+  ImGui::Indent(15.0f);
   
   if (msg.table_data.has_value()) {
-    ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.9f, 1.0f), ICON_MD_TABLE_CHART " [Table Data]");
+    ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.9f, 1.0f), 
+                      "  %s [Table Data]", ICON_MD_TABLE_CHART);
   } else if (msg.json_pretty.has_value()) {
-    ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.9f, 1.0f), ICON_MD_DATA_OBJECT " [Structured Response]");
+    ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.9f, 1.0f), 
+                      "  %s [Structured Response]", ICON_MD_DATA_OBJECT);
   } else {
-    // Truncate long messages
+    // Truncate long messages with ellipsis
     std::string content = msg.message;
     if (content.length() > 200) {
       content = content.substr(0, 197) + "...";
     }
-    ImGui::TextWrapped("%s", content.c_str());
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.85f, 0.85f, 0.85f, 1.0f));
+    ImGui::TextWrapped("  %s", content.c_str());
+    ImGui::PopStyleColor();
   }
   
-  // Show proposal indicator if present
+  // Show proposal indicator with pulse
   if (msg.proposal.has_value()) {
-    ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.4f, 1.0f), 
-                      ICON_MD_PREVIEW " Proposal: %s", msg.proposal->id.c_str());
+    float proposal_pulse = 0.7f + 0.3f * std::sin(pulse_animation_ * 2.0f);
+    ImGui::TextColored(ImVec4(0.2f, proposal_pulse, 0.4f, 1.0f), 
+                      "  %s Proposal: [%s]", ICON_MD_PREVIEW, msg.proposal->id.c_str());
   }
   
-  ImGui::Unindent(10.0f);
+  ImGui::Unindent(15.0f);
   ImGui::Spacing();
-  ImGui::Separator();
+  
+  // Retro separator line
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 line_start = ImGui::GetCursorScreenPos();
+  float line_width = ImGui::GetContentRegionAvail().x;
+  draw_list->AddLine(
+    line_start,
+    ImVec2(line_start.x + line_width, line_start.y),
+    IM_COL32(60, 60, 70, 100),
+    1.0f
+  );
+  
+  ImGui::Dummy(ImVec2(0, 2));
   
   ImGui::PopID();
 }
 
 void AgentChatHistoryPopup::DrawHeader() {
-  // Theme-matched header with subtle gradient
+  const auto& theme = AgentUI::GetTheme();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 header_start = ImGui::GetCursorScreenPos();
   ImVec2 header_size(ImGui::GetContentRegionAvail().x, 55);
   
-  // Subtle gradient matching theme
-  ImU32 color_top = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_WindowBg));
-  ImU32 color_bottom = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_ChildBg));
+  // Retro gradient with pulse
+  float pulse = 0.5f + 0.5f * std::sin(pulse_animation_);
+  ImVec4 bg_top = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+  ImVec4 bg_bottom = ImGui::GetStyleColorVec4(ImGuiCol_ChildBg);
+  bg_top.x += 0.1f * pulse;
+  bg_top.y += 0.1f * pulse;
+  bg_top.z += 0.15f * pulse;
+  
+  ImU32 color_top = ImGui::GetColorU32(bg_top);
+  ImU32 color_bottom = ImGui::GetColorU32(bg_bottom);
   draw_list->AddRectFilledMultiColor(
       header_start,
       ImVec2(header_start.x + header_size.x, header_start.y + header_size.y),
       color_top, color_top, color_bottom, color_bottom);
   
-  // Thin accent line (no pulse - matches theme better)
-  ImU32 accent_color = ImGui::GetColorU32(ImGui::GetStyleColorVec4(ImGuiCol_Separator));
+  // Pulsing accent line with glow
+  float line_pulse = 0.6f + 0.4f * std::sin(pulse_animation_ * 0.7f);
+  ImU32 accent_color = IM_COL32(
+    static_cast<int>(theme.provider_ollama.x * 255 * line_pulse),
+    static_cast<int>(theme.provider_ollama.y * 255 * line_pulse),
+    static_cast<int>(theme.provider_ollama.z * 255 * line_pulse + 50),
+    200
+  );
   draw_list->AddLine(
       ImVec2(header_start.x, header_start.y + header_size.y),
       ImVec2(header_start.x + header_size.x, header_start.y + header_size.y),
-      accent_color, 1.5f);
+      accent_color, 2.0f);
   
   ImGui::Dummy(ImVec2(0, 8));
   
-  // Title and provider dropdown (like connection header)
-  ImGui::Text(ICON_MD_CHAT);
-  ImGui::SameLine();
+  // Title with pulsing glow
+  ImVec4 title_color = ImVec4(
+    0.4f + 0.3f * pulse,
+    0.8f + 0.2f * pulse,
+    1.0f,
+    1.0f
+  );
+  ImGui::PushStyleColor(ImGuiCol_Text, title_color);
+  ImGui::Text("%s CHAT HISTORY", ICON_MD_CHAT);
+  ImGui::PopStyleColor();
   
-  // Model dropdown (compact)
-  ImGui::SetNextItemWidth(120);
-  static int provider_idx = 0;
-  const char* providers[] = {"Mock", "Ollama", "Gemini"};
-  ImGui::Combo("##popup_provider", &provider_idx, providers, 3);
+  ImGui::SameLine();
+  ImGui::TextDisabled("[v0.4.x]");
   
   // Buttons properly spaced from right edge
   ImGui::SameLine(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 75.0f);
   
-  // Compact mode toggle
+  // Compact mode toggle with pulse
+  if (blink_counter_ == 0 && compact_mode_) {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.4f, 0.6f, 0.7f));
+  }
   if (ImGui::SmallButton(compact_mode_ ? ICON_MD_UNFOLD_MORE : ICON_MD_UNFOLD_LESS)) {
     compact_mode_ = !compact_mode_;
+  }
+  if (blink_counter_ == 0 && compact_mode_) {
+    ImGui::PopStyleColor();
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(compact_mode_ ? "Expand view" : "Compact view");
@@ -195,11 +273,11 @@ void AgentChatHistoryPopup::DrawHeader() {
   
   ImGui::SameLine();
   
-  // Full chat button (closes popup when opened)
+  // Full chat button
   if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW)) {
     if (open_chat_callback_) {
       open_chat_callback_();
-      visible_ = false;  // Close popup when opening main chat
+      visible_ = false;
     }
   }
   if (ImGui::IsItemHovered()) {
@@ -216,7 +294,7 @@ void AgentChatHistoryPopup::DrawHeader() {
     ImGui::SetTooltip("Close (Ctrl+H)");
   }
   
-  // Message count with badge
+  // Message count with retro styling
   int visible_count = 0;
   for (const auto& msg : messages_) {
     if (msg.is_internal) continue;
@@ -228,8 +306,16 @@ void AgentChatHistoryPopup::DrawHeader() {
   }
   
   ImGui::Spacing();
-  ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 0.9f), 
-                    "%d message%s", visible_count, visible_count == 1 ? "" : "s");
+  ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), 
+                    "> MESSAGES: [%d]", visible_count);
+  
+  // Animated status indicator
+  if (unread_count_ > 0) {
+    ImGui::SameLine();
+    float unread_pulse = 0.5f + 0.5f * std::sin(pulse_animation_ * 3.0f);
+    ImGui::TextColored(ImVec4(1.0f, unread_pulse * 0.5f, 0.0f, 1.0f),
+                      "%s %d NEW", ICON_MD_NOTIFICATION_IMPORTANT, unread_count_);
+  }
   
   ImGui::Dummy(ImVec2(0, 5));
 }

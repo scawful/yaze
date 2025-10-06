@@ -140,8 +140,25 @@ void AgentEditor::DrawDashboard() {
   if (!active_)
     return;
 
+  // Animate retro effects
+  ImGuiIO& io = ImGui::GetIO();
+  pulse_animation_ += io.DeltaTime * 2.0f;
+  scanline_offset_ += io.DeltaTime * 0.4f;
+  if (scanline_offset_ > 1.0f) scanline_offset_ -= 1.0f;
+  glitch_timer_ += io.DeltaTime * 5.0f;
+  blink_counter_ = static_cast<int>(pulse_animation_ * 2.0f) % 2;
+
+  // Pulsing glow for window
+  float pulse = 0.5f + 0.5f * std::sin(pulse_animation_);
+  ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(
+    0.1f + 0.1f * pulse,
+    0.2f + 0.15f * pulse,
+    0.3f + 0.2f * pulse,
+    1.0f
+  ));
+
   ImGui::SetNextWindowSize(ImVec2(1200, 800), ImGuiCond_FirstUseEver);
-  ImGui::Begin(ICON_MD_SMART_TOY " AI Agent Platform & Bot Creator", &active_,
+  ImGui::Begin(ICON_MD_SMART_TOY " AI AGENT PLATFORM [v0.4.x]", &active_,
                ImGuiWindowFlags_MenuBar);
 
   // Menu bar

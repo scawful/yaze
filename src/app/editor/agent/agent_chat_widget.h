@@ -125,6 +125,10 @@ class AgentChatWidget {
 
   void UpdateHarnessTelemetry(const AutomationTelemetry& telemetry);
   void SetLastPlanSummary(const std::string& summary);
+  
+  // Automation status polling
+  void PollAutomationStatus();
+  bool CheckHarnessConnection();
 
   void SetZ3EDCommandCallbacks(const Z3EDCommandCallbacks& callbacks) {
     z3ed_callbacks_ = callbacks;
@@ -194,6 +198,13 @@ public:
     std::vector<AutomationTelemetry> recent_tests;
     bool harness_connected = false;
     absl::Time last_poll = absl::InfinitePast();
+    bool auto_refresh_enabled = true;
+    float refresh_interval_seconds = 2.0f;
+    float pulse_animation = 0.0f;
+    float scanline_offset = 0.0f;
+    int connection_attempts = 0;
+    absl::Time last_connection_attempt = absl::InfinitePast();
+    std::string grpc_server_address = "localhost:50052";
   };
 
   // Agent Configuration State
