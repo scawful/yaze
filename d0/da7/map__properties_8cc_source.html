@@ -163,8 +163,8 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    ImGui::Text(<span class="stringliteral">&quot;%d (0x%02X)&quot;</span>, current_map, current_map);</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    TableNextColumn();</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="keyword">static</span> uint8_t asm_version =</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="comment">// IMPORTANT: Don&#39;t cache - read fresh to reflect ROM upgrades</span></div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    uint8_t asm_version = (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    </div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <span class="comment">// ALL ROMs support Small/Large. Only v3+ supports Wide/Tall.</span></div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    <span class="keywordtype">int</span> current_area_size =</div>
@@ -328,7 +328,7 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>    }</div>
 <div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span> </div>
 <div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>    <span class="comment">// Custom Overworld Features Tab</span></div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    <span class="keyword">static</span> uint8_t asm_version =</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    uint8_t asm_version =</div>
 <div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>        (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>    <span class="keywordflow">if</span> (asm_version != 0xFF &amp;&amp; ImGui::BeginTabItem(<span class="stringliteral">&quot;Custom Features&quot;</span>)) {</div>
 <div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>      <a class="code hl_function" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a8af37e9dc145e7ecad7a1cae241dfd74">DrawCustomFeaturesTab</a>(current_map);</div>
@@ -361,7 +361,7 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>  }</div>
 <div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span> </div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  <span class="keyword">static</span> uint8_t asm_version =</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  uint8_t asm_version =</div>
 <div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>      (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  <span class="keywordflow">if</span> (asm_version &lt; 2) {</div>
 <div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>    Text(<span class="stringliteral">&quot;Custom background colors require ZSCustomOverworld v2+&quot;</span>);</div>
@@ -418,7 +418,7 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>    <span class="keywordflow">return</span>;</div>
 <div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>  }</div>
 <div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span> </div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>  <span class="keyword">static</span> uint8_t asm_version =</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>  uint8_t asm_version =</div>
 <div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>      (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>  </div>
 <div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>  ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f),</div>
@@ -544,7 +544,7 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="line"><a id="l00432" name="l00432"></a><span class="lineno">  432</span>  canvas.<a class="code hl_function" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#af6e63266dd0eadae56bb7de3cd09972a">AddContextMenuItem</a>(properties_item);</div>
 <div class="line"><a id="l00433" name="l00433"></a><span class="lineno">  433</span> </div>
 <div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>  <span class="comment">// Custom overworld features (only show if v3+)</span></div>
-<div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>  <span class="keyword">static</span> uint8_t asm_version =</div>
+<div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>  uint8_t asm_version =</div>
 <div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>      (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span>  <span class="keywordflow">if</span> (asm_version &gt;= 3 &amp;&amp; asm_version != 0xFF) {</div>
 <div class="line"><a id="l00438" name="l00438"></a><span class="lineno">  438</span>    <span class="comment">// Custom Background Color</span></div>
@@ -632,7 +632,7 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="line"><a id="l00518" name="l00518"></a><span class="lineno">  518</span>    }</div>
 <div class="line"><a id="l00519" name="l00519"></a><span class="lineno">  519</span>    <a class="code hl_define" href="../../d4/d9e/macro_8h.html#ae341b584a47fc74d82c009e929269df9">HOVER_HINT</a>(<span class="stringliteral">&quot;Sprite graphics sheet for current game state&quot;</span>);</div>
 <div class="line"><a id="l00520" name="l00520"></a><span class="lineno">  520</span> </div>
-<div class="line"><a id="l00521" name="l00521"></a><span class="lineno">  521</span>    <span class="keyword">static</span> uint8_t asm_version =</div>
+<div class="line"><a id="l00521" name="l00521"></a><span class="lineno">  521</span>    uint8_t asm_version =</div>
 <div class="line"><a id="l00522" name="l00522"></a><span class="lineno">  522</span>        (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l00523" name="l00523"></a><span class="lineno">  523</span>    <span class="keywordflow">if</span> (asm_version &gt;= 3) {</div>
 <div class="line"><a id="l00524" name="l00524"></a><span class="lineno">  524</span>      <span class="keywordflow">if</span> (<a class="code hl_function" href="../../d3/dbf/namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a9ec9a3d37064276a123822d6d273d960">ICON_MD_ANIMATION</a> <span class="stringliteral">&quot; Animated GFX&quot;</span>,</div>
@@ -712,8 +712,8 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="line"><a id="l00596" name="l00596"></a><span class="lineno">  596</span>    }</div>
 <div class="line"><a id="l00597" name="l00597"></a><span class="lineno">  597</span>    <a class="code hl_define" href="../../d4/d9e/macro_8h.html#ae341b584a47fc74d82c009e929269df9">HOVER_HINT</a>(<span class="stringliteral">&quot;Main color palette for background tiles&quot;</span>);</div>
 <div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span> </div>
-<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>    <span class="keyword">static</span> uint8_t asm_version =</div>
-<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>        (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
+<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>    <span class="comment">// Read fresh to reflect ROM upgrades</span></div>
+<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>    uint8_t asm_version = (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span>    <span class="keywordflow">if</span> (asm_version &gt;= 2) {</div>
 <div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span>      <span class="keywordflow">if</span> (<a class="code hl_function" href="../../d3/dbf/namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651">gui::InputHexByte</a>(<a class="code hl_define" href="../../de/dbf/icons_8h.html#adf9b0489fe4a3d1f212e2d18d68fb86d">ICON_MD_COLOR_LENS</a> <span class="stringliteral">&quot; Main Palette&quot;</span>,</div>
 <div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span>                                  <a class="code hl_variable" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#ad621e76e0e77bf6d02efa5754313cc5a">overworld_</a>-&gt;<a class="code hl_function" href="../../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a90cc1152067e0937c7e48d69e88a563f">mutable_overworld_map</a>(current_map)</div>
@@ -804,7 +804,7 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="line"><a id="l00686" name="l00686"></a><span class="lineno">  686</span>    ImGui::Separator();</div>
 <div class="line"><a id="l00687" name="l00687"></a><span class="lineno">  687</span> </div>
 <div class="line"><a id="l00688" name="l00688"></a><span class="lineno">  688</span>    <span class="comment">// ALL ROMs support Small/Large. Only v3+ supports Wide/Tall.</span></div>
-<div class="line"><a id="l00689" name="l00689"></a><span class="lineno">  689</span>    <span class="keyword">static</span> uint8_t asm_version =</div>
+<div class="line"><a id="l00689" name="l00689"></a><span class="lineno">  689</span>    uint8_t asm_version =</div>
 <div class="line"><a id="l00690" name="l00690"></a><span class="lineno">  690</span>        (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l00691" name="l00691"></a><span class="lineno">  691</span>    </div>
 <div class="line"><a id="l00692" name="l00692"></a><span class="lineno">  692</span>    <span class="keywordtype">int</span> current_area_size =</div>
@@ -1081,7 +1081,7 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="line"><a id="l00957" name="l00957"></a><span class="lineno">  957</span>    ImGui::Text(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a3f39e5ade3f2d52aa0a6d45504ab59f7">ICON_MD_PHOTO_SIZE_SELECT_LARGE</a> <span class="stringliteral">&quot; Area Size&quot;</span>);</div>
 <div class="line"><a id="l00958" name="l00958"></a><span class="lineno">  958</span>    TableNextColumn();</div>
 <div class="line"><a id="l00959" name="l00959"></a><span class="lineno">  959</span>    <span class="comment">// ALL ROMs support Small/Large. Only v3+ supports Wide/Tall.</span></div>
-<div class="line"><a id="l00960" name="l00960"></a><span class="lineno">  960</span>    <span class="keyword">static</span> uint8_t asm_version =</div>
+<div class="line"><a id="l00960" name="l00960"></a><span class="lineno">  960</span>    uint8_t asm_version =</div>
 <div class="line"><a id="l00961" name="l00961"></a><span class="lineno">  961</span>        (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l00962" name="l00962"></a><span class="lineno">  962</span>    </div>
 <div class="line"><a id="l00963" name="l00963"></a><span class="lineno">  963</span>    <span class="keywordtype">int</span> current_area_size =</div>
@@ -1177,7 +1177,7 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="line"><a id="l01052" name="l01052"></a><span class="lineno"> 1052</span> </div>
 <div class="foldopen" id="foldopen01053" data-start="{" data-end="}">
 <div class="line"><a id="l01053" name="l01053"></a><span class="lineno"><a class="line" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#aeaba82ba7a6ca2a3eadb7e9e74109a95"> 1053</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#aeaba82ba7a6ca2a3eadb7e9e74109a95">MapPropertiesSystem::DrawTileGraphicsTab</a>(<span class="keywordtype">int</span> current_map) {</div>
-<div class="line"><a id="l01054" name="l01054"></a><span class="lineno"> 1054</span>  <span class="keyword">static</span> uint8_t asm_version = (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
+<div class="line"><a id="l01054" name="l01054"></a><span class="lineno"> 1054</span>  uint8_t asm_version = (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l01055" name="l01055"></a><span class="lineno"> 1055</span>  </div>
 <div class="line"><a id="l01056" name="l01056"></a><span class="lineno"> 1056</span>  <span class="comment">// Only show custom tile graphics for v1+ ROMs</span></div>
 <div class="line"><a id="l01057" name="l01057"></a><span class="lineno"> 1057</span>  <span class="keywordflow">if</span> (asm_version &gt;= 1 &amp;&amp; asm_version != 0xFF) {</div>
@@ -1412,7 +1412,7 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="line"><a id="l01271" name="l01271"></a><span class="lineno"> 1271</span> </div>
 <div class="foldopen" id="foldopen01272" data-start="{" data-end="}">
 <div class="line"><a id="l01272" name="l01272"></a><span class="lineno"><a class="line" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a521b96441ffdcc88c5472fe2ee443a94"> 1272</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a521b96441ffdcc88c5472fe2ee443a94">MapPropertiesSystem::DrawMosaicControls</a>(<span class="keywordtype">int</span> current_map) {</div>
-<div class="line"><a id="l01273" name="l01273"></a><span class="lineno"> 1273</span>  <span class="keyword">static</span> uint8_t asm_version =</div>
+<div class="line"><a id="l01273" name="l01273"></a><span class="lineno"> 1273</span>  uint8_t asm_version =</div>
 <div class="line"><a id="l01274" name="l01274"></a><span class="lineno"> 1274</span>      (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l01275" name="l01275"></a><span class="lineno"> 1275</span>  <span class="keywordflow">if</span> (asm_version &gt;= 2) {</div>
 <div class="line"><a id="l01276" name="l01276"></a><span class="lineno"> 1276</span>    ImGui::Separator();</div>
@@ -1443,7 +1443,7 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="foldopen" id="foldopen01300" data-start="{" data-end="}">
 <div class="line"><a id="l01300" name="l01300"></a><span class="lineno"><a class="line" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#af2a098e5cec6a74c4b324cc4ec3f1a78"> 1300</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#af2a098e5cec6a74c4b324cc4ec3f1a78">MapPropertiesSystem::DrawOverlayControls</a>(<span class="keywordtype">int</span> current_map,</div>
 <div class="line"><a id="l01301" name="l01301"></a><span class="lineno"> 1301</span>                                              <span class="keywordtype">bool</span>&amp; show_overlay_preview) {</div>
-<div class="line"><a id="l01302" name="l01302"></a><span class="lineno"> 1302</span>  <span class="keyword">static</span> uint8_t asm_version =</div>
+<div class="line"><a id="l01302" name="l01302"></a><span class="lineno"> 1302</span>  uint8_t asm_version =</div>
 <div class="line"><a id="l01303" name="l01303"></a><span class="lineno"> 1303</span>      (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l01304" name="l01304"></a><span class="lineno"> 1304</span> </div>
 <div class="line"><a id="l01305" name="l01305"></a><span class="lineno"> 1305</span>  <span class="comment">// Determine if this is a special overworld map (0x80-0x9F)</span></div>
@@ -1660,7 +1660,7 @@ $(document).ready(function(){initNavTree('d0/da7/map__properties_8cc_source.html
 <div class="line"><a id="l01512" name="l01512"></a><span class="lineno"> 1512</span>  uint16_t overlay_id = 0x00FF;</div>
 <div class="line"><a id="l01513" name="l01513"></a><span class="lineno"> 1513</span>  <span class="keywordtype">bool</span> has_subscreen_overlay = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l01514" name="l01514"></a><span class="lineno"> 1514</span> </div>
-<div class="line"><a id="l01515" name="l01515"></a><span class="lineno"> 1515</span>  <span class="keyword">static</span> uint8_t asm_version =</div>
+<div class="line"><a id="l01515" name="l01515"></a><span class="lineno"> 1515</span>  uint8_t asm_version =</div>
 <div class="line"><a id="l01516" name="l01516"></a><span class="lineno"> 1516</span>      (*rom_)[<a class="code hl_variable" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83">zelda3::OverworldCustomASMHasBeenApplied</a>];</div>
 <div class="line"><a id="l01517" name="l01517"></a><span class="lineno"> 1517</span>  <span class="keywordtype">bool</span> is_special_overworld_map = (current_map &gt;= 0x80 &amp;&amp; current_map &lt; 0xA0);</div>
 <div class="line"><a id="l01518" name="l01518"></a><span class="lineno"> 1518</span> </div>
