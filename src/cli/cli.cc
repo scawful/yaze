@@ -1,4 +1,4 @@
-#include "cli/modern_cli.h"
+#include "cli/cli.h"
 
 #include <iostream>
 #include <optional>
@@ -14,9 +14,19 @@
 #include "app/core/asar_wrapper.h"
 #include "app/rom.h"
 #include "cli/z3ed_ascii_logo.h"
+#include "cli/tui/tui.h"
+#include "app/snes.h"
+#include "util/macro.h"
 
+// Define additional z3ed-specific flags
 ABSL_DECLARE_FLAG(std::string, rom);
 ABSL_DECLARE_FLAG(bool, quiet);
+ABSL_DECLARE_FLAG(std::string, ai_provider);
+ABSL_DECLARE_FLAG(std::string, ai_model);
+ABSL_DECLARE_FLAG(std::string, gemini_api_key);
+ABSL_DECLARE_FLAG(std::string, ollama_host);
+ABSL_DECLARE_FLAG(std::string, prompt_version);
+ABSL_DECLARE_FLAG(bool, use_function_calling);
 
 namespace yaze {
 namespace cli {
@@ -24,6 +34,7 @@ namespace cli {
 ModernCLI::ModernCLI() {
   SetupCommands();
 }
+
 
 void ModernCLI::SetupCommands() {
     commands_["patch apply-asar"] = {
@@ -352,6 +363,42 @@ void ModernCLI::SetupCommands() {
         }
     };
 
+    commands_["overworld select-rect"] = {
+        .name = "overworld select-rect",
+        .description = "Select a rectangular region of tiles",
+        .usage = "z3ed overworld select-rect --map <map_id> --x1 <x1> --y1 <y1> --x2 <x2> --y2 <y2>",
+        .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+            return HandleOverworldSelectRectCommand(args);
+        }
+    };
+
+    commands_["overworld scroll-to"] = {
+        .name = "overworld scroll-to",
+        .description = "Scroll canvas to show specific tile",
+        .usage = "z3ed overworld scroll-to --map <map_id> --x <x> --y <y> [--center]",
+        .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+            return HandleOverworldScrollToCommand(args);
+        }
+    };
+
+    commands_["overworld set-zoom"] = {
+        .name = "overworld set-zoom",
+        .description = "Set canvas zoom level",
+        .usage = "z3ed overworld set-zoom --zoom <level> (0.25-4.0)",
+        .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+            return HandleOverworldSetZoomCommand(args);
+        }
+    };
+
+    commands_["overworld get-visible-region"] = {
+        .name = "overworld get-visible-region",
+        .description = "Get currently visible tile region",
+        .usage = "z3ed overworld get-visible-region --map <map_id> [--format json|text]",
+        .handler = [this](const std::vector<std::string>& args) -> absl::Status {
+            return HandleOverworldGetVisibleRegionCommand(args);
+        }
+    };
+
     commands_["sprite create"] = {
         .name = "sprite create",
         .description = "Create a new sprite",
@@ -616,6 +663,22 @@ void ModernCLI::ShowCategoryHelp(const std::string& category) {
     std::cout << "  \033[1moverworld list-warps\033[0m" << std::endl;
     std::cout << "    List all entrances and exits" << std::endl;
     std::cout << "    Example: z3ed overworld list-warps --rom=zelda3.sfc" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1moverworld select-rect\033[0m" << std::endl;
+    std::cout << "    Select a rectangular region of tiles" << std::endl;
+    std::cout << "    Example: z3ed overworld select-rect --map=0 --x1=5 --y1=5 --x2=10 --y2=10" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1moverworld scroll-to\033[0m" << std::endl;
+    std::cout << "    Scroll canvas to show specific tile" << std::endl;
+    std::cout << "    Example: z3ed overworld scroll-to --map=0 --x=10 --y=10 --center" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1moverworld set-zoom\033[0m" << std::endl;
+    std::cout << "    Set canvas zoom level (0.25-4.0)" << std::endl;
+    std::cout << "    Example: z3ed overworld set-zoom --zoom=1.5" << std::endl;
+    std::cout << std::endl;
+    std::cout << "  \033[1moverworld get-visible-region\033[0m" << std::endl;
+    std::cout << "    Get currently visible tile region" << std::endl;
+    std::cout << "    Example: z3ed overworld get-visible-region --map=0 --format=json" << std::endl;
     std::cout << std::endl;
     
   } else if (category == "dungeon") {
@@ -994,6 +1057,26 @@ absl::Status ModernCLI::HandleOverworldListWarpsCommand(const std::vector<std::s
 
 absl::Status ModernCLI::HandleOverworldSetTileCommand(const std::vector<std::string>& args) {
     OverworldSetTile handler;
+    return handler.Run(args);
+}
+
+absl::Status ModernCLI::HandleOverworldSelectRectCommand(const std::vector<std::string>& args) {
+    OverworldSelectRect handler;
+    return handler.Run(args);
+}
+
+absl::Status ModernCLI::HandleOverworldScrollToCommand(const std::vector<std::string>& args) {
+    OverworldScrollTo handler;
+    return handler.Run(args);
+}
+
+absl::Status ModernCLI::HandleOverworldSetZoomCommand(const std::vector<std::string>& args) {
+    OverworldSetZoom handler;
+    return handler.Run(args);
+}
+
+absl::Status ModernCLI::HandleOverworldGetVisibleRegionCommand(const std::vector<std::string>& args) {
+    OverworldGetVisibleRegion handler;
     return handler.Run(args);
 }
 

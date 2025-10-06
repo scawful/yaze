@@ -46,7 +46,8 @@ endif()
 add_executable(
   z3ed
   cli/cli_main.cc
-  cli/tui.cc
+  cli/cli.cc
+  cli/tui/tui.cc
   cli/handlers/compress.cc
   cli/handlers/patch.cc
   cli/handlers/tile16_transfer.cc
@@ -67,11 +68,9 @@ add_executable(
   cli/handlers/agent/test_common.cc
   cli/handlers/agent/test_commands.cc
   cli/handlers/agent/gui_commands.cc
-  cli/handlers/agent/tool_commands.cc
-    cli/flags.cc
-  cli/modern_cli.cc
-  cli/tui/asar_patch.cc
-  cli/tui/palette_editor.cc
+      cli/handlers/agent/tool_commands.cc
+      cli/flags.cc
+    cli/tui/asar_patch.cc  cli/tui/palette_editor.cc
   cli/tui/command_palette.cc
   cli/tui/chat_tui.cc
   cli/service/testing/test_suite_loader.cc
@@ -158,7 +157,8 @@ if(YAZE_WITH_GRPC)
   
   # Generate C++ code from .proto using the helper function from cmake/grpc.cmake
   target_add_protobuf(z3ed 
-    ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+    ${CMAKE_SOURCE_DIR}/src/protos/imgui_test_harness.proto
+    ${CMAKE_SOURCE_DIR}/src/protos/canvas_automation.proto)
   
   # Add CLI gRPC service sources
   target_sources(z3ed PRIVATE

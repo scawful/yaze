@@ -157,7 +157,8 @@ endif()
 if(YAZE_WITH_GRPC)
   # Generate proto files for yaze_agent
   target_add_protobuf(yaze_agent
-    ${PROJECT_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+    ${PROJECT_SOURCE_DIR}/src/protos/imgui_test_harness.proto
+    ${PROJECT_SOURCE_DIR}/src/protos/canvas_automation.proto)
   
   target_link_libraries(yaze_agent PUBLIC
     grpc++
