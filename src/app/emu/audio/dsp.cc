@@ -123,6 +123,7 @@ void Dsp::Reset() {
   memset(firBufferR, 0, sizeof(firBufferR));
   memset(sampleBuffer, 0, sizeof(sampleBuffer));
   sampleOffset = 0;
+  lastFrameBoundary = 0;
 }
 
 void Dsp::NewFrame() {
@@ -146,9 +147,10 @@ void Dsp::Cycle() {
     sampleOutL = 0;
     sampleOutR = 0;
   }
-  // put final sample in the samplebuffer
+  // put final sample in the ring buffer and advance pointer
   sampleBuffer[(sampleOffset & 0x3ff) * 2] = sampleOutL;
-  sampleBuffer[(sampleOffset++ & 0x3ff) * 2 + 1] = sampleOutR;
+  sampleBuffer[(sampleOffset & 0x3ff) * 2 + 1] = sampleOutR;
+  sampleOffset = (sampleOffset + 1) & 0x3ff;
 }
 
 static int clamp16(int val) {
@@ -616,14 +618,18 @@ void Dsp::Write(uint8_t adr, uint8_t val) {
 
 void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
                      bool pal_timing) {
-  // resample from 534 / 641 samples per frame to wanted value
-  float wantedSamples = (pal_timing ? 641.0 : 534.0);
-  double adder = wantedSamples / samples_per_frame;
-  double location = lastFrameBoundary - wantedSamples;
+  // Resample from native samples-per-frame (NTSC: ~534, PAL: ~641)
+  const double native_per_frame = pal_timing ? 641.0 : 534.0;
+  const double step = native_per_frame / static_cast<double>(samples_per_frame);
+  // Start reading one native frame behind the frame boundary
+  double location = static_cast<double>((lastFrameBoundary + 0x400) & 0x3ff);
+  location -= native_per_frame;
+
   for (int i = 0; i < samples_per_frame; i++) {
-    sample_data[i * 2] = sample_buffer_[(((int)location) & 0x3ff) * 2];
-    sample_data[i * 2 + 1] = sample_buffer_[(((int)location) & 0x3ff) * 2 + 1];
-    location += adder;
+    const int idx = static_cast<int>(location) & 0x3ff;
+    sample_data[(i * 2) + 0] = sampleBuffer[(idx * 2) + 0];
+    sample_data[(i * 2) + 1] = sampleBuffer[(idx * 2) + 1];
+    location += step;
   }
 }
 

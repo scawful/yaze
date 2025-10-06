@@ -8,6 +8,7 @@
 
 #include "app/core/features.h"
 #include "app/emu/cpu/internal/opcodes.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace emu {
@@ -55,15 +56,31 @@ void Cpu::RunOpcode() {
     SetFlags(status);  // updates x and m flags, clears
                        // upper half of x and y if needed
     PB = 0;
-    PC = ReadWord(0xfffc, 0xfffd);
+    
+    // Debug: Log reset vector read
+    uint8_t low_byte = ReadByte(0xfffc);
+    uint8_t high_byte = ReadByte(0xfffd);
+    PC = low_byte | (high_byte << 8);
+    LOG_INFO("CPU", "Reset vector: $FFFC=$%02X $FFFD=$%02X -> PC=$%04X", 
+             low_byte, high_byte, PC);
     return;
   }
   if (stopped_) {
+    static int stopped_log_count = 0;
+    if (stopped_log_count++ < 5) {
+      LOG_WARN("CPU", "CPU is STOPPED at $%02X:%04X (STP instruction executed)", PB, PC);
+    }
     callbacks_.idle(true);
     return;
   }
   if (waiting_) {
+    static int waiting_log_count = 0;
+    if (waiting_log_count++ < 5) {
+      LOG_WARN("CPU", "CPU is WAITING at $%02X:%04X - irq_wanted=%d nmi_wanted=%d int_flag=%d", 
+               PB, PC, irq_wanted_, nmi_wanted_, GetInterruptFlag());
+    }
     if (irq_wanted_ || nmi_wanted_) {
+      LOG_INFO("CPU", "CPU waking from WAIT - irq=%d nmi=%d", irq_wanted_, nmi_wanted_);
       waiting_ = false;
       callbacks_.idle(false);
       CheckInt();
@@ -80,6 +97,40 @@ void Cpu::RunOpcode() {
     DoInterrupt();
   } else {
     uint8_t opcode = ReadOpcode();
+    
+    // Debug: Log key instructions during boot
+    static int instruction_count = 0;
+    instruction_count++;
+    
+    // Log first 500 fully, then every 10th until 3000, then stop
+    bool should_log = (instruction_count < 500) || 
+                      (instruction_count < 3000 && instruction_count % 10 == 0);
+    
+    if (should_log) {
+      LOG_INFO("CPU", "Exec #%d: $%02X:%04X opcode=$%02X", 
+               instruction_count, PB, PC - 1, opcode);
+    }
+    
+    // Debug: Log if stuck at same PC for extended period (after first 200 instructions)
+    static uint16_t last_stuck_pc = 0xFFFF;
+    static int stuck_count = 0;
+    if (instruction_count >= 200) {
+      if (PC - 1 == last_stuck_pc) {
+        stuck_count++;
+        if (stuck_count == 100 || stuck_count == 1000 || stuck_count == 10000) {
+          LOG_WARN("CPU", "Stuck at $%02X:%04X opcode=$%02X for %d iterations",
+                   PB, PC - 1, opcode, stuck_count);
+        }
+      } else {
+        if (stuck_count > 50) {
+          LOG_INFO("CPU", "Moved from $%02X:%04X (was stuck %d times) to $%02X:%04X",
+                   PB, last_stuck_pc, stuck_count, PB, PC - 1);
+        }
+        stuck_count = 0;
+        last_stuck_pc = PC - 1;
+      }
+    }
+    
     ExecuteInstruction(opcode);
   }
 }
@@ -1831,6 +1882,9 @@ void Cpu::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
 
     InstructionEntry entry(PC, opcode, ops, oss.str());
     instruction_log_.push_back(entry);
+    // Also emit to the central logger for user/agent-controlled sinks.
+    util::LogManager::instance().log(util::LogLevel::YAZE_DEBUG, "CPU",
+                                     oss.str());
   } else {
     // Log the address and opcode.
     std::cout << "\033[1;36m"

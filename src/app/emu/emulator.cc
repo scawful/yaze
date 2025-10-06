@@ -46,9 +46,9 @@ using ImGui::Separator;
 using ImGui::TableNextColumn;
 using ImGui::Text;
 
-void Emulator::Run() {
+void Emulator::Run(Rom* rom) {
   static bool loaded = false;
-  if (!snes_.running() && rom()->is_loaded()) {
+  if (!snes_.running() && rom->is_loaded()) {
     ppu_texture_ = SDL_CreateTexture(core::Renderer::Get().renderer(),
                                      SDL_PIXELFORMAT_ARGB8888,
                                      SDL_TEXTUREACCESS_STREAMING, 512, 480);
@@ -56,7 +56,7 @@ void Emulator::Run() {
       printf("Failed to create texture: %s\n", SDL_GetError());
       return;
     }
-    rom_data_ = rom()->vector();
+    rom_data_ = rom->vector();
     snes_.Init(rom_data_);
     wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
     wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);

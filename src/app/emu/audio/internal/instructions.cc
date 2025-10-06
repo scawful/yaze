@@ -1,4 +1,5 @@
 #include "app/emu/audio/spc700.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace emu {
@@ -18,22 +19,30 @@ void Spc700::MOVY(uint16_t adr) {
 }
 
 void Spc700::MOVS(uint16_t adr) {
+  static int movs_log = 0;
+  // Log all MOVS to F4 port
+  if (adr == 0x00F4 || movs_log++ < 20) {
+    LOG_INFO("SPC", "MOVS BEFORE: bstep=%d adr=$%04X A=$%02X", bstep, adr, A);
+  }
   switch (bstep) {
-    case 0: read(adr); break;
+    case 0: read(adr); bstep++; break;
     case 1: write(adr, A); bstep = 0; break;
+  }
+  if (adr == 0x00F4 || movs_log < 20) {
+    LOG_INFO("SPC", "MOVS AFTER: bstep=%d", bstep);
   }
 }
 
 void Spc700::MOVSX(uint16_t adr) {
   switch (bstep) {
-    case 0: read(adr); break;
+    case 0: read(adr); bstep++; break;
     case 1: write(adr, X); bstep = 0; break;
   }
 }
 
 void Spc700::MOVSY(uint16_t adr) {
   switch (bstep) {
-    case 0: read(adr); break;
+    case 0: read(adr); bstep++; break;
     case 1: write(adr, Y); bstep = 0; break;
   }
 }

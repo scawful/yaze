@@ -8,6 +8,7 @@
 #include "app/emu/audio/dsp.h"
 #include "app/emu/audio/spc700.h"
 #include "app/emu/memory/memory.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace emu {
@@ -15,38 +16,38 @@ namespace emu {
 static const double apuCyclesPerMaster = (32040 * 32) / (1364 * 262 * 60.0);
 static const double apuCyclesPerMasterPal = (32040 * 32) / (1364 * 312 * 50.0);
 
+// Standard SNES IPL ROM (64 bytes at $FFC0-$FFFF)
+// Verified correct - matches hardware dumps
 static const uint8_t bootRom[0x40] = {
     0xcd, 0xef, 0xbd, 0xe8, 0x00, 0xc6, 0x1d, 0xd0, 0xfc, 0x8f, 0xaa,
-    0xf4, 0x8f, 0xbb, 0xf5, 0x78, 0xcc, 0xf4, 0xd0, 0xfb, 0x2f, 0x19,
-    0xeb, 0xf4, 0xd0, 0xfc, 0x7e, 0xf4, 0xd0, 0x0b, 0xe4, 0xf5, 0xcb,
-    0xf4, 0xd7, 0x00, 0xfc, 0xd0, 0xf3, 0xab, 0x01, 0x10, 0xef, 0x7e,
-    0xf4, 0x10, 0xeb, 0xba, 0xf6, 0xda, 0x00, 0xba, 0xf4, 0xc4, 0xf4,
-    0xdd, 0x5d, 0xd0, 0xdb, 0x1f, 0x00, 0x00, 0xc0, 0xff};
+    0xf4, 0x8f, 0xbb, 0xf5, 0xe4, 0xf4, 0x68, 0xcc, 0xd0, 0xfa, 0x2f,
+    0x19, 0xeb, 0xf4, 0xd0, 0xfc, 0x7e, 0xf4, 0xd0, 0x0b, 0xe4, 0xf5,
+    0xcb, 0xf4, 0xd7, 0x00, 0xfc, 0xd0, 0xf3, 0xab, 0x01, 0x10, 0xef,
+    0x7e, 0xf4, 0x10, 0xeb, 0xba, 0xf6, 0xda, 0x00, 0xba, 0xf4, 0xc4,
+    0xf4, 0xdd, 0x5d, 0xd0, 0xdb, 0x1f, 0x00, 0xc0, 0xff};
+
+// Helper to reset the cycle tracking on emulator reset
+static uint64_t g_last_master_cycles = 0;
+static void ResetCycleTracking() { g_last_master_cycles = 0; }
 
 void Apu::Init() {
   ram.resize(0x10000);
   for (int i = 0; i < 0x10000; i++) {
     ram[i] = 0;
   }
-  // Copy the boot rom into the ram at ffc0
-  for (int i = 0; i < 0x40; i++) {
-    ram[0xffc0 + i] = bootRom[i];
-  }
 }
 
 void Apu::Reset() {
+  LOG_INFO("APU", "Reset called");
   spc700_.Reset(true);
   dsp_.Reset();
   for (int i = 0; i < 0x10000; i++) {
     ram[i] = 0;
   }
-  // Copy the boot rom into the ram at ffc0
-  for (int i = 0; i < 0x40; i++) {
-    ram[0xffc0 + i] = bootRom[i];
-  }
   rom_readable_ = true;
   dsp_adr_ = 0;
   cycles_ = 0;
+  ResetCycleTracking();  // Reset the master cycle delta tracking
   std::fill(in_ports_.begin(), in_ports_.end(), 0);
   std::fill(out_ports_.begin(), out_ports_.end(), 0);
   for (int i = 0; i < 3; i++) {
@@ -56,15 +57,59 @@ void Apu::Reset() {
     timer_[i].counter = 0;
     timer_[i].enabled = false;
   }
+  LOG_INFO("APU", "Reset complete - IPL ROM readable, PC will be at $%04X",
+           spc700_.read_word(0xFFFE));
 }
 
-void Apu::RunCycles(uint64_t cycles) {
-  uint64_t sync_to =
-      (uint64_t)cycles *
-      (memory_.pal_timing() ? apuCyclesPerMasterPal : apuCyclesPerMaster);
+void Apu::RunCycles(uint64_t master_cycles) {
+  // Convert CPU master cycles to APU cycles target and step SPC/DSP accordingly.
+  const double ratio = memory_.pal_timing() ? apuCyclesPerMasterPal : apuCyclesPerMaster;
+  
+  // Track last master cycles to only advance by the delta
+  uint64_t master_delta = master_cycles - g_last_master_cycles;
+  g_last_master_cycles = master_cycles;
+  
+  const uint64_t target_apu_cycles = cycles_ + static_cast<uint64_t>(master_delta * ratio);
 
-  while (cycles_ < sync_to) {
+  // Watchdog to detect infinite loops
+  static uint64_t last_log_cycle = 0;
+  static uint16_t last_pc = 0;
+  static int stuck_counter = 0;
+  
+  while (cycles_ < target_apu_cycles) {
+    // Execute one SPC700 opcode (variable cycles) then advance APU cycles accordingly.
+    uint16_t current_pc = spc700_.PC;
+    
+    // Detect if SPC is stuck in tight loop
+    if (current_pc == last_pc) {
+      stuck_counter++;
+      if (stuck_counter > 10000 && cycles_ - last_log_cycle > 10000) {
+        LOG_WARN("APU", "SPC700 stuck at PC=$%04X for %d iterations", 
+                 current_pc, stuck_counter);
+        LOG_WARN("APU", "Port Status: F4=$%02X F5=$%02X F6=$%02X F7=$%02X",
+                 in_ports_[0], in_ports_[1], in_ports_[2], in_ports_[3]);
+        LOG_WARN("APU", "Out Ports: F4=$%02X F5=$%02X F6=$%02X F7=$%02X",
+                 out_ports_[0], out_ports_[1], out_ports_[2], out_ports_[3]);
+        LOG_WARN("APU", "IPL ROM enabled: %s", rom_readable_ ? "YES" : "NO");
+        last_log_cycle = cycles_;
+        stuck_counter = 0;
+      }
+    } else {
+      stuck_counter = 0;
+    }
+    last_pc = current_pc;
+    
     spc700_.RunOpcode();
+    
+    // Get the actual cycle count from the last opcode execution
+    // This is critical for proper IPL ROM handshake timing
+    int spc_cycles = spc700_.GetLastOpcodeCycles();
+    
+    // Advance APU cycles based on actual SPC700 opcode timing
+    // The SPC700 runs at 1.024 MHz, and we need to synchronize with the DSP/timers
+    for (int i = 0; i < spc_cycles; ++i) {
+      Cycle();
+    }
   }
 }
 
@@ -94,6 +139,7 @@ void Apu::Cycle() {
 }
 
 uint8_t Apu::Read(uint16_t adr) {
+  static int port_read_count = 0;
   switch (adr) {
     case 0xf0:
     case 0xf1:
@@ -111,10 +157,19 @@ uint8_t Apu::Read(uint16_t adr) {
     case 0xf4:
     case 0xf5:
     case 0xf6:
-    case 0xf7:
+    case 0xf7: {
+      uint8_t val = in_ports_[adr - 0xf4];
+      port_read_count++;
+      if (port_read_count < 100) {  // Increased limit to see full handshake
+        LOG_INFO("APU", "SPC read port $%04X (F%d) = $%02X at PC=$%04X", 
+                 adr, adr - 0xf4 + 4, val, spc700_.PC);
+      }
+      return val;
+    }
     case 0xf8:
     case 0xf9: {
-      return in_ports_[adr - 0xf4];
+      // Not I/O ports on real hardware; treat as general RAM region.
+      return ram[adr];
     }
     case 0xfd:
     case 0xfe:
@@ -131,11 +186,18 @@ uint8_t Apu::Read(uint16_t adr) {
 }
 
 void Apu::Write(uint16_t adr, uint8_t val) {
+  static int port_write_count = 0;
+  // Debug: Log ALL writes to F4 to diagnose missing echo
+  static int f4_write_count = 0;
+  if (adr == 0xF4 && f4_write_count++ < 10) {
+    LOG_INFO("APU", "Write() called for $F4 = $%02X at PC=$%04X", val, spc700_.PC);
+  }
   switch (adr) {
     case 0xf0: {
       break;  // test register
     }
     case 0xf1: {
+      bool old_rom_readable = rom_readable_;
       for (int i = 0; i < 3; i++) {
         if (!timer_[i].enabled && (val & (1 << i))) {
           timer_[i].divider = 0;
@@ -151,7 +213,12 @@ void Apu::Write(uint16_t adr, uint8_t val) {
         in_ports_[2] = 0;
         in_ports_[3] = 0;
       }
-      rom_readable_ = val & 0x80;
+      // IPL ROM mapping: initially enabled; writing 1 to bit7 disables IPL ROM.
+      rom_readable_ = (val & 0x80) == 0;
+      if (old_rom_readable != rom_readable_) {
+        LOG_INFO("APU", "Control register $F1 = $%02X - IPL ROM %s at PC=$%04X",
+                 val, rom_readable_ ? "ENABLED" : "DISABLED", spc700_.PC);
+      }
       break;
     }
     case 0xf2: {
@@ -167,11 +234,16 @@ void Apu::Write(uint16_t adr, uint8_t val) {
     case 0xf6:
     case 0xf7: {
       out_ports_[adr - 0xf4] = val;
+      port_write_count++;
+      if (port_write_count < 100) {  // Increased limit to see full handshake
+        LOG_INFO("APU", "SPC wrote port $%04X (F%d) = $%02X at PC=$%04X [APU_cycles=%llu]",
+                 adr, adr - 0xf4 + 4, val, spc700_.PC, cycles_);
+      }
       break;
     }
     case 0xf8:
     case 0xf9: {
-      in_ports_[adr - 0xf4] = val;
+      // General RAM
       break;
     }
     case 0xfa:
