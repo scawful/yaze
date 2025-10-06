@@ -25,6 +25,7 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/tilemap.h"
 #include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas_automation_api.h"
 #include "app/gui/editor_layout.h"
 #include "app/gui/icons.h"
 #include "app/gui/style.h"
@@ -64,6 +65,9 @@ void OverworldEditor::Initialize() {
   // Initialize OverworldEntityRenderer for entity visualization
   entity_renderer_ = std::make_unique<OverworldEntityRenderer>(
       &overworld_, &ow_map_canvas_, &sprite_previews_);
+
+  // Setup Canvas Automation API callbacks (Phase 4)
+  SetupCanvasAutomation();
 
   // Note: Context menu is now setup dynamically in DrawOverworldCanvas()
   // for context-aware menu items based on current map state
@@ -283,43 +287,35 @@ void OverworldEditor::DrawToolset() {
   
   toolbar.Begin();
   
-  // Mode buttons (editing tools) - compact inline row
+  // Mode buttons - simplified to 2 modes
   toolbar.BeginModeGroup();
   
-  if (toolbar.ModeButton(ICON_MD_PAN_TOOL_ALT, current_mode == EditingMode::PAN, "Pan (1)")) {
-    current_mode = EditingMode::PAN;
-    ow_map_canvas_.set_draggable(true);
+  if (toolbar.ModeButton(ICON_MD_MOUSE, current_mode == EditingMode::MOUSE, "Mouse Mode (1)\nNavigate, pan, and manage entities")) {
+    current_mode = EditingMode::MOUSE;
   }
   
-  if (toolbar.ModeButton(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE, "Draw (2)")) {
+  if (toolbar.ModeButton(ICON_MD_DRAW, current_mode == EditingMode::DRAW_TILE, "Tile Paint Mode (2)\nDraw tiles on the map")) {
     current_mode = EditingMode::DRAW_TILE;
   }
   
-  if (toolbar.ModeButton(ICON_MD_DOOR_FRONT, current_mode == EditingMode::ENTRANCES, "Entrances (3)")) {
-    current_mode = EditingMode::ENTRANCES;
-  }
-  
-  if (toolbar.ModeButton(ICON_MD_DOOR_BACK, current_mode == EditingMode::EXITS, "Exits (4)")) {
-    current_mode = EditingMode::EXITS;
-  }
-  
-  if (toolbar.ModeButton(ICON_MD_GRASS, current_mode == EditingMode::ITEMS, "Items (5)")) {
-    current_mode = EditingMode::ITEMS;
-  }
-  
-  if (toolbar.ModeButton(ICON_MD_PEST_CONTROL_RODENT, current_mode == EditingMode::SPRITES, "Sprites (6)")) {
-    current_mode = EditingMode::SPRITES;
-  }
-  
-  if (toolbar.ModeButton(ICON_MD_ADD_LOCATION, current_mode == EditingMode::TRANSPORTS, "Transports (7)")) {
-    current_mode = EditingMode::TRANSPORTS;
-  }
-  
-  if (toolbar.ModeButton(ICON_MD_MUSIC_NOTE, current_mode == EditingMode::MUSIC, "Music (8)")) {
-    current_mode = EditingMode::MUSIC;
-  }
-  
   toolbar.EndModeGroup();
+  
+  // Entity editing indicator (shows current entity mode if active)
+  if (entity_edit_mode_ != EntityEditMode::NONE) {
+    toolbar.AddSeparator();
+    const char* entity_label = "";
+    const char* entity_icon = "";
+    switch (entity_edit_mode_) {
+      case EntityEditMode::ENTRANCES: entity_icon = ICON_MD_DOOR_FRONT; entity_label = "Entrances"; break;
+      case EntityEditMode::EXITS: entity_icon = ICON_MD_DOOR_BACK; entity_label = "Exits"; break;
+      case EntityEditMode::ITEMS: entity_icon = ICON_MD_GRASS; entity_label = "Items"; break;
+      case EntityEditMode::SPRITES: entity_icon = ICON_MD_PEST_CONTROL_RODENT; entity_label = "Sprites"; break;
+      case EntityEditMode::TRANSPORTS: entity_icon = ICON_MD_ADD_LOCATION; entity_label = "Transports"; break;
+      case EntityEditMode::MUSIC: entity_icon = ICON_MD_MUSIC_NOTE; entity_label = "Music"; break;
+      default: break;
+    }
+    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s Editing: %s", entity_icon, entity_label);
+  }
   
   // ROM version badge (already read above)
   toolbar.AddRomBadge(asm_version, [this]() {
@@ -467,23 +463,32 @@ void OverworldEditor::DrawToolset() {
   if (!ImGui::IsAnyItemActive()) {
     using enum EditingMode;
 
-    // Tool shortcuts
+    // Tool shortcuts (simplified)
     if (ImGui::IsKeyDown(ImGuiKey_1)) {
-      current_mode = PAN;
+      current_mode = EditingMode::MOUSE;
     } else if (ImGui::IsKeyDown(ImGuiKey_2)) {
-      current_mode = DRAW_TILE;
-    } else if (ImGui::IsKeyDown(ImGuiKey_3)) {
-      current_mode = ENTRANCES;
+      current_mode = EditingMode::DRAW_TILE;
+    }
+    
+    // Entity editing shortcuts (3-8)
+    if (ImGui::IsKeyDown(ImGuiKey_3)) {
+      entity_edit_mode_ = EntityEditMode::ENTRANCES;
+      current_mode = EditingMode::MOUSE;
     } else if (ImGui::IsKeyDown(ImGuiKey_4)) {
-      current_mode = EXITS;
+      entity_edit_mode_ = EntityEditMode::EXITS;
+      current_mode = EditingMode::MOUSE;
     } else if (ImGui::IsKeyDown(ImGuiKey_5)) {
-      current_mode = ITEMS;
+      entity_edit_mode_ = EntityEditMode::ITEMS;
+      current_mode = EditingMode::MOUSE;
     } else if (ImGui::IsKeyDown(ImGuiKey_6)) {
-      current_mode = SPRITES;
+      entity_edit_mode_ = EntityEditMode::SPRITES;
+      current_mode = EditingMode::MOUSE;
     } else if (ImGui::IsKeyDown(ImGuiKey_7)) {
-      current_mode = TRANSPORTS;
+      entity_edit_mode_ = EntityEditMode::TRANSPORTS;
+      current_mode = EditingMode::MOUSE;
     } else if (ImGui::IsKeyDown(ImGuiKey_8)) {
-      current_mode = MUSIC;
+      entity_edit_mode_ = EntityEditMode::MUSIC;
+      current_mode = EditingMode::MOUSE;
     }
 
     // View shortcuts
@@ -514,9 +519,9 @@ void OverworldEditor::DrawOverworldMaps() {
       continue;  // Skip invalid map index
     }
 
-    int scale = static_cast<int>(ow_map_canvas_.global_scale());
-    int map_x = (xx * kOverworldMapSize * scale);
-    int map_y = (yy * kOverworldMapSize * scale);
+    // Don't apply scale to coordinates - scale is applied to canvas rendering
+    int map_x = xx * kOverworldMapSize;
+    int map_y = yy * kOverworldMapSize;
 
     // Check if the map has a texture, if not, ensure it gets loaded
     if (!maps_bmp_[world_index].texture() &&
@@ -526,8 +531,8 @@ void OverworldEditor::DrawOverworldMaps() {
 
     // Only draw if the map has a texture or is the currently selected map
     if (maps_bmp_[world_index].texture() || world_index == current_map_) {
-      ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y,
-                                ow_map_canvas_.global_scale());
+      // Draw without applying scale here - canvas handles zoom uniformly
+      ow_map_canvas_.DrawBitmap(maps_bmp_[world_index], map_x, map_y, 1.0f);
     } else {
       // Draw a placeholder for maps that haven't loaded yet
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -535,7 +540,7 @@ void OverworldEditor::DrawOverworldMaps() {
       ImVec2 placeholder_pos =
           ImVec2(canvas_pos.x + map_x, canvas_pos.y + map_y);
       ImVec2 placeholder_size =
-          ImVec2(kOverworldMapSize * scale, kOverworldMapSize * scale);
+          ImVec2(kOverworldMapSize, kOverworldMapSize);
 
       // Modern loading indicator with theme colors
       draw_list->AddRectFilled(
@@ -1120,13 +1125,9 @@ ImVec2 ClampScrollPosition(ImVec2 scroll, ImVec2 content_size, ImVec2 visible_si
 }  // namespace
 
 void OverworldEditor::HandleOverworldPan() {
-  // Middle mouse button panning
-  if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle)) {
-    if (!middle_mouse_dragging_) {
-      previous_mode = current_mode;
-      current_mode = EditingMode::PAN;
-      middle_mouse_dragging_ = true;
-    }
+  // Middle mouse button panning (works in all modes)
+  if (ImGui::IsMouseDragging(ImGuiMouseButton_Middle) && ImGui::IsItemHovered()) {
+    middle_mouse_dragging_ = true;
     
     // Get mouse delta and apply to scroll
     ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
@@ -1145,10 +1146,26 @@ void OverworldEditor::HandleOverworldPan() {
   }
   
   if (ImGui::IsMouseReleased(ImGuiMouseButton_Middle) && middle_mouse_dragging_) {
-    current_mode = previous_mode;
     middle_mouse_dragging_ = false;
   }
   
+  // In MOUSE mode, left-click drag also pans
+  if (current_mode == EditingMode::MOUSE &&
+      ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ImGui::IsItemHovered()) {
+    ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
+    ImVec2 current_scroll = ow_map_canvas_.scrolling();
+    ImVec2 new_scroll = ImVec2(
+        current_scroll.x + mouse_delta.x,
+        current_scroll.y + mouse_delta.y
+    );
+    
+    // Clamp scroll to boundaries
+    ImVec2 content_size = CalculateOverworldContentSize(ow_map_canvas_.global_scale());
+    ImVec2 visible_size = ow_map_canvas_.canvas_size();
+    new_scroll = ClampScrollPosition(new_scroll, content_size, visible_size);
+    
+    ow_map_canvas_.set_scrolling(new_scroll);
+  }
 }
 
 void OverworldEditor::HandleOverworldZoom() {
@@ -1247,30 +1264,15 @@ void OverworldEditor::DrawOverworldCanvas() {
         show_overlay_editor_);
   }
 
-  // Handle pan and zoom
+  // Handle pan and zoom (works in all modes)
   HandleOverworldPan();
   HandleOverworldZoom();
   
-  if (current_mode == EditingMode::PAN) {
-    // In PAN mode, allow right-click drag for panning
-    if (ImGui::IsMouseDragging(ImGuiMouseButton_Right) && ImGui::IsItemHovered()) {
-      ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
-      ImVec2 current_scroll = ow_map_canvas_.scrolling();
-      ImVec2 new_scroll = ImVec2(
-          current_scroll.x + mouse_delta.x,
-          current_scroll.y + mouse_delta.y
-      );
-      
-      // Clamp scroll to boundaries
-      ImVec2 content_size = CalculateOverworldContentSize(ow_map_canvas_.global_scale());
-      ImVec2 visible_size = ow_map_canvas_.canvas_size();
-      new_scroll = ClampScrollPosition(new_scroll, content_size, visible_size);
-      
-      ow_map_canvas_.set_scrolling(new_scroll);
-    }
+  // Context menu only in MOUSE mode
+  if (current_mode == EditingMode::MOUSE) {
     ow_map_canvas_.DrawContextMenu();
-  } else {
-    // Handle map interaction (tile painting, etc.)
+  } else if (current_mode == EditingMode::DRAW_TILE) {
+    // Tile painting mode - handle tile edits and right-click tile picking
     HandleMapInteraction();
   }
 
@@ -1281,13 +1283,14 @@ void OverworldEditor::DrawOverworldCanvas() {
     entity_renderer_->set_current_map(current_map_);
     
     // Draw all entities using the entity renderer
-    int mode_int = static_cast<int>(current_mode);
+    // Convert entity_edit_mode_ to legacy mode int for entity renderer
+    int entity_mode_int = static_cast<int>(entity_edit_mode_);
     entity_renderer_->DrawExits(ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling(),
-                               current_world_, mode_int);
+                               current_world_, entity_mode_int);
     entity_renderer_->DrawEntrances(ow_map_canvas_.zero_point(), ow_map_canvas_.scrolling(),
-                                   current_world_, mode_int);
-    entity_renderer_->DrawItems(current_world_, mode_int);
-    entity_renderer_->DrawSprites(current_world_, game_state_, mode_int);
+                                   current_world_, entity_mode_int);
+    entity_renderer_->DrawItems(current_world_, entity_mode_int);
+    entity_renderer_->DrawSprites(current_world_, game_state_, entity_mode_int);
     
     // Check if entity renderer wants to jump to a tab (e.g., double-clicked entrance/exit)
     if (entity_renderer_->jump_to_tab() != -1) {
@@ -2643,6 +2646,69 @@ void OverworldEditor::UpdateBlocksetSelectorState() {
 
   blockset_selector_->SetTileCount(zelda3::kNumTile16Individual);
   blockset_selector_->SetSelectedTile(current_tile16_);
+}
+
+// ============================================================================
+// Canvas Automation API Integration (Phase 4)
+// ============================================================================
+
+void OverworldEditor::SetupCanvasAutomation() {
+  auto* api = ow_map_canvas_.GetAutomationAPI();
+  
+  // Set tile paint callback
+  api->SetTilePaintCallback([this](int x, int y, int tile_id) {
+    return AutomationSetTile(x, y, tile_id);
+  });
+  
+  // Set tile query callback
+  api->SetTileQueryCallback([this](int x, int y) {
+    return AutomationGetTile(x, y);
+  });
+}
+
+bool OverworldEditor::AutomationSetTile(int x, int y, int tile_id) {
+  if (!overworld_.is_loaded()) {
+    return false;
+  }
+  
+  // Bounds check
+  if (x < 0 || y < 0 || x >= 512 || y >= 512) {
+    return false;
+  }
+  
+  // Set current world based on current_map_
+  overworld_.set_current_world(current_world_);
+  overworld_.set_current_map(current_map_);
+  
+  // Set the tile in the overworld data structure
+  overworld_.SetTile(x, y, static_cast<uint16_t>(tile_id));
+  
+  // Update the bitmap
+  auto tile_data = gfx::GetTilemapData(tile16_blockset_, tile_id);
+  if (!tile_data.empty()) {
+    RenderUpdatedMapBitmap(ImVec2(static_cast<float>(x * 16),
+                                   static_cast<float>(y * 16)), tile_data);
+    return true;
+  }
+  
+  return false;
+}
+
+int OverworldEditor::AutomationGetTile(int x, int y) {
+  if (!overworld_.is_loaded()) {
+    return -1;
+  }
+  
+  // Bounds check
+  if (x < 0 || y < 0 || x >= 512 || y >= 512) {
+    return -1;
+  }
+  
+  // Set current world
+  overworld_.set_current_world(current_world_);
+  overworld_.set_current_map(current_map_);
+  
+  return overworld_.GetTile(x, y);
 }
 
 }  // namespace yaze::editor
