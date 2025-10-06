@@ -59,10 +59,10 @@ void Spc700::RunOpcode() {
     bool in_critical_range = (PC >= 0xFFCF && PC <= 0xFFFF);
     bool is_transfer_loop = (PC >= 0xFFDB && PC <= 0xFFEB);
     
-    if (in_critical_range && spc_exec_count++ < 200) {
+    if (in_critical_range && spc_exec_count++ < 10) {
       LOG_INFO("SPC", "Execute: PC=$%04X step=0 bstep=%d Y=%02X A=%02X", PC, bstep, Y, A);
     }
-    if (is_transfer_loop && spc_exec_count < 500) {
+    if (is_transfer_loop && spc_exec_count < 20) {
       // Read ports to log transfer state
       uint8_t f4_val = callbacks_.read(0xF4);
       uint8_t f5_val = callbacks_.read(0xF5);
