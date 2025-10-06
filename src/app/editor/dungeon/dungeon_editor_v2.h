@@ -12,6 +12,7 @@
 #include "dungeon_room_loader.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/dungeon/room_entrance.h"
+#include "app/gui/editor_layout.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -79,6 +80,7 @@ class DungeonEditorV2 : public Editor {
   // Simple UI layout
   void DrawLayout();
   void DrawRoomTab(int room_id);
+  void DrawToolset();
   
   // Room selection callback
   void OnRoomSelected(int room_id);

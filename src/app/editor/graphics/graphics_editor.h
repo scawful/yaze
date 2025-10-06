@@ -9,6 +9,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
+#include "app/gui/editor_layout.h"
 #include "app/gui/modules/asset_browser.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
@@ -105,7 +106,7 @@ class GraphicsEditor : public Editor {
   absl::Status DrawTilemapImport();
 
   // Other Functions
-  absl::Status DrawToolset();
+  void DrawToolset();
   absl::Status DrawPaletteControls();
   absl::Status DrawClipboardImport();
   absl::Status DrawExperimentalFeatures();
@@ -115,6 +116,12 @@ class GraphicsEditor : public Editor {
   absl::Status DecompressSuperDonkey();
 
   // Member Variables
+  // Card visibility
+  bool show_sheet_editor_ = true;
+  bool show_sheet_browser_ = false;
+  bool show_player_animations_ = false;
+  bool show_prototype_viewer_ = false;
+
   ImVec4 current_color_;
   uint16_t current_sheet_ = 0;
   uint8_t tile_size_ = 0x01;

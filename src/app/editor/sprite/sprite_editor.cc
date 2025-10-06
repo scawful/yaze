@@ -1,6 +1,7 @@
 #include "sprite_editor.h"
 
 #include "app/gfx/performance_profiler.h"
+#include "gui/ui_helpers.h"
 #include "util/file_util.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/gfx/arena.h"
@@ -36,20 +37,39 @@ absl::Status SpriteEditor::Update() {
     sheets_loaded_ = true;
   }
 
-  if (ImGui::BeginTabBar("##SpriteEditorTabs")) {
-    if (ImGui::BeginTabItem("Vanilla")) {
-      DrawVanillaSpriteEditor();
-      ImGui::EndTabItem();
-    }
-    if (ImGui::BeginTabItem("Custom")) {
-      DrawCustomSprites();
-      ImGui::EndTabItem();
-    }
-    ImGui::EndTabBar();
+  DrawToolset();
+  gui::VerticalSpacing(2.0f);
+
+  static gui::EditorCard vanilla_card("Vanilla Sprites", ICON_MD_PEST_CONTROL_RODENT);
+  static gui::EditorCard custom_card("Custom Sprites", ICON_MD_ADD_MODERATOR);
+
+  if (show_vanilla_editor_ && vanilla_card.Begin(&show_vanilla_editor_)) {
+    DrawVanillaSpriteEditor();
+    vanilla_card.End();
+  }
+
+  if (show_custom_editor_ && custom_card.Begin(&show_custom_editor_)) {
+    DrawCustomSprites();
+    custom_card.End();
   }
 
   return status_.ok() ? absl::OkStatus() : status_;
 }
+
+void SpriteEditor::DrawToolset() {
+  static gui::Toolset toolbar;
+  toolbar.Begin();
+
+  if (toolbar.AddAction(ICON_MD_PEST_CONTROL_RODENT, "Vanilla Sprites")) {
+    show_vanilla_editor_ = !show_vanilla_editor_;
+  }
+  if (toolbar.AddAction(ICON_MD_ADD_MODERATOR, "Custom Sprites")) {
+    show_custom_editor_ = !show_custom_editor_;
+  }
+
+  toolbar.End();
+}
+
 
 void SpriteEditor::DrawVanillaSpriteEditor() {
   if (ImGui::BeginTable("##SpriteCanvasTable", 3, ImGuiTableFlags_Resizable,

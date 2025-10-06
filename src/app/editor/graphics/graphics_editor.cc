@@ -5,6 +5,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "gui/ui_helpers.h"
 #include "util/file_util.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
@@ -47,25 +48,63 @@ void GraphicsEditor::Initialize() {}
 absl::Status GraphicsEditor::Load() { return absl::OkStatus(); }
 
 absl::Status GraphicsEditor::Update() {
-  if (ImGui::BeginTabBar("##TabBar")) {
+  DrawToolset();
+  gui::VerticalSpacing(2.0f);
+
+  static gui::EditorCard sheet_editor_card("Sheet Editor", ICON_MD_EDIT);
+  static gui::EditorCard sheet_browser_card("Sheet Browser", ICON_MD_VIEW_LIST);
+  static gui::EditorCard player_anims_card("Player Animations", ICON_MD_PERSON);
+  static gui::EditorCard prototype_card("Prototype Viewer", ICON_MD_CONSTRUCTION);
+
+  if (show_sheet_editor_ && sheet_editor_card.Begin(&show_sheet_editor_)) {
     status_ = UpdateGfxEdit();
-    if (ImGui::BeginTabItem("Sheet Browser")) {
-      if (asset_browser_.Initialized == false) {
-        asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
-      }
-      asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
-      ImGui::EndTabItem();
-    }
-    status_ = UpdateScadView();
-    status_ = UpdateLinkGfxView();
-    ImGui::EndTabBar();
+    sheet_editor_card.End();
   }
+
+  if (show_sheet_browser_ && sheet_browser_card.Begin(&show_sheet_browser_)) {
+    if (asset_browser_.Initialized == false) {
+      asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
+    }
+    asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
+    sheet_browser_card.End();
+  }
+
+  if (show_player_animations_ && player_anims_card.Begin(&show_player_animations_)) {
+    status_ = UpdateLinkGfxView();
+    player_anims_card.End();
+  }
+
+  if (show_prototype_viewer_ && prototype_card.Begin(&show_prototype_viewer_)) {
+    status_ = UpdateScadView();
+    prototype_card.End();
+  }
+
   CLEAR_AND_RETURN_STATUS(status_)
   return absl::OkStatus();
 }
 
+void GraphicsEditor::DrawToolset() {
+  static gui::Toolset toolbar;
+  toolbar.Begin();
+
+  if (toolbar.AddAction(ICON_MD_EDIT, "Sheet Editor")) {
+    show_sheet_editor_ = !show_sheet_editor_;
+  }
+  if (toolbar.AddAction(ICON_MD_VIEW_LIST, "Sheet Browser")) {
+    show_sheet_browser_ = !show_sheet_browser_;
+  }
+  if (toolbar.AddAction(ICON_MD_PERSON, "Player Animations")) {
+    show_player_animations_ = !show_player_animations_;
+  }
+  if (toolbar.AddAction(ICON_MD_CONSTRUCTION, "Prototype Viewer")) {
+    show_prototype_viewer_ = !show_prototype_viewer_;
+  }
+
+  toolbar.End();
+}
+
+
 absl::Status GraphicsEditor::UpdateGfxEdit() {
-  if (ImGui::BeginTabItem("Sheet Editor")) {
     if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
                           ImVec2(0, 0))) {
       for (const auto& name :
@@ -89,8 +128,6 @@ absl::Status GraphicsEditor::UpdateGfxEdit() {
     }
     ImGui::EndTable();
 
-    ImGui::EndTabItem();
-  }
   return absl::OkStatus();
 }
 
@@ -405,8 +442,6 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
 }
 
 absl::Status GraphicsEditor::UpdateLinkGfxView() {
-  TAB_ITEM("Player Animations")
-
   if (ImGui::BeginTable("##PlayerAnimationTable", 3, kGfxEditTableFlags,
                         ImVec2(0, 0))) {
     for (const auto& name : {"Canvas", "Animation Steps", "Properties"})
@@ -448,14 +483,11 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
   }
   ImGui::EndTable();
 
-  END_TAB_ITEM()
   return absl::OkStatus();
 }
 
 absl::Status GraphicsEditor::UpdateScadView() {
-  TAB_ITEM("Prototype")
-
-  RETURN_IF_ERROR(DrawToolset())
+  DrawToolset();
 
   if (open_memory_editor_) {
     ImGui::Begin("Memory Editor", &open_memory_editor_);
@@ -513,31 +545,6 @@ absl::Status GraphicsEditor::UpdateScadView() {
   }
   END_TABLE()
 
-  END_TAB_ITEM()
-  return absl::OkStatus();
-}
-
-absl::Status GraphicsEditor::DrawToolset() {
-  static constexpr absl::string_view kGfxToolsetColumnNames[] = {
-      "#memoryEditor",
-  };
-
-  if (ImGui::BeginTable("GraphicsToolset", 1, ImGuiTableFlags_SizingFixedFit,
-                        ImVec2(0, 0))) {
-    for (const auto& name : kGfxToolsetColumnNames)
-      ImGui::TableSetupColumn(name.data());
-
-    TableNextColumn();
-    if (Button(absl::StrCat(ICON_MD_MEMORY, "Open Memory Editor").c_str())) {
-      if (!open_memory_editor_) {
-        open_memory_editor_ = true;
-      } else {
-        open_memory_editor_ = false;
-      }
-    }
-
-    ImGui::EndTable();
-  }
   return absl::OkStatus();
 }
 

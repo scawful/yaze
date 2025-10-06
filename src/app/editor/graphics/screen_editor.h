@@ -12,6 +12,7 @@
 #include "app/rom.h"
 #include "app/zelda3/screen/dungeon_map.h"
 #include "app/zelda3/screen/inventory.h"
+#include "app/gui/editor_layout.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -58,6 +59,7 @@ class ScreenEditor : public Editor {
 
   void DrawInventoryMenuEditor();
   void DrawToolset();
+  void DrawDungeonMapToolset();
   void DrawInventoryToolset();
 
   absl::Status LoadDungeonMapTile16(const std::vector<uint8_t>& gfx_data,
@@ -74,6 +76,13 @@ class ScreenEditor : public Editor {
   enum class EditingMode { DRAW, EDIT };
 
   EditingMode current_mode_ = EditingMode::DRAW;
+
+  // Card visibility
+  bool show_dungeon_maps_ = true;
+  bool show_inventory_menu_ = false;
+  bool show_overworld_map_ = false;
+  bool show_title_screen_ = false;
+  bool show_naming_screen_ = false;
 
   bool binary_gfx_loaded_ = false;
 

@@ -18,6 +18,7 @@
 #include "app/gui/color.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
+#include "app/gui/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
 #include "util/macro.h"
@@ -64,22 +65,63 @@ absl::Status ScreenEditor::Load() {
 }
 
 absl::Status ScreenEditor::Update() {
-  if (ImGui::BeginTabBar("##ScreenEditorTabBar")) {
-    if (ImGui::BeginTabItem("Dungeon Maps")) {
-      DrawDungeonMapsEditor();
-      ImGui::EndTabItem();
-    }
-    DrawInventoryMenuEditor();
-    DrawOverworldMapEditor();
-    DrawTitleScreenEditor();
-    DrawNamingScreenEditor();
-    ImGui::EndTabBar();
+  DrawToolset();
+  gui::VerticalSpacing(2.0f);
+
+  static gui::EditorCard dungeon_maps_card("Dungeon Maps", ICON_MD_MAP);
+  static gui::EditorCard inventory_menu_card("Inventory Menu", ICON_MD_INVENTORY);
+  static gui::EditorCard overworld_map_card("Overworld Map", ICON_MD_PUBLIC);
+  static gui::EditorCard title_screen_card("Title Screen", ICON_MD_TITLE);
+  static gui::EditorCard naming_screen_card("Naming Screen", ICON_MD_EDIT_ATTRIBUTES);
+
+  if (show_dungeon_maps_ && dungeon_maps_card.Begin(&show_dungeon_maps_)) {
+    DrawDungeonMapsEditor();
+    dungeon_maps_card.End();
   }
+  if (show_inventory_menu_ && inventory_menu_card.Begin(&show_inventory_menu_)) {
+    DrawInventoryMenuEditor();
+    inventory_menu_card.End();
+  }
+  if (show_overworld_map_ && overworld_map_card.Begin(&show_overworld_map_)) {
+    DrawOverworldMapEditor();
+    overworld_map_card.End();
+  }
+  if (show_title_screen_ && title_screen_card.Begin(&show_title_screen_)) {
+    DrawTitleScreenEditor();
+    title_screen_card.End();
+  }
+  if (show_naming_screen_ && naming_screen_card.Begin(&show_naming_screen_)) {
+    DrawNamingScreenEditor();
+    naming_screen_card.End();
+  }
+
   return status_;
 }
 
+void ScreenEditor::DrawToolset() {
+  static gui::Toolset toolbar;
+  toolbar.Begin();
+
+  if (toolbar.AddAction(ICON_MD_MAP, "Dungeon Maps")) {
+    show_dungeon_maps_ = !show_dungeon_maps_;
+  }
+  if (toolbar.AddAction(ICON_MD_INVENTORY, "Inventory Menu")) {
+    show_inventory_menu_ = !show_inventory_menu_;
+  }
+  if (toolbar.AddAction(ICON_MD_PUBLIC, "Overworld Map")) {
+    show_overworld_map_ = !show_overworld_map_;
+  }
+  if (toolbar.AddAction(ICON_MD_TITLE, "Title Screen")) {
+    show_title_screen_ = !show_title_screen_;
+  }
+  if (toolbar.AddAction(ICON_MD_EDIT_ATTRIBUTES, "Naming Screen")) {
+    show_naming_screen_ = !show_naming_screen_;
+  }
+
+  toolbar.End();
+}
+
 void ScreenEditor::DrawInventoryMenuEditor() {
-  if (ImGui::BeginTabItem("Inventory Menu")) {
     static bool create = false;
     if (!create && rom()->is_loaded()) {
       status_ = inventory_.Create();
@@ -91,7 +133,7 @@ void ScreenEditor::DrawInventoryMenuEditor() {
 
     if (ImGui::BeginTable("InventoryScreen", 3, ImGuiTableFlags_Resizable)) {
       ImGui::TableSetupColumn("Canvas");
-      ImGui::TableSetupColumn("Tiles");
+      ImGui::TableSetupColumn("Tilesheet");
       ImGui::TableSetupColumn("Palette");
       ImGui::TableHeadersRow();
 
@@ -115,8 +157,6 @@ void ScreenEditor::DrawInventoryMenuEditor() {
       ImGui::EndTable();
     }
     ImGui::Separator();
-    ImGui::EndTabItem();
-  }
 }
 
 void ScreenEditor::DrawInventoryToolset() {
@@ -504,24 +544,15 @@ void ScreenEditor::LoadBinaryGfx() {
 }
 
 void ScreenEditor::DrawTitleScreenEditor() {
-  if (ImGui::BeginTabItem("Title Screen")) {
-    ImGui::EndTabItem();
-  }
 }
 
 void ScreenEditor::DrawNamingScreenEditor() {
-  if (ImGui::BeginTabItem("Naming Screen")) {
-    ImGui::EndTabItem();
-  }
 }
 
 void ScreenEditor::DrawOverworldMapEditor() {
-  if (ImGui::BeginTabItem("Overworld Map")) {
-    ImGui::EndTabItem();
-  }
 }
 
-void ScreenEditor::DrawToolset() {
+void ScreenEditor::DrawDungeonMapToolset() {
   static bool show_bg1 = true;
   static bool show_bg2 = true;
   static bool show_bg3 = true;
