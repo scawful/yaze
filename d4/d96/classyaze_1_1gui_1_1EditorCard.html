@@ -129,6 +129,8 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ac734a0c5e25b414d275d09cbb0b1495d" id="r_ac734a0c5e25b414d275d09cbb0b1495d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#ac734a0c5e25b414d275d09cbb0b1495d">EditorCard</a> (const char *title, const char *icon=nullptr)</td></tr>
 <tr class="separator:ac734a0c5e25b414d275d09cbb0b1495d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a166d58f757b3e89674505dfa082cb19b" id="r_a166d58f757b3e89674505dfa082cb19b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a166d58f757b3e89674505dfa082cb19b">EditorCard</a> (const char *title, const char *icon, bool *p_open)</td></tr>
+<tr class="separator:a166d58f757b3e89674505dfa082cb19b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a796fd3e37f625ad822ebfa61af662efe" id="r_a796fd3e37f625ad822ebfa61af662efe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a796fd3e37f625ad822ebfa61af662efe">SetDefaultSize</a> (float width, float height)</td></tr>
 <tr class="separator:a796fd3e37f625ad822ebfa61af662efe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab6a6411ac6d5046f9fdd2bca7bb7f969" id="r_ab6a6411ac6d5046f9fdd2bca7bb7f969"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#ab6a6411ac6d5046f9fdd2bca7bb7f969">SetPosition</a> (<a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8b">Position</a> pos)</td></tr>
@@ -164,6 +166,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a76edc2863ff61dab296201ac57bd4aff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab43c29359073f6a631bb78bc7a4b0934" id="r_ab43c29359073f6a631bb78bc7a4b0934"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#ab43c29359073f6a631bb78bc7a4b0934">first_draw_</a> = true</td></tr>
 <tr class="separator:ab43c29359073f6a631bb78bc7a4b0934"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af89a3e3ecc6f03629ea8bda0938be5c3" id="r_af89a3e3ecc6f03629ea8bda0938be5c3"><td class="memItemLeft" align="right" valign="top">bool *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#af89a3e3ecc6f03629ea8bda0938be5c3">p_open_</a> = nullptr</td></tr>
+<tr class="separator:af89a3e3ecc6f03629ea8bda0938be5c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Draggable, dockable card for editor sub-windows. </p>
@@ -220,7 +224,7 @@ Private Attributes</h2></td></tr>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ac734a0c5e25b414d275d09cbb0b1495d" name="ac734a0c5e25b414d275d09cbb0b1495d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac734a0c5e25b414d275d09cbb0b1495d">&#9670;&#160;</a></span>EditorCard()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ac734a0c5e25b414d275d09cbb0b1495d">&#9670;&#160;</a></span>EditorCard() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -246,6 +250,44 @@ Private Attributes</h2></td></tr>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00231">231</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
+
+</div>
+</div>
+<a id="a166d58f757b3e89674505dfa082cb19b" name="a166d58f757b3e89674505dfa082cb19b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a166d58f757b3e89674505dfa082cb19b">&#9670;&#160;</a></span>EditorCard() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">yaze::gui::EditorCard::EditorCard </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>title</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>icon</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool *&#160;</td>
+          <td class="paramname"><em>p_open</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00234">234</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00144">p_open_</a>.</p>
 
 </div>
 </div>
@@ -276,9 +318,9 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00234">234</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00239">239</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00137">default_size_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00138">default_size_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00108">yaze::editor::OverworldEditor::Update()</a>.</p>
 
@@ -300,9 +342,9 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00238">238</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00243">243</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00138">position_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00139">position_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00108">yaze::editor::OverworldEditor::Update()</a>.</p>
 
@@ -332,9 +374,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00121">121</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00122">122</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00139">minimizable_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00140">minimizable_</a>.</p>
 
 </div>
 </div>
@@ -362,9 +404,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00122">122</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00123">123</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00140">closable_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00141">closable_</a>.</p>
 
 </div>
 </div>
@@ -384,9 +426,9 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">242</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00247">247</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba2ad9d63b69c4a10a5cc9cad923133bc4">Bottom</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00137">default_size_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00142">first_draw_</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bac8df43648942ec3a9aec140f07f47b7c">Floating</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bab24ce0cd392a5b0b8dedc66c25213594">Free</a>, <a class="el" href="../../d8/dfa/ui__helpers_8cc_source.html#l00040">yaze::gui::GetAccentColor()</a>, <a class="el" href="../../d8/dfa/ui__helpers_8cc_source.html#l00016">yaze::gui::GetThemeColor()</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00136">icon_</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00058">yaze::gui::WidgetIdRegistry::Instance()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba945d5e233cf7d6240f6b783b36a374ff">Left</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00138">position_</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00158">yaze::gui::WidgetIdRegistry::RegisterWidget()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba92b09c7c48c520c3c55e497875da437c">Right</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00135">title_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba2ad9d63b69c4a10a5cc9cad923133bc4">Bottom</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00138">default_size_</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00143">first_draw_</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bac8df43648942ec3a9aec140f07f47b7c">Floating</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bab24ce0cd392a5b0b8dedc66c25213594">Free</a>, <a class="el" href="../../d8/dfa/ui__helpers_8cc_source.html#l00040">yaze::gui::GetAccentColor()</a>, <a class="el" href="../../d8/dfa/ui__helpers_8cc_source.html#l00016">yaze::gui::GetThemeColor()</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00137">icon_</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00058">yaze::gui::WidgetIdRegistry::Instance()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba945d5e233cf7d6240f6b783b36a374ff">Left</a>, <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00139">position_</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00158">yaze::gui::WidgetIdRegistry::RegisterWidget()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba92b09c7c48c520c3c55e497875da437c">Right</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00136">title_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00108">yaze::editor::OverworldEditor::Update()</a>.</p>
 <div class="dynheader">
@@ -423,7 +465,7 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00298">298</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00303">303</a> of file <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html">editor_layout.cc</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/d8a/overworld__editor_8cc_source.html#l00108">yaze::editor::OverworldEditor::Update()</a>.</p>
 
@@ -453,9 +495,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00131">131</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00132">132</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00141">minimized_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00142">minimized_</a>.</p>
 
 </div>
 </div>
@@ -482,9 +524,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00132">132</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00133">133</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00141">minimized_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00142">minimized_</a>.</p>
 
 </div>
 </div>
@@ -509,9 +551,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00135">135</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00136">136</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">Begin()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00247">Begin()</a>.</p>
 
 </div>
 </div>
@@ -535,9 +577,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00136">136</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00137">137</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">Begin()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00247">Begin()</a>.</p>
 
 </div>
 </div>
@@ -561,9 +603,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00137">137</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00138">138</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">Begin()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00234">SetDefaultSize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00247">Begin()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00239">SetDefaultSize()</a>.</p>
 
 </div>
 </div>
@@ -587,9 +629,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00138">138</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00139">139</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">Begin()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00238">SetPosition()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00247">Begin()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00243">SetPosition()</a>.</p>
 
 </div>
 </div>
@@ -613,9 +655,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00139">139</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00140">140</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00121">SetMinimizable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00122">SetMinimizable()</a>.</p>
 
 </div>
 </div>
@@ -639,9 +681,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00140">140</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00141">141</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00122">SetClosable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00123">SetClosable()</a>.</p>
 
 </div>
 </div>
@@ -665,9 +707,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00141">141</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00142">142</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00132">IsMinimized()</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00131">SetMinimized()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00133">IsMinimized()</a>, and <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00132">SetMinimized()</a>.</p>
 
 </div>
 </div>
@@ -691,9 +733,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00142">142</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00143">143</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">Begin()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00247">Begin()</a>.</p>
+
+</div>
+</div>
+<a id="af89a3e3ecc6f03629ea8bda0938be5c3" name="af89a3e3ecc6f03629ea8bda0938be5c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af89a3e3ecc6f03629ea8bda0938be5c3">&#9670;&#160;</a></span>p_open_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool* yaze::gui::EditorCard::p_open_ = nullptr</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d5/d1d/editor__layout_8h_source.html#l00144">144</a> of file <a class="el" href="../../d5/d1d/editor__layout_8h_source.html">editor_layout.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00234">EditorCard()</a>.</p>
 
 </div>
 </div>

@@ -10,5 +10,7 @@ var dir_042c7286d22eeafbe3e57928adf9e34e =
     [ "enhanced_menu.cc", "d7/d4a/enhanced__menu_8cc.html", "d7/d4a/enhanced__menu_8cc" ],
     [ "palette_editor.cc", "d1/d8f/cli_2tui_2palette__editor_8cc.html", null ],
     [ "palette_editor.h", "d4/df6/cli_2tui_2palette__editor_8h.html", "d4/df6/cli_2tui_2palette__editor_8h" ],
+    [ "tui.cc", "d4/d8e/tui_8cc.html", "d4/d8e/tui_8cc" ],
+    [ "tui.h", "de/dab/tui_8h.html", "de/dab/tui_8h" ],
     [ "tui_component.h", "db/d58/tui__component_8h.html", "db/d58/tui__component_8h" ]
 ];

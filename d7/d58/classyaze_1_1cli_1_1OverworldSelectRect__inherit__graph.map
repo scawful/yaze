@@ -1,0 +1,5 @@
+<map id="yaze::cli::OverworldSelectRect" name="yaze::cli::OverworldSelectRect">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,201,105"/>
+<area shape="rect" id="Node000002" href="$dd/d80/classyaze_1_1cli_1_1CommandHandler.html" title=" " alt="" coords="15,5,191,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,46,106,79,100,79,100,46"/>
+</map>

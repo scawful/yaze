@@ -1,0 +1,10 @@
+<map id="yaze::test::TEST_F" name="yaze::test::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,42,135,68"/>
+<area shape="rect" id="Node000002" href="$dd/de4/classyaze_1_1gui_1_1CanvasAutomationAPI.html#a9ff43bfe0aac39d9ace8ff7bee4c7cb0" title="Convert logical tile coordinates to canvas pixel coordinates." alt="" coords="183,35,369,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,52,167,52,167,58,135,58"/>
+<area shape="rect" id="Node000003" href="$dd/de4/classyaze_1_1gui_1_1CanvasAutomationAPI.html#a66ef4c733b8908228c5d3cc887833bb4" title="Get canvas dimensions in logical tile units." alt="" coords="417,5,603,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="369,41,401,37,402,42,370,46"/>
+<area shape="rect" id="Node000005" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e" title=" " alt="" coords="651,35,778,75"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="369,54,417,55,603,55,636,54,636,60,603,60,417,60,369,60"/>
+<area shape="poly" id="edge3_Node000003_Node000005" title=" " alt="" coords="604,36,636,41,635,46,603,42"/>
+</map>

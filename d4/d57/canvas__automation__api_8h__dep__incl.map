@@ -1,7 +1,9 @@
 <map id="src/app/gui/canvas/canvas_automation_api.h" name="src/app/gui/canvas/canvas_automation_api.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="87,5,259,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="181,5,354,46"/>
 <area shape="rect" id="Node000002" href="$da/dbb/canvas_8cc.html" title=" " alt="" coords="5,102,154,127"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,59,94,103,90,99,139,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,55,107,103,105,99,210,50"/>
 <area shape="rect" id="Node000003" href="$d1/d50/canvas__automation__api_8cc.html" title=" " alt="" coords="178,94,357,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="207,55,248,92,244,96,204,59"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="270,62,270,94,265,94,265,62"/>
+<area shape="rect" id="Node000004" href="$d9/d54/canvas__automation__api__test_8cc.html" title=" " alt="" coords="381,94,543,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="327,50,419,91,417,96,325,55"/>
 </map>

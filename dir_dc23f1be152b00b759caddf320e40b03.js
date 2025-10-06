@@ -1,5 +1,7 @@
 var dir_dc23f1be152b00b759caddf320e40b03 =
 [
+    [ "canvas_automation_service.cc", "d0/dc2/canvas__automation__service_8cc.html", null ],
+    [ "canvas_automation_service.h", "dc/d6c/canvas__automation__service_8h.html", null ],
     [ "imgui_test_harness_service.cc", "dd/d7f/imgui__test__harness__service_8cc.html", null ],
     [ "imgui_test_harness_service.h", "d9/d30/imgui__test__harness__service_8h.html", null ],
     [ "screenshot_utils.cc", "d7/d7f/screenshot__utils_8cc.html", null ],

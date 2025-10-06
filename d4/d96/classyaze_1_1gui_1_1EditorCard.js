@@ -8,6 +8,7 @@ var classyaze_1_1gui_1_1EditorCard =
       [ "Floating", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bac8df43648942ec3a9aec140f07f47b7c", null ]
     ] ],
     [ "EditorCard", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#ac734a0c5e25b414d275d09cbb0b1495d", null ],
+    [ "EditorCard", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a166d58f757b3e89674505dfa082cb19b", null ],
     [ "SetDefaultSize", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a796fd3e37f625ad822ebfa61af662efe", null ],
     [ "SetPosition", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#ab6a6411ac6d5046f9fdd2bca7bb7f969", null ],
     [ "SetMinimizable", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a4cf5f7a836360a68494f21cbe035a0a1", null ],
@@ -23,5 +24,6 @@ var classyaze_1_1gui_1_1EditorCard =
     [ "minimizable_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a8ed4b01ec9a1bede7d0d3126ee1a855b", null ],
     [ "closable_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a5f50a0ad3e3cf4729ef2e1b75d1cf332", null ],
     [ "minimized_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a76edc2863ff61dab296201ac57bd4aff", null ],
-    [ "first_draw_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#ab43c29359073f6a631bb78bc7a4b0934", null ]
+    [ "first_draw_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#ab43c29359073f6a631bb78bc7a4b0934", null ],
+    [ "p_open_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#af89a3e3ecc6f03629ea8bda0938be5c3", null ]
 ];

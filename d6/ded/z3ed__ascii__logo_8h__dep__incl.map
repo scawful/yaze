@@ -1,9 +1,9 @@
 <map id="src/cli/z3ed_ascii_logo.h" name="src/cli/z3ed_ascii_logo.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="165,5,286,46"/>
-<area shape="rect" id="Node000002" href="$d5/d48/cli__main_8cc.html" title=" " alt="" coords="5,94,131,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,56,93,96,91,91,171,51"/>
-<area shape="rect" id="Node000003" href="$dc/d8b/modern__cli_8cc.html" title=" " alt="" coords="155,94,296,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="228,62,228,93,223,93,223,62"/>
-<area shape="rect" id="Node000004" href="$d4/d8e/tui_8cc.html" title=" " alt="" coords="320,94,411,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="275,52,345,91,343,96,272,56"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="122,5,243,46"/>
+<area shape="rect" id="Node000002" href="$d0/d4f/cli_8cc.html" title=" " alt="" coords="5,94,96,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,56,72,96,69,91,135,52"/>
+<area shape="rect" id="Node000003" href="$d5/d48/cli__main_8cc.html" title=" " alt="" coords="120,94,245,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="185,62,185,93,180,93,180,62"/>
+<area shape="rect" id="Node000004" href="$d4/d8e/tui_8cc.html" title=" " alt="" coords="269,94,379,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="232,52,303,91,301,96,230,56"/>
 </map>
