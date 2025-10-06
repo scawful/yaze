@@ -9,8 +9,8 @@
 #include "absl/flags/flag.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
-#include "cli/modern_cli.h"
-#include "cli/tui.h"
+#include "cli/cli.h"
+#include "cli/tui/tui.h"
 #include "cli/z3ed_ascii_logo.h"
 #include "yaze_config.h"
 

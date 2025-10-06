@@ -1,5 +1,5 @@
-#ifndef YAZE_CLI_Z3ED_H
-#define YAZE_CLI_Z3ED_H
+#ifndef YAZE_CLI_CLI_H
+#define YAZE_CLI_CLI_H
 
 #include <cstdint>
 #include <iostream>
@@ -34,6 +34,65 @@ class CommandHandler {
   }
 
   Rom rom_;
+};
+
+struct CommandInfo {
+  std::string name;
+  std::string description;
+  std::string usage;
+  std::function<absl::Status(const std::vector<std::string>&)> handler;
+};
+
+class ModernCLI {
+ public:
+  ModernCLI();
+  absl::Status Run(int argc, char* argv[]);
+  CommandHandler* GetCommandHandler(const std::string& name);
+  void PrintTopLevelHelp() const;
+  void PrintCategoryHelp(const std::string& category) const;
+  void PrintCommandSummary() const;
+
+  std::map<std::string, CommandInfo> commands_;
+
+ private:
+  void SetupCommands();
+  void ShowHelp();
+  void ShowCategoryHelp(const std::string& category);
+  void ShowCommandSummary() const;
+
+  // Command Handlers
+  absl::Status HandleAsarPatchCommand(const std::vector<std::string>& args);
+  absl::Status HandleBpsPatchCommand(const std::vector<std::string>& args);
+  absl::Status HandleExtractSymbolsCommand(const std::vector<std::string>& args);
+  absl::Status HandleAgentCommand(const std::vector<std::string>& args);
+  absl::Status HandleCollabCommand(const std::vector<std::string>& args);
+  absl::Status HandleProjectBuildCommand(const std::vector<std::string>& args);
+  absl::Status HandleProjectInitCommand(const std::vector<std::string>& args);
+  absl::Status HandleRomInfoCommand(const std::vector<std::string>& args);
+  absl::Status HandleRomGenerateGoldenCommand(const std::vector<std::string>& args);
+  absl::Status HandleRomDiffCommand(const std::vector<std::string>& args);
+  absl::Status HandleDungeonExportCommand(const std::vector<std::string>& args);
+  absl::Status HandleDungeonListObjectsCommand(const std::vector<std::string>& args);
+  absl::Status HandleGfxExportCommand(const std::vector<std::string>& args);
+  absl::Status HandleGfxImportCommand(const std::vector<std::string>& args);
+  absl::Status HandleCommandPaletteCommand(const std::vector<std::string>& args);
+  absl::Status HandlePaletteExportCommand(const std::vector<std::string>& args);
+  absl::Status HandlePaletteImportCommand(const std::vector<std::string>& args);
+  absl::Status HandlePaletteCommand(const std::vector<std::string>& args);
+  absl::Status HandleRomValidateCommand(const std::vector<std::string>& args);
+  absl::Status HandleOverworldGetTileCommand(const std::vector<std::string>& args);
+  absl::Status HandleOverworldFindTileCommand(const std::vector<std::string>& args);
+  absl::Status HandleOverworldDescribeMapCommand(const std::vector<std::string>& args);
+  absl::Status HandleOverworldListWarpsCommand(const std::vector<std::string>& args);
+  absl::Status HandleOverworldSetTileCommand(const std::vector<std::string>& args);
+  absl::Status HandleOverworldSelectRectCommand(const std::vector<std::string>& args);
+  absl::Status HandleOverworldScrollToCommand(const std::vector<std::string>& args);
+  absl::Status HandleOverworldSetZoomCommand(const std::vector<std::string>& args);
+  absl::Status HandleOverworldGetVisibleRegionCommand(const std::vector<std::string>& args);
+  absl::Status HandleSpriteCreateCommand(const std::vector<std::string>& args);
+  absl::Status HandleChatEntryCommand(const std::vector<std::string>& args);
+  absl::Status HandleProposalCommand(const std::vector<std::string>& args);
+  absl::Status HandleWidgetCommand(const std::vector<std::string>& args);
 };
 
 class ApplyPatch : public CommandHandler {
@@ -158,6 +217,26 @@ class OverworldDescribeMap : public CommandHandler {
 };
 
 class OverworldListWarps : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class OverworldSelectRect : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class OverworldScrollTo : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class OverworldSetZoom : public CommandHandler {
+ public:
+  absl::Status Run(const std::vector<std::string>& arg_vec) override;
+};
+
+class OverworldGetVisibleRegion : public CommandHandler {
  public:
   absl::Status Run(const std::vector<std::string>& arg_vec) override;
 };
@@ -307,4 +386,4 @@ class Expand : public CommandHandler {
 }  // namespace cli
 }  // namespace yaze
 
-#endif  // YAZE_CLI_Z3ED_H
+#endif  // YAZE_CLI_CLI_H
