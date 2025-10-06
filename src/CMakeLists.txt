@@ -339,7 +339,7 @@ if(YAZE_BUILD_EMU)
     add_executable(
       yaze_emu
       MACOSX_BUNDLE
-      app/main.cc
+      app/emu/emu.cc
       app/rom.cc
       app/core/platform/app_delegate.mm
       ${YAZE_APP_EMU_SRC}
