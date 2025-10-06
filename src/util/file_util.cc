@@ -191,7 +191,7 @@ std::string GetConfigDirectory() {
 
 std::string FileDialogWrapper::ShowOpenFileDialog() {
   // Use global feature flag to choose implementation
-  if (FeatureFlags::get().kUseNativeFileDialog) {
+  if (core::FeatureFlags::get().kUseNativeFileDialog) {
     return ShowOpenFileDialogNFD();
   } else {
     return ShowOpenFileDialogBespoke();
@@ -282,7 +282,7 @@ std::string FileDialogWrapper::ShowOpenFileDialogBespoke() {
 std::string FileDialogWrapper::ShowSaveFileDialog(const std::string& default_name, 
                                                   const std::string& default_extension) {
   // Use global feature flag to choose implementation
-  if (FeatureFlags::get().kUseNativeFileDialog) {
+  if (core::FeatureFlags::get().kUseNativeFileDialog) {
     return ShowSaveFileDialogNFD(default_name, default_extension);
   } else {
     return ShowSaveFileDialogBespoke(default_name, default_extension);
@@ -415,7 +415,7 @@ std::string FileDialogWrapper::ShowSaveFileDialogBespoke(const std::string& defa
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
   // Use global feature flag to choose implementation
-  if (FeatureFlags::get().kUseNativeFileDialog) {
+  if (core::FeatureFlags::get().kUseNativeFileDialog) {
     return ShowOpenFolderDialogNFD();
   } else {
     return ShowOpenFolderDialogBespoke();
@@ -542,7 +542,7 @@ std::vector<std::string> FileDialogWrapper::GetFilesInFolder(
 
 std::string FileDialogWrapper::ShowOpenFileDialog() {
   // Use global feature flag to choose implementation
-  if (FeatureFlags::get().kUseNativeFileDialog) {
+  if (core::FeatureFlags::get().kUseNativeFileDialog) {
     return ShowOpenFileDialogNFD();
   } else {
     return ShowOpenFileDialogBespoke();
@@ -643,7 +643,7 @@ std::string FileDialogWrapper::ShowSaveFileDialogBespoke(const std::string& defa
 std::string FileDialogWrapper::ShowSaveFileDialog(const std::string& default_name, 
                                                  const std::string& default_extension) {
   // Use global feature flag to choose implementation
-  if (FeatureFlags::get().kUseNativeFileDialog) {
+  if (core::FeatureFlags::get().kUseNativeFileDialog) {
     return ShowSaveFileDialogNFD(default_name, default_extension);
   } else {
     return ShowSaveFileDialogBespoke(default_name, default_extension);
@@ -652,7 +652,7 @@ std::string FileDialogWrapper::ShowSaveFileDialog(const std::string& default_nam
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
   // Use global feature flag to choose implementation
-  if (FeatureFlags::get().kUseNativeFileDialog) {
+  if (core::FeatureFlags::get().kUseNativeFileDialog) {
     return ShowOpenFolderDialogNFD();
   } else {
     return ShowOpenFolderDialogBespoke();

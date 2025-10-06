@@ -308,7 +308,8 @@ if (YAZE_BUILD_APP)
 
     if(NOT YAZE_USE_MODULAR_BUILD)
       target_add_protobuf(yaze
-        ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+        ${CMAKE_SOURCE_DIR}/src/protos/imgui_test_harness.proto
+        ${CMAKE_SOURCE_DIR}/src/protos/canvas_automation.proto)
 
       target_sources(yaze PRIVATE
         ${CMAKE_SOURCE_DIR}/src/app/core/service/imgui_test_harness_service.cc
@@ -579,7 +580,8 @@ if (YAZE_BUILD_LIB)
 
     if(YAZE_WITH_GRPC)
       target_add_protobuf(yaze_core 
-        ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+        ${CMAKE_SOURCE_DIR}/src/protos/imgui_test_harness.proto
+        ${CMAKE_SOURCE_DIR}/src/protos/canvas_automation.proto)
 
       target_link_libraries(yaze_core PRIVATE
         grpc++
@@ -645,7 +647,8 @@ if (YAZE_BUILD_LIB)
 
   if(YAZE_WITH_GRPC)
     target_add_protobuf(yaze_c 
-      ${CMAKE_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+      ${CMAKE_SOURCE_DIR}/src/protos/imgui_test_harness.proto
+      ${CMAKE_SOURCE_DIR}/src/protos/canvas_automation.proto)
 
     target_link_libraries(yaze_c PRIVATE
       grpc++
