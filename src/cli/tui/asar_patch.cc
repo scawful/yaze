@@ -3,7 +3,7 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 
-#include "cli/tui.h"
+#include "cli/tui/tui.h"
 #include "app/core/asar_wrapper.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"

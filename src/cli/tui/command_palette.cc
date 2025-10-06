@@ -5,7 +5,7 @@
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
 
-#include "cli/tui.h"
+#include "cli/tui/tui.h"
 #include "cli/handlers/agent/hex_commands.h"
 #include "cli/handlers/agent/palette_commands.h"
 #include "absl/strings/str_split.h"

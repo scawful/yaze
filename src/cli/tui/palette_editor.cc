@@ -4,7 +4,7 @@
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
-#include "cli/tui.h"
+#include "cli/tui/tui.h"
 #include "app/gfx/snes_palette.h"
 #include "absl/strings/str_format.h"
 
