@@ -69,6 +69,24 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(
     status = HandleGuiDiscoverToolCommand(args, rom_context_);
   } else if (tool_call.tool_name == "gui-screenshot") {
     status = HandleGuiScreenshotCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "dialogue-list") {
+    status = HandleDialogueListCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "dialogue-read") {
+    status = HandleDialogueReadCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "dialogue-search") {
+    status = HandleDialogueSearchCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "music-list") {
+    status = HandleMusicListCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "music-info") {
+    status = HandleMusicInfoCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "music-tracks") {
+    status = HandleMusicTracksCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "sprite-list") {
+    status = HandleSpriteListCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "sprite-properties") {
+    status = HandleSpritePropertiesCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "sprite-palette") {
+    status = HandleSpritePaletteCommand(args, rom_context_);
   } else {
     status = absl::UnimplementedError(
         absl::StrFormat("Unknown tool: %s", tool_call.tool_name));

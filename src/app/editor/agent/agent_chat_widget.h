@@ -100,6 +100,15 @@ class AgentChatWidget {
   };
 
   void RenderSnapshotPreviewPanel();
+  
+  // Screenshot preview and region selection
+  void LoadScreenshotPreview(const std::filesystem::path& image_path);
+  void UnloadScreenshotPreview();
+  void RenderScreenshotPreview();
+  void RenderRegionSelection();
+  void BeginRegionSelection();
+  void HandleRegionSelection();
+  void CaptureSelectedRegion();
 
   void SetToastManager(ToastManager* toast_manager);
 
@@ -149,7 +158,26 @@ public:
   enum class CaptureMode {
     kFullWindow = 0,
     kActiveEditor = 1,
-    kSpecificWindow = 2
+    kSpecificWindow = 2,
+    kRegionSelect = 3  // New: drag to select region
+  };
+
+  struct ScreenshotPreviewState {
+    void* texture_id = nullptr;  // ImTextureID
+    int width = 0;
+    int height = 0;
+    bool loaded = false;
+    float preview_scale = 1.0f;
+    bool show_preview = true;
+  };
+
+  struct RegionSelectionState {
+    bool active = false;
+    bool dragging = false;
+    ImVec2 start_pos;
+    ImVec2 end_pos;
+    ImVec2 selection_min;
+    ImVec2 selection_max;
   };
 
   struct MultimodalState {
@@ -158,6 +186,8 @@ public:
     absl::Time last_updated = absl::InfinitePast();
     CaptureMode capture_mode = CaptureMode::kActiveEditor;
     char specific_window_buffer[128] = {};
+    ScreenshotPreviewState preview;
+    RegionSelectionState region_selection;
   };
 
   struct AutomationState {

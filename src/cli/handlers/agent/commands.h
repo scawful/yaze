@@ -78,6 +78,39 @@ absl::Status HandleGuiDiscoverToolCommand(
 absl::Status HandleGuiScreenshotCommand(
 	const std::vector<std::string>& arg_vec,
 	Rom* rom_context = nullptr);
+
+// Dialogue Inspection Tools
+absl::Status HandleDialogueListCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleDialogueReadCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleDialogueSearchCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+
+// Music Data Tools
+absl::Status HandleMusicListCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleMusicInfoCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleMusicTracksCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+
+// Sprite Property Tools
+absl::Status HandleSpriteListCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleSpritePropertiesCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleSpritePaletteCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
 absl::Status HandleChatCommand(Rom& rom);
 absl::Status HandleSimpleChatCommand(const std::vector<std::string>&, Rom* rom, bool quiet);
 absl::Status HandleTestConversationCommand(
