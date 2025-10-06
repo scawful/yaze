@@ -83,11 +83,13 @@ if(YAZE_WITH_GRPC)
     ${CMAKE_SOURCE_DIR}/third_party/json/include)
   target_compile_definitions(yaze_core_lib PRIVATE YAZE_WITH_JSON)
 
-  # Add proto definitions for test harness and ROM service
+  # Add proto definitions for test harness, ROM service, and canvas automation
   target_add_protobuf(yaze_core_lib
-    ${PROJECT_SOURCE_DIR}/src/app/core/proto/imgui_test_harness.proto)
+    ${PROJECT_SOURCE_DIR}/src/protos/imgui_test_harness.proto)
   target_add_protobuf(yaze_core_lib
     ${PROJECT_SOURCE_DIR}/src/protos/rom_service.proto)
+  target_add_protobuf(yaze_core_lib
+    ${PROJECT_SOURCE_DIR}/src/protos/canvas_automation.proto)
 
   # Add test harness implementation
   target_sources(yaze_core_lib PRIVATE

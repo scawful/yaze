@@ -1,0 +1,236 @@
+syntax = "proto3";
+
+package yaze.proto;
+
+// ============================================================================
+// Canvas Automation Service
+// ============================================================================
+// Provides remote control of canvas operations for:
+// - AI agents via tool calls
+// - ImGuiTestHarness automation
+// - Remote GUI testing and validation
+// - Batch scripting workflows
+// - Coordinate conversion independent of zoom/scroll
+//
+// All operations use logical tile coordinates, not pixel coordinates.
+// This ensures commands work consistently regardless of UI zoom level.
+
+service CanvasAutomation {
+  // Tile Operations
+  rpc SetTile(SetTileRequest) returns (SetTileResponse);
+  rpc GetTile(GetTileRequest) returns (GetTileResponse);
+  rpc SetTiles(SetTilesRequest) returns (SetTilesResponse);
+  
+  // Selection Operations
+  rpc SelectTile(SelectTileRequest) returns (SelectTileResponse);
+  rpc SelectTileRect(SelectTileRectRequest) returns (SelectTileRectResponse);
+  rpc GetSelection(GetSelectionRequest) returns (GetSelectionResponse);
+  rpc ClearSelection(ClearSelectionRequest) returns (ClearSelectionResponse);
+  
+  // View Operations
+  rpc ScrollToTile(ScrollToTileRequest) returns (ScrollToTileResponse);
+  rpc CenterOn(CenterOnRequest) returns (CenterOnResponse);
+  rpc SetZoom(SetZoomRequest) returns (SetZoomResponse);
+  rpc GetZoom(GetZoomRequest) returns (GetZoomResponse);
+  
+  // Query Operations
+  rpc GetDimensions(GetDimensionsRequest) returns (GetDimensionsResponse);
+  rpc GetVisibleRegion(GetVisibleRegionRequest) returns (GetVisibleRegionResponse);
+  rpc IsTileVisible(IsTileVisibleRequest) returns (IsTileVisibleResponse);
+}
+
+// ============================================================================
+// Common Types
+// ============================================================================
+
+message TileCoord {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+message TileData {
+  int32 x = 1;
+  int32 y = 2;
+  int32 tile_id = 3;
+}
+
+message Rect {
+  int32 x1 = 1;
+  int32 y1 = 2;
+  int32 x2 = 3;
+  int32 y2 = 4;
+}
+
+message Dimensions {
+  int32 width_tiles = 1;
+  int32 height_tiles = 2;
+  int32 tile_size = 3;
+}
+
+message VisibleRegion {
+  int32 min_x = 1;
+  int32 min_y = 2;
+  int32 max_x = 3;
+  int32 max_y = 4;
+}
+
+// ============================================================================
+// Tile Operations
+// ============================================================================
+
+message SetTileRequest {
+  string canvas_id = 1;
+  int32 x = 2;
+  int32 y = 3;
+  int32 tile_id = 4;
+}
+
+message SetTileResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message GetTileRequest {
+  string canvas_id = 1;
+  int32 x = 2;
+  int32 y = 3;
+}
+
+message GetTileResponse {
+  int32 tile_id = 1;
+  bool success = 2;
+  string error = 3;
+}
+
+message SetTilesRequest {
+  string canvas_id = 1;
+  repeated TileData tiles = 2;
+}
+
+message SetTilesResponse {
+  bool success = 1;
+  int32 tiles_painted = 2;
+  string error = 3;
+}
+
+// ============================================================================
+// Selection Operations
+// ============================================================================
+
+message SelectTileRequest {
+  string canvas_id = 1;
+  int32 x = 2;
+  int32 y = 3;
+}
+
+message SelectTileResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message SelectTileRectRequest {
+  string canvas_id = 1;
+  Rect rect = 2;
+}
+
+message SelectTileRectResponse {
+  bool success = 1;
+  int32 tiles_selected = 2;
+  string error = 3;
+}
+
+message GetSelectionRequest {
+  string canvas_id = 1;
+}
+
+message GetSelectionResponse {
+  bool has_selection = 1;
+  repeated TileCoord selected_tiles = 2;
+  TileCoord selection_start = 3;
+  TileCoord selection_end = 4;
+}
+
+message ClearSelectionRequest {
+  string canvas_id = 1;
+}
+
+message ClearSelectionResponse {
+  bool success = 1;
+}
+
+// ============================================================================
+// View Operations
+// ============================================================================
+
+message ScrollToTileRequest {
+  string canvas_id = 1;
+  int32 x = 2;
+  int32 y = 3;
+  bool center = 4;
+}
+
+message ScrollToTileResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message CenterOnRequest {
+  string canvas_id = 1;
+  int32 x = 2;
+  int32 y = 3;
+}
+
+message CenterOnResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+message SetZoomRequest {
+  string canvas_id = 1;
+  float zoom = 2;
+}
+
+message SetZoomResponse {
+  bool success = 1;
+  float actual_zoom = 2;  // May be clamped
+  string error = 3;
+}
+
+message GetZoomRequest {
+  string canvas_id = 1;
+}
+
+message GetZoomResponse {
+  float zoom = 1;
+}
+
+// ============================================================================
+// Query Operations
+// ============================================================================
+
+message GetDimensionsRequest {
+  string canvas_id = 1;
+}
+
+message GetDimensionsResponse {
+  Dimensions dimensions = 1;
+}
+
+message GetVisibleRegionRequest {
+  string canvas_id = 1;
+}
+
+message GetVisibleRegionResponse {
+  VisibleRegion region = 1;
+}
+
+message IsTileVisibleRequest {
+  string canvas_id = 1;
+  int32 x = 2;
+  int32 y = 3;
+}
+
+message IsTileVisibleResponse {
+  bool is_visible = 1;
+}
+
