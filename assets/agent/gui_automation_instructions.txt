@@ -1,0 +1,216 @@
+# GUI Automation with YAZE Test Harness
+
+## Overview
+You have the ability to control the YAZE GUI directly through a test harness system. This allows you to perform visual edits, interact with UI elements, and capture screenshots for multimodal analysis.
+
+## Prerequisites
+- YAZE must be running with the `--enable-test-harness` flag
+- Test harness server runs on port 50052 by default
+- GUI automation tools only work when YAZE GUI is active
+
+## Available GUI Tools
+
+### 1. gui-discover
+**Purpose**: Discover available widgets and windows in the YAZE interface
+**When to use**: Before performing any GUI actions, discover what UI elements are available
+**Example usage**:
+```json
+{
+  "tool_calls": [{
+    "tool_name": "gui-discover",
+    "args": {
+      "window": "Overworld",
+      "type": "button"
+    }
+  }]
+}
+```
+
+### 2. gui-click
+**Purpose**: Automate clicking buttons and UI elements
+**When to use**: To open editors, switch modes, or trigger actions in the GUI
+**Example usage**:
+```json
+{
+  "tool_calls": [{
+    "tool_name": "gui-click",
+    "args": {
+      "target": "ModeButton:Draw (2)",
+      "click_type": "left"
+    }
+  }]
+}
+```
+
+### 3. gui-place-tile
+**Purpose**: Automate tile placement in the overworld editor
+**When to use**: When user wants to see visual tile placement in the GUI (not just ROM data edit)
+**Example usage**:
+```json
+{
+  "tool_calls": [{
+    "tool_name": "gui-place-tile",
+    "args": {
+      "tile": "0x02E",
+      "x": "15",
+      "y": "20"
+    }
+  }]
+}
+```
+
+### 4. gui-screenshot
+**Purpose**: Capture visual state of the GUI
+**When to use**: For visual verification, multimodal analysis, or user feedback
+**Example usage**:
+```json
+{
+  "tool_calls": [{
+    "tool_name": "gui-screenshot",
+    "args": {
+      "region": "full",
+      "format": "PNG"
+    }
+  }]
+}
+```
+
+## GUI Automation Workflow
+
+### Typical Pattern for GUI Edits
+1. **Discover** - Find available widgets with `gui-discover`
+2. **Navigate** - Use `gui-click` to open the right editor or switch modes
+3. **Edit** - Use specific tools like `gui-place-tile` for the actual modification
+4. **Verify** - Capture a screenshot with `gui-screenshot` to confirm changes
+
+### Example: Place a tree tile in the overworld
+```
+User: "Use the GUI to place a tree at position 10, 15"
+
+Step 1: Call gui-place-tile
+{
+  "tool_calls": [{
+    "tool_name": "gui-place-tile",
+    "args": {
+      "tile": "0x02E",
+      "x": "10",
+      "y": "15"
+    }
+  }],
+  "reasoning": "The user wants visual GUI interaction. Tree tile is 0x02E."
+}
+
+Step 2: After receiving tool result, inform user
+{
+  "text_response": "I've generated the GUI automation script to place a tree tile at position (10, 15). The test harness will execute this action if YAZE is running with --enable-test-harness.",
+  "reasoning": "Tool call succeeded, provide confirmation to user."
+}
+```
+
+## When to Use GUI Tools vs ROM Tools
+
+### Use GUI Tools When:
+- User explicitly requests "use the GUI" or "show me"
+- User wants to see visual feedback
+- User wants to learn how to use the editor
+- Demonstrating a workflow
+
+### Use ROM Tools When:
+- User wants batch operations
+- User needs precise control over ROM data
+- GUI is not running
+- Faster automated operations needed
+
+## Important Notes
+
+1. **GUI tools require connection**: All GUI tools check if test harness is connected. If not, they return mock responses.
+
+2. **Coordinate systems**: GUI coordinates are tile-based (0-63 for overworld), matching the ROM data coordinates.
+
+3. **Widget paths**: Widget paths are hierarchical, like "ModeButton:Draw (2)" or "ToolbarAction:Toggle Tile16 Selector". Use `gui-discover` to find exact paths.
+
+4. **Error handling**: If a GUI tool fails, fall back to ROM tools to ensure user request is fulfilled.
+
+5. **Test scripts**: Tools like `gui-place-tile` generate test scripts that can be saved and replayed later.
+
+## Integration with Multimodal Features
+
+Combine GUI automation with screenshot capture for powerful multimodal workflows:
+
+```
+1. Capture before state: gui-screenshot
+2. Perform edit: gui-place-tile
+3. Capture after state: gui-screenshot
+4. Compare visually or send to vision model for verification
+```
+
+## Troubleshooting
+
+### "Connection refused" errors
+- Ensure YAZE is running with `--enable-test-harness` flag
+- Check that port 50052 is available
+- Verify no firewall blocking localhost connections
+
+### "Widget not found" errors
+- Run `gui-discover` first to get current widget list
+- Check that the right editor window is open
+- Verify widget path spelling and case
+
+### "Tool not implemented" errors
+- Ensure YAZE was built with `-DYAZE_WITH_GRPC=ON`
+- Verify z3ed binary includes gRPC support
+
+## Example Conversations
+
+### Example 1: Simple tile placement
+```
+User: "Use the GUI to place grass at 5, 10"
+Assistant: [Calls gui-place-tile with tile=0x020, x=5, y=10]
+Assistant: "I've queued a GUI action to place grass tile at position (5, 10)."
+```
+
+### Example 2: Discover and click workflow
+```
+User: "Open the Tile16 selector"
+Assistant: [Calls gui-discover with window=Overworld]
+Assistant: [Receives widget list including "ToolbarAction:Toggle Tile16 Selector"]
+Assistant: [Calls gui-click with target="ToolbarAction:Toggle Tile16 Selector"]
+Assistant: "I've clicked the Tile16 Selector button to open the selector panel."
+```
+
+### Example 3: Visual verification
+```
+User: "Show me what the current map looks like"
+Assistant: [Calls gui-screenshot with region=full]
+Assistant: "Here's a screenshot of the current editor state: /tmp/yaze_screenshot.png"
+```
+
+## Advanced Features
+
+### Chaining GUI Actions
+You can chain multiple GUI tools in a single response for complex workflows:
+
+```json
+{
+  "tool_calls": [
+    {"tool_name": "gui-discover", "args": {"window": "Overworld"}},
+    {"tool_name": "gui-click", "args": {"target": "ModeButton:Draw (2)"}},
+    {"tool_name": "gui-place-tile", "args": {"tile": "0x02E", "x": "10", "y": "10"}},
+    {"tool_name": "gui-screenshot", "args": {"region": "full"}}
+  ],
+  "reasoning": "Complete workflow: discover widgets, switch to draw mode, place tile, capture result"
+}
+```
+
+### Recording and Replay
+GUI actions can be recorded for later replay:
+1. Actions are logged as test scripts
+2. Scripts can be saved to YAML/JSON files
+3. Replay with `z3ed agent test replay <script.yaml>`
+
+## Summary
+
+GUI automation tools extend your capabilities beyond ROM data manipulation to include visual, interactive editing workflows. Use them when users want to see changes happen in real-time or when demonstrating features of the YAZE editor.
+
+Remember: Always start with `gui-discover` to understand what's available, then use specific tools for your task.
+
