@@ -21,6 +21,9 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
     add_executable(
       yaze_test
       yaze_test_ci.cc
+      # Emulator unit tests
+      unit/emu/apu_dsp_test.cc
+      unit/emu/spc700_reset_test.cc
       test_editor.cc
       test_editor.h
       testing.h
@@ -85,6 +88,9 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
     add_executable(
       yaze_test
       yaze_test.cc
+      # Emulator unit tests
+      unit/emu/apu_dsp_test.cc
+      unit/emu/spc700_reset_test.cc
       test_editor.cc
       test_editor.h
       testing.h

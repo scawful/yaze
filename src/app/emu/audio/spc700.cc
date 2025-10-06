@@ -4,8 +4,11 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "util/log.h"
+#include "app/core/features.h"
 
 #include "app/emu/audio/internal/opcodes.h"
+#include "app/emu/audio/internal/spc700_cycles.h"
 
 namespace yaze {
 namespace emu {
@@ -25,6 +28,11 @@ void Spc700::Reset(bool hard) {
 }
 
 void Spc700::RunOpcode() {
+  static int entry_log = 0;
+  if ((PC >= 0xFFF0 && PC <= 0xFFFF) && entry_log++ < 30) {
+    LOG_INFO("SPC", "RunOpcode ENTRY: PC=$%04X step=%d bstep=%d", PC, step, bstep);
+  }
+  
   if (reset_wanted_) {
     // based on 6502, brk without writes
     reset_wanted_ = false;
@@ -36,20 +44,62 @@ void Spc700::RunOpcode() {
     callbacks_.idle(false);
     PSW.I = false;
     PC = read_word(0xfffe);
+    last_opcode_cycles_ = 8;  // Reset sequence takes 8 cycles
     return;
   }
   if (stopped_) {
+    // Allow timers/DSP to continue advancing while SPC is stopped/sleeping.
     callbacks_.idle(true);
+    last_opcode_cycles_ = 2;  // Stopped state consumes minimal cycles
     return;
   }
   if (step == 0) {
-    bstep = 0;
-    opcode = ReadOpcode();
+    // Debug: Log SPC execution in IPL ROM range and multi-step state
+    static int spc_exec_count = 0;
+    if ((PC >= 0xFFCF && PC <= 0xFFFF) && spc_exec_count++ < 50) {
+      LOG_INFO("SPC", "Execute: PC=$%04X step=0 bstep=%d", PC, bstep);
+    }
+    
+    // Only read new opcode if previous instruction is complete
+    if (bstep == 0) {
+      opcode = ReadOpcode();
+      // Set base cycle count from lookup table
+      last_opcode_cycles_ = spc700_cycles[opcode];
+    } else {
+      LOG_INFO("SPC", "Continuing multi-step: PC=$%04X bstep=%d opcode=$%02X", PC, bstep, opcode);
+    }
     step = 1;
     return;
   }
+  // Emit instruction log via util logger to align with CPU logging controls.
+  if (core::FeatureFlags::get().kLogInstructions) {
+    try {
+      LogInstruction(PC, opcode);
+    } catch (...) {
+      // ignore mapping failures
+    }
+  }
+  
+  static int exec_log = 0;
+  if ((PC >= 0xFFF0 && PC <= 0xFFFF) && exec_log++ < 30) {
+    LOG_INFO("SPC", "About to ExecuteInstructions: PC=$%04X step=%d bstep=%d opcode=$%02X", PC, step, bstep, opcode);
+  }
+  
   ExecuteInstructions(opcode);
-  if (step == 1) step = 0;  // reset step for non cycle-stepped opcodes.
+  // Only reset step if instruction is complete (bstep back to 0)
+  static int reset_log = 0;
+  if (step == 1) {
+    if (bstep == 0) {
+      if ((PC >= 0xFFF0 && PC <= 0xFFFF) && reset_log++ < 20) {
+        LOG_INFO("SPC", "Resetting step: PC=$%04X opcode=$%02X bstep=%d", PC, opcode, bstep);
+      }
+      step = 0;
+    } else {
+      if ((PC >= 0xFFF0 && PC <= 0xFFFF) || reset_log++ < 20) {
+        LOG_INFO("SPC", "NOT resetting step: PC=$%04X opcode=$%02X bstep=%d", PC, opcode, bstep);
+      }
+    }
+  }
 }
 
 void Spc700::ExecuteInstructions(uint8_t opcode) {
@@ -1010,6 +1060,7 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xc4: {  // movs dp
+      LOG_INFO("SPC", "Case 0xC4 reached: bstep=%d PC=$%04X", bstep, PC);
       MOVS(dp());
       break;
     }
@@ -1216,9 +1267,10 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xef: {  // sleep imp
+      // Emulate low-power idle without halting the core permanently.
+      // Advance timers/DSP via idle callbacks, but do not set stopped_.
       read(PC);
-      callbacks_.idle(false);
-      stopped_ = true;  // no interrupts, so sleeping stops as well
+      for (int i = 0; i < 4; ++i) callbacks_.idle(true);
       break;
     }
     case 0xf0: {  // beq rel
@@ -1294,31 +1346,21 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
 }
 
 void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
-  std::string mnemonic = spc_opcode_map.at(opcode);
+  const std::string& mnemonic = spc_opcode_map.at(opcode);
 
-  std::stringstream log_entry_stream;
-  log_entry_stream << "\033[1;36m$" << std::hex << std::setw(4)
-                   << std::setfill('0') << initial_pc << "\033[0m";
-  log_entry_stream << " \033[1;32m" << std::hex << std::setw(2)
-                   << std::setfill('0') << static_cast<int>(opcode) << "\033[0m"
-                   << " \033[1;35m" << std::setw(18) << std::left
-                   << std::setfill(' ') << mnemonic << "\033[0m";
+  std::stringstream ss;
+  ss << "$" << std::hex << std::setw(4) << std::setfill('0') << initial_pc
+     << ": 0x" << std::setw(2) << std::setfill('0')
+     << static_cast<int>(opcode) << " " << mnemonic
+     << "  A:" << std::setw(2) << std::setfill('0') << std::hex
+     << static_cast<int>(A)
+     << " X:" << std::setw(2) << std::setfill('0') << std::hex
+     << static_cast<int>(X)
+     << " Y:" << std::setw(2) << std::setfill('0') << std::hex
+     << static_cast<int>(Y);
 
-  log_entry_stream << " \033[1;33mA: " << std::hex << std::setw(2)
-                   << std::setfill('0') << std::right << static_cast<int>(A)
-                   << "\033[0m";
-  log_entry_stream << " \033[1;33mX: " << std::hex << std::setw(2)
-                   << std::setfill('0') << std::right << static_cast<int>(X)
-                   << "\033[0m";
-  log_entry_stream << " \033[1;33mY: " << std::hex << std::setw(2)
-                   << std::setfill('0') << std::right << static_cast<int>(Y)
-                   << "\033[0m";
-  std::string log_entry = log_entry_stream.str();
-
-  std::cerr << log_entry << std::endl;
-
-  // Append the log entry to the log
-  // log_.push_back(log_entry);
+  util::LogManager::instance().log(util::LogLevel::YAZE_DEBUG, "SPC700",
+                                   ss.str());
 }
 
 }  // namespace emu

@@ -38,7 +38,8 @@ struct EmulatorKeybindings {
 class Emulator {
  public:
   Emulator() = default;
-  void Run();
+  ~Emulator() = default;
+  void Run(Rom* rom);
 
   auto snes() -> Snes& { return snes_; }
   auto running() const -> bool { return running_; }
@@ -47,8 +48,6 @@ class Emulator {
     audio_device_ = audio_device;
   }
   auto wanted_samples() const -> int { return wanted_samples_; }
-  auto rom() { return rom_; }
-  auto mutable_rom() { return rom_; }
 
  private:
   void RenderNavBar();
@@ -88,7 +87,6 @@ class Emulator {
   int16_t* audio_buffer_;
   SDL_AudioDeviceID audio_device_;
 
-  Rom* rom_;
   Snes snes_;
   SDL_Texture* ppu_texture_;
 

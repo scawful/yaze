@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "util/log.h"
+
 namespace yaze {
 namespace emu {
 
@@ -39,6 +41,14 @@ void MemoryImpl::Initialize(const std::vector<uint8_t>& rom_data,
       }
     }
   }
+  
+  // Debug: Log reset vector location
+  uint8_t reset_low = memory_[0x00FFFC];
+  uint8_t reset_high = memory_[0x00FFFD];
+  LOG_INFO("Memory", "LoROM reset vector at $00:FFFC = $%02X%02X (from ROM offset $%04X)", 
+           reset_high, reset_low, 0x7FFC);
+  LOG_INFO("Memory", "ROM data at offset $7FFC = $%02X $%02X", 
+           rom_data[0x7FFC], rom_data[0x7FFD]);
 }
 
 uint8_t MemoryImpl::cart_read(uint8_t bank, uint16_t adr) {
