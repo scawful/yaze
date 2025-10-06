@@ -1491,29 +1491,91 @@ void AgentChatWidget::RenderAutomationPanel() {
   const auto& theme = AgentUI::GetTheme();
   ImGui::PushID("AutomationPanel");
 
-  AgentUI::PushPanelStyle();
-  if (ImGui::BeginChild("Automation_Panel", ImVec2(0, 180), true)) {
-    AgentUI::RenderSectionHeader(ICON_MD_SMART_TOY, "GUI Automation", 
-                                  theme.provider_ollama);
+  // Auto-poll for status updates
+  PollAutomationStatus();
 
-    // Connection status
-    bool connected = automation_state_.harness_connected;
-    ImVec4 status_color = connected ? theme.status_success : theme.status_warning;
-    const char* status_text = connected ? "Connected" : "Disconnected";
+  // Animate pulse and scanlines for retro effect
+  automation_state_.pulse_animation += ImGui::GetIO().DeltaTime * 2.0f;
+  automation_state_.scanline_offset += ImGui::GetIO().DeltaTime * 0.5f;
+  if (automation_state_.scanline_offset > 1.0f) {
+    automation_state_.scanline_offset -= 1.0f;
+  }
+
+  AgentUI::PushPanelStyle();
+  if (ImGui::BeginChild("Automation_Panel", ImVec2(0, 240), true)) {
+    // === HEADER WITH RETRO GLITCH EFFECT ===
+    float pulse = 0.5f + 0.5f * std::sin(automation_state_.pulse_animation);
+    ImVec4 header_glow = ImVec4(
+      theme.provider_ollama.x + 0.3f * pulse,
+      theme.provider_ollama.y + 0.2f * pulse,
+      theme.provider_ollama.z + 0.4f * pulse,
+      1.0f
+    );
     
-    ImGui::TextColored(status_color, "%s %s", 
-                       connected ? ICON_MD_CHECK_CIRCLE : ICON_MD_WARNING, 
-                       status_text);
+    ImGui::PushStyleColor(ImGuiCol_Text, header_glow);
+    ImGui::TextWrapped("%s %s", ICON_MD_SMART_TOY, "GUI AUTOMATION");
+    ImGui::PopStyleColor();
+    
     ImGui::SameLine();
+    ImGui::TextDisabled("[v0.4.x]");
+
+    // === CONNECTION STATUS WITH VISUAL EFFECTS ===
+    bool connected = automation_state_.harness_connected;
+    ImVec4 status_color;
+    const char* status_text;
+    const char* status_icon;
+    
+    if (connected) {
+      // Pulsing green for connected
+      float green_pulse = 0.7f + 0.3f * std::sin(automation_state_.pulse_animation * 0.5f);
+      status_color = ImVec4(0.1f, green_pulse, 0.3f, 1.0f);
+      status_text = "ONLINE";
+      status_icon = ICON_MD_CHECK_CIRCLE;
+    } else {
+      // Pulsing red for disconnected
+      float red_pulse = 0.6f + 0.4f * std::sin(automation_state_.pulse_animation * 1.5f);
+      status_color = ImVec4(red_pulse, 0.2f, 0.2f, 1.0f);
+      status_text = "OFFLINE";
+      status_icon = ICON_MD_ERROR;
+    }
+    
+    ImGui::Separator();
+    ImGui::TextColored(status_color, "%s %s", status_icon, status_text);
+    ImGui::SameLine();
+    ImGui::TextDisabled("| %s", automation_state_.grpc_server_address.c_str());
+    
+    // === CONTROL BAR ===
+    ImGui::Spacing();
+    
+    // Refresh button with pulse effect when auto-refresh is on
+    bool auto_ref_pulse = automation_state_.auto_refresh_enabled && 
+                          (static_cast<int>(automation_state_.pulse_animation * 2.0f) % 2 == 0);
+    if (auto_ref_pulse) {
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.7f, 0.8f));
+    }
     
     if (ImGui::SmallButton(ICON_MD_REFRESH " Refresh")) {
+      PollAutomationStatus();
       if (automation_callbacks_.show_active_tests) {
         automation_callbacks_.show_active_tests();
       }
     }
     
+    if (auto_ref_pulse) {
+      ImGui::PopStyleColor();
+    }
+    
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Refresh automation status");
+      ImGui::SetTooltip("Refresh automation status\nAuto-refresh: %s (%.1fs)",
+                       automation_state_.auto_refresh_enabled ? "ON" : "OFF",
+                       automation_state_.refresh_interval_seconds);
+    }
+
+    // Auto-refresh toggle
+    ImGui::SameLine();
+    ImGui::Checkbox("##auto_refresh", &automation_state_.auto_refresh_enabled);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Auto-refresh connection status");
     }
 
     // Quick action buttons
@@ -1523,6 +1585,9 @@ void AgentChatWidget::RenderAutomationPanel() {
         automation_callbacks_.open_harness_dashboard();
       }
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open automation dashboard");
+    }
     
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_REPLAY " Replay")) {
@@ -1530,33 +1595,78 @@ void AgentChatWidget::RenderAutomationPanel() {
         automation_callbacks_.replay_last_plan();
       }
     }
-    
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Replay last automation plan");
     }
 
-    // Recent automation actions
+    // === SETTINGS ROW ===
+    ImGui::Spacing();
+    ImGui::SetNextItemWidth(80.0f);
+    ImGui::SliderFloat("##refresh_interval", &automation_state_.refresh_interval_seconds, 
+                       0.5f, 10.0f, "%.1fs");
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Auto-refresh interval");
+    }
+
+    // === RECENT AUTOMATION ACTIONS WITH SCROLLING ===
     ImGui::Spacing();
     ImGui::Separator();
-    ImGui::Text(ICON_MD_LIST " Recent Actions:");
+    
+    // Header with retro styling
+    ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s RECENT ACTIONS", ICON_MD_LIST);
+    ImGui::SameLine();
+    ImGui::TextDisabled("[%zu]", automation_state_.recent_tests.size());
     
     if (automation_state_.recent_tests.empty()) {
-      ImGui::TextDisabled("  No recent actions");
+      ImGui::Spacing();
+      ImGui::TextDisabled("  > No recent actions");
+      ImGui::TextDisabled("  > Waiting for automation tasks...");
+      
+      // Add animated dots
+      int dots = static_cast<int>(automation_state_.pulse_animation) % 4;
+      std::string dot_string(dots, '.');
+      ImGui::TextDisabled("  > %s", dot_string.c_str());
     } else {
-      ImGui::BeginChild("ActionQueue", ImVec2(0, 80), false);
+      // Scrollable action list with retro styling
+      ImGui::BeginChild("ActionQueue", ImVec2(0, 100), true, 
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar);
+      
+      // Add scanline effect (visual only)
+      ImDrawList* draw_list = ImGui::GetWindowDrawList();
+      ImVec2 win_pos = ImGui::GetWindowPos();
+      ImVec2 win_size = ImGui::GetWindowSize();
+      
+      // Draw scanlines
+      for (float y = 0; y < win_size.y; y += 4.0f) {
+        float offset_y = y + automation_state_.scanline_offset * 4.0f;
+        if (offset_y < win_size.y) {
+          draw_list->AddLine(
+            ImVec2(win_pos.x, win_pos.y + offset_y),
+            ImVec2(win_pos.x + win_size.x, win_pos.y + offset_y),
+            IM_COL32(0, 0, 0, 20));
+        }
+      }
       
       for (const auto& test : automation_state_.recent_tests) {
         ImGui::PushID(test.test_id.c_str());
         
-        // Status icon
+        // Status icon with animation for running tests
         ImVec4 action_color;
         const char* status_icon;
+        bool is_running = false;
         
-        if (test.status == "success" || test.status == "completed") {
+        if (test.status == "success" || test.status == "completed" || test.status == "passed") {
           action_color = theme.status_success;
           status_icon = ICON_MD_CHECK_CIRCLE;
         } else if (test.status == "running" || test.status == "in_progress") {
-          action_color = theme.provider_ollama;
+          is_running = true;
+          float running_pulse = 0.5f + 0.5f * std::sin(automation_state_.pulse_animation * 3.0f);
+          action_color = ImVec4(
+            theme.provider_ollama.x * running_pulse,
+            theme.provider_ollama.y * (0.8f + 0.2f * running_pulse),
+            theme.provider_ollama.z * running_pulse,
+            1.0f
+          );
           status_icon = ICON_MD_PENDING;
         } else if (test.status == "failed" || test.status == "error") {
           action_color = theme.status_error;
@@ -1566,29 +1676,35 @@ void AgentChatWidget::RenderAutomationPanel() {
           status_icon = ICON_MD_HELP;
         }
         
+        // Icon with pulse
         ImGui::TextColored(action_color, "%s", status_icon);
         ImGui::SameLine();
         
-        // Action name
-        ImGui::Text("%s", test.name.c_str());
+        // Action name with monospace font
+        ImGui::Text("> %s", test.name.c_str());
         
         // Timestamp
         if (test.updated_at != absl::InfinitePast()) {
           ImGui::SameLine();
           auto elapsed = absl::Now() - test.updated_at;
           if (elapsed < absl::Seconds(60)) {
-            ImGui::TextDisabled("(%ds ago)", static_cast<int>(absl::ToInt64Seconds(elapsed)));
+            ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), 
+                              "[%ds]", static_cast<int>(absl::ToInt64Seconds(elapsed)));
           } else if (elapsed < absl::Minutes(60)) {
-            ImGui::TextDisabled("(%dm ago)", static_cast<int>(absl::ToInt64Minutes(elapsed)));
+            ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+                              "[%dm]", static_cast<int>(absl::ToInt64Minutes(elapsed)));
           } else {
-            ImGui::TextDisabled("(%dh ago)", static_cast<int>(absl::ToInt64Hours(elapsed)));
+            ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f),
+                              "[%dh]", static_cast<int>(absl::ToInt64Hours(elapsed)));
           }
         }
         
-        // Message (if any)
+        // Message (if any) with indentation
         if (!test.message.empty()) {
           ImGui::Indent(20.0f);
-          ImGui::TextWrapped(ICON_MD_MESSAGE " %s", test.message.c_str());
+          ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+          ImGui::TextWrapped("  %s %s", ICON_MD_MESSAGE, test.message.c_str());
+          ImGui::PopStyleColor();
           ImGui::Unindent(20.0f);
         }
         
@@ -2749,6 +2865,58 @@ void AgentChatWidget::SetLastPlanSummary(const std::string& /* summary */) {
   if (toast_manager_) {
     toast_manager_->Show("Plan summary received", ToastType::kInfo, 2.0f);
   }
+}
+
+void AgentChatWidget::PollAutomationStatus() {
+  // Check if we should poll based on interval and auto-refresh setting
+  if (!automation_state_.auto_refresh_enabled) {
+    return;
+  }
+
+  absl::Time now = absl::Now();
+  absl::Duration elapsed = now - automation_state_.last_poll;
+  
+  if (elapsed < absl::Seconds(automation_state_.refresh_interval_seconds)) {
+    return;
+  }
+
+  // Update last poll time
+  automation_state_.last_poll = now;
+
+  // Check connection status
+  bool was_connected = automation_state_.harness_connected;
+  automation_state_.harness_connected = CheckHarnessConnection();
+
+  // Notify on status change
+  if (was_connected != automation_state_.harness_connected && toast_manager_) {
+    if (automation_state_.harness_connected) {
+      toast_manager_->Show(ICON_MD_CHECK_CIRCLE " Automation harness connected", 
+                          ToastType::kSuccess, 2.0f);
+    } else {
+      toast_manager_->Show(ICON_MD_WARNING " Automation harness disconnected", 
+                          ToastType::kWarning, 2.0f);
+    }
+  }
+}
+
+bool AgentChatWidget::CheckHarnessConnection() {
+#if defined(YAZE_WITH_GRPC)
+  try {
+    // Attempt to get harness summaries from TestManager
+    // If this succeeds, the harness infrastructure is working
+    auto summaries = test::TestManager::Get().ListHarnessTestSummaries();
+    
+    // If we get here, the test manager is operational
+    // In a real implementation, you might want to ping the gRPC server
+    automation_state_.connection_attempts = 0;
+    return true;
+  } catch (const std::exception& e) {
+    automation_state_.connection_attempts++;
+    return false;
+  }
+#else
+  return false;
+#endif
 }
 
 void AgentChatWidget::SyncHistoryToPopup() {
