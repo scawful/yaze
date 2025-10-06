@@ -77,62 +77,7 @@ struct Table {
 
 void AddTableColumn(Table &table, const std::string &label, GuiElement element);
 
-void DrawTable(Table &params);
-
-static std::function<bool()> kDefaultEnabledCondition = []() { return false; };
-
-struct MenuItem {
-  std::string name;
-  std::string shortcut;
-  std::function<void()> callback;
-  std::function<bool()> enabled_condition = kDefaultEnabledCondition;
-  std::vector<MenuItem> subitems;
-
-  // Default constructor
-  MenuItem() = default;
-  
-  // Constructor for basic menu items
-  MenuItem(const std::string& name, const std::string& shortcut, 
-           std::function<void()> callback)
-      : name(name), shortcut(shortcut), callback(callback) {}
-  
-  // Constructor for menu items with enabled condition
-  MenuItem(const std::string& name, const std::string& shortcut, 
-           std::function<void()> callback, std::function<bool()> enabled_condition)
-      : name(name), shortcut(shortcut), callback(callback), 
-        enabled_condition(enabled_condition) {}
-  
-  // Constructor for menu items with subitems
-  MenuItem(const std::string& name, const std::string& shortcut, 
-           std::function<void()> callback, std::function<bool()> enabled_condition,
-           std::vector<MenuItem> subitems)
-      : name(name), shortcut(shortcut), callback(callback), 
-        enabled_condition(enabled_condition), subitems(std::move(subitems)) {}
-};
-using Menu = std::vector<MenuItem>;
-
-void DrawMenu(Menu &params);
-
-static Menu kMainMenu;
-
-const std::string kSeparator = "-";
-
 IMGUI_API bool OpenUrl(const std::string &url);
-
-struct Text {
-  std::string content;
-};
-
-struct Button {
-  std::string label;
-  std::function<void()> callback;
-};
-
-struct Layout {
-  std::vector<std::variant<Text, Button>> elements;
-};
-
-void RenderLayout(const Layout &layout);
 
 void MemoryEditorPopup(const std::string &label, std::span<uint8_t> memory);
 

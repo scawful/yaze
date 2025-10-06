@@ -30,6 +30,9 @@ namespace yaze {
  */
 namespace gui {
 
+// Forward declaration (full include would cause circular dependency)
+class CanvasAutomationAPI;
+
 using gfx::Bitmap;
 using gfx::BitmapTable;
 
@@ -50,36 +53,13 @@ enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
  */
 class Canvas {
  public:
-  Canvas() = default;
+  Canvas();
+  ~Canvas();
   
-  explicit Canvas(const std::string& id) 
-    : canvas_id_(id), context_id_(id + "Context") {
-    InitializeDefaults();
-  }
-  
-  explicit Canvas(const std::string& id, ImVec2 canvas_size)
-    : canvas_id_(id), context_id_(id + "Context") {
-    InitializeDefaults();
-    config_.canvas_size = canvas_size;
-    config_.custom_canvas_size = true;
-  }
-  
-  explicit Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size)
-    : canvas_id_(id), context_id_(id + "Context") {
-    InitializeDefaults();
-    config_.canvas_size = canvas_size;
-    config_.custom_canvas_size = true;
-    SetGridSize(grid_size);
-  }
-  
-  explicit Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale)
-    : canvas_id_(id), context_id_(id + "Context") {
-    InitializeDefaults();
-    config_.canvas_size = canvas_size;
-    config_.custom_canvas_size = true;
-    config_.global_scale = global_scale;
-    SetGridSize(grid_size);
-  }
+  explicit Canvas(const std::string& id);
+  explicit Canvas(const std::string& id, ImVec2 canvas_size);
+  explicit Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size);
+  explicit Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale);
 
   void SetGridSize(CanvasGridSize grid_size) {
     switch (grid_size) {
@@ -100,6 +80,14 @@ class Canvas {
 
   // Legacy compatibility
   void SetCanvasGridSize(CanvasGridSize grid_size) { SetGridSize(grid_size); }
+  
+  CanvasGridSize grid_size() const {
+    if (config_.grid_step == 8.0f) return CanvasGridSize::k8x8;
+    if (config_.grid_step == 16.0f) return CanvasGridSize::k16x16;
+    if (config_.grid_step == 32.0f) return CanvasGridSize::k32x32;
+    if (config_.grid_step == 64.0f) return CanvasGridSize::k64x64;
+    return CanvasGridSize::k16x16;  // Default
+  }
 
   void UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
                           const std::function<void()> &event, int tile_size,
@@ -234,6 +222,9 @@ class Canvas {
   // Interaction handler access
   canvas::CanvasInteractionHandler& GetInteractionHandler() { return interaction_handler_; }
   const canvas::CanvasInteractionHandler& GetInteractionHandler() const { return interaction_handler_; }
+  
+  // Automation API access (Phase 4A)
+  CanvasAutomationAPI* GetAutomationAPI();
   
   // Initialization and cleanup
   void InitializeDefaults();
@@ -401,6 +392,7 @@ class Canvas {
   auto set_highlight_tile_id(int i) { highlight_tile_id = i; }
 
   auto mutable_selected_tiles() { return &selected_tiles_; }
+  auto mutable_selected_points() { return &selected_points_; }
   auto selected_points() const { return selected_points_; }
 
   auto hover_mouse_pos() const { return mouse_pos_in_canvas_; }
@@ -413,6 +405,9 @@ class Canvas {
   CanvasConfig config_;
   CanvasSelection selection_;
   std::unique_ptr<PaletteWidget> palette_editor_;
+  
+  // Automation API (lazy-initialized on first access)
+  std::unique_ptr<CanvasAutomationAPI> automation_api_;
   
   // Core canvas state
   bool is_hovered_ = false;

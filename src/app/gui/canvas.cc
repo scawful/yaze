@@ -11,6 +11,7 @@
 #include "app/gui/canvas_utils.h"
 #include "app/gui/color.h"
 #include "app/gui/style.h"
+#include "app/gui/canvas/canvas_automation_api.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 #include "util/log.h"
@@ -18,6 +19,40 @@
 namespace yaze::gui {
 
 using core::Renderer;
+
+// Define constructors and destructor in .cc to avoid incomplete type issues with unique_ptr
+Canvas::Canvas() { InitializeDefaults(); }
+
+Canvas::Canvas(const std::string& id) 
+    : canvas_id_(id), context_id_(id + "Context") {
+  InitializeDefaults();
+}
+
+Canvas::Canvas(const std::string& id, ImVec2 canvas_size)
+    : canvas_id_(id), context_id_(id + "Context") {
+  InitializeDefaults();
+  config_.canvas_size = canvas_size;
+  config_.custom_canvas_size = true;
+}
+
+Canvas::Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size)
+    : canvas_id_(id), context_id_(id + "Context") {
+  InitializeDefaults();
+  config_.canvas_size = canvas_size;
+  config_.custom_canvas_size = true;
+  SetGridSize(grid_size);
+}
+
+Canvas::Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale)
+    : canvas_id_(id), context_id_(id + "Context") {
+  InitializeDefaults();
+  config_.canvas_size = canvas_size;
+  config_.custom_canvas_size = true;
+  config_.global_scale = global_scale;
+  SetGridSize(grid_size);
+}
+
+Canvas::~Canvas() = default;
 
 using ImGui::BeginMenu;
 using ImGui::EndMenu;
@@ -1776,6 +1811,14 @@ gfx::BppFormat Canvas::GetCurrentBppFormat() const {
 
   return gfx::BppFormatManager::Get().DetectFormat(
       bitmap_->vector(), bitmap_->width(), bitmap_->height());
+}
+
+// Phase 4A: Canvas Automation API
+CanvasAutomationAPI* Canvas::GetAutomationAPI() {
+  if (!automation_api_) {
+    automation_api_ = std::make_unique<CanvasAutomationAPI>(this);
+  }
+  return automation_api_.get();
 }
 
 }  // namespace yaze::gui

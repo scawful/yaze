@@ -12,6 +12,7 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/tilemap.h"
 #include "app/gui/canvas.h"
+#include "app/gui/widgets/tile_selector_widget.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
 #include "app/zelda3/overworld/overworld.h"
@@ -160,6 +161,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status DrawTile16Selector();
   void DrawTile8Selector();
   absl::Status DrawAreaGraphics();
+  void UpdateBlocksetSelectorState();
 
   absl::Status LoadSpriteGraphics();
 
@@ -182,7 +184,13 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   void DrawOverworldProperties();
   void HandleMapInteraction();
-  void SetupOverworldCanvasContextMenu();
+  // SetupOverworldCanvasContextMenu removed (Phase 3B) - now handled by MapPropertiesSystem
+  
+  // Canvas pan/zoom helpers (Overworld Refactoring)
+  void HandleOverworldPan();
+  void HandleOverworldZoom();
+  void ResetOverworldView();
+  void CenterOverworldView();
   
   /**
    * @brief Scroll the blockset canvas to show the current selected tile16
@@ -332,6 +340,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
                                   gui::CanvasGridSize::k32x32};
   gui::Canvas blockset_canvas_{"OwBlockset", kBlocksetCanvasSize,
                                gui::CanvasGridSize::k32x32};
+  std::unique_ptr<gui::TileSelectorWidget> blockset_selector_;
   gui::Canvas graphics_bin_canvas_{"GraphicsBin", kGraphicsBinCanvasSize,
                                    gui::CanvasGridSize::k16x16};
   gui::Canvas properties_canvas_;

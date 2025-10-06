@@ -422,39 +422,6 @@ void DrawTable(Table& params) {
   }
 }
 
-void DrawMenu(Menu& menu) {
-  for (const auto& each_menu : menu) {
-    if (ImGui::BeginMenu(each_menu.name.c_str())) {
-      for (const auto& each_item : each_menu.subitems) {
-        if (!each_item.subitems.empty()) {
-          if (ImGui::BeginMenu(each_item.name.c_str())) {
-            for (const auto& each_subitem : each_item.subitems) {
-              if (each_subitem.name == kSeparator) {
-                ImGui::Separator();
-              } else if (ImGui::MenuItem(each_subitem.name.c_str(),
-                                         each_subitem.shortcut.c_str())) {
-                if (each_subitem.callback)
-                  each_subitem.callback();
-              }
-            }
-            ImGui::EndMenu();
-          }
-        } else {
-          if (each_item.name == kSeparator) {
-            ImGui::Separator();
-          } else if (ImGui::MenuItem(each_item.name.c_str(),
-                                     each_item.shortcut.c_str(),
-                                     each_item.enabled_condition())) {
-            if (each_item.callback)
-              each_item.callback();
-          }
-        }
-      }
-      ImGui::EndMenu();
-    }
-  }
-}
-
 bool OpenUrl(const std::string& url) {
   // if iOS
 #ifdef __APPLE__
@@ -475,20 +442,6 @@ bool OpenUrl(const std::string& url) {
 #endif
 
   return false;
-}
-
-void RenderLayout(const Layout& layout) {
-  for (const auto& element : layout.elements) {
-    std::visit(overloaded{[](const Text& text) {
-                            ImGui::Text("%s", text.content.c_str());
-                          },
-                          [](const Button& button) {
-                            if (ImGui::Button(button.label.c_str())) {
-                              button.callback();
-                            }
-                          }},
-               element);
-  }
 }
 
 void MemoryEditorPopup(const std::string& label, std::span<uint8_t> memory) {
