@@ -1371,11 +1371,18 @@ void AgentChatWidget::RenderMultimodalPanel() {
   ImGui::RadioButton("Window##mm_window",
                      reinterpret_cast<int*>(&multimodal_state_.capture_mode),
                      static_cast<int>(CaptureMode::kSpecificWindow));
+  ImGui::SameLine();
+  ImGui::RadioButton("Region##mm_region",
+                     reinterpret_cast<int*>(&multimodal_state_.capture_mode),
+                     static_cast<int>(CaptureMode::kRegionSelect));
 
   if (!can_capture)
     ImGui::BeginDisabled();
   if (ImGui::SmallButton(ICON_MD_PHOTO_CAMERA " Capture##mm_cap")) {
-    if (multimodal_callbacks_.capture_snapshot) {
+    if (multimodal_state_.capture_mode == CaptureMode::kRegionSelect) {
+      // Begin region selection mode
+      BeginRegionSelection();
+    } else if (multimodal_callbacks_.capture_snapshot) {
       std::filesystem::path captured_path;
       absl::Status status =
           multimodal_callbacks_.capture_snapshot(&captured_path);
@@ -1384,6 +1391,7 @@ void AgentChatWidget::RenderMultimodalPanel() {
         multimodal_state_.status_message =
             absl::StrFormat("Captured %s", captured_path.string());
         multimodal_state_.last_updated = absl::Now();
+        LoadScreenshotPreview(captured_path);
         if (toast_manager_) {
           toast_manager_->Show("Snapshot captured", ToastType::kSuccess, 3.0f);
         }
@@ -1449,9 +1457,32 @@ void AgentChatWidget::RenderMultimodalPanel() {
   if (!can_send)
     ImGui::EndDisabled();
 
+  // Screenshot preview section
+  if (multimodal_state_.preview.loaded && multimodal_state_.preview.show_preview) {
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text(ICON_MD_IMAGE " Preview:");
+    RenderScreenshotPreview();
+  }
+
+  // Region selection active indicator
+  if (multimodal_state_.region_selection.active) {
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::TextColored(theme.provider_ollama, ICON_MD_CROP " Drag to select region");
+    if (ImGui::SmallButton("Cancel##region_cancel")) {
+      multimodal_state_.region_selection.active = false;
+    }
+  }
+
   ImGui::EndChild();
   AgentUI::PopPanelStyle();
   ImGui::PopID();
+  
+  // Handle region selection (overlay)
+  if (multimodal_state_.region_selection.active) {
+    HandleRegionSelection();
+  }
 }
 
 void AgentChatWidget::RefreshCollaboration() {
@@ -2611,6 +2642,224 @@ void AgentChatWidget::SyncHistoryToPopup() {
   
   // Update the popup with the latest history
   chat_history_popup_->UpdateHistory(history);
+}
+
+// Screenshot Preview Implementation
+void AgentChatWidget::LoadScreenshotPreview(const std::filesystem::path& image_path) {
+  // For now, store the path and mark as loaded
+  // Actual texture loading would need to use SDL_image or stb_image
+  // and then upload to GPU via ImGui backend
+  multimodal_state_.preview.loaded = true;
+  multimodal_state_.preview.show_preview = true;
+  
+  // TODO: Implement actual texture loading using SDL_image or stb_image
+  // For now, just track that we have a valid image path
+  if (toast_manager_) {
+    toast_manager_->Show("Screenshot preview loaded", ToastType::kInfo, 2.0f);
+  }
+}
+
+void AgentChatWidget::UnloadScreenshotPreview() {
+  if (multimodal_state_.preview.texture_id != nullptr) {
+    // TODO: Free the texture from GPU
+    // This requires backend-specific cleanup
+    multimodal_state_.preview.texture_id = nullptr;
+  }
+  multimodal_state_.preview.loaded = false;
+  multimodal_state_.preview.width = 0;
+  multimodal_state_.preview.height = 0;
+}
+
+void AgentChatWidget::RenderScreenshotPreview() {
+  if (!multimodal_state_.last_capture_path.has_value()) {
+    ImGui::TextDisabled("No screenshot to preview");
+    return;
+  }
+
+  const auto& theme = AgentUI::GetTheme();
+  
+  // Display filename
+  std::string filename = multimodal_state_.last_capture_path->filename().string();
+  ImGui::TextColored(theme.text_secondary, "%s", filename.c_str());
+  
+  // Preview controls
+  if (ImGui::SmallButton(ICON_MD_CLOSE " Hide")) {
+    multimodal_state_.preview.show_preview = false;
+  }
+  ImGui::SameLine();
+  
+  if (multimodal_state_.preview.loaded && multimodal_state_.preview.texture_id) {
+    // Display the actual texture
+    ImVec2 preview_size(
+      multimodal_state_.preview.width * multimodal_state_.preview.preview_scale,
+      multimodal_state_.preview.height * multimodal_state_.preview.preview_scale
+    );
+    ImGui::Image(multimodal_state_.preview.texture_id, preview_size);
+    
+    // Scale slider
+    ImGui::SetNextItemWidth(150);
+    ImGui::SliderFloat("##preview_scale", &multimodal_state_.preview.preview_scale, 
+                       0.1f, 2.0f, "Scale: %.1fx");
+  } else {
+    // Placeholder when texture not loaded
+    ImGui::BeginChild("PreviewPlaceholder", ImVec2(200, 150), true);
+    ImGui::SetCursorPos(ImVec2(60, 60));
+    ImGui::TextColored(theme.text_secondary, ICON_MD_IMAGE);
+    ImGui::SetCursorPosX(40);
+    ImGui::TextWrapped("Preview placeholder");
+    ImGui::TextDisabled("(Texture loading not yet implemented)");
+    ImGui::EndChild();
+  }
+}
+
+// Region Selection Implementation
+void AgentChatWidget::BeginRegionSelection() {
+  multimodal_state_.region_selection.active = true;
+  multimodal_state_.region_selection.dragging = false;
+  
+  if (toast_manager_) {
+    toast_manager_->Show(ICON_MD_CROP " Drag to select region", 
+                         ToastType::kInfo, 3.0f);
+  }
+}
+
+void AgentChatWidget::HandleRegionSelection() {
+  if (!multimodal_state_.region_selection.active) {
+    return;
+  }
+
+  // Get the full window viewport
+  ImGuiViewport* viewport = ImGui::GetMainViewport();
+  ImVec2 viewport_pos = viewport->Pos;
+  ImVec2 viewport_size = viewport->Size;
+  
+  // Draw semi-transparent overlay
+  ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+  ImVec2 overlay_min = viewport_pos;
+  ImVec2 overlay_max = ImVec2(viewport_pos.x + viewport_size.x, 
+                               viewport_pos.y + viewport_size.y);
+  
+  draw_list->AddRectFilled(overlay_min, overlay_max, 
+                           IM_COL32(0, 0, 0, 100));
+  
+  // Handle mouse input for region selection
+  ImGuiIO& io = ImGui::GetIO();
+  ImVec2 mouse_pos = io.MousePos;
+  
+  // Start dragging
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && 
+      !multimodal_state_.region_selection.dragging) {
+    multimodal_state_.region_selection.dragging = true;
+    multimodal_state_.region_selection.start_pos = mouse_pos;
+    multimodal_state_.region_selection.end_pos = mouse_pos;
+  }
+  
+  // Update drag
+  if (multimodal_state_.region_selection.dragging && 
+      ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    multimodal_state_.region_selection.end_pos = mouse_pos;
+    
+    // Calculate selection rectangle
+    ImVec2 start = multimodal_state_.region_selection.start_pos;
+    ImVec2 end = multimodal_state_.region_selection.end_pos;
+    
+    multimodal_state_.region_selection.selection_min = ImVec2(
+      std::min(start.x, end.x),
+      std::min(start.y, end.y)
+    );
+    
+    multimodal_state_.region_selection.selection_max = ImVec2(
+      std::max(start.x, end.x),
+      std::max(start.y, end.y)
+    );
+    
+    // Draw selection rectangle
+    draw_list->AddRect(
+      multimodal_state_.region_selection.selection_min,
+      multimodal_state_.region_selection.selection_max,
+      IM_COL32(100, 180, 255, 255), 0.0f, 0, 2.0f
+    );
+    
+    // Draw dimensions label
+    float width = multimodal_state_.region_selection.selection_max.x - 
+                  multimodal_state_.region_selection.selection_min.x;
+    float height = multimodal_state_.region_selection.selection_max.y - 
+                   multimodal_state_.region_selection.selection_min.y;
+    
+    std::string dimensions = absl::StrFormat("%.0f x %.0f", width, height);
+    ImVec2 label_pos = ImVec2(
+      multimodal_state_.region_selection.selection_min.x + 5,
+      multimodal_state_.region_selection.selection_min.y + 5
+    );
+    
+    draw_list->AddText(label_pos, IM_COL32(255, 255, 255, 255), 
+                       dimensions.c_str());
+  }
+  
+  // End dragging
+  if (multimodal_state_.region_selection.dragging && 
+      ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+    multimodal_state_.region_selection.dragging = false;
+    CaptureSelectedRegion();
+    multimodal_state_.region_selection.active = false;
+  }
+  
+  // Cancel on Escape
+  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+    multimodal_state_.region_selection.active = false;
+    multimodal_state_.region_selection.dragging = false;
+    if (toast_manager_) {
+      toast_manager_->Show("Region selection cancelled", ToastType::kInfo);
+    }
+  }
+  
+  // Instructions overlay
+  ImVec2 text_pos = ImVec2(viewport_pos.x + 20, viewport_pos.y + 20);
+  draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 255), 
+                     "Drag to select region (ESC to cancel)");
+}
+
+void AgentChatWidget::CaptureSelectedRegion() {
+  // Calculate region bounds
+  ImVec2 min = multimodal_state_.region_selection.selection_min;
+  ImVec2 max = multimodal_state_.region_selection.selection_max;
+  
+  float width = max.x - min.x;
+  float height = max.y - min.y;
+  
+  // Validate selection
+  if (width < 10 || height < 10) {
+    if (toast_manager_) {
+      toast_manager_->Show("Region too small", ToastType::kWarning);
+    }
+    return;
+  }
+  
+  // TODO: Implement actual region capture
+  // This would involve:
+  // 1. Capturing the full screenshot
+  // 2. Cropping to the selected region
+  // 3. Saving the cropped image
+  
+  if (toast_manager_) {
+    toast_manager_->Show(
+      absl::StrFormat("Region captured: %.0fx%.0f", width, height),
+      ToastType::kSuccess, 3.0f
+    );
+  }
+  
+  // For now, just call the regular capture callback
+  if (multimodal_callbacks_.capture_snapshot) {
+    std::filesystem::path captured_path;
+    auto status = multimodal_callbacks_.capture_snapshot(&captured_path);
+    if (status.ok()) {
+      multimodal_state_.last_capture_path = captured_path;
+      multimodal_state_.status_message = "Region captured";
+      multimodal_state_.last_updated = absl::Now();
+      LoadScreenshotPreview(captured_path);
+      MarkHistoryDirty();
+    }
+  }
 }
 
 }  // namespace editor

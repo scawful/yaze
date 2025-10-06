@@ -182,6 +182,118 @@ tools:
         description: "Image format: PNG or JPEG. Defaults to PNG."
         required: false
         example: PNG
+  - name: dialogue-list
+    description: "List all dialogue messages in the ROM with IDs and previews."
+    usage_notes: "Use this to browse available dialogue messages. Returns message IDs and short previews."
+    arguments:
+      - name: format
+        description: "Output format: json or table. Defaults to json."
+        required: false
+        example: json
+      - name: limit
+        description: "Maximum number of messages to return. Defaults to 50."
+        required: false
+        example: 50
+  - name: dialogue-read
+    description: "Read the full text of a specific dialogue message."
+    usage_notes: "Use this to get the complete text of a dialogue message by its ID."
+    arguments:
+      - name: id
+        description: "Message ID to read (hex or decimal, e.g., 0x01 or 1)."
+        required: true
+        example: 0x01
+      - name: format
+        description: "Output format: json or text. Defaults to json."
+        required: false
+        example: json
+  - name: dialogue-search
+    description: "Search dialogue messages for specific text."
+    usage_notes: "Use this to find dialogue messages containing specific words or phrases."
+    arguments:
+      - name: query
+        description: "Search query text."
+        required: true
+        example: "Zelda"
+      - name: format
+        description: "Output format: json or text. Defaults to json."
+        required: false
+        example: json
+      - name: limit
+        description: "Maximum number of results to return. Defaults to 20."
+        required: false
+        example: 20
+  - name: music-list
+    description: "List all music tracks in the ROM with names and categories."
+    usage_notes: "Use this to see all available music tracks and their properties."
+    arguments:
+      - name: format
+        description: "Output format: json or table. Defaults to json."
+        required: false
+        example: json
+  - name: music-info
+    description: "Get detailed information about a specific music track."
+    usage_notes: "Use this to get properties of a music track like channels, tempo, and category."
+    arguments:
+      - name: id
+        description: "Track ID (hex or decimal, e.g., 0x03 or 3)."
+        required: true
+        example: 0x03
+      - name: format
+        description: "Output format: json or text. Defaults to json."
+        required: false
+        example: json
+  - name: music-tracks
+    description: "Get channel/track data for music tracks."
+    usage_notes: "Returns SPC700 music data by category. Advanced feature for music analysis."
+    arguments:
+      - name: category
+        description: "Optional category filter: Overworld, Dungeon, Boss, Town, Indoor, etc."
+        required: false
+        example: Overworld
+      - name: format
+        description: "Output format: json or table. Defaults to json."
+        required: false
+        example: json
+  - name: sprite-list
+    description: "List all sprites in the ROM with names, types, and basic properties."
+    usage_notes: "Use this to browse available sprites. Can filter by type (enemy, boss, npc, object)."
+    arguments:
+      - name: format
+        description: "Output format: json or table. Defaults to json."
+        required: false
+        example: json
+      - name: type
+        description: "Optional type filter: all, enemy, boss, npc, object. Defaults to all."
+        required: false
+        example: enemy
+      - name: limit
+        description: "Maximum number of sprites to return. Defaults to 50."
+        required: false
+        example: 50
+  - name: sprite-properties
+    description: "Get detailed properties of a specific sprite."
+    usage_notes: "Returns HP, damage, palette, type, and other properties for a sprite."
+    arguments:
+      - name: id
+        description: "Sprite ID (hex or decimal, e.g., 0x08 or 8)."
+        required: true
+        example: 0x08
+      - name: format
+        description: "Output format: json or text. Defaults to json."
+        required: false
+        example: json
+  - name: sprite-palette
+    description: "Get the color palette for a specific sprite."
+    usage_notes: "Returns the palette colors used by a sprite in hex format."
+    arguments:
+      - name: id
+        description: "Sprite ID (hex or decimal, e.g., 0x08 or 8)."
+        required: true
+        example: 0x08
+      - name: format
+        description: "Output format: json or text. Defaults to json."
+        required: false
+        example: json
 
 tile16_reference:
   grass: 0x020
