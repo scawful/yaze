@@ -20,6 +20,8 @@ struct AgentUITheme {
   ImVec4 user_message_color;
   ImVec4 agent_message_color;
   ImVec4 system_message_color;
+
+  ImVec4 text_secondary_color;
   
   // Content colors
   ImVec4 json_text_color;

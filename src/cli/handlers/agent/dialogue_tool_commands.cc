@@ -1,19 +1,20 @@
 #include "cli/handlers/agent/commands.h"
 
 #include <iostream>
-#include <set>
+#include <algorithm>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/match.h"
 #include "absl/strings/numbers.h"
 #include "app/rom.h"
+#include "app/editor/message/message_data.h"
 
 namespace yaze {
 namespace cli {
 namespace agent {
 
-absl:Status HandleDialogueListCommand(
+absl::Status HandleDialogueListCommand(
     const std::vector<std::string>& arg_vec, Rom* rom_context) {
   if (!rom_context || !rom_context->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
@@ -40,43 +41,60 @@ absl:Status HandleDialogueListCommand(
     }
   }
 
-  // Get all dialogue IDs from ROM
-  // This is a simplified implementation - real one would parse dialogue data
-  std::vector<int> dialogue_ids;
+  // Read all dialogue messages from ROM using ReadAllTextData
+  constexpr int kTextData1 = 0xE0000;  // Bank $0E in ALTTP
+  auto messages = editor::ReadAllTextData(rom_context->mutable_data(), kTextData1);
   
-  // ALTTP has dialogue messages from 0x00 to ~0x1FF
-  for (int i = 0; i < std::min(limit, 512); ++i) {
-    dialogue_ids.push_back(i);
-  }
-
+  // Limit the results
+  int actual_limit = std::min(limit, static_cast<int>(messages.size()));
+  
   if (format == "json") {
     std::cout << "{\n";
     std::cout << "  \"dialogue_messages\": [\n";
-    for (size_t i = 0; i < dialogue_ids.size(); ++i) {
-      int id = dialogue_ids[i];
+    for (int i = 0; i < actual_limit; ++i) {
+      const auto& msg = messages[i];
+      // Create a preview (first 50 chars)
+      std::string preview = msg.ContentsParsed;
+      if (preview.length() > 50) {
+        preview = preview.substr(0, 47) + "...";
+      }
+      // Replace newlines with spaces for preview
+      for (char& c : preview) {
+        if (c == '\n') c = ' ';
+      }
+      
       std::cout << "    {\n";
-      std::cout << "      \"id\": \"0x" << std::hex << std::uppercase << id << std::dec << "\",\n";
-      std::cout << "      \"decimal_id\": " << id << ",\n";
-      std::cout << "      \"preview\": \"Message " << id << "...\"\n";
+      std::cout << "      \"id\": \"0x" << std::hex << std::uppercase << msg.ID << std::dec << "\",\n";
+      std::cout << "      \"decimal_id\": " << msg.ID << ",\n";
+      std::cout << "      \"preview\": \"" << preview << "\"\n";
       std::cout << "    }";
-      if (i < dialogue_ids.size() - 1) {
+      if (i < actual_limit - 1) {
         std::cout << ",";
       }
       std::cout << "\n";
     }
     std::cout << "  ],\n";
-    std::cout << "  \"total\": " << dialogue_ids.size() << ",\n";
+    std::cout << "  \"total\": " << messages.size() << ",\n";
+    std::cout << "  \"showing\": " << actual_limit << ",\n";
     std::cout << "  \"rom\": \"" << rom_context->filename() << "\"\n";
     std::cout << "}\n";
   } else {
     // Table format
-    std::cout << "Dialogue Messages (showing " << dialogue_ids.size() << "):\n";
+    std::cout << "Dialogue Messages (showing " << actual_limit << " of " << messages.size() << "):\n";
     std::cout << "----------------------------------------\n";
-    for (int id : dialogue_ids) {
-      std::cout << absl::StrFormat("0x%03X (%3d) | Message %d\n", id, id, id);
+    for (int i = 0; i < actual_limit; ++i) {
+      const auto& msg = messages[i];
+      std::string preview = msg.ContentsParsed;
+      if (preview.length() > 40) {
+        preview = preview.substr(0, 37) + "...";
+      }
+      for (char& c : preview) {
+        if (c == '\n') c = ' ';
+      }
+      std::cout << absl::StrFormat("0x%03X (%3d) | %s\n", msg.ID, msg.ID, preview);
     }
     std::cout << "----------------------------------------\n";
-    std::cout << "Total: " << dialogue_ids.size() << " messages\n";
+    std::cout << "Total: " << messages.size() << " messages\n";
   }
 
   return absl::OkStatus();
@@ -96,7 +114,7 @@ absl::Status HandleDialogueReadCommand(
     const std::string& token = arg_vec[i];
     if (token == "--id" || token == "--message") {
       if (i + 1 < arg_vec.size()) {
-        std::string id_str = arg_vec[++i];
+        const std::string& id_str = arg_vec[++i];
         if (absl::StartsWith(id_str, "0x") || absl::StartsWith(id_str, "0X")) {
           message_id = std::stoi(id_str, nullptr, 16);
         } else {
@@ -124,10 +142,25 @@ absl::Status HandleDialogueReadCommand(
         "Usage: dialogue-read --id <message_id> [--format json|text]");
   }
 
-  // Simplified dialogue text - real implementation would decode from ROM
-  std::string dialogue_text = absl::StrFormat(
-      "This is dialogue message %d. Real implementation would decode from ROM data.",
-      message_id);
+  // Read all dialogue messages from ROM
+  constexpr int kTextData1 = 0xE0000;
+  auto messages = editor::ReadAllTextData(rom_context->mutable_data(), kTextData1);
+  
+  // Find the specific message
+  std::string dialogue_text;
+  bool found = false;
+  for (const auto& msg : messages) {
+    if (msg.ID == message_id) {
+      dialogue_text = msg.ContentsParsed;
+      found = true;
+      break;
+    }
+  }
+  
+  if (!found) {
+    return absl::NotFoundError(
+        absl::StrFormat("Message ID 0x%X not found in ROM", message_id));
+  }
 
   if (format == "json") {
     std::cout << "{\n";
@@ -188,11 +221,35 @@ absl::Status HandleDialogueSearchCommand(
         "Usage: dialogue-search --query <search_text> [--format json|text] [--limit N]");
   }
 
-  // Simplified search - real implementation would search actual dialogue data
+  // Read all dialogue messages from ROM and search
+  constexpr int kTextData1 = 0xE0000;
+  auto messages = editor::ReadAllTextData(rom_context->mutable_data(), kTextData1);
+  
+  // Search for messages containing the query string (case-insensitive)
   std::vector<std::pair<int, std::string>> results;
-  results.push_back({0x01, absl::StrFormat("Message 1 containing '%s'", query)});
-  results.push_back({0x15, absl::StrFormat("Another message with '%s'", query)});
-  results.push_back({0x42, absl::StrFormat("Found '%s' in message 66", query)});
+  std::string query_lower = query;
+  std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(), ::tolower);
+  
+  for (const auto& msg : messages) {
+    std::string msg_lower = msg.ContentsParsed;
+    std::transform(msg_lower.begin(), msg_lower.end(), msg_lower.begin(), ::tolower);
+    
+    if (msg_lower.find(query_lower) != std::string::npos) {
+      // Create preview with matched text
+      std::string preview = msg.ContentsParsed;
+      if (preview.length() > 60) {
+        preview = preview.substr(0, 57) + "...";
+      }
+      for (char& c : preview) {
+        if (c == '\n') c = ' ';
+      }
+      results.push_back({msg.ID, preview});
+      
+      if (results.size() >= static_cast<size_t>(limit)) {
+        break;
+      }
+    }
+  }
 
   if (format == "json") {
     std::cout << "{\n";
