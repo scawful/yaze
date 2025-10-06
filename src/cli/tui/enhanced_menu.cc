@@ -1,4 +1,4 @@
-#include "cli/tui.h"
+#include "cli/tui/tui.h"
 
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>

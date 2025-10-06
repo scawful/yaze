@@ -1,7 +1,7 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui/dom/elements.hpp>
 #include "cli/util/autocomplete.h"
-#include "cli/tui.h"
+#include "cli/tui/tui.h"
 
 namespace yaze {
 namespace cli {

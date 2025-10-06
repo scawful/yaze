@@ -24,7 +24,7 @@
 #include "app/core/project.h"
 #include "app/zelda3/dungeon/room.h"
 #include "cli/handlers/agent/common.h"
-#include "cli/modern_cli.h"
+#include "cli/cli.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/gemini_ai_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
