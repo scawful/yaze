@@ -38,7 +38,7 @@ void Apu::Init() {
 }
 
 void Apu::Reset() {
-  LOG_INFO("APU", "Reset called");
+  LOG_DEBUG("APU", "Reset called");
   spc700_.Reset(true);
   dsp_.Reset();
   for (int i = 0; i < 0x10000; i++) {
@@ -59,7 +59,7 @@ void Apu::Reset() {
     timer_[i].counter = 0;
     timer_[i].enabled = false;
   }
-  LOG_INFO("APU", "Reset complete - IPL ROM readable, PC will be at $%04X",
+  LOG_DEBUG("APU", "Reset complete - IPL ROM readable, PC will be at $%04X",
            spc700_.read_word(0xFFFE));
 }
 
@@ -88,9 +88,9 @@ void Apu::RunCycles(uint64_t master_cycles) {
     static uint64_t last_ipl_log = 0;
     if (rom_readable_ && current_pc >= 0xFFD6 && current_pc <= 0xFFED) {
       if (cycles_ - last_ipl_log > 10000) {
-        LOG_INFO("APU", "IPL ROM loop: PC=$%04X Y=$%02X Ports: F4=$%02X F5=$%02X F6=$%02X F7=$%02X",
+        LOG_DEBUG("APU", "IPL ROM loop: PC=$%04X Y=$%02X Ports: F4=$%02X F5=$%02X F6=$%02X F7=$%02X",
                  current_pc, spc700_.Y, in_ports_[0], in_ports_[1], in_ports_[2], in_ports_[3]);
-        LOG_INFO("APU", "  Out ports: F4=$%02X F5=$%02X F6=$%02X F7=$%02X ZP: $00=$%02X $01=$%02X",
+        LOG_DEBUG("APU", "  Out ports: F4=$%02X F5=$%02X F6=$%02X F7=$%02X ZP: $00=$%02X $01=$%02X",
                  out_ports_[0], out_ports_[1], out_ports_[2], out_ports_[3], ram[0x00], ram[0x01]);
         last_ipl_log = cycles_;
       }
@@ -183,7 +183,7 @@ uint8_t Apu::Read(uint16_t adr) {
       uint8_t val = in_ports_[adr - 0xf4];
       port_read_count++;
       if (port_read_count < 10) {  // Reduced to prevent logging overflow crash
-        LOG_INFO("APU", "SPC read port $%04X (F%d) = $%02X at PC=$%04X", 
+        LOG_DEBUG("APU", "SPC read port $%04X (F%d) = $%02X at PC=$%04X", 
                  adr, adr - 0xf4 + 4, val, spc700_.PC);
       }
       return val;
@@ -234,7 +234,7 @@ void Apu::Write(uint16_t adr, uint8_t val) {
       // IPL ROM mapping: initially enabled; writing 1 to bit7 disables IPL ROM.
       rom_readable_ = (val & 0x80) == 0;
       if (old_rom_readable != rom_readable_) {
-        LOG_INFO("APU", "Control register $F1 = $%02X - IPL ROM %s at PC=$%04X",
+        LOG_DEBUG("APU", "Control register $F1 = $%02X - IPL ROM %s at PC=$%04X",
                  val, rom_readable_ ? "ENABLED" : "DISABLED", spc700_.PC);
         // When IPL ROM is disabled, reset transfer tracking
         if (!rom_readable_) {
@@ -259,7 +259,7 @@ void Apu::Write(uint16_t adr, uint8_t val) {
       out_ports_[adr - 0xf4] = val;
       port_write_count++;
       if (port_write_count < 10) {  // Reduced to prevent logging overflow crash
-        LOG_INFO("APU", "SPC wrote port $%04X (F%d) = $%02X at PC=$%04X [APU_cycles=%llu]",
+        LOG_DEBUG("APU", "SPC wrote port $%04X (F%d) = $%02X at PC=$%04X [APU_cycles=%llu]",
                  adr, adr - 0xf4 + 4, val, spc700_.PC, cycles_);
       }
       
@@ -273,7 +273,7 @@ void Apu::Write(uint16_t adr, uint8_t val) {
           if (ram[0x00] < 0x80) {
             transfer_size_ = 1;  // Assume 1-byte bootstrap transfer
             in_transfer_ = true;
-            LOG_INFO("APU", "Detected small transfer start: dest=$%02X%02X, size=%d",
+            LOG_DEBUG("APU", "Detected small transfer start: dest=$%02X%02X, size=%d",
                      ram[0x01], ram[0x00], transfer_size_);
           }
         }

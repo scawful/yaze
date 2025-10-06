@@ -31,7 +31,7 @@ uint8_t input_read(Input* input) {
 }  // namespace
 
 void Snes::Init(std::vector<uint8_t>& rom_data) {
-  LOG_INFO("SNES", "Initializing emulator with ROM size %zu bytes", rom_data.size());
+  LOG_DEBUG("SNES", "Initializing emulator with ROM size %zu bytes", rom_data.size());
   
   // Initialize the CPU, PPU, and APU
   ppu_.Init();
@@ -42,11 +42,11 @@ void Snes::Init(std::vector<uint8_t>& rom_data) {
   Reset(true);
 
   running_ = true;
-  LOG_INFO("SNES", "Emulator initialization complete");
+  LOG_DEBUG("SNES", "Emulator initialization complete");
 }
 
 void Snes::Reset(bool hard) {
-  LOG_INFO("SNES", "Reset called (hard=%d)", hard);
+  LOG_DEBUG("SNES", "Reset called (hard=%d)", hard);
   cpu_.Reset(hard);
   apu_.Reset();
   ppu_.Reset();
@@ -84,14 +84,14 @@ void Snes::Reset(bool hard) {
   memory_.set_open_bus(0);
   next_horiz_event = 16;
   InitAccessTime(false);
-  LOG_INFO("SNES", "Reset complete - CPU will start at $%02X:%04X", cpu_.PB, cpu_.PC);
+  LOG_DEBUG("SNES", "Reset complete - CPU will start at $%02X:%04X", cpu_.PB, cpu_.PC);
 }
 
 void Snes::RunFrame() {
   // Debug: Log every 60th frame
   static int frame_log_count = 0;
   if (frame_log_count % 60 == 0) {
-    LOG_INFO("SNES", "Frame %d: CPU=$%02X:%04X vblank=%d frames_=%d", 
+    LOG_DEBUG("SNES", "Frame %d: CPU=$%02X:%04X vblank=%d frames_=%d", 
              frame_log_count, cpu_.PB, cpu_.PC, in_vblank_, frames_);
   }
   frame_log_count++;
@@ -99,7 +99,7 @@ void Snes::RunFrame() {
   // Debug: Log vblank loop entry
   static int vblank_loop_count = 0;
   if (in_vblank_ && vblank_loop_count++ < 10) {
-    LOG_INFO("SNES", "RunFrame: Entering vblank loop (in_vblank_=true)");
+    LOG_DEBUG("SNES", "RunFrame: Entering vblank loop (in_vblank_=true)");
   }
   
   while (in_vblank_) {
@@ -111,7 +111,7 @@ void Snes::RunFrame() {
   // Debug: Log active frame loop entry  
   static int active_loop_count = 0;
   if (!in_vblank_ && active_loop_count++ < 10) {
-    LOG_INFO("SNES", "RunFrame: Entering active frame loop (in_vblank_=false, frame=%d, frames_=%d)", 
+    LOG_DEBUG("SNES", "RunFrame: Entering active frame loop (in_vblank_=false, frame=%d, frames_=%d)", 
              frame, frames_);
   }
   
@@ -219,7 +219,7 @@ void Snes::RunCycle() {
           // end of vblank
           static int vblank_end_count = 0;
           if (vblank_end_count++ < 10) {
-            LOG_INFO("SNES", "VBlank END - v_pos=0, setting in_vblank_=false at frame %d", frames_);
+            LOG_DEBUG("SNES", "VBlank END - v_pos=0, setting in_vblank_=false at frame %d", frames_);
           }
           in_vblank_ = false;
           in_nmi_ = false;
@@ -247,7 +247,7 @@ void Snes::RunCycle() {
           
           static int vblank_start_count = 0;
           if (vblank_start_count++ < 10) {
-            LOG_INFO("SNES", "VBlank START - v_pos=%d, setting in_vblank_=true at frame %d", 
+            LOG_DEBUG("SNES", "VBlank START - v_pos=%d, setting in_vblank_=true at frame %d", 
                      memory_.v_pos(), frames_);
           }
           
@@ -260,7 +260,7 @@ void Snes::RunCycle() {
           }
           static int nmi_log_count = 0;
           if (nmi_log_count++ < 10) {
-            LOG_INFO("SNES", "VBlank NMI check: nmi_enabled_=%d, calling Nmi()=%s", 
+            LOG_DEBUG("SNES", "VBlank NMI check: nmi_enabled_=%d, calling Nmi()=%s", 
                      nmi_enabled_, nmi_enabled_ ? "YES" : "NO");
           }
           if (nmi_enabled_) {
@@ -307,7 +307,7 @@ uint8_t Snes::ReadBBus(uint8_t adr) {
     static uint8_t last_f4 = 0xFF, last_f5 = 0xFF;
     bool value_changed = ((adr & 0x3) == 0 && val != last_f4) || ((adr & 0x3) == 1 && val != last_f5);
     if (value_changed || cpu_port_read_count++ < 5) {
-      LOG_INFO("SNES", "CPU read APU port $21%02X (F%d) = $%02X at PC=$%02X:%04X [AFTER CatchUp: APU_cycles=%llu CPU_cycles=%llu]",
+      LOG_DEBUG("SNES", "CPU read APU port $21%02X (F%d) = $%02X at PC=$%02X:%04X [AFTER CatchUp: APU_cycles=%llu CPU_cycles=%llu]",
                0x40 + (adr & 0x3), (adr & 0x3) + 4, val, cpu_.PB, cpu_.PC, apu_.GetCycles(), cycles_);
       if ((adr & 0x3) == 0) last_f4 = val;
       if ((adr & 0x3) == 1) last_f5 = val;
@@ -421,7 +421,7 @@ void Snes::WriteBBus(uint8_t adr, uint8_t val) {
     apu_.in_ports_[adr & 0x3] = val;
     static int cpu_port_write_count = 0;
     if (cpu_port_write_count++ < 10) {  // Reduced to prevent crash
-      LOG_INFO("SNES", "CPU wrote APU port $21%02X (F%d) = $%02X at PC=$%02X:%04X",
+      LOG_DEBUG("SNES", "CPU wrote APU port $21%02X (F%d) = $%02X at PC=$%02X:%04X",
                0x40 + (adr & 0x3), (adr & 0x3) + 4, val, cpu_.PB, cpu_.PC);
     }
     
@@ -457,7 +457,7 @@ void Snes::WriteReg(uint16_t adr, uint8_t val) {
       // Log ALL writes to $4200 unconditionally
       static int write_4200_count = 0;
       if (write_4200_count++ < 20) {
-        LOG_INFO("SNES", "Write $%02X to $4200 at PC=$%02X:%04X (NMI=%d IRQ_H=%d IRQ_V=%d JOY=%d)",
+        LOG_DEBUG("SNES", "Write $%02X to $4200 at PC=$%02X:%04X (NMI=%d IRQ_H=%d IRQ_V=%d JOY=%d)",
                  val, cpu_.PB, cpu_.PC, (val & 0x80) ? 1 : 0, (val & 0x10) ? 1 : 0, 
                  (val & 0x20) ? 1 : 0, (val & 0x01) ? 1 : 0);
       }
@@ -477,7 +477,7 @@ void Snes::WriteReg(uint16_t adr, uint8_t val) {
       bool old_nmi = nmi_enabled_;
       nmi_enabled_ = val & 0x80;
       if (old_nmi != nmi_enabled_) {
-        LOG_INFO("SNES", ">>> NMI enabled CHANGED: %d -> %d <<<",
+        LOG_DEBUG("SNES", ">>> NMI enabled CHANGED: %d -> %d <<<",
                  old_nmi, nmi_enabled_);
       }
       cpu_.set_int_delay(true);

@@ -30,7 +30,7 @@ void Spc700::Reset(bool hard) {
 void Spc700::RunOpcode() {
   static int entry_log = 0;
   if ((PC >= 0xFFF0 && PC <= 0xFFFF) && entry_log++ < 5) {
-    LOG_INFO("SPC", "RunOpcode ENTRY: PC=$%04X step=%d bstep=%d", PC, step, bstep);
+    LOG_DEBUG("SPC", "RunOpcode ENTRY: PC=$%04X step=%d bstep=%d", PC, step, bstep);
   }
   
   if (reset_wanted_) {
@@ -55,20 +55,21 @@ void Spc700::RunOpcode() {
   }
   if (step == 0) {
     // Debug: Comprehensive IPL ROM tracing for transfer protocol debugging
+    // (Only enabled for first few iterations to avoid log spam)
     static int spc_exec_count = 0;
     bool in_critical_range = (PC >= 0xFFCF && PC <= 0xFFFF);
     bool is_transfer_loop = (PC >= 0xFFD6 && PC <= 0xFFED);
     
-    // Increased logging limits to capture full transfer (112 bytes)
-    if (in_critical_range && spc_exec_count++ < 200) {
-      LOG_INFO("SPC", "Execute: PC=$%04X step=0 bstep=%d Y=%02X A=%02X", PC, bstep, Y, A);
+    // Reduced logging limits - only log first few iterations
+    if (in_critical_range && spc_exec_count++ < 5) {
+      LOG_DEBUG("SPC", "Execute: PC=$%04X step=0 bstep=%d Y=%02X A=%02X", PC, bstep, Y, A);
     }
-    if (is_transfer_loop && spc_exec_count < 300) {
+    if (is_transfer_loop && spc_exec_count < 10) {
       // Read ports and RAM[$00] to track transfer state
       uint8_t f4_val = callbacks_.read(0xF4);
       uint8_t f5_val = callbacks_.read(0xF5);
       uint8_t ram0_val = callbacks_.read(0x00);
-      LOG_INFO("SPC", "TRANSFER LOOP: PC=$%04X Y=%02X A=%02X F4=%02X F5=%02X RAM0=%02X bstep=%d", 
+      LOG_DEBUG("SPC", "TRANSFER LOOP: PC=$%04X Y=%02X A=%02X F4=%02X F5=%02X RAM0=%02X bstep=%d", 
                PC, Y, A, f4_val, f5_val, ram0_val, bstep);
     }
     
@@ -78,7 +79,9 @@ void Spc700::RunOpcode() {
       // Set base cycle count from lookup table
       last_opcode_cycles_ = spc700_cycles[opcode];
     } else {
-      LOG_INFO("SPC", "Continuing multi-step: PC=$%04X bstep=%d opcode=$%02X", PC, bstep, opcode);
+      if (spc_exec_count < 5) {
+        LOG_DEBUG("SPC", "Continuing multi-step: PC=$%04X bstep=%d opcode=$%02X", PC, bstep, opcode);
+      }
     }
     step = 1;
     return;
@@ -94,7 +97,7 @@ void Spc700::RunOpcode() {
   
   static int exec_log = 0;
   if ((PC >= 0xFFF0 && PC <= 0xFFFF) && exec_log++ < 5) {
-    LOG_INFO("SPC", "About to ExecuteInstructions: PC=$%04X step=%d bstep=%d opcode=$%02X", PC, step, bstep, opcode);
+    LOG_DEBUG("SPC", "About to ExecuteInstructions: PC=$%04X step=%d bstep=%d opcode=$%02X", PC, step, bstep, opcode);
   }
   
   ExecuteInstructions(opcode);
@@ -102,13 +105,13 @@ void Spc700::RunOpcode() {
   static int reset_log = 0;
   if (step == 1) {
     if (bstep == 0) {
-      if ((PC >= 0xFFF0 && PC <= 0xFFFF) && reset_log++ < 20) {
-        LOG_INFO("SPC", "Resetting step: PC=$%04X opcode=$%02X bstep=%d", PC, opcode, bstep);
+      if ((PC >= 0xFFF0 && PC <= 0xFFFF) && reset_log++ < 5) {
+        LOG_DEBUG("SPC", "Resetting step: PC=$%04X opcode=$%02X bstep=%d", PC, opcode, bstep);
       }
       step = 0;
     } else {
-      if ((PC >= 0xFFF0 && PC <= 0xFFFF) || reset_log++ < 20) {
-        LOG_INFO("SPC", "NOT resetting step: PC=$%04X opcode=$%02X bstep=%d", PC, opcode, bstep);
+      if ((PC >= 0xFFF0 && PC <= 0xFFFF) && reset_log++ < 5) {
+        LOG_DEBUG("SPC", "NOT resetting step: PC=$%04X opcode=$%02X bstep=%d", PC, opcode, bstep);
       }
     }
   }
@@ -1072,11 +1075,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xc4: {  // movs dp
-      LOG_INFO("SPC", "Case 0xC4 reached: bstep=%d PC=$%04X", bstep, PC);
       uint16_t adr = dp();
-      LOG_INFO("SPC", "About to call MOVS: bstep=%d adr=$%04X", bstep, adr);
       MOVS(adr);
-      LOG_INFO("SPC", "After MOVS: bstep=%d", bstep);
       break;
     }
     case 0xc5: {  // movs abs
@@ -1113,7 +1113,7 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
         adr = dp();  // Save address for bstep=1
       }
       if (adr == 0x00F4 && bstep == 1) {
-        LOG_INFO("SPC", "MOVSY writing Y=$%02X to F4 at PC=$%04X", Y, PC);
+        LOG_DEBUG("SPC", "MOVSY writing Y=$%02X to F4 at PC=$%04X", Y, PC);
       }
       MOVSY(adr);  // Use saved address
       break;
@@ -1347,10 +1347,11 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       Y++;
       PSW.Z = (Y == 0);
       PSW.N = (Y & 0x80);
-      // Critical: Log Y increment in transfer loop (FFE4 is INC Y in IPL ROM)
-      if (PC >= 0xFFE4 && PC <= 0xFFE6) {
-        LOG_INFO("SPC", "INC Y executed at PC=$%04X: Y changed from $%02X to $%02X (Z=%d N=%d)",
-                 PC - 1, old_y, Y, PSW.Z, PSW.N);
+      // Log Y increment in transfer loop for first few iterations only
+      static int incy_log = 0;
+      if (PC >= 0xFFE4 && PC <= 0xFFE6 && incy_log++ < 10) {
+        LOG_DEBUG("SPC", "INC Y executed at PC=$%04X: Y changed from $%02X to $%02X (Z=%d N=%d)",
+                  PC - 1, old_y, Y, PSW.Z, PSW.N);
       }
       break;
     }

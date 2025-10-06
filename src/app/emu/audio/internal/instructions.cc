@@ -28,8 +28,8 @@ void Spc700::MOVS(uint16_t address) {
       break;
     case 1: 
       write(this->adr, A);  // Use saved address
-      if (this->adr == 0x00F4) {
-        LOG_INFO("SPC", "MOVS wrote A=$%02X to F4!", A);
+      if (this->adr == 0x00F4 && movs_log++ < 10) {
+        LOG_DEBUG("SPC", "MOVS wrote A=$%02X to F4!", A);
       }
       bstep = 0; 
       break;
@@ -44,19 +44,20 @@ void Spc700::MOVSX(uint16_t address) {
 }
 
 void Spc700::MOVSY(uint16_t address) {
+  static int movsy_log = 0;
   switch (bstep) {
     case 0: 
       this->adr = address;
       read(this->adr);
       bstep++;
-      if (this->adr == 0x00F4) {
-        LOG_INFO("SPC", "MOVSY bstep=0: Will write Y=$%02X to F4 at PC=$%04X", Y, PC);
+      if (this->adr == 0x00F4 && movsy_log < 10) {
+        LOG_DEBUG("SPC", "MOVSY bstep=0: Will write Y=$%02X to F4 at PC=$%04X", Y, PC);
       }
       break;
     case 1: 
       write(this->adr, Y);
-      if (this->adr == 0x00F4) {
-        LOG_INFO("SPC", "MOVSY bstep=1: Wrote Y=$%02X to F4 at PC=$%04X", Y, PC);
+      if (this->adr == 0x00F4 && movsy_log++ < 10) {
+        LOG_DEBUG("SPC", "MOVSY bstep=1: Wrote Y=$%02X to F4 at PC=$%04X", Y, PC);
       }
       bstep = 0;
       break;
