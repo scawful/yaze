@@ -5,7 +5,7 @@
 namespace yaze
 {
 
-!YAZE_CUSTOM_MOSAIC = 1
+!YAZE_CUSTOM_MOSAIC = 0
 
 
 if !YAZE_CUSTOM_MOSAIC != 0
