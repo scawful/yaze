@@ -7,6 +7,8 @@
 #include "ftxui/component/screen_interactive.hpp"
 #include "cli/service/agent/conversational_agent_service.h"
 
+#include "cli/util/autocomplete.h"
+
 namespace yaze {
 
 class Rom;
@@ -21,13 +23,15 @@ class ChatTUI {
   void SetRomContext(Rom* rom_context);
 
  private:
-  void OnSubmit();
+  void OnSubmit(const std::string& message);
+  void InitializeAutocomplete();
 
   ftxui::ScreenInteractive screen_ = ftxui::ScreenInteractive::Fullscreen();
-  std::string input_message_;
   agent::ConversationalAgentService agent_service_;
   Rom* rom_context_ = nullptr;
   std::optional<std::string> last_error_;
+  AutocompleteEngine autocomplete_engine_;
+  std::string rom_header_;
 };
 
 }  // namespace tui

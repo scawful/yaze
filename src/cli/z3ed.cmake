@@ -68,11 +68,15 @@ add_executable(
   cli/handlers/agent/test_common.cc
   cli/handlers/agent/test_commands.cc
   cli/handlers/agent/gui_commands.cc
-      cli/handlers/agent/tool_commands.cc
-      cli/flags.cc
-    cli/tui/asar_patch.cc  cli/tui/palette_editor.cc
+  cli/handlers/agent/tool_commands.cc
+  cli/flags.cc
+  cli/tui/asar_patch.cc
+  cli/tui/palette_editor.cc
   cli/tui/command_palette.cc
   cli/tui/chat_tui.cc
+  cli/tui/autocomplete_ui.cc
+  cli/util/autocomplete.cc
+  cli/service/agent/vim_mode.cc
   cli/service/testing/test_suite_loader.cc
   cli/service/testing/test_suite_reporter.cc
   cli/service/testing/test_suite_writer.cc
@@ -122,14 +126,12 @@ else()
   endif()
 endif()
 
-target_include_directories(
-  z3ed PRIVATE
-  ${CMAKE_SOURCE_DIR}/src
-  ${CMAKE_SOURCE_DIR}/incl
-  ${CMAKE_SOURCE_DIR}/third_party/httplib
-  ${SDL2_INCLUDE_DIR}
-  ${PROJECT_BINARY_DIR}
+target_include_directories(z3ed PUBLIC 
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tui"
 )
+# (Link libraries handled below; duplicate/unfinished lines removed.)
+
 
 if(YAZE_USE_MODULAR_BUILD)
   target_link_libraries(

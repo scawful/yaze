@@ -4,10 +4,10 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <sstream>
 
 #ifdef _WIN32
 #include <io.h>
+#include <conio.h>
 #define isatty _isatty
 #define fileno _fileno
 #else
@@ -326,6 +326,9 @@ absl::Status SimpleChatSession::RunInteractive() {
   
   if (is_interactive && config_.output_format == AgentOutputFormat::kFriendly) {
     std::cout << "Z3ED Agent Chat (Simple Mode)\n";
+    if (config_.enable_vim_mode) {
+      std::cout << "Vim mode enabled! Use hjkl to move, i for insert, ESC for normal mode.\n";
+    }
     std::cout << "Type 'quit' or 'exit' to end the session.\n";
     std::cout << "Type 'reset' to clear conversation history.\n";
     std::cout << "----------------------------------------\n\n";
@@ -333,17 +336,29 @@ absl::Status SimpleChatSession::RunInteractive() {
   
   std::string input;
   while (true) {
-    if (is_interactive && config_.output_format != AgentOutputFormat::kJson) {
-      std::cout << "You: ";
-      std::cout.flush();  // Ensure prompt is displayed before reading
-    }
-    
-    if (!std::getline(std::cin, input)) {
-      // EOF reached (piped input exhausted or Ctrl+D)
-      if (is_interactive && config_.output_format != AgentOutputFormat::kJson) {
-        std::cout << "\n";
+    // Read input with or without vim mode
+    if (config_.enable_vim_mode && is_interactive) {
+      input = ReadLineWithVim();
+      if (input.empty()) {
+        // EOF reached
+        if (config_.output_format != AgentOutputFormat::kJson) {
+          std::cout << "\n";
+        }
+        break;
       }
-      break;
+    } else {
+      if (is_interactive && config_.output_format != AgentOutputFormat::kJson) {
+        std::cout << "You: ";
+        std::cout.flush();  // Ensure prompt is displayed before reading
+      }
+      
+      if (!std::getline(std::cin, input)) {
+        // EOF reached (piped input exhausted or Ctrl+D)
+        if (is_interactive && config_.output_format != AgentOutputFormat::kJson) {
+          std::cout << "\n";
+        }
+        break;
+      }
     }
     
     if (input.empty()) continue;
@@ -505,6 +520,64 @@ absl::Status SimpleChatSession::RunBatch(const std::string& input_file) {
   }
   
   return absl::OkStatus();
+}
+
+std::string SimpleChatSession::ReadLineWithVim() {
+  if (!vim_mode_) {
+    vim_mode_ = std::make_unique<VimMode>();
+    vim_mode_->SetAutoCompleteCallback(
+        [this](const std::string& partial) {
+          return GetAutocompleteOptions(partial);
+        });
+  }
+  
+  vim_mode_->Reset();
+  
+  // Show initial prompt
+  std::cout << "You [" << vim_mode_->GetModeString() << "]: " << std::flush;
+  
+  while (true) {
+    int ch;
+#ifdef _WIN32
+    ch = _getch();
+#else
+    unsigned char c;
+    if (read(STDIN_FILENO, &c, 1) == 1) {
+      ch = static_cast<int>(c);
+    } else {
+      break;  // EOF
+    }
+#endif
+    
+    if (vim_mode_->ProcessKey(ch)) {
+      // Line complete
+      std::string line = vim_mode_->GetLine();
+      vim_mode_->AddToHistory(line);
+      std::cout << "\n";
+      return line;
+    }
+  }
+  
+  return "";  // EOF
+}
+
+std::vector<std::string> SimpleChatSession::GetAutocompleteOptions(
+    const std::string& partial) {
+  // Simple autocomplete with common commands
+  std::vector<std::string> all_commands = {
+      "/help", "/exit", "/quit", "/reset", "/history",
+      "list rooms", "list sprites", "list palettes",
+      "show room ", "describe ", "analyze "
+  };
+  
+  std::vector<std::string> matches;
+  for (const auto& cmd : all_commands) {
+    if (cmd.find(partial) == 0) {
+      matches.push_back(cmd);
+    }
+  }
+  
+  return matches;
 }
 
 }  // namespace agent

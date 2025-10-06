@@ -707,6 +707,7 @@ absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
   std::optional<std::string> batch_file;
   std::optional<std::string> single_message;
   bool verbose = false;
+  bool vim_mode = false;
   std::optional<std::string> format_option;
   
   for (size_t i = 0; i < arg_vec.size(); ++i) {
@@ -727,6 +728,8 @@ absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
       format_option = "compact";
     } else if (arg == "--verbose" || arg == "-v") {
       verbose = true;
+    } else if (arg == "--vim") {
+      vim_mode = true;
     } else if (!absl::StartsWith(arg, "--") && !single_message.has_value()) {
       single_message = arg;
     }
@@ -734,6 +737,7 @@ absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
   
   agent::AgentConfig config;
   config.verbose = verbose;
+  config.enable_vim_mode = vim_mode;
   if (format_option.has_value()) {
     std::string normalized = absl::AsciiStrToLower(*format_option);
     if (normalized == "json") {
