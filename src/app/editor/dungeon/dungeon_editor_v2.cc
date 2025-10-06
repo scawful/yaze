@@ -128,14 +128,17 @@ void DungeonEditorV2::DrawLayout() {
     int room_id = active_rooms_[i];
     bool open = true;
 
-    std::string card_name_str;
-    const char* card_name;
+    // Create session-aware card title
+    std::string base_name;
     if (room_id >= 0 && static_cast<size_t>(room_id) < std::size(zelda3::kRoomNames)) {
-      card_name_str = absl::StrFormat("%s###RoomCard%d", zelda3::kRoomNames[room_id].data(), room_id);
+      base_name = absl::StrFormat("%s", zelda3::kRoomNames[room_id].data());
     } else {
-      card_name_str = absl::StrFormat("Room %03X###RoomCard%d", room_id, room_id);
+      base_name = absl::StrFormat("Room %03X", room_id);
     }
-    card_name = card_name_str.c_str();
+    
+    std::string card_name_str = absl::StrFormat("%s###RoomCard%d", 
+                                                MakeCardTitle(base_name).c_str(), room_id);
+    const char* card_name = card_name_str.c_str();
 
     gui::EditorCard room_card(card_name, ICON_MD_GRID_ON, &open);
     if (room_card.Begin()) {

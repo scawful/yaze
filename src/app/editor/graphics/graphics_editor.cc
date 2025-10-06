@@ -51,10 +51,11 @@ absl::Status GraphicsEditor::Update() {
   DrawToolset();
   gui::VerticalSpacing(2.0f);
 
-  static gui::EditorCard sheet_editor_card("Sheet Editor", ICON_MD_EDIT);
-  static gui::EditorCard sheet_browser_card("Sheet Browser", ICON_MD_VIEW_LIST);
-  static gui::EditorCard player_anims_card("Player Animations", ICON_MD_PERSON);
-  static gui::EditorCard prototype_card("Prototype Viewer", ICON_MD_CONSTRUCTION);
+  // Create session-aware cards (non-static for multi-session support)
+  gui::EditorCard sheet_editor_card(MakeCardTitle("Sheet Editor").c_str(), ICON_MD_EDIT);
+  gui::EditorCard sheet_browser_card(MakeCardTitle("Sheet Browser").c_str(), ICON_MD_VIEW_LIST);
+  gui::EditorCard player_anims_card(MakeCardTitle("Player Animations").c_str(), ICON_MD_PERSON);
+  gui::EditorCard prototype_card(MakeCardTitle("Prototype Viewer").c_str(), ICON_MD_CONSTRUCTION);
 
   if (show_sheet_editor_) {
     if (sheet_editor_card.Begin(&show_sheet_editor_)) {

@@ -218,7 +218,8 @@ void AssemblyEditor::UpdateCodeView() {
   DrawToolset();
   gui::VerticalSpacing(2.0f);
 
-  static gui::EditorCard file_browser_card("File Browser", ICON_MD_FOLDER);
+  // Create session-aware card (non-static for multi-session support)
+  gui::EditorCard file_browser_card(MakeCardTitle("File Browser").c_str(), ICON_MD_FOLDER);
   bool file_browser_open = true;
   if (file_browser_card.Begin(&file_browser_open)) {
     if (current_folder_.name != "") {
@@ -246,7 +247,8 @@ void AssemblyEditor::UpdateCodeView() {
         continue;
     }
 
-    std::string card_name = files_[file_id];
+    // Create session-aware card title for each file
+    std::string card_name = MakeCardTitle(files_[file_id]);
     gui::EditorCard file_card(card_name.c_str(), ICON_MD_DESCRIPTION, &open);
     if (file_card.Begin()) {
         if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
