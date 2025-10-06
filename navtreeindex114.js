@@ -1,5 +1,12 @@
 var NAVTREEINDEX114 =
 {
+"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a4ed0573c184f64742cfa412af18bbca7":[28,0,6,6,7,8],
+"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a581325df602245d58086208cb6e85739":[28,0,6,6,7,1],
+"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a581325df602245d58086208cb6e85739":[29,0,2,5,5,1],
+"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a581b5605ae5a812935b31354019a15be":[29,0,2,5,5,27],
+"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a581b5605ae5a812935b31354019a15be":[28,0,6,6,7,27],
+"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919":[28,0,6,6,7,42],
+"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919":[29,0,2,5,5,42],
 "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a6569297508f48d61c983ddda166099f7":[28,0,6,6,7,30],
 "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a6569297508f48d61c983ddda166099f7":[29,0,2,5,5,30],
 "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a6d17a8f9b6ed80bde87b67e8e36e40c1":[28,0,6,6,7,45],
@@ -242,12 +249,5 @@ var NAVTREEINDEX114 =
 "df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3226c3e3f187558defafc2854eaffd81":[28,0,6,4,14,5,8],
 "df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a32432d22b18af188414e828c430dad5b":[29,0,2,3,2,5,27],
 "df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a32432d22b18af188414e828c430dad5b":[28,0,6,4,14,5,27],
-"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a34b5603a8f27d08f4dd8d18bc2be8621":[28,0,6,4,14,5,16],
-"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a34b5603a8f27d08f4dd8d18bc2be8621":[29,0,2,3,2,5,16],
-"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e5876e61573a96c1028a15774cdc906":[28,0,6,4,14,5,22],
-"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e5876e61573a96c1028a15774cdc906":[29,0,2,3,2,5,22],
-"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e61c019ef3378d6de4930b30c948481":[29,0,2,3,2,5,6],
-"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e61c019ef3378d6de4930b30c948481":[28,0,6,4,14,5,6],
-"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a402255bcf4fc4bf667e56f62a1f0ec74":[29,0,2,3,2,5,21],
-"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a402255bcf4fc4bf667e56f62a1f0ec74":[28,0,6,4,14,5,21]
+"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a34b5603a8f27d08f4dd8d18bc2be8621":[28,0,6,4,14,5,16]
 };

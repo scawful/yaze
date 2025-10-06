@@ -1,5 +1,12 @@
 var NAVTREEINDEX91 =
 {
+"dc/ddd/editor__safeguards_8h_source.html":[30,0,3,0,1,13],
+"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html":[28,0,6,8,9],
+"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html":[29,0,2,7,3],
+"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#a2c513ebe805746ebd44db55cf998bfa6":[29,0,2,7,3,5],
+"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#a2c513ebe805746ebd44db55cf998bfa6":[28,0,6,8,9,5],
+"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#a2f07f26a8701e6aa2250be1313a484fd":[28,0,6,8,9,7],
+"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#a2f07f26a8701e6aa2250be1313a484fd":[29,0,2,7,3,7],
 "dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#a301ec6a640890db8104e417a55f4bad4":[28,0,6,8,9,1],
 "dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#a301ec6a640890db8104e417a55f4bad4":[29,0,2,7,3,1],
 "dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#a4369c935e5b96dda483dd0c7fe2efb6e":[29,0,2,7,3,0],
@@ -242,12 +249,5 @@ var NAVTREEINDEX91 =
 "dc/df4/classyaze_1_1emu_1_1Cpu.html#a50035ffb781ab92696205c9c04c25af1":[28,0,6,5,25,49],
 "dc/df4/classyaze_1_1emu_1_1Cpu.html#a50035ffb781ab92696205c9c04c25af1":[29,0,2,4,23,49],
 "dc/df4/classyaze_1_1emu_1_1Cpu.html#a50964effb4c3d4d966eb7a72f2b5a4d4":[28,0,6,5,25,47],
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a50964effb4c3d4d966eb7a72f2b5a4d4":[29,0,2,4,23,47],
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a50e91070e35311750140c038378fcce0":[28,0,6,5,25,154],
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a50e91070e35311750140c038378fcce0":[29,0,2,4,23,154],
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a51738467c3a59f9cd32cde9b71200db2":[28,0,6,5,25,175],
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a51738467c3a59f9cd32cde9b71200db2":[29,0,2,4,23,175],
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a53eb9bf32d4a92abf22d0992ec850190":[29,0,2,4,23,226],
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a53eb9bf32d4a92abf22d0992ec850190":[28,0,6,5,25,226],
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a54d9f5f2e1b804f7de82309392a02c7f":[28,0,6,5,25,215]
+"dc/df4/classyaze_1_1emu_1_1Cpu.html#a50964effb4c3d4d966eb7a72f2b5a4d4":[29,0,2,4,23,47]
 };

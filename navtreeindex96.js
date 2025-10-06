@@ -1,5 +1,12 @@
 var NAVTREEINDEX96 =
 {
+"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ae80d1b0877a79b27cb506de08ed7dc94":[28,0,6,4,35,19],
+"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#af37796a5bd5c8654f642db636f0eb17b":[28,0,6,4,35,11],
+"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#af37796a5bd5c8654f642db636f0eb17b":[29,0,2,3,23,11],
+"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#afe8f7da7dc44d184f470e521a83eb185":[29,0,2,3,23,3],
+"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#afe8f7da7dc44d184f470e521a83eb185":[28,0,6,4,35,3],
+"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#aff53640b3238e9f01b93b8f2fe54cdcf":[29,0,2,3,23,16],
+"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#aff53640b3238e9f01b93b8f2fe54cdcf":[28,0,6,4,35,16],
 "dd/d4c/theme__manager_8cc.html":[30,0,3,0,4,19],
 "dd/d4c/theme__manager_8cc.html#a360475adc3adcf2ead59d3d9dbc85ce6":[30,0,3,0,4,19,1],
 "dd/d4c/theme__manager_8cc.html#ae1dd75e97e825b7a53e86c954569eb5a":[30,0,3,0,4,19,0],
@@ -242,12 +249,5 @@ var NAVTREEINDEX96 =
 "dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a8dacd8ffd3c501b68d127f6fedadcd4e":[28,0,6,7,3,6,2],
 "dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a8dacd8ffd3c501b68d127f6fedadcd4e":[29,0,2,6,0,3,2],
 "dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a8ef2f89b6b8de0093c8120715ca18761":[29,0,2,6,0,3,17],
-"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a8ef2f89b6b8de0093c8120715ca18761":[28,0,6,7,3,6,17],
-"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a9037f31d5976b4873b897d7544e97750":[29,0,2,6,0,3,11],
-"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a9037f31d5976b4873b897d7544e97750":[28,0,6,7,3,6,11],
-"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a9092c629fcd40d1b872956d9d18210a3":[28,0,6,7,3,6,0],
-"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a9092c629fcd40d1b872956d9d18210a3":[29,0,2,6,0,3,0],
-"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a958f95ebb15532bab6345834898bbc41":[29,0,2,6,0,3,12],
-"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a958f95ebb15532bab6345834898bbc41":[28,0,6,7,3,6,12],
-"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a9af5d8484c702746d6cdf93e686c6894":[28,0,6,7,3,6,9]
+"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a8ef2f89b6b8de0093c8120715ca18761":[28,0,6,7,3,6,17]
 };

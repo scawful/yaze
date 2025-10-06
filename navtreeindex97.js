@@ -1,5 +1,12 @@
 var NAVTREEINDEX97 =
 {
+"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a9037f31d5976b4873b897d7544e97750":[29,0,2,6,0,3,11],
+"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a9037f31d5976b4873b897d7544e97750":[28,0,6,7,3,6,11],
+"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a9092c629fcd40d1b872956d9d18210a3":[28,0,6,7,3,6,0],
+"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a9092c629fcd40d1b872956d9d18210a3":[29,0,2,6,0,3,0],
+"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a958f95ebb15532bab6345834898bbc41":[29,0,2,6,0,3,12],
+"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a958f95ebb15532bab6345834898bbc41":[28,0,6,7,3,6,12],
+"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a9af5d8484c702746d6cdf93e686c6894":[28,0,6,7,3,6,9],
 "dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#a9af5d8484c702746d6cdf93e686c6894":[29,0,2,6,0,3,9],
 "dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#aa27ef7fdeff9e258666184055af6067a":[28,0,6,7,3,6,21],
 "dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#aa27ef7fdeff9e258666184055af6067a":[29,0,2,6,0,3,21],
@@ -242,12 +249,5 @@ var NAVTREEINDEX97 =
 "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a0243612aa77d6448482d234f7624a2ef":[28,0,6,4,64,10],
 "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a0243612aa77d6448482d234f7624a2ef":[29,0,2,3,52,10],
 "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a07df5c2a43b8dcde8b41529658d7e0bf":[28,0,6,4,64,21],
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a07df5c2a43b8dcde8b41529658d7e0bf":[29,0,2,3,52,21],
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a083b32e7bcbfa240957522293c776603":[29,0,2,3,52,15],
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a083b32e7bcbfa240957522293c776603":[28,0,6,4,64,15],
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a10b1e867ee585417da0ecb067bd61c94":[29,0,2,3,52,4],
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a10b1e867ee585417da0ecb067bd61c94":[28,0,6,4,64,4],
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a10c37259d6177a6997b34828c7fd68c4":[29,0,2,3,52,20],
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a10c37259d6177a6997b34828c7fd68c4":[28,0,6,4,64,20],
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a11017f90202637a319008b327d03f2a9":[29,0,2,3,52,8]
+"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a07df5c2a43b8dcde8b41529658d7e0bf":[29,0,2,3,52,21]
 };

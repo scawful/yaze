@@ -1,5 +1,12 @@
 var NAVTREEINDEX115 =
 {
+"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a34b5603a8f27d08f4dd8d18bc2be8621":[29,0,2,3,2,5,16],
+"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e5876e61573a96c1028a15774cdc906":[28,0,6,4,14,5,22],
+"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e5876e61573a96c1028a15774cdc906":[29,0,2,3,2,5,22],
+"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e61c019ef3378d6de4930b30c948481":[29,0,2,3,2,5,6],
+"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a3e61c019ef3378d6de4930b30c948481":[28,0,6,4,14,5,6],
+"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a402255bcf4fc4bf667e56f62a1f0ec74":[29,0,2,3,2,5,21],
+"df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a402255bcf4fc4bf667e56f62a1f0ec74":[28,0,6,4,14,5,21],
 "df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a4d86d52b8f942e19c520a6af13bee02b":[29,0,2,3,2,5,0],
 "df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a4d86d52b8f942e19c520a6af13bee02b":[28,0,6,4,14,5,0],
 "df/d41/structyaze_1_1editor_1_1zsprite_1_1ZSprite.html#a5be0731a0e7b3b6ef9a65c0b7cd103e4":[28,0,6,4,14,5,11],
@@ -242,12 +249,5 @@ var NAVTREEINDEX115 =
 "df/d7f/structyaze_1_1test_1_1TestRecorder_1_1RecordedStep.html#afd9657e0b01acf1c830e6f2162ac0698":[29,0,2,7,30,0,8],
 "df/d7f/structyaze_1_1test_1_1TestRecorder_1_1RecordedStep.html#aff45c76f41fcf8f4fb2fe81f18ede777":[28,0,6,8,36,0,9],
 "df/d7f/structyaze_1_1test_1_1TestRecorder_1_1RecordedStep.html#aff45c76f41fcf8f4fb2fe81f18ede777":[29,0,2,7,30,0,9],
-"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html":[29,0,2,9,7,0],
-"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html":[28,0,6,10,14,0],
-"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#a6fe61f22a852cbf6ccd4828f5a7cd014":[29,0,2,9,7,0,3],
-"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#a6fe61f22a852cbf6ccd4828f5a7cd014":[28,0,6,10,14,0,3],
-"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#aa7d11ccdad7fe03e8b8864a4f7ee16fa":[28,0,6,10,14,0,2],
-"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#aa7d11ccdad7fe03e8b8864a4f7ee16fa":[29,0,2,9,7,0,2],
-"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#acc08ebcf755d34972d65b76d2e3970ba":[29,0,2,9,7,0,0],
-"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#acc08ebcf755d34972d65b76d2e3970ba":[28,0,6,10,14,0,0]
+"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html":[29,0,2,9,7,0]
 };

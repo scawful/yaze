@@ -1,13 +1,13 @@
 var searchData=
 [
-  ['6_202025_0',['Recently Completed (v0.3.3 - October 6, 2025)',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md471',1,'']]],
+  ['6_202025_0',['Recently Completed (v0.3.3 - October 6, 2025)',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md478',1,'']]],
   ['6_20chat_20modes_1',['6. Chat Modes',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md188',1,'']]],
-  ['6_20create_20reversible_20edits_2',['6. Create Reversible Edits',['../db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md531',1,'']]],
-  ['6_20dungeon_20object_20reference_20tables_3',['6. Dungeon Object Reference Tables',['../d5/d83/md_docs_2F1-dungeon-editor-guide.html#autotoc_md315',1,'']]],
+  ['6_20create_20reversible_20edits_2',['6. Create Reversible Edits',['../db/d8f/md_docs_2overworld__agent__guide.html#autotoc_md538',1,'']]],
+  ['6_20dungeon_20object_20reference_20tables_3',['6. Dungeon Object Reference Tables',['../d5/d83/md_docs_2F1-dungeon-editor-guide.html#autotoc_md322',1,'']]],
   ['6_20ide_20integration_4',['6. IDE Integration',['../dc/d42/md_docs_2B1-build-instructions.html#autotoc_md44',1,'']]],
-  ['6_20november_202023_5',['0.0.6 (November 2023)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md455',1,'']]],
-  ['6_20special_20area_20graphics_20issues_6',['6. Special Area Graphics Issues',['../d9/d85/md_docs_2F3-overworld-loading.html#autotoc_md395',1,'']]],
-  ['6_20testing_7',['6. Testing',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md298',1,'']]],
-  ['6_20x_20content_20integration_8',['0.6.X - Content &amp; Integration',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md469',1,'']]],
-  ['65816_20assembler_20integration_9',['Asar 65816 Assembler Integration',['../d0/d30/md_README.html#autotoc_md567',1,'']]]
+  ['6_20november_202023_5',['0.0.6 (November 2023)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md462',1,'']]],
+  ['6_20special_20area_20graphics_20issues_6',['6. Special Area Graphics Issues',['../d9/d85/md_docs_2F3-overworld-loading.html#autotoc_md402',1,'']]],
+  ['6_20testing_7',['6. Testing',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md301',1,'']]],
+  ['6_20x_20content_20integration_8',['0.6.X - Content &amp; Integration',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md476',1,'']]],
+  ['65816_20assembler_20integration_9',['Asar 65816 Assembler Integration',['../d0/d30/md_README.html#autotoc_md574',1,'']]]
 ];

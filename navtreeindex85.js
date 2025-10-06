@@ -1,5 +1,12 @@
 var NAVTREEINDEX85 =
 {
+"db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a0420253aac6967434bba527c226b3f9d":[28,0,6,4,66,43],
+"db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a0420253aac6967434bba527c226b3f9d":[29,0,2,3,54,43],
+"db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a0b429b6071dd3b02f210c0273e6219cf":[29,0,2,3,54,45],
+"db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a0b429b6071dd3b02f210c0273e6219cf":[28,0,6,4,66,45],
+"db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a0ca5339bd8ad4743196495522d8e6517":[28,0,6,4,66,5],
+"db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a0ca5339bd8ad4743196495522d8e6517":[29,0,2,3,54,5],
+"db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a13a7d16ac36a8d5c380b1b520583b716":[28,0,6,4,66,37],
 "db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a13a7d16ac36a8d5c380b1b520583b716":[29,0,2,3,54,37],
 "db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a16cb9c0b75d870fd62c790f508f5fd36":[29,0,2,3,54,34],
 "db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a16cb9c0b75d870fd62c790f508f5fd36":[28,0,6,4,66,34],
@@ -242,12 +249,5 @@ var NAVTREEINDEX85 =
 "db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ab3e2bfb6ab232560b31f58394bc00e03":[28,0,6,4,33,12],
 "db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ab6d24e0f430c11c60f1e62b095f7efba":[28,0,6,4,33,17],
 "db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ab6d24e0f430c11c60f1e62b095f7efba":[29,0,2,3,21,17],
-"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ac6051de90cd2f20c7edf7127f3be215c":[29,0,2,3,21,3],
-"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ac6051de90cd2f20c7edf7127f3be215c":[28,0,6,4,33,3],
-"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ace45952bdff186d407073d402dd411c2":[28,0,6,4,33,22],
-"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ace45952bdff186d407073d402dd411c2":[29,0,2,3,21,22],
-"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ae78014bff9105e86d38652c15524a6a9":[29,0,2,3,21,20],
-"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ae78014bff9105e86d38652c15524a6a9":[28,0,6,4,33,20],
-"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ae7dd44beb0277320fa1ea6279ad860ca":[28,0,6,4,33,8],
-"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ae7dd44beb0277320fa1ea6279ad860ca":[29,0,2,3,21,8]
+"db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ac6051de90cd2f20c7edf7127f3be215c":[29,0,2,3,21,3]
 };

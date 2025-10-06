@@ -1,5 +1,12 @@
 var NAVTREEINDEX99 =
 {
+"dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#af35e350c36794fa94f82a009cfd4251b":[28,0,6,7,3,5,37],
+"dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#af35e350c36794fa94f82a009cfd4251b":[29,0,2,6,0,2,37],
+"dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#afb577ada6c4b21b7c1b6475ebe7e67e7":[29,0,2,6,0,2,27],
+"dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#afb577ada6c4b21b7c1b6475ebe7e67e7":[28,0,6,7,3,5,27],
+"dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#afbe1d2e2ebdd21eac7adeb018bd04d51":[29,0,2,6,0,2,4],
+"dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#afbe1d2e2ebdd21eac7adeb018bd04d51":[28,0,6,7,3,5,4],
+"dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#afc7c53dc3c4258a7abdbab2b5f60b071":[29,0,2,6,0,2,12],
 "dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#afc7c53dc3c4258a7abdbab2b5f60b071":[28,0,6,7,3,5,12],
 "dd/de3/classyaze_1_1test_1_1PerformanceTestSuite.html":[29,0,2,7,20],
 "dd/de3/classyaze_1_1test_1_1PerformanceTestSuite.html":[28,0,6,8,26],
@@ -242,12 +249,5 @@ var NAVTREEINDEX99 =
 "dd/dfb/structyaze_1_1editor_1_1AgentChatWidget_1_1ScreenshotPreviewState.html#a71b71b35213b6a76f7e51e12b1b30591":[29,0,2,3,5,13,4],
 "dd/dfb/structyaze_1_1editor_1_1AgentChatWidget_1_1ScreenshotPreviewState.html#a71b71b35213b6a76f7e51e12b1b30591":[28,0,6,4,17,13,4],
 "dd/dfb/structyaze_1_1editor_1_1AgentChatWidget_1_1ScreenshotPreviewState.html#ab6cd0f7b6155e9b6119e49661a0be70c":[29,0,2,3,5,13,0],
-"dd/dfb/structyaze_1_1editor_1_1AgentChatWidget_1_1ScreenshotPreviewState.html#ab6cd0f7b6155e9b6119e49661a0be70c":[28,0,6,4,17,13,0],
-"dd/dfb/structyaze_1_1editor_1_1AgentChatWidget_1_1ScreenshotPreviewState.html#af8bd9f62f3230616fa00fc7a924264f9":[29,0,2,3,5,13,5],
-"dd/dfb/structyaze_1_1editor_1_1AgentChatWidget_1_1ScreenshotPreviewState.html#af8bd9f62f3230616fa00fc7a924264f9":[28,0,6,4,17,13,5],
-"de/d07/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ReviewRequirement.html":[28,0,6,2,79,0,2],
-"de/d07/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ReviewRequirement.html":[29,0,2,1,64,0,2],
-"de/d07/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ReviewRequirement.html#a03f0760c671f680cdd943418a1979f65":[29,0,2,1,64,0,2,3],
-"de/d07/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ReviewRequirement.html#a03f0760c671f680cdd943418a1979f65":[28,0,6,2,79,0,2,3],
-"de/d07/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ReviewRequirement.html#a10e6595914e0f92c8ad2ee51c2a09622":[28,0,6,2,79,0,2,5]
+"dd/dfb/structyaze_1_1editor_1_1AgentChatWidget_1_1ScreenshotPreviewState.html#ab6cd0f7b6155e9b6119e49661a0be70c":[28,0,6,4,17,13,0]
 };

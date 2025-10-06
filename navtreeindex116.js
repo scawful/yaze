@@ -1,5 +1,12 @@
 var NAVTREEINDEX116 =
 {
+"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html":[28,0,6,10,14,0],
+"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#a6fe61f22a852cbf6ccd4828f5a7cd014":[29,0,2,9,7,0,3],
+"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#a6fe61f22a852cbf6ccd4828f5a7cd014":[28,0,6,10,14,0,3],
+"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#aa7d11ccdad7fe03e8b8864a4f7ee16fa":[28,0,6,10,14,0,2],
+"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#aa7d11ccdad7fe03e8b8864a4f7ee16fa":[29,0,2,9,7,0,2],
+"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#acc08ebcf755d34972d65b76d2e3970ba":[29,0,2,9,7,0,0],
+"df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#acc08ebcf755d34972d65b76d2e3970ba":[28,0,6,10,14,0,0],
 "df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#ae44f5941512b2c0aac41e473f51d0f15":[28,0,6,10,14,0,1],
 "df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html#ae44f5941512b2c0aac41e473f51d0f15":[29,0,2,9,7,0,1],
 "df/d84/yaze_8cc.html":[30,0,3,4],
@@ -242,12 +249,5 @@ var NAVTREEINDEX116 =
 "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a4f0c8fadc1c843fe3ae98668f99f5de6":[29,0,2,1,0,14,15],
 "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a68400b4c226d998a1628420a20082f7e":[29,0,2,1,0,14,19],
 "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a68400b4c226d998a1628420a20082f7e":[28,0,6,2,0,24,19],
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a77c75b57eda322eee52aec230c769b9e":[28,0,6,2,0,24,3],
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a77c75b57eda322eee52aec230c769b9e":[29,0,2,1,0,14,3],
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7b22449ce4587132c3874d5422328a1e":[29,0,2,1,0,14,22],
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7b22449ce4587132c3874d5422328a1e":[28,0,6,2,0,24,22],
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7bc49bc8220497fbe113c5767ea6f66c":[28,0,6,2,0,24,10],
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7bc49bc8220497fbe113c5767ea6f66c":[29,0,2,1,0,14,10],
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7ee3828fbad973b4098bda48c7297e0d":[28,0,6,2,0,24,16],
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7ee3828fbad973b4098bda48c7297e0d":[29,0,2,1,0,14,16]
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a77c75b57eda322eee52aec230c769b9e":[28,0,6,2,0,24,3]
 };

@@ -1,5 +1,12 @@
 var NAVTREEINDEX90 =
 {
+"dc/d9f/music__editor_8cc.html":[30,0,3,0,1,5,0],
+"dc/d9f/music__editor_8cc_source.html":[30,0,3,0,1,5,0],
+"dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html":[28,0,6,2,0,13,0],
+"dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html":[29,0,2,1,0,3,0],
+"dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html#a6ac1370ec0686db3220bcb1024d515f3":[28,0,6,2,0,13,0,2],
+"dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html#a6ac1370ec0686db3220bcb1024d515f3":[29,0,2,1,0,3,0,2],
+"dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html#a9810749a6469ff30e78fe290808de8e0":[28,0,6,2,0,13,0,1],
 "dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html#a9810749a6469ff30e78fe290808de8e0":[29,0,2,1,0,3,0,1],
 "dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html#aa081ced6a0b83429a7a03e655e3f3fcc":[28,0,6,2,0,13,0,3],
 "dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html#aa081ced6a0b83429a7a03e655e3f3fcc":[29,0,2,1,0,3,0,3],
@@ -242,12 +249,5 @@ var NAVTREEINDEX90 =
 "dc/ddd/editor__safeguards_8h.html#a09e3eaa0655502231991af8156e1fd60":[30,0,3,0,1,13,2],
 "dc/ddd/editor__safeguards_8h.html#a576369c6a6b3535239c59c5822d08116":[30,0,3,0,1,13,1],
 "dc/ddd/editor__safeguards_8h.html#a577c755a709d0739b22591152aa482eb":[30,0,3,0,1,13,0],
-"dc/ddd/editor__safeguards_8h.html#ac0bc6f29ccc20a3f2757c2228eb56160":[30,0,3,0,1,13,3],
-"dc/ddd/editor__safeguards_8h_source.html":[30,0,3,0,1,13],
-"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html":[28,0,6,8,9],
-"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html":[29,0,2,7,3],
-"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#a2c513ebe805746ebd44db55cf998bfa6":[29,0,2,7,3,5],
-"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#a2c513ebe805746ebd44db55cf998bfa6":[28,0,6,8,9,5],
-"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#a2f07f26a8701e6aa2250be1313a484fd":[28,0,6,8,9,7],
-"dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html#a2f07f26a8701e6aa2250be1313a484fd":[29,0,2,7,3,7]
+"dc/ddd/editor__safeguards_8h.html#ac0bc6f29ccc20a3f2757c2228eb56160":[30,0,3,0,1,13,3]
 };

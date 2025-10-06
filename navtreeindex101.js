@@ -1,5 +1,12 @@
 var NAVTREEINDEX101 =
 {
+"de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html#aaef618f33f0260d91f37632ade70f9f1":[29,0,2,5,13,1],
+"de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html#aaef618f33f0260d91f37632ade70f9f1":[28,0,6,6,15,1],
+"de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html#af87985fa6c13f6072840f2baaa18f19d":[29,0,2,5,13,3],
+"de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html#af87985fa6c13f6072840f2baaa18f19d":[28,0,6,6,15,3],
+"de/d38/audio_2internal_2opcodes_8h.html":[30,0,3,0,2,0,0,2],
+"de/d38/audio_2internal_2opcodes_8h.html#a93cb5efaf6af57a758585c8135874b0e":[30,0,3,0,2,0,0,2,0],
+"de/d38/audio_2internal_2opcodes_8h_source.html":[30,0,3,0,2,0,0,2],
 "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html":[28,0,6,2,10],
 "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a09b4ae26739f1c53e9b09a39a2af0d99":[28,0,6,2,10,15],
 "de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a1200be7b7b400f627568e8e51ce5cb4d":[28,0,6,2,10,12],
@@ -242,12 +249,5 @@ var NAVTREEINDEX101 =
 "de/d77/structyaze_1_1cli_1_1TestSuiteConfig.html#a3766d2d8c229fce56693f8e5a1318ec0":[28,0,6,2,110,2],
 "de/d77/structyaze_1_1cli_1_1TestSuiteConfig.html#a3766d2d8c229fce56693f8e5a1318ec0":[29,0,2,1,95,2],
 "de/d77/structyaze_1_1cli_1_1TestSuiteConfig.html#a992e3ec679746b2f15924a8b6fc257ee":[29,0,2,1,95,0],
-"de/d77/structyaze_1_1cli_1_1TestSuiteConfig.html#a992e3ec679746b2f15924a8b6fc257ee":[28,0,6,2,110,0],
-"de/d77/structyaze_1_1cli_1_1TestSuiteConfig.html#af7285e892a6189c085153f1c49e4bfcd":[28,0,6,2,110,1],
-"de/d77/structyaze_1_1cli_1_1TestSuiteConfig.html#af7285e892a6189c085153f1c49e4bfcd":[29,0,2,1,95,1],
-"de/d79/classyaze_1_1test_1_1TestRecorder_1_1ScopedSuspension.html":[29,0,2,7,30,2],
-"de/d79/classyaze_1_1test_1_1TestRecorder_1_1ScopedSuspension.html":[28,0,6,8,36,2],
-"de/d79/classyaze_1_1test_1_1TestRecorder_1_1ScopedSuspension.html#a01c812636d7612a72b6c57be8c835308":[28,0,6,8,36,2,2],
-"de/d79/classyaze_1_1test_1_1TestRecorder_1_1ScopedSuspension.html#a01c812636d7612a72b6c57be8c835308":[29,0,2,7,30,2,2],
-"de/d79/classyaze_1_1test_1_1TestRecorder_1_1ScopedSuspension.html#a0d7e56d67c7578eecba603afba760caf":[28,0,6,8,36,2,1]
+"de/d77/structyaze_1_1cli_1_1TestSuiteConfig.html#a992e3ec679746b2f15924a8b6fc257ee":[28,0,6,2,110,0]
 };

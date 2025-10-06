@@ -1,5 +1,12 @@
 var NAVTREEINDEX112 =
 {
+"de/dbf/icons_8h.html#afe94b0017ea49b845c85315d8a3f691f":[30,0,3,0,4,14,826],
+"de/dbf/icons_8h.html#afeba66d203e16da699b1cdc9e1455239":[30,0,3,0,4,14,696],
+"de/dbf/icons_8h.html#afec0a0fd801c7c26e81b71218e92e76c":[30,0,3,0,4,14,227],
+"de/dbf/icons_8h.html#afedd1dbba6ea4b56d72c3b475996a447":[30,0,3,0,4,14,1767],
+"de/dbf/icons_8h.html#aff001c2bfc23f96dc67a5ec1e8929768":[30,0,3,0,4,14,1239],
+"de/dbf/icons_8h.html#aff2b432d74413cdf317314b100ab6f87":[30,0,3,0,4,14,1788],
+"de/dbf/icons_8h.html#aff3f711015252f199c905616262c3dd8":[30,0,3,0,4,14,624],
 "de/dbf/icons_8h.html#affb68494377c8d668af8176745a6ce5e":[30,0,3,0,4,14,108],
 "de/dbf/icons_8h.html#affb79c4e4711cdb01d29a51c8e99f0f7":[30,0,3,0,4,14,231],
 "de/dbf/icons_8h.html#affc5348686e1413523bfb004f965d434":[30,0,3,0,4,14,1082],
@@ -242,12 +249,5 @@ var NAVTREEINDEX112 =
 "de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a5ff20488e193c4bcb98c71b15ba29259":[28,0,6,10,20,88],
 "de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a6392421ce6494f4f47d5bb3c1b5a87ea":[29,0,2,9,13,50],
 "de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a6392421ce6494f4f47d5bb3c1b5a87ea":[28,0,6,10,20,50],
-"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a641f851a4301f488f4656ec23c7dc493":[29,0,2,9,13,31],
-"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a641f851a4301f488f4656ec23c7dc493":[28,0,6,10,20,31],
-"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a66d421eb290c954bd90b07cd5efe285f":[29,0,2,9,13,78],
-"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a66d421eb290c954bd90b07cd5efe285f":[28,0,6,10,20,78],
-"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a67c7890087a459273fd00c304b8df4a8":[29,0,2,9,13,30],
-"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a67c7890087a459273fd00c304b8df4a8":[28,0,6,10,20,30],
-"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a6b3042254d4384fb58dd618af61677f3":[28,0,6,10,20,69],
-"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a6b3042254d4384fb58dd618af61677f3":[29,0,2,9,13,69]
+"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a641f851a4301f488f4656ec23c7dc493":[29,0,2,9,13,31]
 };

@@ -1,5 +1,12 @@
 var NAVTREEINDEX89 =
 {
+"dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#a93f95fd841c068d81d24e31b136cd00e":[29,0,2,3,18,50],
+"dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#aa031ac525b0fe77ff4c7176a62e7983b":[29,0,2,3,18,30],
+"dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#aa031ac525b0fe77ff4c7176a62e7983b":[28,0,6,4,30,30],
+"dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#aa11d2ad9b08d4960ccd82f9525f22da3":[29,0,2,3,18,22],
+"dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#aa11d2ad9b08d4960ccd82f9525f22da3":[28,0,6,4,30,22],
+"dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#aa1cd3cdc51f70c2ec1878690d099f156":[29,0,2,3,18,8],
+"dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#aa1cd3cdc51f70c2ec1878690d099f156":[28,0,6,4,30,8],
 "dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#aa4d999f1deb328480e9a762a45955713":[29,0,2,3,18,1],
 "dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#aa4d999f1deb328480e9a762a45955713":[28,0,6,4,30,1],
 "dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html#aa58708e33d9772f10657f76f6b9e8b9b":[29,0,2,3,18,14],
@@ -242,12 +249,5 @@ var NAVTREEINDEX89 =
 "dc/d9b/graphics__editor_8h.html":[30,0,3,0,1,3,3],
 "dc/d9b/graphics__editor_8h.html#a42382673ea2557750ccf0c490e8abc98":[30,0,3,0,1,3,3,2],
 "dc/d9b/graphics__editor_8h.html#aa7e4f5f4067c96e69f95a40beb7a83e5":[30,0,3,0,1,3,3,1],
-"dc/d9b/graphics__editor_8h_source.html":[30,0,3,0,1,3,3],
-"dc/d9f/music__editor_8cc.html":[30,0,3,0,1,5,0],
-"dc/d9f/music__editor_8cc_source.html":[30,0,3,0,1,5,0],
-"dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html":[28,0,6,2,0,13,0],
-"dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html":[29,0,2,1,0,3,0],
-"dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html#a6ac1370ec0686db3220bcb1024d515f3":[28,0,6,2,0,13,0,2],
-"dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html#a6ac1370ec0686db3220bcb1024d515f3":[29,0,2,1,0,3,0,2],
-"dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html#a9810749a6469ff30e78fe290808de8e0":[28,0,6,2,0,13,0,1]
+"dc/d9b/graphics__editor_8h_source.html":[30,0,3,0,1,3,3]
 };

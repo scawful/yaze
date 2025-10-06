@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['📝_20dungeon_20editor_20smoke_20test_0',['📝 Dungeon Editor Smoke Test',['../d9/db0/md_test_2e2e_2README.html#autotoc_md641',1,'']]]
+  ['📌_20current_20progress_20highlights_20october_205_202025_0',['📌 Current Progress Highlights (October 5, 2025)',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md239',1,'']]]
 ];

@@ -1,5 +1,12 @@
 var NAVTREEINDEX87 =
 {
+"dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#a45d47d03d5184838b700ac659f30ff19":[29,0,2,1,46,9],
+"dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#a98fa7047f1cb3932bf94e078e0079d9f":[29,0,2,1,46,5],
+"dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#a98fa7047f1cb3932bf94e078e0079d9f":[28,0,6,2,61,5],
+"dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#aa47ce9da469009ae96b4109bb67df309":[29,0,2,1,46,7],
+"dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#aa47ce9da469009ae96b4109bb67df309":[28,0,6,2,61,7],
+"dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#aa54065448ee6fe182ad056d9099201b9":[28,0,6,2,61,0],
+"dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#aa54065448ee6fe182ad056d9099201b9":[29,0,2,1,46,0],
 "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#ac6ac158faef88066545d0c001c2fb4bc":[28,0,6,2,61,6],
 "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#ac6ac158faef88066545d0c001c2fb4bc":[29,0,2,1,46,6],
 "dc/d1d/classyaze_1_1cli_1_1OllamaAIService.html#ad31ab679d23748b864b5d071d0761a6a":[29,0,2,1,46,3],
@@ -242,12 +249,5 @@ var NAVTREEINDEX87 =
 "dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#ad451d580c9c4ebb48f636b4c6d40c1efae22acaa6e4e9a5118b4cf5b81f8fbe1e":[28,0,6,4,48,0,2],
 "dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#adb4a06b3d53959a9c51300a675e01316":[29,0,2,3,36,24],
 "dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#adb4a06b3d53959a9c51300a675e01316":[28,0,6,4,48,24],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#ae09d00dc0b934cf2e81e80f31a577d73":[29,0,2,3,36,28],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#ae09d00dc0b934cf2e81e80f31a577d73":[28,0,6,4,48,28],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#ae143e980f615c02473c5e72e6b45e08c":[28,0,6,4,48,63],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#ae143e980f615c02473c5e72e6b45e08c":[29,0,2,3,36,63],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#ae678616c5adb199b2d9586986d805336":[29,0,2,3,36,56],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#ae678616c5adb199b2d9586986d805336":[28,0,6,4,48,56],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#ae8336c5018893ccb7fba18d2ac97e20f":[28,0,6,4,48,12],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#ae8336c5018893ccb7fba18d2ac97e20f":[29,0,2,3,36,12]
+"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#ae09d00dc0b934cf2e81e80f31a577d73":[29,0,2,3,36,28]
 };

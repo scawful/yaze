@@ -1,5 +1,12 @@
 var NAVTREEINDEX113 =
 {
+"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a641f851a4301f488f4656ec23c7dc493":[28,0,6,10,20,31],
+"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a66d421eb290c954bd90b07cd5efe285f":[29,0,2,9,13,78],
+"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a66d421eb290c954bd90b07cd5efe285f":[28,0,6,10,20,78],
+"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a67c7890087a459273fd00c304b8df4a8":[29,0,2,9,13,30],
+"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a67c7890087a459273fd00c304b8df4a8":[28,0,6,10,20,30],
+"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a6b3042254d4384fb58dd618af61677f3":[28,0,6,10,20,69],
+"de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a6b3042254d4384fb58dd618af61677f3":[29,0,2,9,13,69],
 "de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a6de01b7990964c9492cbc820cd4a6759":[28,0,6,10,20,43],
 "de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a6de01b7990964c9492cbc820cd4a6759":[29,0,2,9,13,43],
 "de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html#a6f35b54ecd4ddda83bcc25b293da90d6":[28,0,6,10,20,23],
@@ -242,12 +249,5 @@ var NAVTREEINDEX113 =
 "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a412edae11ee0612cad4a6691211df16c":[29,0,2,5,5,52],
 "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a4cec6b646567cb7b37ebff9a423d0ce0":[29,0,2,5,5,5],
 "df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a4cec6b646567cb7b37ebff9a423d0ce0":[28,0,6,6,7,5],
-"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a4ed0573c184f64742cfa412af18bbca7":[29,0,2,5,5,8],
-"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a4ed0573c184f64742cfa412af18bbca7":[28,0,6,6,7,8],
-"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a581325df602245d58086208cb6e85739":[28,0,6,6,7,1],
-"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a581325df602245d58086208cb6e85739":[29,0,2,5,5,1],
-"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a581b5605ae5a812935b31354019a15be":[29,0,2,5,5,27],
-"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a581b5605ae5a812935b31354019a15be":[28,0,6,6,7,27],
-"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919":[28,0,6,6,7,42],
-"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919":[29,0,2,5,5,42]
+"df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a4ed0573c184f64742cfa412af18bbca7":[29,0,2,5,5,8]
 };

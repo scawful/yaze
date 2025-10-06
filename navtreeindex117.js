@@ -1,5 +1,12 @@
 var NAVTREEINDEX117 =
 {
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a77c75b57eda322eee52aec230c769b9e":[29,0,2,1,0,14,3],
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7b22449ce4587132c3874d5422328a1e":[29,0,2,1,0,14,22],
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7b22449ce4587132c3874d5422328a1e":[28,0,6,2,0,24,22],
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7bc49bc8220497fbe113c5767ea6f66c":[28,0,6,2,0,24,10],
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7bc49bc8220497fbe113c5767ea6f66c":[29,0,2,1,0,14,10],
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7ee3828fbad973b4098bda48c7297e0d":[28,0,6,2,0,24,16],
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a7ee3828fbad973b4098bda48c7297e0d":[29,0,2,1,0,14,16],
 "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a80d9bc5c5e76ff1de3c4fc692b7b5166":[29,0,2,1,0,14,9],
 "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a80d9bc5c5e76ff1de3c4fc692b7b5166":[28,0,6,2,0,24,9],
 "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a88d5a64d5ceb07d099d4fe459caf0fe2":[28,0,6,2,0,24,20],
@@ -242,12 +249,5 @@ var NAVTREEINDEX117 =
 "df/dfe/namespaceyaze_1_1zelda3_1_1test.html#ab8968d9e94e2abb30f1b9525623255d2":[28,0,6,10,14,6],
 "df/dfe/namespaceyaze_1_1zelda3_1_1test.html#aba48b6d8c64e6fcaa798959603999148":[28,0,6,10,14,4],
 "df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html":[29,0,2,9,31],
-"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html":[28,0,6,10,38],
-"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#a03f8b22b26b4e77ef686af5fb75752f9":[28,0,6,10,38,6],
-"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#a03f8b22b26b4e77ef686af5fb75752f9":[29,0,2,9,31,6],
-"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#a2ded9510405cfbf7591e13965226c85e":[28,0,6,10,38,3],
-"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#a2ded9510405cfbf7591e13965226c85e":[29,0,2,9,31,3],
-"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#a3679239e2e80ea658c1e0ec135800660":[28,0,6,10,38,2],
-"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#a3679239e2e80ea658c1e0ec135800660":[29,0,2,9,31,2],
-"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#a9ab52a0e2c15c6e622cb3c369377a1a1":[28,0,6,10,38,5]
+"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html":[28,0,6,10,38]
 };

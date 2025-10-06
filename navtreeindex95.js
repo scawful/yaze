@@ -1,5 +1,12 @@
 var NAVTREEINDEX95 =
 {
+"dd/d23/namespaceyaze_1_1gui_1_1canvas_1_1anonymous__namespace_02canvas__modals_8cc_03.html#ab3480df9aa8082406ea04dab1af26ee0":[28,0,6,7,3,2,0],
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html":[28,0,6,2,20,2],
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html":[29,0,2,1,5,1],
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a07df9a47875e6bda83e2c3f440b34974":[29,0,2,1,5,1,15],
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a07df9a47875e6bda83e2c3f440b34974":[28,0,6,2,20,2,15],
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a08ee5c08c4c08b556fc6da4e1761364f":[28,0,6,2,20,2,13],
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a08ee5c08c4c08b556fc6da4e1761364f":[29,0,2,1,5,1,13],
 "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a0fb5a7f6f16323a5b4cd64c7efb35609":[29,0,2,1,5,1,21],
 "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a0fb5a7f6f16323a5b4cd64c7efb35609":[28,0,6,2,20,2,21],
 "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a1383deb55f75291eb24a01b2250bf6dd":[28,0,6,2,20,2,9],
@@ -242,12 +249,5 @@ var NAVTREEINDEX95 =
 "dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ae4cea41fb2973cb6460be14783d2a7dc":[29,0,2,3,23,10],
 "dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ae7165a876f0efa4cb9204567e1d464c9":[28,0,6,4,35,14],
 "dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ae7165a876f0efa4cb9204567e1d464c9":[29,0,2,3,23,14],
-"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ae80d1b0877a79b27cb506de08ed7dc94":[29,0,2,3,23,19],
-"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ae80d1b0877a79b27cb506de08ed7dc94":[28,0,6,4,35,19],
-"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#af37796a5bd5c8654f642db636f0eb17b":[28,0,6,4,35,11],
-"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#af37796a5bd5c8654f642db636f0eb17b":[29,0,2,3,23,11],
-"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#afe8f7da7dc44d184f470e521a83eb185":[29,0,2,3,23,3],
-"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#afe8f7da7dc44d184f470e521a83eb185":[28,0,6,4,35,3],
-"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#aff53640b3238e9f01b93b8f2fe54cdcf":[29,0,2,3,23,16],
-"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#aff53640b3238e9f01b93b8f2fe54cdcf":[28,0,6,4,35,16]
+"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ae80d1b0877a79b27cb506de08ed7dc94":[29,0,2,3,23,19]
 };
