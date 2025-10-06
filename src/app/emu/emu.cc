@@ -207,6 +207,22 @@ int main(int argc, char **argv) {
         snes_.RunFrame();
         frame_count++;
 
+        // Detect deadlock - CPU stuck in same location
+        static uint16_t last_cpu_pc = 0;
+        static int stuck_count = 0;
+        uint16_t current_cpu_pc = snes_.cpu().PC;
+        
+        if (current_cpu_pc == last_cpu_pc && current_cpu_pc >= 0x88B0 && current_cpu_pc <= 0x88C0) {
+          stuck_count++;
+          if (stuck_count > 180 && frame_count % 60 == 0) {
+            printf("[WARNING] CPU stuck at $%02X:%04X for %d frames (APU deadlock?)\n",
+                   snes_.cpu().PB, current_cpu_pc, stuck_count);
+          }
+        } else {
+          stuck_count = 0;
+        }
+        last_cpu_pc = current_cpu_pc;
+
         // Print status every 60 frames (1 second)
         if (frame_count % 60 == 0) {
           printf("[Frame %d] CPU=$%02X:%04X SPC=$%04X APU_cycles=%llu\n", 
@@ -216,10 +232,11 @@ int main(int argc, char **argv) {
 
         // Auto-exit after max_frames (if set)
         if (max_frames > 0 && frame_count >= max_frames) {
-          printf("\nReached max frames (%d), exiting...\n", max_frames);
-          printf("Final state: CPU=$%02X:%04X SPC=$%04X\n",
+          printf("\n[EMULATOR] Reached max frames (%d), shutting down...\n", max_frames);
+          printf("[EMULATOR] Final state: CPU=$%02X:%04X SPC=$%04X\n",
                  snes_.cpu().PB, snes_.cpu().PC, snes_.apu().spc700().PC);
           running = false;
+          break;  // Exit inner loop immediately
         }
 
         snes_.SetSamples(audio_buffer_, wanted_samples_);
@@ -244,13 +261,26 @@ int main(int argc, char **argv) {
     SDL_RenderPresent(renderer_.get());  // should vsync
   }
 
+  printf("[EMULATOR] Cleaning up SDL resources...\n");
+  
+  // Clean up audio
   SDL_PauseAudioDevice(audio_device_, 1);
+  SDL_ClearQueuedAudio(audio_device_);
   SDL_CloseAudioDevice(audio_device_);
   delete[] audio_buffer_;
-  // ImGui_ImplSDLRenderer2_Shutdown();
-  // ImGui_ImplSDL2_Shutdown();
-  // ImGui::DestroyContext();
+  
+  // Clean up texture
+  if (ppu_texture_) {
+    SDL_DestroyTexture(ppu_texture_);
+  }
+  
+  // Clean up renderer and window (done by unique_ptr destructors)
+  renderer_.reset();
+  window_.reset();
+  
+  // Quit SDL
   SDL_Quit();
-
+  
+  printf("[EMULATOR] Shutdown complete.\n");
   return EXIT_SUCCESS;
 }

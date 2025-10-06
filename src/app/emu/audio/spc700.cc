@@ -1106,11 +1106,14 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xcb: {  // movsy dp
-      uint16_t addr = dp();
-      if (addr == 0x00F4) {
+      // CRITICAL: Only call dp() once in bstep=0, reuse saved address in bstep=1
+      if (bstep == 0) {
+        adr = dp();  // Save address for bstep=1
+      }
+      if (adr == 0x00F4 && bstep == 1) {
         LOG_INFO("SPC", "MOVSY writing Y=$%02X to F4 at PC=$%04X", Y, PC);
       }
-      MOVSY(addr);
+      MOVSY(adr);  // Use saved address
       break;
     }
     case 0xcc: {  // movsy abs
