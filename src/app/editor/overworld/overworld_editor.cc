@@ -168,58 +168,72 @@ absl::Status OverworldEditor::Update() {
   DrawOverworldCanvas();
   
   // Floating tile selector cards (4 tabs converted to separate cards)
-  if (show_tile16_selector_ && tile16_card.Begin(&show_tile16_selector_)) {
-    status_ = DrawTile16Selector();
-    tile16_card.End();
+  if (show_tile16_selector_) {
+    if (tile16_card.Begin(&show_tile16_selector_)) {
+      status_ = DrawTile16Selector();
+    }
+    tile16_card.End();  // ALWAYS call End after Begin
   }
   
-  if (show_tile8_selector_ && tile8_card.Begin(&show_tile8_selector_)) {
-    gui::BeginPadding(3);
-    gui::BeginChildWithScrollbar("##Tile8SelectorScrollRegion");
-    DrawTile8Selector();
-    ImGui::EndChild();
-    gui::EndNoPadding();
-    tile8_card.End();
+  if (show_tile8_selector_) {
+    if (tile8_card.Begin(&show_tile8_selector_)) {
+      gui::BeginPadding(3);
+      gui::BeginChildWithScrollbar("##Tile8SelectorScrollRegion");
+      DrawTile8Selector();
+      ImGui::EndChild();
+      gui::EndNoPadding();
+    }
+    tile8_card.End();  // ALWAYS call End after Begin
   }
   
-  if (show_area_gfx_ && area_gfx_card.Begin(&show_area_gfx_)) {
-    status_ = DrawAreaGraphics();
-    area_gfx_card.End();
+  if (show_area_gfx_) {
+    if (area_gfx_card.Begin(&show_area_gfx_)) {
+      status_ = DrawAreaGraphics();
+    }
+    area_gfx_card.End();  // ALWAYS call End after Begin
   }
   
-  if (show_scratch_ && scratch_card.Begin(&show_scratch_)) {
-    status_ = DrawScratchSpace();
-    scratch_card.End();
+  if (show_scratch_) {
+    if (scratch_card.Begin(&show_scratch_)) {
+      status_ = DrawScratchSpace();
+    }
+    scratch_card.End();  // ALWAYS call End after Begin
   }
   
   // Tile16 Editor popup-only (no tab)
-  if (show_tile16_editor_ && tile16_editor_card.Begin(&show_tile16_editor_)) {
-    if (rom_->is_loaded()) {
-      status_ = tile16_editor_.Update();
-    } else {
-      gui::CenterText("No ROM loaded");
+  if (show_tile16_editor_) {
+    if (tile16_editor_card.Begin(&show_tile16_editor_)) {
+      if (rom_->is_loaded()) {
+        status_ = tile16_editor_.Update();
+      } else {
+        gui::CenterText("No ROM loaded");
+      }
     }
-    tile16_editor_card.End();
+    tile16_editor_card.End();  // ALWAYS call End after Begin
   }
   
   // Graphics Groups popup
-  if (show_gfx_groups_ && gfx_groups_card.Begin(&show_gfx_groups_)) {
-    if (rom_->is_loaded()) {
-      status_ = gfx_group_editor_.Update();
-    } else {
-      gui::CenterText("No ROM loaded");
+  if (show_gfx_groups_) {
+    if (gfx_groups_card.Begin(&show_gfx_groups_)) {
+      if (rom_->is_loaded()) {
+        status_ = gfx_group_editor_.Update();
+      } else {
+        gui::CenterText("No ROM loaded");
+      }
     }
-    gfx_groups_card.End();
+    gfx_groups_card.End();  // ALWAYS call End after Begin
   }
   
   // Usage Statistics popup
-  if (show_usage_stats_ && usage_stats_card.Begin(&show_usage_stats_)) {
-    if (rom_->is_loaded()) {
-      status_ = UpdateUsageStats();
-    } else {
-      gui::CenterText("No ROM loaded");
+  if (show_usage_stats_) {
+    if (usage_stats_card.Begin(&show_usage_stats_)) {
+      if (rom_->is_loaded()) {
+        status_ = UpdateUsageStats();
+      } else {
+        gui::CenterText("No ROM loaded");
+      }
     }
-    usage_stats_card.End();
+    usage_stats_card.End();  // ALWAYS call End after Begin
   }
 
   // Area Configuration Panel (detailed editing)
@@ -1254,7 +1268,6 @@ void OverworldEditor::DrawOverworldCanvas() {
   gui::BeginNoPadding();
   gui::BeginChildBothScrollbars(7);
   ow_map_canvas_.DrawBackground();
-  gui::EndNoPadding();
 
   // Setup dynamic context menu based on current map state (Phase 3B)
   if (rom_->is_loaded() && overworld_.is_loaded() && map_properties_system_) {
@@ -1314,6 +1327,7 @@ void OverworldEditor::DrawOverworldCanvas() {
   ow_map_canvas_.DrawGrid();
   ow_map_canvas_.DrawOverlay();
   EndChild();
+  gui::EndNoPadding();  // End the no-padding style that was started at line 1254
 }
 
 absl::Status OverworldEditor::DrawTile16Selector() {
@@ -1344,7 +1358,13 @@ absl::Status OverworldEditor::DrawTile16Selector() {
 
   if (result.selection_changed) {
     current_tile16_ = result.selected_tile;
-    RETURN_IF_ERROR(tile16_editor_.SetCurrentTile(current_tile16_));
+    auto status = tile16_editor_.SetCurrentTile(current_tile16_);
+    if (!status.ok()) {
+      // Store error but ensure we close the child before returning
+      EndChild();
+      ImGui::EndGroup();
+      return status;
+    }
     // Note: We do NOT auto-scroll here because it breaks user interaction.
     // The canvas should only scroll when explicitly requested (e.g., when
     // selecting a tile from the overworld canvas via ScrollBlocksetCanvasToCurrentTile).

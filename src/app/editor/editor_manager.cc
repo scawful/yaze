@@ -747,15 +747,12 @@ absl::Status EditorManager::Update() {
         std::string window_title =
             GenerateUniqueEditorTitle(editor->type(), session_idx);
         
-        // Create truly unique ImGui ID combining session index and editor type
-        // This ensures ImGui treats them as completely separate windows
-        ImGui::PushID(static_cast<int>(session_idx * 100 + static_cast<int>(editor->type())));
+        // Note: PushID removed - window title provides sufficient uniqueness
+        // and PushID was causing ID stack corruption issues
 
-        // Set window to maximize on first open
-        if (ImGui::IsWindowAppearing()) {
-          ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize, ImGuiCond_Appearing);
-          ImGui::SetNextWindowPos(ImGui::GetMainViewport()->WorkPos, ImGuiCond_Appearing);
-        }
+        // Set window to maximize on first open (use FirstUseEver instead of IsWindowAppearing check)
+        ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize, ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowPos(ImGui::GetMainViewport()->WorkPos, ImGuiCond_FirstUseEver);
         
         if (ImGui::Begin(window_title.c_str(), editor->active(), 
                         ImGuiWindowFlags_None)) {  // Allow full docking
@@ -801,7 +798,7 @@ absl::Status EditorManager::Update() {
           context_.session_id = prev_session_id;  // Restore previous session ID
         }
         ImGui::End();
-        ImGui::PopID();  // Pop the unique ID for this session+editor combination
+        // PopID removed to match PushID removal above
       }
     }
   }

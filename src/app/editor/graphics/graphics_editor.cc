@@ -56,27 +56,35 @@ absl::Status GraphicsEditor::Update() {
   static gui::EditorCard player_anims_card("Player Animations", ICON_MD_PERSON);
   static gui::EditorCard prototype_card("Prototype Viewer", ICON_MD_CONSTRUCTION);
 
-  if (show_sheet_editor_ && sheet_editor_card.Begin(&show_sheet_editor_)) {
-    status_ = UpdateGfxEdit();
-    sheet_editor_card.End();
-  }
-
-  if (show_sheet_browser_ && sheet_browser_card.Begin(&show_sheet_browser_)) {
-    if (asset_browser_.Initialized == false) {
-      asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
+  if (show_sheet_editor_) {
+    if (sheet_editor_card.Begin(&show_sheet_editor_)) {
+      status_ = UpdateGfxEdit();
     }
-    asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
-    sheet_browser_card.End();
+    sheet_editor_card.End();  // ALWAYS call End after Begin
   }
 
-  if (show_player_animations_ && player_anims_card.Begin(&show_player_animations_)) {
-    status_ = UpdateLinkGfxView();
-    player_anims_card.End();
+  if (show_sheet_browser_) {
+    if (sheet_browser_card.Begin(&show_sheet_browser_)) {
+      if (asset_browser_.Initialized == false) {
+        asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
+      }
+      asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
+    }
+    sheet_browser_card.End();  // ALWAYS call End after Begin
   }
 
-  if (show_prototype_viewer_ && prototype_card.Begin(&show_prototype_viewer_)) {
-    status_ = UpdateScadView();
-    prototype_card.End();
+  if (show_player_animations_) {
+    if (player_anims_card.Begin(&show_player_animations_)) {
+      status_ = UpdateLinkGfxView();
+    }
+    player_anims_card.End();  // ALWAYS call End after Begin
+  }
+
+  if (show_prototype_viewer_) {
+    if (prototype_card.Begin(&show_prototype_viewer_)) {
+      status_ = UpdateScadView();
+    }
+    prototype_card.End();  // ALWAYS call End after Begin
   }
 
   CLEAR_AND_RETURN_STATUS(status_)

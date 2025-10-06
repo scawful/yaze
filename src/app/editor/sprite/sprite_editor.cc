@@ -43,14 +43,18 @@ absl::Status SpriteEditor::Update() {
   static gui::EditorCard vanilla_card("Vanilla Sprites", ICON_MD_PEST_CONTROL_RODENT);
   static gui::EditorCard custom_card("Custom Sprites", ICON_MD_ADD_MODERATOR);
 
-  if (show_vanilla_editor_ && vanilla_card.Begin(&show_vanilla_editor_)) {
-    DrawVanillaSpriteEditor();
-    vanilla_card.End();
+  if (show_vanilla_editor_) {
+    if (vanilla_card.Begin(&show_vanilla_editor_)) {
+      DrawVanillaSpriteEditor();
+    }
+    vanilla_card.End();  // ALWAYS call End after Begin
   }
 
-  if (show_custom_editor_ && custom_card.Begin(&show_custom_editor_)) {
-    DrawCustomSprites();
-    custom_card.End();
+  if (show_custom_editor_) {
+    if (custom_card.Begin(&show_custom_editor_)) {
+      DrawCustomSprites();
+    }
+    custom_card.End();  // ALWAYS call End after Begin
   }
 
   return status_.ok() ? absl::OkStatus() : status_;

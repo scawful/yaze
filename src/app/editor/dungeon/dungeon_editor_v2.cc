@@ -140,8 +140,8 @@ void DungeonEditorV2::DrawLayout() {
     gui::EditorCard room_card(card_name, ICON_MD_GRID_ON, &open);
     if (room_card.Begin()) {
       DrawRoomTab(room_id);
-      room_card.End();
     }
+    room_card.End();  // ALWAYS call End after Begin
 
     if (!open) {
       active_rooms_.erase(active_rooms_.Data + i);
