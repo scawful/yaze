@@ -1058,6 +1058,7 @@ void AgentChatWidget::Draw() {
       ImGui::EndTable();
     }
 
+    RenderAutomationPanel();
     RenderCollaborationPanel();
     RenderRomSyncPanel();
     RenderProposalManagerPanel();
@@ -1483,6 +1484,122 @@ void AgentChatWidget::RenderMultimodalPanel() {
   if (multimodal_state_.region_selection.active) {
     HandleRegionSelection();
   }
+}
+
+void AgentChatWidget::RenderAutomationPanel() {
+  const auto& theme = AgentUI::GetTheme();
+  ImGui::PushID("AutomationPanel");
+
+  AgentUI::PushPanelStyle();
+  if (ImGui::BeginChild("Automation_Panel", ImVec2(0, 180), true)) {
+    AgentUI::RenderSectionHeader(ICON_MD_SMART_TOY, "GUI Automation", 
+                                  theme.provider_ollama);
+
+    // Connection status
+    bool connected = automation_state_.harness_connected;
+    ImVec4 status_color = connected ? theme.status_success : theme.status_warning;
+    const char* status_text = connected ? "Connected" : "Disconnected";
+    
+    ImGui::TextColored(status_color, "%s %s", 
+                       connected ? ICON_MD_CHECK_CIRCLE : ICON_MD_WARNING, 
+                       status_text);
+    ImGui::SameLine();
+    
+    if (ImGui::SmallButton(ICON_MD_REFRESH " Refresh")) {
+      if (automation_callbacks_.show_active_tests) {
+        automation_callbacks_.show_active_tests();
+      }
+    }
+    
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Refresh automation status");
+    }
+
+    // Quick action buttons
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_DASHBOARD " Dashboard")) {
+      if (automation_callbacks_.open_harness_dashboard) {
+        automation_callbacks_.open_harness_dashboard();
+      }
+    }
+    
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_REPLAY " Replay")) {
+      if (automation_callbacks_.replay_last_plan) {
+        automation_callbacks_.replay_last_plan();
+      }
+    }
+    
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Replay last automation plan");
+    }
+
+    // Recent automation actions
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Text(ICON_MD_LIST " Recent Actions:");
+    
+    if (automation_state_.recent_tests.empty()) {
+      ImGui::TextDisabled("  No recent actions");
+    } else {
+      ImGui::BeginChild("ActionQueue", ImVec2(0, 80), false);
+      
+      for (const auto& test : automation_state_.recent_tests) {
+        ImGui::PushID(test.test_id.c_str());
+        
+        // Status icon
+        ImVec4 action_color;
+        const char* status_icon;
+        
+        if (test.status == "success" || test.status == "completed") {
+          action_color = theme.status_success;
+          status_icon = ICON_MD_CHECK_CIRCLE;
+        } else if (test.status == "running" || test.status == "in_progress") {
+          action_color = theme.provider_ollama;
+          status_icon = ICON_MD_PENDING;
+        } else if (test.status == "failed" || test.status == "error") {
+          action_color = theme.status_error;
+          status_icon = ICON_MD_ERROR;
+        } else {
+          action_color = theme.text_secondary;
+          status_icon = ICON_MD_HELP;
+        }
+        
+        ImGui::TextColored(action_color, "%s", status_icon);
+        ImGui::SameLine();
+        
+        // Action name
+        ImGui::Text("%s", test.name.c_str());
+        
+        // Timestamp
+        if (test.updated_at != absl::InfinitePast()) {
+          ImGui::SameLine();
+          auto elapsed = absl::Now() - test.updated_at;
+          if (elapsed < absl::Seconds(60)) {
+            ImGui::TextDisabled("(%ds ago)", static_cast<int>(absl::ToInt64Seconds(elapsed)));
+          } else if (elapsed < absl::Minutes(60)) {
+            ImGui::TextDisabled("(%dm ago)", static_cast<int>(absl::ToInt64Minutes(elapsed)));
+          } else {
+            ImGui::TextDisabled("(%dh ago)", static_cast<int>(absl::ToInt64Hours(elapsed)));
+          }
+        }
+        
+        // Message (if any)
+        if (!test.message.empty()) {
+          ImGui::Indent(20.0f);
+          ImGui::TextWrapped(ICON_MD_MESSAGE " %s", test.message.c_str());
+          ImGui::Unindent(20.0f);
+        }
+        
+        ImGui::PopID();
+      }
+      
+      ImGui::EndChild();
+    }
+  }
+  ImGui::EndChild();
+  AgentUI::PopPanelStyle();
+  ImGui::PopID();
 }
 
 void AgentChatWidget::RefreshCollaboration() {
