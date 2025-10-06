@@ -16,14 +16,14 @@
 #include "app/rom.h"
 #include "util/sdl_deleter.h"
 
-ABSL_FLAG(std::string, rom, "", "Path to the ROM file to load.");
-ABSL_FLAG(bool, no_gui, false, "Disable GUI and run in headless mode.");
-ABSL_FLAG(std::string, load_state, "", "Load emulator state from a file.");
-ABSL_FLAG(std::string, dump_state, "", "Dump emulator state to a file.");
-ABSL_FLAG(int, frames, 0, "Number of frames to run the emulator for.");
-ABSL_FLAG(int, max_frames, 600, "Maximum frames to run before auto-exit (0=infinite, default=600/10 seconds).");
-ABSL_FLAG(bool, debug_apu, false, "Enable detailed APU/SPC700 logging.");
-ABSL_FLAG(bool, debug_cpu, false, "Enable detailed CPU execution logging.");
+ABSL_FLAG(std::string, emu_rom, "", "Path to the ROM file to load.");
+ABSL_FLAG(bool, emu_no_gui, false, "Disable GUI and run in headless mode.");
+ABSL_FLAG(std::string, emu_load_state, "", "Load emulator state from a file.");
+ABSL_FLAG(std::string, emu_dump_state, "", "Dump emulator state to a file.");
+ABSL_FLAG(int, emu_frames, 0, "Number of frames to run the emulator for.");
+ABSL_FLAG(int, emu_max_frames, 180, "Maximum frames to run before auto-exit (0=infinite, default=180/3 seconds).");
+ABSL_FLAG(bool, emu_debug_apu, false, "Enable detailed APU/SPC700 logging.");
+ABSL_FLAG(bool, emu_debug_cpu, false, "Enable detailed CPU execution logging.");
 
 using yaze::util::SDL_Deleter;
 
@@ -41,9 +41,9 @@ int main(int argc, char **argv) {
 
   absl::ParseCommandLine(argc, argv);
 
-  if (absl::GetFlag(FLAGS_no_gui)) {
+  if (absl::GetFlag(FLAGS_emu_no_gui)) {
     yaze::Rom rom;
-    if (!rom.LoadFromFile(absl::GetFlag(FLAGS_rom)).ok()) {
+    if (!rom.LoadFromFile(absl::GetFlag(FLAGS_emu_rom)).ok()) {
       return EXIT_FAILURE;
     }
 
@@ -51,16 +51,16 @@ int main(int argc, char **argv) {
     std::vector<uint8_t> rom_data = rom.vector();
     snes.Init(rom_data);
 
-    if (!absl::GetFlag(FLAGS_load_state).empty()) {
-      snes.loadState(absl::GetFlag(FLAGS_load_state));
+    if (!absl::GetFlag(FLAGS_emu_load_state).empty()) {
+      snes.loadState(absl::GetFlag(FLAGS_emu_load_state));
     }
 
-    for (int i = 0; i < absl::GetFlag(FLAGS_frames); ++i) {
+    for (int i = 0; i < absl::GetFlag(FLAGS_emu_frames); ++i) {
       snes.RunFrame();
     }
 
-    if (!absl::GetFlag(FLAGS_dump_state).empty()) {
-      snes.saveState(absl::GetFlag(FLAGS_dump_state));
+    if (!absl::GetFlag(FLAGS_emu_dump_state).empty()) {
+      snes.saveState(absl::GetFlag(FLAGS_emu_dump_state));
     }
 
     return EXIT_SUCCESS;
@@ -114,9 +114,8 @@ int main(int argc, char **argv) {
   auto audio_buffer_ = new int16_t[audio_frequency_ / 50 * 4];
   SDL_PauseAudioDevice(audio_device_, 0);
 
-#ifdef __APPLE__
-  yaze_initialize_cocoa();
-#endif
+// Cocoa initialization not needed for standalone SDL emulator
+// (Handled by SDL_SetMainReady)
 
   auto ppu_texture_ =
       SDL_CreateTexture(renderer_.get(), SDL_PIXELFORMAT_RGBX8888,
@@ -138,11 +137,11 @@ int main(int argc, char **argv) {
   int wanted_frames_ = 0;
   int wanted_samples_ = 0;
   int frame_count = 0;
-  int max_frames = absl::GetFlag(FLAGS_max_frames);
+  int max_frames = absl::GetFlag(FLAGS_emu_max_frames);
   SDL_Event event;
 
   // Load ROM from command-line argument or default
-  std::string rom_path = absl::GetFlag(FLAGS_rom);
+  std::string rom_path = absl::GetFlag(FLAGS_emu_rom);
   if (rom_path.empty()) {
     rom_path = "assets/zelda3.sfc";  // Default to zelda3 in assets
   }
