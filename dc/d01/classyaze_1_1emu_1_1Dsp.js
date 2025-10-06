@@ -14,8 +14,8 @@ var classyaze_1_1emu_1_1Dsp =
     [ "Write", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a88603a2b4c723792d04194cb3eb23de5", null ],
     [ "GetSample", "dc/d01/classyaze_1_1emu_1_1Dsp.html#ade2538ea1915876ae7cf58d8722cd93c", null ],
     [ "GetSamples", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a16725893e384a6cffb91f4ba9617c868", null ],
-    [ "sample_buffer_", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a1970dc1696d148dc5acc393f1c7bf0fb", null ],
-    [ "sample_offset_", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a7a1a9e35f250ee694891725eb5a9fd08", null ],
+    [ "sampleBuffer", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a31f461399324fc65795d33ea5dd93100", null ],
+    [ "sampleOffset", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a58b2fae78556513327e417da7dd94d49", null ],
     [ "aram_", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a415a067bc45a0e1ddc7ebc094f9d93a0", null ],
     [ "ram", "dc/d01/classyaze_1_1emu_1_1Dsp.html#adcb22d36956e13a9dd6d55bcae540bc8", null ],
     [ "channel", "dc/d01/classyaze_1_1emu_1_1Dsp.html#aeedf5a1fb88c643fe75b79618194c034", null ],
@@ -44,7 +44,5 @@ var classyaze_1_1emu_1_1Dsp =
     [ "firValues", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a79980d66ce0f420403a6de60dd00c85b", null ],
     [ "firBufferL", "dc/d01/classyaze_1_1emu_1_1Dsp.html#ab4047a456dcac7aac24a93597a91adba", null ],
     [ "firBufferR", "dc/d01/classyaze_1_1emu_1_1Dsp.html#aa6c5c04c25d5981922a6a388a4dc706b", null ],
-    [ "sampleBuffer", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a31f461399324fc65795d33ea5dd93100", null ],
-    [ "sampleOffset", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a58b2fae78556513327e417da7dd94d49", null ],
     [ "lastFrameBoundary", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a0355c13ab85ce6f11d2b12184b8261b8", null ]
 ];

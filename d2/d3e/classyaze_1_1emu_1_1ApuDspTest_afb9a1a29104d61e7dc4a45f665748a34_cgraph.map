@@ -1,0 +1,11 @@
+<map id="yaze::emu::ApuDspTest::SetUp" name="yaze::emu::ApuDspTest::SetUp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,55,162,96"/>
+<area shape="rect" id="Node000002" href="$d7/da7/classyaze_1_1emu_1_1Apu.html#a4f15d1b9a01829048e315b7bd7b9725c" title=" " alt="" coords="222,5,353,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,52,223,33,225,38,159,57"/>
+<area shape="rect" id="Node000003" href="$de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#aead3c6f07831f8bdf175254d5c81b58e" title=" " alt="" coords="210,55,365,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="162,73,194,73,194,78,162,78"/>
+<area shape="rect" id="Node000004" href="$d7/da7/classyaze_1_1emu_1_1Apu.html#a5bbfe6c0f15dac37e74b240cd7ee3ce2" title=" " alt="" coords="214,120,361,146"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="159,94,225,113,223,118,157,99"/>
+<area shape="rect" id="Node000005" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#abde3ced3bd179f5dd6f768b12a74e64b" title=" " alt="" coords="413,113,547,153"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="362,130,397,130,397,136,362,136"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="test/unit/emu/apu_ipl_handshake_test.cc" name="test/unit/emu/apu_ipl_handshake_test.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="118,5,261,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,99,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,49,87,88,85,84,154,44"/>
+<area shape="rect" id="Node000003" href="$d5/d1b/apu_8h.html" title=" " alt="" coords="173,94,315,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,45,229,79,225,83,201,48"/>
+<area shape="rect" id="Node000008" href="$df/dea/spc700_8h.html" title=" " alt="" coords="64,168,227,193"/>
+<area shape="poly" id="edge6_Node000001_Node000008" title=" " alt="" coords="182,48,164,95,151,153,146,152,159,93,177,46"/>
+<area shape="rect" id="Node000011" href="$dc/d18/memory_8h.html" title=" " alt="" coords="256,168,437,193"/>
+<area shape="poly" id="edge5_Node000001_Node000011" title=" " alt="" coords="259,44,297,64,329,92,343,122,349,152,344,153,338,123,325,96,294,68,257,49"/>
+<area shape="poly" id="edge3_Node000003_Node000008" title=" " alt="" coords="229,122,176,161,172,156,226,118"/>
+<area shape="poly" id="edge4_Node000003_Node000011" title=" " alt="" coords="263,118,319,156,315,161,260,122"/>
+</map>

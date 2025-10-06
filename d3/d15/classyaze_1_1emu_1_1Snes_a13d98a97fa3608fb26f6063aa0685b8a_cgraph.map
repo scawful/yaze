@@ -1,9 +1,11 @@
 <map id="yaze::emu::Snes::CatchUpApu" name="yaze::emu::Snes::CatchUpApu">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,200,72"/>
-<area shape="rect" id="Node000002" href="$d7/da7/classyaze_1_1emu_1_1Apu.html#a85af1a8acbedf6219662db484a3b12f0" title=" " alt="" coords="248,46,423,72"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,56,232,56,232,62,200,62"/>
-<area shape="rect" id="Node000003" href="$de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#ad0d8763e05227f90f95acc07406edcf8" title=" " alt="" coords="471,5,626,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="421,43,455,38,456,43,422,48"/>
-<area shape="rect" id="Node000004" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#afa6a12b6bca12df4589abad6c333b5f8" title=" " alt="" coords="482,71,616,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="424,70,467,76,466,81,423,75"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,200,88"/>
+<area shape="rect" id="Node000002" href="$d7/da7/classyaze_1_1emu_1_1Apu.html#a85af1a8acbedf6219662db484a3b12f0" title=" " alt="" coords="248,63,423,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,73,232,73,232,78,200,78"/>
+<area shape="rect" id="Node000003" href="$d7/da7/classyaze_1_1emu_1_1Apu.html#afa672fc1b1a60fe6da8e5b27cb307f2d" title=" " alt="" coords="476,5,621,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="385,59,482,33,484,38,387,65"/>
+<area shape="rect" id="Node000012" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#a9da2472f0a9f85eb33c0d27d92d62d7f" title=" " alt="" coords="473,55,625,96"/>
+<area shape="poly" id="edge3_Node000002_Node000012" title=" " alt="" coords="424,73,457,73,457,78,424,78"/>
+<area shape="rect" id="Node000013" href="$de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#ad0d8763e05227f90f95acc07406edcf8" title=" " alt="" coords="471,121,626,161"/>
+<area shape="poly" id="edge4_Node000002_Node000013" title=" " alt="" coords="381,86,466,113,464,118,379,91"/>
 </map>

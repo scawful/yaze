@@ -1,0 +1,12 @@
+<map id="yaze::emu::ApuDspTest" name="yaze::emu::ApuDspTest">
+<area shape="rect" id="Node000001" title=" " alt="" coords="68,258,224,283"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,169,98,195"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="77,203,135,255,131,259,74,207"/>
+<area shape="rect" id="Node000003" href="$de/d0f/classyaze_1_1emu_1_1MemoryImpl.html" title="Implementation of the Memory interface for emulating memory in a SNES system." alt="" coords="90,80,245,106"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,122,161,169,150,258,145,257,156,169,161,121"/>
+<area shape="rect" id="Node000006" href="$d7/da7/classyaze_1_1emu_1_1Apu.html" title="The Apu class represents the Audio Processing Unit (APU) of a system." alt="" coords="202,169,309,195"/>
+<area shape="poly" id="edge5_Node000006_Node000003" title=" " alt="" coords="192,115,245,167,242,171,189,119"/>
+<area shape="rect" id="Node000004" href="$d2/d5e/classyaze_1_1emu_1_1Memory.html" title="Memory interface." alt="" coords="102,5,233,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="170,46,170,80,165,80,165,46"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="230,207,163,259,160,255,227,202"/>
+</map>

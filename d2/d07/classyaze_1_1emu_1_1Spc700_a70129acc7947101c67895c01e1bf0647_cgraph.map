@@ -1,0 +1,8 @@
+<map id="yaze::emu::Spc700::LogInstruction" name="yaze::emu::Spc700::LogInstruction">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,140,99"/>
+<area shape="rect" id="Node000002" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#a14416ae7e2c8807918b806b0ae947c6d" title=" " alt="" coords="199,29,348,70"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,67,183,60,184,65,140,72"/>
+<area shape="rect" id="Node000003" href="$d1/d42/classyaze_1_1util_1_1LogManager.html#ae326c7c3034a3127513198774bb75c07" title="The primary logging function." alt="" coords="188,94,359,120"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="140,86,173,90,172,96,139,91"/>
+<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="235,29,233,19,240,10,253,5,273,3,295,5,308,11,306,16,294,10,273,8,254,10,243,15,238,20,240,28"/>
+</map>

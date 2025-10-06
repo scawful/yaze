@@ -1,0 +1,11 @@
+<map id="yaze::cli::EnhancedStatusPanel::UpdateRomInfo" name="yaze::cli::EnhancedStatusPanel::UpdateRomInfo">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,173,88"/>
+<area shape="rect" id="Node000002" href="$d1/d6e/classyaze_1_1cli_1_1EnhancedStatusPanel.html#a94035908929df876dbd9266251aeb7b9" title=" " alt="" coords="221,47,388,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,65,205,65,205,70,173,70"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="443,5,552,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="386,44,429,33,430,38,387,49"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418" title=" " alt="" coords="444,55,551,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="389,65,428,65,428,70,389,70"/>
+<area shape="rect" id="Node000005" href="$d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="436,104,558,130"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="387,86,430,97,429,102,386,91"/>
+</map>

@@ -18,11 +18,15 @@ var searchData=
   ['emu_2ecc_15',['emu.cc',['../d8/d5b/emu_8cc.html',1,'']]],
   ['emulator_2ecc_16',['emulator.cc',['../d3/d87/emulator_8cc.html',1,'']]],
   ['emulator_2eh_17',['emulator.h',['../db/dc0/emulator_8h.html',1,'']]],
-  ['enhanced_5fmenu_2ecc_18',['enhanced_menu.cc',['../d7/d4a/enhanced__menu_8cc.html',1,'']]],
-  ['entity_2ecc_19',['entity.cc',['../d8/d78/entity_8cc.html',1,'']]],
-  ['entity_2eh_20',['entity.h',['../d8/d83/entity_8h.html',1,'']]],
-  ['extension_5fmanager_2ecc_21',['extension_manager.cc',['../d1/d95/extension__manager_8cc.html',1,'']]],
-  ['extension_5fmanager_2eh_22',['extension_manager.h',['../d4/db5/extension__manager_8h.html',1,'']]],
-  ['extract_5fchangelog_2epy_23',['extract_changelog.py',['../d4/d85/extract__changelog_8py.html',1,'']]],
-  ['extract_5fvanilla_5fvalues_2ecc_24',['extract_vanilla_values.cc',['../de/d77/extract__vanilla__values_8cc.html',1,'']]]
+  ['enhanced_5fchat_5fcomponent_2ecc_18',['enhanced_chat_component.cc',['../d1/ddf/enhanced__chat__component_8cc.html',1,'']]],
+  ['enhanced_5fchat_5fcomponent_2eh_19',['enhanced_chat_component.h',['../da/d72/enhanced__chat__component_8h.html',1,'']]],
+  ['enhanced_5fmenu_2ecc_20',['enhanced_menu.cc',['../d7/d4a/enhanced__menu_8cc.html',1,'']]],
+  ['enhanced_5fstatus_5fpanel_2ecc_21',['enhanced_status_panel.cc',['../d9/d10/enhanced__status__panel_8cc.html',1,'']]],
+  ['enhanced_5fstatus_5fpanel_2eh_22',['enhanced_status_panel.h',['../d4/da0/enhanced__status__panel_8h.html',1,'']]],
+  ['entity_2ecc_23',['entity.cc',['../d8/d78/entity_8cc.html',1,'']]],
+  ['entity_2eh_24',['entity.h',['../d8/d83/entity_8h.html',1,'']]],
+  ['extension_5fmanager_2ecc_25',['extension_manager.cc',['../d1/d95/extension__manager_8cc.html',1,'']]],
+  ['extension_5fmanager_2eh_26',['extension_manager.h',['../d4/db5/extension__manager_8h.html',1,'']]],
+  ['extract_5fchangelog_2epy_27',['extract_changelog.py',['../d4/d85/extract__changelog_8py.html',1,'']]],
+  ['extract_5fvanilla_5fvalues_2ecc_28',['extract_vanilla_values.cc',['../de/d77/extract__vanilla__values_8cc.html',1,'']]]
 ];

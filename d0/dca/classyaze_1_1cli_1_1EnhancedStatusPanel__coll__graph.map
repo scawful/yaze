@@ -1,0 +1,11 @@
+<map id="yaze::cli::EnhancedStatusPanel" name="yaze::cli::EnhancedStatusPanel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="302,89,469,129"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="49,5,129,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,29,278,66,332,85,330,90,277,71,144,34"/>
+<area shape="rect" id="Node000006" href="$d1/dae/structyaze_1_1cli_1_1EnhancedStatusPanel_1_1RomInfo.html" title=" " alt="" coords="5,55,173,96"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="188,84,302,97,301,102,188,89"/>
+<area shape="rect" id="Node000007" href="$d5/de1/structyaze_1_1cli_1_1EnhancedStatusPanel_1_1SystemInfo.html" title=" " alt="" coords="5,121,173,161"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="188,128,301,115,302,121,188,133"/>
+<area shape="rect" id="Node000008" href="$dd/d3c/structyaze_1_1cli_1_1EnhancedStatusPanel_1_1LayoutInfo.html" title=" " alt="" coords="5,186,173,227"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="177,178,277,147,330,127,332,132,279,152,179,183"/>
+</map>

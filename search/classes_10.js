@@ -27,7 +27,7 @@ var searchData=
   ['romdependenttestsuite_24',['RomDependentTestSuite',['../d5/dd0/classyaze_1_1test_1_1RomDependentTestSuite.html',1,'yaze::test']]],
   ['romdiff_25',['RomDiff',['../d1/d9c/classyaze_1_1cli_1_1RomDiff.html',1,'yaze::cli']]],
   ['romgenerategolden_26',['RomGenerateGolden',['../d2/d4a/classyaze_1_1cli_1_1RomGenerateGolden.html',1,'yaze::cli']]],
-  ['rominfo_27',['RomInfo',['../d2/de6/classyaze_1_1cli_1_1RomInfo.html',1,'yaze::cli']]],
+  ['rominfo_27',['rominfo',['../d2/de6/classyaze_1_1cli_1_1RomInfo.html',1,'yaze::cli::RomInfo'],['../d1/dae/structyaze_1_1cli_1_1EnhancedStatusPanel_1_1RomInfo.html',1,'yaze::cli::EnhancedStatusPanel::RomInfo']]],
   ['romloadoptions_28',['RomLoadOptions',['../db/d22/structyaze_1_1RomLoadOptions.html',1,'yaze']]],
   ['rompatchutility_29',['ROMPatchUtility',['../db/d1c/classROMPatchUtility.html',1,'']]],
   ['rompattern_30',['ROMPattern',['../d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html',1,'yaze::cli::agent::LearnedKnowledgeService']]],

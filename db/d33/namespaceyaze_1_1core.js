@@ -32,6 +32,7 @@ var namespaceyaze_1_1core =
     [ "RecentFilesManager", "d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html", "d8/d4b/classyaze_1_1core_1_1RecentFilesManager" ],
     [ "Renderer", "da/d81/classyaze_1_1core_1_1Renderer.html", "da/d81/classyaze_1_1core_1_1Renderer" ],
     [ "ResourceLabelManager", "d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html", "d8/d4d/structyaze_1_1core_1_1ResourceLabelManager" ],
+    [ "TimingManager", "d5/d77/classyaze_1_1core_1_1TimingManager.html", "d5/d77/classyaze_1_1core_1_1TimingManager" ],
     [ "WidgetState", "d1/d17/structyaze_1_1core_1_1WidgetState.html", "d1/d17/structyaze_1_1core_1_1WidgetState" ],
     [ "Window", "de/d86/structyaze_1_1core_1_1Window.html", "de/d86/structyaze_1_1core_1_1Window" ],
     [ "WorkspaceSettings", "d1/def/structyaze_1_1core_1_1WorkspaceSettings.html", "d1/def/structyaze_1_1core_1_1WorkspaceSettings" ],

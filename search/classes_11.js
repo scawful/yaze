@@ -76,5 +76,6 @@ var searchData=
   ['subtypeinfo_73',['SubtypeInfo',['../da/d92/structyaze_1_1zelda3_1_1SubtypeInfo.html',1,'yaze::zelda3']]],
   ['subtypetableinfo_74',['SubtypeTableInfo',['../d2/d79/structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html',1,'yaze::zelda3::anonymous_namespace{room_object.cc}']]],
   ['suggestion_75',['Suggestion',['../d6/d3a/structyaze_1_1cli_1_1Suggestion.html',1,'yaze::cli']]],
-  ['surfacepool_76',['SurfacePool',['../d7/d5d/structyaze_1_1gfx_1_1Arena_1_1SurfacePool.html',1,'yaze::gfx::Arena']]]
+  ['surfacepool_76',['SurfacePool',['../d7/d5d/structyaze_1_1gfx_1_1Arena_1_1SurfacePool.html',1,'yaze::gfx::Arena']]],
+  ['systeminfo_77',['SystemInfo',['../d5/de1/structyaze_1_1cli_1_1EnhancedStatusPanel_1_1SystemInfo.html',1,'yaze::cli::EnhancedStatusPanel']]]
 ];

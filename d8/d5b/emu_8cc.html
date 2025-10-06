@@ -109,19 +109,356 @@ $(document).ready(function(){initNavTree('d8/d5b/emu_8cc.html','../../'); initRe
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/debugging/failure_signal_handler.h&quot;</code><br />
 <code>#include &quot;absl/debugging/symbolize.h&quot;</code><br />
-<code>#include &quot;absl/status/status.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d5/dd7/sdl__deleter_8h_source.html">util/sdl_deleter.h</a>&quot;</code><br />
+<code>#include &quot;absl/flags/flag.h&quot;</code><br />
+<code>#include &quot;absl/flags/parse.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d2/de3/emu_2snes_8h_source.html">app/emu/snes.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d5/dd7/sdl__deleter_8h_source.html">util/sdl_deleter.h</a>&quot;</code><br />
 </div>
 <p><a href="../../d8/d5b/emu_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a4756036529b80483d1d275f6eb71ef78" id="r_a4756036529b80483d1d275f6eb71ef78"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d5b/emu_8cc.html#a4756036529b80483d1d275f6eb71ef78">ABSL_FLAG</a> (std::string, emu_rom, &quot;&quot;, &quot;Path to the ROM file to load.&quot;)</td></tr>
+<tr class="separator:a4756036529b80483d1d275f6eb71ef78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf330c52c1bbdb049acf624d079aec8d" id="r_acf330c52c1bbdb049acf624d079aec8d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d5b/emu_8cc.html#acf330c52c1bbdb049acf624d079aec8d">ABSL_FLAG</a> (bool, emu_no_gui, false, &quot;Disable GUI and run in headless mode.&quot;)</td></tr>
+<tr class="separator:acf330c52c1bbdb049acf624d079aec8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15b5d772060acdd72c4aebd853ee415d" id="r_a15b5d772060acdd72c4aebd853ee415d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d5b/emu_8cc.html#a15b5d772060acdd72c4aebd853ee415d">ABSL_FLAG</a> (std::string, emu_load_state, &quot;&quot;, &quot;Load emulator state from a file.&quot;)</td></tr>
+<tr class="separator:a15b5d772060acdd72c4aebd853ee415d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acdbe512952fafaaa31be3762b4528026" id="r_acdbe512952fafaaa31be3762b4528026"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d5b/emu_8cc.html#acdbe512952fafaaa31be3762b4528026">ABSL_FLAG</a> (std::string, emu_dump_state, &quot;&quot;, &quot;Dump emulator state to a file.&quot;)</td></tr>
+<tr class="separator:acdbe512952fafaaa31be3762b4528026"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8051e330a6291eac20086f4fdf4d2bc" id="r_ab8051e330a6291eac20086f4fdf4d2bc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d5b/emu_8cc.html#ab8051e330a6291eac20086f4fdf4d2bc">ABSL_FLAG</a> (int, emu_frames, 0, &quot;Number of frames to run the emulator for.&quot;)</td></tr>
+<tr class="separator:ab8051e330a6291eac20086f4fdf4d2bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84e6275cb20b107667e032100da044f7" id="r_a84e6275cb20b107667e032100da044f7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d5b/emu_8cc.html#a84e6275cb20b107667e032100da044f7">ABSL_FLAG</a> (int, emu_max_frames, 180, &quot;Maximum frames to run before auto-exit (0=infinite, default=180/3 seconds).&quot;)</td></tr>
+<tr class="separator:a84e6275cb20b107667e032100da044f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5810189f3ec5b899aa7ecd0f941ec4ea" id="r_a5810189f3ec5b899aa7ecd0f941ec4ea"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d5b/emu_8cc.html#a5810189f3ec5b899aa7ecd0f941ec4ea">ABSL_FLAG</a> (bool, emu_debug_apu, false, &quot;Enable detailed APU/SPC700 logging.&quot;)</td></tr>
+<tr class="separator:a5810189f3ec5b899aa7ecd0f941ec4ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5ba455ba64dcbdf95dc31ab5953104ab" id="r_a5ba455ba64dcbdf95dc31ab5953104ab"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d5b/emu_8cc.html#a5ba455ba64dcbdf95dc31ab5953104ab">ABSL_FLAG</a> (bool, emu_debug_cpu, false, &quot;Enable detailed CPU execution logging.&quot;)</td></tr>
+<tr class="separator:a5ba455ba64dcbdf95dc31ab5953104ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3c04138a5bfe5d72780bb7e82a18e627" id="r_a3c04138a5bfe5d72780bb7e82a18e627"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d5b/emu_8cc.html#a3c04138a5bfe5d72780bb7e82a18e627">main</a> (int argc, char **argv)</td></tr>
 <tr class="separator:a3c04138a5bfe5d72780bb7e82a18e627"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a4756036529b80483d1d275f6eb71ef78" name="a4756036529b80483d1d275f6eb71ef78"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4756036529b80483d1d275f6eb71ef78">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[1/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">emu_rom&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;&quot;&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Path to the ROM file to load.&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acf330c52c1bbdb049acf624d079aec8d" name="acf330c52c1bbdb049acf624d079aec8d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf330c52c1bbdb049acf624d079aec8d">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[2/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">emu_no_gui&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">false&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Disable GUI and run in headless mode.&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a15b5d772060acdd72c4aebd853ee415d" name="a15b5d772060acdd72c4aebd853ee415d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a15b5d772060acdd72c4aebd853ee415d">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[3/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">emu_load_state&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;&quot;&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Load emulator state from a file.&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acdbe512952fafaaa31be3762b4528026" name="acdbe512952fafaaa31be3762b4528026"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acdbe512952fafaaa31be3762b4528026">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[4/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">emu_dump_state&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;&quot;&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Dump emulator state to a file.&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab8051e330a6291eac20086f4fdf4d2bc" name="ab8051e330a6291eac20086f4fdf4d2bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8051e330a6291eac20086f4fdf4d2bc">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[5/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">emu_frames&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">0&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Number of frames to run the emulator for.&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a84e6275cb20b107667e032100da044f7" name="a84e6275cb20b107667e032100da044f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a84e6275cb20b107667e032100da044f7">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[6/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">emu_max_frames&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">180&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Maximum frames to run before auto-exit (0=infinite, default=180/3 seconds).&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5810189f3ec5b899aa7ecd0f941ec4ea" name="a5810189f3ec5b899aa7ecd0f941ec4ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5810189f3ec5b899aa7ecd0f941ec4ea">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[7/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">emu_debug_apu&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">false&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Enable detailed APU/SPC700 logging.&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5ba455ba64dcbdf95dc31ab5953104ab" name="a5ba455ba64dcbdf95dc31ab5953104ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5ba455ba64dcbdf95dc31ab5953104ab">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[8/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">emu_debug_cpu&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">false&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Enable detailed CPU execution logging.&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a3c04138a5bfe5d72780bb7e82a18e627" name="a3c04138a5bfe5d72780bb7e82a18e627"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3c04138a5bfe5d72780bb7e82a18e627">&#9670;&#160;</a></span>main()</h2>
 
@@ -148,7 +485,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00020">20</a> of file <a class="el" href="../../d8/d5b/emu_8cc_source.html">emu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00030">30</a> of file <a class="el" href="../../d8/d5b/emu_8cc_source.html">emu.cc</a>.</p>
 
 </div>
 </div>

@@ -25,6 +25,8 @@ var classyaze_1_1emu_1_1Snes =
     [ "SetSamples", "d3/d15/classyaze_1_1emu_1_1Snes.html#a121b2492106d84f9fffcd8b60308328c", null ],
     [ "SetPixels", "d3/d15/classyaze_1_1emu_1_1Snes.html#ae9938c9f8448dd65dba24d06fe2b5d57", null ],
     [ "SetButtonState", "d3/d15/classyaze_1_1emu_1_1Snes.html#a36610fdc93a127c79dc5ffc5e772dee4", null ],
+    [ "loadState", "d3/d15/classyaze_1_1emu_1_1Snes.html#aad3644e4549fb044f3832a15943ce6c2", null ],
+    [ "saveState", "d3/d15/classyaze_1_1emu_1_1Snes.html#a3b30fd2fcbc808909c4e1018ca06831e", null ],
     [ "running", "d3/d15/classyaze_1_1emu_1_1Snes.html#a3e788cd529d979b10a8d85d7ea22f026", null ],
     [ "cpu", "d3/d15/classyaze_1_1emu_1_1Snes.html#a8dd716e4ae561f358d40be65f9cc9847", null ],
     [ "ppu", "d3/d15/classyaze_1_1emu_1_1Snes.html#a30fb924208f2153a364f9d2be6f69adc", null ],

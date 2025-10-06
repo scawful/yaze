@@ -100,16 +100,19 @@ $(document).ready(function(){initNavTree('dc/dbe/snes_8cc.html','../../'); initR
 <div class="header">
   <div class="summary">
 <a href="#namespaces">Namespaces</a> &#124;
+<a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">snes.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../d2/de3/emu_2snes_8h_source.html">app/emu/snes.h</a>&quot;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
+<code>#include &lt;fstream&gt;</code><br />
 <code>#include &quot;<a class="el" href="../../d5/d1b/apu_8h_source.html">app/emu/audio/apu.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d9/d95/dma_8h_source.html">app/emu/memory/dma.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../dc/d18/memory_8h_source.html">app/emu/memory/memory.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d2/df9/ppu_8h_source.html">app/emu/video/ppu.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d7/d7f/log_8h_source.html">util/log.h</a>&quot;</code><br />
 </div>
 <p><a href="../../dc/dbe/snes_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -124,6 +127,13 @@ Namespaces</h2></td></tr>
 <tr class="memitem:d2/de7/namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03" id="r_d2/de7/namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/de7/namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html">yaze::emu::anonymous_namespace{snes.cc}</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:a6b2214d8be93ce225e5c6aa65b991b96" id="r_a6b2214d8be93ce225e5c6aa65b991b96"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dbe/snes_8cc.html#a6b2214d8be93ce225e5c6aa65b991b96">WRITE_STATE</a>(file,  member)&#160;&#160;&#160;file.write(reinterpret_cast&lt;const char*&gt;(&amp;member), sizeof(member))</td></tr>
+<tr class="separator:a6b2214d8be93ce225e5c6aa65b991b96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb4845ceca807c48ea6d063043091cda" id="r_adb4845ceca807c48ea6d063043091cda"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dbe/snes_8cc.html#adb4845ceca807c48ea6d063043091cda">READ_STATE</a>(file,  member)&#160;&#160;&#160;file.read(reinterpret_cast&lt;char*&gt;(&amp;member), sizeof(member))</td></tr>
+<tr class="separator:adb4845ceca807c48ea6d063043091cda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a34f0bcbc0fe70ab704bb3d117f3a73b1" id="r_a34f0bcbc0fe70ab704bb3d117f3a73b1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/de7/namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a34f0bcbc0fe70ab704bb3d117f3a73b1">yaze::emu::anonymous_namespace{snes.cc}::input_latch</a> (<a class="el" href="../../d8/db7/structyaze_1_1emu_1_1Input.html">Input</a> *input, bool value)</td></tr>
@@ -131,6 +141,67 @@ Functions</h2></td></tr>
 <tr class="memitem:ac647c716cf7e74b51fd5993fa6ff70fa" id="r_ac647c716cf7e74b51fd5993fa6ff70fa"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/de7/namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#ac647c716cf7e74b51fd5993fa6ff70fa">yaze::emu::anonymous_namespace{snes.cc}::input_read</a> (<a class="el" href="../../d8/db7/structyaze_1_1emu_1_1Input.html">Input</a> *input)</td></tr>
 <tr class="separator:ac647c716cf7e74b51fd5993fa6ff70fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="a6b2214d8be93ce225e5c6aa65b991b96" name="a6b2214d8be93ce225e5c6aa65b991b96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b2214d8be93ce225e5c6aa65b991b96">&#9670;&#160;</a></span>WRITE_STATE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define WRITE_STATE</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">file, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">member&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;file.write(reinterpret_cast&lt;const char*&gt;(&amp;member), sizeof(member))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00012">12</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+
+</div>
+</div>
+<a id="adb4845ceca807c48ea6d063043091cda" name="adb4845ceca807c48ea6d063043091cda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb4845ceca807c48ea6d063043091cda">&#9670;&#160;</a></span>READ_STATE</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define READ_STATE</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">file, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">member&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;file.read(reinterpret_cast&lt;char*&gt;(&amp;member), sizeof(member))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00013">13</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+
+</div>
+</div>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

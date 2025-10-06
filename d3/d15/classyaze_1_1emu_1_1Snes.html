@@ -161,6 +161,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae9938c9f8448dd65dba24d06fe2b5d57"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a36610fdc93a127c79dc5ffc5e772dee4" id="r_a36610fdc93a127c79dc5ffc5e772dee4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a36610fdc93a127c79dc5ffc5e772dee4">SetButtonState</a> (int player, int button, bool pressed)</td></tr>
 <tr class="separator:a36610fdc93a127c79dc5ffc5e772dee4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad3644e4549fb044f3832a15943ce6c2" id="r_aad3644e4549fb044f3832a15943ce6c2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#aad3644e4549fb044f3832a15943ce6c2">loadState</a> (const std::string &amp;path)</td></tr>
+<tr class="separator:aad3644e4549fb044f3832a15943ce6c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b30fd2fcbc808909c4e1018ca06831e" id="r_a3b30fd2fcbc808909c4e1018ca06831e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a3b30fd2fcbc808909c4e1018ca06831e">saveState</a> (const std::string &amp;path)</td></tr>
+<tr class="separator:a3b30fd2fcbc808909c4e1018ca06831e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3e788cd529d979b10a8d85d7ea22f026" id="r_a3e788cd529d979b10a8d85d7ea22f026"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a3e788cd529d979b10a8d85d7ea22f026">running</a> () const</td></tr>
 <tr class="separator:a3e788cd529d979b10a8d85d7ea22f026"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8dd716e4ae561f358d40be65f9cc9847" id="r_a8dd716e4ae561f358d40be65f9cc9847"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a8dd716e4ae561f358d40be65f9cc9847">cpu</a> () -&gt; <a class="el" href="../../dc/df4/classyaze_1_1emu_1_1Cpu.html">Cpu</a> &amp;</td></tr>
@@ -279,7 +283,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00026">26</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dc/da7/cpu_8h_source.html#l00037">yaze::emu::Cpu::callbacks()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">cpu_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00531">CpuIdle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00512">CpuRead()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00523">CpuWrite()</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/da7/cpu_8h_source.html#l00037">yaze::emu::Cpu::callbacks()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00617">CpuIdle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00598">CpuRead()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00609">CpuWrite()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -341,11 +345,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00028">28</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00033">33</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">apu_</a>, <a class="el" href="../../da/ddf/apu_8cc_source.html#l00026">yaze::emu::Apu::Init()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00259">yaze::emu::Ppu::Init()</a>, <a class="el" href="../../d1/d72/memory_8cc_source.html#l00009">yaze::emu::MemoryImpl::Initialize()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00075">ppu_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">rom_data</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00080">running_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00079">apu_</a>, <a class="el" href="../../da/ddf/apu_8cc_source.html#l00034">yaze::emu::Apu::Init()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00259">yaze::emu::Ppu::Init()</a>, <a class="el" href="../../d1/d72/memory_8cc_source.html#l00011">yaze::emu::MemoryImpl::Initialize()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">ppu_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00081">rom_data</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00083">running_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00020">main()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00203">yaze::emu::Emulator::RenderNavBar()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00030">main()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00203">yaze::emu::Emulator::RenderNavBar()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -381,11 +385,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">40</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">48</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">apu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00090">apu_catchup_cycles_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00114">auto_joy_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00115">auto_joy_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00088">cycles_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00107">divide_a_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00108">divide_result_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00070">fast_mem_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00087">frames_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00094">h_irq_enabled_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00097">h_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00101">in_irq_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00099">in_nmi_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00102">in_vblank_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00560">InitAccessTime()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00111">input1</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00112">input2</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00100">irq_condition_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00018">yaze::emu::Input::latch_line_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00021">yaze::emu::Input::latched_state_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00105">multiply_a_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00106">multiply_result_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00091">next_horiz_event</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00096">nmi_enabled_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00113">port_auto_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00075">ppu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00116">ppu_latch_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00083">ram</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00084">ram_adr_</a>, <a class="el" href="../../da/ddf/apu_8cc_source.html#l00037">yaze::emu::Apu::Reset()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">yaze::emu::Ppu::Reset()</a>, <a class="el" href="../../d0/d97/cpu_8cc_source.html#l00015">yaze::emu::Cpu::Reset()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00012">yaze::emu::ResetDma()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00274">yaze::emu::MemoryImpl::set_h_pos()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00257">yaze::emu::MemoryImpl::set_open_bus()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00275">yaze::emu::MemoryImpl::set_v_pos()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00089">sync_cycle_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00095">v_irq_enabled_</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00098">v_timer_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00079">apu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00093">apu_catchup_cycles_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00117">auto_joy_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00118">auto_joy_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00091">cycles_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00110">divide_a_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00111">divide_result_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">fast_mem_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00090">frames_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00097">h_irq_enabled_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00100">h_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00104">in_irq_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00102">in_nmi_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00105">in_vblank_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00724">InitAccessTime()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00114">input1</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00115">input2</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00103">irq_condition_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00018">yaze::emu::Input::latch_line_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00021">yaze::emu::Input::latched_state_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00108">multiply_a_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00109">multiply_result_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00094">next_horiz_event</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00099">nmi_enabled_</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00072">yaze::emu::Cpu::PB</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00073">yaze::emu::Cpu::PC</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00116">port_auto_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">ppu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00119">ppu_latch_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00086">ram</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00087">ram_adr_</a>, <a class="el" href="../../da/ddf/apu_8cc_source.html#l00041">yaze::emu::Apu::Reset()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">yaze::emu::Ppu::Reset()</a>, <a class="el" href="../../d0/d97/cpu_8cc_source.html#l00016">yaze::emu::Cpu::Reset()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00012">yaze::emu::ResetDma()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00274">yaze::emu::MemoryImpl::set_h_pos()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00257">yaze::emu::MemoryImpl::set_open_bus()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00275">yaze::emu::MemoryImpl::set_v_pos()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00092">sync_cycle_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00098">v_irq_enabled_</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00101">v_timer_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00028">Init()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00203">yaze::emu::Emulator::RenderNavBar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00033">Init()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00203">yaze::emu::Emulator::RenderNavBar()</a>.</p>
 
 </div>
 </div>
@@ -404,11 +408,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00080">80</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00090">90</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00087">frames_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00102">in_vblank_</a>, and <a class="el" href="../../d0/d97/cpu_8cc_source.html#l00037">yaze::emu::Cpu::RunOpcode()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00090">frames_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00105">in_vblank_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00072">yaze::emu::Cpu::PB</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00073">yaze::emu::Cpu::PC</a>, and <a class="el" href="../../d0/d97/cpu_8cc_source.html#l00038">yaze::emu::Cpu::RunOpcode()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00020">main()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00030">main()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -444,23 +448,25 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00090">90</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00123">123</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">apu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00088">cycles_</a>, and <a class="el" href="../../da/ddf/apu_8cc_source.html#l00061">yaze::emu::Apu::RunCycles()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00079">apu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00091">cycles_</a>, and <a class="el" href="../../da/ddf/apu_8cc_source.html#l00065">yaze::emu::Apu::RunCycles()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00245">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00350">WriteBBus()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00298">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00414">WriteBBus()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d3/d15/classyaze_1_1emu_1_1Snes_a13d98a97fa3608fb26f6063aa0685b8a_cgraph.png" border="0" usemap="#ad3/d15/classyaze_1_1emu_1_1Snes_a13d98a97fa3608fb26f6063aa0685b8a_cgraph" alt=""/></div>
 <map name="ad3/d15/classyaze_1_1emu_1_1Snes_a13d98a97fa3608fb26f6063aa0685b8a_cgraph" id="ad3/d15/classyaze_1_1emu_1_1Snes_a13d98a97fa3608fb26f6063aa0685b8a_cgraph">
-<area shape="rect" title=" " alt="" coords="5,46,200,72"/>
-<area shape="rect" href="../../d7/da7/classyaze_1_1emu_1_1Apu.html#a85af1a8acbedf6219662db484a3b12f0" title=" " alt="" coords="248,46,423,72"/>
-<area shape="poly" title=" " alt="" coords="200,56,232,56,232,62,200,62"/>
-<area shape="rect" href="../../de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#ad0d8763e05227f90f95acc07406edcf8" title=" " alt="" coords="471,5,626,46"/>
-<area shape="poly" title=" " alt="" coords="421,43,455,38,456,43,422,48"/>
-<area shape="rect" href="../../d2/d07/classyaze_1_1emu_1_1Spc700.html#afa6a12b6bca12df4589abad6c333b5f8" title=" " alt="" coords="482,71,616,111"/>
-<area shape="poly" title=" " alt="" coords="424,70,467,76,466,81,423,75"/>
+<area shape="rect" title=" " alt="" coords="5,63,200,88"/>
+<area shape="rect" href="../../d7/da7/classyaze_1_1emu_1_1Apu.html#a85af1a8acbedf6219662db484a3b12f0" title=" " alt="" coords="248,63,423,88"/>
+<area shape="poly" title=" " alt="" coords="200,73,232,73,232,78,200,78"/>
+<area shape="rect" href="../../d7/da7/classyaze_1_1emu_1_1Apu.html#afa672fc1b1a60fe6da8e5b27cb307f2d" title=" " alt="" coords="476,5,621,31"/>
+<area shape="poly" title=" " alt="" coords="385,59,482,33,484,38,387,65"/>
+<area shape="rect" href="../../d2/d07/classyaze_1_1emu_1_1Spc700.html#a9da2472f0a9f85eb33c0d27d92d62d7f" title=" " alt="" coords="473,55,625,96"/>
+<area shape="poly" title=" " alt="" coords="424,73,457,73,457,78,424,78"/>
+<area shape="rect" href="../../de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#ad0d8763e05227f90f95acc07406edcf8" title=" " alt="" coords="471,121,626,161"/>
+<area shape="poly" title=" " alt="" coords="381,86,466,113,464,118,379,91"/>
 </map>
 </div>
 
@@ -481,11 +487,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00092">92</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00129">129</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00111">input1</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00112">input2</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00113">port_auto_read_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00114">input1</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00115">input2</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00116">port_auto_read_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>.</p>
 
 </div>
 </div>
@@ -505,11 +511,11 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 <dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000048">Todo:</a></b></dt><dd>this starts a little after start of vblank </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">109</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">146</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">apu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00114">auto_joy_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00115">auto_joy_timer_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00090">CatchUpApu()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00299">yaze::emu::Ppu::CheckOverscan()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00088">cycles_</a>, <a class="el" href="../../d5/d1b/apu_8h_source.html#l00065">yaze::emu::Apu::dsp()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">yaze::emu::Ppu::even_frame</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00295">yaze::emu::Ppu::frame_interlace</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00087">frames_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00094">h_irq_enabled_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00276">yaze::emu::MemoryImpl::h_pos()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00097">h_timer_</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00137">yaze::emu::Ppu::HandleFrameStart()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00092">HandleInput()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00582">yaze::emu::Ppu::HandleVblank()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00101">in_irq_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00099">in_nmi_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00102">in_vblank_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00265">yaze::emu::MemoryImpl::init_hdma_request()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00100">irq_condition_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00091">next_horiz_event</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00047">yaze::emu::Cpu::Nmi()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00096">nmi_enabled_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00278">yaze::emu::MemoryImpl::pal_timing()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00075">ppu_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00266">yaze::emu::MemoryImpl::run_hdma_request()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00145">yaze::emu::Ppu::RunLine()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00274">yaze::emu::MemoryImpl::set_h_pos()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00275">yaze::emu::MemoryImpl::set_v_pos()</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00046">yaze::emu::Cpu::SetIrq()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00095">v_irq_enabled_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00277">yaze::emu::MemoryImpl::v_pos()</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00098">v_timer_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00079">apu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00117">auto_joy_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00118">auto_joy_timer_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00123">CatchUpApu()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00299">yaze::emu::Ppu::CheckOverscan()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00091">cycles_</a>, <a class="el" href="../../d5/d1b/apu_8h_source.html#l00065">yaze::emu::Apu::dsp()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">yaze::emu::Ppu::even_frame</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00295">yaze::emu::Ppu::frame_interlace</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00090">frames_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00097">h_irq_enabled_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00276">yaze::emu::MemoryImpl::h_pos()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00100">h_timer_</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00137">yaze::emu::Ppu::HandleFrameStart()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00129">HandleInput()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00582">yaze::emu::Ppu::HandleVblank()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00104">in_irq_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00102">in_nmi_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00105">in_vblank_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00265">yaze::emu::MemoryImpl::init_hdma_request()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00103">irq_condition_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00094">next_horiz_event</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00047">yaze::emu::Cpu::Nmi()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00099">nmi_enabled_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00278">yaze::emu::MemoryImpl::pal_timing()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">ppu_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00266">yaze::emu::MemoryImpl::run_hdma_request()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00145">yaze::emu::Ppu::RunLine()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00274">yaze::emu::MemoryImpl::set_h_pos()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00275">yaze::emu::MemoryImpl::set_v_pos()</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00046">yaze::emu::Cpu::SetIrq()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00098">v_irq_enabled_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00277">yaze::emu::MemoryImpl::v_pos()</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00101">v_timer_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00224">RunCycles()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00277">RunCycles()</a>.</p>
 
 </div>
 </div>
@@ -529,11 +535,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00224">224</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00277">277</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dc/d18/memory_8h_source.html#l00276">yaze::emu::MemoryImpl::h_pos()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/d18/memory_8h_source.html#l00276">yaze::emu::MemoryImpl::h_pos()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00531">CpuIdle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00512">CpuRead()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00523">CpuWrite()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00257">yaze::emu::DoHdma()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00216">yaze::emu::InitHdma()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00234">SyncCycles()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00208">yaze::emu::WaitCycle()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00617">CpuIdle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00598">CpuRead()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00609">CpuWrite()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00257">yaze::emu::DoHdma()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00216">yaze::emu::InitHdma()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00287">SyncCycles()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00208">yaze::emu::WaitCycle()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -580,9 +586,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00234">234</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00287">287</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00088">cycles_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00224">RunCycles()</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00089">sync_cycle_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00091">cycles_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00277">RunCycles()</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00092">sync_cycle_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../df/d7d/dma_8cc_source.html#l00156">yaze::emu::DoDma()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00257">yaze::emu::DoHdma()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00216">yaze::emu::InitHdma()</a>.</p>
 <div class="dynheader">
@@ -619,25 +625,25 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00245">245</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00298">298</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">apu_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00090">CatchUpApu()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00258">yaze::emu::MemoryImpl::open_bus()</a>, <a class="el" href="../../d5/d1b/apu_8h_source.html#l00082">yaze::emu::Apu::out_ports_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00075">ppu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00116">ppu_latch_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00083">ram</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00084">ram_adr_</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">yaze::emu::Ppu::Read()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00079">apu_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00123">CatchUpApu()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00091">cycles_</a>, <a class="el" href="../../d5/d1b/apu_8h_source.html#l00068">yaze::emu::Apu::GetCycles()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00258">yaze::emu::MemoryImpl::open_bus()</a>, <a class="el" href="../../d5/d1b/apu_8h_source.html#l00082">yaze::emu::Apu::out_ports_</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00072">yaze::emu::Cpu::PB</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00073">yaze::emu::Cpu::PC</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">ppu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00119">ppu_latch_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00086">ram</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00087">ram_adr_</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">yaze::emu::Ppu::Read()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00314">Rread()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">yaze::emu::TransferByte()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00378">Rread()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">yaze::emu::TransferByte()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d3/d15/classyaze_1_1emu_1_1Snes_a847b06b0754fc2e691770bfc57186a55_cgraph.png" border="0" usemap="#ad3/d15/classyaze_1_1emu_1_1Snes_a847b06b0754fc2e691770bfc57186a55_cgraph" alt=""/></div>
 <map name="ad3/d15/classyaze_1_1emu_1_1Snes_a847b06b0754fc2e691770bfc57186a55_cgraph" id="ad3/d15/classyaze_1_1emu_1_1Snes_a847b06b0754fc2e691770bfc57186a55_cgraph">
-<area shape="rect" title=" " alt="" coords="5,63,188,88"/>
+<area shape="rect" title=" " alt="" coords="5,84,188,110"/>
 <area shape="rect" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a13d98a97fa3608fb26f6063aa0685b8a" title=" " alt="" coords="236,5,430,31"/>
-<area shape="poly" title=" " alt="" coords="152,59,261,33,263,38,153,65"/>
-<area shape="rect" href="../../de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#a0e1947d5642b0a24b83ec980238a6bc1" title=" " alt="" coords="255,55,411,96"/>
-<area shape="poly" title=" " alt="" coords="188,73,239,73,239,78,188,78"/>
-<area shape="rect" href="../../d3/ded/classyaze_1_1emu_1_1Ppu.html#a7149f31700fc8f8389de97a6d4e61b2e" title=" " alt="" coords="261,120,405,146"/>
-<area shape="poly" title=" " alt="" coords="153,86,263,113,261,118,152,92"/>
-<area shape="rect" href="../../d7/da7/classyaze_1_1emu_1_1Apu.html#a85af1a8acbedf6219662db484a3b12f0" title=" " alt="" coords="478,5,653,31"/>
-<area shape="poly" title=" " alt="" coords="430,16,462,16,462,21,430,21"/>
+<area shape="poly" title=" " alt="" coords="127,81,235,40,257,33,259,38,237,45,129,86"/>
+<area shape="rect" href="../../d7/da7/classyaze_1_1emu_1_1Apu.html#af051918f247bef86f7983ae778ecab6e" title=" " alt="" coords="246,55,420,80"/>
+<area shape="poly" title=" " alt="" coords="188,83,230,78,231,83,189,88"/>
+<area shape="rect" href="../../de/d0f/classyaze_1_1emu_1_1MemoryImpl.html#a0e1947d5642b0a24b83ec980238a6bc1" title=" " alt="" coords="255,105,411,145"/>
+<area shape="poly" title=" " alt="" coords="188,105,240,111,239,116,188,110"/>
+<area shape="rect" href="../../d3/ded/classyaze_1_1emu_1_1Ppu.html#a7149f31700fc8f8389de97a6d4e61b2e" title=" " alt="" coords="261,169,405,195"/>
+<area shape="poly" title=" " alt="" coords="126,108,177,131,237,154,261,162,260,167,235,159,175,136,124,113"/>
 </map>
 </div>
 
@@ -659,11 +665,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00261">261</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00325">325</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00115">auto_joy_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00108">divide_result_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00276">yaze::emu::MemoryImpl::h_pos()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00101">in_irq_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00099">in_nmi_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00102">in_vblank_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00106">multiply_result_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00258">yaze::emu::MemoryImpl::open_bus()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00113">port_auto_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00116">ppu_latch_</a>, and <a class="el" href="../../dc/da7/cpu_8h_source.html#l00046">yaze::emu::Cpu::SetIrq()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00118">auto_joy_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00111">divide_result_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00276">yaze::emu::MemoryImpl::h_pos()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00104">in_irq_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00102">in_nmi_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00105">in_vblank_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00109">multiply_result_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00258">yaze::emu::MemoryImpl::open_bus()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00116">port_auto_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00119">ppu_latch_</a>, and <a class="el" href="../../dc/da7/cpu_8h_source.html#l00046">yaze::emu::Cpu::SetIrq()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00314">Rread()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00378">Rread()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -697,11 +703,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00314">314</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00378">378</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d72/memory_8cc_source.html#l00044">yaze::emu::MemoryImpl::cart_read()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00111">input1</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00112">input2</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00258">yaze::emu::MemoryImpl::open_bus()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00083">ram</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00245">ReadBBus()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00039">yaze::emu::ReadDma()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00261">ReadReg()</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d72/memory_8cc_source.html#l00054">yaze::emu::MemoryImpl::cart_read()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00114">input1</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00115">input2</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00258">yaze::emu::MemoryImpl::open_bus()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00086">ram</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00298">ReadBBus()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00039">yaze::emu::ReadDma()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00325">ReadReg()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00344">Read()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00408">Read()</a>.</p>
 
 </div>
 </div>
@@ -721,11 +727,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00344">344</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00408">408</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00314">Rread()</a>, and <a class="el" href="../../dc/d18/memory_8h_source.html#l00257">yaze::emu::MemoryImpl::set_open_bus()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00378">Rread()</a>, and <a class="el" href="../../dc/d18/memory_8h_source.html#l00257">yaze::emu::MemoryImpl::set_open_bus()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00512">CpuRead()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00257">yaze::emu::DoHdma()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00216">yaze::emu::InitHdma()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">yaze::emu::TransferByte()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00598">CpuRead()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00257">yaze::emu::DoHdma()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00216">yaze::emu::InitHdma()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">yaze::emu::TransferByte()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -771,11 +777,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00350">350</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00414">414</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">apu_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00090">CatchUpApu()</a>, <a class="el" href="../../d5/d1b/apu_8h_source.html#l00081">yaze::emu::Apu::in_ports_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00075">ppu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00083">ram</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00084">ram_adr_</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">yaze::emu::Ppu::Write()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00079">apu_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00123">CatchUpApu()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../d5/d1b/apu_8h_source.html#l00081">yaze::emu::Apu::in_ports_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00072">yaze::emu::Cpu::PB</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00073">yaze::emu::Cpu::PC</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">ppu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00086">ram</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00087">ram_adr_</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">yaze::emu::Ppu::Write()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">yaze::emu::TransferByte()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00468">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">yaze::emu::TransferByte()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00554">Write()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -821,11 +827,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">381</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">454</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00114">auto_joy_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00115">auto_joy_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00107">divide_a_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00108">divide_result_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00070">fast_mem_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00094">h_irq_enabled_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00097">h_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00101">in_irq_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00099">in_nmi_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00269">yaze::emu::Ppu::LatchHV()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00105">multiply_a_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00106">multiply_result_</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00047">yaze::emu::Cpu::Nmi()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00096">nmi_enabled_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00075">ppu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00116">ppu_latch_</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00227">yaze::emu::Cpu::set_int_delay()</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00046">yaze::emu::Cpu::SetIrq()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00356">yaze::emu::StartDma()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00095">v_irq_enabled_</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00098">v_timer_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00117">auto_joy_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00118">auto_joy_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00110">divide_a_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00111">divide_result_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">fast_mem_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00097">h_irq_enabled_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00100">h_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00104">in_irq_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00102">in_nmi_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00269">yaze::emu::Ppu::LatchHV()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00108">multiply_a_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00109">multiply_result_</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00047">yaze::emu::Cpu::Nmi()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00099">nmi_enabled_</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00072">yaze::emu::Cpu::PB</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00073">yaze::emu::Cpu::PC</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">ppu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00119">ppu_latch_</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00227">yaze::emu::Cpu::set_int_delay()</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00046">yaze::emu::Cpu::SetIrq()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00356">yaze::emu::StartDma()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00098">v_irq_enabled_</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00101">v_timer_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00468">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00554">Write()</a>.</p>
 
 </div>
 </div>
@@ -855,11 +861,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00468">468</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00554">554</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d1/d72/memory_8cc_source.html#l00058">yaze::emu::MemoryImpl::cart_write()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00111">input1</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00112">input2</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00083">ram</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00257">yaze::emu::MemoryImpl::set_open_bus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00350">WriteBBus()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00092">yaze::emu::WriteDma()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">References <a class="el" href="../../d1/d72/memory_8cc_source.html#l00068">yaze::emu::MemoryImpl::cart_write()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00114">input1</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00115">input2</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00086">ram</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00257">yaze::emu::MemoryImpl::set_open_bus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00414">WriteBBus()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00092">yaze::emu::WriteDma()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00523">CpuWrite()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">yaze::emu::TransferByte()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00609">CpuWrite()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">yaze::emu::TransferByte()</a>.</p>
 
 </div>
 </div>
@@ -879,11 +885,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00498">498</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00584">584</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00070">fast_mem_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">fast_mem_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00560">InitAccessTime()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00724">InitAccessTime()</a>.</p>
 
 </div>
 </div>
@@ -903,9 +909,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00512">512</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00598">598</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00056">access_time</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">cpu_</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00190">yaze::emu::HandleDma()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00344">Read()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00224">RunCycles()</a>, and <a class="el" href="../../dc/da7/cpu_8h_source.html#l00227">yaze::emu::Cpu::set_int_delay()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00056">access_time</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00190">yaze::emu::HandleDma()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00408">Read()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00277">RunCycles()</a>, and <a class="el" href="../../dc/da7/cpu_8h_source.html#l00227">yaze::emu::Cpu::set_int_delay()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00026">Snes()</a>.</p>
 <div class="dynheader">
@@ -953,9 +959,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00523">523</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00609">609</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00056">access_time</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">cpu_</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00190">yaze::emu::HandleDma()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00224">RunCycles()</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00227">yaze::emu::Cpu::set_int_delay()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00468">Write()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00056">access_time</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00190">yaze::emu::HandleDma()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00277">RunCycles()</a>, <a class="el" href="../../dc/da7/cpu_8h_source.html#l00227">yaze::emu::Cpu::set_int_delay()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00554">Write()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00026">Snes()</a>.</p>
 <div class="dynheader">
@@ -993,9 +999,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00531">531</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00617">617</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">cpu_</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00190">yaze::emu::HandleDma()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00224">RunCycles()</a>, and <a class="el" href="../../dc/da7/cpu_8h_source.html#l00227">yaze::emu::Cpu::set_int_delay()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00190">yaze::emu::HandleDma()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00277">RunCycles()</a>, and <a class="el" href="../../dc/da7/cpu_8h_source.html#l00227">yaze::emu::Cpu::set_int_delay()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00026">Snes()</a>.</p>
 <div class="dynheader">
@@ -1033,11 +1039,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00560">560</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00724">724</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00056">access_time</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00498">GetAccessTime()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00056">access_time</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00584">GetAccessTime()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1077,11 +1083,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00537">537</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00623">623</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">apu_</a>, <a class="el" href="../../d5/d1b/apu_8h_source.html#l00065">yaze::emu::Apu::dsp()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>, and <a class="el" href="../../dc/d18/memory_8h_source.html#l00278">yaze::emu::MemoryImpl::pal_timing()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00079">apu_</a>, <a class="el" href="../../d5/d1b/apu_8h_source.html#l00065">yaze::emu::Apu::dsp()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>, and <a class="el" href="../../dc/d18/memory_8h_source.html#l00278">yaze::emu::MemoryImpl::pal_timing()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00020">main()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00030">main()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1113,11 +1119,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00541">541</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00627">627</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00075">ppu_</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01032">yaze::emu::Ppu::PutPixels()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">ppu_</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01032">yaze::emu::Ppu::PutPixels()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00020">main()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00030">main()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1163,11 +1169,57 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00543">543</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00020">yaze::emu::Input::current_state_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00111">input1</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00112">input2</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00629">629</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00331">yaze::emu::Emulator::HandleEvents()</a>.</p>
+
+</div>
+</div>
+<a id="aad3644e4549fb044f3832a15943ce6c2" name="aad3644e4549fb044f3832a15943ce6c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad3644e4549fb044f3832a15943ce6c2">&#9670;&#160;</a></span>loadState()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::Snes::loadState </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">631</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00079">apu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00093">apu_catchup_cycles_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00117">auto_joy_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00118">auto_joy_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00091">cycles_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00110">divide_a_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00111">divide_result_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">fast_mem_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00097">h_irq_enabled_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00100">h_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00104">in_irq_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00102">in_nmi_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00105">in_vblank_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00103">irq_condition_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00108">multiply_a_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00109">multiply_result_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00094">next_horiz_event</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00099">nmi_enabled_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00116">port_auto_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">ppu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00119">ppu_latch_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00086">ram</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00087">ram_adr_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00013">READ_STATE</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00092">sync_cycle_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00098">v_irq_enabled_</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00101">v_timer_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00030">main()</a>.</p>
+
+</div>
+</div>
+<a id="a3b30fd2fcbc808909c4e1018ca06831e" name="a3b30fd2fcbc808909c4e1018ca06831e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b30fd2fcbc808909c4e1018ca06831e">&#9670;&#160;</a></span>saveState()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::Snes::saveState </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">679</a> of file <a class="el" href="../../dc/dbe/snes_8cc_source.html">snes.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00079">apu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00093">apu_catchup_cycles_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00117">auto_joy_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00118">auto_joy_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00091">cycles_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00110">divide_a_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00111">divide_result_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">fast_mem_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00097">h_irq_enabled_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00100">h_timer_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00104">in_irq_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00102">in_nmi_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00105">in_vblank_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00103">irq_condition_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00108">multiply_a_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00109">multiply_result_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00094">next_horiz_event</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00099">nmi_enabled_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00116">port_auto_read_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">ppu_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00119">ppu_latch_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00086">ram</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00087">ram_adr_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00092">sync_cycle_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00098">v_irq_enabled_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00101">v_timer_</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00012">WRITE_STATE</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00030">main()</a>.</p>
 
 </div>
 </div>
@@ -1194,9 +1246,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00062">62</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00065">65</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00080">running_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00083">running_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00180">yaze::emu::Emulator::RenderSnesPpu()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>.</p>
 
@@ -1225,11 +1277,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00063">63</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00066">66</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">cpu_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">cpu_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/d7d/dma_8cc_source.html#l00156">yaze::emu::DoDma()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00257">yaze::emu::DoHdma()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00216">yaze::emu::InitHdma()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00430">yaze::emu::Emulator::RenderBreakpointList()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00111">yaze::emu::Emulator::RenderEmulatorInterface()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00203">yaze::emu::Emulator::RenderNavBar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/d7d/dma_8cc_source.html#l00156">yaze::emu::DoDma()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00257">yaze::emu::DoHdma()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00216">yaze::emu::InitHdma()</a>, <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00030">main()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00430">yaze::emu::Emulator::RenderBreakpointList()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00111">yaze::emu::Emulator::RenderEmulatorInterface()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00203">yaze::emu::Emulator::RenderNavBar()</a>.</p>
 
 </div>
 </div>
@@ -1256,9 +1308,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00064">64</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">67</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00075">ppu_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">ppu_</a>.</p>
 
 </div>
 </div>
@@ -1285,11 +1337,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00065">65</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00068">68</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">apu_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00079">apu_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00430">yaze::emu::Emulator::RenderBreakpointList()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00111">yaze::emu::Emulator::RenderEmulatorInterface()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00492">yaze::emu::Emulator::RenderMemoryViewer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00030">main()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00430">yaze::emu::Emulator::RenderBreakpointList()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00111">yaze::emu::Emulator::RenderEmulatorInterface()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00492">yaze::emu::Emulator::RenderMemoryViewer()</a>.</p>
 
 </div>
 </div>
@@ -1316,11 +1368,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00066">66</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00069">69</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">memory_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">memory_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00020">main()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00111">yaze::emu::Emulator::RenderEmulatorInterface()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00492">yaze::emu::Emulator::RenderMemoryViewer()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/d5b/emu_8cc_source.html#l00030">main()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00111">yaze::emu::Emulator::RenderEmulatorInterface()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00492">yaze::emu::Emulator::RenderMemoryViewer()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00049">yaze::emu::Emulator::Run()</a>.</p>
 
 </div>
 </div>
@@ -1347,9 +1399,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">67</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00070">70</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00083">ram</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00086">ram</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00492">yaze::emu::Emulator::RenderMemoryViewer()</a>.</p>
 
@@ -1378,9 +1430,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00068">68</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00071">71</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00088">cycles_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00091">cycles_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00111">yaze::emu::Emulator::RenderEmulatorInterface()</a>.</p>
 
@@ -1401,7 +1453,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00056">56</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00512">CpuRead()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00523">CpuWrite()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00560">InitAccessTime()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00598">CpuRead()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00609">CpuWrite()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00724">InitAccessTime()</a>.</p>
 
 </div>
 </div>
@@ -1417,9 +1469,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00070">70</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">73</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00498">GetAccessTime()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00584">GetAccessTime()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -1443,9 +1495,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00073">73</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">76</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00531">CpuIdle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00512">CpuRead()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00523">CpuWrite()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00028">Init()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00066">memory()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00344">Read()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00245">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00261">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00314">Rread()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00224">RunCycles()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00537">SetSamples()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00468">Write()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00617">CpuIdle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00598">CpuRead()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00609">CpuWrite()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00033">Init()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00069">memory()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00408">Read()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00298">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00325">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00378">Rread()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00277">RunCycles()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00623">SetSamples()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00554">Write()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -1469,9 +1521,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00074">74</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00077">77</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00063">cpu()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00531">CpuIdle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00512">CpuRead()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00523">CpuWrite()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00261">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00080">RunFrame()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00026">Snes()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00066">cpu()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00617">CpuIdle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00598">CpuRead()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00609">CpuWrite()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00298">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00325">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00090">RunFrame()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00026">Snes()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00414">WriteBBus()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -1495,9 +1547,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00075">75</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">78</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00028">Init()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00064">ppu()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00245">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00541">SetPixels()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00350">WriteBBus()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00033">Init()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">ppu()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00298">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00627">SetPixels()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00414">WriteBBus()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -1521,9 +1573,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00076">76</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00079">79</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00065">apu()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00090">CatchUpApu()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00028">Init()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00245">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00537">SetSamples()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00350">WriteBBus()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00068">apu()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00123">CatchUpApu()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00033">Init()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00298">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00623">SetSamples()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00414">WriteBBus()</a>.</p>
 
 </div>
 </div>
@@ -1547,9 +1599,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00078">78</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00081">81</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00028">Init()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00033">Init()</a>.</p>
 
 </div>
 </div>
@@ -1573,9 +1625,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00080">80</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00083">83</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00028">Init()</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00062">running()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00033">Init()</a>, and <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00065">running()</a>.</p>
 
 </div>
 </div>
@@ -1599,9 +1651,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00083">83</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00086">86</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">get_ram()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00245">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00314">Rread()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00468">Write()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00350">WriteBBus()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00070">get_ram()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00298">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00378">Rread()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00554">Write()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00414">WriteBBus()</a>.</p>
 
 </div>
 </div>
@@ -1625,9 +1677,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00084">84</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00087">87</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00245">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00350">WriteBBus()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00298">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00414">WriteBBus()</a>.</p>
 
 </div>
 </div>
@@ -1651,9 +1703,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00087">87</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00090">90</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00080">RunFrame()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00090">RunFrame()</a>.</p>
 
 </div>
 </div>
@@ -1677,9 +1729,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00088">88</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00091">91</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00090">CatchUpApu()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00068">mutable_cycles()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00234">SyncCycles()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00123">CatchUpApu()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00071">mutable_cycles()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00298">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00287">SyncCycles()</a>.</p>
 
 </div>
 </div>
@@ -1703,9 +1755,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00089">89</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00092">92</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00234">SyncCycles()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00287">SyncCycles()</a>.</p>
 
 </div>
 </div>
@@ -1729,9 +1781,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00090">90</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00093">93</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>.</p>
 
 </div>
 </div>
@@ -1755,9 +1807,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00091">91</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00094">94</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>.</p>
 
 </div>
 </div>
@@ -1781,9 +1833,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00094">94</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00097">97</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -1807,9 +1859,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00095">95</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00098">98</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -1833,9 +1885,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00096">96</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00099">99</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -1859,9 +1911,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00097">97</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00100">100</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -1885,9 +1937,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00098">98</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00101">101</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -1911,9 +1963,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00099">99</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00102">102</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00261">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00325">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -1937,9 +1989,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00100">100</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00103">103</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>.</p>
 
 </div>
 </div>
@@ -1963,9 +2015,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00101">101</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00104">104</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00261">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00325">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -1989,9 +2041,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00102">102</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00105">105</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00261">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00080">RunFrame()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00325">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00090">RunFrame()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>.</p>
 
 </div>
 </div>
@@ -2015,9 +2067,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00105">105</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00108">108</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -2041,9 +2093,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00106">106</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00109">109</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00261">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00325">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -2067,9 +2119,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00107">107</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00110">110</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -2093,9 +2145,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00108">108</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00111">111</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00261">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00325">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -2119,9 +2171,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00111">111</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00114">114</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00092">HandleInput()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00314">Rread()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00543">SetButtonState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00468">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00129">HandleInput()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00378">Rread()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00554">Write()</a>.</p>
 
 </div>
 </div>
@@ -2145,9 +2197,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00112">112</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00115">115</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00092">HandleInput()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00314">Rread()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00543">SetButtonState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00468">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00129">HandleInput()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00378">Rread()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00554">Write()</a>.</p>
 
 </div>
 </div>
@@ -2171,9 +2223,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00113">113</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00116">116</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00092">HandleInput()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00261">ReadReg()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00129">HandleInput()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00325">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>.</p>
 
 </div>
 </div>
@@ -2197,9 +2249,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00114">114</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00117">117</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -2223,9 +2275,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00115">115</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00118">118</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00261">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00109">RunCycle()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00325">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">RunCycle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
@@ -2249,9 +2301,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00116">116</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00119">119</a> of file <a class="el" href="../../d2/de3/emu_2snes_8h_source.html">snes.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00245">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00261">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00040">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">loadState()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00298">ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00325">ReadReg()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">Reset()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00679">saveState()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">WriteReg()</a>.</p>
 
 </div>
 </div>
