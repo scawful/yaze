@@ -18,32 +18,35 @@ void Spc700::MOVY(uint16_t adr) {
   PSW.N = (Y & 0x80);
 }
 
-void Spc700::MOVS(uint16_t adr) {
+void Spc700::MOVS(uint16_t address) {
   static int movs_log = 0;
-  // Log all MOVS to F4 port
-  if (adr == 0x00F4 || movs_log++ < 20) {
-    LOG_INFO("SPC", "MOVS BEFORE: bstep=%d adr=$%04X A=$%02X", bstep, adr, A);
-  }
   switch (bstep) {
-    case 0: read(adr); bstep++; break;
-    case 1: write(adr, A); bstep = 0; break;
-  }
-  if (adr == 0x00F4 || movs_log < 20) {
-    LOG_INFO("SPC", "MOVS AFTER: bstep=%d", bstep);
+    case 0: 
+      this->adr = address;  // Save address for bstep=1
+      read(this->adr); 
+      bstep++; 
+      break;
+    case 1: 
+      write(this->adr, A);  // Use saved address
+      if (this->adr == 0x00F4) {
+        LOG_INFO("SPC", "MOVS wrote A=$%02X to F4!", A);
+      }
+      bstep = 0; 
+      break;
   }
 }
 
-void Spc700::MOVSX(uint16_t adr) {
+void Spc700::MOVSX(uint16_t address) {
   switch (bstep) {
-    case 0: read(adr); bstep++; break;
-    case 1: write(adr, X); bstep = 0; break;
+    case 0: this->adr = address; read(this->adr); bstep++; break;
+    case 1: write(this->adr, X); bstep = 0; break;
   }
 }
 
-void Spc700::MOVSY(uint16_t adr) {
+void Spc700::MOVSY(uint16_t address) {
   switch (bstep) {
-    case 0: read(adr); bstep++; break;
-    case 1: write(adr, Y); bstep = 0; break;
+    case 0: this->adr = address; read(this->adr); bstep++; break;
+    case 1: write(this->adr, Y); bstep = 0; break;
   }
 }
 
@@ -110,7 +113,7 @@ void Spc700::CMPX(uint16_t adr) {
   uint8_t value = read(adr) ^ 0xff;
   int result = X + value + 1;
   PSW.C = result > 0xff;
-  PSW.Z = (result == 0);
+  PSW.Z = ((result & 0xFF) == 0);  // Check 8-bit result for zero!
   PSW.N = (result & 0x80);
 }
 
@@ -118,7 +121,7 @@ void Spc700::CMPY(uint16_t adr) {
   uint8_t value = read(adr) ^ 0xff;
   int result = Y + value + 1;
   PSW.C = result > 0xff;
-  PSW.Z = (result == 0);
+  PSW.Z = ((result & 0xFF) == 0);  // Check 8-bit result for zero!
   PSW.N = (result & 0x80);
 }
 
@@ -127,7 +130,7 @@ void Spc700::CMPM(uint16_t dst, uint8_t value) {
   int result = read(dst) + value + 1;
   PSW.C = result > 0xff;
   callbacks_.idle(false);
-  PSW.Z = (result == 0);
+  PSW.Z = ((result & 0xFF) == 0);  // Check 8-bit result for zero!
   PSW.N = (result & 0x80);
 }
 

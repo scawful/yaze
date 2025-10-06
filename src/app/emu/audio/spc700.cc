@@ -54,10 +54,20 @@ void Spc700::RunOpcode() {
     return;
   }
   if (step == 0) {
-    // Debug: Log SPC execution in IPL ROM range and multi-step state
+    // Debug: Comprehensive IPL ROM tracing for transfer protocol debugging
     static int spc_exec_count = 0;
-    if ((PC >= 0xFFCF && PC <= 0xFFFF) && spc_exec_count++ < 50) {
-      LOG_INFO("SPC", "Execute: PC=$%04X step=0 bstep=%d", PC, bstep);
+    bool in_critical_range = (PC >= 0xFFCF && PC <= 0xFFFF);
+    bool is_transfer_loop = (PC >= 0xFFDB && PC <= 0xFFEB);
+    
+    if (in_critical_range && spc_exec_count++ < 200) {
+      LOG_INFO("SPC", "Execute: PC=$%04X step=0 bstep=%d Y=%02X A=%02X", PC, bstep, Y, A);
+    }
+    if (is_transfer_loop && spc_exec_count < 500) {
+      // Read ports to log transfer state
+      uint8_t f4_val = callbacks_.read(0xF4);
+      uint8_t f5_val = callbacks_.read(0xF5);
+      LOG_INFO("SPC", "TRANSFER LOOP: PC=$%04X Y=%02X F4=%02X F5=%02X", 
+               PC, Y, f4_val, f5_val);
     }
     
     // Only read new opcode if previous instruction is complete
@@ -1061,7 +1071,10 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     }
     case 0xc4: {  // movs dp
       LOG_INFO("SPC", "Case 0xC4 reached: bstep=%d PC=$%04X", bstep, PC);
-      MOVS(dp());
+      uint16_t adr = dp();
+      LOG_INFO("SPC", "About to call MOVS: bstep=%d adr=$%04X", bstep, adr);
+      MOVS(adr);
+      LOG_INFO("SPC", "After MOVS: bstep=%d", bstep);
       break;
     }
     case 0xc5: {  // movs abs
@@ -1093,7 +1106,11 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xcb: {  // movsy dp
-      MOVSY(dp());
+      uint16_t addr = dp();
+      if (addr == 0x00F4) {
+        LOG_INFO("SPC", "MOVSY writing Y=$%02X to F4 at PC=$%04X", Y, PC);
+      }
+      MOVSY(addr);
       break;
     }
     case 0xcc: {  // movsy abs
@@ -1269,6 +1286,10 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     case 0xef: {  // sleep imp
       // Emulate low-power idle without halting the core permanently.
       // Advance timers/DSP via idle callbacks, but do not set stopped_.
+      static int sleep_log = 0;
+      if (sleep_log++ < 5) {
+        LOG_WARN("SPC", "SLEEP executed at PC=$%04X - entering low power mode", PC - 1);
+      }
       read(PC);
       for (int i = 0; i < 4; ++i) callbacks_.idle(true);
       break;
