@@ -26,9 +26,9 @@ void MemoryImpl::Initialize(const std::vector<uint8_t>& rom_data,
   ram_.resize(sram_size_);
   std::fill(ram_.begin(), ram_.end(), 0);
   
-  LOG_INFO("Memory", "LoROM initialized: ROM size=$%06X (%zuKB) SRAM size=$%04X", 
+  LOG_DEBUG("Memory", "LoROM initialized: ROM size=$%06X (%zuKB) SRAM size=$%04X", 
            rom_size_, rom_size_ / 1024, sram_size_);
-  LOG_INFO("Memory", "Reset vector at ROM offset $7FFC-$7FFD = $%02X%02X", 
+  LOG_DEBUG("Memory", "Reset vector at ROM offset $7FFC-$7FFD = $%02X%02X", 
            rom_data[0x7FFD], rom_data[0x7FFC]);
 }
 

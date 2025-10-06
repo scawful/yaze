@@ -61,7 +61,7 @@ void Cpu::RunOpcode() {
     uint8_t low_byte = ReadByte(0xfffc);
     uint8_t high_byte = ReadByte(0xfffd);
     PC = low_byte | (high_byte << 8);
-    LOG_INFO("CPU", "Reset vector: $FFFC=$%02X $FFFD=$%02X -> PC=$%04X", 
+    LOG_DEBUG("CPU", "Reset vector: $FFFC=$%02X $FFFD=$%02X -> PC=$%04X", 
              low_byte, high_byte, PC);
     return;
   }
@@ -80,7 +80,7 @@ void Cpu::RunOpcode() {
                PB, PC, irq_wanted_, nmi_wanted_, GetInterruptFlag());
     }
     if (irq_wanted_ || nmi_wanted_) {
-      LOG_INFO("CPU", "CPU waking from WAIT - irq=%d nmi=%d", irq_wanted_, nmi_wanted_);
+      LOG_DEBUG("CPU", "CPU waking from WAIT - irq=%d nmi=%d", irq_wanted_, nmi_wanted_);
       waiting_ = false;
       callbacks_.idle(false);
       CheckInt();
@@ -124,7 +124,7 @@ void Cpu::RunOpcode() {
     }
     
     if (should_log) {
-      LOG_INFO("CPU", "Exec #%d: $%02X:%04X opcode=$%02X", 
+      LOG_DEBUG("CPU", "Exec #%d: $%02X:%04X opcode=$%02X", 
                instruction_count, PB, PC - 1, opcode);
     }
     
@@ -140,7 +140,7 @@ void Cpu::RunOpcode() {
         }
       } else {
         if (stuck_count > 50) {
-          LOG_INFO("CPU", "Moved from $%02X:%04X (was stuck %d times) to $%02X:%04X",
+          LOG_DEBUG("CPU", "Moved from $%02X:%04X (was stuck %d times) to $%02X:%04X",
                    PB, last_stuck_pc, stuck_count, PB, PC - 1);
         }
         stuck_count = 0;
