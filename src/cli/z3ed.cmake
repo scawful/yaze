@@ -48,6 +48,9 @@ add_executable(
   cli/cli_main.cc
   cli/cli.cc
   cli/tui/tui.cc
+  cli/tui/unified_layout.cc
+  cli/tui/enhanced_chat_component.cc
+  cli/tui/enhanced_status_panel.cc
   cli/handlers/compress.cc
   cli/handlers/patch.cc
   cli/handlers/tile16_transfer.cc

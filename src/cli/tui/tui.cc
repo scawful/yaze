@@ -12,9 +12,8 @@
 #include "util/bps.h"
 #include "util/file_util.h"
 #include "app/core/asar_wrapper.h"
-#include "app/zelda3/overworld/overworld.h"
 #include "cli/cli.h"
-#include "cli/tui/command_palette.h"
+#include "cli/tui/unified_layout.h"
 #include "cli/z3ed_ascii_logo.h"
 #include "cli/service/agent/simple_chat_session.h"
 #include "cli/service/agent/conversational_agent_service.h"
@@ -865,7 +864,7 @@ void DashboardComponent(ftxui::ScreenInteractive &screen) {
         });
     });
 
-    auto event_handler = CatchEvent(layout, [&](Event event) {
+    auto event_handler = CatchEvent(layout, [&](const Event& event) {
         if (event == Event::Character('q')) {
             SwitchComponents(screen, LayoutID::kExit);
             return true;
@@ -943,7 +942,7 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
   });
 
   // Catch events like pressing Enter to switch layout or pressing 'q' to exit.
-  auto main_component = CatchEvent(renderer, [&](Event event) {
+  auto main_component = CatchEvent(renderer, [&](const Event& event) {
     if (event == Event::Return) {
       switch ((MainMenuEntry)selected) {
         case MainMenuEntry::kLoadRom:
@@ -989,141 +988,22 @@ void MainMenuComponent(ftxui::ScreenInteractive &screen) {
 }  // namespace
 
 void ShowMain() {
-  auto screen = ScreenInteractive::TerminalOutput();
-  while (app_context.current_layout != LayoutID::kExit) {
-    if (app_context.rom.is_loaded() && app_context.current_layout == LayoutID::kMainMenu) {
-        app_context.current_layout = LayoutID::kDashboard;
-    }
-
-    switch (app_context.current_layout) {
-      case LayoutID::kDashboard: {
-        DashboardComponent(screen);
-      } break;
-      case LayoutID::kMainMenu: {
-        MainMenuComponent(screen);
-      } break;
-      case LayoutID::kLoadRom: {
-        LoadRomComponent(screen);
-      } break;
-      case LayoutID::kAIAgentChat: {
-        // Launch simple chat session for agent interaction
-        agent::SimpleChatSession chat;
-        chat.SetRomContext(&app_context.rom);
-        agent::AgentConfig config;
-        config.output_format = agent::AgentOutputFormat::kFriendly;
-        chat.SetConfig(config);
-        
-        std::cout << "\n🤖 AI Agent Chat (type 'back' to return to menu)\n" << std::endl;
-        chat.RunInteractive();
-        
-        app_context.current_layout = LayoutID::kMainMenu;
-      } break;
-      case LayoutID::kTodoManager: {
-        TodoManagerComponent(screen);
-      } break;
-      case LayoutID::kRomTools: {
-        // Show submenu for ROM tools
-        int submenu_selected = 0;
-        static const std::vector<std::string> tools = {
-          "Apply Asar Patch", "Apply BPS Patch", "Extract Symbols",
-          "Validate Assembly", "Generate Save", "Back"
-        };
-        auto submenu = Menu(&tools, &submenu_selected);
-        auto submenu_component = CatchEvent(submenu, [&](Event event) {
-          if (event == Event::Return) {
-            if (submenu_selected == 0) app_context.current_layout = LayoutID::kApplyAsarPatch;
-            else if (submenu_selected == 1) app_context.current_layout = LayoutID::kApplyBpsPatch;
-            else if (submenu_selected == 2) app_context.current_layout = LayoutID::kExtractSymbols;
-            else if (submenu_selected == 3) app_context.current_layout = LayoutID::kValidateAssembly;
-            else if (submenu_selected == 4) app_context.current_layout = LayoutID::kGenerateSaveFile;
-            else app_context.current_layout = LayoutID::kMainMenu;
-            screen.ExitLoopClosure()();
-            return true;
-          }
-          return false;
-        });
-        screen.Loop(submenu_component);
-      } break;
-      case LayoutID::kGraphicsTools: {
-        // Show submenu for graphics tools
-        int submenu_selected = 0;
-        static const std::vector<std::string> tools = {
-          "Palette Editor", "Hex Viewer", "Back"
-        };
-        auto submenu = Menu(&tools, &submenu_selected);
-        auto submenu_component = CatchEvent(submenu, [&](Event event) {
-          if (event == Event::Return) {
-            if (submenu_selected == 0) app_context.current_layout = LayoutID::kPaletteEditor;
-            else if (submenu_selected == 1) app_context.current_layout = LayoutID::kHexViewer;
-            else app_context.current_layout = LayoutID::kMainMenu;
-            screen.ExitLoopClosure()();
-            return true;
-          }
-          return false;
-        });
-        screen.Loop(submenu_component);
-      } break;
-      case LayoutID::kTestingTools: {
-        app_context.error_message = "Testing tools coming soon";
-        app_context.current_layout = LayoutID::kError;
-      } break;
-      case LayoutID::kSettings: {
-        app_context.error_message = "Settings TUI coming soon - use GUI for now";
-        app_context.current_layout = LayoutID::kError;
-      } break;
-      case LayoutID::kApplyAsarPatch: {
-        ApplyAsarPatchComponent(screen);
-      } break;
-      case LayoutID::kApplyBpsPatch: {
-        ApplyBpsPatchComponent(screen);
-      } break;
-      case LayoutID::kExtractSymbols: {
-        ExtractSymbolsComponent(screen);
-      } break;
-      case LayoutID::kValidateAssembly: {
-        ValidateAssemblyComponent(screen);
-      } break;
-      case LayoutID::kGenerateSaveFile: {
-        GenerateSaveFileComponent(screen);
-      } break;
-      case LayoutID::kPaletteEditor: {
-        PaletteEditorComponent(screen);
-      } break;
-      case LayoutID::kHexViewer: {
-        HexViewerComponent(screen);
-      } break;
-      case LayoutID::kCommandPalette: {
-        CommandPaletteComponent component;
-        auto cmd_component = component.Render();
-        screen.Loop(cmd_component);
-      } break;
-      case LayoutID::kHelp: {
-        HelpComponent(screen);
-      } break;
-      case LayoutID::kError: {
-        // Display error message and return to main menu.
-        auto error_button = Button("Back to Main Menu", [&] {
-          app_context.error_message.clear();
-          SwitchComponents(screen, LayoutID::kMainMenu);
-        });
-
-        auto error_renderer = Renderer(error_button, [&] {
-          return vbox({
-            text("⚠️  Error") | center | bold | color(Color::Red),
-            separator(),
-            text(app_context.error_message) | color(Color::Yellow) | center,
-            separator(),
-            error_button->Render() | center
-          }) | center | border;
-        });
-
-        screen.Loop(error_renderer);
-      } break;
-      case LayoutID::kExit:
-      default:
-        return;  // Exit the application.
-    }
-  }
+  // Use the new unified layout system
+  UnifiedLayout unified_layout(&app_context.rom);
+  
+  // Configure the layout
+  LayoutConfig config;
+  config.left_panel_width = 30;
+  config.right_panel_width = 40;
+  config.bottom_panel_height = 15;
+  config.show_chat = true;
+  config.show_status = true;
+  config.show_tools = true;
+  
+  unified_layout.SetLayoutConfig(config);
+  
+  // Run the unified layout
+  unified_layout.Run();
 }
 
 }  // namespace cli
