@@ -1,5 +1,5 @@
 #include "app/core/project.h"
-#include "cli/z3ed.h"
+#include "cli/cli.h"
 #include "util/file_util.h"
 #include "util/bps.h"
 #include <filesystem>

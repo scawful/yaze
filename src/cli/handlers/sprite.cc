@@ -1,4 +1,4 @@
-#include "cli/z3ed.h"
+#include "cli/cli.h"
 #include "app/zelda3/sprite/sprite_builder.h"
 #include "absl/flags/flag.h"
 

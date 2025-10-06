@@ -1,4 +1,4 @@
-#include "cli/z3ed.h"
+#include "cli/cli.h"
 #include "cli/tui/palette_editor.h"
 
 #include "app/gfx/scad_format.h"

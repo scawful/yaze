@@ -1038,10 +1038,10 @@ source_group("Application\\Testing" FILES
 # CLI Tools
 source_group("CLI" FILES
   cli/cli_main.cc
-  cli/tui.cc
-  cli/tui.h
-  cli/z3ed.cc
-  cli/z3ed.h
+  cli/tui/tui.cc
+  cli/tui/tui.h
+  cli/cli.cc
+  cli/cli.h
 )
 
 source_group("CLI\\Handlers" FILES

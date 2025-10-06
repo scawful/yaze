@@ -1,4 +1,4 @@
-#include "cli/z3ed.h"
+#include "cli/cli.h"
 #include "cli/tui/command_palette.h"
 
 namespace yaze {
