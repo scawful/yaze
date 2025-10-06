@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_CORE_SERVICE_CANVAS_AUTOMATION_SERVICE_H_
 #define YAZE_APP_CORE_SERVICE_CANVAS_AUTOMATION_SERVICE_H_
 
+#include "grpcpp/impl/service_type.h"
 #ifdef YAZE_WITH_GRPC
 
 #include <memory>
@@ -125,6 +126,19 @@ class CanvasAutomationServiceImpl {
   // Editor registry (for tile callbacks)
   std::unordered_map<std::string, editor::OverworldEditor*> overworld_editors_;
 };
+
+/**
+ * @brief Factory function to create gRPC service wrapper
+ * 
+ * Creates the gRPC service wrapper for CanvasAutomationServiceImpl.
+ * The wrapper handles the conversion between gRPC and absl::Status.
+ * Returns as base grpc::Service to avoid incomplete type issues.
+ * 
+ * @param impl Pointer to implementation (not owned)
+ * @return Unique pointer to gRPC service
+ */
+std::unique_ptr<grpc::Service> CreateCanvasAutomationServiceGrpc(
+    CanvasAutomationServiceImpl* impl);
 
 }  // namespace yaze
 
