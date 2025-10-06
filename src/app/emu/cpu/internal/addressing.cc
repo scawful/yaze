@@ -44,7 +44,7 @@ uint32_t Cpu::AdrDpy(uint32_t* low) {
 uint32_t Cpu::AdrIdp(uint32_t* low) {
   uint8_t adr = ReadOpcode();
   if (D & 0xff) callbacks_.idle(false);  // dpr not 0: 1 extra cycle
-  uint16_t pointer = ReadWord((D + adr) & 0xffff, false);
+  uint16_t pointer = ReadWord((D + adr) & 0xffff);
   *low = (DB << 16) + pointer;
   return ((DB << 16) + pointer + 1) & 0xffffff;
 }
@@ -52,7 +52,7 @@ uint32_t Cpu::AdrIdp(uint32_t* low) {
 uint32_t Cpu::AdrIdy(uint32_t* low, bool write) {
   uint8_t adr = ReadOpcode();
   if (D & 0xff) callbacks_.idle(false);  // dpr not 0: 1 extra cycle
-  uint16_t pointer = ReadWord((D + adr) & 0xffff, false);
+  uint16_t pointer = ReadWord((D + adr) & 0xffff);
   // writing opcode or x = 0 or page crossed: 1 extra cycle
   if (write || !GetIndexSize() || ((pointer >> 8) != ((pointer + Y) >> 8)))
     callbacks_.idle(false);
@@ -63,7 +63,7 @@ uint32_t Cpu::AdrIdy(uint32_t* low, bool write) {
 uint32_t Cpu::AdrIdl(uint32_t* low) {
   uint8_t adr = ReadOpcode();
   if (D & 0xff) callbacks_.idle(false);  // dpr not 0: 1 extra cycle
-  uint32_t pointer = ReadWord((D + adr) & 0xffff, false);
+  uint32_t pointer = ReadWord((D + adr) & 0xffff);
   pointer |= ReadByte((D + adr + 2) & 0xffff) << 16;
   *low = pointer;
   return (pointer + 1) & 0xffffff;
@@ -72,7 +72,7 @@ uint32_t Cpu::AdrIdl(uint32_t* low) {
 uint32_t Cpu::AdrIly(uint32_t* low) {
   uint8_t adr = ReadOpcode();
   if (D & 0xff) callbacks_.idle(false);  // dpr not 0: 1 extra cycle
-  uint32_t pointer = ReadWord((D + adr) & 0xffff, false);
+  uint32_t pointer = ReadWord((D + adr) & 0xffff);
   pointer |= ReadByte((D + adr + 2) & 0xffff) << 16;
   *low = (pointer + Y) & 0xffffff;
   return (pointer + Y + 1) & 0xffffff;
@@ -88,7 +88,7 @@ uint32_t Cpu::AdrSr(uint32_t* low) {
 uint32_t Cpu::AdrIsy(uint32_t* low) {
   uint8_t adr = ReadOpcode();
   callbacks_.idle(false);
-  uint16_t pointer = ReadWord((SP() + adr) & 0xffff, false);
+  uint16_t pointer = ReadWord((SP() + adr) & 0xffff);
   callbacks_.idle(false);
   *low = ((DB << 16) + pointer + Y) & 0xffffff;
   return ((DB << 16) + pointer + Y + 1) & 0xffffff;
@@ -159,7 +159,7 @@ uint32_t Cpu::AdrIdx(uint32_t* low) {
   uint8_t adr = ReadOpcode();
   if (D & 0xff) callbacks_.idle(false);
   callbacks_.idle(false);
-  uint16_t pointer = ReadWord((D + adr + X) & 0xffff, false);
+  uint16_t pointer = ReadWord((D + adr + X) & 0xffff);
   *low = (DB << 16) + pointer;
   return ((DB << 16) + pointer + 1) & 0xffffff;
 }

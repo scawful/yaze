@@ -306,7 +306,7 @@ uint8_t Snes::ReadBBus(uint8_t adr) {
     static int cpu_port_read_count = 0;
     static uint8_t last_f4 = 0xFF, last_f5 = 0xFF;
     bool value_changed = ((adr & 0x3) == 0 && val != last_f4) || ((adr & 0x3) == 1 && val != last_f5);
-    if (value_changed || cpu_port_read_count++ < 50) {
+    if (value_changed || cpu_port_read_count++ < 5) {
       LOG_INFO("SNES", "CPU read APU port $21%02X (F%d) = $%02X at PC=$%02X:%04X [AFTER CatchUp: APU_cycles=%llu CPU_cycles=%llu]",
                0x40 + (adr & 0x3), (adr & 0x3) + 4, val, cpu_.PB, cpu_.PC, apu_.GetCycles(), cycles_);
       if ((adr & 0x3) == 0) last_f4 = val;

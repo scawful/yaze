@@ -47,6 +47,8 @@ void Apu::Reset() {
   rom_readable_ = true;
   dsp_adr_ = 0;
   cycles_ = 0;
+  transfer_size_ = 0;
+  in_transfer_ = false;
   ResetCycleTracking();  // Reset the master cycle delta tracking
   std::fill(in_ports_.begin(), in_ports_.end(), 0);
   std::fill(out_ports_.begin(), out_ports_.end(), 0);
@@ -75,10 +77,24 @@ void Apu::RunCycles(uint64_t master_cycles) {
   static uint64_t last_log_cycle = 0;
   static uint16_t last_pc = 0;
   static int stuck_counter = 0;
+  static bool logged_transfer_state = false;
   
   while (cycles_ < target_apu_cycles) {
     // Execute one SPC700 opcode (variable cycles) then advance APU cycles accordingly.
     uint16_t current_pc = spc700_.PC;
+    
+    // IPL ROM protocol analysis - let it run to see what happens
+    // Log IPL ROM transfer loop activity (every 1000 cycles when in critical range)
+    static uint64_t last_ipl_log = 0;
+    if (rom_readable_ && current_pc >= 0xFFD6 && current_pc <= 0xFFED) {
+      if (cycles_ - last_ipl_log > 10000) {
+        LOG_INFO("APU", "IPL ROM loop: PC=$%04X Y=$%02X Ports: F4=$%02X F5=$%02X F6=$%02X F7=$%02X",
+                 current_pc, spc700_.Y, in_ports_[0], in_ports_[1], in_ports_[2], in_ports_[3]);
+        LOG_INFO("APU", "  Out ports: F4=$%02X F5=$%02X F6=$%02X F7=$%02X ZP: $00=$%02X $01=$%02X",
+                 out_ports_[0], out_ports_[1], out_ports_[2], out_ports_[3], ram[0x00], ram[0x01]);
+        last_ipl_log = cycles_;
+      }
+    }
     
     // Detect if SPC is stuck in tight loop
     if (current_pc == last_pc) {
@@ -91,6 +107,12 @@ void Apu::RunCycles(uint64_t master_cycles) {
         LOG_WARN("APU", "Out Ports: F4=$%02X F5=$%02X F6=$%02X F7=$%02X",
                  out_ports_[0], out_ports_[1], out_ports_[2], out_ports_[3]);
         LOG_WARN("APU", "IPL ROM enabled: %s", rom_readable_ ? "YES" : "NO");
+        LOG_WARN("APU", "SPC700 Y=$%02X, ZP $00=$%02X $01=$%02X", 
+                 spc700_.Y, ram[0x00], ram[0x01]);
+        if (!logged_transfer_state && ram[0x00] == 0x19 && ram[0x01] == 0x00) {
+          LOG_WARN("APU", "Uploaded byte at $0019 = $%02X", ram[0x0019]);
+          logged_transfer_state = true;
+        }
         last_log_cycle = cycles_;
         stuck_counter = 0;
       }
@@ -214,6 +236,11 @@ void Apu::Write(uint16_t adr, uint8_t val) {
       if (old_rom_readable != rom_readable_) {
         LOG_INFO("APU", "Control register $F1 = $%02X - IPL ROM %s at PC=$%04X",
                  val, rom_readable_ ? "ENABLED" : "DISABLED", spc700_.PC);
+        // When IPL ROM is disabled, reset transfer tracking
+        if (!rom_readable_) {
+          in_transfer_ = false;
+          transfer_size_ = 0;
+        }
       }
       break;
     }
@@ -234,6 +261,22 @@ void Apu::Write(uint16_t adr, uint8_t val) {
       if (port_write_count < 10) {  // Reduced to prevent logging overflow crash
         LOG_INFO("APU", "SPC wrote port $%04X (F%d) = $%02X at PC=$%04X [APU_cycles=%llu]",
                  adr, adr - 0xf4 + 4, val, spc700_.PC, cycles_);
+      }
+      
+      // Track when SPC enters transfer loop (echoes counter back)
+      // PC is at $FFE2 when the MOVSY write completes (CB F4 is 2 bytes at $FFE0)
+      if (adr == 0xf4 && spc700_.PC == 0xFFE2 && rom_readable_) {
+        // SPC is echoing counter back - we're in data transfer phase
+        if (!in_transfer_ && ram[0x00] != 0 && ram[0x01] == 0) {
+          // Small destination address (< $0100) suggests small transfer
+          // ALTTP uses $0019 for bootstrap
+          if (ram[0x00] < 0x80) {
+            transfer_size_ = 1;  // Assume 1-byte bootstrap transfer
+            in_transfer_ = true;
+            LOG_INFO("APU", "Detected small transfer start: dest=$%02X%02X, size=%d",
+                     ram[0x01], ram[0x00], transfer_size_);
+          }
+        }
       }
       break;
     }

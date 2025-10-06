@@ -29,7 +29,7 @@ void Spc700::Reset(bool hard) {
 
 void Spc700::RunOpcode() {
   static int entry_log = 0;
-  if ((PC >= 0xFFF0 && PC <= 0xFFFF) && entry_log++ < 30) {
+  if ((PC >= 0xFFF0 && PC <= 0xFFFF) && entry_log++ < 5) {
     LOG_INFO("SPC", "RunOpcode ENTRY: PC=$%04X step=%d bstep=%d", PC, step, bstep);
   }
   
@@ -91,7 +91,7 @@ void Spc700::RunOpcode() {
   }
   
   static int exec_log = 0;
-  if ((PC >= 0xFFF0 && PC <= 0xFFFF) && exec_log++ < 30) {
+  if ((PC >= 0xFFF0 && PC <= 0xFFFF) && exec_log++ < 5) {
     LOG_INFO("SPC", "About to ExecuteInstructions: PC=$%04X step=%d bstep=%d opcode=$%02X", PC, step, bstep, opcode);
   }
   
@@ -1136,8 +1136,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       uint16_t result = A * Y;
       A = result & 0xff;
       Y = result >> 8;
-      PSW.Z = ((Y & 0xFFFF) == 0);
-      PSW.N = (Y & 0x8000);
+      PSW.Z = (Y == 0);
+      PSW.N = (Y & 0x80);
       break;
     }
     case 0xd0: {  // bne rel
@@ -1197,8 +1197,8 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     case 0xdc: {  // decy imp
       read(PC);
       Y--;
-      PSW.Z = ((Y & 0xFFFF) == 0);
-      PSW.N = (Y & 0x8000);
+      PSW.Z = (Y == 0);
+      PSW.N = (Y & 0x80);
       break;
     }
     case 0xdd: {  // movay imp
@@ -1338,15 +1338,15 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
     case 0xfc: {  // incy imp
       read(PC);
       Y++;
-      PSW.Z = ((Y & 0xFFFF) == 0);
-      PSW.N = (Y & 0x8000);
+      PSW.Z = (Y == 0);
+      PSW.N = (Y & 0x80);
       break;
     }
     case 0xfd: {  // movya imp
       read(PC);
       Y = A;
-      PSW.Z = ((Y & 0xFFFF) == 0);
-      PSW.N = (Y & 0x8000);
+      PSW.Z = (Y == 0);
+      PSW.N = (Y & 0x80);
       break;
     }
     case 0xfe: {  // dbnzy rel
