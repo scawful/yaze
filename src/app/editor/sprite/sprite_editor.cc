@@ -40,8 +40,9 @@ absl::Status SpriteEditor::Update() {
   DrawToolset();
   gui::VerticalSpacing(2.0f);
 
-  static gui::EditorCard vanilla_card("Vanilla Sprites", ICON_MD_PEST_CONTROL_RODENT);
-  static gui::EditorCard custom_card("Custom Sprites", ICON_MD_ADD_MODERATOR);
+  // Create session-aware cards (non-static for multi-session support)
+  gui::EditorCard vanilla_card(MakeCardTitle("Vanilla Sprites").c_str(), ICON_MD_PEST_CONTROL_RODENT);
+  gui::EditorCard custom_card(MakeCardTitle("Custom Sprites").c_str(), ICON_MD_ADD_MODERATOR);
 
   if (show_vanilla_editor_) {
     if (vanilla_card.Begin(&show_vanilla_editor_)) {

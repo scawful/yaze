@@ -68,11 +68,12 @@ absl::Status ScreenEditor::Update() {
   DrawToolset();
   gui::VerticalSpacing(2.0f);
 
-  static gui::EditorCard dungeon_maps_card("Dungeon Maps", ICON_MD_MAP);
-  static gui::EditorCard inventory_menu_card("Inventory Menu", ICON_MD_INVENTORY);
-  static gui::EditorCard overworld_map_card("Overworld Map", ICON_MD_PUBLIC);
-  static gui::EditorCard title_screen_card("Title Screen", ICON_MD_TITLE);
-  static gui::EditorCard naming_screen_card("Naming Screen", ICON_MD_EDIT_ATTRIBUTES);
+  // Create session-aware cards (non-static for multi-session support)
+  gui::EditorCard dungeon_maps_card(MakeCardTitle("Dungeon Maps").c_str(), ICON_MD_MAP);
+  gui::EditorCard inventory_menu_card(MakeCardTitle("Inventory Menu").c_str(), ICON_MD_INVENTORY);
+  gui::EditorCard overworld_map_card(MakeCardTitle("Overworld Map").c_str(), ICON_MD_PUBLIC);
+  gui::EditorCard title_screen_card(MakeCardTitle("Title Screen").c_str(), ICON_MD_TITLE);
+  gui::EditorCard naming_screen_card(MakeCardTitle("Naming Screen").c_str(), ICON_MD_EDIT_ATTRIBUTES);
 
   if (show_dungeon_maps_) {
     if (dungeon_maps_card.Begin(&show_dungeon_maps_)) {

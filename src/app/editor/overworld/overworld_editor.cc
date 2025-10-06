@@ -124,18 +124,19 @@ absl::Status OverworldEditor::Update() {
   DrawToolset();
   gui::VerticalSpacing(2.0f);
 
-  // Initialize cards on first run
-  static gui::EditorCard tile16_card("Tile16 Selector", ICON_MD_GRID_3X3);
-  static gui::EditorCard tile8_card("Tile8 Selector", ICON_MD_GRID_4X4);
-  static gui::EditorCard area_gfx_card("Area Graphics", ICON_MD_IMAGE);
-  static gui::EditorCard scratch_card("Scratch Space", ICON_MD_BRUSH);
-  static gui::EditorCard tile16_editor_card("Tile16 Editor", ICON_MD_GRID_ON);
-  static gui::EditorCard gfx_groups_card("Graphics Groups", ICON_MD_COLLECTIONS);
-  static gui::EditorCard usage_stats_card("Usage Statistics", ICON_MD_ANALYTICS);
-  static gui::EditorCard v3_settings_card("v3 Settings", ICON_MD_TUNE);
-  static bool cards_initialized = false;
+  // Create session-aware cards (non-static for multi-session support)
+  gui::EditorCard tile16_card(MakeCardTitle("Tile16 Selector").c_str(), ICON_MD_GRID_3X3);
+  gui::EditorCard tile8_card(MakeCardTitle("Tile8 Selector").c_str(), ICON_MD_GRID_4X4);
+  gui::EditorCard area_gfx_card(MakeCardTitle("Area Graphics").c_str(), ICON_MD_IMAGE);
+  gui::EditorCard scratch_card(MakeCardTitle("Scratch Space").c_str(), ICON_MD_BRUSH);
+  gui::EditorCard tile16_editor_card(MakeCardTitle("Tile16 Editor").c_str(), ICON_MD_GRID_ON);
+  gui::EditorCard gfx_groups_card(MakeCardTitle("Graphics Groups").c_str(), ICON_MD_COLLECTIONS);
+  gui::EditorCard usage_stats_card(MakeCardTitle("Usage Statistics").c_str(), ICON_MD_ANALYTICS);
+  gui::EditorCard v3_settings_card(MakeCardTitle("v3 Settings").c_str(), ICON_MD_TUNE);
   
-  if (!cards_initialized) {
+  // Configure card positions (these settings persist via imgui.ini)
+  static bool cards_configured = false;
+  if (!cards_configured) {
     // Position cards for optimal workflow
     tile16_card.SetDefaultSize(300, 600);
     tile16_card.SetPosition(gui::EditorCard::Position::Right);
@@ -161,7 +162,7 @@ absl::Status OverworldEditor::Update() {
     v3_settings_card.SetDefaultSize(500, 600);
     v3_settings_card.SetPosition(gui::EditorCard::Position::Floating);
     
-    cards_initialized = true;
+    cards_configured = true;
   }
   
   // Main canvas (full width when cards are docked)

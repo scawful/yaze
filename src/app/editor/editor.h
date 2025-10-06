@@ -120,6 +120,14 @@ class Editor {
   EditorType type_;
   EditorContext* context_ = nullptr;
 
+  // Helper method to create session-aware card titles for multi-session support
+  std::string MakeCardTitle(const std::string& base_title) const {
+    if (context_ && context_->session_id > 0) {
+      return absl::StrFormat("%s [S%zu]", base_title, context_->session_id);
+    }
+    return base_title;
+  }
+
   // Helper method for ROM access with safety check
   template<typename T>
   absl::StatusOr<T> SafeRomAccess(std::function<T()> accessor, const std::string& operation = "") const {
