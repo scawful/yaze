@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.3 (October 2025)
+
+### GUI & UX Modernization
+- **Theme System**: Implemented a comprehensive theme system (`AgentUITheme`) that centralizes all UI colors. All Agent UI components are now theme-aware, deriving colors from the main application theme.
+- **UI Helper Library**: Created a library of 30+ reusable UI helper functions (`AgentUI::*` and `gui::*`) to standardize panel styles, section headers, status indicators, and buttons, reducing boilerplate code by over 50%.
+- **Visual Polish**: Enhanced numerous UI panels (Agent Chat, Test Harness, Collaboration) with theme-aware colors, status badges (PASS/FAIL/RUN), connection indicators, and provider badges (Ollama/Gemini).
+
+### Overworld Editor Refactoring
+- **Modular Architecture**: Refactored the 3,400-line `OverworldEditor` into smaller, focused modules, including `OverworldEntityRenderer`.
+- **Progressive Loading**: Implemented a priority-based progressive loading system in the central `gfx::Arena` to prevent UI freezes during asset loading. This benefits all editors.
+- **Critical Graphics Fixes**: Resolved major bugs related to graphics not refreshing immediately, multi-quadrant map updates, and incorrect feature visibility on vanilla ROMs.
+- **Multi-Area Map Configuration**: Implemented a robust `ConfigureMultiAreaMap()` method to correctly handle parent/child relationships for all area sizes (Small, Large, Wide, Tall).
+
+### Build System & Stability
+- **Build Fixes**: Resolved 7 critical build errors, including linker issues, missing virtual methods, and filesystem crashes.
+- **C API Separation**: Decoupled the C API library from the main application to improve build modularity.
+
+
 ## 0.3.2 (December 2025) - In Development
 
 ### Tile16 Editor Improvements (In Progress)

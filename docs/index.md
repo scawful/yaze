@@ -10,6 +10,8 @@ Welcome to the official documentation for yaze, a comprehensive ROM editor for T
 
 ## Development & API
 
+- [Development Guide](development_guide.md) - Core architectural patterns, UI systems, and best practices.
+- [GUI Testing Guide](gui_testing.md) - The end-to-end GUI testing framework.
 - [API Reference](04-api-reference.md) - C/C++ API documentation for extensions.
 - [Testing Guide](A1-testing-guide.md) - The testing framework and best practices.
 - [Assembly Style Guide](E1-asm-style-guide.md) - 65816 assembly coding standards.

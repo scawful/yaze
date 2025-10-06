@@ -176,6 +176,26 @@ An agent-friendly, end-to-end testing framework built on `ImGuiTestEngine` to au
 - `test/e2e/canvas_selection_test.cc` - Canvas interaction tests
 - `test/test_utils.h` - High-level action wrappers (LoadRomInTest, OpenEditorInTest, etc.)
 
+### Widget Registration for Automation
+
+All modern UI components are fully integrated with the ImGui Test Engine for seamless automation.
+
+**Toolbar Components:**
+All toolbar buttons are automatically registered with descriptive paths:
+- `ModeButton:Pan (1)`
+- `ModeButton:Draw (2)`
+- `ToolbarAction:Toggle Tile16 Selector`
+- `ToolbarAction:Open Tile16 Editor`
+
+**Editor Cards:**
+All EditorCard windows are registered as discoverable windows:
+- `EditorCard:Tile16 Selector`
+- `EditorCard:Area Graphics`
+
+**State Introspection:**
+Card visibility states are tracked for test automation:
+- `OverworldToolbar/state:tile16_selector_visible`
+
 ### Writing E2E Tests
 
 ```cpp
@@ -202,15 +222,57 @@ void RegisterCanvasSelectionTest() {
 }
 ```
 
-### Running GUI Tests
+### Running GUI Tests with `z3ed`
+
+The `z3ed` CLI provides a powerful interface for running GUI tests.
 
 ```bash
 # Run all E2E tests
-z3ed test-gui --rom zelda3.sfc --test all
+z3ed gui replay --ci-mode
 
-# Run specific test suite
-z3ed test-gui --rom zelda3.sfc --test canvas_selection
+# Run a specific test suite from a YAML file
+z3ed gui replay test_overworld_workflow.yaml --ci-mode
 
-# Run in headless mode (CI)
-z3ed test-gui --rom zelda3.sfc --test all --headless
+# Click a specific button
+z3ed gui click "ModeButton:Draw (2)"
+
+# Wait for a window to become visible
+z3ed gui wait "window_visible:Tile16 Selector"
+
+# Assert that a card is visible
+z3ed gui assert "visible:EditorCard:Tile16 Selector"
 ```
+
+### Widget Discovery
+
+You can discover all registered UI elements for scripting and testing.
+
+```bash
+# List all widgets in the Overworld window
+z3ed gui discover --window="Overworld" --format=yaml > overworld_widgets.yaml
+
+# Find all toolbar actions
+z3ed gui discover --path-prefix="ToolbarAction:"
+
+# Find all editor cards
+z3ed gui discover --path-prefix="EditorCard:"
+```
+
+### Integration with AI Agent
+
+The agent can leverage the GUI testing framework to perform actions.
+
+1.  **Discover UI Elements**: `Agent> describe gui`
+2.  **Interact with UI**: `Agent> click toolbar button "Toggle Tile16 Selector"`
+3.  **Monitor State**: `Agent> check if "Tile16 Selector" is visible`
+
+### Visual Testing
+
+For vision-based testing, overworld entities are rendered with high-visibility colors:
+- **Entrances**: Bright yellow-gold
+- **Exits**: Cyan-white
+- **Items**: Bright red
+- **Sprites**: Bright magenta
+
+### Performance
+Widget registration has zero runtime overhead, using efficient hash map lookups and automatic cleanup of stale widgets.
