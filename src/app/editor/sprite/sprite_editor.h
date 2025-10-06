@@ -8,6 +8,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/gui/canvas.h"
+#include "app/gui/editor_layout.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -80,6 +81,11 @@ class SpriteEditor : public Editor {
    * @brief Draws the animation frames manager.
    */
   void DrawAnimationFrames();
+  void DrawToolset();
+
+  // Card visibility
+  bool show_vanilla_editor_ = true;
+  bool show_custom_editor_ = false;
 
   ImVector<int> active_sprites_; /**< Active sprites. */
 

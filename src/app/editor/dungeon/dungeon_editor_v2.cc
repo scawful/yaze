@@ -6,16 +6,13 @@
 #include "app/gfx/snes_palette.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/gui/icons.h"
+#include "app/gui/ui_helpers.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
 
 using ImGui::BeginTable;
-using ImGui::BeginTabBar;
-using ImGui::BeginTabItem;
 using ImGui::EndTable;
-using ImGui::EndTabBar;
-using ImGui::EndTabItem;
 using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
 using ImGui::TableNextRow;
@@ -65,6 +62,9 @@ absl::Status DungeonEditorV2::Update() {
     return absl::OkStatus();
   }
 
+  DrawToolset();
+  gui::VerticalSpacing(2.0f);
+
   DrawLayout();
   return absl::OkStatus();
 }
@@ -86,6 +86,17 @@ absl::Status DungeonEditorV2::Save() {
   return absl::OkStatus();
 }
 
+void DungeonEditorV2::DrawToolset() {
+  static gui::Toolset toolbar;
+  toolbar.Begin();
+
+  if (toolbar.AddAction(ICON_MD_ADD, "Open Room")) {
+    OnRoomSelected(room_selector_.current_room_id());
+  }
+
+  toolbar.End();
+}
+
 void DungeonEditorV2::DrawLayout() {
   // Simple 3-column layout as designed
   if (BeginTable("##DungeonEditTable", 3,
@@ -101,46 +112,41 @@ void DungeonEditorV2::DrawLayout() {
     TableNextColumn();
     room_selector_.Draw();
 
-    // Column 2: Canvas (fully delegated)
+    // Column 2: Canvas area for active room cards
     TableNextColumn();
-    if (BeginTabBar("##RoomTabs")) {
-      for (int i = 0; i < active_rooms_.Size; i++) {
-        int room_id = active_rooms_[i];
-        bool open = true;
-
-        std::string tab_name_str;
-        const char* tab_name;
-        if (room_id >= 0 && static_cast<size_t>(room_id) < std::size(zelda3::kRoomNames)) {
-          tab_name = zelda3::kRoomNames[room_id].data();
-        } else {
-          tab_name_str = absl::StrFormat("Room %03X", room_id);
-          tab_name = tab_name_str.c_str();
-        }
-
-        if (BeginTabItem(tab_name, &open)) {
-          DrawRoomTab(room_id);
-          EndTabItem();
-        }
-
-        if (!open) {
-          active_rooms_.erase(active_rooms_.Data + i);
-          i--;
-        }
-      }
-
-      // Add tab button
-      if (ImGui::TabItemButton(ICON_MD_ADD, ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
-        OnRoomSelected(room_selector_.current_room_id());
-      }
-      
-      EndTabBar();
-    }
+    // This column is now just a docking space. The cards themselves are independent windows.
 
     // Column 3: Object Selector (fully delegated)
     TableNextColumn();
     object_selector_.Draw();
 
     EndTable();
+  }
+
+  // Draw active rooms as individual, dockable EditorCards
+  for (int i = 0; i < active_rooms_.Size; i++) {
+    int room_id = active_rooms_[i];
+    bool open = true;
+
+    std::string card_name_str;
+    const char* card_name;
+    if (room_id >= 0 && static_cast<size_t>(room_id) < std::size(zelda3::kRoomNames)) {
+      card_name_str = absl::StrFormat("%s###RoomCard%d", zelda3::kRoomNames[room_id].data(), room_id);
+    } else {
+      card_name_str = absl::StrFormat("Room %03X###RoomCard%d", room_id, room_id);
+    }
+    card_name = card_name_str.c_str();
+
+    gui::EditorCard room_card(card_name, ICON_MD_GRID_ON, &open);
+    if (room_card.Begin()) {
+      DrawRoomTab(room_id);
+      room_card.End();
+    }
+
+    if (!open) {
+      active_rooms_.erase(active_rooms_.Data + i);
+      i--;
+    }
   }
 }
 
@@ -188,11 +194,12 @@ void DungeonEditorV2::OnRoomSelected(int room_id) {
   // Check if already open
   for (int i = 0; i < active_rooms_.Size; i++) {
     if (active_rooms_[i] == room_id) {
-      return;  // Already open
+      // Optional: Focus the existing window if possible. For now, do nothing.
+      return;
     }
   }
 
-  // Add new tab
+  // Add new room to be opened as a card
   active_rooms_.push_back(room_id);
   room_selector_.set_active_rooms(active_rooms_);
 }

@@ -5,6 +5,7 @@
 
 #include "app/editor/editor.h"
 #include "app/gui/modules/text_editor.h"
+#include "app/gui/editor_layout.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
 
@@ -24,15 +25,11 @@ struct FolderItem {
 class AssemblyEditor : public Editor {
  public:
   explicit AssemblyEditor(Rom* rom = nullptr) : rom_(rom) {
-    text_editor_.SetLanguageDefinition(gui::GetAssemblyLanguageDef());
     text_editor_.SetPalette(TextEditor::GetDarkPalette());
     text_editor_.SetShowWhitespaces(false);
     type_ = EditorType::kAssembly;
   }
-  void ChangeActiveFile(const std::string_view &filename) {
-    current_file_ = filename;
-    file_is_loaded_ = false;
-  }
+  void ChangeActiveFile(const std::string_view &filename);
 
   void Initialize() override;
   absl::Status Load() override;
@@ -51,7 +48,7 @@ class AssemblyEditor : public Editor {
 
   absl::Status Update() override;
 
-  absl::Status Save() override { return absl::UnimplementedError("Save"); }
+  absl::Status Save() override;
 
   void OpenFolder(const std::string &folder_path);
 
@@ -61,12 +58,13 @@ class AssemblyEditor : public Editor {
  private:
   void DrawFileMenu();
   void DrawEditMenu();
-  void SetEditorText();
   void DrawCurrentFolder();
   void DrawFileTabView();
+  void DrawToolset();
 
   bool file_is_loaded_ = false;
   int current_file_id_ = 0;
+  int active_file_id_ = -1;
 
   std::vector<std::string> files_;
   std::vector<TextEditor> open_files_;
