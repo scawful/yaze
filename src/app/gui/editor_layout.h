@@ -114,6 +114,7 @@ class EditorCard {
   };
   
   EditorCard(const char* title, const char* icon = nullptr);
+  EditorCard(const char* title, const char* icon, bool* p_open);
   
   // Set card properties
   void SetDefaultSize(float width, float height);
@@ -140,6 +141,7 @@ class EditorCard {
   bool closable_ = true;
   bool minimized_ = false;
   bool first_draw_ = true;
+  bool* p_open_ = nullptr;
 };
 
 /**
