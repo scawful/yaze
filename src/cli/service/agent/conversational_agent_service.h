@@ -66,6 +66,7 @@ struct AgentConfig {
   bool show_reasoning = true;    // Show LLM reasoning in output
   size_t max_history_messages = 50;  // Maximum stored history messages per session
   bool trim_history = true;          // Whether to trim history beyond the limit
+  bool enable_vim_mode = false;      // Enable vim-style line editing in simple-chat
   AgentOutputFormat output_format = AgentOutputFormat::kFriendly;
 };
 

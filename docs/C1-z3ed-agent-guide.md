@@ -174,8 +174,37 @@ The `z3ed` CLI is the foundation for an AI-driven Model-Code-Program (MCP) loop,
 ### FTXUI Chat (`agent chat`)
 Full-screen interactive terminal with table rendering, syntax highlighting, and scrollable history. Best for manual exploration.
 
+**Features:**
+- **Autocomplete**: Real-time command suggestions as you type
+- **Fuzzy matching**: Intelligent command completion with scoring
+- **Context-aware help**: Suggestions adapt based on command prefix
+- **History navigation**: Up/down arrows to cycle through previous commands
+- **Syntax highlighting**: Color-coded responses and tables
+- **Metrics display**: Real-time performance stats and turn counters
+
 ### Simple Chat (`agent simple-chat`)
 Lightweight, scriptable text-based REPL that supports single messages, interactive sessions, piped input, and batch files.
+
+**✨ New Feature: Vim Mode**
+Enable vim-style line editing with `--vim` flag for enhanced terminal UX:
+- **Normal mode** (`ESC`): Navigate with `hjkl`, `w`/`b` word movement, `0`/`$` line start/end
+- **Insert mode** (`i`, `a`, `o`): Regular text input with vim keybindings
+- **Editing**: `x` delete char, `dd` delete line, `yy` yank line, `p`/`P` paste
+- **History**: Navigate with `Ctrl+P`/`Ctrl+N` or `j`/`k` in normal mode
+- **Autocomplete**: Press `Tab` in insert mode for command suggestions
+- **Undo/Redo**: `u` to undo changes in normal mode
+
+```bash
+# Enable vim mode in simple chat
+z3ed agent simple-chat --rom zelda3.sfc --vim
+
+# Example workflow:
+# 1. Start in INSERT mode, type your message
+# 2. Press ESC to enter NORMAL mode
+# 3. Use hjkl to navigate, w/b for word movement
+# 4. Press i to return to INSERT mode
+# 5. Press Enter to send message
+```
 
 ### GUI Chat Widget (Editor Integration)
 Accessible from **Debug → Agent Chat** inside YAZE. Provides the same conversation loop as the CLI, including streaming history, JSON/table inspection, and ROM-aware tool dispatch.

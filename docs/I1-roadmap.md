@@ -19,6 +19,8 @@ With the core systems stable, the immediate priority is to enhance the `z3ed` AI
 -   **Performance**: Address the slow initial load time (~2.6 seconds) by implementing lazy loading for rooms.
 
 ### Priority 2: `z3ed` AI Agent
+-   ✅ **Vim Mode**: Implemented vim-style line editing in simple-chat with full modal editing support
+-   ✅ **Autocomplete**: Added intelligent command completion with fuzzy matching in FTXUI chat
 -   **Live LLM Hardening**: Finalize testing of the native Gemini function-calling loop and the proactive v3 system prompt.
 -   **AI-Driven Editing**: Integrate the AI with the GUI test harness to allow for automated, mouse-driven edits based on natural language commands.
 -   **Expand Agent Toolset**: Add new read-only tools for inspecting dialogue, music data, and sprite properties.
@@ -49,6 +51,12 @@ With the core systems stable, the immediate priority is to enhance the `z3ed` AI
     -   Write a comprehensive user guide for ROM hackers, covering all major editor workflows.
 
 ---
+
+## Recently Completed (v0.3.3 - October 6, 2025)
+
+-   ✅ **Vim Mode for CLI**: Full vim-style modal editing in `simple-chat` with normal/insert modes, navigation (hjkl, w/b), editing (dd, yy, p), history, and autocomplete
+-   ✅ **Autocomplete System**: Intelligent command completion engine with fuzzy matching, context-aware suggestions, and real-time dropdown in FTXUI chat
+-   ✅ **Enhanced TUI**: Integrated autocomplete UI components with proper header files and CMake compilation
 
 ## Recently Completed (v0.3.2)
 

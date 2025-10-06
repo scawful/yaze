@@ -3,9 +3,11 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "absl/status/status.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/agent/vim_mode.h"
 
 namespace yaze {
 
@@ -64,9 +66,12 @@ class SimpleChatSession {
  private:
   void PrintMessage(const ChatMessage& msg, bool show_timestamp = false);
   void PrintTable(const ChatMessage::TableData& table);
+  std::string ReadLineWithVim();
+  std::vector<std::string> GetAutocompleteOptions(const std::string& partial);
   
   ConversationalAgentService agent_service_;
   AgentConfig config_;
+  std::unique_ptr<VimMode> vim_mode_;
 };
 
 }  // namespace agent
