@@ -1,0 +1,7 @@
+<map id="yaze::gui::TileSelectorWidget::ResolveTileAtCursor" name="yaze::gui::TileSelectorWidget::ResolveTileAtCursor">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,191,79"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ad4cb29e99fcf29856f6eeedc5a79384f" title=" " alt="" coords="239,5,365,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,41,223,36,224,41,192,46"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ab3664ce0fdd6afa2113d10dd55fa9d80" title=" " alt="" coords="239,71,365,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,71,224,76,223,81,191,76"/>
+</map>

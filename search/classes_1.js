@@ -23,6 +23,5 @@ var searchData=
   ['bppformatinfo_20',['BppFormatInfo',['../da/dec/structyaze_1_1gfx_1_1BppFormatInfo.html',1,'yaze::gfx']]],
   ['bppformatmanager_21',['BppFormatManager',['../d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html',1,'yaze::gfx']]],
   ['bppformatui_22',['BppFormatUI',['../d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html',1,'yaze::gui']]],
-  ['breakpoint_23',['Breakpoint',['../d1/dd3/structTextEditor_1_1Breakpoint.html',1,'TextEditor']]],
-  ['button_24',['Button',['../d2/dc1/structyaze_1_1gui_1_1Button.html',1,'yaze::gui']]]
+  ['breakpoint_23',['Breakpoint',['../d1/dd3/structTextEditor_1_1Breakpoint.html',1,'TextEditor']]]
 ];

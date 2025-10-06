@@ -18,7 +18,7 @@ var searchData=
   ['memorypool_15',['memorypool',['../dc/d55/classyaze_1_1gfx_1_1MemoryPool.html',1,'yaze::gfx::MemoryPool'],['../d8/d5f/classyaze_1_1zelda3_1_1ObjectRenderer_1_1MemoryPool.html',1,'yaze::zelda3::ObjectRenderer::MemoryPool']]],
   ['menu_16',['Menu',['../df/d6f/structyaze_1_1editor_1_1MenuBuilder_1_1Menu.html',1,'yaze::editor::MenuBuilder']]],
   ['menubuilder_17',['MenuBuilder',['../d7/d73/classyaze_1_1editor_1_1MenuBuilder.html',1,'yaze::editor']]],
-  ['menuitem_18',['menuitem',['../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html',1,'yaze::editor::MenuBuilder::MenuItem'],['../d7/dc5/structyaze_1_1gui_1_1MenuItem.html',1,'yaze::gui::MenuItem']]],
+  ['menuitem_18',['MenuItem',['../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html',1,'yaze::editor::MenuBuilder']]],
   ['messagedata_19',['MessageData',['../d3/d89/structyaze_1_1editor_1_1MessageData.html',1,'yaze::editor']]],
   ['messageeditor_20',['MessageEditor',['../d3/d6c/classyaze_1_1editor_1_1MessageEditor.html',1,'yaze::editor']]],
   ['messagepreview_21',['MessagePreview',['../dc/dd1/structyaze_1_1editor_1_1MessagePreview.html',1,'yaze::editor']]],

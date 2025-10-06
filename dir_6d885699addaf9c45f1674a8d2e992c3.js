@@ -6,6 +6,8 @@ var dir_6d885699addaf9c45f1674a8d2e992c3 =
     [ "collaboration_panel.h", "d8/df4/collaboration__panel_8h.html", "d8/df4/collaboration__panel_8h" ],
     [ "palette_widget.cc", "d2/d93/palette__widget_8cc.html", null ],
     [ "palette_widget.h", "d8/dbb/palette__widget_8h.html", "d8/dbb/palette__widget_8h" ],
+    [ "tile_selector_widget.cc", "d3/d24/tile__selector__widget_8cc.html", null ],
+    [ "tile_selector_widget.h", "dc/d4d/tile__selector__widget_8h.html", "dc/d4d/tile__selector__widget_8h" ],
     [ "widget_auto_register.cc", "d5/d3e/widget__auto__register_8cc.html", "d5/d3e/widget__auto__register_8cc" ],
     [ "widget_auto_register.h", "dd/d7f/widget__auto__register_8h.html", "dd/d7f/widget__auto__register_8h" ],
     [ "widget_id_registry.cc", "d3/d10/widget__id__registry_8cc.html", "d3/d10/widget__id__registry_8cc" ],

@@ -1,14 +1,9 @@
 var input_8h =
 [
     [ "yaze::gui::Table", "d8/d52/structyaze_1_1gui_1_1Table.html", "d8/d52/structyaze_1_1gui_1_1Table" ],
-    [ "yaze::gui::MenuItem", "d7/dc5/structyaze_1_1gui_1_1MenuItem.html", "d7/dc5/structyaze_1_1gui_1_1MenuItem" ],
-    [ "yaze::gui::Text", "d7/dc7/structyaze_1_1gui_1_1Text.html", "d7/dc7/structyaze_1_1gui_1_1Text" ],
-    [ "yaze::gui::Button", "d2/dc1/structyaze_1_1gui_1_1Button.html", "d2/dc1/structyaze_1_1gui_1_1Button" ],
-    [ "yaze::gui::Layout", "d4/d44/structyaze_1_1gui_1_1Layout.html", "d4/d44/structyaze_1_1gui_1_1Layout" ],
     [ "IMGUI_DEFINE_MATH_OPERATORS", "de/ded/input_8h.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "ItemLabelFlags", "de/ded/input_8h.html#a28671c6edc49db8152f84414daa5ad05", null ],
     [ "GuiElement", "de/ded/input_8h.html#a9c01b6181e4e5b36a4c62bb82a7cc931", null ],
-    [ "Menu", "de/ded/input_8h.html#ad37c26c20977df22794b5cadc9a9cb7e", null ],
     [ "InputHex", "de/ded/input_8h.html#a85c0af649d4fdc913fcabb1634667602", null ],
     [ "InputHex", "de/ded/input_8h.html#ab950f3133e3cb956c3c76733c0e16909", null ],
     [ "InputHexShort", "de/ded/input_8h.html#a3fc21432778948e49c842ca3cce33c84", null ],
@@ -26,12 +21,8 @@ var input_8h =
     [ "GetID", "de/ded/input_8h.html#ac4604ede79aa224793b522b22034e68b", null ],
     [ "MapKeyToImGuiKey", "de/ded/input_8h.html#ac81f2f9ce698693fc3d7e3e1d7f6ed43", null ],
     [ "AddTableColumn", "de/ded/input_8h.html#a4869c3a07239efb126450a3a4a121841", null ],
-    [ "DrawTable", "de/ded/input_8h.html#a63cf2c84b704f70ba84ef7a1691e1b85", null ],
-    [ "DrawMenu", "de/ded/input_8h.html#a627566d8500f099dabff60322d3c187e", null ],
     [ "OpenUrl", "de/ded/input_8h.html#a7b898e6c361ce2d367d1e1570f8f6c03", null ],
-    [ "RenderLayout", "de/ded/input_8h.html#a2fab6c87cc29a26e4b09632253507131", null ],
     [ "MemoryEditorPopup", "de/ded/input_8h.html#a5d17b111857a66c28a91fc117027a574", null ],
     [ "kDefaultModalSize", "de/ded/input_8h.html#ab655498d16f5ecf417dddcc70faed138", null ],
-    [ "kZeroPos", "de/ded/input_8h.html#ab500bfa55478470e1f7cd45806c3728e", null ],
-    [ "kSeparator", "de/ded/input_8h.html#a3b98f0b2012856166c36b814bc70184c", null ]
+    [ "kZeroPos", "de/ded/input_8h.html#ab500bfa55478470e1f7cd45806c3728e", null ]
 ];

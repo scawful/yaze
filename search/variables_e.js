@@ -155,7 +155,7 @@ var searchData=
   ['overworldcustomasmhasbeenapplied_152',['OverworldCustomASMHasBeenApplied',['../d5/d1f/namespaceyaze_1_1zelda3.html#a859fd8285a275e2b12b420134989df83',1,'yaze::zelda3']]],
   ['overworldcustommainpalettearray_153',['OverworldCustomMainPaletteArray',['../d5/d1f/namespaceyaze_1_1zelda3.html#a498ef6ecbadf2254f0aa60cb5cdbb607',1,'yaze::zelda3']]],
   ['overworldcustommainpaletteenabled_154',['OverworldCustomMainPaletteEnabled',['../d5/d1f/namespaceyaze_1_1zelda3.html#a448dfd07e83c376a58e4b5a407872ff8',1,'yaze::zelda3']]],
-  ['overworldcustommosaicarray_155',['overworldcustommosaicarray',['../d5/d1f/namespaceyaze_1_1zelda3.html#ac400204de9ced3051457e6f1d9a97115',1,'yaze::zelda3::overworldCustomMosaicArray'],['../d5/d1f/namespaceyaze_1_1zelda3.html#a3a3f4340783c04d5e1e3fbda2e0f3d68',1,'yaze::zelda3::OverworldCustomMosaicArray']]],
+  ['overworldcustommosaicarray_155',['overworldcustommosaicarray',['../d5/d1f/namespaceyaze_1_1zelda3.html#a3a3f4340783c04d5e1e3fbda2e0f3d68',1,'yaze::zelda3::OverworldCustomMosaicArray'],['../d5/d1f/namespaceyaze_1_1zelda3.html#ac400204de9ced3051457e6f1d9a97115',1,'yaze::zelda3::overworldCustomMosaicArray']]],
   ['overworldcustommosaicasm_156',['overworldCustomMosaicASM',['../d5/d1f/namespaceyaze_1_1zelda3.html#aa83813e72b6c1e5691c65745de37aee7',1,'yaze::zelda3']]],
   ['overworldcustommosaicenabled_157',['OverworldCustomMosaicEnabled',['../d5/d1f/namespaceyaze_1_1zelda3.html#ac04d90d39cb3a2bfa0af2d6d487b1295',1,'yaze::zelda3']]],
   ['overworldcustomsubscreenoverlayarray_158',['OverworldCustomSubscreenOverlayArray',['../d5/d1f/namespaceyaze_1_1zelda3.html#afd372e976fa18637ea5e8572119541d4',1,'yaze::zelda3']]],

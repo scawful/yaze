@@ -1,0 +1,11 @@
+<map id="yaze::gui::CanvasAutomationAPI::IsInBounds" name="yaze::gui::CanvasAutomationAPI::IsInBounds">
+<area shape="rect" id="Node000001" title="Check if coordinates are within canvas bounds." alt="" coords="5,71,192,111"/>
+<area shape="rect" id="Node000002" href="$dd/de4/classyaze_1_1gui_1_1CanvasAutomationAPI.html#a66ef4c733b8908228c5d3cc887833bb4" title="Get canvas dimensions in logical tile units." alt="" coords="240,71,426,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,88,224,88,224,94,192,94"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="474,5,600,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="398,68,458,48,460,53,399,73"/>
+<area shape="rect" id="Node000004" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e" title=" " alt="" coords="474,71,600,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="426,88,458,88,458,94,426,94"/>
+<area shape="rect" id="Node000005" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a8ab4eaba6694e3b41eb961b30d9ba0fa" title=" " alt="" coords="474,136,600,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="399,109,460,129,458,134,398,114"/>
+</map>

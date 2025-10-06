@@ -1,0 +1,9 @@
+<map id="yaze::gui::CanvasAutomationAPI::GetDimensions" name="yaze::gui::CanvasAutomationAPI::GetDimensions">
+<area shape="rect" id="Node000001" title="Get canvas dimensions in logical tile units." alt="" coords="5,71,192,111"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="240,5,366,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,68,224,48,226,53,165,73"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e" title=" " alt="" coords="240,71,366,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,88,224,88,224,94,192,94"/>
+<area shape="rect" id="Node000004" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a8ab4eaba6694e3b41eb961b30d9ba0fa" title=" " alt="" coords="240,136,366,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="165,109,226,129,224,134,163,114"/>
+</map>

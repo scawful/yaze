@@ -1,0 +1,12 @@
+<map id="yaze::gui::CanvasAutomationAPI::GetSelection" name="yaze::gui::CanvasAutomationAPI::GetSelection">
+<area shape="rect" id="Node000001" title="Query current selection state." alt="" coords="5,67,192,107"/>
+<area shape="rect" id="Node000002" href="$dd/de4/classyaze_1_1gui_1_1CanvasAutomationAPI.html#a8b168f144e7e80d36ecb6c0e565c3a66" title="Convert canvas pixel coordinates to logical tile coordinates." alt="" coords="240,33,426,74"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,71,224,66,225,72,192,76"/>
+<area shape="rect" id="Node000007" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#af3b334ec613e22d688e8a8bfb7636c0b" title=" " alt="" coords="270,99,396,139"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="192,97,255,106,254,111,192,102"/>
+<area shape="rect" id="Node000003" href="$dd/de4/classyaze_1_1gui_1_1CanvasAutomationAPI.html#a66ef4c733b8908228c5d3cc887833bb4" title="Get canvas dimensions in logical tile units." alt="" coords="474,5,660,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="426,40,458,36,459,41,427,45"/>
+<area shape="rect" id="Node000005" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e" title=" " alt="" coords="708,35,835,75"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="426,54,474,55,660,55,693,54,693,60,660,60,474,60,426,59"/>
+<area shape="poly" id="edge3_Node000003_Node000005" title=" " alt="" coords="661,36,693,41,692,46,660,42"/>
+</map>

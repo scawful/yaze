@@ -1,0 +1,14 @@
+<map id="src/app/gui/widgets/tile_selector_widget.h" name="src/app/gui/widgets/tile_selector_widget.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="100,5,250,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,168,59,193"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,49,86,68,57,96,43,124,36,153,31,152,38,122,53,92,83,64,118,44"/>
+<area shape="rect" id="Node000003" href="$da/dcb/bitmap_8h.html" title=" " alt="" coords="85,168,201,193"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,46,203,81,205,101,201,121,189,142,173,159,169,156,185,139,196,119,200,101,198,82,184,48"/>
+<area shape="rect" id="Node000024" href="$d4/dcf/canvas_8h.html" title=" " alt="" coords="67,94,186,120"/>
+<area shape="poly" id="edge3_Node000001_Node000024" title=" " alt="" coords="165,48,144,82,140,79,161,45"/>
+<area shape="rect" id="Node000022" title=" " alt="" coords="225,168,322,193"/>
+<area shape="poly" id="edge7_Node000001_Node000022" title=" " alt="" coords="190,45,221,93,260,153,255,156,216,95,185,48"/>
+<area shape="poly" id="edge4_Node000024_Node000002" title=" " alt="" coords="112,122,62,160,58,156,109,118"/>
+<area shape="poly" id="edge5_Node000024_Node000003" title=" " alt="" coords="132,119,139,152,134,153,127,120"/>
+<area shape="poly" id="edge6_Node000024_Node000022" title=" " alt="" coords="153,118,236,158,233,163,150,123"/>
+</map>

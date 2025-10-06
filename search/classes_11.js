@@ -15,7 +15,7 @@ var searchData=
   ['sdl_5fdeleter_12',['SDL_Deleter',['../db/d66/structyaze_1_1util_1_1SDL__Deleter.html',1,'yaze::util']]],
   ['sdl_5fsurface_5fdeleter_13',['SDL_Surface_Deleter',['../df/d22/structyaze_1_1util_1_1SDL__Surface__Deleter.html',1,'yaze::util']]],
   ['sdl_5ftexture_5fdeleter_14',['SDL_Texture_Deleter',['../db/dac/structyaze_1_1util_1_1SDL__Texture__Deleter.html',1,'yaze::util']]],
-  ['selectionstate_15',['SelectionState',['../d6/dfb/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1SelectionState.html',1,'yaze::zelda3::DungeonObjectEditor']]],
+  ['selectionstate_15',['selectionstate',['../db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html',1,'yaze::gui::CanvasAutomationAPI::SelectionState'],['../d6/dfb/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1SelectionState.html',1,'yaze::zelda3::DungeonObjectEditor::SelectionState']]],
   ['sessioncontext_16',['SessionContext',['../d4/dd3/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationCallbacks_1_1SessionContext.html',1,'yaze::editor::AgentChatWidget::CollaborationCallbacks']]],
   ['sessionfiledata_17',['SessionFileData',['../d0/d42/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionFileData.html',1,'yaze::editor::AgentCollaborationCoordinator']]],
   ['sessioninfo_18',['sessioninfo',['../d3/d68/structyaze_1_1editor_1_1WorkspaceManager_1_1SessionInfo.html',1,'yaze::editor::WorkspaceManager::SessionInfo'],['../dc/d5b/structyaze_1_1editor_1_1AgentEditor_1_1SessionInfo.html',1,'yaze::editor::AgentEditor::SessionInfo'],['../d8/da4/structyaze_1_1app_1_1net_1_1SessionInfo.html',1,'yaze::app::net::SessionInfo'],['../d2/df2/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionInfo.html',1,'yaze::editor::AgentCollaborationCoordinator::SessionInfo']]],

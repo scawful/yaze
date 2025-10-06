@@ -1,5 +1,8 @@
 <map id="yaze::gui::Canvas::SetCanvasGridSize" name="yaze::gui::Canvas::SetCanvasGridSize">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,140,46"/>
-<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#aa2edd88e58963b4157244d319cc2c1b6" title=" " alt="" coords="188,5,314,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,23,172,23,172,28,140,28"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a8ab4eaba6694e3b41eb961b30d9ba0fa" title=" " alt="" coords="362,5,488,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,20,188,19,314,19,347,20,346,25,314,24,188,24,140,26"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#aa2edd88e58963b4157244d319cc2c1b6" title=" " alt="" coords="188,33,314,74"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="141,34,173,39,172,44,140,39"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="314,41,346,36,347,41,315,46"/>
 </map>

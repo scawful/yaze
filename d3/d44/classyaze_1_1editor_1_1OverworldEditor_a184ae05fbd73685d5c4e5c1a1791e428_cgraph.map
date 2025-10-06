@@ -1,0 +1,9 @@
+<map id="yaze::editor::OverworldEditor::CenterOverworldView" name="yaze::editor::OverworldEditor::CenterOverworldView">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,189,111"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="237,5,363,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="161,68,221,48,223,53,163,73"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e" title=" " alt="" coords="237,71,363,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,88,221,88,221,94,189,94"/>
+<area shape="rect" id="Node000004" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a01bf7ad681e216aef246fd8f562a9a56" title=" " alt="" coords="237,136,363,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="163,109,223,129,221,134,161,114"/>
+</map>

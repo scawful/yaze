@@ -1,0 +1,7 @@
+<map id="yaze::gui::CanvasAutomationAPI::GetTileAt" name="yaze::gui::CanvasAutomationAPI::GetTileAt">
+<area shape="rect" id="Node000001" title="Query tile ID at logical coordinates." alt="" coords="5,5,192,46"/>
+<area shape="rect" id="Node000002" href="$dd/de4/classyaze_1_1gui_1_1CanvasAutomationAPI.html#a1a078373386b0cccce417b2b0d1ab2b9" title="Check if coordinates are within canvas bounds." alt="" coords="240,5,426,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,23,224,23,224,28,192,28"/>
+<area shape="rect" id="Node000003" href="$dd/de4/classyaze_1_1gui_1_1CanvasAutomationAPI.html#a66ef4c733b8908228c5d3cc887833bb4" title="Get canvas dimensions in logical tile units." alt="" coords="474,5,660,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="426,23,458,23,458,28,426,28"/>
+</map>

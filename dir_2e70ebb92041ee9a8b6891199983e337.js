@@ -1,5 +1,7 @@
 var dir_2e70ebb92041ee9a8b6891199983e337 =
 [
+    [ "canvas_automation_api.cc", "d1/d50/canvas__automation__api_8cc.html", null ],
+    [ "canvas_automation_api.h", "df/de8/canvas__automation__api_8h.html", "df/de8/canvas__automation__api_8h" ],
     [ "canvas_context_menu.cc", "df/db2/canvas__context__menu_8cc.html", "df/db2/canvas__context__menu_8cc" ],
     [ "canvas_context_menu.h", "d8/d2d/canvas__context__menu_8h.html", "d8/d2d/canvas__context__menu_8h" ],
     [ "canvas_interaction_handler.cc", "d2/d1f/canvas__interaction__handler_8cc.html", "d2/d1f/canvas__interaction__handler_8cc" ],

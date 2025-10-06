@@ -39,6 +39,10 @@ var namespaceyaze_1_1editor =
     [ "anonymous_namespace{message_editor.cc}", "de/dc7/namespaceyaze_1_1editor_1_1anonymous__namespace_02message__editor_8cc_03.html", [
       [ "DisplayTextOverflowError", "de/dc7/namespaceyaze_1_1editor_1_1anonymous__namespace_02message__editor_8cc_03.html#aef9df899003974391ac30afec5b1d4c5", null ]
     ] ],
+    [ "anonymous_namespace{overworld_editor.cc}", "dc/d4e/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__editor_8cc_03.html", [
+      [ "CalculateOverworldContentSize", "dc/d4e/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__editor_8cc_03.html#a782118a3194be444c92387c2136c91ef", null ],
+      [ "ClampScrollPosition", "dc/d4e/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__editor_8cc_03.html#ae2200435725c5b25068e2a0c2f99ae4d", null ]
+    ] ],
     [ "anonymous_namespace{overworld_entity_renderer.cc}", "df/de3/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__entity__renderer_8cc_03.html", [
       [ "GetEntranceColor", "df/de3/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__entity__renderer_8cc_03.html#a636f46bd1b03edce817117d2a1b3a345", null ],
       [ "GetExitColor", "df/de3/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__entity__renderer_8cc_03.html#a94fa1081e70a4669a77b7bc87d297de9", null ],

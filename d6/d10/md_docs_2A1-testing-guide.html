@@ -275,6 +275,22 @@ Architecture</h2>
 <li><code><a class="el" href="../../df/dfd/test__utils_8h.html">test/test_utils.h</a></code> - High-level action wrappers (LoadRomInTest, OpenEditorInTest, etc.)</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md73"></a>
+Widget Registration for Automation</h2>
+<p>All modern UI components are fully integrated with the <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Test Engine for seamless automation.</p>
+<p><b>Toolbar Components:</b> All toolbar buttons are automatically registered with descriptive paths:</p><ul>
+<li><code>ModeButton:Pan (1)</code></li>
+<li><code>ModeButton:Draw (2)</code></li>
+<li><code>ToolbarAction:Toggle Tile16 Selector</code></li>
+<li><code>ToolbarAction:Open Tile16 Editor</code></li>
+</ul>
+<p><b>Editor Cards:</b> All EditorCard windows are registered as discoverable windows:</p><ul>
+<li><code>EditorCard:Tile16 Selector</code></li>
+<li><code>EditorCard:Area Graphics</code></li>
+</ul>
+<p><b>State Introspection:</b> Card visibility states are tracked for test automation:</p><ul>
+<li><code>OverworldToolbar/state:tile16_selector_visible</code></li>
+</ul>
+<h2><a class="anchor" id="autotoc_md74"></a>
 Writing E2E Tests</h2>
 <div class="fragment"><div class="line"><span class="comment">// Example: Canvas selection test</span></div>
 <div class="line"><span class="preprocessor">#include &quot;<a class="code" href="../../df/dfd/test__utils_8h.html">test/test_utils.h</a>&quot;</span></div>
@@ -298,17 +314,54 @@ Writing E2E Tests</h2>
 <div class="line">  };</div>
 <div class="line">}</div>
 <div class="ttc" id="atest__utils_8h_html"><div class="ttname"><a href="../../df/dfd/test__utils_8h.html">test_utils.h</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md74"></a>
-Running GUI Tests</h2>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md75"></a>
+Running GUI Tests with &lt;tt&gt;z3ed&lt;/tt&gt;</h2>
+<p>The <code>z3ed</code> CLI provides a powerful interface for running GUI tests.</p>
 <div class="fragment"><div class="line"># Run all E2E tests</div>
-<div class="line">z3ed test-gui --rom zelda3.sfc --test all</div>
+<div class="line">z3ed gui replay --ci-mode</div>
 <div class="line"> </div>
-<div class="line"># Run specific test suite</div>
-<div class="line">z3ed test-gui --rom zelda3.sfc --test canvas_selection</div>
+<div class="line"># Run a specific test suite from a YAML file</div>
+<div class="line">z3ed gui replay test_overworld_workflow.yaml --ci-mode</div>
 <div class="line"> </div>
-<div class="line"># Run in headless mode (CI)</div>
-<div class="line">z3ed test-gui --rom zelda3.sfc --test all --headless</div>
-</div><!-- fragment --> </div></div><!-- contents -->
+<div class="line"># Click a specific button</div>
+<div class="line">z3ed gui click &quot;ModeButton:Draw (2)&quot;</div>
+<div class="line"> </div>
+<div class="line"># Wait for a window to become visible</div>
+<div class="line">z3ed gui wait &quot;window_visible:Tile16 Selector&quot;</div>
+<div class="line"> </div>
+<div class="line"># Assert that a card is visible</div>
+<div class="line">z3ed gui assert &quot;visible:EditorCard:Tile16 Selector&quot;</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md76"></a>
+Widget Discovery</h2>
+<p>You can discover all registered UI elements for scripting and testing.</p>
+<div class="fragment"><div class="line"># List all widgets in the Overworld window</div>
+<div class="line">z3ed gui discover --window=&quot;Overworld&quot; --format=yaml &gt; overworld_widgets.yaml</div>
+<div class="line"> </div>
+<div class="line"># Find all toolbar actions</div>
+<div class="line">z3ed gui discover --path-prefix=&quot;ToolbarAction:&quot;</div>
+<div class="line"> </div>
+<div class="line"># Find all editor cards</div>
+<div class="line">z3ed gui discover --path-prefix=&quot;EditorCard:&quot;</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md77"></a>
+Integration with AI Agent</h2>
+<p>The agent can leverage the GUI testing framework to perform actions.</p>
+<ol type="1">
+<li><b>Discover UI Elements</b>: <code>Agent&gt; describe gui</code></li>
+<li><b>Interact with UI</b>: <code>Agent&gt; click toolbar button "Toggle Tile16 Selector"</code></li>
+<li><b>Monitor State</b>: <code>Agent&gt; check if "Tile16 Selector" is visible</code></li>
+</ol>
+<h2><a class="anchor" id="autotoc_md78"></a>
+Visual Testing</h2>
+<p>For vision-based testing, overworld entities are rendered with high-visibility colors:</p><ul>
+<li><b>Entrances</b>: Bright yellow-gold</li>
+<li><b>Exits</b>: Cyan-white</li>
+<li><b>Items</b>: Bright red</li>
+<li><b>Sprites</b>: Bright magenta</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md79"></a>
+Performance</h2>
+<p>Widget registration has zero runtime overhead, using efficient hash map lookups and automatic cleanup of stale widgets. </p>
+</div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->

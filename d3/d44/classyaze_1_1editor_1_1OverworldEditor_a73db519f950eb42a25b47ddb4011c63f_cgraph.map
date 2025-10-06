@@ -1,5 +1,11 @@
 <map id="yaze::editor::OverworldEditor::CheckForMousePan" name="yaze::editor::OverworldEditor::CheckForMousePan">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,189,46"/>
-<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a9b064f166bed17e3c2e7ffcffefc3a95" title=" " alt="" coords="237,5,363,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,23,221,23,221,28,189,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,189,111"/>
+<area shape="rect" id="Node000002" href="$d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a81fadfc9bdf1e7f9c97f826ef9331815" title=" " alt="" coords="237,71,420,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,88,221,88,221,94,189,94"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="468,5,594,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="393,68,453,48,454,53,394,73"/>
+<area shape="rect" id="Node000004" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e" title=" " alt="" coords="468,71,594,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="420,88,452,88,452,94,420,94"/>
+<area shape="rect" id="Node000005" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ad4cb29e99fcf29856f6eeedc5a79384f" title=" " alt="" coords="468,136,594,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="394,109,454,129,453,134,393,114"/>
 </map>

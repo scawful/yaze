@@ -1,0 +1,9 @@
+<map id="yaze::gui::TileSelectorWidget::DrawHighlight" name="yaze::gui::TileSelectorWidget::DrawHighlight">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,191,79"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a2995122ee4e7d273cddb9bbc2b4bbade" title=" " alt="" coords="257,5,406,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,43,241,36,242,41,192,48"/>
+<area shape="rect" id="Node000005" href="$d7/dd7/classyaze_1_1gui_1_1TileSelectorWidget.html#a87339ec68be2850ec55bada4be6fd4d1" title=" " alt="" coords="239,71,424,111"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="192,69,223,74,223,79,191,74"/>
+<area shape="rect" id="Node000003" href="$d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a9c72df99a1c2eebb453ed22f39d92b95" title=" " alt="" coords="472,5,670,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="406,23,457,23,457,28,406,28"/>
+</map>

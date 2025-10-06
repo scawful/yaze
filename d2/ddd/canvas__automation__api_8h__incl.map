@@ -1,0 +1,11 @@
+<map id="src/app/gui/canvas/canvas_automation_api.h" name="src/app/gui/canvas/canvas_automation_api.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="85,5,257,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,83,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,49,78,88,75,83,138,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="107,94,157,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,48,147,81,142,79,159,45"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="181,94,238,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="183,45,199,79,194,81,178,48"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="262,94,359,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="207,44,277,84,275,88,204,49"/>
+</map>

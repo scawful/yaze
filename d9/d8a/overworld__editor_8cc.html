@@ -100,7 +100,8 @@ $(document).ready(function(){initNavTree('d9/d8a/overworld__editor_8cc.html','..
 <div class="header">
   <div class="summary">
 <a href="#namespaces">Namespaces</a> &#124;
-<a href="#define-members">Macros</a>  </div>
+<a href="#define-members">Macros</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">overworld_editor.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
@@ -120,6 +121,7 @@ $(document).ready(function(){initNavTree('d9/d8a/overworld__editor_8cc.html','..
 <code>#include &quot;<a class="el" href="../../de/d8d/tile16__editor_8h_source.html">app/editor/overworld/tile16_editor.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/d0c/arena_8h_source.html">app/gfx/arena.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/dcb/bitmap_8h_source.html">app/gfx/bitmap.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../dc/d4d/tile__selector__widget_8h_source.html">app/gui/widgets/tile_selector_widget.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../dd/db2/performance__profiler_8h_source.html">app/gfx/performance_profiler.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d8/ddb/snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../dc/d0c/tilemap_8h_source.html">app/gfx/tilemap.h</a>&quot;</code><br />
@@ -149,11 +151,20 @@ Namespaces</h2></td></tr>
 <tr class="memitem:d1/d3e/namespaceyaze_1_1editor" id="r_d1/d3e/namespaceyaze_1_1editor"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html">yaze::editor</a></td></tr>
 <tr class="memdesc:d1/d3e/namespaceyaze_1_1editor"><td class="mdescLeft">&#160;</td><td class="mdescRight">Editors are the view controllers for the application. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:dc/d4e/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__editor_8cc_03" id="r_dc/d4e/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__editor_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d4e/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__editor_8cc_03.html">yaze::editor::anonymous_namespace{overworld_editor.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:ab8de43e3f17a4f0081fa6c2def6af1c1" id="r_ab8de43e3f17a4f0081fa6c2def6af1c1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d9/d8a/overworld__editor_8cc.html#ab8de43e3f17a4f0081fa6c2def6af1c1">IM_PI</a>&#160;&#160;&#160;3.14159265358979323846f</td></tr>
 <tr class="separator:ab8de43e3f17a4f0081fa6c2def6af1c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a782118a3194be444c92387c2136c91ef" id="r_a782118a3194be444c92387c2136c91ef"><td class="memItemLeft" align="right" valign="top">ImVec2&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d4e/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__editor_8cc_03.html#a782118a3194be444c92387c2136c91ef">yaze::editor::anonymous_namespace{overworld_editor.cc}::CalculateOverworldContentSize</a> (float scale)</td></tr>
+<tr class="separator:a782118a3194be444c92387c2136c91ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2200435725c5b25068e2a0c2f99ae4d" id="r_ae2200435725c5b25068e2a0c2f99ae4d"><td class="memItemLeft" align="right" valign="top">ImVec2&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d4e/namespaceyaze_1_1editor_1_1anonymous__namespace_02overworld__editor_8cc_03.html#ae2200435725c5b25068e2a0c2f99ae4d">yaze::editor::anonymous_namespace{overworld_editor.cc}::ClampScrollPosition</a> (ImVec2 scroll, ImVec2 content_size, ImVec2 visible_size)</td></tr>
+<tr class="separator:ae2200435725c5b25068e2a0c2f99ae4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="ab8de43e3f17a4f0081fa6c2def6af1c1" name="ab8de43e3f17a4f0081fa6c2def6af1c1"></a>
