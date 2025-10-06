@@ -1,0 +1,7 @@
+<map id="yaze::editor::AgentChatWidget::MultimodalState" name="yaze::editor::AgentChatWidget::MultimodalState">
+<area shape="rect" id="Node000001" title=" " alt="" coords="343,39,535,79"/>
+<area shape="rect" id="Node000002" href="$dd/dfb/structyaze_1_1editor_1_1AgentChatWidget_1_1ScreenshotPreviewState.html" title=" " alt="" coords="5,5,198,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,34,343,47,342,52,213,39"/>
+<area shape="rect" id="Node000003" href="$d1/d87/structyaze_1_1editor_1_1AgentChatWidget_1_1RegionSelectionState.html" title=" " alt="" coords="5,71,198,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="213,78,342,65,343,71,214,83"/>
+</map>

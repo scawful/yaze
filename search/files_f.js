@@ -28,7 +28,7 @@ var searchData=
   ['snes_5ftile_5ftest_2ecc_25',['snes_tile_test.cc',['../d6/dcf/snes__tile__test_8cc.html',1,'']]],
   ['spc700_2ecc_26',['spc700.cc',['../d2/d06/spc700_8cc.html',1,'']]],
   ['spc700_2eh_27',['spc700.h',['../df/dea/spc700_8h.html',1,'']]],
-  ['sprite_2ecc_28',['sprite.cc',['../df/d37/app_2zelda3_2sprite_2sprite_8cc.html',1,'(Global Namespace)'],['../d6/d25/cli_2handlers_2sprite_8cc.html',1,'(Global Namespace)']]],
+  ['sprite_2ecc_28',['sprite.cc',['../d6/d25/cli_2handlers_2sprite_8cc.html',1,'(Global Namespace)'],['../df/d37/app_2zelda3_2sprite_2sprite_8cc.html',1,'(Global Namespace)']]],
   ['sprite_2eh_29',['sprite.h',['../db/d08/sprite_8h.html',1,'']]],
   ['sprite_5fbuilder_2ecc_30',['sprite_builder.cc',['../db/d3a/sprite__builder_8cc.html',1,'']]],
   ['sprite_5fbuilder_2eh_31',['sprite_builder.h',['../d3/d37/sprite__builder_8h.html',1,'']]],
@@ -36,6 +36,7 @@ var searchData=
   ['sprite_5feditor_2ecc_33',['sprite_editor.cc',['../db/d30/sprite__editor_8cc.html',1,'']]],
   ['sprite_5feditor_2eh_34',['sprite_editor.h',['../d7/d6f/sprite__editor_8h.html',1,'']]],
   ['sprite_5fposition_5ftest_2ecc_35',['sprite_position_test.cc',['../d8/d43/sprite__position__test_8cc.html',1,'']]],
-  ['style_2ecc_36',['style.cc',['../d8/d05/style_8cc.html',1,'']]],
-  ['style_2eh_37',['style.h',['../de/d12/style_8h.html',1,'']]]
+  ['sprite_5ftool_5fcommands_2ecc_36',['sprite_tool_commands.cc',['../d1/d97/sprite__tool__commands_8cc.html',1,'']]],
+  ['style_2ecc_37',['style.cc',['../d8/d05/style_8cc.html',1,'']]],
+  ['style_2eh_38',['style.h',['../de/d12/style_8h.html',1,'']]]
 ];

@@ -3,6 +3,7 @@ var structyaze_1_1editor_1_1AgentUITheme =
     [ "user_message_color", "db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#aa2bc368fa9b1a6b6b390faa38420135f", null ],
     [ "agent_message_color", "db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#a76b35dfeea6fd3c9c6c620fabef23623", null ],
     [ "system_message_color", "db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#a4b3b50093ee6853b7144e4919defcf2d", null ],
+    [ "text_secondary_color", "db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#a6949207d36d2288f0eeccb06cf386d77", null ],
     [ "json_text_color", "db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#a320edf244a15576e42e85d9832f79656", null ],
     [ "command_text_color", "db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#adf8d8d0c4a958f8d63947343e576c869", null ],
     [ "code_bg_color", "db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#afe7443a840b2f8006bf162bd71626e47", null ],

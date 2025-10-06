@@ -1,0 +1,11 @@
+<map id="yaze::cli::agent::HandleDialogueReadCommand" name="yaze::cli::agent::HandleDialogueReadCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,73,166,113"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207" title=" " alt="" coords="241,5,375,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,69,213,40,234,33,236,38,215,45,136,74"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="237,55,379,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="166,81,221,75,222,80,166,86"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6" title=" " alt="" coords="226,104,390,130"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="166,99,210,104,210,109,166,104"/>
+<area shape="rect" id="Node000005" href="$d1/d3e/namespaceyaze_1_1editor.html#a023f96d1797f02dbaad61f338fb0ccd0" title=" " alt="" coords="214,153,402,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="137,111,215,140,237,146,235,151,213,145,135,116"/>
+</map>

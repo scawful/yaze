@@ -1,0 +1,12 @@
+<map id="yaze::editor::AgentChatWidget::RenderAutomationPanel" name="yaze::editor::AgentChatWidget::RenderAutomationPanel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,66,198,107"/>
+<area shape="rect" id="Node000002" href="$db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#aacd59d0c9f923bfee36fe0567c1c52e6" title=" " alt="" coords="486,70,625,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,63,186,38,245,18,299,7,342,3,385,6,439,18,481,36,518,59,516,63,479,41,437,23,385,11,342,8,300,13,246,24,188,43,138,68"/>
+<area shape="rect" id="Node000007" href="$d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a9ac58a306b116381ab678dcb22935584" title=" " alt="" coords="246,33,438,73"/>
+<area shape="poly" id="edge2_Node000001_Node000007" title=" " alt="" coords="198,70,230,66,231,71,199,76"/>
+<area shape="rect" id="Node000011" href="$db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a5047157c450c5060330c7b1a3cd915d7" title=" " alt="" coords="272,98,412,139"/>
+<area shape="poly" id="edge3_Node000001_Node000011" title=" " alt="" coords="198,96,257,104,256,110,198,102"/>
+<area shape="rect" id="Node000012" href="$db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#ac58286456f496461f24ec7bfbc7cc513" title=" " alt="" coords="272,163,412,204"/>
+<area shape="poly" id="edge4_Node000001_Node000012" title=" " alt="" coords="148,105,247,148,265,155,264,160,245,153,146,110"/>
+<area shape="poly" id="edge5_Node000012_Node000002" title=" " alt="" coords="405,160,437,148,503,116,505,121,439,153,407,165"/>
+</map>

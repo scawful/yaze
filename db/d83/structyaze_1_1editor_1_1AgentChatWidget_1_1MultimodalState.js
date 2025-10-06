@@ -4,5 +4,7 @@ var structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState =
     [ "status_message", "db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState.html#af44e7f335022b68e61be5e7ec8194bd8", null ],
     [ "last_updated", "db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState.html#a8bb834f9fb207799898f0fdf3f92eba8", null ],
     [ "capture_mode", "db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState.html#ab79e65605cfb5cb1117adae0b1571c03", null ],
-    [ "specific_window_buffer", "db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState.html#ac3791eeae0428b71bd43d11fb4fbbd53", null ]
+    [ "specific_window_buffer", "db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState.html#ac3791eeae0428b71bd43d11fb4fbbd53", null ],
+    [ "preview", "db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState.html#ac2985b296c847b418a34eb4e9384f490", null ],
+    [ "region_selection", "db/d83/structyaze_1_1editor_1_1AgentChatWidget_1_1MultimodalState.html#ac3701462e2ab87742bb9b6326275ac25", null ]
 ];
