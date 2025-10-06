@@ -80,6 +80,7 @@ source_group("Tests\\Unit" FILES
   unit/gfx/compression_test.cc
   unit/gfx/snes_palette_test.cc
   unit/gui/tile_selector_widget_test.cc
+  unit/gui/canvas_automation_api_test.cc
   unit/zelda3/message_test.cc
   unit/zelda3/overworld_test.cc
   unit/zelda3/object_parser_test.cc
