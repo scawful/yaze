@@ -87,7 +87,11 @@ void Snes::RunFrame() {
   }
 }
 
-void Snes::CatchUpApu() { apu_.RunCycles(cycles_); }
+void Snes::CatchUpApu() {
+  // Bring APU up to the same master cycle count since last catch-up.
+  // cycles_ is monotonically increasing in RunCycle().
+  apu_.RunCycles(cycles_);
+}
 
 void Snes::HandleInput() {
   memset(port_auto_read_, 0, sizeof(port_auto_read_));

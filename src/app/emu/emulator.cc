@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "util/file_util.h"
+#include "app/core/features.h"
 #include "app/core/window.h"
 #include "app/emu/cpu/internal/opcodes.h"
 #include "app/gui/icons.h"
@@ -294,7 +295,10 @@ void Emulator::RenderNavBar() {
     ImGui::SetTooltip("About Debugger");
   }
   SameLine();
-  ImGui::Checkbox("Logging", snes_.cpu().mutable_log_instructions());
+  if (ImGui::Checkbox("Logging", snes_.cpu().mutable_log_instructions())) {
+    // Keep global feature flag in sync so SPC700 logging follows the same control.
+    core::FeatureFlags::get().kLogInstructions = *snes_.cpu().mutable_log_instructions();
+  }
 
   SameLine();
   ImGui::Checkbox("Turbo", &turbo_mode_);

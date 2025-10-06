@@ -4,6 +4,8 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include "util/log.h"
+#include "app/core/features.h"
 
 #include "app/emu/audio/internal/opcodes.h"
 
@@ -39,6 +41,7 @@ void Spc700::RunOpcode() {
     return;
   }
   if (stopped_) {
+    // Allow timers/DSP to continue advancing while SPC is stopped/sleeping.
     callbacks_.idle(true);
     return;
   }
@@ -47,6 +50,14 @@ void Spc700::RunOpcode() {
     opcode = ReadOpcode();
     step = 1;
     return;
+  }
+  // Emit instruction log via util logger to align with CPU logging controls.
+  if (core::FeatureFlags::get().kLogInstructions) {
+    try {
+      LogInstruction(PC, opcode);
+    } catch (...) {
+      // ignore mapping failures
+    }
   }
   ExecuteInstructions(opcode);
   if (step == 1) step = 0;  // reset step for non cycle-stepped opcodes.
@@ -1144,6 +1155,12 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       DoBranch(ReadOpcode(), result != 0);
       break;
     }
+    case 0xcb: {  // wai imp
+      // Wait for event: yield several cycles to timers/DSP
+      read(PC);
+      for (int i = 0; i < 8; ++i) callbacks_.idle(true);
+      break;
+    }
     case 0xdf: {  // daa imp
       read(PC);
       callbacks_.idle(false);
@@ -1216,9 +1233,10 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xef: {  // sleep imp
+      // Emulate low-power idle without halting the core permanently.
+      // Advance timers/DSP via idle callbacks, but do not set stopped_.
       read(PC);
-      callbacks_.idle(false);
-      stopped_ = true;  // no interrupts, so sleeping stops as well
+      for (int i = 0; i < 4; ++i) callbacks_.idle(true);
       break;
     }
     case 0xf0: {  // beq rel
@@ -1294,31 +1312,21 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
 }
 
 void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
-  std::string mnemonic = spc_opcode_map.at(opcode);
+  const std::string& mnemonic = spc_opcode_map.at(opcode);
 
-  std::stringstream log_entry_stream;
-  log_entry_stream << "\033[1;36m$" << std::hex << std::setw(4)
-                   << std::setfill('0') << initial_pc << "\033[0m";
-  log_entry_stream << " \033[1;32m" << std::hex << std::setw(2)
-                   << std::setfill('0') << static_cast<int>(opcode) << "\033[0m"
-                   << " \033[1;35m" << std::setw(18) << std::left
-                   << std::setfill(' ') << mnemonic << "\033[0m";
+  std::stringstream ss;
+  ss << "$" << std::hex << std::setw(4) << std::setfill('0') << initial_pc
+     << ": 0x" << std::setw(2) << std::setfill('0')
+     << static_cast<int>(opcode) << " " << mnemonic
+     << "  A:" << std::setw(2) << std::setfill('0') << std::hex
+     << static_cast<int>(A)
+     << " X:" << std::setw(2) << std::setfill('0') << std::hex
+     << static_cast<int>(X)
+     << " Y:" << std::setw(2) << std::setfill('0') << std::hex
+     << static_cast<int>(Y);
 
-  log_entry_stream << " \033[1;33mA: " << std::hex << std::setw(2)
-                   << std::setfill('0') << std::right << static_cast<int>(A)
-                   << "\033[0m";
-  log_entry_stream << " \033[1;33mX: " << std::hex << std::setw(2)
-                   << std::setfill('0') << std::right << static_cast<int>(X)
-                   << "\033[0m";
-  log_entry_stream << " \033[1;33mY: " << std::hex << std::setw(2)
-                   << std::setfill('0') << std::right << static_cast<int>(Y)
-                   << "\033[0m";
-  std::string log_entry = log_entry_stream.str();
-
-  std::cerr << log_entry << std::endl;
-
-  // Append the log entry to the log
-  // log_.push_back(log_entry);
+  util::LogManager::instance().log(util::LogLevel::YAZE_DEBUG, "SPC700",
+                                   ss.str());
 }
 
 }  // namespace emu

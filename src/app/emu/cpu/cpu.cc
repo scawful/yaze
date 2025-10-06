@@ -8,6 +8,7 @@
 
 #include "app/core/features.h"
 #include "app/emu/cpu/internal/opcodes.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace emu {
@@ -1831,6 +1832,9 @@ void Cpu::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
 
     InstructionEntry entry(PC, opcode, ops, oss.str());
     instruction_log_.push_back(entry);
+    // Also emit to the central logger for user/agent-controlled sinks.
+    util::LogManager::instance().log(util::LogLevel::YAZE_DEBUG, "CPU",
+                                     oss.str());
   } else {
     // Log the address and opcode.
     std::cout << "\033[1;36m"

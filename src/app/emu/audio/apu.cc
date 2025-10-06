@@ -28,10 +28,6 @@ void Apu::Init() {
   for (int i = 0; i < 0x10000; i++) {
     ram[i] = 0;
   }
-  // Copy the boot rom into the ram at ffc0
-  for (int i = 0; i < 0x40; i++) {
-    ram[0xffc0 + i] = bootRom[i];
-  }
 }
 
 void Apu::Reset() {
@@ -39,10 +35,6 @@ void Apu::Reset() {
   dsp_.Reset();
   for (int i = 0; i < 0x10000; i++) {
     ram[i] = 0;
-  }
-  // Copy the boot rom into the ram at ffc0
-  for (int i = 0; i < 0x40; i++) {
-    ram[0xffc0 + i] = bootRom[i];
   }
   rom_readable_ = true;
   dsp_adr_ = 0;
@@ -58,13 +50,21 @@ void Apu::Reset() {
   }
 }
 
-void Apu::RunCycles(uint64_t cycles) {
-  uint64_t sync_to =
-      (uint64_t)cycles *
-      (memory_.pal_timing() ? apuCyclesPerMasterPal : apuCyclesPerMaster);
+void Apu::RunCycles(uint64_t master_cycles) {
+  // Convert CPU master cycles to APU cycles target and step SPC/DSP accordingly.
+  const double ratio = memory_.pal_timing() ? apuCyclesPerMasterPal : apuCyclesPerMaster;
+  const uint64_t target_apu_cycles = static_cast<uint64_t>(master_cycles * ratio);
 
-  while (cycles_ < sync_to) {
+  while (cycles_ < target_apu_cycles) {
+    // Execute one SPC700 opcode (variable cycles) then advance a fixed number of APU cycles.
+    // Tie DSP and timers to APU cycle domain to keep handshake progressing.
     spc700_.RunOpcode();
+
+    // Advance several APU cycles per SPC step to avoid under-driving DSP/timers.
+    // This is a heuristic; a more accurate model would use per-opcode cycle counts.
+    for (int i = 0; i < 8; ++i) {
+      Cycle();
+    }
   }
 }
 
@@ -111,10 +111,13 @@ uint8_t Apu::Read(uint16_t adr) {
     case 0xf4:
     case 0xf5:
     case 0xf6:
-    case 0xf7:
+    case 0xf7: {
+      return in_ports_[adr - 0xf4];
+    }
     case 0xf8:
     case 0xf9: {
-      return in_ports_[adr - 0xf4];
+      // Not I/O ports on real hardware; treat as general RAM region.
+      return ram[adr];
     }
     case 0xfd:
     case 0xfe:
@@ -151,7 +154,8 @@ void Apu::Write(uint16_t adr, uint8_t val) {
         in_ports_[2] = 0;
         in_ports_[3] = 0;
       }
-      rom_readable_ = val & 0x80;
+      // IPL ROM mapping: initially enabled; writing 1 to bit7 disables IPL ROM.
+      rom_readable_ = (val & 0x80) == 0;
       break;
     }
     case 0xf2: {
@@ -171,7 +175,7 @@ void Apu::Write(uint16_t adr, uint8_t val) {
     }
     case 0xf8:
     case 0xf9: {
-      in_ports_[adr - 0xf4] = val;
+      // General RAM
       break;
     }
     case 0xfa:
