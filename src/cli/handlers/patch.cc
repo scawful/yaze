@@ -1,7 +1,7 @@
 #include <fstream>
 
 #include "asar-dll-bindings/c/asar.h"
-#include "cli/z3ed.h"
+#include "cli/cli.h"
 #include "cli/tui/asar_patch.h"
 #include "util/bps.h"
 #include "app/core/asar_wrapper.h"

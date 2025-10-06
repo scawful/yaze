@@ -1,4 +1,4 @@
-#include "cli/z3ed.h"
+#include "cli/cli.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "cli/handlers/overworld_inspect.h"
 

@@ -1,6 +1,6 @@
 #include "cli/handlers/agent/commands.h"
 #include "cli/handlers/agent/todo_commands.h"
-#include "cli/z3ed.h"
+#include "cli/cli.h"
 
 #include <string>
 #include <vector>

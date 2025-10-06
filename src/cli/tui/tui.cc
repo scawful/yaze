@@ -13,7 +13,7 @@
 #include "util/file_util.h"
 #include "app/core/asar_wrapper.h"
 #include "app/zelda3/overworld/overworld.h"
-#include "cli/modern_cli.h"
+#include "cli/cli.h"
 #include "cli/tui/command_palette.h"
 #include "cli/z3ed_ascii_logo.h"
 #include "cli/service/agent/simple_chat_session.h"

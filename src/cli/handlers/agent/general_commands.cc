@@ -38,7 +38,7 @@
 #include "cli/service/resources/resource_context_builder.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
 #include "cli/tui/chat_tui.h"
-#include "cli/z3ed.h"
+#include "cli/cli.h"
 #include "util/macro.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
