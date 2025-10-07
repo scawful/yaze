@@ -61,6 +61,16 @@ public:
     virtual TextureHandle CreateTexture(int width, int height) = 0;
 
     /**
+     * @brief Creates a new texture with a specific pixel format.
+     * @param width The width of the texture in pixels.
+     * @param height The height of the texture in pixels.
+     * @param format The SDL pixel format (e.g., SDL_PIXELFORMAT_ARGB8888).
+     * @param access The texture access pattern (e.g., SDL_TEXTUREACCESS_STREAMING).
+     * @return An abstract TextureHandle to the newly created texture, or nullptr on failure.
+     */
+    virtual TextureHandle CreateTextureWithFormat(int width, int height, uint32_t format, int access) = 0;
+
+    /**
      * @brief Updates a texture with the pixel data from a Bitmap.
      * @param texture The handle of the texture to update.
      * @param bitmap The Bitmap containing the new pixel data.

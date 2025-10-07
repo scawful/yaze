@@ -26,6 +26,7 @@ public:
 
     // --- Texture Management ---
     TextureHandle CreateTexture(int width, int height) override;
+    TextureHandle CreateTextureWithFormat(int width, int height, uint32_t format, int access) override;
     void UpdateTexture(TextureHandle texture, const Bitmap& bitmap) override;
     void DestroyTexture(TextureHandle texture) override;
 

@@ -50,31 +50,50 @@ using ImGui::TableNextColumn;
 using ImGui::Text;
 
 void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& rom_data) {
+  // This method is now optional - emulator can be initialized lazily in Run()
   renderer_ = renderer;
   rom_data_ = rom_data;
-  snes_.Init(rom_data_);
+  
+  // Reset state for new ROM
+  running_ = false;
+  snes_initialized_ = false;
+  
   initialized_ = true;
 }
 
 void Emulator::Run(Rom* rom) {
-  static bool loaded = false;
-  if (!snes_.running() && rom->is_loaded()) {
-    ppu_texture_ = renderer_->CreateTexture(512, 480);
-    if (ppu_texture_ == NULL) {
-      printf("Failed to create texture: %s\n", SDL_GetError());
-      return;
+  // Lazy initialization: set renderer from Controller if not set yet
+  if (!renderer_) {
+    ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), 
+                       "Emulator renderer not initialized");
+    return;
+  }
+  
+  // Initialize SNES and create PPU texture on first run
+  // This happens lazily when user opens the emulator window
+  if (!snes_initialized_ && rom->is_loaded()) {
+    // Create PPU texture with correct format for SNES emulator
+    // ARGB8888 matches the XBGR format used by the SNES PPU (pixel format 1)
+    if (!ppu_texture_) {
+      ppu_texture_ = renderer_->CreateTextureWithFormat(
+          512, 480, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING);
+      if (ppu_texture_ == NULL) {
+        printf("Failed to create PPU texture: %s\n", SDL_GetError());
+        return;
+      }
     }
 
-    // Optimize texture for better performance
-    // renderer_->SetTextureBlendMode(ppu_texture_, SDL_BLENDMODE_NONE);
-    rom_data_ = rom->vector();
+    // Initialize SNES with ROM data (either from Initialize() or from rom parameter)
+    if (rom_data_.empty()) {
+      rom_data_ = rom->vector();
+    }
     snes_.Init(rom_data_);
 
     // Note: PPU pixel format set to 1 (XBGR) in Init() which matches ARGB8888 texture
 
     wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
     wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
-    loaded = true;
+    snes_initialized_ = true;
 
     count_frequency = SDL_GetPerformanceFrequency();
     last_count = SDL_GetPerformanceCounter();
@@ -112,7 +131,7 @@ void Emulator::Run(Rom* rom) {
       frames_to_process = 4;
     }
 
-    if (loaded && frames_to_process > 0) {
+    if (snes_initialized_ && frames_to_process > 0) {
       // Process frames (skip rendering for all but last frame if falling behind)
       for (int i = 0; i < frames_to_process; i++) {
         bool should_render = (i == frames_to_process - 1);

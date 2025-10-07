@@ -33,7 +33,7 @@ void Arena::QueueTextureCommand(TextureCommandType type, Bitmap* bitmap) {
 }
 
 void Arena::ProcessTextureQueue(IRenderer* renderer) {
-  if (!renderer_) return;
+  if (!renderer_ || texture_command_queue_.empty()) return;
 
   for (const auto& command : texture_command_queue_) {
     switch (command.type) {

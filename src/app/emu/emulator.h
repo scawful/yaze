@@ -51,6 +51,7 @@ class Emulator {
     audio_device_ = audio_device;
   }
   auto wanted_samples() const -> int { return wanted_samples_; }
+  void set_renderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
   
   // AI Agent Integration API
   bool IsEmulatorReady() const { return snes_.running() && !rom_data_.empty(); }
@@ -133,6 +134,7 @@ class Emulator {
 
   Snes snes_;
   bool initialized_ = false;
+  bool snes_initialized_ = false;
   gfx::IRenderer* renderer_ = nullptr;
   void* ppu_texture_ = nullptr;
 
