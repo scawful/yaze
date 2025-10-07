@@ -233,6 +233,9 @@ constexpr const char* kMusicEditorName = ICON_MD_MUSIC_NOTE " Music Editor";
 void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& filename) {
   renderer_ = renderer;
   
+  // NOTE: Emulator will be initialized later when a ROM is loaded
+  // We just store the renderer for now
+  
   // Point to a blank editor set when no ROM is loaded
   current_editor_set_ = &blank_editor_set_;
 
@@ -2096,6 +2099,11 @@ absl::Status EditorManager::LoadAssets() {
   }
 
   auto start_time = std::chrono::steady_clock::now();
+
+  // Set renderer for emulator (lazy initialization happens in Run())
+  if (renderer_) {
+    emulator_.set_renderer(renderer_);
+  }
 
   current_editor_set_->overworld_editor_.Initialize();
   current_editor_set_->message_editor_.Initialize();

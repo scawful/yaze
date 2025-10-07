@@ -51,6 +51,16 @@ TextureHandle SDL2Renderer::CreateTexture(int width, int height) {
 }
 
 /**
+ * @brief Creates an SDL_Texture with a specific pixel format and access pattern.
+ * This is useful for specialized textures like emulator PPU output.
+ */
+TextureHandle SDL2Renderer::CreateTextureWithFormat(int width, int height, uint32_t format, int access) {
+    return static_cast<TextureHandle>(
+        SDL_CreateTexture(renderer_.get(), format, access, width, height)
+    );
+}
+
+/**
  * @brief Updates an SDL_Texture with data from a Bitmap.
  * This involves converting the bitmap's surface to the correct format and updating the texture.
  */
