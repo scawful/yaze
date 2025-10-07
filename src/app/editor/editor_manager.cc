@@ -3267,5 +3267,42 @@ void EditorManager::DrawWelcomeScreen() {
   }
 }
 
+// ============================================================================
+// Jump-to Functionality for Cross-Editor Navigation
+// ============================================================================
+
+void EditorManager::JumpToDungeonRoom(int room_id) {
+  if (!current_editor_set_) return;
+  
+  // Switch to dungeon editor
+  SwitchToEditor(EditorType::kDungeon);
+  
+  // Open the room in the dungeon editor
+  current_editor_set_->dungeon_editor_.add_room(room_id);
+}
+
+void EditorManager::JumpToOverworldMap(int map_id) {
+  if (!current_editor_set_) return;
+  
+  // Switch to overworld editor
+  SwitchToEditor(EditorType::kOverworld);
+  
+  // Set the current map in the overworld editor
+  current_editor_set_->overworld_editor_.set_current_map(map_id);
+}
+
+void EditorManager::SwitchToEditor(EditorType editor_type) {
+  // Find the editor tab and activate it
+  for (size_t i = 0; i < current_editor_set_->active_editors_.size(); ++i) {
+    if (current_editor_set_->active_editors_[i]->type() == editor_type) {
+      current_editor_set_->active_editors_[i]->set_active(true);
+      
+      // Set editor as the current/focused one
+      // This will make it visible when tabs are rendered
+      break;
+    }
+  }
+}
+
 }  // namespace editor
 }  // namespace yaze

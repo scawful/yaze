@@ -132,15 +132,24 @@ class EditorCard {
   void SetMinimized(bool minimized) { minimized_ = minimized; }
   bool IsMinimized() const { return minimized_; }
   
+  // Focus the card window (bring to front and set focused)
+  void Focus();
+  bool IsFocused() const { return focused_; }
+  
+  // Get the window name for ImGui operations
+  const char* GetWindowName() const { return window_name_.c_str(); }
+  
  private:
   std::string title_;
   std::string icon_;
+  std::string window_name_;  // Full window name with icon
   ImVec2 default_size_;
   Position position_ = Position::Free;
   bool minimizable_ = true;
   bool closable_ = true;
   bool minimized_ = false;
   bool first_draw_ = true;
+  bool focused_ = false;
   bool* p_open_ = nullptr;
 };
 

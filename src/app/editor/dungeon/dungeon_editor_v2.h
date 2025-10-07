@@ -1,6 +1,9 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_EDITOR_V2_H
 #define YAZE_APP_EDITOR_DUNGEON_EDITOR_V2_H
 
+#include <memory>
+#include <unordered_map>
+
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
@@ -70,7 +73,8 @@ class DungeonEditorV2 : public Editor {
   Rom* rom() const { return rom_; }
 
   // Room management
-  void add_room(int room_id) { active_rooms_.push_back(room_id); }
+  void add_room(int room_id);
+  void FocusRoom(int room_id);
 
   // ROM state
   bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
@@ -85,18 +89,30 @@ class DungeonEditorV2 : public Editor {
   void DrawLayout();
   void DrawRoomTab(int room_id);
   void DrawToolset();
+  void DrawRoomMatrixCard();
+  void DrawRoomsListCard();
+  void DrawEntrancesListCard();
   
   // Room selection callback
   void OnRoomSelected(int room_id);
+  void OnEntranceSelected(int entrance_id);
 
   // Data
   Rom* rom_;
   std::array<zelda3::Room, 0x128> rooms_;
   std::array<zelda3::RoomEntrance, 0x8C> entrances_;
   
-  // Active room tabs
+  // Active room tabs and card tracking for jump-to
   ImVector<int> active_rooms_;
+  std::unordered_map<int, std::shared_ptr<gui::EditorCard>> room_cards_;
   int current_room_id_ = 0;
+  
+  // Card visibility flags
+  bool show_room_selector_ = true;
+  bool show_room_matrix_ = false;
+  bool show_entrances_list_ = false;
+  bool show_object_selector_ = true;
+  bool show_palette_editor_ = true;
   
   // Palette management
   gfx::SnesPalette current_palette_;

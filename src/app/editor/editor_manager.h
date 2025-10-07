@@ -134,6 +134,11 @@ class EditorManager {
   }
   
   void BuildModernMenu();
+  
+  // Jump-to functionality for cross-editor navigation
+  void JumpToDungeonRoom(int room_id);
+  void JumpToOverworldMap(int map_id);
+  void SwitchToEditor(EditorType editor_type);
 
  private:
   void DrawWelcomeScreen();

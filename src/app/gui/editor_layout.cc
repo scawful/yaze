@@ -229,11 +229,14 @@ bool Toolset::AddUsageStatsButton(const char* tooltip) {
 // ============================================================================
 
 EditorCard::EditorCard(const char* title, const char* icon)
-    : title_(title), icon_(icon ? icon : ""), default_size_(400, 300) {}
+    : title_(title), icon_(icon ? icon : ""), default_size_(400, 300) {
+  window_name_ = icon_.empty() ? title_ : icon_ + " " + title_;
+}
 
 EditorCard::EditorCard(const char* title, const char* icon, bool* p_open)
     : title_(title), icon_(icon ? icon : ""), default_size_(400, 300) {
   p_open_ = p_open;
+  window_name_ = icon_.empty() ? title_ : icon_ + " " + title_;
 }
 
 void EditorCard::SetDefaultSize(float width, float height) {
@@ -301,9 +304,18 @@ bool EditorCard::Begin(bool* p_open) {
 }
 
 void EditorCard::End() {
+  // Check if window was focused this frame
+  focused_ = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
+  
   ImGui::End();
   ImGui::PopStyleColor(2);
   ImGui::PopStyleVar(2);
+}
+
+void EditorCard::Focus() {
+  // Set window focus using ImGui's focus system
+  ImGui::SetWindowFocus(window_name_.c_str());
+  focused_ = true;
 }
 
 // ============================================================================

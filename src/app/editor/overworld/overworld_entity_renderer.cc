@@ -15,10 +15,10 @@ using namespace ImGui;
 
 // Entity colors - solid with good visibility
 namespace {
-ImVec4 GetEntranceColor() { return ImVec4(0.0f, 255.0f, 0.0f, 255.0f); }  // Solid green
-ImVec4 GetExitColor() { return ImVec4(255.0f, 0.0f, 0.0f, 255.0f); }      // Solid red
-ImVec4 GetItemColor() { return ImVec4(255.0f, 255.0f, 0.0f, 255.0f); }      // Solid yellow
-ImVec4 GetSpriteColor() { return ImVec4(255.0f, 128.0f, 0.0f, 255.0f); }    // Solid orange
+ImVec4 GetEntranceColor() { return ImVec4{1.0f, 1.0f, 0.0f, 1.0f}; }      // Solid yellow (#FFFF00FF, fully opaque)
+ImVec4 GetExitColor()    { return ImVec4{1.0f, 1.0f, 1.0f, 1.0f}; }        // Solid white (#FFFFFFFF, fully opaque)
+ImVec4 GetItemColor()    { return ImVec4{1.0f, 0.0f, 0.0f, 1.0f}; }        // Solid red (#FF0000FF, fully opaque)
+ImVec4 GetSpriteColor()  { return ImVec4{1.0f, 0.0f, 1.0f, 1.0f}; }        // Solid magenta (#FF00FFFF, fully opaque)
 }  // namespace
 
 void OverworldEntityRenderer::DrawEntrances(ImVec2 canvas_p0, ImVec2 scrolling,
