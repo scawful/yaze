@@ -17,6 +17,7 @@ set(
   app/editor/dungeon/dungeon_renderer.cc
   app/editor/dungeon/dungeon_room_loader.cc
   app/editor/dungeon/dungeon_usage_tracker.cc
+  app/editor/dungeon/object_editor_card.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/overworld/scratch_space.cc
   app/editor/sprite/sprite_editor.cc
