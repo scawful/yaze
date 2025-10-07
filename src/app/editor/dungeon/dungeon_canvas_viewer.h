@@ -6,6 +6,7 @@
 #include "app/zelda3/dungeon/object_renderer.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/gfx/snes_palette.h"
+#include "dungeon_object_interaction.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -21,7 +22,8 @@ namespace editor {
  */
 class DungeonCanvasViewer {
  public:
-  explicit DungeonCanvasViewer(Rom* rom = nullptr) : rom_(rom), object_renderer_(rom) {}
+  explicit DungeonCanvasViewer(Rom* rom = nullptr) 
+      : rom_(rom), object_renderer_(rom), object_interaction_(&canvas_) {}
 
   void DrawDungeonTabView();
   void DrawDungeonCanvas(int room_id);
@@ -46,6 +48,21 @@ class DungeonCanvasViewer {
   // Canvas access
   gui::Canvas& canvas() { return canvas_; }
   const gui::Canvas& canvas() const { return canvas_; }
+  
+  // Object interaction access
+  DungeonObjectInteraction& object_interaction() { return object_interaction_; }
+  
+  // Enable/disable object interaction mode
+  void SetObjectInteractionEnabled(bool enabled) { object_interaction_enabled_ = enabled; }
+  bool IsObjectInteractionEnabled() const { return object_interaction_enabled_; }
+  
+  // Set the object to be placed
+  void SetPreviewObject(const zelda3::RoomObject& object) {
+    object_interaction_.SetPreviewObject(object, true);
+  }
+  void ClearPreviewObject() {
+    object_interaction_.SetPreviewObject(zelda3::RoomObject{0, 0, 0, 0, 0}, false);
+  }
 
  private:
   void RenderObjectInCanvas(const zelda3::RoomObject &object,
@@ -76,11 +93,15 @@ class DungeonCanvasViewer {
   Rom* rom_ = nullptr;
   gui::Canvas canvas_{"##DungeonCanvas", ImVec2(0x200, 0x200)};
   zelda3::ObjectRenderer object_renderer_;
+  DungeonObjectInteraction object_interaction_;
   
   // Room data
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
   ImVector<int> active_rooms_;
   int current_active_room_tab_ = 0;
+  
+  // Object interaction state
+  bool object_interaction_enabled_ = false;
   
   // Palette data
   uint64_t current_palette_group_id_ = 0;
