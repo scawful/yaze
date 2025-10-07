@@ -154,6 +154,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6e17063e918cb9829f2ff149cc3f8abc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c3288d9b80beb5181d833a2b53c10ca" id="r_a9c3288d9b80beb5181d833a2b53c10ca"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; uint8_t &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/ded/classyaze_1_1emu_1_1Ppu.html#a9c3288d9b80beb5181d833a2b53c10ca">GetFrameBuffer</a> () const</td></tr>
 <tr class="separator:a9c3288d9b80beb5181d833a2b53c10ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e0bc9db85e9dc98ac59eeb7f5205e53" id="r_a2e0bc9db85e9dc98ac59eeb7f5205e53"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/ded/classyaze_1_1emu_1_1Ppu.html#a2e0bc9db85e9dc98ac59eeb7f5205e53">SetPixelFormat</a> (uint8_t format)</td></tr>
+<tr class="separator:a2e0bc9db85e9dc98ac59eeb7f5205e53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -424,7 +426,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00259">259</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00434">frame_buffer_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00412">pixelOutputFormat</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00439">frame_buffer_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00417">pixelOutputFormat</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00033">yaze::emu::Snes::Init()</a>.</p>
 
@@ -447,7 +449,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">39</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00370">add_subscreen_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00291">bg3priority</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00404">bg_layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00225">yaze::emu::BgLayer::bigTiles</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00289">brightness</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00340">cgram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00343">cgram_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00341">cgram_pointer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00342">cgram_second_write_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00367">clip_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00419">counters_latched_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00297">direct_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">even_frame</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00375">fixed_color_b_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00374">fixed_color_g_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00373">fixed_color_r_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00288">forced_blank_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00295">frame_interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00284">frame_overscan_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00415">h_count_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00417">h_count_second_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00372">half_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00347">high_oam_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00219">yaze::emu::BgLayer::hScroll</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00378">layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00384">m7charFill</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00387">m7extBg</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00383">m7largeField</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00381">m7matrix</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00382">m7prev</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00390">m7startX</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00391">m7startY</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00385">m7xFlip</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00386">m7yFlip</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00212">yaze::emu::Layer::mainScreenEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00214">yaze::emu::Layer::mainScreenWindowed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00234">yaze::emu::WindowLayer::maskLogic</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00369">math_enabled_array_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">mode</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00407">mosaic_size_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00402">mosaic_startline_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00226">yaze::emu::BgLayer::mosaicEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00346">oam</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00348">oam_adr_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00349">oam_adr_written_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00353">oam_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00350">oam_in_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00351">oam_in_high_written_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00352">oam_second_write_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00358">obj_interlace_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00363">obj_pixel_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00359">obj_priority_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00364">obj_priority_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00362">obj_size_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00360">obj_tile_adr1_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00361">obj_tile_adr2_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00285">overscan_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00411">pixelBuffer</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00420">ppu1_open_bus_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00421">ppu2_open_bus_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00368">prevent_math_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00293">pseudo_hires_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00357">range_over_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00406">scroll_prev2_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00405">scroll_prev_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00213">yaze::emu::Layer::subScreenEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00215">yaze::emu::Layer::subScreenWindowed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00371">subtract_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00224">yaze::emu::BgLayer::tileAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00223">yaze::emu::BgLayer::tilemapAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00222">yaze::emu::BgLayer::tilemapHigher</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00221">yaze::emu::BgLayer::tilemapWider</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00356">time_over_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00416">v_count_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00418">v_count_second_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00332">vram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00335">vram_increment_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00334">vram_increment_on_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00333">vram_pointer</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00337">vram_read_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00336">vram_remap_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00220">yaze::emu::BgLayer::vScroll</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00230">yaze::emu::WindowLayer::window1enabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00232">yaze::emu::WindowLayer::window1inversed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00395">window1left</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00396">window1right</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00231">yaze::emu::WindowLayer::window2enabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00233">yaze::emu::WindowLayer::window2inversed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00397">window2left</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00398">window2right</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00394">windowLayer</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00375">add_subscreen_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00293">bg3priority</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00409">bg_layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00225">yaze::emu::BgLayer::bigTiles</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00291">brightness</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00345">cgram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00348">cgram_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00346">cgram_pointer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00347">cgram_second_write_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00372">clip_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00424">counters_latched_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00299">direct_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">even_frame</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00380">fixed_color_b_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00379">fixed_color_g_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00378">fixed_color_r_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">forced_blank_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00297">frame_interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00286">frame_overscan_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00420">h_count_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00422">h_count_second_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00377">half_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00352">high_oam_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00219">yaze::emu::BgLayer::hScroll</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00296">interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00383">layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00389">m7charFill</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00392">m7extBg</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00388">m7largeField</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00386">m7matrix</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00387">m7prev</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00395">m7startX</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00396">m7startY</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00390">m7xFlip</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00391">m7yFlip</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00212">yaze::emu::Layer::mainScreenEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00214">yaze::emu::Layer::mainScreenWindowed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00234">yaze::emu::WindowLayer::maskLogic</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00374">math_enabled_array_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">mode</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00412">mosaic_size_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00407">mosaic_startline_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00226">yaze::emu::BgLayer::mosaicEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00351">oam</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00353">oam_adr_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00354">oam_adr_written_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00358">oam_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00355">oam_in_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00356">oam_in_high_written_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00357">oam_second_write_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00363">obj_interlace_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00368">obj_pixel_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00364">obj_priority_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00369">obj_priority_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00367">obj_size_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00365">obj_tile_adr1_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00366">obj_tile_adr2_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00287">overscan_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00416">pixelBuffer</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00425">ppu1_open_bus_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00426">ppu2_open_bus_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00373">prevent_math_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00295">pseudo_hires_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00362">range_over_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00411">scroll_prev2_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00410">scroll_prev_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00213">yaze::emu::Layer::subScreenEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00215">yaze::emu::Layer::subScreenWindowed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00376">subtract_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00224">yaze::emu::BgLayer::tileAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00223">yaze::emu::BgLayer::tilemapAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00222">yaze::emu::BgLayer::tilemapHigher</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00221">yaze::emu::BgLayer::tilemapWider</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00361">time_over_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00421">v_count_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00423">v_count_second_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00337">vram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00340">vram_increment_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00339">vram_increment_on_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00338">vram_pointer</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00342">vram_read_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00341">vram_remap_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00220">yaze::emu::BgLayer::vScroll</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00230">yaze::emu::WindowLayer::window1enabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00232">yaze::emu::WindowLayer::window1inversed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00400">window1left</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00401">window1right</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00231">yaze::emu::WindowLayer::window2enabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00233">yaze::emu::WindowLayer::window2inversed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00402">window2left</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00403">window2right</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00399">windowLayer</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00048">yaze::emu::Snes::Reset()</a>.</p>
 
@@ -470,7 +472,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00137">137</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">even_frame</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00402">mosaic_startline_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00357">range_over_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00356">time_over_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">even_frame</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00407">mosaic_startline_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00362">range_over_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00361">time_over_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">yaze::emu::Snes::RunCycle()</a>.</p>
 
@@ -494,7 +496,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00145">145</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00561">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00288">forced_blank_</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">mode</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00363">obj_pixel_buffer_</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00573">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">forced_blank_</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">mode</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00368">obj_pixel_buffer_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">yaze::emu::Snes::RunCycle()</a>.</p>
 <div class="dynheader">
@@ -541,13 +543,13 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000049">Todo:</a></b></dt><dd>subscreen pixels can be clipped to black as well </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000050">Todo:</a></b></dt><dd></dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000051">Todo:</a></b></dt><dd>math for subscreen pixels (add/sub sub to main) </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000061">Todo:</a></b></dt><dd>subscreen pixels can be clipped to black as well </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000062">Todo:</a></b></dt><dd></dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000063">Todo:</a></b></dt><dd>math for subscreen pixels (add/sub sub to main) </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">157</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00370">add_subscreen_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00289">brightness</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00367">clip_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">even_frame</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00375">fixed_color_b_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00374">fixed_color_g_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00373">fixed_color_r_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00288">forced_blank_</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00320">GetWindowState()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00372">half_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00369">math_enabled_array_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">mode</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00411">pixelBuffer</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00412">pixelOutputFormat</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00368">prevent_math_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00293">pseudo_hires_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00371">subtract_color_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00375">add_subscreen_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00291">brightness</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00372">clip_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">even_frame</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00380">fixed_color_b_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00379">fixed_color_g_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00378">fixed_color_r_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">forced_blank_</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00332">GetWindowState()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00377">half_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00374">math_enabled_array_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">mode</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00416">pixelBuffer</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00417">pixelOutputFormat</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00373">prevent_math_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00295">pseudo_hires_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00376">subtract_color_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00145">RunLine()</a>.</p>
 <div class="dynheader">
@@ -593,11 +595,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00269">269</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00271">271</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00419">counters_latched_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00415">h_count_</a>, <a class="el" href="../../d2/d5e/classyaze_1_1emu_1_1Memory.html#a7e6cf763ff5392d59a874e22f80bd2b9">yaze::emu::Memory::h_pos()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00428">memory_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00416">v_count_</a>, and <a class="el" href="../../d2/d5e/classyaze_1_1emu_1_1Memory.html#a8822e658b05dd7df7edc9c36d2038310">yaze::emu::Memory::v_pos()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00424">counters_latched_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00420">h_count_</a>, <a class="el" href="../../d2/d5e/classyaze_1_1emu_1_1Memory.html#a7e6cf763ff5392d59a874e22f80bd2b9">yaze::emu::Memory::h_pos()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00433">memory_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00421">v_count_</a>, and <a class="el" href="../../d2/d5e/classyaze_1_1emu_1_1Memory.html#a8822e658b05dd7df7edc9c36d2038310">yaze::emu::Memory::v_pos()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">yaze::emu::Snes::WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00454">yaze::emu::Snes::WriteReg()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -663,9 +665,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">224</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">236</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00291">bg3priority</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00404">bg_layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00340">cgram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00297">direct_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">even_frame</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00399">GetPixelForBgLayer()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00301">GetPixelForMode7()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00320">GetWindowState()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00350">HandleOPT()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00219">yaze::emu::BgLayer::hScroll</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00378">layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00387">m7extBg</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00212">yaze::emu::Layer::mainScreenEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00214">yaze::emu::Layer::mainScreenWindowed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">mode</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00407">mosaic_size_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00402">mosaic_startline_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00226">yaze::emu::BgLayer::mosaicEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00363">obj_pixel_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00364">obj_priority_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00213">yaze::emu::Layer::subScreenEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00215">yaze::emu::Layer::subScreenWindowed</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00220">yaze::emu::BgLayer::vScroll</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00293">bg3priority</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00409">bg_layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00345">cgram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00299">direct_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">even_frame</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00411">GetPixelForBgLayer()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00313">GetPixelForMode7()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00332">GetWindowState()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00362">HandleOPT()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00219">yaze::emu::BgLayer::hScroll</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00296">interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00383">layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00392">m7extBg</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00212">yaze::emu::Layer::mainScreenEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00214">yaze::emu::Layer::mainScreenWindowed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">mode</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00412">mosaic_size_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00407">mosaic_startline_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00226">yaze::emu::BgLayer::mosaicEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00368">obj_pixel_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00369">obj_priority_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00213">yaze::emu::Layer::subScreenEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00215">yaze::emu::Layer::subScreenWindowed</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00220">yaze::emu::BgLayer::vScroll</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>.</p>
 <div class="dynheader">
@@ -702,11 +704,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000054">Todo:</a></b></dt><dd>rectangular sprites, wierdness with sprites at -256 </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000066">Todo:</a></b></dt><dd>rectangular sprites, wierdness with sprites at -256 </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">466</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">478</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">even_frame</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00347">high_oam_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00346">oam</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00348">oam_adr_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00358">obj_interlace_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00363">obj_pixel_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00359">obj_priority_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00364">obj_priority_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00362">obj_size_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00360">obj_tile_adr1_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00361">obj_tile_adr2_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00357">range_over_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00356">time_over_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00332">vram</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">even_frame</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00352">high_oam_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00351">oam</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00353">oam_adr_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00363">obj_interlace_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00368">obj_pixel_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00364">obj_priority_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00369">obj_priority_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00367">obj_size_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00365">obj_tile_adr1_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00366">obj_tile_adr2_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00362">range_over_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00361">time_over_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00337">vram</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00145">RunLine()</a>.</p>
 
@@ -728,9 +730,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00561">561</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00573">573</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00404">bg_layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00381">m7matrix</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00390">m7startX</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00391">m7startY</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00386">m7yFlip</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00407">mosaic_size_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00402">mosaic_startline_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00409">bg_layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00386">m7matrix</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00395">m7startX</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00396">m7startY</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00391">m7yFlip</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00412">mosaic_size_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00407">mosaic_startline_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00145">RunLine()</a>.</p>
 
@@ -762,11 +764,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00320">320</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00332">332</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00232">yaze::emu::WindowLayer::window1inversed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00395">window1left</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00396">window1right</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00233">yaze::emu::WindowLayer::window2inversed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00397">window2left</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00398">window2right</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00394">windowLayer</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00232">yaze::emu::WindowLayer::window1inversed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00400">window1left</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00401">window1right</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00233">yaze::emu::WindowLayer::window2inversed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00402">window2left</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00403">window2right</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00399">windowLayer</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>.</p>
 
 </div>
 </div>
@@ -793,9 +795,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00299">299</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00301">301</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00284">frame_overscan_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00285">overscan_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00286">frame_overscan_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00287">overscan_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">yaze::emu::Snes::RunCycle()</a>.</p>
 
@@ -816,9 +818,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00582">582</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00594">594</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00288">forced_blank_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00295">frame_interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00348">oam_adr_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00349">oam_adr_written_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00350">oam_in_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00351">oam_in_high_written_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00352">oam_second_write_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">forced_blank_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00297">frame_interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00296">interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00353">oam_adr_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00354">oam_adr_written_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00355">oam_in_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00356">oam_in_high_written_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00357">oam_second_write_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">yaze::emu::Snes::RunCycle()</a>.</p>
 
@@ -855,14 +857,14 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000052">Todo:</a></b></dt><dd>not sure if correct </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000053">Todo:</a></b></dt><dd>not sure if correct for interlace </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000064">Todo:</a></b></dt><dd>not sure if correct </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000065">Todo:</a></b></dt><dd>not sure if correct for interlace </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00350">350</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00362">362</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00404">bg_layer_</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00385">GetOffsetValue()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00219">yaze::emu::BgLayer::hScroll</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">mode</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00409">bg_layer_</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00397">GetOffsetValue()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00219">yaze::emu::BgLayer::hScroll</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">mode</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -902,11 +904,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00385">385</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00397">397</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00404">bg_layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00225">yaze::emu::BgLayer::bigTiles</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00219">yaze::emu::BgLayer::hScroll</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00223">yaze::emu::BgLayer::tilemapAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00222">yaze::emu::BgLayer::tilemapHigher</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00221">yaze::emu::BgLayer::tilemapWider</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00332">vram</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00220">yaze::emu::BgLayer::vScroll</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00409">bg_layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00225">yaze::emu::BgLayer::bigTiles</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00219">yaze::emu::BgLayer::hScroll</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00223">yaze::emu::BgLayer::tilemapAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00222">yaze::emu::BgLayer::tilemapHigher</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00221">yaze::emu::BgLayer::tilemapWider</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00337">vram</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00220">yaze::emu::BgLayer::vScroll</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00350">HandleOPT()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00362">HandleOPT()</a>.</p>
 
 </div>
 </div>
@@ -948,11 +950,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00399">399</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00411">411</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00404">bg_layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00225">yaze::emu::BgLayer::bigTiles</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">mode</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00224">yaze::emu::BgLayer::tileAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00223">yaze::emu::BgLayer::tilemapAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00222">yaze::emu::BgLayer::tilemapHigher</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00221">yaze::emu::BgLayer::tilemapWider</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00332">vram</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00409">bg_layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00225">yaze::emu::BgLayer::bigTiles</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">mode</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00224">yaze::emu::BgLayer::tileAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00223">yaze::emu::BgLayer::tilemapAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00222">yaze::emu::BgLayer::tilemapHigher</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00221">yaze::emu::BgLayer::tilemapWider</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00337">vram</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>.</p>
 
 </div>
 </div>
@@ -981,11 +983,11 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000055">Todo:</a></b></dt><dd>only when ppulatch is set </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000067">Todo:</a></b></dt><dd>only when ppulatch is set </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">592</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">604</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00340">cgram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00341">cgram_pointer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00342">cgram_second_write_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00419">counters_latched_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">even_frame</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01017">GetVramRemap()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00415">h_count_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00417">h_count_second_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00347">high_oam_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00269">LatchHV()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00381">m7matrix</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00428">memory_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00346">oam</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00348">oam_adr_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00350">oam_in_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00352">oam_second_write_</a>, <a class="el" href="../../d2/d5e/classyaze_1_1emu_1_1Memory.html#ab6fa37e325f24ed2836db1ab28650f35">yaze::emu::Memory::open_bus()</a>, <a class="el" href="../../d2/d5e/classyaze_1_1emu_1_1Memory.html#a784023bfb0c060029e1eb7d1be6fc9ad">yaze::emu::Memory::pal_timing()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00420">ppu1_open_bus_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00421">ppu2_open_bus_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00357">range_over_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00356">time_over_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00416">v_count_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00418">v_count_second_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00332">vram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00335">vram_increment_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00334">vram_increment_on_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00333">vram_pointer</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00337">vram_read_buffer_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00345">cgram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00346">cgram_pointer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00347">cgram_second_write_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00424">counters_latched_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">even_frame</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01029">GetVramRemap()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00420">h_count_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00422">h_count_second_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00352">high_oam_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00271">LatchHV()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00386">m7matrix</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00433">memory_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00351">oam</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00353">oam_adr_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00355">oam_in_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00357">oam_second_write_</a>, <a class="el" href="../../d2/d5e/classyaze_1_1emu_1_1Memory.html#ab6fa37e325f24ed2836db1ab28650f35">yaze::emu::Memory::open_bus()</a>, <a class="el" href="../../d2/d5e/classyaze_1_1emu_1_1Memory.html#a784023bfb0c060029e1eb7d1be6fc9ad">yaze::emu::Memory::pal_timing()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00425">ppu1_open_bus_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00426">ppu2_open_bus_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00362">range_over_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00361">time_over_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00421">v_count_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00423">v_count_second_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00337">vram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00340">vram_increment_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00339">vram_increment_on_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00338">vram_pointer</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00342">vram_read_buffer_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00298">yaze::emu::Snes::ReadBBus()</a>.</p>
 <div class="dynheader">
@@ -1032,13 +1034,13 @@ Here is the call graph for this function:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000056">Todo:</a></b></dt><dd>oam address reset when written on first line of vblank, (and when </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000057">Todo:</a></b></dt><dd>mosaic line reset specifics </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000058">Todo:</a></b></dt><dd>vram access during rendering (also cgram and oam) </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000068">Todo:</a></b></dt><dd>oam address reset when written on first line of vblank, (and when </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000069">Todo:</a></b></dt><dd>mosaic line reset specifics </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000070">Todo:</a></b></dt><dd>vram access during rendering (also cgram and oam) </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">727</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">739</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00370">add_subscreen_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00291">bg3priority</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00404">bg_layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00225">yaze::emu::BgLayer::bigTiles</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00289">brightness</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00340">cgram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00343">cgram_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00341">cgram_pointer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00342">cgram_second_write_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00367">clip_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00297">direct_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00375">fixed_color_b_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00374">fixed_color_g_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00373">fixed_color_r_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00288">forced_blank_</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01017">GetVramRemap()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00372">half_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00347">high_oam_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00378">layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00384">m7charFill</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00387">m7extBg</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00383">m7largeField</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00381">m7matrix</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00382">m7prev</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00385">m7xFlip</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00386">m7yFlip</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00212">yaze::emu::Layer::mainScreenEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00214">yaze::emu::Layer::mainScreenWindowed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00234">yaze::emu::WindowLayer::maskLogic</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00369">math_enabled_array_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00428">memory_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">mode</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00407">mosaic_size_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00402">mosaic_startline_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00226">yaze::emu::BgLayer::mosaicEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00346">oam</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00348">oam_adr_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00349">oam_adr_written_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00353">oam_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00350">oam_in_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00351">oam_in_high_written_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00352">oam_second_write_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00358">obj_interlace_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00359">obj_priority_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00362">obj_size_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00360">obj_tile_adr1_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00361">obj_tile_adr2_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00285">overscan_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00368">prevent_math_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00293">pseudo_hires_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00406">scroll_prev2_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00405">scroll_prev_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00213">yaze::emu::Layer::subScreenEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00215">yaze::emu::Layer::subScreenWindowed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00371">subtract_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00224">yaze::emu::BgLayer::tileAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00223">yaze::emu::BgLayer::tilemapAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00222">yaze::emu::BgLayer::tilemapHigher</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00221">yaze::emu::BgLayer::tilemapWider</a>, <a class="el" href="../../d2/d5e/classyaze_1_1emu_1_1Memory.html#a8822e658b05dd7df7edc9c36d2038310">yaze::emu::Memory::v_pos()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00332">vram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00335">vram_increment_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00334">vram_increment_on_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00333">vram_pointer</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00337">vram_read_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00336">vram_remap_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00395">window1left</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00396">window1right</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00397">window2left</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00398">window2right</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00394">windowLayer</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00375">add_subscreen_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00293">bg3priority</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00409">bg_layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00225">yaze::emu::BgLayer::bigTiles</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00291">brightness</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00345">cgram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00348">cgram_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00346">cgram_pointer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00347">cgram_second_write_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00372">clip_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00299">direct_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00380">fixed_color_b_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00379">fixed_color_g_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00378">fixed_color_r_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">forced_blank_</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01029">GetVramRemap()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00377">half_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00352">high_oam_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00296">interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00383">layer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00389">m7charFill</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00392">m7extBg</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00388">m7largeField</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00386">m7matrix</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00387">m7prev</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00390">m7xFlip</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00391">m7yFlip</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00212">yaze::emu::Layer::mainScreenEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00214">yaze::emu::Layer::mainScreenWindowed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00234">yaze::emu::WindowLayer::maskLogic</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00374">math_enabled_array_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00433">memory_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">mode</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00412">mosaic_size_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00407">mosaic_startline_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00226">yaze::emu::BgLayer::mosaicEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00351">oam</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00353">oam_adr_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00354">oam_adr_written_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00358">oam_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00355">oam_in_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00356">oam_in_high_written_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00357">oam_second_write_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00363">obj_interlace_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00364">obj_priority_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00367">obj_size_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00365">obj_tile_adr1_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00366">obj_tile_adr2_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00287">overscan_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00373">prevent_math_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00295">pseudo_hires_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00411">scroll_prev2_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00410">scroll_prev_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00213">yaze::emu::Layer::subScreenEnabled</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00215">yaze::emu::Layer::subScreenWindowed</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00376">subtract_color_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00224">yaze::emu::BgLayer::tileAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00223">yaze::emu::BgLayer::tilemapAdr</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00222">yaze::emu::BgLayer::tilemapHigher</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00221">yaze::emu::BgLayer::tilemapWider</a>, <a class="el" href="../../d2/d5e/classyaze_1_1emu_1_1Memory.html#a8822e658b05dd7df7edc9c36d2038310">yaze::emu::Memory::v_pos()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00337">vram</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00340">vram_increment_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00339">vram_increment_on_high_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00338">vram_pointer</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00342">vram_read_buffer_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00341">vram_remap_mode_</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00400">window1left</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00401">window1right</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00402">window2left</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00403">window2right</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00399">windowLayer</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00414">yaze::emu::Snes::WriteBBus()</a>.</p>
 <div class="dynheader">
@@ -1071,11 +1073,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01017">1017</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01029">1029</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00333">vram_pointer</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00336">vram_remap_mode_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00338">vram_pointer</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00341">vram_remap_mode_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1095,9 +1097,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01032">1032</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01044">1044</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">even_frame</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00295">frame_interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00284">frame_overscan_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00411">pixelBuffer</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">even_frame</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00297">frame_interlace</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00286">frame_overscan_</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00416">pixelBuffer</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00627">yaze::emu::Snes::SetPixels()</a>.</p>
 
@@ -1126,9 +1128,39 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00317">317</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00319">319</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00434">frame_buffer_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00439">frame_buffer_</a>.</p>
+
+</div>
+</div>
+<a id="a2e0bc9db85e9dc98ac59eeb7f5205e53" name="a2e0bc9db85e9dc98ac59eeb7f5205e53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2e0bc9db85e9dc98ac59eeb7f5205e53">&#9670;&#160;</a></span>SetPixelFormat()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::Ppu::SetPixelFormat </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t&#160;</td>
+          <td class="paramname"><em>format</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00322">322</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00417">pixelOutputFormat</a>.</p>
 
 </div>
 </div>
@@ -1172,11 +1204,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00301">301</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00313">313</a> of file <a class="el" href="../../dc/db3/ppu_8cc_source.html">ppu.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00384">m7charFill</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00383">m7largeField</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00381">m7matrix</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00390">m7startX</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00391">m7startY</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00385">m7xFlip</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00332">vram</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/df9/ppu_8h_source.html#l00389">m7charFill</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00388">m7largeField</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00386">m7matrix</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00395">m7startX</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00396">m7startY</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00390">m7xFlip</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00337">vram</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>.</p>
 
 </div>
 </div>
@@ -1193,9 +1225,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00284">284</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00286">286</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00299">CheckOverscan()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01032">PutPixels()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00301">CheckOverscan()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01044">PutPixels()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -1211,9 +1243,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00285">285</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00287">287</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00299">CheckOverscan()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00301">CheckOverscan()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1229,9 +1261,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00288">288</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">290</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00582">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00145">RunLine()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00594">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00145">RunLine()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1247,9 +1279,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00289">289</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00291">291</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1265,9 +1297,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00290">290</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">292</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00399">GetPixelForBgLayer()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00350">HandleOPT()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00145">RunLine()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00411">GetPixelForBgLayer()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00362">HandleOPT()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00145">RunLine()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1283,9 +1315,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00291">291</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00293">293</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1301,9 +1333,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00292">292</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">294</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00137">HandleFrameStart()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01032">PutPixels()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">yaze::emu::Snes::RunCycle()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00137">HandleFrameStart()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01044">PutPixels()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">yaze::emu::Snes::RunCycle()</a>.</p>
 
 </div>
 </div>
@@ -1319,9 +1351,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00293">293</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00295">295</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1337,9 +1369,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00294">294</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00296">296</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00582">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00594">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1355,9 +1387,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00295">295</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00297">297</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00582">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01032">PutPixels()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">yaze::emu::Snes::RunCycle()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00594">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01044">PutPixels()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00146">yaze::emu::Snes::RunCycle()</a>.</p>
 
 </div>
 </div>
@@ -1373,9 +1405,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00297">297</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00299">299</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1399,7 +1431,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00322">322</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00327">327</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -1423,7 +1455,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00323">323</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00328">328</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -1447,7 +1479,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00324">324</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00329">329</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -1471,7 +1503,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00326">326</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00331">331</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -1495,7 +1527,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00328">328</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00333">333</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -1519,7 +1551,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00329">329</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00334">334</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -1543,9 +1575,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00332">332</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00337">337</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00385">GetOffsetValue()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00399">GetPixelForBgLayer()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00301">GetPixelForMode7()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00397">GetOffsetValue()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00411">GetPixelForBgLayer()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00313">GetPixelForMode7()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1569,9 +1601,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00333">333</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00338">338</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01017">GetVramRemap()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01029">GetVramRemap()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1595,9 +1627,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00334">334</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00339">339</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1621,9 +1653,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00335">335</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00340">340</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1647,9 +1679,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00336">336</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00341">341</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01017">GetVramRemap()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01029">GetVramRemap()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1673,9 +1705,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00337">337</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00342">342</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1699,9 +1731,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00340">340</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00345">345</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1725,9 +1757,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00341">341</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00346">346</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1751,9 +1783,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00342">342</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00347">347</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1777,9 +1809,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00343">343</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00348">348</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1803,9 +1835,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00346">346</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00351">351</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1829,9 +1861,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00347">347</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00352">352</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1855,9 +1887,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00348">348</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00353">353</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00582">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00594">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1881,9 +1913,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00349">349</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00354">354</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00582">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00594">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1907,9 +1939,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00350">350</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00355">355</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00582">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00594">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1933,9 +1965,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00351">351</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00356">356</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00582">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00594">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1959,9 +1991,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00352">352</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00357">357</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00582">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00594">HandleVblank()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -1985,9 +2017,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00353">353</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00358">358</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2011,9 +2043,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00356">356</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00361">361</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00137">HandleFrameStart()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00137">HandleFrameStart()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -2037,9 +2069,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00357">357</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00362">362</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00137">HandleFrameStart()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00137">HandleFrameStart()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -2063,9 +2095,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00358">358</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00363">363</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2089,9 +2121,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00359">359</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00364">364</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2115,9 +2147,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00360">360</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00365">365</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2141,9 +2173,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00361">361</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00366">366</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2167,9 +2199,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00362">362</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00367">367</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2193,9 +2225,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00363">363</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00368">368</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00145">RunLine()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00145">RunLine()</a>.</p>
 
 </div>
 </div>
@@ -2219,9 +2251,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00364">364</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00369">369</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00466">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00478">EvaluateSprites()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -2245,9 +2277,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00367">367</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00372">372</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2271,9 +2303,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00368">368</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00373">373</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2297,9 +2329,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00369">369</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00374">374</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2323,9 +2355,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00370">370</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00375">375</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2349,9 +2381,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00371">371</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00376">376</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2375,9 +2407,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00372">372</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00377">377</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2401,9 +2433,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00373">373</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00378">378</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2427,9 +2459,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00374">374</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00379">379</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2453,9 +2485,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00375">375</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00380">380</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2479,9 +2511,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00378">378</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00383">383</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2505,9 +2537,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00381">381</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00386">386</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00561">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00301">GetPixelForMode7()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00573">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00313">GetPixelForMode7()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2531,9 +2563,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00382">382</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00387">387</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2557,9 +2589,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00383">383</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00388">388</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00301">GetPixelForMode7()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00313">GetPixelForMode7()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2583,9 +2615,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00384">384</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00389">389</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00301">GetPixelForMode7()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00313">GetPixelForMode7()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2609,9 +2641,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00385">385</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00390">390</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00301">GetPixelForMode7()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00313">GetPixelForMode7()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2635,9 +2667,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00386">386</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00391">391</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00561">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00573">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2661,9 +2693,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00387">387</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00392">392</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2687,9 +2719,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00390">390</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00395">395</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00561">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00301">GetPixelForMode7()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00573">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00313">GetPixelForMode7()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -2713,9 +2745,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00391">391</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00396">396</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00561">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00301">GetPixelForMode7()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00573">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00313">GetPixelForMode7()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -2739,9 +2771,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00394">394</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00399">399</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00320">GetWindowState()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00332">GetWindowState()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2765,9 +2797,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00395">395</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00400">400</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00320">GetWindowState()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00332">GetWindowState()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2791,9 +2823,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00396">396</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00401">401</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00320">GetWindowState()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00332">GetWindowState()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2817,9 +2849,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00397">397</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00402">402</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00320">GetWindowState()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00332">GetWindowState()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2843,9 +2875,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00398">398</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00403">403</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00320">GetWindowState()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00332">GetWindowState()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2869,7 +2901,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00401">401</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00406">406</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -2893,9 +2925,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00402">402</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00407">407</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00561">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00137">HandleFrameStart()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00573">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00137">HandleFrameStart()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2919,9 +2951,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00404">404</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00409">409</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00561">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00385">GetOffsetValue()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00399">GetPixelForBgLayer()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00350">HandleOPT()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00573">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00397">GetOffsetValue()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00411">GetPixelForBgLayer()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00362">HandleOPT()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2945,9 +2977,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00405">405</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00410">410</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2971,9 +3003,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00406">406</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00411">411</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -2997,9 +3029,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00407">407</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00412">412</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00561">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00224">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00573">CalculateMode7Starts()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00236">GetPixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -3023,9 +3055,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00411">411</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00416">416</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01032">PutPixels()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l01044">PutPixels()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3049,9 +3081,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00412">412</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00417">417</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00259">Init()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00157">HandlePixel()</a>, <a class="el" href="../../d2/df9/ppu_8h_source.html#l00259">Init()</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00322">SetPixelFormat()</a>.</p>
 
 </div>
 </div>
@@ -3075,9 +3107,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00415">415</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00420">420</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00269">LatchHV()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00271">LatchHV()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3101,9 +3133,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00416">416</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00421">421</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00269">LatchHV()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00271">LatchHV()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3127,9 +3159,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00417">417</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00422">422</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3153,9 +3185,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00418">418</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00423">423</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3179,9 +3211,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00419">419</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00424">424</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00269">LatchHV()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00271">LatchHV()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3205,9 +3237,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00420">420</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00425">425</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3231,9 +3263,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00421">421</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00426">426</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00039">Reset()</a>.</p>
 
 </div>
 </div>
@@ -3257,7 +3289,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00423">423</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00428">428</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3281,7 +3313,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00424">424</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00429">429</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3305,7 +3337,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00425">425</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00430">430</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3329,7 +3361,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00426">426</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00431">431</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3353,9 +3385,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00428">428</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00433">433</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00269">LatchHV()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00592">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00727">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00271">LatchHV()</a>, <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00604">Read()</a>, and <a class="el" href="../../dc/db3/ppu_8cc_source.html#l00739">Write()</a>.</p>
 
 </div>
 </div>
@@ -3379,7 +3411,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00430">430</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00435">435</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3403,7 +3435,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00431">431</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00436">436</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3427,7 +3459,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00432">432</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00437">437</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3451,7 +3483,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00433">433</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00438">438</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3475,9 +3507,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00434">434</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00439">439</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00317">GetFrameBuffer()</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00259">Init()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/df9/ppu_8h_source.html#l00319">GetFrameBuffer()</a>, and <a class="el" href="../../d2/df9/ppu_8h_source.html#l00259">Init()</a>.</p>
 
 </div>
 </div>
@@ -3501,7 +3533,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00437">437</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00442">442</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3525,7 +3557,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00438">438</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00443">443</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3549,7 +3581,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00439">439</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00444">444</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3573,7 +3605,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00440">440</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00445">445</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3597,7 +3629,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00441">441</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00446">446</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3621,7 +3653,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00442">442</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00447">447</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>
@@ -3645,7 +3677,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00443">443</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/df9/ppu_8h_source.html#l00448">448</a> of file <a class="el" href="../../d2/df9/ppu_8h_source.html">ppu.h</a>.</p>
 
 </div>
 </div>

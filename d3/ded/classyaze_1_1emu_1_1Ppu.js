@@ -21,6 +21,7 @@ var classyaze_1_1emu_1_1Ppu =
     [ "GetVramRemap", "d3/ded/classyaze_1_1emu_1_1Ppu.html#ad8bfc6218cdb6d3652a1f7166ba0ee0f", null ],
     [ "PutPixels", "d3/ded/classyaze_1_1emu_1_1Ppu.html#a6e17063e918cb9829f2ff149cc3f8abc", null ],
     [ "GetFrameBuffer", "d3/ded/classyaze_1_1emu_1_1Ppu.html#a9c3288d9b80beb5181d833a2b53c10ca", null ],
+    [ "SetPixelFormat", "d3/ded/classyaze_1_1emu_1_1Ppu.html#a2e0bc9db85e9dc98ac59eeb7f5205e53", null ],
     [ "GetPixelForMode7", "d3/ded/classyaze_1_1emu_1_1Ppu.html#ad95817ee14159a615b0682afe797cfb8", null ],
     [ "frame_overscan_", "d3/ded/classyaze_1_1emu_1_1Ppu.html#a75e616e2f4ed383f4552343bcd2a661b", null ],
     [ "overscan_", "d3/ded/classyaze_1_1emu_1_1Ppu.html#accea30561b2035d031d9bb9d5efe13bc", null ],

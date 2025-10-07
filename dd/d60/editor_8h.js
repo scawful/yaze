@@ -6,6 +6,7 @@ var editor_8h =
     [ "EditorType", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622a", [
       [ "kAssembly", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aab686a008a9fc3fe70222034bef987ced", null ],
       [ "kDungeon", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aa773324726da2f589c757da4c39336156", null ],
+      [ "kEmulator", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aac9c4dbe38171bf53070d7f7fd1182b70", null ],
       [ "kGraphics", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aa3e1c9b3724e1f17fea630f35337bc792", null ],
       [ "kMusic", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aa8949888d2b573f893130a7e12d8676f4", null ],
       [ "kOverworld", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aa29f266fe9c0da014314bf7c6a9b2a7a6", null ],
@@ -17,5 +18,5 @@ var editor_8h =
       [ "kAgent", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aaf76ed811b18a86459694dacf3347d438", null ],
       [ "kSettings", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aac935a934100d15241aefe3f7081e7767", null ]
     ] ],
-    [ "kEditorNames", "dd/d60/editor_8h.html#ad2c9485ee70d3ac474b03e098cbc35da", null ]
+    [ "kEditorNames", "dd/d60/editor_8h.html#a58023080da84550374e4dafc7a57629f", null ]
 ];

@@ -301,6 +301,10 @@ var annotated_dup =
         [ "WorkspaceManager", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager" ]
       ] ],
       [ "emu", "d6/d20/namespaceyaze_1_1emu.html", [
+        [ "debug", "d9/dd4/namespaceyaze_1_1emu_1_1debug.html", [
+          [ "DisassemblyEntry", "d1/df8/structyaze_1_1emu_1_1debug_1_1DisassemblyEntry.html", "d1/df8/structyaze_1_1emu_1_1debug_1_1DisassemblyEntry" ],
+          [ "DisassemblyViewer", "d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html", "d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer" ]
+        ] ],
         [ "Apu", "d7/da7/classyaze_1_1emu_1_1Apu.html", "d7/da7/classyaze_1_1emu_1_1Apu" ],
         [ "ApuCallbacks", "df/d64/structyaze_1_1emu_1_1ApuCallbacks.html", "df/d64/structyaze_1_1emu_1_1ApuCallbacks" ],
         [ "ApuDspTest", "d2/d3e/classyaze_1_1emu_1_1ApuDspTest.html", "d2/d3e/classyaze_1_1emu_1_1ApuDspTest" ],

@@ -1,0 +1,11 @@
+<map id="yaze::emu::debug::DisassemblyViewer::Render" name="yaze::emu::debug::DisassemblyViewer::Render">
+<area shape="rect" id="Node000001" title="Render the disassembly viewer UI." alt="" coords="5,71,205,111"/>
+<area shape="rect" id="Node000002" href="$d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#ad45570b2877bd78c67a08ff88882bfab" title=" " alt="" coords="253,5,467,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,67,263,48,264,53,188,73"/>
+<area shape="rect" id="Node000010" href="$d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#a5a700d9c9bb28b1f5a18dc531d4f23a7" title=" " alt="" coords="260,71,460,111"/>
+<area shape="poly" id="edge3_Node000001_Node000010" title=" " alt="" coords="205,88,245,88,245,94,205,94"/>
+<area shape="rect" id="Node000011" href="$d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#a365a9e9e95bf86cc6e053344a64a3d71" title=" " alt="" coords="260,136,460,177"/>
+<area shape="poly" id="edge4_Node000001_Node000011" title=" " alt="" coords="188,109,264,129,263,134,186,115"/>
+<area shape="rect" id="Node000003" href="$d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#a7ddfd52f7a892406e84f3efdd46d5368" title=" " alt="" coords="515,5,714,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="467,23,499,23,499,28,467,28"/>
+</map>
