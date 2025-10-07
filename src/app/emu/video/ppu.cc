@@ -114,7 +114,7 @@ void Ppu::Reset() {
   fixed_color_g_ = 0;
   fixed_color_b_ = 0;
   forced_blank_ = true;
-  brightness = 0;
+  brightness = 15;  // SNES hardware default is maximum brightness
   mode = 0;
   bg3priority = false;
   even_frame = false;

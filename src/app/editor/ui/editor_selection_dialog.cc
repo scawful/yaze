@@ -56,6 +56,10 @@ EditorSelectionDialog::EditorSelectionDialog() {
      "Direct ROM memory editing and comparison", "Ctrl+0", false, true,
      ImVec4(0.2f, 0.8f, 0.4f, 1.0f)},  // Matrix green
 
+    {EditorType::kEmulator, "Emulator", ICON_MD_VIDEOGAME_ASSET,
+     "Test and debug your ROM in real-time with live debugging", "Ctrl+Shift+E", false, true,
+     ImVec4(0.2f, 0.6f, 1.0f, 1.0f)},  // Emulator blue
+
     {EditorType::kAgent, "AI Agent", ICON_MD_SMART_TOY,
      "Configure AI agent, collaboration, and automation", "Ctrl+Shift+A", false, false,
      ImVec4(0.8f, 0.4f, 1.0f, 1.0f)},  // Purple/magenta
@@ -279,9 +283,7 @@ void EditorSelectionDialog::DrawEditorCard(const EditorInfo& info, int index) {
   // Draw shortcut hint if available
   if (info.shortcut && info.shortcut[0]) {
     ImGui::SetCursorScreenPos(ImVec2(cursor_pos.x + 10, cursor_pos.y + button_size.y - 20));
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
-    ImGui::Text("%s", info.shortcut);
-    ImGui::PopStyleColor();
+    ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s", info.shortcut);
   }
   
   // Hover glow effect

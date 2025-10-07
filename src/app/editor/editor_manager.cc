@@ -468,6 +468,9 @@ void EditorManager::Initialize(const std::string& filename) {
       case EditorType::kAssembly:
         show_asm_editor_ = true;
         break;
+      case EditorType::kEmulator:
+        show_emulator_ = true;
+        break;
       case EditorType::kSettings:
         current_editor_set_->settings_editor_.set_active(true);
         break;

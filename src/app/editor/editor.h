@@ -53,6 +53,7 @@ struct EditorContext {
 enum class EditorType {
   kAssembly,
   kDungeon,
+  kEmulator,
   kGraphics,
   kMusic,
   kOverworld,
@@ -65,9 +66,9 @@ enum class EditorType {
   kSettings,
 };
 
-constexpr std::array<const char*, 12> kEditorNames = {
-    "Assembly", "Dungeon", "Graphics", "Music",   "Overworld",
-    "Palette",  "Screen",  "Sprite",   "Message", "Hex", "Agent", "Settings",
+constexpr std::array<const char*, 13> kEditorNames = {
+    "Assembly", "Dungeon", "Emulator", "Graphics", "Music", "Overworld",
+    "Palette",  "Screen",  "Sprite",   "Message",  "Hex",   "Agent", "Settings",
 };
 
 /**

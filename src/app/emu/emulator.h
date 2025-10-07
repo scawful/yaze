@@ -48,6 +48,37 @@ class Emulator {
     audio_device_ = audio_device;
   }
   auto wanted_samples() const -> int { return wanted_samples_; }
+  
+  // AI Agent Integration API
+  bool IsEmulatorReady() const { return snes_.running() && !rom_data_.empty(); }
+  double GetCurrentFPS() const { return current_fps_; }
+  uint64_t GetCurrentCycle() { return snes_.mutable_cycles(); }
+  uint16_t GetCPUPC() { return snes_.cpu().PC; }
+  uint8_t GetCPUB() { return snes_.cpu().DB; }
+  void StepSingleInstruction() { snes_.cpu().RunOpcode(); }
+  void SetBreakpoint(uint32_t address) { snes_.cpu().SetBreakpoint(address); }
+  void ClearAllBreakpoints() { snes_.cpu().ClearBreakpoints(); }
+  std::vector<uint32_t> GetBreakpoints() { return snes_.cpu().GetBreakpoints(); }
+  
+  // Performance monitoring for AI agents
+  struct EmulatorMetrics {
+    double fps;
+    uint64_t cycles;
+    uint32_t audio_frames_queued;
+    bool is_running;
+    uint16_t cpu_pc;
+    uint8_t cpu_pb;
+  };
+  EmulatorMetrics GetMetrics() {
+    return {
+      .fps = current_fps_,
+      .cycles = snes_.mutable_cycles(),
+      .audio_frames_queued = SDL_GetQueuedAudioSize(audio_device_) / (wanted_samples_ * 4),
+      .is_running = running_,
+      .cpu_pc = snes_.cpu().PC,
+      .cpu_pb = snes_.cpu().PB
+    };
+  }
 
  private:
   void RenderNavBar();
@@ -57,6 +88,11 @@ class Emulator {
   void RenderSnesPpu();
   void RenderBreakpointList();
   void RenderMemoryViewer();
+  void RenderModernCpuDebugger();
+  void RenderPerformanceMonitor();
+  void RenderAIAgentPanel();
+  void RenderSaveStates();
+  void RenderKeyboardConfig();
 
   struct Bookmark {
     std::string name;
