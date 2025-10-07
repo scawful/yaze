@@ -258,6 +258,7 @@ class Ppu {
   // Initialize the frame buffer
   void Init() {
     frame_buffer_.resize(256 * 240, 0);
+    // Set to XBGR format (1) for compatibility with SDL_PIXELFORMAT_ARGB8888
     pixelOutputFormat = 1;
   }
 
@@ -315,6 +316,9 @@ class Ppu {
 
   // Returns the pixel data for the current frame
   const std::vector<uint8_t>& GetFrameBuffer() const { return frame_buffer_; }
+  
+  // Set pixel output format (0 = BGRX, 1 = XBGR)
+  void SetPixelFormat(uint8_t format) { pixelOutputFormat = format; }
 
  private:
   int GetPixelForMode7(int x, int layer, bool priority);

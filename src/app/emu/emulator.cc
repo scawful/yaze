@@ -49,6 +49,7 @@ using ImGui::Text;
 void Emulator::Run(Rom* rom) {
   static bool loaded = false;
   if (!snes_.running() && rom->is_loaded()) {
+    // Use ARGB8888 format to match PPU output (XBGR layout with format=1)
     ppu_texture_ = SDL_CreateTexture(core::Renderer::Get().renderer(),
                                      SDL_PIXELFORMAT_ARGB8888,
                                      SDL_TEXTUREACCESS_STREAMING, 512, 480);
@@ -58,6 +59,9 @@ void Emulator::Run(Rom* rom) {
     }
     rom_data_ = rom->vector();
     snes_.Init(rom_data_);
+    
+    // Note: PPU pixel format set to 1 (XBGR) in Init() which matches ARGB8888 texture
+    
     wanted_frames_ = 1.0 / (snes_.memory().pal_timing() ? 50.0 : 60.0);
     wanted_samples_ = 48000 / (snes_.memory().pal_timing() ? 50 : 60);
     loaded = true;
@@ -65,6 +69,9 @@ void Emulator::Run(Rom* rom) {
     count_frequency = SDL_GetPerformanceFrequency();
     last_count = SDL_GetPerformanceCounter();
     time_adder = 0.0;
+    frame_count_ = 0;
+    fps_timer_ = 0.0;
+    current_fps_ = 0.0;
   }
 
   RenderNavBar();
@@ -75,23 +82,43 @@ void Emulator::Run(Rom* rom) {
     uint64_t current_count = SDL_GetPerformanceCounter();
     uint64_t delta = current_count - last_count;
     last_count = current_count;
-    float seconds = delta / (float)count_frequency;
+    double seconds = delta / (double)count_frequency;
     time_adder += seconds;
+    
+    // Cap time accumulation to prevent spiral of death
+    if (time_adder > wanted_frames_ * 5.0) {
+      time_adder = wanted_frames_ * 5.0;
+    }
+    
     // allow 2 ms earlier, to prevent skipping due to being just below wanted
     while (time_adder >= wanted_frames_ - 0.002) {
       time_adder -= wanted_frames_;
 
       if (loaded) {
+        // Run frame
         if (turbo_mode_) {
           snes_.RunFrame();
         }
         snes_.RunFrame();
+        
+        // Track FPS
+        frame_count_++;
+        fps_timer_ += wanted_frames_;
+        if (fps_timer_ >= 1.0) {
+          current_fps_ = frame_count_ / fps_timer_;
+          frame_count_ = 0;
+          fps_timer_ = 0.0;
+        }
 
+        // Generate and queue audio samples
         snes_.SetSamples(audio_buffer_, wanted_samples_);
-        if (SDL_GetQueuedAudioSize(audio_device_) <= wanted_samples_ * 4 * 6) {
+        uint32_t queued = SDL_GetQueuedAudioSize(audio_device_);
+        // Keep audio buffer filled but not overflowing (max 6 frames worth)
+        if (queued <= wanted_samples_ * 4 * 6) {
           SDL_QueueAudio(audio_device_, audio_buffer_, wanted_samples_ * 4);
         }
 
+        // Update PPU texture
         void* ppu_pixels_;
         int ppu_pitch_;
         if (SDL_LockTexture(ppu_texture_, NULL, &ppu_pixels_, &ppu_pitch_) !=
@@ -101,6 +128,11 @@ void Emulator::Run(Rom* rom) {
         }
         snes_.SetPixels(static_cast<uint8_t*>(ppu_pixels_));
         SDL_UnlockTexture(ppu_texture_);
+      }
+      
+      // Don't run multiple frames if we're just slightly ahead
+      if (!turbo_mode_ && time_adder < wanted_frames_) {
+        break;
       }
     }
   }
@@ -298,6 +330,21 @@ void Emulator::RenderNavBar() {
 
   SameLine();
   ImGui::Checkbox("Turbo", &turbo_mode_);
+  
+  // Display FPS and Audio Status
+  SameLine();
+  ImGui::Text("|");
+  SameLine();
+  if (current_fps_ > 0) {
+    ImGui::Text("FPS: %.1f", current_fps_);
+  } else {
+    ImGui::Text("FPS: --");
+  }
+  
+  SameLine();
+  uint32_t audio_queued = SDL_GetQueuedAudioSize(audio_device_);
+  uint32_t audio_frames = audio_queued / (wanted_samples_ * 4);
+  ImGui::Text("| Audio: %u frames", audio_frames);
 
   static bool show_memory_viewer = false;
 

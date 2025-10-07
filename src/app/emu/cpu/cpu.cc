@@ -68,7 +68,7 @@ void Cpu::RunOpcode() {
   if (stopped_) {
     static int stopped_log_count = 0;
     if (stopped_log_count++ < 5) {
-      LOG_WARN("CPU", "CPU is STOPPED at $%02X:%04X (STP instruction executed)", PB, PC);
+      LOG_DEBUG("CPU", "CPU is STOPPED at $%02X:%04X (STP instruction executed)", PB, PC);
     }
     callbacks_.idle(true);
     return;
@@ -76,7 +76,7 @@ void Cpu::RunOpcode() {
   if (waiting_) {
     static int waiting_log_count = 0;
     if (waiting_log_count++ < 5) {
-      LOG_WARN("CPU", "CPU is WAITING at $%02X:%04X - irq_wanted=%d nmi_wanted=%d int_flag=%d", 
+      LOG_DEBUG("CPU", "CPU is WAITING at $%02X:%04X - irq_wanted=%d nmi_wanted=%d int_flag=%d", 
                PB, PC, irq_wanted_, nmi_wanted_, GetInterruptFlag());
     }
     if (irq_wanted_ || nmi_wanted_) {
@@ -116,7 +116,7 @@ void Cpu::RunOpcode() {
           // At $88B3: CMP.w APUIO0 - comparing A with F4
           // At $88B6: BNE .wait_for_sync_a - branch if not equal
           uint8_t f4_val = callbacks_.read_byte(0x2140);  // Read F4 directly
-          LOG_WARN("CPU", "Handshake wait: PC=$%04X A(counter)=$%02X F4(SPC)=$%02X X(remain)=$%04X",
+          LOG_DEBUG("CPU", "Handshake wait: PC=$%04X A(counter)=$%02X F4(SPC)=$%02X X(remain)=$%04X",
                    cur_pc, A & 0xFF, f4_val, X);
         }
       }
@@ -135,7 +135,7 @@ void Cpu::RunOpcode() {
       if (PC - 1 == last_stuck_pc) {
         stuck_count++;
         if (stuck_count == 100 || stuck_count == 1000 || stuck_count == 10000) {
-          LOG_WARN("CPU", "Stuck at $%02X:%04X opcode=$%02X for %d iterations",
+          LOG_DEBUG("CPU", "Stuck at $%02X:%04X opcode=$%02X for %d iterations",
                    PB, PC - 1, opcode, stuck_count);
         }
       } else {
@@ -1398,16 +1398,16 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
         uint8_t dp1 = ReadByte(D + 0x01);
         uint8_t dp2 = ReadByte(D + 0x02);
         uint32_t ptr = dp0 | (dp1 << 8) | (dp2 << 16);
-        LOG_WARN("CPU", "LDA [$00],Y at PC=$%04X: DP=$%04X, [$00]=$%02X:$%04X, Y=$%04X",
+        LOG_DEBUG("CPU", "LDA [$00],Y at PC=$%04X: DP=$%04X, [$00]=$%02X:$%04X, Y=$%04X",
                  cur_pc, D, dp2, (uint16_t)(dp0 | (dp1 << 8)), Y);
-        LOG_WARN("CPU", "  -> Reading 16-bit value from address $%06X", ptr + Y);
+        LOG_DEBUG("CPU", "  -> Reading 16-bit value from address $%06X", ptr + Y);
       }
       uint32_t low = 0;
       uint32_t high = AdrIly(&low);
       Lda(low, high);
       // Log the value read
       if (PB == 0x00 && (cur_pc == 0x88CF || cur_pc == 0x88D4)) {
-        LOG_WARN("CPU", "  -> Read value A=$%04X", A);
+        LOG_DEBUG("CPU", "  -> Read value A=$%04X", A);
       }
       break;
     }
