@@ -1297,7 +1297,7 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       // Advance timers/DSP via idle callbacks, but do not set stopped_.
       static int sleep_log = 0;
       if (sleep_log++ < 5) {
-        LOG_WARN("SPC", "SLEEP executed at PC=$%04X - entering low power mode", PC - 1);
+        LOG_DEBUG("SPC", "SLEEP executed at PC=$%04X - entering low power mode", PC - 1);
       }
       read(PC);
       for (int i = 0; i < 4; ++i) callbacks_.idle(true);

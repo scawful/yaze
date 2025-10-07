@@ -100,17 +100,17 @@ void Apu::RunCycles(uint64_t master_cycles) {
     if (current_pc == last_pc) {
       stuck_counter++;
       if (stuck_counter > 10000 && cycles_ - last_log_cycle > 10000) {
-        LOG_WARN("APU", "SPC700 stuck at PC=$%04X for %d iterations", 
+        LOG_DEBUG("APU", "SPC700 stuck at PC=$%04X for %d iterations", 
                  current_pc, stuck_counter);
-        LOG_WARN("APU", "Port Status: F4=$%02X F5=$%02X F6=$%02X F7=$%02X",
+        LOG_DEBUG("APU", "Port Status: F4=$%02X F5=$%02X F6=$%02X F7=$%02X",
                  in_ports_[0], in_ports_[1], in_ports_[2], in_ports_[3]);
-        LOG_WARN("APU", "Out Ports: F4=$%02X F5=$%02X F6=$%02X F7=$%02X",
+        LOG_DEBUG("APU", "Out Ports: F4=$%02X F5=$%02X F6=$%02X F7=$%02X",
                  out_ports_[0], out_ports_[1], out_ports_[2], out_ports_[3]);
-        LOG_WARN("APU", "IPL ROM enabled: %s", rom_readable_ ? "YES" : "NO");
-        LOG_WARN("APU", "SPC700 Y=$%02X, ZP $00=$%02X $01=$%02X", 
+        LOG_DEBUG("APU", "IPL ROM enabled: %s", rom_readable_ ? "YES" : "NO");
+        LOG_DEBUG("APU", "SPC700 Y=$%02X, ZP $00=$%02X $01=$%02X", 
                  spc700_.Y, ram[0x00], ram[0x01]);
         if (!logged_transfer_state && ram[0x00] == 0x19 && ram[0x01] == 0x00) {
-          LOG_WARN("APU", "Uploaded byte at $0019 = $%02X", ram[0x0019]);
+          LOG_DEBUG("APU", "Uploaded byte at $0019 = $%02X", ram[0x0019]);
           logged_transfer_state = true;
         }
         last_log_cycle = cycles_;

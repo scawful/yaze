@@ -82,7 +82,12 @@ class Emulator {
   // timing
   uint64_t count_frequency;
   uint64_t last_count;
-  float time_adder = 0.0;
+  double time_adder = 0.0;
+  
+  // FPS tracking
+  int frame_count_ = 0;
+  double fps_timer_ = 0.0;
+  double current_fps_ = 0.0;
 
   int16_t* audio_buffer_;
   SDL_AudioDeviceID audio_device_;
