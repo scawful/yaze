@@ -5,7 +5,7 @@
 #include "util/file_util.h"
 #include "app/gui/theme_manager.h"
 #include "app/editor/ui/background_renderer.h"
-#include "app/core/platform/font_loader.h"
+#include "app/platform/font_loader.h"
 #include "app/gui/color.h"
 #include "app/gui/icons.h"
 #include "imgui/imgui.h"
@@ -1293,7 +1293,7 @@ void DrawFontManager() {
   static bool font_selected = false;
 
   ImGui::Text("Loaded fonts");
-  for (const auto &loaded_font : core::font_registry.fonts) {
+  for (const auto &loaded_font : font_registry.fonts) {
     ImGui::Text("%s", loaded_font.font_path);
   }
   ImGui::Separator();

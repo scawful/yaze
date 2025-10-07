@@ -105,10 +105,8 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
     link_graphics[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                             gfx::kTilesheetDepth, link_sheet_8bpp);
     link_graphics[i].SetPalette(rom.palette_group().armors[0]);
-    // TODO: Renderer refactor to use IRenderer or defer for later when GraphicsEditor is opened.
-    // if (SDL_Renderer *renderer = Renderer::Get().renderer(); renderer != nullptr) {
-    //   Renderer::Get().RenderBitmap(&link_graphics[i]);
-    // }
+    // Texture creation is deferred until GraphicsEditor is opened and renderer is available.
+    // The graphics will be queued for texturing when needed via Arena's deferred system.
   }
   return link_graphics;
 }

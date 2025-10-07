@@ -17,6 +17,7 @@
 #include "imgui_test_engine/imgui_te_ui.h"
 #include "app/core/window.h"
 #include "app/core/controller.h"
+#include "app/gfx/backend/sdl2_renderer.h"
 #include "e2e/canvas_selection_test.h"
 #include "e2e/framework_smoke_test.h"
 #include "e2e/dungeon_editor_smoke_test.h"
@@ -242,10 +243,11 @@ int main(int argc, char* argv[]) {
   if (config.enable_ui_tests) {
     // Create a window
     yaze::core::Window window;
-    yaze::core::CreateWindow(window, SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    // Create renderer for test
+    auto test_renderer = std::make_unique<yaze::gfx::SDL2Renderer>();
+    yaze::core::CreateWindow(window, test_renderer.get(), SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 
-    // Create a renderer
-    yaze::core::Renderer::Get().CreateRenderer(window.window_.get());
+    // Renderer is now owned by test
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -266,8 +268,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup Platform/Renderer backends
-    ImGui_ImplSDL2_InitForSDLRenderer(window.window_.get(), yaze::core::Renderer::Get().renderer());
-    ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::Get().renderer());
+    SDL_Renderer* sdl_renderer = static_cast<SDL_Renderer*>(test_renderer->GetBackendRenderer());
+    ImGui_ImplSDL2_InitForSDLRenderer(window.window_.get(), sdl_renderer);
+    ImGui_ImplSDLRenderer2_Init(sdl_renderer);
 
     // Setup test engine
     ImGuiTestEngine* engine = ImGuiTestEngine_CreateContext();
@@ -319,9 +322,9 @@ int main(int argc, char* argv[]) {
 
         // End the Dear ImGui frame
         ImGui::Render();
-        yaze::core::Renderer::Get().Clear();
-        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), yaze::core::Renderer::Get().renderer());
-        yaze::core::Renderer::Get().Present();
+        test_renderer->Clear();
+        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), sdl_renderer);
+        test_renderer->Present();
 
         // Update and Render additional Platform Windows
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {

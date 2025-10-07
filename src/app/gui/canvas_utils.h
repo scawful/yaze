@@ -89,7 +89,7 @@ int GetTileIdFromPosition(ImVec2 mouse_pos, float tile_size, float scale, int ti
 
 // Palette management utilities
 bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager);
-bool ApplyPaletteGroup(gfx::Bitmap* bitmap, const CanvasPaletteManager& palette_manager, 
+bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap, const CanvasPaletteManager& palette_manager, 
                        int group_index, int palette_index);
 
 // Drawing utility functions (moved from Canvas class)

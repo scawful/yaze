@@ -45,76 +45,23 @@ class Arena {
  public:
   static Arena& Get();
 
+  void Initialize(IRenderer* renderer);
   ~Arena();
 
-  // Resource management
-  /**
-   * @brief Allocate a new SDL texture with automatic cleanup
-   * @param renderer SDL renderer for texture creation
-   * @param width Texture width in pixels
-   * @param height Texture height in pixels
-   * @return Pointer to allocated texture (managed by Arena)
-   */
-  SDL_Texture* AllocateTexture(SDL_Renderer* renderer, int width, int height);
-  
-  /**
-   * @brief Free a texture and remove from Arena management
-   * @param texture Texture to free
-   */
-  void FreeTexture(SDL_Texture* texture);
-  
-  /**
-   * @brief Update texture data from surface (with format conversion)
-   * @param texture Target texture to update
-   * @param surface Source surface with pixel data
-   */
-  void UpdateTexture(SDL_Texture* texture, SDL_Surface* surface);
+  // --- New Deferred Command System ---
+  enum class TextureCommandType { CREATE, UPDATE, DESTROY };
+  struct TextureCommand {
+    TextureCommandType type;
+    Bitmap* bitmap; // The bitmap that needs a texture operation
+  };
 
-  /**
-   * @brief Update texture data from surface for a specific region
-   * @param texture Target texture to update
-   * @param surface Source surface with pixel data
-   * @param rect Region to update (nullptr for entire texture)
-   */
-  void UpdateTextureRegion(SDL_Texture* texture, SDL_Surface* surface, SDL_Rect* rect = nullptr);
+  void QueueTextureCommand(TextureCommandType type, Bitmap* bitmap);
+  void ProcessTextureQueue(IRenderer* renderer);
 
-  // Batch operations for improved performance
-  /**
-   * @brief Queue a texture update for batch processing
-   * @param texture Target texture to update
-   * @param surface Source surface with pixel data
-   * @param rect Region to update (nullptr for entire texture)
-   */
-  void QueueTextureUpdate(SDL_Texture* texture, SDL_Surface* surface, SDL_Rect* rect = nullptr);
-
-  /**
-   * @brief Process all queued texture updates in a single batch
-   * @note This reduces SDL calls and improves performance significantly
-   */
-  void ProcessBatchTextureUpdates();
-
-  /**
-   * @brief Clear all queued texture updates
-   */
-  void ClearBatchQueue();
-
-  /**
-   * @brief Allocate a new SDL surface with automatic cleanup
-   * @param width Surface width in pixels
-   * @param height Surface height in pixels
-   * @param depth Color depth in bits per pixel
-   * @param format SDL pixel format
-   * @return Pointer to allocated surface (managed by Arena)
-   */
+  // --- Surface Management (unchanged) ---
   SDL_Surface* AllocateSurface(int width, int height, int depth, int format);
-  
-  /**
-   * @brief Free a surface and remove from Arena management
-   * @param surface Surface to free
-   */
   void FreeSurface(SDL_Surface* surface);
   
-  // Explicit cleanup method for controlled shutdown
   void Shutdown();
   
   // Resource tracking for debugging
@@ -163,41 +110,6 @@ class Arena {
    */
   auto& bg2() { return bg2_; }
 
-  // Progressive/Deferred Texture Management (for large asset loading)
-  /**
-   * @brief Add a bitmap to the deferred texture queue
-   * @param bitmap Bitmap that needs a texture created
-   * @param priority Higher priority items processed first (0 = highest)
-   * 
-   * Use this for progressive loading of large asset sets (e.g., overworld maps).
-   * Textures are created incrementally per frame to avoid UI freezes.
-   */
-  void QueueDeferredTexture(gfx::Bitmap* bitmap, int priority = 0);
-  
-  /**
-   * @brief Get next batch of deferred textures to process
-   * @param high_priority_limit Max high-priority items to return
-   * @param low_priority_limit Max low-priority items to return
-   * @return Vector of bitmaps to render (caller renders them via Renderer)
-   * 
-   * Call this once per frame in your editor's Update() method, then render each bitmap.
-   * High-priority items (priority 0-10) returned up to high_priority_limit.
-   * Low-priority items (priority 11+) returned up to low_priority_limit.
-   */
-  std::vector<gfx::Bitmap*> GetNextDeferredTextureBatch(int high_priority_limit = 4, 
-                                                        int low_priority_limit = 2);
-  
-  /**
-   * @brief Clear all deferred texture items
-   */
-  void ClearDeferredTextures();
-  
-  /**
-   * @brief Get count of remaining deferred textures
-   * @return Number of bitmaps waiting for textures
-   */
-  size_t GetDeferredTextureCount() const { return deferred_textures_.size(); }
-
  private:
   Arena();
 
@@ -213,7 +125,7 @@ class Arena {
 
   std::array<gfx::Bitmap, 223> gfx_sheets_;
 
-  std::unordered_map<SDL_Texture*,
+  std::unordered_map<TextureHandle,
                      std::unique_ptr<SDL_Texture, util::SDL_Texture_Deleter>>
       textures_;
 
@@ -223,8 +135,8 @@ class Arena {
 
   // Resource pooling for efficient memory management
   struct TexturePool {
-    std::vector<SDL_Texture*> available_textures_;
-    std::unordered_map<SDL_Texture*, std::pair<int, int>> texture_sizes_;
+    std::vector<TextureHandle> available_textures_;
+    std::unordered_map<TextureHandle, std::pair<int, int>> texture_sizes_;
     static constexpr size_t MAX_POOL_SIZE = 100;
   } texture_pool_;
 
@@ -234,32 +146,8 @@ class Arena {
     static constexpr size_t MAX_POOL_SIZE = 100;
   } surface_pool_;
 
-  // Batch operations for improved performance
-  struct BatchUpdate {
-    SDL_Texture* texture;
-    SDL_Surface* surface;
-    std::unique_ptr<SDL_Rect> rect;
-    
-    BatchUpdate(SDL_Texture* t, SDL_Surface* s, SDL_Rect* r = nullptr)
-        : texture(t), surface(s), rect(r ? std::make_unique<SDL_Rect>(*r) : nullptr) {}
-  };
-  
-  std::vector<BatchUpdate> batch_update_queue_;
-  static constexpr size_t MAX_BATCH_SIZE = 50;
-
-  // Helper methods for resource pooling
-  SDL_Texture* CreateNewTexture(SDL_Renderer* renderer, int width, int height);
-  SDL_Surface* CreateNewSurface(int width, int height, int depth, int format);
-  
-  // Progressive loading infrastructure
-  struct DeferredTexture {
-    gfx::Bitmap* bitmap;
-    int priority;
-    
-    DeferredTexture(gfx::Bitmap* bmp, int prio) : bitmap(bmp), priority(prio) {}
-  };
-  std::vector<DeferredTexture> deferred_textures_;
-  std::mutex deferred_mutex_;
+  std::vector<TextureCommand> texture_command_queue_;
+  IRenderer* renderer_ = nullptr;
 };
 
 }  // namespace gfx

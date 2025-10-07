@@ -28,6 +28,12 @@ static inline ImGuiInputTextFlags InputScalar_DefaultCharsFilter(
              ? ImGuiInputTextFlags_CharsHexadecimal
              : ImGuiInputTextFlags_CharsDecimal;
 }
+
+// Helper: returns true if label is "invisible" (starts with "##")
+static inline bool IsInvisibleLabel(const char* label) {
+  return label && label[0] == '#' && label[1] == '#';
+}
+
 bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
                      const void* p_step, const void* p_step_fast,
                      const char* format, float input_width,
@@ -52,22 +58,24 @@ bool InputScalarLeft(const char* label, ImGuiDataType data_type, void* p_data,
   flags |= ImGuiInputTextFlags_AutoSelectAll;
 
   bool value_changed = false;
-  // if (p_step == NULL) {
-  //   ImGui::SetNextItemWidth(input_width);
-  //   if (InputText("", buf, IM_ARRAYSIZE(buf), flags))
-  //     value_changed = DataTypeApplyFromText(buf, data_type, p_data, format);
-  // } else {
   const float button_size = GetFrameHeight();
-  AlignTextToFramePadding();
-  Text("%s", label);
-  SameLine();
+
+  // Support invisible labels (##) by not rendering the label, but still using it for ID
+  bool invisible_label = IsInvisibleLabel(label);
+
+  if (!invisible_label) {
+    AlignTextToFramePadding();
+    Text("%s", label);
+    SameLine();
+  }
+
   BeginGroup();  // The only purpose of the group here is to allow the caller
                  // to query item data e.g. IsItemActive()
   PushID(label);
   SetNextItemWidth(ImMax(
       1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
 
-  // Place the label on the left of the input field
+  // Place the label on the left of the input field, unless invisible
   PushStyleVar(ImGuiStyleVar_ItemSpacing,
                ImVec2{style.ItemSpacing.x, style.ItemSpacing.y});
   PushStyleVar(ImGuiStyleVar_FramePadding,

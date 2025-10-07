@@ -1,5 +1,5 @@
 #if __APPLE__
-#include "app/core/platform/app_delegate.h"
+#include "app/platform/app_delegate.h"
 #endif
 
 #define IMGUI_DEFINE_MATH_OPERATORS

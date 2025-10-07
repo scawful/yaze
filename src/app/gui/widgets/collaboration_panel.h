@@ -15,7 +15,7 @@
 #endif
 
 namespace yaze {
-namespace app {
+
 namespace gui {
 
 /**
@@ -180,7 +180,7 @@ class CollaborationPanel {
 };
 
 }  // namespace gui
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_WIDGETS_COLLABORATION_PANEL_H_

@@ -49,21 +49,24 @@ using ImGui::Separator;
 using ImGui::TableNextColumn;
 using ImGui::Text;
 
+void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& rom_data) {
+  renderer_ = renderer;
+  rom_data_ = rom_data;
+  snes_.Init(rom_data_);
+  initialized_ = true;
+}
+
 void Emulator::Run(Rom* rom) {
   static bool loaded = false;
   if (!snes_.running() && rom->is_loaded()) {
-    // Use ARGB8888 format to match PPU output (XBGR layout with format=1)
-    // Add better error handling and texture optimization
-    ppu_texture_ = SDL_CreateTexture(core::Renderer::Get().renderer(),
-                                     SDL_PIXELFORMAT_ARGB8888,
-                                     SDL_TEXTUREACCESS_STREAMING, 512, 480);
+    ppu_texture_ = renderer_->CreateTexture(512, 480);
     if (ppu_texture_ == NULL) {
       printf("Failed to create texture: %s\n", SDL_GetError());
       return;
     }
 
     // Optimize texture for better performance
-    SDL_SetTextureBlendMode(ppu_texture_, SDL_BLENDMODE_NONE);
+    // renderer_->SetTextureBlendMode(ppu_texture_, SDL_BLENDMODE_NONE);
     rom_data_ = rom->vector();
     snes_.Init(rom_data_);
 
@@ -149,10 +152,9 @@ void Emulator::Run(Rom* rom) {
           // Update PPU texture only on rendered frames
           void* ppu_pixels_;
           int ppu_pitch_;
-          if (SDL_LockTexture(ppu_texture_, NULL, &ppu_pixels_, &ppu_pitch_) ==
-              0) {
+          if (renderer_->LockTexture(ppu_texture_, NULL, &ppu_pixels_, &ppu_pitch_)) {
             snes_.SetPixels(static_cast<uint8_t*>(ppu_pixels_));
-            SDL_UnlockTexture(ppu_texture_);
+            renderer_->UnlockTexture(ppu_texture_);
           }
         }
       }

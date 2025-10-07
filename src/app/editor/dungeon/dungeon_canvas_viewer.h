@@ -101,7 +101,7 @@ class DungeonCanvasViewer {
   int current_active_room_tab_ = 0;
   
   // Object interaction state
-  bool object_interaction_enabled_ = false;
+  bool object_interaction_enabled_ = true;
   
   // Palette data
   uint64_t current_palette_group_id_ = 0;

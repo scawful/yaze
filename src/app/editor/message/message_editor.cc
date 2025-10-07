@@ -6,9 +6,9 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/gfx/arena.h"
 #include "app/gfx/performance_profiler.h"
 #include "util/file_util.h"
-#include "app/core/window.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
@@ -38,7 +38,6 @@ std::string DisplayTextOverflowError(int pos, bool bank) {
 }
 }  // namespace
 
-using core::Renderer;
 
 using ImGui::BeginChild;
 using ImGui::BeginTable;
@@ -74,11 +73,12 @@ void MessageEditor::Initialize() {
   }
   message_preview_.font_gfx16_data_ =
       gfx::SnesTo8bppSheet(raw_font_gfx_data_, /*bpp=*/2, /*num_sheets=*/2);
-  Renderer::Get().CreateAndRenderBitmap(
-      kFontGfxMessageSize, kFontGfxMessageSize, kFontGfxMessageDepth,
-      message_preview_.font_gfx16_data_, font_gfx_bitmap_,
-      font_preview_colors_);
-  *font_gfx_bitmap_.mutable_palette() = font_preview_colors_;
+  // Create bitmap and queue texture creation
+  font_gfx_bitmap_.Create(kFontGfxMessageSize, kFontGfxMessageSize, 
+                         kFontGfxMessageDepth, message_preview_.font_gfx16_data_);
+  font_gfx_bitmap_.SetPalette(font_preview_colors_);
+  gfx::Arena::Get().QueueTextureCommand(
+      gfx::Arena::TextureCommandType::CREATE, &font_gfx_bitmap_);
   *current_font_gfx16_bitmap_.mutable_palette() = font_preview_colors_;
 
   auto load_font = LoadFontGraphics(*rom());
@@ -330,12 +330,16 @@ void MessageEditor::DrawMessagePreview() {
   if (current_font_gfx16_bitmap_.is_active()) {
     current_font_gfx16_bitmap_.mutable_data() =
         message_preview_.current_preview_data_;
-    Renderer::Get().UpdateBitmap(&current_font_gfx16_bitmap_);
+    // Queue texture update via Arena's deferred system
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &current_font_gfx16_bitmap_);
   } else {
-    Renderer::Get().CreateAndRenderBitmap(
-        kCurrentMessageWidth, kCurrentMessageHeight, 172,
-        message_preview_.current_preview_data_, current_font_gfx16_bitmap_,
-        font_preview_colors_);
+    // Create bitmap and queue texture creation
+    current_font_gfx16_bitmap_.Create(kCurrentMessageWidth, kCurrentMessageHeight, 
+                                     172, message_preview_.current_preview_data_);
+    current_font_gfx16_bitmap_.SetPalette(font_preview_colors_);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &current_font_gfx16_bitmap_);
   }
 }
 

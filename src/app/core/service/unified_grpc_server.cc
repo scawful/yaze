@@ -28,9 +28,9 @@ YazeGRPCServer::~YazeGRPCServer() {
 absl::Status YazeGRPCServer::Initialize(
     int port,
     test::TestManager* test_manager,
-    app::Rom* rom,
-    app::net::RomVersionManager* version_mgr,
-    app::net::ProposalApprovalManager* approval_mgr,
+    Rom* rom,
+    net::RomVersionManager* version_mgr,
+    net::ProposalApprovalManager* approval_mgr,
     CanvasAutomationServiceImpl* canvas_service) {
   
   if (is_running_) {
@@ -50,11 +50,11 @@ absl::Status YazeGRPCServer::Initialize(
   
   // Create ROM service if rom provided
   if (config_.enable_rom_service && rom) {
-    rom_service_ = std::make_unique<app::net::RomServiceImpl>(
+    rom_service_ = std::make_unique<net::RomServiceImpl>(
         rom, version_mgr, approval_mgr);
     
     // Configure ROM service
-    app::net::RomServiceImpl::Config rom_config;
+    net::RomServiceImpl::Config rom_config;
     rom_config.require_approval_for_writes = config_.require_approval_for_rom_writes;
     rom_service_->SetConfig(rom_config);
     

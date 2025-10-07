@@ -68,6 +68,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are ready
   }
 
+  void Initialize(gfx::IRenderer* renderer, Rom* rom);
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() final;
@@ -326,6 +327,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   Rom* rom_;
 
+  gfx::IRenderer* renderer_;
   Tile16Editor tile16_editor_{rom_, &tile16_blockset_};
   GfxGroupEditor gfx_group_editor_;
   PaletteEditor palette_editor_;

@@ -1,5 +1,5 @@
 // AppDelegate.mm
-#import "app/core/platform/app_delegate.h"
+#import "app/platform/app_delegate.h"
 #import "app/core/controller.h"
 #import "util/file_util.h"
 #import "app/editor/editor.h"

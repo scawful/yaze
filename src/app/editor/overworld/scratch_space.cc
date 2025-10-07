@@ -138,7 +138,9 @@ absl::Status OverworldEditor::DrawScratchSpace() {
     if (all_gfx_loaded_) {
       palette_ = overworld_.current_area_palette();
       current_slot.scratch_bitmap.SetPalette(palette_);
-      core::Renderer::Get().RenderBitmap(&current_slot.scratch_bitmap);
+      // Queue texture creation via Arena's deferred system
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &current_slot.scratch_bitmap);
     }
   }
 
@@ -315,9 +317,9 @@ void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
   }
 
   scratch_slot.scratch_bitmap.set_modified(true);
-  // Use batch operations for texture updates
-  scratch_slot.scratch_bitmap.QueueTextureUpdate(
-      core::Renderer::Get().renderer());
+  // Queue texture update via Arena's deferred system
+  gfx::Arena::Get().QueueTextureCommand(
+      gfx::Arena::TextureCommandType::UPDATE, &scratch_slot.scratch_bitmap);
   scratch_slot.in_use = true;
 }
 
@@ -360,7 +362,9 @@ absl::Status OverworldEditor::SaveCurrentSelectionToScratch(int slot) {
       if (all_gfx_loaded_) {
         palette_ = overworld_.current_area_palette();
         scratch_spaces_[slot].scratch_bitmap.SetPalette(palette_);
-        core::Renderer::Get().RenderBitmap(
+        // Queue texture creation via Arena's deferred system
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::CREATE, 
             &scratch_spaces_[slot].scratch_bitmap);
       }
 
@@ -398,8 +402,6 @@ absl::Status OverworldEditor::SaveCurrentSelectionToScratch(int slot) {
     scratch_spaces_[slot].in_use = true;
   }
 
-  // Process all queued texture updates at once
-  gfx::Arena::Get().ProcessBatchTextureUpdates();
 
   return absl::OkStatus();
 }
@@ -433,7 +435,9 @@ absl::Status OverworldEditor::ClearScratchSpace(int slot) {
     auto& data = scratch_spaces_[slot].scratch_bitmap.mutable_data();
     std::fill(data.begin(), data.end(), 0);
     scratch_spaces_[slot].scratch_bitmap.set_modified(true);
-    core::Renderer::Get().UpdateBitmap(&scratch_spaces_[slot].scratch_bitmap);
+    // Queue texture update via Arena's deferred system
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &scratch_spaces_[slot].scratch_bitmap);
   }
 
   return absl::OkStatus();

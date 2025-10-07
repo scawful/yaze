@@ -8,6 +8,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gfx/tilemap.h"
+#include "app/gfx/backend/irenderer.h"
 #include "app/snes.h"
 #include "util/hex.h"
 
@@ -130,7 +131,8 @@ absl::Status LoadDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom,
   }
 
   tile16_blockset.atlas.SetPalette(*rom.mutable_dungeon_palette(3));
-  core::Renderer::Get().RenderBitmap(&tile16_blockset.atlas);
+  // TODO: Queue texture for later rendering.
+  // core::Renderer::Get().RenderBitmap(&tile16_blockset.atlas);
   return absl::OkStatus();
 }
 
@@ -187,7 +189,8 @@ absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
                               converted_bin.begin() + ((i + 1) * 0x1000));
       sheets[i] = gfx::Bitmap(128, 32, 8, gfx_sheets[i]);
       sheets[i].SetPalette(*rom.mutable_dungeon_palette(3));
-      core::Renderer::Get().RenderBitmap(&sheets[i]);
+      // TODO: Queue texture for later rendering.
+      // core::Renderer::Get().RenderBitmap(&sheets[i]);
     }
   }
   file.close();

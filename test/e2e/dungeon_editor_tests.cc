@@ -7,7 +7,7 @@
 #endif
 
 #include "app/editor/dungeon/dungeon_editor.h"
-#include "app/gui/widget_id_registry.h"
+#include "app/gui/widgets/widget_id_registry.h"
 #include "app/rom.h"
 
 namespace yaze {

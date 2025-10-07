@@ -230,7 +230,9 @@ constexpr const char* kAssemblyEditorName = ICON_MD_CODE " Assembly Editor";
 constexpr const char* kDungeonEditorName = ICON_MD_CASTLE " Dungeon Editor";
 constexpr const char* kMusicEditorName = ICON_MD_MUSIC_NOTE " Music Editor";
 
-void EditorManager::Initialize(const std::string& filename) {
+void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& filename) {
+  renderer_ = renderer;
+  
   // Point to a blank editor set when no ROM is loaded
   current_editor_set_ = &blank_editor_set_;
 
@@ -2097,6 +2099,8 @@ absl::Status EditorManager::LoadAssets() {
 
   current_editor_set_->overworld_editor_.Initialize();
   current_editor_set_->message_editor_.Initialize();
+  // Initialize the dungeon editor with the renderer
+  current_editor_set_->dungeon_editor_.Initialize(renderer_, current_rom_);
   ASSIGN_OR_RETURN(*gfx::Arena::Get().mutable_gfx_sheets(),
                    LoadAllGraphicsData(*current_rom_));
   RETURN_IF_ERROR(current_editor_set_->overworld_editor_.Load());

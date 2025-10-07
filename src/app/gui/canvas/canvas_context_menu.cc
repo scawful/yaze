@@ -1,14 +1,9 @@
 #include "canvas_context_menu.h"
 
-#include <algorithm>
-#include <sstream>
-#include <iomanip>
-
-#include "app/core/window.h"
+#include "app/gfx/arena.h"
 #include "app/gfx/performance_profiler.h"
 #include "app/gfx/performance_dashboard.h"
 #include "app/gui/widgets/palette_widget.h"
-#include "app/gui/bpp_format_ui.h"
 #include "app/gui/icons.h"
 #include "app/gui/color.h"
 #include "app/gui/canvas/canvas_modals.h"
@@ -303,15 +298,21 @@ void CanvasContextMenu::RenderBitmapOperationsMenu(gfx::Bitmap* bitmap) {
     if (ImGui::BeginMenu("Format")) {
       if (ImGui::MenuItem("Indexed")) {
         bitmap->Reformat(gfx::BitmapFormat::kIndexed);
-        core::Renderer::Get().UpdateBitmap(bitmap);
+        // Queue texture update via Arena's deferred system
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::UPDATE, bitmap);
       }
       if (ImGui::MenuItem("4BPP")) {
         bitmap->Reformat(gfx::BitmapFormat::k4bpp);
-        core::Renderer::Get().UpdateBitmap(bitmap);
+        // Queue texture update via Arena's deferred system
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::UPDATE, bitmap);
       }
       if (ImGui::MenuItem("8BPP")) {
         bitmap->Reformat(gfx::BitmapFormat::k8bpp);
-        core::Renderer::Get().UpdateBitmap(bitmap);
+        // Queue texture update via Arena's deferred system
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::UPDATE, bitmap);
       }
       ImGui::EndMenu();
     }

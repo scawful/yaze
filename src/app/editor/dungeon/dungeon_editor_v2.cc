@@ -15,7 +15,9 @@ namespace yaze::editor {
 
 // No table layout needed - all cards are independent
 
-void DungeonEditorV2::Initialize() {
+void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
+  renderer_ = renderer;
+  rom_ = rom;
   // Don't initialize emulator preview yet - ROM might not be loaded
   // Will be initialized in Load() instead
   
@@ -23,6 +25,8 @@ void DungeonEditorV2::Initialize() {
   room_window_class_.ClassId = ImGui::GetID("DungeonRoomClass");
   room_window_class_.DockingAllowUnclassed = false;  // Room windows dock together
 }
+
+void DungeonEditorV2::Initialize() {}
 
 absl::Status DungeonEditorV2::Load() {
   if (!rom_ || !rom_->is_loaded()) {
@@ -55,13 +59,13 @@ absl::Status DungeonEditorV2::Load() {
   object_selector_.set_rooms(&rooms_);
 
   // NOW initialize emulator preview with loaded ROM
-  object_emulator_preview_.Initialize(rom_);
+  object_emulator_preview_.Initialize(renderer_, rom_);
   
   // Initialize palette editor with loaded ROM
   palette_editor_.Initialize(rom_);
   
   // Initialize unified object editor card
-  object_editor_card_ = std::make_unique<ObjectEditorCard>(rom_, &canvas_viewer_);
+  object_editor_card_ = std::make_unique<ObjectEditorCard>(renderer_, rom_, &canvas_viewer_);
   
   // Wire palette changes to trigger room re-renders
   palette_editor_.SetOnPaletteChanged([this](int /*palette_id*/) {
@@ -97,7 +101,8 @@ absl::Status DungeonEditorV2::Update() {
       "This parent window can be minimized or closed.");
 
   // Render all independent cards (these create their own top-level windows)
-  object_emulator_preview_.Render();
+  // NOTE: Emulator preview is now integrated into ObjectEditorCard
+  // object_emulator_preview_.Render();  // Removed - causing performance issues
   DrawLayout();
   
   return absl::OkStatus();
@@ -148,11 +153,7 @@ void DungeonEditorV2::DrawToolset() {
   
   toolbar.AddSeparator();
   
-  if (toolbar.AddToggle(ICON_MD_CATEGORY, &show_object_selector_, "Toggle Object Selector (Legacy)")) {
-    // Toggled
-  }
-  
-  if (toolbar.AddToggle(ICON_MD_CONSTRUCTION, &show_object_editor_, "Toggle Object Editor (Unified)")) {
+  if (toolbar.AddToggle(ICON_MD_CONSTRUCTION, &show_object_editor_, "Toggle Object Editor")) {
     // Toggled
   }
   
@@ -186,18 +187,7 @@ void DungeonEditorV2::DrawLayout() {
     DrawRoomGraphicsCard();
   }
 
-  // 4. Legacy Object Selector Card (independent, dockable)
-  if (show_object_selector_) {
-    gui::EditorCard object_card(
-        MakeCardTitle("Object Selector").c_str(), 
-        ICON_MD_CATEGORY, &show_object_selector_);
-    if (object_card.Begin()) {
-      object_selector_.Draw();
-    }
-    object_card.End();
-  }
-  
-  // 4b. Unified Object Editor Card (new, combines selector + preview + interaction)
+  // 4. Unified Object Editor Card
   if (show_object_editor_ && object_editor_card_) {
     object_editor_card_->Draw(&show_object_editor_);
   }
@@ -234,11 +224,16 @@ void DungeonEditorV2::DrawLayout() {
       room_cards_[room_id] = std::make_shared<gui::EditorCard>(
           card_name_str.c_str(), ICON_MD_GRID_ON, &open);
       room_cards_[room_id]->SetDefaultSize(700, 600);
+      
+      // Set default position for first room to be docked with main window
+      if (active_rooms_.Size == 1) {
+        room_cards_[room_id]->SetPosition(gui::EditorCard::Position::Floating);
+      }
     }
     
     auto& room_card = room_cards_[room_id];
     
-    // Use docking class to make room cards dock together
+    // CRITICAL: Use docking class BEFORE Begin() to make rooms tab together
     ImGui::SetNextWindowClass(&room_window_class_);
     
     if (room_card->Begin(&open)) {
@@ -500,15 +495,15 @@ void DungeonEditorV2::DrawRoomMatrixCard() {
       MakeCardTitle("Room Matrix").c_str(), 
       ICON_MD_GRID_VIEW, &show_room_matrix_);
   
-  matrix_card.SetDefaultSize(520, 620);
+  matrix_card.SetDefaultSize(440, 520);
   
   if (matrix_card.Begin()) {
-    // 16 wide x 19 tall = 304 cells (295 rooms + 9 empty)
+    // 16 wide x 19 tall = 304 cells (296 rooms + 8 empty)
     constexpr int kRoomsPerRow = 16;
     constexpr int kRoomsPerCol = 19;
     constexpr int kTotalRooms = 0x128;  // 296 rooms (0x00-0x127)
-    constexpr float kRoomCellSize = 28.0f;  // Compact cells
-    constexpr float kCellSpacing = 2.0f;
+    constexpr float kRoomCellSize = 24.0f;  // Smaller cells like ZScream
+    constexpr float kCellSpacing = 1.0f;   // Tighter spacing
     
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
@@ -527,30 +522,34 @@ void DungeonEditorV2::DrawRoomMatrixCard() {
             cell_min.y + kRoomCellSize);
         
         if (is_valid_room) {
-          // ALWAYS use palette-based color (lazy load if needed)
-          ImU32 bg_color = IM_COL32(60, 60, 70, 255);  // Fallback
+          // Use simple deterministic color based on room ID (no loading needed)
+          ImU32 bg_color;
           
-          // Try to get palette color
-          uint8_t palette = 0;
-          if (room_id < static_cast<int>(rooms_.size())) {
-            // Lazy load room if needed to get palette
-            if (!rooms_[room_id].IsLoaded()) {
-              auto status = room_loader_.LoadRoom(room_id, rooms_[room_id]);
-              if (status.ok()) {
-                palette = rooms_[room_id].palette;
-              }
-            } else {
-              palette = rooms_[room_id].palette;
-            }
-            
-            // Create a color variation based on palette ID
-            float r = 0.3f + (palette % 4) * 0.15f;
-            float g = 0.3f + ((palette / 4) % 4) * 0.15f;
-            float b = 0.4f + ((palette / 16) % 2) * 0.2f;
-            bg_color = IM_COL32(
-                static_cast<int>(r * 255), 
-                static_cast<int>(g * 255), 
-                static_cast<int>(b * 255), 255);
+          // Generate color from room ID - much faster than loading
+          int hue = (room_id * 37) % 360;  // Distribute colors across spectrum
+          int saturation = 40 + (room_id % 3) * 15;
+          int brightness = 50 + (room_id % 5) * 10;
+          
+          // Convert HSV to RGB
+          float h = hue / 60.0f;
+          float s = saturation / 100.0f;
+          float v = brightness / 100.0f;
+          
+          int i = static_cast<int>(h);
+          float f = h - i;
+          int p = static_cast<int>(v * (1 - s) * 255);
+          int q = static_cast<int>(v * (1 - s * f) * 255);
+          int t = static_cast<int>(v * (1 - s * (1 - f)) * 255);
+          int val = static_cast<int>(v * 255);
+          
+          switch (i % 6) {
+            case 0: bg_color = IM_COL32(val, t, p, 255); break;
+            case 1: bg_color = IM_COL32(q, val, p, 255); break;
+            case 2: bg_color = IM_COL32(p, val, t, 255); break;
+            case 3: bg_color = IM_COL32(p, q, val, 255); break;
+            case 4: bg_color = IM_COL32(t, p, val, 255); break;
+            case 5: bg_color = IM_COL32(val, p, q, 255); break;
+            default: bg_color = IM_COL32(60, 60, 70, 255); break;
           }
           
           // Check if room is currently selected
@@ -604,7 +603,7 @@ void DungeonEditorV2::DrawRoomMatrixCard() {
             OnRoomSelected(room_id);
           }
           
-          // Hover tooltip with room name
+          // Hover tooltip with room name and status
           if (ImGui::IsItemHovered()) {
             ImGui::BeginTooltip();
             if (room_id < static_cast<int>(std::size(zelda3::kRoomNames))) {
@@ -612,9 +611,8 @@ void DungeonEditorV2::DrawRoomMatrixCard() {
             } else {
               ImGui::Text("Room %03X", room_id);
             }
-            ImGui::Text("Palette: %02X", 
-                       room_id < static_cast<int>(rooms_.size()) ? 
-                       rooms_[room_id].palette : 0);
+            ImGui::Text("Status: %s", is_open ? "Open" : is_current ? "Current" : "Closed");
+            ImGui::Text("Click to %s", is_open ? "focus" : "open");
             ImGui::EndTooltip();
           }
         } else {

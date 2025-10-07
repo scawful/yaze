@@ -14,7 +14,7 @@
 #endif
 
 namespace yaze {
-namespace app {
+
 namespace gui {
 
 AgentChatWidget::AgentChatWidget()
@@ -334,5 +334,5 @@ void AgentChatWidget::ScrollToBottom() {
 }
 
 }  // namespace gui
-}  // namespace app
+
 }  // namespace yaze

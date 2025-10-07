@@ -20,13 +20,13 @@ namespace yaze {
 // Forward declarations
 class CanvasAutomationServiceImpl;
 
-namespace app {
+
 class Rom;
 namespace net {
 class ProposalApprovalManager;
 class RomServiceImpl;
 }
-}
+
 
 namespace test {
 class TestManager;
@@ -85,9 +85,9 @@ class YazeGRPCServer {
   absl::Status Initialize(
       int port,
       test::TestManager* test_manager = nullptr,
-      app::Rom* rom = nullptr,
-      app::net::RomVersionManager* version_mgr = nullptr,
-      app::net::ProposalApprovalManager* approval_mgr = nullptr,
+      Rom* rom = nullptr,
+      net::RomVersionManager* version_mgr = nullptr,
+      net::ProposalApprovalManager* approval_mgr = nullptr,
       CanvasAutomationServiceImpl* canvas_service = nullptr);
   
   /**
@@ -126,7 +126,7 @@ class YazeGRPCServer {
   Config config_;
   std::unique_ptr<grpc::Server> server_;
   std::unique_ptr<test::ImGuiTestHarnessServiceImpl> test_harness_service_;
-  std::unique_ptr<app::net::RomServiceImpl> rom_service_;
+  std::unique_ptr<net::RomServiceImpl> rom_service_;
   std::unique_ptr<CanvasAutomationServiceImpl> canvas_service_;
   // Store as base grpc::Service* to avoid incomplete type issues
   std::unique_ptr<grpc::Service> canvas_grpc_service_;

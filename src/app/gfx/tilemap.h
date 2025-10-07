@@ -2,6 +2,7 @@
 #define YAZE_GFX_TILEMAP_H
 
 #include "absl/container/flat_hash_map.h"
+#include "app/gfx/backend/irenderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
 
@@ -116,15 +117,15 @@ struct Tilemap {
 std::vector<uint8_t> FetchTileDataFromGraphicsBuffer(
     const std::vector<uint8_t> &data, int tile_id, int sheet_offset);
 
-Tilemap CreateTilemap(std::vector<uint8_t> &data, int width, int height,
+Tilemap CreateTilemap(IRenderer* renderer, std::vector<uint8_t> &data, int width, int height,
                       int tile_size, int num_tiles, SnesPalette &palette);
 
-void UpdateTilemap(Tilemap &tilemap, const std::vector<uint8_t> &data);
+void UpdateTilemap(IRenderer* renderer, Tilemap &tilemap, const std::vector<uint8_t> &data);
 
-void RenderTile(Tilemap &tilemap, int tile_id);
+void RenderTile(IRenderer* renderer, Tilemap &tilemap, int tile_id);
 
-void RenderTile16(Tilemap &tilemap, int tile_id);
-void UpdateTile16(Tilemap &tilemap, int tile_id);
+void RenderTile16(IRenderer* renderer, Tilemap &tilemap, int tile_id);
+void UpdateTile16(IRenderer* renderer, Tilemap &tilemap, int tile_id);
 
 void ModifyTile16(Tilemap &tilemap, const std::vector<uint8_t> &data,
                    const TileInfo &top_left, const TileInfo &top_right,
@@ -146,7 +147,7 @@ std::vector<uint8_t> GetTilemapData(Tilemap &tilemap, int tile_id);
  * @param scales Vector of scale factors for each tile (optional, defaults to 1.0)
  * @note This function uses atlas rendering to reduce draw calls significantly
  */
-void RenderTilesBatch(Tilemap& tilemap, const std::vector<int>& tile_ids, 
+void RenderTilesBatch(IRenderer* renderer, Tilemap& tilemap, const std::vector<int>& tile_ids, 
                       const std::vector<std::pair<float, float>>& positions,
                       const std::vector<std::pair<float, float>>& scales = {});
 

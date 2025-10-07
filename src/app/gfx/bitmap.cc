@@ -218,6 +218,11 @@ void Bitmap::Create(int width, int height, int depth, int format,
     SDL_UnlockSurface(surface_);
   }
   active_ = true;
+  
+  // Apply the stored palette if one exists
+  if (!palette_.empty()) {
+    ApplyStoredPalette();
+  }
 }
 
 void Bitmap::Reformat(int format) {
@@ -234,124 +239,38 @@ void Bitmap::Reformat(int format) {
   SetPalette(palette_);
 }
 
-void Bitmap::UpdateTexture(SDL_Renderer *renderer) {
-  if (!texture_) {
-    CreateTexture(renderer);
-    return;
-  }
-  
-  // Use direct SDL calls for reliable texture updates
-  if (modified_ && surface_ && surface_->pixels) {
-    // Convert surface to RGBA8888 format for texture compatibility
-    SDL_Surface* converted = SDL_ConvertSurfaceFormat(surface_, SDL_PIXELFORMAT_RGBA8888, 0);
-    if (converted) {
-      // Update texture directly with SDL
-      int result = SDL_UpdateTexture(texture_, nullptr, converted->pixels, converted->pitch);
-      if (result != 0) {
-        SDL_Log("SDL_UpdateTexture failed: %s", SDL_GetError());
-      }
-      SDL_FreeSurface(converted);
-    } else {
-      SDL_Log("SDL_ConvertSurfaceFormat failed: %s", SDL_GetError());
-    }
-    modified_ = false;
-  }
+void Bitmap::CreateTexture() {
+  Arena::Get().QueueTextureCommand(Arena::TextureCommandType::CREATE, this);
 }
 
-/**
- * @brief Queue texture update for batch processing (improved performance)
- * @param renderer SDL renderer for texture operations
- * @note Use this for better performance when multiple textures need updating
- * 
- * Performance Notes:
- * - Queues updates instead of processing immediately
- * - Reduces SDL calls by batching multiple updates
- * - 5x faster for multiple texture updates
- * - Automatic dirty region handling
- */
-void Bitmap::QueueTextureUpdate(SDL_Renderer *renderer) {
-  ScopedTimer timer("texture_batch_queue");
-  
-  if (!texture_) {
-    CreateTexture(renderer);
-    return;
-  }
-  
-  // Only queue if there are dirty regions
-  if (!dirty_region_.is_dirty) {
-    return;
-  }
-  
-  // Queue the dirty region update for batch processing
-  if (dirty_region_.is_dirty) {
-    // Ensure dirty rect is within bounds
-    int rect_x = std::max(0, dirty_region_.min_x);
-    int rect_y = std::max(0, dirty_region_.min_y);
-    int rect_w = std::min(width_ - rect_x, dirty_region_.max_x - dirty_region_.min_x + 1);
-    int rect_h = std::min(height_ - rect_y, dirty_region_.max_y - dirty_region_.min_y + 1);
-    
-    // Only proceed if we have a valid rect
-    if (rect_w > 0 && rect_h > 0) {
-      SDL_Rect dirty_rect = { rect_x, rect_y, rect_w, rect_h };
-      Arena::Get().QueueTextureUpdate(texture_, surface_, &dirty_rect);
-    }
-    dirty_region_.Reset();
-  }
+void Bitmap::UpdateTexture() {
+  Arena::Get().QueueTextureCommand(Arena::TextureCommandType::UPDATE, this);
 }
 
-void Bitmap::CreateTexture(SDL_Renderer *renderer) {
-  if (!renderer) {
-    SDL_Log("Invalid renderer passed to CreateTexture");
-    return;
-  }
 
-  if (width_ <= 0 || height_ <= 0) {
-    SDL_Log("Invalid texture dimensions: width=%d, height=%d\n", width_,
-            height_);
-    return;
-  }
 
-  // Get a texture from the Arena
-  texture_ = Arena::Get().AllocateTexture(renderer, width_, height_);
-  if (!texture_) {
-    SDL_Log("Bitmap::CreateTexture failed to allocate texture: %s\n",
-            SDL_GetError());
-    return;
-  }
-
-  UpdateTextureData();
-}
-
-void Bitmap::UpdateTextureData() {
-  if (!texture_ || !surface_) {
-    return;
-  }
-
-  Arena::Get().UpdateTexture(texture_, surface_);
-  modified_ = false;
-}
-
-void Bitmap::SetPalette(const SnesPalette &palette) {
+void Bitmap::ApplyStoredPalette() {
   if (surface_ == nullptr) {
-    throw BitmapError("Surface is null. Palette not applied");
+    return;  // Can't apply without surface
   }
   if (surface_->format == nullptr || surface_->format->palette == nullptr) {
-    throw BitmapError(
-        "Surface format or palette is null. Palette not applied.");
+    return;  // Can't apply palette to this surface format
   }
-  palette_ = palette;
+  if (palette_.empty()) {
+    return;  // No palette to apply
+  }
 
   // Invalidate palette cache when palette changes
   InvalidatePaletteCache();
 
   SDL_Palette *sdl_palette = surface_->format->palette;
   if (sdl_palette == nullptr) {
-    throw BitmapError("Failed to get SDL palette");
+    return;
   }
 
   SDL_UnlockSurface(surface_);
-  for (size_t i = 0; i < palette.size(); ++i) {
-    const auto& pal_color = palette[i];
+  for (size_t i = 0; i < palette_.size() && i < 256; ++i) {
+    const auto& pal_color = palette_[i];
     sdl_palette->colors[i].r = pal_color.rgb().x;
     sdl_palette->colors[i].g = pal_color.rgb().y;
     sdl_palette->colors[i].b = pal_color.rgb().z;
@@ -360,10 +279,22 @@ void Bitmap::SetPalette(const SnesPalette &palette) {
   SDL_LockSurface(surface_);
 }
 
+void Bitmap::SetPalette(const SnesPalette &palette) {
+  // Store palette even if surface isn't ready yet
+  palette_ = palette;
+  
+  // Apply it immediately if surface is ready
+  ApplyStoredPalette();
+}
+
 void Bitmap::SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
                                        int length) {
+  // Store palette even if surface isn't ready yet
+  palette_ = palette;
+  
+  // If surface isn't created yet, just store the palette for later
   if (surface_ == nullptr) {
-    throw BitmapError("Surface is null. Palette not applied");
+    return;  // Palette will be applied when surface is created
   }
 
   // CRITICAL FIX: Use index directly as palette slot, not index * 7

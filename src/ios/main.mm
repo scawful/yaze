@@ -32,8 +32,8 @@
 #include <algorithm>
 
 #include "app/core/controller.h"
-#include "app/core/platform/app_delegate.h"
-#include "app/core/platform/font_loader.h"
+#include "app/platform/app_delegate.h"
+#include "app/platform/font_loader.h"
 #include "app/core/window.h"
 #include "app/rom.h"
 
@@ -43,7 +43,7 @@
 #undef main
 #endif
 
-#include "app/core/platform/view_controller.h"
+#include "app/platform/view_controller.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"

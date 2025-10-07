@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/gfx/backend/irenderer.h"
 #include "app/gui/canvas.h"
 #include "app/editor/dungeon/dungeon_object_selector.h"
 #include "app/gui/editor_layout.h"
@@ -27,7 +28,7 @@ namespace editor {
  */
 class ObjectEditorCard {
  public:
-  ObjectEditorCard(Rom* rom, DungeonCanvasViewer* canvas_viewer);
+  ObjectEditorCard(gfx::IRenderer* renderer, Rom* rom, DungeonCanvasViewer* canvas_viewer);
   
   // Main update function
   void Draw(bool* p_open);
@@ -59,7 +60,7 @@ class ObjectEditorCard {
   
   // UI state
   int selected_tab_ = 0;
-  bool show_emulator_preview_ = true;
+  bool show_emulator_preview_ = false;  // Disabled by default for performance
   bool show_object_list_ = true;
   bool show_interaction_controls_ = true;
   
@@ -75,6 +76,7 @@ class ObjectEditorCard {
   // Selected object for placement
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
   bool has_preview_object_ = false;
+  gfx::IRenderer* renderer_;
 };
 
 }  // namespace editor

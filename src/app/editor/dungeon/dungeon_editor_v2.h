@@ -51,8 +51,9 @@ class DungeonEditorV2 : public Editor {
   }
 
   // Editor interface
+  void Initialize(gfx::IRenderer* renderer, Rom* rom);
   void Initialize() override;
-  absl::Status Load() override;
+  absl::Status Load();
   absl::Status Update() override;
   absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
   absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
@@ -69,7 +70,7 @@ class DungeonEditorV2 : public Editor {
     room_selector_.set_rom(rom);
     canvas_viewer_.SetRom(rom);
     object_selector_.SetRom(rom);
-    object_emulator_preview_.Initialize(rom);
+    object_emulator_preview_.Initialize(renderer_, rom);
   }
   Rom* rom() const { return rom_; }
 
@@ -86,6 +87,7 @@ class DungeonEditorV2 : public Editor {
   }
 
  private:
+  gfx::IRenderer* renderer_ = nullptr;
   // Simple UI layout
   void DrawLayout();
   void DrawRoomTab(int room_id);
@@ -117,8 +119,7 @@ class DungeonEditorV2 : public Editor {
   bool show_room_matrix_ = false;
   bool show_entrances_list_ = false;
   bool show_room_graphics_ = false;    // Room graphics card
-  bool show_object_selector_ = true;   // Legacy object selector
-  bool show_object_editor_ = true;     // New unified object editor card
+  bool show_object_editor_ = true;     // Unified object editor card
   bool show_palette_editor_ = true;
   
   // Palette management

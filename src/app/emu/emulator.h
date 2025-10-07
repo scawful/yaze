@@ -6,9 +6,11 @@
 
 #include "app/emu/snes.h"
 #include "app/rom.h"
-#include "imgui/imgui.h"
 
 namespace yaze {
+namespace gfx {
+class IRenderer;
+} // namespace gfx
 
 /**
  * @namespace yaze::emu
@@ -39,6 +41,7 @@ class Emulator {
  public:
   Emulator() = default;
   ~Emulator() = default;
+  void Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& rom_data);
   void Run(Rom* rom);
 
   auto snes() -> Snes& { return snes_; }
@@ -129,7 +132,9 @@ class Emulator {
   SDL_AudioDeviceID audio_device_;
 
   Snes snes_;
-  SDL_Texture* ppu_texture_;
+  bool initialized_ = false;
+  gfx::IRenderer* renderer_ = nullptr;
+  void* ppu_texture_ = nullptr;
 
   std::vector<uint8_t> rom_data_;
 

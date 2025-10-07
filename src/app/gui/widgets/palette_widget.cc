@@ -2,14 +2,12 @@
 
 #include <algorithm>
 #include <map>
-#include "app/core/window.h"
+#include "app/gfx/arena.h"
 #include "app/gui/color.h"
 #include "util/log.h"
 
 namespace yaze {
 namespace gui {
-
-using core::Renderer;
 
 void PaletteWidget::Initialize(Rom* rom) {
   rom_ = rom;
@@ -169,7 +167,9 @@ bool PaletteWidget::ApplyROMPalette(gfx::Bitmap* bitmap, int group_index, int pa
       bitmap->SetPalette(selected_palette);
     }
     
-    Renderer::Get().UpdateBitmap(bitmap);
+    // Queue texture update via Arena's deferred system
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, bitmap);
     
     current_group_index_ = group_index;
     current_palette_index_ = palette_index;

@@ -8,6 +8,7 @@
 #include "app/rom.h"
 #include "app/core/controller.h"
 #include "app/core/window.h"
+#include "app/gfx/backend/sdl2_renderer.h"
 
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_context.h"
@@ -81,6 +82,7 @@ class EditorIntegrationTest {
 #endif
   std::unique_ptr<Rom> test_rom_;
   core::Window window_;
+  std::unique_ptr<gfx::SDL2Renderer> test_renderer_;
 };
 
 }  // namespace test

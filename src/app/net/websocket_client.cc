@@ -14,7 +14,7 @@
 #endif
 
 namespace yaze {
-namespace app {
+
 namespace net {
 
 #ifdef YAZE_WITH_JSON
@@ -460,5 +460,5 @@ absl::Status WebSocketClient::SendRaw(const nlohmann::json& message) {
 }
 
 }  // namespace net
-}  // namespace app
+
 }  // namespace yaze

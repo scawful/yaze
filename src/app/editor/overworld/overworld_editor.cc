@@ -15,7 +15,6 @@
 #include "absl/strings/str_format.h"
 #include "app/core/asar_wrapper.h"
 #include "app/core/features.h"
-#include "app/core/window.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/arena.h"
@@ -43,7 +42,6 @@
 
 namespace yaze::editor {
 
-using core::Renderer;
 using namespace ImGui;
 
 constexpr float kInputFieldSize = 30.f;
@@ -710,7 +708,8 @@ void OverworldEditor::RenderUpdatedMapBitmap(
   current_bitmap.set_modified(true);
 
   // Immediately update the texture to reflect changes
-  core::Renderer::Get().UpdateBitmap(&current_bitmap);
+  // TODO: Queue texture for later rendering.
+  // core::Renderer::Get().UpdateBitmap(&current_bitmap);
 }
 
 void OverworldEditor::CheckForOverworldEdits() {
@@ -1092,11 +1091,13 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
 
     // Ensure tile16 blockset is fully updated before rendering
     if (tile16_blockset_.atlas.is_active()) {
-      Renderer::Get().UpdateBitmap(&tile16_blockset_.atlas);
+      // TODO: Queue texture for later rendering.
+      // Renderer::Get().UpdateBitmap(&tile16_blockset_.atlas);
     }
 
     // Update map texture with the traditional direct update approach
-    Renderer::Get().UpdateBitmap(&maps_bmp_[current_map_]);
+    // TODO: Queue texture for later rendering.
+    // Renderer::Get().UpdateBitmap(&maps_bmp_[current_map_]);
     maps_bmp_[current_map_].set_modified(false);
   }
 
@@ -1411,9 +1412,10 @@ absl::Status OverworldEditor::DrawAreaGraphics() {
       overworld_.set_current_map(current_map_);
       palette_ = overworld_.current_area_palette();
       gfx::Bitmap bmp;
-      Renderer::Get().CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x08,
-                                            overworld_.current_graphics(), bmp,
-                                            palette_);
+      // TODO: Queue texture for later rendering.
+      // Renderer::Get().CreateAndRenderBitmap(0x80, kOverworldMapSize, 0x08,
+                                            // overworld_.current_graphics(), bmp,
+                                            // palette_);
       current_graphics_set_[current_map_] = bmp;
     }
   }
@@ -1483,17 +1485,19 @@ absl::Status OverworldEditor::LoadGraphics() {
   // This avoids blocking the main thread with GPU texture creation
   {
     gfx::ScopedTimer gfx_timer("CreateBitmapWithoutTexture_Graphics");
-    Renderer::Get().CreateBitmapWithoutTexture(0x80, kOverworldMapSize, 0x40,
-                                               overworld_.current_graphics(),
-                                               current_gfx_bmp_, palette_);
+    // TODO: Queue texture for later rendering.
+    // Renderer::Get().CreateBitmapWithoutTexture(0x80, kOverworldMapSize, 0x40,
+    //                                            overworld_.current_graphics(),
+    //                                            current_gfx_bmp_, palette_);
   }
 
   LOG_DEBUG("OverworldEditor", "Loading overworld tileset (deferred textures).");
   {
     gfx::ScopedTimer tileset_timer("CreateBitmapWithoutTexture_Tileset");
-    Renderer::Get().CreateBitmapWithoutTexture(
-        0x80, 0x2000, 0x08, overworld_.tile16_blockset_data(),
-        tile16_blockset_bmp_, palette_);
+    // TODO: Queue texture for later rendering.
+    // Renderer::Get().CreateBitmapWithoutTexture(
+    // 0x80, 0x2000, 0x08, overworld_.tile16_blockset_data(),
+    // tile16_blockset_bmp_, palette_);
   }
   map_blockset_loaded_ = true;
 
@@ -1504,8 +1508,14 @@ absl::Status OverworldEditor::LoadGraphics() {
   {
     gfx::ScopedTimer tilemap_timer("CreateTilemap");
     tile16_blockset_ =
-        gfx::CreateTilemap(tile16_blockset_data, 0x80, 0x2000, kTile16Size,
+        gfx::CreateTilemap(renderer_,tile16_blockset_data, 0x80, 0x2000, kTile16Size,
                            zelda3::kNumTile16Individual, palette_);
+    
+    // Queue texture creation for the tile16 blockset atlas
+    if (tile16_blockset_.atlas.is_active() && tile16_blockset_.atlas.surface()) {
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &tile16_blockset_.atlas);
+    }
   }
 
   // Phase 2: Create bitmaps only for essential maps initially
@@ -1566,7 +1576,9 @@ absl::Status OverworldEditor::LoadGraphics() {
   {
     gfx::ScopedTimer initial_textures_timer("CreateInitialTextures");
     for (int i = 0; i < initial_texture_count; ++i) {
-      Renderer::Get().RenderBitmap(maps_to_texture[i]);
+      // Queue texture creation/update for initial maps via Arena's deferred system
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, maps_to_texture[i]);
     }
   }
 
@@ -1588,7 +1600,10 @@ absl::Status OverworldEditor::LoadGraphics() {
       priority = (map_world == current_world_) ? 5 : 15;  // Current world = priority 5, others = 15
     }
     
-    gfx::Arena::Get().QueueDeferredTexture(maps_to_texture[i], priority);
+    // Queue texture creation for remaining maps via Arena's deferred system
+    // Note: Priority system to be implemented in future enhancement
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, maps_to_texture[i]);
   }
 
   if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
@@ -1617,20 +1632,16 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
       sprite_previews_[sprite.id()].Create(width, height, depth,
                                            *sprite.preview_graphics());
       sprite_previews_[sprite.id()].SetPalette(palette_);
-      Renderer::Get().RenderBitmap(&(sprite_previews_[sprite.id()]));
+      // TODO: Queue texture for later rendering.
+      // Renderer::Get().RenderBitmap(&(sprite_previews_[sprite.id()]));
     }
   return absl::OkStatus();
 }
 
 void OverworldEditor::ProcessDeferredTextures() {
-  // Use Arena's centralized progressive loading system
-  // This makes progressive loading available to all editors
-  auto batch = gfx::Arena::Get().GetNextDeferredTextureBatch(4, 2);
-  
-  for (auto* bitmap : batch) {
-    if (bitmap && !bitmap->texture()) {
-      Renderer::Get().RenderBitmap(bitmap);
-    }
+  // Process queued texture commands via Arena's deferred system
+  if (renderer_) {
+    gfx::Arena::Get().ProcessTextureQueue(renderer_);
   }
   
   // Also process deferred map refreshes for modified maps
@@ -1682,8 +1693,9 @@ void OverworldEditor::EnsureMapTexture(int map_index) {
   }
 
   if (!bitmap.texture() && bitmap.is_active()) {
-    Renderer::Get().RenderBitmap(&bitmap);
-    // Note: Arena automatically removes from deferred queue when textures are created
+    // Queue texture creation for this map
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &bitmap);
   }
 }
 
@@ -1783,11 +1795,14 @@ void OverworldEditor::RefreshChildMapOnDemand(int map_index) {
                map_index);
     }
 
-    // CRITICAL FIX: Force COMPLETE texture recreation for immediate visibility
-    // UpdateBitmap() was still deferred - we need to force a full re-render
-    
-    // Always recreate the texture to ensure immediate GPU update
-    Renderer::Get().RenderBitmap(&maps_bmp_[map_index]);
+    // Queue texture update to ensure changes are visible
+    if (maps_bmp_[map_index].texture()) {
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::UPDATE, &maps_bmp_[map_index]);
+    } else {
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &maps_bmp_[map_index]);
+    }
   }
 
   // Handle multi-area maps (large, wide, tall) with safe coordination
@@ -1933,9 +1948,10 @@ void OverworldEditor::RefreshMultiAreaMapsSafely(int map_index,
                 }
                 maps_bmp_[sibling].set_modified(false);
 
-                // Update texture if it exists
+                // Queue texture update/creation
                 if (maps_bmp_[sibling].texture()) {
-                  core::Renderer::Get().UpdateBitmap(&maps_bmp_[sibling]);
+                  gfx::Arena::Get().QueueTextureCommand(
+                      gfx::Arena::TextureCommandType::UPDATE, &maps_bmp_[sibling]);
                 } else {
                   EnsureMapTexture(sibling);
                 }
@@ -2192,8 +2208,19 @@ absl::Status OverworldEditor::RefreshTile16Blockset() {
 
   const auto tile16_data = overworld_.tile16_blockset_data();
 
-  gfx::UpdateTilemap(tile16_blockset_, tile16_data);
+  gfx::UpdateTilemap(renderer_, tile16_blockset_, tile16_data);
   tile16_blockset_.atlas.SetPalette(palette_);
+  
+  // Queue texture update for the atlas
+  if (tile16_blockset_.atlas.texture() && tile16_blockset_.atlas.is_active()) {
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &tile16_blockset_.atlas);
+  } else if (!tile16_blockset_.atlas.texture() && tile16_blockset_.atlas.is_active()) {
+    // Create texture if it doesn't exist yet
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &tile16_blockset_.atlas);
+  }
+  
   return absl::OkStatus();
 }
 

@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_CORE_PLATFORM_ASSET_LOADER_H_
-#define YAZE_APP_CORE_PLATFORM_ASSET_LOADER_H_
+#ifndef YAZE_APP_PLATFORM_ASSET_LOADER_H_
+#define YAZE_APP_PLATFORM_ASSET_LOADER_H_
 
 #include <filesystem>
 #include <string>
@@ -8,7 +8,7 @@
 #include "absl/status/statusor.h"
 
 namespace yaze {
-namespace core {
+
 
 /**
  * @class AssetLoader
@@ -51,7 +51,7 @@ class AssetLoader {
   static bool AssetExists(const std::string& relative_path);
 };
 
-}  // namespace core
+
 }  // namespace yaze
 
-#endif  // YAZE_APP_CORE_PLATFORM_ASSET_LOADER_H_
+#endif  // YAZE_APP_PLATFORM_ASSET_LOADER_H_

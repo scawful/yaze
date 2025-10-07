@@ -6,6 +6,8 @@
 #include "app/core/window.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/ui/background_renderer.h"
+#include "app/gfx/arena.h" // Add include for Arena
+#include "app/gfx/backend/sdl2_renderer.h" // Add include for new renderer
 #include "app/gui/theme_manager.h"
 #include "app/gui/widgets/widget_id_registry.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
@@ -16,10 +18,21 @@ namespace yaze {
 namespace core {
 
 absl::Status Controller::OnEntry(std::string filename) {
-  RETURN_IF_ERROR(CreateWindow(window_, SDL_WINDOW_RESIZABLE));
+  // Create renderer FIRST
+  renderer_ = std::make_unique<gfx::SDL2Renderer>();
+  
+  // Call CreateWindow with our renderer
+  RETURN_IF_ERROR(CreateWindow(window_, renderer_.get(), SDL_WINDOW_RESIZABLE));
+  
+  // Initialize the graphics Arena with the renderer
+  gfx::Arena::Get().Initialize(renderer_.get());
+
+  // Set up audio for emulator
   editor_manager_.emulator().set_audio_buffer(window_.audio_buffer_.get());
   editor_manager_.emulator().set_audio_device_id(window_.audio_device_);
-  editor_manager_.Initialize(filename);
+  
+  // Initialize editor manager with renderer
+  editor_manager_.Initialize(renderer_.get(), filename);
   active_ = true;
   return absl::OkStatus();
 }
@@ -74,14 +87,20 @@ absl::Status Controller::OnLoad() {
 }
 
 void Controller::DoRender() const {
+  // Process all pending texture commands.
+  gfx::Arena::Get().ProcessTextureQueue(renderer_.get());
+
   ImGui::Render();
-  SDL_RenderClear(Renderer::Get().renderer());
+  renderer_->Clear();
   ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(),
-                                        Renderer::Get().renderer());
-  SDL_RenderPresent(Renderer::Get().renderer());
+                                        static_cast<SDL_Renderer*>(renderer_->GetBackendRenderer()));
+  renderer_->Present();
 }
 
-void Controller::OnExit() { PRINT_IF_ERROR(ShutdownWindow(window_)); }
+void Controller::OnExit() { 
+  renderer_->Shutdown();
+  PRINT_IF_ERROR(ShutdownWindow(window_));
+}
 
 }  // namespace core
 }  // namespace yaze

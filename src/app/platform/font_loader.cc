@@ -1,4 +1,4 @@
-#include "app/core/platform/font_loader.h"
+#include "app/platform/font_loader.h"
 
 #include <filesystem>
 #include <string>
@@ -15,7 +15,6 @@
 #include "util/macro.h"
 
 namespace yaze {
-namespace core {
 
 static const char* KARLA_REGULAR = "Karla-Regular.ttf";
 static const char* ROBOTO_MEDIUM = "Roboto-Medium.ttf";
@@ -138,5 +137,4 @@ void LoadSystemFonts() {
 }
 #endif
 
-}  // namespace core
 }  // namespace yaze

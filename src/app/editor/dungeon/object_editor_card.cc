@@ -1,15 +1,16 @@
 #include "object_editor_card.h"
 
 #include "absl/strings/str_format.h"
+#include "app/gfx/backend/irenderer.h"
 #include "app/gui/icons.h"
 #include "app/gui/ui_helpers.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
 
-ObjectEditorCard::ObjectEditorCard(Rom* rom, DungeonCanvasViewer* canvas_viewer)
-    : rom_(rom), canvas_viewer_(canvas_viewer), object_selector_(rom) {
-  emulator_preview_.Initialize(rom);
+ObjectEditorCard::ObjectEditorCard(gfx::IRenderer* renderer, Rom* rom, DungeonCanvasViewer* canvas_viewer)
+    : renderer_(renderer), rom_(rom), canvas_viewer_(canvas_viewer), object_selector_(rom) {
+  emulator_preview_.Initialize(renderer, rom);
 }
 
 void ObjectEditorCard::Draw(bool* p_open) {
@@ -93,7 +94,7 @@ void ObjectEditorCard::DrawObjectSelector() {
   ImGui::Separator();
   
   // Object list with categories
-  if (ImGui::BeginChild("##ObjectList", ImVec2(0, -100), true)) {
+  if (ImGui::BeginChild("##ObjectList", ImVec2(0, 0), true)) {
     // Floor objects
     if (ImGui::CollapsingHeader(ICON_MD_GRID_ON " Floor Objects", 
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -268,8 +269,10 @@ void ObjectEditorCard::DrawObjectPreviewIcon(int object_id, const ImVec2& size) 
 
 void ObjectEditorCard::DrawSelectedObjectInfo() {
   ImGui::BeginGroup();
+  
+  // Show current object for placement
   ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), 
-                     ICON_MD_INFO " Current Object:");
+                     ICON_MD_INFO " Current:");
   
   if (has_preview_object_) {
     ImGui::SameLine();
@@ -278,14 +281,35 @@ void ObjectEditorCard::DrawSelectedObjectInfo() {
     ImGui::Text("Layer: %s", 
                 preview_object_.layer_ == zelda3::RoomObject::BG1 ? "BG1" :
                 preview_object_.layer_ == zelda3::RoomObject::BG2 ? "BG2" : "BG3");
-    ImGui::SameLine();
-    ImGui::Text("Mode: %s", 
-                interaction_mode_ == InteractionMode::Place ? "Place" :
-                interaction_mode_ == InteractionMode::Select ? "Select" :
-                interaction_mode_ == InteractionMode::Delete ? "Delete" : "None");
   } else {
     ImGui::SameLine();
-    ImGui::TextDisabled("None selected");
+    ImGui::TextDisabled("None");
+  }
+  
+  // Show selection count
+  auto& interaction = canvas_viewer_->object_interaction();
+  const auto& selected = interaction.GetSelectedObjectIndices();
+  
+  ImGui::SameLine();
+  ImGui::Text("|");
+  ImGui::SameLine();
+  ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f), 
+                     ICON_MD_CHECKLIST " Selected: %zu", selected.size());
+  
+  ImGui::SameLine();
+  ImGui::Text("|");
+  ImGui::SameLine();
+  ImGui::Text("Mode: %s", 
+              interaction_mode_ == InteractionMode::Place ? ICON_MD_ADD_BOX " Place" :
+              interaction_mode_ == InteractionMode::Select ? ICON_MD_CHECK_BOX " Select" :
+              interaction_mode_ == InteractionMode::Delete ? ICON_MD_DELETE " Delete" : "None");
+  
+  // Show quick actions for selections
+  if (!selected.empty()) {
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_CLEAR " Clear")) {
+      interaction.ClearSelection();
+    }
   }
   
   ImGui::EndGroup();

@@ -1,4 +1,4 @@
-#include "app/core/platform/asset_loader.h"
+#include "app/platform/asset_loader.h"
 
 #include <fstream>
 #include <sstream>
@@ -7,7 +7,7 @@
 #include "util/file_util.h"
 
 namespace yaze {
-namespace core {
+
 
 std::vector<std::filesystem::path> AssetLoader::GetSearchPaths(const std::string& relative_path) {
   std::vector<std::filesystem::path> search_paths;
@@ -90,5 +90,5 @@ bool AssetLoader::AssetExists(const std::string& relative_path) {
   return FindAssetFile(relative_path).ok();
 }
 
-}  // namespace core
+
 }  // namespace yaze
