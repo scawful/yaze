@@ -1,0 +1,7 @@
+<map id="yaze::gui::DungeonObjectEmulatorPreview::Initialize" name="yaze::gui::DungeonObjectEmulatorPreview::Initialize">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,178,64"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="226,5,367,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,30,210,26,211,31,178,35"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="235,55,358,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,51,220,56,220,61,178,56"/>
+</map>

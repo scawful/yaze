@@ -1,0 +1,9 @@
+<map id="yaze::zelda3::ObjectDrawer::WriteTile16" name="yaze::zelda3::ObjectDrawer::WriteTile16">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,181,111"/>
+<area shape="rect" id="Node000002" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ae85785664b7291b357e9e70813cc6e1d" title=" " alt="" coords="231,5,406,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,68,230,48,232,54,166,73"/>
+<area shape="rect" id="Node000003" href="$dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a9a7be412d7cf193aff2c97890b788374" title=" " alt="" coords="229,71,408,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
+<area shape="rect" id="Node000004" href="$d0/d27/namespaceyaze_1_1gfx.html#a66b9ad66f02a591afa773753724ea892" title=" " alt="" coords="236,136,401,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="176,109,251,129,250,134,175,114"/>
+</map>

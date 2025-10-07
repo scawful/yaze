@@ -1,0 +1,12 @@
+<map id="yaze::gui::DungeonObjectEmulatorPreview::RenderControls" name="yaze::gui::DungeonObjectEmulatorPreview::RenderControls">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,220,88"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#a548bde7ae5089c2621f998c20cd15e24" title=" " alt="" coords="304,5,451,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,45,289,32,290,37,221,50"/>
+<area shape="rect" id="Node000008" href="$d3/dbf/namespaceyaze_1_1gui.html#aeeaa34ebe8d8e3688b14f9bd0356d0ca" title=" " alt="" coords="302,55,453,80"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="220,65,286,65,286,70,220,70"/>
+<area shape="rect" id="Node000009" href="$d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a3c42fc2312f21246ce9d5d7b70a5ca0f" title=" " alt="" coords="268,105,487,161"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="199,86,253,99,252,105,197,91"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a2be424fe9c7f540133dfcf036c48b5d1" title="Automatically register the last ImGui item." alt="" coords="535,31,738,56"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="452,23,520,29,519,35,451,28"/>
+<area shape="poly" id="edge4_Node000008_Node000003" title=" " alt="" coords="453,58,520,52,520,57,454,63"/>
+</map>

@@ -2,8 +2,8 @@
 <area shape="rect" id="Node000001" title="Text editor for modifying assembly code." alt="" coords="209,94,390,120"/>
 <area shape="rect" id="Node000002" href="$d3/d9f/classyaze_1_1editor_1_1Editor.html" title="Interface for editor classes." alt="" coords="5,5,130,31"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,34,268,91,266,96,113,39"/>
-<area shape="rect" id="Node000126" href="$da/d6e/structyaze_1_1editor_1_1FolderItem.html" title=" " alt="" coords="154,5,307,31"/>
-<area shape="poly" id="edge2_Node000001_Node000126" title=" " alt="" coords="241,44,254,68,280,91,277,95,250,72,236,46"/>
+<area shape="rect" id="Node000128" href="$da/d6e/structyaze_1_1editor_1_1FolderItem.html" title=" " alt="" coords="154,5,307,31"/>
+<area shape="poly" id="edge2_Node000001_Node000128" title=" " alt="" coords="241,44,254,68,280,91,277,95,250,72,236,46"/>
 <area shape="rect" id="Node000018" href="$d0/d28/classTextEditor.html" title=" " alt="" coords="331,5,410,31"/>
 <area shape="poly" id="edge3_Node000001_Node000018" title=" " alt="" coords="360,46,343,72,318,95,314,92,339,68,356,43"/>
 <area shape="rect" id="Node000011" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="434,5,514,31"/>

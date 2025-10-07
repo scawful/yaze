@@ -502,7 +502,7 @@ $(document).ready(function(){initNavTree('d6/dbd/settings__editor_8cc_source.htm
 <div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>        std::filesystem::path path(log_file_path);</div>
 <div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>        <span class="keywordflow">if</span> (std::filesystem::exists(path)) {</div>
 <div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>          std::filesystem::remove(path);</div>
-<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>          <a class="code hl_define" href="../../d7/d7f/log_8h.html#aa95e196f03ce268f700d3fe46cb7bf47">LOG_INFO</a>(<span class="stringliteral">&quot;Settings&quot;</span>, <span class="stringliteral">&quot;Log file cleared: %s&quot;</span>, log_file_path);</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>          <a class="code hl_define" href="../../d7/d7f/log_8h.html#a705e0855e5854c287fbd445df9e12c6b">LOG_DEBUG</a>(<span class="stringliteral">&quot;Settings&quot;</span>, <span class="stringliteral">&quot;Log file cleared: %s&quot;</span>, log_file_path);</div>
 <div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>        }</div>
 <div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>      }</div>
 <div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>    }</div>

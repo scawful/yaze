@@ -216,6 +216,7 @@ var classyaze_1_1emu_1_1Cpu =
     [ "GetBreakpoints", "dc/df4/classyaze_1_1emu_1_1Cpu.html#a9242f999cbb88b2ae9d8dc7ddc9cdc88", null ],
     [ "CheckInt", "dc/df4/classyaze_1_1emu_1_1Cpu.html#a4c45992dd7b78d7f3c6e41c91e47dd72", null ],
     [ "mutable_log_instructions", "dc/df4/classyaze_1_1emu_1_1Cpu.html#a8bced7a402addfa2b7a90b59aa13dd8b", null ],
+    [ "stopped", "dc/df4/classyaze_1_1emu_1_1Cpu.html#a2732227f3d9a898d09a456d888389b7b", null ],
     [ "compare", "dc/df4/classyaze_1_1emu_1_1Cpu.html#af21cbd72bf0b381db886219f6f4f8cc6", null ],
     [ "SetFlag", "dc/df4/classyaze_1_1emu_1_1Cpu.html#a85032a2395e68acc4644787df6c1c815", null ],
     [ "GetFlag", "dc/df4/classyaze_1_1emu_1_1Cpu.html#a3c0bff124be448b79a52dacfdd60aa7d", null ],

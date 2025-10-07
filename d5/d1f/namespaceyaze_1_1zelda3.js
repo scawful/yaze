@@ -75,6 +75,7 @@ var namespaceyaze_1_1zelda3 =
     [ "MockRom", "d4/df3/classyaze_1_1zelda3_1_1MockRom.html", "d4/df3/classyaze_1_1zelda3_1_1MockRom" ],
     [ "MockRoomGenerator", "d0/de2/classyaze_1_1zelda3_1_1MockRoomGenerator.html", null ],
     [ "MouseConfig", "dd/d3f/structyaze_1_1zelda3_1_1MouseConfig.html", "dd/d3f/structyaze_1_1zelda3_1_1MouseConfig" ],
+    [ "ObjectDrawer", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer" ],
     [ "ObjectParser", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser" ],
     [ "ObjectRenderer", "d7/dfa/classyaze_1_1zelda3_1_1ObjectRenderer.html", "d7/dfa/classyaze_1_1zelda3_1_1ObjectRenderer" ],
     [ "ObjectRoutineInfo", "dc/d8c/structyaze_1_1zelda3_1_1ObjectRoutineInfo.html", "dc/d8c/structyaze_1_1zelda3_1_1ObjectRoutineInfo" ],
