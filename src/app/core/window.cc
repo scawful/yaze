@@ -51,6 +51,9 @@ void ImGuiAssertionHandler(const char* expr, const char* file, int line,
 namespace yaze {
 namespace core {
 
+// Global flag for window resize state (used by emulator to pause)
+bool g_window_is_resizing = false;
+
 absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer, int flags) {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) != 0) {
     return absl::InternalError(
@@ -200,14 +203,18 @@ absl::Status HandleEvents(Window& window) {
             // Update display size for both resize and size_changed events
             io.DisplaySize.x = static_cast<float>(event.window.data1);
             io.DisplaySize.y = static_cast<float>(event.window.data2);
+            g_window_is_resizing = true;
             break;
           case SDL_WINDOWEVENT_MINIMIZED:
           case SDL_WINDOWEVENT_HIDDEN:
-            // Window is minimized/hidden - nothing to render
+            // Window is minimized/hidden
+            g_window_is_resizing = false;
             break;
           case SDL_WINDOWEVENT_RESTORED:
           case SDL_WINDOWEVENT_SHOWN:
-            // Window is restored - resume normal operation
+          case SDL_WINDOWEVENT_EXPOSED:
+            // Window is restored - clear resize flag
+            g_window_is_resizing = false;
             break;
         }
         break;
