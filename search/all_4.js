@@ -8,7 +8,7 @@ var searchData=
   ['4_20entity_20visibility_20for_20visual_20testing_5',['3.4. Entity Visibility for Visual Testing',['../d5/d18/md_docs_2E2-development-guide.html#autotoc_md342',1,'']]],
   ['4_20graphics_20processing_6',['4. Graphics Processing',['../d9/d85/md_docs_2F3-overworld-loading.html#autotoc_md540',1,'']]],
   ['4_20migration_20plan_7',['4. Migration Plan',['../d6/df2/md_docs_2G2-renderer-migration-plan.html#autotoc_md659',1,'']]],
-  ['4_20november_202023_8',['0.0.4 (November 2023)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md836',1,'']]],
+  ['4_20november_202023_8',['0.0.4 (November 2023)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md846',1,'']]],
   ['4_20overlay_20issues_9',['4. Overlay Issues',['../d9/d85/md_docs_2F3-overworld-loading.html#autotoc_md545',1,'']]],
   ['4_20platform_20setup_10',['4. Platform Setup',['../dc/d42/md_docs_2B1-build-instructions.html#autotoc_md34',1,'']]],
   ['4_20ppu_20configuration_11',['4. PPU Configuration',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md406',1,'']]],
@@ -21,7 +21,7 @@ var searchData=
   ['4_20thread_20safety_18',['4. Thread Safety',['../d9/d85/md_docs_2F3-overworld-loading.html#autotoc_md552',1,'']]],
   ['4_20tt_20z3ed_20tt_20cli_20integration_19',['4. &lt;tt&gt;z3ed&lt;/tt&gt; CLI Integration',['../d1/dc6/md_docs_2G1-canvas-guide.html#autotoc_md651',1,'']]],
   ['4_20writing_20tests_20',['4. Writing Tests',['../d6/d10/md_docs_2A1-testing-guide.html#autotoc_md19',1,'']]],
-  ['4_20x_20next_20major_20release_20advanced_20tooling_20ux_21',['0.4.X (Next Major Release) - Advanced Tooling &amp; UX',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md841',1,'']]],
+  ['4_20x_20next_20major_20release_20advanced_20tooling_20ux_21',['0.4.X (Next Major Release) - Advanced Tooling &amp; UX',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md851',1,'']]],
   ['4_3a_20buffer_20has_20tiles_20but_20bitmap_20is_20empty_22',['Issue 4: Buffer has tiles but bitmap is empty',['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md295',1,'']]],
   ['4_3a_20context_20menu_20not_20dungeon_20aware_23',['Issue 4: Context Menu Not Dungeon-Aware',['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md302',1,'']]],
   ['4_3a_20execute_20plan_20sandbox_24',['Step 4: Execute Plan (Sandbox)',['../de/d00/md_docs_2F4-overworld-agent-guide.html#autotoc_md579',1,'']]]

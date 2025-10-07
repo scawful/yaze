@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🚧_20active_20next_20steps_0',['🚧 Active &amp; Next Steps',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md237',1,'']]]
+  ['🚀_20enhancement_20priorities_20after_20core_20is_20stable_0',['🚀 Enhancement Priorities (After Core is Stable)',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md435',1,'']]]
 ];

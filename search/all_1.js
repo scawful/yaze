@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['1_200_20may_202024_0',['0.1.0 (May 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md830',1,'']]],
+  ['1_200_20may_202024_0',['0.1.0 (May 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md840',1,'']]],
   ['1_20always_20analyze_20before_20editing_1',['1. Always Analyze Before Editing',['../de/d00/md_docs_2F4-overworld-agent-guide.html#autotoc_md597',1,'']]],
-  ['1_20august_202024_2',['0.2.1 (August 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md828',1,'']]],
+  ['1_20august_202024_2',['0.2.1 (August 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md838',1,'']]],
   ['1_20batched_20texture_20processing_3',['1. Batched Texture Processing',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md720',1,'']]],
   ['1_20bitmap_3a_3asetpalette_20crash_4',['1. Bitmap::SetPalette() Crash',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md734',1,'']]],
   ['1_20core_20architectural_20patterns_5',['1. Core Architectural Patterns',['../d5/d18/md_docs_2E2-development-guide.html#autotoc_md330',1,'']]],
@@ -22,7 +22,7 @@ var searchData=
   ['1_20overview_19',['1. Overview',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md171',1,'']]],
   ['1_20release_20simplified_20tt_20release_20simplified_20yml_20tt_20',['1. Release-Simplified (&lt;tt&gt;release-simplified.yml&lt;/tt&gt;)',['../d3/d49/md_docs_2B4-release-workflows.html#autotoc_md95',1,'']]],
   ['1_20rooms_20list_20card_21',['1. Rooms List Card',['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md257',1,'']]],
-  ['1_20september_202025_22',['0.3.1 (September 2025)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md813',1,'']]],
+  ['1_20september_202025_22',['0.3.1 (September 2025)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md823',1,'']]],
   ['1_20snes_20color_20format_2015_20bit_20bgr555_23',['1. SNES Color Format (15-bit BGR555)',['../da/dfd/md_docs_2G3-palete-system-overview.html#autotoc_md667',1,'']]],
   ['1_20test_20organization_24',['1. Test Organization',['../d6/d10/md_docs_2A1-testing-guide.html#autotoc_md10',1,'']]],
   ['1_20the_20theme_20system_20tt_20agentuitheme_20tt_25',['2.1. The Theme System (&lt;tt&gt;AgentUITheme&lt;/tt&gt;)',['../d5/d18/md_docs_2E2-development-guide.html#autotoc_md335',1,'']]],
@@ -44,7 +44,7 @@ var searchData=
   ['16x19_20grid_41',['3. Room Matrix Card (16x19 Grid)',['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md259',1,'']]],
   ['1_3a_20capture_20canvas_20screenshot_42',['Step 1: Capture Canvas Screenshot',['../de/d00/md_docs_2F4-overworld-agent-guide.html#autotoc_md576',1,'']]],
   ['1_3a_20create_20forest_20area_43',['Workflow 1: Create Forest Area',['../de/d00/md_docs_2F4-overworld-agent-guide.html#autotoc_md583',1,'']]],
-  ['1_3a_20editor_20features_20ux_44',['Priority 1: Editor Features &amp; UX',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md842',1,'']]],
+  ['1_3a_20editor_20features_20ux_44',['Priority 1: Editor Features &amp; UX',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md852',1,'']]],
   ['1_3a_20empty_20palette_45',['Issue 1: Empty Palette',['../da/dfd/md_docs_2G3-palete-system-overview.html#autotoc_md677',1,'']]],
   ['1_3a_20floor_20tiles_20are_20all_200x0000_46',['Issue 1: Floor tiles are all 0x0000',['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md292',1,'']]],
   ['1_3a_20implement_20the_20abstraction_20layer_47',['Phase 1: Implement the Abstraction Layer',['../d6/df2/md_docs_2G2-renderer-migration-plan.html#autotoc_md660',1,'']]],
@@ -54,5 +54,5 @@ var searchData=
   ['1_3a_20pattern_20recognition_51',['Technique 1: Pattern Recognition',['../de/d00/md_docs_2F4-overworld-agent-guide.html#autotoc_md615',1,'']]],
   ['1_3a_20room_20layout_20not_20rendering_20completed_20✅_52',['Issue 1: Room Layout Not Rendering (COMPLETED ✅)',['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md299',1,'']]],
   ['1_3a_20the_20coordinate_20system_53',['Critical Fix 1: The Coordinate System',['../d5/d83/md_docs_2F1-dungeon-editor-guide.html#autotoc_md460',1,'']]],
-  ['1_3a_20visual_20studio_20recommended_54',['Option 1: Visual Studio (Recommended)',['../de/d82/md_scripts_2README.html#autotoc_md891',1,'']]]
+  ['1_3a_20visual_20studio_20recommended_54',['Option 1: Visual Studio (Recommended)',['../de/d82/md_scripts_2README.html#autotoc_md901',1,'']]]
 ];

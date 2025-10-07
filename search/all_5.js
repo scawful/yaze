@@ -11,11 +11,11 @@ var searchData=
   ['5_20e2e_20gui_20testing_20framework_8',['5. E2E GUI Testing Framework',['../d6/d10/md_docs_2A1-testing-guide.html#autotoc_md20',1,'']]],
   ['5_20grpc_20service_9',['5. gRPC Service',['../d1/dc6/md_docs_2G1-canvas-guide.html#autotoc_md652',1,'']]],
   ['5_20large_20map_20problems_10',['5. Large Map Problems',['../d9/d85/md_docs_2F3-overworld-loading.html#autotoc_md546',1,'']]],
-  ['5_20november_202023_11',['0.0.5 (November 2023)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md835',1,'']]],
+  ['5_20november_202023_11',['0.0.5 (November 2023)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md845',1,'']]],
   ['5_20object_20editor_20card_20unified_12',['5. Object Editor Card (Unified)',['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md261',1,'']]],
   ['5_20singleton_20with_20di_20arena_13',['5. Singleton with DI (Arena)',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md769',1,'']]],
   ['5_20testing_14',['5. Testing',['../dc/d42/md_docs_2B1-build-instructions.html#autotoc_md38',1,'']]],
   ['5_20testing_3a_20100_20pass_20rate_15',['5. Testing: 100% Pass Rate',['../d5/d83/md_docs_2F1-dungeon-editor-guide.html#autotoc_md465',1,'']]],
-  ['5_20x_20feature_20expansion_16',['0.5.X - Feature Expansion',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md846',1,'']]],
+  ['5_20x_20feature_20expansion_16',['0.5.X - Feature Expansion',['../d8/d97/md_docs_2I1-roadmap.html#autotoc_md856',1,'']]],
   ['5_3a_20human_20review_17',['Step 5: Human Review',['../de/d00/md_docs_2F4-overworld-agent-guide.html#autotoc_md580',1,'']]]
 ];

@@ -36,5 +36,6 @@ var namespaceyaze_1_1core =
     [ "HandleEvents", "db/d33/namespaceyaze_1_1core.html#ad4a900088575fbf46321559795839a51", null ],
     [ "CaptureWidgetState", "db/d33/namespaceyaze_1_1core.html#afd7b0c7907c3c40350d164a541651f13", null ],
     [ "SerializeWidgetStateToJson", "db/d33/namespaceyaze_1_1core.html#adfa425625ae6d14a5f9da8c00bd7fcaf", null ],
-    [ "kRecentFilesFilename", "db/d33/namespaceyaze_1_1core.html#a3529a0c0bdd833f9ac318e43d3ca26ca", null ]
+    [ "kRecentFilesFilename", "db/d33/namespaceyaze_1_1core.html#a3529a0c0bdd833f9ac318e43d3ca26ca", null ],
+    [ "g_window_is_resizing", "db/d33/namespaceyaze_1_1core.html#acec26fd2303fa7535e1fbb226b4a491e", null ]
 ];
