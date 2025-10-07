@@ -73,6 +73,10 @@ public:
      */
     virtual void DestroyTexture(TextureHandle texture) = 0;
 
+    // --- Direct Pixel Access ---
+    virtual bool LockTexture(TextureHandle texture, SDL_Rect* rect, void** pixels, int* pitch) = 0;
+    virtual void UnlockTexture(TextureHandle texture) = 0;
+
     // --- Rendering Primitives ---
 
     /**

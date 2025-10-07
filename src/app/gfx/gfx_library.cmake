@@ -15,6 +15,7 @@ set(
   app/gfx/tilemap.cc
   app/gfx/graphics_optimizer.cc
   app/gfx/bpp_format_manager.cc
+  app/gfx/backend/sdl2_renderer.cc
 )
 
 # ==============================================================================

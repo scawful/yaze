@@ -29,7 +29,6 @@
 #include "util/macro.h"
 
 namespace yaze {
-using core::Renderer;
 constexpr int Uncompressed3BPPSize = 0x0600;
 
 namespace {
@@ -106,9 +105,10 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumLinkSheets>> LoadLinkGraphics(
     link_graphics[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                             gfx::kTilesheetDepth, link_sheet_8bpp);
     link_graphics[i].SetPalette(rom.palette_group().armors[0]);
-    if (SDL_Renderer *renderer = Renderer::Get().renderer(); renderer != nullptr) {
-      Renderer::Get().RenderBitmap(&link_graphics[i]);
-    }
+    // TODO: Renderer refactor to use IRenderer or defer for later when GraphicsEditor is opened.
+    // if (SDL_Renderer *renderer = Renderer::Get().renderer(); renderer != nullptr) {
+    //   Renderer::Get().RenderBitmap(&link_graphics[i]);
+    // }
   }
   return link_graphics;
 }
@@ -176,9 +176,6 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
   std::array<gfx::Bitmap, kNumGfxSheets> graphics_sheets;
   std::vector<uint8_t> sheet;
   bool bpp3 = false;
-  SDL_Renderer *renderer = Renderer::Get().renderer();
-  const bool renderer_ready = renderer != nullptr;
-
   // CRITICAL: Clear the graphics buffer before loading to prevent corruption!
   // Without this, multiple ROM loads would accumulate corrupted data.
   rom.mutable_graphics_buffer()->clear();
@@ -211,26 +208,6 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       graphics_sheets[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                 gfx::kTilesheetDepth, converted_sheet);
       
-      // DON'T apply palettes here! Each editor (Dungeon, Graphics, GfxGroup) 
-      // should apply its own palette when displaying sheets.
-      // This allows users to preview sheets with different palettes in each editor.
-      // The bitmap data is stored as indexed (8bpp), and palettes are applied 
-      // at texture creation time by each editor.
-      
-      // if (graphics_sheets[i].is_active()) {
-      //   if (i > 115) {
-      //     graphics_sheets[i].SetPaletteWithTransparent(
-      //         rom.palette_group().global_sprites[0], 0);
-      //   } else {
-      //     graphics_sheets[i].SetPaletteWithTransparent(
-      //         rom.palette_group().dungeon_main[0], 0);
-      //   }
-      // }
-
-      // Don't create textures here either - let editors create them with their palettes
-      // if (!defer_render && renderer_ready) {
-      //   graphics_sheets[i].CreateTexture(renderer);
-      // }
 
       for (int j = 0; j < graphics_sheets[i].size(); ++j) {
         rom.mutable_graphics_buffer()->push_back(graphics_sheets[i].at(j));

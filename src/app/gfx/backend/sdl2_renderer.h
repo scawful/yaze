@@ -29,6 +29,10 @@ public:
     void UpdateTexture(TextureHandle texture, const Bitmap& bitmap) override;
     void DestroyTexture(TextureHandle texture) override;
 
+    // --- Direct Pixel Access ---
+    bool LockTexture(TextureHandle texture, SDL_Rect* rect, void** pixels, int* pitch) override;
+    void UnlockTexture(TextureHandle texture) override;
+
     // --- Rendering Primitives ---
     void Clear() override;
     void Present() override;
