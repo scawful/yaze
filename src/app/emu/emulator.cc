@@ -50,7 +50,9 @@ using ImGui::TableNextColumn;
 using ImGui::Text;
 
 Emulator::~Emulator() {
-  Cleanup();
+  // Don't call Cleanup() in destructor - renderer is already destroyed
+  // Just stop emulation
+  running_ = false;
 }
 
 void Emulator::Cleanup() {
