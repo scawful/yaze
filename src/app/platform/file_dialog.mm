@@ -22,7 +22,7 @@
 #import <UIKit/UIKit.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-#include "app/core/platform/app_delegate.h"
+#include "app/platform/app_delegate.h"
 
 namespace {
 static std::string selectedFile;

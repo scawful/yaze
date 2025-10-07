@@ -11,7 +11,7 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
+
 namespace net {
 
 /**
@@ -160,7 +160,7 @@ class CollaborationService {
 };
 
 }  // namespace net
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_NET_COLLABORATION_SERVICE_H_

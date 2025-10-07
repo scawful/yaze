@@ -321,8 +321,9 @@ void Room::RenderRoomGraphics() {
   }
   
   // CRITICAL: Recreate textures with the palette applied!
-  core::Renderer::Get().RenderBitmap(&bg1_buffer_.bitmap());
-  core::Renderer::Get().RenderBitmap(&bg2_buffer_.bitmap());
+  // TODO: Queue texture for later rendering.
+  // core::Renderer::Get().RenderBitmap(&bg1_buffer_.bitmap());
+  // core::Renderer::Get().RenderBitmap(&bg2_buffer_.bitmap());
 }
 
 void Room::RenderObjectsToBackground() {

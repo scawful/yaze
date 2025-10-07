@@ -26,7 +26,6 @@
 namespace yaze {
 namespace editor {
 
-using core::Renderer;
 
 constexpr uint32_t kRedPen = 0xFF0000FF;
 
@@ -56,7 +55,9 @@ absl::Status ScreenEditor::Load() {
       sheets_[i].Get8x8Tile(tile_index, x, y, tile_data, tile_data_offset);
       tile8_individual_.emplace_back(gfx::Bitmap(8, 8, 4, tile_data));
       tile8_individual_.back().SetPalette(*rom()->mutable_dungeon_palette(3));
-      Renderer::Get().RenderBitmap(&tile8_individual_.back());
+      // Queue texture creation via Arena's deferred system
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &tile8_individual_.back());
     }
     tile_data_offset = 0;
   }
@@ -249,15 +250,17 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
     int tile16_id = tile_ids_to_render[idx];
     ImVec2 pos = tile_positions[idx];
 
-    gfx::RenderTile16(tile16_blockset_, tile16_id);
+    gfx::RenderTile16(nullptr, tile16_blockset_, tile16_id);
     // Get tile from cache after rendering
     auto* cached_tile = tile16_blockset_.tile_cache.GetTile(tile16_id);
     if (cached_tile && cached_tile->is_active()) {
       // Ensure the cached tile has a valid texture
       if (!cached_tile->texture()) {
-        core::Renderer::Get().RenderBitmap(cached_tile);
+        // Queue texture creation via Arena's deferred system
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::CREATE, cached_tile);
       }
-      screen_canvas_.DrawBitmap(*cached_tile, pos.x, pos.y, 4.0F);
+      screen_canvas_.DrawBitmap(*cached_tile, pos.x, pos.y, 4.0F, 255);
     }
   }
 
@@ -382,12 +385,12 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
                          (tilesheet_canvas_.points().front().y / 32) * 16;
 
       // Render selected tile16 and cache tile metadata
-      gfx::RenderTile16(tile16_blockset_, selected_tile16_);
+      gfx::RenderTile16(nullptr, tile16_blockset_, selected_tile16_);
       std::ranges::copy(tile16_blockset_.tile_info[selected_tile16_],
                         current_tile16_info.begin());
     }
     // Use direct bitmap rendering for tilesheet
-    tilesheet_canvas_.DrawBitmap(tile16_blockset_.atlas, 1, 1, 2.0F);
+    tilesheet_canvas_.DrawBitmap(tile16_blockset_.atlas, 1, 1, 2.0F, 255);
     tilesheet_canvas_.DrawGrid(32.f);
     tilesheet_canvas_.DrawOverlay();
 
@@ -408,16 +411,18 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
                         current_tile16_info[0], current_tile16_info[1],
                         current_tile16_info[2], current_tile16_info[3], 212,
                         selected_tile16_);
-      gfx::UpdateTile16(tile16_blockset_, selected_tile16_);
+      gfx::UpdateTile16(nullptr, tile16_blockset_, selected_tile16_);
     }
     // Get selected tile from cache
     auto* selected_tile = tile16_blockset_.tile_cache.GetTile(selected_tile16_);
     if (selected_tile && selected_tile->is_active()) {
       // Ensure the selected tile has a valid texture
       if (!selected_tile->texture()) {
-        core::Renderer::Get().RenderBitmap(selected_tile);
+        // Queue texture creation via Arena's deferred system
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::CREATE, selected_tile);
       }
-      current_tile_canvas_.DrawBitmap(*selected_tile, 2, 4.0f);
+      current_tile_canvas_.DrawBitmap(*selected_tile, 2, 2, 4.0f, 255);
     }
     current_tile_canvas_.DrawGrid(16.f);
     current_tile_canvas_.DrawOverlay();
@@ -434,7 +439,7 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
                         current_tile16_info[0], current_tile16_info[1],
                         current_tile16_info[2], current_tile16_info[3], 212,
                         selected_tile16_);
-      gfx::UpdateTile16(tile16_blockset_, selected_tile16_);
+      gfx::UpdateTile16(nullptr, tile16_blockset_, selected_tile16_);
     }
   }
   ImGui::EndChild();
@@ -543,7 +548,9 @@ void ScreenEditor::LoadBinaryGfx() {
                                   converted_bin.begin() + ((i + 1) * 0x1000));
           sheets_.emplace(i, gfx::Bitmap(128, 32, 8, gfx_sheets[i]));
           sheets_[i].SetPalette(*rom()->mutable_dungeon_palette(3));
-          Renderer::Get().RenderBitmap(&sheets_[i]);
+          // Queue texture creation via Arena's deferred system
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::CREATE, &sheets_[i]);
         }
         binary_gfx_loaded_ = true;
       } else {

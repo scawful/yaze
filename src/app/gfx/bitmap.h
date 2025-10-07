@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "app/gfx/backend/irenderer.h"
 #include "app/gfx/snes_palette.h"
 
 namespace yaze {
@@ -136,19 +137,19 @@ class Bitmap {
   /**
    * @brief Creates the underlying SDL_Texture to be displayed.
    */
-  void CreateTexture(SDL_Renderer *renderer);
+  void CreateTexture();
 
   /**
    * @brief Updates the underlying SDL_Texture when it already exists.
    */
-  void UpdateTexture(SDL_Renderer *renderer);
+  void UpdateTexture();
 
   /**
    * @brief Queue texture update for batch processing (improved performance)
    * @param renderer SDL renderer for texture operations
    * @note Use this for better performance when multiple textures need updating
    */
-  void QueueTextureUpdate(SDL_Renderer *renderer);
+  void QueueTextureUpdate(IRenderer *renderer);
 
   /**
    * @brief Updates the texture data from the surface
@@ -165,6 +166,11 @@ class Bitmap {
    */
   void SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
                                  int length = 7);
+
+  /**
+   * @brief Apply the stored palette to the surface (internal helper)
+   */
+  void ApplyStoredPalette();
 
   /**
    * @brief Set the palette using SDL colors
@@ -251,7 +257,7 @@ class Bitmap {
   const uint8_t *data() const { return data_.data(); }
   std::vector<uint8_t> &mutable_data() { return data_; }
   SDL_Surface *surface() const { return surface_; }
-  SDL_Texture *texture() const { return texture_; }
+  TextureHandle texture() const { return texture_; }
   const std::vector<uint8_t> &vector() const { return data_; }
   uint8_t at(int i) const { return data_[i]; }
   bool modified() const { return modified_; }
@@ -259,6 +265,7 @@ class Bitmap {
   void set_active(bool active) { active_ = active; }
   void set_data(const std::vector<uint8_t> &data);
   void set_modified(bool modified) { modified_ = modified; }
+  void set_texture(TextureHandle texture) { texture_ = texture; }
 
 
  private:
@@ -285,7 +292,7 @@ class Bitmap {
   SDL_Surface *surface_ = nullptr;
 
   // Texture for the bitmap (managed by Arena)
-  SDL_Texture *texture_ = nullptr;
+  TextureHandle texture_ = nullptr;
 
   // Optimized palette lookup cache for O(1) color index lookups
   std::unordered_map<uint32_t, uint8_t> color_to_index_cache_;

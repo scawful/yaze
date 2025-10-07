@@ -12,6 +12,38 @@ class Rom;
 namespace cli {
 namespace agent {
 
+enum class ToolCallType {
+  kUnknown,
+  kResourceList,
+  kResourceSearch,
+  kDungeonListSprites,
+  kDungeonDescribeRoom,
+  // Overworld
+  kOverworldFindTile,
+  kOverworldDescribeMap,
+  kOverworldListWarps,
+  kOverworldListSprites,
+  kOverworldGetEntrance,
+  kOverworldTileStats,
+  //
+  kMessageList,
+  kMessageRead,
+  kMessageSearch,
+  kGuiPlaceTile,
+  kGuiClick,
+  kGuiDiscover,
+  kGuiScreenshot,
+  kDialogueList,
+  kDialogueRead,
+  kDialogueSearch,
+  kMusicList,
+  kMusicInfo,
+  kMusicTracks,
+  kSpriteList,
+  kSpriteProperties,
+  kSpritePalette,
+};
+
 class ToolDispatcher {
  public:
   ToolDispatcher() = default;

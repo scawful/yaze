@@ -29,8 +29,6 @@
 namespace yaze {
 namespace editor {
 
-using core::Renderer;
-
 using gfx::kPaletteGroupAddressesKeys;
 using ImGui::Button;
 using ImGui::InputInt;
@@ -45,7 +43,50 @@ constexpr ImGuiTableFlags kGfxEditTableFlags =
 
 void GraphicsEditor::Initialize() {}
 
-absl::Status GraphicsEditor::Load() { return absl::OkStatus(); }
+absl::Status GraphicsEditor::Load() { 
+  gfx::ScopedTimer timer("GraphicsEditor::Load");
+  
+  // Initialize all graphics sheets with appropriate palettes from ROM
+  if (rom()->is_loaded()) {
+    auto& sheets = gfx::Arena::Get().gfx_sheets();
+    
+    // Apply default palettes to all sheets based on common SNES ROM structure
+    // Sheets 0-112: Use overworld/dungeon palettes
+    // Sheets 113-127: Use sprite palettes
+    // Sheets 128-222: Use auxiliary/menu palettes
+    
+    for (int i = 0; i < kNumGfxSheets; i++) {
+      if (sheets[i].is_active() && sheets[i].surface()) {
+        // Determine which palette group to use based on sheet index
+        gfx::SnesPalette sheet_palette;
+        
+        if (i < 113) {
+          // Overworld/Dungeon graphics - use main palette
+          auto palette_group = rom()->palette_group().dungeon_main;
+          sheet_palette = palette_group[0];  // Use first palette as default
+        } else if (i < 128) {
+          // Sprite graphics - use sprite palettes
+          auto palette_group = rom()->palette_group().sprites_aux1;
+          sheet_palette = palette_group[0];
+        } else {
+          // Auxiliary graphics - use HUD/menu palettes
+          sheet_palette = rom()->palette_group().hud.palette(0);
+        }
+        
+        // Apply palette and queue texture creation
+        sheets[i].SetPalette(sheet_palette);
+        
+        // Queue texture creation if not already created
+        if (!sheets[i].texture()) {
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::CREATE, &sheets[i]);
+        }
+      }
+    }
+  }
+  
+  return absl::OkStatus(); 
+}
 
 absl::Status GraphicsEditor::Update() {
   DrawToolset();
@@ -273,36 +314,43 @@ absl::Status GraphicsEditor::UpdateGfxSheetList() {
     graphics_bin_canvas_.DrawBackground(ImVec2(0x100 + 1, 0x40 + 1));
     graphics_bin_canvas_.DrawContextMenu();
     if (value.is_active()) {
-      auto texture = value.texture();
-      graphics_bin_canvas_.draw_list()->AddImage(
-          (ImTextureID)(intptr_t)texture,
-          ImVec2(graphics_bin_canvas_.zero_point().x + 2,
-                 graphics_bin_canvas_.zero_point().y + 2),
-          ImVec2(graphics_bin_canvas_.zero_point().x +
-                     value.width() * sheet_scale_,
-                 graphics_bin_canvas_.zero_point().y +
-                     value.height() * sheet_scale_));
-
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-        current_sheet_ = key;
-        open_sheets_.insert(key);
+      // Ensure texture exists for active sheets
+      if (!value.texture() && value.surface()) {
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::CREATE, &value);
       }
+      
+      auto texture = value.texture();
+      if (texture) {
+        graphics_bin_canvas_.draw_list()->AddImage(
+            (ImTextureID)(intptr_t)texture,
+            ImVec2(graphics_bin_canvas_.zero_point().x + 2,
+                   graphics_bin_canvas_.zero_point().y + 2),
+            ImVec2(graphics_bin_canvas_.zero_point().x +
+                       value.width() * sheet_scale_,
+                   graphics_bin_canvas_.zero_point().y +
+                       value.height() * sheet_scale_));
 
-      // Add a slightly transparent rectangle behind the text
-      ImVec2 text_pos(graphics_bin_canvas_.zero_point().x + 2,
-                      graphics_bin_canvas_.zero_point().y + 2);
-      ImVec2 text_size =
-          ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
-      ImVec2 rent_min(text_pos.x, text_pos.y);
-      ImVec2 rent_max(text_pos.x + text_size.x, text_pos.y + text_size.y);
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+          current_sheet_ = key;
+          open_sheets_.insert(key);
+        }
 
-      graphics_bin_canvas_.draw_list()->AddRectFilled(rent_min, rent_max,
-                                                      IM_COL32(0, 125, 0, 128));
+        // Add a slightly transparent rectangle behind the text
+        ImVec2 text_pos(graphics_bin_canvas_.zero_point().x + 2,
+                        graphics_bin_canvas_.zero_point().y + 2);
+        ImVec2 text_size =
+            ImGui::CalcTextSize(absl::StrFormat("%02X", key).c_str());
+        ImVec2 rect_min(text_pos.x, text_pos.y);
+        ImVec2 rect_max(text_pos.x + text_size.x, text_pos.y + text_size.y);
 
-      graphics_bin_canvas_.draw_list()->AddText(
-          text_pos, IM_COL32(125, 255, 125, 255),
-          absl::StrFormat("%02X", key).c_str());
+        graphics_bin_canvas_.draw_list()->AddRectFilled(rect_min, rect_max,
+                                                        IM_COL32(0, 125, 0, 128));
 
+        graphics_bin_canvas_.draw_list()->AddText(
+            text_pos, IM_COL32(125, 255, 125, 255),
+            absl::StrFormat("%02X", key).c_str());
+      }
       key++;
     }
     graphics_bin_canvas_.DrawGrid(16.0f);
@@ -362,12 +410,18 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
           current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
                                                  current_color_);
           // Use batch operations for texture updates
-          current_bitmap.QueueTextureUpdate(core::Renderer::Get().renderer());
+          // current_bitmap.QueueTextureUpdate(core::Renderer::Get().renderer());
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::UPDATE, &current_bitmap);
         };
 
         current_sheet_canvas_.UpdateColorPainter(
-            gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id),
+            nullptr, gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id),
             current_color_, draw_tile_event, tile_size_, current_scale_);
+
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::UPDATE, 
+            &gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id));
 
         ImGui::EndChild();
         ImGui::EndTabItem();
@@ -399,7 +453,7 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
       current_sheet_ = id;
       //  ImVec2(0x100, 0x40),
       current_sheet_canvas_.UpdateColorPainter(
-          gfx::Arena::Get().mutable_gfx_sheets()->at(id), current_color_,
+          nullptr, gfx::Arena::Get().mutable_gfx_sheets()->at(id), current_color_,
           [&]() {
 
           },
@@ -415,9 +469,6 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
     }
   }
 
-  // Process all queued texture updates at once
-  gfx::Arena::Get().ProcessBatchTextureUpdates();
-
   return absl::OkStatus();
 }
 
@@ -426,24 +477,73 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
     auto palette_group = *rom()->palette_group().get_group(
         kPaletteGroupAddressesKeys[edit_palette_group_name_index_]);
     auto palette = palette_group.palette(edit_palette_index_);
-    gui::TextWithSeparators("ROM Palette");
-    ImGui::SetNextItemWidth(100.f);
+    gui::TextWithSeparators("ROM Palette Management");
+    
+    // Quick palette presets for common SNES graphics types
+    ImGui::Text("Quick Presets:");
+    if (ImGui::Button("Overworld")) {
+      edit_palette_group_name_index_ = 0;  // Dungeon Main
+      edit_palette_index_ = 0;
+      refresh_graphics_ = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Dungeon")) {
+      edit_palette_group_name_index_ = 0;  // Dungeon Main
+      edit_palette_index_ = 1;
+      refresh_graphics_ = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Sprites")) {
+      edit_palette_group_name_index_ = 4;  // Sprites Aux1
+      edit_palette_index_ = 0;
+      refresh_graphics_ = true;
+    }
+    ImGui::Separator();
+    
+    // Apply current palette to current sheet
+    if (ImGui::Button("Apply to Current Sheet") && !open_sheets_.empty()) {
+      refresh_graphics_ = true;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Apply to All Sheets")) {
+      // Apply current palette to all active sheets
+      for (int i = 0; i < kNumGfxSheets; i++) {
+        auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->data()[i];
+        if (sheet.is_active() && sheet.surface()) {
+          sheet.SetPaletteWithTransparent(palette, edit_palette_sub_index_);
+          if (sheet.texture()) {
+            gfx::Arena::Get().QueueTextureCommand(
+                gfx::Arena::TextureCommandType::UPDATE, &sheet);
+          }
+        }
+      }
+    }
+    ImGui::Separator();
+    
+    ImGui::SetNextItemWidth(150.f);
     ImGui::Combo("Palette Group", (int*)&edit_palette_group_name_index_,
                  kPaletteGroupAddressesKeys,
                  IM_ARRAYSIZE(kPaletteGroupAddressesKeys));
     ImGui::SetNextItemWidth(100.f);
-    gui::InputHex("Palette Group Index", &edit_palette_index_);
+    gui::InputHex("Palette Index", &edit_palette_index_);
+    ImGui::SetNextItemWidth(100.f);
+    gui::InputHex("Sub-Palette", &edit_palette_sub_index_);
 
     gui::SelectablePalettePipeline(edit_palette_sub_index_, refresh_graphics_,
                                    palette);
 
     if (refresh_graphics_ && !open_sheets_.empty()) {
-      gfx::Arena::Get()
-          .mutable_gfx_sheets()
-          ->data()[current_sheet_]
-          .SetPaletteWithTransparent(palette, edit_palette_sub_index_);
-      Renderer::Get().UpdateBitmap(
-          &gfx::Arena::Get().mutable_gfx_sheets()->data()[current_sheet_]);
+      auto& current = gfx::Arena::Get().mutable_gfx_sheets()->data()[current_sheet_];
+      if (current.is_active() && current.surface()) {
+        current.SetPaletteWithTransparent(palette, edit_palette_sub_index_);
+        if (current.texture()) {
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::UPDATE, &current);
+        } else {
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::CREATE, &current);
+        }
+      }
       refresh_graphics_ = false;
     }
   }
@@ -583,7 +683,8 @@ absl::Status GraphicsEditor::DrawCgxImport() {
     cgx_bitmap_.Create(0x80, 0x200, 8, decoded_cgx_);
     if (col_file_) {
       cgx_bitmap_.SetPalette(decoded_col_);
-      Renderer::Get().RenderBitmap(&cgx_bitmap_);
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::UPDATE, &cgx_bitmap_);
     }
   }
 
@@ -613,7 +714,8 @@ absl::Status GraphicsEditor::DrawScrImport() {
     scr_bitmap_.Create(0x100, 0x100, 8, decoded_scr_data_);
     if (scr_loaded_) {
       scr_bitmap_.SetPalette(decoded_col_);
-      Renderer::Get().RenderBitmap(&scr_bitmap_);
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::UPDATE, &scr_bitmap_);
     }
   }
 
@@ -815,7 +917,8 @@ absl::Status GraphicsEditor::DecompressImportData(int size) {
     }
   }
 
-  Renderer::Get().RenderBitmap(&bin_bitmap_);
+  gfx::Arena::Get().QueueTextureCommand(
+      gfx::Arena::TextureCommandType::UPDATE, &bin_bitmap_);
   gfx_loaded_ = true;
 
   return absl::OkStatus();
@@ -844,7 +947,8 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       gfx_sheets_[i].SetPalette(z3_rom_palette_);
     }
 
-    Renderer::Get().RenderBitmap(&gfx_sheets_[i]);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &gfx_sheets_[i]);
     i++;
   }
 
@@ -868,7 +972,8 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
       gfx_sheets_[i].SetPalette(z3_rom_palette_);
     }
 
-    Renderer::Get().RenderBitmap(&gfx_sheets_[i]);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &gfx_sheets_[i]);
     i++;
   }
   super_donkey_ = true;

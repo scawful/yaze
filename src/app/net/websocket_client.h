@@ -16,7 +16,7 @@
 #endif
 
 namespace yaze {
-namespace app {
+
 namespace net {
 
 /**
@@ -208,7 +208,7 @@ class WebSocketClient {
 };
 
 }  // namespace net
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_NET_WEBSOCKET_CLIENT_H_

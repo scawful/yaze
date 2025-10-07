@@ -5,6 +5,12 @@
 #include "app/rom.h"
 
 namespace yaze {
+namespace gfx {
+class IRenderer;
+} // namespace gfx
+}
+
+namespace yaze {
 namespace gui {
 
 class DungeonObjectEmulatorPreview {
@@ -12,16 +18,17 @@ class DungeonObjectEmulatorPreview {
   DungeonObjectEmulatorPreview();
   ~DungeonObjectEmulatorPreview();
 
-  void Initialize(Rom* rom);
+  void Initialize(gfx::IRenderer* renderer, Rom* rom);
   void Render();
 
  private:
   void RenderControls();
   void TriggerEmulatedRender();
 
+  gfx::IRenderer* renderer_ = nullptr;
   Rom* rom_ = nullptr;
   std::unique_ptr<emu::Snes> snes_instance_;
-  SDL_Texture* object_texture_ = nullptr;
+  void* object_texture_ = nullptr;
 
   int object_id_ = 0;
   int room_id_ = 0;

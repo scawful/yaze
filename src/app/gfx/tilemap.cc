@@ -2,7 +2,6 @@
 
 #include <vector>
 
-#include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/atlas_renderer.h"
 #include "app/gfx/bitmap.h"
@@ -12,7 +11,7 @@
 namespace yaze {
 namespace gfx {
 
-Tilemap CreateTilemap(std::vector<uint8_t> &data, int width, int height,
+Tilemap CreateTilemap(IRenderer* renderer, std::vector<uint8_t> &data, int width, int height,
                       int tile_size, int num_tiles, SnesPalette &palette) {
   Tilemap tilemap;
   tilemap.tile_size.x = tile_size;
@@ -21,16 +20,28 @@ Tilemap CreateTilemap(std::vector<uint8_t> &data, int width, int height,
   tilemap.map_size.y = num_tiles;
   tilemap.atlas = Bitmap(width, height, 8, data);
   tilemap.atlas.SetPalette(palette);
-  core::Renderer::Get().RenderBitmap(&tilemap.atlas);
+  
+  // Queue texture creation directly via Arena
+  if (tilemap.atlas.is_active() && tilemap.atlas.surface()) {
+    Arena::Get().QueueTextureCommand(Arena::TextureCommandType::CREATE, &tilemap.atlas);
+  }
+  
   return tilemap;
 }
 
-void UpdateTilemap(Tilemap &tilemap, const std::vector<uint8_t> &data) {
+void UpdateTilemap(IRenderer* renderer, Tilemap &tilemap, const std::vector<uint8_t> &data) {
   tilemap.atlas.set_data(data);
-  core::Renderer::Get().UpdateBitmap(&tilemap.atlas);
+  
+  // Queue texture update directly via Arena
+  if (tilemap.atlas.texture() && tilemap.atlas.is_active() && tilemap.atlas.surface()) {
+    Arena::Get().QueueTextureCommand(Arena::TextureCommandType::UPDATE, &tilemap.atlas);
+  } else if (!tilemap.atlas.texture() && tilemap.atlas.is_active() && tilemap.atlas.surface()) {
+    // Create if doesn't exist yet
+    Arena::Get().QueueTextureCommand(Arena::TextureCommandType::CREATE, &tilemap.atlas);
+  }
 }
 
-void RenderTile(Tilemap &tilemap, int tile_id) {
+void RenderTile(IRenderer* renderer, Tilemap &tilemap, int tile_id) {
   // Validate tilemap state before proceeding
   if (!tilemap.atlas.is_active() || tilemap.atlas.vector().empty()) {
     return;
@@ -49,7 +60,7 @@ void RenderTile(Tilemap &tilemap, int tile_id) {
   // Note: Tile cache disabled to prevent std::move() related crashes
 }
 
-void RenderTile16(Tilemap &tilemap, int tile_id) {
+void RenderTile16(IRenderer* renderer, Tilemap &tilemap, int tile_id) {
   // Validate tilemap state before proceeding
   if (!tilemap.atlas.is_active() || tilemap.atlas.vector().empty()) {
     return;
@@ -76,7 +87,7 @@ void RenderTile16(Tilemap &tilemap, int tile_id) {
   // Note: Tile cache disabled to prevent std::move() related crashes
 }
 
-void UpdateTile16(Tilemap &tilemap, int tile_id) {
+void UpdateTile16(IRenderer* renderer, Tilemap &tilemap, int tile_id) {
   // Check if tile is cached
   Bitmap* cached_tile = tilemap.tile_cache.GetTile(tile_id);
   if (cached_tile) {
@@ -88,10 +99,14 @@ void UpdateTile16(Tilemap &tilemap, int tile_id) {
     int tile_data_offset = 0;
     tilemap.atlas.Get16x16Tile(tile_x, tile_y, tile_data, tile_data_offset);
     cached_tile->set_data(tile_data);
-    core::Renderer::Get().UpdateBitmap(cached_tile);
+    
+    // Queue texture update directly via Arena
+    if (cached_tile->texture() && cached_tile->is_active()) {
+      Arena::Get().QueueTextureCommand(Arena::TextureCommandType::UPDATE, cached_tile);
+    }
   } else {
     // Tile not cached, render it fresh
-    RenderTile16(tilemap, tile_id);
+    RenderTile16(renderer, tilemap, tile_id);
   }
 }
 
@@ -293,7 +308,7 @@ std::vector<uint8_t> GetTilemapData(Tilemap &tilemap, int tile_id) {
   return data;
 }
 
-void RenderTilesBatch(Tilemap& tilemap, const std::vector<int>& tile_ids, 
+void RenderTilesBatch(IRenderer* renderer, Tilemap& tilemap, const std::vector<int>& tile_ids, 
                       const std::vector<std::pair<float, float>>& positions,
                       const std::vector<std::pair<float, float>>& scales) {
   if (tile_ids.empty() || positions.empty() || tile_ids.size() != positions.size()) {
@@ -301,9 +316,6 @@ void RenderTilesBatch(Tilemap& tilemap, const std::vector<int>& tile_ids,
   }
   
   ScopedTimer timer("tilemap_batch_render");
-  
-  // Get renderer from Arena
-  SDL_Renderer* renderer = nullptr; // We need to get this from the renderer system
   
   // Initialize atlas renderer if not already done
   auto& atlas_renderer = AtlasRenderer::Get();
@@ -340,11 +352,16 @@ void RenderTilesBatch(Tilemap& tilemap, const std::vector<int>& tile_ids,
       tilemap.tile_cache.CacheTile(tile_id, std::move(new_tile));
       cached_tile = tilemap.tile_cache.GetTile(tile_id);
       if (cached_tile) {
-        core::Renderer::Get().RenderBitmap(cached_tile);
+        cached_tile->CreateTexture();
       }
     }
     
     if (cached_tile && cached_tile->is_active()) {
+      // Queue texture creation if needed
+      if (!cached_tile->texture() && cached_tile->surface()) {
+        Arena::Get().QueueTextureCommand(Arena::TextureCommandType::CREATE, cached_tile);
+      }
+      
       // Add to atlas renderer
       int atlas_id = atlas_renderer.AddBitmap(*cached_tile);
       if (atlas_id >= 0) {

@@ -56,13 +56,24 @@ TextureHandle SDL2Renderer::CreateTexture(int width, int height) {
  */
 void SDL2Renderer::UpdateTexture(TextureHandle texture, const Bitmap& bitmap) {
     SDL_Surface* surface = bitmap.surface();
-    if (!texture || !surface) return;
+    
+    // Validate texture, surface, and surface format
+    if (!texture || !surface || !surface->format) {
+        return;
+    }
+    
+    // Validate surface has pixels
+    if (!surface->pixels || surface->w <= 0 || surface->h <= 0) {
+        return;
+    }
 
     // Convert the bitmap's surface to RGBA8888 format for compatibility with the texture.
     auto converted_surface = std::unique_ptr<SDL_Surface, util::SDL_Surface_Deleter>(
         SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA8888, 0));
 
-    if (!converted_surface) return;
+    if (!converted_surface || !converted_surface->pixels) {
+        return;
+    }
 
     // Update the texture with the pixels from the converted surface.
     SDL_UpdateTexture(static_cast<SDL_Texture*>(texture), nullptr, converted_surface->pixels, converted_surface->pitch);

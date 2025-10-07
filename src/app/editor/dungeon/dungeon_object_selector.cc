@@ -90,7 +90,9 @@ void DungeonObjectSelector::DrawObjectRenderer() {
         auto preview_bitmap = std::move(preview_result.value());
         if (preview_bitmap.width() > 0 && preview_bitmap.height() > 0) {
           preview_bitmap.SetPalette(preview_palette_);
-          core::Renderer::Get().RenderBitmap(&preview_bitmap);
+          // Queue texture creation via Arena's deferred system
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::CREATE, &preview_bitmap);
           object_canvas_.DrawBitmap(preview_bitmap, preview_x, preview_y, 1.0f, 255);
         } else {
           // Fallback: Draw primitive shape

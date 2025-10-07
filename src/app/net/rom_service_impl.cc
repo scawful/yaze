@@ -10,7 +10,7 @@
 namespace rom_svc = ::yaze::proto;
 
 namespace yaze {
-namespace app {
+
 namespace net {
 
 RomServiceImpl::RomServiceImpl(
@@ -204,7 +204,7 @@ grpc::Status RomServiceImpl::SetDialogue(
 }
 
 }  // namespace net
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_WITH_GRPC

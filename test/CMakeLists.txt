@@ -12,150 +12,95 @@ foreach (file
 endforeach()
 
 # Only build test executable if tests are enabled
-# Double-check to ensure tests are actually enabled
 if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
-  # Main test executable with enhanced argument handling for AI agents
-  # Use CI version for minimal builds, full version for development
+
+  # Base list of test sources for all builds
+  set(YAZE_TEST_BASE_SOURCES
+    test_editor.cc
+    test_editor.h
+    testing.h
+    test_utils.h
+    
+    # Unit Tests
+    unit/core/asar_wrapper_test.cc
+    unit/core/hex_test.cc
+    unit/cli/resource_catalog_test.cc
+    unit/rom/rom_test.cc
+    unit/gfx/snes_tile_test.cc
+    unit/gfx/compression_test.cc
+    unit/gfx/snes_palette_test.cc
+    unit/gui/tile_selector_widget_test.cc
+    unit/gui/canvas_automation_api_test.cc
+    unit/zelda3/overworld_test.cc
+    unit/zelda3/object_parser_test.cc
+    unit/zelda3/object_parser_structs_test.cc
+    unit/zelda3/sprite_builder_test.cc
+    unit/zelda3/test_dungeon_objects.cc
+    unit/zelda3/dungeon_component_unit_test.cc
+    unit/zelda3/dungeon/room_object_encoding_test.cc
+    unit/zelda3/dungeon/room_manipulation_test.cc
+    unit/zelda3/dungeon_object_renderer_mock_test.cc
+    
+    # CLI Services (for catalog serialization tests)
+    ../src/cli/service/resources/resource_catalog.cc
+    
+    # Integration Tests
+    integration/asar_integration_test.cc
+    integration/asar_rom_test.cc
+    integration/dungeon_editor_test.cc
+    integration/dungeon_editor_test.h
+    integration/dungeon_editor_v2_test.cc
+    integration/dungeon_editor_v2_test.h
+    integration/editor/tile16_editor_test.cc
+    integration/editor/editor_integration_test.cc
+    integration/editor/editor_integration_test.h
+    integration/ai/ai_gui_controller_test.cc
+    integration/ai/test_ai_tile_placement.cc
+    integration/ai/test_gemini_vision.cc
+
+    # E2E Tests
+    e2e/rom_dependent/e2e_rom_test.cc
+    e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
+    
+    # Integration Tests (Zelda3)
+    integration/zelda3/overworld_integration_test.cc
+    integration/zelda3/dungeon_editor_system_integration_test.cc
+    integration/zelda3/dungeon_object_renderer_integration_test.cc
+    integration/zelda3/room_integration_test.cc
+    integration/zelda3/dungeon_object_rendering_tests.cc
+    integration/zelda3/dungeon_room_test.cc
+    integration/zelda3/sprite_position_test.cc
+    integration/zelda3/message_test.cc
+  )
+
+  # Sources only for full development builds
+  set(YAZE_TEST_DEV_SOURCES
+    test_utils.cc
+    
+    # E2E Tests (included in development builds)
+    e2e/canvas_selection_test.cc
+    e2e/framework_smoke_test.cc
+    e2e/dungeon_editor_smoke_test.cc
+    e2e/dungeon_editor_tests.cc
+    
+    # Benchmarks
+    benchmarks/gfx_optimization_benchmarks.cc
+  )
+
   if(YAZE_MINIMAL_BUILD)
-    # CI/Minimal build: use simplified test executable
+    # CI/Minimal build: use simplified test executable and base sources
     add_executable(
       yaze_test
       yaze_test_ci.cc
-      # Emulator unit tests
-      unit/emu/apu_dsp_test.cc
-      unit/emu/spc700_reset_test.cc
-      test_editor.cc
-      test_editor.h
-      testing.h
-      test_utils.h
-    
-      # Unit Tests
-      unit/core/asar_wrapper_test.cc
-      unit/core/hex_test.cc
-      unit/cli/resource_catalog_test.cc
-      unit/rom/rom_test.cc
-      unit/gfx/snes_tile_test.cc
-      unit/gfx/compression_test.cc
-      unit/gfx/snes_palette_test.cc
-      unit/gui/tile_selector_widget_test.cc
-      unit/gui/canvas_automation_api_test.cc
-      unit/zelda3/message_test.cc
-      unit/zelda3/overworld_test.cc
-      unit/zelda3/object_parser_test.cc
-      unit/zelda3/object_parser_structs_test.cc
-      unit/zelda3/sprite_builder_test.cc
-      unit/zelda3/sprite_position_test.cc
-      unit/zelda3/test_dungeon_objects.cc
-      unit/zelda3/dungeon_component_unit_test.cc
-      unit/zelda3/dungeon/room_object_encoding_test.cc
-      zelda3/dungeon/room_manipulation_test.cc
-
-      # CLI Services (for catalog serialization tests)
-      ../src/cli/service/resources/resource_catalog.cc
-      
-      # Integration Tests
-      integration/asar_integration_test.cc
-      integration/asar_rom_test.cc
-      integration/dungeon_editor_test.cc
-      integration/dungeon_editor_test.h
-      integration/dungeon_editor_v2_test.cc
-      integration/dungeon_editor_v2_test.h
-      integration/editor/tile16_editor_test.cc
-      integration/editor/editor_integration_test.cc
-      integration/editor/editor_integration_test.h
-      
-      # E2E Tests (excluded in CI builds)
-      e2e/rom_dependent/e2e_rom_test.cc
-      e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
-      
-      # Deprecated Tests (formerly legacy)
-      deprecated/comprehensive_integration_test.cc
-      deprecated/dungeon_integration_test.cc
-
-      # Integration Tests (Zelda3)
-      integration/zelda3/overworld_integration_test.cc
-      integration/zelda3/dungeon_editor_system_integration_test.cc
-      integration/zelda3/dungeon_object_renderer_integration_test.cc
-      integration/zelda3/room_integration_test.cc
-      
-      # Mock/Unit Tests for Zelda3
-      unit/zelda3/dungeon_object_renderer_mock_test.cc
-      unit/zelda3/dungeon_object_rendering_tests.cc
-      unit/zelda3/dungeon_room_test.cc
+      ${YAZE_TEST_BASE_SOURCES}
     )
   else()
-    # Development build: use full-featured test executable
+    # Development build: use full-featured test executable and all sources
     add_executable(
       yaze_test
       yaze_test.cc
-      # Emulator unit tests
-      unit/emu/apu_dsp_test.cc
-      unit/emu/spc700_reset_test.cc
-      test_editor.cc
-      test_editor.h
-      testing.h
-      test_utils.h
-      test_utils.cc
-      
-      # Unit Tests
-      unit/core/asar_wrapper_test.cc
-      unit/core/hex_test.cc
-      unit/cli/resource_catalog_test.cc
-      unit/rom/rom_test.cc
-      unit/gfx/snes_tile_test.cc
-      unit/gfx/compression_test.cc
-      unit/gfx/snes_palette_test.cc
-      unit/gui/tile_selector_widget_test.cc
-      unit/gui/canvas_automation_api_test.cc
-      unit/zelda3/message_test.cc
-      unit/zelda3/overworld_test.cc
-      unit/zelda3/object_parser_test.cc
-      unit/zelda3/object_parser_structs_test.cc
-      unit/zelda3/sprite_builder_test.cc
-      unit/zelda3/sprite_position_test.cc
-      unit/zelda3/test_dungeon_objects.cc
-      unit/zelda3/dungeon_component_unit_test.cc
-      unit/zelda3/dungeon/room_object_encoding_test.cc
-      zelda3/dungeon/room_manipulation_test.cc
-
-      # CLI Services (for catalog serialization tests)
-      ../src/cli/service/resources/resource_catalog.cc
-      
-      # Integration Tests
-      integration/asar_integration_test.cc
-      integration/asar_rom_test.cc
-      integration/dungeon_editor_test.cc
-      integration/dungeon_editor_test.h
-      integration/dungeon_editor_v2_test.cc
-      integration/dungeon_editor_v2_test.h
-      integration/editor/tile16_editor_test.cc
-      integration/editor/editor_integration_test.cc
-      integration/editor/editor_integration_test.h
-      
-      # E2E Tests (included in development builds)
-      e2e/canvas_selection_test.cc
-      e2e/framework_smoke_test.cc
-      e2e/dungeon_editor_smoke_test.cc
-      e2e/rom_dependent/e2e_rom_test.cc
-      e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
-      
-      # Deprecated Tests (formerly legacy)
-      deprecated/comprehensive_integration_test.cc
-      deprecated/dungeon_integration_test.cc
-
-      # Integration Tests (Zelda3)
-      integration/zelda3/overworld_integration_test.cc
-      integration/zelda3/dungeon_editor_system_integration_test.cc
-      integration/zelda3/dungeon_object_renderer_integration_test.cc
-      integration/zelda3/room_integration_test.cc
-      
-      # Mock/Unit Tests for Zelda3
-      unit/zelda3/dungeon_object_renderer_mock_test.cc
-      unit/zelda3/dungeon_object_rendering_tests.cc
-      unit/zelda3/dungeon_room_test.cc
-
-      # Benchmarks
-      benchmarks/gfx_optimization_benchmarks.cc
+      ${YAZE_TEST_BASE_SOURCES}
+      ${YAZE_TEST_DEV_SOURCES}
     )
   endif()
 

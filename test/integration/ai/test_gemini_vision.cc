@@ -163,7 +163,7 @@ TEST_F(GeminiVisionTest, ScreenshotCaptureIntegration) {
   
   // Analyze the captured screenshot
   auto response = service.GenerateMultimodalResponse(
-      screenshot_result->file_path.string(),
+      screenshot_result->file_path,
       "What UI elements are visible in this screenshot? List them."
   );
   
@@ -240,12 +240,4 @@ TEST_F(GeminiVisionTest, RateLimitHandling) {
 }  // namespace test
 }  // namespace yaze
 
-int main(int argc, char** argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  
-  std::cout << "\n=== Gemini Multimodal Vision Tests ===" << std::endl;
-  std::cout << "These tests require GEMINI_API_KEY environment variable." << std::endl;
-  std::cout << "Tests will be skipped if API key is not available.\n" << std::endl;
-  
-  return RUN_ALL_TESTS();
-}
+// Note: main() is provided by yaze_test.cc for the unified test runner

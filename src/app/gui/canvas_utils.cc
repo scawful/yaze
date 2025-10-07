@@ -1,15 +1,13 @@
 #include "canvas_utils.h"
 
 #include <cmath>
-#include "app/core/window.h"
+#include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
 #include "util/log.h"
 
 namespace yaze {
 namespace gui {
 namespace CanvasUtils {
-
-using core::Renderer;
 
 ImVec2 AlignToGrid(ImVec2 pos, float grid_step) {
   return ImVec2(std::floor(pos.x / grid_step) * grid_step,
@@ -95,35 +93,30 @@ bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager) {
   }
 }
 
-bool ApplyPaletteGroup(gfx::Bitmap* bitmap,
-                       const CanvasPaletteManager& palette_manager,
+bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap, const CanvasPaletteManager& palette_manager, 
                        int group_index, int palette_index) {
-  if (!bitmap || group_index < 0 ||
-      group_index >=
-          static_cast<int>(palette_manager.rom_palette_groups.size())) {
+  if (!bitmap) return false;
+
+  if (group_index < 0 || group_index >= palette_manager.rom_palette_groups.size()) {
     return false;
   }
 
-  try {
-    const auto& selected_palette =
-        palette_manager.rom_palette_groups[group_index];
-
-    // Apply the palette based on the index
-    if (palette_index >= 0 && palette_index < 8) {
-      bitmap->SetPaletteWithTransparent(selected_palette, palette_index);
-    } else {
-      bitmap->SetPalette(selected_palette);
-    }
-
-    Renderer::Get().UpdateBitmap(bitmap);
-    LOG_DEBUG("Canvas", "Applied palette group %d, index %d to bitmap",
-               group_index, palette_index);
-    return true;
-
-  } catch (const std::exception& e) {
-    LOG_ERROR("Canvas", "Failed to apply palette");
-    return false;
+  const auto& palette = palette_manager.rom_palette_groups[group_index];
+  
+  // Apply the full palette or use SetPaletteWithTransparent if palette_index is specified
+  if (palette_index == 0) {
+    bitmap->SetPalette(palette);
+  } else {
+    bitmap->SetPaletteWithTransparent(palette, palette_index);
   }
+  bitmap->set_modified(true);
+  
+  // Queue texture update via Arena's deferred system
+  if (renderer) {
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, bitmap);
+  }
+  return true;
 }
 
 // Drawing utility functions

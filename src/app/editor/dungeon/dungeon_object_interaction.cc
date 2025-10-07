@@ -150,25 +150,59 @@ void DungeonObjectInteraction::SelectObjectsInRect() {
       selected_object_indices_.push_back(i);
     }
   }
+}
+
+void DungeonObjectInteraction::DrawSelectionHighlights() {
+  if (!rooms_ || current_room_id_ < 0 || current_room_id_ >= 296) return;
   
-  // Highlight selected objects
-  if (!selected_object_indices_.empty()) {
-    for (size_t index : selected_object_indices_) {
-      if (index < objects.size()) {
-        const auto& object = objects[index];
-        auto [canvas_x, canvas_y] =
-            RoomToCanvasCoordinates(object.x_, object.y_);
-        
-        // Draw selection highlight
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        ImVec2 canvas_pos = canvas_->zero_point();
-        ImVec2 obj_start(canvas_pos.x + canvas_x - 2,
-                         canvas_pos.y + canvas_y - 2);
-        ImVec2 obj_end(canvas_pos.x + canvas_x + 18,
-                       canvas_pos.y + canvas_y + 18);
-        draw_list->AddRect(obj_start, obj_end, IM_COL32(0, 255, 255, 255), 0.0f,
-                           0, 2.0f);
-      }
+  auto& room = (*rooms_)[current_room_id_];
+  const auto& objects = room.GetTileObjects();
+  
+  // Draw highlights for all selected objects
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 canvas_pos = canvas_->zero_point();
+  
+  for (size_t index : selected_object_indices_) {
+    if (index < objects.size()) {
+      const auto& object = objects[index];
+      auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
+      
+      // Calculate object size for highlight
+      int obj_width = 8 + (object.size_ & 0x0F) * 4;
+      int obj_height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
+      obj_width = std::min(obj_width, 64);
+      obj_height = std::min(obj_height, 64);
+      
+      // Draw cyan selection highlight
+      ImVec2 obj_start(canvas_pos.x + canvas_x - 2,
+                       canvas_pos.y + canvas_y - 2);
+      ImVec2 obj_end(canvas_pos.x + canvas_x + obj_width + 2,
+                     canvas_pos.y + canvas_y + obj_height + 2);
+      
+      // Animated selection (pulsing effect)
+      float pulse = 0.7f + 0.3f * std::sin(static_cast<float>(ImGui::GetTime()) * 4.0f);
+      draw_list->AddRect(obj_start, obj_end, 
+                        IM_COL32(0, static_cast<int>(255 * pulse), 255, 255), 
+                        0.0f, 0, 2.5f);
+      
+      // Draw corner handles for selected objects
+      constexpr float handle_size = 4.0f;
+      draw_list->AddRectFilled(
+          ImVec2(obj_start.x - handle_size/2, obj_start.y - handle_size/2),
+          ImVec2(obj_start.x + handle_size/2, obj_start.y + handle_size/2),
+          IM_COL32(0, 255, 255, 255));
+      draw_list->AddRectFilled(
+          ImVec2(obj_end.x - handle_size/2, obj_start.y - handle_size/2),
+          ImVec2(obj_end.x + handle_size/2, obj_start.y + handle_size/2),
+          IM_COL32(0, 255, 255, 255));
+      draw_list->AddRectFilled(
+          ImVec2(obj_start.x - handle_size/2, obj_end.y - handle_size/2),
+          ImVec2(obj_start.x + handle_size/2, obj_end.y + handle_size/2),
+          IM_COL32(0, 255, 255, 255));
+      draw_list->AddRectFilled(
+          ImVec2(obj_end.x - handle_size/2, obj_end.y - handle_size/2),
+          ImVec2(obj_end.x + handle_size/2, obj_end.y + handle_size/2),
+          IM_COL32(0, 255, 255, 255));
     }
   }
 }

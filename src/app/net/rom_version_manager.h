@@ -15,7 +15,7 @@
 #endif
 
 namespace yaze {
-namespace app {
+
 namespace net {
 
 /**
@@ -286,7 +286,7 @@ class ProposalApprovalManager {
 };
 
 }  // namespace net
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_NET_ROM_VERSION_MANAGER_H_

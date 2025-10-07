@@ -128,8 +128,8 @@ TEST_F(AITilePlacementTest, DISABLED_FullAIControlLoop) {
   gemini_config.api_key = api_key;
   cli::GeminiAIService gemini_service(gemini_config);
   
-  cli::gui::GuiAutomationClient gui_client;
-  auto connect_status = gui_client.Connect("localhost", 50051);
+  cli::GuiAutomationClient gui_client("localhost:50051");
+  auto connect_status = gui_client.Connect();
   if (!connect_status.ok()) {
     GTEST_SKIP() << "GUI test harness not available: " 
                  << connect_status.message();

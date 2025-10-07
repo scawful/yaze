@@ -5,7 +5,7 @@ if (NOT YAZE_MINIMAL_BUILD AND APPLE)
     MACOSX_BUNDLE
     app/main.cc
     app/rom.cc
-    app/core/platform/app_delegate.mm
+    app/platform/app_delegate.mm
     ${YAZE_APP_EMU_SRC}
     ${YAZE_APP_CORE_SRC}
     ${YAZE_APP_EDITOR_SRC}

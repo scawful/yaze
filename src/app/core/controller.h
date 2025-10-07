@@ -8,6 +8,7 @@
 #include "absl/status/status.h"
 #include "app/core/window.h"
 #include "app/editor/editor_manager.h"
+#include "app/gfx/backend/irenderer.h"
 
 int main(int argc, char** argv);
 
@@ -36,6 +37,7 @@ class Controller {
     return editor_manager_.overworld();
   }
   auto GetCurrentRom() -> Rom* { return editor_manager_.GetCurrentRom(); }
+  auto renderer() -> gfx::IRenderer* { return renderer_.get(); }
 
  private:
   friend int ::main(int argc, char** argv);
@@ -43,6 +45,7 @@ class Controller {
   bool active_ = false;
   core::Window window_;
   editor::EditorManager editor_manager_;
+  std::unique_ptr<gfx::IRenderer> renderer_;
 };
 
 }  // namespace core

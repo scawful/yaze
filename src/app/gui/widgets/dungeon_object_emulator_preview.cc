@@ -1,4 +1,5 @@
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
+#include "app/gfx/backend/irenderer.h"
 
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/dungeon/room_object.h"
@@ -11,23 +12,22 @@ namespace gui {
 
 DungeonObjectEmulatorPreview::DungeonObjectEmulatorPreview() {
   snes_instance_ = std::make_unique<emu::Snes>();
-  object_texture_ = SDL_CreateTexture(core::Renderer::Get().renderer(),
-                                      SDL_PIXELFORMAT_ARGB8888,
-                                      SDL_TEXTUREACCESS_STREAMING, 256, 256);
 }
 
 DungeonObjectEmulatorPreview::~DungeonObjectEmulatorPreview() {
-  if (object_texture_) {
-    SDL_DestroyTexture(object_texture_);
-  }
+  // if (object_texture_) {
+  //   renderer_->DestroyTexture(object_texture_);
+  // }
 }
 
-void DungeonObjectEmulatorPreview::Initialize(Rom* rom) { 
-  rom_ = rom; 
-  if (rom_ && rom_->is_loaded()) {
-    auto rom_data = rom_->vector();
-    snes_instance_->Init(rom_data);
-  }
+void DungeonObjectEmulatorPreview::Initialize(gfx::IRenderer* renderer, Rom* rom) {
+  renderer_ = renderer;
+  rom_ = rom;
+  snes_instance_ = std::make_unique<emu::Snes>();
+  std::vector<uint8_t> rom_data = rom->vector();
+  snes_instance_->Init(rom_data);
+
+  // object_texture_ = renderer_->CreateTexture(256, 256);
 }
 
 void DungeonObjectEmulatorPreview::Render() {
@@ -286,9 +286,9 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   // 15. Get the rendered pixels from PPU
   void* pixels = nullptr;
   int pitch = 0;
-  if (SDL_LockTexture(object_texture_, nullptr, &pixels, &pitch) == 0) {
+  if (renderer_->LockTexture(object_texture_, nullptr, &pixels, &pitch)) {
     snes_instance_->SetPixels(static_cast<uint8_t*>(pixels));
-    SDL_UnlockTexture(object_texture_);
+    renderer_->UnlockTexture(object_texture_);
   }
 }
 

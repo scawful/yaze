@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_CORE_PLATFORM_FONTLOADER_H
-#define YAZE_APP_CORE_PLATFORM_FONTLOADER_H
+#ifndef YAZE_APP_PLATFORM_FONTLOADER_H
+#define YAZE_APP_PLATFORM_FONTLOADER_H
 
 #include <vector>
 
@@ -7,7 +7,7 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace core {
+
 
 struct FontConfig {
   const char* font_path;
@@ -28,7 +28,7 @@ absl::Status ReloadPackageFont(const FontConfig& config);
 
 void LoadSystemFonts();
 
-}  // namespace core
+
 }  // namespace yaze
 
-#endif  // YAZE_APP_CORE_PLATFORM_FONTLOADER_H
+#endif  // YAZE_APP_PLATFORM_FONTLOADER_H

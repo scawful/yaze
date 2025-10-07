@@ -1,5 +1,6 @@
 #include "inventory.h"
 
+#include "app/gfx/backend/irenderer.h"
 #include "app/core/window.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
@@ -7,8 +8,6 @@
 
 namespace yaze {
 namespace zelda3 {
-
-using core::Renderer;
 
 absl::Status Inventory::Create() {
   data_.reserve(256 * 256);
@@ -69,7 +68,8 @@ absl::Status Inventory::Create() {
 
   bitmap_.Create(256, 256, 8, data_);
   bitmap_.SetPalette(palette_);
-  Renderer::Get().RenderBitmap(&bitmap_);
+  // TODO: Queue texture for later rendering.
+  // Renderer::Get().RenderBitmap(&bitmap_);
   return absl::OkStatus();
 }
 
@@ -88,7 +88,8 @@ absl::Status Inventory::BuildTileset() {
   auto hud_pal_group = rom()->palette_group().hud;
   palette_ = hud_pal_group[0];
   tilesheets_bmp_.SetPalette(palette_);
-  Renderer::Get().RenderBitmap(&tilesheets_bmp_);
+  // TODO: Queue texture for later rendering.
+  // Renderer::Get().RenderBitmap(&tilesheets_bmp_);
   return absl::OkStatus();
 }
 

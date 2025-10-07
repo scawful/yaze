@@ -177,7 +177,8 @@ TEST_F(GraphicsOptimizationBenchmarks, BatchTextureUpdatePerformance) {
   auto start = std::chrono::high_resolution_clock::now();
   
   for (auto& bitmap : bitmaps) {
-    bitmap.UpdateTexture(nullptr); // Simulate renderer
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &bitmap);
   }
   
   auto end = std::chrono::high_resolution_clock::now();
@@ -187,9 +188,10 @@ TEST_F(GraphicsOptimizationBenchmarks, BatchTextureUpdatePerformance) {
   start = std::chrono::high_resolution_clock::now();
   
   for (auto& bitmap : bitmaps) {
-    bitmap.QueueTextureUpdate(nullptr); // Queue for batch processing
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &bitmap);
   }
-  arena.ProcessBatchTextureUpdates(); // Process all at once
+  gfx::Arena::Get().ProcessTextureQueue(nullptr); // Process all at once
   
   end = std::chrono::high_resolution_clock::now();
   auto batch_duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
@@ -413,9 +415,9 @@ TEST_F(GraphicsOptimizationBenchmarks, OverallPerformanceIntegration) {
   start = std::chrono::high_resolution_clock::now();
   
   for (auto& sheet : graphics_sheets) {
-    sheet.QueueTextureUpdate(nullptr);
+    arena.QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE, &sheet);
   }
-  arena.ProcessBatchTextureUpdates();
+  arena.ProcessTextureQueue(nullptr);
   
   end = std::chrono::high_resolution_clock::now();
   auto batch_duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);

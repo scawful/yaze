@@ -15,7 +15,7 @@
 #endif
 
 namespace yaze {
-namespace app {
+
 namespace net {
 
 namespace {
@@ -529,5 +529,5 @@ ProposalApprovalManager::GetProposalStatus(
 }
 
 }  // namespace net
-}  // namespace app
+
 }  // namespace yaze

@@ -18,8 +18,6 @@
 
 namespace yaze::editor {
 
-using core::Renderer;
-
 using ImGui::BeginTabBar;
 using ImGui::BeginTabItem;
 using ImGui::BeginTable;
@@ -185,11 +183,15 @@ absl::Status DungeonEditor::Save() {
 }
 
 absl::Status DungeonEditor::RefreshGraphics() {
+  // Update graphics sheet textures via Arena's deferred texture queue
   std::for_each_n(
       rooms_[current_room_id_].blocks().begin(), 8, [this](int block) {
         gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
             current_palette_group_[current_palette_id_], 0);
-        Renderer::Get().UpdateBitmap(&gfx::Arena::Get().gfx_sheets()[block]);
+        // Queue texture update for the modified graphics sheet
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::UPDATE, 
+            &gfx::Arena::Get().gfx_sheets()[block]);
       });
 
   auto sprites_aux1_pal_group = rom()->palette_group().sprites_aux1;
@@ -198,7 +200,10 @@ absl::Status DungeonEditor::RefreshGraphics() {
       [this, &sprites_aux1_pal_group](int block) {
         gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
             sprites_aux1_pal_group[current_palette_id_], 0);
-        Renderer::Get().UpdateBitmap(&gfx::Arena::Get().gfx_sheets()[block]);
+        // Queue texture update for the modified graphics sheet
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::UPDATE, 
+            &gfx::Arena::Get().gfx_sheets()[block]);
       });
   return absl::OkStatus();
 }

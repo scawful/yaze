@@ -105,7 +105,7 @@ class EditorManager {
     context_.popup_manager = popup_manager_.get();
   }
 
-  void Initialize(const std::string& filename = "");
+  void Initialize(gfx::IRenderer* renderer, const std::string& filename = "");
   absl::Status Update();
   void DrawMenuBar();
 
@@ -262,6 +262,8 @@ class EditorManager {
   EditorSet* current_editor_set_ = nullptr;
   Editor* current_editor_ = nullptr;
   EditorSet blank_editor_set_{};
+  
+  gfx::IRenderer* renderer_ = nullptr;
 
   core::YazeProject current_project_;
   EditorContext context_;

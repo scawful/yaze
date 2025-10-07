@@ -3,40 +3,36 @@
 #include <cmath>
 #include <string>
 #include "app/gfx/bpp_format_manager.h"
-
-#include "app/core/window.h"
-#include "app/gfx/atlas_renderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/performance_profiler.h"
 #include "app/gui/canvas_utils.h"
-#include "app/gui/color.h"
 #include "app/gui/style.h"
 #include "app/gui/canvas/canvas_automation_api.h"
 #include "imgui/imgui.h"
-#include "imgui_memory_editor.h"
-#include "util/log.h"
 
 namespace yaze::gui {
 
-using core::Renderer;
 
 // Define constructors and destructor in .cc to avoid incomplete type issues with unique_ptr
-Canvas::Canvas() { InitializeDefaults(); }
 
+// Default constructor
+Canvas::Canvas() : renderer_(nullptr) { InitializeDefaults(); }
+
+// Legacy constructors (renderer is optional for backward compatibility)
 Canvas::Canvas(const std::string& id) 
-    : canvas_id_(id), context_id_(id + "Context") {
+    : renderer_(nullptr), canvas_id_(id), context_id_(id + "Context") {
   InitializeDefaults();
 }
 
 Canvas::Canvas(const std::string& id, ImVec2 canvas_size)
-    : canvas_id_(id), context_id_(id + "Context") {
+    : renderer_(nullptr), canvas_id_(id), context_id_(id + "Context") {
   InitializeDefaults();
   config_.canvas_size = canvas_size;
   config_.custom_canvas_size = true;
 }
 
 Canvas::Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size)
-    : canvas_id_(id), context_id_(id + "Context") {
+    : renderer_(nullptr), canvas_id_(id), context_id_(id + "Context") {
   InitializeDefaults();
   config_.canvas_size = canvas_size;
   config_.custom_canvas_size = true;
@@ -44,7 +40,39 @@ Canvas::Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_si
 }
 
 Canvas::Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale)
-    : canvas_id_(id), context_id_(id + "Context") {
+    : renderer_(nullptr), canvas_id_(id), context_id_(id + "Context") {
+  InitializeDefaults();
+  config_.canvas_size = canvas_size;
+  config_.custom_canvas_size = true;
+  config_.global_scale = global_scale;
+  SetGridSize(grid_size);
+}
+
+// New constructors with renderer support (for migration to IRenderer pattern)
+Canvas::Canvas(gfx::IRenderer* renderer) : renderer_(renderer) { InitializeDefaults(); }
+
+Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id) 
+    : renderer_(renderer), canvas_id_(id), context_id_(id + "Context") {
+  InitializeDefaults();
+}
+
+Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id, ImVec2 canvas_size)
+    : renderer_(renderer), canvas_id_(id), context_id_(id + "Context") {
+  InitializeDefaults();
+  config_.canvas_size = canvas_size;
+  config_.custom_canvas_size = true;
+}
+
+Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size)
+    : renderer_(renderer), canvas_id_(id), context_id_(id + "Context") {
+  InitializeDefaults();
+  config_.canvas_size = canvas_size;
+  config_.custom_canvas_size = true;
+  SetGridSize(grid_size);
+}
+
+Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale)
+    : renderer_(renderer), canvas_id_(id), context_id_(id + "Context") {
   InitializeDefaults();
   config_.canvas_size = canvas_size;
   config_.custom_canvas_size = true;
@@ -243,8 +271,7 @@ void Canvas::ShowColorAnalysis() {
 
 bool Canvas::ApplyROMPalette(int group_index, int palette_index) {
   if (palette_editor_ && bitmap_) {
-    return palette_editor_->ApplyROMPalette(bitmap_, group_index,
-                                            palette_index);
+    return palette_editor_->ApplyROMPalette(bitmap_, group_index, palette_index);
   }
   return false;
 }
@@ -330,7 +357,7 @@ void Canvas::End() {
 
 // ==================== Legacy Interface ====================
 
-void Canvas::UpdateColorPainter(gfx::Bitmap& bitmap, const ImVec4& color,
+void Canvas::UpdateColorPainter(gfx::IRenderer* renderer, gfx::Bitmap& bitmap, const ImVec4& color,
                                 const std::function<void()>& event,
                                 int tile_size, float scale) {
   config_.global_scale = scale;
@@ -340,6 +367,7 @@ void Canvas::UpdateColorPainter(gfx::Bitmap& bitmap, const ImVec4& color,
   DrawBitmap(bitmap, 2, scale);
   if (DrawSolidTilePainter(color, tile_size)) {
     event();
+    bitmap.UpdateTexture();
   }
   DrawGrid();
   DrawOverlay();
@@ -1796,7 +1824,7 @@ bool Canvas::ConvertBitmapFormat(gfx::BppFormat target_format) {
     bitmap_->set_data(converted_data);
 
     // Update the renderer
-    core::Renderer::Get().UpdateBitmap(bitmap_);
+    bitmap_->UpdateTexture();
 
     return true;
   } catch (const std::exception& e) {

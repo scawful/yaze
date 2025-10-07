@@ -231,7 +231,7 @@ TEST(RoomObjectEncodingTest, Type3RealWorldExample) {
   // Expected: X=10, Y=15, ID=0xF99 (small chest)
   EXPECT_EQ(decoded.x(), 10);
   EXPECT_EQ(decoded.y(), 15);
-  EXPECT_EQ(decoded.id_, 0x99F);
+  EXPECT_EQ(decoded.id_, 0xF99);
 }
 
 // ============================================================================

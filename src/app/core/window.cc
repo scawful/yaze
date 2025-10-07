@@ -4,7 +4,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/core/platform/font_loader.h"
+#include "app/platform/font_loader.h"
 #include "util/sdl_deleter.h"
 #include "util/log.h"
 #include "app/gfx/arena.h"
@@ -51,7 +51,7 @@ void ImGuiAssertionHandler(const char* expr, const char* file, int line,
 namespace yaze {
 namespace core {
 
-absl::Status CreateWindow(Window& window, int flags) {
+absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer, int flags) {
   if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) != 0) {
     return absl::InternalError(
         absl::StrFormat("SDL_Init: %s\n", SDL_GetError()));
@@ -72,7 +72,12 @@ absl::Status CreateWindow(Window& window, int flags) {
         absl::StrFormat("SDL_CreateWindow: %s\n", SDL_GetError()));
   }
 
-  RETURN_IF_ERROR(Renderer::Get().CreateRenderer(window.window_.get()));
+  // Only initialize renderer if one is provided and not already initialized
+  if (renderer && !renderer->GetBackendRenderer()) {
+    if (!renderer->Initialize(window.window_.get())) {
+      return absl::InternalError("Failed to initialize renderer");
+    }
+  }
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -93,30 +98,37 @@ absl::Status CreateWindow(Window& window, int flags) {
   test::TestManager::Get().InitializeUITesting();
 #endif
 
-  ImGui_ImplSDL2_InitForSDLRenderer(window.window_.get(),
-                                    Renderer::Get().renderer());
-  ImGui_ImplSDLRenderer2_Init(Renderer::Get().renderer());
+  // Initialize ImGui backends if renderer is provided
+  if (renderer) {
+    SDL_Renderer* sdl_renderer = static_cast<SDL_Renderer*>(renderer->GetBackendRenderer());
+    ImGui_ImplSDL2_InitForSDLRenderer(window.window_.get(), sdl_renderer);
+    ImGui_ImplSDLRenderer2_Init(sdl_renderer);
+  }
 
   RETURN_IF_ERROR(LoadPackageFonts());
 
   // Apply original YAZE colors as fallback, then try to load theme system
   gui::ColorsYaze();
   
-  const int audio_frequency = 48000;
-  SDL_AudioSpec want, have;
-  SDL_memset(&want, 0, sizeof(want));
-  want.freq = audio_frequency;
-  want.format = AUDIO_S16;
-  want.channels = 2;
-  want.samples = 2048;
-  want.callback = NULL;  // Uses the queue
-  window.audio_device_ = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+  // Initialize audio if not already initialized
   if (window.audio_device_ == 0) {
-    throw std::runtime_error(
-        absl::StrFormat("Failed to open audio: %s\n", SDL_GetError()));
+    const int audio_frequency = 48000;
+    SDL_AudioSpec want, have;
+    SDL_memset(&want, 0, sizeof(want));
+    want.freq = audio_frequency;
+    want.format = AUDIO_S16;
+    want.channels = 2;
+    want.samples = 2048;
+    want.callback = NULL;  // Uses the queue
+    window.audio_device_ = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+    if (window.audio_device_ == 0) {
+      LOG_ERROR("Window", "Failed to open audio: %s", SDL_GetError());
+      // Don't fail - audio is optional
+    } else {
+      window.audio_buffer_ = std::make_shared<int16_t>(audio_frequency / 50 * 4);
+      SDL_PauseAudioDevice(window.audio_device_, 0);
+    }
   }
-  window.audio_buffer_ = std::make_shared<int16_t>(audio_frequency / 50 * 4);
-  SDL_PauseAudioDevice(window.audio_device_, 0);
 
   return absl::OkStatus();
 }
@@ -129,12 +141,20 @@ absl::Status ShutdownWindow(Window& window) {
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   test::TestManager::Get().StopUITesting();
 #endif
+ 
+  //  TODO: BAD FIX, SLOW SHUTDOWN TAKES TOO LONG NOW
+  // CRITICAL FIX: Shutdown graphics arena FIRST
+  // This ensures all textures are destroyed while renderer is still valid
+  LOG_INFO("Window", "Shutting down graphics arena...");
+  gfx::Arena::Get().Shutdown();
   
-  // Shutdown ImGui implementations
+  // Shutdown ImGui implementations (after Arena but before context)
+  LOG_INFO("Window", "Shutting down ImGui implementations...");
   ImGui_ImplSDL2_Shutdown();
   ImGui_ImplSDLRenderer2_Shutdown();
   
   // Destroy ImGui context
+  LOG_INFO("Window", "Destroying ImGui context...");
   ImGui::DestroyContext();
   
   // NOW destroy test engine context (after ImGui context is destroyed)
@@ -142,12 +162,14 @@ absl::Status ShutdownWindow(Window& window) {
   test::TestManager::Get().DestroyUITestingContext();
 #endif
   
-  // Shutdown graphics arena BEFORE destroying SDL contexts
-  gfx::Arena::Get().Shutdown();
-  
-  SDL_DestroyRenderer(Renderer::Get().renderer());
+  // Finally destroy window
+  LOG_INFO("Window", "Destroying window...");
   SDL_DestroyWindow(window.window_.get());
+  
+  LOG_INFO("Window", "Shutting down SDL...");
   SDL_Quit();
+  
+  LOG_INFO("Window", "Shutdown complete");
   return absl::OkStatus();
 }
 

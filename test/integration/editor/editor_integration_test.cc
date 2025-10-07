@@ -38,7 +38,9 @@ EditorIntegrationTest::~EditorIntegrationTest() {
 }
 
 absl::Status EditorIntegrationTest::Initialize() {
-  RETURN_IF_ERROR(core::CreateWindow(window_, SDL_WINDOW_RESIZABLE));
+  // Create renderer for test
+  test_renderer_ = std::make_unique<gfx::SDL2Renderer>();
+  RETURN_IF_ERROR(core::CreateWindow(window_, test_renderer_.get(), SDL_WINDOW_RESIZABLE));
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -55,9 +57,9 @@ absl::Status EditorIntegrationTest::Initialize() {
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
   // Initialize ImGui for SDL
-  ImGui_ImplSDL2_InitForSDLRenderer(
-      controller_.window(), yaze::core::Renderer::Get().renderer());
-  ImGui_ImplSDLRenderer2_Init(yaze::core::Renderer::Get().renderer());
+  SDL_Renderer* sdl_renderer = static_cast<SDL_Renderer*>(test_renderer_->GetBackendRenderer());
+  ImGui_ImplSDL2_InitForSDLRenderer(controller_.window(), sdl_renderer);
+  ImGui_ImplSDLRenderer2_Init(sdl_renderer);
 
 #ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   // Register tests

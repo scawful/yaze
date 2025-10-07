@@ -342,7 +342,7 @@ if(YAZE_BUILD_EMU)
       MACOSX_BUNDLE
       app/emu/emu.cc
       app/rom.cc
-      app/core/platform/app_delegate.mm
+      app/platform/app_delegate.mm
       ${YAZE_APP_EMU_SRC}
       ${YAZE_APP_CORE_SRC}
       ${YAZE_APP_EDITOR_SRC}
@@ -746,18 +746,18 @@ source_group("Application\\Core\\Asar" FILES
 
 # Platform-specific files
 source_group("Application\\Core\\Platform" FILES
-  app/core/platform/app_delegate.h
-  app/core/platform/app_delegate.mm
-  app/core/platform/clipboard.cc
-  app/core/platform/clipboard.h
-  app/core/platform/clipboard.mm
-  app/core/platform/file_dialog.cc
-  app/core/platform/file_dialog.h
-  app/core/platform/file_dialog.mm
-  app/core/platform/font_loader.cc
-  app/core/platform/font_loader.h
-  app/core/platform/font_loader.mm
-  app/core/platform/view_controller.h
+  app/platform/app_delegate.h
+  app/platform/app_delegate.mm
+  app/platform/clipboard.cc
+  app/platform/clipboard.h
+  app/platform/clipboard.mm
+  app/platform/file_dialog.cc
+  app/platform/file_dialog.h
+  app/platform/file_dialog.mm
+  app/platform/font_loader.cc
+  app/platform/font_loader.h
+  app/platform/font_loader.mm
+  app/platform/view_controller.h
 )
 
 # Editor System

@@ -1,13 +1,9 @@
 #include "dungeon_renderer.h"
 
 #include "absl/strings/str_format.h"
-#include "app/core/window.h"
 #include "app/gfx/arena.h"
-#include "app/gui/color.h"
 
 namespace yaze::editor {
-
-using core::Renderer;
 
 void DungeonRenderer::RenderObjectInCanvas(const zelda3::RoomObject& object,
                                            const gfx::SnesPalette& palette) {
@@ -55,7 +51,9 @@ void DungeonRenderer::RenderObjectInCanvas(const zelda3::RoomObject& object,
     if (object_bitmap.width() > 0 && object_bitmap.height() > 0 && 
         object_bitmap.data() != nullptr) {
       object_bitmap.SetPalette(palette);
-      core::Renderer::Get().RenderBitmap(&object_bitmap);
+      // Queue texture creation for the object bitmap via Arena's deferred system
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &object_bitmap);
       canvas_->DrawBitmap(object_bitmap, canvas_x, canvas_y, 1.0f, 255);
       // Cache the successfully rendered bitmap
       ObjectRenderCache cache_entry;

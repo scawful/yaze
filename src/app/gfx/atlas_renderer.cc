@@ -12,7 +12,7 @@ AtlasRenderer& AtlasRenderer::Get() {
   return instance;
 }
 
-void AtlasRenderer::Initialize(SDL_Renderer* renderer, int initial_size) {
+void AtlasRenderer::Initialize(IRenderer* renderer, int initial_size) {
   renderer_ = renderer;
   next_atlas_id_ = 0;
   current_atlas_ = 0;
@@ -37,15 +37,10 @@ int AtlasRenderer::AddBitmap(const Bitmap& bitmap) {
     int atlas_id = next_atlas_id_++;
     auto& atlas = *atlases_[current_atlas_];
     
-    // Create atlas entry with BPP format information
-    BppFormat bpp_format = BppFormatManager::Get().DetectFormat(bitmap.vector(), bitmap.width(), bitmap.height());
-    atlas.entries.emplace_back(atlas_id, uv_rect, bitmap.texture(), bpp_format, bitmap.width(), bitmap.height());
-    atlas_lookup_[atlas_id] = &atlas.entries.back();
-    
     // Copy bitmap data to atlas texture
-    SDL_SetRenderTarget(renderer_, atlas.texture);
-    SDL_RenderCopy(renderer_, bitmap.texture(), nullptr, &uv_rect);
-    SDL_SetRenderTarget(renderer_, nullptr);
+    renderer_->SetRenderTarget(atlas.texture);
+    renderer_->RenderCopy(bitmap.texture(), nullptr, &uv_rect);
+    renderer_->SetRenderTarget(nullptr);
     
     return atlas_id;
   }
@@ -61,9 +56,9 @@ int AtlasRenderer::AddBitmap(const Bitmap& bitmap) {
     atlas_lookup_[atlas_id] = &atlas.entries.back();
     
     // Copy bitmap data to atlas texture
-    SDL_SetRenderTarget(renderer_, atlas.texture);
-    SDL_RenderCopy(renderer_, bitmap.texture(), nullptr, &uv_rect);
-    SDL_SetRenderTarget(renderer_, nullptr);
+    renderer_->SetRenderTarget(atlas.texture);
+    renderer_->RenderCopy(bitmap.texture(), nullptr, &uv_rect);
+    renderer_->SetRenderTarget(nullptr);
     
     return atlas_id;
   }
@@ -92,7 +87,7 @@ int AtlasRenderer::AddBitmapWithBppOptimization(const Bitmap& bitmap, BppFormat 
   
   // Create temporary bitmap with converted data
   Bitmap converted_bitmap(bitmap.width(), bitmap.height(), bitmap.depth(), converted_data, bitmap.palette());
-  converted_bitmap.CreateTexture(renderer_);
+  converted_bitmap.CreateTexture();
   
   // Add converted bitmap to atlas
   return AddBitmap(converted_bitmap);
@@ -169,7 +164,7 @@ void AtlasRenderer::RenderBatch(const std::vector<RenderCommand>& render_command
     auto& atlas = *atlases_[atlas_index];
     
     // Set atlas texture
-    SDL_SetTextureBlendMode(atlas.texture, SDL_BLENDMODE_BLEND);
+    // SDL_SetTextureBlendMode(atlas.texture, SDL_BLENDMODE_BLEND);
     
     // Render all commands for this atlas
     for (const auto* cmd : commands) {
@@ -190,9 +185,9 @@ void AtlasRenderer::RenderBatch(const std::vector<RenderCommand>& render_command
       if (std::abs(cmd->rotation) > 0.001F) {
         // For rotation, we'd need to use SDL_RenderCopyEx
         // This is a simplified version
-        SDL_RenderCopy(renderer_, atlas.texture, &entry->uv_rect, &dest_rect);
+        renderer_->RenderCopy(atlas.texture, &entry->uv_rect, &dest_rect);
       } else {
-        SDL_RenderCopy(renderer_, atlas.texture, &entry->uv_rect, &dest_rect);
+        renderer_->RenderCopy(atlas.texture, &entry->uv_rect, &dest_rect);
       }
     }
   }
@@ -238,7 +233,7 @@ void AtlasRenderer::RenderBatchWithBppOptimization(const std::vector<RenderComma
       auto& atlas = *atlases_[atlas_index];
       
       // Set atlas texture with BPP-specific blend mode
-      SDL_SetTextureBlendMode(atlas.texture, SDL_BLENDMODE_BLEND);
+      // SDL_SetTextureBlendMode(atlas.texture, SDL_BLENDMODE_BLEND);
       
       // Render all commands for this atlas and BPP format
       for (const auto* cmd : commands) {
@@ -257,9 +252,9 @@ void AtlasRenderer::RenderBatchWithBppOptimization(const std::vector<RenderComma
         
         // Apply rotation if needed
         if (std::abs(cmd->rotation) > 0.001F) {
-          SDL_RenderCopy(renderer_, atlas.texture, &entry->uv_rect, &dest_rect);
+          renderer_->RenderCopy(atlas.texture, &entry->uv_rect, &dest_rect);
         } else {
-          SDL_RenderCopy(renderer_, atlas.texture, &entry->uv_rect, &dest_rect);
+          renderer_->RenderCopy(atlas.texture, &entry->uv_rect, &dest_rect);
         }
       }
     }
@@ -306,7 +301,7 @@ void AtlasRenderer::Clear() {
   // Clean up SDL textures
   for (auto& atlas : atlases_) {
     if (atlas->texture) {
-      SDL_DestroyTexture(atlas->texture);
+      renderer_->DestroyTexture(atlas->texture);
     }
   }
   
@@ -341,8 +336,8 @@ void AtlasRenderer::RenderBitmap(int atlas_id, float x, float y, float scale_x, 
         };
         
         // Render using atlas texture
-        SDL_SetTextureBlendMode(atlas->texture, SDL_BLENDMODE_BLEND);
-        SDL_RenderCopy(renderer_, atlas->texture, &entry->uv_rect, &dest_rect);
+        // SDL_SetTextureBlendMode(atlas->texture, SDL_BLENDMODE_BLEND);
+        renderer_->RenderCopy(atlas->texture, &entry->uv_rect, &dest_rect);
         return;
       }
     }
@@ -393,8 +388,7 @@ void AtlasRenderer::CreateNewAtlas() {
   
   // Create SDL texture for the atlas
   auto& atlas = *atlases_[current_atlas_];
-  atlas.texture = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_RGBA8888,
-                                   SDL_TEXTUREACCESS_TARGET, size, size);
+  atlas.texture = renderer_->CreateTexture(size, size);
   
   if (!atlas.texture) {
     SDL_Log("Failed to create atlas texture: %s", SDL_GetError());
@@ -406,18 +400,18 @@ void AtlasRenderer::RebuildAtlas(Atlas& atlas) {
   std::fill(atlas.used_regions.begin(), atlas.used_regions.end(), false);
   
   // Rebuild atlas texture by copying from source textures
-  SDL_SetRenderTarget(renderer_, atlas.texture);
-  SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 0);
-  SDL_RenderClear(renderer_);
+  renderer_->SetRenderTarget(atlas.texture);
+  renderer_->SetDrawColor({0, 0, 0, 0});
+  renderer_->Clear();
   
   for (auto& entry : atlas.entries) {
     if (entry.in_use && entry.texture) {
-      SDL_RenderCopy(renderer_, entry.texture, nullptr, &entry.uv_rect);
+      renderer_->RenderCopy(entry.texture, nullptr, &entry.uv_rect);
       MarkRegionUsed(atlas, entry.uv_rect, true);
     }
   }
   
-  SDL_SetRenderTarget(renderer_, nullptr);
+  renderer_->SetRenderTarget(nullptr);
 }
 
 SDL_Rect AtlasRenderer::FindFreeRegion(Atlas& atlas, int width, int height) {

@@ -17,7 +17,7 @@
 #include "app/net/rom_version_manager.h"
 
 namespace yaze {
-namespace app {
+
 namespace net {
 
 #ifdef YAZE_WITH_GRPC
@@ -58,7 +58,7 @@ class RomServiceImpl final : public proto::RomService::Service {
   ~RomServiceImpl() override = default;
   
   // Initialize with configuration
-  void SetConfig(const Config& config) { config_ = config; }
+  void SetConfig(const Config& config);
   
   // =========================================================================
   // Basic ROM Operations
@@ -165,7 +165,7 @@ class RomServiceImpl final : public proto::RomService::Service {
 #endif  // YAZE_WITH_GRPC
 
 }  // namespace net
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_NET_ROM_SERVICE_IMPL_H_

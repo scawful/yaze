@@ -10,7 +10,7 @@
 #include "app/rom.h"
 
 namespace yaze {
-namespace app {
+
 namespace gui {
 
 /**
@@ -77,7 +77,7 @@ class AgentChatWidget {
 };
 
 }  // namespace gui
-}  // namespace app
+
 }  // namespace yaze
 
 #endif  // YAZE_APP_GUI_WIDGETS_AGENT_CHAT_WIDGET_H_

@@ -53,13 +53,26 @@ enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
  */
 class Canvas {
  public:
+  // Default constructor
   Canvas();
   ~Canvas();
   
+  // Legacy constructors (renderer is optional for backward compatibility)
   explicit Canvas(const std::string& id);
   explicit Canvas(const std::string& id, ImVec2 canvas_size);
   explicit Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size);
   explicit Canvas(const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale);
+  
+  // New constructors with renderer support (for migration to IRenderer pattern)
+  explicit Canvas(gfx::IRenderer* renderer);
+  explicit Canvas(gfx::IRenderer* renderer, const std::string& id);
+  explicit Canvas(gfx::IRenderer* renderer, const std::string& id, ImVec2 canvas_size);
+  explicit Canvas(gfx::IRenderer* renderer, const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size);
+  explicit Canvas(gfx::IRenderer* renderer, const std::string& id, ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale);
+  
+  // Set renderer after construction (for late initialization)
+  void SetRenderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
+  gfx::IRenderer* renderer() const { return renderer_; }
 
   void SetGridSize(CanvasGridSize grid_size) {
     switch (grid_size) {
@@ -89,7 +102,7 @@ class Canvas {
     return CanvasGridSize::k16x16;  // Default
   }
 
-  void UpdateColorPainter(gfx::Bitmap &bitmap, const ImVec4 &color,
+  void UpdateColorPainter(gfx::IRenderer* renderer, gfx::Bitmap &bitmap, const ImVec4 &color,
                           const std::function<void()> &event, int tile_size,
                           float scale = 1.0f);
 
@@ -248,20 +261,6 @@ class Canvas {
   bool WasDoubleClicked(ImGuiMouseButton button = ImGuiMouseButton_Left) const;
   ImVec2 GetLastClickPosition() const;
   
- private:
-  void DrawContextMenuItem(const ContextMenuItem& item);
-
-  // Tile painter shows a preview of the currently selected tile
-  // and allows the user to left click to paint the tile or right
-  // click to select a new tile to paint with.
-  // (Moved to public section)
-
-  // Draws a tile on the canvas at the specified position
-  // (Moved to public section)
-
-  // These methods are now public - see public section above
-
- public:
   // Tile painter methods
   bool DrawTilePainter(const Bitmap &bitmap, int size, float scale = 1.0f);
   bool DrawSolidTilePainter(const ImVec4 &color, int size);
@@ -401,7 +400,10 @@ class Canvas {
   Rom *rom() const { return rom_; }
 
  private:
+  void DrawContextMenuItem(const ContextMenuItem& item);
+
   // Modular configuration and state
+  gfx::IRenderer* renderer_ = nullptr;
   CanvasConfig config_;
   CanvasSelection selection_;
   std::unique_ptr<PaletteWidget> palette_editor_;
@@ -506,10 +508,18 @@ void TableCanvasPipeline(gui::Canvas &canvas, gfx::Bitmap &bitmap,
 class ScopedCanvas {
  public:
   /**
-   * @brief Construct and begin a new canvas
+   * @brief Construct and begin a new canvas (legacy constructor without renderer)
    */
   explicit ScopedCanvas(const std::string& id, ImVec2 canvas_size = ImVec2(0, 0))
       : canvas_(new Canvas(id, canvas_size)), owned_(true), active_(true) {
+    canvas_->Begin();
+  }
+  
+  /**
+   * @brief Construct and begin a new canvas (with optional renderer)
+   */
+  explicit ScopedCanvas(gfx::IRenderer* renderer, const std::string& id, ImVec2 canvas_size = ImVec2(0, 0))
+      : canvas_(new Canvas(renderer, id, canvas_size)), owned_(true), active_(true) {
     canvas_->Begin();
   }
   

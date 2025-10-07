@@ -1,14 +1,10 @@
 #include "dungeon_canvas_viewer.h"
 
 #include "absl/strings/str_format.h"
-#include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
-#include "util/log.h"
-#include "app/zelda3/dungeon/object_drawer.h"
 #include "app/zelda3/dungeon/object_renderer.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/sprite/sprite.h"
@@ -148,6 +144,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       object_interaction_.HandleCanvasMouseInput();
       object_interaction_.CheckForObjectSelection();
       object_interaction_.DrawSelectBox();
+      object_interaction_.DrawSelectionHighlights();  // Draw selection highlights on top
     }
   }
   
@@ -195,7 +192,9 @@ void DungeonCanvasViewer::RenderObjectInCanvas(const zelda3::RoomObject &object,
     // Ensure the bitmap is valid and has content
     if (object_bitmap.width() > 0 && object_bitmap.height() > 0) {
       object_bitmap.SetPalette(palette);
-      core::Renderer::Get().RenderBitmap(&object_bitmap);
+      // Queue texture creation for the object bitmap via Arena's deferred system
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &object_bitmap);
       canvas_.DrawBitmap(object_bitmap, canvas_x, canvas_y, 1.0f, 255);
       return;
     }
@@ -656,7 +655,10 @@ absl::Status DungeonCanvasViewer::UpdateRoomBackgroundLayers(int room_id) {
         if (current_palette_id_ < current_palette_group_.size()) {
           gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
               current_palette_group_[current_palette_id_], 0);
-          core::Renderer::Get().UpdateBitmap(&gfx::Arena::Get().gfx_sheets()[block]);
+          // Queue texture update via Arena's deferred system
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::UPDATE, 
+              &gfx::Arena::Get().gfx_sheets()[block]);
         }
       }
     }
@@ -671,7 +673,10 @@ absl::Status DungeonCanvasViewer::UpdateRoomBackgroundLayers(int room_id) {
         if (block >= 0 && block < gfx::Arena::Get().gfx_sheets().size()) {
           gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
               sprites_aux1_pal_group[current_palette_id_], 0);
-          core::Renderer::Get().UpdateBitmap(&gfx::Arena::Get().gfx_sheets()[block]);
+          // Queue texture update via Arena's deferred system
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::UPDATE, 
+              &gfx::Arena::Get().gfx_sheets()[block]);
         }
       }
     }
@@ -691,14 +696,9 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
   
   if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
     if (!bg1_bitmap.texture()) {
-      core::Renderer::Get().RenderBitmap(&bg1_bitmap);
-    }
-
-    // DEBUG: Check SDL texture format
-    Uint32 format;
-    int access, w, h;
-    if (SDL_QueryTexture(bg1_bitmap.texture(), &format, &access, &w, &h) == 0) {
-      const char* format_name_cstr = SDL_GetPixelFormatName(format);
+      // Queue texture creation for background layer 1 via Arena's deferred system
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &bg1_bitmap);
     }
 
     canvas_.DrawBitmap(bg1_bitmap, 0, 0, 1.0f, 255);
@@ -706,7 +706,9 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
   
   if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
     if (!bg2_bitmap.texture()) {
-      core::Renderer::Get().RenderBitmap(&bg2_bitmap);
+      // Queue texture creation for background layer 2 via Arena's deferred system
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &bg2_bitmap);
     }
     canvas_.DrawBitmap(bg2_bitmap, 0, 0, 1.0f, 200);
   }

@@ -6,6 +6,8 @@
 
 #include <gtest/gtest.h>
 #include "app/rom.h"
+#include "app/gfx/arena.h"
+#include "app/gfx/backend/sdl2_renderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/tilemap.h"
 #include "app/zelda3/overworld/overworld.h"
@@ -52,20 +54,22 @@ class Tile16EditorIntegrationTest : public ::testing::Test {
     auto palette = overworld_->current_area_palette();
     
     tile16_blockset_ = std::make_unique<gfx::Tilemap>(
-        gfx::CreateTilemap(tile16_data, 0x80, 0x2000, 16, 
+        gfx::CreateTilemap(nullptr, tile16_data, 0x80, 0x2000, 16, 
                           zelda3::kNumTile16Individual, palette));
     
     // Create graphics bitmap
     current_gfx_bmp_ = std::make_unique<gfx::Bitmap>();
-    core::Renderer::Get().CreateAndRenderBitmap(0x80, 512, 0x40,
-                                               overworld_->current_graphics(),
-                                               *current_gfx_bmp_, palette);
+    current_gfx_bmp_->Create(0x80, 512, 0x40, overworld_->current_graphics());
+    current_gfx_bmp_->SetPalette(palette);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, current_gfx_bmp_.get());
     
     // Create tile16 blockset bitmap
     tile16_blockset_bmp_ = std::make_unique<gfx::Bitmap>();
-    core::Renderer::Get().CreateAndRenderBitmap(0x80, 0x2000, 0x08,
-                                               tile16_data,
-                                               *tile16_blockset_bmp_, palette);
+    tile16_blockset_bmp_->Create(0x80, 0x2000, 0x08, tile16_data);
+    tile16_blockset_bmp_->SetPalette(palette);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, tile16_blockset_bmp_.get());
     
     // Initialize the tile16 editor
     editor_ = std::make_unique<Tile16Editor>(rom_.get(), tile16_blockset_.get());
@@ -85,7 +89,9 @@ class Tile16EditorIntegrationTest : public ::testing::Test {
 
 protected:
   static void InitializeTestEnvironment() {
-    auto window_result = core::CreateWindow(test_window_, SDL_WINDOW_HIDDEN);
+    // Create renderer for test
+    test_renderer_ = std::make_unique<gfx::SDL2Renderer>();
+    auto window_result = core::CreateWindow(test_window_, test_renderer_.get(), SDL_WINDOW_HIDDEN);
     if (window_result.ok()) {
       window_initialized_ = true;
     } else {
@@ -97,6 +103,7 @@ protected:
 
   static bool window_initialized_;
   static core::Window test_window_;
+  static std::unique_ptr<gfx::SDL2Renderer> test_renderer_;
 
   bool rom_loaded_ = false;
   std::unique_ptr<Rom> rom_;
@@ -111,6 +118,7 @@ protected:
 // Static member definitions
 bool Tile16EditorIntegrationTest::window_initialized_ = false;
 core::Window Tile16EditorIntegrationTest::test_window_;
+std::unique_ptr<gfx::SDL2Renderer> Tile16EditorIntegrationTest::test_renderer_;
 
 // Basic validation tests (no ROM required)
 TEST_F(Tile16EditorIntegrationTest, BasicValidation) {

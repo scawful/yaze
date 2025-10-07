@@ -77,10 +77,10 @@ class AtlasRenderer {
 
   /**
    * @brief Initialize the atlas renderer
-   * @param renderer SDL renderer for texture operations
+   * @param renderer The renderer to use for texture operations
    * @param initial_size Initial atlas size (power of 2 recommended)
    */
-  void Initialize(SDL_Renderer* renderer, int initial_size = 1024);
+  void Initialize(IRenderer* renderer, int initial_size = 1024);
 
   /**
    * @brief Add a bitmap to the atlas
@@ -164,20 +164,20 @@ class AtlasRenderer {
   struct AtlasEntry {
     int atlas_id;
     SDL_Rect uv_rect;  // UV coordinates in atlas
-    SDL_Texture* texture;
+    TextureHandle texture;
     bool in_use;
     BppFormat bpp_format;  // BPP format of this entry
     int original_width;
     int original_height;
     
-    AtlasEntry(int id, const SDL_Rect& rect, SDL_Texture* tex, BppFormat bpp = BppFormat::kBpp8, 
+    AtlasEntry(int id, const SDL_Rect& rect, TextureHandle tex, BppFormat bpp = BppFormat::kBpp8, 
                int width = 0, int height = 0)
         : atlas_id(id), uv_rect(rect), texture(tex), in_use(true), 
           bpp_format(bpp), original_width(width), original_height(height) {}
   };
 
   struct Atlas {
-    SDL_Texture* texture;
+    TextureHandle texture;
     int size;
     std::vector<AtlasEntry> entries;
     std::vector<bool> used_regions;  // Track used regions for packing
@@ -185,7 +185,7 @@ class AtlasRenderer {
     Atlas(int s) : size(s), used_regions(s * s, false) {}
   };
 
-  SDL_Renderer* renderer_;
+  IRenderer* renderer_;
   std::vector<std::unique_ptr<Atlas>> atlases_;
   std::unordered_map<int, AtlasEntry*> atlas_lookup_;
   int next_atlas_id_;

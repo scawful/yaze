@@ -8,7 +8,7 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
-namespace app {
+
 namespace gui {
 
 CollaborationPanel::CollaborationPanel()
@@ -660,5 +660,5 @@ void CollaborationPanel::RenderApprovalProposal(
 }
 
 }  // namespace gui
-}  // namespace app
+
 }  // namespace yaze

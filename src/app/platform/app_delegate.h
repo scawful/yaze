@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_CORE_PLATFORM_APP_DELEGATE_H
-#define YAZE_APP_CORE_PLATFORM_APP_DELEGATE_H
+#ifndef YAZE_APP_PLATFORM_APP_DELEGATE_H
+#define YAZE_APP_PLATFORM_APP_DELEGATE_H
 
 #if defined(__APPLE__) && defined(__MACH__)
 /* Apple OSX and iOS (Darwin). */
@@ -61,4 +61,4 @@ int yaze_run_cocoa_app_delegate(const char *filename);
 
 #endif  // defined(__APPLE__) && defined(__MACH__)
 
-#endif  // YAZE_APP_CORE_PLATFORM_APP_DELEGATE_H
+#endif  // YAZE_APP_PLATFORM_APP_DELEGATE_H

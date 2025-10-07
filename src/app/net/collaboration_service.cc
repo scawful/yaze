@@ -6,7 +6,7 @@
 #include "absl/strings/str_format.h"
 
 namespace yaze {
-namespace app {
+
 namespace net {
 
 CollaborationService::CollaborationService(Rom* rom)
@@ -436,5 +436,5 @@ bool CollaborationService::ShouldAutoSync() {
 }
 
 }  // namespace net
-}  // namespace app
+
 }  // namespace yaze

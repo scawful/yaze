@@ -7,7 +7,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
-#include "app/core/platform/asset_loader.h"
+#include "app/platform/asset_loader.h"
 #include "app/editor/agent/agent_chat_widget.h"
 #include "app/editor/agent/agent_collaboration_coordinator.h"
 #include "app/editor/system/proposal_drawer.h"
@@ -638,7 +638,7 @@ void AgentEditor::DrawPromptEditorPanel() {
   // Load prompt file if not initialized
   if (!prompt_editor_initialized_ && prompt_editor_) {
     std::string asset_path = "agent/" + active_prompt_file_;
-    auto content_result = core::AssetLoader::LoadTextFile(asset_path);
+    auto content_result = AssetLoader::LoadTextFile(asset_path);
 
     if (content_result.ok()) {
       prompt_editor_->SetText(*content_result);
@@ -923,7 +923,7 @@ void AgentEditor::DrawCommonTilesEditor() {
 
   // Load/Save buttons
   if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load", ImVec2(100, 0))) {
-    auto content = core::AssetLoader::LoadTextFile("agent/common_tiles.txt");
+    auto content = AssetLoader::LoadTextFile("agent/common_tiles.txt");
     if (content.ok()) {
       common_tiles_editor_->SetText(*content);
       common_tiles_initialized_ = true;
@@ -954,7 +954,7 @@ void AgentEditor::DrawCommonTilesEditor() {
 
   // Load if not initialized
   if (!common_tiles_initialized_ && common_tiles_editor_) {
-    auto content = core::AssetLoader::LoadTextFile("agent/common_tiles.txt");
+    auto content = AssetLoader::LoadTextFile("agent/common_tiles.txt");
     if (content.ok()) {
       common_tiles_editor_->SetText(*content);
     } else {
@@ -1010,7 +1010,7 @@ void AgentEditor::DrawNewPromptCreator() {
   ImGui::Text("Start from template:");
 
   if (ImGui::Button(ICON_MD_FILE_COPY " v1 (Basic)", ImVec2(-1, 0))) {
-    auto content = core::AssetLoader::LoadTextFile("agent/system_prompt.txt");
+    auto content = AssetLoader::LoadTextFile("agent/system_prompt.txt");
     if (content.ok() && prompt_editor_) {
       prompt_editor_->SetText(*content);
       if (toast_manager_) {
@@ -1021,7 +1021,7 @@ void AgentEditor::DrawNewPromptCreator() {
 
   if (ImGui::Button(ICON_MD_FILE_COPY " v2 (Enhanced)", ImVec2(-1, 0))) {
     auto content =
-        core::AssetLoader::LoadTextFile("agent/system_prompt_v2.txt");
+        AssetLoader::LoadTextFile("agent/system_prompt_v2.txt");
     if (content.ok() && prompt_editor_) {
       prompt_editor_->SetText(*content);
       if (toast_manager_) {
@@ -1032,7 +1032,7 @@ void AgentEditor::DrawNewPromptCreator() {
 
   if (ImGui::Button(ICON_MD_FILE_COPY " v3 (Proactive)", ImVec2(-1, 0))) {
     auto content =
-        core::AssetLoader::LoadTextFile("agent/system_prompt_v3.txt");
+        AssetLoader::LoadTextFile("agent/system_prompt_v3.txt");
     if (content.ok() && prompt_editor_) {
       prompt_editor_->SetText(*content);
       if (toast_manager_) {

@@ -1,55 +1,100 @@
 # A1 - Testing Guide
 
-This guide provides a comprehensive overview of the testing framework for the yaze project, including unit tests, integration tests, and the end-to-end GUI automation system.
+This guide provides a comprehensive overview of the testing framework for the yaze project, including the test organization, execution methods, and the end-to-end GUI automation system.
 
-## 1. Test Categories
+## 1. Test Organization
 
-Tests are organized into three categories using labels to allow for flexible and efficient execution.
+The test suite is organized into a clear directory structure that separates tests by their purpose and dependencies. This is the primary way to understand the nature of a test.
 
-### Stable Tests (STABLE)
-**Always run in CI/CD - Required for releases**
+```
+test/
+├── unit/                    # Unit tests for individual components
+│   ├── core/                # Core functionality (asar, hex utils)
+│   ├── cli/                 # Command-line interface tests
+│   ├── emu/                 # Emulator component tests
+│   ├── gfx/                 # Graphics system (tiles, palettes)
+│   ├── gui/                 # GUI widget tests
+│   ├── rom/                 # ROM data structure tests
+│   └── zelda3/              # Game-specific logic tests
+├── integration/             # Tests for interactions between components
+│   ├── ai/                  # AI agent and vision tests
+│   ├── editor/              # Editor integration tests
+│   └── zelda3/              # Game-specific integration tests (ROM-dependent)
+├── e2e/                     # End-to-end user workflow tests (GUI-driven)
+│   ├── rom_dependent/       # E2E tests requiring a ROM
+│   └── zscustomoverworld/   # ZSCustomOverworld upgrade E2E tests
+├── benchmarks/              # Performance benchmarks
+├── mocks/                   # Mock objects for isolating tests
+└── assets/                  # Test assets (patches, data)
+```
 
-- **AsarWrapperTest**: Core Asar functionality tests
-- **SnesTileTest**: SNES tile format handling
-- **CompressionTest**: Data compression/decompression
-- **SnesPaletteTest**: SNES palette operations
-- **HexTest**: Hexadecimal utilities
-- **AsarIntegrationTest**: Asar integration without ROM dependencies
+## 2. Test Categories
 
-**Characteristics:**
-- Fast execution (< 30 seconds total)
-- No external dependencies (ROMs, complex setup)
-- High reliability and deterministic results
+Based on the directory structure, tests fall into the following categories:
 
-### ROM-Dependent Tests (ROM_DEPENDENT)
-**Only run in development with available ROM files**
+### Unit Tests (`unit/`)
+- **Purpose**: To test individual classes or functions in isolation.
+- **Characteristics**:
+    - Fast, self-contained, and reliable.
+    - No external dependencies (e.g., ROM files, running GUI).
+    - Form the core of the CI/CD validation pipeline.
 
-- **AsarRomIntegrationTest**: Real ROM patching and symbol extraction
-- **ROM-based integration tests**: Tests requiring actual game ROM files
+### Integration Tests (`integration/`)
+- **Purpose**: To verify that different components of the application work together correctly.
+- **Characteristics**:
+    - May require a real ROM file (especially those in `integration/zelda3/`). These are considered "ROM-dependent".
+    - Test interactions between modules, such as the `asar` wrapper and the `Rom` class, or AI services with the GUI controller.
+    - Slower than unit tests but crucial for catching bugs at module boundaries.
 
-**Characteristics:**
-- Require specific ROM files to be present
-- Test real-world functionality
-- Automatically skipped in CI if ROM files unavailable
+### End-to-End (E2E) Tests (`e2e/`)
+- **Purpose**: To simulate a full user workflow from start to finish.
+- **Characteristics**:
+    - Driven by the **ImGui Test Engine**.
+    - Almost always require a running GUI and often a real ROM.
+    - The slowest but most comprehensive tests, validating the user experience.
+    - Includes smoke tests, canvas interactions, and complex workflows like ZSCustomOverworld upgrades.
 
-### Experimental Tests (EXPERIMENTAL)
-**Run separately, allowed to fail**
+### Benchmarks (`benchmarks/`)
+- **Purpose**: To measure and track the performance of critical code paths, particularly in the graphics system.
+- **Characteristics**:
+    - Not focused on correctness but on speed and efficiency.
+    - Run manually or in specialized CI jobs to prevent performance regressions.
 
-- **CpuTest**: 65816 CPU emulation tests
-- **Spc700Test**: SPC700 audio processor tests
-- **ApuTest**: Audio Processing Unit tests
-- **PpuTest**: Picture Processing Unit tests
+## 3. Running Tests
 
-**Characteristics:**
-- May be unstable due to emulation complexity
-- Test advanced/experimental features
-- Allowed to fail without blocking releases
+### Using the Enhanced Test Runner (`yaze_test`)
 
-## 2. Running Tests
+The most flexible way to run tests is by using the `yaze_test` executable directly. It provides flags to filter tests by category, which is ideal for development and AI agent workflows.
 
-### Using CMake Presets
+```bash
+# First, build the test executable
+cmake --build build_ai --target yaze_test
 
-The easiest way to run tests is with `ctest` presets.
+# Run all tests
+./build_ai/bin/yaze_test
+
+# Run only unit tests
+./build_ai/bin/yaze_test --unit
+
+# Run only integration tests
+./build_ai/bin/yaze_test --integration
+
+# Run E2E tests (requires a GUI)
+./build_ai/bin/yaze_test --e2e --show-gui
+
+# Run ROM-dependent tests with a specific ROM
+./build_ai/bin/yaze_test --rom-dependent --rom-path /path/to/zelda3.sfc
+
+# Run tests matching a specific pattern (e.g., all Asar tests)
+./build_ai/bin/yaze_test "*Asar*"
+
+# Get a full list of options
+./build_ai/bin/yaze_test --help
+```
+
+### Using CTest and CMake Presets
+
+For CI/CD or a more traditional workflow, you can use `ctest` with CMake presets.
 
 ```bash
 # Configure a development build (enables ROM-dependent tests)
@@ -58,157 +103,48 @@ cmake --preset mac-dev -DYAZE_TEST_ROM_PATH=/path/to/your/zelda3.sfc
 # Build the tests
 cmake --build --preset mac-dev --target yaze_test
 
-# Run stable tests (fast, run in CI)
+# Run stable tests (fast, primarily unit tests)
 ctest --preset dev
 
-# Run all tests, including ROM-dependent and experimental
+# Run all tests, including ROM-dependent and E2E
 ctest --preset all
 ```
 
-### Manual Execution
+## 4. Writing Tests
 
-You can also run tests by invoking the test executable directly or using CTest with labels.
+When adding new tests, place them in the appropriate directory based on their purpose and dependencies.
 
-```bash
-# Run all tests via the executable
-./build/bin/yaze_test
+- **New class `MyClass`?** Add `test/unit/my_class_test.cc`.
+- **Testing `MyClass` with a real ROM?** Add `test/integration/my_class_rom_test.cc`.
+- **Testing a full UI workflow involving `MyClass`?** Add `test/e2e/my_class_workflow_test.cc`.
 
-# Run only stable tests using CTest labels
-ctest --test-dir build --label-regex "STABLE"
+## 5. E2E GUI Testing Framework
 
-# Run tests matching a name
-ctest --test-dir build -R "AsarWrapperTest"
-
-# Exclude ROM-dependent tests
-ctest --test-dir build --label-exclude "ROM_DEPENDENT"
-```
-
-## 3. Writing Tests
-
-### Stable Tests
-```cpp
-TEST(SnesTileTest, UnpackBppTile) {
-    std::vector<uint8_t> tile_data = {0xAA, 0x55, 0xAA, 0x55};
-    std::vector<uint8_t> result = UnpackBppTile(tile_data, 2);
-    EXPECT_EQ(result.size(), 64);
-    // Test specific pixel values...
-}
-```
-
-### ROM-Dependent Tests
-```cpp
-YAZE_ROM_TEST(AsarIntegration, RealRomPatching) {
-    auto rom_data = TestRomManager::LoadTestRom();
-    if (!rom_data.has_value()) {
-        GTEST_SKIP() << "ROM file not available";
-    }
-    
-    AsarWrapper wrapper;
-    wrapper.Initialize();
-    
-    auto result = wrapper.ApplyPatch("test.asm", *rom_data);
-    EXPECT_TRUE(result.ok());
-}
-```
-
-## 4. E2E GUI Testing Framework
-
-An agent-friendly, end-to-end testing framework built on `ImGuiTestEngine` to automate UI interaction testing for the YAZE editor.
+The E2E framework uses `ImGuiTestEngine` to automate UI interactions.
 
 ### Architecture
 
-**Test Execution Flow**:
-1. `z3ed test-gui` command invokes the modified `yaze_test` executable
-2. `yaze_test` initializes an application window and `ImGuiTestEngine`
-3. Tests are registered and executed against the live GUI
-4. Results are reported back with detailed logs and assertions
+- **`test/yaze_test.cc`**: The main test runner that can initialize a GUI for E2E tests.
+- **`test/e2e/`**: Contains all E2E test files, such as:
+    - `framework_smoke_test.cc`: Basic infrastructure verification.
+    - `canvas_selection_test.cc`: Canvas interaction tests.
+    - `dungeon_editor_tests.cc`: UI tests for the dungeon editor.
+- **`test/test_utils.h`**: Provides high-level helper functions for common actions like loading a ROM (`LoadRomInTest`) or opening an editor (`OpenEditorInTest`).
 
-**Key Components**:
-- `test/yaze_test.cc` - Main test executable with GUI initialization
-- `test/e2e/framework_smoke_test.cc` - Basic infrastructure verification
-- `test/e2e/canvas_selection_test.cc` - Canvas interaction tests
-- `test/test_utils.h` - High-level action wrappers (LoadRomInTest, OpenEditorInTest, etc.)
+### Running GUI Tests
 
-### Widget Registration for Automation
-
-All modern UI components are fully integrated with the ImGui Test Engine for seamless automation.
-
-**Toolbar Components:**
-All toolbar buttons are automatically registered with descriptive paths:
-- `ModeButton:Pan (1)`
-- `ModeButton:Draw (2)`
-- `ToolbarAction:Toggle Tile16 Selector`
-- `ToolbarAction:Open Tile16 Editor`
-
-**Editor Cards:**
-All EditorCard windows are registered as discoverable windows:
-- `EditorCard:Tile16 Selector`
-- `EditorCard:Area Graphics`
-
-**State Introspection:**
-Card visibility states are tracked for test automation:
-- `OverworldToolbar/state:tile16_selector_visible`
-
-### Running GUI Tests with `z3ed`
-
-The `z3ed` CLI provides a powerful interface for running GUI tests.
+To run E2E tests and see the GUI interactions, use the `--show-gui` flag.
 
 ```bash
-# Run all E2E tests
-z3ed gui replay --ci-mode
+# Run all E2E tests with the GUI visible
+./build_ai/bin/yaze_test --e2e --show-gui
 
-# Run a specific test suite from a YAML file
-z3ed gui replay test_overworld_workflow.yaml --ci-mode
-
-# Click a specific button
-z3ed gui click "ModeButton:Draw (2)"
-
-# Wait for a window to become visible
-z3ed gui wait "window_visible:Tile16 Selector"
-
-# Assert that a card is visible
-z3ed gui assert "visible:EditorCard:Tile16 Selector"
+# Run a specific E2E test by name
+./build_ai/bin/yaze_test --show-gui --gtest_filter="*DungeonEditorSmokeTest"
 ```
 
-### Widget Discovery
+### Widget Discovery and AI Integration
 
-You can discover all registered UI elements for scripting and testing.
+The GUI testing framework is designed for AI agent automation. All major UI elements are registered with stable IDs, allowing an agent to "discover" and interact with them programmatically via the `z3ed` CLI.
 
-```bash
-# List all widgets in the Overworld window
-z3ed gui discover --window="Overworld" --format=yaml > overworld_widgets.yaml
-
-# Find all toolbar actions
-z3ed gui discover --path-prefix="ToolbarAction:"
-
-# Find all editor cards
-z3ed gui discover --path-prefix="EditorCard:"
-```
-
-### Integration with AI Agent
-
-The agent can leverage the GUI testing framework to perform actions.
-
-1.  **Discover UI Elements**: `Agent> describe gui`
-2.  **Interact with UI**: `Agent> click toolbar button "Toggle Tile16 Selector"`
-3.  **Monitor State**: `Agent> check if "Tile16 Selector" is visible`
-
-### GUI Automation Scenarios
-
-Scenarios are defined in JSONL files, where each line is a JSON action.
-
-**Example Scenario (`overworld_single_tile_paint.jsonl`):**
-```jsonl
-{"action": "start_test", "name": "overworld_single_tile_paint", "description": "Paint single tile and verify"}
-{"action": "setup", "rom": "zelda3.sfc", "window": "Overworld Editor", "map": 0}
-{"action": "wait_for_window", "window_name": "Overworld Editor", "timeout_ms": 5000}
-{"action": "select_tile", "tile_id": 66, "tile_id_hex": "0x0042"}
-{"action": "click_canvas_tile", "canvas_id": "Overworld Canvas", "x": 10, "y": 10}
-{"action": "assert_tile", "x": 10, "y": 10, "expected_tile_id": 66}
-{"action": "end_test", "status": "pass"}
-```
-
-**Run a scenario:**
-```bash
-z3ed agent test replay overworld_single_tile_paint.jsonl --rom zelda3.sfc --grpc localhost:50051
-```
+Refer to the `z3ed` agent guide for details on using commands like `z3ed gui discover`, `z3ed gui click`, and `z3ed agent test replay`.

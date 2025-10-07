@@ -30,6 +30,7 @@ class DungeonObjectInteraction {
   // Selection rectangle (like OverworldEditor)
   void DrawObjectSelectRect();
   void SelectObjectsInRect();
+  void DrawSelectionHighlights();  // Draw highlights for selected objects
   
   // Drag and select box functionality
   void DrawSelectBox();
