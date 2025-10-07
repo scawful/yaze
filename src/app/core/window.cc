@@ -6,9 +6,6 @@
 #include "util/sdl_deleter.h"
 #include "app/gfx/arena.h"
 #include "app/gui/style.h"
-#include "app/gui/theme_manager.h"
-#include "app/test/test_manager.h"
-#include "util/log.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
@@ -59,15 +56,6 @@ absl::Status CreateWindow(Window& window, int flags) {
   // Apply original YAZE colors as fallback, then try to load theme system
   gui::ColorsYaze();
   
-  // Try to initialize theme system (will fallback to ColorsYaze if files fail)
-  auto& theme_manager = gui::ThemeManager::Get();
-  auto status = theme_manager.LoadTheme("YAZE Classic");
-  if (!status.ok()) {
-    // Theme system failed, stick with original ColorsYaze()
-    LOG_WARN("Window", "Theme system failed, using original ColorsYaze(): %s",
-             status.message().data());
-  }
-
   const int audio_frequency = 48000;
   SDL_AudioSpec want, have;
   SDL_memset(&want, 0, sizeof(want));

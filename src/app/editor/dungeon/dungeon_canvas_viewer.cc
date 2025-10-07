@@ -7,6 +7,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
+#include "util/log.h"
 #include "app/zelda3/dungeon/object_drawer.h"
 #include "app/zelda3/dungeon/object_renderer.h"
 #include "app/zelda3/dungeon/room.h"
@@ -106,13 +107,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     auto& bg1_bitmap = room.bg1_buffer().bitmap();
     bool needs_render = !bg1_bitmap.is_active() || bg1_bitmap.width() == 0;
     
-    printf("[DrawCanvas] Room %d: needs_render=%d, bg1_active=%d, blocks=%zu, objects=%zu\n",
-           room_id, needs_render, bg1_bitmap.is_active(), 
-           room.blocks().size(), room.GetTileObjects().size());
-    
     // Render immediately if needed
     if (needs_render) {
-      printf("[DrawCanvas] Rendering room %d graphics...\n", room_id);
       (void)LoadAndRenderRoomGraphics(room_id);
     }
     
@@ -683,30 +679,20 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
   auto& bg1_bitmap = room.bg1_buffer().bitmap();
   auto& bg2_bitmap = room.bg2_buffer().bitmap();
   
-  printf("[RenderLayers] Room %d: BG1 active=%d, texture=%p\n",
-         room_id, bg1_bitmap.is_active(), (void*)bg1_bitmap.texture());
-  
   if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
     if (!bg1_bitmap.texture()) {
-      printf("[RenderLayers] Creating BG1 texture...\n");
       core::Renderer::Get().RenderBitmap(&bg1_bitmap);
     }
-    printf("[RenderLayers] Drawing BG1 bitmap: %dx%d, texture=%p\n",
-           bg1_bitmap.width(), bg1_bitmap.height(), (void*)bg1_bitmap.texture());
-    
+
     // DEBUG: Check SDL texture format
     Uint32 format;
     int access, w, h;
     if (SDL_QueryTexture(bg1_bitmap.texture(), &format, &access, &w, &h) == 0) {
-      printf("[RenderLayers] BG1 texture format: %s (%u), access: %d, size: %dx%d\n",
-             SDL_GetPixelFormatName(format), format, access, w, h);
+      const char* format_name_cstr = SDL_GetPixelFormatName(format);
     }
-    
+
     canvas_.DrawBitmap(bg1_bitmap, 0, 0, 1.0f, 255);
-  } else {
-    printf("[RenderLayers] BG1 not ready: active=%d, w=%d, h=%d\n",
-           bg1_bitmap.is_active(), bg1_bitmap.width(), bg1_bitmap.height());
-  }
+  } 
   
   if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
     if (!bg2_bitmap.texture()) {

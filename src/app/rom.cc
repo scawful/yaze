@@ -23,6 +23,7 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/snes_tile.h"
 #include "app/snes.h"
+#include "util/log.h"
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -178,6 +179,11 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
   SDL_Renderer *renderer = Renderer::Get().renderer();
   const bool renderer_ready = renderer != nullptr;
 
+  // CRITICAL: Clear the graphics buffer before loading to prevent corruption!
+  // Without this, multiple ROM loads would accumulate corrupted data.
+  rom.mutable_graphics_buffer()->clear();
+  LOG_DEBUG("Graphics", "Cleared graphics buffer, loading %d sheets", kNumGfxSheets);
+
   for (uint32_t i = 0; i < kNumGfxSheets; i++) {
     if (i >= 115 && i <= 126) {  // uncompressed sheets
       sheet.resize(Uncompressed3BPPSize);
@@ -201,22 +207,30 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
 
     if (bpp3) {
       auto converted_sheet = gfx::SnesTo8bppSheet(sheet, 3);
+      
       graphics_sheets[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                 gfx::kTilesheetDepth, converted_sheet);
-      if (graphics_sheets[i].is_active()) {
-        if (i > 115) {
-          // Apply sprites palette
-          graphics_sheets[i].SetPaletteWithTransparent(
-              rom.palette_group().global_sprites[0], 0);
-        } else {
-          graphics_sheets[i].SetPaletteWithTransparent(
-              rom.palette_group().dungeon_main[0], 0);
-        }
-      }
+      
+      // DON'T apply palettes here! Each editor (Dungeon, Graphics, GfxGroup) 
+      // should apply its own palette when displaying sheets.
+      // This allows users to preview sheets with different palettes in each editor.
+      // The bitmap data is stored as indexed (8bpp), and palettes are applied 
+      // at texture creation time by each editor.
+      
+      // if (graphics_sheets[i].is_active()) {
+      //   if (i > 115) {
+      //     graphics_sheets[i].SetPaletteWithTransparent(
+      //         rom.palette_group().global_sprites[0], 0);
+      //   } else {
+      //     graphics_sheets[i].SetPaletteWithTransparent(
+      //         rom.palette_group().dungeon_main[0], 0);
+      //   }
+      // }
 
-      if (!defer_render && renderer_ready) {
-        graphics_sheets[i].CreateTexture(renderer);
-      }
+      // Don't create textures here either - let editors create them with their palettes
+      // if (!defer_render && renderer_ready) {
+      //   graphics_sheets[i].CreateTexture(renderer);
+      // }
 
       for (int j = 0; j < graphics_sheets[i].size(); ++j) {
         rom.mutable_graphics_buffer()->push_back(graphics_sheets[i].at(j));

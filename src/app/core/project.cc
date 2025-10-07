@@ -127,7 +127,7 @@ absl::Status YazeProject::Open(const std::string& project_path) {
       
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
       if (first_char == '{') {
-        LOG_INFO("Project", "Detected JSON format project file");
+        LOG_DEBUG("Project", "Detected JSON format project file");
         return LoadFromJsonFormat(project_path);
       }
 #endif
@@ -889,19 +889,19 @@ absl::Status YazeProject::InitializeEmbeddedLabels() {
     resource_labels = zelda3::Zelda3Labels::ToResourceLabels();
     use_embedded_labels = true;
     
-    LOG_INFO("Project", "Initialized embedded labels:");
-    LOG_INFO("Project", "   - %d room names", resource_labels["room"].size());
-    LOG_INFO("Project", "   - %d entrance names", resource_labels["entrance"].size());
-    LOG_INFO("Project", "   - %d sprite names", resource_labels["sprite"].size());
-    LOG_INFO("Project", "   - %d overlord names", resource_labels["overlord"].size());
-    LOG_INFO("Project", "   - %d item names", resource_labels["item"].size());
-    LOG_INFO("Project", "   - %d music names", resource_labels["music"].size());
-    LOG_INFO("Project", "   - %d graphics names", resource_labels["graphics"].size());
-    LOG_INFO("Project", "   - %d room effect names", resource_labels["room_effect"].size());
-    LOG_INFO("Project", "   - %d room tag names", resource_labels["room_tag"].size());
-    LOG_INFO("Project", "   - %d tile type names", resource_labels["tile_type"].size());
-    LOG_INFO("Project", "   - %d overlord names", resource_labels["overlord"].size());
-    LOG_INFO("Project", "   - %d item names", resource_labels["item"].size());
+    LOG_DEBUG("Project", "Initialized embedded labels:");
+    LOG_DEBUG("Project", "   - %d room names", resource_labels["room"].size());
+    LOG_DEBUG("Project", "   - %d entrance names", resource_labels["entrance"].size());
+    LOG_DEBUG("Project", "   - %d sprite names", resource_labels["sprite"].size());
+    LOG_DEBUG("Project", "   - %d overlord names", resource_labels["overlord"].size());
+    LOG_DEBUG("Project", "   - %d item names", resource_labels["item"].size());
+    LOG_DEBUG("Project", "   - %d music names", resource_labels["music"].size());
+    LOG_DEBUG("Project", "   - %d graphics names", resource_labels["graphics"].size());
+    LOG_DEBUG("Project", "   - %d room effect names", resource_labels["room_effect"].size());
+    LOG_DEBUG("Project", "   - %d room tag names", resource_labels["room_tag"].size());
+    LOG_DEBUG("Project", "   - %d tile type names", resource_labels["tile_type"].size());
+    LOG_DEBUG("Project", "   - %d overlord names", resource_labels["overlord"].size());
+    LOG_DEBUG("Project", "   - %d item names", resource_labels["item"].size());
     
     return absl::OkStatus();
   } catch (const std::exception& e) {

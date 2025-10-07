@@ -384,7 +384,7 @@ void SettingsEditor::DrawAIAgentSettings() {
         std::filesystem::path path(log_file_path);
         if (std::filesystem::exists(path)) {
           std::filesystem::remove(path);
-          LOG_INFO("Settings", "Log file cleared: %s", log_file_path);
+          LOG_DEBUG("Settings", "Log file cleared: %s", log_file_path);
         }
       }
     }

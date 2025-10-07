@@ -78,7 +78,7 @@ void OverworldEditor::Initialize() {
 absl::Status OverworldEditor::Load() {
   gfx::ScopedTimer timer("OverworldEditor::Load");
 
-  LOG_INFO("OverworldEditor", "Loading overworld.");
+  LOG_DEBUG("OverworldEditor", "Loading overworld.");
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -100,7 +100,7 @@ absl::Status OverworldEditor::Load() {
     // Force refresh of the current overworld map to show changes
     RefreshOverworldMap();
 
-    LOG_INFO("OverworldEditor", "Overworld editor refreshed after Tile16 changes");
+    LOG_DEBUG("OverworldEditor", "Overworld editor refreshed after Tile16 changes");
     return absl::OkStatus();
   });
 
@@ -807,7 +807,7 @@ void OverworldEditor::CheckForOverworldEdits() {
             auto tile_data = gfx::GetTilemapData(tile16_blockset_, tile16_id);
             if (!tile_data.empty()) {
               RenderUpdatedMapBitmap(tile_position, tile_data);
-              LOG_INFO("OverworldEditor",
+              LOG_DEBUG("OverworldEditor",
                        "CheckForOverworldEdits: Updated bitmap at position (%d,%d) "
                        "with tile16_id=%d",
                        x, y, tile16_id);
@@ -824,7 +824,7 @@ void OverworldEditor::CheckForOverworldEdits() {
       // This is commented out for now, will come back to later.
       // ow_map_canvas_.mutable_selected_tiles()->clear();
       // ow_map_canvas_.mutable_points()->clear();
-      LOG_INFO("OverworldEditor",
+      LOG_DEBUG("OverworldEditor",
                "CheckForOverworldEdits: Rectangle selection applied and cleared");
     }
   }
@@ -1469,7 +1469,7 @@ absl::Status OverworldEditor::Save() {
 absl::Status OverworldEditor::LoadGraphics() {
   gfx::ScopedTimer timer("LoadGraphics");
 
-  LOG_INFO("OverworldEditor", "Loading overworld.");
+  LOG_DEBUG("OverworldEditor", "Loading overworld.");
   // Load the Link to the Past overworld.
   {
     gfx::ScopedTimer load_timer("Overworld::Load");
@@ -1477,7 +1477,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   }
   palette_ = overworld_.current_area_palette();
 
-  LOG_INFO("OverworldEditor", "Loading overworld graphics (optimized).");
+  LOG_DEBUG("OverworldEditor", "Loading overworld graphics (optimized).");
 
   // Phase 1: Create bitmaps without textures for faster loading
   // This avoids blocking the main thread with GPU texture creation
@@ -1488,7 +1488,7 @@ absl::Status OverworldEditor::LoadGraphics() {
                                                current_gfx_bmp_, palette_);
   }
 
-  LOG_INFO("OverworldEditor", "Loading overworld tileset (deferred textures).");
+  LOG_DEBUG("OverworldEditor", "Loading overworld tileset (deferred textures).");
   {
     gfx::ScopedTimer tileset_timer("CreateBitmapWithoutTexture_Tileset");
     Renderer::Get().CreateBitmapWithoutTexture(
@@ -1499,7 +1499,7 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Copy the tile16 data into individual tiles.
   auto tile16_blockset_data = overworld_.tile16_blockset_data();
-  LOG_INFO("OverworldEditor", "Loading overworld tile16 graphics.");
+  LOG_DEBUG("OverworldEditor", "Loading overworld tile16 graphics.");
 
   {
     gfx::ScopedTimer tilemap_timer("CreateTilemap");
@@ -1517,7 +1517,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   constexpr int kSpecialWorldEssential =
       zelda3::kSpecialWorldMapIdStart + kEssentialMapsPerWorld;
 
-  LOG_INFO("OverworldEditor",
+  LOG_DEBUG("OverworldEditor",
            "Creating bitmaps for essential maps only (first %d maps per world)",
            kEssentialMapsPerWorld);
 
@@ -2049,7 +2049,7 @@ void OverworldEditor::ForceRefreshGraphics(int map_index) {
     // Clear blockset cache
     current_blockset_ = 0xFF;
     
-    LOG_INFO("OverworldEditor", "ForceRefreshGraphics: Map %d marked for refresh", map_index);
+    LOG_DEBUG("OverworldEditor", "ForceRefreshGraphics: Map %d marked for refresh", map_index);
   }
 }
 
@@ -2097,7 +2097,7 @@ void OverworldEditor::RefreshSiblingMapGraphics(int map_index, bool include_self
       // Call RefreshChildMapOnDemand() directly instead of RefreshOverworldMapOnDemand()
       RefreshChildMapOnDemand(sibling);
       
-      LOG_INFO("OverworldEditor", "RefreshSiblingMapGraphics: Refreshed sibling map %d", sibling);
+      LOG_DEBUG("OverworldEditor", "RefreshSiblingMapGraphics: Refreshed sibling map %d", sibling);
     }
   }
 }
@@ -2520,7 +2520,7 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
         "ROM is already version %d or higher", current_version));
   }
 
-  LOG_INFO("OverworldEditor", "Applying ZSCustomOverworld ASM v%d to ROM...",
+  LOG_DEBUG("OverworldEditor", "Applying ZSCustomOverworld ASM v%d to ROM...",
            target_version);
 
   // Initialize Asar wrapper
@@ -2540,7 +2540,7 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
     // Use GetResourcePath to handle app bundles and various deployment scenarios
     std::string asm_file_path = util::GetResourcePath(asm_file_name);
     
-    LOG_INFO("OverworldEditor", "Using ASM file: %s", asm_file_path.c_str());
+    LOG_DEBUG("OverworldEditor", "Using ASM file: %s", asm_file_path.c_str());
     
     // Verify file exists
     if (!std::filesystem::exists(asm_file_path)) {
@@ -2581,17 +2581,17 @@ absl::Status OverworldEditor::ApplyZSCustomOverworldASM(int target_version) {
     RETURN_IF_ERROR(UpdateROMVersionMarkers(target_version));
 
     // Log symbols found during patching
-    LOG_INFO("OverworldEditor", "ASM patch applied successfully. Found %zu symbols:",
+    LOG_DEBUG("OverworldEditor", "ASM patch applied successfully. Found %zu symbols:",
              result.symbols.size());
     for (const auto& symbol : result.symbols) {
-      LOG_INFO("OverworldEditor", "  %s @ $%06X", symbol.name.c_str(),
+      LOG_DEBUG("OverworldEditor", "  %s @ $%06X", symbol.name.c_str(),
                symbol.address);
     }
 
     // Refresh overworld data to reflect changes
     RETURN_IF_ERROR(overworld_.Load(rom_));
 
-    LOG_INFO("OverworldEditor", "ZSCustomOverworld v%d successfully applied to ROM",
+    LOG_DEBUG("OverworldEditor", "ZSCustomOverworld v%d successfully applied to ROM",
              target_version);
     return absl::OkStatus();
 
@@ -2618,7 +2618,7 @@ absl::Status OverworldEditor::UpdateROMVersionMarkers(int target_version) {
     (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] = 0x01;
     (*rom_)[zelda3::OverworldCustomMainPaletteEnabled] = 0x01;
 
-    LOG_INFO("OverworldEditor", "Enabled v2+ features: Custom BG colors, Main palettes");
+    LOG_DEBUG("OverworldEditor", "Enabled v2+ features: Custom BG colors, Main palettes");
   }
 
   if (target_version >= 3) {
@@ -2628,7 +2628,7 @@ absl::Status OverworldEditor::UpdateROMVersionMarkers(int target_version) {
     (*rom_)[zelda3::OverworldCustomTileGFXGroupEnabled] = 0x01;
     (*rom_)[zelda3::OverworldCustomMosaicEnabled] = 0x01;
 
-    LOG_INFO("OverworldEditor",
+    LOG_DEBUG("OverworldEditor",
              "Enabled v3+ features: Subscreen overlays, Animated GFX, Tile GFX "
              "groups, Mosaic");
 
@@ -2652,11 +2652,11 @@ absl::Status OverworldEditor::UpdateROMVersionMarkers(int target_version) {
       }
     }
 
-    LOG_INFO("OverworldEditor", "Initialized area size data for %zu areas",
+    LOG_DEBUG("OverworldEditor", "Initialized area size data for %zu areas",
              large_areas.size());
   }
 
-  LOG_INFO("OverworldEditor", "ROM version markers updated to v%d", target_version);
+  LOG_DEBUG("OverworldEditor", "ROM version markers updated to v%d", target_version);
   return absl::OkStatus();
 }
 

@@ -40,6 +40,25 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
   int tile_x = (tile.id_ % 16) * 8;  // 16 tiles per row, 8 pixels per tile
   int tile_y = (tile.id_ / 16) * 8;  // Each row is 16 tiles
   
+  // DEBUG: For floor tiles, check what we're actually reading
+  static int debug_count = 0;
+  if (debug_count < 4 && (tile.id_ == 0xEC || tile.id_ == 0xED || tile.id_ == 0xFC || tile.id_ == 0xFD)) {
+    printf("[DrawTile] Floor tile 0x%02X at sheet pos (%d,%d), palette=%d, mirror=(%d,%d)\n",
+           tile.id_, tile_x, tile_y, tile.palette_, tile.horizontal_mirror_, tile.vertical_mirror_);
+    printf("[DrawTile] First row (8 pixels): ");
+    for (int i = 0; i < 8; i++) {
+      int src_index = tile_y * 128 + (tile_x + i);
+      printf("%d ", tiledata[src_index]);
+    }
+    printf("\n[DrawTile] Second row (8 pixels): ");
+    for (int i = 0; i < 8; i++) {
+      int src_index = (tile_y + 1) * 128 + (tile_x + i);
+      printf("%d ", tiledata[src_index]);
+    }
+    printf("\n");
+    debug_count++;
+  }
+  
   // Dungeon graphics are 3BPP: 8 colors per palette (0-7, 8-15, 16-23, etc.)
   // NOT 4BPP which would be 16 colors per palette!
   // Clamp palette to 0-10 (90 colors / 8 = 11.25, so max palette is 10)
@@ -78,31 +97,32 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
     buffer_.resize(tiles_w * tiles_h);
   }
   
-  // CRITICAL: Always create a fresh bitmap for each DrawBackground call
-  // This ensures we're rendering the current tilemap state, not stale data
-  printf("[BG:DrawBackground] Creating fresh bitmap for rendering\n");
-  bitmap_.Create(width_, height_, 8, std::vector<uint8_t>(width_ * height_, 0));
-
-  // DEBUG: Check if gfx16_data has actual graphics
-  if (gfx16_data.size() < 100) {
-    printf("[BG:DrawBackground] WARNING: gfx16_data is too small (%zu bytes)\n", gfx16_data.size());
-  } else {
-    // Sample first 32 bytes
-    printf("[BG:DrawBackground] gfx16_data size=%zu, first 32 bytes: ", gfx16_data.size());
-    for (size_t i = 0; i < 32 && i < gfx16_data.size(); i++) {
-      printf("%02X ", gfx16_data[i]);
-    }
-    printf("\n");
+  // NEVER recreate bitmap here - it should be created by DrawFloor or initialized earlier
+  // If bitmap doesn't exist, create it ONCE with zeros
+  if (!bitmap_.is_active() || bitmap_.width() == 0) {
+    bitmap_.Create(width_, height_, 8, std::vector<uint8_t>(width_ * height_, 0));
   }
 
   // For each tile on the tile buffer
   int drawn_count = 0;
+  int skipped_count = 0;
+  int non_floor_count = 0;
   for (int yy = 0; yy < tiles_h; yy++) {
     for (int xx = 0; xx < tiles_w; xx++) {
       uint16_t word = buffer_[xx + yy * tiles_w];
       // Prevent draw if tile == 0xFFFF since it's 0 indexed
-      if (word == 0xFFFF) continue;
+      if (word == 0xFFFF) {
+        skipped_count++;
+        continue;
+      }
       auto tile = gfx::WordToTileInfo(word);
+      
+      // Count floor tiles vs non-floor
+      if (tile.id_ >= 0xEE && tile.id_ <= 0xFF) {
+        // This looks like a floor tile (based on DrawFloor's 14EE pattern)
+      } else if (word != 0) {
+        non_floor_count++;
+      }
       
       // Calculate pixel offset for tile position (xx, yy) in the 512x512 bitmap
       // Each tile is 8x8, so pixel Y = yy * 8, pixel X = xx * 8
@@ -124,6 +144,11 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
 void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
                                  int tile_address, int tile_address_floor,
                                  uint8_t floor_graphics) {
+  // Create bitmap ONCE at the start if it doesn't exist
+  if (!bitmap_.is_active() || bitmap_.width() == 0) {
+    bitmap_.Create(width_, height_, 8, std::vector<uint8_t>(width_ * height_, 0));
+  }
+  
   auto f = (uint8_t)(floor_graphics << 4);
 
   // Create floor tiles from ROM data
@@ -155,7 +180,6 @@ void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
   uint16_t word6 = gfx::TileInfoToWord(floorTile6);
   uint16_t word7 = gfx::TileInfoToWord(floorTile7);
   uint16_t word8 = gfx::TileInfoToWord(floorTile8);
-  
   for (int xx = 0; xx < 16; xx++) {
     for (int yy = 0; yy < 32; yy++) {
       SetTileAt((xx * 4), (yy * 2), word1);

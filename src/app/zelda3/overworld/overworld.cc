@@ -273,7 +273,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index, AreaSizeEnum siz
         "Wide and Tall areas require ZSCustomOverworld v3+");
   }
   
-  LOG_INFO("Overworld", "ConfigureMultiAreaMap: parent=%d, current_size=%d, new_size=%d, version=%d",
+  LOG_DEBUG("Overworld", "ConfigureMultiAreaMap: parent=%d, current_size=%d, new_size=%d, version=%d",
            parent_index, static_cast<int>(overworld_maps_[parent_index].area_size()),
            static_cast<int>(size), asm_version);
   
@@ -383,7 +383,7 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index, AreaSizeEnum siz
     }
   }
   
-  LOG_INFO("Overworld", "Configured %s area: parent=%d, old_siblings=%zu, new_siblings=%zu",
+  LOG_DEBUG("Overworld", "Configured %s area: parent=%d, old_siblings=%zu, new_siblings=%zu",
            (size == AreaSizeEnum::LargeArea) ? "Large" :
            (size == AreaSizeEnum::WideArea) ? "Wide" : 
            (size == AreaSizeEnum::TallArea) ? "Tall" : "Small",

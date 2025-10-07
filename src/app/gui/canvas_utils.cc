@@ -85,7 +85,7 @@ bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager) {
     }
 
     palette_manager.palettes_loaded = true;
-    LOG_INFO("Canvas", "Loaded %zu ROM palette groups",
+    LOG_DEBUG("Canvas", "Loaded %zu ROM palette groups",
                palette_manager.rom_palette_groups.size());
     return true;
 
@@ -116,7 +116,7 @@ bool ApplyPaletteGroup(gfx::Bitmap* bitmap,
     }
 
     Renderer::Get().UpdateBitmap(bitmap);
-    LOG_INFO("Canvas", "Applied palette group %d, index %d to bitmap",
+    LOG_DEBUG("Canvas", "Applied palette group %d, index %d to bitmap",
                group_index, palette_index);
     return true;
 

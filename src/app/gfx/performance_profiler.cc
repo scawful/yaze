@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "app/gfx/memory_pool.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace gfx {
@@ -43,7 +44,7 @@ void PerformanceProfiler::EndTimer(const std::string& operation_name) {
   if (timer_iter == active_timers_.end()) {
     // During shutdown, silently ignore missing timers to avoid log spam
     if (!is_shutting_down_) {
-      SDL_Log("Warning: EndTimer called for operation '%s' that was not started", 
+      LOG_DEBUG("PerformanceProfiler", "EndTimer called for operation '%s' that was not started", 
               operation_name.c_str());
     }
     return;

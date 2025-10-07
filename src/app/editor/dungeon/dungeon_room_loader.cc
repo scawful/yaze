@@ -40,7 +40,7 @@ absl::Status DungeonRoomLoader::LoadAllRooms(std::array<zelda3::Room, 0x128>& ro
                                        static_cast<int>(std::thread::hardware_concurrency()));
   const int rooms_per_thread = (kTotalRooms + max_concurrency - 1) / max_concurrency;
   
-  LOG_INFO("Dungeon", "Loading %d dungeon rooms using %d threads (%d rooms per thread)", 
+  LOG_DEBUG("Dungeon", "Loading %d dungeon rooms using %d threads (%d rooms per thread)", 
              kTotalRooms, max_concurrency, rooms_per_thread);
   
   // Thread-safe data structures for collecting results

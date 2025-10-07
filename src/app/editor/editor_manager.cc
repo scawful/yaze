@@ -682,7 +682,7 @@ absl::Status EditorManager::Update() {
   // Ensure TestManager always has the current ROM
   static Rom* last_test_rom = nullptr;
   if (last_test_rom != current_rom_) {
-    LOG_INFO("EditorManager",
+    LOG_DEBUG("EditorManager",
              "EditorManager::Update - ROM changed, updating TestManager: %p -> "
              "%p",
              (void*)last_test_rom, (void*)current_rom_);
@@ -2039,7 +2039,7 @@ absl::Status EditorManager::LoadRom() {
   for (auto& session : sessions_) {
     if (!session.rom.is_loaded()) {
       target_session = &session;
-      LOG_INFO("EditorManager", "Found empty session to populate with ROM: %s",
+      LOG_DEBUG("EditorManager", "Found empty session to populate with ROM: %s",
                file_name.c_str());
       break;
     }
@@ -2067,7 +2067,7 @@ absl::Status EditorManager::LoadRom() {
 
   // Update test manager with current ROM for ROM-dependent tests (only when tests are enabled)
 #ifdef YAZE_ENABLE_TESTING
-  LOG_INFO("EditorManager", "Setting ROM in TestManager - %p ('%s')",
+  LOG_DEBUG("EditorManager", "Setting ROM in TestManager - %p ('%s')",
            (void*)current_rom_,
            current_rom_ ? current_rom_->title().c_str() : "null");
   test::TestManager::Get().SetCurrentRom(current_rom_);
@@ -2113,7 +2113,7 @@ absl::Status EditorManager::LoadAssets() {
   auto end_time = std::chrono::steady_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
       end_time - start_time);
-  LOG_INFO("EditorManager", "ROM assets loaded in %lld ms", duration.count());
+  LOG_DEBUG("EditorManager", "ROM assets loaded in %lld ms", duration.count());
 
   return absl::OkStatus();
 }
@@ -2273,7 +2273,7 @@ absl::Status EditorManager::OpenProject() {
 
     // Update test manager with current ROM for ROM-dependent tests (only when tests are enabled)
 #ifdef YAZE_ENABLE_TESTING
-    LOG_INFO("EditorManager", "Setting ROM in TestManager - %p ('%s')",
+    LOG_DEBUG("EditorManager", "Setting ROM in TestManager - %p ('%s')",
              (void*)current_rom_,
              current_rom_ ? current_rom_->title().c_str() : "null");
     test::TestManager::Get().SetCurrentRom(current_rom_);
@@ -2537,7 +2537,7 @@ void EditorManager::RemoveSession(size_t index) {
   sessions_[index].custom_name = "[CLOSED SESSION]";
   sessions_[index].filepath = "";
 
-  LOG_INFO("EditorManager", "Marked session as closed: %s (index %zu)",
+  LOG_DEBUG("EditorManager", "Marked session as closed: %s (index %zu)",
            session_name.c_str(), index);
   toast_manager_.Show(
       absl::StrFormat("Session marked as closed: %s", session_name),
