@@ -11,15 +11,11 @@
 
 namespace yaze::editor {
 
-using ImGui::BeginTable;
-using ImGui::EndTable;
-using ImGui::TableHeadersRow;
-using ImGui::TableNextColumn;
-using ImGui::TableNextRow;
-using ImGui::TableSetupColumn;
+// No table layout needed - all cards are independent
 
 void DungeonEditorV2::Initialize() {
-  // No complex initialization needed - components handle themselves
+  // Don't initialize emulator preview yet - ROM might not be loaded
+  // Will be initialized in Load() instead
 }
 
 absl::Status DungeonEditorV2::Load() {
@@ -52,20 +48,35 @@ absl::Status DungeonEditorV2::Load() {
   object_selector_.SetCurrentPaletteId(current_palette_id_);
   object_selector_.set_rooms(&rooms_);
 
+  // NOW initialize emulator preview with loaded ROM
+  object_emulator_preview_.Initialize(rom_);
+
   is_loaded_ = true;
   return absl::OkStatus();
 }
 
 absl::Status DungeonEditorV2::Update() {
   if (!is_loaded_) {
-    ImGui::Text("Loading...");
+    // Show minimal loading message in parent window
+    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Dungeon Editor Loading...");
+    ImGui::TextWrapped("Independent editor cards will appear once ROM data is loaded.");
     return absl::OkStatus();
   }
 
+  // Minimize parent window content - just show a toolbar
   DrawToolset();
-  gui::VerticalSpacing(2.0f);
+  
+  ImGui::Separator();
+  ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), 
+      "Editor cards are independent windows - dock them anywhere!");
+  ImGui::TextWrapped(
+      "Room Selector, Object Selector, and Room cards can be freely arranged. "
+      "This parent window can be minimized or closed.");
 
+  // Render all independent cards (these create their own top-level windows)
+  object_emulator_preview_.Render();
   DrawLayout();
+  
   return absl::OkStatus();
 }
 
@@ -98,32 +109,33 @@ void DungeonEditorV2::DrawToolset() {
 }
 
 void DungeonEditorV2::DrawLayout() {
-  // Simple 3-column layout as designed
-  if (BeginTable("##DungeonEditTable", 3,
-                 ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV,
-                 ImVec2(0, 0))) {
-    TableSetupColumn("Room Selector", ImGuiTableColumnFlags_WidthFixed, 250);
-    TableSetupColumn("Canvas", ImGuiTableColumnFlags_WidthStretch);
-    TableSetupColumn("Object Selector", ImGuiTableColumnFlags_WidthFixed, 300);
-    TableHeadersRow();
-    TableNextRow();
-
-    // Column 1: Room Selector (fully delegated)
-    TableNextColumn();
-    room_selector_.Draw();
-
-    // Column 2: Canvas area for active room cards
-    TableNextColumn();
-    // This column is now just a docking space. The cards themselves are independent windows.
-
-    // Column 3: Object Selector (fully delegated)
-    TableNextColumn();
-    object_selector_.Draw();
-
-    EndTable();
+  // NO TABLE LAYOUT - All independent dockable EditorCards
+  
+  // 1. Room Selector Card (independent, dockable)
+  {
+    static bool show_room_selector = true;
+    gui::EditorCard selector_card(
+        MakeCardTitle("Room Selector").c_str(), 
+        ICON_MD_LIST, &show_room_selector);
+    if (selector_card.Begin()) {
+      room_selector_.Draw();
+    }
+    selector_card.End();
   }
 
-  // Draw active rooms as individual, dockable EditorCards
+  // 2. Object Selector/Manager Card (independent, dockable)
+  {
+    static bool show_object_selector = true;
+    gui::EditorCard object_card(
+        MakeCardTitle("Object Selector").c_str(), 
+        ICON_MD_CATEGORY, &show_object_selector);
+    if (object_card.Begin()) {
+      object_selector_.Draw();
+    }
+    object_card.End();
+  }
+
+  // 3. Active Room Cards (independent, dockable, no inheritance)
   for (int i = 0; i < active_rooms_.Size; i++) {
     int room_id = active_rooms_[i];
     bool open = true;
@@ -138,13 +150,13 @@ void DungeonEditorV2::DrawLayout() {
     
     std::string card_name_str = absl::StrFormat("%s###RoomCard%d", 
                                                 MakeCardTitle(base_name).c_str(), room_id);
-    const char* card_name = card_name_str.c_str();
 
-    gui::EditorCard room_card(card_name, ICON_MD_GRID_ON, &open);
+    // Each room card is COMPLETELY independent - no parent windows
+    gui::EditorCard room_card(card_name_str.c_str(), ICON_MD_GRID_ON, &open);
     if (room_card.Begin()) {
       DrawRoomTab(room_id);
     }
-    room_card.End();  // ALWAYS call End after Begin
+    room_card.End();
 
     if (!open) {
       active_rooms_.erase(active_rooms_.Data + i);

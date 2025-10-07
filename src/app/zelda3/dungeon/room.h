@@ -347,6 +347,7 @@ class Room {
   auto& mutable_blocks() { return blocks_; }
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
+  const std::array<uint8_t, 0x4000>& get_gfx_buffer() const { return current_gfx16_; }
 
  private:
   Rom* rom_;

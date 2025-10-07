@@ -14,6 +14,7 @@ set(
   app/zelda3/dungeon/room_object.cc
   app/zelda3/dungeon/object_parser.cc
   app/zelda3/dungeon/object_renderer.cc
+  app/zelda3/dungeon/object_drawer.cc
   app/zelda3/dungeon/room_layout.cc
   app/zelda3/dungeon/room_diagnostic.cc
   app/zelda3/dungeon/room_visual_diagnostic.cc

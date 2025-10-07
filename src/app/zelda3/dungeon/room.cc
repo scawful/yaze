@@ -310,30 +310,38 @@ void Room::RenderRoomGraphics() {
   int num_palettes = dungeon_pal_group.size();
   int palette_id = palette;
   
+  std::printf("5a. Dungeon palette group has %d palettes total\n", num_palettes);
+  
   // Validate palette ID and fall back to palette 0 if invalid
   if (palette_id < 0 || palette_id >= num_palettes) {
-    //palette_id = 0;
+    std::printf("5a. WARNING: palette_id %d is out of bounds [0, %d), using palette 0\n", 
+                palette_id, num_palettes);
+    palette_id = 0;
   }
   
   // Load the 90-color dungeon palette directly
   // The palette contains colors for BG layers - sprite colors are handled separately
-  auto bg1_palette = dungeon_pal_group.palette(palette_id);
+  auto bg1_palette = dungeon_pal_group[palette_id];  // Use operator[] to get a proper reference
   
   std::printf("5a. Palette loaded: room palette_id=%d (requested=%d), size=%zu colors\n", 
               palette_id, palette, bg1_palette.size());
 
-  // CRITICAL: Apply palette to bitmaps BEFORE creating/updating textures
-  bg1_bmp.SetPaletteWithTransparent(bg1_palette, 0);
-  bg2_bmp.SetPaletteWithTransparent(bg1_palette, 0);
-  std::printf("5b. Palette applied to bitmaps\n");
+  // CRITICAL: Only apply palette if it's valid
+  if (bg1_palette.size() > 0) {
+    bg1_bmp.SetPaletteWithTransparent(bg1_palette, 0);
+    bg2_bmp.SetPaletteWithTransparent(bg1_palette, 0);
+    std::printf("5b. Palette applied to bitmaps\n");
+  } else {
+    std::printf("5b. WARNING: Palette is empty, skipping SetPalette\n");
+  }
 
   // ALWAYS recreate textures when palette changes (UpdateBitmap doesn't update palette!)
   std::printf("6. Recreating bitmap textures with new palette\n");
   core::Renderer::Get().CreateAndRenderBitmap(
-      0x200, 0x200, 0x200, gfx::Arena::Get().bg1().bitmap().vector(),
+      0x200, 0x200, 8, gfx::Arena::Get().bg1().bitmap().vector(),
       gfx::Arena::Get().bg1().bitmap(), bg1_palette);
   core::Renderer::Get().CreateAndRenderBitmap(
-      0x200, 0x200, 0x200, gfx::Arena::Get().bg2().bitmap().vector(),
+      0x200, 0x200, 8, gfx::Arena::Get().bg2().bitmap().vector(),
       gfx::Arena::Get().bg2().bitmap(), bg1_palette);
   
   std::printf("7. BG1 has texture: %d\n", bg1_bmp.texture() != nullptr);
