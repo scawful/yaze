@@ -31,7 +31,7 @@ void CanvasUsageTracker::SetUsageMode(CanvasUsage usage) {
     // Record mode change interaction
     RecordInteraction(CanvasInteraction::kModeChange, GetUsageModeName(usage));
     
-  LOG_INFO("CanvasUsage", "Canvas %s: Usage mode changed to %s", 
+  LOG_DEBUG("CanvasUsage", "Canvas %s: Usage mode changed to %s", 
        canvas_id_.c_str(), GetUsageModeName(usage).c_str());
   }
 }
@@ -267,7 +267,7 @@ void CanvasUsageTracker::EndSession() {
   // Save final stats
   SaveCurrentStats();
   
-  LOG_INFO("CanvasUsage", "Canvas %s: Session ended. Duration: %s, Operations: %d", 
+  LOG_DEBUG("CanvasUsage", "Canvas %s: Session ended. Duration: %s, Operations: %d", 
        canvas_id_.c_str(), 
        FormatDuration(std::chrono::duration_cast<std::chrono::milliseconds>(
          std::chrono::steady_clock::now() - session_start_)).c_str(),
@@ -352,7 +352,7 @@ CanvasUsageManager& CanvasUsageManager::Get() {
 void CanvasUsageManager::RegisterTracker(const std::string& canvas_id, 
                                         std::shared_ptr<CanvasUsageTracker> tracker) {
   trackers_[canvas_id] = tracker;
-  LOG_INFO("CanvasUsage", "Registered usage tracker for canvas: %s", canvas_id.c_str());
+  LOG_DEBUG("CanvasUsage", "Registered usage tracker for canvas: %s", canvas_id.c_str());
 }
 
 std::shared_ptr<CanvasUsageTracker> CanvasUsageManager::GetTracker(const std::string& canvas_id) {
@@ -421,7 +421,7 @@ void CanvasUsageManager::ClearAllTrackers() {
     tracker->ClearHistory();
   }
   trackers_.clear();
-  LOG_INFO("CanvasUsage", "Cleared all canvas usage trackers");
+  LOG_DEBUG("CanvasUsage", "Cleared all canvas usage trackers");
 }
 
 }  // namespace canvas

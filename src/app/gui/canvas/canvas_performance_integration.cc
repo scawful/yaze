@@ -22,7 +22,7 @@ void CanvasPerformanceIntegration::Initialize(const std::string& canvas_id) {
   // Initialize performance profiler integration
   dashboard_ = &gfx::PerformanceDashboard::Get();
   
-  LOG_INFO("CanvasPerformance",
+  LOG_DEBUG("CanvasPerformance",
            "Initialized performance integration for canvas: %s",
            canvas_id_.c_str());
 }
@@ -34,7 +34,7 @@ void CanvasPerformanceIntegration::StartMonitoring() {
   frame_timer_active_ = true;
   frame_timer_ = std::make_unique<gfx::ScopedTimer>("canvas_frame_" + canvas_id_);
   
-  LOG_INFO("CanvasPerformance", "Started performance monitoring for canvas: %s",
+  LOG_DEBUG("CanvasPerformance", "Started performance monitoring for canvas: %s",
            canvas_id_.c_str());
 }
 
@@ -57,7 +57,7 @@ void CanvasPerformanceIntegration::StopMonitoring() {
     frame_timer_active_ = false;
   }
   
-  LOG_INFO("CanvasPerformance", "Stopped performance monitoring for canvas: %s",
+  LOG_DEBUG("CanvasPerformance", "Stopped performance monitoring for canvas: %s",
            canvas_id_.c_str());
 }
 
@@ -363,12 +363,12 @@ void CanvasPerformanceIntegration::AnalyzePerformance() {
   
   // Log trends
   if (std::abs(frame_time_trend) > 1.0) {
-    LOG_INFO("CanvasPerformance", "Canvas %s: Frame time trend: %.2f ms/sample", 
+    LOG_DEBUG("CanvasPerformance", "Canvas %s: Frame time trend: %.2f ms/sample", 
                canvas_id_.c_str(), frame_time_trend);
   }
   
   if (std::abs(memory_trend) > 1.0) {
-    LOG_INFO("CanvasPerformance", "Canvas %s: Memory trend: %.2f MB/sample", 
+    LOG_DEBUG("CanvasPerformance", "Canvas %s: Memory trend: %.2f MB/sample", 
                canvas_id_.c_str(), memory_trend);
   }
 }
@@ -536,7 +536,7 @@ void CanvasPerformanceManager::RegisterIntegration(
     const std::string& canvas_id,
     std::shared_ptr<CanvasPerformanceIntegration> integration) {
   integrations_[canvas_id] = integration;
-  LOG_INFO("CanvasPerformance",
+  LOG_DEBUG("CanvasPerformance",
            "Registered performance integration for canvas: %s",
            canvas_id.c_str());
 }
@@ -604,7 +604,7 @@ void CanvasPerformanceManager::ClearAllIntegrations() {
     integration->StopMonitoring();
   }
   integrations_.clear();
-  LOG_INFO("CanvasPerformance", "Cleared all canvas performance integrations");
+  LOG_DEBUG("CanvasPerformance", "Cleared all canvas performance integrations");
 }
 
 }  // namespace canvas
