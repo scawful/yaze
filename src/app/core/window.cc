@@ -196,8 +196,18 @@ absl::Status HandleEvents(Window& window) {
             window.active_ = false;
             break;
           case SDL_WINDOWEVENT_SIZE_CHANGED:
+          case SDL_WINDOWEVENT_RESIZED:
+            // Update display size for both resize and size_changed events
             io.DisplaySize.x = static_cast<float>(event.window.data1);
             io.DisplaySize.y = static_cast<float>(event.window.data2);
+            break;
+          case SDL_WINDOWEVENT_MINIMIZED:
+          case SDL_WINDOWEVENT_HIDDEN:
+            // Window is minimized/hidden - nothing to render
+            break;
+          case SDL_WINDOWEVENT_RESTORED:
+          case SDL_WINDOWEVENT_SHOWN:
+            // Window is restored - resume normal operation
             break;
         }
         break;
