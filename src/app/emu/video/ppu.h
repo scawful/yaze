@@ -321,7 +321,6 @@ class Ppu {
   // Set pixel output format (0 = BGRX, 1 = XBGR)
   void SetPixelFormat(uint8_t format) { pixelOutputFormat = format; }
 
- private:
   int GetPixelForMode7(int x, int layer, bool priority);
 
   const int cyclesPerScanline = 341;  // SNES PPU has 341 cycles per scanline
@@ -343,6 +342,9 @@ class Ppu {
 
   // cgram access
   uint16_t cgram[0x100];
+
+ private:
+
   uint8_t cgram_pointer_;
   bool cgram_second_write_;
   uint8_t cgram_buffer_;

@@ -7,6 +7,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
+#include "app/zelda3/dungeon/object_drawer.h"
 #include "app/zelda3/dungeon/object_renderer.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/sprite/sprite.h"
@@ -111,10 +112,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       room.LoadObjects();
     }
     
-    // Render background layers with proper positioning
+    // NOTE: Don't draw objects here - RenderRoomBackgroundLayers() already does it
+    // via room.RenderRoomGraphics() which calls RenderObjectsToBackground()
+    
+    // Render background layers from arena buffers
     RenderRoomBackgroundLayers(room_id);
     
-    // Render room objects with proper graphics
+    // Render room objects with proper graphics (old system as fallback)
     if (current_palette_id_ < current_palette_group_.size()) {
       auto room_palette = current_palette_group_[current_palette_id_];
       
@@ -652,31 +656,45 @@ absl::Status DungeonCanvasViewer::UpdateRoomBackgroundLayers(int room_id) {
 
 void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
   if (room_id < 0 || room_id >= 128) {
+    printf("[Canvas] Invalid room_id: %d\n", room_id);
     return;
   }
   
   if (!rom_ || !rom_->is_loaded()) {
+    printf("[Canvas] ROM not loaded\n");
     return;
   }
   
   if (!rooms_) {
+    printf("[Canvas] Rooms pointer is null\n");
     return;
   }
   
-  // Get canvas dimensions to limit rendering
+  // Get canvas dimensions
   int canvas_width = canvas_.width();
   int canvas_height = canvas_.height();
   
-  // Validate canvas dimensions
+  printf("[Canvas] Canvas size: %dx%d\n", canvas_width, canvas_height);
+  
   if (canvas_width <= 0 || canvas_height <= 0) {
+    printf("[Canvas] Invalid canvas dimensions\n");
     return;
   }
   
-  // Render the room's background layers using the graphics arena
-  // BG1 (background layer 1) - main room graphics
+  // Render BG1 (background layer 1) - main room graphics
   auto& bg1_bitmap = gfx::Arena::Get().bg1().bitmap();
+  printf("[Canvas] BG1: active=%d, size=%dx%d, texture=%p\n",
+         bg1_bitmap.is_active(), bg1_bitmap.width(), bg1_bitmap.height(), 
+         (void*)bg1_bitmap.texture());
+  
   if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
-    // Scale the background to fit the canvas
+    // Ensure texture exists
+    if (!bg1_bitmap.texture()) {
+      printf("[Canvas] WARNING: BG1 has no texture, creating...\n");
+      core::Renderer::Get().RenderBitmap(&bg1_bitmap);
+    }
+    
+    // Scale to fit canvas
     float scale_x = static_cast<float>(canvas_width) / bg1_bitmap.width();
     float scale_y = static_cast<float>(canvas_height) / bg1_bitmap.height();
     float scale = std::min(scale_x, scale_y);
@@ -686,13 +704,21 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
     int offset_x = (canvas_width - scaled_width) / 2;
     int offset_y = (canvas_height - scaled_height) / 2;
     
+    printf("[Canvas] Drawing BG1 at offset=(%d,%d), scaled_size=%dx%d, scale=%.2f\n",
+           offset_x, offset_y, scaled_width, scaled_height, scale);
+    
     canvas_.DrawBitmap(bg1_bitmap, offset_x, offset_y, scale, 255);
+  } else {
+    printf("[Canvas] BG1 not ready for rendering\n");
   }
   
-  // BG2 (background layer 2) - sprite graphics (overlay)
+  // Render BG2 (background layer 2) - sprite graphics (overlay)
   auto& bg2_bitmap = gfx::Arena::Get().bg2().bitmap();
   if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
-    // Scale the background to fit the canvas
+    if (!bg2_bitmap.texture()) {
+      core::Renderer::Get().RenderBitmap(&bg2_bitmap);
+    }
+    
     float scale_x = static_cast<float>(canvas_width) / bg2_bitmap.width();
     float scale_y = static_cast<float>(canvas_height) / bg2_bitmap.height();
     float scale = std::min(scale_x, scale_y);
@@ -702,8 +728,13 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
     int offset_x = (canvas_width - scaled_width) / 2;
     int offset_y = (canvas_height - scaled_height) / 2;
     
-    canvas_.DrawBitmap(bg2_bitmap, offset_x, offset_y, scale, 200); // Semi-transparent overlay
+    printf("[Canvas] Drawing BG2 at offset=(%d,%d), scaled_size=%dx%d, scale=%.2f\n",
+           offset_x, offset_y, scaled_width, scaled_height, scale);
+    
+    canvas_.DrawBitmap(bg2_bitmap, offset_x, offset_y, scale, 200);
   }
+  
+  printf("[Canvas] RenderRoomBackgroundLayers complete\n");
 }
 
 }  // namespace yaze::editor

@@ -767,6 +767,7 @@ class Cpu {
   }
 
   auto mutable_log_instructions() -> bool* { return &log_instructions_; }
+  bool stopped() const { return stopped_; }
 
  private:
   void compare(uint16_t register_value, uint16_t memory_value) {
