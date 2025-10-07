@@ -5,6 +5,11 @@
 #include <vector>
 
 #include "app/core/window.h"
+
+namespace yaze::core {
+  extern bool g_window_is_resizing;
+}
+
 #include "app/emu/cpu/internal/opcodes.h"
 #include "app/emu/debug/disassembly_viewer.h"
 #include "app/gui/color.h"
@@ -125,16 +130,27 @@ void Emulator::Run(Rom* rom) {
 
   RenderNavBar();
 
-  // Auto-pause emulator when window loses focus to save CPU/battery
-  static bool was_running_before_focus_loss = false;
+  // Auto-pause emulator during window operations to prevent macOS crashes
+  static bool was_running_before_pause = false;
   bool window_has_focus = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootWindow);
   
-  if (!window_has_focus && running_) {
-    was_running_before_focus_loss = true;
+  // Check if window is being resized (set in HandleEvents)
+  if (yaze::core::g_window_is_resizing && running_) {
+    was_running_before_pause = true;
     running_ = false;
-  } else if (window_has_focus && !running_ && was_running_before_focus_loss) {
+  } else if (!yaze::core::g_window_is_resizing && !running_ && was_running_before_pause) {
+    // Auto-resume after resize completes
+    running_ = true;
+    was_running_before_pause = false;
+  }
+  
+  // Also pause when window loses focus to save CPU/battery
+  if (!window_has_focus && running_ && !was_running_before_pause) {
+    was_running_before_pause = true;
+    running_ = false;
+  } else if (window_has_focus && !running_ && was_running_before_pause && !yaze::core::g_window_is_resizing) {
     // Don't auto-resume - let user manually resume
-    was_running_before_focus_loss = false;
+    was_running_before_pause = false;
   }
 
   if (running_) {
