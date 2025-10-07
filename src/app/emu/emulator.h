@@ -40,9 +40,10 @@ struct EmulatorKeybindings {
 class Emulator {
  public:
   Emulator() = default;
-  ~Emulator() = default;
+  ~Emulator();
   void Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& rom_data);
   void Run(Rom* rom);
+  void Cleanup();
 
   auto snes() -> Snes& { return snes_; }
   auto running() const -> bool { return running_; }

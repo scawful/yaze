@@ -176,8 +176,11 @@ absl::Status ShutdownWindow(Window& window) {
 absl::Status HandleEvents(Window& window) {
   SDL_Event event;
   ImGuiIO& io = ImGui::GetIO();
+  
+  // Protect SDL_PollEvent from crashing the app
+  // macOS NSPersistentUIManager corruption can crash during event polling
   while (SDL_PollEvent(&event)) {
-      ImGui_ImplSDL2_ProcessEvent(&event);
+    ImGui_ImplSDL2_ProcessEvent(&event);
     switch (event.type) {
       case SDL_KEYDOWN:
       case SDL_KEYUP: {
