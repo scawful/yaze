@@ -46,6 +46,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "jump_to_tab", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9", null ],
     [ "IsRomLoaded", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#abe9bb99ce779b538b42a7e300a5c85e4", null ],
     [ "GetRomStatus", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#ab78bdba499d5e53d5892006e48d7f80f", null ],
+    [ "set_current_map", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a6d2c10fd8ffdd8096d57333856cd887e", null ],
     [ "LoadGraphics", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#ad8777e42d3b62d08401b380cce94230b", null ],
     [ "DrawFullscreenCanvas", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a85c7e85183b05afd17cebf8925da2e7e", null ],
     [ "DrawToolset", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#abd85ac71082a0372db173be15e56cba8", null ],

@@ -63,7 +63,7 @@ var searchData=
   ['focus_5finput_5f_60',['focus_input_',['../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#ab1f648d85720d9815c174762f5f7ee87',1,'yaze::editor::AgentChatHistoryPopup']]],
   ['focus_5fproposal_61',['focus_proposal',['../d7/de3/structyaze_1_1editor_1_1AgentChatWidget_1_1AutomationCallbacks.html#a0ab5095cb5cf1acf3acad4f35314305d',1,'yaze::editor::AgentChatWidget::AutomationCallbacks']]],
   ['focus_5fstate_62',['focus_state',['../dd/d3c/structyaze_1_1cli_1_1EnhancedStatusPanel_1_1LayoutInfo.html#a18d76e025bb0780c58f6bf58cfc26b93',1,'yaze::cli::EnhancedStatusPanel::LayoutInfo']]],
-  ['focused_5f_63',['focused_',['../d6/d00/classyaze_1_1cli_1_1EnhancedChatComponent.html#ac309f4f39c52b15f69422078485b108c',1,'yaze::cli::EnhancedChatComponent']]],
+  ['focused_5f_63',['focused_',['../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a357029ac656b6272a45b82dc8ccbd5df',1,'yaze::gui::EditorCard::focused_'],['../d6/d00/classyaze_1_1cli_1_1EnhancedChatComponent.html#ac309f4f39c52b15f69422078485b108c',1,'yaze::cli::EnhancedChatComponent::focused_']]],
   ['focused_5fwidget_64',['focused_widget',['../d1/d17/structyaze_1_1core_1_1WidgetState.html#a90c5fb9680d398a3363a34a2b4fb4ca2',1,'yaze::core::WidgetState']]],
   ['focused_5fwindow_65',['focused_window',['../d1/d17/structyaze_1_1core_1_1WidgetState.html#a44db37dd43d6913221e1376a941e8efc',1,'yaze::core::WidgetState']]],
   ['font_5fgfx16_5fdata_5f_66',['font_gfx16_data_',['../dc/dd1/structyaze_1_1editor_1_1MessagePreview.html#a7b3519f641bef55e1179d46084a7b42c',1,'yaze::editor::MessagePreview']]],

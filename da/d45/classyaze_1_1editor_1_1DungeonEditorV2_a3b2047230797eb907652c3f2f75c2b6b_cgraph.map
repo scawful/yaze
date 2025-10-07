@@ -1,0 +1,9 @@
+<map id="yaze::editor::DungeonEditorV2::OnEntranceSelected" name="yaze::editor::DungeonEditorV2::OnEntranceSelected">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,181,79"/>
+<area shape="rect" id="Node000002" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#af5b46bb90815fb2548d1f2e4344abe97" title=" " alt="" coords="229,39,404,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,56,213,56,213,62,181,62"/>
+<area shape="rect" id="Node000003" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a418126f34e04a15790cf1b74d1060968" title=" " alt="" coords="454,5,629,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="404,43,438,38,439,44,405,49"/>
+<area shape="rect" id="Node000004" href="$db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#ae7dd44beb0277320fa1ea6279ad860ca" title=" " alt="" coords="452,71,630,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="405,69,437,73,436,79,404,74"/>
+</map>

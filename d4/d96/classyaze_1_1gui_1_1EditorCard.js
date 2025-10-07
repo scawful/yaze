@@ -17,13 +17,18 @@ var classyaze_1_1gui_1_1EditorCard =
     [ "End", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a5913c645e59653126038be1996c35bc2", null ],
     [ "SetMinimized", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a592b63b3ea3a80c2b1df64ae253453c3", null ],
     [ "IsMinimized", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d6e3c2609f5f39f6a96d704fe3974a2", null ],
+    [ "Focus", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#aac0bf6b664034d4b298c0e1538707435", null ],
+    [ "IsFocused", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a2bb26734e0d806ecf79296e31c374430", null ],
+    [ "GetWindowName", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a89c23fe05f810e8b7e1b8e6d496dfd83", null ],
     [ "title_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a589a365d1295595b57af4560659e9257", null ],
     [ "icon_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a518ef40cac3637cd0e6399b2f6c40347", null ],
+    [ "window_name_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#aaf11ab59bda3719101f37afc120ccbc7", null ],
     [ "default_size_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#ac1beb1e30e4b8bad31c471a04f2becdb", null ],
     [ "position_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a33f315f2ac29356b67d23a5b54ba70a1", null ],
     [ "minimizable_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a8ed4b01ec9a1bede7d0d3126ee1a855b", null ],
     [ "closable_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a5f50a0ad3e3cf4729ef2e1b75d1cf332", null ],
     [ "minimized_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a76edc2863ff61dab296201ac57bd4aff", null ],
     [ "first_draw_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#ab43c29359073f6a631bb78bc7a4b0934", null ],
+    [ "focused_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#a357029ac656b6272a45b82dc8ccbd5df", null ],
     [ "p_open_", "d4/d96/classyaze_1_1gui_1_1EditorCard.html#af89a3e3ecc6f03629ea8bda0938be5c3", null ]
 ];

@@ -12,5 +12,7 @@ var searchData=
   ['jsr_9',['JSR',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701',1,'yaze::emu::Cpu']]],
   ['jump_5fto_5ftab_10',['jump_to_tab',['../d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer.html#a09dd2423d5f66936f975dcc26fbb647a',1,'yaze::editor::OverworldEntityRenderer::jump_to_tab()'],['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9',1,'yaze::editor::OverworldEditor::jump_to_tab()']]],
   ['jumptoaddress_11',['JumpToAddress',['../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#a513a893844deaa20703a17bb2b409f76',1,'yaze::emu::debug::DisassemblyViewer']]],
-  ['jumptofunction_12',['JumpToFunction',['../d3/d60/classyaze_1_1zelda3_1_1SpriteInstruction.html#a2435f9ddc0c2c05006e60f9a7408ecf4',1,'yaze::zelda3::SpriteInstruction']]]
+  ['jumptodungeonroom_12',['JumpToDungeonRoom',['../dd/d12/classyaze_1_1editor_1_1EditorManager.html#a245ff7b7fa3cb0ffe586c74a6955a525',1,'yaze::editor::EditorManager']]],
+  ['jumptofunction_13',['JumpToFunction',['../d3/d60/classyaze_1_1zelda3_1_1SpriteInstruction.html#a2435f9ddc0c2c05006e60f9a7408ecf4',1,'yaze::zelda3::SpriteInstruction']]],
+  ['jumptooverworldmap_14',['JumpToOverworldMap',['../dd/d12/classyaze_1_1editor_1_1EditorManager.html#a9bf700aa2b7d6a2053f8e9535375f8cb',1,'yaze::editor::EditorManager']]]
 ];
