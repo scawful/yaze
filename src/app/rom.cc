@@ -279,6 +279,13 @@ absl::Status Rom::LoadFromFile(const std::string &filename,
     return absl::InvalidArgumentError(
         "Could not load ROM: parameter `filename` is empty.");
   }
+  
+  // Validate file exists before proceeding
+  if (!std::filesystem::exists(filename)) {
+    return absl::NotFoundError(
+        absl::StrCat("ROM file does not exist: ", filename));
+  }
+  
   filename_ = std::filesystem::absolute(filename).string();
   short_name_ = filename_.substr(filename_.find_last_of("/\\") + 1);
 
@@ -288,9 +295,19 @@ absl::Status Rom::LoadFromFile(const std::string &filename,
         absl::StrCat("Could not open ROM file: ", filename_));
   }
 
-  // Get file size and resize rom_data_
+  // Get file size and validate
   try {
     size_ = std::filesystem::file_size(filename_);
+    
+    // Validate ROM size (minimum 32KB, maximum 8MB for expanded ROMs)
+    if (size_ < 32768) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("ROM file too small (%zu bytes), minimum is 32KB", size_));
+    }
+    if (size_ > 8 * 1024 * 1024) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("ROM file too large (%zu bytes), maximum is 8MB", size_));
+    }
   } catch (const std::filesystem::filesystem_error &e) {
     // Try to get the file size from the open file stream
     file.seekg(0, std::ios::end);
@@ -299,11 +316,30 @@ absl::Status Rom::LoadFromFile(const std::string &filename,
           "Could not get file size: ", filename_, " - ", e.what()));
     }
     size_ = file.tellg();
+    
+    // Validate size from stream
+    if (size_ < 32768 || size_ > 8 * 1024 * 1024) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid ROM size: %zu bytes", size_));
+    }
   }
-  rom_data_.resize(size_);
-
-  // Read file into rom_data_
-  file.read(reinterpret_cast<char *>(rom_data_.data()), size_);
+  
+  // Allocate and read ROM data
+  try {
+    rom_data_.resize(size_);
+    file.seekg(0, std::ios::beg);
+    file.read(reinterpret_cast<char *>(rom_data_.data()), size_);
+    
+    if (!file) {
+      return absl::InternalError(
+          absl::StrFormat("Failed to read ROM data, read %zu of %zu bytes",
+                         file.gcount(), size_));
+    }
+  } catch (const std::bad_alloc& e) {
+    return absl::ResourceExhaustedError(
+        absl::StrFormat("Failed to allocate memory for ROM (%zu bytes)", size_));
+  }
+  
   file.close();
 
   if (!options.load_zelda3_content) {

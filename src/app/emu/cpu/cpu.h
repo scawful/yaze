@@ -10,6 +10,11 @@
 namespace yaze {
 namespace emu {
 
+// Forward declarations
+namespace debug {
+class DisassemblyViewer;
+}
+
 class InstructionEntry {
  public:
   // Constructor
@@ -47,7 +52,26 @@ class Cpu {
   void Nmi() { nmi_wanted_ = true; }
 
   std::vector<uint32_t> breakpoints_;
-  std::vector<InstructionEntry> instruction_log_;
+  std::vector<InstructionEntry> instruction_log_;  // Legacy log for compatibility
+  
+  // New disassembly viewer
+  debug::DisassemblyViewer& disassembly_viewer();
+  const debug::DisassemblyViewer& disassembly_viewer() const;
+
+  // Public register access for debugging and UI
+  uint16_t A = 0;               // Accumulator
+  uint16_t X = 0;               // X index register
+  uint16_t Y = 0;               // Y index register
+  uint16_t D = 0;               // Direct Page register
+  uint8_t DB = 0;               // Data Bank register
+  uint8_t PB = 0;               // Program Bank register
+  uint16_t PC = 0;              // Program Counter
+  uint8_t status = 0b00110000;  // Processor Status (P)
+
+  // Breakpoint management
+  void set_int_delay(bool delay) { int_delay_ = delay; }
+ 
+  debug::DisassemblyViewer* disassembly_viewer_ = nullptr;
 
   // ======================================================
   // Interrupt Vectors
@@ -62,17 +86,9 @@ class Cpu {
   void DoInterrupt();
 
   // ======================================================
-  // Registers
+  // Internal state
 
-  uint16_t A = 0;               // Accumulator
-  uint16_t X = 0;               // X index register
-  uint16_t Y = 0;               // Y index register
-  uint16_t D = 0;               // Direct Page register
-  uint8_t DB = 0;               // Data Bank register
-  uint8_t PB = 0;               // Program Bank register
-  uint16_t PC = 0;              // Program Counter
   uint8_t E = 1;                // Emulation mode flag
-  uint8_t status = 0b00110000;  // Processor Status (P)
 
   // Mnemonic 	Value 	Binary 	Description
   // N 	      #$80 	10000000 	Negative
@@ -233,7 +249,6 @@ class Cpu {
     }
   }
 
-  void set_int_delay(bool delay) { int_delay_ = delay; }
 
   // Addressing Modes
 

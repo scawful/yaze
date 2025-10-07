@@ -6,12 +6,28 @@
 #include <sstream>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/core/features.h"
 #include "app/emu/cpu/internal/opcodes.h"
+#include "app/emu/debug/disassembly_viewer.h"
 #include "util/log.h"
 
 namespace yaze {
 namespace emu {
+
+debug::DisassemblyViewer& Cpu::disassembly_viewer() {
+  if (disassembly_viewer_ == nullptr) {
+    disassembly_viewer_ = new debug::DisassemblyViewer();
+  }
+  return *disassembly_viewer_;
+}
+
+const debug::DisassemblyViewer& Cpu::disassembly_viewer() const {
+  if (disassembly_viewer_ == nullptr) {
+    const_cast<Cpu*>(this)->disassembly_viewer_ = new debug::DisassemblyViewer();
+  }
+  return *disassembly_viewer_;
+}
 
 void Cpu::Reset(bool hard) {
   if (hard) {
@@ -1884,38 +1900,50 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
 }
 
 void Cpu::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
-                          bool immediate, bool accumulator_mode) {
+bool immediate, bool accumulator_mode) {
   if (core::FeatureFlags::get().kLogInstructions) {
+    // Build full 24-bit address
+    uint32_t full_address = (PB << 16) | PC;
+    
+    // Extract operand bytes based on instruction size
+    std::vector<uint8_t> operand_bytes;
+    std::string operand_str;
+    
+    if (operand) {
+      if (immediate) {
+        operand_str += "#";
+      }
+      
+      if (accumulator_mode) {
+        // 8-bit operand
+        operand_bytes.push_back(operand & 0xFF);
+        operand_str += absl::StrFormat("$%02X", operand & 0xFF);
+      } else {
+        // 16-bit operand (little-endian)
+        operand_bytes.push_back(operand & 0xFF);
+        operand_bytes.push_back((operand >> 8) & 0xFF);
+        operand_str += absl::StrFormat("$%04X", operand);
+      }
+    }
+    
+    // Get mnemonic
+    const std::string& mnemonic = opcode_to_mnemonic.at(opcode);
+    
+    // Record to new disassembly viewer
+    disassembly_viewer().RecordInstruction(full_address, opcode, operand_bytes,
+                                          mnemonic, operand_str);
+    
+    // Also maintain legacy log for compatibility
     std::ostringstream oss;
     oss << "$" << std::uppercase << std::setw(2) << std::setfill('0')
         << static_cast<int>(PB) << ":" << std::hex << PC << ": 0x"
         << std::setw(2) << std::setfill('0') << std::hex
-        << static_cast<int>(opcode) << " " << opcode_to_mnemonic.at(opcode)
-        << " ";
+        << static_cast<int>(opcode) << " " << mnemonic << " " << operand_str;
 
-    // Log the operand.
-    std::string ops;
-    if (operand) {
-      if (immediate) {
-        ops += "#";
-      }
-      std::ostringstream oss_ops;
-      oss_ops << "$";
-      if (accumulator_mode) {
-        oss_ops << std::hex << std::setw(2) << std::setfill('0')
-                << static_cast<int>(operand);
-      } else {
-        oss_ops << std::hex << std::setw(4) << std::setfill('0')
-                << static_cast<int>(operand);
-      }
-      ops = oss_ops.str();
-    }
-
-    oss << ops << std::endl;
-
-    InstructionEntry entry(PC, opcode, ops, oss.str());
+    InstructionEntry entry(PC, opcode, operand_str, oss.str());
     instruction_log_.push_back(entry);
-    // Also emit to the central logger for user/agent-controlled sinks.
+    
+    // Also emit to the central logger for user/agent-controlled sinks
     util::LogManager::instance().log(util::LogLevel::YAZE_DEBUG, "CPU",
                                      oss.str());
   } else {

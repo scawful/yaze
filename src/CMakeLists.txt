@@ -7,6 +7,7 @@ set(
   app/emu/audio/internal/instructions.cc
   app/emu/cpu/internal/addressing.cc
   app/emu/cpu/internal/instructions.cc
+  app/emu/debug/disassembly_viewer.cc
   app/emu/cpu/cpu.cc
   app/emu/video/ppu.cc
   app/emu/memory/dma.cc
