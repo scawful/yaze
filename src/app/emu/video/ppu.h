@@ -258,8 +258,9 @@ class Ppu {
   // Initialize the frame buffer
   void Init() {
     frame_buffer_.resize(256 * 240, 0);
-    // Set to XBGR format (1) for compatibility with SDL_PIXELFORMAT_ARGB8888
-    pixelOutputFormat = 1;
+    // Set to BGRX format (0) for compatibility with SDL_PIXELFORMAT_ARGB8888
+    // Format 0 = BGRX: [B][G][R][A] byte order in memory (little-endian)
+    pixelOutputFormat = 0;
   }
 
   void Reset();
