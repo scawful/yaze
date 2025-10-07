@@ -103,6 +103,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
     
+    // Update object interaction context
+    object_interaction_.SetCurrentRoom(rooms_, room_id);
+    
     // Check if THIS ROOM's buffers need rendering (not global arena!)
     auto& bg1_bitmap = room.bg1_buffer().bitmap();
     bool needs_render = !bg1_bitmap.is_active() || bg1_bitmap.width() == 0;
@@ -138,6 +141,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       
       // Render sprites as simple 16x16 squares with labels
       RenderSprites(room);
+    }
+    
+    // Handle object interaction if enabled
+    if (object_interaction_enabled_) {
+      object_interaction_.HandleCanvasMouseInput();
+      object_interaction_.CheckForObjectSelection();
+      object_interaction_.DrawSelectBox();
     }
   }
   

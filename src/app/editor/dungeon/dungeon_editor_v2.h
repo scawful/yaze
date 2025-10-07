@@ -13,6 +13,7 @@
 #include "dungeon_canvas_viewer.h"
 #include "dungeon_object_selector.h"
 #include "dungeon_room_loader.h"
+#include "object_editor_card.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/dungeon/room_entrance.h"
 #include "app/gui/editor_layout.h"
@@ -92,6 +93,7 @@ class DungeonEditorV2 : public Editor {
   void DrawRoomMatrixCard();
   void DrawRoomsListCard();
   void DrawEntrancesListCard();
+  void DrawRoomGraphicsCard();
   
   // Room selection callback
   void OnRoomSelected(int room_id);
@@ -102,6 +104,9 @@ class DungeonEditorV2 : public Editor {
   std::array<zelda3::Room, 0x128> rooms_;
   std::array<zelda3::RoomEntrance, 0x8C> entrances_;
   
+  // Current selection state
+  int current_entrance_id_ = 0;
+  
   // Active room tabs and card tracking for jump-to
   ImVector<int> active_rooms_;
   std::unordered_map<int, std::shared_ptr<gui::EditorCard>> room_cards_;
@@ -111,7 +116,9 @@ class DungeonEditorV2 : public Editor {
   bool show_room_selector_ = true;
   bool show_room_matrix_ = false;
   bool show_entrances_list_ = false;
-  bool show_object_selector_ = true;
+  bool show_room_graphics_ = false;    // Room graphics card
+  bool show_object_selector_ = true;   // Legacy object selector
+  bool show_object_editor_ = true;     // New unified object editor card
   bool show_palette_editor_ = true;
   
   // Palette management
@@ -127,8 +134,12 @@ class DungeonEditorV2 : public Editor {
   DungeonObjectSelector object_selector_;
   gui::DungeonObjectEmulatorPreview object_emulator_preview_;
   gui::PaletteEditorWidget palette_editor_;
+  std::unique_ptr<ObjectEditorCard> object_editor_card_;  // Unified object editor
   
   bool is_loaded_ = false;
+  
+  // Docking class for room windows to dock together
+  ImGuiWindowClass room_window_class_;
 };
 
 }  // namespace editor
