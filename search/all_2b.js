@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['🎯_20immediate_20priorities_20critical_20path_20to_20full_20functionality_0',['🎯 Immediate Priorities (Critical Path to Full Functionality)',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md434',1,'']]]
+  ['🎉_20conclusion_0',['🎉 Conclusion',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md798',1,'']]],
+  ['🎉_20major_20breakthrough_3a_20game_20is_20running_1',['🎉 Major Breakthrough: Game is Running!',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md362',1,'']]]
 ];

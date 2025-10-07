@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🔧_20known_20issues_20non_20critical_0',['🔧 Known Issues (Non-Critical)',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md364',1,'']]]
+  ['🐛_20bugs_20fixed_20during_20migration_0',['🐛 Bugs Fixed During Migration',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md760',1,'']]]
 ];

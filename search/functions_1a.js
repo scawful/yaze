@@ -30,7 +30,7 @@ var searchData=
   ['_7ee2etestsuite_27',['~E2ETestSuite',['../d0/d20/classyaze_1_1test_1_1E2ETestSuite.html#a494a9cf89d70eb051a535a7e20045b6a',1,'yaze::test::E2ETestSuite']]],
   ['_7eeditor_28',['~Editor',['../d3/d9f/classyaze_1_1editor_1_1Editor.html#a78070dc194ac0104406bc2ff4dd07b1f',1,'yaze::editor::Editor']]],
   ['_7eeditorintegrationtest_29',['~EditorIntegrationTest',['../dd/d13/classyaze_1_1test_1_1EditorIntegrationTest.html#ad8030e52daf3fad656b0f0b989a91abe',1,'yaze::test::EditorIntegrationTest']]],
-  ['_7eemulator_30',['~Emulator',['../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a10454fbeef41cc15a260df9d55f11d58',1,'yaze::emu::Emulator']]],
+  ['_7eemulator_30',['~Emulator',['../d0/dbd/classyaze_1_1emu_1_1Emulator.html#ab796b2904a8f7b6cc8e4cabc71032ce2',1,'yaze::emu::Emulator']]],
   ['_7egraphicscache_31',['~GraphicsCache',['../db/dd7/classyaze_1_1zelda3_1_1ObjectRenderer_1_1GraphicsCache.html#ac432aee3bbbdfd6d196ee1d84caa169c',1,'yaze::zelda3::ObjectRenderer::GraphicsCache']]],
   ['_7egraphicsoptimizationscope_32',['~GraphicsOptimizationScope',['../d6/dcc/classyaze_1_1gfx_1_1GraphicsOptimizationScope.html#aa36fc5b7d84a89367d5ebc06785a6129',1,'yaze::gfx::GraphicsOptimizationScope']]],
   ['_7egraphicsoptimizer_33',['~GraphicsOptimizer',['../d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#a25e61111048ec70f2fc8c85fcc399893',1,'yaze::gfx::GraphicsOptimizer']]],

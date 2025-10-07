@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['📝_20dungeon_20editor_20smoke_20test_0',['📝 Dungeon Editor Smoke Test',['../d9/db0/md_test_2e2e_2README.html#autotoc_md832',1,'']]],
-  ['📝_20technical_20debt_1',['📝 Technical Debt',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md436',1,'']]]
+  ['🎯_20immediate_20priorities_20critical_20path_20to_20full_20functionality_0',['🎯 Immediate Priorities (Critical Path to Full Functionality)',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md434',1,'']]],
+  ['🎯_20migration_20goals_20results_1',['🎯 Migration Goals &amp; Results',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md697',1,'']]]
 ];

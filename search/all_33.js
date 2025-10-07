@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🚀_20enhancement_20priorities_20after_20core_20is_20stable_0',['🚀 Enhancement Priorities (After Core is Stable)',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md435',1,'']]]
+  ['📊_20performance_20benchmarks_0',['📊 Performance Benchmarks',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md755',1,'']]]
 ];

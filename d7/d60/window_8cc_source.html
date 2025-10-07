@@ -288,50 +288,53 @@ $(document).ready(function(){initNavTree('d7/d60/window_8cc_source.html','../../
 <div class="line"><a id="l00176" name="l00176"></a><span class="lineno"><a class="line" href="../../db/d33/namespaceyaze_1_1core.html#ad4a900088575fbf46321559795839a51">  176</a></span>absl::Status <a class="code hl_function" href="../../db/d33/namespaceyaze_1_1core.html#ad4a900088575fbf46321559795839a51">HandleEvents</a>(<a class="code hl_struct" href="../../de/d86/structyaze_1_1core_1_1Window.html">Window</a>&amp; window) {</div>
 <div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>  SDL_Event event;</div>
 <div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>  ImGuiIO&amp; io = ImGui::GetIO();</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  <span class="keywordflow">while</span> (SDL_PollEvent(&amp;event)) {</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>      ImGui_ImplSDL2_ProcessEvent(&amp;event);</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    <span class="keywordflow">switch</span> (event.type) {</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>      <span class="keywordflow">case</span> SDL_KEYDOWN:</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>      <span class="keywordflow">case</span> SDL_KEYUP: {</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>        io.KeyShift = ((SDL_GetModState() &amp; KMOD_SHIFT) != 0);</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>        io.KeyCtrl = ((SDL_GetModState() &amp; KMOD_CTRL) != 0);</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>        io.KeyAlt = ((SDL_GetModState() &amp; KMOD_ALT) != 0);</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>        io.KeySuper = ((SDL_GetModState() &amp; KMOD_GUI) != 0);</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>        <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>      }</div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>      <span class="keywordflow">case</span> SDL_WINDOWEVENT:</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>        <span class="keywordflow">switch</span> (event.window.event) {</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>          <span class="keywordflow">case</span> SDL_WINDOWEVENT_CLOSE:</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>            window.<a class="code hl_variable" href="../../de/d86/structyaze_1_1core_1_1Window.html#a96a352e05fe2ec25be69af88094507e2">active_</a> = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>            <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>          <span class="keywordflow">case</span> SDL_WINDOWEVENT_SIZE_CHANGED:</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>            io.DisplaySize.x = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(<span class="keyword">event</span>.window.data1);</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>            io.DisplaySize.y = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(<span class="keyword">event</span>.window.data2);</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>            <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>        }</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>        <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    }</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>  }</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>  <span class="keywordtype">int</span> mouseX;</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  <span class="keywordtype">int</span> mouseY;</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> buttons = SDL_GetMouseState(&amp;mouseX, &amp;mouseY);</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span> </div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  io.DeltaTime = 1.0f / 60.0f;</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  io.MousePos = ImVec2(<span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(mouseX), <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(mouseY));</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  io.MouseDown[0] = buttons &amp; SDL_BUTTON(SDL_BUTTON_LEFT);</div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  io.MouseDown[1] = buttons &amp; SDL_BUTTON(SDL_BUTTON_RIGHT);</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  io.MouseDown[2] = buttons &amp; SDL_BUTTON(SDL_BUTTON_MIDDLE);</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span> </div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  <span class="keywordtype">int</span> wheel = 0;</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  io.MouseWheel = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(wheel);</div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>}</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>  </div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>  <span class="comment">// Protect SDL_PollEvent from crashing the app</span></div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>  <span class="comment">// macOS NSPersistentUIManager corruption can crash during event polling</span></div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>  <span class="keywordflow">while</span> (SDL_PollEvent(&amp;event)) {</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    ImGui_ImplSDL2_ProcessEvent(&amp;event);</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    <span class="keywordflow">switch</span> (event.type) {</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>      <span class="keywordflow">case</span> SDL_KEYDOWN:</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>      <span class="keywordflow">case</span> SDL_KEYUP: {</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>        io.KeyShift = ((SDL_GetModState() &amp; KMOD_SHIFT) != 0);</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>        io.KeyCtrl = ((SDL_GetModState() &amp; KMOD_CTRL) != 0);</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>        io.KeyAlt = ((SDL_GetModState() &amp; KMOD_ALT) != 0);</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>        io.KeySuper = ((SDL_GetModState() &amp; KMOD_GUI) != 0);</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>      }</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>      <span class="keywordflow">case</span> SDL_WINDOWEVENT:</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>        <span class="keywordflow">switch</span> (event.window.event) {</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>          <span class="keywordflow">case</span> SDL_WINDOWEVENT_CLOSE:</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>            window.<a class="code hl_variable" href="../../de/d86/structyaze_1_1core_1_1Window.html#a96a352e05fe2ec25be69af88094507e2">active_</a> = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>            <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>          <span class="keywordflow">case</span> SDL_WINDOWEVENT_SIZE_CHANGED:</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>            io.DisplaySize.x = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(<span class="keyword">event</span>.window.data1);</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>            io.DisplaySize.y = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(<span class="keyword">event</span>.window.data2);</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>            <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>        }</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    }</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>  }</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  <span class="keywordtype">int</span> mouseX;</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  <span class="keywordtype">int</span> mouseY;</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> buttons = SDL_GetMouseState(&amp;mouseX, &amp;mouseY);</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span> </div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>  io.DeltaTime = 1.0f / 60.0f;</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  io.MousePos = ImVec2(<span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(mouseX), <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(mouseY));</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  io.MouseDown[0] = buttons &amp; SDL_BUTTON(SDL_BUTTON_LEFT);</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  io.MouseDown[1] = buttons &amp; SDL_BUTTON(SDL_BUTTON_RIGHT);</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  io.MouseDown[2] = buttons &amp; SDL_BUTTON(SDL_BUTTON_MIDDLE);</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span> </div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>  <span class="keywordtype">int</span> wheel = 0;</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>  io.MouseWheel = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(wheel);</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>}</div>
 </div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span> </div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>}  <span class="comment">// namespace core</span></div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span> </div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>}  <span class="comment">// namespace core</span></div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aarena_8h_html"><div class="ttname"><a href="../../da/d0c/arena_8h.html">arena.h</a></div></div>
-<div class="ttc" id="aclassyaze_1_1gfx_1_1Arena_html_ae52ba2fa3e011c990a2d2fe081838efa"><div class="ttname"><a href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ae52ba2fa3e011c990a2d2fe081838efa">yaze::gfx::Arena::Shutdown</a></div><div class="ttdeci">void Shutdown()</div><div class="ttdef"><b>Definition</b> <a href="../../d2/dee/arena_8cc_source.html#l00115">arena.cc:115</a></div></div>
+<div class="ttc" id="aclassyaze_1_1gfx_1_1Arena_html_ae52ba2fa3e011c990a2d2fe081838efa"><div class="ttname"><a href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ae52ba2fa3e011c990a2d2fe081838efa">yaze::gfx::Arena::Shutdown</a></div><div class="ttdeci">void Shutdown()</div><div class="ttdef"><b>Definition</b> <a href="../../d2/dee/arena_8cc_source.html#l00134">arena.cc:134</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1Arena_html_ae6809b5062da35e7d8f3ff54a79c7b55"><div class="ttname"><a href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55">yaze::gfx::Arena::Get</a></div><div class="ttdeci">static Arena &amp; Get()</div><div class="ttdef"><b>Definition</b> <a href="../../d2/dee/arena_8cc_source.html#l00014">arena.cc:14</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1IRenderer_html"><div class="ttname"><a href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html">yaze::gfx::IRenderer</a></div><div class="ttdoc">Defines an abstract interface for all rendering operations.</div><div class="ttdef"><b>Definition</b> <a href="../../df/d18/irenderer_8h_source.html#l00035">irenderer.h:35</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1IRenderer_html_a1c76494f211d5539be924f9c788aded9"><div class="ttname"><a href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a1c76494f211d5539be924f9c788aded9">yaze::gfx::IRenderer::Initialize</a></div><div class="ttdeci">virtual bool Initialize(SDL_Window *window)=0</div><div class="ttdoc">Initializes the renderer with a given window.</div></div>
