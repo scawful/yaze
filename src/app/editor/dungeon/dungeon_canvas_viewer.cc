@@ -102,8 +102,17 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
     
-    // Automatically load room graphics if not already loaded
-    if (room.blocks().empty()) {
+    // Check if THIS ROOM's buffers need rendering (not global arena!)
+    auto& bg1_bitmap = room.bg1_buffer().bitmap();
+    bool needs_render = !bg1_bitmap.is_active() || bg1_bitmap.width() == 0;
+    
+    printf("[DrawCanvas] Room %d: needs_render=%d, bg1_active=%d, blocks=%zu, objects=%zu\n",
+           room_id, needs_render, bg1_bitmap.is_active(), 
+           room.blocks().size(), room.GetTileObjects().size());
+    
+    // Render immediately if needed
+    if (needs_render) {
+      printf("[DrawCanvas] Rendering room %d graphics...\n", room_id);
       (void)LoadAndRenderRoomGraphics(room_id);
     }
     
@@ -112,10 +121,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       room.LoadObjects();
     }
     
-    // NOTE: Don't draw objects here - RenderRoomBackgroundLayers() already does it
-    // via room.RenderRoomGraphics() which calls RenderObjectsToBackground()
-    
-    // Render background layers from arena buffers
+    // Render the room's background layers
     RenderRoomBackgroundLayers(room_id);
     
     // Render room objects with proper graphics (old system as fallback)
@@ -558,22 +564,30 @@ void DungeonCanvasViewer::CalculateWallDimensions(const zelda3::RoomObject& obje
 
 // Room graphics management methods
 absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
+  printf("[LoadAndRender] START room_id=%d\n", room_id);
+  
   if (room_id < 0 || room_id >= 128) {
+    printf("[LoadAndRender] ERROR: Invalid room ID\n");
     return absl::InvalidArgumentError("Invalid room ID");
   }
   
   if (!rom_ || !rom_->is_loaded()) {
+    printf("[LoadAndRender] ERROR: ROM not loaded\n");
     return absl::FailedPreconditionError("ROM not loaded");
   }
   
   if (!rooms_) {
+    printf("[LoadAndRender] ERROR: Room data not available\n");
     return absl::FailedPreconditionError("Room data not available");
   }
   
   auto& room = (*rooms_)[room_id];
+  printf("[LoadAndRender] Got room reference\n");
   
   // Load room graphics with proper blockset
+  printf("[LoadAndRender] Loading graphics for blockset %d\n", room.blockset);
   room.LoadRoomGraphics(room.blockset);
+  printf("[LoadAndRender] Graphics loaded\n");
   
   // Load the room's palette with bounds checking
   if (room.palette < rom_->paletteset_ids.size() && 
@@ -586,16 +600,22 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
         auto full_palette = rom_->palette_group().dungeon_main[current_palette_group_id_];
         ASSIGN_OR_RETURN(current_palette_group_,
                          gfx::CreatePaletteGroupFromLargePalette(full_palette));
+        printf("[LoadAndRender] Palette loaded: group_id=%zu\n", current_palette_group_id_);
       }
     }
   }
   
   // Render the room graphics to the graphics arena
+  printf("[LoadAndRender] Calling room.RenderRoomGraphics()...\n");
   room.RenderRoomGraphics();
+  printf("[LoadAndRender] RenderRoomGraphics() complete\n");
   
   // Update the background layers with proper palette
+  printf("[LoadAndRender] Updating background layers...\n");
   RETURN_IF_ERROR(UpdateRoomBackgroundLayers(room_id));
+  printf("[LoadAndRender] UpdateRoomBackgroundLayers() complete\n");
   
+  printf("[LoadAndRender] SUCCESS\n");
   return absl::OkStatus();
 }
 
@@ -655,86 +675,53 @@ absl::Status DungeonCanvasViewer::UpdateRoomBackgroundLayers(int room_id) {
 }
 
 void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
-  if (room_id < 0 || room_id >= 128) {
-    printf("[Canvas] Invalid room_id: %d\n", room_id);
-    return;
-  }
+  if (room_id < 0 || room_id >= 128 || !rooms_) return;
   
-  if (!rom_ || !rom_->is_loaded()) {
-    printf("[Canvas] ROM not loaded\n");
-    return;
-  }
+  auto& room = (*rooms_)[room_id];
   
-  if (!rooms_) {
-    printf("[Canvas] Rooms pointer is null\n");
-    return;
-  }
+  // Use THIS room's own buffers, not global arena!
+  auto& bg1_bitmap = room.bg1_buffer().bitmap();
+  auto& bg2_bitmap = room.bg2_buffer().bitmap();
   
-  // Get canvas dimensions
-  int canvas_width = canvas_.width();
-  int canvas_height = canvas_.height();
-  
-  printf("[Canvas] Canvas size: %dx%d\n", canvas_width, canvas_height);
-  
-  if (canvas_width <= 0 || canvas_height <= 0) {
-    printf("[Canvas] Invalid canvas dimensions\n");
-    return;
-  }
-  
-  // Render BG1 (background layer 1) - main room graphics
-  auto& bg1_bitmap = gfx::Arena::Get().bg1().bitmap();
-  printf("[Canvas] BG1: active=%d, size=%dx%d, texture=%p\n",
-         bg1_bitmap.is_active(), bg1_bitmap.width(), bg1_bitmap.height(), 
-         (void*)bg1_bitmap.texture());
+  printf("[RenderLayers] Room %d: BG1 active=%d, texture=%p\n",
+         room_id, bg1_bitmap.is_active(), (void*)bg1_bitmap.texture());
   
   if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
-    // Ensure texture exists
     if (!bg1_bitmap.texture()) {
-      printf("[Canvas] WARNING: BG1 has no texture, creating...\n");
+      printf("[RenderLayers] Creating BG1 texture...\n");
       core::Renderer::Get().RenderBitmap(&bg1_bitmap);
     }
+    printf("[RenderLayers] Drawing BG1 bitmap: %dx%d, texture=%p\n",
+           bg1_bitmap.width(), bg1_bitmap.height(), (void*)bg1_bitmap.texture());
     
-    // Scale to fit canvas
-    float scale_x = static_cast<float>(canvas_width) / bg1_bitmap.width();
-    float scale_y = static_cast<float>(canvas_height) / bg1_bitmap.height();
-    float scale = std::min(scale_x, scale_y);
+    // DEBUG: Check SDL texture format
+    Uint32 format;
+    int access, w, h;
+    if (SDL_QueryTexture(bg1_bitmap.texture(), &format, &access, &w, &h) == 0) {
+      printf("[RenderLayers] BG1 texture format: %s (%u), access: %d, size: %dx%d\n",
+             SDL_GetPixelFormatName(format), format, access, w, h);
+    }
     
-    int scaled_width = static_cast<int>(bg1_bitmap.width() * scale);
-    int scaled_height = static_cast<int>(bg1_bitmap.height() * scale);
-    int offset_x = (canvas_width - scaled_width) / 2;
-    int offset_y = (canvas_height - scaled_height) / 2;
-    
-    printf("[Canvas] Drawing BG1 at offset=(%d,%d), scaled_size=%dx%d, scale=%.2f\n",
-           offset_x, offset_y, scaled_width, scaled_height, scale);
-    
-    canvas_.DrawBitmap(bg1_bitmap, offset_x, offset_y, scale, 255);
+    canvas_.DrawBitmap(bg1_bitmap, 0, 0, 1.0f, 255);
   } else {
-    printf("[Canvas] BG1 not ready for rendering\n");
+    printf("[RenderLayers] BG1 not ready: active=%d, w=%d, h=%d\n",
+           bg1_bitmap.is_active(), bg1_bitmap.width(), bg1_bitmap.height());
   }
   
-  // Render BG2 (background layer 2) - sprite graphics (overlay)
-  auto& bg2_bitmap = gfx::Arena::Get().bg2().bitmap();
   if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
     if (!bg2_bitmap.texture()) {
       core::Renderer::Get().RenderBitmap(&bg2_bitmap);
     }
-    
-    float scale_x = static_cast<float>(canvas_width) / bg2_bitmap.width();
-    float scale_y = static_cast<float>(canvas_height) / bg2_bitmap.height();
-    float scale = std::min(scale_x, scale_y);
-    
-    int scaled_width = static_cast<int>(bg2_bitmap.width() * scale);
-    int scaled_height = static_cast<int>(bg2_bitmap.height() * scale);
-    int offset_x = (canvas_width - scaled_width) / 2;
-    int offset_y = (canvas_height - scaled_height) / 2;
-    
-    printf("[Canvas] Drawing BG2 at offset=(%d,%d), scaled_size=%dx%d, scale=%.2f\n",
-           offset_x, offset_y, scaled_width, scaled_height, scale);
-    
-    canvas_.DrawBitmap(bg2_bitmap, offset_x, offset_y, scale, 200);
+    canvas_.DrawBitmap(bg2_bitmap, 0, 0, 1.0f, 200);
   }
   
-  printf("[Canvas] RenderRoomBackgroundLayers complete\n");
+  // TEST: Draw a bright red rectangle to verify canvas drawing works
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+  draw_list->AddRectFilled(
+      ImVec2(canvas_pos.x + 50, canvas_pos.y + 50),
+      ImVec2(canvas_pos.x + 150, canvas_pos.y + 150),
+      IM_COL32(255, 0, 0, 255));  // Bright red
 }
 
 }  // namespace yaze::editor
