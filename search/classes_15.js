@@ -5,7 +5,7 @@ var searchData=
   ['warpentry_2',['WarpEntry',['../d1/d67/structyaze_1_1cli_1_1overworld_1_1WarpEntry.html',1,'yaze::cli::overworld']]],
   ['warpquery_3',['WarpQuery',['../d0/dcb/structyaze_1_1cli_1_1overworld_1_1WarpQuery.html',1,'yaze::cli::overworld']]],
   ['wbglog_4',['WBGLOG',['../d4/d87/structyaze_1_1emu_1_1WBGLOG.html',1,'yaze::emu']]],
-  ['websocketclient_5',['WebSocketClient',['../d7/df0/classyaze_1_1app_1_1net_1_1WebSocketClient.html',1,'yaze::app::net']]],
+  ['websocketclient_5',['WebSocketClient',['../da/dae/classyaze_1_1net_1_1WebSocketClient.html',1,'yaze::net']]],
   ['welcomescreen_6',['WelcomeScreen',['../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html',1,'yaze::editor']]],
   ['wh0_7',['WH0',['../de/ded/structyaze_1_1emu_1_1WH0.html',1,'yaze::emu']]],
   ['wh1_8',['WH1',['../dc/d07/structyaze_1_1emu_1_1WH1.html',1,'yaze::emu']]],

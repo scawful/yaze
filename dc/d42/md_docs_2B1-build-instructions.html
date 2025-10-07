@@ -101,48 +101,48 @@ $(document).ready(function(){initNavTree('dc/d42/md_docs_2B1-build-instructions.
   <div class="headertitle"><div class="title">Build Instructions</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md27"></a> yaze uses a modern CMake build system with presets for easy configuration. This guide covers how to build yaze on macOS, Linux, and Windows.</p>
-<h1><a class="anchor" id="autotoc_md28"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md24"></a> yaze uses a modern CMake build system with presets for easy configuration. This guide covers how to build yaze on macOS, Linux, and Windows.</p>
+<h1><a class="anchor" id="autotoc_md25"></a>
 1. Environment Verification</h1>
 <p><b>Before your first build</b>, run the verification script to ensure your environment is configured correctly.</p>
-<h2><a class="anchor" id="autotoc_md29"></a>
+<h2><a class="anchor" id="autotoc_md26"></a>
 Windows (PowerShell)</h2>
 <div class="fragment"><div class="line">.\scripts\verify-build-environment.ps1</div>
 <div class="line"> </div>
 <div class="line"># With automatic fixes</div>
 <div class="line">.\scripts\verify-build-environment.ps1 -FixIssues</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md30"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md27"></a>
 macOS &amp; Linux (Bash)</h2>
 <div class="fragment"><div class="line">./scripts/verify-build-environment.sh</div>
 <div class="line"> </div>
 <div class="line"># With automatic fixes</div>
 <div class="line">./scripts\verify-build-environment.sh --fix</div>
 </div><!-- fragment --><p>The script checks for required tools like CMake, a C++23 compiler, and platform-specific dependencies.</p>
-<h1><a class="anchor" id="autotoc_md31"></a>
+<h1><a class="anchor" id="autotoc_md28"></a>
 2. Quick Start: Building with Presets</h1>
 <p>We use CMake Presets for simple, one-command builds. See the <a class="el" href="../../d7/d51/md_docs_2B3-build-presets.html">CMake Presets Guide</a> for a full list.</p>
-<h2><a class="anchor" id="autotoc_md32"></a>
+<h2><a class="anchor" id="autotoc_md29"></a>
 macOS</h2>
 <div class="fragment"><div class="line"># Configure a debug build (Apple Silicon)</div>
 <div class="line">cmake --preset mac-dbg</div>
 <div class="line"> </div>
 <div class="line"># Build the project</div>
 <div class="line">cmake --build --preset mac-dbg</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md33"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md30"></a>
 Linux</h2>
 <div class="fragment"><div class="line"># Configure a debug build</div>
 <div class="line">cmake --preset lin-dbg</div>
 <div class="line"> </div>
 <div class="line"># Build the project</div>
 <div class="line">cmake --build --preset lin-dbg</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md34"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md31"></a>
 Windows</h2>
 <div class="fragment"><div class="line"># Configure a debug build for Visual Studio (x64)</div>
 <div class="line">cmake --preset win-dbg</div>
 <div class="line"> </div>
 <div class="line"># Build the project</div>
 <div class="line">cmake --build --preset win-dbg</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md35"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md32"></a>
 AI-Enabled Build (All Platforms)</h2>
 <p>To build with the <code>z3ed</code> AI agent features: </p><div class="fragment"><div class="line"># macOS</div>
 <div class="line">cmake --preset mac-ai</div>
@@ -151,7 +151,7 @@ AI-Enabled Build (All Platforms)</h2>
 <div class="line"># Windows</div>
 <div class="line">cmake --preset win-ai</div>
 <div class="line">cmake --build --preset win-ai</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md36"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md33"></a>
 3. Dependencies</h1>
 <ul>
 <li><b>Required</b>: CMake 3.16+, C++23 Compiler (GCC 13+, Clang 16+, MSVC 2019+), Git.</li>
@@ -162,31 +162,31 @@ AI-Enabled Build (All Platforms)</h2>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md37"></a>
+<h1><a class="anchor" id="autotoc_md34"></a>
 4. Platform Setup</h1>
-<h2><a class="anchor" id="autotoc_md38"></a>
+<h2><a class="anchor" id="autotoc_md35"></a>
 macOS</h2>
 <div class="fragment"><div class="line"># Install Xcode Command Line Tools</div>
 <div class="line">xcode-select --install</div>
 <div class="line"> </div>
 <div class="line"># Recommended: Install build tools via Homebrew</div>
 <div class="line">brew install cmake pkg-config</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md39"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md36"></a>
 Linux (Ubuntu/Debian)</h2>
 <div class="fragment"><div class="line">sudo apt-get update</div>
 <div class="line">sudo apt-get install -y build-essential cmake ninja-build pkg-config \</div>
 <div class="line">  libgtk-3-dev libdbus-1-dev</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md40"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md37"></a>
 Windows</h2>
 <ul>
 <li><b>Visual Studio 2022</b> is required, with the "Desktop development with C++" workload.</li>
 <li>The <code>verify-build-environment.ps1</code> script will help identify any missing components.</li>
 <li>For building with gRPC, see the "Windows Build Optimization" section below.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md41"></a>
+<h1><a class="anchor" id="autotoc_md38"></a>
 5. Testing</h1>
 <p>The project uses CTest and GoogleTest. Tests are organized into categories using labels. See the <a class="el" href="../../d6/d10/md_docs_2A1-testing-guide.html">Testing Guide</a> for details.</p>
-<h2><a class="anchor" id="autotoc_md42"></a>
+<h2><a class="anchor" id="autotoc_md39"></a>
 Running Tests with Presets</h2>
 <p>The easiest way to run tests is with <code>ctest</code> presets.</p>
 <div class="fragment"><div class="line"># Configure a development build (enables ROM-dependent tests)</div>
@@ -200,7 +200,7 @@ Running Tests with Presets</h2>
 <div class="line"> </div>
 <div class="line"># Run all tests, including ROM-dependent and experimental</div>
 <div class="line">ctest --preset all</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md43"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md40"></a>
 Running Tests Manually</h2>
 <p>You can also run tests by invoking the test executable directly or using CTest with labels.</p>
 <div class="fragment"><div class="line"># Run all tests via the executable</div>
@@ -214,9 +214,9 @@ Running Tests Manually</h2>
 <div class="line"> </div>
 <div class="line"># Exclude ROM-dependent tests</div>
 <div class="line">ctest --test-dir build --label-exclude &quot;ROM_DEPENDENT&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md44"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md41"></a>
 6. IDE Integration</h1>
-<h2><a class="anchor" id="autotoc_md45"></a>
+<h2><a class="anchor" id="autotoc_md42"></a>
 VS Code (Recommended)</h2>
 <ol type="1">
 <li>Install the <b>CMake Tools</b> extension.</li>
@@ -225,7 +225,7 @@ VS Code (Recommended)</h2>
 <li>Press F5 to build and debug.</li>
 <li>After changing presets, run <code>cp build/compile_commands.json .</code> to update IntelliSense.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md46"></a>
+<h2><a class="anchor" id="autotoc_md43"></a>
 Visual Studio (Windows)</h2>
 <ol type="1">
 <li>Select <b>File → Open → Folder</b> and choose the <code>yaze</code> directory.</li>
@@ -233,19 +233,19 @@ Visual Studio (Windows)</h2>
 <li>Select the desired preset (e.g., <code>win-dbg</code> or <code>win-ai</code>) from the configuration dropdown.</li>
 <li>Press F5 to build and run.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md47"></a>
+<h2><a class="anchor" id="autotoc_md44"></a>
 Xcode (macOS)</h2>
 <div class="fragment"><div class="line"># Generate an Xcode project from a preset</div>
 <div class="line">cmake --preset mac-dbg -G Xcode</div>
 <div class="line"> </div>
 <div class="line"># Open the project</div>
 <div class="line">open build/yaze.xcodeproj</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md48"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md45"></a>
 7. Windows Build Optimization</h1>
-<h2><a class="anchor" id="autotoc_md49"></a>
+<h2><a class="anchor" id="autotoc_md46"></a>
 The Problem: Slow gRPC Builds</h2>
 <p>Building with gRPC on Windows (<code>-DYAZE_WITH_GRPC=ON</code>) can take <b>15-20 minutes</b> the first time, as it compiles gRPC and its dependencies from source.</p>
-<h2><a class="anchor" id="autotoc_md50"></a>
+<h2><a class="anchor" id="autotoc_md47"></a>
 Solution: Use vcpkg for Pre-compiled Binaries</h2>
 <p>Using <code>vcpkg</code> to manage gRPC is the recommended approach for Windows developers who need GUI automation features.</p>
 <p><b>Step 1: Install vcpkg and Dependencies</b> </p><div class="fragment"><div class="line"># This only needs to be done once</div>
@@ -257,22 +257,22 @@ Solution: Use vcpkg for Pre-compiled Binaries</h2>
 <div class="line"> </div>
 <div class="line"># Build (will now be much faster)</div>
 <div class="line">cmake --build build</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md51"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md48"></a>
 8. Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md52"></a>
+<h2><a class="anchor" id="autotoc_md49"></a>
 "nlohmann/json.hpp: No such file or directory"</h2>
 <p><b>Cause</b>: You are building code that requires AI features without using an AI-enabled preset. <b>Solution</b>: Use an AI preset like <code>win-ai</code> or <code>mac-ai</code>. </p><div class="fragment"><div class="line">cmake --preset win-ai</div>
 <div class="line">cmake --build --preset win-ai</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md53"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md50"></a>
 "Cannot open file 'yaze.exe': Permission denied"</h2>
 <p><b>Cause</b>: A previous instance of <code>yaze.exe</code> is still running in the background. <b>Solution</b>: Close it using Task Manager or run: </p><div class="fragment"><div class="line">taskkill /F /IM yaze.exe</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md54"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md51"></a>
 "C++ standard 'cxx_std_23' not supported"</h2>
 <p><b>Cause</b>: Your compiler is too old. <b>Solution</b>: Update your tools. You need Visual Studio 2022 17.4+, GCC 13+, or Clang 16+.</p>
-<h2><a class="anchor" id="autotoc_md55"></a>
+<h2><a class="anchor" id="autotoc_md52"></a>
 Visual Studio Can't Find Presets</h2>
 <p><b>Cause</b>: VS failed to parse <code>CMakePresets.json</code>. <b>Solution</b>: Close and reopen the folder (<code>File -&gt; Close Folder</code>). If that fails, check the "CMake" pane in the Output window for specific JSON parsing errors.</p>
-<h2><a class="anchor" id="autotoc_md56"></a>
+<h2><a class="anchor" id="autotoc_md53"></a>
 General Advice</h2>
 <ol type="1">
 <li><b>Start Simple</b>: Begin with a basic preset like <code>win-dbg</code> or <code>mac-dbg</code>.</li>

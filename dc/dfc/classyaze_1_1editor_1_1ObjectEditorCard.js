@@ -6,7 +6,7 @@ var classyaze_1_1editor_1_1ObjectEditorCard =
       [ "Select", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#a6f197767199ee4d6db37ca9c2e360ac4ae0626222614bdee31951d84c64e5e9ff", null ],
       [ "Delete", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#a6f197767199ee4d6db37ca9c2e360ac4af2a6c498fb90ee345d997f888fce3b18", null ]
     ] ],
-    [ "ObjectEditorCard", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#a0cde293b6c26a8d424ef05668d2b35f0", null ],
+    [ "ObjectEditorCard", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#a477c198e39e1acb7fcd312101eef4e91", null ],
     [ "Draw", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#a8a3d9cc19420250f660234d9b94a98fa", null ],
     [ "object_selector", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#aa78c5a845d273845984e9fdd8ac88fa4", null ],
     [ "emulator_preview", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#aa35c18cfe9ff8bac5a8b3c131fd33424", null ],
@@ -28,5 +28,6 @@ var classyaze_1_1editor_1_1ObjectEditorCard =
     [ "show_interaction_controls_", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#a69184ef44d58e365c1a055970a1ae147", null ],
     [ "interaction_mode_", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#a790a723a458a3e09d8572bab64cc0b3e", null ],
     [ "preview_object_", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#ab5f3579b3706ca2700aab304244abb4a", null ],
-    [ "has_preview_object_", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#ad73c94ebfacbdd0016e20de916461543", null ]
+    [ "has_preview_object_", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#ad73c94ebfacbdd0016e20de916461543", null ],
+    [ "renderer_", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html#a6047b4b256c7e06cbc42c800c1743d30", null ]
 ];

@@ -1,9 +1,0 @@
-<map id="yaze::app::gui::AgentChatWidget::RenderToolbar" name="yaze::app::gui::AgentChatWidget::RenderToolbar">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,170,111"/>
-<area shape="rect" id="Node000002" href="$d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html#a3950210a962740613692fa72739d9a1d" title=" " alt="" coords="218,5,382,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="155,68,216,49,217,54,157,73"/>
-<area shape="rect" id="Node000003" href="$d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html#a9d7e53c61c14a528af9a79e560729936" title=" " alt="" coords="218,71,382,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,88,202,88,202,94,170,94"/>
-<area shape="rect" id="Node000004" href="$d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html#a2170eaf86d87262f6ca1e0387f857ab3" title=" " alt="" coords="218,136,382,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="157,109,217,128,216,133,155,114"/>
-</map>

@@ -1,0 +1,11 @@
+<map id="yaze::gfx::AtlasRenderer::Initialize" name="yaze::gfx::AtlasRenderer::Initialize">
+<area shape="rect" id="Node000001" title="Initialize the atlas renderer." alt="" coords="5,39,164,79"/>
+<area shape="rect" id="Node000002" href="$d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html#a98f27a2cb3ff49929bda2f8ff63df8e5" title="Clear all atlases." alt="" coords="212,5,370,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,44,196,38,197,44,164,49"/>
+<area shape="rect" id="Node000004" href="$d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html#a986c0ef7e724cfe62c88707caaecff3e" title=" " alt="" coords="212,71,370,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="164,69,197,74,196,79,164,74"/>
+<area shape="rect" id="Node000003" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#aa6af4ae256b62659ce1222b20e3d695e" title="Destroys a texture and frees its associated resources." alt="" coords="418,5,550,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="370,23,403,23,403,28,370,28"/>
+<area shape="rect" id="Node000005" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a0c7628e8d85b52be66fa417503c24747" title="Creates a new, empty texture." alt="" coords="418,71,550,111"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="370,88,403,88,403,94,370,94"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="yaze::net::ProposalApprovalManager" name="yaze::net::ProposalApprovalManager">
+<area shape="rect" id="Node000001" title="Manages proposal approval workflow for collaborative sessions." alt="" coords="37,198,217,238"/>
+<area shape="rect" id="Node000002" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html" title="Manages ROM versioning, snapshots, and rollback capabilities." alt="" coords="28,109,226,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,150,130,197,124,197,124,150"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="5,13,86,39"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="68,49,118,107,114,110,64,52"/>
+<area shape="rect" id="Node000007" href="$d3/d2f/structyaze_1_1net_1_1RomVersionManager_1_1Config.html" title=" " alt="" coords="110,5,309,46"/>
+<area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="184,60,139,111,135,107,180,56"/>
+</map>

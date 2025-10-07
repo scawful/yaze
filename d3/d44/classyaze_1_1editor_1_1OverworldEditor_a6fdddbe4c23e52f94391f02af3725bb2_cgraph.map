@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="On&#45;demand map refresh that only updates what&#39;s actually needed." alt="" coords="5,55,227,96"/>
 <area shape="rect" id="Node000002" href="$d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#adac2da0e5bfc87f31ae50e5c4c3edd2e" title="On&#45;demand child map refresh with selective updates." alt="" coords="275,55,466,96"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,73,259,73,259,78,227,78"/>
-<area shape="rect" id="Node000003" href="$da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="517,5,680,31"/>
+<area shape="rect" id="Node000003" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="530,5,667,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="453,52,529,33,530,38,454,57"/>
 <area shape="rect" id="Node000004" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#aefb0ff6e39728b1484b9b1a70dec656c" title=" " alt="" coords="521,55,676,96"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="467,73,505,73,505,78,467,78"/>

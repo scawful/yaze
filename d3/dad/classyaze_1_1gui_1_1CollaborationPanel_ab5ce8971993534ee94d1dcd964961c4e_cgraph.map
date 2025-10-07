@@ -1,0 +1,9 @@
+<map id="yaze::gui::CollaborationPanel::RenderRomSyncTab" name="yaze::gui::CollaborationPanel::RenderRomSyncTab">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,185,79"/>
+<area shape="rect" id="Node000002" href="$d3/dad/classyaze_1_1gui_1_1CollaborationPanel.html#ad3dcaca0c509d36423bffb8d1023f725" title=" " alt="" coords="233,39,419,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,56,217,56,217,62,185,62"/>
+<area shape="rect" id="Node000003" href="$d3/dad/classyaze_1_1gui_1_1CollaborationPanel.html#a0898187c71b603f8872d8b4d60fc3aa9" title=" " alt="" coords="475,5,626,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="419,43,458,37,459,42,420,48"/>
+<area shape="rect" id="Node000004" href="$d3/dad/classyaze_1_1gui_1_1CollaborationPanel.html#a28fa0c26eb697633cb6a12262afbf98b" title=" " alt="" coords="467,71,633,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="420,70,452,74,451,80,419,75"/>
+</map>

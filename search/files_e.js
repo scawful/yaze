@@ -28,7 +28,7 @@ var searchData=
   ['room_5fmanipulation_5ftest_2ecc_25',['room_manipulation_test.cc',['../d0/d14/room__manipulation__test_8cc.html',1,'']]],
   ['room_5fobject_2ecc_26',['room_object.cc',['../d5/da0/room__object_8cc.html',1,'']]],
   ['room_5fobject_2eh_27',['room_object.h',['../d0/dff/room__object_8h.html',1,'']]],
-  ['room_5fobject_5fencoding_5ftest_2ecc_28',['room_object_encoding_test.cc',['../d0/de3/unit_2zelda3_2dungeon_2room__object__encoding__test_8cc.html',1,'(Global Namespace)'],['../db/d8e/zelda3_2dungeon_2room__object__encoding__test_8cc.html',1,'(Global Namespace)']]],
+  ['room_5fobject_5fencoding_5ftest_2ecc_28',['room_object_encoding_test.cc',['../db/de9/room__object__encoding__test_8cc.html',1,'']]],
   ['room_5fvisual_5fdiagnostic_2ecc_29',['room_visual_diagnostic.cc',['../dc/db8/room__visual__diagnostic_8cc.html',1,'']]],
   ['room_5fvisual_5fdiagnostic_2eh_30',['room_visual_diagnostic.h',['../d6/df9/room__visual__diagnostic_8h.html',1,'']]]
 ];

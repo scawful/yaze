@@ -1,0 +1,5 @@
+<map id="yaze::gfx::SDL2Renderer" name="yaze::gfx::SDL2Renderer">
+<area shape="rect" id="Node000001" title="A concrete implementation of the IRenderer interface using SDL2." alt="" coords="5,79,167,105"/>
+<area shape="rect" id="Node000002" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html" title="Defines an abstract interface for all rendering operations." alt="" coords="20,5,152,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="89,46,89,79,83,79,83,46"/>
+</map>

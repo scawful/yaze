@@ -120,7 +120,7 @@ $(document).ready(function(){initNavTree('d1/dde/rom__service__impl_8h_source.ht
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &quot;<a class="code" href="../../dd/d30/rom__version__manager_8h.html">app/net/rom_version_manager.h</a>&quot;</span></div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span> </div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="keyword">namespace </span>app {</div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keyword">namespace </span>net {</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#ifdef YAZE_WITH_GRPC</span></div>
@@ -141,7 +141,7 @@ $(document).ready(function(){initNavTree('d1/dde/rom__service__impl_8h_source.ht
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  ~RomServiceImpl() <span class="keyword">override</span> = <span class="keywordflow">default</span>;</div>
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  </div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  <span class="comment">// Initialize with configuration</span></div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  <span class="keywordtype">void</span> SetConfig(<span class="keyword">const</span> Config&amp; config) { config_ = config; }</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  <span class="keywordtype">void</span> SetConfig(<span class="keyword">const</span> Config&amp; config);</div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>  </div>
 <div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  <span class="comment">// =========================================================================</span></div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>  <span class="comment">// Basic ROM Operations</span></div>
@@ -248,7 +248,7 @@ $(document).ready(function(){initNavTree('d1/dde/rom__service__impl_8h_source.ht
 <div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_WITH_GRPC</span></div>
 <div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span> </div>
 <div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>}  <span class="comment">// namespace net</span></div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>}  <span class="comment">// namespace app</span></div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span> </div>
 <div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span> </div>
 <div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_NET_ROM_SERVICE_IMPL_H_</span></div>

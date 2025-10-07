@@ -1,0 +1,7 @@
+<map id="yaze::net::CollaborationService::VoteOnProposal" name="yaze::net::CollaborationService::VoteOnProposal">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,172,46"/>
+<area shape="rect" id="Node000002" href="$d8/d96/classyaze_1_1net_1_1ProposalApprovalManager.html#a27d052a445140b1aec2494b35a813598" title=" " alt="" coords="220,5,399,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,23,204,23,204,28,172,28"/>
+<area shape="rect" id="Node000003" href="$d8/d96/classyaze_1_1net_1_1ProposalApprovalManager.html#aceb0507272de0f8c75e754125c7cd5fe" title=" " alt="" coords="447,5,669,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="400,23,431,23,431,28,400,28"/>
+</map>

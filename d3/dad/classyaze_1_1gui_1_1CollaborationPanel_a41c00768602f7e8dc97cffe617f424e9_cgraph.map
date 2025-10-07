@@ -1,0 +1,11 @@
+<map id="yaze::gui::CollaborationPanel::RenderProposalsTab" name="yaze::gui::CollaborationPanel::RenderProposalsTab">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,187,111"/>
+<area shape="rect" id="Node000002" href="$d3/dad/classyaze_1_1gui_1_1CollaborationPanel.html#a17f40a9ac1cd4d8942143f4c6359b7dc" title=" " alt="" coords="235,71,416,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,88,219,88,219,94,187,94"/>
+<area shape="rect" id="Node000003" href="$d3/dad/classyaze_1_1gui_1_1CollaborationPanel.html#a28fa0c26eb697633cb6a12262afbf98b" title=" " alt="" coords="481,5,647,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="401,68,472,48,473,53,403,73"/>
+<area shape="rect" id="Node000004" href="$d3/dad/classyaze_1_1gui_1_1CollaborationPanel.html#aa22460bfeef0488abc0d456e0464f5d8" title=" " alt="" coords="464,71,664,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="417,88,449,88,449,94,417,94"/>
+<area shape="rect" id="Node000005" href="$d3/dad/classyaze_1_1gui_1_1CollaborationPanel.html#a43c949b86f19adbd77dd1757ff555eb6" title=" " alt="" coords="467,136,662,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="403,109,473,129,472,134,401,114"/>
+</map>

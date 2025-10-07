@@ -11,6 +11,6 @@ var searchData=
   ['snes_5ftile_5finfo_8',['snes_tile_info',['../d6/de0/group__graphics.html#ga38e287988459276888c8616ac482a814',1,'yaze.h']]],
   ['spritechangedcallback_9',['SpriteChangedCallback',['../d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a293caca2e31df7f51e82446e58483d64',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['staircase_10',['staircase',['../d3/d81/group__dungeon.html#ga81857e6a46245f2407f10aa8b2159d0b',1,'zelda.h']]],
-  ['statecallback_11',['StateCallback',['../d7/df0/classyaze_1_1app_1_1net_1_1WebSocketClient.html#af10488735d583944e9af815cf7990697',1,'yaze::app::net::WebSocketClient']]],
+  ['statecallback_11',['StateCallback',['../da/dae/classyaze_1_1net_1_1WebSocketClient.html#a20d8c05b18ef174d6292d1aada3f1f45',1,'yaze::net::WebSocketClient']]],
   ['string_12',['String',['../d0/d28/classTextEditor.html#aa2450eefe35d90e2b8c86b87cd192df3',1,'TextEditor']]]
 ];

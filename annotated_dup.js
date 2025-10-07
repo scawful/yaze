@@ -8,24 +8,6 @@ var annotated_dup =
       [ "DirectorySpec", "dc/d1c/classbuild__cleaner_1_1DirectorySpec.html", "dc/d1c/classbuild__cleaner_1_1DirectorySpec" ]
     ] ],
     [ "yaze", "dc/d46/namespaceyaze.html", [
-      [ "app", "d9/d75/namespaceyaze_1_1app.html", [
-        [ "gui", "dc/dc3/namespaceyaze_1_1app_1_1gui.html", [
-          [ "AgentChatWidget", "d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget.html", "d5/dc4/classyaze_1_1app_1_1gui_1_1AgentChatWidget" ],
-          [ "CollaborationPanel", "df/d44/classyaze_1_1app_1_1gui_1_1CollaborationPanel.html", "df/d44/classyaze_1_1app_1_1gui_1_1CollaborationPanel" ],
-          [ "ProposalEntry", "d5/dd0/structyaze_1_1app_1_1gui_1_1ProposalEntry.html", "d5/dd0/structyaze_1_1app_1_1gui_1_1ProposalEntry" ],
-          [ "RomSyncEntry", "d8/dc5/structyaze_1_1app_1_1gui_1_1RomSyncEntry.html", "d8/dc5/structyaze_1_1app_1_1gui_1_1RomSyncEntry" ],
-          [ "SnapshotEntry", "db/d39/structyaze_1_1app_1_1gui_1_1SnapshotEntry.html", "db/d39/structyaze_1_1app_1_1gui_1_1SnapshotEntry" ]
-        ] ],
-        [ "net", "d5/dde/namespaceyaze_1_1app_1_1net.html", [
-          [ "CollaborationService", "d1/da6/classyaze_1_1app_1_1net_1_1CollaborationService.html", "d1/da6/classyaze_1_1app_1_1net_1_1CollaborationService" ],
-          [ "ProposalApprovalManager", "db/d62/classyaze_1_1app_1_1net_1_1ProposalApprovalManager.html", "db/d62/classyaze_1_1app_1_1net_1_1ProposalApprovalManager" ],
-          [ "RomSnapshot", "d0/d10/structyaze_1_1app_1_1net_1_1RomSnapshot.html", "d0/d10/structyaze_1_1app_1_1net_1_1RomSnapshot" ],
-          [ "RomVersionManager", "d6/dd9/classyaze_1_1app_1_1net_1_1RomVersionManager.html", "d6/dd9/classyaze_1_1app_1_1net_1_1RomVersionManager" ],
-          [ "SessionInfo", "d8/da4/structyaze_1_1app_1_1net_1_1SessionInfo.html", "d8/da4/structyaze_1_1app_1_1net_1_1SessionInfo" ],
-          [ "VersionDiff", "d9/dee/structyaze_1_1app_1_1net_1_1VersionDiff.html", "d9/dee/structyaze_1_1app_1_1net_1_1VersionDiff" ],
-          [ "WebSocketClient", "d7/df0/classyaze_1_1app_1_1net_1_1WebSocketClient.html", "d7/df0/classyaze_1_1app_1_1net_1_1WebSocketClient" ]
-        ] ]
-      ] ],
       [ "cli", "dd/d63/namespaceyaze_1_1cli.html", [
         [ "agent", "d8/dd3/namespaceyaze_1_1cli_1_1agent.html", [
           [ "anonymous_namespace{conversation_test.cc}", "d0/d0b/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03.html", [
@@ -203,15 +185,11 @@ var annotated_dup =
         [ "AsarPatchResult", "de/d0c/structyaze_1_1core_1_1AsarPatchResult.html", "de/d0c/structyaze_1_1core_1_1AsarPatchResult" ],
         [ "AsarSymbol", "de/da4/structyaze_1_1core_1_1AsarSymbol.html", "de/da4/structyaze_1_1core_1_1AsarSymbol" ],
         [ "AsarWrapper", "da/dd2/classyaze_1_1core_1_1AsarWrapper.html", "da/dd2/classyaze_1_1core_1_1AsarWrapper" ],
-        [ "AssetLoader", "d9/d5b/classyaze_1_1core_1_1AssetLoader.html", null ],
         [ "Controller", "d4/d84/classyaze_1_1core_1_1Controller.html", "d4/d84/classyaze_1_1core_1_1Controller" ],
         [ "FeatureFlags", "d8/d3f/classyaze_1_1core_1_1FeatureFlags.html", "d8/d3f/classyaze_1_1core_1_1FeatureFlags" ],
-        [ "FontConfig", "d6/d2f/structyaze_1_1core_1_1FontConfig.html", "d6/d2f/structyaze_1_1core_1_1FontConfig" ],
-        [ "FontState", "d6/df8/structyaze_1_1core_1_1FontState.html", "d6/df8/structyaze_1_1core_1_1FontState" ],
         [ "ProjectManager", "d9/d7f/classyaze_1_1core_1_1ProjectManager.html", "d9/d7f/classyaze_1_1core_1_1ProjectManager" ],
         [ "ProjectMetadata", "d8/d0c/structyaze_1_1core_1_1ProjectMetadata.html", "d8/d0c/structyaze_1_1core_1_1ProjectMetadata" ],
         [ "RecentFilesManager", "d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html", "d8/d4b/classyaze_1_1core_1_1RecentFilesManager" ],
-        [ "Renderer", "da/d81/classyaze_1_1core_1_1Renderer.html", "da/d81/classyaze_1_1core_1_1Renderer" ],
         [ "ResourceLabelManager", "d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html", "d8/d4d/structyaze_1_1core_1_1ResourceLabelManager" ],
         [ "TimingManager", "d5/d77/classyaze_1_1core_1_1TimingManager.html", "d5/d77/classyaze_1_1core_1_1TimingManager" ],
         [ "WidgetState", "d1/d17/structyaze_1_1core_1_1WidgetState.html", "d1/d17/structyaze_1_1core_1_1WidgetState" ],
@@ -434,6 +412,7 @@ var annotated_dup =
         [ "GraphicsOptimizationScope", "d6/dcc/classyaze_1_1gfx_1_1GraphicsOptimizationScope.html", "d6/dcc/classyaze_1_1gfx_1_1GraphicsOptimizationScope" ],
         [ "GraphicsOptimizer", "d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html", "d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer" ],
         [ "GraphicsSheetAnalysis", "d3/df6/structyaze_1_1gfx_1_1GraphicsSheetAnalysis.html", "d3/df6/structyaze_1_1gfx_1_1GraphicsSheetAnalysis" ],
+        [ "IRenderer", "d0/dca/classyaze_1_1gfx_1_1IRenderer.html", "d0/dca/classyaze_1_1gfx_1_1IRenderer" ],
         [ "MemoryPool", "dc/d55/classyaze_1_1gfx_1_1MemoryPool.html", "dc/d55/classyaze_1_1gfx_1_1MemoryPool" ],
         [ "OamTile", "df/da2/classyaze_1_1gfx_1_1OamTile.html", "df/da2/classyaze_1_1gfx_1_1OamTile" ],
         [ "OptimizationResult", "d6/d5e/structyaze_1_1gfx_1_1OptimizationResult.html", "d6/d5e/structyaze_1_1gfx_1_1OptimizationResult" ],
@@ -447,6 +426,7 @@ var annotated_dup =
         [ "PoolAllocator", "d5/d46/classyaze_1_1gfx_1_1PoolAllocator.html", "d5/d46/classyaze_1_1gfx_1_1PoolAllocator" ],
         [ "RenderCommand", "d8/de1/structyaze_1_1gfx_1_1RenderCommand.html", "d8/de1/structyaze_1_1gfx_1_1RenderCommand" ],
         [ "ScopedTimer", "d7/ddb/classyaze_1_1gfx_1_1ScopedTimer.html", "d7/ddb/classyaze_1_1gfx_1_1ScopedTimer" ],
+        [ "SDL2Renderer", "d9/dfe/classyaze_1_1gfx_1_1SDL2Renderer.html", "d9/dfe/classyaze_1_1gfx_1_1SDL2Renderer" ],
         [ "SheetOptimizationData", "d8/d7c/structyaze_1_1gfx_1_1SheetOptimizationData.html", "d8/d7c/structyaze_1_1gfx_1_1SheetOptimizationData" ],
         [ "SnesColor", "d5/d31/classyaze_1_1gfx_1_1SnesColor.html", "d5/d31/classyaze_1_1gfx_1_1SnesColor" ],
         [ "SnesPalette", "da/d68/classyaze_1_1gfx_1_1SnesPalette.html", "da/d68/classyaze_1_1gfx_1_1SnesPalette" ],
@@ -477,6 +457,7 @@ var annotated_dup =
         [ "CanvasUtils", "d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html", [
           [ "CanvasRenderContext", "d5/d10/structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html", "d5/d10/structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext" ]
         ] ],
+        [ "AgentChatWidget", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget" ],
         [ "AssetObject", "d5/d23/structyaze_1_1gui_1_1AssetObject.html", "d5/d23/structyaze_1_1gui_1_1AssetObject" ],
         [ "AutoWidgetScope", "db/d2c/classyaze_1_1gui_1_1AutoWidgetScope.html", "db/d2c/classyaze_1_1gui_1_1AutoWidgetScope" ],
         [ "BackgroundRenderer", "d5/dc2/classyaze_1_1gui_1_1BackgroundRenderer.html", "d5/dc2/classyaze_1_1gui_1_1BackgroundRenderer" ],
@@ -489,6 +470,7 @@ var annotated_dup =
         [ "CanvasContextMenuItem", "d2/d60/structyaze_1_1gui_1_1CanvasContextMenuItem.html", "d2/d60/structyaze_1_1gui_1_1CanvasContextMenuItem" ],
         [ "CanvasPaletteManager", "da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html", "da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager" ],
         [ "CanvasSelection", "d7/d02/structyaze_1_1gui_1_1CanvasSelection.html", "d7/d02/structyaze_1_1gui_1_1CanvasSelection" ],
+        [ "CollaborationPanel", "d3/dad/classyaze_1_1gui_1_1CollaborationPanel.html", "d3/dad/classyaze_1_1gui_1_1CollaborationPanel" ],
         [ "Color", "d4/dca/structyaze_1_1gui_1_1Color.html", "d4/dca/structyaze_1_1gui_1_1Color" ],
         [ "DockSpaceRenderer", "d9/d95/classyaze_1_1gui_1_1DockSpaceRenderer.html", null ],
         [ "DungeonAsset", "d6/d87/structyaze_1_1gui_1_1DungeonAsset.html", "d6/d87/structyaze_1_1gui_1_1DungeonAsset" ],
@@ -503,7 +485,10 @@ var annotated_dup =
         [ "OverworldAsset", "d7/d14/structyaze_1_1gui_1_1OverworldAsset.html", "d7/d14/structyaze_1_1gui_1_1OverworldAsset" ],
         [ "PaletteEditorWidget", "d9/df4/classyaze_1_1gui_1_1PaletteEditorWidget.html", "d9/df4/classyaze_1_1gui_1_1PaletteEditorWidget" ],
         [ "PaletteWidget", "d9/d7f/classyaze_1_1gui_1_1PaletteWidget.html", "d9/d7f/classyaze_1_1gui_1_1PaletteWidget" ],
+        [ "ProposalEntry", "d9/d76/structyaze_1_1gui_1_1ProposalEntry.html", "d9/d76/structyaze_1_1gui_1_1ProposalEntry" ],
+        [ "RomSyncEntry", "d0/d46/structyaze_1_1gui_1_1RomSyncEntry.html", "d0/d46/structyaze_1_1gui_1_1RomSyncEntry" ],
         [ "ScopedCanvas", "da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html", "da/dbd/classyaze_1_1gui_1_1ScopedCanvas" ],
+        [ "SnapshotEntry", "d5/d1c/structyaze_1_1gui_1_1SnapshotEntry.html", "d5/d1c/structyaze_1_1gui_1_1SnapshotEntry" ],
         [ "SpriteAsset", "d5/d30/structyaze_1_1gui_1_1SpriteAsset.html", "d5/d30/structyaze_1_1gui_1_1SpriteAsset" ],
         [ "Table", "d8/d52/structyaze_1_1gui_1_1Table.html", "d8/d52/structyaze_1_1gui_1_1Table" ],
         [ "TextBox", "d5/d66/structyaze_1_1gui_1_1TextBox.html", "d5/d66/structyaze_1_1gui_1_1TextBox" ],
@@ -515,6 +500,15 @@ var annotated_dup =
         [ "WidgetIdScope", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope.html", "d8/dd5/classyaze_1_1gui_1_1WidgetIdScope" ],
         [ "WidgetMeasurement", "d4/d03/classyaze_1_1gui_1_1WidgetMeasurement.html", "d4/d03/classyaze_1_1gui_1_1WidgetMeasurement" ],
         [ "WidgetMetrics", "d6/d47/structyaze_1_1gui_1_1WidgetMetrics.html", "d6/d47/structyaze_1_1gui_1_1WidgetMetrics" ]
+      ] ],
+      [ "net", "dd/d43/namespaceyaze_1_1net.html", [
+        [ "CollaborationService", "d6/dfb/classyaze_1_1net_1_1CollaborationService.html", "d6/dfb/classyaze_1_1net_1_1CollaborationService" ],
+        [ "ProposalApprovalManager", "d8/d96/classyaze_1_1net_1_1ProposalApprovalManager.html", "d8/d96/classyaze_1_1net_1_1ProposalApprovalManager" ],
+        [ "RomSnapshot", "d2/df1/structyaze_1_1net_1_1RomSnapshot.html", "d2/df1/structyaze_1_1net_1_1RomSnapshot" ],
+        [ "RomVersionManager", "d6/d28/classyaze_1_1net_1_1RomVersionManager.html", "d6/d28/classyaze_1_1net_1_1RomVersionManager" ],
+        [ "SessionInfo", "de/d42/structyaze_1_1net_1_1SessionInfo.html", "de/d42/structyaze_1_1net_1_1SessionInfo" ],
+        [ "VersionDiff", "d0/dd8/structyaze_1_1net_1_1VersionDiff.html", "d0/dd8/structyaze_1_1net_1_1VersionDiff" ],
+        [ "WebSocketClient", "da/dae/classyaze_1_1net_1_1WebSocketClient.html", "da/dae/classyaze_1_1net_1_1WebSocketClient" ]
       ] ],
       [ "test", "d4/d0a/namespaceyaze_1_1test.html", [
         [ "anonymous_namespace{widget_discovery_service.cc}", "d3/d52/namespaceyaze_1_1test_1_1anonymous__namespace_02widget__discovery__service_8cc_03.html", [
@@ -617,10 +611,8 @@ var annotated_dup =
           [ "RoomIntegrationTest", "df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html", "df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest" ],
           [ "RoomManipulationTest", "d7/dc3/classyaze_1_1zelda3_1_1test_1_1RoomManipulationTest.html", "d7/dc3/classyaze_1_1zelda3_1_1test_1_1RoomManipulationTest" ]
         ] ],
-        [ "ComprehensiveIntegrationTest", "d7/d85/classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest.html", "d7/d85/classyaze_1_1zelda3_1_1ComprehensiveIntegrationTest" ],
         [ "DungeonEditorSystem", "d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html", "d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem" ],
         [ "DungeonEditorSystemIntegrationTest", "dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest.html", "dd/d59/classyaze_1_1zelda3_1_1DungeonEditorSystemIntegrationTest" ],
-        [ "DungeonIntegrationTest", "df/dfa/classyaze_1_1zelda3_1_1DungeonIntegrationTest.html", "df/dfa/classyaze_1_1zelda3_1_1DungeonIntegrationTest" ],
         [ "DungeonMap", "d0/d10/structyaze_1_1zelda3_1_1DungeonMap.html", "d0/d10/structyaze_1_1zelda3_1_1DungeonMap" ],
         [ "DungeonObjectEditor", "de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor.html", "de/de7/classyaze_1_1zelda3_1_1DungeonObjectEditor" ],
         [ "DungeonObjectRendererIntegrationTest", "d8/dc3/classyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest.html", "d8/dc3/classyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest" ],
@@ -665,6 +657,9 @@ var annotated_dup =
         [ "TitleScreen", "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html", "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen" ],
         [ "Zelda3Labels", "d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html", null ]
       ] ],
+      [ "AssetLoader", "d9/d56/classyaze_1_1AssetLoader.html", null ],
+      [ "FontConfig", "db/d0d/structyaze_1_1FontConfig.html", "db/d0d/structyaze_1_1FontConfig" ],
+      [ "FontState", "d3/dba/structyaze_1_1FontState.html", "d3/dba/structyaze_1_1FontState" ],
       [ "Rom", "d6/d30/classyaze_1_1Rom.html", "d6/d30/classyaze_1_1Rom" ],
       [ "RomLoadOptions", "db/d22/structyaze_1_1RomLoadOptions.html", "db/d22/structyaze_1_1RomLoadOptions" ],
       [ "Transaction", "df/d26/classyaze_1_1Transaction.html", "df/d26/classyaze_1_1Transaction" ]

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: test/unit/zelda3/sprite_position_test.cc Source File</title>
+<title>yaze: test/integration/zelda3/sprite_position_test.cc Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -151,7 +151,7 @@ $(document).ready(function(){initNavTree('d8/d43/sprite__position__test_8cc_sour
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="comment">// Test sprite coordinate system understanding</span></div>
 <div class="foldopen" id="foldopen00044" data-start="{" data-end="}">
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a046fd9599628dbd690eeb02858bd1d6c">   44</a></span><a class="code hl_function" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a307d472ea3fc99ff6bb0a6c637551580">TEST_F</a>(<a class="code hl_class" href="../../db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html">SpritePositionTest</a>, SpriteCoordinateSystem) {</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a046fd9599628dbd690eeb02858bd1d6c">   44</a></span><a class="code hl_function" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aec8de78b371e95b6cf45739a75ba92ef">TEST_F</a>(<a class="code hl_class" href="../../db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html">SpritePositionTest</a>, SpriteCoordinateSystem) {</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="comment">// Test sprites from different worlds</span></div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> game_state = 0; game_state &lt; 3; game_state++) {</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>    <span class="keyword">const</span> <span class="keyword">auto</span>&amp; sprites = overworld_-&gt;sprites(game_state);</div>
@@ -184,7 +184,7 @@ $(document).ready(function(){initNavTree('d8/d43/sprite__position__test_8cc_sour
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="comment">// Test sprite filtering logic</span></div>
 <div class="foldopen" id="foldopen00075" data-start="{" data-end="}">
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno"><a class="line" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a30bef1fbc7b2d7044911b9e0e2159ab9">   75</a></span><a class="code hl_function" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a307d472ea3fc99ff6bb0a6c637551580">TEST_F</a>(<a class="code hl_class" href="../../db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html">SpritePositionTest</a>, SpriteFilteringLogic) {</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno"><a class="line" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a30bef1fbc7b2d7044911b9e0e2159ab9">   75</a></span><a class="code hl_function" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aec8de78b371e95b6cf45739a75ba92ef">TEST_F</a>(<a class="code hl_class" href="../../db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html">SpritePositionTest</a>, SpriteFilteringLogic) {</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>  <span class="comment">// Test the filtering logic used in DrawOverworldSprites</span></div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> current_world = 0; current_world &lt; 3; current_world++) {</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="keyword">const</span> <span class="keyword">auto</span>&amp; sprites = overworld_-&gt;sprites(current_world);</div>
@@ -219,7 +219,7 @@ $(document).ready(function(){initNavTree('d8/d43/sprite__position__test_8cc_sour
 <div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span> </div>
 <div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span><span class="comment">// Test map coordinate calculations</span></div>
 <div class="foldopen" id="foldopen00108" data-start="{" data-end="}">
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno"><a class="line" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#afb146342cacf46d40b28803479fbf122">  108</a></span><a class="code hl_function" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a307d472ea3fc99ff6bb0a6c637551580">TEST_F</a>(<a class="code hl_class" href="../../db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html">SpritePositionTest</a>, MapCoordinateCalculations) {</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno"><a class="line" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#afb146342cacf46d40b28803479fbf122">  108</a></span><a class="code hl_function" href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aec8de78b371e95b6cf45739a75ba92ef">TEST_F</a>(<a class="code hl_class" href="../../db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html">SpritePositionTest</a>, MapCoordinateCalculations) {</div>
 <div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>  <span class="comment">// Test how map coordinates should be calculated</span></div>
 <div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> current_world = 0; current_world &lt; 3; current_world++) {</div>
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    <span class="keyword">const</span> <span class="keyword">auto</span>&amp; sprites = overworld_-&gt;sprites(current_world);</div>
@@ -277,7 +277,7 @@ $(document).ready(function(){initNavTree('d8/d43/sprite__position__test_8cc_sour
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1SpritePositionTest_html_ab72ffd8138ac5dc1c22755b9c7db1504"><div class="ttname"><a href="../../db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html#ab72ffd8138ac5dc1c22755b9c7db1504">yaze::zelda3::SpritePositionTest::TearDown</a></div><div class="ttdeci">void TearDown() override</div><div class="ttdef"><b>Definition</b> <a href="../../d8/d43/sprite__position__test_8cc_source.html#l00034">sprite_position_test.cc:34</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1Sprite_html"><div class="ttname"><a href="../../d6/db1/classyaze_1_1zelda3_1_1Sprite.html">yaze::zelda3::Sprite</a></div><div class="ttdoc">A class for managing sprites in the overworld and underworld.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/sprite_8h_source.html#l00279">sprite.h:279</a></div></div>
 <div class="ttc" id="aclassyaze_1_1zelda3_1_1Sprite_html_a6acd5c8ee4f5ddbb6fed7e565e8e9c2d"><div class="ttname"><a href="../../d6/db1/classyaze_1_1zelda3_1_1Sprite.html#a6acd5c8ee4f5ddbb6fed7e565e8e9c2d">yaze::zelda3::Sprite::name</a></div><div class="ttdeci">auto name()</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/sprite_8h_source.html#l00354">sprite.h:354</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1zelda3_html_a307d472ea3fc99ff6bb0a6c637551580"><div class="ttname"><a href="../../d5/d1f/namespaceyaze_1_1zelda3.html#a307d472ea3fc99ff6bb0a6c637551580">yaze::zelda3::TEST_F</a></div><div class="ttdeci">TEST_F(ComprehensiveIntegrationTest, VanillaROMDetection)</div><div class="ttdef"><b>Definition</b> <a href="../../d6/dae/comprehensive__integration__test_8cc_source.html#l00150">comprehensive_integration_test.cc:150</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1zelda3_html_aec8de78b371e95b6cf45739a75ba92ef"><div class="ttname"><a href="../../d5/d1f/namespaceyaze_1_1zelda3.html#aec8de78b371e95b6cf45739a75ba92ef">yaze::zelda3::TEST_F</a></div><div class="ttdeci">TEST_F(DungeonEditorSystemIntegrationTest, BasicInitialization)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d38/dungeon__editor__system__integration__test_8cc_source.html#l00067">dungeon_editor_system_integration_test.cc:67</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="aoverworld_8h_html"><div class="ttname"><a href="../../d7/d9c/overworld_8h.html">overworld.h</a></div></div>
 <div class="ttc" id="aoverworld__map_8h_html"><div class="ttname"><a href="../../d1/d4f/overworld__map_8h.html">overworld_map.h</a></div></div>
@@ -287,7 +287,7 @@ $(document).ready(function(){initNavTree('d8/d43/sprite__position__test_8cc_sour
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_13e138d54eb8818da29c3992edef070a.html">test</a></li><li class="navelem"><a class="el" href="../../dir_6a07fdbc4b50e86806a88566ca8f66e4.html">unit</a></li><li class="navelem"><a class="el" href="../../dir_9965619be4639aeb71151b78c570bcd6.html">zelda3</a></li><li class="navelem"><a class="el" href="../../d8/d43/sprite__position__test_8cc.html">sprite_position_test.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_13e138d54eb8818da29c3992edef070a.html">test</a></li><li class="navelem"><a class="el" href="../../dir_bbf9f1b56ba6c621651be8934a24eced.html">integration</a></li><li class="navelem"><a class="el" href="../../dir_4bb6bae9bcde3380378ed9095aee6b71.html">zelda3</a></li><li class="navelem"><a class="el" href="../../d8/d43/sprite__position__test_8cc.html">sprite_position_test.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

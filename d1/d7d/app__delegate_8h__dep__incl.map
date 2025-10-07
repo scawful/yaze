@@ -1,7 +1,7 @@
-<map id="src/app/core/platform/app_delegate.h" name="src/app/core/platform/app_delegate.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="83,5,227,46"/>
-<area shape="rect" id="Node000002" href="$d2/dcf/app__delegate_8mm.html" title=" " alt="" coords="5,94,150,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,60,97,95,93,92,125,56"/>
-<area shape="rect" id="Node000003" href="$db/de2/main_8mm.html" title=" " alt="" coords="174,102,291,127"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="184,56,224,99,220,103,180,59"/>
+<map id="src/app/platform/app_delegate.h" name="src/app/platform/app_delegate.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="81,5,222,46"/>
+<area shape="rect" id="Node000002" href="$d2/dcf/app__delegate_8mm.html" title=" " alt="" coords="5,94,146,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,60,95,95,91,92,122,56"/>
+<area shape="rect" id="Node000003" href="$db/de2/main_8mm.html" title=" " alt="" coords="170,102,288,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,56,220,99,216,103,177,59"/>
 </map>

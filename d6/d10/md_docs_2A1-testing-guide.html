@@ -101,188 +101,154 @@ $(document).ready(function(){initNavTree('d6/d10/md_docs_2A1-testing-guide.html'
   <div class="headertitle"><div class="title">A1 - Testing Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md9"></a> This guide provides a comprehensive overview of the testing framework for the yaze project, including unit tests, integration tests, and the end-to-end GUI automation system.</p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md9"></a> This guide provides a comprehensive overview of the testing framework for the yaze project, including the test organization, execution methods, and the end-to-end GUI automation system.</p>
 <h1><a class="anchor" id="autotoc_md10"></a>
-1. Test Categories</h1>
-<p>Tests are organized into three categories using labels to allow for flexible and efficient execution.</p>
-<h2><a class="anchor" id="autotoc_md11"></a>
-Stable Tests (STABLE)</h2>
-<p><b>Always run in CI/CD - Required for releases</b></p>
-<ul>
-<li><b>AsarWrapperTest</b>: Core Asar functionality tests</li>
-<li><b>SnesTileTest</b>: SNES tile format handling</li>
-<li><b>CompressionTest</b>: Data compression/decompression</li>
-<li><b>SnesPaletteTest</b>: SNES palette operations</li>
-<li><b>HexTest</b>: Hexadecimal utilities</li>
-<li><b>AsarIntegrationTest</b>: Asar integration without ROM dependencies</li>
-</ul>
-<p><b>Characteristics:</b></p><ul>
-<li>Fast execution (&lt; 30 seconds total)</li>
-<li>No external dependencies (ROMs, complex setup)</li>
-<li>High reliability and deterministic results</li>
-</ul>
+1. Test Organization</h1>
+<p>The test suite is organized into a clear directory structure that separates tests by their purpose and dependencies. This is the primary way to understand the nature of a test.</p>
+<div class="fragment"><div class="line">test/</div>
+<div class="line">├── unit/                    # Unit tests for individual components</div>
+<div class="line">│   ├── core/                # Core functionality (asar, hex utils)</div>
+<div class="line">│   ├── cli/                 # Command-line interface tests</div>
+<div class="line">│   ├── emu/                 # Emulator component tests</div>
+<div class="line">│   ├── gfx/                 # Graphics system (tiles, palettes)</div>
+<div class="line">│   ├── gui/                 # GUI widget tests</div>
+<div class="line">│   ├── rom/                 # ROM data structure tests</div>
+<div class="line">│   └── zelda3/              # Game-specific logic tests</div>
+<div class="line">├── integration/             # Tests for interactions between components</div>
+<div class="line">│   ├── ai/                  # AI agent and vision tests</div>
+<div class="line">│   ├── editor/              # Editor integration tests</div>
+<div class="line">│   └── zelda3/              # Game-specific integration tests (ROM-dependent)</div>
+<div class="line">├── e2e/                     # End-to-end user workflow tests (GUI-driven)</div>
+<div class="line">│   ├── rom_dependent/       # E2E tests requiring a ROM</div>
+<div class="line">│   └── zscustomoverworld/   # ZSCustomOverworld upgrade E2E tests</div>
+<div class="line">├── benchmarks/              # Performance benchmarks</div>
+<div class="line">├── mocks/                   # Mock objects for isolating tests</div>
+<div class="line">└── assets/                  # Test assets (patches, data)</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md11"></a>
+2. Test Categories</h1>
+<p>Based on the directory structure, tests fall into the following categories:</p>
 <h2><a class="anchor" id="autotoc_md12"></a>
-ROM-Dependent Tests (ROM_DEPENDENT)</h2>
-<p><b>Only run in development with available ROM files</b></p>
+Unit Tests (&lt;tt&gt;unit/&lt;/tt&gt;)</h2>
 <ul>
-<li><b>AsarRomIntegrationTest</b>: Real ROM patching and symbol extraction</li>
-<li><b>ROM-based integration tests</b>: Tests requiring actual game ROM files</li>
+<li><b>Purpose</b>: To test individual classes or functions in isolation.</li>
+<li><b>Characteristics</b>:<ul>
+<li>Fast, self-contained, and reliable.</li>
+<li>No external dependencies (e.g., ROM files, running GUI).</li>
+<li>Form the core of the CI/CD validation pipeline.</li>
 </ul>
-<p><b>Characteristics:</b></p><ul>
-<li>Require specific ROM files to be present</li>
-<li>Test real-world functionality</li>
-<li>Automatically skipped in CI if ROM files unavailable</li>
+</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md13"></a>
-Experimental Tests (EXPERIMENTAL)</h2>
-<p><b>Run separately, allowed to fail</b></p>
+Integration Tests (&lt;tt&gt;integration/&lt;/tt&gt;)</h2>
 <ul>
-<li><b>CpuTest</b>: 65816 CPU emulation tests</li>
-<li><b>Spc700Test</b>: SPC700 audio processor tests</li>
-<li><b>ApuTest</b>: Audio Processing Unit tests</li>
-<li><b>PpuTest</b>: Picture Processing Unit tests</li>
+<li><b>Purpose</b>: To verify that different components of the application work together correctly.</li>
+<li><b>Characteristics</b>:<ul>
+<li>May require a real ROM file (especially those in <code>integration/zelda3/</code>). These are considered "ROM-dependent".</li>
+<li>Test interactions between modules, such as the <code>asar</code> wrapper and the <code>Rom</code> class, or AI services with the GUI controller.</li>
+<li>Slower than unit tests but crucial for catching bugs at module boundaries.</li>
 </ul>
-<p><b>Characteristics:</b></p><ul>
-<li>May be unstable due to emulation complexity</li>
-<li>Test advanced/experimental features</li>
-<li>Allowed to fail without blocking releases</li>
+</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md14"></a>
-2. Running Tests</h1>
+<h2><a class="anchor" id="autotoc_md14"></a>
+End-to-End (E2E) Tests (&lt;tt&gt;e2e/&lt;/tt&gt;)</h2>
+<ul>
+<li><b>Purpose</b>: To simulate a full user workflow from start to finish.</li>
+<li><b>Characteristics</b>:<ul>
+<li>Driven by the <b><a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Test Engine</b>.</li>
+<li>Almost always require a running GUI and often a real ROM.</li>
+<li>The slowest but most comprehensive tests, validating the user experience.</li>
+<li>Includes smoke tests, canvas interactions, and complex workflows like ZSCustomOverworld upgrades.</li>
+</ul>
+</li>
+</ul>
 <h2><a class="anchor" id="autotoc_md15"></a>
-Using CMake Presets</h2>
-<p>The easiest way to run tests is with <code>ctest</code> presets.</p>
+Benchmarks (&lt;tt&gt;benchmarks/&lt;/tt&gt;)</h2>
+<ul>
+<li><b>Purpose</b>: To measure and track the performance of critical code paths, particularly in the graphics system.</li>
+<li><b>Characteristics</b>:<ul>
+<li>Not focused on correctness but on speed and efficiency.</li>
+<li>Run manually or in specialized CI jobs to prevent performance regressions.</li>
+</ul>
+</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md16"></a>
+3. Running Tests</h1>
+<h2><a class="anchor" id="autotoc_md17"></a>
+Using the Enhanced Test Runner (&lt;tt&gt;yaze_test&lt;/tt&gt;)</h2>
+<p>The most flexible way to run tests is by using the <code>yaze_test</code> executable directly. It provides flags to filter tests by category, which is ideal for development and AI agent workflows.</p>
+<div class="fragment"><div class="line"># First, build the test executable</div>
+<div class="line">cmake --build build_ai --target yaze_test</div>
+<div class="line"> </div>
+<div class="line"># Run all tests</div>
+<div class="line">./build_ai/bin/yaze_test</div>
+<div class="line"> </div>
+<div class="line"># Run only unit tests</div>
+<div class="line">./build_ai/bin/yaze_test --unit</div>
+<div class="line"> </div>
+<div class="line"># Run only integration tests</div>
+<div class="line">./build_ai/bin/yaze_test --integration</div>
+<div class="line"> </div>
+<div class="line"># Run E2E tests (requires a GUI)</div>
+<div class="line">./build_ai/bin/yaze_test --e2e --show-gui</div>
+<div class="line"> </div>
+<div class="line"># Run ROM-dependent tests with a specific ROM</div>
+<div class="line">./build_ai/bin/yaze_test --rom-dependent --rom-path /path/to/zelda3.sfc</div>
+<div class="line"> </div>
+<div class="line"># Run tests matching a specific pattern (e.g., all Asar tests)</div>
+<div class="line">./build_ai/bin/yaze_test &quot;*Asar*&quot;</div>
+<div class="line"> </div>
+<div class="line"># Get a full list of options</div>
+<div class="line">./build_ai/bin/yaze_test --help</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md18"></a>
+Using CTest and CMake Presets</h2>
+<p>For CI/CD or a more traditional workflow, you can use <code>ctest</code> with CMake presets.</p>
 <div class="fragment"><div class="line"># Configure a development build (enables ROM-dependent tests)</div>
 <div class="line">cmake --preset mac-dev -DYAZE_TEST_ROM_PATH=/path/to/your/zelda3.sfc</div>
 <div class="line"> </div>
 <div class="line"># Build the tests</div>
 <div class="line">cmake --build --preset mac-dev --target yaze_test</div>
 <div class="line"> </div>
-<div class="line"># Run stable tests (fast, run in CI)</div>
+<div class="line"># Run stable tests (fast, primarily unit tests)</div>
 <div class="line">ctest --preset dev</div>
 <div class="line"> </div>
-<div class="line"># Run all tests, including ROM-dependent and experimental</div>
+<div class="line"># Run all tests, including ROM-dependent and E2E</div>
 <div class="line">ctest --preset all</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md16"></a>
-Manual Execution</h2>
-<p>You can also run tests by invoking the test executable directly or using CTest with labels.</p>
-<div class="fragment"><div class="line"># Run all tests via the executable</div>
-<div class="line">./build/bin/yaze_test</div>
-<div class="line"> </div>
-<div class="line"># Run only stable tests using CTest labels</div>
-<div class="line">ctest --test-dir build --label-regex &quot;STABLE&quot;</div>
-<div class="line"> </div>
-<div class="line"># Run tests matching a name</div>
-<div class="line">ctest --test-dir build -R &quot;AsarWrapperTest&quot;</div>
-<div class="line"> </div>
-<div class="line"># Exclude ROM-dependent tests</div>
-<div class="line">ctest --test-dir build --label-exclude &quot;ROM_DEPENDENT&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md17"></a>
-3. Writing Tests</h1>
-<h2><a class="anchor" id="autotoc_md18"></a>
-Stable Tests</h2>
-<div class="fragment"><div class="line">TEST(SnesTileTest, UnpackBppTile) {</div>
-<div class="line">    std::vector&lt;uint8_t&gt; tile_data = {0xAA, 0x55, 0xAA, 0x55};</div>
-<div class="line">    std::vector&lt;uint8_t&gt; result = UnpackBppTile(tile_data, 2);</div>
-<div class="line">    EXPECT_EQ(result.size(), 64);</div>
-<div class="line">    <span class="comment">// Test specific pixel values...</span></div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md19"></a>
-ROM-Dependent Tests</h2>
-<div class="fragment"><div class="line"><a class="code hl_define" href="../../df/dfd/test__utils_8h.html#acde8466936427e1b1ba331bccb124a9e">YAZE_ROM_TEST</a>(AsarIntegration, RealRomPatching) {</div>
-<div class="line">    <span class="keyword">auto</span> rom_data = TestRomManager::LoadTestRom();</div>
-<div class="line">    <span class="keywordflow">if</span> (!rom_data.has_value()) {</div>
-<div class="line">        GTEST_SKIP() &lt;&lt; <span class="stringliteral">&quot;ROM file not available&quot;</span>;</div>
-<div class="line">    }</div>
-<div class="line">    </div>
-<div class="line">    AsarWrapper wrapper;</div>
-<div class="line">    wrapper.Initialize();</div>
-<div class="line">    </div>
-<div class="line">    <span class="keyword">auto</span> result = wrapper.ApplyPatch(<span class="stringliteral">&quot;test.asm&quot;</span>, *rom_data);</div>
-<div class="line">    EXPECT_TRUE(result.ok());</div>
-<div class="line">}</div>
-<div class="ttc" id="atest__utils_8h_html_acde8466936427e1b1ba331bccb124a9e"><div class="ttname"><a href="../../df/dfd/test__utils_8h.html#acde8466936427e1b1ba331bccb124a9e">YAZE_ROM_TEST</a></div><div class="ttdeci">#define YAZE_ROM_TEST(test_case_name, test_name)</div><div class="ttdoc">Test macro for ROM-dependent tests.</div><div class="ttdef"><b>Definition</b> <a href="../../df/dfd/test__utils_8h_source.html#l00169">test_utils.h:169</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md20"></a>
-4. E2E GUI Testing Framework</h1>
-<p>An agent-friendly, end-to-end testing framework built on <code>ImGuiTestEngine</code> to automate UI interaction testing for the YAZE editor.</p>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md19"></a>
+4. Writing Tests</h1>
+<p>When adding new tests, place them in the appropriate directory based on their purpose and dependencies.</p>
+<ul>
+<li><b>New class <code>MyClass</code>?</b> Add <code>test/unit/my_class_test.cc</code>.</li>
+<li><b>Testing <code>MyClass</code> with a real ROM?</b> Add <code>test/integration/my_class_rom_test.cc</code>.</li>
+<li><b>Testing a full UI workflow involving <code>MyClass</code>?</b> Add <code>test/e2e/my_class_workflow_test.cc</code>.</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md20"></a>
+5. E2E GUI Testing Framework</h1>
+<p>The E2E framework uses <code>ImGuiTestEngine</code> to automate UI interactions.</p>
 <h2><a class="anchor" id="autotoc_md21"></a>
 Architecture</h2>
-<p><b>Test Execution Flow</b>:</p><ol type="1">
-<li><code>z3ed test-gui</code> command invokes the modified <code>yaze_test</code> executable</li>
-<li><code>yaze_test</code> initializes an application window and <code>ImGuiTestEngine</code></li>
-<li>Tests are registered and executed against the live GUI</li>
-<li>Results are reported back with detailed logs and assertions</li>
-</ol>
-<p><b>Key Components</b>:</p><ul>
-<li><code><a class="el" href="../../de/d3d/yaze__test_8cc.html">test/yaze_test.cc</a></code> - Main test executable with GUI initialization</li>
-<li><code><a class="el" href="../../da/d8d/framework__smoke__test_8cc.html">test/e2e/framework_smoke_test.cc</a></code> - Basic infrastructure verification</li>
-<li><code><a class="el" href="../../d2/d5c/canvas__selection__test_8cc.html">test/e2e/canvas_selection_test.cc</a></code> - Canvas interaction tests</li>
-<li><code><a class="el" href="../../df/dfd/test__utils_8h.html">test/test_utils.h</a></code> - High-level action wrappers (LoadRomInTest, OpenEditorInTest, etc.)</li>
+<ul>
+<li>**<code><a class="el" href="../../de/d3d/yaze__test_8cc.html">test/yaze_test.cc</a></code>**: The main test runner that can initialize a GUI for E2E tests.</li>
+<li>**<code>test/e2e/</code>**: Contains all E2E test files, such as:<ul>
+<li><code><a class="el" href="../../da/d8d/framework__smoke__test_8cc.html">framework_smoke_test.cc</a></code>: Basic infrastructure verification.</li>
+<li><code><a class="el" href="../../d2/d5c/canvas__selection__test_8cc.html">canvas_selection_test.cc</a></code>: Canvas interaction tests.</li>
+<li><code><a class="el" href="../../db/d49/dungeon__editor__tests_8cc.html">dungeon_editor_tests.cc</a></code>: UI tests for the dungeon editor.</li>
+</ul>
+</li>
+<li>**<code><a class="el" href="../../df/dfd/test__utils_8h.html">test/test_utils.h</a></code>**: Provides high-level helper functions for common actions like loading a ROM (<code>LoadRomInTest</code>) or opening an editor (<code>OpenEditorInTest</code>).</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md22"></a>
-Widget Registration for Automation</h2>
-<p>All modern UI components are fully integrated with the <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Test Engine for seamless automation.</p>
-<p><b>Toolbar Components:</b> All toolbar buttons are automatically registered with descriptive paths:</p><ul>
-<li><code>ModeButton:Pan (1)</code></li>
-<li><code>ModeButton:Draw (2)</code></li>
-<li><code>ToolbarAction:Toggle Tile16 Selector</code></li>
-<li><code>ToolbarAction:Open Tile16 Editor</code></li>
-</ul>
-<p><b>Editor Cards:</b> All EditorCard windows are registered as discoverable windows:</p><ul>
-<li><code>EditorCard:Tile16 Selector</code></li>
-<li><code>EditorCard:Area Graphics</code></li>
-</ul>
-<p><b>State Introspection:</b> Card visibility states are tracked for test automation:</p><ul>
-<li><code>OverworldToolbar/state:tile16_selector_visible</code></li>
-</ul>
-<h2><a class="anchor" id="autotoc_md23"></a>
-Running GUI Tests with &lt;tt&gt;z3ed&lt;/tt&gt;</h2>
-<p>The <code>z3ed</code> CLI provides a powerful interface for running GUI tests.</p>
-<div class="fragment"><div class="line"># Run all E2E tests</div>
-<div class="line">z3ed gui replay --ci-mode</div>
+Running GUI Tests</h2>
+<p>To run E2E tests and see the GUI interactions, use the <code>--show-gui</code> flag.</p>
+<div class="fragment"><div class="line"># Run all E2E tests with the GUI visible</div>
+<div class="line">./build_ai/bin/yaze_test --e2e --show-gui</div>
 <div class="line"> </div>
-<div class="line"># Run a specific test suite from a YAML file</div>
-<div class="line">z3ed gui replay test_overworld_workflow.yaml --ci-mode</div>
-<div class="line"> </div>
-<div class="line"># Click a specific button</div>
-<div class="line">z3ed gui click &quot;ModeButton:Draw (2)&quot;</div>
-<div class="line"> </div>
-<div class="line"># Wait for a window to become visible</div>
-<div class="line">z3ed gui wait &quot;window_visible:Tile16 Selector&quot;</div>
-<div class="line"> </div>
-<div class="line"># Assert that a card is visible</div>
-<div class="line">z3ed gui assert &quot;visible:EditorCard:Tile16 Selector&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md24"></a>
-Widget Discovery</h2>
-<p>You can discover all registered UI elements for scripting and testing.</p>
-<div class="fragment"><div class="line"># List all widgets in the Overworld window</div>
-<div class="line">z3ed gui discover --window=&quot;Overworld&quot; --format=yaml &gt; overworld_widgets.yaml</div>
-<div class="line"> </div>
-<div class="line"># Find all toolbar actions</div>
-<div class="line">z3ed gui discover --path-prefix=&quot;ToolbarAction:&quot;</div>
-<div class="line"> </div>
-<div class="line"># Find all editor cards</div>
-<div class="line">z3ed gui discover --path-prefix=&quot;EditorCard:&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md25"></a>
-Integration with AI Agent</h2>
-<p>The agent can leverage the GUI testing framework to perform actions.</p>
-<ol type="1">
-<li><b>Discover UI Elements</b>: <code>Agent&gt; describe gui</code></li>
-<li><b>Interact with UI</b>: <code>Agent&gt; click toolbar button "Toggle Tile16 Selector"</code></li>
-<li><b>Monitor State</b>: <code>Agent&gt; check if "Tile16 Selector" is visible</code></li>
-</ol>
-<h2><a class="anchor" id="autotoc_md26"></a>
-GUI Automation Scenarios</h2>
-<p>Scenarios are defined in JSONL files, where each line is a JSON action.</p>
-<p>**Example Scenario (<code>overworld_single_tile_paint.jsonl</code>):** </p><div class="fragment"><div class="line">{&quot;action&quot;: &quot;start_test&quot;, &quot;name&quot;: &quot;overworld_single_tile_paint&quot;, &quot;description&quot;: &quot;Paint single tile and verify&quot;}</div>
-<div class="line">{&quot;action&quot;: &quot;setup&quot;, &quot;rom&quot;: &quot;zelda3.sfc&quot;, &quot;window&quot;: &quot;Overworld Editor&quot;, &quot;map&quot;: 0}</div>
-<div class="line">{&quot;action&quot;: &quot;wait_for_window&quot;, &quot;window_name&quot;: &quot;Overworld Editor&quot;, &quot;timeout_ms&quot;: 5000}</div>
-<div class="line">{&quot;action&quot;: &quot;select_tile&quot;, &quot;tile_id&quot;: 66, &quot;tile_id_hex&quot;: &quot;0x0042&quot;}</div>
-<div class="line">{&quot;action&quot;: &quot;click_canvas_tile&quot;, &quot;canvas_id&quot;: &quot;Overworld Canvas&quot;, &quot;x&quot;: 10, &quot;y&quot;: 10}</div>
-<div class="line">{&quot;action&quot;: &quot;assert_tile&quot;, &quot;x&quot;: 10, &quot;y&quot;: 10, &quot;expected_tile_id&quot;: 66}</div>
-<div class="line">{&quot;action&quot;: &quot;end_test&quot;, &quot;status&quot;: &quot;pass&quot;}</div>
-</div><!-- fragment --><p><b>Run a scenario:</b> </p><div class="fragment"><div class="line">z3ed agent test replay overworld_single_tile_paint.jsonl --rom zelda3.sfc --grpc localhost:50051</div>
-</div><!-- fragment --> </div></div><!-- contents -->
+<div class="line"># Run a specific E2E test by name</div>
+<div class="line">./build_ai/bin/yaze_test --show-gui --gtest_filter=&quot;*DungeonEditorSmokeTest&quot;</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md23"></a>
+Widget Discovery and AI Integration</h2>
+<p>The GUI testing framework is designed for AI agent automation. All major UI elements are registered with stable IDs, allowing an agent to "discover" and interact with them programmatically via the <code>z3ed</code> CLI.</p>
+<p>Refer to the <code>z3ed</code> agent guide for details on using commands like <code>z3ed gui discover</code>, <code>z3ed gui click</code>, and <code>z3ed agent test replay</code>. </p>
+</div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->
 <!-- start footer part -->

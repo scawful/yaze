@@ -131,9 +131,9 @@ $(document).ready(function(){initNavTree('d6/d1a/unified__grpc__server_8cc_sourc
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>absl::Status YazeGRPCServer::Initialize(</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    <span class="keywordtype">int</span> port,</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    test::TestManager* test_manager,</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    app::Rom* rom,</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    app::net::RomVersionManager* version_mgr,</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    app::net::ProposalApprovalManager* approval_mgr,</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    Rom* rom,</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>    net::RomVersionManager* version_mgr,</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    net::ProposalApprovalManager* approval_mgr,</div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    CanvasAutomationServiceImpl* canvas_service) {</div>
 <div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>  </div>
 <div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>  <span class="keywordflow">if</span> (is_running_) {</div>
@@ -153,11 +153,11 @@ $(document).ready(function(){initNavTree('d6/d1a/unified__grpc__server_8cc_sourc
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  </div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <span class="comment">// Create ROM service if rom provided</span></div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  <span class="keywordflow">if</span> (config_.enable_rom_service &amp;&amp; rom) {</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    rom_service_ = std::make_unique&lt;app::net::RomServiceImpl&gt;(</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    rom_service_ = std::make_unique&lt;net::RomServiceImpl&gt;(</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        rom, version_mgr, approval_mgr);</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    </div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>    <span class="comment">// Configure ROM service</span></div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    app::net::RomServiceImpl::Config rom_config;</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>    net::RomServiceImpl::Config rom_config;</div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>    rom_config.require_approval_for_writes = config_.require_approval_for_rom_writes;</div>
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    rom_service_-&gt;SetConfig(rom_config);</div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    </div>

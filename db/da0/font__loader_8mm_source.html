@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/platform/font_loader.mm Source File</title>
+<title>yaze: src/app/platform/font_loader.mm Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('db/da0/font__loader_8mm_source.html','
   <div class="headertitle"><div class="title">font_loader.mm</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../db/da0/font__loader_8mm.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d2/d36/font__loader_8h.html">app/core/platform/font_loader.h</a>&quot;</span></div>
+<a href="../../db/da0/font__loader_8mm.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d2/d36/font__loader_8h.html">app/platform/font_loader.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#import &lt;CoreText/CoreText.h&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;TargetConditionals.h&gt;</span></div>
@@ -111,13 +111,13 @@ $(document).ready(function(){initNavTree('db/da0/font__loader_8mm_source.html','
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#if TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1</span></div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="comment">/* iOS */</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keywordtype">void</span> <a class="code hl_function" href="../../db/d33/namespaceyaze_1_1core.html#aa408d383ff33494e29ea06e0e6774f4c">yaze::core::LoadSystemFonts</a>() {}</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keywordtype">void</span> <a class="code hl_function" href="../../dc/d46/namespaceyaze.html#a7cfeaab149882de47c6fe16cd8466340">yaze::LoadSystemFonts</a>() {}</div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#elif TARGET_OS_MAC == 1</span></div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="comment">/* macOS */</span></div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#import &lt;Cocoa/Cocoa.h&gt;</span></div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keywordtype">void</span> <a class="code hl_function" href="../../db/d33/namespaceyaze_1_1core.html#aa408d383ff33494e29ea06e0e6774f4c">yaze::core::LoadSystemFonts</a>() {</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="keywordtype">void</span> <a class="code hl_function" href="../../dc/d46/namespaceyaze.html#a7cfeaab149882de47c6fe16cd8466340">yaze::LoadSystemFonts</a>() {</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>  NSArray *fontNames = @[ <span class="stringliteral">@&quot;Helvetica&quot;</span>, <span class="stringliteral">@&quot;Times New Roman&quot;</span>, <span class="stringliteral">@&quot;Courier&quot;</span>, <span class="stringliteral">@&quot;Arial&quot;</span>, <span class="stringliteral">@&quot;Verdana&quot;</span> ];</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span> </div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>  <span class="keywordflow">for</span> (NSString *fontName in fontNames) {</div>
@@ -164,13 +164,13 @@ $(document).ready(function(){initNavTree('db/da0/font__loader_8mm_source.html','
 <div class="ttc" id="aicons_8h_html"><div class="ttname"><a href="../../de/dbf/icons_8h.html">icons.h</a></div></div>
 <div class="ttc" id="aicons_8h_html_a6cb0d114de0f8bb079998be79d3b001c"><div class="ttname"><a href="../../de/dbf/icons_8h.html#a6cb0d114de0f8bb079998be79d3b001c">ICON_MIN_MD</a></div><div class="ttdeci">#define ICON_MIN_MD</div><div class="ttdef"><b>Definition</b> <a href="../../de/dbf/icons_8h_source.html#l00008">icons.h:8</a></div></div>
 <div class="ttc" id="aicons_8h_html_afbf738deb227afe8e9b196ba09a7c360"><div class="ttname"><a href="../../de/dbf/icons_8h.html#afbf738deb227afe8e9b196ba09a7c360">FONT_ICON_FILE_NAME_MD</a></div><div class="ttdeci">#define FONT_ICON_FILE_NAME_MD</div><div class="ttdef"><b>Definition</b> <a href="../../de/dbf/icons_8h_source.html#l00006">icons.h:6</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1core_html_aa408d383ff33494e29ea06e0e6774f4c"><div class="ttname"><a href="../../db/d33/namespaceyaze_1_1core.html#aa408d383ff33494e29ea06e0e6774f4c">yaze::core::LoadSystemFonts</a></div><div class="ttdeci">void LoadSystemFonts()</div></div>
+<div class="ttc" id="anamespaceyaze_html_a7cfeaab149882de47c6fe16cd8466340"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html#a7cfeaab149882de47c6fe16cd8466340">yaze::LoadSystemFonts</a></div><div class="ttdeci">void LoadSystemFonts()</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../dir_f454b90621a5a35d9d5ef5e042a20159.html">platform</a></li><li class="navelem"><a class="el" href="../../db/da0/font__loader_8mm.html">font_loader.mm</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_b5073da0a0de1fec69310c7003d323a8.html">platform</a></li><li class="navelem"><a class="el" href="../../db/da0/font__loader_8mm.html">font_loader.mm</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

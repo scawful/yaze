@@ -35,7 +35,7 @@ var searchData=
   ['used_5fregions_32',['used_regions',['../d0/d6d/structyaze_1_1gfx_1_1AtlasRenderer_1_1Atlas.html#ae6e28abc35253b28f97d257f329f9404',1,'yaze::gfx::AtlasRenderer::Atlas']]],
   ['usegain_33',['useGain',['../d5/da0/structyaze_1_1emu_1_1DspChannel.html#a0e85f4e4b96346138f7ec6673d5e8705',1,'yaze::emu::DspChannel']]],
   ['usenoise_34',['useNoise',['../d5/da0/structyaze_1_1emu_1_1DspChannel.html#a0f3d545cf2c196e73dc3c8da4e19ab74',1,'yaze::emu::DspChannel']]],
-  ['user_5fbubble_35',['user_bubble',['../d2/dda/structyaze_1_1app_1_1gui_1_1AgentChatWidget_1_1Colors.html#a651a15e602e9396504a8073b316b43f1',1,'yaze::app::gui::AgentChatWidget::Colors']]],
+  ['user_5fbubble_35',['user_bubble',['../de/dd3/structyaze_1_1gui_1_1AgentChatWidget_1_1Colors.html#a25eabb24d003b9a90349b8410e480c87',1,'yaze::gui::AgentChatWidget::Colors']]],
   ['user_5fintent_36',['user_intent',['../dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html#a9810749a6469ff30e78fe290808de8e0',1,'yaze::cli::agent::AdvancedRouter::RouteContext']]],
   ['user_5fmessage_5fcolor_37',['user_message_color',['../db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#aa2bc368fa9b1a6b6b390faa38420135f',1,'yaze::editor::AgentUITheme']]],
   ['user_5fmessages_38',['user_messages',['../db/d80/structyaze_1_1cli_1_1agent_1_1ConversationalAgentService_1_1InternalMetrics.html#a9d3133926aac46bb38e2823ac8d5e76b',1,'yaze::cli::agent::ConversationalAgentService::InternalMetrics']]],

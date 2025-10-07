@@ -1,9 +1,0 @@
-<map id="yaze::editor::ObjectEditorCard::ObjectEditorCard" name="yaze::editor::ObjectEditorCard::ObjectEditorCard">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,168,64"/>
-<area shape="rect" id="Node000002" href="$d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#ac27d05e462417e4d9860952c7bc7fcf4" title=" " alt="" coords="216,23,388,64"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="168,41,200,41,200,46,168,46"/>
-<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="436,5,577,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="388,30,420,26,421,31,389,35"/>
-<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="446,55,568,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="389,51,431,56,430,61,388,56"/>
-</map>

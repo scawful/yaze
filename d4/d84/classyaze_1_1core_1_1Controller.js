@@ -11,8 +11,10 @@ var classyaze_1_1core_1_1Controller =
     [ "active", "d4/d84/classyaze_1_1core_1_1Controller.html#a3b8d4516aea70ac4d233d56a8b9ade4b", null ],
     [ "overworld", "d4/d84/classyaze_1_1core_1_1Controller.html#a6d9fecf6791d7863e093c3f821eedfa6", null ],
     [ "GetCurrentRom", "d4/d84/classyaze_1_1core_1_1Controller.html#a5e6f72dcbbc8c0e52dd907bd24f4d865", null ],
+    [ "renderer", "d4/d84/classyaze_1_1core_1_1Controller.html#a36bd1dd792d51d0817e8c02369c8af16", null ],
     [ "int::main", "d4/d84/classyaze_1_1core_1_1Controller.html#a0053aa2ca13c662cf8119dee322c81de", null ],
     [ "active_", "d4/d84/classyaze_1_1core_1_1Controller.html#aa976b011db5eebd07468b52c53500d47", null ],
     [ "window_", "d4/d84/classyaze_1_1core_1_1Controller.html#a1e275dc68218b0a1aaab5ad9e761a444", null ],
-    [ "editor_manager_", "d4/d84/classyaze_1_1core_1_1Controller.html#ac4679c506fca7da732d65dad8934ef96", null ]
+    [ "editor_manager_", "d4/d84/classyaze_1_1core_1_1Controller.html#ac4679c506fca7da732d65dad8934ef96", null ],
+    [ "renderer_", "d4/d84/classyaze_1_1core_1_1Controller.html#a56bbbcb367089efa3ac37949e2297e88", null ]
 ];

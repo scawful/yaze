@@ -1,9 +1,0 @@
-<map id="yaze::app::gui::CollaborationPanel::RenderSnapshotsTab" name="yaze::app::gui::CollaborationPanel::RenderSnapshotsTab">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,191,79"/>
-<area shape="rect" id="Node000002" href="$df/d44/classyaze_1_1app_1_1gui_1_1CollaborationPanel.html#a555acc6b4c2fa57ad93c8eac89376a9b" title=" " alt="" coords="239,39,424,79"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,56,223,56,223,62,191,62"/>
-<area shape="rect" id="Node000003" href="$df/d44/classyaze_1_1app_1_1gui_1_1CollaborationPanel.html#a9482e0704c611c1ba7501244127e3a2d" title=" " alt="" coords="472,5,650,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,43,456,38,457,43,425,48"/>
-<area shape="rect" id="Node000004" href="$df/d44/classyaze_1_1app_1_1gui_1_1CollaborationPanel.html#a03ca7c422a4367dac01e6ccd057b793a" title=" " alt="" coords="472,71,650,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="425,69,457,74,456,79,424,75"/>
-</map>

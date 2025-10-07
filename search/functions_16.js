@@ -9,7 +9,7 @@ var searchData=
   ['wasclicked_6',['WasClicked',['../da/d2c/classyaze_1_1gui_1_1Canvas.html#a9a0509dbe235a1abe00b030d035ce9cd',1,'yaze::gui::Canvas']]],
   ['wasdoubleclicked_7',['WasDoubleClicked',['../da/d2c/classyaze_1_1gui_1_1Canvas.html#a1e6a4fcba5a225fdcfee67429bf163f7',1,'yaze::gui::Canvas']]],
   ['wdm_8',['WDM',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a1f58eb28a3d5ef40b27595977fde5a07',1,'yaze::emu::Cpu']]],
-  ['websocketclient_9',['WebSocketClient',['../d7/df0/classyaze_1_1app_1_1net_1_1WebSocketClient.html#a4aaf3229f744feef0dc3016cf4acdb01',1,'yaze::app::net::WebSocketClient']]],
+  ['websocketclient_9',['WebSocketClient',['../da/dae/classyaze_1_1net_1_1WebSocketClient.html#a26761282a998bfb4f51a5bb6b875fc4c',1,'yaze::net::WebSocketClient']]],
   ['welcomescreen_10',['WelcomeScreen',['../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#acfa058a5c1503d8bead7b8b5c0dc4d86',1,'yaze::editor::WelcomeScreen']]],
   ['widgetdiscoveryservice_11',['WidgetDiscoveryService',['../dd/dc0/classyaze_1_1test_1_1WidgetDiscoveryService.html#a22237dacd2f5c09f3c7d9856ca2c9caf',1,'yaze::test::WidgetDiscoveryService']]],
   ['widgetidregistry_12',['WidgetIdRegistry',['../d9/dfe/classyaze_1_1gui_1_1WidgetIdRegistry.html#ac495a8762e3b9dfef26829597a826784',1,'yaze::gui::WidgetIdRegistry']]],

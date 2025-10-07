@@ -1,0 +1,7 @@
+<map id="yaze::editor::ObjectEditorCard::DrawSelectedObjectInfo" name="yaze::editor::ObjectEditorCard::DrawSelectedObjectInfo">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,201,79"/>
+<area shape="rect" id="Node000002" href="$d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#acac2c424fd8c645a59d5142b69743aa9" title=" " alt="" coords="249,5,489,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,44,233,40,233,45,202,49"/>
+<area shape="rect" id="Node000003" href="$d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a780a20c6f057ef5d7e97ce7f91b30aaf" title=" " alt="" coords="276,71,462,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="202,68,261,75,260,81,201,73"/>
+</map>

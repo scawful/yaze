@@ -1,13 +1,11 @@
 <map id="yaze::gfx::Bitmap::SetPalette" name="yaze::gfx::Bitmap::SetPalette">
-<area shape="rect" id="Node000001" title="Set the palette for the bitmap." alt="" coords="5,79,129,119"/>
-<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a9f023ff3bf1ca16bf253d35b07a9abf5" title="Invalidate the palette lookup cache (call when palette changes)" alt="" coords="177,49,332,90"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,87,161,82,162,87,130,92"/>
-<area shape="rect" id="Node000005" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a683161f8ef9326f82fa64f35d4fb3eda" title=" " alt="" coords="380,5,527,46"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="95,76,132,53,176,35,224,25,273,19,364,16,364,22,273,24,224,30,177,40,135,58,98,80"/>
-<area shape="rect" id="Node000004" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2a93bfee737bef55dbf436f2605282ce" title=" " alt="" coords="392,83,515,123"/>
-<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="129,98,177,99,377,100,377,106,177,104,129,103"/>
-<area shape="rect" id="Node000006" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a05432a1e204b43ea1cb4820449b7e0b8" title=" " alt="" coords="193,164,316,205"/>
-<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="115,117,195,155,193,160,112,122"/>
-<area shape="poly" id="edge2_Node000002_Node000005" title=" " alt="" coords="332,50,364,43,365,48,333,55"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="333,80,377,88,376,93,332,85"/>
+<area shape="rect" id="Node000001" title="Set the palette for the bitmap." alt="" coords="5,72,129,113"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a9139f2f9427fd314cd21ef4b93ae7fa7" title="Apply the stored palette to the surface (internal helper)" alt="" coords="177,39,309,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,78,161,72,162,77,129,83"/>
+<area shape="rect" id="Node000008" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a05432a1e204b43ea1cb4820449b7e0b8" title=" " alt="" coords="181,104,305,145"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="129,101,166,108,165,113,128,106"/>
+<area shape="rect" id="Node000003" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html#aeb01c20c88b1ad90bff7289f1b5c8205" title=" " alt="" coords="361,5,508,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="309,45,346,38,346,44,310,50"/>
+<area shape="rect" id="Node000004" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a9f023ff3bf1ca16bf253d35b07a9abf5" title="Invalidate the palette lookup cache (call when palette changes)" alt="" coords="357,71,512,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="310,67,342,73,341,78,309,73"/>
 </map>

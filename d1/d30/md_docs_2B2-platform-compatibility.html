@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('d1/d30/md_docs_2B2-platform-compatibil
   <div class="headertitle"><div class="title">Platform Compatibility Improvements</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md57"></a> Recent improvements to ensure YAZE works reliably across all supported platforms.</p>
-<h1><a class="anchor" id="autotoc_md58"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md54"></a> Recent improvements to ensure YAZE works reliably across all supported platforms.</p>
+<h1><a class="anchor" id="autotoc_md55"></a>
 Native File Dialog Support</h1>
 <p>YAZE now features native file dialogs on all platforms:</p><ul>
 <li><b>macOS</b>: Cocoa-based file selection with proper sandboxing support</li>
@@ -110,7 +110,7 @@ Native File Dialog Support</h1>
 <li><b>Linux</b>: GTK3 dialogs that match system appearance</li>
 <li><b>Fallback</b>: Bespoke implementation when native dialogs unavailable</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md59"></a>
+<h1><a class="anchor" id="autotoc_md56"></a>
 Cross-Platform Build Reliability</h1>
 <p>Enhanced build system ensures consistent compilation:</p><ul>
 <li><b>Windows</b>: Resolved MSVC compatibility issues and dependency conflicts</li>
@@ -119,16 +119,16 @@ Cross-Platform Build Reliability</h1>
 <li><b>macOS</b>: Proper support for both Intel and Apple Silicon architectures</li>
 <li><b>All Platforms</b>: Bundled dependencies eliminate external package requirements</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md60"></a>
+<h1><a class="anchor" id="autotoc_md57"></a>
 Build Configuration Options</h1>
 <p>YAZE supports different build configurations for various use cases:</p>
-<h2><a class="anchor" id="autotoc_md61"></a>
+<h2><a class="anchor" id="autotoc_md58"></a>
 Full Build (Development)</h2>
 <p>Includes all features: emulator, CLI tools, UI testing framework, and optional libraries.</p>
-<h2><a class="anchor" id="autotoc_md62"></a>
+<h2><a class="anchor" id="autotoc_md59"></a>
 Minimal Build</h2>
 <p>Streamlined build excluding complex components, optimized for automated testing and CI environments.</p>
-<h1><a class="anchor" id="autotoc_md63"></a>
+<h1><a class="anchor" id="autotoc_md60"></a>
 Implementation Details</h1>
 <p>The build system automatically detects platform capabilities and adjusts feature sets accordingly:</p>
 <ul>
@@ -138,23 +138,23 @@ Implementation Details</h1>
 <li><b>Testing</b>: Separates ROM-dependent tests from unit tests for CI compatibility</li>
 <li><b>Architecture</b>: Supports both Intel and Apple Silicon on macOS without conflicts</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md64"></a>
+<h1><a class="anchor" id="autotoc_md61"></a>
 Platform-Specific Adaptations</h1>
-<h2><a class="anchor" id="autotoc_md65"></a>
+<h2><a class="anchor" id="autotoc_md62"></a>
 Windows</h2>
 <ul>
 <li>Complete COM-based file dialog implementation</li>
 <li>MSVC compatibility improvements for modern C++ features</li>
 <li>Resource file handling for proper application integration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md66"></a>
+<h2><a class="anchor" id="autotoc_md63"></a>
 macOS</h2>
 <ul>
 <li>Cocoa-based native file dialogs with sandboxing support</li>
 <li>Universal binary support for Intel and Apple Silicon</li>
 <li>Proper bundle configuration for macOS applications</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md67"></a>
+<h2><a class="anchor" id="autotoc_md64"></a>
 Linux</h2>
 <ul>
 <li>GTK3 integration for native file dialogs</li>

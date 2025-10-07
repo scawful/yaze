@@ -4,9 +4,9 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,150,159,177,162,190,168,202,184,217,204,227,201,232,181,221,164,205,157,192,153,178,155,149"/>
 <area shape="rect" id="Node000003" href="$dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html" title="Handles all tile&#45;based interactions for Canvas." alt="" coords="5,5,177,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="88,61,94,84,106,97,122,106,120,111,103,101,90,86,83,62"/>
-<area shape="rect" id="Node000009" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="226,13,306,39"/>
-<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="272,53,293,227,288,228,266,54"/>
-<area shape="poly" id="edge3_Node000002_Node000009" title=" " alt="" coords="247,52,213,87,183,111,180,107,209,83,243,48"/>
-<area shape="rect" id="Node000007" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="348,109,495,135"/>
-<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="399,147,308,229,304,225,395,143"/>
+<area shape="rect" id="Node000010" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="226,13,306,39"/>
+<area shape="poly" id="edge5_Node000001_Node000010" title=" " alt="" coords="272,53,293,227,288,228,266,54"/>
+<area shape="poly" id="edge3_Node000002_Node000010" title=" " alt="" coords="247,52,213,87,183,111,180,107,209,83,243,48"/>
+<area shape="rect" id="Node000008" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html" title="Represents a palette of colors for the Super Nintendo Entertainment System (SNES)." alt="" coords="348,109,495,135"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="399,147,308,229,304,225,395,143"/>
 </map>

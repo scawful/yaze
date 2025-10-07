@@ -1,0 +1,7 @@
+<map id="yaze::net::CollaborationService::OnProposalReceived" name="yaze::net::CollaborationService::OnProposalReceived">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,199,46"/>
+<area shape="rect" id="Node000002" href="$d6/dfb/classyaze_1_1net_1_1CollaborationService.html#a4b306da22dfd7e5d60dd3fc5f69f6856" title=" " alt="" coords="247,5,463,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="199,23,231,23,231,28,199,28"/>
+<area shape="rect" id="Node000003" href="$d8/d96/classyaze_1_1net_1_1ProposalApprovalManager.html#a50a0d47588c07bc2e58676412f1387ba" title=" " alt="" coords="511,5,690,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="464,23,495,23,495,28,464,28"/>
+</map>

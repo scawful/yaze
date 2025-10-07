@@ -123,13 +123,13 @@ $(document).ready(function(){initNavTree('db/d04/unified__grpc__server_8h_source
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="comment">// Forward declarations</span></div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="keyword">class </span>CanvasAutomationServiceImpl;</div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keyword">namespace </span>app {</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span> </div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="keyword">class </span>Rom;</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="keyword">namespace </span>net {</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keyword">class </span>ProposalApprovalManager;</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="keyword">class </span>RomServiceImpl;</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>}</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>}</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="keyword">namespace </span>test {</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keyword">class </span>TestManager;</div>
@@ -153,9 +153,9 @@ $(document).ready(function(){initNavTree('db/d04/unified__grpc__server_8h_source
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  absl::Status Initialize(</div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>      <span class="keywordtype">int</span> port,</div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>      test::TestManager* test_manager = <span class="keyword">nullptr</span>,</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>      app::Rom* rom = <span class="keyword">nullptr</span>,</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>      app::net::RomVersionManager* version_mgr = <span class="keyword">nullptr</span>,</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      app::net::ProposalApprovalManager* approval_mgr = <span class="keyword">nullptr</span>,</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>      Rom* rom = <span class="keyword">nullptr</span>,</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>      net::RomVersionManager* version_mgr = <span class="keyword">nullptr</span>,</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      net::ProposalApprovalManager* approval_mgr = <span class="keyword">nullptr</span>,</div>
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>      CanvasAutomationServiceImpl* canvas_service = <span class="keyword">nullptr</span>);</div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  </div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>  absl::Status Start();</div>
@@ -174,7 +174,7 @@ $(document).ready(function(){initNavTree('db/d04/unified__grpc__server_8h_source
 <div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>  Config config_;</div>
 <div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>  std::unique_ptr&lt;grpc::Server&gt; server_;</div>
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>  std::unique_ptr&lt;test::ImGuiTestHarnessServiceImpl&gt; test_harness_service_;</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  std::unique_ptr&lt;app::net::RomServiceImpl&gt; rom_service_;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  std::unique_ptr&lt;net::RomServiceImpl&gt; rom_service_;</div>
 <div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>  std::unique_ptr&lt;CanvasAutomationServiceImpl&gt; canvas_service_;</div>
 <div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>  <span class="comment">// Store as base grpc::Service* to avoid incomplete type issues</span></div>
 <div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  std::unique_ptr&lt;grpc::Service&gt; canvas_grpc_service_;</div>

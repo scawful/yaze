@@ -23,7 +23,7 @@ var searchData=
   ['new_5fproject_5fmenu_20',['new_project_menu',['../dd/d12/classyaze_1_1editor_1_1EditorManager.html#aa59de04fd9fec039cb3b962ecd4210ab',1,'yaze::editor::EditorManager']]],
   ['new_5fprompt_5fname_5f_21',['new_prompt_name_',['../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#ab6048bc3131737ec541e47f738970328',1,'yaze::editor::AgentEditor']]],
   ['new_5ftile_22',['new_tile',['../d6/d52/structyaze_1_1cli_1_1Tile16Change.html#a9994e3965476e9dba45e6a336aa6da8c',1,'yaze::cli::Tile16Change']]],
-  ['newest_5fsnapshot_5ftimestamp_23',['newest_snapshot_timestamp',['../dd/d52/structyaze_1_1app_1_1net_1_1RomVersionManager_1_1Stats.html#a72d51969ea449d6b3ac1500493a1d734',1,'yaze::app::net::RomVersionManager::Stats']]],
+  ['newest_5fsnapshot_5ftimestamp_23',['newest_snapshot_timestamp',['../de/da7/structyaze_1_1net_1_1RomVersionManager_1_1Stats.html#af27f704a2ec1d5199d4bf87ef26e3fcd',1,'yaze::net::RomVersionManager::Stats']]],
   ['next_24',['next',['../d5/d61/structyaze_1_1gfx_1_1lc__lz2_1_1CompressionPiece.html#a571f842caef36b0c8873bab8e961b022',1,'yaze::gfx::lc_lz2::CompressionPiece::next'],['../d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#a1de3bb6448887a3a15e5e9936bf73df2',1,'yaze::zelda3::music::SpcCommand::next']]],
   ['next_5fatlas_5fid_5f_25',['next_atlas_id_',['../d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html#af41f87ac07413ff11fadb156dc6a88df',1,'yaze::gfx::AtlasRenderer']]],
   ['next_5fchest_5fid_5f_26',['next_chest_id_',['../d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ae79ba438fb92a299be9c0107c3cb0b16',1,'yaze::zelda3::DungeonEditorSystem']]],

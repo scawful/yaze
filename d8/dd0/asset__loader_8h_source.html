@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/platform/asset_loader.h Source File</title>
+<title>yaze: src/app/platform/asset_loader.h Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('d8/dd0/asset__loader_8h_source.html','
   <div class="headertitle"><div class="title">asset_loader.h</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../d8/dd0/asset__loader_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_CORE_PLATFORM_ASSET_LOADER_H_</span></div>
-<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_APP_CORE_PLATFORM_ASSET_LOADER_H_</span></div>
+<a href="../../d8/dd0/asset__loader_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#ifndef YAZE_APP_PLATFORM_ASSET_LOADER_H_</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="preprocessor">#define YAZE_APP_PLATFORM_ASSET_LOADER_H_</span></div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span> </div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;filesystem&gt;</span></div>
 <div class="line"><a id="l00005" name="l00005"></a><span class="lineno">    5</span><span class="preprocessor">#include &lt;string&gt;</span></div>
@@ -111,37 +111,37 @@ $(document).ready(function(){initNavTree('d8/dd0/asset__loader_8h_source.html','
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span><span class="preprocessor">#include &quot;absl/status/statusor.h&quot;</span></div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span> </div>
 <div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="keyword">namespace </span>core {</div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
 <div class="foldopen" id="foldopen00023" data-start="{" data-end="};">
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html">   23</a></span><span class="keyword">class </span><a class="code hl_class" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html">AssetLoader</a> {</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="../../d9/d56/classyaze_1_1AssetLoader.html">   23</a></span><span class="keyword">class </span><a class="code hl_class" href="../../d9/d56/classyaze_1_1AssetLoader.html">AssetLoader</a> {</div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keyword">static</span> absl::StatusOr&lt;std::string&gt; <a class="code hl_function" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a5ecd67e5ff824200bdb92a3083fd32b1">LoadTextFile</a>(<span class="keyword">const</span> std::string&amp; relative_path);</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keyword">static</span> absl::StatusOr&lt;std::string&gt; <a class="code hl_function" href="../../d9/d56/classyaze_1_1AssetLoader.html#a81eed4e473f61f4a4969148df1227448">LoadTextFile</a>(<span class="keyword">const</span> std::string&amp; relative_path);</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>  </div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keyword">static</span> absl::StatusOr&lt;std::filesystem::path&gt; <a class="code hl_function" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#aafa8da7c8efe78053dd89e43dd0b8e84">FindAssetFile</a>(<span class="keyword">const</span> std::string&amp; relative_path);</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>  <span class="keyword">static</span> absl::StatusOr&lt;std::filesystem::path&gt; <a class="code hl_function" href="../../d9/d56/classyaze_1_1AssetLoader.html#aa0b1698fb992e8a17a3316715fa430dd">FindAssetFile</a>(<span class="keyword">const</span> std::string&amp; relative_path);</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>  </div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="keyword">static</span> std::vector&lt;std::filesystem::path&gt; <a class="code hl_function" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a14286cbaffebe1cf06510017853879f1">GetSearchPaths</a>(<span class="keyword">const</span> std::string&amp; relative_path);</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>  <span class="keyword">static</span> std::vector&lt;std::filesystem::path&gt; <a class="code hl_function" href="../../d9/d56/classyaze_1_1AssetLoader.html#ac28a9c4513b3632d242fb06557c49fec">GetSearchPaths</a>(<span class="keyword">const</span> std::string&amp; relative_path);</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  </div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#af8a8de4f4f634860a9b18e4d852b92fa">AssetExists</a>(<span class="keyword">const</span> std::string&amp; relative_path);</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code hl_function" href="../../d9/d56/classyaze_1_1AssetLoader.html#aff233923066ccb71dd7af9184a251891">AssetExists</a>(<span class="keyword">const</span> std::string&amp; relative_path);</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>};</div>
 </div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span> </div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>}  <span class="comment">// namespace core</span></div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_CORE_PLATFORM_ASSET_LOADER_H_</span></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AssetLoader_html"><div class="ttname"><a href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html">yaze::core::AssetLoader</a></div><div class="ttdoc">Cross-platform asset file loading utility.</div><div class="ttdef"><b>Definition</b> <a href="../../d8/dd0/asset__loader_8h_source.html#l00023">asset_loader.h:23</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AssetLoader_html_a14286cbaffebe1cf06510017853879f1"><div class="ttname"><a href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a14286cbaffebe1cf06510017853879f1">yaze::core::AssetLoader::GetSearchPaths</a></div><div class="ttdeci">static std::vector&lt; std::filesystem::path &gt; GetSearchPaths(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00012">asset_loader.cc:12</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AssetLoader_html_a5ecd67e5ff824200bdb92a3083fd32b1"><div class="ttname"><a href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a5ecd67e5ff824200bdb92a3083fd32b1">yaze::core::AssetLoader::LoadTextFile</a></div><div class="ttdeci">static absl::StatusOr&lt; std::string &gt; LoadTextFile(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00064">asset_loader.cc:64</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AssetLoader_html_aafa8da7c8efe78053dd89e43dd0b8e84"><div class="ttname"><a href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#aafa8da7c8efe78053dd89e43dd0b8e84">yaze::core::AssetLoader::FindAssetFile</a></div><div class="ttdeci">static absl::StatusOr&lt; std::filesystem::path &gt; FindAssetFile(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00044">asset_loader.cc:44</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AssetLoader_html_af8a8de4f4f634860a9b18e4d852b92fa"><div class="ttname"><a href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#af8a8de4f4f634860a9b18e4d852b92fa">yaze::core::AssetLoader::AssetExists</a></div><div class="ttdeci">static bool AssetExists(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00089">asset_loader.cc:89</a></div></div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span><span class="preprocessor">#endif  </span><span class="comment">// YAZE_APP_PLATFORM_ASSET_LOADER_H_</span></div>
+<div class="ttc" id="aclassyaze_1_1AssetLoader_html"><div class="ttname"><a href="../../d9/d56/classyaze_1_1AssetLoader.html">yaze::AssetLoader</a></div><div class="ttdoc">Cross-platform asset file loading utility.</div><div class="ttdef"><b>Definition</b> <a href="../../d8/dd0/asset__loader_8h_source.html#l00023">asset_loader.h:23</a></div></div>
+<div class="ttc" id="aclassyaze_1_1AssetLoader_html_a81eed4e473f61f4a4969148df1227448"><div class="ttname"><a href="../../d9/d56/classyaze_1_1AssetLoader.html#a81eed4e473f61f4a4969148df1227448">yaze::AssetLoader::LoadTextFile</a></div><div class="ttdeci">static absl::StatusOr&lt; std::string &gt; LoadTextFile(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00064">asset_loader.cc:64</a></div></div>
+<div class="ttc" id="aclassyaze_1_1AssetLoader_html_aa0b1698fb992e8a17a3316715fa430dd"><div class="ttname"><a href="../../d9/d56/classyaze_1_1AssetLoader.html#aa0b1698fb992e8a17a3316715fa430dd">yaze::AssetLoader::FindAssetFile</a></div><div class="ttdeci">static absl::StatusOr&lt; std::filesystem::path &gt; FindAssetFile(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00044">asset_loader.cc:44</a></div></div>
+<div class="ttc" id="aclassyaze_1_1AssetLoader_html_ac28a9c4513b3632d242fb06557c49fec"><div class="ttname"><a href="../../d9/d56/classyaze_1_1AssetLoader.html#ac28a9c4513b3632d242fb06557c49fec">yaze::AssetLoader::GetSearchPaths</a></div><div class="ttdeci">static std::vector&lt; std::filesystem::path &gt; GetSearchPaths(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00012">asset_loader.cc:12</a></div></div>
+<div class="ttc" id="aclassyaze_1_1AssetLoader_html_aff233923066ccb71dd7af9184a251891"><div class="ttname"><a href="../../d9/d56/classyaze_1_1AssetLoader.html#aff233923066ccb71dd7af9184a251891">yaze::AssetLoader::AssetExists</a></div><div class="ttdeci">static bool AssetExists(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00089">asset_loader.cc:89</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../dir_f454b90621a5a35d9d5ef5e042a20159.html">platform</a></li><li class="navelem"><a class="el" href="../../d8/dd0/asset__loader_8h.html">asset_loader.h</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_b5073da0a0de1fec69310c7003d323a8.html">platform</a></li><li class="navelem"><a class="el" href="../../d8/dd0/asset__loader_8h.html">asset_loader.h</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

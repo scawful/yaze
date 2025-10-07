@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('d7/d51/md_docs_2B3-build-presets.html'
   <div class="headertitle"><div class="title">Build Presets Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md68"></a> This document explains the reorganized CMake preset system for Yaze.</p>
-<h1><a class="anchor" id="autotoc_md69"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md65"></a> This document explains the reorganized CMake preset system for Yaze.</p>
+<h1><a class="anchor" id="autotoc_md66"></a>
 Design Principles</h1>
 <ol type="1">
 <li><b>Short, memorable names</b> - No more <code>macos-dev-z3ed-ai</code>, just <code>mac-ai</code></li>
@@ -110,9 +110,9 @@ Design Principles</h1>
 <li><b>Clear architecture support</b> - Explicit ARM64 and x86_64 presets</li>
 <li><b>Platform prefixes</b> - <code>mac-</code>, <code>win-</code>, <code>lin-</code> for easy identification</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md70"></a>
+<h1><a class="anchor" id="autotoc_md67"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md71"></a>
+<h2><a class="anchor" id="autotoc_md68"></a>
 macOS Development</h2>
 <div class="fragment"><div class="line"># Most common: AI-enabled development</div>
 <div class="line">cmake --preset mac-ai</div>
@@ -129,7 +129,7 @@ macOS Development</h2>
 <div class="line"># Release build</div>
 <div class="line">cmake --preset mac-rel</div>
 <div class="line">cmake --build --preset mac-rel</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md72"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md69"></a>
 Windows Development</h2>
 <div class="fragment"><div class="line"># Debug build (x64)</div>
 <div class="line">cmake --preset win-dbg</div>
@@ -142,9 +142,9 @@ Windows Development</h2>
 <div class="line"># ARM64 support</div>
 <div class="line">cmake --preset win-arm</div>
 <div class="line">cmake --build --preset win-arm</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md73"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md70"></a>
 All Presets</h1>
-<h2><a class="anchor" id="autotoc_md74"></a>
+<h2><a class="anchor" id="autotoc_md71"></a>
 macOS Presets</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -168,7 +168,7 @@ macOS Presets</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>mac-rooms</code>   </td><td class="markdownTableBodyNone">Dungeon editor   </td><td class="markdownTableBodyNone">ARM64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">Minimal build for room editing   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md75"></a>
+<h2><a class="anchor" id="autotoc_md72"></a>
 Windows Presets</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -190,7 +190,7 @@ Windows Presets</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>win-z3ed</code>   </td><td class="markdownTableBodyNone">z3ed CLI   </td><td class="markdownTableBodyNone">x64   </td><td class="markdownTableBodyNone">Off   </td><td class="markdownTableBodyNone">AI agent support   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md76"></a>
+<h2><a class="anchor" id="autotoc_md73"></a>
 Linux Presets</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -200,7 +200,7 @@ Linux Presets</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>lin-clang</code>   </td><td class="markdownTableBodyNone">Debug   </td><td class="markdownTableBodyNone">Clang   </td><td class="markdownTableBodyNone">Off   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md77"></a>
+<h2><a class="anchor" id="autotoc_md74"></a>
 Special Purpose</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -212,37 +212,37 @@ Special Purpose</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone"><code>coverage</code>   </td><td class="markdownTableBodyNone">Code coverage build   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md78"></a>
+<h1><a class="anchor" id="autotoc_md75"></a>
 Warning Control</h1>
 <p>By default, all presets suppress compiler warnings with <code>-w</code> for a cleaner build experience.</p>
-<h2><a class="anchor" id="autotoc_md79"></a>
+<h2><a class="anchor" id="autotoc_md76"></a>
 To Enable Verbose Warnings:</h2>
 <ol type="1">
 <li>Use a preset with <code>-v</code> suffix (e.g., <code>mac-dbg-v</code>, <code>win-dbg-v</code>)</li>
 <li>Or set <code>YAZE_SUPPRESS_WARNINGS=OFF</code> manually: <div class="fragment"><div class="line">cmake --preset mac-dbg -DYAZE_SUPPRESS_WARNINGS=OFF</div>
 </div><!-- fragment --></li>
 </ol>
-<h1><a class="anchor" id="autotoc_md80"></a>
+<h1><a class="anchor" id="autotoc_md77"></a>
 Architecture Support</h1>
-<h2><a class="anchor" id="autotoc_md81"></a>
+<h2><a class="anchor" id="autotoc_md78"></a>
 macOS</h2>
 <ul>
 <li><b>ARM64 (Apple Silicon)</b>: <code>mac-dbg</code>, <code>mac-rel</code>, <code>mac-ai</code>, etc.</li>
 <li><b>x86_64 (Intel)</b>: <code>mac-x64</code></li>
 <li><b>Universal Binary</b>: <code>mac-uni</code> (both ARM64 + x86_64)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md82"></a>
+<h2><a class="anchor" id="autotoc_md79"></a>
 Windows</h2>
 <ul>
 <li><b>x64</b>: <code>win-dbg</code>, <code>win-rel</code>, <code>win-ai</code>, etc.</li>
 <li><b>ARM64</b>: <code>win-arm</code>, <code>win-arm-rel</code></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md83"></a>
+<h1><a class="anchor" id="autotoc_md80"></a>
 Build Directories</h1>
 <p>Most presets use <code>build/</code> directory. Exceptions:</p><ul>
 <li><code>mac-rooms</code>: Uses <code>build_rooms/</code> to avoid conflicts</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md84"></a>
+<h1><a class="anchor" id="autotoc_md81"></a>
 Feature Flags</h1>
 <p>Common CMake options you can override:</p>
 <div class="fragment"><div class="line"># Enable/disable components</div>
@@ -263,27 +263,27 @@ Feature Flags</h1>
 <div class="line"># Build optimization</div>
 <div class="line">-DYAZE_MINIMAL_BUILD=ON/OFF</div>
 <div class="line">-DYAZE_USE_MODULAR_BUILD=ON/OFF</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md85"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md82"></a>
 Examples</h1>
-<h2><a class="anchor" id="autotoc_md86"></a>
+<h2><a class="anchor" id="autotoc_md83"></a>
 Development with AI features and verbose warnings</h2>
 <div class="fragment"><div class="line">cmake --preset mac-dbg-v -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON</div>
 <div class="line">cmake --build --preset mac-dbg-v</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md87"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md84"></a>
 Release build for distribution (macOS Universal)</h2>
 <div class="fragment"><div class="line">cmake --preset mac-uni</div>
 <div class="line">cmake --build --preset mac-uni</div>
 <div class="line">cpack --preset mac-uni</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md88"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md85"></a>
 Quick minimal build for testing</h2>
 <div class="fragment"><div class="line">cmake --preset mac-dbg -DYAZE_MINIMAL_BUILD=ON</div>
 <div class="line">cmake --build --preset mac-dbg -j12</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md89"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md86"></a>
 Updating compile_commands.json</h1>
 <p>After configuring with a new preset, copy the compile commands for IDE support:</p>
 <div class="fragment"><div class="line">cp build/compile_commands.json .</div>
 </div><!-- fragment --><p>This ensures clangd and other LSP servers can find headers and understand build flags.</p>
-<h1><a class="anchor" id="autotoc_md90"></a>
+<h1><a class="anchor" id="autotoc_md87"></a>
 Migration from Old Presets</h1>
 <p>Old preset names have been simplified:</p>
 <table class="markdownTable">
@@ -310,23 +310,23 @@ Migration from Old Presets</h1>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><code>linux-clang</code>   </td><td class="markdownTableBodyNone"><code>lin-clang</code>   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md91"></a>
+<h1><a class="anchor" id="autotoc_md88"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md92"></a>
+<h2><a class="anchor" id="autotoc_md89"></a>
 Warnings are still showing</h2>
 <ul>
 <li>Make sure you're using a preset without <code>-v</code> suffix</li>
 <li>Check <code>cmake</code> output for <code>✓ Warnings suppressed</code> message</li>
 <li>Reconfigure and rebuild: <code>rm -rf build &amp;&amp; cmake --preset mac-dbg</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md93"></a>
+<h2><a class="anchor" id="autotoc_md90"></a>
 clangd can't find nlohmann/json</h2>
 <ul>
 <li>Run <code>cmake --preset &lt;your-preset&gt;</code> to regenerate compile_commands.json</li>
 <li>Copy to root: <code>cp build/compile_commands.json .</code></li>
 <li>Restart your IDE or LSP server</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md94"></a>
+<h2><a class="anchor" id="autotoc_md91"></a>
 Build fails with missing dependencies</h2>
 <ul>
 <li>Ensure submodules are initialized: <code>git submodule update --init --recursive</code></li>

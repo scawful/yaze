@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/app/core/platform/asset_loader.cc Source File</title>
+<title>yaze: src/app/platform/asset_loader.cc Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('db/d08/asset__loader_8cc_source.html',
   <div class="headertitle"><div class="title">asset_loader.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../db/d08/asset__loader_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d8/dd0/asset__loader_8h.html">app/core/platform/asset_loader.h</a>&quot;</span></div>
+<a href="../../db/d08/asset__loader_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d8/dd0/asset__loader_8h.html">app/platform/asset_loader.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;fstream&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;sstream&gt;</span></div>
@@ -110,10 +110,10 @@ $(document).ready(function(){initNavTree('db/d08/asset__loader_8cc_source.html',
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#include &quot;<a class="code" href="../../d0/dae/file__util_8h.html">util/file_util.h</a>&quot;</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
 <div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="keyword">namespace </span><a class="code hl_namespace" href="../../dc/d46/namespaceyaze.html">yaze</a> {</div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="keyword">namespace </span>core {</div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span> </div>
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
 <div class="foldopen" id="foldopen00012" data-start="{" data-end="}">
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a14286cbaffebe1cf06510017853879f1">   12</a></span>std::vector&lt;std::filesystem::path&gt; <a class="code hl_function" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a14286cbaffebe1cf06510017853879f1">AssetLoader::GetSearchPaths</a>(<span class="keyword">const</span> std::string&amp; relative_path) {</div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno"><a class="line" href="../../d9/d56/classyaze_1_1AssetLoader.html#ac28a9c4513b3632d242fb06557c49fec">   12</a></span>std::vector&lt;std::filesystem::path&gt; <a class="code hl_function" href="../../d9/d56/classyaze_1_1AssetLoader.html#ac28a9c4513b3632d242fb06557c49fec">AssetLoader::GetSearchPaths</a>(<span class="keyword">const</span> std::string&amp; relative_path) {</div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span>  std::vector&lt;std::filesystem::path&gt; search_paths;</div>
 <div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>  </div>
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#ifdef __APPLE__</span></div>
@@ -147,8 +147,8 @@ $(document).ready(function(){initNavTree('db/d08/asset__loader_8cc_source.html',
 </div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span> </div>
 <div class="foldopen" id="foldopen00044" data-start="{" data-end="}">
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#aafa8da7c8efe78053dd89e43dd0b8e84">   44</a></span>absl::StatusOr&lt;std::filesystem::path&gt; <a class="code hl_function" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#aafa8da7c8efe78053dd89e43dd0b8e84">AssetLoader::FindAssetFile</a>(<span class="keyword">const</span> std::string&amp; relative_path) {</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="keyword">auto</span> search_paths = <a class="code hl_function" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a14286cbaffebe1cf06510017853879f1">GetSearchPaths</a>(relative_path);</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="../../d9/d56/classyaze_1_1AssetLoader.html#aa0b1698fb992e8a17a3316715fa430dd">   44</a></span>absl::StatusOr&lt;std::filesystem::path&gt; <a class="code hl_function" href="../../d9/d56/classyaze_1_1AssetLoader.html#aa0b1698fb992e8a17a3316715fa430dd">AssetLoader::FindAssetFile</a>(<span class="keyword">const</span> std::string&amp; relative_path) {</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  <span class="keyword">auto</span> search_paths = <a class="code hl_function" href="../../d9/d56/classyaze_1_1AssetLoader.html#ac28a9c4513b3632d242fb06557c49fec">GetSearchPaths</a>(relative_path);</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  </div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; path : search_paths) {</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    <span class="keywordflow">if</span> (std::filesystem::exists(path)) {</div>
@@ -169,8 +169,8 @@ $(document).ready(function(){initNavTree('db/d08/asset__loader_8cc_source.html',
 </div>
 <div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
 <div class="foldopen" id="foldopen00064" data-start="{" data-end="}">
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno"><a class="line" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a5ecd67e5ff824200bdb92a3083fd32b1">   64</a></span>absl::StatusOr&lt;std::string&gt; <a class="code hl_function" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a5ecd67e5ff824200bdb92a3083fd32b1">AssetLoader::LoadTextFile</a>(<span class="keyword">const</span> std::string&amp; relative_path) {</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  <span class="keyword">auto</span> path_result = <a class="code hl_function" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#aafa8da7c8efe78053dd89e43dd0b8e84">FindAssetFile</a>(relative_path);</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno"><a class="line" href="../../d9/d56/classyaze_1_1AssetLoader.html#a81eed4e473f61f4a4969148df1227448">   64</a></span>absl::StatusOr&lt;std::string&gt; <a class="code hl_function" href="../../d9/d56/classyaze_1_1AssetLoader.html#a81eed4e473f61f4a4969148df1227448">AssetLoader::LoadTextFile</a>(<span class="keyword">const</span> std::string&amp; relative_path) {</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>  <span class="keyword">auto</span> path_result = <a class="code hl_function" href="../../d9/d56/classyaze_1_1AssetLoader.html#aa0b1698fb992e8a17a3316715fa430dd">FindAssetFile</a>(relative_path);</div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>  <span class="keywordflow">if</span> (!path_result.ok()) {</div>
 <div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <span class="keywordflow">return</span> path_result.status();</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>  }</div>
@@ -196,18 +196,18 @@ $(document).ready(function(){initNavTree('db/d08/asset__loader_8cc_source.html',
 </div>
 <div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span> </div>
 <div class="foldopen" id="foldopen00089" data-start="{" data-end="}">
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno"><a class="line" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#af8a8de4f4f634860a9b18e4d852b92fa">   89</a></span><span class="keywordtype">bool</span> <a class="code hl_function" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#af8a8de4f4f634860a9b18e4d852b92fa">AssetLoader::AssetExists</a>(<span class="keyword">const</span> std::string&amp; relative_path) {</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#aafa8da7c8efe78053dd89e43dd0b8e84">FindAssetFile</a>(relative_path).ok();</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno"><a class="line" href="../../d9/d56/classyaze_1_1AssetLoader.html#aff233923066ccb71dd7af9184a251891">   89</a></span><span class="keywordtype">bool</span> <a class="code hl_function" href="../../d9/d56/classyaze_1_1AssetLoader.html#aff233923066ccb71dd7af9184a251891">AssetLoader::AssetExists</a>(<span class="keyword">const</span> std::string&amp; relative_path) {</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  <span class="keywordflow">return</span> <a class="code hl_function" href="../../d9/d56/classyaze_1_1AssetLoader.html#aa0b1698fb992e8a17a3316715fa430dd">FindAssetFile</a>(relative_path).ok();</div>
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>}</div>
 </div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>}  <span class="comment">// namespace core</span></div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aasset__loader_8h_html"><div class="ttname"><a href="../../d8/dd0/asset__loader_8h.html">asset_loader.h</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AssetLoader_html_a14286cbaffebe1cf06510017853879f1"><div class="ttname"><a href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a14286cbaffebe1cf06510017853879f1">yaze::core::AssetLoader::GetSearchPaths</a></div><div class="ttdeci">static std::vector&lt; std::filesystem::path &gt; GetSearchPaths(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00012">asset_loader.cc:12</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AssetLoader_html_a5ecd67e5ff824200bdb92a3083fd32b1"><div class="ttname"><a href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a5ecd67e5ff824200bdb92a3083fd32b1">yaze::core::AssetLoader::LoadTextFile</a></div><div class="ttdeci">static absl::StatusOr&lt; std::string &gt; LoadTextFile(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00064">asset_loader.cc:64</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AssetLoader_html_aafa8da7c8efe78053dd89e43dd0b8e84"><div class="ttname"><a href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#aafa8da7c8efe78053dd89e43dd0b8e84">yaze::core::AssetLoader::FindAssetFile</a></div><div class="ttdeci">static absl::StatusOr&lt; std::filesystem::path &gt; FindAssetFile(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00044">asset_loader.cc:44</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1AssetLoader_html_af8a8de4f4f634860a9b18e4d852b92fa"><div class="ttname"><a href="../../d9/d5b/classyaze_1_1core_1_1AssetLoader.html#af8a8de4f4f634860a9b18e4d852b92fa">yaze::core::AssetLoader::AssetExists</a></div><div class="ttdeci">static bool AssetExists(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00089">asset_loader.cc:89</a></div></div>
+<div class="ttc" id="aclassyaze_1_1AssetLoader_html_a81eed4e473f61f4a4969148df1227448"><div class="ttname"><a href="../../d9/d56/classyaze_1_1AssetLoader.html#a81eed4e473f61f4a4969148df1227448">yaze::AssetLoader::LoadTextFile</a></div><div class="ttdeci">static absl::StatusOr&lt; std::string &gt; LoadTextFile(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00064">asset_loader.cc:64</a></div></div>
+<div class="ttc" id="aclassyaze_1_1AssetLoader_html_aa0b1698fb992e8a17a3316715fa430dd"><div class="ttname"><a href="../../d9/d56/classyaze_1_1AssetLoader.html#aa0b1698fb992e8a17a3316715fa430dd">yaze::AssetLoader::FindAssetFile</a></div><div class="ttdeci">static absl::StatusOr&lt; std::filesystem::path &gt; FindAssetFile(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00044">asset_loader.cc:44</a></div></div>
+<div class="ttc" id="aclassyaze_1_1AssetLoader_html_ac28a9c4513b3632d242fb06557c49fec"><div class="ttname"><a href="../../d9/d56/classyaze_1_1AssetLoader.html#ac28a9c4513b3632d242fb06557c49fec">yaze::AssetLoader::GetSearchPaths</a></div><div class="ttdeci">static std::vector&lt; std::filesystem::path &gt; GetSearchPaths(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00012">asset_loader.cc:12</a></div></div>
+<div class="ttc" id="aclassyaze_1_1AssetLoader_html_aff233923066ccb71dd7af9184a251891"><div class="ttname"><a href="../../d9/d56/classyaze_1_1AssetLoader.html#aff233923066ccb71dd7af9184a251891">yaze::AssetLoader::AssetExists</a></div><div class="ttdeci">static bool AssetExists(const std::string &amp;relative_path)</div><div class="ttdef"><b>Definition</b> <a href="../../db/d08/asset__loader_8cc_source.html#l00089">asset_loader.cc:89</a></div></div>
 <div class="ttc" id="afile__util_8h_html"><div class="ttname"><a href="../../d0/dae/file__util_8h.html">file_util.h</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1util_html_af39466acaa761050d58692560db0f3e6"><div class="ttname"><a href="../../d4/de1/namespaceyaze_1_1util.html#af39466acaa761050d58692560db0f3e6">yaze::util::GetBundleResourcePath</a></div><div class="ttdeci">std::string GetBundleResourcePath()</div><div class="ttdoc">GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS.</div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
@@ -216,7 +216,7 @@ $(document).ready(function(){initNavTree('db/d08/asset__loader_8cc_source.html',
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_fcc5e025f1b672ef47e35e5c700d9477.html">core</a></li><li class="navelem"><a class="el" href="../../dir_f454b90621a5a35d9d5ef5e042a20159.html">platform</a></li><li class="navelem"><a class="el" href="../../db/d08/asset__loader_8cc.html">asset_loader.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_5194e5fea318fda12687127c23f8aba1.html">app</a></li><li class="navelem"><a class="el" href="../../dir_b5073da0a0de1fec69310c7003d323a8.html">platform</a></li><li class="navelem"><a class="el" href="../../db/d08/asset__loader_8cc.html">asset_loader.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

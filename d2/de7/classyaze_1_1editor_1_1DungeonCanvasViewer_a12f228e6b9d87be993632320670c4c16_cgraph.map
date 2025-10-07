@@ -1,11 +1,11 @@
 <map id="yaze::editor::DungeonCanvasViewer::RenderRoomBackgroundLayers" name="yaze::editor::DungeonCanvasViewer::RenderRoomBackgroundLayers">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,63,256,103"/>
-<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a06eab9bafdad1cdd915c22937e07bf2d" title=" " alt="" coords="322,5,449,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,59,306,41,307,46,225,65"/>
-<area shape="rect" id="Node000007" href="$da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="304,70,467,96"/>
-<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="256,80,288,80,288,86,256,86"/>
-<area shape="rect" id="Node000008" href="$da/d81/classyaze_1_1core_1_1Renderer.html#af8aa2548cc92e136c2eb83ad5b349eb9" title="Create texture for bitmap on main thread." alt="" coords="317,120,454,161"/>
-<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="225,101,302,119,301,124,223,107"/>
-<area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="515,5,638,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="449,23,499,23,499,28,449,28"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a06eab9bafdad1cdd915c22937e07bf2d" title=" " alt="" coords="339,5,466,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,59,323,39,325,45,231,65"/>
+<area shape="rect" id="Node000007" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="334,70,471,96"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="256,80,318,80,318,86,256,86"/>
+<area shape="rect" id="Node000008" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#a47a97c7a23bcfb7fb056d1d822db58c7" title=" " alt="" coords="304,120,501,161"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="231,101,289,114,288,119,230,107"/>
+<area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="549,5,672,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="466,23,533,23,533,28,466,28"/>
 </map>

@@ -1,0 +1,5 @@
+<map id="yaze::gfx::AtlasRenderer::CreateNewAtlas" name="yaze::gfx::AtlasRenderer::CreateNewAtlas">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,164,46"/>
+<area shape="rect" id="Node000002" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a0c7628e8d85b52be66fa417503c24747" title="Creates a new, empty texture." alt="" coords="212,5,344,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,23,197,23,197,28,164,28"/>
+</map>

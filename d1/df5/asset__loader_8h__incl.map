@@ -1,5 +1,5 @@
-<map id="src/app/core/platform/asset_loader.h" name="src/app/core/platform/asset_loader.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="104,5,248,46"/>
+<map id="src/app/platform/asset_loader.h" name="src/app/platform/asset_loader.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="100,5,251,46"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,94,85,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="144,49,79,88,76,83,142,44"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="109,94,162,120"/>

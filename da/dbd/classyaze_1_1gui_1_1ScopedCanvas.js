@@ -1,6 +1,7 @@
 var classyaze_1_1gui_1_1ScopedCanvas =
 [
     [ "ScopedCanvas", "da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html#a0157402b619ded25e1cd77b96f6d30b9", null ],
+    [ "ScopedCanvas", "da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html#a515a15c1d1c74b431171353fdc2a4a1d", null ],
     [ "ScopedCanvas", "da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html#aabf40b76fca77591a563143392dccc4e", null ],
     [ "~ScopedCanvas", "da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html#a0b0f71755ce4acadbcb04e7b4d7272ca", null ],
     [ "ScopedCanvas", "da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html#a5f71f75d25c286eee4703b6a203f68b3", null ],

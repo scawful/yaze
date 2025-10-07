@@ -118,7 +118,7 @@ $(document).ready(function(){initNavTree('d7/d4a/enhanced__menu_8cc_source.html'
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="comment">// Enhanced main menu with better organization and icons</span></div>
 <div class="foldopen" id="foldopen00016" data-start="{" data-end="}">
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno"><a class="line" href="../../dd/d63/namespaceyaze_1_1cli.html#a62a6b213f85aab9709dc7402590bc231">   16</a></span>Component <a class="code hl_function" href="../../dd/d63/namespaceyaze_1_1cli.html#a62a6b213f85aab9709dc7402590bc231">EnhancedMainMenu</a>(ScreenInteractive&amp; screen, <span class="keywordtype">int</span>&amp; selected) {</div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <span class="keyword">auto</span> menu_renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>([&amp;] {</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>  <span class="keyword">auto</span> menu_renderer = Renderer([&amp;] {</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>    Elements menu_items;</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    </div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; <a class="code hl_variable" href="../../dd/d63/namespaceyaze_1_1cli.html#a4faed45116bb119fd88fb89b6eaab816">kMainMenuEntries</a>.size(); ++i) {</div>
@@ -294,7 +294,7 @@ $(document).ready(function(){initNavTree('d7/d4a/enhanced__menu_8cc_source.html'
 <div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>  </div>
 <div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  <span class="keyword">auto</span> container = Container::Vertical({input, send_button, back_button});</div>
 <div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>  </div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>  <span class="keywordflow">return</span> <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(container, [&amp;] {</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>  <span class="keywordflow">return</span> Renderer(container, [&amp;] {</div>
 <div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    Elements message_elements;</div>
 <div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; msg : messages) {</div>
 <div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>      Color msg_color = (msg.rfind(<span class="stringliteral">&quot;You:&quot;</span>, 0) == 0) ? Color::Cyan : Color::GreenLight;</div>
@@ -400,7 +400,6 @@ $(document).ready(function(){initNavTree('d7/d4a/enhanced__menu_8cc_source.html'
 <div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span> </div>
 <div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>}  <span class="comment">// namespace cli</span></div>
 <div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1Renderer_html"><div class="ttname"><a href="../../da/d81/classyaze_1_1core_1_1Renderer.html">yaze::core::Renderer</a></div><div class="ttdoc">The Renderer class represents the renderer for the Yaze application.</div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00045">window.h:45</a></div></div>
 <div class="ttc" id="anamespaceftxui_html"><div class="ttname"><a href="../../dc/d1b/namespaceftxui.html">ftxui</a></div><div class="ttdef"><b>Definition</b> <a href="../../dc/db0/cli_8h_source.html#l00017">cli.h:17</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_a0c98b54f212fe67a1899744180fc333b"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#a0c98b54f212fe67a1899744180fc333b">yaze::cli::QuickRomLoader</a></div><div class="ttdeci">Component QuickRomLoader(ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d4a/enhanced__menu_8cc_source.html#l00085">enhanced_menu.cc:85</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_html_a42f2c6b013918274a27f37e3b8344d99"><div class="ttname"><a href="../../dd/d63/namespaceyaze_1_1cli.html#a42f2c6b013918274a27f37e3b8344d99">yaze::cli::AgentChatTUI</a></div><div class="ttdeci">Component AgentChatTUI(ScreenInteractive &amp;screen)</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d4a/enhanced__menu_8cc_source.html#l00159">enhanced_menu.cc:159</a></div></div>

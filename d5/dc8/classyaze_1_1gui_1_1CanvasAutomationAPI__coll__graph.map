@@ -1,11 +1,11 @@
 <map id="yaze::gui::CanvasAutomationAPI" name="yaze::gui::CanvasAutomationAPI">
-<area shape="rect" id="Node000001" title="Programmatic interface for controlling canvas operations." alt="" coords="567,70,775,96"/>
-<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="347,70,467,96"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="483,80,567,80,567,86,483,86"/>
-<area shape="rect" id="Node000003" href="$dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html" title="Handles all tile&#45;based interactions for Canvas." alt="" coords="7,5,178,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="194,38,323,60,353,67,352,72,322,66,193,43"/>
-<area shape="rect" id="Node000004" href="$da/d7f/structyaze_1_1gui_1_1CanvasConfig.html" title="Configuration for canvas display and interaction." alt="" coords="14,70,171,96"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="186,80,346,80,346,86,186,86"/>
-<area shape="rect" id="Node000005" href="$d7/d02/structyaze_1_1gui_1_1CanvasSelection.html" title="Selection state for canvas interactions." alt="" coords="5,120,180,145"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="195,119,322,101,354,94,355,99,323,106,195,125"/>
+<area shape="rect" id="Node000001" title="Programmatic interface for controlling canvas operations." alt="" coords="564,70,772,96"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="344,70,464,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="480,80,564,80,564,86,480,86"/>
+<area shape="rect" id="Node000003" href="$dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html" title="Handles all tile&#45;based interactions for Canvas." alt="" coords="5,5,177,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="192,38,320,60,350,67,349,72,319,66,191,43"/>
+<area shape="rect" id="Node000004" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html" title="Defines an abstract interface for all rendering operations." alt="" coords="25,70,157,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="173,80,343,80,343,86,173,86"/>
+<area shape="rect" id="Node000005" href="$da/d7f/structyaze_1_1gui_1_1CanvasConfig.html" title="Configuration for canvas display and interaction." alt="" coords="13,120,169,145"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="184,120,319,101,351,94,352,99,320,106,185,126"/>
 </map>

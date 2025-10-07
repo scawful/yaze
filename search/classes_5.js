@@ -10,7 +10,7 @@ var searchData=
   ['flags_7',['flags',['../dd/d19/structyaze_1_1core_1_1FeatureFlags_1_1Flags.html',1,'yaze::core::FeatureFlags::Flags'],['../d9/dd4/structyaze_1_1emu_1_1Spc700_1_1Flags.html',1,'yaze::emu::Spc700::Flags']]],
   ['flagsmenu_8',['FlagsMenu',['../d0/df3/structyaze_1_1gui_1_1FlagsMenu.html',1,'yaze::gui']]],
   ['folderitem_9',['FolderItem',['../da/d6e/structyaze_1_1editor_1_1FolderItem.html',1,'yaze::editor']]],
-  ['fontconfig_10',['FontConfig',['../d6/d2f/structyaze_1_1core_1_1FontConfig.html',1,'yaze::core']]],
-  ['fontstate_11',['FontState',['../d6/df8/structyaze_1_1core_1_1FontState.html',1,'yaze::core']]],
+  ['fontconfig_10',['FontConfig',['../db/d0d/structyaze_1_1FontConfig.html',1,'yaze']]],
+  ['fontstate_11',['FontState',['../d3/dba/structyaze_1_1FontState.html',1,'yaze']]],
   ['forbiddenrange_12',['ForbiddenRange',['../d9/dbf/structyaze_1_1cli_1_1PolicyEvaluator_1_1PolicyConfig_1_1ForbiddenRange.html',1,'yaze::cli::PolicyEvaluator::PolicyConfig']]]
 ];

@@ -1,0 +1,13 @@
+<map id="yaze::net::CollaborationService::JoinSession" name="yaze::net::CollaborationService::JoinSession">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,92,158,133"/>
+<area shape="rect" id="Node000002" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html#a2a9111fccfce5bf9dc2b66f5fd2d4f54" title=" " alt="" coords="206,5,404,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,89,235,50,237,55,137,94"/>
+<area shape="rect" id="Node000007" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="452,70,593,96"/>
+<area shape="poly" id="edge5_Node000001_Node000007" title=" " alt="" coords="158,105,436,86,437,91,158,110"/>
+<area shape="rect" id="Node000009" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html#a418e29092348282e517f070a0b0d28f3" title=" " alt="" coords="206,120,404,161"/>
+<area shape="poly" id="edge3_Node000001_Node000009" title=" " alt="" coords="158,119,190,123,190,129,158,125"/>
+<area shape="rect" id="Node000010" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html#aca768b96554a2869aed4c56ab282d2ae" title=" " alt="" coords="206,185,404,226"/>
+<area shape="poly" id="edge6_Node000001_Node000010" title=" " alt="" coords="123,131,207,170,225,177,223,182,205,175,121,135"/>
+<area shape="poly" id="edge2_Node000002_Node000007" title=" " alt="" coords="385,44,457,63,456,68,384,49"/>
+<area shape="poly" id="edge4_Node000009_Node000007" title=" " alt="" coords="384,117,456,98,457,103,385,122"/>
+</map>

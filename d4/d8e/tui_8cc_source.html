@@ -225,7 +225,7 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>      return_button,</div>
 <div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  });</div>
 <div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(container, [&amp;] {</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>  <span class="keyword">auto</span> renderer = Renderer(container, [&amp;] {</div>
 <div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    <span class="keywordflow">return</span> vbox({text(<span class="stringliteral">&quot;Apply BPS Patch&quot;</span>) | center, separator(),</div>
 <div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>                 text(<span class="stringliteral">&quot;Enter Patch File:&quot;</span>), patch_file_input-&gt;Render(),</div>
 <div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>                 text(<span class="stringliteral">&quot;Enter Base File:&quot;</span>), base_file_input-&gt;Render(),</div>
@@ -323,7 +323,7 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>      back_button,</div>
 <div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  });</div>
 <div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span> </div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(container, [&amp;] {</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  <span class="keyword">auto</span> renderer = Renderer(container, [&amp;] {</div>
 <div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>    <span class="keywordflow">return</span> vbox({text(<span class="stringliteral">&quot;Generate Save File&quot;</span>) | center, separator(),</div>
 <div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>                 text(<span class="stringliteral">&quot;Select items to include in the save file:&quot;</span>),</div>
 <div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>                 checkboxes-&gt;Render(), separator(),</div>
@@ -505,7 +505,7 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>    <a class="code hl_function" href="../../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#ae2f63af3233c3bc5642a48a1e493dd7c">SwitchComponents</a>(screen, LayoutID::kMainMenu);</div>
 <div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>  });</div>
 <div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span> </div>
-<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(back_button, [&amp;] {</div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>  <span class="keyword">auto</span> renderer = Renderer(back_button, [&amp;] {</div>
 <div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>    <span class="keywordflow">return</span> vbox({</div>
 <div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>      text(<span class="stringliteral">&quot;Palette Editor&quot;</span>) | center | bold,</div>
 <div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>      separator(),</div>
@@ -721,7 +721,7 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="line"><a id="l00596" name="l00596"></a><span class="lineno">  596</span>      back_button,</div>
 <div class="line"><a id="l00597" name="l00597"></a><span class="lineno">  597</span>  });</div>
 <div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span> </div>
-<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(container, [&amp;] {</div>
+<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>  <span class="keyword">auto</span> renderer = Renderer(container, [&amp;] {</div>
 <div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>    <span class="keywordflow">return</span> vbox({</div>
 <div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span>      text(<span class="stringliteral">&quot;Load ROM&quot;</span>) | center | bold,</div>
 <div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span>      separator(),</div>
@@ -880,7 +880,7 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="line"><a id="l00751" name="l00751"></a><span class="lineno">  751</span>      back_button,</div>
 <div class="line"><a id="l00752" name="l00752"></a><span class="lineno">  752</span>  });</div>
 <div class="line"><a id="l00753" name="l00753"></a><span class="lineno">  753</span> </div>
-<div class="line"><a id="l00754" name="l00754"></a><span class="lineno">  754</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(container, [&amp;] {</div>
+<div class="line"><a id="l00754" name="l00754"></a><span class="lineno">  754</span>  <span class="keyword">auto</span> renderer = Renderer(container, [&amp;] {</div>
 <div class="line"><a id="l00755" name="l00755"></a><span class="lineno">  755</span>    <span class="keywordflow">return</span> vbox({</div>
 <div class="line"><a id="l00756" name="l00756"></a><span class="lineno">  756</span>               help_text | vscroll_indicator | frame | flex,</div>
 <div class="line"><a id="l00757" name="l00757"></a><span class="lineno">  757</span>               separator(),</div>
@@ -903,7 +903,7 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="line"><a id="l00772" name="l00772"></a><span class="lineno">  772</span>  <span class="keyword">static</span> <span class="keywordtype">int</span> offset = 0;</div>
 <div class="line"><a id="l00773" name="l00773"></a><span class="lineno">  773</span>  <span class="keyword">const</span> <span class="keywordtype">int</span> lines_to_show = 20;</div>
 <div class="line"><a id="l00774" name="l00774"></a><span class="lineno">  774</span> </div>
-<div class="line"><a id="l00775" name="l00775"></a><span class="lineno">  775</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(back_button, [&amp;] {</div>
+<div class="line"><a id="l00775" name="l00775"></a><span class="lineno">  775</span>  <span class="keyword">auto</span> renderer = Renderer(back_button, [&amp;] {</div>
 <div class="line"><a id="l00776" name="l00776"></a><span class="lineno">  776</span>    std::vector&lt;Element&gt; rows;</div>
 <div class="line"><a id="l00777" name="l00777"></a><span class="lineno">  777</span>    <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; lines_to_show; ++i) {</div>
 <div class="line"><a id="l00778" name="l00778"></a><span class="lineno">  778</span>        <span class="keywordtype">int</span> current_offset = offset + (i * 16);</div>
@@ -982,7 +982,7 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="line"><a id="l00849" name="l00849"></a><span class="lineno">  849</span>        content_renderer</div>
 <div class="line"><a id="l00850" name="l00850"></a><span class="lineno">  850</span>    });</div>
 <div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span> </div>
-<div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span>    <span class="keyword">auto</span> layout = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(main_container, [&amp;] {</div>
+<div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span>    <span class="keyword">auto</span> layout = Renderer(main_container, [&amp;] {</div>
 <div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span>        std::string rom_info = app_context.rom.is_loaded() ? app_context.rom.title() : <span class="stringliteral">&quot;No ROM&quot;</span>;</div>
 <div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span>        <span class="keywordflow">return</span> vbox({</div>
 <div class="line"><a id="l00855" name="l00855"></a><span class="lineno">  855</span>            hbox({</div>
@@ -1065,7 +1065,7 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="line"><a id="l00930" name="l00930"></a><span class="lineno">  930</span>      text(rom_information) | bold | color(Color::Red1),</div>
 <div class="line"><a id="l00931" name="l00931"></a><span class="lineno">  931</span>  }));</div>
 <div class="line"><a id="l00932" name="l00932"></a><span class="lineno">  932</span> </div>
-<div class="line"><a id="l00933" name="l00933"></a><span class="lineno">  933</span>  <span class="keyword">auto</span> renderer = <a class="code hl_class" href="../../da/d81/classyaze_1_1core_1_1Renderer.html">Renderer</a>(menu, [&amp;] {</div>
+<div class="line"><a id="l00933" name="l00933"></a><span class="lineno">  933</span>  <span class="keyword">auto</span> renderer = Renderer(menu, [&amp;] {</div>
 <div class="line"><a id="l00934" name="l00934"></a><span class="lineno">  934</span>    <span class="keywordflow">return</span> vbox({</div>
 <div class="line"><a id="l00935" name="l00935"></a><span class="lineno">  935</span>        separator(),</div>
 <div class="line"><a id="l00936" name="l00936"></a><span class="lineno">  936</span>        logo | center,</div>
@@ -1156,7 +1156,6 @@ $(document).ready(function(){initNavTree('d4/d8e/tui_8cc_source.html','../../');
 <div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1TodoManager_html"><div class="ttname"><a href="../../df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html">yaze::cli::agent::TodoManager</a></div><div class="ttdoc">Manages TODO lists for z3ed agent task execution.</div><div class="ttdef"><b>Definition</b> <a href="../../d5/de7/todo__manager_8h_source.html#l00053">todo_manager.h:53</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1TodoManager_html_aa4d7b22359c0374507ce1359ec2fceb4"><div class="ttname"><a href="../../df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#aa4d7b22359c0374507ce1359ec2fceb4">yaze::cli::agent::TodoManager::Initialize</a></div><div class="ttdeci">absl::Status Initialize()</div><div class="ttdoc">Initialize the TODO manager and load persisted data.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/dde/todo__manager_8cc_source.html#l00067">todo_manager.cc:67</a></div></div>
 <div class="ttc" id="aclassyaze_1_1cli_1_1agent_1_1TodoManager_html_af767df0886636b476ddaa7e875e7c5a0"><div class="ttname"><a href="../../df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#af767df0886636b476ddaa7e875e7c5a0">yaze::cli::agent::TodoManager::GetAllTodos</a></div><div class="ttdeci">std::vector&lt; TodoItem &gt; GetAllTodos() const</div><div class="ttdoc">Get all TODO items.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/dde/todo__manager_8cc_source.html#l00154">todo_manager.cc:154</a></div></div>
-<div class="ttc" id="aclassyaze_1_1core_1_1Renderer_html"><div class="ttname"><a href="../../da/d81/classyaze_1_1core_1_1Renderer.html">yaze::core::Renderer</a></div><div class="ttdoc">The Renderer class represents the renderer for the Yaze application.</div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00045">window.h:45</a></div></div>
 <div class="ttc" id="acli_8h_html"><div class="ttname"><a href="../../dc/db0/cli_8h.html">cli.h</a></div></div>
 <div class="ttc" id="aconversational__agent__service_8h_html"><div class="ttname"><a href="../../d1/dad/conversational__agent__service_8h.html">conversational_agent_service.h</a></div></div>
 <div class="ttc" id="afile__util_8h_html"><div class="ttname"><a href="../../d0/dae/file__util_8h.html">file_util.h</a></div></div>

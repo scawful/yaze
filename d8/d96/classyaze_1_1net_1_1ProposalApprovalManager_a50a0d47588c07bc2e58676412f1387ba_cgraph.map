@@ -1,0 +1,11 @@
+<map id="yaze::net::ProposalApprovalManager::SubmitProposal" name="yaze::net::ProposalApprovalManager::SubmitProposal">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,185,111"/>
+<area shape="rect" id="Node000002" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html#a2a9111fccfce5bf9dc2b66f5fd2d4f54" title=" " alt="" coords="233,71,431,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,88,217,88,217,94,185,94"/>
+<area shape="rect" id="Node000003" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html#a21464e991bc1c401ea81ff65c853ed53" title=" " alt="" coords="479,5,677,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="411,67,483,48,485,53,412,73"/>
+<area shape="rect" id="Node000005" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html#ad77432e730923fb9ad7d3f6798c888d5" title=" " alt="" coords="479,71,677,111"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="432,88,463,88,463,94,432,94"/>
+<area shape="rect" id="Node000006" href="$d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="523,136,634,161"/>
+<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="423,109,508,129,507,135,422,115"/>
+</map>

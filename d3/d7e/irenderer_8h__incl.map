@@ -1,0 +1,9 @@
+<map id="src/app/gfx/backend/irenderer.h" name="src/app/gfx/backend/irenderer.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="52,5,190,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,63,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,48,60,85,57,81,97,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="87,94,154,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="123,46,123,78,118,78,118,46"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="179,94,236,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="144,44,185,81,181,85,140,48"/>
+</map>

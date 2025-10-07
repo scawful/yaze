@@ -1,0 +1,5 @@
+<map id="yaze::gfx::AtlasRenderer" name="yaze::gfx::AtlasRenderer">
+<area shape="rect" id="Node000001" title="Atlas&#45;based rendering system for efficient graphics operations." alt="" coords="5,94,164,120"/>
+<area shape="rect" id="Node000002" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html" title="Defines an abstract interface for all rendering operations." alt="" coords="18,5,151,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,47,87,94,82,94,82,47"/>
+</map>

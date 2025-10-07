@@ -1,0 +1,28 @@
+var classyaze_1_1gui_1_1AgentChatWidget =
+[
+    [ "Colors", "de/dd3/structyaze_1_1gui_1_1AgentChatWidget_1_1Colors.html", "de/dd3/structyaze_1_1gui_1_1AgentChatWidget_1_1Colors" ],
+    [ "AgentChatWidget", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a63b8af8aa6daf721777bbeeb8f762815", null ],
+    [ "~AgentChatWidget", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a70e67cad946cafbdcf19043709fc4545", null ],
+    [ "Initialize", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#ab3d46ae38b2ec58b6b52b59233bfeb98", null ],
+    [ "Render", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a33a6adfa6af808b83d049e4c946d3c07", null ],
+    [ "LoadHistory", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a3108b59c6888bcc188672bb0d81245dd", null ],
+    [ "SaveHistory", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#ac8133be9f4fdc6b4cf6589a68dfd300b", null ],
+    [ "ClearHistory", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a0688b3b0b8559170bf9c10dda1a564c9", null ],
+    [ "GetService", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a59f97aee405240c0902b2c569abccd9d", null ],
+    [ "RenderChatHistory", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#ae694ab21ed3f2a182f34deb358ee48de", null ],
+    [ "RenderInputArea", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#acedbed1103a078d845f0052246f708b9", null ],
+    [ "RenderToolbar", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a0d1c3ceec5b8e122b3442e74961c26c4", null ],
+    [ "RenderMessageBubble", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a1e9303932f37b9230419807b5dcc7256", null ],
+    [ "RenderTableData", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a070d75eed686aa8e69bd8c8948142b97", null ],
+    [ "SendMessage", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#ac109e15caefdf548988331ca30762854", null ],
+    [ "ScrollToBottom", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#acc9660ae2d5e1a7e6a0d9d270b51697c", null ],
+    [ "input_buffer_", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#af93dfa8ff3d3933016ef38919fe769ab", null ],
+    [ "scroll_to_bottom_", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#ab2d3bb2e9cddf7024053fc99f8c1a03e", null ],
+    [ "auto_scroll_", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#ac9398c3d391b3eead689aaef103a2444", null ],
+    [ "show_timestamps_", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#af791de563bb76d687ead3613c6c1ebc5", null ],
+    [ "show_reasoning_", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a24106aaf3f37b747ab705deafc28d4ad", null ],
+    [ "message_spacing_", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a524ee63a61d4aecc0b5beb6097569bf1", null ],
+    [ "agent_service_", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#afe2cdade6c7f991b377c8eb8ea14cf36", null ],
+    [ "rom_", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a68209293b53f6a663b3da76661aaf8e7", null ],
+    [ "colors_", "dc/d1f/classyaze_1_1gui_1_1AgentChatWidget.html#a5c52299873d5d7ead57374516eb8a86f", null ]
+];

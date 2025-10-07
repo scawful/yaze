@@ -152,6 +152,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a6d9fecf6791d7863e093c3f821eedfa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5e6f72dcbbc8c0e52dd907bd24f4d865" id="r_a5e6f72dcbbc8c0e52dd907bd24f4d865"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d84/classyaze_1_1core_1_1Controller.html#a5e6f72dcbbc8c0e52dd907bd24f4d865">GetCurrentRom</a> () -&gt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *</td></tr>
 <tr class="separator:a5e6f72dcbbc8c0e52dd907bd24f4d865"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36bd1dd792d51d0817e8c02369c8af16" id="r_a36bd1dd792d51d0817e8c02369c8af16"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d84/classyaze_1_1core_1_1Controller.html#a36bd1dd792d51d0817e8c02369c8af16">renderer</a> () -&gt; <a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html">gfx::IRenderer</a> *</td></tr>
+<tr class="separator:a36bd1dd792d51d0817e8c02369c8af16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
@@ -166,12 +168,14 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a1e275dc68218b0a1aaab5ad9e761a444"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4679c506fca7da732d65dad8934ef96" id="r_ac4679c506fca7da732d65dad8934ef96"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../dd/d12/classyaze_1_1editor_1_1EditorManager.html">editor::EditorManager</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d84/classyaze_1_1core_1_1Controller.html#ac4679c506fca7da732d65dad8934ef96">editor_manager_</a></td></tr>
 <tr class="separator:ac4679c506fca7da732d65dad8934ef96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a56bbbcb367089efa3ac37949e2297e88" id="r_a56bbbcb367089efa3ac37949e2297e88"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html">gfx::IRenderer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d84/classyaze_1_1core_1_1Controller.html#a56bbbcb367089efa3ac37949e2297e88">renderer_</a></td></tr>
+<tr class="separator:a56bbbcb367089efa3ac37949e2297e88"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Main controller for the application. </p>
 <p>This class is responsible for managing the main window and the main editor. It is the main entry point for the application. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00023">23</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00024">24</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a4a8fb48e64d18f18c821c13f0a23666e" name="a4a8fb48e64d18f18c821c13f0a23666e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4a8fb48e64d18f18c821c13f0a23666e">&#9670;&#160;</a></span>IsActive()</h2>
@@ -196,11 +200,11 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00025">25</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00026">26</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00043">active_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00045">active_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/d7d/test__editor_8cc_source.html#l00056">yaze::test::RunIntegrationTest()</a>, and <a class="el" href="../../d5/d81/editor__integration__test_8cc_source.html#l00075">yaze::test::EditorIntegrationTest::RunTest()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/d7d/test__editor_8cc_source.html#l00057">yaze::test::RunIntegrationTest()</a>, and <a class="el" href="../../d5/d81/editor__integration__test_8cc_source.html#l00077">yaze::test::EditorIntegrationTest::RunTest()</a>.</p>
 
 </div>
 </div>
@@ -220,27 +224,11 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/controller_8cc_source.html#l00018">18</a> of file <a class="el" href="../../da/d0c/controller_8cc_source.html">controller.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/controller_8cc_source.html#l00020">20</a> of file <a class="el" href="../../da/d0c/controller_8cc_source.html">controller.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00043">active_</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00019">yaze::core::Window::audio_buffer_</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00018">yaze::core::Window::audio_device_</a>, <a class="el" href="../../d7/d60/window_8cc_source.html#l00054">yaze::core::CreateWindow()</a>, <a class="el" href="../../d2/dd9/controller_8h_source.html#l00045">editor_manager_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00112">yaze::editor::EditorManager::emulator()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00233">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00044">window_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00045">active_</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00020">yaze::core::Window::audio_buffer_</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00019">yaze::core::Window::audio_device_</a>, <a class="el" href="../../d7/d60/window_8cc_source.html#l00054">yaze::core::CreateWindow()</a>, <a class="el" href="../../d2/dd9/controller_8h_source.html#l00047">editor_manager_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00112">yaze::editor::EditorManager::emulator()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00014">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00233">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00012">yaze::gfx::Arena::Initialize()</a>, <a class="el" href="../../d2/dd9/controller_8h_source.html#l00048">renderer_</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00046">window_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../db/d83/test__utils_8cc_source.html#l00008">yaze::test::gui::LoadRomInTest()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d4/d84/classyaze_1_1core_1_1Controller_ac0fa260921696ef740c1bc2beb7a74ba_cgraph.png" border="0" usemap="#ad4/d84/classyaze_1_1core_1_1Controller_ac0fa260921696ef740c1bc2beb7a74ba_cgraph" alt=""/></div>
-<map name="ad4/d84/classyaze_1_1core_1_1Controller_ac0fa260921696ef740c1bc2beb7a74ba_cgraph" id="ad4/d84/classyaze_1_1core_1_1Controller_ac0fa260921696ef740c1bc2beb7a74ba_cgraph">
-<area shape="rect" title=" " alt="" coords="5,55,145,96"/>
-<area shape="rect" href="../../db/d33/namespaceyaze_1_1core.html#a14f2050902009800d7995d94a8c169fc" title=" " alt="" coords="196,5,364,31"/>
-<area shape="poly" title=" " alt="" coords="144,54,216,33,217,38,146,59"/>
-<area shape="rect" href="../../dd/d12/classyaze_1_1editor_1_1EditorManager.html#acb71e69070ce5a0a4aba6c874f1353e3" title=" " alt="" coords="193,55,367,96"/>
-<area shape="poly" title=" " alt="" coords="145,73,177,73,177,78,145,78"/>
-<area shape="rect" href="../../dd/d12/classyaze_1_1editor_1_1EditorManager.html#ac8ac2fe31fc9760ffe56b79f48dc39a0" title=" " alt="" coords="193,121,367,161"/>
-<area shape="poly" title=" " alt="" coords="142,94,200,113,198,118,140,99"/>
-<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#abd9a49ec6350e33700334b783e0c9cad" title=" " alt="" coords="415,5,557,31"/>
-<area shape="poly" title=" " alt="" coords="365,16,400,16,400,21,365,21"/>
-</map>
-</div>
 
 </div>
 </div>
@@ -259,11 +247,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/controller_8cc_source.html#l00027">27</a> of file <a class="el" href="../../da/d0c/controller_8cc_source.html">controller.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/controller_8cc_source.html#l00040">40</a> of file <a class="el" href="../../da/d0c/controller_8cc_source.html">controller.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d60/window_8cc_source.html#l00154">yaze::core::HandleEvents()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00027">PRINT_IF_ERROR</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00044">window_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d60/window_8cc_source.html#l00176">yaze::core::HandleEvents()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00027">PRINT_IF_ERROR</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00046">window_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/d7d/test__editor_8cc_source.html#l00056">yaze::test::RunIntegrationTest()</a>, and <a class="el" href="../../d5/d81/editor__integration__test_8cc_source.html#l00075">yaze::test::EditorIntegrationTest::RunTest()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/d7d/test__editor_8cc_source.html#l00057">yaze::test::RunIntegrationTest()</a>, and <a class="el" href="../../d5/d81/editor__integration__test_8cc_source.html#l00077">yaze::test::EditorIntegrationTest::RunTest()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -292,9 +280,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/controller_8cc_source.html#l00031">31</a> of file <a class="el" href="../../da/d0c/controller_8cc_source.html">controller.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/controller_8cc_source.html#l00044">44</a> of file <a class="el" href="../../da/d0c/controller_8cc_source.html">controller.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00043">active_</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00020">yaze::core::Window::active_</a>, <a class="el" href="../../de/dea/background__renderer_8cc_source.html#l00343">yaze::gui::DockSpaceRenderer::BeginEnhancedDockSpace()</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00063">yaze::gui::WidgetIdRegistry::BeginFrame()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01251">yaze::editor::EditorManager::DrawMenuBar()</a>, <a class="el" href="../../d2/dd9/controller_8h_source.html#l00045">editor_manager_</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00078">yaze::gui::WidgetIdRegistry::EndFrame()</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00058">yaze::gui::WidgetIdRegistry::Instance()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00113">yaze::editor::EditorManager::quit()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00642">yaze::editor::EditorManager::Update()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00044">window_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00045">active_</a>, <a class="el" href="../../d3/df1/window_8h_source.html#l00021">yaze::core::Window::active_</a>, <a class="el" href="../../de/dea/background__renderer_8cc_source.html#l00343">yaze::gui::DockSpaceRenderer::BeginEnhancedDockSpace()</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00063">yaze::gui::WidgetIdRegistry::BeginFrame()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01256">yaze::editor::EditorManager::DrawMenuBar()</a>, <a class="el" href="../../d2/dd9/controller_8h_source.html#l00047">editor_manager_</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00078">yaze::gui::WidgetIdRegistry::EndFrame()</a>, <a class="el" href="../../d3/d10/widget__id__registry_8cc_source.html#l00058">yaze::gui::WidgetIdRegistry::Instance()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00113">yaze::editor::EditorManager::quit()</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00647">yaze::editor::EditorManager::Update()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00046">window_</a>.</p>
 
 </div>
 </div>
@@ -313,19 +301,25 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/controller_8cc_source.html#l00076">76</a> of file <a class="el" href="../../da/d0c/controller_8cc_source.html">controller.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/controller_8cc_source.html#l00089">89</a> of file <a class="el" href="../../da/d0c/controller_8cc_source.html">controller.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/df1/window_8h_source.html#l00047">yaze::core::Renderer::Get()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/dee/arena_8cc_source.html#l00014">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00035">yaze::gfx::Arena::ProcessTextureQueue()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00048">renderer_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../de/d3d/yaze__test_8cc_source.html#l00212">main()</a>, <a class="el" href="../../db/d7d/test__editor_8cc_source.html#l00056">yaze::test::RunIntegrationTest()</a>, and <a class="el" href="../../d5/d81/editor__integration__test_8cc_source.html#l00075">yaze::test::EditorIntegrationTest::RunTest()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../de/d3d/yaze__test_8cc_source.html#l00213">main()</a>, <a class="el" href="../../db/d7d/test__editor_8cc_source.html#l00057">yaze::test::RunIntegrationTest()</a>, and <a class="el" href="../../d5/d81/editor__integration__test_8cc_source.html#l00077">yaze::test::EditorIntegrationTest::RunTest()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d4/d84/classyaze_1_1core_1_1Controller_a9669e4a71e33f0010248c2ff5dbd37af_cgraph.png" border="0" usemap="#ad4/d84/classyaze_1_1core_1_1Controller_a9669e4a71e33f0010248c2ff5dbd37af_cgraph" alt=""/></div>
 <map name="ad4/d84/classyaze_1_1core_1_1Controller_a9669e4a71e33f0010248c2ff5dbd37af_cgraph" id="ad4/d84/classyaze_1_1core_1_1Controller_a9669e4a71e33f0010248c2ff5dbd37af_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,145,46"/>
-<area shape="rect" href="../../da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="193,13,356,39"/>
-<area shape="poly" title=" " alt="" coords="145,23,177,23,177,28,145,28"/>
+<area shape="rect" title=" " alt="" coords="5,27,145,68"/>
+<area shape="rect" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="206,5,344,31"/>
+<area shape="poly" title=" " alt="" coords="145,35,190,28,191,33,146,40"/>
+<area shape="rect" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#aaa4008abdfc004444497722d9a9167c9" title=" " alt="" coords="193,55,357,96"/>
+<area shape="poly" title=" " alt="" coords="146,55,177,59,177,64,145,60"/>
+<area shape="rect" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a0c7628e8d85b52be66fa417503c24747" title="Creates a new, empty texture." alt="" coords="405,22,537,63"/>
+<area shape="poly" title=" " alt="" coords="357,59,389,53,390,59,358,64"/>
+<area shape="rect" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html#aa6af4ae256b62659ce1222b20e3d695e" title="Destroys a texture and frees its associated resources." alt="" coords="405,87,537,128"/>
+<area shape="poly" title=" " alt="" coords="358,86,390,92,389,97,357,92"/>
 </map>
 </div>
 
@@ -346,11 +340,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/d0c/controller_8cc_source.html#l00084">84</a> of file <a class="el" href="../../da/d0c/controller_8cc_source.html">controller.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/d0c/controller_8cc_source.html#l00100">100</a> of file <a class="el" href="../../da/d0c/controller_8cc_source.html">controller.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00027">PRINT_IF_ERROR</a>, <a class="el" href="../../d7/d60/window_8cc_source.html#l00124">yaze::core::ShutdownWindow()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00044">window_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00027">PRINT_IF_ERROR</a>, <a class="el" href="../../d2/dd9/controller_8h_source.html#l00048">renderer_</a>, <a class="el" href="../../d7/d60/window_8cc_source.html#l00136">yaze::core::ShutdownWindow()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00046">window_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../de/d3d/yaze__test_8cc_source.html#l00212">main()</a>, and <a class="el" href="../../db/d7d/test__editor_8cc_source.html#l00056">yaze::test::RunIntegrationTest()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../de/d3d/yaze__test_8cc_source.html#l00213">main()</a>, and <a class="el" href="../../db/d7d/test__editor_8cc_source.html#l00057">yaze::test::RunIntegrationTest()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -359,12 +353,12 @@ Here is the call graph for this function:</div>
 <area shape="rect" title=" " alt="" coords="5,63,145,103"/>
 <area shape="rect" href="../../db/d33/namespaceyaze_1_1core.html#a0f3dc6283ebf6a0957247ec1ca09c657" title=" " alt="" coords="193,70,381,96"/>
 <area shape="poly" title=" " alt="" coords="145,80,177,80,177,86,145,86"/>
-<area shape="rect" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a983fa38d2185127918f70b6ce701bcbe" title=" " alt="" coords="429,5,601,46"/>
-<area shape="poly" title=" " alt="" coords="340,67,416,48,417,53,342,72"/>
-<area shape="rect" href="../../da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="434,70,597,96"/>
-<area shape="poly" title=" " alt="" coords="381,80,418,80,418,86,381,86"/>
-<area shape="rect" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="447,120,584,145"/>
-<area shape="poly" title=" " alt="" coords="350,94,438,113,437,118,349,99"/>
+<area shape="rect" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a983fa38d2185127918f70b6ce701bcbe" title=" " alt="" coords="435,5,607,46"/>
+<area shape="poly" title=" " alt="" coords="342,67,420,48,421,53,343,72"/>
+<area shape="rect" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="453,70,590,96"/>
+<area shape="poly" title=" " alt="" coords="381,80,437,80,437,86,381,86"/>
+<area shape="rect" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#aba8e45afb0fc70d7fe9bd73e61296edf" title=" " alt="" coords="429,120,613,145"/>
+<area shape="poly" title=" " alt="" coords="352,94,442,113,441,118,351,99"/>
 </map>
 </div>
 
@@ -393,11 +387,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00032">32</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00033">33</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00044">window_</a>, and <a class="el" href="../../d3/df1/window_8h_source.html#l00017">yaze::core::Window::window_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00046">window_</a>, and <a class="el" href="../../d3/df1/window_8h_source.html#l00018">yaze::core::Window::window_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d81/editor__integration__test_8cc_source.html#l00040">yaze::test::EditorIntegrationTest::Initialize()</a>, and <a class="el" href="../../db/d7d/test__editor_8cc_source.html#l00056">yaze::test::RunIntegrationTest()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d81/editor__integration__test_8cc_source.html#l00040">yaze::test::EditorIntegrationTest::Initialize()</a>, and <a class="el" href="../../db/d7d/test__editor_8cc_source.html#l00057">yaze::test::RunIntegrationTest()</a>.</p>
 
 </div>
 </div>
@@ -425,11 +419,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00033">33</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00034">34</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00034">active()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00043">active_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00035">active()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00045">active_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d81/editor__integration__test_8cc_source.html#l00040">yaze::test::EditorIntegrationTest::Initialize()</a>, and <a class="el" href="../../db/d7d/test__editor_8cc_source.html#l00056">yaze::test::RunIntegrationTest()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d81/editor__integration__test_8cc_source.html#l00040">yaze::test::EditorIntegrationTest::Initialize()</a>, and <a class="el" href="../../db/d7d/test__editor_8cc_source.html#l00057">yaze::test::RunIntegrationTest()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -466,11 +460,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00034">34</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00035">35</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00043">active_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00045">active_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dd9/controller_8h_source.html#l00033">set_active()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dd9/controller_8h_source.html#l00034">set_active()</a>.</p>
 
 </div>
 </div>
@@ -497,9 +491,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00035">35</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00036">36</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00045">editor_manager_</a>, and <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00119">yaze::editor::EditorManager::overworld()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00047">editor_manager_</a>, and <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00119">yaze::editor::EditorManager::overworld()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d2/d5c/canvas__selection__test_8cc_source.html#l00006">E2ETest_CanvasSelectionTest()</a>.</p>
 <div class="dynheader">
@@ -540,9 +534,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00038">38</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00039">39</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00045">editor_manager_</a>, and <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00117">yaze::editor::EditorManager::GetCurrentRom()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00047">editor_manager_</a>, and <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00117">yaze::editor::EditorManager::GetCurrentRom()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -553,6 +547,35 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="145,23,177,23,177,28,145,28"/>
 </map>
 </div>
+
+</div>
+</div>
+<a id="a36bd1dd792d51d0817e8c02369c8af16" name="a36bd1dd792d51d0817e8c02369c8af16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a36bd1dd792d51d0817e8c02369c8af16">&#9670;&#160;</a></span>renderer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto yaze::core::Controller::renderer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> -&gt; <a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html">gfx::IRenderer</a>* </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00040">40</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d2/dd9/controller_8h_source.html#l00048">renderer_</a>.</p>
 
 </div>
 </div>
@@ -613,9 +636,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00043">43</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00045">45</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dd9/controller_8h_source.html#l00034">active()</a>, <a class="el" href="../../d2/dd9/controller_8h_source.html#l00025">IsActive()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00018">OnEntry()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00031">OnLoad()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00033">set_active()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dd9/controller_8h_source.html#l00035">active()</a>, <a class="el" href="../../d2/dd9/controller_8h_source.html#l00026">IsActive()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00020">OnEntry()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00044">OnLoad()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00034">set_active()</a>.</p>
 
 </div>
 </div>
@@ -639,9 +662,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00044">44</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00046">46</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/d0c/controller_8cc_source.html#l00018">OnEntry()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00084">OnExit()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00027">OnInput()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00031">OnLoad()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00032">window()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/d0c/controller_8cc_source.html#l00020">OnEntry()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00100">OnExit()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00040">OnInput()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00044">OnLoad()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00033">window()</a>.</p>
 
 </div>
 </div>
@@ -665,9 +688,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00045">45</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00047">47</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d2/dd9/controller_8h_source.html#l00038">GetCurrentRom()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00018">OnEntry()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00031">OnLoad()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00035">overworld()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d2/dd9/controller_8h_source.html#l00039">GetCurrentRom()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00020">OnEntry()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00044">OnLoad()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00036">overworld()</a>.</p>
+
+</div>
+</div>
+<a id="a56bbbcb367089efa3ac37949e2297e88" name="a56bbbcb367089efa3ac37949e2297e88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a56bbbcb367089efa3ac37949e2297e88">&#9670;&#160;</a></span>renderer_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt;<a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html">gfx::IRenderer</a>&gt; yaze::core::Controller::renderer_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d2/dd9/controller_8h_source.html#l00048">48</a> of file <a class="el" href="../../d2/dd9/controller_8h_source.html">controller.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../da/d0c/controller_8cc_source.html#l00089">DoRender()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00020">OnEntry()</a>, <a class="el" href="../../da/d0c/controller_8cc_source.html#l00100">OnExit()</a>, and <a class="el" href="../../d2/dd9/controller_8h_source.html#l00040">renderer()</a>.</p>
 
 </div>
 </div>

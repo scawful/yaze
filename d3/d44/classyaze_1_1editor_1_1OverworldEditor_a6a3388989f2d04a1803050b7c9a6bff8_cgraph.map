@@ -1,0 +1,11 @@
+<map id="yaze::editor::OverworldEditor::RenderUpdatedMapBitmap" name="yaze::editor::OverworldEditor::RenderUpdatedMapBitmap">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,100,189,141"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919" title=" " alt="" coords="248,5,372,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="143,97,247,50,250,55,146,102"/>
+<area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a6d17a8f9b6ed80bde87b67e8e36e40c1" title=" " alt="" coords="248,71,372,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,105,232,99,233,104,190,110"/>
+<area shape="rect" id="Node000005" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a2bb925db328fd0eda93b660fad899446" title=" " alt="" coords="237,136,383,161"/>
+<area shape="poly" id="edge3_Node000001_Node000005" title=" " alt="" coords="190,130,222,134,221,139,189,135"/>
+<area shape="rect" id="Node000006" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a0b6240e469dae9ab4d88f3e2051d4510" title="Write a value to a pixel at the given position." alt="" coords="248,185,372,226"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="151,139,244,177,242,182,149,144"/>
+</map>

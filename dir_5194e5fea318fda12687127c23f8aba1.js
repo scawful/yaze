@@ -6,6 +6,7 @@ var dir_5194e5fea318fda12687127c23f8aba1 =
     [ "gfx", "dir_0b974e391fb3f3024b1f06092da5c188.html", "dir_0b974e391fb3f3024b1f06092da5c188" ],
     [ "gui", "dir_8fca90320bcc7393a52982c8dc104a2a.html", "dir_8fca90320bcc7393a52982c8dc104a2a" ],
     [ "net", "dir_9860a4fc0700d2f70e015498d2e38e6b.html", "dir_9860a4fc0700d2f70e015498d2e38e6b" ],
+    [ "platform", "dir_b5073da0a0de1fec69310c7003d323a8.html", "dir_b5073da0a0de1fec69310c7003d323a8" ],
     [ "test", "dir_23c9a8ad65a08f6642b059bd67762538.html", "dir_23c9a8ad65a08f6642b059bd67762538" ],
     [ "zelda3", "dir_3692ec13241b192189de912e0a54f355.html", "dir_3692ec13241b192189de912e0a54f355" ],
     [ "main.cc", "d9/d0f/main_8cc.html", "d9/d0f/main_8cc" ],

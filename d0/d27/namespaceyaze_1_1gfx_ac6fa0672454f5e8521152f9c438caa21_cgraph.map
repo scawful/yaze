@@ -1,5 +1,11 @@
 <map id="yaze::gfx::TEST_F" name="yaze::gfx::TEST_F">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,130,31"/>
-<area shape="rect" id="Node000002" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="178,5,315,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,16,162,16,162,21,130,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,130,88"/>
+<area shape="rect" id="Node000002" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="208,5,345,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,60,177,41,207,33,208,38,178,46,114,65"/>
+<area shape="rect" id="Node000003" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#aaa4008abdfc004444497722d9a9167c9" title=" " alt="" coords="194,55,359,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="130,73,179,73,179,78,130,78"/>
+<area shape="rect" id="Node000007" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#a47a97c7a23bcfb7fb056d1d822db58c7" title=" " alt="" coords="178,121,375,161"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="112,86,195,113,193,118,110,91"/>
+<area shape="rect" id="Node000004" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a0c7628e8d85b52be66fa417503c24747" title="Creates a new, empty texture." alt="" coords="423,55,555,96"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="359,73,407,73,407,78,359,78"/>
 </map>

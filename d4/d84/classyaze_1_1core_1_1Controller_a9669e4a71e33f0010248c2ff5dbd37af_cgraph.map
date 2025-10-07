@@ -1,5 +1,11 @@
 <map id="yaze::core::Controller::DoRender" name="yaze::core::Controller::DoRender">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,145,46"/>
-<area shape="rect" id="Node000002" href="$da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="193,13,356,39"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,23,177,23,177,28,145,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,145,68"/>
+<area shape="rect" id="Node000002" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="206,5,344,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,35,190,28,191,33,146,40"/>
+<area shape="rect" id="Node000003" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#aaa4008abdfc004444497722d9a9167c9" title=" " alt="" coords="193,55,357,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="146,55,177,59,177,64,145,60"/>
+<area shape="rect" id="Node000004" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a0c7628e8d85b52be66fa417503c24747" title="Creates a new, empty texture." alt="" coords="405,22,537,63"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="357,59,389,53,390,59,358,64"/>
+<area shape="rect" id="Node000005" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#aa6af4ae256b62659ce1222b20e3d695e" title="Destroys a texture and frees its associated resources." alt="" coords="405,87,537,128"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="358,86,390,92,389,97,357,92"/>
 </map>

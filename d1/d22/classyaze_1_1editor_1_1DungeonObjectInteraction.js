@@ -6,6 +6,7 @@ var classyaze_1_1editor_1_1DungeonObjectInteraction =
     [ "PlaceObjectAtPosition", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a58d4c1048c8358de2ace2278bb1a14ba", null ],
     [ "DrawObjectSelectRect", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a85e52c6dd9da89c49a96680169fa0027", null ],
     [ "SelectObjectsInRect", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#acb7bf3f24512c4c3af4669d343434319", null ],
+    [ "DrawSelectionHighlights", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a7d6775df87dcceb744d15504cbdde5bd", null ],
     [ "DrawSelectBox", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#aa1bd629cb35f0b89013f0a2485c34a0d", null ],
     [ "DrawDragPreview", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a7d9fe343820bf406e93444f541a5ff66", null ],
     [ "UpdateSelectedObjects", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a75ac76531c0ad96e595ebc056e000a5f", null ],

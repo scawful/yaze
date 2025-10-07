@@ -4,7 +4,7 @@ var canvas__utils_8cc =
     [ "CalculateEffectiveScale", "dd/df4/canvas__utils_8cc.html#a8ca045966d86258316be042afe49d251", null ],
     [ "GetTileIdFromPosition", "dd/df4/canvas__utils_8cc.html#a996ea6ecdce025ca9cb1e01b9406e0f9", null ],
     [ "LoadROMPaletteGroups", "dd/df4/canvas__utils_8cc.html#a5fb5a1e89437d46557ffab8291b49ea3", null ],
-    [ "ApplyPaletteGroup", "dd/df4/canvas__utils_8cc.html#a19bec6839ed5866759106e754647385c", null ],
+    [ "ApplyPaletteGroup", "dd/df4/canvas__utils_8cc.html#a6ddb27e42fa03eb92cb94a97c1651168", null ],
     [ "DrawCanvasRect", "dd/df4/canvas__utils_8cc.html#a1366d6accda53f25cc1c5f8651161c4f", null ],
     [ "DrawCanvasText", "dd/df4/canvas__utils_8cc.html#ac0910f171a77137f82396c45cb1b02cc", null ],
     [ "DrawCanvasOutline", "dd/df4/canvas__utils_8cc.html#a8ceb52571f7d28aff6121cd21779e3e3", null ],

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['versiondiff_0',['VersionDiff',['../d9/dee/structyaze_1_1app_1_1net_1_1VersionDiff.html',1,'yaze::app::net']]],
+  ['versiondiff_0',['VersionDiff',['../d0/dd8/structyaze_1_1net_1_1VersionDiff.html',1,'yaze::net']]],
   ['videoportcontrol_1',['VideoPortControl',['../da/dbf/structyaze_1_1emu_1_1VideoPortControl.html',1,'yaze::emu']]],
   ['vimmode_2',['VimMode',['../d9/dd2/classyaze_1_1cli_1_1agent_1_1VimMode.html',1,'yaze::cli::agent']]],
   ['visibleregion_3',['VisibleRegion',['../db/d25/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1VisibleRegion.html',1,'yaze::gui::CanvasAutomationAPI']]],

@@ -1,0 +1,12 @@
+<map id="yaze::zelda3::LoadDungeonMapGfxFromBinary" name="yaze::zelda3::LoadDungeonMapGfxFromBinary">
+<area shape="rect" id="Node000001" title="Load the dungeon map gfx from binary." alt="" coords="5,92,182,133"/>
+<area shape="rect" id="Node000002" href="$d5/d1f/namespaceyaze_1_1zelda3.html#a4ac909ac2ccc7d3a70ae66895e832b28" title="Load the dungeon map tile16 from the ROM." alt="" coords="233,5,410,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="148,89,251,50,252,55,150,94"/>
+<area shape="rect" id="Node000009" href="$d6/d30/classyaze_1_1Rom.html#a6a005b3b2e4ceeee4328c6815b955880" title=" " alt="" coords="461,35,593,75"/>
+<area shape="poly" id="edge3_Node000001_Node000009" title=" " alt="" coords="182,98,445,63,446,68,182,103"/>
+<area shape="rect" id="Node000021" href="$d2/d3f/classyaze_1_1util_1_1FileDialogWrapper.html#a6b6052a259965e33017135077dad1205" title="ShowOpenFileDialog opens a file dialog and returns the selected filepath. Uses global feature flag to..." alt="" coords="231,120,412,161"/>
+<area shape="poly" id="edge4_Node000001_Node000021" title=" " alt="" coords="182,121,215,125,215,130,182,126"/>
+<area shape="rect" id="Node000022" href="$d0/d27/namespaceyaze_1_1gfx.html#a960630bcf8c1227f79ff2cf1f6c034bb" title=" " alt="" coords="230,185,413,211"/>
+<area shape="poly" id="edge5_Node000001_Node000022" title=" " alt="" coords="138,131,231,170,253,177,252,182,229,175,136,136"/>
+<area shape="poly" id="edge2_Node000002_Node000009" title=" " alt="" coords="410,36,446,41,445,46,410,41"/>
+</map>

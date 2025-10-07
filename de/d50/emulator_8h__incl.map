@@ -1,0 +1,14 @@
+<map id="src/app/emu/emulator.h" name="src/app/emu/emulator.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="61,5,218,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="50,153,110,178"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,34,43,52,26,65,13,80,9,97,15,113,29,128,46,142,43,146,25,132,11,116,3,97,8,78,22,61,40,47,79,29"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="208,153,266,178"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,29,223,47,239,61,253,78,258,93,259,109,252,139,247,138,254,108,253,94,248,80,236,65,220,52,184,34"/>
+<area shape="rect" id="Node000004" href="$d2/de3/emu_2snes_8h.html" title=" " alt="" coords="23,79,136,105"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="132,33,102,69,98,65,128,30"/>
+<area shape="rect" id="Node000018" href="$da/de5/rom_8h.html" title=" " alt="" coords="161,79,239,105"/>
+<area shape="poly" id="edge5_Node000001_Node000018" title=" " alt="" coords="152,30,182,65,178,69,148,33"/>
+<area shape="poly" id="edge4_Node000004_Node000002" title=" " alt="" coords="82,105,82,137,77,137,77,105"/>
+<area shape="poly" id="edge6_Node000018_Node000002" title=" " alt="" coords="181,108,115,147,112,142,178,103"/>
+<area shape="poly" id="edge7_Node000018_Node000003" title=" " alt="" coords="208,104,226,138,221,140,204,106"/>
+</map>

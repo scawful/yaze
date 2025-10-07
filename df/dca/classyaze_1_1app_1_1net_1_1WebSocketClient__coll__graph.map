@@ -1,5 +1,0 @@
-<map id="yaze::app::net::WebSocketClient" name="yaze::app::net::WebSocketClient">
-<area shape="rect" id="Node000001" title="WebSocket client for connecting to yaze&#45;server." alt="" coords="6,94,178,135"/>
-<area shape="rect" id="Node000002" href="$d8/da4/structyaze_1_1app_1_1net_1_1SessionInfo.html" title="Information about the current collaboration session." alt="" coords="5,5,179,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,46,95,93,89,93,89,46"/>
-</map>

@@ -1,7 +1,7 @@
-<map id="src/app/core/platform/asset_loader.h" name="src/app/core/platform/asset_loader.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="87,5,231,46"/>
-<area shape="rect" id="Node000002" href="$db/d08/asset__loader_8cc.html" title=" " alt="" coords="5,94,150,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,59,98,95,94,92,128,56"/>
-<area shape="rect" id="Node000003" href="$d5/d8c/agent__editor_8cc.html" title=" " alt="" coords="173,94,310,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="190,56,225,92,221,95,186,59"/>
+<map id="src/app/platform/asset_loader.h" name="src/app/platform/asset_loader.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="82,5,233,46"/>
+<area shape="rect" id="Node000002" href="$d5/d8c/agent__editor_8cc.html" title=" " alt="" coords="5,94,142,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,59,94,95,91,92,126,56"/>
+<area shape="rect" id="Node000003" href="$db/d08/asset__loader_8cc.html" title=" " alt="" coords="166,94,317,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,56,224,92,221,95,185,59"/>
 </map>

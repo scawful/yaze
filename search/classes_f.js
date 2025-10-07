@@ -47,11 +47,11 @@ var searchData=
   ['projecttemplate_44',['ProjectTemplate',['../d1/d47/structyaze_1_1core_1_1ProjectManager_1_1ProjectTemplate.html',1,'yaze::core::ProjectManager']]],
   ['promptbuilder_45',['PromptBuilder',['../d2/d20/classyaze_1_1cli_1_1PromptBuilder.html',1,'yaze::cli']]],
   ['promptmanager_46',['PromptManager',['../d4/d79/classyaze_1_1cli_1_1agent_1_1PromptManager.html',1,'yaze::cli::agent']]],
-  ['proposalapprovalmanager_47',['ProposalApprovalManager',['../db/d62/classyaze_1_1app_1_1net_1_1ProposalApprovalManager.html',1,'yaze::app::net']]],
+  ['proposalapprovalmanager_47',['ProposalApprovalManager',['../d8/d96/classyaze_1_1net_1_1ProposalApprovalManager.html',1,'yaze::net']]],
   ['proposalcreationrequest_48',['ProposalCreationRequest',['../d6/d99/structyaze_1_1cli_1_1agent_1_1ProposalCreationRequest.html',1,'yaze::cli::agent']]],
   ['proposalcreationresult_49',['ProposalCreationResult',['../d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html',1,'yaze::cli::agent']]],
   ['proposaldrawer_50',['ProposalDrawer',['../dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html',1,'yaze::editor']]],
-  ['proposalentry_51',['ProposalEntry',['../d5/dd0/structyaze_1_1app_1_1gui_1_1ProposalEntry.html',1,'yaze::app::gui']]],
+  ['proposalentry_51',['ProposalEntry',['../d9/d76/structyaze_1_1gui_1_1ProposalEntry.html',1,'yaze::gui']]],
   ['proposalmetadata_52',['ProposalMetadata',['../d5/da1/structyaze_1_1cli_1_1ProposalRegistry_1_1ProposalMetadata.html',1,'yaze::cli::ProposalRegistry']]],
   ['proposalregistry_53',['ProposalRegistry',['../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html',1,'yaze::cli']]],
   ['proposalsummary_54',['ProposalSummary',['../de/dd3/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1ProposalSummary.html',1,'yaze::cli::agent::ChatMessage']]]

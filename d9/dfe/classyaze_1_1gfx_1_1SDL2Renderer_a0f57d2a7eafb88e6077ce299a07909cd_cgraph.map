@@ -1,0 +1,5 @@
+<map id="yaze::gfx::SDL2Renderer::~SDL2Renderer" name="yaze::gfx::SDL2Renderer::~SDL2Renderer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,167,46"/>
+<area shape="rect" id="Node000002" href="$d9/dfe/classyaze_1_1gfx_1_1SDL2Renderer.html#aee79e8a635bebffcfd82a3a8bef52fee" title="Shuts down the renderer. The underlying SDL_Renderer is managed by a unique_ptr, so its destruction i..." alt="" coords="215,5,376,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,23,199,23,199,28,167,28"/>
+</map>

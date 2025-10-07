@@ -1,6 +1,5 @@
 var dir_fcc5e025f1b672ef47e35e5c700d9477 =
 [
-    [ "platform", "dir_f454b90621a5a35d9d5ef5e042a20159.html", "dir_f454b90621a5a35d9d5ef5e042a20159" ],
     [ "service", "dir_dc23f1be152b00b759caddf320e40b03.html", "dir_dc23f1be152b00b759caddf320e40b03" ],
     [ "testing", "dir_dc60dacf73886317957ac427edbedd82.html", "dir_dc60dacf73886317957ac427edbedd82" ],
     [ "asar_wrapper.cc", "db/d17/asar__wrapper_8cc.html", null ],

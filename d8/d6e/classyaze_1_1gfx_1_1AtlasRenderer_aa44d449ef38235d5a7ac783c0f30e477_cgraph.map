@@ -1,0 +1,5 @@
+<map id="yaze::gfx::AtlasRenderer::RenderBitmap" name="yaze::gfx::AtlasRenderer::RenderBitmap">
+<area shape="rect" id="Node000001" title="Render a single bitmap using atlas (convenience method)" alt="" coords="5,5,164,46"/>
+<area shape="rect" id="Node000002" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a8b713bb1b3a446ba8e5aa2f2d529efe3" title="Copies a portion of a texture to the current render target." alt="" coords="212,5,344,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,23,197,23,197,28,164,28"/>
+</map>

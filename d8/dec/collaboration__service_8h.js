@@ -1,5 +1,5 @@
 var collaboration__service_8h =
 [
-    [ "yaze::app::net::CollaborationService", "d1/da6/classyaze_1_1app_1_1net_1_1CollaborationService.html", "d1/da6/classyaze_1_1app_1_1net_1_1CollaborationService" ],
-    [ "yaze::app::net::CollaborationService::Config", "dc/df1/structyaze_1_1app_1_1net_1_1CollaborationService_1_1Config.html", "dc/df1/structyaze_1_1app_1_1net_1_1CollaborationService_1_1Config" ]
+    [ "yaze::net::CollaborationService", "d6/dfb/classyaze_1_1net_1_1CollaborationService.html", "d6/dfb/classyaze_1_1net_1_1CollaborationService" ],
+    [ "yaze::net::CollaborationService::Config", "d5/d80/structyaze_1_1net_1_1CollaborationService_1_1Config.html", "d5/d80/structyaze_1_1net_1_1CollaborationService_1_1Config" ]
 ];

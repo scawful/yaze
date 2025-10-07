@@ -1,9 +1,9 @@
 <map id="yaze::editor::AgentEditor::DrawNewPromptCreator" name="yaze::editor::AgentEditor::DrawNewPromptCreator">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,39,174,79"/>
-<area shape="rect" id="Node000002" href="$d9/d5b/classyaze_1_1core_1_1AssetLoader.html#a5ecd67e5ff824200bdb92a3083fd32b1" title=" " alt="" coords="230,5,388,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,44,214,37,215,43,174,49"/>
+<area shape="rect" id="Node000002" href="$d9/d56/classyaze_1_1AssetLoader.html#a81eed4e473f61f4a4969148df1227448" title=" " alt="" coords="242,5,376,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="174,44,226,35,227,41,174,49"/>
 <area shape="rect" id="Node000006" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="222,71,396,111"/>
 <area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="174,69,207,73,206,79,174,74"/>
-<area shape="rect" id="Node000003" href="$d9/d5b/classyaze_1_1core_1_1AssetLoader.html#aafa8da7c8efe78053dd89e43dd0b8e84" title=" " alt="" coords="444,5,602,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="388,23,429,23,429,28,388,28"/>
+<area shape="rect" id="Node000003" href="$d9/d56/classyaze_1_1AssetLoader.html#aa0b1698fb992e8a17a3316715fa430dd" title=" " alt="" coords="444,5,577,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="376,23,429,23,429,28,376,28"/>
 </map>

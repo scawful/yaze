@@ -1,0 +1,5 @@
+<map id="yaze::gfx::AtlasRenderer::Clear" name="yaze::gfx::AtlasRenderer::Clear">
+<area shape="rect" id="Node000001" title="Clear all atlases." alt="" coords="5,5,164,46"/>
+<area shape="rect" id="Node000002" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#aa6af4ae256b62659ce1222b20e3d695e" title="Destroys a texture and frees its associated resources." alt="" coords="212,5,344,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,23,197,23,197,28,164,28"/>
+</map>

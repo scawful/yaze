@@ -1,0 +1,9 @@
+<map id="yaze::LoadLinkGraphics" name="yaze::LoadLinkGraphics">
+<area shape="rect" id="Node000001" title="Loads the players 4bpp graphics sheet from Rom data." alt="" coords="5,70,165,96"/>
+<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7" title=" " alt="" coords="242,5,367,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="136,67,226,43,227,48,138,72"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a0241f94c39962115e9602cc5c3c46796" title=" " alt="" coords="214,70,395,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="165,80,198,80,198,86,165,86"/>
+<area shape="rect" id="Node000004" href="$d0/d27/namespaceyaze_1_1gfx.html#a960630bcf8c1227f79ff2cf1f6c034bb" title=" " alt="" coords="213,120,396,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="146,94,230,113,229,118,145,99"/>
+</map>

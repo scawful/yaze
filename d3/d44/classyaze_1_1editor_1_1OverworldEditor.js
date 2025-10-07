@@ -29,6 +29,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
       [ "DW_SPR_PAL_PART2", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aea8267c4f7c87f90980a353edb9d27a1a15e93c1f924790725359e5f3ffa062c8", null ]
     ] ],
     [ "OverworldEditor", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#afda44b117bb86279016d1cd354f8f8a4", null ],
+    [ "Initialize", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aae319de16971a8fa766d987896f7d99d", null ],
     [ "Initialize", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a795074db61aaf19e9f687a1f357524e2", null ],
     [ "Load", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#aaa4ee9e9095ee9f1faea6dfbf2c5217a", null ],
     [ "Update", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#ac30ddbbf543edb8c021a98b46c01e239", null ],
@@ -142,6 +143,7 @@ var classyaze_1_1editor_1_1OverworldEditor =
     [ "current_scratch_slot_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af21b6972b94508ab68e9fdf926039d4c", null ],
     [ "tile16_blockset_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2f3df4c80fdea88e0b51bf3b74c2097f", null ],
     [ "rom_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a21ddb17c0f6062a9055507fe99553649", null ],
+    [ "renderer_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#ae10f6f9778ce85093677721934b68f10", null ],
     [ "tile16_editor_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a3d4bc025b428972beadd361eac00a311", null ],
     [ "gfx_group_editor_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#ac11c346f4bf0ccc978d1238f284b4ee5", null ],
     [ "palette_editor_", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#abe030f61b009dc95da7c734156e42e7b", null ],

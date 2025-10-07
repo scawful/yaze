@@ -2,7 +2,7 @@ var classyaze_1_1editor_1_1EditorManager =
 [
     [ "RomSession", "df/da6/structyaze_1_1editor_1_1EditorManager_1_1RomSession.html", "df/da6/structyaze_1_1editor_1_1EditorManager_1_1RomSession" ],
     [ "EditorManager", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5e1bc7f274b01593c207c0cd72cc17c3", null ],
-    [ "Initialize", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ac8ac2fe31fc9760ffe56b79f48dc39a0", null ],
+    [ "Initialize", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a51c9aed6a4bc8ff39a5459db82a2e6c4", null ],
     [ "Update", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ab1925444bb0903c0375991ee96692c21", null ],
     [ "DrawMenuBar", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a4571c1ab924da431149c66f118a319dd", null ],
     [ "emulator", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#acb71e69070ce5a0a4aba6c874f1353e3", null ],
@@ -116,6 +116,7 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "current_editor_set_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a41c67d80fbcde1510986cafb22ad8c44", null ],
     [ "current_editor_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ac0340e25707cca3bfff0b8384d55ead9", null ],
     [ "blank_editor_set_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5bc74a415527ea995f24c956d1252612", null ],
+    [ "renderer_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a3214b757deb8b6a8fe7ce768881a28a8", null ],
     [ "current_project_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#acaf331711b024516c36111d9f140112e", null ],
     [ "context_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ab37cb559d1924b153f1f758b98ff424f", null ],
     [ "popup_manager_", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ae9a431666f10d2734518acc911e504b7", null ],

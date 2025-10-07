@@ -11,7 +11,7 @@ var searchData=
   ['agent_5fchat_5fhistory_5fpopup_2ecc_8',['agent_chat_history_popup.cc',['../d8/d92/agent__chat__history__popup_8cc.html',1,'']]],
   ['agent_5fchat_5fhistory_5fpopup_2eh_9',['agent_chat_history_popup.h',['../d7/d6b/agent__chat__history__popup_8h.html',1,'']]],
   ['agent_5fchat_5fwidget_2ecc_10',['agent_chat_widget.cc',['../d4/d0a/gui_2widgets_2agent__chat__widget_8cc.html',1,'(Global Namespace)'],['../d5/dde/editor_2agent_2agent__chat__widget_8cc.html',1,'(Global Namespace)']]],
-  ['agent_5fchat_5fwidget_2eh_11',['agent_chat_widget.h',['../d1/dee/editor_2agent_2agent__chat__widget_8h.html',1,'(Global Namespace)'],['../d6/dae/gui_2widgets_2agent__chat__widget_8h.html',1,'(Global Namespace)']]],
+  ['agent_5fchat_5fwidget_2eh_11',['agent_chat_widget.h',['../d6/dae/gui_2widgets_2agent__chat__widget_8h.html',1,'(Global Namespace)'],['../d1/dee/editor_2agent_2agent__chat__widget_8h.html',1,'(Global Namespace)']]],
   ['agent_5fcollaboration_5fcoordinator_2ecc_12',['agent_collaboration_coordinator.cc',['../d0/daa/agent__collaboration__coordinator_8cc.html',1,'']]],
   ['agent_5fcollaboration_5fcoordinator_2eh_13',['agent_collaboration_coordinator.h',['../d2/d25/agent__collaboration__coordinator_8h.html',1,'']]],
   ['agent_5feditor_2ecc_14',['agent_editor.cc',['../d5/d8c/agent__editor_8cc.html',1,'']]],

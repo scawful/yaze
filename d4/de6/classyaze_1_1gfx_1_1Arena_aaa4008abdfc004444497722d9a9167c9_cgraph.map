@@ -1,0 +1,9 @@
+<map id="yaze::gfx::Arena::ProcessTextureQueue" name="yaze::gfx::Arena::ProcessTextureQueue">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,170,111"/>
+<area shape="rect" id="Node000002" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a0c7628e8d85b52be66fa417503c24747" title="Creates a new, empty texture." alt="" coords="218,5,350,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,68,205,49,207,54,151,73"/>
+<area shape="rect" id="Node000003" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#aa6af4ae256b62659ce1222b20e3d695e" title="Destroys a texture and frees its associated resources." alt="" coords="218,71,350,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,88,202,88,202,94,170,94"/>
+<area shape="rect" id="Node000004" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a26dd982d1249f3bcbad832927a5edf4a" title="Updates a texture with the pixel data from a Bitmap." alt="" coords="218,136,350,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="151,109,207,128,205,133,150,114"/>
+</map>

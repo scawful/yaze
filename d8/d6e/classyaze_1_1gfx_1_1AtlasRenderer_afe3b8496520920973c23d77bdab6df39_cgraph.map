@@ -1,0 +1,5 @@
+<map id="yaze::gfx::AtlasRenderer::RenderBatchWithBppOptimization" name="yaze::gfx::AtlasRenderer::RenderBatchWithBppOptimization">
+<area shape="rect" id="Node000001" title="Render multiple bitmaps with BPP&#45;aware batching." alt="" coords="5,5,229,46"/>
+<area shape="rect" id="Node000002" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a8b713bb1b3a446ba8e5aa2f2d529efe3" title="Copies a portion of a texture to the current render target." alt="" coords="277,5,409,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="229,23,262,23,262,28,229,28"/>
+</map>

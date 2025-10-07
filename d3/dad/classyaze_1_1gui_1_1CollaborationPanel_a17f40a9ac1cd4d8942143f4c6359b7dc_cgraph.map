@@ -1,0 +1,9 @@
+<map id="yaze::gui::CollaborationPanel::RenderProposalEntry" name="yaze::gui::CollaborationPanel::RenderProposalEntry">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,187,111"/>
+<area shape="rect" id="Node000002" href="$d3/dad/classyaze_1_1gui_1_1CollaborationPanel.html#a28fa0c26eb697633cb6a12262afbf98b" title=" " alt="" coords="252,5,418,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,68,243,48,244,53,173,73"/>
+<area shape="rect" id="Node000003" href="$d3/dad/classyaze_1_1gui_1_1CollaborationPanel.html#aa22460bfeef0488abc0d456e0464f5d8" title=" " alt="" coords="235,71,435,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,88,219,88,219,94,187,94"/>
+<area shape="rect" id="Node000004" href="$d3/dad/classyaze_1_1gui_1_1CollaborationPanel.html#a43c949b86f19adbd77dd1757ff555eb6" title=" " alt="" coords="237,136,433,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="173,109,244,129,243,134,172,114"/>
+</map>

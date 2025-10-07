@@ -1,5 +1,5 @@
-<map id="src/app/core/platform/font_loader.h" name="src/app/core/platform/font_loader.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="82,5,226,46"/>
+<map id="src/app/platform/font_loader.h" name="src/app/platform/font_loader.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="83,5,225,46"/>
 <area shape="rect" id="Node000002" title=" " alt="" coords="5,94,63,120"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,49,66,88,63,83,123,44"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="86,94,222,120"/>

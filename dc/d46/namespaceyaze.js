@@ -1,23 +1,35 @@
 var namespaceyaze =
 [
+    [ "anonymous_namespace{font_loader.cc}", "d0/dc8/namespaceyaze_1_1anonymous__namespace_02font__loader_8cc_03.html", [
+      [ "SetFontPath", "d0/dc8/namespaceyaze_1_1anonymous__namespace_02font__loader_8cc_03.html#aabbfd06e7656b995e098610e30e8c87f", null ],
+      [ "LoadFont", "d0/dc8/namespaceyaze_1_1anonymous__namespace_02font__loader_8cc_03.html#ac0e59e963fcaca57b28b8650f0b6aa80", null ],
+      [ "AddIconFont", "d0/dc8/namespaceyaze_1_1anonymous__namespace_02font__loader_8cc_03.html#af7eeabc274452e15ba0a81c04f79edb9", null ],
+      [ "AddJapaneseFont", "d0/dc8/namespaceyaze_1_1anonymous__namespace_02font__loader_8cc_03.html#a081cd10b0d36e8abd12919f4bd26acf1", null ]
+    ] ],
     [ "anonymous_namespace{rom.cc}", "d4/dbf/namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html", [
       [ "MaybeStripSmcHeader", "d4/dbf/namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html#aa13a5ca04b2cc3f5f5fe321bc9ad9f6c", null ],
       [ "kBaseRomSize", "d4/dbf/namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html#aedd16f67611c771b9f9640f5dbf8e405", null ],
       [ "kHeaderSize", "d4/dbf/namespaceyaze_1_1anonymous__namespace_02rom_8cc_03.html#abad830783ccf3b4922d02f277b9152f0", null ]
     ] ],
-    [ "app", "d9/d75/namespaceyaze_1_1app.html", "d9/d75/namespaceyaze_1_1app" ],
     [ "cli", "dd/d63/namespaceyaze_1_1cli.html", "dd/d63/namespaceyaze_1_1cli" ],
     [ "core", "db/d33/namespaceyaze_1_1core.html", "db/d33/namespaceyaze_1_1core" ],
     [ "editor", "d1/d3e/namespaceyaze_1_1editor.html", "d1/d3e/namespaceyaze_1_1editor" ],
     [ "emu", "d6/d20/namespaceyaze_1_1emu.html", "d6/d20/namespaceyaze_1_1emu" ],
     [ "gfx", "d0/d27/namespaceyaze_1_1gfx.html", "d0/d27/namespaceyaze_1_1gfx" ],
     [ "gui", "d3/dbf/namespaceyaze_1_1gui.html", "d3/dbf/namespaceyaze_1_1gui" ],
+    [ "net", "dd/d43/namespaceyaze_1_1net.html", "dd/d43/namespaceyaze_1_1net" ],
     [ "test", "d4/d0a/namespaceyaze_1_1test.html", "d4/d0a/namespaceyaze_1_1test" ],
     [ "util", "d4/de1/namespaceyaze_1_1util.html", "d4/de1/namespaceyaze_1_1util" ],
     [ "zelda3", "d5/d1f/namespaceyaze_1_1zelda3.html", "d5/d1f/namespaceyaze_1_1zelda3" ],
+    [ "AssetLoader", "d9/d56/classyaze_1_1AssetLoader.html", null ],
+    [ "FontConfig", "db/d0d/structyaze_1_1FontConfig.html", "db/d0d/structyaze_1_1FontConfig" ],
+    [ "FontState", "d3/dba/structyaze_1_1FontState.html", "d3/dba/structyaze_1_1FontState" ],
     [ "Rom", "d6/d30/classyaze_1_1Rom.html", "d6/d30/classyaze_1_1Rom" ],
     [ "RomLoadOptions", "db/d22/structyaze_1_1RomLoadOptions.html", "db/d22/structyaze_1_1RomLoadOptions" ],
     [ "Transaction", "df/d26/classyaze_1_1Transaction.html", "df/d26/classyaze_1_1Transaction" ],
+    [ "LoadPackageFonts", "dc/d46/namespaceyaze.html#a647006b6752ce59edf7f5a7865d1a2f7", null ],
+    [ "ReloadPackageFont", "dc/d46/namespaceyaze.html#a448d8b520484ebc2b18cc0ef3571381d", null ],
+    [ "LoadSystemFonts", "dc/d46/namespaceyaze.html#a7cfeaab149882de47c6fe16cd8466340", null ],
     [ "GetGraphicsAddress", "dc/d46/namespaceyaze.html#acf543dde4eeff4bc273d61a4ffda5d41", null ],
     [ "Load2BppGraphics", "dc/d46/namespaceyaze.html#a3167c1c857f5e405cb39a492529d6557", null ],
     [ "LoadLinkGraphics", "dc/d46/namespaceyaze.html#a3dde9364829e66bec50d5da15df53b6a", null ],

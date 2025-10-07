@@ -1,12 +1,6 @@
 var namespaceyaze_1_1core =
 [
     [ "anonymous_namespace{asar_wrapper_test.cc}", "da/d36/namespaceyaze_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03.html", "da/d36/namespaceyaze_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03" ],
-    [ "anonymous_namespace{font_loader.cc}", "db/dc7/namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html", [
-      [ "SetFontPath", "db/dc7/namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a0d62353b28e596070a67929b63594ce1", null ],
-      [ "LoadFont", "db/dc7/namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#aeb026c1f2d88cd2c2d4ac9a283861bbe", null ],
-      [ "AddIconFont", "db/dc7/namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#a06b7a27a9a21374824b7a245f753e886", null ],
-      [ "AddJapaneseFont", "db/dc7/namespaceyaze_1_1core_1_1anonymous__namespace_02font__loader_8cc_03.html#af50562c29e14353a5e69a2cf5283f375", null ]
-    ] ],
     [ "anonymous_namespace{project.cc}", "de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html", [
       [ "ParseKeyValue", "de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#ad27d05709b9eec1a229aab08f178575c", null ],
       [ "ParseBool", "de/db1/namespaceyaze_1_1core_1_1anonymous__namespace_02project_8cc_03.html#ab275661a03c76657529623faa3f23c55", null ],
@@ -22,15 +16,11 @@ var namespaceyaze_1_1core =
     [ "AsarPatchResult", "de/d0c/structyaze_1_1core_1_1AsarPatchResult.html", "de/d0c/structyaze_1_1core_1_1AsarPatchResult" ],
     [ "AsarSymbol", "de/da4/structyaze_1_1core_1_1AsarSymbol.html", "de/da4/structyaze_1_1core_1_1AsarSymbol" ],
     [ "AsarWrapper", "da/dd2/classyaze_1_1core_1_1AsarWrapper.html", "da/dd2/classyaze_1_1core_1_1AsarWrapper" ],
-    [ "AssetLoader", "d9/d5b/classyaze_1_1core_1_1AssetLoader.html", null ],
     [ "Controller", "d4/d84/classyaze_1_1core_1_1Controller.html", "d4/d84/classyaze_1_1core_1_1Controller" ],
     [ "FeatureFlags", "d8/d3f/classyaze_1_1core_1_1FeatureFlags.html", "d8/d3f/classyaze_1_1core_1_1FeatureFlags" ],
-    [ "FontConfig", "d6/d2f/structyaze_1_1core_1_1FontConfig.html", "d6/d2f/structyaze_1_1core_1_1FontConfig" ],
-    [ "FontState", "d6/df8/structyaze_1_1core_1_1FontState.html", "d6/df8/structyaze_1_1core_1_1FontState" ],
     [ "ProjectManager", "d9/d7f/classyaze_1_1core_1_1ProjectManager.html", "d9/d7f/classyaze_1_1core_1_1ProjectManager" ],
     [ "ProjectMetadata", "d8/d0c/structyaze_1_1core_1_1ProjectMetadata.html", "d8/d0c/structyaze_1_1core_1_1ProjectMetadata" ],
     [ "RecentFilesManager", "d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html", "d8/d4b/classyaze_1_1core_1_1RecentFilesManager" ],
-    [ "Renderer", "da/d81/classyaze_1_1core_1_1Renderer.html", "da/d81/classyaze_1_1core_1_1Renderer" ],
     [ "ResourceLabelManager", "d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html", "d8/d4d/structyaze_1_1core_1_1ResourceLabelManager" ],
     [ "TimingManager", "d5/d77/classyaze_1_1core_1_1TimingManager.html", "d5/d77/classyaze_1_1core_1_1TimingManager" ],
     [ "WidgetState", "d1/d17/structyaze_1_1core_1_1WidgetState.html", "d1/d17/structyaze_1_1core_1_1WidgetState" ],
@@ -41,10 +31,7 @@ var namespaceyaze_1_1core =
       [ "kYazeNative", "db/d33/namespaceyaze_1_1core.html#a1142e14777c50b720b0e9e102bff707ea642441ddc46e01a3de6f671c113ea184", null ],
       [ "kZScreamCompat", "db/d33/namespaceyaze_1_1core.html#a1142e14777c50b720b0e9e102bff707ea1e3b2427a636684daa5c2b1d5a1dc4b5", null ]
     ] ],
-    [ "LoadPackageFonts", "db/d33/namespaceyaze_1_1core.html#a1ebfa2ff985b2a41c726bfbaa9a868dd", null ],
-    [ "ReloadPackageFont", "db/d33/namespaceyaze_1_1core.html#a171a8a94e8642f977ca04cf54245cd13", null ],
-    [ "LoadSystemFonts", "db/d33/namespaceyaze_1_1core.html#aa408d383ff33494e29ea06e0e6774f4c", null ],
-    [ "CreateWindow", "db/d33/namespaceyaze_1_1core.html#a14f2050902009800d7995d94a8c169fc", null ],
+    [ "CreateWindow", "db/d33/namespaceyaze_1_1core.html#ad9ef5ea7c217135fe0d8756429f83839", null ],
     [ "ShutdownWindow", "db/d33/namespaceyaze_1_1core.html#a0f3dc6283ebf6a0957247ec1ca09c657", null ],
     [ "HandleEvents", "db/d33/namespaceyaze_1_1core.html#ad4a900088575fbf46321559795839a51", null ],
     [ "CaptureWidgetState", "db/d33/namespaceyaze_1_1core.html#afd7b0c7907c3c40350d164a541651f13", null ],

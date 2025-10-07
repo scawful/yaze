@@ -1,0 +1,11 @@
+<map id="yaze::net::RomVersionManager::AutoRecover" name="yaze::net::RomVersionManager::AutoRecover">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,204,79"/>
+<area shape="rect" id="Node000002" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html#af16defb677071f70ed390edb00e345a9" title=" " alt="" coords="252,5,450,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,43,236,39,237,44,205,48"/>
+<area shape="rect" id="Node000003" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html#ab5c7b2ab45a26c0cb93905f26f5e8d97" title=" " alt="" coords="252,71,450,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="205,69,236,73,236,79,204,75"/>
+<area shape="rect" id="Node000004" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html#a2a9111fccfce5bf9dc2b66f5fd2d4f54" title=" " alt="" coords="498,37,696,78"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="450,75,482,71,483,76,451,80"/>
+<area shape="rect" id="Node000011" href="$d6/d28/classyaze_1_1net_1_1RomVersionManager.html#a253c61a0fe1ce2defc8eeff9761224c6" title=" " alt="" coords="498,103,696,143"/>
+<area shape="poly" id="edge4_Node000003_Node000011" title=" " alt="" coords="451,101,483,105,482,111,450,107"/>
+</map>

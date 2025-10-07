@@ -5,5 +5,6 @@ var searchData=
   ['tests_2',['End-to-End (E2E) Tests',['../d9/db0/md_test_2e2e_2README.html',1,'']]],
   ['tile16_20editor_20palette_20system_3',['Tile16 Editor Palette System',['../d2/dde/md_docs_2F2-tile16-editor-palette-system.html',1,'']]],
   ['to_20end_20e2e_20tests_4',['End-to-End (E2E) Tests',['../d9/db0/md_test_2e2e_2README.html',1,'']]],
-  ['todo_20list_5',['Todo List',['../dd/da0/todo.html',1,'']]]
+  ['to_20sdl3_20migration_20and_20rendering_20abstraction_20plan_5',['SDL2 to SDL3 Migration and Rendering Abstraction Plan',['../d6/df2/md_docs_2G2-renderer-migration-plan.html',1,'']]],
+  ['todo_20list_6',['Todo List',['../dd/da0/todo.html',1,'']]]
 ];

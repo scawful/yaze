@@ -1,0 +1,7 @@
+<map id="yaze::editor::DungeonObjectInteraction::DrawSelectionHighlights" name="yaze::editor::DungeonObjectInteraction::DrawSelectionHighlights">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,236,79"/>
+<area shape="rect" id="Node000002" href="$d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a2fd31b9ebfed8a6b442afccc0478a0bb" title=" " alt="" coords="284,5,534,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="236,43,268,39,268,45,236,48"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ab3664ce0fdd6afa2113d10dd55fa9d80" title=" " alt="" coords="346,71,472,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="236,69,330,80,330,85,236,74"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="yaze::gfx::Bitmap::CreateTexture" name="yaze::gfx::Bitmap::CreateTexture">
+<area shape="rect" id="Node000001" title="Creates the underlying SDL_Texture to be displayed." alt="" coords="5,27,129,68"/>
+<area shape="rect" id="Node000002" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="207,5,344,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="129,36,191,27,192,33,129,41"/>
+<area shape="rect" id="Node000003" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#a47a97c7a23bcfb7fb056d1d822db58c7" title=" " alt="" coords="177,55,374,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="129,53,161,57,161,63,129,58"/>
+</map>

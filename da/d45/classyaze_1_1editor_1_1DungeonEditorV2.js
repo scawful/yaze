@@ -1,8 +1,9 @@
 var classyaze_1_1editor_1_1DungeonEditorV2 =
 [
     [ "DungeonEditorV2", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#af37c2da982693fa565a0da3feb7eb403", null ],
+    [ "Initialize", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a849975676fce9974609cac1c55b319f0", null ],
     [ "Initialize", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a4db6924b906ab903656ab7967e61f301", null ],
-    [ "Load", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ae31f6ba608759e25634f60b1d3feb7fc", null ],
+    [ "Load", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#adcdd7c86ceda3bbd7176b6ae5b3daf84", null ],
     [ "Update", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#aab9728985c13fd87bd323eaa4791bae3", null ],
     [ "Undo", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ab446b21a753a7049d5d841a70252a6e6", null ],
     [ "Redo", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ac3961b5f0195ec6b13c75766d4352552", null ],
@@ -26,6 +27,7 @@ var classyaze_1_1editor_1_1DungeonEditorV2 =
     [ "DrawRoomGraphicsCard", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#aec2931720824e24660c9b7e4bd9c6544", null ],
     [ "OnRoomSelected", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#af5b46bb90815fb2548d1f2e4344abe97", null ],
     [ "OnEntranceSelected", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a3b2047230797eb907652c3f2f75c2b6b", null ],
+    [ "renderer_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a3d783610490f7e18fbaa379e5c951ba0", null ],
     [ "rom_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#aa784f56c2215fd5a05309d92bd1f76ea", null ],
     [ "rooms_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a0db4ec012391c7ce940a819e2f1ee0a9", null ],
     [ "entrances_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a2c5269298631ffcd5989a6b757de3f98", null ],
@@ -37,7 +39,6 @@ var classyaze_1_1editor_1_1DungeonEditorV2 =
     [ "show_room_matrix_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a8ddb3af5acada5e2419042cdbe5d38c6", null ],
     [ "show_entrances_list_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a86e1e95686c78994a542b952583124b5", null ],
     [ "show_room_graphics_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#aabbff9c9c8e96a519a2d79588347c178", null ],
-    [ "show_object_selector_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a53be66435e7d977123f7ea2629fd4151", null ],
     [ "show_object_editor_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a877242ea76a51b8229b5d4f7f2c4ca03", null ],
     [ "show_palette_editor_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a363946d2a1b5c3801c7f2a35e953e129", null ],
     [ "current_palette_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a7acd47c1f5146c009a4f1378cdd62ab2", null ],

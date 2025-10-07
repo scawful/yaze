@@ -1,11 +1,11 @@
 <map id="yaze::editor::test::Tile16EditorIntegrationTest::InitializeTestEnvironment" name="yaze::editor::test::Tile16EditorIntegrationTest::InitializeTestEnvironment">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,40,188,95"/>
-<area shape="rect" id="Node000002" href="$db/d33/namespaceyaze_1_1core.html#a14f2050902009800d7995d94a8c169fc" title=" " alt="" coords="236,55,404,80"/>
+<area shape="rect" id="Node000002" href="$db/d33/namespaceyaze_1_1core.html#ad9ef5ea7c217135fe0d8756429f83839" title=" " alt="" coords="236,55,404,80"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,65,220,65,220,70,188,70"/>
 <area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#abd9a49ec6350e33700334b783e0c9cad" title=" " alt="" coords="473,5,615,31"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="381,51,467,32,468,38,382,57"/>
-<area shape="rect" id="Node000004" href="$da/d81/classyaze_1_1core_1_1Renderer.html#abcae4ea3f9c358d55ec88b46cec37761" title=" " alt="" coords="463,55,626,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="404,65,447,65,447,70,404,70"/>
-<area shape="rect" id="Node000005" href="$da/d3e/classyaze_1_1test_1_1TestManager.html#aba8e45afb0fc70d7fe9bd73e61296edf" title=" " alt="" coords="452,104,636,130"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="382,78,468,97,467,103,381,84"/>
+<area shape="rect" id="Node000004" href="$da/d3e/classyaze_1_1test_1_1TestManager.html#aba8e45afb0fc70d7fe9bd73e61296edf" title=" " alt="" coords="452,55,636,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="404,65,436,65,436,70,404,70"/>
+<area shape="rect" id="Node000005" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a23f4e2c0617b575a226b46085deaf081" title="Provides an escape hatch to get the underlying, concrete renderer object." alt="" coords="469,105,620,145"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="374,78,454,99,453,104,372,84"/>
 </map>
