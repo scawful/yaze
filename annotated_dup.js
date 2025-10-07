@@ -277,6 +277,7 @@ var annotated_dup =
         [ "MessageEditor", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html", "d3/d6c/classyaze_1_1editor_1_1MessageEditor" ],
         [ "MessagePreview", "dc/dd1/structyaze_1_1editor_1_1MessagePreview.html", "dc/dd1/structyaze_1_1editor_1_1MessagePreview" ],
         [ "MusicEditor", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html", "db/d9a/classyaze_1_1editor_1_1MusicEditor" ],
+        [ "ObjectEditorCard", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard" ],
         [ "OverworldEditor", "d3/d44/classyaze_1_1editor_1_1OverworldEditor.html", "d3/d44/classyaze_1_1editor_1_1OverworldEditor" ],
         [ "OverworldEntityRenderer", "d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer.html", "d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer" ],
         [ "PaletteEditor", "d2/d46/classyaze_1_1editor_1_1PaletteEditor.html", "d2/d46/classyaze_1_1editor_1_1PaletteEditor" ],

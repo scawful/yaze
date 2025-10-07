@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,71,205,111"/>
 <area shape="rect" id="Node000002" href="$d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#ad5e66e0318966b1e82f9199ebe21c56b" title=" " alt="" coords="253,71,445,111"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,88,237,88,237,94,205,94"/>
-<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ad8f81f1ad4537d5b9c094ed4bb66d304" title=" " alt="" coords="494,5,620,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="415,68,478,47,480,53,416,73"/>
-<area shape="rect" id="Node000007" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a401e3bebaabb7d192f9466835c86f3ab" title=" " alt="" coords="493,71,620,111"/>
-<area shape="poly" id="edge3_Node000002_Node000007" title=" " alt="" coords="446,88,477,88,477,94,446,94"/>
-<area shape="rect" id="Node000023" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="494,136,620,177"/>
-<area shape="poly" id="edge4_Node000002_Node000023" title=" " alt="" coords="416,109,480,129,478,135,415,114"/>
+<area shape="rect" id="Node000003" href="$d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#aeaea9f1de30e0936b6e73524e4746bd9" title=" " alt="" coords="493,5,729,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="433,67,511,48,513,53,434,73"/>
+<area shape="rect" id="Node000010" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#ad8f81f1ad4537d5b9c094ed4bb66d304" title=" " alt="" coords="548,71,674,111"/>
+<area shape="poly" id="edge3_Node000002_Node000010" title=" " alt="" coords="445,88,532,88,532,94,445,94"/>
+<area shape="rect" id="Node000014" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a401e3bebaabb7d192f9466835c86f3ab" title=" " alt="" coords="548,136,675,177"/>
+<area shape="poly" id="edge4_Node000002_Node000014" title=" " alt="" coords="434,109,533,134,532,139,433,115"/>
 </map>

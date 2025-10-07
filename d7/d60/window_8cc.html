@@ -105,10 +105,12 @@ $(document).ready(function(){initNavTree('d7/d60/window_8cc.html','../../'); ini
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../d3/df1/window_8h_source.html">app/core/window.h</a>&quot;</code><br />
+<code>#include &lt;filesystem&gt;</code><br />
 <code>#include &quot;absl/status/status.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d2/d36/font__loader_8h_source.html">app/core/platform/font_loader.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d5/dd7/sdl__deleter_8h_source.html">util/sdl_deleter.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d7/d7f/log_8h_source.html">util/log.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/d0c/arena_8h_source.html">app/gfx/arena.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../de/d12/style_8h_source.html">app/gui/style.h</a>&quot;</code><br />
 <code>#include &quot;imgui/backends/imgui_impl_sdl2.h&quot;</code><br />
@@ -119,6 +121,8 @@ $(document).ready(function(){initNavTree('d7/d60/window_8cc.html','../../'); ini
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
+<tr class="memitem:dc/dac/namespaceanonymous__namespace_02window_8cc_03" id="r_dc/dac/namespaceanonymous__namespace_02window_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dac/namespaceanonymous__namespace_02window_8cc_03.html">anonymous_namespace{window.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:dc/d46/namespaceyaze" id="r_dc/d46/namespaceyaze"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d46/namespaceyaze.html">yaze</a></td></tr>
 <tr class="memdesc:dc/d46/namespaceyaze"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main namespace for the application. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -127,6 +131,8 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:acde8be27db7bf9b54c0728869107a1cf" id="r_acde8be27db7bf9b54c0728869107a1cf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/dac/namespaceanonymous__namespace_02window_8cc_03.html#acde8be27db7bf9b54c0728869107a1cf">anonymous_namespace{window.cc}::ImGuiAssertionHandler</a> (const char *expr, const char *file, int line, const char *msg)</td></tr>
+<tr class="separator:acde8be27db7bf9b54c0728869107a1cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14f2050902009800d7995d94a8c169fc" id="r_a14f2050902009800d7995d94a8c169fc"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d33/namespaceyaze_1_1core.html#a14f2050902009800d7995d94a8c169fc">yaze::core::CreateWindow</a> (<a class="el" href="../../de/d86/structyaze_1_1core_1_1Window.html">Window</a> &amp;window, int flags)</td></tr>
 <tr class="separator:a14f2050902009800d7995d94a8c169fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f3dc6283ebf6a0957247ec1ca09c657" id="r_a0f3dc6283ebf6a0957247ec1ca09c657"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d33/namespaceyaze_1_1core.html#a0f3dc6283ebf6a0957247ec1ca09c657">yaze::core::ShutdownWindow</a> (<a class="el" href="../../de/d86/structyaze_1_1core_1_1Window.html">Window</a> &amp;window)</td></tr>

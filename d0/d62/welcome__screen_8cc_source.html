@@ -760,231 +760,235 @@ $(document).ready(function(){initNavTree('d0/d62/welcome__screen_8cc_source.html
 <div class="line"><a id="l00634" name="l00634"></a><span class="lineno">  634</span>  ImGui::Text(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a5ee062809770188b482eefe1c328bf9f">ICON_MD_VIDEOGAME_ASSET</a>);</div>
 <div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span>  ImGui::PopStyleColor();</div>
 <div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>  </div>
-<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>  <span class="comment">// Project name (compact)</span></div>
+<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>  <span class="comment">// Project name (compact, shorten if too long)</span></div>
 <div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 32, content_pos.y + 8));</div>
 <div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>  ImGui::PushTextWrapPos(cursor_pos.x + card_size.x - 8);</div>
 <div class="line"><a id="l00640" name="l00640"></a><span class="lineno">  640</span>  ImGui::PushFont(ImGui::GetIO().Fonts-&gt;Fonts[0]); <span class="comment">// Default font</span></div>
-<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>  ImGui::TextColored(kTriforceGold, <span class="stringliteral">&quot;%s&quot;</span>, project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a9f62e9aee9ea443767a966530fcb656b">name</a>.c_str());</div>
-<div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>  ImGui::PopFont();</div>
-<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span>  ImGui::PopTextWrapPos();</div>
-<div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span>  </div>
-<div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span>  <span class="comment">// ROM title (compact)</span></div>
-<div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span>  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 4, content_pos.y + 35));</div>
-<div class="line"><a id="l00647" name="l00647"></a><span class="lineno">  647</span>  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.65f, 0.65f, 0.65f, 1.0f));</div>
-<div class="line"><a id="l00648" name="l00648"></a><span class="lineno">  648</span>  ImGui::Text(<a class="code hl_define" href="../../de/dbf/icons_8h.html#ae538f3d382553e6b6b50b7384febdeb4">ICON_MD_GAMEPAD</a> <span class="stringliteral">&quot; %s&quot;</span>, project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a32c524d001c512db702d8ed92fd57ff1">rom_title</a>.c_str());</div>
-<div class="line"><a id="l00649" name="l00649"></a><span class="lineno">  649</span>  ImGui::PopStyleColor();</div>
-<div class="line"><a id="l00650" name="l00650"></a><span class="lineno">  650</span>  </div>
-<div class="line"><a id="l00651" name="l00651"></a><span class="lineno">  651</span>  <span class="comment">// Path in card (compact)</span></div>
-<div class="line"><a id="l00652" name="l00652"></a><span class="lineno">  652</span>  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 4, content_pos.y + 58));</div>
-<div class="line"><a id="l00653" name="l00653"></a><span class="lineno">  653</span>  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));</div>
-<div class="line"><a id="l00654" name="l00654"></a><span class="lineno">  654</span>  std::string short_path = project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a05818f5ab896dff952d67671aeb139b9">filepath</a>;</div>
-<div class="line"><a id="l00655" name="l00655"></a><span class="lineno">  655</span>  <span class="keywordflow">if</span> (short_path.length() &gt; 26) {</div>
-<div class="line"><a id="l00656" name="l00656"></a><span class="lineno">  656</span>    short_path = <span class="stringliteral">&quot;...&quot;</span> + short_path.substr(short_path.length() - 23);</div>
-<div class="line"><a id="l00657" name="l00657"></a><span class="lineno">  657</span>  }</div>
-<div class="line"><a id="l00658" name="l00658"></a><span class="lineno">  658</span>  ImGui::Text(<a class="code hl_define" href="../../de/dbf/icons_8h.html#ad48dc07a8d8eb645493e915363c8a993">ICON_MD_FOLDER</a> <span class="stringliteral">&quot; %s&quot;</span>, short_path.c_str());</div>
-<div class="line"><a id="l00659" name="l00659"></a><span class="lineno">  659</span>  ImGui::PopStyleColor();</div>
-<div class="line"><a id="l00660" name="l00660"></a><span class="lineno">  660</span>  </div>
-<div class="line"><a id="l00661" name="l00661"></a><span class="lineno">  661</span>  <span class="comment">// Tooltip</span></div>
-<div class="line"><a id="l00662" name="l00662"></a><span class="lineno">  662</span>  <span class="keywordflow">if</span> (is_hovered) {</div>
-<div class="line"><a id="l00663" name="l00663"></a><span class="lineno">  663</span>    ImGui::BeginTooltip();</div>
-<div class="line"><a id="l00664" name="l00664"></a><span class="lineno">  664</span>    ImGui::TextColored(kMasterSwordBlue, <a class="code hl_define" href="../../de/dbf/icons_8h.html#a216f1be7e88939f6b48fc3ff3a99d86d">ICON_MD_INFO</a> <span class="stringliteral">&quot; Project Details&quot;</span>);</div>
-<div class="line"><a id="l00665" name="l00665"></a><span class="lineno">  665</span>    ImGui::Separator();</div>
-<div class="line"><a id="l00666" name="l00666"></a><span class="lineno">  666</span>    ImGui::Text(<span class="stringliteral">&quot;Name: %s&quot;</span>, project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a9f62e9aee9ea443767a966530fcb656b">name</a>.c_str());</div>
-<div class="line"><a id="l00667" name="l00667"></a><span class="lineno">  667</span>    ImGui::Text(<span class="stringliteral">&quot;ROM: %s&quot;</span>, project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a32c524d001c512db702d8ed92fd57ff1">rom_title</a>.c_str());</div>
-<div class="line"><a id="l00668" name="l00668"></a><span class="lineno">  668</span>    ImGui::Text(<span class="stringliteral">&quot;Path: %s&quot;</span>, project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a05818f5ab896dff952d67671aeb139b9">filepath</a>.c_str());</div>
+<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>  std::string short_name = project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a9f62e9aee9ea443767a966530fcb656b">name</a>;</div>
+<div class="line"><a id="l00642" name="l00642"></a><span class="lineno">  642</span>  <span class="keywordflow">if</span> (short_name.length() &gt; 22) {</div>
+<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span>    short_name = short_name.substr(0, 19) + <span class="stringliteral">&quot;...&quot;</span>;</div>
+<div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span>  }</div>
+<div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span>  ImGui::TextColored(kTriforceGold, <span class="stringliteral">&quot;%s&quot;</span>, short_name.c_str());</div>
+<div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span>  ImGui::PopFont();</div>
+<div class="line"><a id="l00647" name="l00647"></a><span class="lineno">  647</span>  ImGui::PopTextWrapPos();</div>
+<div class="line"><a id="l00648" name="l00648"></a><span class="lineno">  648</span>  </div>
+<div class="line"><a id="l00649" name="l00649"></a><span class="lineno">  649</span>  <span class="comment">// ROM title (compact)</span></div>
+<div class="line"><a id="l00650" name="l00650"></a><span class="lineno">  650</span>  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 4, content_pos.y + 35));</div>
+<div class="line"><a id="l00651" name="l00651"></a><span class="lineno">  651</span>  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.65f, 0.65f, 0.65f, 1.0f));</div>
+<div class="line"><a id="l00652" name="l00652"></a><span class="lineno">  652</span>  ImGui::Text(<a class="code hl_define" href="../../de/dbf/icons_8h.html#ae538f3d382553e6b6b50b7384febdeb4">ICON_MD_GAMEPAD</a> <span class="stringliteral">&quot; %s&quot;</span>, project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a32c524d001c512db702d8ed92fd57ff1">rom_title</a>.c_str());</div>
+<div class="line"><a id="l00653" name="l00653"></a><span class="lineno">  653</span>  ImGui::PopStyleColor();</div>
+<div class="line"><a id="l00654" name="l00654"></a><span class="lineno">  654</span>  </div>
+<div class="line"><a id="l00655" name="l00655"></a><span class="lineno">  655</span>  <span class="comment">// Path in card (compact)</span></div>
+<div class="line"><a id="l00656" name="l00656"></a><span class="lineno">  656</span>  ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 4, content_pos.y + 58));</div>
+<div class="line"><a id="l00657" name="l00657"></a><span class="lineno">  657</span>  ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));</div>
+<div class="line"><a id="l00658" name="l00658"></a><span class="lineno">  658</span>  std::string short_path = project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a05818f5ab896dff952d67671aeb139b9">filepath</a>;</div>
+<div class="line"><a id="l00659" name="l00659"></a><span class="lineno">  659</span>  <span class="keywordflow">if</span> (short_path.length() &gt; 26) {</div>
+<div class="line"><a id="l00660" name="l00660"></a><span class="lineno">  660</span>    short_path = <span class="stringliteral">&quot;...&quot;</span> + short_path.substr(short_path.length() - 23);</div>
+<div class="line"><a id="l00661" name="l00661"></a><span class="lineno">  661</span>  }</div>
+<div class="line"><a id="l00662" name="l00662"></a><span class="lineno">  662</span>  ImGui::Text(<a class="code hl_define" href="../../de/dbf/icons_8h.html#ad48dc07a8d8eb645493e915363c8a993">ICON_MD_FOLDER</a> <span class="stringliteral">&quot; %s&quot;</span>, short_path.c_str());</div>
+<div class="line"><a id="l00663" name="l00663"></a><span class="lineno">  663</span>  ImGui::PopStyleColor();</div>
+<div class="line"><a id="l00664" name="l00664"></a><span class="lineno">  664</span>  </div>
+<div class="line"><a id="l00665" name="l00665"></a><span class="lineno">  665</span>  <span class="comment">// Tooltip</span></div>
+<div class="line"><a id="l00666" name="l00666"></a><span class="lineno">  666</span>  <span class="keywordflow">if</span> (is_hovered) {</div>
+<div class="line"><a id="l00667" name="l00667"></a><span class="lineno">  667</span>    ImGui::BeginTooltip();</div>
+<div class="line"><a id="l00668" name="l00668"></a><span class="lineno">  668</span>    ImGui::TextColored(kMasterSwordBlue, <a class="code hl_define" href="../../de/dbf/icons_8h.html#a216f1be7e88939f6b48fc3ff3a99d86d">ICON_MD_INFO</a> <span class="stringliteral">&quot; Project Details&quot;</span>);</div>
 <div class="line"><a id="l00669" name="l00669"></a><span class="lineno">  669</span>    ImGui::Separator();</div>
-<div class="line"><a id="l00670" name="l00670"></a><span class="lineno">  670</span>    ImGui::TextColored(kTriforceGold, <a class="code hl_define" href="../../de/dbf/icons_8h.html#ac1c489967e084d07603d96d9f607e4a2">ICON_MD_TOUCH_APP</a> <span class="stringliteral">&quot; Click to open&quot;</span>);</div>
-<div class="line"><a id="l00671" name="l00671"></a><span class="lineno">  671</span>    ImGui::EndTooltip();</div>
-<div class="line"><a id="l00672" name="l00672"></a><span class="lineno">  672</span>  }</div>
-<div class="line"><a id="l00673" name="l00673"></a><span class="lineno">  673</span>  </div>
-<div class="line"><a id="l00674" name="l00674"></a><span class="lineno">  674</span>  <span class="comment">// Handle click</span></div>
-<div class="line"><a id="l00675" name="l00675"></a><span class="lineno">  675</span>  <span class="keywordflow">if</span> (is_clicked &amp;&amp; <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ae577618fc9b9542e494923f6d4ecc6f4">open_project_callback_</a>) {</div>
-<div class="line"><a id="l00676" name="l00676"></a><span class="lineno">  676</span>    <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ae577618fc9b9542e494923f6d4ecc6f4">open_project_callback_</a>(project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a05818f5ab896dff952d67671aeb139b9">filepath</a>);</div>
-<div class="line"><a id="l00677" name="l00677"></a><span class="lineno">  677</span>  }</div>
-<div class="line"><a id="l00678" name="l00678"></a><span class="lineno">  678</span>  </div>
-<div class="line"><a id="l00679" name="l00679"></a><span class="lineno">  679</span>  ImGui::EndGroup();</div>
-<div class="line"><a id="l00680" name="l00680"></a><span class="lineno">  680</span>}</div>
+<div class="line"><a id="l00670" name="l00670"></a><span class="lineno">  670</span>    ImGui::Text(<span class="stringliteral">&quot;Name: %s&quot;</span>, project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a9f62e9aee9ea443767a966530fcb656b">name</a>.c_str());</div>
+<div class="line"><a id="l00671" name="l00671"></a><span class="lineno">  671</span>    ImGui::Text(<span class="stringliteral">&quot;ROM: %s&quot;</span>, project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a32c524d001c512db702d8ed92fd57ff1">rom_title</a>.c_str());</div>
+<div class="line"><a id="l00672" name="l00672"></a><span class="lineno">  672</span>    ImGui::Text(<span class="stringliteral">&quot;Path: %s&quot;</span>, project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a05818f5ab896dff952d67671aeb139b9">filepath</a>.c_str());</div>
+<div class="line"><a id="l00673" name="l00673"></a><span class="lineno">  673</span>    ImGui::Separator();</div>
+<div class="line"><a id="l00674" name="l00674"></a><span class="lineno">  674</span>    ImGui::TextColored(kTriforceGold, <a class="code hl_define" href="../../de/dbf/icons_8h.html#ac1c489967e084d07603d96d9f607e4a2">ICON_MD_TOUCH_APP</a> <span class="stringliteral">&quot; Click to open&quot;</span>);</div>
+<div class="line"><a id="l00675" name="l00675"></a><span class="lineno">  675</span>    ImGui::EndTooltip();</div>
+<div class="line"><a id="l00676" name="l00676"></a><span class="lineno">  676</span>  }</div>
+<div class="line"><a id="l00677" name="l00677"></a><span class="lineno">  677</span>  </div>
+<div class="line"><a id="l00678" name="l00678"></a><span class="lineno">  678</span>  <span class="comment">// Handle click</span></div>
+<div class="line"><a id="l00679" name="l00679"></a><span class="lineno">  679</span>  <span class="keywordflow">if</span> (is_clicked &amp;&amp; <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ae577618fc9b9542e494923f6d4ecc6f4">open_project_callback_</a>) {</div>
+<div class="line"><a id="l00680" name="l00680"></a><span class="lineno">  680</span>    <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ae577618fc9b9542e494923f6d4ecc6f4">open_project_callback_</a>(project.<a class="code hl_variable" href="../../d6/d7f/structyaze_1_1editor_1_1RecentProject.html#a05818f5ab896dff952d67671aeb139b9">filepath</a>);</div>
+<div class="line"><a id="l00681" name="l00681"></a><span class="lineno">  681</span>  }</div>
+<div class="line"><a id="l00682" name="l00682"></a><span class="lineno">  682</span>  </div>
+<div class="line"><a id="l00683" name="l00683"></a><span class="lineno">  683</span>  ImGui::EndGroup();</div>
+<div class="line"><a id="l00684" name="l00684"></a><span class="lineno">  684</span>}</div>
 </div>
-<div class="line"><a id="l00681" name="l00681"></a><span class="lineno">  681</span> </div>
-<div class="foldopen" id="foldopen00682" data-start="{" data-end="}">
-<div class="line"><a id="l00682" name="l00682"></a><span class="lineno"><a class="line" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ab1c985512c61b9e1d5b60bfc39d3d470">  682</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ab1c985512c61b9e1d5b60bfc39d3d470">WelcomeScreen::DrawTemplatesSection</a>() {</div>
-<div class="line"><a id="l00683" name="l00683"></a><span class="lineno">  683</span>  <span class="comment">// Header with visual settings button</span></div>
-<div class="line"><a id="l00684" name="l00684"></a><span class="lineno">  684</span>  <span class="keywordtype">float</span> content_width = ImGui::GetContentRegionAvail().x;</div>
-<div class="line"><a id="l00685" name="l00685"></a><span class="lineno">  685</span>  ImGui::TextColored(kGanonPurple, <a class="code hl_define" href="../../de/dbf/icons_8h.html#a979611caea3e3c9ad69d61287add5da6">ICON_MD_LAYERS</a> <span class="stringliteral">&quot; Templates&quot;</span>);</div>
-<div class="line"><a id="l00686" name="l00686"></a><span class="lineno">  686</span>  ImGui::SameLine(content_width - 25);</div>
-<div class="line"><a id="l00687" name="l00687"></a><span class="lineno">  687</span>  <span class="keywordflow">if</span> (ImGui::SmallButton(<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a1d163635c3f0d207de5084e0e1717b0b">show_triforce_settings_</a> ? <a class="code hl_define" href="../../de/dbf/icons_8h.html#ae1d0ddb2d6f16e5d6e961105a9d7fe90">ICON_MD_CLOSE</a> : <a class="code hl_define" href="../../de/dbf/icons_8h.html#a5470d2bdad9b5fa0552bebdb828f3a0b">ICON_MD_TUNE</a>)) {</div>
-<div class="line"><a id="l00688" name="l00688"></a><span class="lineno">  688</span>    <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a1d163635c3f0d207de5084e0e1717b0b">show_triforce_settings_</a> = !<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a1d163635c3f0d207de5084e0e1717b0b">show_triforce_settings_</a>;</div>
-<div class="line"><a id="l00689" name="l00689"></a><span class="lineno">  689</span>  }</div>
-<div class="line"><a id="l00690" name="l00690"></a><span class="lineno">  690</span>  <span class="keywordflow">if</span> (ImGui::IsItemHovered()) {</div>
-<div class="line"><a id="l00691" name="l00691"></a><span class="lineno">  691</span>    ImGui::SetTooltip(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a5c93fd3a5dd77fe6f3d579570cfbc3e2">ICON_MD_AUTO_AWESOME</a> <span class="stringliteral">&quot; Visual Effects Settings&quot;</span>);</div>
-<div class="line"><a id="l00692" name="l00692"></a><span class="lineno">  692</span>  }</div>
-<div class="line"><a id="l00693" name="l00693"></a><span class="lineno">  693</span>  </div>
-<div class="line"><a id="l00694" name="l00694"></a><span class="lineno">  694</span>  ImGui::Spacing();</div>
-<div class="line"><a id="l00695" name="l00695"></a><span class="lineno">  695</span>  </div>
-<div class="line"><a id="l00696" name="l00696"></a><span class="lineno">  696</span>  <span class="comment">// Visual effects settings panel (when opened)</span></div>
-<div class="line"><a id="l00697" name="l00697"></a><span class="lineno">  697</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a1d163635c3f0d207de5084e0e1717b0b">show_triforce_settings_</a>) {</div>
-<div class="line"><a id="l00698" name="l00698"></a><span class="lineno">  698</span>    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.15f, 0.22f, 0.4f));</div>
-<div class="line"><a id="l00699" name="l00699"></a><span class="lineno">  699</span>    ImGui::BeginChild(<span class="stringliteral">&quot;VisualSettingsCompact&quot;</span>, ImVec2(0, 115), <span class="keyword">true</span>, ImGuiWindowFlags_NoScrollbar);</div>
-<div class="line"><a id="l00700" name="l00700"></a><span class="lineno">  700</span>    {</div>
-<div class="line"><a id="l00701" name="l00701"></a><span class="lineno">  701</span>      ImGui::TextColored(kGanonPurple, <a class="code hl_define" href="../../de/dbf/icons_8h.html#a5c93fd3a5dd77fe6f3d579570cfbc3e2">ICON_MD_AUTO_AWESOME</a> <span class="stringliteral">&quot; Visual Effects&quot;</span>);</div>
-<div class="line"><a id="l00702" name="l00702"></a><span class="lineno">  702</span>      ImGui::Spacing();</div>
-<div class="line"><a id="l00703" name="l00703"></a><span class="lineno">  703</span>      </div>
-<div class="line"><a id="l00704" name="l00704"></a><span class="lineno">  704</span>      ImGui::Text(<a class="code hl_define" href="../../de/dbf/icons_8h.html#afa9a270d45f5263b9e87d33f8a165089">ICON_MD_OPACITY</a> <span class="stringliteral">&quot; Visibility&quot;</span>);</div>
-<div class="line"><a id="l00705" name="l00705"></a><span class="lineno">  705</span>      ImGui::SetNextItemWidth(-1);</div>
-<div class="line"><a id="l00706" name="l00706"></a><span class="lineno">  706</span>      ImGui::SliderFloat(<span class="stringliteral">&quot;##visibility&quot;</span>, &amp;<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a0fe4757661ffd524fd0d763d6aa5b4c5">triforce_alpha_multiplier_</a>, 0.0f, 3.0f, <span class="stringliteral">&quot;%.1fx&quot;</span>);</div>
+<div class="line"><a id="l00685" name="l00685"></a><span class="lineno">  685</span> </div>
+<div class="foldopen" id="foldopen00686" data-start="{" data-end="}">
+<div class="line"><a id="l00686" name="l00686"></a><span class="lineno"><a class="line" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ab1c985512c61b9e1d5b60bfc39d3d470">  686</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ab1c985512c61b9e1d5b60bfc39d3d470">WelcomeScreen::DrawTemplatesSection</a>() {</div>
+<div class="line"><a id="l00687" name="l00687"></a><span class="lineno">  687</span>  <span class="comment">// Header with visual settings button</span></div>
+<div class="line"><a id="l00688" name="l00688"></a><span class="lineno">  688</span>  <span class="keywordtype">float</span> content_width = ImGui::GetContentRegionAvail().x;</div>
+<div class="line"><a id="l00689" name="l00689"></a><span class="lineno">  689</span>  ImGui::TextColored(kGanonPurple, <a class="code hl_define" href="../../de/dbf/icons_8h.html#a979611caea3e3c9ad69d61287add5da6">ICON_MD_LAYERS</a> <span class="stringliteral">&quot; Templates&quot;</span>);</div>
+<div class="line"><a id="l00690" name="l00690"></a><span class="lineno">  690</span>  ImGui::SameLine(content_width - 25);</div>
+<div class="line"><a id="l00691" name="l00691"></a><span class="lineno">  691</span>  <span class="keywordflow">if</span> (ImGui::SmallButton(<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a1d163635c3f0d207de5084e0e1717b0b">show_triforce_settings_</a> ? <a class="code hl_define" href="../../de/dbf/icons_8h.html#ae1d0ddb2d6f16e5d6e961105a9d7fe90">ICON_MD_CLOSE</a> : <a class="code hl_define" href="../../de/dbf/icons_8h.html#a5470d2bdad9b5fa0552bebdb828f3a0b">ICON_MD_TUNE</a>)) {</div>
+<div class="line"><a id="l00692" name="l00692"></a><span class="lineno">  692</span>    <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a1d163635c3f0d207de5084e0e1717b0b">show_triforce_settings_</a> = !<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a1d163635c3f0d207de5084e0e1717b0b">show_triforce_settings_</a>;</div>
+<div class="line"><a id="l00693" name="l00693"></a><span class="lineno">  693</span>  }</div>
+<div class="line"><a id="l00694" name="l00694"></a><span class="lineno">  694</span>  <span class="keywordflow">if</span> (ImGui::IsItemHovered()) {</div>
+<div class="line"><a id="l00695" name="l00695"></a><span class="lineno">  695</span>    ImGui::SetTooltip(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a5c93fd3a5dd77fe6f3d579570cfbc3e2">ICON_MD_AUTO_AWESOME</a> <span class="stringliteral">&quot; Visual Effects Settings&quot;</span>);</div>
+<div class="line"><a id="l00696" name="l00696"></a><span class="lineno">  696</span>  }</div>
+<div class="line"><a id="l00697" name="l00697"></a><span class="lineno">  697</span>  </div>
+<div class="line"><a id="l00698" name="l00698"></a><span class="lineno">  698</span>  ImGui::Spacing();</div>
+<div class="line"><a id="l00699" name="l00699"></a><span class="lineno">  699</span>  </div>
+<div class="line"><a id="l00700" name="l00700"></a><span class="lineno">  700</span>  <span class="comment">// Visual effects settings panel (when opened)</span></div>
+<div class="line"><a id="l00701" name="l00701"></a><span class="lineno">  701</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a1d163635c3f0d207de5084e0e1717b0b">show_triforce_settings_</a>) {</div>
+<div class="line"><a id="l00702" name="l00702"></a><span class="lineno">  702</span>    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.18f, 0.15f, 0.22f, 0.4f));</div>
+<div class="line"><a id="l00703" name="l00703"></a><span class="lineno">  703</span>    ImGui::BeginChild(<span class="stringliteral">&quot;VisualSettingsCompact&quot;</span>, ImVec2(0, 115), <span class="keyword">true</span>, ImGuiWindowFlags_NoScrollbar);</div>
+<div class="line"><a id="l00704" name="l00704"></a><span class="lineno">  704</span>    {</div>
+<div class="line"><a id="l00705" name="l00705"></a><span class="lineno">  705</span>      ImGui::TextColored(kGanonPurple, <a class="code hl_define" href="../../de/dbf/icons_8h.html#a5c93fd3a5dd77fe6f3d579570cfbc3e2">ICON_MD_AUTO_AWESOME</a> <span class="stringliteral">&quot; Visual Effects&quot;</span>);</div>
+<div class="line"><a id="l00706" name="l00706"></a><span class="lineno">  706</span>      ImGui::Spacing();</div>
 <div class="line"><a id="l00707" name="l00707"></a><span class="lineno">  707</span>      </div>
-<div class="line"><a id="l00708" name="l00708"></a><span class="lineno">  708</span>      ImGui::Text(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a7895fc13bef3a762e7bd1989833b7974">ICON_MD_SPEED</a> <span class="stringliteral">&quot; Speed&quot;</span>);</div>
+<div class="line"><a id="l00708" name="l00708"></a><span class="lineno">  708</span>      ImGui::Text(<a class="code hl_define" href="../../de/dbf/icons_8h.html#afa9a270d45f5263b9e87d33f8a165089">ICON_MD_OPACITY</a> <span class="stringliteral">&quot; Visibility&quot;</span>);</div>
 <div class="line"><a id="l00709" name="l00709"></a><span class="lineno">  709</span>      ImGui::SetNextItemWidth(-1);</div>
-<div class="line"><a id="l00710" name="l00710"></a><span class="lineno">  710</span>      ImGui::SliderFloat(<span class="stringliteral">&quot;##speed&quot;</span>, &amp;<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a16ec2147ccdad676b46e5c12f7f34e3f">triforce_speed_multiplier_</a>, 0.05f, 1.0f, <span class="stringliteral">&quot;%.2fx&quot;</span>);</div>
+<div class="line"><a id="l00710" name="l00710"></a><span class="lineno">  710</span>      ImGui::SliderFloat(<span class="stringliteral">&quot;##visibility&quot;</span>, &amp;<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a0fe4757661ffd524fd0d763d6aa5b4c5">triforce_alpha_multiplier_</a>, 0.0f, 3.0f, <span class="stringliteral">&quot;%.1fx&quot;</span>);</div>
 <div class="line"><a id="l00711" name="l00711"></a><span class="lineno">  711</span>      </div>
-<div class="line"><a id="l00712" name="l00712"></a><span class="lineno">  712</span>      ImGui::Checkbox(<a class="code hl_define" href="../../de/dbf/icons_8h.html#acbbd46e5b520745dd3777bb1a773c540">ICON_MD_MOUSE</a> <span class="stringliteral">&quot; Mouse Interaction&quot;</span>, &amp;<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ac5e3175af6077a7a99dd9f01cd57f12f">triforce_mouse_repel_enabled_</a>);</div>
-<div class="line"><a id="l00713" name="l00713"></a><span class="lineno">  713</span>      ImGui::SameLine();</div>
-<div class="line"><a id="l00714" name="l00714"></a><span class="lineno">  714</span>      ImGui::Checkbox(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a7fc5178f0e3cdc077ce53761cfff6d13">ICON_MD_AUTO_FIX_HIGH</a> <span class="stringliteral">&quot; Particles&quot;</span>, &amp;<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a5531b2c798289326ea97db078bf8f614">particles_enabled_</a>);</div>
+<div class="line"><a id="l00712" name="l00712"></a><span class="lineno">  712</span>      ImGui::Text(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a7895fc13bef3a762e7bd1989833b7974">ICON_MD_SPEED</a> <span class="stringliteral">&quot; Speed&quot;</span>);</div>
+<div class="line"><a id="l00713" name="l00713"></a><span class="lineno">  713</span>      ImGui::SetNextItemWidth(-1);</div>
+<div class="line"><a id="l00714" name="l00714"></a><span class="lineno">  714</span>      ImGui::SliderFloat(<span class="stringliteral">&quot;##speed&quot;</span>, &amp;<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a16ec2147ccdad676b46e5c12f7f34e3f">triforce_speed_multiplier_</a>, 0.05f, 1.0f, <span class="stringliteral">&quot;%.2fx&quot;</span>);</div>
 <div class="line"><a id="l00715" name="l00715"></a><span class="lineno">  715</span>      </div>
-<div class="line"><a id="l00716" name="l00716"></a><span class="lineno">  716</span>      <span class="keywordflow">if</span> (ImGui::SmallButton(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a5921579d0045db598703371c5a9b54a6">ICON_MD_REFRESH</a> <span class="stringliteral">&quot; Reset&quot;</span>)) {</div>
-<div class="line"><a id="l00717" name="l00717"></a><span class="lineno">  717</span>        <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a0fe4757661ffd524fd0d763d6aa5b4c5">triforce_alpha_multiplier_</a> = 1.0f;</div>
-<div class="line"><a id="l00718" name="l00718"></a><span class="lineno">  718</span>        <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a16ec2147ccdad676b46e5c12f7f34e3f">triforce_speed_multiplier_</a> = 0.3f;</div>
-<div class="line"><a id="l00719" name="l00719"></a><span class="lineno">  719</span>        <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a4cd059901b10d4faad1fd2cb478e6c29">triforce_size_multiplier_</a> = 1.0f;</div>
-<div class="line"><a id="l00720" name="l00720"></a><span class="lineno">  720</span>        <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ac5e3175af6077a7a99dd9f01cd57f12f">triforce_mouse_repel_enabled_</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00721" name="l00721"></a><span class="lineno">  721</span>        <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a5531b2c798289326ea97db078bf8f614">particles_enabled_</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00722" name="l00722"></a><span class="lineno">  722</span>        <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#aff7afae100036559501136c614bd7920">particle_spawn_rate_</a> = 2.0f;</div>
-<div class="line"><a id="l00723" name="l00723"></a><span class="lineno">  723</span>      }</div>
-<div class="line"><a id="l00724" name="l00724"></a><span class="lineno">  724</span>    }</div>
-<div class="line"><a id="l00725" name="l00725"></a><span class="lineno">  725</span>    ImGui::EndChild();</div>
-<div class="line"><a id="l00726" name="l00726"></a><span class="lineno">  726</span>    ImGui::PopStyleColor();</div>
-<div class="line"><a id="l00727" name="l00727"></a><span class="lineno">  727</span>    ImGui::Spacing();</div>
-<div class="line"><a id="l00728" name="l00728"></a><span class="lineno">  728</span>  }</div>
-<div class="line"><a id="l00729" name="l00729"></a><span class="lineno">  729</span>  </div>
-<div class="line"><a id="l00730" name="l00730"></a><span class="lineno">  730</span>  ImGui::Spacing();</div>
-<div class="line"><a id="l00731" name="l00731"></a><span class="lineno">  731</span>  </div>
-<div class="line"><a id="l00732" name="l00732"></a><span class="lineno">  732</span>  <span class="keyword">struct </span>Template {</div>
-<div class="line"><a id="l00733" name="l00733"></a><span class="lineno">  733</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* icon;</div>
-<div class="line"><a id="l00734" name="l00734"></a><span class="lineno">  734</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* name;</div>
-<div class="line"><a id="l00735" name="l00735"></a><span class="lineno">  735</span>    ImVec4 color;</div>
-<div class="line"><a id="l00736" name="l00736"></a><span class="lineno">  736</span>  };</div>
-<div class="line"><a id="l00737" name="l00737"></a><span class="lineno">  737</span>  </div>
-<div class="line"><a id="l00738" name="l00738"></a><span class="lineno">  738</span>  Template templates[] = {</div>
-<div class="line"><a id="l00739" name="l00739"></a><span class="lineno">  739</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#ae5d47aac7ad9e228f8e61231de2323c1">ICON_MD_COTTAGE</a>, <span class="stringliteral">&quot;Vanilla ALTTP&quot;</span>, kHyruleGreen},</div>
-<div class="line"><a id="l00740" name="l00740"></a><span class="lineno">  740</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#a5b887896f507dd66970b358760a03184">ICON_MD_MAP</a>, <span class="stringliteral">&quot;ZSCustomOverworld v3&quot;</span>, kMasterSwordBlue},</div>
-<div class="line"><a id="l00741" name="l00741"></a><span class="lineno">  741</span>  };</div>
-<div class="line"><a id="l00742" name="l00742"></a><span class="lineno">  742</span>  </div>
-<div class="line"><a id="l00743" name="l00743"></a><span class="lineno">  743</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 2; ++i) {</div>
-<div class="line"><a id="l00744" name="l00744"></a><span class="lineno">  744</span>    <span class="keywordtype">bool</span> is_selected = (<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a24ca766ec5102b3c2df35590159c81ac">selected_template_</a> == i);</div>
-<div class="line"><a id="l00745" name="l00745"></a><span class="lineno">  745</span>    </div>
-<div class="line"><a id="l00746" name="l00746"></a><span class="lineno">  746</span>    <span class="comment">// Subtle selection highlight (no animation)</span></div>
-<div class="line"><a id="l00747" name="l00747"></a><span class="lineno">  747</span>    <span class="keywordflow">if</span> (is_selected) {</div>
-<div class="line"><a id="l00748" name="l00748"></a><span class="lineno">  748</span>      ImGui::PushStyleColor(ImGuiCol_Header, </div>
-<div class="line"><a id="l00749" name="l00749"></a><span class="lineno">  749</span>          ImVec4(templates[i].color.x * 0.6f, templates[i].color.y * 0.6f, </div>
-<div class="line"><a id="l00750" name="l00750"></a><span class="lineno">  750</span>                 templates[i].color.z * 0.6f, 0.6f));</div>
-<div class="line"><a id="l00751" name="l00751"></a><span class="lineno">  751</span>    }</div>
-<div class="line"><a id="l00752" name="l00752"></a><span class="lineno">  752</span>    </div>
-<div class="line"><a id="l00753" name="l00753"></a><span class="lineno">  753</span>    <span class="keywordflow">if</span> (ImGui::Selectable(absl::StrFormat(<span class="stringliteral">&quot;%s %s&quot;</span>, templates[i].icon, templates[i].name).c_str(), </div>
-<div class="line"><a id="l00754" name="l00754"></a><span class="lineno">  754</span>                         is_selected)) {</div>
-<div class="line"><a id="l00755" name="l00755"></a><span class="lineno">  755</span>      <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a24ca766ec5102b3c2df35590159c81ac">selected_template_</a> = i;</div>
-<div class="line"><a id="l00756" name="l00756"></a><span class="lineno">  756</span>    }</div>
-<div class="line"><a id="l00757" name="l00757"></a><span class="lineno">  757</span>    </div>
-<div class="line"><a id="l00758" name="l00758"></a><span class="lineno">  758</span>    <span class="keywordflow">if</span> (is_selected) {</div>
-<div class="line"><a id="l00759" name="l00759"></a><span class="lineno">  759</span>      ImGui::PopStyleColor();</div>
+<div class="line"><a id="l00716" name="l00716"></a><span class="lineno">  716</span>      ImGui::Checkbox(<a class="code hl_define" href="../../de/dbf/icons_8h.html#acbbd46e5b520745dd3777bb1a773c540">ICON_MD_MOUSE</a> <span class="stringliteral">&quot; Mouse Interaction&quot;</span>, &amp;<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ac5e3175af6077a7a99dd9f01cd57f12f">triforce_mouse_repel_enabled_</a>);</div>
+<div class="line"><a id="l00717" name="l00717"></a><span class="lineno">  717</span>      ImGui::SameLine();</div>
+<div class="line"><a id="l00718" name="l00718"></a><span class="lineno">  718</span>      ImGui::Checkbox(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a7fc5178f0e3cdc077ce53761cfff6d13">ICON_MD_AUTO_FIX_HIGH</a> <span class="stringliteral">&quot; Particles&quot;</span>, &amp;<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a5531b2c798289326ea97db078bf8f614">particles_enabled_</a>);</div>
+<div class="line"><a id="l00719" name="l00719"></a><span class="lineno">  719</span>      </div>
+<div class="line"><a id="l00720" name="l00720"></a><span class="lineno">  720</span>      <span class="keywordflow">if</span> (ImGui::SmallButton(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a5921579d0045db598703371c5a9b54a6">ICON_MD_REFRESH</a> <span class="stringliteral">&quot; Reset&quot;</span>)) {</div>
+<div class="line"><a id="l00721" name="l00721"></a><span class="lineno">  721</span>        <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a0fe4757661ffd524fd0d763d6aa5b4c5">triforce_alpha_multiplier_</a> = 1.0f;</div>
+<div class="line"><a id="l00722" name="l00722"></a><span class="lineno">  722</span>        <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a16ec2147ccdad676b46e5c12f7f34e3f">triforce_speed_multiplier_</a> = 0.3f;</div>
+<div class="line"><a id="l00723" name="l00723"></a><span class="lineno">  723</span>        <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a4cd059901b10d4faad1fd2cb478e6c29">triforce_size_multiplier_</a> = 1.0f;</div>
+<div class="line"><a id="l00724" name="l00724"></a><span class="lineno">  724</span>        <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ac5e3175af6077a7a99dd9f01cd57f12f">triforce_mouse_repel_enabled_</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00725" name="l00725"></a><span class="lineno">  725</span>        <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a5531b2c798289326ea97db078bf8f614">particles_enabled_</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00726" name="l00726"></a><span class="lineno">  726</span>        <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#aff7afae100036559501136c614bd7920">particle_spawn_rate_</a> = 2.0f;</div>
+<div class="line"><a id="l00727" name="l00727"></a><span class="lineno">  727</span>      }</div>
+<div class="line"><a id="l00728" name="l00728"></a><span class="lineno">  728</span>    }</div>
+<div class="line"><a id="l00729" name="l00729"></a><span class="lineno">  729</span>    ImGui::EndChild();</div>
+<div class="line"><a id="l00730" name="l00730"></a><span class="lineno">  730</span>    ImGui::PopStyleColor();</div>
+<div class="line"><a id="l00731" name="l00731"></a><span class="lineno">  731</span>    ImGui::Spacing();</div>
+<div class="line"><a id="l00732" name="l00732"></a><span class="lineno">  732</span>  }</div>
+<div class="line"><a id="l00733" name="l00733"></a><span class="lineno">  733</span>  </div>
+<div class="line"><a id="l00734" name="l00734"></a><span class="lineno">  734</span>  ImGui::Spacing();</div>
+<div class="line"><a id="l00735" name="l00735"></a><span class="lineno">  735</span>  </div>
+<div class="line"><a id="l00736" name="l00736"></a><span class="lineno">  736</span>  <span class="keyword">struct </span>Template {</div>
+<div class="line"><a id="l00737" name="l00737"></a><span class="lineno">  737</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* icon;</div>
+<div class="line"><a id="l00738" name="l00738"></a><span class="lineno">  738</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* name;</div>
+<div class="line"><a id="l00739" name="l00739"></a><span class="lineno">  739</span>    ImVec4 color;</div>
+<div class="line"><a id="l00740" name="l00740"></a><span class="lineno">  740</span>  };</div>
+<div class="line"><a id="l00741" name="l00741"></a><span class="lineno">  741</span>  </div>
+<div class="line"><a id="l00742" name="l00742"></a><span class="lineno">  742</span>  Template templates[] = {</div>
+<div class="line"><a id="l00743" name="l00743"></a><span class="lineno">  743</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#ae5d47aac7ad9e228f8e61231de2323c1">ICON_MD_COTTAGE</a>, <span class="stringliteral">&quot;Vanilla ALTTP&quot;</span>, kHyruleGreen},</div>
+<div class="line"><a id="l00744" name="l00744"></a><span class="lineno">  744</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#a5b887896f507dd66970b358760a03184">ICON_MD_MAP</a>, <span class="stringliteral">&quot;ZSCustomOverworld v3&quot;</span>, kMasterSwordBlue},</div>
+<div class="line"><a id="l00745" name="l00745"></a><span class="lineno">  745</span>  };</div>
+<div class="line"><a id="l00746" name="l00746"></a><span class="lineno">  746</span>  </div>
+<div class="line"><a id="l00747" name="l00747"></a><span class="lineno">  747</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; 2; ++i) {</div>
+<div class="line"><a id="l00748" name="l00748"></a><span class="lineno">  748</span>    <span class="keywordtype">bool</span> is_selected = (<a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a24ca766ec5102b3c2df35590159c81ac">selected_template_</a> == i);</div>
+<div class="line"><a id="l00749" name="l00749"></a><span class="lineno">  749</span>    </div>
+<div class="line"><a id="l00750" name="l00750"></a><span class="lineno">  750</span>    <span class="comment">// Subtle selection highlight (no animation)</span></div>
+<div class="line"><a id="l00751" name="l00751"></a><span class="lineno">  751</span>    <span class="keywordflow">if</span> (is_selected) {</div>
+<div class="line"><a id="l00752" name="l00752"></a><span class="lineno">  752</span>      ImGui::PushStyleColor(ImGuiCol_Header, </div>
+<div class="line"><a id="l00753" name="l00753"></a><span class="lineno">  753</span>          ImVec4(templates[i].color.x * 0.6f, templates[i].color.y * 0.6f, </div>
+<div class="line"><a id="l00754" name="l00754"></a><span class="lineno">  754</span>                 templates[i].color.z * 0.6f, 0.6f));</div>
+<div class="line"><a id="l00755" name="l00755"></a><span class="lineno">  755</span>    }</div>
+<div class="line"><a id="l00756" name="l00756"></a><span class="lineno">  756</span>    </div>
+<div class="line"><a id="l00757" name="l00757"></a><span class="lineno">  757</span>    <span class="keywordflow">if</span> (ImGui::Selectable(absl::StrFormat(<span class="stringliteral">&quot;%s %s&quot;</span>, templates[i].icon, templates[i].name).c_str(), </div>
+<div class="line"><a id="l00758" name="l00758"></a><span class="lineno">  758</span>                         is_selected)) {</div>
+<div class="line"><a id="l00759" name="l00759"></a><span class="lineno">  759</span>      <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a24ca766ec5102b3c2df35590159c81ac">selected_template_</a> = i;</div>
 <div class="line"><a id="l00760" name="l00760"></a><span class="lineno">  760</span>    }</div>
 <div class="line"><a id="l00761" name="l00761"></a><span class="lineno">  761</span>    </div>
-<div class="line"><a id="l00762" name="l00762"></a><span class="lineno">  762</span>    <span class="keywordflow">if</span> (ImGui::IsItemHovered()) {</div>
-<div class="line"><a id="l00763" name="l00763"></a><span class="lineno">  763</span>      ImGui::SetTooltip(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a3dd1e586e241fab724f10ee9c12e02eb">ICON_MD_STAR</a> <span class="stringliteral">&quot; Start with a %s template&quot;</span>, templates[i].name);</div>
+<div class="line"><a id="l00762" name="l00762"></a><span class="lineno">  762</span>    <span class="keywordflow">if</span> (is_selected) {</div>
+<div class="line"><a id="l00763" name="l00763"></a><span class="lineno">  763</span>      ImGui::PopStyleColor();</div>
 <div class="line"><a id="l00764" name="l00764"></a><span class="lineno">  764</span>    }</div>
-<div class="line"><a id="l00765" name="l00765"></a><span class="lineno">  765</span>  }</div>
-<div class="line"><a id="l00766" name="l00766"></a><span class="lineno">  766</span>  </div>
-<div class="line"><a id="l00767" name="l00767"></a><span class="lineno">  767</span>  ImGui::Spacing();</div>
-<div class="line"><a id="l00768" name="l00768"></a><span class="lineno">  768</span>  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(kSpiritOrange.x * 0.6f, kSpiritOrange.y * 0.6f, kSpiritOrange.z * 0.6f, 0.8f));</div>
-<div class="line"><a id="l00769" name="l00769"></a><span class="lineno">  769</span>  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kSpiritOrange);</div>
-<div class="line"><a id="l00770" name="l00770"></a><span class="lineno">  770</span>  ImGui::BeginDisabled(<span class="keyword">true</span>);</div>
-<div class="line"><a id="l00771" name="l00771"></a><span class="lineno">  771</span>  ImGui::Button(absl::StrFormat(<span class="stringliteral">&quot;%s Use Template&quot;</span>, <a class="code hl_define" href="../../de/dbf/icons_8h.html#a017db9e19654e3f887b332894905cc78">ICON_MD_ROCKET_LAUNCH</a>).c_str(), </div>
-<div class="line"><a id="l00772" name="l00772"></a><span class="lineno">  772</span>               ImVec2(-1, 30));  <span class="comment">// Reduced from 35 to 30</span></div>
-<div class="line"><a id="l00773" name="l00773"></a><span class="lineno">  773</span>  ImGui::EndDisabled();</div>
-<div class="line"><a id="l00774" name="l00774"></a><span class="lineno">  774</span>  ImGui::PopStyleColor(2);</div>
-<div class="line"><a id="l00775" name="l00775"></a><span class="lineno">  775</span>}</div>
+<div class="line"><a id="l00765" name="l00765"></a><span class="lineno">  765</span>    </div>
+<div class="line"><a id="l00766" name="l00766"></a><span class="lineno">  766</span>    <span class="keywordflow">if</span> (ImGui::IsItemHovered()) {</div>
+<div class="line"><a id="l00767" name="l00767"></a><span class="lineno">  767</span>      ImGui::SetTooltip(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a3dd1e586e241fab724f10ee9c12e02eb">ICON_MD_STAR</a> <span class="stringliteral">&quot; Start with a %s template&quot;</span>, templates[i].name);</div>
+<div class="line"><a id="l00768" name="l00768"></a><span class="lineno">  768</span>    }</div>
+<div class="line"><a id="l00769" name="l00769"></a><span class="lineno">  769</span>  }</div>
+<div class="line"><a id="l00770" name="l00770"></a><span class="lineno">  770</span>  </div>
+<div class="line"><a id="l00771" name="l00771"></a><span class="lineno">  771</span>  ImGui::Spacing();</div>
+<div class="line"><a id="l00772" name="l00772"></a><span class="lineno">  772</span>  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(kSpiritOrange.x * 0.6f, kSpiritOrange.y * 0.6f, kSpiritOrange.z * 0.6f, 0.8f));</div>
+<div class="line"><a id="l00773" name="l00773"></a><span class="lineno">  773</span>  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kSpiritOrange);</div>
+<div class="line"><a id="l00774" name="l00774"></a><span class="lineno">  774</span>  ImGui::BeginDisabled(<span class="keyword">true</span>);</div>
+<div class="line"><a id="l00775" name="l00775"></a><span class="lineno">  775</span>  ImGui::Button(absl::StrFormat(<span class="stringliteral">&quot;%s Use Template&quot;</span>, <a class="code hl_define" href="../../de/dbf/icons_8h.html#a017db9e19654e3f887b332894905cc78">ICON_MD_ROCKET_LAUNCH</a>).c_str(), </div>
+<div class="line"><a id="l00776" name="l00776"></a><span class="lineno">  776</span>               ImVec2(-1, 30));  <span class="comment">// Reduced from 35 to 30</span></div>
+<div class="line"><a id="l00777" name="l00777"></a><span class="lineno">  777</span>  ImGui::EndDisabled();</div>
+<div class="line"><a id="l00778" name="l00778"></a><span class="lineno">  778</span>  ImGui::PopStyleColor(2);</div>
+<div class="line"><a id="l00779" name="l00779"></a><span class="lineno">  779</span>}</div>
 </div>
-<div class="line"><a id="l00776" name="l00776"></a><span class="lineno">  776</span> </div>
-<div class="foldopen" id="foldopen00777" data-start="{" data-end="}">
-<div class="line"><a id="l00777" name="l00777"></a><span class="lineno"><a class="line" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a42cf5f21801c2edd1d6fb67ca9d4cab7">  777</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a42cf5f21801c2edd1d6fb67ca9d4cab7">WelcomeScreen::DrawTipsSection</a>() {</div>
-<div class="line"><a id="l00778" name="l00778"></a><span class="lineno">  778</span>  <span class="comment">// Static tip (or could rotate based on session start time rather than animation)</span></div>
-<div class="line"><a id="l00779" name="l00779"></a><span class="lineno">  779</span>  <span class="keyword">const</span> <span class="keywordtype">char</span>* tips[] = {</div>
-<div class="line"><a id="l00780" name="l00780"></a><span class="lineno">  780</span>    <span class="stringliteral">&quot;Press Ctrl+Shift+P to open the command palette&quot;</span>,</div>
-<div class="line"><a id="l00781" name="l00781"></a><span class="lineno">  781</span>    <span class="stringliteral">&quot;Use z3ed agent for AI-powered ROM editing (Ctrl+Shift+A)&quot;</span>,</div>
-<div class="line"><a id="l00782" name="l00782"></a><span class="lineno">  782</span>    <span class="stringliteral">&quot;Enable ZSCustomOverworld in Debug menu for expanded features&quot;</span>,</div>
-<div class="line"><a id="l00783" name="l00783"></a><span class="lineno">  783</span>    <span class="stringliteral">&quot;Check the Performance Dashboard for optimization insights&quot;</span>,</div>
-<div class="line"><a id="l00784" name="l00784"></a><span class="lineno">  784</span>    <span class="stringliteral">&quot;Collaborate in real-time with yaze-server&quot;</span></div>
-<div class="line"><a id="l00785" name="l00785"></a><span class="lineno">  785</span>  };</div>
-<div class="line"><a id="l00786" name="l00786"></a><span class="lineno">  786</span>  <span class="keywordtype">int</span> tip_index = 0;  <span class="comment">// Show first tip, or could be random on screen open</span></div>
-<div class="line"><a id="l00787" name="l00787"></a><span class="lineno">  787</span>  </div>
-<div class="line"><a id="l00788" name="l00788"></a><span class="lineno">  788</span>  ImGui::Text(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a338eb88d24a617bcacfd2a8b304dcc4c">ICON_MD_LIGHTBULB</a>);</div>
-<div class="line"><a id="l00789" name="l00789"></a><span class="lineno">  789</span>  ImGui::SameLine();</div>
-<div class="line"><a id="l00790" name="l00790"></a><span class="lineno">  790</span>  ImGui::TextColored(kTriforceGold, <span class="stringliteral">&quot;Tip:&quot;</span>);</div>
-<div class="line"><a id="l00791" name="l00791"></a><span class="lineno">  791</span>  ImGui::SameLine();</div>
-<div class="line"><a id="l00792" name="l00792"></a><span class="lineno">  792</span>  ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), <span class="stringliteral">&quot;%s&quot;</span>, tips[tip_index]);</div>
-<div class="line"><a id="l00793" name="l00793"></a><span class="lineno">  793</span>  </div>
-<div class="line"><a id="l00794" name="l00794"></a><span class="lineno">  794</span>  ImGui::SameLine(ImGui::GetWindowWidth() - 220);</div>
-<div class="line"><a id="l00795" name="l00795"></a><span class="lineno">  795</span>  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));</div>
-<div class="line"><a id="l00796" name="l00796"></a><span class="lineno">  796</span>  <span class="keywordflow">if</span> (ImGui::SmallButton(absl::StrFormat(<span class="stringliteral">&quot;%s Don&#39;t show again&quot;</span>, <a class="code hl_define" href="../../de/dbf/icons_8h.html#ae1d0ddb2d6f16e5d6e961105a9d7fe90">ICON_MD_CLOSE</a>).c_str())) {</div>
-<div class="line"><a id="l00797" name="l00797"></a><span class="lineno">  797</span>    <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a275a392e49bee7e8eeb4b4333a6411a4">manually_closed_</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00798" name="l00798"></a><span class="lineno">  798</span>  }</div>
-<div class="line"><a id="l00799" name="l00799"></a><span class="lineno">  799</span>  ImGui::PopStyleColor();</div>
-<div class="line"><a id="l00800" name="l00800"></a><span class="lineno">  800</span>}</div>
+<div class="line"><a id="l00780" name="l00780"></a><span class="lineno">  780</span> </div>
+<div class="foldopen" id="foldopen00781" data-start="{" data-end="}">
+<div class="line"><a id="l00781" name="l00781"></a><span class="lineno"><a class="line" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a42cf5f21801c2edd1d6fb67ca9d4cab7">  781</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a42cf5f21801c2edd1d6fb67ca9d4cab7">WelcomeScreen::DrawTipsSection</a>() {</div>
+<div class="line"><a id="l00782" name="l00782"></a><span class="lineno">  782</span>  <span class="comment">// Static tip (or could rotate based on session start time rather than animation)</span></div>
+<div class="line"><a id="l00783" name="l00783"></a><span class="lineno">  783</span>  <span class="keyword">const</span> <span class="keywordtype">char</span>* tips[] = {</div>
+<div class="line"><a id="l00784" name="l00784"></a><span class="lineno">  784</span>    <span class="stringliteral">&quot;Press Ctrl+Shift+P to open the command palette&quot;</span>,</div>
+<div class="line"><a id="l00785" name="l00785"></a><span class="lineno">  785</span>    <span class="stringliteral">&quot;Use z3ed agent for AI-powered ROM editing (Ctrl+Shift+A)&quot;</span>,</div>
+<div class="line"><a id="l00786" name="l00786"></a><span class="lineno">  786</span>    <span class="stringliteral">&quot;Enable ZSCustomOverworld in Debug menu for expanded features&quot;</span>,</div>
+<div class="line"><a id="l00787" name="l00787"></a><span class="lineno">  787</span>    <span class="stringliteral">&quot;Check the Performance Dashboard for optimization insights&quot;</span>,</div>
+<div class="line"><a id="l00788" name="l00788"></a><span class="lineno">  788</span>    <span class="stringliteral">&quot;Collaborate in real-time with yaze-server&quot;</span></div>
+<div class="line"><a id="l00789" name="l00789"></a><span class="lineno">  789</span>  };</div>
+<div class="line"><a id="l00790" name="l00790"></a><span class="lineno">  790</span>  <span class="keywordtype">int</span> tip_index = 0;  <span class="comment">// Show first tip, or could be random on screen open</span></div>
+<div class="line"><a id="l00791" name="l00791"></a><span class="lineno">  791</span>  </div>
+<div class="line"><a id="l00792" name="l00792"></a><span class="lineno">  792</span>  ImGui::Text(<a class="code hl_define" href="../../de/dbf/icons_8h.html#a338eb88d24a617bcacfd2a8b304dcc4c">ICON_MD_LIGHTBULB</a>);</div>
+<div class="line"><a id="l00793" name="l00793"></a><span class="lineno">  793</span>  ImGui::SameLine();</div>
+<div class="line"><a id="l00794" name="l00794"></a><span class="lineno">  794</span>  ImGui::TextColored(kTriforceGold, <span class="stringliteral">&quot;Tip:&quot;</span>);</div>
+<div class="line"><a id="l00795" name="l00795"></a><span class="lineno">  795</span>  ImGui::SameLine();</div>
+<div class="line"><a id="l00796" name="l00796"></a><span class="lineno">  796</span>  ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), <span class="stringliteral">&quot;%s&quot;</span>, tips[tip_index]);</div>
+<div class="line"><a id="l00797" name="l00797"></a><span class="lineno">  797</span>  </div>
+<div class="line"><a id="l00798" name="l00798"></a><span class="lineno">  798</span>  ImGui::SameLine(ImGui::GetWindowWidth() - 220);</div>
+<div class="line"><a id="l00799" name="l00799"></a><span class="lineno">  799</span>  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));</div>
+<div class="line"><a id="l00800" name="l00800"></a><span class="lineno">  800</span>  <span class="keywordflow">if</span> (ImGui::SmallButton(absl::StrFormat(<span class="stringliteral">&quot;%s Don&#39;t show again&quot;</span>, <a class="code hl_define" href="../../de/dbf/icons_8h.html#ae1d0ddb2d6f16e5d6e961105a9d7fe90">ICON_MD_CLOSE</a>).c_str())) {</div>
+<div class="line"><a id="l00801" name="l00801"></a><span class="lineno">  801</span>    <a class="code hl_variable" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a275a392e49bee7e8eeb4b4333a6411a4">manually_closed_</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00802" name="l00802"></a><span class="lineno">  802</span>  }</div>
+<div class="line"><a id="l00803" name="l00803"></a><span class="lineno">  803</span>  ImGui::PopStyleColor();</div>
+<div class="line"><a id="l00804" name="l00804"></a><span class="lineno">  804</span>}</div>
 </div>
-<div class="line"><a id="l00801" name="l00801"></a><span class="lineno">  801</span> </div>
-<div class="foldopen" id="foldopen00802" data-start="{" data-end="}">
-<div class="line"><a id="l00802" name="l00802"></a><span class="lineno"><a class="line" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a2e70944b7ce7dedf3e4e8253983fc834">  802</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a2e70944b7ce7dedf3e4e8253983fc834">WelcomeScreen::DrawWhatsNew</a>() {</div>
-<div class="line"><a id="l00803" name="l00803"></a><span class="lineno">  803</span>  ImGui::TextColored(kHeartRed, <a class="code hl_define" href="../../de/dbf/icons_8h.html#a4053c6e88295dfb93a390968a64067cb">ICON_MD_NEW_RELEASES</a> <span class="stringliteral">&quot; What&#39;s New&quot;</span>);</div>
-<div class="line"><a id="l00804" name="l00804"></a><span class="lineno">  804</span>  ImGui::Spacing();</div>
-<div class="line"><a id="l00805" name="l00805"></a><span class="lineno">  805</span>  </div>
-<div class="line"><a id="l00806" name="l00806"></a><span class="lineno">  806</span>  <span class="comment">// Version badge (no animation)</span></div>
-<div class="line"><a id="l00807" name="l00807"></a><span class="lineno">  807</span>  ImGui::TextColored(kMasterSwordBlue, <a class="code hl_define" href="../../de/dbf/icons_8h.html#a798f6ae69e6147b19950a9d67e924942">ICON_MD_VERIFIED</a> <span class="stringliteral">&quot;yaze v%s&quot;</span>, <a class="code hl_define" href="../../d1/d4b/group__version.html#gabc3b93252a656c28dee5ac55e492cc96">YAZE_VERSION_STRING</a>);</div>
+<div class="line"><a id="l00805" name="l00805"></a><span class="lineno">  805</span> </div>
+<div class="foldopen" id="foldopen00806" data-start="{" data-end="}">
+<div class="line"><a id="l00806" name="l00806"></a><span class="lineno"><a class="line" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a2e70944b7ce7dedf3e4e8253983fc834">  806</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a2e70944b7ce7dedf3e4e8253983fc834">WelcomeScreen::DrawWhatsNew</a>() {</div>
+<div class="line"><a id="l00807" name="l00807"></a><span class="lineno">  807</span>  ImGui::TextColored(kHeartRed, <a class="code hl_define" href="../../de/dbf/icons_8h.html#a4053c6e88295dfb93a390968a64067cb">ICON_MD_NEW_RELEASES</a> <span class="stringliteral">&quot; What&#39;s New&quot;</span>);</div>
 <div class="line"><a id="l00808" name="l00808"></a><span class="lineno">  808</span>  ImGui::Spacing();</div>
 <div class="line"><a id="l00809" name="l00809"></a><span class="lineno">  809</span>  </div>
-<div class="line"><a id="l00810" name="l00810"></a><span class="lineno">  810</span>  <span class="comment">// Feature list with icons and colors</span></div>
-<div class="line"><a id="l00811" name="l00811"></a><span class="lineno">  811</span>  <span class="keyword">struct </span>Feature {</div>
-<div class="line"><a id="l00812" name="l00812"></a><span class="lineno">  812</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* icon;</div>
-<div class="line"><a id="l00813" name="l00813"></a><span class="lineno">  813</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* title;</div>
-<div class="line"><a id="l00814" name="l00814"></a><span class="lineno">  814</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* desc;</div>
-<div class="line"><a id="l00815" name="l00815"></a><span class="lineno">  815</span>    ImVec4 color;</div>
-<div class="line"><a id="l00816" name="l00816"></a><span class="lineno">  816</span>  };</div>
-<div class="line"><a id="l00817" name="l00817"></a><span class="lineno">  817</span>  </div>
-<div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span>  Feature features[] = {</div>
-<div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#aa7015d5796f955879949ffbb04380aa1">ICON_MD_PSYCHOLOGY</a>, <span class="stringliteral">&quot;AI Agent Integration&quot;</span>, </div>
-<div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>     <span class="stringliteral">&quot;Natural language ROM editing with z3ed agent&quot;</span>, kGanonPurple},</div>
-<div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#a3cfb92c8bf433028d566841f6a7860ca">ICON_MD_CLOUD_SYNC</a>, <span class="stringliteral">&quot;Collaboration Features&quot;</span>, </div>
-<div class="line"><a id="l00822" name="l00822"></a><span class="lineno">  822</span>     <span class="stringliteral">&quot;Real-time ROM collaboration via yaze-server&quot;</span>, kMasterSwordBlue},</div>
-<div class="line"><a id="l00823" name="l00823"></a><span class="lineno">  823</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#afdcb06fd297adb5ae4e5fcdb9e413fbf">ICON_MD_HISTORY</a>, <span class="stringliteral">&quot;Version Management&quot;</span>, </div>
-<div class="line"><a id="l00824" name="l00824"></a><span class="lineno">  824</span>     <span class="stringliteral">&quot;ROM snapshots, rollback, corruption detection&quot;</span>, kHyruleGreen},</div>
-<div class="line"><a id="l00825" name="l00825"></a><span class="lineno">  825</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#ad6ecee664ddafe14f73868b7a5ec8a01">ICON_MD_PALETTE</a>, <span class="stringliteral">&quot;Enhanced Palette Editor&quot;</span>, </div>
-<div class="line"><a id="l00826" name="l00826"></a><span class="lineno">  826</span>     <span class="stringliteral">&quot;Advanced color tools with ROM palette browser&quot;</span>, kSpiritOrange},</div>
-<div class="line"><a id="l00827" name="l00827"></a><span class="lineno">  827</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#a7895fc13bef3a762e7bd1989833b7974">ICON_MD_SPEED</a>, <span class="stringliteral">&quot;Performance Improvements&quot;</span>, </div>
-<div class="line"><a id="l00828" name="l00828"></a><span class="lineno">  828</span>     <span class="stringliteral">&quot;Faster dungeon loading with parallel processing&quot;</span>, kTriforceGold},</div>
-<div class="line"><a id="l00829" name="l00829"></a><span class="lineno">  829</span>  };</div>
-<div class="line"><a id="l00830" name="l00830"></a><span class="lineno">  830</span>  </div>
-<div class="line"><a id="l00831" name="l00831"></a><span class="lineno">  831</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; feature : features) {</div>
-<div class="line"><a id="l00832" name="l00832"></a><span class="lineno">  832</span>    ImGui::Bullet();</div>
-<div class="line"><a id="l00833" name="l00833"></a><span class="lineno">  833</span>    ImGui::SameLine();</div>
-<div class="line"><a id="l00834" name="l00834"></a><span class="lineno">  834</span>    ImGui::TextColored(feature.color, <span class="stringliteral">&quot;%s &quot;</span>, feature.icon);</div>
-<div class="line"><a id="l00835" name="l00835"></a><span class="lineno">  835</span>    ImGui::SameLine();</div>
-<div class="line"><a id="l00836" name="l00836"></a><span class="lineno">  836</span>    ImGui::TextColored(ImVec4(0.95f, 0.95f, 0.95f, 1.0f), <span class="stringliteral">&quot;%s&quot;</span>, feature.title);</div>
-<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span>    </div>
-<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span>    ImGui::Indent(25);</div>
-<div class="line"><a id="l00839" name="l00839"></a><span class="lineno">  839</span>    ImGui::TextColored(ImVec4(0.65f, 0.65f, 0.65f, 1.0f), <span class="stringliteral">&quot;%s&quot;</span>, feature.desc);</div>
-<div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>    ImGui::Unindent(25);</div>
-<div class="line"><a id="l00841" name="l00841"></a><span class="lineno">  841</span>    ImGui::Spacing();</div>
-<div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span>  }</div>
-<div class="line"><a id="l00843" name="l00843"></a><span class="lineno">  843</span>  </div>
-<div class="line"><a id="l00844" name="l00844"></a><span class="lineno">  844</span>  ImGui::Spacing();</div>
-<div class="line"><a id="l00845" name="l00845"></a><span class="lineno">  845</span>  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(kMasterSwordBlue.x * 0.6f, kMasterSwordBlue.y * 0.6f, kMasterSwordBlue.z * 0.6f, 0.8f));</div>
-<div class="line"><a id="l00846" name="l00846"></a><span class="lineno">  846</span>  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kMasterSwordBlue);</div>
-<div class="line"><a id="l00847" name="l00847"></a><span class="lineno">  847</span>  <span class="keywordflow">if</span> (ImGui::Button(absl::StrFormat(<span class="stringliteral">&quot;%s View Full Changelog&quot;</span>, <a class="code hl_define" href="../../de/dbf/icons_8h.html#ad748435171cb047b30a4259a1bf7271c">ICON_MD_OPEN_IN_NEW</a>).c_str())) {</div>
-<div class="line"><a id="l00848" name="l00848"></a><span class="lineno">  848</span>    <span class="comment">// Open changelog or GitHub releases</span></div>
-<div class="line"><a id="l00849" name="l00849"></a><span class="lineno">  849</span>  }</div>
-<div class="line"><a id="l00850" name="l00850"></a><span class="lineno">  850</span>  ImGui::PopStyleColor(2);</div>
-<div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span>}</div>
+<div class="line"><a id="l00810" name="l00810"></a><span class="lineno">  810</span>  <span class="comment">// Version badge (no animation)</span></div>
+<div class="line"><a id="l00811" name="l00811"></a><span class="lineno">  811</span>  ImGui::TextColored(kMasterSwordBlue, <a class="code hl_define" href="../../de/dbf/icons_8h.html#a798f6ae69e6147b19950a9d67e924942">ICON_MD_VERIFIED</a> <span class="stringliteral">&quot;yaze v%s&quot;</span>, <a class="code hl_define" href="../../d1/d4b/group__version.html#gabc3b93252a656c28dee5ac55e492cc96">YAZE_VERSION_STRING</a>);</div>
+<div class="line"><a id="l00812" name="l00812"></a><span class="lineno">  812</span>  ImGui::Spacing();</div>
+<div class="line"><a id="l00813" name="l00813"></a><span class="lineno">  813</span>  </div>
+<div class="line"><a id="l00814" name="l00814"></a><span class="lineno">  814</span>  <span class="comment">// Feature list with icons and colors</span></div>
+<div class="line"><a id="l00815" name="l00815"></a><span class="lineno">  815</span>  <span class="keyword">struct </span>Feature {</div>
+<div class="line"><a id="l00816" name="l00816"></a><span class="lineno">  816</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* icon;</div>
+<div class="line"><a id="l00817" name="l00817"></a><span class="lineno">  817</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* title;</div>
+<div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* desc;</div>
+<div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span>    ImVec4 color;</div>
+<div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>  };</div>
+<div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span>  </div>
+<div class="line"><a id="l00822" name="l00822"></a><span class="lineno">  822</span>  Feature features[] = {</div>
+<div class="line"><a id="l00823" name="l00823"></a><span class="lineno">  823</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#aa7015d5796f955879949ffbb04380aa1">ICON_MD_PSYCHOLOGY</a>, <span class="stringliteral">&quot;AI Agent Integration&quot;</span>, </div>
+<div class="line"><a id="l00824" name="l00824"></a><span class="lineno">  824</span>     <span class="stringliteral">&quot;Natural language ROM editing with z3ed agent&quot;</span>, kGanonPurple},</div>
+<div class="line"><a id="l00825" name="l00825"></a><span class="lineno">  825</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#a3cfb92c8bf433028d566841f6a7860ca">ICON_MD_CLOUD_SYNC</a>, <span class="stringliteral">&quot;Collaboration Features&quot;</span>, </div>
+<div class="line"><a id="l00826" name="l00826"></a><span class="lineno">  826</span>     <span class="stringliteral">&quot;Real-time ROM collaboration via yaze-server&quot;</span>, kMasterSwordBlue},</div>
+<div class="line"><a id="l00827" name="l00827"></a><span class="lineno">  827</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#afdcb06fd297adb5ae4e5fcdb9e413fbf">ICON_MD_HISTORY</a>, <span class="stringliteral">&quot;Version Management&quot;</span>, </div>
+<div class="line"><a id="l00828" name="l00828"></a><span class="lineno">  828</span>     <span class="stringliteral">&quot;ROM snapshots, rollback, corruption detection&quot;</span>, kHyruleGreen},</div>
+<div class="line"><a id="l00829" name="l00829"></a><span class="lineno">  829</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#ad6ecee664ddafe14f73868b7a5ec8a01">ICON_MD_PALETTE</a>, <span class="stringliteral">&quot;Enhanced Palette Editor&quot;</span>, </div>
+<div class="line"><a id="l00830" name="l00830"></a><span class="lineno">  830</span>     <span class="stringliteral">&quot;Advanced color tools with ROM palette browser&quot;</span>, kSpiritOrange},</div>
+<div class="line"><a id="l00831" name="l00831"></a><span class="lineno">  831</span>    {<a class="code hl_define" href="../../de/dbf/icons_8h.html#a7895fc13bef3a762e7bd1989833b7974">ICON_MD_SPEED</a>, <span class="stringliteral">&quot;Performance Improvements&quot;</span>, </div>
+<div class="line"><a id="l00832" name="l00832"></a><span class="lineno">  832</span>     <span class="stringliteral">&quot;Faster dungeon loading with parallel processing&quot;</span>, kTriforceGold},</div>
+<div class="line"><a id="l00833" name="l00833"></a><span class="lineno">  833</span>  };</div>
+<div class="line"><a id="l00834" name="l00834"></a><span class="lineno">  834</span>  </div>
+<div class="line"><a id="l00835" name="l00835"></a><span class="lineno">  835</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; feature : features) {</div>
+<div class="line"><a id="l00836" name="l00836"></a><span class="lineno">  836</span>    ImGui::Bullet();</div>
+<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span>    ImGui::SameLine();</div>
+<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span>    ImGui::TextColored(feature.color, <span class="stringliteral">&quot;%s &quot;</span>, feature.icon);</div>
+<div class="line"><a id="l00839" name="l00839"></a><span class="lineno">  839</span>    ImGui::SameLine();</div>
+<div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>    ImGui::TextColored(ImVec4(0.95f, 0.95f, 0.95f, 1.0f), <span class="stringliteral">&quot;%s&quot;</span>, feature.title);</div>
+<div class="line"><a id="l00841" name="l00841"></a><span class="lineno">  841</span>    </div>
+<div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span>    ImGui::Indent(25);</div>
+<div class="line"><a id="l00843" name="l00843"></a><span class="lineno">  843</span>    ImGui::TextColored(ImVec4(0.65f, 0.65f, 0.65f, 1.0f), <span class="stringliteral">&quot;%s&quot;</span>, feature.desc);</div>
+<div class="line"><a id="l00844" name="l00844"></a><span class="lineno">  844</span>    ImGui::Unindent(25);</div>
+<div class="line"><a id="l00845" name="l00845"></a><span class="lineno">  845</span>    ImGui::Spacing();</div>
+<div class="line"><a id="l00846" name="l00846"></a><span class="lineno">  846</span>  }</div>
+<div class="line"><a id="l00847" name="l00847"></a><span class="lineno">  847</span>  </div>
+<div class="line"><a id="l00848" name="l00848"></a><span class="lineno">  848</span>  ImGui::Spacing();</div>
+<div class="line"><a id="l00849" name="l00849"></a><span class="lineno">  849</span>  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(kMasterSwordBlue.x * 0.6f, kMasterSwordBlue.y * 0.6f, kMasterSwordBlue.z * 0.6f, 0.8f));</div>
+<div class="line"><a id="l00850" name="l00850"></a><span class="lineno">  850</span>  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kMasterSwordBlue);</div>
+<div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span>  <span class="keywordflow">if</span> (ImGui::Button(absl::StrFormat(<span class="stringliteral">&quot;%s View Full Changelog&quot;</span>, <a class="code hl_define" href="../../de/dbf/icons_8h.html#ad748435171cb047b30a4259a1bf7271c">ICON_MD_OPEN_IN_NEW</a>).c_str())) {</div>
+<div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span>    <span class="comment">// Open changelog or GitHub releases</span></div>
+<div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span>  }</div>
+<div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span>  ImGui::PopStyleColor(2);</div>
+<div class="line"><a id="l00855" name="l00855"></a><span class="lineno">  855</span>}</div>
 </div>
-<div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span> </div>
-<div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span>}  <span class="comment">// namespace editor</span></div>
-<div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00856" name="l00856"></a><span class="lineno">  856</span> </div>
+<div class="line"><a id="l00857" name="l00857"></a><span class="lineno">  857</span>}  <span class="comment">// namespace editor</span></div>
+<div class="line"><a id="l00858" name="l00858"></a><span class="lineno">  858</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="abackground__renderer_8cc_html_ae71449b1cc6e6250b91f539153a7a0d3"><div class="ttname"><a href="../../de/dea/background__renderer_8cc.html#ae71449b1cc6e6250b91f539153a7a0d3">M_PI</a></div><div class="ttdeci">#define M_PI</div><div class="ttdef"><b>Definition</b> <a href="../../de/dea/background__renderer_8cc_source.html#l00011">background_renderer.cc:11</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1RecentFilesManager_html_a5d27da46038aed6b42243f1010ee043d"><div class="ttname"><a href="../../d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html#a5d27da46038aed6b42243f1010ee043d">yaze::core::RecentFilesManager::GetInstance</a></div><div class="ttdeci">static RecentFilesManager &amp; GetInstance()</div><div class="ttdef"><b>Definition</b> <a href="../../dc/d8d/project_8h_source.html#l00244">project.h:244</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1RecentFilesManager_html_af39fda2f363c71393d931e218fe43e9b"><div class="ttname"><a href="../../d8/d4b/classyaze_1_1core_1_1RecentFilesManager.html#af39fda2f363c71393d931e218fe43e9b">yaze::core::RecentFilesManager::GetRecentFiles</a></div><div class="ttdeci">const std::vector&lt; std::string &gt; &amp; GetRecentFiles() const</div><div class="ttdef"><b>Definition</b> <a href="../../dc/d8d/project_8h_source.html#l00272">project.h:272</a></div></div>
@@ -999,9 +1003,9 @@ $(document).ready(function(){initNavTree('d0/d62/welcome__screen_8cc_source.html
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a24ca766ec5102b3c2df35590159c81ac"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a24ca766ec5102b3c2df35590159c81ac">yaze::editor::WelcomeScreen::selected_template_</a></div><div class="ttdeci">int selected_template_</div><div class="ttdef"><b>Definition</b> <a href="../../d2/df1/welcome__screen_8h_source.html#l00100">welcome_screen.h:100</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a275a392e49bee7e8eeb4b4333a6411a4"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a275a392e49bee7e8eeb4b4333a6411a4">yaze::editor::WelcomeScreen::manually_closed_</a></div><div class="ttdeci">bool manually_closed_</div><div class="ttdef"><b>Definition</b> <a href="../../d2/df1/welcome__screen_8h_source.html#l00092">welcome_screen.h:92</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a2bf79cc598a12c4011de73aac4984be7"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a2bf79cc598a12c4011de73aac4984be7">yaze::editor::WelcomeScreen::kNumTriforces</a></div><div class="ttdeci">static constexpr int kNumTriforces</div><div class="ttdef"><b>Definition</b> <a href="../../d2/df1/welcome__screen_8h_source.html#l00109">welcome_screen.h:109</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a2e70944b7ce7dedf3e4e8253983fc834"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a2e70944b7ce7dedf3e4e8253983fc834">yaze::editor::WelcomeScreen::DrawWhatsNew</a></div><div class="ttdeci">void DrawWhatsNew()</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d62/welcome__screen_8cc_source.html#l00802">welcome_screen.cc:802</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a2e70944b7ce7dedf3e4e8253983fc834"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a2e70944b7ce7dedf3e4e8253983fc834">yaze::editor::WelcomeScreen::DrawWhatsNew</a></div><div class="ttdeci">void DrawWhatsNew()</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d62/welcome__screen_8cc_source.html#l00806">welcome_screen.cc:806</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a3135052ad6671219d4f63b32fd943b58"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a3135052ad6671219d4f63b32fd943b58">yaze::editor::WelcomeScreen::recent_projects_</a></div><div class="ttdeci">std::vector&lt; RecentProject &gt; recent_projects_</div><div class="ttdef"><b>Definition</b> <a href="../../d2/df1/welcome__screen_8h_source.html#l00091">welcome_screen.h:91</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a42cf5f21801c2edd1d6fb67ca9d4cab7"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a42cf5f21801c2edd1d6fb67ca9d4cab7">yaze::editor::WelcomeScreen::DrawTipsSection</a></div><div class="ttdeci">void DrawTipsSection()</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d62/welcome__screen_8cc_source.html#l00777">welcome_screen.cc:777</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a42cf5f21801c2edd1d6fb67ca9d4cab7"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a42cf5f21801c2edd1d6fb67ca9d4cab7">yaze::editor::WelcomeScreen::DrawTipsSection</a></div><div class="ttdeci">void DrawTipsSection()</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d62/welcome__screen_8cc_source.html#l00781">welcome_screen.cc:781</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a4cd059901b10d4faad1fd2cb478e6c29"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a4cd059901b10d4faad1fd2cb478e6c29">yaze::editor::WelcomeScreen::triforce_size_multiplier_</a></div><div class="ttdeci">float triforce_size_multiplier_</div><div class="ttdef"><b>Definition</b> <a href="../../d2/df1/welcome__screen_8h_source.html#l00131">welcome_screen.h:131</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a5531b2c798289326ea97db078bf8f614"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a5531b2c798289326ea97db078bf8f614">yaze::editor::WelcomeScreen::particles_enabled_</a></div><div class="ttdeci">bool particles_enabled_</div><div class="ttdef"><b>Definition</b> <a href="../../d2/df1/welcome__screen_8h_source.html#l00133">welcome_screen.h:133</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a61ec4312c395d014be4960b66f3cacaa"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a61ec4312c395d014be4960b66f3cacaa">yaze::editor::WelcomeScreen::triforce_base_positions_</a></div><div class="ttdeci">ImVec2 triforce_base_positions_[kNumTriforces]</div><div class="ttdef"><b>Definition</b> <a href="../../d2/df1/welcome__screen_8h_source.html#l00111">welcome_screen.h:111</a></div></div>
@@ -1014,7 +1018,7 @@ $(document).ready(function(){initNavTree('d0/d62/welcome__screen_8cc_source.html
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a9806601f01ca54b88c6511d66d8b7b97"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a9806601f01ca54b88c6511d66d8b7b97">yaze::editor::WelcomeScreen::card_hover_scale_</a></div><div class="ttdeci">float card_hover_scale_[6]</div><div class="ttdef"><b>Definition</b> <a href="../../d2/df1/welcome__screen_8h_source.html#l00105">welcome_screen.h:105</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_a9dd61c6ddf4ed4e8ea4f8b1e1bf1039a"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#a9dd61c6ddf4ed4e8ea4f8b1e1bf1039a">yaze::editor::WelcomeScreen::DrawQuickActions</a></div><div class="ttdeci">void DrawQuickActions()</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d62/welcome__screen_8cc_source.html#l00488">welcome_screen.cc:488</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_aa5c53ab6f1a35a1c6d564919905ae332"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#aa5c53ab6f1a35a1c6d564919905ae332">yaze::editor::WelcomeScreen::active_particle_count_</a></div><div class="ttdeci">int active_particle_count_</div><div class="ttdef"><b>Definition</b> <a href="../../d2/df1/welcome__screen_8h_source.html#l00125">welcome_screen.h:125</a></div></div>
-<div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_ab1c985512c61b9e1d5b60bfc39d3d470"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ab1c985512c61b9e1d5b60bfc39d3d470">yaze::editor::WelcomeScreen::DrawTemplatesSection</a></div><div class="ttdeci">void DrawTemplatesSection()</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d62/welcome__screen_8cc_source.html#l00682">welcome_screen.cc:682</a></div></div>
+<div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_ab1c985512c61b9e1d5b60bfc39d3d470"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ab1c985512c61b9e1d5b60bfc39d3d470">yaze::editor::WelcomeScreen::DrawTemplatesSection</a></div><div class="ttdeci">void DrawTemplatesSection()</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d62/welcome__screen_8cc_source.html#l00686">welcome_screen.cc:686</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_ab239bf12c2e9f2829be866b20ba384a9"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#ab239bf12c2e9f2829be866b20ba384a9">yaze::editor::WelcomeScreen::triforce_positions_</a></div><div class="ttdeci">ImVec2 triforce_positions_[kNumTriforces]</div><div class="ttdef"><b>Definition</b> <a href="../../d2/df1/welcome__screen_8h_source.html#l00110">welcome_screen.h:110</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_abb3f207b4c48ab4882514096456a33c6"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#abb3f207b4c48ab4882514096456a33c6">yaze::editor::WelcomeScreen::kMaxRecentProjects</a></div><div class="ttdeci">static constexpr int kMaxRecentProjects</div><div class="ttdef"><b>Definition</b> <a href="../../d2/df1/welcome__screen_8h_source.html#l00101">welcome_screen.h:101</a></div></div>
 <div class="ttc" id="aclassyaze_1_1editor_1_1WelcomeScreen_html_abe62074f3d4edcd4142d6a4c5ea14574"><div class="ttname"><a href="../../dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html#abe62074f3d4edcd4142d6a4c5ea14574">yaze::editor::WelcomeScreen::DrawRecentProjects</a></div><div class="ttdeci">void DrawRecentProjects()</div><div class="ttdef"><b>Definition</b> <a href="../../d0/d62/welcome__screen_8cc_source.html#l00537">welcome_screen.cc:537</a></div></div>

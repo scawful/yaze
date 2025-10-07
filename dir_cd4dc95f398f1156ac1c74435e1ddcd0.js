@@ -19,5 +19,7 @@ var dir_cd4dc95f398f1156ac1c74435e1ddcd0 =
     [ "dungeon_toolset.cc", "d7/dfa/dungeon__toolset_8cc.html", null ],
     [ "dungeon_toolset.h", "d0/d9a/dungeon__toolset_8h.html", "d0/d9a/dungeon__toolset_8h" ],
     [ "dungeon_usage_tracker.cc", "dd/d1d/dungeon__usage__tracker_8cc.html", null ],
-    [ "dungeon_usage_tracker.h", "d8/d05/dungeon__usage__tracker_8h.html", "d8/d05/dungeon__usage__tracker_8h" ]
+    [ "dungeon_usage_tracker.h", "d8/d05/dungeon__usage__tracker_8h.html", "d8/d05/dungeon__usage__tracker_8h" ],
+    [ "object_editor_card.cc", "d3/d91/object__editor__card_8cc.html", null ],
+    [ "object_editor_card.h", "d8/d7c/object__editor__card_8h.html", "d8/d7c/object__editor__card_8h" ]
 ];

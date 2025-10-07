@@ -1,0 +1,11 @@
+<map id="yaze::editor::ObjectEditorCard::DrawEmulatorPreview" name="yaze::editor::ObjectEditorCard::DrawEmulatorPreview">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,188,68"/>
+<area shape="rect" id="Node000002" href="$d3/dbf/namespaceyaze_1_1gui.html#ade1b0036f3bd19d5cd1e3b7e9dedbaf3" title=" " alt="" coords="247,5,391,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,33,232,27,232,32,188,38"/>
+<area shape="rect" id="Node000003" href="$d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a18f8a7802f99e4354c1548ba767c2aac" title=" " alt="" coords="236,55,402,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="188,56,220,60,220,66,187,62"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="487,33,628,59"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="402,63,471,54,471,59,403,68"/>
+<area shape="rect" id="Node000005" href="$d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#afa02f4a739664d908f65434f4ed881c5" title=" " alt="" coords="450,83,664,124"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="403,83,435,86,434,92,402,88"/>
+</map>

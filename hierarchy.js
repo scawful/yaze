@@ -384,6 +384,7 @@ var hierarchy =
     [ "yaze::zelda3::RoomObject::ObjectBytes", "d1/d0e/structyaze_1_1zelda3_1_1RoomObject_1_1ObjectBytes.html", null ],
     [ "yaze::zelda3::ObjectCategories::ObjectCategory", "da/d2d/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectCategory.html", null ],
     [ "yaze::zelda3::ObjectDrawer", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html", null ],
+    [ "yaze::editor::ObjectEditorCard", "dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html", null ],
     [ "yaze::zelda3::ObjectCategories::ObjectInfo", "da/d35/structyaze_1_1zelda3_1_1ObjectCategories_1_1ObjectInfo.html", null ],
     [ "yaze::zelda3::ObjectParser", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html", null ],
     [ "yaze::zelda3::ObjectRenderer::ObjectParser", "de/dab/classyaze_1_1zelda3_1_1ObjectRenderer_1_1ObjectParser.html", null ],
