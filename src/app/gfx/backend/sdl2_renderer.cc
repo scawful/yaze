@@ -1,5 +1,6 @@
 #include "app/gfx/backend/sdl2_renderer.h"
 #include "absl/strings/str_format.h"
+#include "app/gfx/bitmap.h"
 
 namespace yaze {
 namespace gfx {
@@ -74,6 +75,14 @@ void SDL2Renderer::DestroyTexture(TextureHandle texture) {
     if (texture) {
         SDL_DestroyTexture(static_cast<SDL_Texture*>(texture));
     }
+}
+
+bool SDL2Renderer::LockTexture(TextureHandle texture, SDL_Rect* rect, void** pixels, int* pitch) {
+    return SDL_LockTexture(static_cast<SDL_Texture*>(texture), rect, pixels, pitch) == 0;
+}
+
+void SDL2Renderer::UnlockTexture(TextureHandle texture) {
+    SDL_UnlockTexture(static_cast<SDL_Texture*>(texture));
 }
 
 /**
