@@ -141,7 +141,7 @@ void DrawCanvasRect(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling,
   ImVec2 size(canvas_p0.x + scrolling.x + scaled_x + scaled_w,
               canvas_p0.y + scrolling.y + scaled_y + scaled_h);
 
-  uint32_t color_u32 = IM_COL32(color.x, color.y, color.z, color.w);
+  uint32_t color_u32 = IM_COL32(color.x * 255, color.y * 255, color.z * 255, color.w * 255);
   draw_list->AddRectFilled(origin, size, color_u32);
 
   // Add a black outline

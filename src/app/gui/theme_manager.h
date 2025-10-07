@@ -133,6 +133,12 @@ struct EnhancedTheme {
   Color editor_grid;       // Grid lines in editors
   Color editor_cursor;     // Cursor/selection in editors
   Color editor_selection;  // Selected area in editors
+
+  Color entrance_color;
+  Color hole_color;
+  Color exit_color;
+  Color item_color;
+  Color sprite_color;
   
   // Style parameters
   float window_rounding = 0.0f;

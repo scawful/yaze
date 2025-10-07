@@ -101,6 +101,14 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     if (!rom_->is_loaded()) return "ROM failed to load";
     return absl::StrFormat("ROM loaded: %s", rom_->title());
   }
+  
+  // Jump-to functionality
+  void set_current_map(int map_id) {
+    if (map_id >= 0 && map_id < zelda3::kNumOverworldMaps) {
+      current_map_ = map_id;
+      current_world_ = map_id / 0x40;  // Calculate which world the map belongs to
+    }
+  }
 
   /**
    * @brief Load the Bitmap objects for each OverworldMap.
