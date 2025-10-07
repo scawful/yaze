@@ -8,6 +8,7 @@ set(
   app/gui/canvas.cc
   app/gui/canvas_utils.cc
   app/gui/widgets/palette_widget.cc
+  app/gui/widgets/palette_editor_widget.cc
   app/gui/input.cc
   app/gui/style.cc
   app/gui/color.cc

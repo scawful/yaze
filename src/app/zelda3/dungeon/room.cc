@@ -11,6 +11,7 @@
 #include "app/gfx/arena.h"
 #include "app/rom.h"
 #include "app/snes.h"
+#include "app/zelda3/dungeon/object_drawer.h"
 #include "app/zelda3/dungeon/room_diagnostic.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
@@ -326,103 +327,13 @@ void Room::RenderRoomGraphics() {
 
 void Room::RenderObjectsToBackground() {
   if (!rom_ || !rom_->is_loaded()) {
-    std::printf("RenderObjectsToBackground: ROM not loaded\n");
     return;
   }
   
-  std::printf("RenderObjectsToBackground: Room %d has %zu objects\n", room_id_, tile_objects_.size());
-  
-  // Get references to THIS room's background buffers
-  auto& bg1 = bg1_buffer_;
-  auto& bg2 = bg2_buffer_;
-  
-  // Render tile objects to their respective layers
-  int rendered_count = 0;
-  for (const auto& obj : tile_objects_) {
-    // Ensure object has tiles loaded
-    auto mutable_obj = const_cast<RoomObject&>(obj);
-    mutable_obj.EnsureTilesLoaded();
-    
-    // Get tiles with error handling
-    auto tiles_result = obj.GetTiles();
-    if (!tiles_result.ok()) {
-      std::printf("  Object at (%d,%d) failed to load tiles: %s\n", 
-                  obj.x_, obj.y_, tiles_result.status().ToString().c_str());
-      continue;
-    }
-    if (tiles_result->empty()) {
-      std::printf("  Object at (%d,%d) has no tiles\n", obj.x_, obj.y_);
-      continue;
-    }
-    
-    const auto& tiles = *tiles_result;
-    std::printf("  Object at (%d,%d) has %zu tiles\n", obj.x_, obj.y_, tiles.size());
-    
-    // Calculate object position in tile coordinates (each position is an 8x8 tile)
-    int obj_x = obj.x_;  // X position in 8x8 tile units
-    int obj_y = obj.y_;  // Y position in 8x8 tile units
-    
-    // Determine which layer this object belongs to
-    bool is_bg2 = (obj.layer_ == RoomObject::LayerType::BG2);
-    auto& target_buffer = is_bg2 ? bg2 : bg1;
-    
-    // Calculate the width of the object in Tile16 units
-    // Most objects are arranged in a grid, typically 1-8 tiles wide
-    // We calculate width based on square root for square objects,
-    // or use a more flexible approach for rectangular objects
-    int tiles_wide = 1;
-    if (tiles.size() > 1) {
-      // Try to determine optimal layout based on tile count
-      // Common patterns: 1x1, 2x2, 4x1, 2x4, 4x4, 8x1, etc.
-      int sq = static_cast<int>(std::sqrt(tiles.size()));
-      if (sq * sq == static_cast<int>(tiles.size())) {
-        tiles_wide = sq;  // Perfect square (4, 9, 16, etc.)
-      } else if (tiles.size() <= 4) {
-        tiles_wide = tiles.size();  // Small objects laid out horizontally
-      } else {
-        // For larger objects, try common widths (4 or 8)
-        tiles_wide = (tiles.size() >= 8) ? 8 : 4;
-      }
-    }
-    
-    // Draw each Tile16 from the object
-    // Each Tile16 is a 16x16 tile made of 4 TileInfo (8x8) tiles
-    for (size_t i = 0; i < tiles.size(); i++) {
-      const auto& tile16 = tiles[i];
-      
-      // Calculate tile16 position based on calculated width (in 16x16 units, so multiply by 2 for 8x8 units)
-      int base_x = obj_x + ((i % tiles_wide) * 2);
-      int base_y = obj_y + ((i / tiles_wide) * 2);
-      
-      // Each Tile16 contains 4 TileInfo objects arranged as:
-      // [0][1]  (top-left, top-right)
-      // [2][3]  (bottom-left, bottom-right)
-      const auto& tile_infos = tile16.tiles_info;
-      
-      // Draw the 4 sub-tiles of this Tile16
-      for (int sub_tile = 0; sub_tile < 4; sub_tile++) {
-        int tile_x = base_x + (sub_tile % 2);
-        int tile_y = base_y + (sub_tile / 2);
-        
-        // Bounds check
-        if (tile_x < 0 || tile_x >= 64 || tile_y < 0 || tile_y >= 64) {
-          continue;
-        }
-        
-        // Convert TileInfo to word format: (vflip<<15) | (hflip<<14) | (over<<13) | (palette<<10) | tile_id
-        uint16_t tile_word = gfx::TileInfoToWord(tile_infos[sub_tile]);
-        
-        // Set the tile in the buffer
-        target_buffer.SetTileAt(tile_x, tile_y, tile_word);
-        rendered_count++;
-      }
-    }
-  }
-  
-  std::printf("RenderObjectsToBackground: Rendered %d tiles total\n", rendered_count);
-  
-  // Note: Layout objects rendering would go here if needed
-  // For now, focusing on regular tile objects which is what ZScream primarily renders
+  // Use ObjectDrawer for pattern-based object rendering
+  // This provides proper wall/object drawing patterns
+  ObjectDrawer drawer(rom_);
+  drawer.DrawObjectList(tile_objects_, bg1_buffer_, bg2_buffer_);
 }
 
 void Room::LoadAnimatedGraphics() {

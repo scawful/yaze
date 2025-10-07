@@ -14,6 +14,7 @@
 #include "app/zelda3/dungeon/room_entrance.h"
 #include "app/gui/editor_layout.h"
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
+#include "app/gui/widgets/palette_editor_widget.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -109,6 +110,7 @@ class DungeonEditorV2 : public Editor {
   DungeonCanvasViewer canvas_viewer_;
   DungeonObjectSelector object_selector_;
   gui::DungeonObjectEmulatorPreview object_emulator_preview_;
+  gui::PaletteEditorWidget palette_editor_;
   
   bool is_loaded_ = false;
 };

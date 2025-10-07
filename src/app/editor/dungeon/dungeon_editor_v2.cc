@@ -50,6 +50,20 @@ absl::Status DungeonEditorV2::Load() {
 
   // NOW initialize emulator preview with loaded ROM
   object_emulator_preview_.Initialize(rom_);
+  
+  // Initialize palette editor with loaded ROM
+  palette_editor_.Initialize(rom_);
+  
+  // Wire palette changes to trigger room re-renders
+  palette_editor_.SetOnPaletteChanged([this](int palette_id) {
+    // Re-render all active rooms when palette changes
+    for (int i = 0; i < active_rooms_.Size; i++) {
+      int room_id = active_rooms_[i];
+      if (room_id >= 0 && room_id < (int)rooms_.size()) {
+        rooms_[room_id].RenderRoomGraphics();
+      }
+    }
+  });
 
   is_loaded_ = true;
   return absl::OkStatus();
@@ -134,8 +148,20 @@ void DungeonEditorV2::DrawLayout() {
     }
     object_card.End();
   }
+  
+  // 3. Palette Editor Card (independent, dockable)
+  {
+    static bool show_palette_editor = true;
+    gui::EditorCard palette_card(
+        MakeCardTitle("Palette Editor").c_str(), 
+        ICON_MD_PALETTE, &show_palette_editor);
+    if (palette_card.Begin()) {
+      palette_editor_.Draw();
+    }
+    palette_card.End();
+  }
 
-  // 3. Active Room Cards (independent, dockable, no inheritance)
+  // 4. Active Room Cards (independent, dockable, no inheritance)
   for (int i = 0; i < active_rooms_.Size; i++) {
     int room_id = active_rooms_[i];
     bool open = true;
