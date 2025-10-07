@@ -49,6 +49,24 @@ using ImGui::Separator;
 using ImGui::TableNextColumn;
 using ImGui::Text;
 
+Emulator::~Emulator() {
+  Cleanup();
+}
+
+void Emulator::Cleanup() {
+  // Stop emulation
+  running_ = false;
+  
+  // Don't try to destroy PPU texture during shutdown
+  // The renderer is destroyed before the emulator, so attempting to
+  // call renderer_->DestroyTexture() will crash
+  // The texture will be cleaned up automatically when SDL quits
+  ppu_texture_ = nullptr;
+  
+  // Reset state
+  snes_initialized_ = false;
+}
+
 void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& rom_data) {
   // This method is now optional - emulator can be initialized lazily in Run()
   renderer_ = renderer;
@@ -104,6 +122,18 @@ void Emulator::Run(Rom* rom) {
   }
 
   RenderNavBar();
+
+  // Auto-pause emulator when window loses focus to save CPU/battery
+  static bool was_running_before_focus_loss = false;
+  bool window_has_focus = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootWindow);
+  
+  if (!window_has_focus && running_) {
+    was_running_before_focus_loss = true;
+    running_ = false;
+  } else if (window_has_focus && !running_ && was_running_before_focus_loss) {
+    // Don't auto-resume - let user manually resume
+    was_running_before_focus_loss = false;
+  }
 
   if (running_) {
     HandleEvents();

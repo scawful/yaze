@@ -32,6 +32,10 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
   [self setupMenus];
+  
+  // Disable automatic UI state persistence to prevent crashes
+  // macOS NSPersistentUIManager can crash if state gets corrupted
+  [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"NSQuitAlwaysKeepsWindows"];
 }
 
 - (void)setupMenus {

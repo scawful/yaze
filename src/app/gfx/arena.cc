@@ -35,7 +35,16 @@ void Arena::QueueTextureCommand(TextureCommandType type, Bitmap* bitmap) {
 void Arena::ProcessTextureQueue(IRenderer* renderer) {
   if (!renderer_ || texture_command_queue_.empty()) return;
 
-  for (const auto& command : texture_command_queue_) {
+  // Performance optimization: Batch process textures with limits
+  // Process up to 8 texture operations per frame to avoid frame drops
+  constexpr size_t kMaxTexturesPerFrame = 8;
+  size_t processed = 0;
+  
+  auto it = texture_command_queue_.begin();
+  while (it != texture_command_queue_.end() && processed < kMaxTexturesPerFrame) {
+    const auto& command = *it;
+    bool should_remove = true;
+    
     switch (command.type) {
       case TextureCommandType::CREATE: {
         // Create a new texture and update it with bitmap data
@@ -48,6 +57,9 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
           if (texture) {
             command.bitmap->set_texture(texture);
             renderer_->UpdateTexture(texture, *command.bitmap);
+            processed++;
+          } else {
+            should_remove = false;  // Retry next frame
           }
         }
         break;
@@ -58,6 +70,7 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
             command.bitmap->surface() && command.bitmap->surface()->format &&
             command.bitmap->is_active()) {
           renderer_->UpdateTexture(command.bitmap->texture(), *command.bitmap);
+          processed++;
         }
         break;
       }
@@ -65,12 +78,18 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
         if (command.bitmap && command.bitmap->texture()) {
           renderer_->DestroyTexture(command.bitmap->texture());
           command.bitmap->set_texture(nullptr);
+          processed++;
         }
         break;
       }
     }
+    
+    if (should_remove) {
+      it = texture_command_queue_.erase(it);
+    } else {
+      ++it;
+    }
   }
-  texture_command_queue_.clear();
 }
 
 SDL_Surface* Arena::AllocateSurface(int width, int height, int depth, int format) {

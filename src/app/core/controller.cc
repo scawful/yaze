@@ -3,6 +3,7 @@
 #include <SDL.h>
 
 #include "absl/status/status.h"
+#include "app/core/timing.h"
 #include "app/core/window.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/ui/background_renderer.h"
@@ -87,7 +88,7 @@ absl::Status Controller::OnLoad() {
 }
 
 void Controller::DoRender() const {
-  // Process all pending texture commands.
+  // Process all pending texture commands (batched to max 8 per frame).
   gfx::Arena::Get().ProcessTextureQueue(renderer_.get());
 
   ImGui::Render();
@@ -95,6 +96,15 @@ void Controller::DoRender() const {
   ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(),
                                         static_cast<SDL_Renderer*>(renderer_->GetBackendRenderer()));
   renderer_->Present();
+  
+  // Use TimingManager for accurate frame timing in sync with SDL
+  float delta_time = TimingManager::Get().Update();
+  
+  // Gentle frame rate cap to prevent excessive CPU usage
+  // Only delay if we're rendering faster than 144 FPS (< 7ms per frame)
+  if (delta_time < 0.007f) {
+    SDL_Delay(1);  // Tiny delay to yield CPU without affecting ImGui timing
+  }
 }
 
 void Controller::OnExit() { 
