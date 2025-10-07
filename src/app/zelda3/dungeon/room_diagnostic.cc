@@ -55,10 +55,10 @@ void DiagnoseRoomRendering(Room& room, int room_id) {
   }
   std::printf("  Note: current_gfx16_ is internal, assuming populated after CopyRoomGraphicsToBuffer()\n");
   
-  // Step 4: Check background buffers in arena
-  std::printf("\n=== Step 4: Background Buffers (Arena) ===\n");
-  auto& bg1 = gfx::Arena::Get().bg1();
-  auto& bg2 = gfx::Arena::Get().bg2();
+  // Step 4: Check THIS ROOM's background buffers (not arena!)
+  std::printf("\n=== Step 4: Room Background Buffers ===\n");
+  auto& bg1 = room.bg1_buffer();
+  auto& bg2 = room.bg2_buffer();
   auto bg1_buffer = bg1.buffer();
   auto bg2_buffer = bg2.buffer();
   

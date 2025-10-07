@@ -35,52 +35,89 @@ void BackgroundBuffer::ClearBuffer() { std::ranges::fill(buffer_, 0); }
 
 void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
                                 const uint8_t* tiledata, int indexoffset) {
-  int tx = (tile.id_ / 16 * 512) + ((tile.id_ & 0xF) * 4);
+  // tiledata is a 128-pixel-wide indexed bitmap (16 tiles/row * 8 pixels/tile)
+  // Calculate tile position in the tilesheet
+  int tile_x = (tile.id_ % 16) * 8;  // 16 tiles per row, 8 pixels per tile
+  int tile_y = (tile.id_ / 16) * 8;  // Each row is 16 tiles
   
-  // Clamp palette to 0-5 (90 colors / 16 = 5.625, so max palette is 5)
-  // Palettes 6-7 would require colors 96-127, which don't exist in dungeon palettes
-  uint8_t clamped_palette = tile.palette_ & 0x07;  // Get palette 0-7
-  if (clamped_palette > 5) {
-    clamped_palette = clamped_palette % 6;  // Wrap palette 6->0, 7->1
+  // Dungeon graphics are 3BPP: 8 colors per palette (0-7, 8-15, 16-23, etc.)
+  // NOT 4BPP which would be 16 colors per palette!
+  // Clamp palette to 0-10 (90 colors / 8 = 11.25, so max palette is 10)
+  uint8_t clamped_palette = tile.palette_ & 0x0F;
+  if (clamped_palette > 10) {
+    clamped_palette = clamped_palette % 11;
   }
   
-  uint8_t palnibble = (uint8_t)(clamped_palette << 4);
-  uint8_t r = tile.horizontal_mirror_ ? 1 : 0;
+  // For 3BPP: palette offset = palette * 8 (not * 16!)
+  uint8_t palette_offset = (uint8_t)(clamped_palette * 8);
 
-  for (int yl = 0; yl < 512; yl += 64) {
-    int my = indexoffset + (tile.vertical_mirror_ ? 448 - yl : yl);
-
-    for (int xl = 0; xl < 4; xl++) {
-      int mx = 2 * (tile.horizontal_mirror_ ? 3 - xl : xl);
-
-      uint8_t pixel = tiledata[tx + yl + xl];
-
-      int index = mx + my;
-      canvas[index + r ^ 1] = (uint8_t)((pixel & 0x0F) | palnibble);
-      canvas[index + r] = (uint8_t)((pixel >> 4) | palnibble);
+  // Copy 8x8 pixels from tiledata to canvas
+  for (int py = 0; py < 8; py++) {
+    for (int px = 0; px < 8; px++) {
+      // Apply mirroring
+      int src_x = tile.horizontal_mirror_ ? (7 - px) : px;
+      int src_y = tile.vertical_mirror_ ? (7 - py) : py;
+      
+      // Read pixel from tiledata (128-pixel-wide bitmap)
+      int src_index = (tile_y + src_y) * 128 + (tile_x + src_x);
+      uint8_t pixel_index = tiledata[src_index];
+      
+      // Apply palette offset and write to canvas
+      // For 3BPP: final color = base_pixel (0-7) + palette_offset (0, 8, 16, 24, ...)
+      uint8_t final_color = pixel_index + palette_offset;
+      int dest_index = indexoffset + (py * width_) + px;
+      canvas[dest_index] = final_color;
     }
   }
 }
 
 void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
-  // Initialize bitmap
-  bitmap_.Create(width_, height_, 8, std::vector<uint8_t>(width_ * height_, 0));
   int tiles_w = width_ / 8;
   int tiles_h = height_ / 8;
   if ((int)buffer_.size() < tiles_w * tiles_h) {
     buffer_.resize(tiles_w * tiles_h);
   }
+  
+  // CRITICAL: Always create a fresh bitmap for each DrawBackground call
+  // This ensures we're rendering the current tilemap state, not stale data
+  printf("[BG:DrawBackground] Creating fresh bitmap for rendering\n");
+  bitmap_.Create(width_, height_, 8, std::vector<uint8_t>(width_ * height_, 0));
+
+  // DEBUG: Check if gfx16_data has actual graphics
+  if (gfx16_data.size() < 100) {
+    printf("[BG:DrawBackground] WARNING: gfx16_data is too small (%zu bytes)\n", gfx16_data.size());
+  } else {
+    // Sample first 32 bytes
+    printf("[BG:DrawBackground] gfx16_data size=%zu, first 32 bytes: ", gfx16_data.size());
+    for (size_t i = 0; i < 32 && i < gfx16_data.size(); i++) {
+      printf("%02X ", gfx16_data[i]);
+    }
+    printf("\n");
+  }
 
   // For each tile on the tile buffer
+  int drawn_count = 0;
   for (int yy = 0; yy < tiles_h; yy++) {
     for (int xx = 0; xx < tiles_w; xx++) {
       uint16_t word = buffer_[xx + yy * tiles_w];
       // Prevent draw if tile == 0xFFFF since it's 0 indexed
       if (word == 0xFFFF) continue;
       auto tile = gfx::WordToTileInfo(word);
-      DrawTile(tile, bitmap_.mutable_data().data(), gfx16_data.data(),
-               (yy * 512) + (xx * 8));
+      
+      // Calculate pixel offset for tile position (xx, yy) in the 512x512 bitmap
+      // Each tile is 8x8, so pixel Y = yy * 8, pixel X = xx * 8
+      // Linear offset = (pixel_y * width) + pixel_x = (yy * 8 * 512) + (xx * 8)
+      int tile_offset = (yy * 8 * width_) + (xx * 8);
+      DrawTile(tile, bitmap_.mutable_data().data(), gfx16_data.data(), tile_offset);
+      drawn_count++;
     }
+  }
+  // CRITICAL: Sync bitmap data back to SDL surface!
+  // DrawTile() writes to bitmap_.mutable_data(), but the SDL surface needs updating
+  if (bitmap_.surface() && bitmap_.mutable_data().size() > 0) {
+    SDL_LockSurface(bitmap_.surface());
+    memcpy(bitmap_.surface()->pixels, bitmap_.mutable_data().data(), bitmap_.mutable_data().size());
+    SDL_UnlockSurface(bitmap_.surface());
   }
 }
 

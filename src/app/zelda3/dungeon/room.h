@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "app/rom.h"
+#include "app/gfx/background_buffer.h"
 #include "app/zelda3/dungeon/room_layout.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
@@ -348,11 +349,21 @@ class Room {
   auto rom() { return rom_; }
   auto mutable_rom() { return rom_; }
   const std::array<uint8_t, 0x4000>& get_gfx_buffer() const { return current_gfx16_; }
+  
+  // Per-room background buffers (not shared via arena!)
+  auto& bg1_buffer() { return bg1_buffer_; }
+  auto& bg2_buffer() { return bg2_buffer_; }
+  const auto& bg1_buffer() const { return bg1_buffer_; }
+  const auto& bg2_buffer() const { return bg2_buffer_; }
 
  private:
   Rom* rom_;
 
   std::array<uint8_t, 0x4000> current_gfx16_;
+  
+  // Each room has its OWN background buffers and bitmaps
+  gfx::BackgroundBuffer bg1_buffer_{512, 512};
+  gfx::BackgroundBuffer bg2_buffer_{512, 512};
 
   bool is_light_;
   bool is_loaded_ = false;

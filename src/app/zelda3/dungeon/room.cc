@@ -260,9 +260,12 @@ void Room::CopyRoomGraphicsToBuffer() {
       int buffer_index = data + block_offset;
       if (buffer_index >= 0 && buffer_index < static_cast<int>(gfx_buffer_data->size())) {
         uint8_t map_byte = (*gfx_buffer_data)[buffer_index];
-        if (i < 4) {
-          map_byte += kGfxBufferRoomSpriteLastLineOffset;
-        }
+        // NOTE: DO NOT apply sprite offset here! 
+        // current_gfx16_ holds pixel data (palette indices 0-7), not tile IDs.
+        // The 0x88 offset is for tile IDs in tilemaps, not raw pixel data.
+        // if (i < 4) {
+        //   map_byte += kGfxBufferRoomSpriteLastLineOffset;
+        // }
 
         // Validate current_gfx16_ access
         int gfx_index = data + sheet_pos;
@@ -280,75 +283,45 @@ void Room::CopyRoomGraphicsToBuffer() {
 }
 
 void Room::RenderRoomGraphics() {
-  std::printf("\n=== RenderRoomGraphics Room %d ===\n", room_id_);
-  
   CopyRoomGraphicsToBuffer();
-  std::printf("1. Graphics buffer copied\n");
 
-  gfx::Arena::Get().bg1().DrawFloor(rom()->vector(), tile_address,
-                                    tile_address_floor, floor1_graphics_);
-  gfx::Arena::Get().bg2().DrawFloor(rom()->vector(), tile_address,
-                                    tile_address_floor, floor2_graphics_);
-  std::printf("2. Floor pattern drawn\n");
+  bg1_buffer_.DrawFloor(rom()->vector(), tile_address,
+                        tile_address_floor, floor1_graphics_);
+  bg2_buffer_.DrawFloor(rom()->vector(), tile_address,
+                        tile_address_floor, floor2_graphics_);
 
   // Render layout and object tiles to background buffers
   RenderObjectsToBackground();
-  std::printf("3. Objects rendered to buffer\n");
 
-  gfx::Arena::Get().bg1().DrawBackground(std::span<uint8_t>(current_gfx16_));
-  gfx::Arena::Get().bg2().DrawBackground(std::span<uint8_t>(current_gfx16_));
-  std::printf("4. Background drawn from buffer\n");
+  bg1_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
+  bg2_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
 
-  auto& bg1_bmp = gfx::Arena::Get().bg1().bitmap();
-  auto& bg2_bmp = gfx::Arena::Get().bg2().bitmap();
-  std::printf("5. BG1 bitmap: active=%d, size=%dx%d, data_size=%zu\n",
-             bg1_bmp.is_active(), bg1_bmp.width(), bg1_bmp.height(), bg1_bmp.vector().size());
-
-  // Get the palette for this room - just use the 90-color palette as-is
-  // The SNES will index into this palette correctly without needing expansion
+  auto& bg1_bmp = bg1_buffer_.bitmap();
+  auto& bg2_bmp = bg2_buffer_.bitmap();
+  
+  // Get and apply palette FIRST (before marking modified)
   auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
   int num_palettes = dungeon_pal_group.size();
   int palette_id = palette;
   
-  std::printf("5a. Dungeon palette group has %d palettes total\n", num_palettes);
-  
-  // Validate palette ID and fall back to palette 0 if invalid
   if (palette_id < 0 || palette_id >= num_palettes) {
-    std::printf("5a. WARNING: palette_id %d is out of bounds [0, %d), using palette 0\n", 
+    std::printf("5. WARNING: palette_id %d is out of bounds [0, %d), using palette 0\n", 
                 palette_id, num_palettes);
     palette_id = 0;
   }
   
-  // Load the 90-color dungeon palette directly
-  // The palette contains colors for BG layers - sprite colors are handled separately
-  auto bg1_palette = dungeon_pal_group[palette_id];  // Use operator[] to get a proper reference
-  
-  std::printf("5a. Palette loaded: room palette_id=%d (requested=%d), size=%zu colors\n", 
-              palette_id, palette, bg1_palette.size());
+  auto bg1_palette = dungeon_pal_group[palette_id];
 
-  // CRITICAL: Only apply palette if it's valid
   if (bg1_palette.size() > 0) {
-    bg1_bmp.SetPaletteWithTransparent(bg1_palette, 0);
-    bg2_bmp.SetPaletteWithTransparent(bg1_palette, 0);
-    std::printf("5b. Palette applied to bitmaps\n");
-  } else {
-    std::printf("5b. WARNING: Palette is empty, skipping SetPalette\n");
+    // Use SetPalette() to apply the FULL 90-color dungeon palette
+    // SetPaletteWithTransparent() only extracts 8 colors, which is wrong for dungeons!
+    bg1_bmp.SetPalette(bg1_palette);
+    bg2_bmp.SetPalette(bg1_palette);
   }
-
-  // ALWAYS recreate textures when palette changes (UpdateBitmap doesn't update palette!)
-  std::printf("6. Recreating bitmap textures with new palette\n");
-  core::Renderer::Get().CreateAndRenderBitmap(
-      0x200, 0x200, 8, gfx::Arena::Get().bg1().bitmap().vector(),
-      gfx::Arena::Get().bg1().bitmap(), bg1_palette);
-  core::Renderer::Get().CreateAndRenderBitmap(
-      0x200, 0x200, 8, gfx::Arena::Get().bg2().bitmap().vector(),
-      gfx::Arena::Get().bg2().bitmap(), bg1_palette);
   
-  std::printf("7. BG1 has texture: %d\n", bg1_bmp.texture() != nullptr);
-  std::printf("=== RenderRoomGraphics Complete ===\n\n");
-  
-  // Run comprehensive diagnostic
-  DiagnoseRoomRendering(*this, room_id_);
+  // CRITICAL: Recreate textures with the palette applied!
+  core::Renderer::Get().RenderBitmap(&bg1_buffer_.bitmap());
+  core::Renderer::Get().RenderBitmap(&bg2_buffer_.bitmap());
 }
 
 void Room::RenderObjectsToBackground() {
@@ -359,9 +332,9 @@ void Room::RenderObjectsToBackground() {
   
   std::printf("RenderObjectsToBackground: Room %d has %zu objects\n", room_id_, tile_objects_.size());
   
-  // Get references to the background buffers
-  auto& bg1 = gfx::Arena::Get().bg1();
-  auto& bg2 = gfx::Arena::Get().bg2();
+  // Get references to THIS room's background buffers
+  auto& bg1 = bg1_buffer_;
+  auto& bg2 = bg2_buffer_;
   
   // Render tile objects to their respective layers
   int rendered_count = 0;
