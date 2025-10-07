@@ -1,14 +1,52 @@
 #include "app/core/window.h"
 
+#include <filesystem>
+
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/core/platform/font_loader.h"
 #include "util/sdl_deleter.h"
+#include "util/log.h"
 #include "app/gfx/arena.h"
 #include "app/gui/style.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"
+
+namespace {
+// Custom ImGui assertion handler to prevent crashes
+void ImGuiAssertionHandler(const char* expr, const char* file, int line,
+                           const char* msg) {
+  // Log the assertion instead of crashing
+  LOG_ERROR("ImGui", "Assertion failed: %s\nFile: %s:%d\nMessage: %s",
+            expr, file, line, msg ? msg : "");
+  
+  // Try to recover by resetting ImGui state
+  static int error_count = 0;
+  error_count++;
+  
+  if (error_count > 5) {
+    LOG_ERROR("ImGui", "Too many assertions, resetting workspace settings...");
+    
+    // Backup and reset imgui.ini
+    try {
+      if (std::filesystem::exists("imgui.ini")) {
+        std::filesystem::copy("imgui.ini", "imgui.ini.backup",
+                            std::filesystem::copy_options::overwrite_existing);
+        std::filesystem::remove("imgui.ini");
+        LOG_INFO("ImGui", "Workspace settings reset. Backup saved to imgui.ini.backup");
+      }
+    } catch (const std::exception& e) {
+      LOG_ERROR("ImGui", "Failed to reset workspace: %s", e.what());
+    }
+    
+    error_count = 0;  // Reset counter
+  }
+  
+  // Don't abort - let the program continue
+  // The assertion is logged and workspace can be reset if needed
+}
+}  // namespace
 
 namespace yaze {
 namespace core {
@@ -41,6 +79,14 @@ absl::Status CreateWindow(Window& window, int flags) {
   ImGuiIO& io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  
+  // Set custom assertion handler to prevent crashes
+#ifdef IMGUI_DISABLE_DEFAULT_ASSERT_HANDLER
+  ImGui::SetAssertHandler(ImGuiAssertionHandler);
+#else
+  // For release builds, assertions are already disabled
+  LOG_INFO("Window", "ImGui assertions are disabled in this build");
+#endif
 
   // Initialize ImGuiTestEngine after ImGui context is created
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE

@@ -634,11 +634,15 @@ void WelcomeScreen::DrawProjectCard(const RecentProject& project, int index) {
   ImGui::Text(ICON_MD_VIDEOGAME_ASSET);
   ImGui::PopStyleColor();
   
-  // Project name (compact)
+  // Project name (compact, shorten if too long)
   ImGui::SetCursorScreenPos(ImVec2(content_pos.x + 32, content_pos.y + 8));
   ImGui::PushTextWrapPos(cursor_pos.x + card_size.x - 8);
   ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]); // Default font
-  ImGui::TextColored(kTriforceGold, "%s", project.name.c_str());
+  std::string short_name = project.name;
+  if (short_name.length() > 22) {
+    short_name = short_name.substr(0, 19) + "...";
+  }
+  ImGui::TextColored(kTriforceGold, "%s", short_name.c_str());
   ImGui::PopFont();
   ImGui::PopTextWrapPos();
   
