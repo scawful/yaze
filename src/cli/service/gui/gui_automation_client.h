@@ -18,7 +18,7 @@
 
 #ifdef YAZE_WITH_GRPC
 #include <grpcpp/grpcpp.h>
-#include "app/core/proto/imgui_test_harness.grpc.pb.h"
+#include "protos/imgui_test_harness.grpc.pb.h"
 #endif
 
 namespace yaze {

@@ -66,32 +66,18 @@ option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF
 option(YAZE_USE_MODULAR_BUILD "Use modularized library build system for faster builds" ON)
 
 # ============================================================================
-# AI Agent Build Flags (Consolidated)
+# Feature Flags - All Always Enabled for Simplified Development
 # ============================================================================
-# Z3ED_AI: Master flag for z3ed AI agent features (Ollama + Gemini support)
-# Enables: JSON parsing, YAML config, httplib for API calls, prompt builder
-option(Z3ED_AI "Enable z3ed AI agent features (Gemini/Ollama integration)" OFF)
+# No conditional compilation - everything is always available
+# This simplifies development and eliminates ifdef complexity
+set(Z3ED_AI ON)
+set(YAZE_WITH_JSON ON)
+set(YAZE_WITH_GRPC ON)
 
-# YAZE_WITH_JSON: JSON support (bundled header-only library, minimal overhead)
-# Enabled by default to avoid Windows build issues with agent history codec
-option(YAZE_WITH_JSON "Enable JSON support for AI integrations" ON)
-
-# YAZE_WITH_GRPC: gRPC for GUI automation (auto-enables JSON)
-option(YAZE_WITH_GRPC "Enable gRPC-based ImGuiTestHarness for automated GUI testing (experimental)" OFF)
+message(STATUS "✓ All features enabled: JSON, gRPC, AI Agent")
 
 # YAZE_SUPPRESS_WARNINGS: Suppress compiler warnings for cleaner build output
 option(YAZE_SUPPRESS_WARNINGS "Suppress compiler warnings (use -v preset suffix for verbose)" ON)
-
-# Dependency resolution
-if(Z3ED_AI)
-    message(STATUS "Z3ED_AI enabled: Activating AI agent dependencies (JSON, YAML, httplib)")
-    set(YAZE_WITH_JSON ON CACHE BOOL "Enable JSON support" FORCE)
-endif()
-
-if(YAZE_WITH_GRPC AND NOT YAZE_WITH_JSON)
-    message(STATUS "Enabling JSON support because gRPC is enabled")
-    set(YAZE_WITH_JSON ON CACHE BOOL "Enable JSON support" FORCE)
-endif()
 
 # Configure minimal builds for CI/CD
 if(YAZE_MINIMAL_BUILD)

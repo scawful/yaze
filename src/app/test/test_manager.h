@@ -384,12 +384,15 @@ class TestManager {
 #endif
 #endif  // defined(YAZE_WITH_GRPC)
 
+#if defined(YAZE_WITH_GRPC)
   std::string GenerateHarnessTestIdLocked(absl::string_view prefix)
-    ABSL_EXCLUSIVE_LOCKS_REQUIRED(harness_history_mutex_);
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(harness_history_mutex_);
   void TrimHarnessHistoryLocked()
-    ABSL_EXCLUSIVE_LOCKS_REQUIRED(harness_history_mutex_);
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(harness_history_mutex_);
+#endif
 
-    absl::Mutex mutex_;
+  absl::Mutex mutex_;
+
 };
 
 // Utility functions for test result formatting
