@@ -57,6 +57,13 @@ class Cpu {
   // New disassembly viewer
   debug::DisassemblyViewer& disassembly_viewer();
   const debug::DisassemblyViewer& disassembly_viewer() const;
+  
+  // Breakpoint callback (set by Emulator)
+  std::function<bool(uint32_t pc)> on_breakpoint_hit_;
+  
+  // Instruction recording callback (for DisassemblyViewer)
+  std::function<void(uint32_t address, uint8_t opcode, const std::vector<uint8_t>& operands,
+                     const std::string& mnemonic, const std::string& operand_str)> on_instruction_executed_;
 
   // Public register access for debugging and UI
   uint16_t A = 0;               // Accumulator
@@ -768,6 +775,10 @@ class Cpu {
 
   auto mutable_log_instructions() -> bool* { return &log_instructions_; }
   bool stopped() const { return stopped_; }
+  
+  // Instruction logging control
+  void SetInstructionLogging(bool enabled) { log_instructions_ = enabled; }
+  bool IsInstructionLoggingEnabled() const { return log_instructions_; }
 
  private:
   void compare(uint16_t register_value, uint16_t memory_value) {

@@ -109,10 +109,30 @@ class DisassemblyViewer {
    * @brief Check if the disassembly viewer is available
    */
   bool IsAvailable() const { return !instructions_.empty(); }
+  
+  /**
+   * @brief Enable/disable recording (for performance)
+   */
+  void SetRecording(bool enabled) { recording_enabled_ = enabled; }
+  bool IsRecording() const { return recording_enabled_; }
+  
+  /**
+   * @brief Set maximum number of instructions to keep
+   */
+  void SetMaxInstructions(size_t max) { max_instructions_ = max; }
+  
+  /**
+   * @brief Clear old instructions to save memory
+   */
+  void TrimToSize(size_t target_size);
 
  private:
   // Sparse storage: only store executed instructions
   std::map<uint32_t, DisassemblyEntry> instructions_;
+  
+  // Performance limits
+  bool recording_enabled_ = true;
+  size_t max_instructions_ = 10000;  // Limit to prevent memory bloat
   
   // UI state
   char search_filter_[256] = "";

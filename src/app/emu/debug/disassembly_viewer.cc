@@ -31,11 +31,22 @@ void DisassemblyViewer::RecordInstruction(uint32_t address, uint8_t opcode,
                                          const std::vector<uint8_t>& operands,
                                          const std::string& mnemonic,
                                          const std::string& operand_str) {
+  // Skip if recording disabled (for performance)
+  if (!recording_enabled_) {
+    return;
+  }
+  
   auto it = instructions_.find(address);
   if (it != instructions_.end()) {
     // Instruction already recorded, just increment execution count
     it->second.execution_count++;
   } else {
+    // Check if we're at the limit
+    if (instructions_.size() >= max_instructions_) {
+      // Trim to 80% of max to avoid constant trimming
+      TrimToSize(max_instructions_ * 0.8);
+    }
+    
     // New instruction, add to map
     DisassemblyEntry entry;
     entry.address = address;
@@ -49,6 +60,29 @@ void DisassemblyViewer::RecordInstruction(uint32_t address, uint8_t opcode,
     entry.is_current_pc = false;
     
     instructions_[address] = entry;
+  }
+}
+
+void DisassemblyViewer::TrimToSize(size_t target_size) {
+  if (instructions_.size() <= target_size) {
+    return;
+  }
+  
+  // Keep most-executed instructions
+  // Remove least-executed ones
+  std::vector<std::pair<uint32_t, uint64_t>> addr_counts;
+  for (const auto& [addr, entry] : instructions_) {
+    addr_counts.push_back({addr, entry.execution_count});
+  }
+  
+  // Sort by execution count (ascending)
+  std::sort(addr_counts.begin(), addr_counts.end(),
+            [](const auto& a, const auto& b) { return a.second < b.second; });
+  
+  // Remove least-executed instructions
+  size_t to_remove = instructions_.size() - target_size;
+  for (size_t i = 0; i < to_remove && i < addr_counts.size(); i++) {
+    instructions_.erase(addr_counts[i].first);
   }
 }
 
