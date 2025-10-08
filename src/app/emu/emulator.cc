@@ -83,6 +83,19 @@ void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& 
   running_ = false;
   snes_initialized_ = false;
   
+  // Set up CPU breakpoint callback
+  snes_.cpu().on_breakpoint_hit_ = [this](uint32_t pc) -> bool {
+    return breakpoint_manager_.ShouldBreakOnExecute(pc, BreakpointManager::CpuType::CPU_65816);
+  };
+  
+  // Set up instruction recording callback for DisassemblyViewer
+  snes_.cpu().on_instruction_executed_ = [this](uint32_t address, uint8_t opcode,
+                                                const std::vector<uint8_t>& operands,
+                                                const std::string& mnemonic,
+                                                const std::string& operand_str) {
+    disassembly_viewer_.RecordInstruction(address, opcode, operands, mnemonic, operand_str);
+  };
+  
   initialized_ = true;
 }
 
@@ -113,6 +126,9 @@ void Emulator::Run(Rom* rom) {
       rom_data_ = rom->vector();
     }
     snes_.Init(rom_data_);
+    
+    // Enable instruction logging for disassembly viewer
+    snes_.cpu().SetInstructionLogging(true);
 
     // Note: PPU pixel format set to 1 (XBGR) in Init() which matches ARGB8888 texture
 
@@ -768,6 +784,56 @@ void Emulator::RenderModernCpuDebugger() {
   try {
     auto& theme_manager = gui::ThemeManager::Get();
     const auto& theme = theme_manager.GetCurrentTheme();
+    
+    // Debugger controls toolbar
+    if (ImGui::Button(ICON_MD_PLAY_ARROW)) { running_ = true; }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_PAUSE)) { running_ = false; }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_SKIP_NEXT " Step")) {
+      if (!running_) snes_.cpu().RunOpcode();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_REFRESH)) { snes_.Reset(true); }
+    
+    ImGui::Separator();
+    
+    // Breakpoint controls
+    static char bp_addr[16] = "00FFD9";
+    ImGui::Text(ICON_MD_BUG_REPORT " Breakpoints:");
+    ImGui::PushItemWidth(100);
+    ImGui::InputText("##BPAddr", bp_addr, IM_ARRAYSIZE(bp_addr),
+                    ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
+    ImGui::PopItemWidth();
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_ADD " Add")) {
+      uint32_t addr = std::strtoul(bp_addr, nullptr, 16);
+      breakpoint_manager_.AddBreakpoint(addr, BreakpointManager::Type::EXECUTE,
+                                       BreakpointManager::CpuType::CPU_65816,
+                                       "", absl::StrFormat("BP at $%06X", addr));
+    }
+    
+    // List breakpoints
+    ImGui::BeginChild("##BPList", ImVec2(0, 100), true);
+    for (const auto& bp : breakpoint_manager_.GetAllBreakpoints()) {
+      if (bp.cpu == BreakpointManager::CpuType::CPU_65816) {
+        bool enabled = bp.enabled;
+        if (ImGui::Checkbox(absl::StrFormat("##en%d", bp.id).c_str(), &enabled)) {
+          breakpoint_manager_.SetEnabled(bp.id, enabled);
+        }
+        ImGui::SameLine();
+        ImGui::Text("$%06X", bp.address);
+        ImGui::SameLine();
+        ImGui::TextDisabled("(hits: %d)", bp.hit_count);
+        ImGui::SameLine();
+        if (ImGui::SmallButton(absl::StrFormat(ICON_MD_DELETE "##%d", bp.id).c_str())) {
+          breakpoint_manager_.RemoveBreakpoint(bp.id);
+        }
+      }
+    }
+    ImGui::EndChild();
+    
+    ImGui::Separator();
 
     ImGui::TextColored(ConvertColorToImVec4(theme.accent), "CPU Status");
     ImGui::PushStyleColor(ImGuiCol_ChildBg,

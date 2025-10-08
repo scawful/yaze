@@ -8,6 +8,8 @@ set(
   app/emu/cpu/internal/addressing.cc
   app/emu/cpu/internal/instructions.cc
   app/emu/debug/disassembly_viewer.cc
+  app/emu/debug/breakpoint_manager.cc
+  app/emu/debug/watchpoint_manager.cc
   app/emu/cpu/cpu.cc
   app/emu/video/ppu.cc
   app/emu/memory/dma.cc

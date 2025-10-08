@@ -5,6 +5,8 @@
 #include <vector>
 
 #include "app/emu/snes.h"
+#include "app/emu/debug/breakpoint_manager.h"
+#include "app/emu/debug/disassembly_viewer.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -53,6 +55,11 @@ class Emulator {
   }
   auto wanted_samples() const -> int { return wanted_samples_; }
   void set_renderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
+  
+  // Debugger access
+  BreakpointManager& breakpoint_manager() { return breakpoint_manager_; }
+  bool is_debugging() const { return debugging_; }
+  void set_debugging(bool debugging) { debugging_ = debugging; }
   
   // AI Agent Integration API
   bool IsEmulatorReady() const { return snes_.running() && !rom_data_.empty(); }
@@ -136,8 +143,13 @@ class Emulator {
   Snes snes_;
   bool initialized_ = false;
   bool snes_initialized_ = false;
+  bool debugging_ = false;
   gfx::IRenderer* renderer_ = nullptr;
   void* ppu_texture_ = nullptr;
+  
+  // Debugger infrastructure
+  BreakpointManager breakpoint_manager_;
+  debug::DisassemblyViewer disassembly_viewer_;
 
   std::vector<uint8_t> rom_data_;
 

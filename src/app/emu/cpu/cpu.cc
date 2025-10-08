@@ -52,6 +52,15 @@ void Cpu::Reset(bool hard) {
 }
 
 void Cpu::RunOpcode() {
+  // Check for execute breakpoint BEFORE running instruction
+  if (on_breakpoint_hit_) {
+    uint32_t current_pc = (PB << 16) | PC;
+    if (on_breakpoint_hit_(current_pc)) {
+      // Breakpoint hit - pause execution
+      return;  // Don't run this opcode yet
+    }
+  }
+  
   if (reset_wanted_) {
     reset_wanted_ = false;
     // reset: brk/interrupt without writes
@@ -1901,34 +1910,40 @@ void Cpu::ExecuteInstruction(uint8_t opcode) {
 
 void Cpu::LogInstructions(uint16_t PC, uint8_t opcode, uint16_t operand,
 bool immediate, bool accumulator_mode) {
-  if (core::FeatureFlags::get().kLogInstructions) {
-    // Build full 24-bit address
-    uint32_t full_address = (PB << 16) | PC;
-    
-    // Extract operand bytes based on instruction size
-    std::vector<uint8_t> operand_bytes;
-    std::string operand_str;
-    
-    if (operand) {
-      if (immediate) {
-        operand_str += "#";
-      }
-      
-      if (accumulator_mode) {
-        // 8-bit operand
-        operand_bytes.push_back(operand & 0xFF);
-        operand_str += absl::StrFormat("$%02X", operand & 0xFF);
-      } else {
-        // 16-bit operand (little-endian)
-        operand_bytes.push_back(operand & 0xFF);
-        operand_bytes.push_back((operand >> 8) & 0xFF);
-        operand_str += absl::StrFormat("$%04X", operand);
-      }
+  // Build full 24-bit address
+  uint32_t full_address = (PB << 16) | PC;
+  
+  // Extract operand bytes based on instruction size
+  std::vector<uint8_t> operand_bytes;
+  std::string operand_str;
+  
+  if (operand) {
+    if (immediate) {
+      operand_str += "#";
     }
     
-    // Get mnemonic
-    const std::string& mnemonic = opcode_to_mnemonic.at(opcode);
-    
+    if (accumulator_mode) {
+      // 8-bit operand
+      operand_bytes.push_back(operand & 0xFF);
+      operand_str += absl::StrFormat("$%02X", operand & 0xFF);
+    } else {
+      // 16-bit operand (little-endian)
+      operand_bytes.push_back(operand & 0xFF);
+      operand_bytes.push_back((operand >> 8) & 0xFF);
+      operand_str += absl::StrFormat("$%04X", operand);
+    }
+  }
+  
+  // Get mnemonic
+  const std::string& mnemonic = opcode_to_mnemonic.at(opcode);
+  
+  // NEW: Call recording callback if set (for DisassemblyViewer)
+  if (on_instruction_executed_) {
+    on_instruction_executed_(full_address, opcode, operand_bytes, mnemonic, operand_str);
+  }
+  
+  // Legacy: Record to old disassembly viewer if feature flag enabled
+  if (core::FeatureFlags::get().kLogInstructions) {
     // Record to new disassembly viewer
     disassembly_viewer().RecordInstruction(full_address, opcode, operand_bytes,
                                           mnemonic, operand_str);
