@@ -109,6 +109,7 @@ ImVec4 GetTestStatusColor(TestStatus status) {
   return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
 }
 
+#if defined(YAZE_WITH_GRPC)
 const char* HarnessStatusToString(HarnessTestStatus status) {
   switch (status) {
     case HarnessTestStatus::kPassed:
@@ -145,6 +146,7 @@ HarnessTestStatus HarnessStatusFromString(absl::string_view status) {
   }
   return HarnessTestStatus::kUnspecified;
 }
+#endif  // defined(YAZE_WITH_GRPC)
 
 // TestManager implementation
 TestManager& TestManager::Get() {
@@ -855,6 +857,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
     }
     
     // Harness Test Results tab (for gRPC GUI automation tests)
+#if defined(YAZE_WITH_GRPC)
     if (ImGui::BeginTabItem("GUI Automation Tests")) {
       if (ImGui::BeginChild("HarnessTests", ImVec2(0, 0), true)) {
         // Display harness test summaries
@@ -1009,6 +1012,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
       ImGui::EndChild();
       ImGui::EndTabItem();
     }
+#endif  // defined(YAZE_WITH_GRPC)
     
     ImGui::EndTabBar();
   }
