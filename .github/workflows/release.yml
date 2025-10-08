@@ -1,98 +1,101 @@
+# .github/workflows/release.yml
+
 name: Release
 
 on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
-      - 'v[0-9]+.[0-9]+.[0-9]+-*'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*' # e.g., v1.2.3-beta, v1.2.3-rc1
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag (must start with v and follow semantic versioning)'
+        description: 'Release tag (e.g., v0.3.0)'
         required: true
-        default: 'v0.3.0'
         type: string
 
 concurrency:
-  group: release-${{ github.event_name }}-${{ github.ref_name || github.event.inputs.tag || github.run_id }}
+  group: release-${{ github.ref_name || github.event.inputs.tag }}
   cancel-in-progress: true
 
 permissions:
   contents: write
-  actions: read
 
 env:
   BUILD_TYPE: Release
 
 jobs:
-  validate-and-prepare:
-    name: Validate & Prepare
+  # ======================================================================================
+  #  VALIDATE & PREPARE RELEASE
+  # ======================================================================================
+  prepare-release:
+    name: "✅ Validate & Prepare"
     runs-on: ubuntu-latest
     outputs:
       tag_name: ${{ steps.validate.outputs.tag_name }}
       release_notes: ${{ steps.notes.outputs.content }}
+      is_prerelease: ${{ steps.validate.outputs.is_prerelease }}
 
     steps:
-      - name: Determine & validate tag
-        id: validate
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            if [[ "${{ github.ref_type }}" != "tag" ]]; then
-              echo "Release must be triggered by a tag push (vX.Y.Z)."
-              exit 1
-            fi
-            TAG="${{ github.ref_name }}"
-          else
-            TAG="${{ github.event.inputs.tag }}"
-            [[ -n "${TAG}" ]] || { echo "No tag provided."; exit 1; }
-          fi
-
-          echo "Validating tag: ${TAG}"
-          if [[ ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$ ]]; then
-            echo "Tag '${TAG}' must be semantic: v1.2.3 or v1.2.3-rc1"
-            exit 1
-          fi
-
-          echo "tag_name=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "VALIDATED_TAG=${TAG}" >> "$GITHUB_ENV"
-
-      - name: Checkout
+      - name: "Checkout Code"
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          submodules: recursive
+          fetch-depth: 0 # Required for changelog extraction
 
-      - name: Set up Python
+      - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
-      - name: Generate release notes
-        id: gen_notes
+      - name: "Determine & Validate Tag"
+        id: validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            TAG="${{ github.ref_name }}"
+          else
+            TAG="${{ github.event.inputs.tag }}"
+          fi
+
+          echo "Validating tag: ${TAG}"
+          if [[ ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-.*)?$ ]]; then
+            echo "::error::Tag '${TAG}' must follow semantic versioning (e.g., v1.2.3 or v1.2.3-beta)."
+            exit 1
+          fi
+
+          # Determine if it's a pre-release
+          if [[ "${TAG}" =~ - ]]; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "tag_name=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "VALIDATED_TAG=${TAG}" >> "$GITHUB_ENV"
+          echo "✅ Tag is valid and processed."
+
+      - name: "Generate Release Notes"
         shell: bash
         run: |
           set -euo pipefail
           VERSION="${VALIDATED_TAG#v}"
+          
           if [[ -f scripts/extract_changelog.py ]]; then
-            if python3 scripts/extract_changelog.py "${VERSION}" > release_notes.md; then
-              echo "Changelog extracted for ${VERSION}"
-            else
-              echo "# yaze Release Notes" > release_notes.md
-              echo "" >> release_notes.md
-              echo "See docs/C1-changelog.md for full history." >> release_notes.md
-            fi
+            echo "Attempting to extract changelog for version ${VERSION}..."
+            python3 scripts/extract_changelog.py "${VERSION}" > release_notes.md
           else
-            echo "# yaze Release Notes" > release_notes.md
+            echo "::warning::'scripts/extract_changelog.py' not found. Creating default release notes."
+            echo "# Yaze ${{ env.VALIDATED_TAG }} Release Notes" > release_notes.md
             echo "" >> release_notes.md
-            echo "See docs/C1-changelog.md for full history." >> release_notes.md
+            echo "For a detailed list of changes, please see the project's commit history or changelog file." >> release_notes.md
           fi
-          echo "---- RELEASE NOTES START ----"
+          
+          echo "Generated release notes:"
           cat release_notes.md
-          echo "---- RELEASE NOTES END ----"
 
-      - name: Store release notes output
+      - name: "Store Release Notes"
         id: notes
         shell: bash
         run: |
@@ -102,9 +105,12 @@ jobs:
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
-  build-release:
-    name: Build (${{ matrix.name }})
-    needs: validate-and-prepare
+  # ======================================================================================
+  #  BUILD & PACKAGE
+  # ======================================================================================
+  build-and-package:
+    name: "📦 Build (${{ matrix.name }})"
+    needs: prepare-release
     strategy:
       fail-fast: false
       matrix:
@@ -115,16 +121,22 @@ jobs:
             cmake_generator: "Visual Studio 17 2022"
             cmake_generator_platform: x64
             artifact_name: "yaze-windows-x64"
+          - name: "Windows arm64"
+            os: windows-2022
+            vcpkg_triplet: arm64-windows
+            cmake_generator: "Visual Studio 17 2022"
+            cmake_generator_platform: ARM64
+            artifact_name: "yaze-windows-arm64"
           - name: "macOS arm64"
             os: macos-14
             vcpkg_triplet: arm64-osx
             mac_arch: arm64
-            artifact_name: "yaze-macos-arm64"
+            artifact_name: "yaze-macos-arm64-slice"
           - name: "macOS x86_64"
             os: macos-14
             vcpkg_triplet: x64-osx
             mac_arch: x86_64
-            artifact_name: "yaze-macos-x86_64"
+            artifact_name: "yaze-macos-x86_64-slice"
           - name: "Linux x64"
             os: ubuntu-22.04
             artifact_name: "yaze-linux-x64"
@@ -132,357 +144,175 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout
+      - name: "Checkout Code"
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      # ---------- Speed: ccache on Unix ----------
-      - name: Install ccache (Linux)
+      - name: "Install Dependencies (Linux)"
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y ccache
+          sudo apt-get install -y build-essential ninja-build pkg-config libglew-dev libxext-dev libwavpack-dev libabsl-dev libboost-all-dev libpng-dev python3-dev libpython3-dev libasound2-dev libpulse-dev libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev
 
-      - name: Install ccache (macOS)
+      - name: "Install Dependencies (macOS)"
         if: runner.os == 'macOS'
-        run: brew install ccache
+        run: brew install ninja cmake
 
-      - name: Cache ccache
-        if: runner.os != 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ccache-${{ runner.os }}-${{ hashFiles('**/CMakeLists.txt', '**/*.cmake') }}
-          restore-keys: |
-            ccache-${{ runner.os }}-
-
-      # ---------- Dependencies ----------
-      - name: Install Linux dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential ninja-build pkg-config \
-            libglew-dev libxext-dev libwavpack-dev \
-            libabsl-dev libboost-all-dev libpng-dev \
-            python3-dev libpython3-dev \
-            libasound2-dev libpulse-dev \
-            libx11-dev libxrandr-dev libxcursor-dev \
-            libxinerama-dev libxi-dev
-
-      - name: Install macOS build tools
-        if: runner.os == 'macOS'
-        run: |
-          brew update
-          brew install pkg-config ninja cmake
-
-      # ---------- vcpkg (Windows & macOS) ----------
-      - name: Prepare vcpkg download cache (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $dl = Join-Path $env:GITHUB_WORKSPACE 'vcpkg_downloads'
-          New-Item -ItemType Directory -Force -Path $dl | Out-Null
-
-      - name: Set up vcpkg (Windows)
-        id: vcpkg_win
-        if: runner.os == 'Windows'
+      - name: "Set up vcpkg"
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgGitCommitId: '4334d8b4c8916018600212ab4dd4bbdc343065d1'
           runVcpkgInstall: true
-          vcpkgJsonGlob: '**/vcpkg.json'
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
         env:
-          VCPKG_FORCE_SYSTEM_BINARIES: 1
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-          VCPKG_DISABLE_METRICS: 1
           VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
-          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-          VCPKG_USE_SYSTEM_BINARIES: 1
-          VCPKG_DOWNLOADS: ${{ github.workspace }}/vcpkg_downloads
-          VCPKG_DEFAULT_HOST_TRIPLET: x64-windows
-          VCPKG_FEATURE_FLAGS: versions
 
-      - name: Mark vcpkg availability (Windows)
-        if: runner.os == 'Windows' && steps.vcpkg_win.outcome == 'success'
-        shell: pwsh
-        run: echo "VCPKG_AVAILABLE=true" >> $env:GITHUB_ENV
-
-      - name: Mark minimal build (Windows fallback)
-        if: runner.os == 'Windows' && steps.vcpkg_win.outcome != 'success'
-        shell: pwsh
+      - name: "Configure CMake"
+        shell: bash
         run: |
-          echo "VCPKG_AVAILABLE=false" >> $env:GITHUB_ENV
-          echo "YAZE_MINIMAL_BUILD=ON" >> $env:GITHUB_ENV
-
-      - name: Prepare vcpkg download cache (macOS)
-        if: runner.os == 'macOS'
-        run: mkdir -p "${{ github.workspace }}/vcpkg_downloads"
-
-      - name: Set up vcpkg (macOS)
-        if: runner.os == 'macOS'
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitCommitId: '4334d8b4c8916018600212ab4dd4bbdc343065d1'
-          runVcpkgInstall: true
-          vcpkgJsonGlob: '**/vcpkg.json'
-          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-        env:
-          VCPKG_FORCE_SYSTEM_BINARIES: 1
-          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-          VCPKG_DISABLE_METRICS: 1
-          VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
-          VCPKG_ROOT: ${{ github.workspace }}/vcpkg
-          VCPKG_USE_SYSTEM_BINARIES: 1
-          VCPKG_DOWNLOADS: ${{ github.workspace }}/vcpkg_downloads
-          VCPKG_FEATURE_FLAGS: versions
-
-      # ---------- Configure ----------
-      - name: Configure CMake (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          rm -rf build && mkdir -p build
-          cmake -S . -B build \
-            -GNinja \
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DCMAKE_POLICY_VERSION_MINIMUM=3.16 \
-            -DYAZE_USE_MODULAR_BUILD=ON \
-            -DYAZE_BUILD_TESTS=ON \
-            -DYAZE_BUILD_EMU=OFF \
-            -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_ENABLE_UI_TESTS=ON \
-            -DYAZE_ENABLE_ROM_TESTS=OFF \
-            -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
-            -DYAZE_INSTALL_LIB=OFF \
-            -DYAZE_MINIMAL_BUILD=OFF \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-
-      - name: Configure CMake (macOS per-arch)
-        if: runner.os == 'macOS'
-        run: |
-          rm -rf build && mkdir -p build
-          cmake -S . -B build \
-            -GNinja \
-            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DCMAKE_POLICY_VERSION_MINIMUM=3.16 \
-            -DYAZE_USE_MODULAR_BUILD=ON \
-            -DYAZE_BUILD_TESTS=ON \
-            -DYAZE_BUILD_EMU=OFF \
-            -DYAZE_BUILD_Z3ED=ON \
-            -DYAZE_ENABLE_UI_TESTS=ON \
-            -DYAZE_ENABLE_ROM_TESTS=OFF \
-            -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
-            -DYAZE_INSTALL_LIB=OFF \
-            -DYAZE_MINIMAL_BUILD=OFF \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
-            -DCMAKE_OSX_ARCHITECTURES=${{ matrix.mac_arch }} \
-            -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
-
-      - name: Configure CMake (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          if (Test-Path build) { Remove-Item -Recurse -Force build }
-          New-Item -ItemType Directory -Path build | Out-Null
-
-          $toolchain = Join-Path $env:VCPKG_ROOT 'scripts\buildsystems\vcpkg.cmake'
-          $useVcpkg = (Test-Path $toolchain) -and ($env:VCPKG_AVAILABLE -ne 'false')
-
-          $args = @(
-            '-S','.',
-            '-B','build',
-            '-G','${{ matrix.cmake_generator }}',
-            '-A','${{ matrix.cmake_generator_platform }}',
-            '-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}',
-            '-DCMAKE_POLICY_VERSION_MINIMUM=3.16',
-            '-DYAZE_USE_MODULAR_BUILD=ON',
-            '-DYAZE_BUILD_TESTS=ON',
-            '-DYAZE_BUILD_EMU=OFF',
-            '-DYAZE_BUILD_Z3ED=ON',
-            '-DYAZE_ENABLE_UI_TESTS=ON',
-            '-DYAZE_ENABLE_ROM_TESTS=ON',
-            '-DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF',
-            '-DYAZE_INSTALL_LIB=OFF'
+          set -x
+          CMAKE_ARGS=(
+            "-S ."
+            "-B build"
+            "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}"
+            "-DYAZE_BUILD_TESTS=OFF"
+            "-DYAZE_BUILD_EMU=OFF"
+            "-DYAZE_BUILD_Z3ED=ON"
           )
 
-          if ($useVcpkg) {
-            $args += "-DCMAKE_TOOLCHAIN_FILE=$toolchain"
-          }
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            CMAKE_ARGS+=(
+              "-G" "${{ matrix.cmake_generator }}"
+              "-A" "${{ matrix.cmake_generator_platform }}"
+              "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            )
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            CMAKE_ARGS+=(
+              "-G" "Ninja"
+              "-DCMAKE_OSX_ARCHITECTURES=${{ matrix.mac_arch }}"
+              "-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0"
+              "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+            )
+          else # Linux
+            CMAKE_ARGS+=("-G" "Ninja")
+          fi
 
-          cmake @args
+          cmake "${CMAKE_ARGS[@]}"
 
-      # ---------- Build ----------
-      - name: Build
-        shell: bash
+      - name: "Build Project"
         run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
 
-      # ---------- Smoke test ----------
-      - name: Test executable
+      - name: "Package Artifacts"
         shell: bash
         run: |
           set -euo pipefail
+          ARTIFACT_NAME="${{ matrix.artifact_name }}"
+          
+          # Create staging directory
+          mkdir -p stage
+          
           if [[ "${{ runner.os }}" == "Windows" ]]; then
-            EXE="build/bin/${{ env.BUILD_TYPE }}/yaze.exe"
+            cp -r build/bin/${{ env.BUILD_TYPE }}/* stage/
+            cp -r assets/ stage/assets/
+            cp LICENSE README.md stage/
+            (cd stage && powershell -Command "Compress-Archive -Path * -DestinationPath ../${ARTIFACT_NAME}.zip")
+            echo "Created ${ARTIFACT_NAME}.zip"
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            EXE="build/bin/yaze.app/Contents/MacOS/yaze"
-          else
-            EXE="build/bin/yaze"
+            # For macOS, we stage the .app bundle as a "slice" for the universal merge job
+            cp -R build/bin/yaze.app stage/
+            echo "Staged yaze.app slice for ${ARTIFACT_NAME}"
+          else # Linux
+            cp build/bin/yaze stage/
+            cp -r assets/ stage/assets/
+            cp LICENSE README.md stage/
+            tar -czf "${ARTIFACT_NAME}.tar.gz" -C stage .
+            echo "Created ${ARTIFACT_NAME}.tar.gz"
           fi
-          [[ -f "$EXE" ]] || { echo "Executable not found: $EXE"; exit 1; }
-          out="$("$EXE" --help || true)"
-          if echo "$out" | grep -Ei 'Google Test|gtest' >/dev/null; then
-            echo "Executable is test main, expected app main."
-            exit 1
-          fi
-          ls -lh "$EXE"
 
-      # ---------- Package / Stage ----------
-      - name: Package / Stage
-        shell: bash
-        run: |
-          set -euo pipefail
-          ART="${{ matrix.artifact_name }}"
-          case "${{ runner.os }}" in
-            Windows)
-              cmake --build build --config ${{ env.BUILD_TYPE }} --target package || true
-              pkg="$(ls build/yaze-*.zip 2>/dev/null | head -n1 || true)"
-              if [[ -n "${pkg}" ]]; then
-                cp "${pkg}" "${ART}.zip"
-              else
-                mkdir -p package
-                cp -r "build/bin/${{ env.BUILD_TYPE }}"/* package/
-                [[ -d assets ]] && cp -r assets package/
-                [[ -f LICENSE ]] && cp LICENSE package/
-                [[ -f README.md ]] && cp README.md package/
-                (cd package && powershell.exe -NoLogo -NoProfile -Command "Compress-Archive -Path * -DestinationPath ../${ART}.zip -Force")
-              fi
-              ;;
-            macOS)
-              # stage per-arch outputs for universal merge
-              mkdir -p slice
-              cp -R build/bin/yaze.app slice/
-              [[ -d assets ]] && cp -R assets slice/ || true
-              [[ -f LICENSE ]] && cp LICENSE slice/ || true
-              [[ -f README.md ]] && cp README.md slice/ || true
-              ;;
-            Linux)
-              mkdir -p package
-              cp build/bin/yaze package/
-              [[ -d assets ]] && cp -r assets package/
-              [[ -d docs ]] && cp -r docs package/
-              [[ -f LICENSE ]] && cp LICENSE package/
-              [[ -f README.md ]] && cp README.md package/
-              tar -czf "${ART}.tar.gz" -C package .
-              ;;
-          esac
-          echo "Staged/packaged for ${ART}"
-
-      - name: Upload artifact
+      - name: "Upload Artifact"
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: |
             ${{ matrix.artifact_name }}.zip
             ${{ matrix.artifact_name }}.tar.gz
-            slice/**
-          if-no-files-found: ignore
-          retention-days: 7
+            stage/
+          if-no-files-found: error
+          retention-days: 5
 
-  macos-universal-merge:
-    name: Merge macOS slices -> universal2
-    needs: build-release
+  # ======================================================================================
+  #  MERGE MACOS & CREATE UNIVERSAL BINARY
+  # ======================================================================================
+  merge-macos-universal:
+    name: "🍎 Merge macOS Universal"
+    needs: build-and-package
     runs-on: macos-14
     steps:
-      - name: Download macOS arm64 slice
+      - name: "Download arm64 Slice"
         uses: actions/download-artifact@v4
         with:
-          name: yaze-macos-arm64
-          path: mac-arm64
+          name: yaze-macos-arm64-slice
+          path: arm64-slice
 
-      - name: Download macOS x86_64 slice
+      - name: "Download x86_64 Slice"
         uses: actions/download-artifact@v4
         with:
-          name: yaze-macos-x86_64
-          path: mac-x86_64
+          name: yaze-macos-x86_64-slice
+          path: x86_64-slice
 
-      - name: Merge with lipo
+      - name: "Create Universal Binary"
         shell: bash
         run: |
           set -euo pipefail
-          ARM_BIN="mac-arm64/slice/yaze.app/Contents/MacOS/yaze"
-          X64_BIN="mac-x86_64/slice/yaze.app/Contents/MacOS/yaze"
-          [[ -f "$ARM_BIN" && -f "$X64_BIN" ]]
+          ARM_APP="arm64-slice/yaze.app"
+          X64_APP="x86_64-slice/yaze.app"
+          
+          # Use the arm64 bundle as the base
+          cp -R "${ARM_APP}" ./yaze.app
+          
+          echo "Merging executables..."
+          lipo -create "${ARM_APP}/Contents/MacOS/yaze" "${X64_APP}/Contents/MacOS/yaze" -output "./yaze.app/Contents/MacOS/yaze"
+          
+          echo "Verifying universal binary..."
+          lipo -info "./yaze.app/Contents/MacOS/yaze"
+          
+          echo "Creating DMG..."
+          hdiutil create -fs HFS+ -srcfolder ./yaze.app -volname "yaze ${{ needs.prepare-release.outputs.tag_name }}" yaze-macos-universal.dmg
 
-          # Copy arm64 bundle as base
-          cp -R "mac-arm64/slice/yaze.app" "yaze.app"
-
-          # Merge executable
-          lipo -create "$ARM_BIN" "$X64_BIN" -output "yaze.app/Contents/MacOS/yaze"
-          lipo -info "yaze.app/Contents/MacOS/yaze"
-
-          # Optionally merge any arch-specific helper binaries similarly if present
-
-      - name: Repackage universal app
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p package
-          cp -R yaze.app package/
-          # Prefer arm64 assets/LICENSE/README if present
-          [[ -d mac-arm64/slice/assets ]] && cp -R mac-arm64/slice/assets package/ || true
-          [[ -f mac-arm64/slice/LICENSE ]] && cp mac-arm64/slice/LICENSE package/ || true
-          [[ -f mac-arm64/slice/README.md ]] && cp mac-arm64/slice/README.md package/ || true
-
-          ditto -c -k --sequesterRsrc --keepParent package "yaze-macos-universal.zip"
-          echo "Created yaze-macos-universal.zip"
-
-      - name: Upload universal macOS artifact
+      - name: "Upload Universal macOS Artifact"
         uses: actions/upload-artifact@v4
         with:
-          name: yaze-macos
-          path: yaze-macos-universal.zip
-          retention-days: 7
+          name: yaze-macos-universal
+          path: yaze-macos-universal.dmg
+          if-no-files-found: error
+          retention-days: 5
 
-  create-release:
-    name: Create GitHub Release
-    needs: [validate-and-prepare, build-release, macos-universal-merge]
+  # ======================================================================================
+  #  CREATE GITHUB RELEASE
+  # ======================================================================================
+  create-github-release:
+    name: "🚀 Create GitHub Release"
+    needs: [prepare-release, build-and-package, merge-macos-universal]
     runs-on: ubuntu-latest
     steps:
-      - name: Download all build artifacts
+      - name: "Download All Artifacts"
         uses: actions/download-artifact@v4
         with:
           path: dist
+          merge-multiple: true
 
-      - name: Summarize artifacts
-        shell: bash
-        run: |
-          echo "Artifacts downloaded:"
-          find dist -maxdepth 3 -type f -print -exec ls -lh {} \;
+      - name: "List Artifacts"
+        run: ls -lR dist
 
-      - name: Create/Update Release
+      - name: "Create/Update Release"
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.validate-and-prepare.outputs.tag_name }}
-          name: yaze ${{ needs.validate-and-prepare.outputs.tag_name }}
-          body: ${{ needs.validate-and-prepare.outputs.release_notes }}
+          tag_name: ${{ needs.prepare-release.outputs.tag_name }}
+          name: "yaze ${{ needs.prepare-release.outputs.tag_name }}"
+          body: ${{ needs.prepare-release.outputs.release_notes }}
           draft: false
-          prerelease: ${{ contains(needs.validate-and-prepare.outputs.tag_name, 'beta') || contains(needs.validate-and-prepare.outputs.tag_name, 'alpha') || contains(needs.validate-and-prepare.outputs.tag_name, 'rc') }}
-          files: |
-            dist/**/*
-
+          prerelease: ${{ needs.prepare-release.outputs.is_prerelease }}
+          files: dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  publish-packages:
-    name: Publish Packages (announce)
-    needs: [validate-and-prepare, create-release]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Announce release
-        run: |
-          echo "🎉 yaze ${{ needs.validate-and-prepare.outputs.tag_name }} has been released!"
-          echo "📦 Packages are now available for download"
-          echo "🔗 Release URL: https://github.com/${{ github.repository }}/releases/tag/${{ needs.validate-and-prepare.outputs.tag_name }}"
