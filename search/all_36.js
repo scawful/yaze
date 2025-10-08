@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['📌_20current_20progress_20highlights_20october_205_202025_0',['📌 Current Progress Highlights (October 5, 2025)',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md236',1,'']]]
+  ['📁_20file_20structure_20for_20new_20features_0',['📁 File Structure for New Features',['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html#autotoc_md415',1,'']]]
 ];

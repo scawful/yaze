@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🔮_20future_20enhancements_0',['🔮 Future Enhancements',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md771',1,'']]]
+  ['📸_20screenshots_0',['📸 Screenshots',['../d0/d30/md_README.html#autotoc_md1040',1,'']]]
 ];

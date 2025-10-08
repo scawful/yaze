@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['🧪_20testing_20strategy_0',['🧪 Testing Strategy',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md748',1,'']]]
+  ['🗺️_20implementation_20roadmap_0',['🗺️ Implementation Roadmap',['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html#autotoc_md387',1,'']]],
+  ['🗺️_20migration_20map_3a_20file_20changes_1',['🗺️ Migration Map: File Changes',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md874',1,'']]]
 ];

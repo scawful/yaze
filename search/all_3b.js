@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['🔄_20dependency_20injection_20flow_0',['🔄 Dependency Injection Flow',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md716',1,'']]],
-  ['🔄_20in_20progress_1',['🔄 In Progress',['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md313',1,'']]]
+  ['📝_20appendix_20b_3a_20mesen2_20feature_20reference_0',['📝 Appendix B: Mesen2 Feature Reference',['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html#autotoc_md459',1,'']]],
+  ['📝_20dungeon_20editor_20smoke_20test_1',['📝 Dungeon Editor Smoke Test',['../d9/db0/md_test_2e2e_2README.html#autotoc_md1099',1,'']]],
+  ['📝_20lessons_20learned_2',['📝 Lessons Learned',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md925',1,'']]],
+  ['📝_20technical_20debt_3',['📝 Technical Debt',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md585',1,'']]]
 ];

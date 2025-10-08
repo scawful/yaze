@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['📝_20dungeon_20editor_20smoke_20test_0',['📝 Dungeon Editor Smoke Test',['../d9/db0/md_test_2e2e_2README.html#autotoc_md950',1,'']]],
-  ['📝_20lessons_20learned_1',['📝 Lessons Learned',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md776',1,'']]],
-  ['📝_20technical_20debt_2',['📝 Technical Debt',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md436',1,'']]]
+  ['📋_20executive_20summary_0',['📋 executive summary',['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html#autotoc_md331',1,'📋 Executive Summary'],['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md843',1,'📋 Executive Summary']]],
+  ['📋_20priority_20implementation_20order_1',['📋 Priority Implementation Order',['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md314',1,'']]]
 ];

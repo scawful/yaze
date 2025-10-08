@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['🙏_20acknowledgments_0',['🙏 acknowledgments',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md796',1,'🙏 Acknowledgments'],['../d0/d30/md_README.html#autotoc_md890',1,'🙏 Acknowledgments']]]
+  ['🔌_20z3ed_20agent_20emulator_20integration_0',['🔌 z3ed Agent + Emulator Integration',['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html#autotoc_md429',1,'']]]
 ];
