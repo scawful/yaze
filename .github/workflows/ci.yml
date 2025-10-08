@@ -19,57 +19,34 @@ on:
       - '.github/workflows/**'
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: RelWithDebInfo
   VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
+  # This job determines which build matrix to use based on the event type
+  prepare-matrix:
+    name: "⚙️ Prepare Build Matrix"
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "Using focused matrix for PR"
+            echo 'matrix={"include":[{"name":"Ubuntu 22.04 (GCC-12)","os":"ubuntu-22.04","cc":"gcc-12","cxx":"g++-12"},{"name":"macOS 14 (Clang)","os":"macos-14","cc":"clang","cxx":"clang++","vcpkg_triplet":"arm64-osx"},{"name":"Windows 2022 (MSVC x64)","os":"windows-2022","cc":"cl","cxx":"cl","vcpkg_triplet":"x64-windows","cmake_generator":"Visual Studio 17 2022","cmake_generator_platform":"x64"}]}' >> "$GITHUB_OUTPUT"
+          else
+            echo "Using comprehensive matrix for push"
+            echo 'matrix={"include":[{"name":"Ubuntu 22.04 (GCC-12)","os":"ubuntu-22.04","cc":"gcc-12","cxx":"g++-12"},{"name":"Ubuntu 22.04 (Clang)","os":"ubuntu-22.04","cc":"clang-15","cxx":"clang++-15"},{"name":"macOS 13 (Clang)","os":"macos-13","cc":"clang","cxx":"clang++","vcpkg_triplet":"x64-osx"},{"name":"macOS 14 (Clang)","os":"macos-14","cc":"clang","cxx":"clang++","vcpkg_triplet":"arm64-osx"},{"name":"Windows 2022 (MSVC x64)","os":"windows-2022","cc":"cl","cxx":"cl","vcpkg_triplet":"x64-windows","cmake_generator":"Visual Studio 17 2022","cmake_generator_platform":"x64"},{"name":"Windows 2022 (MSVC x86)","os":"windows-2022","cc":"cl","cxx":"cl","vcpkg_triplet":"x86-windows","cmake_generator":"Visual Studio 17 2022","cmake_generator_platform":"Win32"}]}' >> "$GITHUB_OUTPUT"
+          fi
+
   build-and-test:
+    name: "${{ matrix.name }}"
+    needs: prepare-matrix
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - name: "Ubuntu 22.04 (GCC-12)"
-            os: ubuntu-22.04
-            cc: gcc-12
-            cxx: g++-12
-            vcpkg_triplet: x64-linux
-            
-          - name: "Ubuntu 22.04 (Clang)"
-            os: ubuntu-22.04
-            cc: clang-15
-            cxx: clang++-15
-            vcpkg_triplet: x64-linux
-            
-          - name: "macOS 13 (Clang)"
-            os: macos-13
-            cc: clang
-            cxx: clang++
-            vcpkg_triplet: x64-osx
-            
-          - name: "macOS 14 (Clang)"
-            os: macos-14
-            cc: clang
-            cxx: clang++
-            vcpkg_triplet: arm64-osx
-            
-          - name: "Windows 2022 (MSVC x64)"
-            os: windows-2022
-            cc: cl
-            cxx: cl
-            vcpkg_triplet: x64-windows
-            cmake_generator: "Visual Studio 17 2022"
-            cmake_generator_platform: x64
-            
-          - name: "Windows 2022 (MSVC x86)"
-            os: windows-2022
-            cc: cl
-            cxx: cl
-            vcpkg_triplet: x86-windows
-            cmake_generator: "Visual Studio 17 2022"
-            cmake_generator_platform: Win32
-
-    name: ${{ matrix.name }}
+      matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -77,394 +54,137 @@ jobs:
       uses: actions/checkout@v4
       with:
         submodules: recursive
-        fetch-depth: 0
 
-    - name: Export GitHub Actions cache environment variables
-      uses: actions/github-script@v7
-      with:
-        script: |
-          core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-          core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-
-    - name: Set up vcpkg cache
-      if: runner.os == 'Windows'
-      uses: actions/cache@v4
-      with:
-        path: |
-          ${{ github.workspace }}/vcpkg
-          ${{ github.workspace }}/vcpkg_installed
-        key: vcpkg-${{ matrix.vcpkg_triplet }}-${{ hashFiles('vcpkg.json') }}
-        restore-keys: |
-          vcpkg-${{ matrix.vcpkg_triplet }}-
-
-    # Linux-specific setup
-    - name: Install Linux dependencies
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          ninja-build \
-          pkg-config \
-          libglew-dev \
-          libxext-dev \
-          libwavpack-dev \
-          libabsl-dev \
-          libboost-all-dev \
-          libboost-python-dev \
-          libpng-dev \
-          python3-dev \
-          libpython3-dev \
-          libasound2-dev \
-          libpulse-dev \
-          libaudio-dev \
-          libx11-dev \
-          libxrandr-dev \
-          libxcursor-dev \
-          libxinerama-dev \
-          libxi-dev \
-          libxss-dev \
-          libxxf86vm-dev \
-          libxkbcommon-dev \
-          libwayland-dev \
-          libdecor-0-dev \
-          libgtk-3-dev \
-          libdbus-1-dev \
-          gcc-12 \
-          g++-12 \
-          clang-15
-
-    - name: Set up Linux compilers
-      if: runner.os == 'Linux'
-      run: |
-        sudo update-alternatives --install /usr/bin/cc cc /usr/bin/${{ matrix.cc }} 100
-        sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/${{ matrix.cxx }} 100
-
-    # macOS-specific setup
-    - name: Install macOS dependencies
-      if: runner.os == 'macOS'
-      run: |
-        # Install Homebrew dependencies if needed
-        # brew install pkg-config libpng boost abseil
-
-    # Windows-specific setup (skip vcpkg for CI builds)
-    - name: Set up vcpkg (non-CI builds only)
-      if: runner.os == 'Windows' && github.event_name != 'push' && github.event_name != 'pull_request'
+    - name: Set up vcpkg
+      if: runner.os != 'Linux'
       uses: lukka/run-vcpkg@v11
       with:
         vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
         runVcpkgInstall: true
-        vcpkgJsonGlob: '**/vcpkg.json'
-        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-    - name: Configure CMake (Linux/macOS)
-      if: runner.os != 'Windows'
-      run: |
-        cmake -B ${{ github.workspace }}/build \
-          -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-          -DCMAKE_C_COMPILER=${{ matrix.cc }} \
-          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
-          -DCMAKE_POLICY_VERSION_MINIMUM=3.16 \
-          -DYAZE_USE_MODULAR_BUILD=ON \
-          -DYAZE_MINIMAL_BUILD=ON \
-          -DYAZE_ENABLE_ROM_TESTS=OFF \
-          -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
-          -DYAZE_ENABLE_UI_TESTS=OFF \
-          -Wno-dev \
-          -GNinja
+      env:
+        VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
 
-    - name: Configure CMake (Windows)
-      if: runner.os == 'Windows'
-      shell: cmd
+    - name: Install Linux dependencies
+      if: runner.os == 'Linux'
       run: |
-        cmake -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_POLICY_VERSION_MINIMUM=3.16 -DYAZE_USE_MODULAR_BUILD=ON -DYAZE_MINIMAL_BUILD=ON -DYAZE_ENABLE_ROM_TESTS=OFF -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF -DYAZE_ENABLE_UI_TESTS=OFF -Wno-dev -G "${{ matrix.cmake_generator }}" -A ${{ matrix.cmake_generator_platform }}
+        sudo apt-get update
+        sudo apt-get install -y build-essential ninja-build pkg-config libglew-dev libxext-dev libwavpack-dev libabsl-dev libboost-all-dev libpng-dev python3-dev libpython3-dev libasound2-dev libpulse-dev libaudio-dev libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev libgtk-3-dev libdbus-1-dev gcc-12 g++-12 clang-15
 
-    # Build
+    - name: Configure CMake
+      shell: bash
+      run: |
+        set -x
+        CMAKE_ARGS=(
+          "-S ."
+          "-B build"
+          "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}"
+          "-DYAZE_MINIMAL_BUILD=ON"
+          "-DYAZE_ENABLE_ROM_TESTS=OFF"
+        )
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          CMAKE_ARGS+=(
+            "-G" "${{ matrix.cmake_generator }}"
+            "-A" "${{ matrix.cmake_generator_platform }}"
+            "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          )
+        elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          CMAKE_ARGS+=(
+            "-G" "Ninja"
+            "-DCMAKE_C_COMPILER=${{ matrix.cc }}"
+            "-DCMAKE_CXX_COMPILER=${{ matrix.cxx }}"
+            "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+          )
+        else # Linux
+          CMAKE_ARGS+=(
+            "-G" "Ninja"
+            "-DCMAKE_C_COMPILER=${{ matrix.cc }}"
+            "-DCMAKE_CXX_COMPILER=${{ matrix.cxx }}"
+          )
+        fi
+        cmake "${{ CMAKE_ARGS[@] }}"
+
     - name: Build
-      run: cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }} --parallel
+      run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
 
-    # Test (stable core functionality only for CI)
     - name: Run Core Tests
-      working-directory: ${{ github.workspace }}/build
+      working-directory: build
       run: ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure -j1 -R "AsarWrapperTest|SnesTileTest|CompressionTest|SnesPaletteTest|HexTest|MessageTest"
-      
-    # Run additional unit tests (allowed to fail for information only)
+
     - name: Run Additional Unit Tests (Informational)
-      working-directory: ${{ github.workspace }}/build
+      working-directory: build
       continue-on-error: true
       run: ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure --parallel -R ".*Test" -E ".*RomTest.*|.*E2E.*|.*ZSCustomOverworld.*|.*IntegrationTest.*|CpuTest|Spc700Test|ApuTest"
 
-    # Package (only on successful builds)
-    - name: Package artifacts
-      if: success()
-      run: |
-        cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }} --target package
-
-    # Upload artifacts
-    - name: Upload build artifacts
-      if: success()
-      uses: actions/upload-artifact@v4
-      with:
-        name: yaze-${{ matrix.name }}-${{ github.sha }}
-        path: |
-          ${{ github.workspace }}/build/bin/
-          ${{ github.workspace }}/build/lib/
-        retention-days: 7
-
-    # Upload packages for release candidates
-    - name: Upload package artifacts
-      if: success() && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))
-      uses: actions/upload-artifact@v4
-      with:
-        name: yaze-package-${{ matrix.name }}-${{ github.sha }}
-        path: |
-          ${{ github.workspace }}/build/*.tar.gz
-          ${{ github.workspace }}/build/*.zip
-          ${{ github.workspace }}/build/*.dmg
-          ${{ github.workspace }}/build/*.msi
-        retention-days: 30
-
   code-quality:
-    name: Code Quality Checks
+    name: "✨ Code Quality"
     runs-on: ubuntu-22.04
-    # Relaxed requirements for releases and master branch:
-    # - Formatting errors become warnings
-    # - Fewer cppcheck categories enabled  
-    # - Reduced clang-tidy file count
-    # - Job failure won't block releases
     continue-on-error: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') }}
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      with:
-        submodules: recursive
-
-    - name: Install dependencies
+    - name: Install linters
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          clang-format-14 \
-          clang-tidy-14 \
-          cppcheck
-
-    - name: Check code formatting
+        sudo apt-get install -y clang-format-14 clang-tidy-14 cppcheck
+    - name: Check Formatting
       run: |
-        # Relaxed formatting check for releases and master branch
-        if [[ "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ github.ref }}" == refs/tags/* ]] || [[ "${{ github.event_name }}" == "pull_request" && "${{ github.base_ref }}" == "master" ]]; then
-          echo "🔄 Running relaxed formatting check for release/master branch..."
-          find src test -name "*.cc" -o -name "*.h" | \
-          xargs clang-format-14 --dry-run --Werror || {
-            echo "⚠️  Code formatting issues found, but allowing for release builds"
-            echo "📝 Consider running 'make format' to fix formatting before next release"
-            exit 0
-          }
-        else
-          echo "🔍 Running strict formatting check for development..."
-          find src test -name "*.cc" -o -name "*.h" | \
-          xargs clang-format-14 --dry-run --Werror
-        fi
-
+        find src test -name "*.cc" -o -name "*.h" | xargs clang-format-14 --dry-run --Werror
     - name: Run cppcheck
       run: |
-        if [[ "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
-          echo "🔄 Running relaxed cppcheck for release/master branch..."
-          cppcheck --enable=warning \
-            --error-exitcode=0 \
-            --suppress=missingIncludeSystem \
-            --suppress=unusedFunction \
-            --suppress=unmatchedSuppression \
-            --suppress=variableScope \
-            --suppress=cstyleCast \
-            --suppress=unreadVariable \
-            --suppress=unusedStructMember \
-            --suppress=constParameter \
-            --suppress=constVariable \
-            --suppress=useStlAlgorithm \
-            --suppress=noExplicitConstructor \
-            --suppress=passedByValue \
-            --suppress=functionStatic \
-            src/ || echo "Cppcheck completed (non-blocking for releases)"
-        else
-          echo "🔍 Running standard cppcheck for development..."
-          cppcheck --enable=warning,style,performance \
-            --error-exitcode=0 \
-            --suppress=missingIncludeSystem \
-            --suppress=unusedFunction \
-            --suppress=unmatchedSuppression \
-            --suppress=variableScope \
-            --suppress=cstyleCast \
-            --suppress=unreadVariable \
-            --suppress=unusedStructMember \
-            --suppress=constParameter \
-            --suppress=constVariable \
-            --suppress=useStlAlgorithm \
-            --inconclusive \
-            src/ || echo "Cppcheck completed with warnings (non-blocking)"
-        fi
-          
-    - name: Run clang-tidy (lenient)
+        cppcheck --enable=warning,style,performance --error-exitcode=0 --suppress=missingIncludeSystem --suppress=unusedFunction --inconclusive src/
+    - name: Run clang-tidy
       run: |
-        if [[ "${{ github.ref }}" == "refs/heads/master" ]] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
-          echo "🔄 Running minimal clang-tidy for release/master branch..."
-          # Only check a small subset of critical files for releases
-          find src -name "*.cc" -not -path "*/lib/*" -not -path "*/gui/*" | head -10 | \
-          xargs clang-tidy-14 --config-file=.clang-tidy \
-          --header-filter='src/.*\.(h|hpp)$' || echo "Clang-tidy completed (non-blocking for releases)"
-        else
-          echo "🔍 Running standard clang-tidy for development..."
-          # Run clang-tidy on a subset of files to avoid overwhelming output
-          find src -name "*.cc" -not -path "*/lib/*" | head -20 | \
-          xargs clang-tidy-14 --config-file=.clang-tidy \
-          --header-filter='src/.*\.(h|hpp)$' || echo "Clang-tidy completed with warnings (non-blocking)"
-        fi
+        find src -name "*.cc" -not -path "*/lib/*" | head -20 | xargs clang-tidy-14 --header-filter='src/.*\.(h|hpp)$'
 
   memory-sanitizer:
-    name: Memory Sanitizer (Linux)
+    name: "🔬 Memory Sanitizer (Linux)"
     runs-on: ubuntu-22.04
     if: github.event_name == 'pull_request'
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         submodules: recursive
-
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          ninja-build \
-          clang-14 \
-          libc++-14-dev \
-          libc++abi-14-dev \
-          libglew-dev \
-          libxext-dev \
-          libwavpack-dev \
-          libpng-dev \
-          libgtk-3-dev \
-          libdbus-1-dev
-
+        sudo apt-get install -y build-essential ninja-build clang-14 libc++-14-dev libc++abi-14-dev libglew-dev libxext-dev libwavpack-dev libpng-dev libgtk-3-dev libdbus-1-dev
     - name: Configure with AddressSanitizer
       run: |
-        cmake -B ${{ github.workspace }}/build \
+        cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=Debug \
           -DCMAKE_C_COMPILER=clang-14 \
           -DCMAKE_CXX_COMPILER=clang++-14 \
           -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer" \
-          -DCMAKE_C_FLAGS="-fsanitize=address -fno-omit-frame-pointer" \
-          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address" \
-          -DYAZE_USE_MODULAR_BUILD=ON \
-          -DYAZE_MINIMAL_BUILD=ON \
-          -DYAZE_ENABLE_ROM_TESTS=OFF \
-          -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
-          -GNinja
-
+          -DYAZE_MINIMAL_BUILD=ON
     - name: Build
-      run: cmake --build ${{ github.workspace }}/build --parallel
-
+      run: cmake --build build --parallel
     - name: Test with AddressSanitizer
-      working-directory: ${{ github.workspace }}/build
+      working-directory: build
       env:
         ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
       run: ctest --output-on-failure
 
-  coverage:
-    name: Code Coverage
-    runs-on: ubuntu-22.04
-    if: github.event_name == 'pull_request'
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      with:
-        submodules: recursive
-
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential \
-          ninja-build \
-          gcov \
-          lcov \
-          libglew-dev \
-          libxext-dev \
-          libwavpack-dev \
-          libpng-dev \
-          libgtk-3-dev \
-          libdbus-1-dev
-
-    - name: Configure with coverage
-      run: |
-        cmake -B ${{ github.workspace }}/build \
-          -DCMAKE_BUILD_TYPE=Debug \
-          -DYAZE_USE_MODULAR_BUILD=ON \
-          -DCMAKE_CXX_FLAGS="--coverage" \
-          -DCMAKE_C_FLAGS="--coverage" \
-          -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
-          -DYAZE_MINIMAL_BUILD=ON \
-          -DYAZE_ENABLE_ROM_TESTS=OFF \
-          -DYAZE_ENABLE_EXPERIMENTAL_TESTS=OFF \
-          -GNinja
-
-    - name: Build
-      run: cmake --build ${{ github.workspace }}/build --parallel
-
-    - name: Test
-      working-directory: ${{ github.workspace }}/build
-      run: ctest --output-on-failure
-
-    - name: Generate coverage report
-      run: |
-        lcov --capture --directory ${{ github.workspace }}/build --output-file coverage.info
-        lcov --remove coverage.info '/usr/*' --output-file coverage.info
-        lcov --remove coverage.info '**/test/**' --output-file coverage.info
-        lcov --remove coverage.info '**/lib/**' --output-file coverage.info
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.info
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
-
   z3ed-agent-test:
-    name: "z3ed Agent Test (macOS + Ollama)"
+    name: "🤖 z3ed Agent Test (macOS)"
     runs-on: macos-14
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         submodules: recursive
-
-    - name: Install macOS dependencies
+    - name: Install dependencies
+      run: brew install ollama ninja
+    - name: Configure and Build z3ed
       run: |
-        brew install ollama ninja
-
-    - name: Configure CMake for z3ed
-      run: |
-        cmake -B ${{ github.workspace }}/build_test \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DYAZE_USE_MODULAR_BUILD=ON \
-          -DZ3ED_AI=ON \
-          -DYAZE_BUILD_Z3ED=ON \
-          -DYAZE_MINIMAL_BUILD=ON \
-          -Wno-dev \
-          -GNinja
-
-    - name: Build z3ed
-      run: cmake --build ${{ github.workspace }}/build_test --config Release --target z3ed
-      continue-on-error: true
-
-    - name: Start Ollama and pull model
+        cmake -B build_test -G Ninja -DCMAKE_BUILD_TYPE=Release -DZ3ED_AI=ON -DYAZE_BUILD_Z3ED=ON
+        cmake --build build_test --config Release --target z3ed
+    - name: Start Ollama
       run: |
         ollama serve & 
         sleep 10
         ollama pull qwen2.5-coder:7b
-
     - name: Run z3ed Agent Test Suite
       run: |
         chmod +x scripts/agent_test_suite.sh
