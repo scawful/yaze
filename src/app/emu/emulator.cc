@@ -222,6 +222,11 @@ void Emulator::Run(Rom* rom) {
           if (renderer_->LockTexture(ppu_texture_, NULL, &ppu_pixels_, &ppu_pitch_)) {
             snes_.SetPixels(static_cast<uint8_t*>(ppu_pixels_));
             renderer_->UnlockTexture(ppu_texture_);
+            
+            // WORKAROUND: Tiny delay after texture unlock to prevent macOS Metal crash
+            // macOS CoreAnimation/Metal driver bug in layer_presented() callback
+            // Without this, rapid texture updates corrupt Metal's frame tracking
+            SDL_Delay(1);
           }
         }
       }
