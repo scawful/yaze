@@ -29,16 +29,34 @@ class PlatformPaths {
   static std::filesystem::path GetHomeDirectory();
   
   /**
-   * @brief Get application data directory for YAZE
-   * 
-   * Creates the directory if it doesn't exist.
-   * 
-   * - Windows: %USERPROFILE%\.yaze
-   * - Unix/macOS: $HOME/.yaze
-   * 
-   * @return StatusOr with path to data directory
+   * @brief Get the user-specific application data directory for YAZE.
+   *
+   * This is the standard location for storing user-specific data, settings,
+   * and cache files. The directory is created if it doesn't exist.
+   *
+   * - Windows: `%APPDATA%\yaze` (e.g., C:\Users\user\AppData\Roaming\yaze)
+   * - macOS: `~/Library/Application Support/yaze`
+   * - Linux: `$XDG_CONFIG_HOME/yaze` or `~/.config/yaze`
+   *
+   * @return StatusOr with path to the application data directory.
    */
   static absl::StatusOr<std::filesystem::path> GetAppDataDirectory();
+
+  /**
+   * @brief Get the user-specific configuration directory for YAZE.
+   *
+   * This is the standard location for storing user configuration files.
+   * It often maps to the same location as GetAppDataDirectory but provides
+   * a more semantically correct API for config files.
+   * The directory is created if it doesn't exist.
+   *
+   * - Windows: `%APPDATA%\yaze`
+   * - macOS: `~/Library/Application Support/yaze`
+   * - Linux: `$XDG_CONFIG_HOME/yaze` or `~/.config/yaze`
+   *
+   * @return StatusOr with path to the configuration directory.
+   */
+  static absl::StatusOr<std::filesystem::path> GetConfigDirectory();
   
   /**
    * @brief Get a subdirectory within the app data folder

@@ -28,8 +28,10 @@
 #include "app/rom.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
+#include "util/platform_paths.h"
 
 #include <SDL.h>
+#include <filesystem>
 
 #if defined(YAZE_WITH_GRPC)
 #include "app/test/test_manager.h"
@@ -37,6 +39,7 @@
 
 namespace {
 
+namespace fs = std::filesystem;
 using yaze::cli::agent::ChatMessage;
 
 std::filesystem::path ExpandUserPath(std::string path) {
@@ -55,7 +58,13 @@ std::filesystem::path ExpandUserPath(std::string path) {
 }
 
 std::filesystem::path ResolveHistoryPath(const std::string& session_id = "") {
-  std::filesystem::path base = ExpandUserPath(yaze::util::GetConfigDirectory());
+  auto config_dir = yaze::util::PlatformPaths::GetConfigDirectory();
+  if (!config_dir.ok()) {
+    // Fallback to a local directory if config can't be determined.
+    return fs::current_path() / ".yaze" / "agent" / "history" / (session_id.empty() ? "default.json" : session_id + ".json");
+  }
+  
+  fs::path base = *config_dir;
   if (base.empty()) {
     base = ExpandUserPath(".yaze");
   }

@@ -18,7 +18,11 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/strip.h"
 #include "util/file_util.h"
+#include "util/platform_paths.h"
 #include "util/macro.h"
+
+#include <filesystem>
+namespace fs = std::filesystem;
 
 namespace yaze {
 namespace editor {
@@ -259,11 +263,12 @@ std::string AgentCollaborationCoordinator::GenerateSessionCode() const {
 }
 
 std::filesystem::path AgentCollaborationCoordinator::SessionsDirectory() const {
-  std::filesystem::path base = ExpandUserPath(util::GetConfigDirectory());
-  if (base.empty()) {
-    base = ExpandUserPath(".yaze");
+  auto config_dir = util::PlatformPaths::GetConfigDirectory();
+  if (!config_dir.ok()) {
+    // Fallback to a local directory if config can't be determined.
+    return fs::current_path() / ".yaze" / "agent" / "sessions";
   }
-  return base / "agent" / "sessions";
+  return *config_dir / "agent" / "sessions";
 }
 
 std::filesystem::path AgentCollaborationCoordinator::SessionFilePath(

@@ -3,9 +3,11 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/performance_profiler.h"
 #include "app/editor/code/assembly_editor.h"
+#include "app/emu/emulator.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace editor {
@@ -208,6 +210,76 @@ void MusicEditor::DrawToolset() {
   ImGui::SameLine();
   // Display the song duration/progress using a progress bar
   ImGui::ProgressBar((float)current_time / SONG_DURATION);
+}
+
+// ============================================================================
+// Audio Control Methods (Emulator Integration)
+// ============================================================================
+
+void MusicEditor::PlaySong(int song_id) {
+  if (!emulator_) {
+    LOG_WARN("MusicEditor", "No emulator instance - cannot play song");
+    return;
+  }
+  
+  if (!emulator_->snes().running()) {
+    LOG_WARN("MusicEditor", "Emulator not running - cannot play song");
+    return;
+  }
+  
+  // Write song request to game memory ($7E012C)
+  // This triggers the NMI handler to send the song to APU
+  try {
+    emulator_->snes().Write(0x7E012C, static_cast<uint8_t>(song_id));
+    LOG_INFO("MusicEditor", "Requested song %d (%s)", song_id, 
+             song_id < 30 ? kGameSongs[song_id] : "Unknown");
+    
+    // Ensure audio backend is playing
+    if (auto* audio = emulator_->audio_backend()) {
+      auto status = audio->GetStatus();
+      if (!status.is_playing) {
+        audio->Play();
+        LOG_INFO("MusicEditor", "Started audio backend playback");
+      }
+    }
+    
+    is_playing_ = true;
+  } catch (const std::exception& e) {
+    LOG_ERROR("MusicEditor", "Failed to play song: %s", e.what());
+  }
+}
+
+void MusicEditor::StopSong() {
+  if (!emulator_) return;
+  
+  // Write stop command to game memory
+  try {
+    emulator_->snes().Write(0x7E012C, 0xFF);  // 0xFF = stop music
+    LOG_INFO("MusicEditor", "Stopped music playback");
+    
+    // Optional: pause audio backend to save CPU
+    if (auto* audio = emulator_->audio_backend()) {
+      audio->Pause();
+    }
+    
+    is_playing_ = false;
+  } catch (const std::exception& e) {
+    LOG_ERROR("MusicEditor", "Failed to stop song: %s", e.what());
+  }
+}
+
+void MusicEditor::SetVolume(float volume) {
+  if (!emulator_) return;
+  
+  // Clamp volume to valid range
+  volume = std::clamp(volume, 0.0f, 1.0f);
+  
+  if (auto* audio = emulator_->audio_backend()) {
+    audio->SetVolume(volume);
+    LOG_DEBUG("MusicEditor", "Set volume to %.2f", volume);
+  } else {
+    LOG_WARN("MusicEditor", "No audio backend available");
+  }
 }
 
 }  // namespace editor

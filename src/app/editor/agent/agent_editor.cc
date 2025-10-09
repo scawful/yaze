@@ -15,6 +15,7 @@
 #include "app/gui/icons.h"
 #include "app/rom.h"
 #include "util/file_util.h"
+#include "util/platform_paths.h"
 
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/network_collaboration_coordinator.h"
@@ -1238,23 +1239,12 @@ absl::Status AgentEditor::ImportProfile(const std::filesystem::path& path) {
 }
 
 std::filesystem::path AgentEditor::GetProfilesDirectory() const {
-  std::filesystem::path config_dir(yaze::util::GetConfigDirectory());
-  if (config_dir.empty()) {
-#ifdef _WIN32
-    const char* appdata = std::getenv("APPDATA");
-    if (appdata) {
-      config_dir = std::filesystem::path(appdata) / "yaze";
-    }
-#else
-    const char* home_env = std::getenv("HOME");
-    if (home_env) {
-      config_dir = std::filesystem::path(home_env) / ".yaze";
-    }
-#endif
+  auto config_dir = yaze::util::PlatformPaths::GetConfigDirectory();
+  if (!config_dir.ok()) {
+    // Fallback to a local directory if config can't be determined.
+    return std::filesystem::current_path() / ".yaze" / "agent" / "profiles";
   }
-
-  return config_dir / std::filesystem::path("agent") /
-         std::filesystem::path("profiles");
+  return *config_dir / "agent" / "profiles";
 }
 
 absl::Status AgentEditor::EnsureProfilesDirectory() {

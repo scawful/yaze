@@ -17,6 +17,7 @@ set(YAZE_UTIL_SRC
   util/log.cc
   util/platform_paths.cc
   util/file_util.cc
+  util/platform_paths.cc
 )
 
 add_library(yaze_util STATIC ${YAZE_UTIL_SRC})
