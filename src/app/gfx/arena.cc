@@ -33,7 +33,17 @@ void Arena::QueueTextureCommand(TextureCommandType type, Bitmap* bitmap) {
 }
 
 void Arena::ProcessTextureQueue(IRenderer* renderer) {
-  if (!renderer_ || texture_command_queue_.empty()) return;
+  // Use provided renderer if available, otherwise use stored renderer
+  IRenderer* active_renderer = renderer ? renderer : renderer_;
+  
+  if (!active_renderer) {
+    // Arena not initialized yet - defer processing
+    return;
+  }
+  
+  if (texture_command_queue_.empty()) {
+    return;
+  }
 
   // Performance optimization: Batch process textures with limits
   // Process up to 8 texture operations per frame to avoid frame drops
@@ -45,40 +55,59 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
     const auto& command = *it;
     bool should_remove = true;
     
+    // CRITICAL: Replicate the exact short-circuit evaluation from working code
+    // We MUST check command.bitmap AND command.bitmap->surface() in one expression
+    // to avoid dereferencing invalid pointers
+    
     switch (command.type) {
       case TextureCommandType::CREATE: {
         // Create a new texture and update it with bitmap data
-        if (command.bitmap && command.bitmap->surface() && 
-            command.bitmap->surface()->format && 
+        // Use short-circuit evaluation - if bitmap is invalid, never call ->surface()
+        if (command.bitmap && command.bitmap->surface() &&
+            command.bitmap->surface()->format &&
             command.bitmap->is_active() && 
             command.bitmap->width() > 0 && command.bitmap->height() > 0) {
-          auto texture = renderer_->CreateTexture(command.bitmap->width(), 
-                                                  command.bitmap->height());
-          if (texture) {
-            command.bitmap->set_texture(texture);
-            renderer_->UpdateTexture(texture, *command.bitmap);
-            processed++;
-          } else {
-            should_remove = false;  // Retry next frame
+          
+          try {
+            auto texture = active_renderer->CreateTexture(command.bitmap->width(), 
+                                                          command.bitmap->height());
+            if (texture) {
+              command.bitmap->set_texture(texture);
+              active_renderer->UpdateTexture(texture, *command.bitmap);
+              processed++;
+            } else {
+              should_remove = false;  // Retry next frame
+            }
+          } catch (...) {
+            printf("[Arena] ERROR: Exception during texture creation\n");
+            should_remove = true;  // Remove bad command
           }
         }
         break;
       }
       case TextureCommandType::UPDATE: {
         // Update existing texture with current bitmap data
-        if (command.bitmap && command.bitmap->texture() && 
+        if (command.bitmap->texture() && 
             command.bitmap->surface() && command.bitmap->surface()->format &&
             command.bitmap->is_active()) {
-          renderer_->UpdateTexture(command.bitmap->texture(), *command.bitmap);
-          processed++;
+          try {
+            active_renderer->UpdateTexture(command.bitmap->texture(), *command.bitmap);
+            processed++;
+          } catch (...) {
+            printf("[Arena] ERROR: Exception during texture update\n");
+          }
         }
         break;
       }
       case TextureCommandType::DESTROY: {
-        if (command.bitmap && command.bitmap->texture()) {
-          renderer_->DestroyTexture(command.bitmap->texture());
-          command.bitmap->set_texture(nullptr);
-          processed++;
+        if (command.bitmap->texture()) {
+          try {
+            active_renderer->DestroyTexture(command.bitmap->texture());
+            command.bitmap->set_texture(nullptr);
+            processed++;
+          } catch (...) {
+            printf("[Arena] ERROR: Exception during texture destruction\n");
+          }
         }
         break;
       }

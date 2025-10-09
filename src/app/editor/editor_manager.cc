@@ -616,7 +616,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
       "Card Browser", {ImGuiKey_B, ImGuiMod_Ctrl, ImGuiMod_Shift},
       [this]() { show_card_browser_ = true; });
   
-  // Dungeon Card shortcuts
+  // === DUNGEON CARD SHORTCUTS (Ctrl+Shift+Key) ===
   context_.shortcut_manager.RegisterShortcut(
       "Toggle Dungeon Controls", {ImGuiKey_D, ImGuiMod_Ctrl, ImGuiMod_Shift},
       []() { gui::EditorCardManager::Get().ToggleCard("dungeon.control_panel"); });
@@ -638,6 +638,45 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
   context_.shortcut_manager.RegisterShortcut(
       "Toggle Dungeon Palette", {ImGuiKey_P, ImGuiMod_Ctrl, ImGuiMod_Shift},
       []() { gui::EditorCardManager::Get().ToggleCard("dungeon.palette_editor"); });
+  
+  // === GRAPHICS CARD SHORTCUTS (Ctrl+Shift+Number) ===
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Sheet Editor", {ImGuiKey_1, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("graphics.sheet_editor"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Sheet Browser", {ImGuiKey_2, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("graphics.sheet_browser"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Player Animations", {ImGuiKey_3, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("graphics.player_animations"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Prototype Viewer", {ImGuiKey_4, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("graphics.prototype_viewer"); });
+  
+  // === SCREEN EDITOR SHORTCUTS (Alt+Number) ===
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Dungeon Maps", {ImGuiKey_1, ImGuiMod_Alt},
+      []() { gui::EditorCardManager::Get().ToggleCard("screen.dungeon_maps"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Inventory Menu", {ImGuiKey_2, ImGuiMod_Alt},
+      []() { gui::EditorCardManager::Get().ToggleCard("screen.inventory_menu"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Overworld Map Screen", {ImGuiKey_3, ImGuiMod_Alt},
+      []() { gui::EditorCardManager::Get().ToggleCard("screen.overworld_map"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Title Screen", {ImGuiKey_4, ImGuiMod_Alt},
+      []() { gui::EditorCardManager::Get().ToggleCard("screen.title_screen"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Naming Screen", {ImGuiKey_5, ImGuiMod_Alt},
+      []() { gui::EditorCardManager::Get().ToggleCard("screen.naming_screen"); });
+  
+  // === SPRITE EDITOR SHORTCUTS (Alt+Shift+Number) ===
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Vanilla Sprites", {ImGuiKey_1, ImGuiMod_Alt, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("sprite.vanilla_editor"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Custom Sprites", {ImGuiKey_2, ImGuiMod_Alt, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("sprite.custom_editor"); });
 
 #ifdef YAZE_WITH_GRPC
   // Agent Editor shortcut

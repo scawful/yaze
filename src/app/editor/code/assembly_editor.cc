@@ -176,7 +176,18 @@ void AssemblyEditor::Initialize() {
   text_editor_.SetLanguageDefinition(GetAssemblyLanguageDef());
 }
 
-absl::Status AssemblyEditor::Load() { return absl::OkStatus(); }
+absl::Status AssemblyEditor::Load() {
+  // Register cards with EditorCardManager
+  // Note: Assembly editor uses dynamic file tabs, so we register the main editor window
+  auto& card_manager = gui::EditorCardManager::Get();
+  
+  // The assembly editor itself acts as a card when shown
+  // Individual files are tabs within it, not separate cards
+  
+  printf("[AssemblyEditor] Assembly editor uses dynamic file tabs\n");
+  
+  return absl::OkStatus(); 
+}
 
 void AssemblyEditor::OpenFolder(const std::string& folder_path) {
   current_folder_ = LoadFolder(folder_path);

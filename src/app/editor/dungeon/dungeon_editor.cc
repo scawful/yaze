@@ -881,8 +881,11 @@ absl::Status DungeonEditor::UpdateRoomBackgroundLayers(int /*room_id*/) {
 
 void DungeonEditor::ProcessDeferredTextures() {
   // Process queued texture commands via Arena's deferred system
-  // Note: Arena will use its stored renderer reference
+  // Note: Arena uses its stored renderer reference (initialized in EditorManager)
+  // The parameter is ignored, but we pass nullptr to indicate we're using the stored renderer
   gfx::Arena::Get().ProcessTextureQueue(nullptr);
+  
+  // NOTE: This is deprecated - use DungeonEditorV2 instead
 }
 
 }  // namespace yaze::editor

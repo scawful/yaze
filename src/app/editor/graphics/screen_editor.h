@@ -7,6 +7,7 @@
 #include "app/editor/editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gui/editor_card_manager.h"
 #include "app/gfx/tilemap.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
@@ -77,8 +78,9 @@ class ScreenEditor : public Editor {
 
   EditingMode current_mode_ = EditingMode::DRAW;
 
-  // Card visibility
-  bool show_dungeon_maps_ = true;
+  // Card visibility - ALL FALSE by default to prevent crash on ROM load
+  // Cards only shown when user explicitly opens them via View menu or shortcuts
+  bool show_dungeon_maps_ = false;
   bool show_inventory_menu_ = false;
   bool show_overworld_map_ = false;
   bool show_title_screen_ = false;
