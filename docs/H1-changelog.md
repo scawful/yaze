@@ -1,16 +1,28 @@
 # Changelog
 
-## 0.3.3 (October 2025) - IN FLUX
+## 0.3.2 (October 2025)
 
-**Note**: Versions 0.3.2-0.3.3 experienced CI/CD issues with Windows releases. See B4-release-workflows.md for details on the fixes applied.
+### CI/CD & Release Improvements
+
+**Release Workflow Fixes**:
+- Fixed build matrix artifact upload issues (platform-specific uploads for Windows/Linux/macOS)
+- Corrected macOS universal binary merge process with proper artifact paths
+- Enhanced release to only include final artifacts (no intermediate build slices)
+- Improved build diagnostics and error reporting across all platforms
+
+**CI/CD Pipeline Enhancements**:
+- Added manual workflow trigger with configurable build types and options
+- Implemented vcpkg caching for faster Windows builds
+- Enhanced Windows diagnostics (vcpkg status, Visual Studio info, disk space monitoring)
+- Added Windows-specific build failure analysis (linker errors, missing dependencies)
+- Conditional artifact uploads for CI builds with configurable retention
+- Comprehensive job summaries with platform-specific information
 
 ### Rendering Pipeline Fixes
 
 **Graphics Editor White Sheets Fixed**:
 - Graphics sheets now receive appropriate default palettes during ROM loading
-- Sheets 0-112: Dungeon main palettes
-- Sheets 113-127: Sprite palettes
-- Sheets 128-222: HUD/menu palettes
+- Sheets 0-112: Dungeon main palettes, Sheets 113-127: Sprite palettes, Sheets 128-222: HUD/menu palettes
 - Eliminated white/blank graphics on initial load
 
 **Message Editor Preview Updates**:
@@ -21,29 +33,42 @@
 **Cross-Editor Graphics Synchronization**:
 - Added `Arena::NotifySheetModified()` for centralized texture management
 - Graphics changes in one editor now propagate to all other editors
-- Improves workflow when editing graphics that appear in multiple contexts
-
-**Logging System Migration**:
 - Replaced raw `printf()` calls with structured `LOG_*` macros throughout graphics pipeline
-- Better integration with logging system for debugging
 
 ### Card-Based UI System
 
 **EditorCardManager**:
 - Centralized card registration and visibility management
 - Context-sensitive card controls in main menu bar
-- Category-based keyboard shortcuts (Ctrl+Shift+D for Dungeon, etc.)
-- Card browser for visual card management (Ctrl+Shift+B)
+- Category-based keyboard shortcuts (Ctrl+Shift+D for Dungeon, Ctrl+Shift+B for browser)
+- Card browser for visual card management
 
 **Editor Integration**:
-- DungeonEditor, GraphicsEditor, ScreenEditor, SpriteEditor, OverworldEditor, AssemblyEditor, MessageEditor, and Emulator now use card system
-- Cards can be closed with X button like normal windows
-- Proper docking behavior across all editors
+- All major editors (Dungeon, Graphics, Screen, Sprite, Overworld, Assembly, Message, Emulator) now use card system
+- Cards can be closed with X button, proper docking behavior across all editors
 - Cards hidden by default to prevent crashes on ROM load
 
-## 0.3.2 (October 2025) - IN FLUX
+### Tile16 Editor & Graphics System
 
-**Note**: CI/CD issues with Windows releases. Fixes implemented in 0.3.3.
+**Palette System Enhancements**:
+- Comprehensive palette coordination with overworld palette system
+- Sheet-based palette mapping (Sheets 0,3-6: AUX; Sheets 1-2: MAIN; Sheet 7: ANIMATED)
+- Enhanced scrollable UI layout with right-click tile picking
+- Save/discard workflow preventing ROM changes until explicit user action
+
+**Performance & Stability**:
+- Fixed segmentation faults caused by tile cache `std::move()` operations invalidating Bitmap surface pointers
+- Disabled problematic tile cache, implemented direct SDL texture updates
+- Added comprehensive bounds checking to prevent palette crashes
+- Implemented surface/texture pooling and performance profiling
+
+### Windows Platform Stability
+
+**Build System Fixes**:
+- Increased Windows stack size from 1MB to 8MB (matches macOS/Linux defaults)
+- Fixed linker errors in development utilities (`extract_vanilla_values`, `rom_patch_utility`)
+- Implemented Windows COM-based file dialog fallback for minimal builds
+- Consistent cross-platform behavior and stack resources
 
 ## 0.3.1 (October 2025)
 
@@ -171,81 +196,19 @@
 - Ready for SDL3 migration with minimal changes
 
 ### GUI & UX Modernization
-- **Theme System**: Implemented a comprehensive theme system (`AgentUITheme`) that centralizes all UI colors. All Agent UI components are now theme-aware, deriving colors from the main application theme.
-- **UI Helper Library**: Created a library of 30+ reusable UI helper functions (`AgentUI::*` and `gui::*`) to standardize panel styles, section headers, status indicators, and buttons, reducing boilerplate code by over 50%.
-- **Visual Polish**: Enhanced numerous UI panels (Agent Chat, Test Harness, Collaboration) with theme-aware colors, status badges (PASS/FAIL/RUN), connection indicators, and provider badges (Ollama/Gemini).
+- **Theme System**: Implemented comprehensive theme system (`AgentUITheme`) centralizing all UI colors
+- **UI Helper Library**: Created 30+ reusable UI helper functions reducing boilerplate code by over 50%
+- **Visual Polish**: Enhanced UI panels with theme-aware colors, status badges, connection indicators
 
 ### Overworld Editor Refactoring
-- **Modular Architecture**: Refactored the 3,400-line `OverworldEditor` into smaller, focused modules, including `OverworldEntityRenderer`.
-- **Progressive Loading**: Implemented a priority-based progressive loading system in the central `gfx::Arena` to prevent UI freezes during asset loading. This benefits all editors.
-- **Critical Graphics Fixes**: Resolved major bugs related to graphics not refreshing immediately, multi-quadrant map updates, and incorrect feature visibility on vanilla ROMs.
-- **Multi-Area Map Configuration**: Implemented a robust `ConfigureMultiAreaMap()` method to correctly handle parent/child relationships for all area sizes (Small, Large, Wide, Tall).
+- **Modular Architecture**: Refactored 3,400-line `OverworldEditor` into smaller focused modules
+- **Progressive Loading**: Implemented priority-based progressive loading in `gfx::Arena` to prevent UI freezes
+- **Critical Graphics Fixes**: Resolved bugs with graphics refresh, multi-quadrant map updates, and feature visibility
+- **Multi-Area Map Configuration**: Robust `ConfigureMultiAreaMap()` handling all area sizes
 
 ### Build System & Stability
-- **Build Fixes**: Resolved 7 critical build errors, including linker issues, missing virtual methods, and filesystem crashes.
-- **C API Separation**: Decoupled the C API library from the main application to improve build modularity.
-
-
-## 0.3.2 (December 2025) - In Development
-
-### Tile16 Editor Improvements (In Progress)
-
-**Palette System Enhancements:**
-- **Comprehensive Palette Coordination**: Enhanced tile16 editor now properly coordinates with overworld palette system
-- **Sheet-Based Palette Mapping**: Implemented sophisticated palette mapping where different graphics sheets use appropriate palette groups:
-  - Sheets 0, 3-6: AUX palette group
-  - Sheets 1-2: MAIN palette group  
-  - Sheet 7: ANIMATED palette group
-- **Enhanced UI Layout**: Improved scrollable layout with better organization and visual clarity
-- **Right-Click Tile Picking**: New feature to pick tiles directly from the tile16 canvas for quick editing
-- **Save/Discard Workflow**: Implemented proper save/discard workflow that prevents ROM changes until explicit user confirmation
-
-**Known Issues:**
-- ⚠️ Palette display still has some errors with certain sheet configurations (work in progress)
-- Some edge cases in palette group selection need refinement
-
-### Graphics System Optimizations
-
-**Performance Improvements:**
-- **Segmentation Fault Resolution**: Fixed critical crashes in tile16 editor caused by tile cache system using `std::move()` operations that invalidated Bitmap surface pointers
-- **Direct SDL Texture Updates**: Disabled problematic tile cache and implemented direct texture update system for improved stability
-- **Comprehensive Bounds Checking**: Added extensive bounds checking throughout graphics pipeline to prevent crashes and palette corruption
-- **Surface/Texture Pooling**: Implemented graphics optimizations including surface/texture pooling while maintaining system stability
-- **Performance Profiling**: Added performance monitoring and profiling capabilities for graphics operations
-
-### Windows Platform Stability
-
-**Build System Fixes:**
-- **Stack Overflow Fix**: Increased Windows stack size from 1MB to 8MB to match macOS/Linux defaults
-  - Prevents crashes during `EditorManager::LoadAssets()` which loads 223 graphics sheets
-  - Handles deep call stacks from multiple editor initializations
-  - Applied to both `yaze` executable and `yaze_test` test suite
-- **Development Utility Fixes**: Fixed linker errors in `extract_vanilla_values` and `rom_patch_utility` executables
-  - Resolved multiple `main()` definition conflicts
-  - Added proper `yaze_core` library linkage
-  - Prevented CI/release builds from attempting to build development-only utilities
-- **File Dialog Fallback Implementation**: Fixed non-functional file dialogs in minimal builds
-  - Implemented proper Windows COM-based `IFileOpenDialog`/`IFileSaveDialog` fallback
-  - Previously returned empty string when NFD (Native File Dialog) was unavailable
-  - Now works in all Windows builds regardless of vcpkg/NFD availability
-  - Supports file open, file save, and folder selection dialogs
-- **Consistent Cross-Platform Behavior**: Windows builds now have equivalent stack resources and stability as Unix-like systems
-
-### Memory Safety & Stability
-
-**Critical Fixes:**
-- **Bitmap Surface Invalidation**: Root cause analysis and fix for segmentation faults in graphics rendering
-- **Tile Cache System**: Disabled move semantics in tile cache that caused pointer invalidation
-- **Memory Management**: Enhanced RAII patterns and smart pointer usage throughout graphics pipeline
-- **Bounds Verification**: Added comprehensive bounds checking for tile and palette access
-
-### Testing & CI/CD Improvements
-
-**Test Infrastructure:**
-- **Windows Test Reliability**: Fixed test suite crashes by increasing stack size
-- **Development-Only Builds**: Properly isolated development utilities from CI/release builds
-- **Better Error Reporting**: Enhanced error messages for Windows build failures
-- **Cross-Platform Consistency**: Ensured consistent test behavior across all platforms
+- **Build Fixes**: Resolved 7 critical build errors including linker issues and filesystem crashes
+- **C API Separation**: Decoupled C API library from main application for improved modularity
 
 ### Future Optimizations (Planned)
 

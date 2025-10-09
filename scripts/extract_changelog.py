@@ -47,7 +47,7 @@ def main():
         sys.exit(1)
     
     version_num = sys.argv[1]
-    changelog_file = "docs/C1-changelog.md"
+    changelog_file = "docs/H1-changelog.md"
     
     # Check if changelog file exists
     if not os.path.exists(changelog_file):
@@ -65,24 +65,26 @@ def main():
 ## Download Instructions
 
 ### Windows
-- Download `yaze-windows-x64.zip` for 64-bit Windows
-- Download `yaze-windows-x86.zip` for 32-bit Windows  
+- Download `yaze-windows-x64.zip`
 - Extract and run `yaze.exe`
+- Requires Windows 10 or later (64-bit)
 
 ### macOS
-- Download `yaze-macos.dmg`
+- Download `yaze-macos-universal.dmg` (Universal Binary - supports both Intel and Apple Silicon)
 - Mount the DMG and drag Yaze to Applications
-- You may need to allow the app in System Preferences > Security & Privacy
+- On first launch, right-click the app and select "Open" to bypass Gatekeeper
+- Requires macOS 11.0 (Big Sur) or later
 
 ### Linux
 - Download `yaze-linux-x64.tar.gz`
 - Extract: `tar -xzf yaze-linux-x64.tar.gz`
 - Run: `./yaze`
+- Requires Ubuntu 22.04 or equivalent with X11/Wayland
 
 ## System Requirements
-- **Windows**: Windows 10 or later (64-bit recommended)
-- **macOS**: macOS 10.15 (Catalina) or later  
-- **Linux**: Ubuntu 20.04 or equivalent, with X11 or Wayland
+- **Windows**: Windows 10 or later (64-bit only)
+- **macOS**: macOS 11.0 (Big Sur) or later (Universal Binary)
+- **Linux**: Ubuntu 22.04 or equivalent with X11 or Wayland
 
 ## Support
 For issues and questions, please visit our [GitHub Issues](https://github.com/scawful/yaze/issues) page.
