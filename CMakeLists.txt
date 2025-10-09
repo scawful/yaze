@@ -66,28 +66,32 @@ option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF
 option(YAZE_USE_MODULAR_BUILD "Use modularized library build system for faster builds" ON)
 
 # ============================================================================
-# Feature Flags - All Always Enabled for Simplified Development
+# Feature Flags - Conditional Based on Build Type
 # ============================================================================
-# No conditional compilation - everything is always available
-# This simplifies development and eliminates ifdef complexity
-set(Z3ED_AI ON)
-set(YAZE_WITH_JSON ON)
-set(YAZE_WITH_GRPC ON)
-
-message(STATUS "✓ All features enabled: JSON, gRPC, AI Agent")
-
-# YAZE_SUPPRESS_WARNINGS: Suppress compiler warnings for cleaner build output
-option(YAZE_SUPPRESS_WARNINGS "Suppress compiler warnings (use -v preset suffix for verbose)" ON)
-
-# Configure minimal builds for CI/CD
+# For minimal builds (CI), disable expensive optional features
+# For full builds (development/release), enable all features
 if(YAZE_MINIMAL_BUILD)
+  set(Z3ED_AI OFF)
+  set(YAZE_WITH_JSON ON)  # Keep JSON (header-only, lightweight)
+  set(YAZE_WITH_GRPC OFF) # Disable gRPC (requires 15-45 min to compile)
+  message(STATUS "○ Minimal build: JSON only (gRPC/AI disabled for CI speed)")
+  
   set(YAZE_ENABLE_UI_TESTS OFF CACHE BOOL "Disabled for minimal build" FORCE)
   set(YAZE_BUILD_Z3ED OFF CACHE BOOL "Disabled for minimal build" FORCE)
   # Keep EMU and LIB enabled for comprehensive testing
   set(YAZE_BUILD_EMU ON CACHE BOOL "Required for test suite" FORCE)
   set(YAZE_BUILD_LIB ON CACHE BOOL "Required for test suite" FORCE)
   set(YAZE_INSTALL_LIB OFF CACHE BOOL "Disabled for minimal build" FORCE)
+else()
+  # Full build - all features enabled
+  set(Z3ED_AI ON)
+  set(YAZE_WITH_JSON ON)
+  set(YAZE_WITH_GRPC ON)
+  message(STATUS "✓ All features enabled: JSON, gRPC, AI Agent")
 endif()
+
+# YAZE_SUPPRESS_WARNINGS: Suppress compiler warnings for cleaner build output
+option(YAZE_SUPPRESS_WARNINGS "Suppress compiler warnings (use -v preset suffix for verbose)" ON)
 set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path to test ROM file")
 
 # PNG support removed - no longer needed
@@ -153,8 +157,9 @@ endif()
 # Abseil provider selection: default to bundled libraries on macOS to avoid
 # deployment target mismatches with system packages, but let other platforms
 # use their package managers unless overridden.
+# CRITICAL: When gRPC is enabled, always use bundled Abseil to avoid version conflicts
 set(_yaze_default_force_absl OFF)
-if(YAZE_PLATFORM_MACOS)
+if(YAZE_PLATFORM_MACOS OR YAZE_WITH_GRPC)
     set(_yaze_default_force_absl ON)
 endif()
 option(YAZE_FORCE_BUNDLED_ABSL
