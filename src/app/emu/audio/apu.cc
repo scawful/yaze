@@ -8,6 +8,7 @@
 #include "app/emu/audio/dsp.h"
 #include "app/emu/audio/spc700.h"
 #include "app/emu/memory/memory.h"
+#include "emu/debug/apu_debugger.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -59,6 +60,12 @@ void Apu::Reset() {
     timer_[i].counter = 0;
     timer_[i].enabled = false;
   }
+  
+  // Reset handshake tracker
+  if (handshake_tracker_) {
+    handshake_tracker_->Reset();
+  }
+  
   LOG_DEBUG("APU", "Reset complete - IPL ROM readable, PC will be at $%04X",
            spc700_.read_word(0xFFFE));
 }
@@ -236,6 +243,13 @@ void Apu::Write(uint16_t adr, uint8_t val) {
       if (old_rom_readable != rom_readable_) {
         LOG_DEBUG("APU", "Control register $F1 = $%02X - IPL ROM %s at PC=$%04X",
                  val, rom_readable_ ? "ENABLED" : "DISABLED", spc700_.PC);
+        
+        // Track IPL ROM disable for handshake debugging
+        if (handshake_tracker_ && !rom_readable_) {
+          // IPL ROM disabled means audio driver uploaded successfully
+          handshake_tracker_->OnSpcPCChange(spc700_.PC, spc700_.PC);
+        }
+        
         // When IPL ROM is disabled, reset transfer tracking
         if (!rom_readable_) {
           in_transfer_ = false;
@@ -257,6 +271,12 @@ void Apu::Write(uint16_t adr, uint8_t val) {
     case 0xf6:
     case 0xf7: {
       out_ports_[adr - 0xf4] = val;
+      
+      // Track SPC port writes for handshake debugging
+      if (handshake_tracker_) {
+        handshake_tracker_->OnSpcPortWrite(adr - 0xf4, val, spc700_.PC);
+      }
+      
       port_write_count++;
       if (port_write_count < 10) {  // Reduced to prevent logging overflow crash
         LOG_DEBUG("APU", "SPC wrote port $%04X (F%d) = $%02X at PC=$%04X [APU_cycles=%llu]",

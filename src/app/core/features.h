@@ -14,7 +14,8 @@ class FeatureFlags {
  public:
   struct Flags {
     // Log instructions to the GUI debugger.
-    bool kLogInstructions = true;
+    // WARNING: Setting this to true causes SEVERE performance degradation
+    bool kLogInstructions = false;
 
     // Flag to enable the saving of all palettes to the Rom.
     bool kSaveAllPalettes = false;

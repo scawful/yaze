@@ -12,6 +12,11 @@
 namespace yaze {
 namespace emu {
 
+// Forward declaration
+namespace debug {
+class ApuHandshakeTracker;
+}
+
 typedef struct Timer {
   uint8_t cycles;
   uint8_t divider;
@@ -66,6 +71,11 @@ class Apu {
   auto spc700() -> Spc700 & { return spc700_; }
 
   uint64_t GetCycles() const { return cycles_; }
+  
+  // Audio debugging
+  void set_handshake_tracker(debug::ApuHandshakeTracker* tracker) {
+    handshake_tracker_ = tracker;
+  }
   uint8_t GetStatus() const { return ram[0x00]; }
   uint8_t GetControl() const { return ram[0x01]; }
   void GetSamples(int16_t *buffer, int count, bool loop = false) {
@@ -94,6 +104,9 @@ class Apu {
 
   MemoryImpl &memory_;
   std::array<Timer, 3> timer_;
+  
+  // Audio debugging
+  debug::ApuHandshakeTracker* handshake_tracker_ = nullptr;
 
   ApuCallbacks callbacks_ = {
       [&](uint16_t adr, uint8_t val) { SpcWrite(adr, val); },

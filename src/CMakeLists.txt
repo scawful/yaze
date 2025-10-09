@@ -1,12 +1,14 @@
 set(
   YAZE_APP_EMU_SRC
   app/emu/audio/apu.cc
+  app/emu/audio/audio_backend.cc
   app/emu/audio/spc700.cc
   app/emu/audio/dsp.cc
   app/emu/audio/internal/addressing.cc
   app/emu/audio/internal/instructions.cc
   app/emu/cpu/internal/addressing.cc
   app/emu/cpu/internal/instructions.cc
+  app/emu/debug/apu_debugger.cc
   app/emu/debug/disassembly_viewer.cc
   app/emu/debug/breakpoint_manager.cc
   app/emu/debug/watchpoint_manager.cc
@@ -884,6 +886,8 @@ source_group("Application\\Emulator" FILES
 source_group("Application\\Emulator\\Audio" FILES
   app/emu/audio/apu.cc
   app/emu/audio/apu.h
+  app/emu/audio/audio_backend.cc
+  app/emu/audio/audio_backend.h
   app/emu/audio/spc700.cc
   app/emu/audio/spc700.h
   app/emu/audio/dsp.cc
@@ -918,6 +922,18 @@ source_group("Application\\Emulator\\Video" FILES
   app/emu/video/ppu.cc
   app/emu/video/ppu.h
   app/emu/video/ppu_registers.h
+)
+
+# Debug System
+source_group("Application\\Emulator\\Debug" FILES
+  app/emu/debug/apu_debugger.cc
+  app/emu/debug/apu_debugger.h
+  app/emu/debug/breakpoint_manager.cc
+  app/emu/debug/breakpoint_manager.h
+  app/emu/debug/disassembly_viewer.cc
+  app/emu/debug/disassembly_viewer.h
+  app/emu/debug/watchpoint_manager.cc
+  app/emu/debug/watchpoint_manager.h
 )
 
 # Graphics System

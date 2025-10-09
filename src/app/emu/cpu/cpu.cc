@@ -1938,17 +1938,18 @@ bool immediate, bool accumulator_mode) {
   const std::string& mnemonic = opcode_to_mnemonic.at(opcode);
   
   // NEW: Call recording callback if set (for DisassemblyViewer)
+  // DisassemblyViewer uses sparse address-map recording (Mesen-style)
+  // - Only records each unique address ONCE
+  // - Increments execution_count on re-visits
+  // - No performance impact even with millions of instructions
   if (on_instruction_executed_) {
     on_instruction_executed_(full_address, opcode, operand_bytes, mnemonic, operand_str);
   }
   
-  // Legacy: Record to old disassembly viewer if feature flag enabled
+  // DEPRECATED: Legacy instruction_log_ kept for backwards compatibility only
+  // This is the old, inefficient logging that stores EVERY execution.
+  // Use DisassemblyViewer instead - it's always enabled and much more efficient.
   if (core::FeatureFlags::get().kLogInstructions) {
-    // Record to new disassembly viewer
-    disassembly_viewer().RecordInstruction(full_address, opcode, operand_bytes,
-                                          mnemonic, operand_str);
-    
-    // Also maintain legacy log for compatibility
     std::ostringstream oss;
     oss << "$" << std::uppercase << std::setw(2) << std::setfill('0')
         << static_cast<int>(PB) << ":" << std::hex << PC << ": 0x"
@@ -1958,82 +1959,15 @@ bool immediate, bool accumulator_mode) {
     InstructionEntry entry(PC, opcode, operand_str, oss.str());
     instruction_log_.push_back(entry);
     
-    // Also emit to the central logger for user/agent-controlled sinks
-    util::LogManager::instance().log(util::LogLevel::YAZE_DEBUG, "CPU",
-                                     oss.str());
-  } else {
-    // Log the address and opcode.
-    std::cout << "\033[1;36m"
-              << "$" << std::uppercase << std::setw(2) << std::setfill('0')
-              << static_cast<int>(PB) << ":" << std::hex << PC;
-    std::cout << " \033[1;32m"
-              << ": 0x" << std::hex << std::uppercase << std::setw(2)
-              << std::setfill('0') << static_cast<int>(opcode) << " ";
-    std::cout << " \033[1;35m" << opcode_to_mnemonic.at(opcode) << " "
-              << "\033[0m";
-
-    // Log the operand.
-    if (operand) {
-      if (immediate) {
-        std::cout << "#";
-      }
-      std::cout << "$";
-      if (accumulator_mode) {
-        std::cout << std::hex << std::setw(2) << std::setfill('0') << operand;
-      } else {
-        std::cout << std::hex << std::setw(4) << std::setfill('0')
-                  << static_cast<int>(operand);
-      }
-
-      bool x_indexing, y_indexing;
-      auto x_indexed_instruction_opcodes = {0x15, 0x16, 0x17, 0x55, 0x56,
-                                            0x57, 0xD5, 0xD6, 0xD7, 0xF5,
-                                            0xF6, 0xF7, 0xBD};
-      auto y_indexed_instruction_opcodes = {0x19, 0x97, 0x1D, 0x59, 0x5D, 0x99,
-                                            0x9D, 0xB9, 0xD9, 0xDD, 0xF9, 0xFD};
-      if (std::find(x_indexed_instruction_opcodes.begin(),
-                    x_indexed_instruction_opcodes.end(),
-                    opcode) != x_indexed_instruction_opcodes.end()) {
-        x_indexing = true;
-      } else {
-        x_indexing = false;
-      }
-      if (std::find(y_indexed_instruction_opcodes.begin(),
-                    y_indexed_instruction_opcodes.end(),
-                    opcode) != y_indexed_instruction_opcodes.end()) {
-        y_indexing = true;
-      } else {
-        y_indexing = false;
-      }
-
-      if (x_indexing) {
-        std::cout << ", X";
-      }
-
-      if (y_indexing) {
-        std::cout << ", Y";
-      }
+    // PERFORMANCE: Cap to prevent unbounded growth
+    constexpr size_t kMaxInstructionLogSize = 10000;
+    if (instruction_log_.size() > kMaxInstructionLogSize) {
+      instruction_log_.erase(instruction_log_.begin(), 
+                            instruction_log_.begin() + kMaxInstructionLogSize / 2);
     }
-
-    // Log the registers and flags.
-    std::cout << std::right;
-    std::cout << "\033[1;33m"
-              << " A:" << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(A);
-    std::cout << " X:" << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(X);
-    std::cout << " Y:" << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(Y);
-    std::cout << " S:" << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(status);
-    std::cout << " DB:" << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(DB);
-    std::cout << " D:" << std::hex << std::setw(2) << std::setfill('0')
-              << static_cast<int>(D);
-    std::cout << " SP:" << std::hex << std::setw(4) << std::setfill('0')
-              << SP();
-
-    std::cout << std::endl;
+    
+    // Also emit to central logger
+    util::LogManager::instance().log(util::LogLevel::YAZE_DEBUG, "CPU", oss.str());
   }
 }
 
