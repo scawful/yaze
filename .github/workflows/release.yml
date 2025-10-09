@@ -141,35 +141,72 @@ jobs:
       - name: "Set up vcpkg (Windows only)"
         if: runner.os == 'Windows'
         uses: lukka/run-vcpkg@v11
+        id: vcpkg
+        continue-on-error: true
         with:
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+          vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'  # 2024.07.12 release
           runVcpkgInstall: true
-          doNotUpdateVcpkg: false
+      
+      - name: "Retry vcpkg setup (Windows only)"
+        if: runner.os == 'Windows' && steps.vcpkg.outcome == 'failure'
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+          vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
+          runVcpkgInstall: true
+          doNotUpdateVcpkg: true  # Use existing clone on retry
 
       - name: "Install Dependencies"
+        id: deps
         shell: bash
+        continue-on-error: true
         run: |
           if [[ "${{ runner.os }}" == "Linux" ]]; then
             sudo apt-get update
             sudo apt-get install -y \
               build-essential ninja-build pkg-config \
-              libglew-dev libxext-dev libwavpack-dev libabsl-dev libboost-all-dev \
+              libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
+              libpng-dev python3-dev libpython3-dev \
+              libasound2-dev libpulse-dev libx11-dev libxrandr-dev libxcursor-dev \
+              libxinerama-dev libxi-dev
+            # Note: libabsl-dev removed - gRPC uses bundled Abseil via FetchContent when enabled
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            brew install ninja cmake pkg-config
+          fi
+      
+      - name: "Retry Dependencies (if failed)"
+        if: steps.deps.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "::warning::First dependency install failed, retrying..."
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            sudo apt-get clean
+            sudo apt-get update --fix-missing
+            sudo apt-get install -y \
+              build-essential ninja-build pkg-config \
+              libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
               libpng-dev python3-dev libpython3-dev \
               libasound2-dev libpulse-dev libx11-dev libxrandr-dev libxcursor-dev \
               libxinerama-dev libxi-dev
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            brew update
             brew install ninja cmake pkg-config
           fi
 
       - name: "Configure"
+        id: configure
         shell: bash
         run: |
+          set -e
+          echo "::group::CMake Configuration"
           if [[ "${{ runner.os }}" == "Windows" ]]; then
             cmake -B build -G "Visual Studio 17 2022" -A x64 \
               -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
               -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
               -DYAZE_BUILD_TESTS=OFF \
               -DYAZE_BUILD_EMU=OFF \
-              -DYAZE_BUILD_Z3ED=ON
+              -DYAZE_BUILD_Z3ED=ON 2>&1 | tee cmake_config.log
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
             cmake -B build -G Ninja \
               -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
@@ -177,17 +214,63 @@ jobs:
               -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
               -DYAZE_BUILD_TESTS=OFF \
               -DYAZE_BUILD_EMU=OFF \
-              -DYAZE_BUILD_Z3ED=ON
+              -DYAZE_BUILD_Z3ED=ON 2>&1 | tee cmake_config.log
           else
             cmake -B build -G Ninja \
               -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
               -DYAZE_BUILD_TESTS=OFF \
               -DYAZE_BUILD_EMU=OFF \
-              -DYAZE_BUILD_Z3ED=ON
+              -DYAZE_BUILD_Z3ED=ON 2>&1 | tee cmake_config.log
+          fi
+          echo "::endgroup::"
+      
+      - name: "Report Configure Failure"
+        if: failure() && steps.configure.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "::error::CMake configuration failed for ${{ matrix.name }}"
+          if [ -f cmake_config.log ]; then
+            echo "::group::CMake Configuration Log (last 50 lines)"
+            tail -50 cmake_config.log
+            echo "::endgroup::"
+          fi
+          if [ -f build/CMakeFiles/CMakeError.log ]; then
+            echo "::group::CMake Error Log"
+            cat build/CMakeFiles/CMakeError.log
+            echo "::endgroup::"
           fi
 
       - name: "Build"
-        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
+        id: build
+        run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel 2>&1 | tee build.log
+      
+      - name: "Report Build Failure"
+        if: failure() && steps.build.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "::error::Build failed for ${{ matrix.name }}"
+          if [ -f build.log ]; then
+            echo "::group::Build Log (last 100 lines)"
+            tail -100 build.log
+            echo "::endgroup::"
+            
+            echo "::group::Build Errors"
+            grep -i "error" build.log | head -20 || true
+            echo "::endgroup::"
+          fi
+      
+      - name: "Upload Build Logs on Failure"
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-build-logs-${{ matrix.artifact_name }}
+          path: |
+            cmake_config.log
+            build.log
+            build/CMakeFiles/CMakeError.log
+            build/CMakeFiles/CMakeOutput.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: "Package Artifacts"
         shell: bash
@@ -226,6 +309,40 @@ jobs:
             stage/
           if-no-files-found: error
           retention-days: 5
+      
+      - name: "Generate Build Summary"
+        if: always()
+        shell: bash
+        run: |
+          echo "## Release Build Summary - ${{ matrix.name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "- **Platform**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Artifact**: ${{ matrix.artifact_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Type**: ${{ env.BUILD_TYPE }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Build Status" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ steps.configure.outcome }}" == "success" ]]; then
+            echo "- ✅ Configure: Success" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Configure: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ steps.build.outcome }}" == "success" ]]; then
+            echo "- ✅ Build: Success" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Build: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [[ "${{ runner.os }}" == "Windows" && -f "${{ matrix.artifact_name }}.zip" ]]; then
+            SIZE=$(du -h "${{ matrix.artifact_name }}.zip" | cut -f1)
+            echo "- 📦 Artifact Size: $SIZE" >> $GITHUB_STEP_SUMMARY
+          elif [[ -f "${{ matrix.artifact_name }}.tar.gz" ]]; then
+            SIZE=$(du -h "${{ matrix.artifact_name }}.tar.gz" | cut -f1)
+            echo "- 📦 Artifact Size: $SIZE" >> $GITHUB_STEP_SUMMARY
+          fi
 
   # ======================================================================================
   #  MERGE MACOS & CREATE UNIVERSAL BINARY

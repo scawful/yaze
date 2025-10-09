@@ -47,22 +47,58 @@ jobs:
       uses: actions/checkout@v4
       with:
         submodules: recursive
-
+      
     - name: Set up vcpkg (Windows only)
       if: runner.os == 'Windows'
       uses: lukka/run-vcpkg@v11
+      id: vcpkg
+      continue-on-error: true
       with:
+        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+        vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'  # 2024.07.12 release
         runVcpkgInstall: true
-        doNotUpdateVcpkg: false
+    
+    - name: Retry vcpkg setup (Windows only)
+      if: runner.os == 'Windows' && steps.vcpkg.outcome == 'failure'
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+        vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
+        runVcpkgInstall: true
+        doNotUpdateVcpkg: true  # Use existing clone on retry
 
     - name: Install Dependencies
+      id: deps
       shell: bash
+      continue-on-error: true
       run: |
         if [[ "${{ runner.os }}" == "Linux" ]]; then
           sudo apt-get update
           sudo apt-get install -y \
             build-essential ninja-build pkg-config \
-            libglew-dev libxext-dev libwavpack-dev libabsl-dev libboost-all-dev \
+            libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
+            libpng-dev python3-dev libpython3-dev \
+            libasound2-dev libpulse-dev libaudio-dev \
+            libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev \
+            libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
+            libgtk-3-dev libdbus-1-dev \
+            ${{ matrix.cc }} ${{ matrix.cxx }}
+          # Note: libabsl-dev removed - gRPC uses bundled Abseil via FetchContent when enabled
+        elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          brew install ninja pkg-config
+        fi
+    
+    - name: Retry Dependencies (if failed)
+      if: steps.deps.outcome == 'failure'
+      shell: bash
+      run: |
+        echo "::warning::First dependency install failed, retrying..."
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          sudo apt-get clean
+          sudo apt-get update --fix-missing
+          sudo apt-get install -y \
+            build-essential ninja-build pkg-config \
+            libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
             libpng-dev python3-dev libpython3-dev \
             libasound2-dev libpulse-dev libaudio-dev \
             libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev \
@@ -70,42 +106,160 @@ jobs:
             libgtk-3-dev libdbus-1-dev \
             ${{ matrix.cc }} ${{ matrix.cxx }}
         elif [[ "${{ runner.os }}" == "macOS" ]]; then
+          brew update
           brew install ninja pkg-config
         fi
 
     - name: Configure
+      id: configure
       shell: bash
       run: |
+        set -e
+        echo "::group::CMake Configuration"
         if [[ "${{ runner.os }}" == "Windows" ]]; then
           cmake -B build -G "Visual Studio 17 2022" -A x64 \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DYAZE_MINIMAL_BUILD=ON \
-            -DYAZE_ENABLE_ROM_TESTS=OFF
+            -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
         else
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_C_COMPILER=${{ matrix.cc }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
             -DYAZE_MINIMAL_BUILD=ON \
-            -DYAZE_ENABLE_ROM_TESTS=OFF
+            -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
+        fi
+        echo "::endgroup::"
+    
+    - name: Report Configure Failure
+      if: failure() && steps.configure.outcome == 'failure'
+      shell: bash
+      run: |
+        echo "::error::CMake configuration failed. Check cmake_config.log for details."
+        if [ -f cmake_config.log ]; then
+          echo "::group::CMake Configuration Log (last 50 lines)"
+          tail -50 cmake_config.log
+          echo "::endgroup::"
+        fi
+        if [ -f build/CMakeFiles/CMakeError.log ]; then
+          echo "::group::CMake Error Log"
+          cat build/CMakeFiles/CMakeError.log
+          echo "::endgroup::"
+        fi
+    
+    - name: Build
+      id: build
+      run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel 2>&1 | tee build.log
+    
+    - name: Report Build Failure
+      if: failure() && steps.build.outcome == 'failure'
+      shell: bash
+      run: |
+        echo "::error::Build failed. Check build.log for details."
+        if [ -f build.log ]; then
+          echo "::group::Build Log (last 100 lines)"
+          tail -100 build.log
+          echo "::endgroup::"
+          
+          # Extract and highlight actual errors
+          echo "::group::Build Errors"
+          grep -i "error" build.log | head -20 || true
+          echo "::endgroup::"
         fi
 
-    - name: Build
-      run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
-
     - name: Test (Core)
+      id: test_core
       working-directory: build
       run: |
         ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure -j1 \
-          -R "AsarWrapperTest|SnesTileTest|CompressionTest|SnesPaletteTest|HexTest|MessageTest"
-
+          -R "AsarWrapperTest|SnesTileTest|CompressionTest|SnesPaletteTest|HexTest|MessageTest" \
+          --output-junit core_test_results.xml 2>&1 | tee ../core_test.log
+    
     - name: Test (Additional - Informational)
+      id: test_additional
       working-directory: build
       continue-on-error: true
       run: |
         ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure --parallel \
-          -R ".*Test" -E ".*RomTest.*|.*E2E.*|.*ZSCustomOverworld.*|.*IntegrationTest.*|CpuTest|Spc700Test|ApuTest"
+          -R ".*Test" -E ".*RomTest.*|.*E2E.*|.*ZSCustomOverworld.*|.*IntegrationTest.*|CpuTest|Spc700Test|ApuTest" \
+          --output-junit additional_test_results.xml 2>&1 | tee ../additional_test.log
+    
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.name }}
+        path: |
+          build/*test_results.xml
+          core_test.log
+          additional_test.log
+        retention-days: 7
+    
+    - name: Upload Build Logs on Failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs-${{ matrix.name }}
+        path: |
+          cmake_config.log
+          build.log
+          build/CMakeFiles/CMakeError.log
+          build/CMakeFiles/CMakeOutput.log
+        if-no-files-found: ignore
+        retention-days: 7
+    
+    - name: Generate Job Summary
+      if: always()
+      shell: bash
+      run: |
+        echo "## Build Summary - ${{ matrix.name }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Configuration info
+        echo "### Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "- **Platform**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Compiler**: ${{ matrix.cc }}/${{ matrix.cxx }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Type**: ${{ env.BUILD_TYPE }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Minimal Build**: ON" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Build status
+        echo "### Build Status" >> $GITHUB_STEP_SUMMARY
+        if [[ "${{ steps.configure.outcome }}" == "success" ]]; then
+          echo "- ✅ Configure: Success" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- ❌ Configure: Failed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ steps.build.outcome }}" == "success" ]]; then
+          echo "- ✅ Build: Success" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- ❌ Build: Failed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ steps.test_core.outcome }}" == "success" ]]; then
+          echo "- ✅ Core Tests: Passed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- ❌ Core Tests: Failed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ steps.test_additional.outcome }}" == "success" ]]; then
+          echo "- ✅ Additional Tests: Passed" >> $GITHUB_STEP_SUMMARY
+        elif [[ "${{ steps.test_additional.outcome }}" == "failure" ]]; then
+          echo "- ⚠️ Additional Tests: Failed (informational)" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- ⏭️ Additional Tests: Skipped" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Test results
+        if [ -f build/core_test_results.xml ]; then
+          echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          grep -E "tests=|failures=|errors=" build/core_test_results.xml | head -1 || echo "Test summary not available"
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        fi
 
   code-quality:
     name: "✨ Code Quality"
