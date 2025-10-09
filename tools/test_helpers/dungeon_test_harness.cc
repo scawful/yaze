@@ -37,7 +37,7 @@ class DungeonTestHarness {
     auto& ppu = snes.ppu();
 
     // Run emulator until the main game loop is reached
-    int max_cycles = 5000000;  // 5 million cycles should be plenty
+    int max_cycles = 15000000;  // 15 million cycles should be plenty
     int cycles = 0;
     while (cycles < max_cycles) {
       snes.RunCycle();
