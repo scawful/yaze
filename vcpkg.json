@@ -1,14 +1,33 @@
 {
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "yaze",
   "version": "0.3.2",
   "description": "Yet Another Zelda3 Editor",
+  "builtin-baseline": "a42af01b72c28a8e1d7b48107b33e4f286a55ef6",
   "dependencies": [
     {
       "name": "sdl2",
-      "platform": "!uwp",
-      "features": ["vulkan"]
+      "platform": "windows",
+      "default-features": false,
+      "features": []
     },
-    "yaml-cpp",
-    "zlib"
+    {
+      "name": "abseil",
+      "platform": "windows"
+    },
+    {
+      "name": "yaml-cpp",
+      "platform": "windows"
+    },
+    {
+      "name": "zlib",
+      "platform": "windows"
+    }
+  ],
+  "overrides": [
+    {
+      "name": "sdl2",
+      "version": "2.30.9"
+    }
   ]
 }
