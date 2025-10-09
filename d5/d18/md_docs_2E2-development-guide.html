@@ -101,23 +101,11 @@ $(document).ready(function(){initNavTree('d5/d18/md_docs_2E2-development-guide.h
   <div class="headertitle"><div class="title">E2 - Development Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md533"></a> This guide outlines the core architectural patterns, UI systems, and best practices for developing and maintaining the yaze editor.</p>
-<h1><a class="anchor" id="autotoc_md534"></a>
-Editor Status</h1>
-<ul>
-<li><b>Overworld Editor</b>: Production ready</li>
-<li><b>Message Editor</b>: Production ready (requires testing of recent rendering fixes)</li>
-<li><b>Emulator</b>: Production ready</li>
-<li><b>Dungeon Editor</b>: EXPERIMENTAL - Requires thorough testing</li>
-<li><b>Graphics Editor</b>: EXPERIMENTAL - Recent rendering pipeline changes need validation</li>
-<li><b>Palette Editor</b>: Production ready</li>
-<li><b>Sprite Editor</b>: EXPERIMENTAL</li>
-<li><b>Assembly Editor</b>: Production ready</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md535"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md526"></a> This guide outlines the core architectural patterns, UI systems, and best practices for developing and maintaining the Yaze editor. Adhering to these patterns is crucial for ensuring consistency, maintainability, and performance.</p>
+<h1><a class="anchor" id="autotoc_md527"></a>
 1. Core Architectural Patterns</h1>
 <p>These patterns, established during the Overworld Editor refactoring, should be applied to all new and existing editor components.</p>
-<h2><a class="anchor" id="autotoc_md536"></a>
+<h2><a class="anchor" id="autotoc_md528"></a>
 Pattern 1: Modular Systems</h2>
 <p><b>Principle</b>: Decompose large, monolithic editor classes into smaller, single-responsibility modules.</p>
 <ul>
@@ -126,14 +114,14 @@ Pattern 1: Modular Systems</h2>
 <li><b>Interaction</b>: Canvas interaction logic (mouse handling, editing modes) should be separated from the main editor class to simplify state management.</li>
 </ul>
 <p><b>Benefit</b>: Smaller, focused modules are easier to test, debug, and maintain. The main editor class becomes a coordinator, which is a much cleaner architecture.</p>
-<h2><a class="anchor" id="autotoc_md537"></a>
+<h2><a class="anchor" id="autotoc_md529"></a>
 Pattern 2: Callback-Based Communication</h2>
 <p><b>Principle</b>: Use <code>std::function</code> callbacks for child-to-parent communication to avoid circular dependencies.</p>
 <ul>
 <li><b>Implementation</b>: A parent editor provides its child components with callbacks (typically via a <code>SetCallbacks</code> method) during initialization. The child component invokes these callbacks to notify the parent of events or to request actions (like a refresh).</li>
 <li><b>Example</b>: <code>MapPropertiesSystem</code> receives a <code>RefreshCallback</code> from <code>OverworldEditor</code>. When a property is changed in the UI, it calls the function, allowing the <code>OverworldEditor</code> to execute the refresh logic without the <code>MapPropertiesSystem</code> needing to know anything about the editor itself.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md538"></a>
+<h2><a class="anchor" id="autotoc_md530"></a>
 Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</h2>
 <p><b>Principle</b>: All expensive asset loading operations must be performed asynchronously to prevent UI freezes. The <code>gfx::Arena</code> singleton provides a centralized, priority-based system for this.</p>
 <ul>
@@ -145,10 +133,10 @@ Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</
 </li>
 <li><b>Benefit</b>: This provides a globally consistent, non-blocking loading mechanism that is available to all editors and ensures the UI remains responsive.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md539"></a>
+<h1><a class="anchor" id="autotoc_md531"></a>
 2. UI &amp; Theming System</h1>
 <p>To ensure a consistent and polished look and feel, all new UI components must adhere to the established theme and helper function system.</p>
-<h2><a class="anchor" id="autotoc_md540"></a>
+<h2><a class="anchor" id="autotoc_md532"></a>
 2.1. The Theme System (&lt;tt&gt;AgentUITheme&lt;/tt&gt;)</h2>
 <ul>
 <li><b>Principle</b>: <b>Never use hardcoded colors (<code>ImVec4</code>)**. All UI colors must be derived from the central theme.</b></li>
@@ -157,7 +145,7 @@ Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</
 <p class="startli"><code>cpp const auto&amp; theme = AgentUI::GetTheme(); ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_color); </code></p>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md541"></a>
+<h2><a class="anchor" id="autotoc_md533"></a>
 2.2. Reusable UI Helper Functions</h2>
 <ul>
 <li><b>Principle</b>: Encapsulate common UI patterns into helper functions to reduce boilerplate and ensure consistency.</li>
@@ -171,16 +159,16 @@ Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</
 </li>
 <li><b>Benefit</b>: Creates a consistent visual language and makes the UI code far more readable and maintainable.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md542"></a>
+<h2><a class="anchor" id="autotoc_md534"></a>
 2.3. Toolbar Implementation (&lt;tt&gt;CompactToolbar&lt;/tt&gt;)</h2>
 <ul>
 <li><b>Stretching</b>: To prevent <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> from stretching the last item in a toolbar, do not use <code>ImGui::BeginGroup()</code>. Instead, manage layout with <code>ImGui::SameLine()</code> and end the toolbar with <code>ImGui::NewLine()</code>.</li>
 <li><b>Separators</b>: Use <code>ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical)</code> for vertical separators that do not affect item layout.</li>
 <li><b>Property Inputs</b>: Use the <code>toolbar.AddProperty()</code> method for consistent spacing and sizing of input fields within the toolbar.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md543"></a>
+<h1><a class="anchor" id="autotoc_md535"></a>
 3. Key System Implementations &amp; Gotchas</h1>
-<h2><a class="anchor" id="autotoc_md544"></a>
+<h2><a class="anchor" id="autotoc_md536"></a>
 3.1. Graphics Refresh Logic</h2>
 <ul>
 <li><b>Immediate vs. Deferred</b>: When a visual property changes, the texture must be updated on the GPU immediately. Use <code>Renderer::Get().RenderBitmap()</code> for an immediate, blocking update. <code>UpdateBitmap()</code> is deferred and should not be used for changes the user expects to see instantly.</li>
@@ -191,59 +179,28 @@ Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</
 </ol>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md545"></a>
+<h2><a class="anchor" id="autotoc_md537"></a>
 3.2. Multi-Area Map Configuration</h2>
 <ul>
 <li><b>Use the Helper</b>: When changing a map's area size (e.g., from <code>Small</code> to <code>Large</code>), you <b>must</b> use the <code>zelda3::Overworld::ConfigureMultiAreaMap()</code> method. Do not set the <code>area_size</code> property directly.</li>
 <li><b>Why</b>: This method correctly handles the complex logic of assigning parent IDs to all sibling maps and updating the necessary ROM data for persistence. Failure to use it will result in inconsistent state and refresh bugs.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md546"></a>
+<h2><a class="anchor" id="autotoc_md538"></a>
 3.3. Version-Specific Feature Gating</h2>
 <ul>
 <li><b>Principle</b>: The UI must adapt to the features supported by the loaded ROM. Do not show UI for features that are not available.</li>
 <li><b>Implementation</b>: Check the ROM's <code>asm_version</code> byte before rendering a UI component. If the feature is not supported, display a helpful message (e.g., "This feature requires ZSCustomOverworld v3+") instead of the UI.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md547"></a>
+<h2><a class="anchor" id="autotoc_md539"></a>
 3.4. Entity Visibility for Visual Testing</h2>
 <ul>
 <li><b>Standard</b>: All overworld entity markers (entrances, exits, items, sprites) should be rendered with a high-contrast color and an alpha of <code>0.85f</code> to ensure they are clearly visible against any background.<ul>
 <li><b>Entrances</b>: Bright yellow-gold</li>
 <li><b>Exits</b>: Cyan-white</li>
 <li><b>Items</b>: Bright red</li>
-<li><b>Sprites</b>: Bright magenta</li>
+<li><b>Sprites</b>: Bright magenta </li>
 </ul>
 </li>
-</ul>
-<h2><a class="anchor" id="autotoc_md548"></a>
-3.5. Bitmap and Texture Synchronization</h2>
-<p>When working with bitmaps and textures, understand that two memory locations must stay synchronized:</p>
-<ol type="1">
-<li>**<code>data_</code> vector**: C++ std::vector&lt;uint8_t&gt; holding pixel data</li>
-<li>**<code>surface_-&gt;pixels</code>**: SDL surface's raw pixel buffer (used for texture creation)</li>
-</ol>
-<p><b>Critical Rules</b>:</p><ul>
-<li>Use <code>set_data()</code> for bulk data replacement (syncs both vector and surface)</li>
-<li>Use <code>WriteToPixel()</code> for single-pixel modifications</li>
-<li>Never assign directly to <code>mutable_data()</code> for replacements (only updates vector, not surface)</li>
-<li>Always call <code>ProcessTextureQueue()</code> every frame to process pending texture operations</li>
-</ul>
-<p><b>Example</b>: </p><div class="fragment"><div class="line"><span class="comment">// WRONG - only updates vector</span></div>
-<div class="line">bitmap.mutable_data() = new_data;</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// CORRECT - updates both vector and SDL surface</span></div>
-<div class="line">bitmap.set_data(new_data);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md549"></a>
-3.6. Graphics Sheet Management</h2>
-<p>Graphics sheets (223 total) are managed centrally by <code>gfx::Arena</code>. When modifying a sheet:</p>
-<ol type="1">
-<li>Modify the sheet: <code>auto&amp; sheet = Arena::Get().mutable_gfx_sheet(index);</code></li>
-<li>Notify Arena: <code>Arena::Get().NotifySheetModified(index);</code></li>
-<li>Changes automatically propagate to all editors</li>
-</ol>
-<p>Default palettes are applied during ROM loading based on sheet index:</p><ul>
-<li>Sheets 0-112: Dungeon main palettes</li>
-<li>Sheets 113-127: Sprite palettes</li>
-<li>Sheets 128-222: HUD/menu palettes </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
