@@ -52,15 +52,53 @@ std::filesystem::path PlatformPaths::GetHomeDirectory() {
 }
 
 absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataDirectory() {
+#ifdef _WIN32
+  wchar_t path[MAX_PATH];
+  if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, 0, path))) {
+    std::filesystem::path app_data = std::filesystem::path(path) / "yaze";
+    auto status = EnsureDirectoryExists(app_data);
+    if (!status.ok()) {
+      return status;
+    }
+    return app_data;
+  }
+  // Fallback if SHGetFolderPathW fails
   std::filesystem::path home = GetHomeDirectory();
-  std::filesystem::path app_data = home / ".yaze";
-  
+  std::filesystem::path app_data = home / "yaze_data";
+  auto status = EnsureDirectoryExists(app_data);
+  if (!status.ok()) {
+      return status;
+  }
+  return app_data;
+#elif defined(__APPLE__)
+  std::filesystem::path home = GetHomeDirectory();
+  std::filesystem::path app_data = home / "Library" / "Application Support" / "yaze";
   auto status = EnsureDirectoryExists(app_data);
   if (!status.ok()) {
     return status;
   }
-  
   return app_data;
+#else // Linux and other Unix-like systems
+  const char* xdg_config_home = std::getenv("XDG_CONFIG_HOME");
+  std::filesystem::path config_dir;
+  if (xdg_config_home && *xdg_config_home) {
+    config_dir = std::filesystem::path(xdg_config_home);
+  } else {
+    config_dir = GetHomeDirectory() / ".config";
+  }
+  std::filesystem::path app_data = config_dir / "yaze";
+  auto status = EnsureDirectoryExists(app_data);
+  if (!status.ok()) {
+    return status;
+  }
+  return app_data;
+#endif
+}
+
+absl::StatusOr<std::filesystem::path> PlatformPaths::GetConfigDirectory() {
+  // For yaze, config and data directories are the same.
+  // This provides a semantically clearer API for config access.
+  return GetAppDataDirectory();
 }
 
 absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataSubdirectory(

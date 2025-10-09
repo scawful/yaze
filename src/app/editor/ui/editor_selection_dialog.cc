@@ -344,7 +344,7 @@ void EditorSelectionDialog::MarkRecentlyUsed(EditorType type) {
 
 void EditorSelectionDialog::LoadRecentEditors() {
   try {
-    auto data = util::LoadConfigFile("recent_editors.txt");
+    auto data = util::LoadFileFromConfigDir("recent_editors.txt");
     if (!data.empty()) {
       std::istringstream ss(data);
       std::string line;

@@ -51,15 +51,45 @@ std::string GetBundleResourcePath();
 
 enum class Platform { kUnknown, kMacOS, kiOS, kWindows, kLinux };
 
+/**
+ * @brief Gets the file extension from a filename.
+ * 
+ * Uses std::filesystem for cross-platform consistency.
+ *
+ * @param filename The name of the file.
+ * @return The file extension, or an empty string if none is found.
+ */
 std::string GetFileExtension(const std::string &filename);
+
+/**
+ * @brief Gets the filename from a full path.
+ * 
+ * Uses std::filesystem for cross-platform consistency.
+ *
+ * @param filename The full path to the file.
+ * @return The filename, including the extension.
+ */
 std::string GetFileName(const std::string &filename);
-std::string LoadFile(const std::string &filename);
-std::string LoadConfigFile(const std::string &filename);
-std::string GetConfigDirectory();
-bool EnsureConfigDirectoryExists();
-std::string ExpandHomePath(const std::string& path);
 std::string GetResourcePath(const std::string &resource_path);
 void SaveFile(const std::string &filename, const std::string &data);
+
+  /**
+   * @brief Loads the entire contents of a file into a string.
+   *
+   * Throws a std::runtime_error if the file cannot be opened.
+   *
+   * @param filename The full, absolute path to the file.
+   * @return The contents of the file as a string.
+   */
+  std::string LoadFile(const std::string &filename);
+
+  /**
+   * @brief Loads a file from the user's config directory.
+   *
+   * @param filename The name of the file inside the config directory.
+   * @return The contents of the file, or an empty string if not found.
+   */
+  std::string LoadFileFromConfigDir(const std::string &filename);
 
 }  // namespace util
 }  // namespace yaze

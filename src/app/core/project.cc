@@ -10,6 +10,7 @@
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
 #include "util/file_util.h"
+#include "util/platform_paths.h"
 #include "app/gui/icons.h"
 #include "util/log.h"
 #include "app/zelda3/zelda3_labels.h"
@@ -1059,13 +1060,19 @@ absl::Status YazeProject::SaveToJsonFormat() {
 
 // RecentFilesManager implementation
 std::string RecentFilesManager::GetFilePath() const {
-  return util::GetConfigDirectory() + "/" + kRecentFilesFilename;
+  auto config_dir = util::PlatformPaths::GetConfigDirectory();
+  if (!config_dir.ok()) {
+    return ""; // Or handle error appropriately
+  }
+  return (*config_dir / kRecentFilesFilename).string();
 }
 
 void RecentFilesManager::Save() {
   // Ensure config directory exists
-  if (!util::EnsureConfigDirectoryExists()) {
-    LOG_WARN("RecentFilesManager", "Could not create config directory for recent files");
+  auto config_dir_status = util::PlatformPaths::GetConfigDirectory();
+  if (!config_dir_status.ok()) {
+    LOG_ERROR("Project", "Failed to get or create config directory: %s",
+              config_dir_status.status().ToString().c_str());
     return;
   }
   

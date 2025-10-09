@@ -10,6 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "util/file_util.h"
+#include "util/platform_paths.h"
 #include "app/gui/icons.h"
 #include "app/gui/style.h"  // For ColorsYaze function
 #include "imgui/imgui.h"
@@ -1917,8 +1918,10 @@ std::vector<std::string> ThemeManager::GetThemeSearchPaths() const {
 #endif
   
   // User config directory
-  std::string config_themes = util::GetConfigDirectory() + "/themes/";
-  search_paths.push_back(config_themes);
+  auto config_dir = util::PlatformPaths::GetConfigDirectory();
+  if (config_dir.ok()) {
+    search_paths.push_back((*config_dir / "themes/").string());
+  }
   
   return search_paths;
 }

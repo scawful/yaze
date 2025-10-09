@@ -13,6 +13,7 @@
 #include "app/core/features.h"
 #include "app/core/timing.h"
 #include "util/file_util.h"
+#include "util/platform_paths.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor.h"
@@ -82,8 +83,16 @@ std::string GetEditorName(EditorType type) {
 
 // Settings + preset helpers
 void EditorManager::LoadUserSettings() {
+  auto config_dir = util::PlatformPaths::GetConfigDirectory();
+  if (!config_dir.ok()) {
+    LOG_WARN("EditorManager", "Could not determine config directory for settings.");
+    return;
+  }
+  
+  std::string settings_path = (*config_dir / settings_filename_).string();
+
   try {
-    auto data = util::LoadConfigFile(settings_filename_);
+    auto data = util::LoadFile(settings_path);
     if (!data.empty()) {
       std::istringstream ss(data);
       std::string line;
@@ -102,7 +111,9 @@ void EditorManager::LoadUserSettings() {
       }
       ImGui::GetIO().FontGlobalScale = font_global_scale_;
     }
-  } catch (...) {}
+  } catch (...) {
+      // Could not load file, just use defaults.
+  }
 }
 
 void EditorManager::SaveUserSettings() {
@@ -121,17 +132,21 @@ void EditorManager::RefreshWorkspacePresets() {
 
     // Try to read a simple index file of presets
     try {
-      auto data = util::LoadConfigFile("workspace_presets.txt");
-      if (!data.empty()) {
-        std::istringstream ss(data);
-        std::string name;
-        while (std::getline(ss, name)) {
-          // Trim whitespace and validate
-          name.erase(0, name.find_first_not_of(" \t\r\n"));
-          name.erase(name.find_last_not_of(" \t\r\n") + 1);
-          if (!name.empty() &&
-              name.length() < 256) {  // Reasonable length limit
-            new_presets.emplace_back(std::move(name));
+      auto config_dir = util::PlatformPaths::GetConfigDirectory();
+      if (config_dir.ok()) {
+        std::string presets_path = (*config_dir / "workspace_presets.txt").string();
+        auto data = util::LoadFile(presets_path);
+        if (!data.empty()) {
+          std::istringstream ss(data);
+          std::string name;
+          while (std::getline(ss, name)) {
+            // Trim whitespace and validate
+            name.erase(0, name.find_first_not_of(" \t\r\n"));
+            name.erase(name.find_last_not_of(" \t\r\n") + 1);
+            if (!name.empty() &&
+                name.length() < 256) {  // Reasonable length limit
+              new_presets.emplace_back(std::move(name));
+            }
           }
         }
       }

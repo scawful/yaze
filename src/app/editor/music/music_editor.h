@@ -9,6 +9,12 @@
 #include "imgui/imgui.h"
 
 namespace yaze {
+
+// Forward declaration
+namespace emu {
+class Emulator;
+}
+
 namespace editor {
 
 static const char* kGameSongs[] = {"Title",
@@ -77,6 +83,15 @@ class MusicEditor : public Editor {
 
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
+  
+  // Emulator integration for live audio playback
+  void set_emulator(emu::Emulator* emulator) { emulator_ = emulator; }
+  emu::Emulator* emulator() const { return emulator_; }
+  
+  // Audio control methods
+  void PlaySong(int song_id);
+  void StopSong();
+  void SetVolume(float volume);  // 0.0 to 1.0
 
  private:
   // UI Drawing Methods
@@ -112,6 +127,7 @@ class MusicEditor : public Editor {
       ImGuiTableFlags_BordersV | ImGuiTableFlags_PadOuterX;
 
   Rom* rom_;
+  emu::Emulator* emulator_ = nullptr;  // For live audio playback
 };
 
 }  // namespace editor
