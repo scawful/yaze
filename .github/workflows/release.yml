@@ -287,26 +287,45 @@ jobs:
             cp LICENSE README.md stage/
             (cd stage && powershell -Command "Compress-Archive -Path * -DestinationPath ../${ARTIFACT_NAME}.zip")
             echo "Created ${ARTIFACT_NAME}.zip"
+            echo "PACKAGE_PATH=${ARTIFACT_NAME}.zip" >> "$GITHUB_ENV"
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
             # For macOS, we stage the .app bundle as a "slice" for the universal merge job
-            cp -R build/bin/yaze.app stage/
+            cp -R build/bin/yaze.app stage/yaze.app
             echo "Staged yaze.app slice for ${ARTIFACT_NAME}"
+            echo "PACKAGE_PATH=stage/" >> "$GITHUB_ENV"
           else # Linux
             cp build/bin/yaze stage/
             cp -r assets/ stage/assets/
             cp LICENSE README.md stage/
             tar -czf "${ARTIFACT_NAME}.tar.gz" -C stage .
             echo "Created ${ARTIFACT_NAME}.tar.gz"
+            echo "PACKAGE_PATH=${ARTIFACT_NAME}.tar.gz" >> "$GITHUB_ENV"
           fi
 
-      - name: "Upload Artifact"
+      - name: "Upload Artifact (Windows)"
+        if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: |
-            ${{ matrix.artifact_name }}.zip
-            ${{ matrix.artifact_name }}.tar.gz
-            stage/
+          path: ${{ matrix.artifact_name }}.zip
+          if-no-files-found: error
+          retention-days: 5
+
+      - name: "Upload Artifact (macOS)"
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: stage/yaze.app
+          if-no-files-found: error
+          retention-days: 5
+
+      - name: "Upload Artifact (Linux)"
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.artifact_name }}.tar.gz
           if-no-files-found: error
           retention-days: 5
       
@@ -336,12 +355,18 @@ jobs:
             echo "- ❌ Build: Failed" >> $GITHUB_STEP_SUMMARY
           fi
           
-          if [[ "${{ runner.os }}" == "Windows" && -f "${{ matrix.artifact_name }}.zip" ]]; then
-            SIZE=$(du -h "${{ matrix.artifact_name }}.zip" | cut -f1)
-            echo "- 📦 Artifact Size: $SIZE" >> $GITHUB_STEP_SUMMARY
-          elif [[ -f "${{ matrix.artifact_name }}.tar.gz" ]]; then
-            SIZE=$(du -h "${{ matrix.artifact_name }}.tar.gz" | cut -f1)
-            echo "- 📦 Artifact Size: $SIZE" >> $GITHUB_STEP_SUMMARY
+          # Show package size if build succeeded
+          if [[ "${{ steps.build.outcome }}" == "success" ]]; then
+            if [[ "${{ runner.os }}" == "Windows" && -f "${{ matrix.artifact_name }}.zip" ]]; then
+              SIZE=$(du -h "${{ matrix.artifact_name }}.zip" | cut -f1)
+              echo "- 📦 Artifact Size: $SIZE" >> $GITHUB_STEP_SUMMARY
+            elif [[ "${{ runner.os }}" == "Linux" && -f "${{ matrix.artifact_name }}.tar.gz" ]]; then
+              SIZE=$(du -h "${{ matrix.artifact_name }}.tar.gz" | cut -f1)
+              echo "- 📦 Artifact Size: $SIZE" >> $GITHUB_STEP_SUMMARY
+            elif [[ "${{ runner.os }}" == "macOS" && -d "stage/yaze.app" ]]; then
+              SIZE=$(du -sh "stage/yaze.app" | cut -f1)
+              echo "- 📦 Artifact Size: $SIZE" >> $GITHUB_STEP_SUMMARY
+            fi
           fi
 
   # ======================================================================================
@@ -368,8 +393,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          
+          # The artifacts are downloaded as yaze.app directly
           ARM_APP="arm64-slice/yaze.app"
           X64_APP="x86_64-slice/yaze.app"
+          
+          echo "Checking downloaded artifacts..."
+          ls -la arm64-slice/
+          ls -la x86_64-slice/
           
           # Use the arm64 bundle as the base
           cp -R "${ARM_APP}" ./yaze.app
@@ -399,14 +430,26 @@ jobs:
     needs: [prepare-release, build-and-package, merge-macos-universal]
     runs-on: ubuntu-latest
     steps:
-      - name: "Download All Artifacts"
+      - name: "Download Windows Artifact"
         uses: actions/download-artifact@v4
         with:
-          path: dist
-          merge-multiple: true
+          name: yaze-windows-x64
+          path: release-artifacts
 
-      - name: "List Artifacts"
-        run: ls -lR dist
+      - name: "Download Linux Artifact"
+        uses: actions/download-artifact@v4
+        with:
+          name: yaze-linux-x64
+          path: release-artifacts
+
+      - name: "Download macOS Universal Artifact"
+        uses: actions/download-artifact@v4
+        with:
+          name: yaze-macos-universal
+          path: release-artifacts
+
+      - name: "List Release Artifacts"
+        run: ls -lR release-artifacts
 
       - name: "Create/Update Release"
         uses: softprops/action-gh-release@v2
@@ -416,6 +459,6 @@ jobs:
           body: ${{ needs.prepare-release.outputs.release_notes }}
           draft: false
           prerelease: ${{ needs.prepare-release.outputs.is_prerelease }}
-          files: dist/*
+          files: release-artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
