@@ -312,9 +312,9 @@ void Room::RenderRoomGraphics() {
   int palette_id = palette;
   
   if (palette_id < 0 || palette_id >= num_palettes) {
-    std::printf("5. WARNING: palette_id %d is out of bounds [0, %d), using palette 0\n", 
-                palette_id, num_palettes);
-    palette_id = 0;
+    std::printf("5. WARNING: palette_id %d is out of bounds [0, %d), using palette %d\n", 
+                palette_id, num_palettes, palette_id % num_palettes);
+    palette_id = palette_id % num_palettes;  // Use modulo to wrap around instead of defaulting to 0
   }
   
   auto bg1_palette = dungeon_pal_group[palette_id];

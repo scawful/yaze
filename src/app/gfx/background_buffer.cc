@@ -146,7 +146,14 @@ void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
                                  uint8_t floor_graphics) {
   // Create bitmap ONCE at the start if it doesn't exist
   if (!bitmap_.is_active() || bitmap_.width() == 0) {
+    printf("[DrawFloor] Creating bitmap: %dx%d, active=%d, width=%d\n", 
+           width_, height_, bitmap_.is_active(), bitmap_.width());
     bitmap_.Create(width_, height_, 8, std::vector<uint8_t>(width_ * height_, 0));
+    printf("[DrawFloor] After Create: active=%d, width=%d, height=%d\n", 
+           bitmap_.is_active(), bitmap_.width(), bitmap_.height());
+  } else {
+    printf("[DrawFloor] Bitmap already exists: active=%d, width=%d, height=%d\n", 
+           bitmap_.is_active(), bitmap_.width(), bitmap_.height());
   }
   
   auto f = (uint8_t)(floor_graphics << 4);
