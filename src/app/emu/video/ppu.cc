@@ -214,22 +214,30 @@ void Ppu::HandlePixel(int x, int y) {
   // Two pixels per X position for hi-res support: 
   //   pixel1 at x*8 + 0..3, pixel2 at x*8 + 4..7
   
+  // Apply brightness
+  r = r * brightness / 15;
+  g = g * brightness / 15;
+  b = b * brightness / 15;
+  r2 = r2 * brightness / 15;
+  g2 = g2 * brightness / 15;
+  b2 = b2 * brightness / 15;
+
   // First pixel (hi-res/main screen)
   pixelBuffer[row * 2048 + x * 8 + 0 + pixelOutputFormat] =
-      ((b2 << 3) | (b2 >> 2)) * brightness / 15;  // Blue channel
+      ((b2 << 3) | (b2 >> 2));  // Blue channel
   pixelBuffer[row * 2048 + x * 8 + 1 + pixelOutputFormat] =
-      ((g2 << 3) | (g2 >> 2)) * brightness / 15;  // Green channel
+      ((g2 << 3) | (g2 >> 2));  // Green channel
   pixelBuffer[row * 2048 + x * 8 + 2 + pixelOutputFormat] =
-      ((r2 << 3) | (r2 >> 2)) * brightness / 15;  // Red channel
+      ((r2 << 3) | (r2 >> 2));  // Red channel
   pixelBuffer[row * 2048 + x * 8 + 3 + pixelOutputFormat] = 0xFF;  // Alpha (opaque)
   
   // Second pixel (lo-res/subscreen)
   pixelBuffer[row * 2048 + x * 8 + 4 + pixelOutputFormat] =
-      ((b << 3) | (b >> 2)) * brightness / 15;   // Blue channel
+      ((b << 3) | (b >> 2));   // Blue channel
   pixelBuffer[row * 2048 + x * 8 + 5 + pixelOutputFormat] =
-      ((g << 3) | (g >> 2)) * brightness / 15;   // Green channel
+      ((g << 3) | (g >> 2));   // Green channel
   pixelBuffer[row * 2048 + x * 8 + 6 + pixelOutputFormat] =
-      ((r << 3) | (r >> 2)) * brightness / 15;   // Red channel
+      ((r << 3) | (r >> 2));   // Red channel
   pixelBuffer[row * 2048 + x * 8 + 7 + pixelOutputFormat] = 0xFF;  // Alpha (opaque)
 }
 

@@ -15,6 +15,8 @@ set(
   app/emu/input/input_backend.cc
   app/emu/input/input_manager.cc
   app/emu/ui/input_handler.cc
+  app/emu/ui/emulator_ui.cc
+  app/emu/ui/debugger_ui.cc
   app/emu/cpu/cpu.cc
   app/emu/video/ppu.cc
   app/emu/memory/dma.cc
@@ -939,7 +941,9 @@ source_group("Application\\Emulator\\Input" FILES
 source_group("Application\\Emulator\\UI" FILES
   app/emu/ui/input_handler.cc
   app/emu/ui/input_handler.h
+  app/emu/ui/emulator_ui.cc
   app/emu/ui/emulator_ui.h
+  app/emu/ui/debugger_ui.cc
   app/emu/ui/debugger_ui.h
 )
 

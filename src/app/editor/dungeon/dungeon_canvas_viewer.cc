@@ -179,6 +179,23 @@ void DungeonCanvasViewer::RenderObjectInCanvas(const zelda3::RoomObject &object,
     return;  // Skip objects outside visible area
   }
 
+  // Calculate palette hash for caching
+  uint64_t palette_hash = 0;
+  for (size_t i = 0; i < palette.size() && i < 16; ++i) {
+    palette_hash ^= std::hash<uint16_t>{}(palette[i].snes()) + 0x9e3779b9 +
+                    (palette_hash << 6) + (palette_hash >> 2);
+  }
+
+  // Check cache first
+  for (auto& cached : object_render_cache_) {
+    if (cached.object_id == object.id_ && cached.object_x == object.x_ &&
+        cached.object_y == object.y_ && cached.object_size == object.size_ &&
+        cached.palette_hash == palette_hash && cached.is_valid) {
+      canvas_.DrawBitmap(cached.rendered_bitmap, canvas_x, canvas_y, 1.0f, 255);
+      return;
+    }
+  }
+
   // Create a mutable copy of the object to ensure tiles are loaded
   auto mutable_object = object;
   mutable_object.set_rom(rom_);
@@ -192,10 +209,27 @@ void DungeonCanvasViewer::RenderObjectInCanvas(const zelda3::RoomObject &object,
     // Ensure the bitmap is valid and has content
     if (object_bitmap.width() > 0 && object_bitmap.height() > 0) {
       object_bitmap.SetPalette(palette);
-      // Queue texture creation for the object bitmap via Arena's deferred system
+      
+      // Add to cache
+      ObjectRenderCache cache_entry;
+      cache_entry.object_id = object.id_;
+      cache_entry.object_x = object.x_;
+      cache_entry.object_y = object.y_;
+      cache_entry.object_size = object.size_;
+      cache_entry.palette_hash = palette_hash;
+      cache_entry.rendered_bitmap = std::move(object_bitmap); // Move bitmap into cache
+      cache_entry.is_valid = true;
+
+      if (object_render_cache_.size() >= 200) { // Limit cache size
+        object_render_cache_.erase(object_render_cache_.begin());
+      }
+      object_render_cache_.push_back(std::move(cache_entry));
+      
+      // Get pointer to cached bitmap and queue texture creation
+      gfx::Bitmap* cached_bitmap = &object_render_cache_.back().rendered_bitmap;
       gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, &object_bitmap);
-      canvas_.DrawBitmap(object_bitmap, canvas_x, canvas_y, 1.0f, 255);
+          gfx::Arena::TextureCommandType::CREATE, cached_bitmap);
+      canvas_.DrawBitmap(*cached_bitmap, canvas_x, canvas_y, 1.0f, 255);
       return;
     }
   }

@@ -39,6 +39,7 @@ class Emulator {
 
   auto snes() -> Snes& { return snes_; }
   auto running() const -> bool { return running_; }
+  void set_running(bool running) { running_ = running; }
   
   // Audio backend access
   audio::IAudioBackend* audio_backend() { return audio_backend_.get(); }
@@ -49,10 +50,22 @@ class Emulator {
   auto wanted_samples() const -> int { return wanted_samples_; }
   void set_renderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
   
+  // Render access
+  gfx::IRenderer* renderer() { return renderer_; }
+  void* ppu_texture() { return ppu_texture_; }
+  
+  // Turbo mode
+  bool turbo_mode() const { return turbo_mode_; }
+  void set_turbo_mode(bool turbo) { turbo_mode_ = turbo; }
+  
   // Debugger access
   BreakpointManager& breakpoint_manager() { return breakpoint_manager_; }
+  debug::DisassemblyViewer& disassembly_viewer() { return disassembly_viewer_; }
+  input::InputManager& input_manager() { return input_manager_; }
   bool is_debugging() const { return debugging_; }
   void set_debugging(bool debugging) { debugging_ = debugging; }
+  bool is_initialized() const { return initialized_; }
+  bool is_snes_initialized() const { return snes_initialized_; }
   
   // AI Agent Integration API
   bool IsEmulatorReady() const { return snes_.running() && !rom_data_.empty(); }

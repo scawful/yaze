@@ -336,7 +336,7 @@ void MessageEditor::DrawMessagePreview() {
   } else {
     // Create bitmap and queue texture creation
     current_font_gfx16_bitmap_.Create(kCurrentMessageWidth, kCurrentMessageHeight, 
-                                     172, message_preview_.current_preview_data_);
+                                     64, message_preview_.current_preview_data_);
     current_font_gfx16_bitmap_.SetPalette(font_preview_colors_);
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &current_font_gfx16_bitmap_);

@@ -11,50 +11,18 @@ namespace yaze::core {
   extern bool g_window_is_resizing;
 }
 
-#include "app/emu/cpu/internal/opcodes.h"
 #include "app/emu/debug/disassembly_viewer.h"
+#include "app/emu/ui/debugger_ui.h"
+#include "app/emu/ui/emulator_ui.h"
 #include "app/emu/ui/input_handler.h"
 #include "app/gui/color.h"
 #include "app/gui/editor_layout.h"
 #include "app/gui/icons.h"
-#include "app/gui/input.h"
 #include "app/gui/theme_manager.h"
 #include "imgui/imgui.h"
-#include "imgui_memory_editor.h"
-#include "util/file_util.h"
 
 namespace yaze {
 namespace emu {
-
-namespace {
-bool ShouldDisplay(const InstructionEntry& entry, const char* filter) {
-  if (filter[0] == '\0') {
-    return true;
-  }
-
-  // Supported fields: address, opcode, operands
-  if (entry.operands.find(filter) != std::string::npos) {
-    return true;
-  }
-
-  if (absl::StrFormat("%06X", entry.address).find(filter) !=
-      std::string::npos) {
-    return true;
-  }
-
-  if (opcode_to_mnemonic.at(entry.opcode).find(filter) != std::string::npos) {
-    return true;
-  }
-
-  return false;
-}
-
-}  // namespace
-
-using ImGui::SameLine;
-using ImGui::Separator;
-using ImGui::TableNextColumn;
-using ImGui::Text;
 
 Emulator::~Emulator() {
   // Don't call Cleanup() in destructor - renderer is already destroyed
@@ -395,20 +363,20 @@ void Emulator::RenderEmulatorInterface() {
     static bool show_apu_debugger_ = true;
 
     // Create session-aware cards
-    gui::EditorCard cpu_card(ICON_MD_MEMORY " CPU Debugger", ICON_MD_MEMORY);
-    gui::EditorCard ppu_card(ICON_MD_VIDEOGAME_ASSET " PPU Display",
+    static gui::EditorCard cpu_card(ICON_MD_MEMORY " CPU Debugger", ICON_MD_MEMORY);
+    static gui::EditorCard ppu_card(ICON_MD_VIDEOGAME_ASSET " PPU Display",
                              ICON_MD_VIDEOGAME_ASSET);
-    gui::EditorCard memory_card(ICON_MD_DATA_ARRAY " Memory Viewer",
+    static gui::EditorCard memory_card(ICON_MD_DATA_ARRAY " Memory Viewer",
                                 ICON_MD_DATA_ARRAY);
-    gui::EditorCard breakpoints_card(ICON_MD_BUG_REPORT " Breakpoints",
+    static gui::EditorCard breakpoints_card(ICON_MD_BUG_REPORT " Breakpoints",
                                      ICON_MD_BUG_REPORT);
-    gui::EditorCard performance_card(ICON_MD_SPEED " Performance",
+    static gui::EditorCard performance_card(ICON_MD_SPEED " Performance",
                                      ICON_MD_SPEED);
-    gui::EditorCard ai_card(ICON_MD_SMART_TOY " AI Agent", ICON_MD_SMART_TOY);
-    gui::EditorCard save_states_card(ICON_MD_SAVE " Save States", ICON_MD_SAVE);
-    gui::EditorCard keyboard_card(ICON_MD_KEYBOARD " Keyboard Config",
+    static gui::EditorCard ai_card(ICON_MD_SMART_TOY " AI Agent", ICON_MD_SMART_TOY);
+    static gui::EditorCard save_states_card(ICON_MD_SAVE " Save States", ICON_MD_SAVE);
+    static gui::EditorCard keyboard_card(ICON_MD_KEYBOARD " Keyboard Config",
                                   ICON_MD_KEYBOARD);
-    gui::EditorCard apu_debug_card(ICON_MD_MUSIC_NOTE " APU Debugger",
+    static gui::EditorCard apu_debug_card(ICON_MD_MUSIC_NOTE " APU Debugger",
                                    ICON_MD_MUSIC_NOTE);
 
     // Configure default positions
@@ -528,162 +496,13 @@ void Emulator::RenderEmulatorInterface() {
 }
 
 void Emulator::RenderSnesPpu() {
-  ImVec2 size = ImVec2(512, 480);
-  if (snes_.running()) {
-    ImGui::BeginChild("EmulatorOutput", ImVec2(0, 480), true,
-                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
-    ImGui::SetCursorPosY((ImGui::GetWindowSize().y - size.y) * 0.5f);
-    ImGui::Image((ImTextureID)(intptr_t)ppu_texture_, size, ImVec2(0, 0),
-                 ImVec2(1, 1));
-    ImGui::EndChild();
-
-  } else {
-    ImGui::Text("Emulator output not available.");
-    ImGui::BeginChild("EmulatorOutput", ImVec2(0, 480), true,
-                      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
-    ImGui::SetCursorPosX(((ImGui::GetWindowSize().x * 0.5f) - size.x) * 0.5f);
-    ImGui::SetCursorPosY(((ImGui::GetWindowSize().y * 0.5f) - size.y) * 0.5f);
-    ImGui::Dummy(size);
-    ImGui::EndChild();
-  }
-  ImGui::Separator();
+  // Delegate to UI layer
+  ui::RenderSnesPpu(this);
 }
 
 void Emulator::RenderNavBar() {
-  if (ImGui::Button(ICON_MD_PLAY_ARROW)) {
-    running_ = true;
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Start Emulation");
-  }
-  SameLine();
-
-  if (ImGui::Button(ICON_MD_PAUSE)) {
-    running_ = false;
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Pause Emulation");
-  }
-  SameLine();
-
-  if (ImGui::Button(ICON_MD_SKIP_NEXT)) {
-    // Step through Code logic
-    snes_.cpu().RunOpcode();
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Step Through Code");
-  }
-  SameLine();
-
-  if (ImGui::Button(ICON_MD_REFRESH)) {
-    // Reset Emulator logic
-    snes_.Reset(true);
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Reset Emulator");
-  }
-  SameLine();
-
-  if (ImGui::Button(ICON_MD_STOP)) {
-    // Stop Emulation logic
-    running_ = false;
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Stop Emulation");
-  }
-  SameLine();
-
-  if (ImGui::Button(ICON_MD_SAVE)) {
-    // Save State logic
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Save State");
-  }
-  SameLine();
-
-  if (ImGui::Button(ICON_MD_SYSTEM_UPDATE_ALT)) {}
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Load State");
-  }
-
-  // Additional elements
-  SameLine();
-  if (ImGui::Button(ICON_MD_SETTINGS)) {
-    // Settings logic
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Settings");
-  }
-
-  static bool open_file = false;
-  SameLine();
-  if (ImGui::Button(ICON_MD_INFO)) {
-    open_file = true;
-
-    // About Debugger logic
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("About Debugger");
-  }
-  SameLine();
-  // Recording control moved to DisassemblyViewer UI
-  bool recording = disassembly_viewer_.IsRecording();
-  if (ImGui::Checkbox("Recording", &recording)) {
-    disassembly_viewer_.SetRecording(recording);
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Toggle instruction recording to DisassemblyViewer\n(Always lightweight - uses sparse address map)");
-  }
-
-  SameLine();
-  ImGui::Checkbox("Turbo", &turbo_mode_);
-
-  // Display FPS and Audio Status
-  SameLine();
-  ImGui::Text("|");
-  SameLine();
-  if (current_fps_ > 0) {
-    ImGui::Text("FPS: %.1f", current_fps_);
-  } else {
-    ImGui::Text("FPS: --");
-  }
-
-  SameLine();
-  if (audio_backend_) {
-    auto audio_status = audio_backend_->GetStatus();
-    ImGui::Text("| Audio: %u frames", audio_status.queued_frames);
-  } else {
-    ImGui::Text("| Audio: N/A");
-  }
-
-  static bool show_memory_viewer = false;
-
-  SameLine();
-  if (ImGui::Button(ICON_MD_MEMORY)) {
-    show_memory_viewer = !show_memory_viewer;
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Memory Viewer");
-  }
-
-  if (show_memory_viewer) {
-    ImGui::Begin("Memory Viewer", &show_memory_viewer);
-    RenderMemoryViewer();
-    ImGui::End();
-  }
-
-  if (open_file) {
-    auto file_name = util::FileDialogWrapper::ShowOpenFileDialog();
-    if (!file_name.empty()) {
-      std::ifstream file(file_name, std::ios::binary);
-      // Load the data directly into rom_data
-      rom_data_.assign(std::istreambuf_iterator<char>(file),
-                       std::istreambuf_iterator<char>());
-      snes_.Init(rom_data_);
-      open_file = false;
-    }
-  }
+  // Delegate to UI layer
+  ui::RenderNavBar(this);
 }
 
 // REMOVED: HandleEvents() - replaced by ui::InputHandler::Poll()
@@ -691,147 +510,13 @@ void Emulator::RenderNavBar() {
 // for continuous game input. Now using SDL_GetKeyboardState() for proper polling.
 
 void Emulator::RenderBreakpointList() {
-  if (ImGui::Button("Set SPC PC")) {
-    snes_.apu().spc700().PC = 0xFFEF;
-  }
-  Separator();
-  Text("Breakpoints");
-  Separator();
-  static char breakpoint_input[10] = "";
-  static int current_memory_mode = 0;
-
-  static bool read_mode = false;
-  static bool write_mode = false;
-  static bool execute_mode = false;
-
-  if (ImGui::Combo("##TypeOfMemory", &current_memory_mode, "PRG\0RAM\0")) {}
-
-  ImGui::Checkbox("Read", &read_mode);
-  SameLine();
-  ImGui::Checkbox("Write", &write_mode);
-  SameLine();
-  ImGui::Checkbox("Execute", &execute_mode);
-
-  // Breakpoint input fields and buttons
-  if (ImGui::InputText("##BreakpointInput", breakpoint_input, 10,
-                       ImGuiInputTextFlags_EnterReturnsTrue)) {
-    int breakpoint = std::stoi(breakpoint_input, nullptr, 16);
-    snes_.cpu().SetBreakpoint(breakpoint);
-    memset(breakpoint_input, 0, sizeof(breakpoint_input));
-  }
-  SameLine();
-  if (ImGui::Button("Add")) {
-    int breakpoint = std::stoi(breakpoint_input, nullptr, 16);
-    snes_.cpu().SetBreakpoint(breakpoint);
-    memset(breakpoint_input, 0, sizeof(breakpoint_input));
-  }
-  SameLine();
-  if (ImGui::Button("Clear")) {
-    snes_.cpu().ClearBreakpoints();
-  }
-  Separator();
-  auto breakpoints = snes_.cpu().GetBreakpoints();
-  if (!breakpoints.empty()) {
-    Text("Breakpoints:");
-    ImGui::BeginChild("BreakpointsList", ImVec2(0, 100), true);
-    for (auto breakpoint : breakpoints) {
-      if (ImGui::Selectable(absl::StrFormat("0x%04X", breakpoint).c_str())) {
-        // Jump to breakpoint
-        // snes_.cpu().JumpToBreakpoint(breakpoint);
-      }
-    }
-    ImGui::EndChild();
-  }
-  Separator();
-  gui::InputHexByte("PB", &manual_pb_, 50.f);
-  gui::InputHexWord("PC", &manual_pc_, 75.f);
-  if (ImGui::Button("Set Current Address")) {
-    snes_.cpu().PC = manual_pc_;
-    snes_.cpu().PB = manual_pb_;
-  }
+  // Delegate to UI layer
+  ui::RenderBreakpointList(this);
 }
 
 void Emulator::RenderMemoryViewer() {
-  static MemoryEditor ram_edit;
-  static MemoryEditor aram_edit;
-  static MemoryEditor mem_edit;
-
-  if (ImGui::BeginTable("MemoryViewerTable", 4,
-                        ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY)) {
-    ImGui::TableSetupColumn("Bookmarks");
-    ImGui::TableSetupColumn("RAM");
-    ImGui::TableSetupColumn("ARAM");
-    ImGui::TableSetupColumn("ROM");
-    ImGui::TableHeadersRow();
-
-    TableNextColumn();
-    if (ImGui::CollapsingHeader("Bookmarks", ImGuiTreeNodeFlags_DefaultOpen)) {
-      // Input for adding a new bookmark
-      static char nameBuf[256];
-      static uint64_t uint64StringBuf;
-      ImGui::InputText("Name", nameBuf, IM_ARRAYSIZE(nameBuf));
-      gui::InputHex("Address", &uint64StringBuf);
-      if (ImGui::Button("Add Bookmark")) {
-        bookmarks.push_back({nameBuf, uint64StringBuf});
-        memset(nameBuf, 0, sizeof(nameBuf));
-        uint64StringBuf = 0;
-      }
-
-      // Tree view of bookmarks
-      for (const auto& bookmark : bookmarks) {
-        if (ImGui::TreeNode(bookmark.name.c_str(), ICON_MD_STAR)) {
-          auto bookmark_string = absl::StrFormat(
-              "%s: 0x%08X", bookmark.name.c_str(), bookmark.value);
-          if (ImGui::Selectable(bookmark_string.c_str())) {
-            mem_edit.GotoAddrAndHighlight(static_cast<ImU64>(bookmark.value),
-                                          1);
-          }
-          SameLine();
-          if (ImGui::Button("Delete")) {
-            // Logic to delete the bookmark
-            bookmarks.erase(std::remove_if(bookmarks.begin(), bookmarks.end(),
-                                           [&](const Bookmark& b) {
-                                             return b.name == bookmark.name &&
-                                                    b.value == bookmark.value;
-                                           }),
-                            bookmarks.end());
-          }
-          ImGui::TreePop();
-        }
-      }
-    }
-
-    TableNextColumn();
-    if (ImGui::BeginChild("RAM", ImVec2(0, 0), true,
-                          ImGuiWindowFlags_NoMove |
-                              ImGuiWindowFlags_NoScrollbar |
-                              ImGuiWindowFlags_NoScrollWithMouse)) {
-      ram_edit.DrawContents((void*)snes_.get_ram(), 0x20000);
-      ImGui::EndChild();
-    }
-
-    TableNextColumn();
-    if (ImGui::BeginChild("ARAM", ImVec2(0, 0), true,
-                          ImGuiWindowFlags_NoMove |
-                              ImGuiWindowFlags_NoScrollbar |
-                              ImGuiWindowFlags_NoScrollWithMouse)) {
-      aram_edit.DrawContents((void*)snes_.apu().ram.data(),
-                             snes_.apu().ram.size());
-      ImGui::EndChild();
-    }
-
-    TableNextColumn();
-    if (ImGui::BeginChild("ROM", ImVec2(0, 0), true,
-                          ImGuiWindowFlags_NoMove |
-                              ImGuiWindowFlags_NoScrollbar |
-                              ImGuiWindowFlags_NoScrollWithMouse)) {
-      mem_edit.DrawContents((void*)snes_.memory().rom_.data(),
-                            snes_.memory().rom_.size());
-      ImGui::EndChild();
-    }
-
-    ImGui::EndTable();
-  }
+  // Delegate to UI layer
+  ui::RenderMemoryViewer(this);
 }
 
 void Emulator::RenderModernCpuDebugger() {
@@ -1051,338 +736,29 @@ void Emulator::RenderModernCpuDebugger() {
 }
 
 void Emulator::RenderPerformanceMonitor() {
-  try {
-    auto& theme_manager = gui::ThemeManager::Get();
-    const auto& theme = theme_manager.GetCurrentTheme();
-
-    ImGui::PushStyleColor(ImGuiCol_ChildBg,
-                          ConvertColorToImVec4(theme.child_bg));
-    ImGui::BeginChild("##PerformanceMonitor", ImVec2(0, 0), true);
-
-    // Performance Metrics
-    if (ImGui::CollapsingHeader("Real-time Metrics",
-                                ImGuiTreeNodeFlags_DefaultOpen)) {
-      ImGui::Columns(2, "PerfColumns");
-
-      // Frame Rate
-      ImGui::Text("Frame Rate:");
-      ImGui::SameLine();
-      if (current_fps_ > 0) {
-        ImVec4 fps_color = (current_fps_ >= 59.0 && current_fps_ <= 61.0)
-                               ? ConvertColorToImVec4(theme.success)
-                               : ConvertColorToImVec4(theme.error);
-        ImGui::TextColored(fps_color, "%.1f FPS", current_fps_);
-      } else {
-        ImGui::TextColored(ConvertColorToImVec4(theme.warning), "-- FPS");
-      }
-
-      // Audio Status
-      ImGui::Text("Audio Queue:");
-      ImGui::SameLine();
-      if (audio_backend_) {
-        auto audio_status = audio_backend_->GetStatus();
-        ImVec4 audio_color = (audio_status.queued_frames >= 2 && audio_status.queued_frames <= 6)
-                                 ? ConvertColorToImVec4(theme.success)
-                                 : ConvertColorToImVec4(theme.warning);
-        ImGui::TextColored(audio_color, "%u frames", audio_status.queued_frames);
-      } else {
-        ImGui::TextColored(ConvertColorToImVec4(theme.error), "No backend");
-      }
-
-      ImGui::NextColumn();
-
-      // Timing
-      double frame_time = (current_fps_ > 0) ? (1000.0 / current_fps_) : 0.0;
-      ImGui::Text("Frame Time:");
-      ImGui::SameLine();
-      ImGui::TextColored(ConvertColorToImVec4(theme.info), "%.2f ms",
-                         frame_time);
-
-      // Emulation State
-      ImGui::Text("State:");
-      ImGui::SameLine();
-      ImVec4 state_color = running_ ? ConvertColorToImVec4(theme.success)
-                                    : ConvertColorToImVec4(theme.warning);
-      ImGui::TextColored(state_color, "%s", running_ ? "Running" : "Paused");
-
-      ImGui::Columns(1);
-    }
-
-    // Memory Usage
-    if (ImGui::CollapsingHeader("Memory Usage")) {
-      ImGui::Text("ROM Size: %zu bytes", rom_data_.size());
-      ImGui::Text("RAM Usage: %d KB", 128);  // SNES RAM is 128KB
-      ImGui::Text("VRAM Usage: %d KB", 64);  // SNES VRAM is 64KB
-    }
-
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
-  } catch (const std::exception& e) {
-    // Ensure any pushed styles are popped on error
-    try {
-      ImGui::PopStyleColor();
-    } catch (...) {
-      // Ignore PopStyleColor errors
-    }
-    ImGui::Text("Performance Monitor Error: %s", e.what());
-  }
+  // Delegate to UI layer
+  ui::RenderPerformanceMonitor(this);
 }
 
 void Emulator::RenderAIAgentPanel() {
-  try {
-    auto& theme_manager = gui::ThemeManager::Get();
-    const auto& theme = theme_manager.GetCurrentTheme();
-
-    ImGui::PushStyleColor(ImGuiCol_ChildBg,
-                          ConvertColorToImVec4(theme.child_bg));
-    ImGui::BeginChild("##AIAgentPanel", ImVec2(0, 0), true);
-
-    // AI Agent Status
-    if (ImGui::CollapsingHeader("Agent Status",
-                                ImGuiTreeNodeFlags_DefaultOpen)) {
-      auto metrics = GetMetrics();
-
-      ImGui::Columns(2, "AgentColumns");
-
-      // Emulator Readiness
-      ImGui::Text("Emulator Ready:");
-      ImGui::SameLine();
-      ImVec4 ready_color = IsEmulatorReady()
-                               ? ConvertColorToImVec4(theme.success)
-                               : ConvertColorToImVec4(theme.error);
-      ImGui::TextColored(ready_color, "%s", IsEmulatorReady() ? "Yes" : "No");
-
-      // Current State
-      ImGui::Text("Current PC:");
-      ImGui::SameLine();
-      ImGui::TextColored(ConvertColorToImVec4(theme.accent), "0x%04X:%02X",
-                         metrics.cpu_pc, metrics.cpu_pb);
-
-      ImGui::NextColumn();
-
-      // Performance
-      ImGui::Text("FPS:");
-      ImGui::SameLine();
-      ImVec4 fps_color = (metrics.fps >= 59.0)
-                             ? ConvertColorToImVec4(theme.success)
-                             : ConvertColorToImVec4(theme.warning);
-      ImGui::TextColored(fps_color, "%.1f", metrics.fps);
-
-      // Cycles
-      ImGui::Text("Cycles:");
-      ImGui::SameLine();
-      ImGui::TextColored(ConvertColorToImVec4(theme.info), "%llu",
-                         metrics.cycles);
-
-      ImGui::Columns(1);
-    }
-
-    // AI Agent Controls
-    if (ImGui::CollapsingHeader("Agent Controls",
-                                ImGuiTreeNodeFlags_DefaultOpen)) {
-      ImGui::Columns(2, "ControlColumns");
-
-      // Single Step Control
-      if (ImGui::Button("Step Instruction", ImVec2(-1, 30))) {
-        StepSingleInstruction();
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Execute a single CPU instruction");
-      }
-
-      // Breakpoint Controls
-      static char bp_input[10] = "";
-      ImGui::InputText("Breakpoint Address", bp_input, IM_ARRAYSIZE(bp_input));
-      if (ImGui::Button("Add Breakpoint", ImVec2(-1, 25))) {
-        if (strlen(bp_input) > 0) {
-          uint32_t addr = std::stoi(bp_input, nullptr, 16);
-          SetBreakpoint(addr);
-          memset(bp_input, 0, sizeof(bp_input));
-        }
-      }
-
-      ImGui::NextColumn();
-
-      // Clear All Breakpoints
-      if (ImGui::Button("Clear All Breakpoints", ImVec2(-1, 30))) {
-        ClearAllBreakpoints();
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Remove all active breakpoints");
-      }
-
-      // Toggle Emulation
-      if (ImGui::Button(running_ ? "Pause Emulation" : "Resume Emulation",
-                        ImVec2(-1, 30))) {
-        running_ = !running_;
-      }
-
-      ImGui::Columns(1);
-    }
-
-    // Current Breakpoints
-    if (ImGui::CollapsingHeader("Active Breakpoints")) {
-      auto breakpoints = GetBreakpoints();
-      if (breakpoints.empty()) {
-        ImGui::TextColored(ConvertColorToImVec4(theme.text_disabled),
-                           "No breakpoints set");
-      } else {
-        ImGui::BeginChild("BreakpointsList", ImVec2(0, 150), true);
-        for (auto bp : breakpoints) {
-          if (ImGui::Selectable(absl::StrFormat("0x%04X", bp).c_str())) {
-            // Jump to breakpoint or remove it
-          }
-          ImGui::SameLine();
-          if (ImGui::SmallButton(absl::StrFormat("Remove##%04X", bp).c_str())) {
-            // TODO: Implement individual breakpoint removal
-          }
-        }
-        ImGui::EndChild();
-      }
-    }
-
-    // AI Agent API Information
-    if (ImGui::CollapsingHeader("API Reference")) {
-      ImGui::TextWrapped("Available API functions for AI agents:");
-      ImGui::BulletText("IsEmulatorReady() - Check if emulator is ready");
-      ImGui::BulletText("GetMetrics() - Get current performance metrics");
-      ImGui::BulletText(
-          "StepSingleInstruction() - Execute one CPU instruction");
-      ImGui::BulletText("SetBreakpoint(address) - Set breakpoint at address");
-      ImGui::BulletText("ClearAllBreakpoints() - Remove all breakpoints");
-      ImGui::BulletText("GetBreakpoints() - Get list of active breakpoints");
-    }
-
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
-  } catch (const std::exception& e) {
-    // Ensure any pushed styles are popped on error
-    try {
-      ImGui::PopStyleColor();
-    } catch (...) {
-      // Ignore PopStyleColor errors
-    }
-    ImGui::Text("AI Agent Panel Error: %s", e.what());
-  }
+  // Delegate to UI layer
+  ui::RenderAIAgentPanel(this);
 }
 
 void Emulator::RenderCpuInstructionLog(
     const std::vector<InstructionEntry>& instruction_log) {
-  // Filtering options
-  static char filter[256];
-  ImGui::InputText("Filter", filter, IM_ARRAYSIZE(filter));
-
-  // Instruction list
-  ImGui::BeginChild("InstructionList", ImVec2(0, 0), ImGuiChildFlags_None);
-  for (const auto& entry : instruction_log) {
-    if (ShouldDisplay(entry, filter)) {
-      if (ImGui::Selectable(absl::StrFormat("%06X:", entry.address).c_str())) {
-        // Logic to handle click (e.g., jump to address, set breakpoint)
-      }
-
-      ImGui::SameLine();
-
-      ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-      ImGui::TextColored(color, "%s",
-                         opcode_to_mnemonic.at(entry.opcode).c_str());
-      ImVec4 operand_color = ImVec4(0.7f, 0.5f, 0.3f, 1.0f);
-      ImGui::SameLine();
-      ImGui::TextColored(operand_color, "%s", entry.operands.c_str());
-    }
-  }
-  // Jump to the bottom of the child scrollbar
-  if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
-    ImGui::SetScrollHereY(1.0f);
-  }
-
-  ImGui::EndChild();
+  // Delegate to UI layer (legacy log deprecated)
+  ui::RenderCpuInstructionLog(this, instruction_log.size());
 }
 
 void Emulator::RenderSaveStates() {
-  try {
-    auto& theme_manager = gui::ThemeManager::Get();
-    const auto& theme = theme_manager.GetCurrentTheme();
-
-    ImGui::PushStyleColor(ImGuiCol_ChildBg,
-                          ConvertColorToImVec4(theme.child_bg));
-    ImGui::BeginChild("##SaveStates", ImVec2(0, 0), true);
-
-    // Save State Management
-    if (ImGui::CollapsingHeader("Quick Save/Load",
-                                ImGuiTreeNodeFlags_DefaultOpen)) {
-      ImGui::Columns(2, "SaveStateColumns");
-
-      // Save slots
-      for (int i = 1; i <= 4; ++i) {
-        if (ImGui::Button(absl::StrFormat("Save Slot %d", i).c_str(),
-                          ImVec2(-1, 30))) {
-          // TODO: Implement save state to slot
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Save current state to slot %d (F%d)", i, i);
-        }
-      }
-
-      ImGui::NextColumn();
-
-      // Load slots
-      for (int i = 1; i <= 4; ++i) {
-        if (ImGui::Button(absl::StrFormat("Load Slot %d", i).c_str(),
-                          ImVec2(-1, 30))) {
-          // TODO: Implement load state from slot
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Load state from slot %d (Shift+F%d)", i, i);
-        }
-      }
-
-      ImGui::Columns(1);
-    }
-
-    // File-based save states
-    if (ImGui::CollapsingHeader("File-based Saves")) {
-      static char save_name[256] = "";
-      ImGui::InputText("Save Name", save_name, IM_ARRAYSIZE(save_name));
-
-      if (ImGui::Button("Save to File", ImVec2(-1, 30))) {
-        // TODO: Implement save to file
-      }
-
-      if (ImGui::Button("Load from File", ImVec2(-1, 30))) {
-        // TODO: Implement load from file
-      }
-    }
-
-    // Rewind functionality
-    if (ImGui::CollapsingHeader("Rewind")) {
-      ImGui::TextWrapped(
-          "Rewind functionality allows you to step back through recent "
-          "gameplay.");
-
-      static bool rewind_enabled = false;
-      ImGui::Checkbox("Enable Rewind (uses more memory)", &rewind_enabled);
-
-      if (rewind_enabled) {
-        if (ImGui::Button("Rewind 1 Second", ImVec2(-1, 30))) {
-          // TODO: Implement rewind
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Rewind gameplay by 1 second (Backquote key)");
-        }
-      } else {
-        ImGui::TextColored(ConvertColorToImVec4(theme.text_disabled),
-                           "Enable rewind to use this feature");
-      }
-    }
-
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
-  } catch (const std::exception& e) {
-    try {
-      ImGui::PopStyleColor();
-    } catch (...) {}
-    ImGui::Text("Save States Error: %s", e.what());
-  }
+  // TODO: Create ui::RenderSaveStates() when save state system is implemented
+  auto& theme_manager = gui::ThemeManager::Get();
+  const auto& theme = theme_manager.GetCurrentTheme();
+  
+  ImGui::TextColored(ConvertColorToImVec4(theme.warning), 
+                    ICON_MD_SAVE " Save States - Coming Soon");
+  ImGui::TextWrapped("Save state functionality will be implemented here.");
 }
 
 void Emulator::RenderKeyboardConfig() {
@@ -1391,211 +767,8 @@ void Emulator::RenderKeyboardConfig() {
 }
 
 void Emulator::RenderApuDebugger() {
-  try {
-    auto& theme_manager = gui::ThemeManager::Get();
-    const auto& theme = theme_manager.GetCurrentTheme();
-
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.child_bg));
-    ImGui::BeginChild("##ApuDebugger", ImVec2(0, 0), true);
-
-    // Handshake Status
-    if (ImGui::CollapsingHeader("APU Handshake Status", ImGuiTreeNodeFlags_DefaultOpen)) {
-      auto& tracker = snes_.apu_handshake_tracker();
-      
-      // Phase indicator with color
-      ImGui::Text("Phase:");
-      ImGui::SameLine();
-      
-      auto phase_str = tracker.GetPhaseString();
-      ImVec4 phase_color;
-      if (phase_str == "RUNNING") {
-        phase_color = ConvertColorToImVec4(theme.success);
-      } else if (phase_str == "TRANSFER_ACTIVE") {
-        phase_color = ConvertColorToImVec4(theme.info);
-      } else if (phase_str == "WAITING_BBAA" || phase_str == "IPL_BOOT") {
-        phase_color = ConvertColorToImVec4(theme.warning);
-      } else {
-        phase_color = ConvertColorToImVec4(theme.text_primary);
-      }
-      ImGui::TextColored(phase_color, "%s", phase_str.c_str());
-      
-      // Handshake complete indicator
-      ImGui::Text("Handshake:");
-      ImGui::SameLine();
-      if (tracker.IsHandshakeComplete()) {
-        ImGui::TextColored(ConvertColorToImVec4(theme.success), "✓ Complete");
-      } else {
-        ImGui::TextColored(ConvertColorToImVec4(theme.error), "✗ Waiting");
-      }
-      
-      // Transfer progress
-      if (tracker.IsTransferActive() || tracker.GetBytesTransferred() > 0) {
-        ImGui::Text("Bytes Transferred: %d", tracker.GetBytesTransferred());
-        ImGui::Text("Blocks: %d", tracker.GetBlockCount());
-        
-        auto progress = tracker.GetTransferProgress();
-        if (!progress.empty()) {
-          ImGui::TextColored(ConvertColorToImVec4(theme.info), "%s", progress.c_str());
-        }
-      }
-      
-      // Status summary
-      ImGui::Separator();
-      ImGui::TextWrapped("%s", tracker.GetStatusSummary().c_str());
-    }
-
-    // Port Activity Log
-    if (ImGui::CollapsingHeader("Port Activity Log")) {
-      ImGui::BeginChild("##PortLog", ImVec2(0, 200), true);
-      
-      auto& tracker = snes_.apu_handshake_tracker();
-      const auto& history = tracker.GetPortHistory();
-      
-      if (history.empty()) {
-        ImGui::TextColored(ConvertColorToImVec4(theme.text_disabled), 
-                          "No port activity yet");
-      } else {
-        // Show last 50 entries (most recent at bottom)
-        int start_idx = std::max(0, static_cast<int>(history.size()) - 50);
-        for (size_t i = start_idx; i < history.size(); ++i) {
-          const auto& entry = history[i];
-          
-          ImVec4 color = entry.is_cpu ? ConvertColorToImVec4(theme.accent)
-                                      : ConvertColorToImVec4(theme.info);
-          
-          ImGui::TextColored(color, "[%04llu] %s F%d = $%02X @ PC=$%04X %s",
-                           entry.timestamp,
-                           entry.is_cpu ? "CPU→" : "SPC→",
-                           entry.port + 4,
-                           entry.value,
-                           entry.pc,
-                           entry.description.c_str());
-        }
-        
-        // Auto-scroll to bottom
-        if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
-          ImGui::SetScrollHereY(1.0f);
-        }
-      }
-      
-      ImGui::EndChild();
-    }
-
-    // Current Port Values
-    if (ImGui::CollapsingHeader("Current Port Values", ImGuiTreeNodeFlags_DefaultOpen)) {
-      if (ImGui::BeginTable("APU_Ports", 4, ImGuiTableFlags_Borders)) {
-        ImGui::TableSetupColumn("Port");
-        ImGui::TableSetupColumn("CPU → SPC");
-        ImGui::TableSetupColumn("SPC → CPU");
-        ImGui::TableSetupColumn("Addr");
-        ImGui::TableHeadersRow();
-        
-        for (int i = 0; i < 4; ++i) {
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::Text("F%d", i + 4);
-          
-          ImGui::TableNextColumn();
-          ImGui::TextColored(ConvertColorToImVec4(theme.accent), "$%02X",
-                            snes_.apu().in_ports_[i]);
-          
-          ImGui::TableNextColumn();
-          ImGui::TextColored(ConvertColorToImVec4(theme.info), "$%02X",
-                            snes_.apu().out_ports_[i]);
-          
-          ImGui::TableNextColumn();
-          ImGui::TextDisabled("$214%d / $F%d", i, i + 4);
-        }
-        
-        ImGui::EndTable();
-      }
-    }
-
-    // Quick Actions
-    if (ImGui::CollapsingHeader("Quick Actions", ImGuiTreeNodeFlags_DefaultOpen)) {
-      ImGui::TextColored(ConvertColorToImVec4(theme.warning), 
-                        "⚠️  Manual Testing Tools");
-      ImGui::Separator();
-      
-      // Full handshake sequence test
-      if (ImGui::Button("🎯 Full Handshake Test", ImVec2(-1, 35))) {
-        LOG_INFO("APU_DEBUG", "=== MANUAL HANDSHAKE TEST SEQUENCE ===");
-        
-        // Step 1: Write $CC to F4 (initiate handshake)
-        snes_.Write(0x002140, 0xCC);
-        LOG_INFO("APU_DEBUG", "Step 1: Wrote $CC to F4 (port $2140)");
-        
-        // Step 2: Write $01 to F5 (data port)
-        snes_.Write(0x002141, 0x01);
-        LOG_INFO("APU_DEBUG", "Step 2: Wrote $01 to F5 (port $2141)");
-        
-        // Step 3: Write $00 to F6 (address low)
-        snes_.Write(0x002142, 0x00);
-        LOG_INFO("APU_DEBUG", "Step 3: Wrote $00 to F6 (port $2142)");
-        
-        // Step 4: Write $02 to F7 (address high)
-        snes_.Write(0x002143, 0x02);
-        LOG_INFO("APU_DEBUG", "Step 4: Wrote $02 to F7 (port $2143)");
-        
-        LOG_INFO("APU_DEBUG", "Handshake initiated - check Port Activity Log");
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Manually execute full handshake sequence:\n"
-                         "$CC → F4 (init), $01 → F5, $00 → F6, $02 → F7");
-      }
-      
-      ImGui::Spacing();
-      
-      // Individual port writes for debugging
-      if (ImGui::CollapsingHeader("Manual Port Writes")) {
-        static uint8_t port_values[4] = {0xCC, 0x01, 0x00, 0x02};
-        
-        for (int i = 0; i < 4; ++i) {
-          ImGui::PushID(i);
-          ImGui::Text("F%d ($214%d):", i + 4, i);
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(80);
-          ImGui::InputScalar("##val", ImGuiDataType_U8, &port_values[i], NULL, NULL, "%02X",
-                            ImGuiInputTextFlags_CharsHexadecimal);
-          ImGui::SameLine();
-          if (ImGui::Button("Write")) {
-            snes_.Write(0x002140 + i, port_values[i]);
-            LOG_INFO("APU_DEBUG", "Wrote $%02X to F%d (port $214%d)", 
-                     port_values[i], i + 4, i);
-          }
-          ImGui::PopID();
-        }
-      }
-      
-      ImGui::Spacing();
-      ImGui::Separator();
-      
-      // System controls
-      if (ImGui::Button("Reset APU", ImVec2(-1, 30))) {
-        snes_.apu().Reset();
-        LOG_INFO("APU_DEBUG", "APU manually reset");
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Full APU reset - clears all state");
-      }
-      
-      if (ImGui::Button("Clear Port History", ImVec2(-1, 30))) {
-        snes_.apu_handshake_tracker().Reset();
-        LOG_INFO("APU_DEBUG", "Port history cleared");
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Clear the port activity log");
-      }
-    }
-
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
-  } catch (const std::exception& e) {
-    try {
-      ImGui::PopStyleColor();
-    } catch (...) {}
-    ImGui::Text("APU Debugger Error: %s", e.what());
-  }
+  // Delegate to UI layer
+  ui::RenderApuDebugger(this);
 }
 
 }  // namespace emu

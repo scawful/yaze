@@ -203,17 +203,18 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.resize_grip_hovered = RGBA(199, 209, 255, 153); // 0.78f, 0.82f, 1.00f, 0.60f
   theme.resize_grip_active = RGBA(199, 209, 255, 230);  // 0.78f, 0.82f, 1.00f, 0.90f
   
-  // Complete ImGui colors with smart defaults using accent colors
-  theme.check_mark = RGBA(66, 150, 250, 255);       // Solid blue checkmark (visible!)
-  theme.slider_grab = RGBA(66, 150, 250, 200);      // Blue slider grab
-  theme.slider_grab_active = RGBA(92, 115, 92, 255); // Solid green when active
-  theme.input_text_cursor = theme.text_primary;      // Use primary text color
-  theme.nav_cursor = theme.accent;                   // Use accent color for navigation
-  theme.nav_windowing_highlight = theme.accent;      // Accent for window switching
-  theme.nav_windowing_dim_bg = RGBA(0, 0, 0, 128);  // Semi-transparent overlay
-  theme.modal_window_dim_bg = RGBA(0, 0, 0, 89);    // 0.35f alpha
-  theme.text_selected_bg = RGBA(89, 119, 89, 89);   // Accent color with transparency
-  theme.drag_drop_target = theme.accent;             // Use accent for drag targets
+  // ENHANCED: Complete ImGui colors with theme-aware smart defaults
+  // Use theme colors instead of hardcoded values for consistency
+  theme.check_mark = RGBA(125, 255, 125, 255);      // Bright green checkmark (highly visible!)
+  theme.slider_grab = RGBA(92, 115, 92, 255);        // Theme green (solid)
+  theme.slider_grab_active = RGBA(125, 146, 125, 255); // Lighter green when active
+  theme.input_text_cursor = RGBA(255, 255, 255, 255);  // White cursor (always visible)
+  theme.nav_cursor = RGBA(125, 146, 125, 255);         // Light green for navigation  
+  theme.nav_windowing_highlight = RGBA(89, 119, 89, 200); // Accent with high visibility
+  theme.nav_windowing_dim_bg = RGBA(0, 0, 0, 150);   // Darker overlay for better contrast
+  theme.modal_window_dim_bg = RGBA(0, 0, 0, 128);    // 50% alpha for modals
+  theme.text_selected_bg = RGBA(92, 115, 92, 128);   // Theme green with 50% alpha (visible selection!)
+  theme.drag_drop_target = RGBA(125, 146, 125, 200); // Bright green for drop zones
   
   // Table colors (from original)
   theme.table_header_bg = RGBA(46, 66, 46);         // alttpDarkGreen
@@ -893,23 +894,39 @@ void ThemeManager::ApplyClassicYazeTheme() {
   classic_theme.scrollbar_grab_hovered = RGBA(92, 115, 92, 102); // 0.36f, 0.45f, 0.36f, 0.40f
   classic_theme.scrollbar_grab_active = RGBA(92, 115, 92, 153);  // 0.36f, 0.45f, 0.36f, 0.60f
   
-  // Add all the missing colors that CreateFallbackYazeClassic has
-  classic_theme.frame_bg = classic_theme.window_bg;
-  classic_theme.frame_bg_hovered = classic_theme.button_hovered;
-  classic_theme.frame_bg_active = classic_theme.button_active;
-  classic_theme.resize_grip = RGBA(255, 255, 255, 26);
-  classic_theme.resize_grip_hovered = RGBA(199, 209, 255, 153);
-  classic_theme.resize_grip_active = RGBA(199, 209, 255, 230);
-  classic_theme.check_mark = RGBA(230, 230, 230, 128);
-  classic_theme.slider_grab = RGBA(255, 255, 255, 77);
-  classic_theme.slider_grab_active = RGBA(92, 115, 92, 153);
-  classic_theme.input_text_cursor = classic_theme.text_primary;
-  classic_theme.nav_cursor = classic_theme.accent;
-  classic_theme.nav_windowing_highlight = classic_theme.accent;
-  classic_theme.nav_windowing_dim_bg = RGBA(0, 0, 0, 128);
-  classic_theme.modal_window_dim_bg = RGBA(0, 0, 0, 89);
-  classic_theme.text_selected_bg = RGBA(89, 119, 89, 89);
-  classic_theme.drag_drop_target = classic_theme.accent;
+  // ENHANCED: Frame colors for inputs/widgets
+  classic_theme.frame_bg = RGBA(46, 66, 46, 140);          // Darker green with some transparency
+  classic_theme.frame_bg_hovered = RGBA(71, 92, 71, 170);  // Mid green when hovered
+  classic_theme.frame_bg_active = RGBA(92, 115, 92, 200);  // Light green when active
+  
+  // FIXED: Resize grips with better visibility
+  classic_theme.resize_grip = RGBA(92, 115, 92, 80);        // Theme green, subtle
+  classic_theme.resize_grip_hovered = RGBA(125, 146, 125, 180); // Brighter when hovered
+  classic_theme.resize_grip_active = RGBA(125, 146, 125, 255);  // Solid when active
+  
+  // FIXED: Checkmark - bright green for high visibility!
+  classic_theme.check_mark = RGBA(125, 255, 125, 255);      // Bright green (clearly visible)
+  
+  // FIXED: Sliders with theme colors
+  classic_theme.slider_grab = RGBA(92, 115, 92, 255);       // Theme green (solid)
+  classic_theme.slider_grab_active = RGBA(125, 146, 125, 255); // Lighter when grabbed
+  
+  // FIXED: Input cursor - white for maximum visibility
+  classic_theme.input_text_cursor = RGBA(255, 255, 255, 255);  // White cursor (always visible)
+  
+  // FIXED: Navigation with theme colors
+  classic_theme.nav_cursor = RGBA(125, 146, 125, 255);          // Light green navigation
+  classic_theme.nav_windowing_highlight = RGBA(92, 115, 92, 200); // Theme green highlight
+  classic_theme.nav_windowing_dim_bg = RGBA(0, 0, 0, 150);     // Darker overlay
+  
+  // FIXED: Modals with better dimming
+  classic_theme.modal_window_dim_bg = RGBA(0, 0, 0, 128);      // 50% alpha
+  
+  // FIXED: Text selection - visible and theme-appropriate!
+  classic_theme.text_selected_bg = RGBA(92, 115, 92, 128);     // Theme green with 50% alpha (visible!)
+  
+  // FIXED: Drag/drop target with high visibility
+  classic_theme.drag_drop_target = RGBA(125, 146, 125, 200);   // Bright green
   classic_theme.table_header_bg = RGBA(46, 66, 46);
   classic_theme.table_border_strong = RGBA(71, 92, 71);
   classic_theme.table_border_light = RGBA(66, 66, 71);
