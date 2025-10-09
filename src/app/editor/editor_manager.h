@@ -143,6 +143,7 @@ class EditorManager {
  private:
   void DrawWelcomeScreen();
   absl::Status DrawRomSelector();
+  void DrawContextSensitiveCardControl();  // Card control for current editor
   absl::Status LoadRom();
   absl::Status LoadAssets();
   absl::Status SaveRom();

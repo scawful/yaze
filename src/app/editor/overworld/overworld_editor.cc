@@ -47,6 +47,82 @@ using namespace ImGui;
 constexpr float kInputFieldSize = 30.f;
 
 void OverworldEditor::Initialize() {
+  // Register cards with EditorCardManager
+  auto& card_manager = gui::EditorCardManager::Get();
+  
+  card_manager.RegisterCard({
+      .card_id = "overworld.tile16_selector",
+      .display_name = "Tile16 Selector",
+      .icon = ICON_MD_GRID_ON,
+      .category = "Overworld",
+      .shortcut_hint = "Ctrl+Alt+1",
+      .visibility_flag = &show_tile16_selector_,
+      .priority = 10
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "overworld.tile8_selector",
+      .display_name = "Tile8 Selector",
+      .icon = ICON_MD_GRID_3X3,
+      .category = "Overworld",
+      .shortcut_hint = "Ctrl+Alt+2",
+      .visibility_flag = &show_tile8_selector_,
+      .priority = 20
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "overworld.area_graphics",
+      .display_name = "Area Graphics",
+      .icon = ICON_MD_IMAGE,
+      .category = "Overworld",
+      .shortcut_hint = "Ctrl+Alt+3",
+      .visibility_flag = &show_area_gfx_,
+      .priority = 30
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "overworld.scratch",
+      .display_name = "Scratch Workspace",
+      .icon = ICON_MD_DRAW,
+      .category = "Overworld",
+      .shortcut_hint = "Ctrl+Alt+4",
+      .visibility_flag = &show_scratch_,
+      .priority = 40
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "overworld.gfx_groups",
+      .display_name = "GFX Groups",
+      .icon = ICON_MD_FOLDER,
+      .category = "Overworld",
+      .shortcut_hint = "Ctrl+Alt+5",
+      .visibility_flag = &show_gfx_groups_,
+      .priority = 50
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "overworld.usage_stats",
+      .display_name = "Usage Statistics",
+      .icon = ICON_MD_ANALYTICS,
+      .category = "Overworld",
+      .shortcut_hint = "Ctrl+Alt+6",
+      .visibility_flag = &show_usage_stats_,
+      .priority = 60
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "overworld.v3_settings",
+      .display_name = "v3 Settings",
+      .icon = ICON_MD_SETTINGS,
+      .category = "Overworld",
+      .shortcut_hint = "Ctrl+Alt+7",
+      .visibility_flag = &show_v3_settings_,
+      .priority = 70
+  });
+  
+  printf("[OverworldEditor] Registered 7 cards with EditorCardManager\n");
+  
+  // Original initialization code below:
   // Initialize MapPropertiesSystem with canvas and bitmap data
   map_properties_system_ = std::make_unique<MapPropertiesSystem>(
       &overworld_, rom_, &maps_bmp_, &ow_map_canvas_);

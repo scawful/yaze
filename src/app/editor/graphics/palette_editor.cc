@@ -186,7 +186,11 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   return absl::OkStatus();
 }
 
-void PaletteEditor::Initialize() {}
+void PaletteEditor::Initialize() {
+  // PaletteEditor uses tabs within a single window, not separate cards
+  // So we don't register individual cards - the whole editor is one unit
+  printf("[PaletteEditor] No cards to register (uses internal tabs)\n");
+}
 
 absl::Status PaletteEditor::Load() {
   gfx::ScopedTimer timer("PaletteEditor::Load");

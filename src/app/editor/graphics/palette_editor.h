@@ -9,6 +9,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/gfx/snes_color.h"
+#include "app/gui/editor_card_manager.h"
 #include "app/gfx/snes_palette.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"

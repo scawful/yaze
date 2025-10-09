@@ -98,6 +98,10 @@ class EditorCardManager {
   void DrawViewMenuSection(const std::string& category);
   void DrawViewMenuAll();  // Draw all categories as submenus
   
+  // Compact inline card control for menu bar
+  void DrawCompactCardControl(const std::string& category);  // Shows only active editor's cards
+  void DrawInlineCardToggles(const std::string& category);   // Minimal inline checkboxes
+  
   // Card browser UI
   void DrawCardBrowser(bool* p_open);  // Visual card browser/toggler
   void DrawCardBrowserTable(const char* search_filter, const std::string& category_filter);
