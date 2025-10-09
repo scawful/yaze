@@ -7,6 +7,20 @@
 
 ## Recent CI/CD Fixes (October 9, 2025)
 
+### Overview
+
+Multiple CI/CD pipeline failures have been resolved by simplifying dependency management and removing problematic configurations.
+
+**Key Changes:**
+- ✅ Removed vcpkg from CI workflow (use FetchContent instead)
+- ✅ Removed Windows x86 build (cpp-httplib incompatibility)
+- ✅ Added Windows macro pollution prevention
+- ✅ Simplified vcpkg.json (no baseline)
+
+---
+
+## Recent CI/CD Fixes (October 9, 2025)
+
 ### Issue #1: vcpkg Version Database Errors
 
 **Problem:**
@@ -22,10 +36,31 @@ error: no version database entry for zlib at 1.3.1
 
 **Fix:**
 - Removed `builtin-baseline` from `vcpkg.json`
-- Synchronized CI workflow to use stable vcpkg commit: `c8696863d371ab7f46e213d8f5ca923c4aef2a00`
-- vcpkg now uses default versions available at that commit
+- **Removed vcpkg entirely from CI workflow** - now uses FetchContent for all dependencies
+- macOS: Uses FetchContent with Homebrew-installed tools (ninja, pkg-config)
+- Windows: Uses FetchContent (no vcpkg dependency)
+- Linux: Uses system packages (unchanged)
 
-**Result:** ✅ Package version mismatches resolved
+**Result:** ✅ Package version mismatches resolved, CI builds simplified
+
+### Issue #1b: macOS yaml-cpp CMake Version Incompatibility
+
+**Problem:**
+```
+CMake Error: Compatibility with CMake < 3.5 has been removed from CMake.
+```
+
+**Root Cause:**
+- Old vcpkg commit had yaml-cpp version requiring CMake < 3.5
+- GitHub Actions runner has CMake 4.1.1 which dropped support for old CMake versions
+- vcpkg yaml-cpp package couldn't build
+
+**Fix:**
+- Removed vcpkg from macOS CI builds
+- Now uses FetchContent to fetch yaml-cpp 0.8.0 directly (configured in `cmake/` files)
+- CMake files already had fallback to FetchContent when yaml-cpp not found via package config
+
+**Result:** ✅ yaml-cpp builds successfully via FetchContent
 
 ---
 
