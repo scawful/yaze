@@ -224,7 +224,7 @@ jobs:
           -DVCPKG_TARGET_TRIPLET=x64-windows-static `
           -DVCPKG_MANIFEST_MODE=ON `
           -DVCPKG_INSTALL_OPTIONS="--debug" `
-          -DYAZE_MINIMAL_BUILD=ON `
+          -DYAZE_BUILD_TESTS=ON `
           -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | Tee-Object -FilePath cmake_config.log
         
         if ($LASTEXITCODE -ne 0) {
@@ -245,7 +245,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           -DCMAKE_C_COMPILER=${{ matrix.cc }} \
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
-          -DYAZE_MINIMAL_BUILD=ON \
+          -DYAZE_BUILD_TESTS=ON \
           -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
         echo "::endgroup::"
     
@@ -419,7 +419,7 @@ jobs:
         echo "- **Platform**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Compiler**: ${{ matrix.cc }}/${{ matrix.cxx }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Build Type**: ${{ env.BUILD_TYPE }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Minimal Build**: ON" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Mode**: Full (same as release)" >> $GITHUB_STEP_SUMMARY
         if [[ "${{ runner.os }}" == "Windows" ]]; then
           echo "- **vcpkg Triplet**: x64-windows-static" >> $GITHUB_STEP_SUMMARY
           if [[ "${{ steps.vcpkg.outcome }}" != "" ]]; then
@@ -527,7 +527,7 @@ jobs:
           -DCMAKE_C_COMPILER=clang-14 \
           -DCMAKE_CXX_COMPILER=clang++-14 \
           -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer" \
-          -DYAZE_MINIMAL_BUILD=ON
+          -DYAZE_BUILD_TESTS=ON
     
     - name: Build
       run: cmake --build build --parallel
