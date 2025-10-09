@@ -52,8 +52,9 @@ jobs:
       if: runner.os == 'Windows'
       uses: lukka/run-vcpkg@v11
       with:
+        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+        vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6' # 2024.07.12 release
         runVcpkgInstall: true
-        doNotUpdateVcpkg: false
 
     - name: Install Dependencies
       shell: bash
@@ -62,13 +63,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             build-essential ninja-build pkg-config \
-            libglew-dev libxext-dev libwavpack-dev libabsl-dev libboost-all-dev \
+            libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
             libpng-dev python3-dev libpython3-dev \
             libasound2-dev libpulse-dev libaudio-dev \
             libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev \
             libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
             libgtk-3-dev libdbus-1-dev \
             ${{ matrix.cc }} ${{ matrix.cxx }}
+          # Note: libabsl-dev removed - using bundled Abseil via FetchContent for consistency
         elif [[ "${{ runner.os }}" == "macOS" ]]; then
           brew install ninja pkg-config
         fi

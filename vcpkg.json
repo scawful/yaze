@@ -8,6 +8,10 @@
       "platform": "!uwp",
       "features": ["vulkan"]
     },
+    {
+      "name": "grpc",
+      "platform": "windows"
+    },
     "yaml-cpp",
     "zlib"
   ]

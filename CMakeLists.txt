@@ -70,11 +70,19 @@ option(YAZE_USE_MODULAR_BUILD "Use modularized library build system for faster b
 # ============================================================================
 # No conditional compilation - everything is always available
 # This simplifies development and eliminates ifdef complexity
-set(Z3ED_AI ON)
-set(YAZE_WITH_JSON ON)
-set(YAZE_WITH_GRPC ON)
 
-message(STATUS "✓ All features enabled: JSON, gRPC, AI Agent")
+# For minimal CI builds, disable expensive features
+if(YAZE_MINIMAL_BUILD)
+  set(Z3ED_AI OFF)
+  set(YAZE_WITH_JSON ON)  # Keep JSON (header-only, lightweight)
+  set(YAZE_WITH_GRPC OFF) # Disable gRPC (requires 15-45 min compile)
+  message(STATUS "○ Minimal build: JSON only (gRPC/AI disabled for faster CI)")
+else()
+  set(Z3ED_AI ON)
+  set(YAZE_WITH_JSON ON)
+  set(YAZE_WITH_GRPC ON)
+  message(STATUS "✓ All features enabled: JSON, gRPC, AI Agent")
+endif()
 
 # YAZE_SUPPRESS_WARNINGS: Suppress compiler warnings for cleaner build output
 option(YAZE_SUPPRESS_WARNINGS "Suppress compiler warnings (use -v preset suffix for verbose)" ON)
@@ -153,8 +161,9 @@ endif()
 # Abseil provider selection: default to bundled libraries on macOS to avoid
 # deployment target mismatches with system packages, but let other platforms
 # use their package managers unless overridden.
+# IMPORTANT: When gRPC is enabled, always use bundled Abseil to avoid version conflicts
 set(_yaze_default_force_absl OFF)
-if(YAZE_PLATFORM_MACOS)
+if(YAZE_PLATFORM_MACOS OR YAZE_WITH_GRPC)
     set(_yaze_default_force_absl ON)
 endif()
 option(YAZE_FORCE_BUNDLED_ABSL
