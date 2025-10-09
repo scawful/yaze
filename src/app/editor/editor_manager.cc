@@ -610,6 +610,34 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
   context_.shortcut_manager.RegisterShortcut(
       "Editor Selection", {ImGuiKey_E, ImGuiMod_Ctrl},
       [this]() { show_editor_selection_ = true; });
+  
+  // Card Browser shortcut
+  context_.shortcut_manager.RegisterShortcut(
+      "Card Browser", {ImGuiKey_B, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      [this]() { show_card_browser_ = true; });
+  
+  // Dungeon Card shortcuts
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Dungeon Controls", {ImGuiKey_D, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.control_panel"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Room Selector", {ImGuiKey_R, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.room_selector"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Room Matrix", {ImGuiKey_M, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.room_matrix"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Dungeon Entrances", {ImGuiKey_E, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.entrances"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Room Graphics", {ImGuiKey_G, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.room_graphics"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Object Editor", {ImGuiKey_O, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.object_editor"); });
+  context_.shortcut_manager.RegisterShortcut(
+      "Toggle Dungeon Palette", {ImGuiKey_P, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.palette_editor"); });
 
 #ifdef YAZE_WITH_GRPC
   // Agent Editor shortcut
@@ -671,6 +699,11 @@ absl::Status EditorManager::Update() {
   // Draw editor selection dialog
   if (show_editor_selection_) {
     editor_selection_dialog_.Show(&show_editor_selection_);
+  }
+  
+  // Draw card browser
+  if (show_card_browser_) {
+    gui::EditorCardManager::Get().DrawCardBrowser(&show_card_browser_);
   }
 
 #ifdef YAZE_WITH_GRPC
@@ -771,20 +804,13 @@ absl::Status EditorManager::Update() {
           }
         }
 
-        // Generate unique window titles and IDs for multi-session support
-        std::string window_title =
-            GenerateUniqueEditorTitle(editor->type(), session_idx);
+        // CARD-BASED EDITORS: Don't wrap in Begin/End, they manage own windows
+        bool is_card_based_editor = (editor->type() == EditorType::kDungeon);
+        // TODO: Add EditorType::kGraphics, EditorType::kPalette when converted
         
-        // Note: PushID removed - window title provides sufficient uniqueness
-        // and PushID was causing ID stack corruption issues
-
-        // Set window to maximize on first open (use FirstUseEver instead of IsWindowAppearing check)
-        ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize, ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowPos(ImGui::GetMainViewport()->WorkPos, ImGuiCond_FirstUseEver);
-        
-        if (ImGui::Begin(window_title.c_str(), editor->active(), 
-                        ImGuiWindowFlags_None)) {  // Allow full docking
-          // Temporarily switch context for this editor's update
+        if (is_card_based_editor) {
+          // Card-based editors create their own top-level windows
+          // No parent wrapper needed - this allows independent docking
           Rom* prev_rom = current_rom_;
           EditorSet* prev_editor_set = current_editor_set_;
           size_t prev_session_id = context_.session_id;
@@ -792,29 +818,13 @@ absl::Status EditorManager::Update() {
           current_rom_ = &session.rom;
           current_editor_set_ = &session.editors;
           current_editor_ = editor;
-          context_.session_id = session_idx;  // Set session ID for child panels
+          context_.session_id = session_idx;
 
           status_ = editor->Update();
 
           // Route editor errors to toast manager
           if (!status_.ok()) {
-            std::string editor_name =
-                "Editor";  // Get actual editor name if available
-            if (editor == &session.editors.overworld_editor_)
-              editor_name = "Overworld Editor";
-            else if (editor == &session.editors.dungeon_editor_)
-              editor_name = "Dungeon Editor";
-            else if (editor == &session.editors.sprite_editor_)
-              editor_name = "Sprite Editor";
-            else if (editor == &session.editors.graphics_editor_)
-              editor_name = "Graphics Editor";
-            else if (editor == &session.editors.music_editor_)
-              editor_name = "Music Editor";
-            else if (editor == &session.editors.palette_editor_)
-              editor_name = "Palette Editor";
-            else if (editor == &session.editors.screen_editor_)
-              editor_name = "Screen Editor";
-
+            std::string editor_name = GetEditorName(editor->type());
             toast_manager_.Show(
                 absl::StrFormat("%s Error: %s", editor_name, status_.message()),
                 editor::ToastType::kError, 8.0f);
@@ -823,10 +833,46 @@ absl::Status EditorManager::Update() {
           // Restore context
           current_rom_ = prev_rom;
           current_editor_set_ = prev_editor_set;
-          context_.session_id = prev_session_id;  // Restore previous session ID
+          context_.session_id = prev_session_id;
+          
+        } else {
+          // TRADITIONAL EDITORS: Wrap in Begin/End
+          std::string window_title =
+              GenerateUniqueEditorTitle(editor->type(), session_idx);
+
+          // Set window to maximize on first open
+          ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize, ImGuiCond_FirstUseEver);
+          ImGui::SetNextWindowPos(ImGui::GetMainViewport()->WorkPos, ImGuiCond_FirstUseEver);
+          
+          if (ImGui::Begin(window_title.c_str(), editor->active(), 
+                          ImGuiWindowFlags_None)) {  // Allow full docking
+            // Temporarily switch context for this editor's update
+            Rom* prev_rom = current_rom_;
+            EditorSet* prev_editor_set = current_editor_set_;
+            size_t prev_session_id = context_.session_id;
+
+            current_rom_ = &session.rom;
+            current_editor_set_ = &session.editors;
+            current_editor_ = editor;
+            context_.session_id = session_idx;
+
+            status_ = editor->Update();
+
+            // Route editor errors to toast manager
+            if (!status_.ok()) {
+              std::string editor_name = GetEditorName(editor->type());
+              toast_manager_.Show(
+                  absl::StrFormat("%s Error: %s", editor_name, status_.message()),
+                  editor::ToastType::kError, 8.0f);
+            }
+
+            // Restore context
+            current_rom_ = prev_rom;
+            current_editor_set_ = prev_editor_set;
+            context_.session_id = prev_session_id;
+          }
+          ImGui::End();
         }
-        ImGui::End();
-        // PopID removed to match PushID removal above
       }
     }
   }
@@ -962,7 +1008,7 @@ void EditorManager::BuildModernMenu() {
           [this]() { show_global_search_ = true; }, "Ctrl+Shift+F")
     .EndMenu();
   
-  // View Menu - editors only
+  // View Menu - editors and cards
   menu_builder_.BeginMenu("View")
     .Item("Editor Selection", ICON_MD_DASHBOARD,
           [this]() { show_editor_selection_ = true; }, "Ctrl+E")
@@ -993,6 +1039,16 @@ void EditorManager::BuildModernMenu() {
     .Item("Proposal Drawer", ICON_MD_PREVIEW,
           [this]() { proposal_drawer_.Toggle(); }, "Ctrl+P")
 #endif
+    .Separator();
+  
+  // Dynamic card menu sections (from EditorCardManager)
+  auto& card_manager = gui::EditorCardManager::Get();
+  card_manager.DrawViewMenuAll();
+  
+  menu_builder_
+    .Separator()
+    .Item("Card Browser", ICON_MD_DASHBOARD,
+          [this]() { show_card_browser_ = true; }, "Ctrl+Shift+B")
     .Separator()
     .Item("Welcome Screen", ICON_MD_HOME,
           [this]() { show_welcome_screen_ = true; })

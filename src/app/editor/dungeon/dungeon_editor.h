@@ -35,7 +35,6 @@
 #include "dungeon_renderer.h"
 #include "dungeon_room_loader.h"
 #include "dungeon_usage_tracker.h"
-#include "manual_object_renderer.h"
 
 namespace yaze {
 namespace editor {
@@ -201,7 +200,6 @@ class DungeonEditor : public Editor {
   DungeonRenderer renderer_;
   DungeonRoomLoader room_loader_;
   DungeonUsageTracker usage_tracker_;
-  ManualObjectRenderer manual_renderer_;
 
   absl::Status status_;
 

@@ -755,36 +755,6 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
       canvas_.DrawBitmap(bg2_bitmap, 0, 0, 1.0f, 200);
     }
     
-         // TEMPORARY: Render all objects as primitives until proper rendering is fixed
-         if (current_palette_id_ < current_palette_group_.size()) {
-           auto room_palette = current_palette_group_[current_palette_id_];
-           
-           // Render regular objects with primitive fallback
-           for (const auto& object : room.GetTileObjects()) {
-             renderer_.RenderObjectInCanvas(object, room_palette);
-           }
-           
-           // Test manual rendering for debugging
-           if (room.GetTileObjects().size() > 0) {
-             const auto& test_object = room.GetTileObjects()[0];
-             int canvas_x = test_object.x_ * 8;
-             int canvas_y = test_object.y_ * 8;
-             
-             printf("[DungeonEditor] Testing manual render for object 0x%04X at (%d,%d)\n", 
-                    test_object.id_, canvas_x, canvas_y);
-             printf("[DungeonEditor] Object tiles count: %zu\n", test_object.tiles().size());
-             
-             manual_renderer_.RenderSimpleBlock(test_object.id_, canvas_x, canvas_y, room_palette);
-             
-             // Debug graphics sheets
-             manual_renderer_.DebugGraphicsSheet(0);
-             manual_renderer_.DebugGraphicsSheet(1);
-           }
-           
-           // Test palette rendering
-           manual_renderer_.TestPaletteRendering(400, 100);
-         }
-    
     // Render sprites as simple 16x16 squares with labels
     // (Sprites are not part of the background buffers)
     renderer_.RenderSprites(rooms_[room_id]);

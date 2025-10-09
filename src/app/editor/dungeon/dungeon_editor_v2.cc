@@ -72,6 +72,81 @@ absl::Status DungeonEditorV2::Load() {
       &canvas_viewer_.canvas(), rom_);
   printf("[DungeonEditorV2] Manual renderer initialized for debugging\n");
   
+  // Register all cards with the card manager for unified control
+  auto& card_manager = gui::EditorCardManager::Get();
+  
+  card_manager.RegisterCard({
+      .card_id = "dungeon.control_panel",
+      .display_name = "Dungeon Controls",
+      .icon = ICON_MD_CASTLE,
+      .category = "Dungeon",
+      .shortcut_hint = "Ctrl+Shift+D",
+      .visibility_flag = &show_control_panel_,
+      .priority = 10
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "dungeon.room_selector",
+      .display_name = "Room Selector",
+      .icon = ICON_MD_LIST,
+      .category = "Dungeon",
+      .shortcut_hint = "Ctrl+Shift+R",
+      .visibility_flag = &show_room_selector_,
+      .priority = 20
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "dungeon.room_matrix",
+      .display_name = "Room Matrix",
+      .icon = ICON_MD_GRID_VIEW,
+      .category = "Dungeon",
+      .shortcut_hint = "Ctrl+Shift+M",
+      .visibility_flag = &show_room_matrix_,
+      .priority = 30
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "dungeon.entrances",
+      .display_name = "Entrances",
+      .icon = ICON_MD_DOOR_FRONT,
+      .category = "Dungeon",
+      .shortcut_hint = "Ctrl+Shift+E",
+      .visibility_flag = &show_entrances_list_,
+      .priority = 40
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "dungeon.room_graphics",
+      .display_name = "Room Graphics",
+      .icon = ICON_MD_IMAGE,
+      .category = "Dungeon",
+      .shortcut_hint = "Ctrl+Shift+G",
+      .visibility_flag = &show_room_graphics_,
+      .priority = 50
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "dungeon.object_editor",
+      .display_name = "Object Editor",
+      .icon = ICON_MD_CONSTRUCTION,
+      .category = "Dungeon",
+      .shortcut_hint = "Ctrl+Shift+O",
+      .visibility_flag = &show_object_editor_,
+      .priority = 60
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "dungeon.palette_editor",
+      .display_name = "Palette Editor",
+      .icon = ICON_MD_PALETTE,
+      .category = "Dungeon",
+      .shortcut_hint = "Ctrl+Shift+P",
+      .visibility_flag = &show_palette_editor_,
+      .priority = 70
+  });
+  
+  printf("[DungeonEditorV2] Registered 7 cards with EditorCardManager\n");
+  
   // Wire palette changes to trigger room re-renders
   palette_editor_.SetOnPaletteChanged([this](int /*palette_id*/) {
     // Re-render all active rooms when palette changes
@@ -89,25 +164,46 @@ absl::Status DungeonEditorV2::Load() {
 
 absl::Status DungeonEditorV2::Update() {
   if (!is_loaded_) {
-    // Show minimal loading message in parent window
-    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Dungeon Editor Loading...");
-    ImGui::TextWrapped("Independent editor cards will appear once ROM data is loaded.");
+    // CARD-BASED EDITOR: Create a minimal loading card
+    gui::EditorCard loading_card("Dungeon Editor Loading", ICON_MD_CASTLE);
+    loading_card.SetDefaultSize(400, 200);
+    if (loading_card.Begin()) {
+      ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Loading dungeon data...");
+      ImGui::TextWrapped("Independent editor cards will appear once ROM data is loaded.");
+    }
+    loading_card.End();
     return absl::OkStatus();
   }
 
-  // Minimize parent window content - just show a toolbar
-  DrawToolset();
+  // CARD-BASED EDITOR: All windows are independent top-level cards
+  // No parent wrapper - this allows closing control panel without affecting rooms
   
-  ImGui::Separator();
-  ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), 
-      "Editor cards are independent windows - dock them anywhere!");
-  ImGui::TextWrapped(
-      "Room Selector, Object Selector, and Room cards can be freely arranged. "
-      "This parent window can be minimized or closed.");
+  // Optional control panel (can be hidden/minimized)
+  if (show_control_panel_) {
+    DrawControlPanel();
+  } else if (control_panel_minimized_) {
+    // Draw floating icon button to reopen
+    ImGui::SetNextWindowPos(ImVec2(10, 100));
+    ImGui::SetNextWindowSize(ImVec2(50, 50));
+    ImGuiWindowFlags icon_flags = ImGuiWindowFlags_NoTitleBar | 
+                                  ImGuiWindowFlags_NoResize |
+                                  ImGuiWindowFlags_NoScrollbar |
+                                  ImGuiWindowFlags_NoCollapse |
+                                  ImGuiWindowFlags_NoDocking;
+    
+    if (ImGui::Begin("##DungeonControlIcon", nullptr, icon_flags)) {
+      if (ImGui::Button(ICON_MD_CASTLE, ImVec2(40, 40))) {
+        show_control_panel_ = true;
+        control_panel_minimized_ = false;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Open Dungeon Controls");
+      }
+    }
+    ImGui::End();
+  }
 
-  // Render all independent cards (these create their own top-level windows)
-  // NOTE: Emulator preview is now integrated into ObjectEditorCard
-  // object_emulator_preview_.Render();  // Removed - causing performance issues
+  // Render all independent cards (these are ALL top-level windows now)
   DrawLayout();
   
   return absl::OkStatus();
@@ -169,35 +265,94 @@ void DungeonEditorV2::DrawToolset() {
   toolbar.End();
 }
 
+void DungeonEditorV2::DrawControlPanel() {
+  // Small, collapsible control panel for dungeon editor
+  ImGui::SetNextWindowSize(ImVec2(250, 200), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowPos(ImVec2(10, 100), ImGuiCond_FirstUseEver);
+  
+  ImGuiWindowFlags flags = ImGuiWindowFlags_None;
+  
+  if (ImGui::Begin(ICON_MD_CASTLE " Dungeon Controls", &show_control_panel_, flags)) {
+    DrawToolset();
+    
+    ImGui::Separator();
+    ImGui::Text("Quick Toggles:");
+    
+    // Checkbox grid for quick toggles
+    if (ImGui::BeginTable("##QuickToggles", 2, ImGuiTableFlags_SizingStretchSame)) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Checkbox("Rooms", &show_room_selector_);
+      
+      ImGui::TableNextColumn();
+      ImGui::Checkbox("Matrix", &show_room_matrix_);
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Checkbox("Entrances", &show_entrances_list_);
+      
+      ImGui::TableNextColumn();
+      ImGui::Checkbox("Graphics", &show_room_graphics_);
+      
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Checkbox("Objects", &show_object_editor_);
+      
+      ImGui::TableNextColumn();
+      ImGui::Checkbox("Palette", &show_palette_editor_);
+      
+      ImGui::EndTable();
+    }
+    
+    ImGui::Separator();
+    
+    // Minimize button
+    if (ImGui::SmallButton(ICON_MD_MINIMIZE " Minimize to Icon")) {
+      control_panel_minimized_ = true;
+      show_control_panel_ = false;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Collapse to floating icon. Rooms stay open.");
+    }
+  }
+  ImGui::End();
+}
+
 void DungeonEditorV2::DrawLayout() {
   // NO TABLE LAYOUT - All independent dockable EditorCards
+  // All cards check their visibility flags and can be closed with X button
   
   // 1. Room Selector Card (independent, dockable)
   if (show_room_selector_) {
     DrawRoomsListCard();
+    // Card handles its own closing via &show_room_selector_ in constructor
   }
   
   // 2. Room Matrix Card (visual navigation)
   if (show_room_matrix_) {
     DrawRoomMatrixCard();
+    // Card handles its own closing via &show_room_matrix_ in constructor
   }
   
   // 3. Entrances List Card
   if (show_entrances_list_) {
     DrawEntrancesListCard();
+    // Card handles its own closing via &show_entrances_list_ in constructor
   }
   
-  // 3b. Room Graphics Card
+  // 4. Room Graphics Card
   if (show_room_graphics_) {
     DrawRoomGraphicsCard();
+    // Card handles its own closing via &show_room_graphics_ in constructor
   }
 
-  // 4. Unified Object Editor Card
+  // 5. Unified Object Editor Card
   if (show_object_editor_ && object_editor_card_) {
     object_editor_card_->Draw(&show_object_editor_);
+    // ObjectEditorCard handles closing via p_open parameter
   }
   
-  // 5. Palette Editor Card (independent, dockable)
+  // 6. Palette Editor Card (independent, dockable)
   if (show_palette_editor_) {
     gui::EditorCard palette_card(
         MakeCardTitle("Palette Editor").c_str(), 
@@ -206,6 +361,7 @@ void DungeonEditorV2::DrawLayout() {
       palette_editor_.Draw();
     }
     palette_card.End();
+    // Card handles its own closing via &show_palette_editor_ in constructor
   }
 
   // 6. Active Room Cards (independent, dockable, tracked for jump-to)
@@ -238,9 +394,11 @@ void DungeonEditorV2::DrawLayout() {
     
     auto& room_card = room_cards_[room_id];
     
-    // CRITICAL: Use docking class BEFORE Begin() to make rooms tab together
+    // CRITICAL: Use docking class BEFORE Begin() to make rooms dock together
+    // This creates a separate docking space for all room cards
     ImGui::SetNextWindowClass(&room_window_class_);
     
+    // Make room cards fully dockable and independent
     if (room_card->Begin(&open)) {
       DrawRoomTab(room_id);
     }
