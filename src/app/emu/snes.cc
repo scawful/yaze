@@ -36,6 +36,9 @@ void Snes::Init(std::vector<uint8_t>& rom_data) {
   // Initialize the CPU, PPU, and APU
   ppu_.Init();
   apu_.Init();
+  
+  // Connect handshake tracker to APU for debugging
+  apu_.set_handshake_tracker(&apu_handshake_tracker_);
 
   // Load the ROM into memory and set up the memory mapping
   memory_.Initialize(rom_data);
@@ -419,6 +422,11 @@ void Snes::WriteBBus(uint8_t adr, uint8_t val) {
   if (adr < 0x80) {
     CatchUpApu();  // catch up the apu before writing
     apu_.in_ports_[adr & 0x3] = val;
+    
+    // Track CPU port writes for handshake debugging
+    uint32_t full_pc = (static_cast<uint32_t>(cpu_.PB) << 16) | cpu_.PC;
+    apu_handshake_tracker_.OnCpuPortWrite(adr & 0x3, val, full_pc);
+    
     static int cpu_port_write_count = 0;
     if (cpu_port_write_count++ < 10) {  // Reduced to prevent crash
       LOG_DEBUG("SNES", "CPU wrote APU port $21%02X (F%d) = $%02X at PC=$%02X:%04X",

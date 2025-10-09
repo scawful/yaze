@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "app/core/window.h"
+#include "util/log.h"
 
 namespace yaze::core {
   extern bool g_window_is_resizing;
@@ -83,6 +84,25 @@ void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& 
   running_ = false;
   snes_initialized_ = false;
   
+  // Initialize audio backend if not already done
+  if (!audio_backend_) {
+    audio_backend_ = audio::AudioBackendFactory::Create(
+        audio::AudioBackendFactory::BackendType::SDL2);
+    
+    audio::AudioConfig config;
+    config.sample_rate = 48000;
+    config.channels = 2;
+    config.buffer_frames = 1024;
+    config.format = audio::SampleFormat::INT16;
+    
+    if (!audio_backend_->Initialize(config)) {
+      LOG_ERROR("Emulator", "Failed to initialize audio backend");
+    } else {
+      LOG_INFO("Emulator", "Audio backend initialized: %s", 
+               audio_backend_->GetBackendName().c_str());
+    }
+  }
+  
   // Set up CPU breakpoint callback
   snes_.cpu().on_breakpoint_hit_ = [this](uint32_t pc) -> bool {
     return breakpoint_manager_.ShouldBreakOnExecute(pc, BreakpointManager::CpuType::CPU_65816);
@@ -105,6 +125,25 @@ void Emulator::Run(Rom* rom) {
     ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), 
                        "Emulator renderer not initialized");
     return;
+  }
+  
+  // Initialize audio backend if not already done (lazy initialization)
+  if (!audio_backend_) {
+    audio_backend_ = audio::AudioBackendFactory::Create(
+        audio::AudioBackendFactory::BackendType::SDL2);
+    
+    audio::AudioConfig config;
+    config.sample_rate = 48000;
+    config.channels = 2;
+    config.buffer_frames = 1024;
+    config.format = audio::SampleFormat::INT16;
+    
+    if (!audio_backend_->Initialize(config)) {
+      LOG_ERROR("Emulator", "Failed to initialize audio backend");
+    } else {
+      LOG_INFO("Emulator", "Audio backend initialized (lazy): %s", 
+               audio_backend_->GetBackendName().c_str());
+    }
   }
   
   // Initialize SNES and create PPU texture on first run
@@ -217,19 +256,93 @@ void Emulator::Run(Rom* rom) {
 
         // Only render and handle audio on the last frame
         if (should_render) {
-          // Generate and queue audio samples with improved buffering
+          // Generate and queue audio samples using audio backend
           snes_.SetSamples(audio_buffer_, wanted_samples_);
-          uint32_t queued = SDL_GetQueuedAudioSize(audio_device_);
-          uint32_t target_buffer = wanted_samples_ * 4 * 2;  // Target 2 frames buffered
-          uint32_t max_buffer = wanted_samples_ * 4 * 6;     // Max 6 frames
-
-          if (queued < target_buffer) {
-            // Buffer is low, queue more audio
-            SDL_QueueAudio(audio_device_, audio_buffer_, wanted_samples_ * 4);
-          } else if (queued > max_buffer) {
-            // Buffer is too full, clear it to prevent lag
-            SDL_ClearQueuedAudio(audio_device_);
-            SDL_QueueAudio(audio_device_, audio_buffer_, wanted_samples_ * 4);
+          
+          // AUDIO DEBUG: Comprehensive diagnostics at regular intervals
+          static int audio_debug_counter = 0;
+          audio_debug_counter++;
+          
+          // Log at frames 60 (1sec), 300 (5sec), 600 (10sec), then every 600 frames
+          bool should_debug = (audio_debug_counter == 60 || audio_debug_counter == 300 || 
+                              audio_debug_counter == 600 || (audio_debug_counter % 600 == 0));
+          
+          if (should_debug) {
+            // Check if buffer exists
+            if (!audio_buffer_) {
+              printf("[AUDIO ERROR] audio_buffer_ is NULL!\n");
+            } else {
+              // Check for audio samples
+              bool has_audio = false;
+              int16_t max_sample = 0;
+              int non_zero_count = 0;
+              for (int i = 0; i < wanted_samples_ * 2 && i < 100; i++) {
+                if (audio_buffer_[i] != 0) {
+                  has_audio = true;
+                  non_zero_count++;
+                  if (std::abs(audio_buffer_[i]) > std::abs(max_sample)) {
+                    max_sample = audio_buffer_[i];
+                  }
+                }
+              }
+              
+              // Backend status
+              auto audio_status = audio_backend_ ? audio_backend_->GetStatus() : audio::AudioStatus{};
+              bool backend_playing = audio_status.is_playing;
+              
+              printf("\n[AUDIO DEBUG] Frame=%d (~%.1f sec)\n", audio_debug_counter, audio_debug_counter / 60.0f);
+              printf("  Backend: %s (Playing: %s)\n",
+                     audio_backend_ ? audio_backend_->GetBackendName().c_str() : "NULL",
+                     backend_playing ? "YES" : "NO");
+              printf("  Queued: %u frames\n", audio_status.queued_frames);
+              printf("  Buffer: wanted_samples=%d, non_zero=%d/%d, max=%d\n",
+                     wanted_samples_, non_zero_count, std::min(wanted_samples_ * 2, 100), max_sample);
+              printf("  Samples: %s\n", has_audio ? "YES" : "SILENCE");
+              
+              // APU state
+              if (snes_.running()) {
+                uint64_t apu_cycles = snes_.apu().GetCycles();
+                uint16_t spc_pc = snes_.apu().spc700().PC;
+                bool ipl_rom_active = (spc_pc >= 0xFFC0 && spc_pc <= 0xFFFF);
+                
+                printf("  APU: %llu cycles, PC=$%04X %s\n", 
+                       apu_cycles, spc_pc, ipl_rom_active ? "(IPL ROM)" : "(Game Code)");
+                
+                // Handshake status
+                auto& tracker = snes_.apu_handshake_tracker();
+                printf("  Handshake: %s\n", tracker.GetPhaseString().c_str());
+                
+                if (ipl_rom_active && audio_debug_counter > 300) {
+                  printf("  ⚠️  SPC700 STUCK IN IPL ROM - Handshake not completing!\n");
+                }
+              } else {
+                printf("  ⚠️  SNES not running!\n");
+              }
+              
+              printf("\n");
+            }
+          }
+          
+          // Smart buffer management using audio backend
+          if (audio_backend_) {
+            auto status = audio_backend_->GetStatus();
+            int num_samples = wanted_samples_ * 2;  // Stereo
+            
+            if (status.queued_frames < 2) {
+              // Buffer is low, queue more audio
+              if (!audio_backend_->QueueSamples(audio_buffer_, num_samples)) {
+                if (frame_count_ % 300 == 0) {
+                  LOG_WARN("Emulator", "Failed to queue audio samples");
+                }
+              }
+            } else if (status.queued_frames > 6) {
+              // Buffer is too full, clear it to prevent lag
+              audio_backend_->Clear();
+              audio_backend_->QueueSamples(audio_buffer_, num_samples);
+            } else {
+              // Normal operation - queue samples
+              audio_backend_->QueueSamples(audio_buffer_, num_samples);
+            }
           }
 
           // Update PPU texture only on rendered frames
@@ -267,6 +380,7 @@ void Emulator::RenderEmulatorInterface() {
     static bool show_ai_agent_ = false;
     static bool show_save_states_ = false;
     static bool show_keyboard_config_ = false;
+    static bool show_apu_debugger_ = true;
 
     // Create session-aware cards
     gui::EditorCard cpu_card(ICON_MD_MEMORY " CPU Debugger", ICON_MD_MEMORY);
@@ -282,6 +396,8 @@ void Emulator::RenderEmulatorInterface() {
     gui::EditorCard save_states_card(ICON_MD_SAVE " Save States", ICON_MD_SAVE);
     gui::EditorCard keyboard_card(ICON_MD_KEYBOARD " Keyboard Config",
                                   ICON_MD_KEYBOARD);
+    gui::EditorCard apu_debug_card(ICON_MD_MUSIC_NOTE " APU Debugger",
+                                   ICON_MD_MUSIC_NOTE);
 
     // Configure default positions
     static bool cards_configured = false;
@@ -309,6 +425,9 @@ void Emulator::RenderEmulatorInterface() {
 
       keyboard_card.SetDefaultSize(450, 400);
       keyboard_card.SetPosition(gui::EditorCard::Position::Floating);
+
+      apu_debug_card.SetDefaultSize(500, 400);
+      apu_debug_card.SetPosition(gui::EditorCard::Position::Floating);
 
       cards_configured = true;
     }
@@ -375,6 +494,14 @@ void Emulator::RenderEmulatorInterface() {
         RenderKeyboardConfig();
       }
       keyboard_card.End();
+    }
+
+    // APU Debugger Card
+    if (show_apu_debugger_) {
+      if (apu_debug_card.Begin(&show_apu_debugger_)) {
+        RenderApuDebugger();
+      }
+      apu_debug_card.End();
     }
 
   } catch (const std::exception& e) {
@@ -504,9 +631,12 @@ void Emulator::RenderNavBar() {
   }
 
   SameLine();
-  uint32_t audio_queued = SDL_GetQueuedAudioSize(audio_device_);
-  uint32_t audio_frames = audio_queued / (wanted_samples_ * 4);
-  ImGui::Text("| Audio: %u frames", audio_frames);
+  if (audio_backend_) {
+    auto audio_status = audio_backend_->GetStatus();
+    ImGui::Text("| Audio: %u frames", audio_status.queued_frames);
+  } else {
+    ImGui::Text("| Audio: N/A");
+  }
 
   static bool show_memory_viewer = false;
 
@@ -838,7 +968,7 @@ void Emulator::RenderModernCpuDebugger() {
     ImGui::TextColored(ConvertColorToImVec4(theme.accent), "CPU Status");
     ImGui::PushStyleColor(ImGuiCol_ChildBg,
                           ConvertColorToImVec4(theme.child_bg));
-    ImGui::BeginChild("##CpuStatus", ImVec2(0, 120), true);
+    ImGui::BeginChild("##CpuStatus", ImVec2(0, 200), true);
 
     // Compact register display in a table
     if (ImGui::BeginTable(
@@ -920,7 +1050,7 @@ void Emulator::RenderModernCpuDebugger() {
     ImGui::TextColored(ConvertColorToImVec4(theme.accent), "SPC700 Status");
     ImGui::PushStyleColor(ImGuiCol_ChildBg,
                           ConvertColorToImVec4(theme.child_bg));
-    ImGui::BeginChild("##SpcStatus", ImVec2(0, 80), true);
+    ImGui::BeginChild("##SpcStatus", ImVec2(0, 160), true);
 
     if (ImGui::BeginTable(
             "SPCRegisters", 4,
@@ -1023,14 +1153,17 @@ void Emulator::RenderPerformanceMonitor() {
       }
 
       // Audio Status
-      uint32_t audio_queued = SDL_GetQueuedAudioSize(audio_device_);
-      uint32_t audio_frames = audio_queued / (wanted_samples_ * 4);
       ImGui::Text("Audio Queue:");
       ImGui::SameLine();
-      ImVec4 audio_color = (audio_frames >= 2 && audio_frames <= 6)
-                               ? ConvertColorToImVec4(theme.success)
-                               : ConvertColorToImVec4(theme.warning);
-      ImGui::TextColored(audio_color, "%u frames", audio_frames);
+      if (audio_backend_) {
+        auto audio_status = audio_backend_->GetStatus();
+        ImVec4 audio_color = (audio_status.queued_frames >= 2 && audio_status.queued_frames <= 6)
+                                 ? ConvertColorToImVec4(theme.success)
+                                 : ConvertColorToImVec4(theme.warning);
+        ImGui::TextColored(audio_color, "%u frames", audio_status.queued_frames);
+      } else {
+        ImGui::TextColored(ConvertColorToImVec4(theme.error), "No backend");
+      }
 
       ImGui::NextColumn();
 
@@ -1412,6 +1545,158 @@ void Emulator::RenderKeyboardConfig() {
       ImGui::PopStyleColor();
     } catch (...) {}
     ImGui::Text("Keyboard Config Error: %s", e.what());
+  }
+}
+
+void Emulator::RenderApuDebugger() {
+  try {
+    auto& theme_manager = gui::ThemeManager::Get();
+    const auto& theme = theme_manager.GetCurrentTheme();
+
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ConvertColorToImVec4(theme.child_bg));
+    ImGui::BeginChild("##ApuDebugger", ImVec2(0, 0), true);
+
+    // Handshake Status
+    if (ImGui::CollapsingHeader("APU Handshake Status", ImGuiTreeNodeFlags_DefaultOpen)) {
+      auto& tracker = snes_.apu_handshake_tracker();
+      
+      // Phase indicator with color
+      ImGui::Text("Phase:");
+      ImGui::SameLine();
+      
+      auto phase_str = tracker.GetPhaseString();
+      ImVec4 phase_color;
+      if (phase_str == "RUNNING") {
+        phase_color = ConvertColorToImVec4(theme.success);
+      } else if (phase_str == "TRANSFER_ACTIVE") {
+        phase_color = ConvertColorToImVec4(theme.info);
+      } else if (phase_str == "WAITING_BBAA" || phase_str == "IPL_BOOT") {
+        phase_color = ConvertColorToImVec4(theme.warning);
+      } else {
+        phase_color = ConvertColorToImVec4(theme.text_primary);
+      }
+      ImGui::TextColored(phase_color, "%s", phase_str.c_str());
+      
+      // Handshake complete indicator
+      ImGui::Text("Handshake:");
+      ImGui::SameLine();
+      if (tracker.IsHandshakeComplete()) {
+        ImGui::TextColored(ConvertColorToImVec4(theme.success), "✓ Complete");
+      } else {
+        ImGui::TextColored(ConvertColorToImVec4(theme.error), "✗ Waiting");
+      }
+      
+      // Transfer progress
+      if (tracker.IsTransferActive() || tracker.GetBytesTransferred() > 0) {
+        ImGui::Text("Bytes Transferred: %d", tracker.GetBytesTransferred());
+        ImGui::Text("Blocks: %d", tracker.GetBlockCount());
+        
+        auto progress = tracker.GetTransferProgress();
+        if (!progress.empty()) {
+          ImGui::TextColored(ConvertColorToImVec4(theme.info), "%s", progress.c_str());
+        }
+      }
+      
+      // Status summary
+      ImGui::Separator();
+      ImGui::TextWrapped("%s", tracker.GetStatusSummary().c_str());
+    }
+
+    // Port Activity Log
+    if (ImGui::CollapsingHeader("Port Activity Log")) {
+      ImGui::BeginChild("##PortLog", ImVec2(0, 200), true);
+      
+      auto& tracker = snes_.apu_handshake_tracker();
+      const auto& history = tracker.GetPortHistory();
+      
+      if (history.empty()) {
+        ImGui::TextColored(ConvertColorToImVec4(theme.text_disabled), 
+                          "No port activity yet");
+      } else {
+        // Show last 50 entries (most recent at bottom)
+        int start_idx = std::max(0, static_cast<int>(history.size()) - 50);
+        for (size_t i = start_idx; i < history.size(); ++i) {
+          const auto& entry = history[i];
+          
+          ImVec4 color = entry.is_cpu ? ConvertColorToImVec4(theme.accent)
+                                      : ConvertColorToImVec4(theme.info);
+          
+          ImGui::TextColored(color, "[%04llu] %s F%d = $%02X @ PC=$%04X %s",
+                           entry.timestamp,
+                           entry.is_cpu ? "CPU→" : "SPC→",
+                           entry.port + 4,
+                           entry.value,
+                           entry.pc,
+                           entry.description.c_str());
+        }
+        
+        // Auto-scroll to bottom
+        if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
+          ImGui::SetScrollHereY(1.0f);
+        }
+      }
+      
+      ImGui::EndChild();
+    }
+
+    // Current Port Values
+    if (ImGui::CollapsingHeader("Current Port Values", ImGuiTreeNodeFlags_DefaultOpen)) {
+      if (ImGui::BeginTable("APU_Ports", 4, ImGuiTableFlags_Borders)) {
+        ImGui::TableSetupColumn("Port");
+        ImGui::TableSetupColumn("CPU → SPC");
+        ImGui::TableSetupColumn("SPC → CPU");
+        ImGui::TableSetupColumn("Addr");
+        ImGui::TableHeadersRow();
+        
+        for (int i = 0; i < 4; ++i) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("F%d", i + 4);
+          
+          ImGui::TableNextColumn();
+          ImGui::TextColored(ConvertColorToImVec4(theme.accent), "$%02X",
+                            snes_.apu().in_ports_[i]);
+          
+          ImGui::TableNextColumn();
+          ImGui::TextColored(ConvertColorToImVec4(theme.info), "$%02X",
+                            snes_.apu().out_ports_[i]);
+          
+          ImGui::TableNextColumn();
+          ImGui::TextDisabled("$214%d / $F%d", i, i + 4);
+        }
+        
+        ImGui::EndTable();
+      }
+    }
+
+    // Quick Actions
+    if (ImGui::CollapsingHeader("Quick Actions")) {
+      if (ImGui::Button("Force Handshake ($CC)", ImVec2(-1, 30))) {
+        snes_.Write(0x002140, 0xCC);
+        LOG_INFO("APU_DEBUG", "Manually forced handshake by writing $CC to F4");
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Manually trigger CPU handshake (for testing)");
+      }
+      
+      if (ImGui::Button("Reset APU", ImVec2(-1, 30))) {
+        snes_.apu().Reset();
+        LOG_INFO("APU_DEBUG", "APU manually reset");
+      }
+      
+      if (ImGui::Button("Clear Port History", ImVec2(-1, 30))) {
+        snes_.apu_handshake_tracker().Reset();
+        LOG_INFO("APU_DEBUG", "Port history cleared");
+      }
+    }
+
+    ImGui::EndChild();
+    ImGui::PopStyleColor();
+  } catch (const std::exception& e) {
+    try {
+      ImGui::PopStyleColor();
+    } catch (...) {}
+    ImGui::Text("APU Debugger Error: %s", e.what());
   }
 }
 

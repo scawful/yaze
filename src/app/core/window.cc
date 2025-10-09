@@ -113,24 +113,22 @@ absl::Status CreateWindow(Window& window, gfx::IRenderer* renderer, int flags) {
   // Apply original YAZE colors as fallback, then try to load theme system
   gui::ColorsYaze();
   
-  // Initialize audio if not already initialized
+  // Audio is now handled by IAudioBackend in Emulator class
+  // Keep legacy buffer allocation for backwards compatibility
   if (window.audio_device_ == 0) {
     const int audio_frequency = 48000;
-    SDL_AudioSpec want, have;
-    SDL_memset(&want, 0, sizeof(want));
-    want.freq = audio_frequency;
-    want.format = AUDIO_S16;
-    want.channels = 2;
-    want.samples = 2048;
-    want.callback = NULL;  // Uses the queue
-    window.audio_device_ = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
-    if (window.audio_device_ == 0) {
-      LOG_ERROR("Window", "Failed to open audio: %s", SDL_GetError());
-      // Don't fail - audio is optional
-    } else {
-      window.audio_buffer_ = std::make_shared<int16_t>(audio_frequency / 50 * 4);
-      SDL_PauseAudioDevice(window.audio_device_, 0);
-    }
+    const size_t buffer_size = (audio_frequency / 50) * 2; // 1920 int16_t for stereo PAL
+    
+    // CRITICAL FIX: Allocate buffer as ARRAY, not single value
+    // Use new[] with shared_ptr custom deleter for proper array allocation
+    window.audio_buffer_ = std::shared_ptr<int16_t>(
+        new int16_t[buffer_size],
+        std::default_delete<int16_t[]>());
+    
+    // Note: Actual audio device is created by Emulator's IAudioBackend
+    // This maintains compatibility with existing code paths
+    LOG_INFO("Window", "Audio buffer allocated: %zu int16_t samples (backend in Emulator)",
+             buffer_size);
   }
 
   return absl::OkStatus();
@@ -203,7 +201,7 @@ absl::Status HandleEvents(Window& window) {
             // Update display size for both resize and size_changed events
             io.DisplaySize.x = static_cast<float>(event.window.data1);
             io.DisplaySize.y = static_cast<float>(event.window.data2);
-            g_window_is_resizing = true;
+            core::g_window_is_resizing = true;
             break;
           case SDL_WINDOWEVENT_MINIMIZED:
           case SDL_WINDOWEVENT_HIDDEN:

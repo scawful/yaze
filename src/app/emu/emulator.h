@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "app/emu/snes.h"
+#include "app/emu/audio/audio_backend.h"
 #include "app/emu/debug/breakpoint_manager.h"
 #include "app/emu/debug/disassembly_viewer.h"
 #include "app/rom.h"
@@ -49,6 +50,9 @@ class Emulator {
 
   auto snes() -> Snes& { return snes_; }
   auto running() const -> bool { return running_; }
+  
+  // Audio backend access
+  audio::IAudioBackend* audio_backend() { return audio_backend_.get(); }
   void set_audio_buffer(int16_t* audio_buffer) { audio_buffer_ = audio_buffer; }
   auto set_audio_device_id(SDL_AudioDeviceID audio_device) {
     audio_device_ = audio_device;
@@ -105,6 +109,7 @@ class Emulator {
   void RenderAIAgentPanel();
   void RenderSaveStates();
   void RenderKeyboardConfig();
+  void RenderApuDebugger();
 
   struct Bookmark {
     std::string name;
@@ -139,6 +144,9 @@ class Emulator {
 
   int16_t* audio_buffer_;
   SDL_AudioDeviceID audio_device_;
+  
+  // Audio backend abstraction
+  std::unique_ptr<audio::IAudioBackend> audio_backend_;
 
   Snes snes_;
   bool initialized_ = false;

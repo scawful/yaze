@@ -7,6 +7,7 @@
 
 #include "app/emu/audio/apu.h"
 #include "app/emu/cpu/cpu.h"
+#include "app/emu/debug/apu_debugger.h"
 #include "app/emu/memory/memory.h"
 #include "app/emu/video/ppu.h"
 
@@ -69,6 +70,9 @@ class Snes {
   auto memory() -> MemoryImpl& { return memory_; }
   auto get_ram() -> uint8_t* { return ram; }
   auto mutable_cycles() -> uint64_t& { return cycles_; }
+  
+  // Audio debugging
+  auto apu_handshake_tracker() -> debug::ApuHandshakeTracker& { return apu_handshake_tracker_; }
 
   bool fast_mem_ = false;
 
@@ -117,6 +121,9 @@ class Snes {
   bool auto_joy_read_ = false;
   uint16_t auto_joy_timer_ = 0;
   bool ppu_latch_;
+  
+  // Audio debugging
+  debug::ApuHandshakeTracker apu_handshake_tracker_;
 };
 
 }  // namespace emu
