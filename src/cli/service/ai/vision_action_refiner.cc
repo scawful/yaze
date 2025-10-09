@@ -110,9 +110,9 @@ absl::StatusOr<ActionRefinement> VisionActionRefiner::RefineAction(
             std::vector<std::string> parts = absl::StrSplit(coords, ',');
             if (parts.size() == 2) {
               refinement.adjusted_parameters["x"] = 
-                  absl::StripAsciiWhitespace(parts[0]);
+                  std::string(absl::StripAsciiWhitespace(parts[0]));
               refinement.adjusted_parameters["y"] = 
-                  absl::StripAsciiWhitespace(parts[1]);
+                  std::string(absl::StripAsciiWhitespace(parts[1]));
             }
           }
         }
@@ -167,8 +167,8 @@ VisionActionRefiner::LocateUIElement(
         std::string coords = text.substr(pos + 1, end - pos - 1);
         std::vector<std::string> parts = absl::StrSplit(coords, ',');
         if (parts.size() == 2) {
-          location["x"] = absl::StripAsciiWhitespace(parts[0]);
-          location["y"] = absl::StripAsciiWhitespace(parts[1]);
+          location["x"] = std::string(absl::StripAsciiWhitespace(parts[0]));
+          location["y"] = std::string(absl::StripAsciiWhitespace(parts[1]));
         }
       }
     }
@@ -324,7 +324,7 @@ VisionAnalysisResult VisionActionRefiner::ParseVerificationResponse(
     size_t pos = response_upper.find("SUCCESS:");
     if (pos != std::string::npos) {
       std::string desc = response.substr(pos + 8);
-      result.description = absl::StripAsciiWhitespace(desc);
+      result.description = std::string(absl::StripAsciiWhitespace(desc));
     }
   }
   else if (response_upper.find("FAILURE") != std::string::npos) {

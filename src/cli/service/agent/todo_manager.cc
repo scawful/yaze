@@ -53,9 +53,9 @@ TodoItem::Status TodoItem::StringToStatus(const std::string& str) {
 TodoManager::TodoManager() {
   auto result = util::PlatformPaths::GetAppDataSubdirectory("agent");
   if (result.ok()) {
-    data_dir_ = *result;
+    data_dir_ = result->string();
   } else {
-    data_dir_ = std::filesystem::current_path() / ".yaze" / "agent";
+    data_dir_ = (std::filesystem::current_path() / ".yaze" / "agent").string();
   }
   todos_file_ = (std::filesystem::path(data_dir_) / "todos.json").string();
 }
