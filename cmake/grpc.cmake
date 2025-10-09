@@ -46,6 +46,13 @@ elseif(MSVC)
     if(MSVC_VERSION GREATER_EQUAL 1920)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /constexpr:depth2048")
     endif()
+    
+    # Prevent Windows macro pollution in protobuf-generated headers
+    add_compile_definitions(
+        WIN32_LEAN_AND_MEAN  # Exclude rarely-used Windows headers
+        NOMINMAX             # Don't define min/max macros
+        NOGDI                # Exclude GDI (prevents DWORD and other macro conflicts)
+    )
 endif()
 
 # Save YAZE's C++ standard and temporarily set to C++17 for gRPC

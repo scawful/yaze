@@ -38,7 +38,8 @@ jobs:
             echo 'matrix={"include":[{"name":"Ubuntu 22.04 (GCC-12)","os":"ubuntu-22.04","cc":"gcc-12","cxx":"g++-12"},{"name":"macOS 14 (Clang)","os":"macos-14","cc":"clang","cxx":"clang++","vcpkg_triplet":"arm64-osx"},{"name":"Windows 2022 (MSVC x64)","os":"windows-2022","cc":"cl","cxx":"cl","vcpkg_triplet":"x64-windows","cmake_generator":"Visual Studio 17 2022","cmake_generator_platform":"x64"}]}' >> "$GITHUB_OUTPUT"
           else
             echo "Using comprehensive matrix for push"
-            echo 'matrix={"include":[{"name":"Ubuntu 22.04 (GCC-12)","os":"ubuntu-22.04","cc":"gcc-12","cxx":"g++-12"},{"name":"Ubuntu 22.04 (Clang)","os":"ubuntu-22.04","cc":"clang-15","cxx":"clang++-15"},{"name":"macOS 13 (Clang)","os":"macos-13","cc":"clang","cxx":"clang++","vcpkg_triplet":"x64-osx"},{"name":"macOS 14 (Clang)","os":"macos-14","cc":"clang","cxx":"clang++","vcpkg_triplet":"arm64-osx"},{"name":"Windows 2022 (MSVC x64)","os":"windows-2022","cc":"cl","cxx":"cl","vcpkg_triplet":"x64-windows","cmake_generator":"Visual Studio 17 2022","cmake_generator_platform":"x64"},{"name":"Windows 2022 (MSVC x86)","os":"windows-2022","cc":"cl","cxx":"cl","vcpkg_triplet":"x86-windows","cmake_generator":"Visual Studio 17 2022","cmake_generator_platform":"Win32"}]}' >> "$GITHUB_OUTPUT"
+            # NOTE: Removed x86 Windows build - cpp-httplib doesn't support 32-bit Windows
+            echo 'matrix={"include":[{"name":"Ubuntu 22.04 (GCC-12)","os":"ubuntu-22.04","cc":"gcc-12","cxx":"g++-12"},{"name":"Ubuntu 22.04 (Clang)","os":"ubuntu-22.04","cc":"clang-15","cxx":"clang++-15"},{"name":"macOS 13 (Clang)","os":"macos-13","cc":"clang","cxx":"clang++","vcpkg_triplet":"x64-osx"},{"name":"macOS 14 (Clang)","os":"macos-14","cc":"clang","cxx":"clang++","vcpkg_triplet":"arm64-osx"},{"name":"Windows 2022 (MSVC x64)","os":"windows-2022","cc":"cl","cxx":"cl","vcpkg_triplet":"x64-windows","cmake_generator":"Visual Studio 17 2022","cmake_generator_platform":"x64"}]}' >> "$GITHUB_OUTPUT"
           fi
 
   build-and-test:
@@ -59,7 +60,7 @@ jobs:
       if: runner.os != 'Linux'
       uses: lukka/run-vcpkg@v11
       with:
-        vcpkgGitCommitId: '4bee3f5aae7aefbc129ca81c33d6a062b02fcf3b'
+        vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
         runVcpkgInstall: true
       env:
         VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}

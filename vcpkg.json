@@ -10,13 +10,5 @@
     },
     "yaml-cpp",
     "zlib"
-  ],
-  "builtin-baseline": "4bee3f5aae7aefbc129ca81c33d6a062b02fcf3b",
-  "overrides": [],
-  "features": {
-    "pkg-config": {
-      "description": "Use pkg-config for dependency detection",
-      "dependencies": []
-    }
-  }
+  ]
 }
