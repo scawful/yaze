@@ -24,7 +24,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   
   // Setup docking class for room windows
   room_window_class_.ClassId = ImGui::GetID("DungeonRoomClass");
-  room_window_class_.DockingAllowUnclassed = false;  // Room windows dock together
+  room_window_class_.DockingAllowUnclassed = true;  // Room windows can dock with anything
+  room_window_class_.DockingAlwaysTabBar = true;    // Always show tabs when multiple rooms
   
   // Register all cards with the card manager (done once during initialization)
   auto& card_manager = gui::EditorCardManager::Get();

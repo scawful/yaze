@@ -292,7 +292,7 @@ int main(int argc, char* argv[]) {
     
     // Register dungeon editor smoke test
     ImGuiTest* dungeon_test = IM_REGISTER_TEST(engine, "E2ETest", "DungeonEditorSmokeTest");
-    dungeon_test->TestFunc = E2ETest_DungeonEditorSmokeTest;
+    dungeon_test->TestFunc = E2ETest_DungeonEditorV2SmokeTest;
     dungeon_test->UserData = &controller;
 
     // Main loop

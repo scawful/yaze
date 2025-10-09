@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_DUNGEON_CANVAS_VIEWER_H
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_CANVAS_VIEWER_H
 
+#include <map>
+
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 #include "app/zelda3/dungeon/object_renderer.h"
@@ -56,15 +58,30 @@ class DungeonCanvasViewer {
   void SetObjectInteractionEnabled(bool enabled) { object_interaction_enabled_ = enabled; }
   bool IsObjectInteractionEnabled() const { return object_interaction_enabled_; }
   
-  // Layer visibility controls
-  void SetBG1Visible(bool visible) { bg1_visible_ = visible; }
-  void SetBG2Visible(bool visible) { bg2_visible_ = visible; }
-  bool IsBG1Visible() const { return bg1_visible_; }
-  bool IsBG2Visible() const { return bg2_visible_; }
+  // Layer visibility controls (per-room)
+  void SetBG1Visible(int room_id, bool visible) { 
+    GetRoomLayerSettings(room_id).bg1_visible = visible; 
+  }
+  void SetBG2Visible(int room_id, bool visible) { 
+    GetRoomLayerSettings(room_id).bg2_visible = visible; 
+  }
+  bool IsBG1Visible(int room_id) const { 
+    auto it = room_layer_settings_.find(room_id);
+    return it != room_layer_settings_.end() ? it->second.bg1_visible : true;
+  }
+  bool IsBG2Visible(int room_id) const { 
+    auto it = room_layer_settings_.find(room_id);
+    return it != room_layer_settings_.end() ? it->second.bg2_visible : true;
+  }
   
-  // BG2 layer type controls
-  void SetBG2LayerType(int type) { bg2_layer_type_ = type; }
-  int GetBG2LayerType() const { return bg2_layer_type_; }
+  // BG2 layer type controls (per-room)
+  void SetBG2LayerType(int room_id, int type) { 
+    GetRoomLayerSettings(room_id).bg2_layer_type = type; 
+  }
+  int GetBG2LayerType(int room_id) const { 
+    auto it = room_layer_settings_.find(room_id);
+    return it != room_layer_settings_.end() ? it->second.bg2_layer_type : 0;
+  }
   
   // Set the object to be placed
   void SetPreviewObject(const zelda3::RoomObject& object) {
@@ -88,9 +105,10 @@ class DungeonCanvasViewer {
   void CalculateWallDimensions(const zelda3::RoomObject& object, int& width, int& height);
   
   // Room graphics management
+  // Load: Read from ROM, Render: Process pixels, Draw: Display on canvas
   absl::Status LoadAndRenderRoomGraphics(int room_id);
-  absl::Status UpdateRoomBackgroundLayers(int room_id);
-  void RenderRoomBackgroundLayers(int room_id);
+  absl::Status RenderGraphicsSheetPalettes(int room_id);  // Renamed from UpdateRoomBackgroundLayers
+  void DrawRoomBackgroundLayers(int room_id);  // Renamed from RenderRoomBackgroundLayers
 
   Rom* rom_ = nullptr;
   gui::Canvas canvas_{"##DungeonCanvas", ImVec2(0x200, 0x200)};
@@ -105,10 +123,18 @@ class DungeonCanvasViewer {
   // Object interaction state
   bool object_interaction_enabled_ = true;
   
-  // Layer visibility controls
-  bool bg1_visible_ = true;
-  bool bg2_visible_ = true;
-  int bg2_layer_type_ = 0;  // 0=Normal, 1=Translucent, 2=Addition, etc.
+  // Per-room layer visibility settings
+  struct RoomLayerSettings {
+    bool bg1_visible = true;
+    bool bg2_visible = true;
+    int bg2_layer_type = 0;  // 0=Normal, 1=Translucent, 2=Addition, etc.
+  };
+  std::map<int, RoomLayerSettings> room_layer_settings_;
+  
+  // Helper to get settings for a room (creates default if not exists)
+  RoomLayerSettings& GetRoomLayerSettings(int room_id) {
+    return room_layer_settings_[room_id];
+  }
   
   // Palette data
   uint64_t current_palette_group_id_ = 0;

@@ -786,8 +786,8 @@ source_group("Application\\Editor\\Code" FILES
 
 # Dungeon Editor
 source_group("Application\\Editor\\Dungeon" FILES
-  app/editor/dungeon/dungeon_editor.cc
-  app/editor/dungeon/dungeon_editor.h
+  app/editor/dungeon/dungeon_editor_v2.cc
+  app/editor/dungeon/dungeon_editor_v2.h
   app/editor/dungeon/dungeon_map_editor.cc
   app/editor/dungeon/dungeon_map_editor.h
   app/editor/dungeon/dungeon_room_editor.cc
