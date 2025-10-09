@@ -268,15 +268,16 @@ void EditorCardManager::DrawCompactCardControl(const std::string& category) {
     return;  // Nothing to show
   }
   
-  // Draw as a small button with popup menu
-  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.4f, 0.8f));
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.5f, 1.0f));
+  // Use theme colors for button
+  ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_Button));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
   
   if (ImGui::SmallButton(ICON_MD_VIEW_MODULE)) {
     ImGui::OpenPopup("CardControlPopup");
   }
   
-  ImGui::PopStyleColor(2);
+  ImGui::PopStyleColor(3);
   
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s Card Controls", category.c_str());

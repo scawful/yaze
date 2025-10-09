@@ -25,6 +25,7 @@
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui_memory_editor.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace editor {
@@ -92,6 +93,7 @@ absl::Status GraphicsEditor::Load() {
   gfx::ScopedTimer timer("GraphicsEditor::Load");
   
   // Initialize all graphics sheets with appropriate palettes from ROM
+  // This ensures textures are created for editing
   if (rom()->is_loaded()) {
     auto& sheets = gfx::Arena::Get().gfx_sheets();
     
@@ -100,34 +102,56 @@ absl::Status GraphicsEditor::Load() {
     // Sheets 113-127: Use sprite palettes
     // Sheets 128-222: Use auxiliary/menu palettes
     
+    LOG_INFO("GraphicsEditor", "Initializing textures for %d graphics sheets", kNumGfxSheets);
+    
+    int sheets_initialized = 0;
     for (int i = 0; i < kNumGfxSheets; i++) {
-      if (sheets[i].is_active() && sheets[i].surface()) {
-        // Determine which palette group to use based on sheet index
-        gfx::SnesPalette sheet_palette;
-        
-        if (i < 113) {
-          // Overworld/Dungeon graphics - use main palette
-          auto palette_group = rom()->palette_group().dungeon_main;
-          sheet_palette = palette_group[0];  // Use first palette as default
-        } else if (i < 128) {
-          // Sprite graphics - use sprite palettes
-          auto palette_group = rom()->palette_group().sprites_aux1;
+      if (!sheets[i].is_active() || !sheets[i].surface()) {
+        continue;  // Skip inactive or surface-less sheets
+      }
+      
+      // Determine which palette group to use based on sheet index
+      gfx::SnesPalette sheet_palette;
+      
+      if (i < 113) {
+        // Overworld/Dungeon graphics - use dungeon main palette
+        auto palette_group = rom()->palette_group().dungeon_main;
+        if (palette_group.size() > 0) {
           sheet_palette = palette_group[0];
-        } else {
-          // Auxiliary graphics - use HUD/menu palettes
-          sheet_palette = rom()->palette_group().hud.palette(0);
         }
-        
-        // Apply palette and queue texture creation
-        sheets[i].SetPalette(sheet_palette);
-        
-        // Queue texture creation if not already created
-        if (!sheets[i].texture()) {
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::CREATE, &sheets[i]);
+      } else if (i < 128) {
+        // Sprite graphics - use sprite palettes
+        auto palette_group = rom()->palette_group().sprites_aux1;
+        if (palette_group.size() > 0) {
+          sheet_palette = palette_group[0];
+        }
+      } else {
+        // Auxiliary graphics - use HUD/menu palettes
+        auto palette_group = rom()->palette_group().hud;
+        if (palette_group.size() > 0) {
+          sheet_palette = palette_group.palette(0);
         }
       }
+      
+      // CRITICAL: Apply palette BEFORE queueing texture creation
+      // The palette must be set on the surface before creating the texture
+      if (!sheet_palette.empty()) {
+        sheets[i].SetPalette(sheet_palette);
+        sheets_initialized++;
+      } else {
+        LOG_WARN("GraphicsEditor", "Sheet %d: Empty palette, skipping", i);
+        continue;
+      }
+      
+      // Queue texture creation if not already created
+      if (!sheets[i].texture()) {
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::CREATE, &sheets[i]);
+      }
     }
+    
+    LOG_INFO("GraphicsEditor", "Initialized %d sheets with palettes, queued for texture creation", 
+             sheets_initialized);
   }
   
   return absl::OkStatus(); 

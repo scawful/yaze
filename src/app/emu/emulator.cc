@@ -49,6 +49,47 @@ void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& 
   renderer_ = renderer;
   rom_data_ = rom_data;
   
+  // Register emulator cards with EditorCardManager
+  auto& card_manager = gui::EditorCardManager::Get();
+  
+  card_manager.RegisterCard({
+      .card_id = "emulator.cpu_debugger",
+      .display_name = "CPU Debugger",
+      .icon = ICON_MD_BUG_REPORT,
+      .category = "Emulator",
+      .visibility_flag = &show_cpu_debugger_,
+      .priority = 10
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "emulator.memory_viewer",
+      .display_name = "Memory Viewer",
+      .icon = ICON_MD_MEMORY,
+      .category = "Emulator",
+      .visibility_flag = &show_memory_viewer_,
+      .priority = 20
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "emulator.ppu_viewer",
+      .display_name = "PPU Viewer",
+      .icon = ICON_MD_GRID_VIEW,
+      .category = "Emulator",
+      .visibility_flag = &show_ppu_viewer_,
+      .priority = 30
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "emulator.audio_mixer",
+      .display_name = "Audio Mixer",
+      .icon = ICON_MD_AUDIO_FILE,
+      .category = "Emulator",
+      .visibility_flag = &show_audio_mixer_,
+      .priority = 40
+  });
+  
+  printf("[Emulator] Registered 4 cards with EditorCardManager\n");
+  
   // Reset state for new ROM
   running_ = false;
   snes_initialized_ = false;

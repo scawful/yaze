@@ -7,6 +7,7 @@
 #include "app/emu/snes.h"
 #include "app/emu/audio/audio_backend.h"
 #include "app/emu/debug/breakpoint_manager.h"
+#include "app/gui/editor_card_manager.h"
 #include "app/emu/debug/disassembly_viewer.h"
 #include "app/emu/input/input_manager.h"
 #include "app/rom.h"
@@ -36,6 +37,12 @@ class Emulator {
   void Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& rom_data);
   void Run(Rom* rom);
   void Cleanup();
+  
+  // Card visibility for emulator UI panels
+  bool& show_cpu_debugger() { return show_cpu_debugger_; }
+  bool& show_memory_viewer() { return show_memory_viewer_; }
+  bool& show_ppu_viewer() { return show_ppu_viewer_; }
+  bool& show_audio_mixer() { return show_audio_mixer_; }
 
   auto snes() -> Snes& { return snes_; }
   auto running() const -> bool { return running_; }
@@ -155,6 +162,12 @@ class Emulator {
   bool debugging_ = false;
   gfx::IRenderer* renderer_ = nullptr;
   void* ppu_texture_ = nullptr;
+  
+  // Card visibility states
+  bool show_cpu_debugger_ = false;
+  bool show_memory_viewer_ = false;
+  bool show_ppu_viewer_ = false;
+  bool show_audio_mixer_ = false;
   
   // Debugger infrastructure
   BreakpointManager breakpoint_manager_;
