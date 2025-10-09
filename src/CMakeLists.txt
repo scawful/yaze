@@ -97,11 +97,11 @@ endif()
     include(app/core/core_library.cmake)
     include(app/gfx/gfx_library.cmake)
     include(app/gui/gui_library.cmake)
-include(app/net/net_library.cmake)
+    include(app/net/net_library.cmake)
     include(app/zelda3/zelda3_library.cmake)
     include(app/editor/editor_library.cmake)
 
-    if(YAZE_BUILD_TESTS)
+    if(YAZE_BUILD_TESTS AND NOT YAZE_MINIMAL_BUILD)
       include(app/test/test.cmake)
     endif()
 

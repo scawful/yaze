@@ -2,12 +2,10 @@
 
 #include <yaze.h>
 
-#include <cmath>
 #include <cstdint>
 #include <vector>
 
 #include "absl/strings/str_cat.h"
-#include "app/core/window.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
 #include "app/rom.h"
@@ -910,42 +908,179 @@ void Room::LoadRoomLayout() {
 void Room::LoadDoors() {
   auto rom_data = rom()->vector();
   
-  // Load door graphics and positions
-  // Door graphics are stored at door_gfx_* addresses
-  // Door positions are stored at door_pos_* addresses
+  // Doors are loaded as part of the object stream in LoadObjects()
+  // When the parser encounters 0xF0 0xFF, it enters door mode
+  // Door objects have format: b1 (position/direction), b2 (type)
+  // Door encoding: b1 = (door_pos << 3) + door_dir
+  //                b2 = door_type
+  // This is already handled in ParseObjectsFromLocation()
   
-  // For now, create placeholder door objects
-  // TODO: Implement full door loading from ROM data
+  LOG_DEBUG("Room", "LoadDoors for room %d - doors are loaded via object stream", room_id_);
 }
 
 void Room::LoadTorches() {
   auto rom_data = rom()->vector();
   
-  // Load torch data from torch_data address
-  // int torch_count = rom_data[torches_length_pointer + 1] << 8 | rom_data[torches_length_pointer];
+  // Read torch data length
+  int bytes_count = (rom_data[torches_length_pointer + 1] << 8) | 
+                    rom_data[torches_length_pointer];
   
-  // For now, create placeholder torch objects
-  // TODO: Implement full torch loading from ROM data
+  LOG_DEBUG("Room", "LoadTorches: room_id=%d, bytes_count=%d", room_id_, bytes_count);
+  
+  // Iterate through torch data to find torches for this room
+  for (int i = 0; i < bytes_count; i += 2) {
+    if (i + 1 >= bytes_count) break;
+    
+    uint8_t b1 = rom_data[torch_data + i];
+    uint8_t b2 = rom_data[torch_data + i + 1];
+    
+    // Skip 0xFFFF markers
+    if (b1 == 0xFF && b2 == 0xFF) {
+      continue;
+    }
+    
+    // Check if this entry is for our room
+    uint16_t torch_room_id = (b2 << 8) | b1;
+    if (torch_room_id == room_id_) {
+      // Found torches for this room, read them
+      i += 2;
+      while (i < bytes_count) {
+        if (i + 1 >= bytes_count) break;
+        
+        b1 = rom_data[torch_data + i];
+        b2 = rom_data[torch_data + i + 1];
+        
+        // End of torch list for this room
+        if (b1 == 0xFF && b2 == 0xFF) {
+          break;
+        }
+        
+        // Decode torch position and properties
+        int address = ((b2 & 0x1F) << 8 | b1) >> 1;
+        uint8_t px = address % 64;
+        uint8_t py = address >> 6;
+        uint8_t layer = (b2 & 0x20) >> 5;
+        bool lit = (b2 & 0x80) == 0x80;
+        
+        // Create torch object (ID 0x150)
+        RoomObject torch_obj(0x150, px, py, 0, layer);
+        torch_obj.set_rom(rom_);
+        torch_obj.set_options(ObjectOption::Torch);
+        // Store lit state if needed (may require adding a field to RoomObject)
+        
+        tile_objects_.push_back(torch_obj);
+        
+        LOG_DEBUG("Room", "Loaded torch at (%d,%d) layer=%d lit=%d", 
+                  px, py, layer, lit);
+        
+        i += 2;
+      }
+      break;  // Found and processed our room's torches
+    } else {
+      // Skip to next room's torches
+      i += 2;
+      while (i < bytes_count) {
+        if (i + 1 >= bytes_count) break;
+        b1 = rom_data[torch_data + i];
+        b2 = rom_data[torch_data + i + 1];
+        if (b1 == 0xFF && b2 == 0xFF) {
+          break;
+        }
+        i += 2;
+      }
+    }
+  }
 }
 
 void Room::LoadBlocks() {
   auto rom_data = rom()->vector();
   
-  // Load block data from blocks_* addresses
-  // int block_count = rom_data[blocks_length + 1] << 8 | rom_data[blocks_length];
+  // Read blocks length
+  int blocks_count = (rom_data[blocks_length + 1] << 8) | rom_data[blocks_length];
   
-  // For now, create placeholder block objects
-  // TODO: Implement full block loading from ROM data
+  LOG_DEBUG("Room", "LoadBlocks: room_id=%d, blocks_count=%d", room_id_, blocks_count);
+  
+  // Load block data from multiple pointers
+  std::vector<uint8_t> blocks_data(blocks_count);
+  
+  int pos1 = blocks_pointer1;
+  int pos2 = blocks_pointer2;
+  int pos3 = blocks_pointer3;
+  int pos4 = blocks_pointer4;
+  
+  // Read block data from 4 different locations
+  for (int i = 0; i < 0x80 && i < blocks_count; i++) {
+    blocks_data[i] = rom_data[pos1 + i];
+    
+    if (i + 0x80 < blocks_count) {
+      blocks_data[i + 0x80] = rom_data[pos2 + i];
+    }
+    if (i + 0x100 < blocks_count) {
+      blocks_data[i + 0x100] = rom_data[pos3 + i];
+    }
+    if (i + 0x180 < blocks_count) {
+      blocks_data[i + 0x180] = rom_data[pos4 + i];
+    }
+  }
+  
+  // Parse blocks for this room (4 bytes per block entry)
+  for (int i = 0; i < blocks_count; i += 4) {
+    if (i + 3 >= blocks_count) break;
+    
+    uint8_t b1 = blocks_data[i];
+    uint8_t b2 = blocks_data[i + 1];
+    uint8_t b3 = blocks_data[i + 2];
+    uint8_t b4 = blocks_data[i + 3];
+    
+    // Check if this block belongs to our room
+    uint16_t block_room_id = (b2 << 8) | b1;
+    if (block_room_id == room_id_) {
+      // End marker for this room's blocks
+      if (b3 == 0xFF && b4 == 0xFF) {
+        break;
+      }
+      
+      // Decode block position
+      int address = ((b4 & 0x1F) << 8 | b3) >> 1;
+      uint8_t px = address % 64;
+      uint8_t py = address >> 6;
+      uint8_t layer = (b4 & 0x20) >> 5;
+      
+      // Create block object (ID 0x0E00)
+      RoomObject block_obj(0x0E00, px, py, 0, layer);
+      block_obj.set_rom(rom_);
+      block_obj.set_options(ObjectOption::Block);
+      
+      tile_objects_.push_back(block_obj);
+      
+      LOG_DEBUG("Room", "Loaded block at (%d,%d) layer=%d", px, py, layer);
+    }
+  }
 }
 
 void Room::LoadPits() {
   auto rom_data = rom()->vector();
   
-  // Load pit data from pit_pointer
-  // int pit_count = rom_data[pit_count + 1] << 8 | rom_data[pit_count];
+  // Read pit count
+  int pit_entries = rom_data[pit_count] / 2;
   
-  // For now, create placeholder pit objects
-  // TODO: Implement full pit loading from ROM data
+  // Read pit pointer (long pointer)
+  int pit_ptr = (rom_data[pit_pointer + 2] << 16) |
+                (rom_data[pit_pointer + 1] << 8) |
+                 rom_data[pit_pointer];
+  int pit_data_addr = SnesToPc(pit_ptr);
+  
+  LOG_DEBUG("Room", "LoadPits: room_id=%d, pit_entries=%d, pit_ptr=0x%06X", 
+            room_id_, pit_entries, pit_ptr);
+  
+  // Pit data is stored as: room_id (2 bytes), target info (2 bytes)
+  // This data is already loaded in LoadRoomFromRom() into pits_ destination struct
+  // The pit destination (where you go when you fall) is set via SetPitsTarget()
+  
+  // Pits are typically represented in the layout/collision data, not as objects
+  // The pits_ member already contains the target room and layer
+  LOG_DEBUG("Room", "Pit destination - target=%d, target_layer=%d", 
+            pits_.target, pits_.target_layer);
 }
 
 }  // namespace zelda3
