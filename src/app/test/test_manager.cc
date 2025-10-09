@@ -1865,17 +1865,11 @@ void TestManager::TrimHarnessHistoryLocked() {
     harness_history_.erase(oldest_test);
   }
 }
-#endif
 
 absl::Status TestManager::ReplayLastPlan() {
   return absl::FailedPreconditionError("Harness plan replay not available");
 }
 
-void TestManager::RecordPlanSummary(const std::string& summary) {
-  (void)summary;
-}
-
-#if defined(YAZE_WITH_GRPC)
 absl::Status TestManager::ShowHarnessDashboard() {
   return absl::OkStatus();
 }
@@ -1883,15 +1877,27 @@ absl::Status TestManager::ShowHarnessDashboard() {
 absl::Status TestManager::ShowHarnessActiveTests() {
   return absl::OkStatus();
 }
-#endif
 
 void TestManager::SetHarnessListener(HarnessListener* listener) {
-#if defined(YAZE_WITH_GRPC)
   absl::MutexLock lock(&mutex_);
   harness_listener_ = listener;
+}
 #else
-  (void)listener;
+absl::Status TestManager::ReplayLastPlan() {
+  return absl::UnimplementedError("Harness features require YAZE_WITH_GRPC");
+}
+
+absl::Status TestManager::ShowHarnessDashboard() {
+  return absl::UnimplementedError("Harness features require YAZE_WITH_GRPC");
+}
+
+absl::Status TestManager::ShowHarnessActiveTests() {
+  return absl::UnimplementedError("Harness features require YAZE_WITH_GRPC");
+}
 #endif
+
+void TestManager::RecordPlanSummary(const std::string& summary) {
+  (void)summary;
 }
 
 }  // namespace test

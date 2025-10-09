@@ -372,8 +372,12 @@ file(COPY ${AGENT_FILES} DESTINATION "${CMAKE_BINARY_DIR}/assets/agent/")
 
 add_subdirectory(src)
 
-# Tools
-add_subdirectory(tools)
+# Tools (development utilities - only for local development)
+option(YAZE_BUILD_TOOLS "Build development utility tools" OFF)
+if(YAZE_BUILD_TOOLS)
+  message(STATUS "Building development tools")
+  add_subdirectory(tools)
+endif()
 
 # Tests
 if (YAZE_BUILD_TESTS)
