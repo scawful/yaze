@@ -1,9 +1,9 @@
 <map id="yaze::editor::EditorManager::RefreshWorkspacePresets" name="yaze::editor::EditorManager::RefreshWorkspacePresets">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,35,188,75"/>
-<area shape="rect" id="Node000002" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="236,5,395,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,40,220,36,221,41,189,45"/>
-<area shape="rect" id="Node000007" href="$d4/de1/namespaceyaze_1_1util.html#affcb30b4249275bfec576ab198b29d83" title="Loads the entire contents of a file into a string." alt="" coords="252,70,379,96"/>
-<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="189,64,237,70,236,76,188,69"/>
-<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a12f8860efbb23052a82006f24b221c6f" title="Get the user&#45;specific application data directory for YAZE." alt="" coords="443,5,602,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="395,23,428,23,428,28,395,28"/>
+<area shape="rect" id="Node000002" href="$d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a1fa9c2fe987a21159a6b79c702ef3f8f" title=" " alt="" coords="236,35,442,75"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,52,220,52,220,58,188,58"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="490,5,649,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="442,39,474,35,475,40,443,45"/>
+<area shape="rect" id="Node000008" href="$d4/de1/namespaceyaze_1_1util.html#affcb30b4249275bfec576ab198b29d83" title="Loads the entire contents of a file into a string." alt="" coords="507,70,633,96"/>
+<area shape="poly" id="edge3_Node000002_Node000008" title=" " alt="" coords="443,65,492,71,491,76,442,70"/>
 </map>

@@ -166,11 +166,22 @@ Private Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000043">Todo:</a></b></dt><dd>Get platform-specific settings path </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00008">8</a> of file <a class="el" href="../../dd/dc5/user__settings_8cc_source.html">user_settings.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00016">16</a> of file <a class="el" href="../../dd/dc5/user__settings_8cc_source.html">user_settings.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00038">settings_file_path_</a>.</p>
+<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00098">yaze::util::PlatformPaths::GetConfigDirectory()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00095">LOG_WARN</a>, and <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00068">settings_file_path_</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d46/classyaze_1_1editor_1_1UserSettings_a08dd3ea9ae670aca92a7b28d8bd8bcfb_cgraph.png" border="0" usemap="#ad8/d46/classyaze_1_1editor_1_1UserSettings_a08dd3ea9ae670aca92a7b28d8bd8bcfb_cgraph" alt=""/></div>
+<map name="ad8/d46/classyaze_1_1editor_1_1UserSettings_a08dd3ea9ae670aca92a7b28d8bd8bcfb_cgraph" id="ad8/d46/classyaze_1_1editor_1_1UserSettings_a08dd3ea9ae670aca92a7b28d8bd8bcfb_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,173,46"/>
+<area shape="rect" href="../../db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="221,5,380,46"/>
+<area shape="poly" title=" " alt="" coords="173,23,205,23,205,28,173,28"/>
+<area shape="rect" href="../../db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a12f8860efbb23052a82006f24b221c6f" title="Get the user&#45;specific application data directory for YAZE." alt="" coords="428,5,587,46"/>
+<area shape="poly" title=" " alt="" coords="380,23,413,23,413,28,380,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -189,9 +200,22 @@ Private Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000044">Todo:</a></b></dt><dd>Load from JSON file </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00013">13</a> of file <a class="el" href="../../dd/dc5/user__settings_8cc_source.html">user_settings.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00026">26</a> of file <a class="el" href="../../dd/dc5/user__settings_8cc_source.html">user_settings.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00045">yaze::editor::UserSettings::Preferences::ai_auto_learn</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00043">yaze::editor::UserSettings::Preferences::ai_max_tokens</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00046">yaze::editor::UserSettings::Preferences::ai_multimodal</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00044">yaze::editor::UserSettings::Preferences::ai_proactive</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00039">yaze::editor::UserSettings::Preferences::ai_provider</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00042">yaze::editor::UserSettings::Preferences::ai_temperature</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00020">yaze::editor::UserSettings::Preferences::autosave_enabled</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00021">yaze::editor::UserSettings::Preferences::autosave_interval</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00029">yaze::editor::UserSettings::Preferences::backup_before_save</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00018">yaze::editor::UserSettings::Preferences::backup_rom</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00035">yaze::editor::UserSettings::Preferences::cache_size_mb</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00030">yaze::editor::UserSettings::Preferences::default_editor</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00017">yaze::editor::UserSettings::Preferences::font_global_scale</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00041">yaze::editor::UserSettings::Preferences::gemini_api_key</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00024">yaze::editor::UserSettings::Preferences::last_project_path</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00023">yaze::editor::UserSettings::Preferences::last_rom_path</a>, <a class="el" href="../../d1/d2b/file__util_8cc_source.html#l00023">yaze::util::LoadFile()</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00052">yaze::editor::UserSettings::Preferences::log_ai_requests</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00051">yaze::editor::UserSettings::Preferences::log_file_path</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00054">yaze::editor::UserSettings::Preferences::log_gui_automation</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00049">yaze::editor::UserSettings::Preferences::log_level</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00055">yaze::editor::UserSettings::Preferences::log_proposals</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00053">yaze::editor::UserSettings::Preferences::log_rom_operations</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00050">yaze::editor::UserSettings::Preferences::log_to_file</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00040">yaze::editor::UserSettings::Preferences::ollama_url</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00067">prefs_</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00022">yaze::editor::UserSettings::Preferences::recent_files_limit</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00026">yaze::editor::UserSettings::Preferences::restore_last_session</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00019">yaze::editor::UserSettings::Preferences::save_new_auto</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00068">settings_file_path_</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00025">yaze::editor::UserSettings::Preferences::show_welcome_on_startup</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00034">yaze::editor::UserSettings::Preferences::target_fps</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00036">yaze::editor::UserSettings::Preferences::undo_history_size</a>, and <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00033">yaze::editor::UserSettings::Preferences::vsync</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00132">yaze::editor::EditorManager::Initialize()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d46/classyaze_1_1editor_1_1UserSettings_a4d7bc80e99ca101960a6764a5f9ead98_cgraph.png" border="0" usemap="#ad8/d46/classyaze_1_1editor_1_1UserSettings_a4d7bc80e99ca101960a6764a5f9ead98_cgraph" alt=""/></div>
+<map name="ad8/d46/classyaze_1_1editor_1_1UserSettings_a4d7bc80e99ca101960a6764a5f9ead98_cgraph" id="ad8/d46/classyaze_1_1editor_1_1UserSettings_a4d7bc80e99ca101960a6764a5f9ead98_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,173,46"/>
+<area shape="rect" href="../../d4/de1/namespaceyaze_1_1util.html#affcb30b4249275bfec576ab198b29d83" title="Loads the entire contents of a file into a string." alt="" coords="221,13,347,39"/>
+<area shape="poly" title=" " alt="" coords="173,23,205,23,205,28,173,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -209,9 +233,24 @@ Private Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000045">Todo:</a></b></dt><dd>Save to JSON file </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00018">18</a> of file <a class="el" href="../../dd/dc5/user__settings_8cc_source.html">user_settings.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00123">123</a> of file <a class="el" href="../../dd/dc5/user__settings_8cc_source.html">user_settings.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00045">yaze::editor::UserSettings::Preferences::ai_auto_learn</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00043">yaze::editor::UserSettings::Preferences::ai_max_tokens</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00046">yaze::editor::UserSettings::Preferences::ai_multimodal</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00044">yaze::editor::UserSettings::Preferences::ai_proactive</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00039">yaze::editor::UserSettings::Preferences::ai_provider</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00042">yaze::editor::UserSettings::Preferences::ai_temperature</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00020">yaze::editor::UserSettings::Preferences::autosave_enabled</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00021">yaze::editor::UserSettings::Preferences::autosave_interval</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00029">yaze::editor::UserSettings::Preferences::backup_before_save</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00018">yaze::editor::UserSettings::Preferences::backup_rom</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00035">yaze::editor::UserSettings::Preferences::cache_size_mb</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00030">yaze::editor::UserSettings::Preferences::default_editor</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00017">yaze::editor::UserSettings::Preferences::font_global_scale</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00041">yaze::editor::UserSettings::Preferences::gemini_api_key</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00024">yaze::editor::UserSettings::Preferences::last_project_path</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00023">yaze::editor::UserSettings::Preferences::last_rom_path</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00052">yaze::editor::UserSettings::Preferences::log_ai_requests</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00051">yaze::editor::UserSettings::Preferences::log_file_path</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00054">yaze::editor::UserSettings::Preferences::log_gui_automation</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00049">yaze::editor::UserSettings::Preferences::log_level</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00055">yaze::editor::UserSettings::Preferences::log_proposals</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00053">yaze::editor::UserSettings::Preferences::log_rom_operations</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00050">yaze::editor::UserSettings::Preferences::log_to_file</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00040">yaze::editor::UserSettings::Preferences::ollama_url</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00067">prefs_</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00022">yaze::editor::UserSettings::Preferences::recent_files_limit</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00026">yaze::editor::UserSettings::Preferences::restore_last_session</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00019">yaze::editor::UserSettings::Preferences::save_new_auto</a>, <a class="el" href="../../d1/d2b/file__util_8cc_source.html#l00056">yaze::util::SaveFile()</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00068">settings_file_path_</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00025">yaze::editor::UserSettings::Preferences::show_welcome_on_startup</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00034">yaze::editor::UserSettings::Preferences::target_fps</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00036">yaze::editor::UserSettings::Preferences::undo_history_size</a>, and <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00033">yaze::editor::UserSettings::Preferences::vsync</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d6/dbd/settings__editor_8cc_source.html#l00247">yaze::editor::SettingsEditor::DrawAIAgentSettings()</a>, <a class="el" href="../../d6/dbd/settings__editor_8cc_source.html#l00162">yaze::editor::SettingsEditor::DrawEditorBehavior()</a>, <a class="el" href="../../d6/dbd/settings__editor_8cc_source.html#l00209">yaze::editor::SettingsEditor::DrawPerformanceSettings()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03401">yaze::editor::EditorManager::SaveUserSettings()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d46/classyaze_1_1editor_1_1UserSettings_abd246cd1cfc54409eec3abb2af49e538_cgraph.png" border="0" usemap="#ad8/d46/classyaze_1_1editor_1_1UserSettings_abd246cd1cfc54409eec3abb2af49e538_cgraph" alt=""/></div>
+<map name="ad8/d46/classyaze_1_1editor_1_1UserSettings_abd246cd1cfc54409eec3abb2af49e538_cgraph" id="ad8/d46/classyaze_1_1editor_1_1UserSettings_abd246cd1cfc54409eec3abb2af49e538_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,173,46"/>
+<area shape="rect" href="../../d4/de1/namespaceyaze_1_1util.html#a3a9fb8bf33ae9508c65e5597d915348e" title=" " alt="" coords="221,13,348,39"/>
+<area shape="poly" title=" " alt="" coords="173,23,205,23,205,28,173,28"/>
+<area shape="rect" href="../../db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="396,5,555,46"/>
+<area shape="poly" title=" " alt="" coords="348,23,380,23,380,28,348,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -238,9 +277,11 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00033">33</a> of file <a class="el" href="../../da/dd9/user__settings_8h_source.html">user_settings.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00063">63</a> of file <a class="el" href="../../da/dd9/user__settings_8h_source.html">user_settings.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00037">prefs_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00067">prefs_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d6/dbd/settings__editor_8cc_source.html#l00247">yaze::editor::SettingsEditor::DrawAIAgentSettings()</a>, <a class="el" href="../../d6/dbd/settings__editor_8cc_source.html#l00162">yaze::editor::SettingsEditor::DrawEditorBehavior()</a>, <a class="el" href="../../d6/dbd/settings__editor_8cc_source.html#l00209">yaze::editor::SettingsEditor::DrawPerformanceSettings()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03390">yaze::editor::EditorManager::LoadUserSettings()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02324">yaze::editor::EditorManager::OpenProject()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02410">yaze::editor::EditorManager::SaveProject()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02217">yaze::editor::EditorManager::SaveRom()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02239">yaze::editor::EditorManager::SaveRomAs()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00143">yaze::editor::EditorManager::SetFontGlobalScale()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00646">yaze::editor::EditorManager::Update()</a>.</p>
 
 </div>
 </div>
@@ -267,9 +308,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00034">34</a> of file <a class="el" href="../../da/dd9/user__settings_8h_source.html">user_settings.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00064">64</a> of file <a class="el" href="../../da/dd9/user__settings_8h_source.html">user_settings.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00037">prefs_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00067">prefs_</a>.</p>
 
 </div>
 </div>
@@ -294,9 +335,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00037">37</a> of file <a class="el" href="../../da/dd9/user__settings_8h_source.html">user_settings.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00067">67</a> of file <a class="el" href="../../da/dd9/user__settings_8h_source.html">user_settings.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00033">prefs()</a>, and <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00034">prefs()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00026">Load()</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00063">prefs()</a>, <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00064">prefs()</a>, and <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00123">Save()</a>.</p>
 
 </div>
 </div>
@@ -320,9 +361,9 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00038">38</a> of file <a class="el" href="../../da/dd9/user__settings_8h_source.html">user_settings.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/dd9/user__settings_8h_source.html#l00068">68</a> of file <a class="el" href="../../da/dd9/user__settings_8h_source.html">user_settings.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00008">UserSettings()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00026">Load()</a>, <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00123">Save()</a>, and <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00016">UserSettings()</a>.</p>
 
 </div>
 </div>

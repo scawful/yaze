@@ -10,9 +10,10 @@ var searchData=
   ['and_20automation_7',['G1 - Canvas System and Automation',['../d1/dc6/md_docs_2G1-canvas-guide.html',1,'']]],
   ['and_20networking_8',['B5 - Architecture and Networking',['../dd/de3/md_docs_2B5-architecture-and-networking.html',1,'']]],
   ['and_20rendering_20abstraction_20plan_9',['SDL2 to SDL3 Migration and Rendering Abstraction Plan',['../d6/df2/md_docs_2G2-renderer-migration-plan.html',1,'']]],
-  ['another_20zelda3_20editor_10',['yaze - Yet Another Zelda3 Editor',['../d0/d30/md_README.html',1,'']]],
-  ['api_20reference_11',['API Reference',['../d8/d73/md_docs_2E3-api-reference.html',1,'']]],
-  ['architecture_20and_20networking_12',['B5 - Architecture and Networking',['../dd/de3/md_docs_2B5-architecture-and-networking.html',1,'']]],
-  ['asm_20style_20guide_13',['Asm Style Guide',['../d7/d9a/md_docs_2E1-asm-style-guide.html',1,'']]],
-  ['automation_14',['G1 - Canvas System and Automation',['../d1/dc6/md_docs_2G1-canvas-guide.html',1,'']]]
+  ['and_20testing_20guide_10',['E5 - Debugging and Testing Guide',['../de/dc5/md_docs_2E5-debugging-guide.html',1,'']]],
+  ['another_20zelda3_20editor_11',['yaze - Yet Another Zelda3 Editor',['../d0/d30/md_README.html',1,'']]],
+  ['api_20reference_12',['API Reference',['../d8/d73/md_docs_2E3-api-reference.html',1,'']]],
+  ['architecture_20and_20networking_13',['B5 - Architecture and Networking',['../dd/de3/md_docs_2B5-architecture-and-networking.html',1,'']]],
+  ['asm_20style_20guide_14',['Asm Style Guide',['../d7/d9a/md_docs_2E1-asm-style-guide.html',1,'']]],
+  ['automation_15',['G1 - Canvas System and Automation',['../d1/dc6/md_docs_2G1-canvas-guide.html',1,'']]]
 ];

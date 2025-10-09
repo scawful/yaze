@@ -6,6 +6,7 @@ var classyaze_1_1core_1_1Controller =
     [ "OnLoad", "d4/d84/classyaze_1_1core_1_1Controller.html#a01f86833b789e985cd84926b41081e84", null ],
     [ "DoRender", "d4/d84/classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af", null ],
     [ "OnExit", "d4/d84/classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07", null ],
+    [ "SetStartupEditor", "d4/d84/classyaze_1_1core_1_1Controller.html#acf4fc70ab213bcde5d2a8911dab722a9", null ],
     [ "window", "d4/d84/classyaze_1_1core_1_1Controller.html#a2ba347d9eb4f1efb9b7d2fd2578610b5", null ],
     [ "set_active", "d4/d84/classyaze_1_1core_1_1Controller.html#a913205e423c0305c7fdcd0846b0a9542", null ],
     [ "active", "d4/d84/classyaze_1_1core_1_1Controller.html#a3b8d4516aea70ac4d233d56a8b9ade4b", null ],

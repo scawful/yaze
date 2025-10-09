@@ -1,10 +1,11 @@
 var classyaze_1_1editor_1_1SettingsEditor =
 [
-    [ "SettingsEditor", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a648bcd13cf613f03689e35889b5d6312", null ],
+    [ "SettingsEditor", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#ab725aee2f2d9cb134419fa5093cfbc51", null ],
     [ "Initialize", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a8505345e0c9e4e93188ea9a92490539a", null ],
     [ "Load", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a65a678b6e8381ca3f64ab76884ac236e", null ],
     [ "Save", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#ab33214e18227467e130619846265ac31", null ],
     [ "Update", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a22ad283ada591bab7a1f64f6fba018dc", null ],
+    [ "set_user_settings", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a8bc1bdcceff65273b0964441cbb79369", null ],
     [ "Cut", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#add68c4f76bd813bd16194cf948e7672d", null ],
     [ "Copy", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#aa874bd1e91916308f77cfc2fd13e8b18", null ],
     [ "Paste", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#ab116573fb09a76b23b8f92aace5d4463", null ],
@@ -20,5 +21,6 @@ var classyaze_1_1editor_1_1SettingsEditor =
     [ "DrawEditorBehavior", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#ae559e0bc08ba91fbb843a65bad3362cc", null ],
     [ "DrawPerformanceSettings", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a2ab874b477a20715310f54a3f73fde01", null ],
     [ "DrawAIAgentSettings", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#afc26e7b04312c0fb3e7f96b20e19f8ee", null ],
-    [ "rom_", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a2b2f18410f2a93f5e02206da5f0b8805", null ]
+    [ "rom_", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a2b2f18410f2a93f5e02206da5f0b8805", null ],
+    [ "user_settings_", "dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a5b132d67434d0eca8e1b3cbe4c4a35e7", null ]
 ];

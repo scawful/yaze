@@ -4,6 +4,7 @@ var editor_8h =
     [ "yaze::editor::EditorContext::SharedClipboard", "d7/d4a/structyaze_1_1editor_1_1EditorContext_1_1SharedClipboard.html", "d7/d4a/structyaze_1_1editor_1_1EditorContext_1_1SharedClipboard" ],
     [ "yaze::editor::Editor", "d3/d9f/classyaze_1_1editor_1_1Editor.html", "d3/d9f/classyaze_1_1editor_1_1Editor" ],
     [ "EditorType", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622a", [
+      [ "kUnknown", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aa25c2dc47991b3df171ed5192bcf70390", null ],
       [ "kAssembly", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aab686a008a9fc3fe70222034bef987ced", null ],
       [ "kDungeon", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aa773324726da2f589c757da4c39336156", null ],
       [ "kEmulator", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aac9c4dbe38171bf53070d7f7fd1182b70", null ],
@@ -18,5 +19,5 @@ var editor_8h =
       [ "kAgent", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aaf76ed811b18a86459694dacf3347d438", null ],
       [ "kSettings", "dd/d60/editor_8h.html#a297b0603822af41a3d23fbc2da2a622aac935a934100d15241aefe3f7081e7767", null ]
     ] ],
-    [ "kEditorNames", "dd/d60/editor_8h.html#a58023080da84550374e4dafc7a57629f", null ]
+    [ "kEditorNames", "dd/d60/editor_8h.html#a24b3d23a08f676b384aefa8fbbc507e2", null ]
 ];

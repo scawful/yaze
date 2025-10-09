@@ -1,0 +1,9 @@
+<map id="yaze::editor::SettingsEditor::DrawPerformanceSettings" name="yaze::editor::SettingsEditor::DrawPerformanceSettings">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,185,79"/>
+<area shape="rect" id="Node000002" href="$d8/d46/classyaze_1_1editor_1_1UserSettings.html#af304f257b1beb9bdf7d9121266c34d13" title=" " alt="" coords="233,5,400,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="185,43,217,38,218,43,186,48"/>
+<area shape="rect" id="Node000003" href="$d8/d46/classyaze_1_1editor_1_1UserSettings.html#abd246cd1cfc54409eec3abb2af49e538" title=" " alt="" coords="233,71,400,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="186,69,218,74,217,79,185,75"/>
+<area shape="rect" id="Node000004" href="$d4/de1/namespaceyaze_1_1util.html#a3a9fb8bf33ae9508c65e5597d915348e" title=" " alt="" coords="448,78,575,104"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="400,88,432,88,432,94,400,94"/>
+</map>

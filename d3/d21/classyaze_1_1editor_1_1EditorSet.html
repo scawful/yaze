@@ -113,8 +113,10 @@ $(document).ready(function(){initNavTree('d3/d21/classyaze_1_1editor_1_1EditorSe
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a641ff69b331c7a79c26dd4228726c3da" id="r_a641ff69b331c7a79c26dd4228726c3da"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d21/classyaze_1_1editor_1_1EditorSet.html#a641ff69b331c7a79c26dd4228726c3da">EditorSet</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom=nullptr)</td></tr>
-<tr class="separator:a641ff69b331c7a79c26dd4228726c3da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92f12c84f098ad8a19979287a2ba2434" id="r_a92f12c84f098ad8a19979287a2ba2434"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d21/classyaze_1_1editor_1_1EditorSet.html#a92f12c84f098ad8a19979287a2ba2434">EditorSet</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom=nullptr, <a class="el" href="../../d8/d46/classyaze_1_1editor_1_1UserSettings.html">UserSettings</a> *user_settings=nullptr)</td></tr>
+<tr class="separator:a92f12c84f098ad8a19979287a2ba2434"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad04f8c4dfa4b3214401c6bbce1b9973" id="r_aad04f8c4dfa4b3214401c6bbce1b9973"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d21/classyaze_1_1editor_1_1EditorSet.html#aad04f8c4dfa4b3214401c6bbce1b9973">set_user_settings</a> (<a class="el" href="../../d8/d46/classyaze_1_1editor_1_1UserSettings.html">UserSettings</a> *settings)</td></tr>
+<tr class="separator:aad04f8c4dfa4b3214401c6bbce1b9973"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -146,10 +148,10 @@ Public Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Contains a complete set of editors for a single ROM instance. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00052">52</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">54</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a641ff69b331c7a79c26dd4228726c3da" name="a641ff69b331c7a79c26dd4228726c3da"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a641ff69b331c7a79c26dd4228726c3da">&#9670;&#160;</a></span>EditorSet()</h2>
+<a id="a92f12c84f098ad8a19979287a2ba2434" name="a92f12c84f098ad8a19979287a2ba2434"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92f12c84f098ad8a19979287a2ba2434">&#9670;&#160;</a></span>EditorSet()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -161,8 +163,18 @@ Public Attributes</h2></td></tr>
           <td class="memname">yaze::editor::EditorSet::EditorSet </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *&#160;</td>
-          <td class="paramname"><em>rom</em> = <code>nullptr</code></td><td>)</td>
+          <td class="paramname"><em>rom</em> = <code>nullptr</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype"><a class="el" href="../../d8/d46/classyaze_1_1editor_1_1UserSettings.html">UserSettings</a> *&#160;</td>
+          <td class="paramname"><em>user_settings</em> = <code>nullptr</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -172,9 +184,52 @@ Public Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">54</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00056">56</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00084">active_editors_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00072">assembly_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00073">dungeon_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00074">graphics_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00081">message_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00075">music_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00076">overworld_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00077">palette_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00078">screen_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00080">settings_editor_</a>, and <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00079">sprite_editor_</a>.</p>
+<p class="reference">References <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00090">active_editors_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00078">assembly_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00079">dungeon_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00080">graphics_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00087">message_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00081">music_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00082">overworld_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00083">palette_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00084">screen_editor_</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00086">settings_editor_</a>, and <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00085">sprite_editor_</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="aad04f8c4dfa4b3214401c6bbce1b9973" name="aad04f8c4dfa4b3214401c6bbce1b9973"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad04f8c4dfa4b3214401c6bbce1b9973">&#9670;&#160;</a></span>set_user_settings()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::EditorSet::set_user_settings </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d8/d46/classyaze_1_1editor_1_1UserSettings.html">UserSettings</a> *&#160;</td>
+          <td class="paramname"><em>settings</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00074">74</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d9/d0a/settings__editor_8h_source.html#l00221">yaze::editor::SettingsEditor::set_user_settings()</a>, and <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00086">settings_editor_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02533">yaze::editor::EditorManager::CreateNewSession()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d3/d21/classyaze_1_1editor_1_1EditorSet_aad04f8c4dfa4b3214401c6bbce1b9973_cgraph.png" border="0" usemap="#ad3/d21/classyaze_1_1editor_1_1EditorSet_aad04f8c4dfa4b3214401c6bbce1b9973_cgraph" alt=""/></div>
+<map name="ad3/d21/classyaze_1_1editor_1_1EditorSet_aad04f8c4dfa4b3214401c6bbce1b9973_cgraph" id="ad3/d21/classyaze_1_1editor_1_1EditorSet_aad04f8c4dfa4b3214401c6bbce1b9973_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,150,46"/>
+<area shape="rect" href="../../dd/d00/classyaze_1_1editor_1_1SettingsEditor.html#a8bc1bdcceff65273b0964441cbb79369" title=" " alt="" coords="198,5,370,46"/>
+<area shape="poly" title=" " alt="" coords="150,23,182,23,182,28,150,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -191,9 +246,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00072">72</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00078">78</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01378">yaze::editor::EditorManager::DrawMenuBar()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02831">yaze::editor::EditorManager::LoadDesignerLayout()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02812">yaze::editor::EditorManager::LoadDeveloperLayout()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02851">yaze::editor::EditorManager::LoadModderLayout()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02362">yaze::editor::EditorManager::OpenProject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01340">yaze::editor::EditorManager::DrawMenuBar()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00056">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02796">yaze::editor::EditorManager::LoadDesignerLayout()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02777">yaze::editor::EditorManager::LoadDeveloperLayout()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02816">yaze::editor::EditorManager::LoadModderLayout()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02324">yaze::editor::EditorManager::OpenProject()</a>.</p>
 
 </div>
 </div>
@@ -209,9 +264,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00073">73</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00079">79</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00974">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00248">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03408">yaze::editor::EditorManager::JumpToDungeonRoom()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02218">yaze::editor::EditorManager::LoadAssets()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02851">yaze::editor::EditorManager::LoadModderLayout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00936">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00056">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00132">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03353">yaze::editor::EditorManager::JumpToDungeonRoom()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02180">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02816">yaze::editor::EditorManager::LoadModderLayout()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00575">yaze::editor::EditorManager::OpenEditorAndCardsFromFlags()</a>.</p>
 
 </div>
 </div>
@@ -227,9 +282,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00074">74</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00080">80</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00974">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00248">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02831">yaze::editor::EditorManager::LoadDesignerLayout()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02812">yaze::editor::EditorManager::LoadDeveloperLayout()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02851">yaze::editor::EditorManager::LoadModderLayout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00936">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00056">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00132">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02796">yaze::editor::EditorManager::LoadDesignerLayout()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02777">yaze::editor::EditorManager::LoadDeveloperLayout()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02816">yaze::editor::EditorManager::LoadModderLayout()</a>.</p>
 
 </div>
 </div>
@@ -245,9 +300,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00075">75</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00081">81</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00974">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00248">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02218">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02812">yaze::editor::EditorManager::LoadDeveloperLayout()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02851">yaze::editor::EditorManager::LoadModderLayout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00936">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00056">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00132">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02180">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02777">yaze::editor::EditorManager::LoadDeveloperLayout()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02816">yaze::editor::EditorManager::LoadModderLayout()</a>.</p>
 
 </div>
 </div>
@@ -263,9 +318,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00076">76</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00082">82</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00974">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00248">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03418">yaze::editor::EditorManager::JumpToOverworldMap()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02218">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02831">yaze::editor::EditorManager::LoadDesignerLayout()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02851">yaze::editor::EditorManager::LoadModderLayout()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00119">yaze::editor::EditorManager::overworld()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02255">yaze::editor::EditorManager::SaveRom()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02277">yaze::editor::EditorManager::SaveRomAs()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00936">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00056">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00132">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03363">yaze::editor::EditorManager::JumpToOverworldMap()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02180">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02796">yaze::editor::EditorManager::LoadDesignerLayout()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02816">yaze::editor::EditorManager::LoadModderLayout()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00129">yaze::editor::EditorManager::overworld()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02217">yaze::editor::EditorManager::SaveRom()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02239">yaze::editor::EditorManager::SaveRomAs()</a>.</p>
 
 </div>
 </div>
@@ -281,9 +336,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00077">77</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00083">83</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00974">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01378">yaze::editor::EditorManager::DrawMenuBar()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00248">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02218">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02831">yaze::editor::EditorManager::LoadDesignerLayout()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02851">yaze::editor::EditorManager::LoadModderLayout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00936">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01340">yaze::editor::EditorManager::DrawMenuBar()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00056">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00132">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02180">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02796">yaze::editor::EditorManager::LoadDesignerLayout()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02816">yaze::editor::EditorManager::LoadModderLayout()</a>.</p>
 
 </div>
 </div>
@@ -299,9 +354,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00078">78</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00084">84</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00974">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00248">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02218">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02255">yaze::editor::EditorManager::SaveRom()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02277">yaze::editor::EditorManager::SaveRomAs()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00936">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00056">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00132">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02180">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02217">yaze::editor::EditorManager::SaveRom()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02239">yaze::editor::EditorManager::SaveRomAs()</a>.</p>
 
 </div>
 </div>
@@ -317,9 +372,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00079">79</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00085">85</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00974">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00248">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02218">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02831">yaze::editor::EditorManager::LoadDesignerLayout()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02812">yaze::editor::EditorManager::LoadDeveloperLayout()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02851">yaze::editor::EditorManager::LoadModderLayout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00936">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00056">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00132">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02180">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02796">yaze::editor::EditorManager::LoadDesignerLayout()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02777">yaze::editor::EditorManager::LoadDeveloperLayout()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02816">yaze::editor::EditorManager::LoadModderLayout()</a>.</p>
 
 </div>
 </div>
@@ -335,9 +390,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00080">80</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00086">86</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00974">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00248">yaze::editor::EditorManager::Initialize()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02218">yaze::editor::EditorManager::LoadAssets()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00936">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00056">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00132">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02180">yaze::editor::EditorManager::LoadAssets()</a>, and <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00074">set_user_settings()</a>.</p>
 
 </div>
 </div>
@@ -353,9 +408,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00081">81</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00087">87</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00974">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00248">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02218">yaze::editor::EditorManager::LoadAssets()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02851">yaze::editor::EditorManager::LoadModderLayout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00936">yaze::editor::EditorManager::BuildModernMenu()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00056">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00132">yaze::editor::EditorManager::Initialize()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02180">yaze::editor::EditorManager::LoadAssets()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02816">yaze::editor::EditorManager::LoadModderLayout()</a>.</p>
 
 </div>
 </div>
@@ -371,9 +426,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00082">82</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00088">88</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01378">yaze::editor::EditorManager::DrawMenuBar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01340">yaze::editor::EditorManager::DrawMenuBar()</a>.</p>
 
 </div>
 </div>
@@ -389,9 +444,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00084">84</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00090">90</a> of file <a class="el" href="../../df/d60/editor__manager_8h_source.html">editor_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02571">yaze::editor::EditorManager::CreateNewSession()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02600">yaze::editor::EditorManager::DuplicateCurrentSession()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00054">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02779">yaze::editor::EditorManager::HideAllWindows()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02148">yaze::editor::EditorManager::LoadRom()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02362">yaze::editor::EditorManager::OpenProject()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02324">yaze::editor::EditorManager::OpenRomOrProject()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02762">yaze::editor::EditorManager::ShowAllWindows()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03428">yaze::editor::EditorManager::SwitchToEditor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02533">yaze::editor::EditorManager::CreateNewSession()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02565">yaze::editor::EditorManager::DuplicateCurrentSession()</a>, <a class="el" href="../../df/d60/editor__manager_8h_source.html#l00056">EditorSet()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02744">yaze::editor::EditorManager::HideAllWindows()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02110">yaze::editor::EditorManager::LoadRom()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l00575">yaze::editor::EditorManager::OpenEditorAndCardsFromFlags()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02324">yaze::editor::EditorManager::OpenProject()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02286">yaze::editor::EditorManager::OpenRomOrProject()</a>, <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02727">yaze::editor::EditorManager::ShowAllWindows()</a>, and <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03373">yaze::editor::EditorManager::SwitchToEditor()</a>.</p>
 
 </div>
 </div>

@@ -7,6 +7,7 @@ var classyaze_1_1editor_1_1WorkspaceManager =
     [ "ResetWorkspaceLayout", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a08e23334b55072ffffedee35357f4fcf", null ],
     [ "SaveWorkspacePreset", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a0daa24f4cbdd1e5dac02bd9f8a1fe94f", null ],
     [ "LoadWorkspacePreset", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#aa145464e4c0b138bce64cf631680ad01", null ],
+    [ "RefreshPresets", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a1fa9c2fe987a21159a6b79c702ef3f8f", null ],
     [ "LoadDeveloperLayout", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a9b79cb61f05daeca20abb7cea64b0559", null ],
     [ "LoadDesignerLayout", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#adcfa3fcfd1213fa07187aed173456169", null ],
     [ "LoadModderLayout", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a23c0d1253bb414080a98ecc4e9c2d1a8", null ],
@@ -18,7 +19,11 @@ var classyaze_1_1editor_1_1WorkspaceManager =
     [ "GetActiveSessionCount", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a975a97324570562951cae6e4eaa95105", null ],
     [ "HasDuplicateSession", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a1da74589a9b48b2ef12a854e6bfe2de8", null ],
     [ "set_sessions", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a93ea01f95a0c9fa0c55f16829b318746", null ],
+    [ "workspace_presets", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a8a3abcce9c25efed206f227d83151991", null ],
+    [ "workspace_presets_loaded", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a510bfdd2a5ac9fb71a8ff4380dda58b4", null ],
     [ "toast_manager_", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#af7f4bddfc366670d46b59aadb4d518eb", null ],
     [ "sessions_", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a9f2c662d7fff05fb8cc9f63c987ab2f0", null ],
-    [ "last_workspace_preset_", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a0a1e7a7279b570d86daf56a98f992ed9", null ]
+    [ "last_workspace_preset_", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a0a1e7a7279b570d86daf56a98f992ed9", null ],
+    [ "workspace_presets_", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a7a090ddde8362e27d29979b54ebaa9b9", null ],
+    [ "workspace_presets_loaded_", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html#a48ce0e0292451d6e6ebd37e6a52ff4f2", null ]
 ];

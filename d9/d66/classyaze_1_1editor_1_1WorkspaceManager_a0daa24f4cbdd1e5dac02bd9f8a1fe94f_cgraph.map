@@ -1,5 +1,9 @@
 <map id="yaze::editor::WorkspaceManager::SaveWorkspacePreset" name="yaze::editor::WorkspaceManager::SaveWorkspacePreset">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,212,46"/>
-<area shape="rect" id="Node000002" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="260,5,434,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,23,244,23,244,28,212,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,35,212,75"/>
+<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#a3a9fb8bf33ae9508c65e5597d915348e" title=" " alt="" coords="283,13,411,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,40,267,33,268,38,213,45"/>
+<area shape="rect" id="Node000008" href="$d7/d92/classyaze_1_1editor_1_1ToastManager.html#aa9b4c4a8d7c6746e46466530f1eea654" title=" " alt="" coords="260,63,434,103"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="212,65,244,68,244,74,212,70"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="482,5,641,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="411,23,467,23,467,28,411,28"/>
 </map>

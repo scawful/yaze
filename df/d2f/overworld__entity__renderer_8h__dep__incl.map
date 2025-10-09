@@ -2,8 +2,8 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="94,5,277,46"/>
 <area shape="rect" id="Node000002" href="$db/d9f/overworld__editor_8h.html" title=" " alt="" coords="5,94,166,135"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="153,58,110,96,106,92,150,54"/>
-<area shape="rect" id="Node000022" href="$d2/dae/overworld__entity__renderer_8cc.html" title=" " alt="" coords="190,94,381,135"/>
-<area shape="poly" id="edge5_Node000001_Node000022" title=" " alt="" coords="221,54,265,92,261,96,218,58"/>
+<area shape="rect" id="Node000023" href="$d2/dae/overworld__entity__renderer_8cc.html" title=" " alt="" coords="190,94,381,135"/>
+<area shape="poly" id="edge5_Node000001_Node000023" title=" " alt="" coords="221,54,265,92,261,96,218,58"/>
 <area shape="rect" id="Node000003" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="17,271,154,312"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="72,150,61,183,59,203,61,223,78,270,73,272,56,224,54,203,56,182,67,148"/>
 <area shape="rect" id="Node000004" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="71,183,207,223"/>

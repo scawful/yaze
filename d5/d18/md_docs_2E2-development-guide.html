@@ -214,8 +214,29 @@ Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md460"></a>
-3.5. Bitmap and Texture Synchronization</h2>
+<h1><a class="anchor" id="autotoc_md460"></a>
+4. Debugging and Testing</h1>
+<h2><a class="anchor" id="autotoc_md461"></a>
+4.1. Quick Debugging with Startup Flags</h2>
+<p>To accelerate your debugging workflow, use command-line flags to jump directly to specific editors and open relevant UI cards:</p>
+<div class="fragment"><div class="line"># Quick dungeon room testing</div>
+<div class="line">./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards=&quot;Room 0&quot;</div>
+<div class="line"> </div>
+<div class="line"># Compare multiple rooms</div>
+<div class="line">./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards=&quot;Room 0,Room 1,Room 105&quot;</div>
+<div class="line"> </div>
+<div class="line"># Full dungeon workspace</div>
+<div class="line">./yaze --rom_file=zelda3.sfc --editor=Dungeon \</div>
+<div class="line">  --cards=&quot;Rooms List,Room Matrix,Object Editor,Palette Editor&quot;</div>
+<div class="line"> </div>
+<div class="line"># Enable debug logging</div>
+<div class="line">./yaze --debug --log_file=debug.log --rom_file=zelda3.sfc --editor=Dungeon</div>
+</div><!-- fragment --><p><b>Available Editors</b>: Assembly, Dungeon, Graphics, Music, Overworld, Palette, Screen, Sprite, Message, Hex, Agent, Settings</p>
+<p><b>Dungeon Editor Cards</b>: Rooms List, Room Matrix, Entrances List, Room Graphics, Object Editor, Palette Editor, Room N (where N is room ID 0-319)</p>
+<p>See debugging-startup-flags.md for complete documentation.</p>
+<h2><a class="anchor" id="autotoc_md462"></a>
+4.2. Testing Strategies</h2>
+<p>For a comprehensive overview of debugging tools and testing strategies, including how to use the logging framework, command-line test runners, and the GUI automation harness for AI agents, please refer to the <a class="el" href="../../de/dc5/md_docs_2E5-debugging-guide.html">Debugging and Testing Guide</a>.</p>
 <p>When working with bitmaps and textures, understand that two memory locations must stay synchronized:</p>
 <ol type="1">
 <li>**<code>data_</code> vector**: C++ std::vector&lt;uint8_t&gt; holding pixel data</li>
@@ -232,7 +253,7 @@ Pattern 3: Centralized Progressive Loading via &lt;tt&gt;gfx::Arena&lt;/tt&gt;</
 <div class="line"> </div>
 <div class="line"><span class="comment">// CORRECT - updates both vector and SDL surface</span></div>
 <div class="line">bitmap.set_data(new_data);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md461"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md463"></a>
 3.6. Graphics Sheet Management</h2>
 <p>Graphics sheets (223 total) are managed centrally by <code>gfx::Arena</code>. When modifying a sheet:</p>
 <ol type="1">

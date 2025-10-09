@@ -1,7 +1,7 @@
 var structyaze_1_1editor_1_1EditorManager_1_1RomSession =
 [
     [ "RomSession", "df/da6/structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a95f78a95520642e93dd30532046092bb", null ],
-    [ "RomSession", "df/da6/structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a08cbde3270f9f93591c5d53e9f6f834e", null ],
+    [ "RomSession", "df/da6/structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#aa4043362ba030c9307bdde460e993c3f", null ],
     [ "GetDisplayName", "df/da6/structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#a737bea7f9a528b54d56f84c34334bd25", null ],
     [ "rom", "df/da6/structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#ac716205907941fe6170fcaf7592b0200", null ],
     [ "editors", "df/da6/structyaze_1_1editor_1_1EditorManager_1_1RomSession.html#afbefe6506f1b6a6970dec7e8e5d9595f", null ],
