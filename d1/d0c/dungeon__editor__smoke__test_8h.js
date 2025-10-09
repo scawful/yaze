@@ -1,4 +1,4 @@
 var dungeon__editor__smoke__test_8h =
 [
-    [ "E2ETest_DungeonEditorSmokeTest", "d1/d0c/dungeon__editor__smoke__test_8h.html#a522ed82b5ab69e2b86a562578a1ed6f9", null ]
+    [ "E2ETest_DungeonEditorV2SmokeTest", "d1/d0c/dungeon__editor__smoke__test_8h.html#a3dcbe20459b0ab18e4a16934216f974f", null ]
 ];

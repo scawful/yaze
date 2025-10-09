@@ -209,7 +209,7 @@ var searchData=
   ['yaze_5fsnes_5fcolor_5fto_5frgb_206',['yaze_snes_color_to_rgb',['../d6/de0/group__graphics.html#gaefa71f38cc28578cb8876442d0a7ffa7',1,'yaze_snes_color_to_rgb(snes_color color, uint8_t *r, uint8_t *g, uint8_t *b):&#160;yaze.cc'],['../d6/de0/group__graphics.html#gaefa71f38cc28578cb8876442d0a7ffa7',1,'yaze_snes_color_to_rgb(snes_color color, uint8_t *r, uint8_t *g, uint8_t *b):&#160;yaze.cc']]],
   ['yaze_5fstatus_207',['yaze_status',['../d0/de1/group__core.html#gafa3b4d947347ed413689dcd80458ec0f',1,'yaze_status:&#160;yaze.h'],['../d0/de1/group__core.html#ga8b8638fa48e18e420ef66414847265c0',1,'yaze_status:&#160;yaze.h']]],
   ['yaze_5fstatus_5fto_5fstring_208',['yaze_status_to_string',['../d0/de1/group__core.html#gaf4d341e1ae32594ade9fc4a3e3e8ba16',1,'yaze_status_to_string(yaze_status status):&#160;yaze.cc'],['../d0/de1/group__core.html#gaf4d341e1ae32594ade9fc4a3e3e8ba16',1,'yaze_status_to_string(yaze_status status):&#160;yaze.cc']]],
-  ['yaze_5ftest_20cc_209',['Register in yaze_test.cc',['../d9/db0/md_test_2e2e_2README.html#autotoc_md1153',1,'']]],
+  ['yaze_5ftest_20cc_209',['Register in yaze_test.cc',['../d9/db0/md_test_2e2e_2README.html#autotoc_md1155',1,'']]],
   ['yaze_5ftest_20tt_210',['Using the Enhanced Test Runner (&lt;tt&gt;yaze_test&lt;/tt&gt;)',['../d6/d10/md_docs_2A1-testing-guide.html#autotoc_md17',1,'']]],
   ['yaze_5ftest_2ecc_211',['yaze_test.cc',['../de/d3d/yaze__test_8cc.html',1,'']]],
   ['yaze_5ftest_5fci_2ecc_212',['yaze_test_ci.cc',['../d9/d50/yaze__test__ci_8cc.html',1,'']]],

@@ -103,6 +103,6 @@ var searchData=
   ['txs_100',['TXS',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a31aefd28dc0ef3688cb0b5d1ef933dcf',1,'yaze::emu::Cpu']]],
   ['txy_101',['TXY',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a7555540aff8fe7922b0598a8e6c3ad0e',1,'yaze::emu::Cpu']]],
   ['tya_102',['TYA',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a90b95b87a325167809d7e296d4b64fe0',1,'yaze::emu::Cpu']]],
-  ['type_103',['type',['../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a40885181ae461c9d94786865acc1d7ad',1,'yaze::cli::GuiAutomationClient::Type()'],['../d3/d9f/classyaze_1_1editor_1_1Editor.html#a65af614b04a79925a1a4c702597521b0',1,'yaze::editor::Editor::type()'],['../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a11eb6e351caed2986dfd101e5091ef16',1,'yaze::zelda3::RoomLayoutObject::type()']]],
+  ['type_103',['type',['../d3/d9f/classyaze_1_1editor_1_1Editor.html#a65af614b04a79925a1a4c702597521b0',1,'yaze::editor::Editor::type()'],['../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a11eb6e351caed2986dfd101e5091ef16',1,'yaze::zelda3::RoomLayoutObject::type()'],['../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a40885181ae461c9d94786865acc1d7ad',1,'yaze::cli::GuiAutomationClient::Type()']]],
   ['tyx_104',['TYX',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#aa1175dca86ecb147b15750c6d0094346',1,'yaze::emu::Cpu']]]
 ];

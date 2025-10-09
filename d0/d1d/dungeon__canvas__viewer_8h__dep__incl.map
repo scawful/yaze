@@ -1,12 +1,12 @@
 <map id="src/app/editor/dungeon/dungeon_canvas_viewer.h" name="src/app/editor/dungeon/dungeon_canvas_viewer.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="260,5,438,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="140,5,318,46"/>
 <area shape="rect" id="Node000002" href="$d1/d35/dungeon__canvas__viewer_8cc.html" title=" " alt="" coords="5,94,191,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="278,54,156,96,154,91,277,49"/>
-<area shape="rect" id="Node000003" href="$d6/df5/dungeon__editor_8h.html" title=" " alt="" coords="215,94,368,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="330,60,307,95,302,92,325,57"/>
-<area shape="rect" id="Node000010" href="$d7/d77/dungeon__editor__v2_8h.html" title=" " alt="" coords="387,183,540,223"/>
-<area shape="poly" id="edge3_Node000001_Node000010" title=" " alt="" coords="372,58,453,181,448,184,367,60"/>
-<area shape="rect" id="Node000029" href="$d8/d7c/object__editor__card_8h.html" title=" " alt="" coords="444,94,597,135"/>
-<area shape="poly" id="edge4_Node000001_Node000029" title=" " alt="" coords="402,51,483,91,481,96,400,56"/>
-<area shape="poly" id="edge5_Node000029_Node000010" title=" " alt="" coords="502,149,479,184,474,181,497,146"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,57,129,96,126,91,185,53"/>
+<area shape="rect" id="Node000003" href="$d7/d77/dungeon__editor__v2_8h.html" title=" " alt="" coords="209,183,363,223"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="238,61,258,134,278,181,273,183,253,136,233,62"/>
+<area shape="rect" id="Node000026" href="$d8/d7c/object__editor__card_8h.html" title=" " alt="" coords="267,94,420,135"/>
+<area shape="poly" id="edge4_Node000001_Node000026" title=" " alt="" coords="268,53,319,91,316,96,265,58"/>
+<area shape="rect" id="Node000004" href="$d0/d0d/dungeon__editor__v2_8cc.html" title=" " alt="" coords="209,271,363,312"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="289,239,289,271,283,271,283,239"/>
+<area shape="poly" id="edge5_Node000026_Node000003" title=" " alt="" coords="324,149,301,184,297,181,320,146"/>
 </map>

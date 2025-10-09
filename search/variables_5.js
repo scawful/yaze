@@ -70,7 +70,7 @@ var searchData=
   ['font_5fgfx16_5fdata_5f2_5f_67',['font_gfx16_data_2_',['../dc/dd1/structyaze_1_1editor_1_1MessagePreview.html#a781cf5d55e45ce22815a6cbd179e8762',1,'yaze::editor::MessagePreview']]],
   ['font_5fgfx_5fbitmap_5f_68',['font_gfx_bitmap_',['../d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#afbcfeb9882d9dbb25675874a2a41a799',1,'yaze::editor::MessageEditor']]],
   ['font_5fgfx_5fcanvas_5f_69',['font_gfx_canvas_',['../d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#a6636672d3a3afd53a90059491ea9ba4e',1,'yaze::editor::MessageEditor']]],
-  ['font_5fglobal_5fscale_70',['font_global_scale',['../dc/d71/structyaze_1_1editor_1_1UserSettings_1_1Preferences.html#ab7a4a1b32514f60a3f1f3b0880e17f8b',1,'yaze::editor::UserSettings::Preferences::font_global_scale'],['../d1/def/structyaze_1_1core_1_1WorkspaceSettings.html#a8aa5453b2b554f35787eb5d1ecedd2df',1,'yaze::core::WorkspaceSettings::font_global_scale']]],
+  ['font_5fglobal_5fscale_70',['font_global_scale',['../d1/def/structyaze_1_1core_1_1WorkspaceSettings.html#a8aa5453b2b554f35787eb5d1ecedd2df',1,'yaze::core::WorkspaceSettings::font_global_scale'],['../dc/d71/structyaze_1_1editor_1_1UserSettings_1_1Preferences.html#ab7a4a1b32514f60a3f1f3b0880e17f8b',1,'yaze::editor::UserSettings::Preferences::font_global_scale']]],
   ['font_5fpath_71',['font_path',['../db/d0d/structyaze_1_1FontConfig.html#a7eed4cf1eed0c7bce05746749ca80d6f',1,'yaze::FontConfig']]],
   ['font_5fpreview_5fcolors_5f_72',['font_preview_colors_',['../d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#accbb3e03d3bfac92d85de0ad8044b35b',1,'yaze::editor::MessageEditor']]],
   ['font_5fsize_73',['font_size',['../db/d0d/structyaze_1_1FontConfig.html#afe0330e97d0a42d19815dddfb757539a',1,'yaze::FontConfig']]],
@@ -114,8 +114,7 @@ var searchData=
   ['from_5fformat_5f_111',['from_format_',['../d8/d44/classyaze_1_1gfx_1_1BppConversionScope.html#a40fcd84e17acacf792be1c42cb977c3e',1,'yaze::gfx::BppConversionScope']]],
   ['from_5fsnapshot_5fid_112',['from_snapshot_id',['../d0/dd8/structyaze_1_1net_1_1VersionDiff.html#a2ecbe0ba28dbfec9d6532780225ec50e',1,'yaze::net::VersionDiff']]],
   ['full_5fgraphic_113',['full_graphic',['../da/dbf/structyaze_1_1emu_1_1VideoPortControl.html#a0dd5f71b096b82780b19a002a6ef4c48',1,'yaze::emu::VideoPortControl']]],
-  ['full_5fpalette_5f_114',['full_palette_',['../d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#a92881a7497f26c4a0974b528182cf01c',1,'yaze::editor::DungeonEditor']]],
-  ['full_5fpath_115',['full_path',['../d3/db7/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetInfo.html#a32dfc62bc9d1c7ba505fa2d54559f402',1,'yaze::gui::WidgetIdRegistry::WidgetInfo']]],
-  ['function_5fcalling_5fenabled_5f_116',['function_calling_enabled_',['../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a7b557fda177df27c4b3902cd9c0fd830',1,'yaze::cli::GeminiAIService']]],
-  ['functions_117',['functions',['../d4/d57/classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28',1,'yaze::zelda3::SpriteBuilder']]]
+  ['full_5fpath_114',['full_path',['../d3/db7/structyaze_1_1gui_1_1WidgetIdRegistry_1_1WidgetInfo.html#a32dfc62bc9d1c7ba505fa2d54559f402',1,'yaze::gui::WidgetIdRegistry::WidgetInfo']]],
+  ['function_5fcalling_5fenabled_5f_115',['function_calling_enabled_',['../db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a7b557fda177df27c4b3902cd9c0fd830',1,'yaze::cli::GeminiAIService']]],
+  ['functions_116',['functions',['../d4/d57/classyaze_1_1zelda3_1_1SpriteBuilder.html#acf250a61a4b1e7f6bf4793892085aa28',1,'yaze::zelda3::SpriteBuilder']]]
 ];

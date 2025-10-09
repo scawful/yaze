@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="179,5,337,46"/>
 <area shape="rect" id="Node000002" href="$d7/d77/dungeon__editor__v2_8h.html" title=" " alt="" coords="89,94,243,135"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="228,59,189,96,185,92,224,55"/>
-<area shape="rect" id="Node000023" href="$d8/da5/palette__editor__widget_8cc.html" title=" " alt="" coords="267,94,433,135"/>
-<area shape="poly" id="edge4_Node000001_Node000023" title=" " alt="" coords="292,55,331,92,327,96,288,59"/>
+<area shape="rect" id="Node000025" href="$d8/da5/palette__editor__widget_8cc.html" title=" " alt="" coords="267,94,433,135"/>
+<area shape="poly" id="edge4_Node000001_Node000025" title=" " alt="" coords="292,55,331,92,327,96,288,59"/>
 <area shape="rect" id="Node000003" href="$d0/d0d/dungeon__editor__v2_8cc.html" title=" " alt="" coords="5,183,159,223"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="138,148,103,184,99,180,134,144"/>
-<area shape="rect" id="Node000004" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="183,183,320,223"/>
+<area shape="rect" id="Node000004" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="183,183,320,223"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="198,144,234,180,230,184,194,148"/>
 </map>

@@ -12,5 +12,5 @@ var classyaze_1_1test_1_1DungeonObjectRenderingE2ETests =
     [ "RegisterPerformanceTests", "d0/dc7/classyaze_1_1test_1_1DungeonObjectRenderingE2ETests.html#abe8e2b5d9376c5bcf102e7295ea522da", null ],
     [ "engine_", "d0/dc7/classyaze_1_1test_1_1DungeonObjectRenderingE2ETests.html#a927fd0e73a2568ffde440791c42870bf", null ],
     [ "rom_", "d0/dc7/classyaze_1_1test_1_1DungeonObjectRenderingE2ETests.html#a00464e9391bb53d5d9089ab6aa8c9cea", null ],
-    [ "dungeon_editor_", "d0/dc7/classyaze_1_1test_1_1DungeonObjectRenderingE2ETests.html#a6cc8a5e88656cc0bad001f05670cfff3", null ]
+    [ "dungeon_editor_", "d0/dc7/classyaze_1_1test_1_1DungeonObjectRenderingE2ETests.html#a712f94f86f64bf5a87643476dd2642f6", null ]
 ];

@@ -1,13 +1,13 @@
 <map id="src/app/editor/graphics/gfx_group_editor.h" name="src/app/editor/graphics/gfx_group_editor.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="113,5,266,46"/>
-<area shape="rect" id="Node000002" href="$d6/df5/dungeon__editor_8h.html" title=" " alt="" coords="24,183,177,223"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,42,52,62,31,77,15,95,8,114,15,133,35,160,62,180,59,184,32,164,10,136,3,114,10,93,28,73,49,57,97,37"/>
-<area shape="rect" id="Node000009" href="$db/d1b/gfx__group__editor_8cc.html" title=" " alt="" coords="25,94,178,135"/>
-<area shape="poly" id="edge2_Node000001_Node000009" title=" " alt="" coords="161,59,124,95,120,92,157,55"/>
-<area shape="rect" id="Node000010" href="$d7/d04/app_2editor_2graphics_2palette__editor_8h.html" title=" " alt="" coords="202,94,356,135"/>
-<area shape="poly" id="edge3_Node000001_Node000010" title=" " alt="" coords="223,55,261,92,257,95,219,59"/>
-<area shape="rect" id="Node000029" href="$db/d9f/overworld__editor_8h.html" title=" " alt="" coords="256,183,417,223"/>
-<area shape="poly" id="edge6_Node000001_Node000029" title=" " alt="" coords="283,37,331,57,353,73,371,93,379,116,376,140,366,164,354,184,349,181,361,161,370,139,373,116,366,95,349,77,329,62,280,42"/>
-<area shape="poly" id="edge4_Node000010_Node000002" title=" " alt="" coords="226,144,142,185,140,180,224,139"/>
-<area shape="poly" id="edge5_Node000010_Node000029" title=" " alt="" coords="303,146,326,181,321,184,298,149"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="183,5,336,46"/>
+<area shape="rect" id="Node000002" href="$db/d1b/gfx__group__editor_8cc.html" title=" " alt="" coords="5,94,159,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,55,123,96,121,91,204,51"/>
+<area shape="rect" id="Node000003" href="$d7/d04/app_2editor_2graphics_2palette__editor_8h.html" title=" " alt="" coords="183,94,336,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="262,62,262,94,257,94,257,62"/>
+<area shape="rect" id="Node000024" href="$db/d9f/overworld__editor_8h.html" title=" " alt="" coords="294,183,454,223"/>
+<area shape="poly" id="edge6_Node000001_Node000024" title=" " alt="" coords="311,53,333,71,351,93,362,115,370,139,376,182,371,183,364,140,357,117,346,95,329,75,308,57"/>
+<area shape="rect" id="Node000004" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="247,271,384,312"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="267,149,285,222,306,270,302,272,279,224,262,151"/>
+<area shape="poly" id="edge4_Node000003_Node000024" title=" " alt="" coords="299,142,350,180,346,184,296,146"/>
+<area shape="poly" id="edge5_Node000024_Node000004" title=" " alt="" coords="354,238,331,272,326,269,350,235"/>
 </map>

@@ -1,9 +1,0 @@
-<map id="yaze::editor::DungeonEditor::RenderRoomWithObjects" name="yaze::editor::DungeonEditor::RenderRoomWithObjects">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,47,181,88"/>
-<area shape="rect" id="Node000002" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ad0f203b2f2a24eb23c980f4572670582" title="Get reference to background layer 1 buffer." alt="" coords="229,5,366,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,44,226,33,227,38,180,49"/>
-<area shape="rect" id="Node000003" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ab4b9ad9acd7039bf316e83e2131c21e7" title="Get reference to background layer 2 buffer." alt="" coords="229,55,366,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="181,65,213,65,213,70,181,70"/>
-<area shape="rect" id="Node000004" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="229,104,366,130"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,86,227,97,226,102,179,91"/>
-</map>

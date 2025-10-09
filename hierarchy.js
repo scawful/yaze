@@ -231,7 +231,6 @@ var hierarchy =
     [ "yaze::editor::Editor", "d3/d9f/classyaze_1_1editor_1_1Editor.html", [
       [ "yaze::editor::AgentEditor", "d6/d0d/classyaze_1_1editor_1_1AgentEditor.html", null ],
       [ "yaze::editor::AssemblyEditor", "d4/d45/classyaze_1_1editor_1_1AssemblyEditor.html", null ],
-      [ "yaze::editor::DungeonEditor", "d8/d98/classyaze_1_1editor_1_1DungeonEditor.html", null ],
       [ "yaze::editor::DungeonEditorV2", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html", null ],
       [ "yaze::editor::GraphicsEditor", "dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html", null ],
       [ "yaze::editor::MessageEditor", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html", null ],
@@ -515,6 +514,7 @@ var hierarchy =
     [ "yaze::net::RomVersionManager", "d6/d28/classyaze_1_1net_1_1RomVersionManager.html", null ],
     [ "yaze::zelda3::Room", "d7/df6/classyaze_1_1zelda3_1_1Room.html", null ],
     [ "yaze::zelda3::RoomEntrance", "d8/d1e/classyaze_1_1zelda3_1_1RoomEntrance.html", null ],
+    [ "yaze::editor::DungeonCanvasViewer::RoomLayerSettings", "d1/d23/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1RoomLayerSettings.html", null ],
     [ "yaze::zelda3::RoomLayout", "d9/d70/classyaze_1_1zelda3_1_1RoomLayout.html", null ],
     [ "yaze::zelda3::RoomLayoutObject", "d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html", null ],
     [ "yaze::zelda3::RoomObject", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html", [

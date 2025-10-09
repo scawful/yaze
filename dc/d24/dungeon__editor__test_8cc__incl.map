@@ -1,13 +1,13 @@
 <map id="test/integration/dungeon_editor_test.cc" name="test/integration/dungeon_editor_test.cc">
-<area shape="rect" id="Node000001" title=" " alt="" coords="112,5,273,46"/>
-<area shape="rect" id="Node000002" href="$d8/d90/dungeon__editor__test_8h.html" title=" " alt="" coords="21,94,156,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,49,125,86,122,82,167,44"/>
-<area shape="rect" id="Node000077" href="$d9/dc0/room_8h.html" title=" " alt="" coords="96,183,233,223"/>
-<area shape="poly" id="edge5_Node000001_Node000077" title=" " alt="" coords="192,47,173,168,167,167,187,46"/>
-<area shape="rect" id="Node000075" href="$d0/dff/room__object_8h.html" title=" " alt="" coords="148,271,285,312"/>
-<area shape="poly" id="edge6_Node000001_Node000075" title=" " alt="" coords="206,45,222,78,239,123,249,173,250,198,247,224,236,258,231,256,242,223,244,198,244,173,233,124,217,81,201,47"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="5,190,73,216"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,137,55,178,51,176,75,134"/>
-<area shape="poly" id="edge3_Node000002_Node000077" title=" " alt="" coords="108,133,139,169,135,173,104,137"/>
-<area shape="poly" id="edge4_Node000077_Node000075" title=" " alt="" coords="178,222,199,257,195,259,174,225"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="126,5,286,46"/>
+<area shape="rect" id="Node000002" href="$d8/d90/dungeon__editor__test_8h.html" title=" " alt="" coords="35,94,169,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,49,138,86,135,82,180,44"/>
+<area shape="rect" id="Node000050" href="$d9/dc0/room_8h.html" title=" " alt="" coords="97,183,251,208"/>
+<area shape="poly" id="edge5_Node000001_Node000050" title=" " alt="" coords="205,47,181,168,176,167,199,46"/>
+<area shape="rect" id="Node000054" href="$d0/dff/room__object_8h.html" title=" " alt="" coords="163,256,299,297"/>
+<area shape="poly" id="edge6_Node000001_Node000054" title=" " alt="" coords="218,45,243,105,256,143,266,182,266,209,253,244,248,242,260,208,260,183,251,145,238,107,213,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,183,73,208"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="88,137,60,172,56,169,84,133"/>
+<area shape="poly" id="edge3_Node000002_Node000050" title=" " alt="" coords="121,133,154,169,150,173,117,137"/>
+<area shape="poly" id="edge4_Node000050_Node000054" title=" " alt="" coords="185,207,210,242,206,245,180,210"/>
 </map>

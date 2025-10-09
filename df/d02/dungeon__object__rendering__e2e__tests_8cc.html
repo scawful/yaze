@@ -116,7 +116,7 @@ $(document).ready(function(){initNavTree('df/d02/dungeon__object__rendering__e2e
 <code>#include &quot;imgui_test_engine/imgui_te_ui.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d2/dd9/controller_8h_source.html">app/core/controller.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d3/df1/window_8h_source.html">app/core/window.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d6/df5/dungeon__editor_8h_source.html">app/editor/dungeon/dungeon_editor.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">app/editor/dungeon/dungeon_editor_v2.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d9/dc0/room_8h_source.html">app/zelda3/dungeon/room.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d0/dff/room__object_8h_source.html">app/zelda3/dungeon/room_object.h</a>&quot;</code><br />
@@ -197,7 +197,37 @@ Functions</h2></td></tr>
 <li>Save/load workflows</li>
 <li>Rendering quality across different scenarios</li>
 </ul>
-<p>Created: October 4, 2025 Related: docs/dungeon_editing_implementation_plan.md </p>
+<p>Created: October 4, 2025 Related: docs/dungeon_editing_implementation_plan.md</p>
+<hr  />
+ <h1><a class="anchor" id="autotoc_md1144"></a>
+UPDATE NOTICE (October 2025): Tests need rewrite for DungeonEditorV2</h1>
+<p>These tests were written for the old monolithic DungeonEditor but need to be updated for the new DungeonEditorV2 card-based architecture:</p>
+<p>OLD ARCHITECTURE:</p><ul>
+<li>Single "Dungeon Editor" window with tabs</li>
+<li>Object Selector, Canvas, Layers all in one window</li>
+<li>Monolithic UI structure</li>
+</ul>
+<p>NEW ARCHITECTURE (DungeonEditorV2):</p><ul>
+<li>Independent EditorCard windows:<ul>
+<li>"Dungeon Controls" - main control panel</li>
+<li>"Rooms List" - room selector</li>
+<li>"Room Matrix" - visual room navigation</li>
+<li>"Object Editor" - unified object placement/editing</li>
+<li>"Palette Editor" - palette management</li>
+<li>Individual room cards (e.g., "Room 0x00###RoomCard0")</li>
+</ul>
+</li>
+<li>Per-room layer visibility settings</li>
+<li>Dockable, closable independent windows</li>
+</ul>
+<p>REQUIRED UPDATES:</p><ol type="1">
+<li>Change window references from "Dungeon Editor" to appropriate card names</li>
+<li>Update tab navigation to card window focus</li>
+<li>Update object placement workflow for new ObjectEditorCard</li>
+<li>Update layer controls for per-room settings</li>
+<li>Update room selection to work with new room cards</li>
+</ol>
+<p>Current Status: Tests compile but may fail due to UI structure changes. See: <a class="el" href="../../d4/dd0/dungeon__editor__smoke__test_8cc.html">test/e2e/dungeon_editor_smoke_test.cc</a> for updated test patterns. </p>
 
 <p class="definition">Definition in file <a class="el" href="../../df/d02/dungeon__object__rendering__e2e__tests_8cc_source.html">dungeon_object_rendering_e2e_tests.cc</a>.</p>
 </div><h2 class="groupheader">Macro Definition Documentation</h2>
@@ -213,7 +243,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/d02/dungeon__object__rendering__e2e__tests_8cc_source.html#l00017">17</a> of file <a class="el" href="../../df/d02/dungeon__object__rendering__e2e__tests_8cc_source.html">dungeon_object_rendering_e2e_tests.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/d02/dungeon__object__rendering__e2e__tests_8cc_source.html#l00050">50</a> of file <a class="el" href="../../df/d02/dungeon__object__rendering__e2e__tests_8cc_source.html">dungeon_object_rendering_e2e_tests.cc</a>.</p>
 
 </div>
 </div>

@@ -228,7 +228,7 @@ var searchData=
   ['help_5fcategory_225',['help_category',['../da/dbb/structanonymous__namespace_02cli__main_8cc_03_1_1ParsedGlobals.html#a2418e5a66d409102eecc9085916c37c1',1,'anonymous_namespace{cli_main.cc}::ParsedGlobals']]],
   ['help_5fpanel_5f_226',['help_panel_',['../db/d23/classyaze_1_1cli_1_1UnifiedLayout.html#ac669bf524bdab0610223e6fb90eced6b',1,'yaze::cli::UnifiedLayout']]],
   ['helpcomponent_227',['HelpComponent',['../d3/db3/namespaceyaze_1_1cli_1_1anonymous__namespace_02tui_8cc_03.html#abb3fbd2c5e9c53690714b06d6d882c52',1,'yaze::cli::anonymous_namespace{tui.cc}']]],
-  ['helper_20functions_228',['helper functions',['../d5/d18/md_docs_2E2-development-guide.html#autotoc_md453',1,'2.2. Reusable UI Helper Functions'],['../d9/db0/md_test_2e2e_2README.html#autotoc_md1158',1,'Helper Functions']]],
+  ['helper_20functions_228',['helper functions',['../d5/d18/md_docs_2E2-development-guide.html#autotoc_md453',1,'2.2. Reusable UI Helper Functions'],['../d9/db0/md_test_2e2e_2README.html#autotoc_md1160',1,'Helper Functions']]],
   ['helpmarker_229',['HelpMarker',['../d3/dbf/namespaceyaze_1_1gui.html#ade1b0036f3bd19d5cd1e3b7e9dedbaf3',1,'yaze::gui']]],
   ['hex_20agent_20settings_230',['Screen, Sprite, Message, Hex, Agent, Settings',['../de/dc5/md_docs_2E5-debugging-guide.html#autotoc_md595',1,'']]],
   ['hex_2ecc_231',['hex.cc',['../df/dcb/hex_8cc.html',1,'']]],
