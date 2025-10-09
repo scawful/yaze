@@ -11,5 +11,6 @@ var searchData=
   ['collisionkey_8',['CollisionKey',['../d5/d1f/namespaceyaze_1_1zelda3.html#afb47ec71853bc72be86c1b0c481a3496',1,'yaze::zelda3']]],
   ['colordepth_9',['ColorDepth',['../d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html#a00318bf18c95c9d9000e3d6f1cac2782',1,'yaze::emu::BackgroundLayer']]],
   ['command_10',['Command',['../dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#a728e925cc68d6c08332b2f55f4146715',1,'yaze::gui::canvas::CanvasContextMenu']]],
-  ['connectionstate_11',['ConnectionState',['../dd/d43/namespaceyaze_1_1net.html#a7d076fc70bcff0085dcac770ae381cb2',1,'yaze::net']]]
+  ['connectionstate_11',['ConnectionState',['../dd/d43/namespaceyaze_1_1net.html#a7d076fc70bcff0085dcac770ae381cb2',1,'yaze::net']]],
+  ['cputype_12',['CpuType',['../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ac8a0731654f403685cc4d7af00d1e520',1,'yaze::emu::BreakpointManager']]]
 ];

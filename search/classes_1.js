@@ -12,7 +12,7 @@ var searchData=
   ['bgvofs_9',['BGVOFS',['../d0/dd5/structyaze_1_1emu_1_1BGVOFS.html',1,'yaze::emu']]],
   ['bitmap_10',['Bitmap',['../df/d0e/classyaze_1_1gfx_1_1Bitmap.html',1,'yaze::gfx']]],
   ['bitmaperror_11',['BitmapError',['../df/d71/classyaze_1_1gfx_1_1BitmapError.html',1,'yaze::gfx']]],
-  ['bookmark_12',['bookmark',['../db/df8/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker_1_1Bookmark.html',1,'yaze::editor::MemoryEditorWithDiffChecker::Bookmark'],['../d9/da1/structyaze_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::emu::Emulator::Bookmark']]],
+  ['bookmark_12',['bookmark',['../d9/da1/structyaze_1_1emu_1_1Emulator_1_1Bookmark.html',1,'yaze::emu::Emulator::Bookmark'],['../db/df8/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker_1_1Bookmark.html',1,'yaze::editor::MemoryEditorWithDiffChecker::Bookmark']]],
   ['botprofile_13',['BotProfile',['../d5/d71/structyaze_1_1editor_1_1AgentEditor_1_1BotProfile.html',1,'yaze::editor::AgentEditor']]],
   ['boundromtest_14',['BoundRomTest',['../de/dd6/classyaze_1_1test_1_1TestRomManager_1_1BoundRomTest.html',1,'yaze::test::TestRomManager']]],
   ['bppcomparisontool_15',['BppComparisonTool',['../d3/d1a/classyaze_1_1gui_1_1BppComparisonTool.html',1,'yaze::gui']]],
@@ -22,5 +22,6 @@ var searchData=
   ['bppformatinfo_19',['BppFormatInfo',['../da/dec/structyaze_1_1gfx_1_1BppFormatInfo.html',1,'yaze::gfx']]],
   ['bppformatmanager_20',['BppFormatManager',['../d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html',1,'yaze::gfx']]],
   ['bppformatui_21',['BppFormatUI',['../d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html',1,'yaze::gui']]],
-  ['breakpoint_22',['Breakpoint',['../d1/dd3/structTextEditor_1_1Breakpoint.html',1,'TextEditor']]]
+  ['breakpoint_22',['breakpoint',['../d1/dd3/structTextEditor_1_1Breakpoint.html',1,'TextEditor::Breakpoint'],['../d8/d28/structyaze_1_1emu_1_1BreakpointManager_1_1Breakpoint.html',1,'yaze::emu::BreakpointManager::Breakpoint']]],
+  ['breakpointmanager_23',['BreakpointManager',['../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html',1,'yaze::emu']]]
 ];

@@ -280,7 +280,15 @@ var annotated_dup =
         [ "WorkspaceManager", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html", "d9/d66/classyaze_1_1editor_1_1WorkspaceManager" ]
       ] ],
       [ "emu", "d6/d20/namespaceyaze_1_1emu.html", [
+        [ "audio", "d2/dc8/namespaceyaze_1_1emu_1_1audio.html", [
+          [ "AudioBackendFactory", "d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory.html", "d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory" ],
+          [ "AudioConfig", "d1/da4/structyaze_1_1emu_1_1audio_1_1AudioConfig.html", "d1/da4/structyaze_1_1emu_1_1audio_1_1AudioConfig" ],
+          [ "AudioStatus", "d5/dd6/structyaze_1_1emu_1_1audio_1_1AudioStatus.html", "d5/dd6/structyaze_1_1emu_1_1audio_1_1AudioStatus" ],
+          [ "IAudioBackend", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend" ],
+          [ "SDL2AudioBackend", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend" ]
+        ] ],
         [ "debug", "d9/dd4/namespaceyaze_1_1emu_1_1debug.html", [
+          [ "ApuHandshakeTracker", "db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html", "db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker" ],
           [ "DisassemblyEntry", "d1/df8/structyaze_1_1emu_1_1debug_1_1DisassemblyEntry.html", "d1/df8/structyaze_1_1emu_1_1debug_1_1DisassemblyEntry" ],
           [ "DisassemblyViewer", "d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html", "d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer" ]
         ] ],
@@ -298,6 +306,7 @@ var annotated_dup =
         [ "BGNBA", "da/d26/structyaze_1_1emu_1_1BGNBA.html", "da/d26/structyaze_1_1emu_1_1BGNBA" ],
         [ "BGSC", "d2/d99/structyaze_1_1emu_1_1BGSC.html", "d2/d99/structyaze_1_1emu_1_1BGSC" ],
         [ "BGVOFS", "d0/dd5/structyaze_1_1emu_1_1BGVOFS.html", "d0/dd5/structyaze_1_1emu_1_1BGVOFS" ],
+        [ "BreakpointManager", "d9/ded/classyaze_1_1emu_1_1BreakpointManager.html", "d9/ded/classyaze_1_1emu_1_1BreakpointManager" ],
         [ "CGADD", "d0/d4e/structyaze_1_1emu_1_1CGADD.html", "d0/d4e/structyaze_1_1emu_1_1CGADD" ],
         [ "CGADSUB", "d2/d1a/structyaze_1_1emu_1_1CGADSUB.html", "d2/d1a/structyaze_1_1emu_1_1CGADSUB" ],
         [ "CGDATA", "de/da2/structyaze_1_1emu_1_1CGDATA.html", "de/da2/structyaze_1_1emu_1_1CGDATA" ],
@@ -377,6 +386,7 @@ var annotated_dup =
         [ "VMDATALREAD", "db/d62/structyaze_1_1emu_1_1VMDATALREAD.html", "db/d62/structyaze_1_1emu_1_1VMDATALREAD" ],
         [ "W12SEL", "d0/d7a/structyaze_1_1emu_1_1W12SEL.html", "d0/d7a/structyaze_1_1emu_1_1W12SEL" ],
         [ "W34SEL", "d4/dd2/structyaze_1_1emu_1_1W34SEL.html", "d4/dd2/structyaze_1_1emu_1_1W34SEL" ],
+        [ "WatchpointManager", "d7/d17/classyaze_1_1emu_1_1WatchpointManager.html", "d7/d17/classyaze_1_1emu_1_1WatchpointManager" ],
         [ "WBGLOG", "d4/d87/structyaze_1_1emu_1_1WBGLOG.html", "d4/d87/structyaze_1_1emu_1_1WBGLOG" ],
         [ "WH0", "de/ded/structyaze_1_1emu_1_1WH0.html", "de/ded/structyaze_1_1emu_1_1WH0" ],
         [ "WH1", "dc/d07/structyaze_1_1emu_1_1WH1.html", "dc/d07/structyaze_1_1emu_1_1WH1" ],

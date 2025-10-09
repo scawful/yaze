@@ -1,7 +1,11 @@
 <map id="yaze::emu::TEST_F" name="yaze::emu::TEST_F">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,138,31"/>
-<area shape="rect" id="Node000002" href="$d7/da7/classyaze_1_1emu_1_1Apu.html#a2b0a32850ed6bd530e1eb9e51fe13442" title=" " alt="" coords="186,5,329,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,16,170,16,170,21,138,21"/>
-<area shape="rect" id="Node000003" href="$dc/d01/classyaze_1_1emu_1_1Dsp.html#a88603a2b4c723792d04194cb3eb23de5" title=" " alt="" coords="377,5,520,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="329,16,362,16,362,21,329,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,78,138,104"/>
+<area shape="rect" id="Node000002" href="$d7/da7/classyaze_1_1emu_1_1Apu.html#a2b0a32850ed6bd530e1eb9e51fe13442" title=" " alt="" coords="186,78,329,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,88,170,88,170,94,138,94"/>
+<area shape="rect" id="Node000003" href="$db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#a6c743b16e214af7959deaae1cb8b9e1f" title=" " alt="" coords="377,5,591,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="304,75,396,48,397,53,305,80"/>
+<area shape="rect" id="Node000006" href="$db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#ad9d2c5318d00c8038ba34e6ceeeee30c" title=" " alt="" coords="377,71,591,111"/>
+<area shape="poly" id="edge3_Node000002_Node000006" title=" " alt="" coords="330,88,362,88,362,94,330,94"/>
+<area shape="rect" id="Node000008" href="$dc/d01/classyaze_1_1emu_1_1Dsp.html#a88603a2b4c723792d04194cb3eb23de5" title=" " alt="" coords="413,136,556,161"/>
+<area shape="poly" id="edge4_Node000002_Node000008" title=" " alt="" coords="308,102,378,120,412,129,410,134,376,126,306,107"/>
 </map>

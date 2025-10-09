@@ -1,0 +1,7 @@
+<map id="yaze::editor::MusicEditor::PlaySong" name="yaze::editor::MusicEditor::PlaySong">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,165,79"/>
+<area shape="rect" id="Node000002" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html#ae424c65f818b392a32e972828d2b8f46" title=" " alt="" coords="213,5,348,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,43,197,37,198,42,166,48"/>
+<area shape="rect" id="Node000003" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html#ae7676db1e19dc323e578195bc5699297" title=" " alt="" coords="213,71,348,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="166,69,198,75,197,80,165,75"/>
+</map>

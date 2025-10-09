@@ -17,5 +17,7 @@ var searchData=
   ['bpp_5fformat_5fui_2eh_14',['bpp_format_ui.h',['../db/da7/bpp__format__ui_8h.html',1,'']]],
   ['bps_2ecc_15',['bps.cc',['../d3/d8f/bps_8cc.html',1,'']]],
   ['bps_2eh_16',['bps.h',['../db/d90/bps_8h.html',1,'']]],
-  ['build_5fcleaner_2epy_17',['build_cleaner.py',['../d6/d2d/build__cleaner_8py.html',1,'']]]
+  ['breakpoint_5fmanager_2ecc_17',['breakpoint_manager.cc',['../d3/d46/breakpoint__manager_8cc.html',1,'']]],
+  ['breakpoint_5fmanager_2eh_18',['breakpoint_manager.h',['../dc/d0f/breakpoint__manager_8h.html',1,'']]],
+  ['build_5fcleaner_2epy_19',['build_cleaner.py',['../d6/d2d/build__cleaner_8py.html',1,'']]]
 ];

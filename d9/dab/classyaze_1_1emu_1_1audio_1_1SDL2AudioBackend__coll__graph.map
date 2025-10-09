@@ -1,0 +1,7 @@
+<map id="yaze::emu::audio::SDL2AudioBackend" name="yaze::emu::audio::SDL2AudioBackend">
+<area shape="rect" id="Node000001" title="SDL2 audio backend implementation." alt="" coords="90,109,277,150"/>
+<area shape="rect" id="Node000002" href="$d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html" title="Abstract audio backend interface." alt="" coords="5,5,164,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,55,166,107,162,110,112,59"/>
+<area shape="rect" id="Node000003" href="$d1/da4/structyaze_1_1emu_1_1audio_1_1AudioConfig.html" title=" " alt="" coords="188,13,378,39"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="263,51,204,110,201,107,259,48"/>
+</map>

@@ -4,8 +4,8 @@
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,68,209,49,210,54,152,73"/>
 <area shape="rect" id="Node000003" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a961395e40466148d6be9d99bbeef6fc4" title=" " alt="" coords="212,71,370,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="164,88,196,88,196,94,164,94"/>
-<area shape="rect" id="Node000006" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3611fc5f7367b5346be7dda28c89a08d" title=" " alt="" coords="212,136,370,177"/>
-<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="152,109,210,128,209,133,150,114"/>
-<area shape="rect" id="Node000004" href="$d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="418,78,602,104"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="370,88,402,88,402,94,370,94"/>
+<area shape="rect" id="Node000009" href="$d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3611fc5f7367b5346be7dda28c89a08d" title=" " alt="" coords="212,136,370,177"/>
+<area shape="poly" id="edge4_Node000001_Node000009" title=" " alt="" coords="152,109,210,128,209,133,150,114"/>
+<area shape="rect" id="Node000004" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="418,71,577,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="371,88,403,88,403,94,371,94"/>
 </map>

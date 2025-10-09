@@ -1,5 +1,5 @@
 <map id="yaze::util::PlatformPaths::GetAppDataDirectory" name="yaze::util::PlatformPaths::GetAppDataDirectory">
-<area shape="rect" id="Node000001" title="Get application data directory for YAZE." alt="" coords="5,39,165,79"/>
+<area shape="rect" id="Node000001" title="Get the user&#45;specific application data directory for YAZE." alt="" coords="5,39,165,79"/>
 <area shape="rect" id="Node000002" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a84dcfd258a5319e7fbf34fe53081b87e" title="Ensure a directory exists, creating it if necessary." alt="" coords="213,5,372,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,44,197,38,198,44,165,49"/>
 <area shape="rect" id="Node000004" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#acd219cd2ca12de71da89694e5ad97d0e" title="Get the user&#39;s home directory in a cross&#45;platform way." alt="" coords="213,71,372,111"/>

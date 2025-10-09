@@ -125,7 +125,7 @@ $(document).ready(function(){initNavTree('dc/d74/automation__bridge_8cc_source.h
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>  AgentChatWidget::AutomationTelemetry telemetry;</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>  telemetry.test_id = execution.test_id;</div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>  telemetry.name = execution.name;</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  telemetry.status = <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#afac246c83263232d9fd33e3d84257a44">test::HarnessStatusToString</a>(execution.status);</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>  telemetry.status = test::HarnessStatusToString(execution.status);</div>
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>  telemetry.message = execution.error_message;</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>  telemetry.updated_at = (execution.completed_at == absl::InfiniteFuture() ||</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>                          execution.completed_at == absl::InfinitePast())</div>
@@ -149,7 +149,6 @@ $(document).ready(function(){initNavTree('dc/d74/automation__bridge_8cc_source.h
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span><span class="preprocessor">#endif  </span><span class="comment">// defined(YAZE_WITH_GRPC)</span></div>
 <div class="ttc" id="aautomation__bridge_8h_html"><div class="ttname"><a href="../../de/d0f/automation__bridge_8h.html">automation_bridge.h</a></div></div>
 <div class="ttc" id="aeditor_2agent_2agent__chat__widget_8h_html"><div class="ttname"><a href="../../d1/dee/editor_2agent_2agent__chat__widget_8h.html">agent_chat_widget.h</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_html_afac246c83263232d9fd33e3d84257a44"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#afac246c83263232d9fd33e3d84257a44">yaze::test::HarnessStatusToString</a></div><div class="ttdeci">const char * HarnessStatusToString(HarnessTestStatus status)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00112">test_manager.cc:112</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->

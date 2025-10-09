@@ -1,7 +1,7 @@
 <map id="yaze::editor::EditorSelectionDialog::LoadRecentEditors" name="yaze::editor::EditorSelectionDialog::LoadRecentEditors">
 <area shape="rect" id="Node000001" title="Load recently used editors from settings." alt="" coords="5,5,184,46"/>
-<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#aed6bff0fdd8e1ff3de8a6521814084e1" title=" " alt="" coords="232,13,394,39"/>
+<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#a7d261d2866f226e94ba969c46bc26869" title="Loads a file from the user&#39;s config directory." alt="" coords="232,5,388,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,23,216,23,216,28,184,28"/>
-<area shape="rect" id="Node000003" href="$d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="442,13,626,39"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="394,23,426,23,426,28,394,28"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="436,5,595,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="389,23,420,23,420,28,389,28"/>
 </map>

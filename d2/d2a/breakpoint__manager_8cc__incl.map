@@ -1,0 +1,11 @@
+<map id="src/app/emu/debug/breakpoint_manager.cc" name="src/app/emu/debug/breakpoint_manager.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="142,5,339,46"/>
+<area shape="rect" id="Node000002" href="$dc/d0f/breakpoint__manager_8h.html" title=" " alt="" coords="5,94,180,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="208,49,140,88,138,84,206,44"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="203,102,278,127"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="243,47,243,86,238,86,238,47"/>
+<area shape="rect" id="Node000009" href="$d7/d7f/log_8h.html" title=" " alt="" coords="302,102,371,127"/>
+<area shape="poly" id="edge4_Node000001_Node000009" title=" " alt="" coords="264,45,314,89,310,93,261,49"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="62,183,123,208"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="95,135,95,167,90,167,90,135"/>
+</map>

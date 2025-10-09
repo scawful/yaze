@@ -1,5 +1,6 @@
 var hierarchy =
 [
+    [ "yaze::emu::WatchpointManager::AccessLog", "d8/d4b/structyaze_1_1emu_1_1WatchpointManager_1_1AccessLog.html", null ],
     [ "yaze::cli::ai::ActionRefinement", "d4/d66/structyaze_1_1cli_1_1ai_1_1ActionRefinement.html", null ],
     [ "yaze::cli::agent::AdvancedRouter", "d8/d4e/classyaze_1_1cli_1_1agent_1_1AdvancedRouter.html", null ],
     [ "yaze::editor::AgentChatHistoryCodec", "d5/dfa/classyaze_1_1editor_1_1AgentChatHistoryCodec.html", null ],
@@ -29,6 +30,7 @@ var hierarchy =
     [ "AppViewController", "d1/de7/classAppViewController.html", null ],
     [ "yaze::emu::Apu", "d7/da7/classyaze_1_1emu_1_1Apu.html", null ],
     [ "yaze::emu::ApuCallbacks", "df/d64/structyaze_1_1emu_1_1ApuCallbacks.html", null ],
+    [ "yaze::emu::debug::ApuHandshakeTracker", "db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html", null ],
     [ "yaze::gfx::Arena", "d4/de6/classyaze_1_1gfx_1_1Arena.html", null ],
     [ "yaze::core::AsarPatchResult", "de/d0c/structyaze_1_1core_1_1AsarPatchResult.html", null ],
     [ "yaze::core::AsarSymbol", "de/da4/structyaze_1_1core_1_1AsarSymbol.html", null ],
@@ -46,9 +48,12 @@ var hierarchy =
     [ "yaze::gfx::AtlasRenderer::AtlasEntry", "d9/d8e/structyaze_1_1gfx_1_1AtlasRenderer_1_1AtlasEntry.html", null ],
     [ "yaze::gfx::AtlasRenderer", "d8/d6e/classyaze_1_1gfx_1_1AtlasRenderer.html", null ],
     [ "yaze::gfx::AtlasStats", "d2/dea/structyaze_1_1gfx_1_1AtlasStats.html", null ],
+    [ "yaze::emu::audio::AudioBackendFactory", "d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory.html", null ],
+    [ "yaze::emu::audio::AudioConfig", "d1/da4/structyaze_1_1emu_1_1audio_1_1AudioConfig.html", null ],
     [ "yaze::emu::AudioRam", "db/dc9/classyaze_1_1emu_1_1AudioRam.html", [
       [ "yaze::emu::AudioRamImpl", "d5/da7/classyaze_1_1emu_1_1AudioRamImpl.html", null ]
     ] ],
+    [ "yaze::emu::audio::AudioStatus", "d5/dd6/structyaze_1_1emu_1_1audio_1_1AudioStatus.html", null ],
     [ "yaze::cli::AutocompleteEngine", "da/d90/classyaze_1_1cli_1_1AutocompleteEngine.html", null ],
     [ "yaze::editor::AgentChatWidget::AutomationCallbacks", "d7/de3/structyaze_1_1editor_1_1AgentChatWidget_1_1AutomationCallbacks.html", null ],
     [ "yaze::cli::AutomationResult", "d4/daf/structyaze_1_1cli_1_1AutomationResult.html", null ],
@@ -76,6 +81,8 @@ var hierarchy =
     [ "yaze::gfx::BppFormatManager", "d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html", null ],
     [ "yaze::gui::BppFormatUI", "d2/dc2/classyaze_1_1gui_1_1BppFormatUI.html", null ],
     [ "TextEditor::Breakpoint", "d1/dd3/structTextEditor_1_1Breakpoint.html", null ],
+    [ "yaze::emu::BreakpointManager::Breakpoint", "d8/d28/structyaze_1_1emu_1_1BreakpointManager_1_1Breakpoint.html", null ],
+    [ "yaze::emu::BreakpointManager", "d9/ded/classyaze_1_1emu_1_1BreakpointManager.html", null ],
     [ "yaze::gui::Canvas", "da/d2c/classyaze_1_1gui_1_1Canvas.html", null ],
     [ "yaze::gui::CanvasAutomationAPI", "dd/de4/classyaze_1_1gui_1_1CanvasAutomationAPI.html", null ],
     [ "yaze::gui::canvas::CanvasConfig", "d3/d8f/structyaze_1_1gui_1_1canvas_1_1CanvasConfig.html", null ],
@@ -299,6 +306,9 @@ var hierarchy =
     [ "yaze::cli::HarnessTestSummary", "db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html", null ],
     [ "yaze::util::HexStringParams", "da/df6/structyaze_1_1util_1_1HexStringParams.html", null ],
     [ "yaze::editor::HistoryManager", "d9/d6c/classyaze_1_1editor_1_1HistoryManager.html", null ],
+    [ "yaze::emu::audio::IAudioBackend", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html", [
+      [ "yaze::emu::audio::SDL2AudioBackend", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html", null ]
+    ] ],
     [ "TextEditor::Identifier", "d6/dcb/structTextEditor_1_1Identifier.html", null ],
     [ "yaze::util::IFlag", "d7/df7/classyaze_1_1util_1_1IFlag.html", [
       [ "yaze::util::Flag< T >", "d7/dc5/classyaze_1_1util_1_1Flag.html", null ]
@@ -438,6 +448,7 @@ var hierarchy =
     [ "yaze::gfx::PoolAllocator< T >", "d5/d46/classyaze_1_1gfx_1_1PoolAllocator.html", null ],
     [ "yaze::editor::PopupManager", "d3/d8d/classyaze_1_1editor_1_1PopupManager.html", null ],
     [ "yaze::editor::PopupParams", "df/dc2/structyaze_1_1editor_1_1PopupParams.html", null ],
+    [ "yaze::emu::debug::ApuHandshakeTracker::PortWrite", "d2/d86/structyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker_1_1PortWrite.html", null ],
     [ "yaze::emu::Ppu", "d3/ded/classyaze_1_1emu_1_1Ppu.html", null ],
     [ "yaze::emu::PpuInterface", "d4/d7c/classyaze_1_1emu_1_1PpuInterface.html", null ],
     [ "yaze::editor::UserSettings::Preferences", "dc/d71/structyaze_1_1editor_1_1UserSettings_1_1Preferences.html", null ],
@@ -694,6 +705,7 @@ var hierarchy =
     [ "yaze::cli::ToolSpecification", "d5/dcb/structyaze_1_1cli_1_1ToolSpecification.html", null ],
     [ "yaze::zelda3::music::Tracker", "d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html", null ],
     [ "yaze::Transaction", "df/d26/classyaze_1_1Transaction.html", null ],
+    [ "yaze::emu::debug::ApuHandshakeTracker::TransferBlock", "d2/d23/structyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker_1_1TransferBlock.html", null ],
     [ "yaze::emu::TS", "da/db1/structyaze_1_1emu_1_1TS.html", null ],
     [ "yaze::emu::TSW", "d2/de5/structyaze_1_1emu_1_1TSW.html", null ],
     [ "yaze::cli::TuiComponent", "dc/d6b/classyaze_1_1cli_1_1TuiComponent.html", [
@@ -724,6 +736,8 @@ var hierarchy =
     [ "yaze::emu::W34SEL", "d4/dd2/structyaze_1_1emu_1_1W34SEL.html", null ],
     [ "yaze::cli::overworld::WarpEntry", "d1/d67/structyaze_1_1cli_1_1overworld_1_1WarpEntry.html", null ],
     [ "yaze::cli::overworld::WarpQuery", "d0/dcb/structyaze_1_1cli_1_1overworld_1_1WarpQuery.html", null ],
+    [ "yaze::emu::WatchpointManager::Watchpoint", "d1/df9/structyaze_1_1emu_1_1WatchpointManager_1_1Watchpoint.html", null ],
+    [ "yaze::emu::WatchpointManager", "d7/d17/classyaze_1_1emu_1_1WatchpointManager.html", null ],
     [ "yaze::emu::WBGLOG", "d4/d87/structyaze_1_1emu_1_1WBGLOG.html", null ],
     [ "yaze::net::WebSocketClient", "da/dae/classyaze_1_1net_1_1WebSocketClient.html", null ],
     [ "yaze::editor::WelcomeScreen", "dc/daa/classyaze_1_1editor_1_1WelcomeScreen.html", null ],

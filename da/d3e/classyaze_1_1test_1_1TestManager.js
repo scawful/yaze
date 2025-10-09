@@ -44,8 +44,6 @@ var classyaze_1_1test_1_1TestManager =
     [ "UpdateProgress", "da/d3e/classyaze_1_1test_1_1TestManager.html#ae7cbaf88ee1e98b4e2fa8c598fc21442", null ],
     [ "CollectResourceStats", "da/d3e/classyaze_1_1test_1_1TestManager.html#accb083bc4e5f9205954fa5c0059e4ba5", null ],
     [ "TrimResourceHistory", "da/d3e/classyaze_1_1test_1_1TestManager.html#aac8ba5225045f940a57ed1f7bfa1e774", null ],
-    [ "GenerateHarnessTestIdLocked", "da/d3e/classyaze_1_1test_1_1TestManager.html#ac8e5edad535ca7a83dab427ae0276970", null ],
-    [ "TrimHarnessHistoryLocked", "da/d3e/classyaze_1_1test_1_1TestManager.html#a2409be0114ce93166356857aaa252ab2", null ],
     [ "test_suites_", "da/d3e/classyaze_1_1test_1_1TestManager.html#ad2bc07d046bb17a276c28ba1f9857f32", null ],
     [ "suite_lookup_", "da/d3e/classyaze_1_1test_1_1TestManager.html#a52b4ed8f52803190811cb18f47593cc3", null ],
     [ "last_results_", "da/d3e/classyaze_1_1test_1_1TestManager.html#ac2683269e10fc0fdfb06f3b61b71eb26", null ],

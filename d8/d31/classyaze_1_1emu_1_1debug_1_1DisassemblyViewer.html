@@ -145,6 +145,17 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a2b3d0619ae18860ef6d33815e311c082" id="r_a2b3d0619ae18860ef6d33815e311c082"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#a2b3d0619ae18860ef6d33815e311c082">IsAvailable</a> () const</td></tr>
 <tr class="memdesc:a2b3d0619ae18860ef6d33815e311c082"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if the disassembly viewer is available.  <br /></td></tr>
 <tr class="separator:a2b3d0619ae18860ef6d33815e311c082"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a815ee99e7627b85d31a3f1595072b3" id="r_a7a815ee99e7627b85d31a3f1595072b3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#a7a815ee99e7627b85d31a3f1595072b3">SetRecording</a> (bool enabled)</td></tr>
+<tr class="memdesc:a7a815ee99e7627b85d31a3f1595072b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable/disable recording (for performance)  <br /></td></tr>
+<tr class="separator:a7a815ee99e7627b85d31a3f1595072b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb352f3e92a581c6487d8a635067fdca" id="r_abb352f3e92a581c6487d8a635067fdca"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#abb352f3e92a581c6487d8a635067fdca">IsRecording</a> () const</td></tr>
+<tr class="separator:abb352f3e92a581c6487d8a635067fdca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af835fb7696c5c3a088cb52431c90e69c" id="r_af835fb7696c5c3a088cb52431c90e69c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#af835fb7696c5c3a088cb52431c90e69c">SetMaxInstructions</a> (size_t max)</td></tr>
+<tr class="memdesc:af835fb7696c5c3a088cb52431c90e69c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set maximum number of instructions to keep.  <br /></td></tr>
+<tr class="separator:af835fb7696c5c3a088cb52431c90e69c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa225cd124d2185516c7b2c069be00828" id="r_aa225cd124d2185516c7b2c069be00828"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#aa225cd124d2185516c7b2c069be00828">TrimToSize</a> (size_t target_size)</td></tr>
+<tr class="memdesc:aa225cd124d2185516c7b2c069be00828"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear old instructions to save memory.  <br /></td></tr>
+<tr class="separator:aa225cd124d2185516c7b2c069be00828"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
@@ -169,6 +180,10 @@ Private Member Functions</h2></td></tr>
 Private Attributes</h2></td></tr>
 <tr class="memitem:a8611e47d3ce94354cd137a2309e2c1df" id="r_a8611e47d3ce94354cd137a2309e2c1df"><td class="memItemLeft" align="right" valign="top">std::map&lt; uint32_t, <a class="el" href="../../d1/df8/structyaze_1_1emu_1_1debug_1_1DisassemblyEntry.html">DisassemblyEntry</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#a8611e47d3ce94354cd137a2309e2c1df">instructions_</a></td></tr>
 <tr class="separator:a8611e47d3ce94354cd137a2309e2c1df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a19f175b6779f3bd401a7d437d4c67565" id="r_a19f175b6779f3bd401a7d437d4c67565"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#a19f175b6779f3bd401a7d437d4c67565">recording_enabled_</a> = true</td></tr>
+<tr class="separator:a19f175b6779f3bd401a7d437d4c67565"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33653e5883cb43375e1003e465c9929d" id="r_a33653e5883cb43375e1003e465c9929d"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#a33653e5883cb43375e1003e465c9929d">max_instructions_</a> = 10000</td></tr>
+<tr class="separator:a33653e5883cb43375e1003e465c9929d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8523ca4e42abba19575377deec594906" id="r_a8523ca4e42abba19575377deec594906"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#a8523ca4e42abba19575377deec594906">search_filter_</a> [256] = &quot;&quot;</td></tr>
 <tr class="separator:a8523ca4e42abba19575377deec594906"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afefc2ba33d20b9d685fbac1b8d428c37" id="r_afefc2ba33d20b9d685fbac1b8d428c37"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#afefc2ba33d20b9d685fbac1b8d428c37">selected_address_</a> = 0</td></tr>
@@ -305,9 +320,19 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00030">30</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00022">yaze::emu::debug::DisassemblyEntry::address</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00028">yaze::emu::debug::DisassemblyEntry::execution_count</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00115">instructions_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00029">yaze::emu::debug::DisassemblyEntry::is_breakpoint</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00030">yaze::emu::debug::DisassemblyEntry::is_current_pc</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00025">yaze::emu::debug::DisassemblyEntry::mnemonic</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00023">yaze::emu::debug::DisassemblyEntry::opcode</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00026">yaze::emu::debug::DisassemblyEntry::operand_str</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00024">yaze::emu::debug::DisassemblyEntry::operands</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00027">yaze::emu::debug::DisassemblyEntry::size</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00022">yaze::emu::debug::DisassemblyEntry::address</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00028">yaze::emu::debug::DisassemblyEntry::execution_count</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00131">instructions_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00029">yaze::emu::debug::DisassemblyEntry::is_breakpoint</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00030">yaze::emu::debug::DisassemblyEntry::is_current_pc</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00135">max_instructions_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00025">yaze::emu::debug::DisassemblyEntry::mnemonic</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00023">yaze::emu::debug::DisassemblyEntry::opcode</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00026">yaze::emu::debug::DisassemblyEntry::operand_str</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00024">yaze::emu::debug::DisassemblyEntry::operands</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00134">recording_enabled_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00027">yaze::emu::debug::DisassemblyEntry::size</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00066">TrimToSize()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d97/cpu_8cc_source.html#l01902">yaze::emu::Cpu::LogInstructions()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00078">yaze::emu::Emulator::Initialize()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer_aa767ffbd1d6ca259733b5b0a3e207a96_cgraph.png" border="0" usemap="#ad8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer_aa767ffbd1d6ca259733b5b0a3e207a96_cgraph" alt=""/></div>
+<map name="ad8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer_aa767ffbd1d6ca259733b5b0a3e207a96_cgraph" id="ad8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer_aa767ffbd1d6ca259733b5b0a3e207a96_cgraph">
+<area shape="rect" title="Record an instruction execution." alt="" coords="5,5,205,46"/>
+<area shape="rect" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#aa225cd124d2185516c7b2c069be00828" title="Clear old instructions to save memory." alt="" coords="253,5,452,46"/>
+<area shape="poly" title=" " alt="" coords="205,23,237,23,237,28,205,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -346,9 +371,9 @@ Private Attributes</h2></td></tr>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00055">55</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00089">89</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00115">instructions_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00030">yaze::emu::debug::DisassemblyEntry::is_current_pc</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00121">RenderSearchBar()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00069">RenderToolbar()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00131">instructions_</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00155">RenderSearchBar()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00103">RenderToolbar()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -385,11 +410,11 @@ Here is the call graph for this function:</div>
 
 <p>Clear all recorded instructions. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00384">384</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00418">418</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00115">instructions_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00120">scroll_to_address_</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00119">selected_address_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00131">instructions_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00140">scroll_to_address_</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00139">selected_address_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00069">RenderToolbar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00103">RenderToolbar()</a>.</p>
 
 </div>
 </div>
@@ -420,7 +445,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00083">83</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00115">instructions_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00131">instructions_</a>.</p>
 
 </div>
 </div>
@@ -449,11 +474,11 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>true if successful </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00390">390</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00424">424</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00330">FormatHexDump()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00423">GetSortedAddresses()</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00115">instructions_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00364">FormatHexDump()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00457">GetSortedAddresses()</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00131">instructions_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00069">RenderToolbar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00103">RenderToolbar()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -493,11 +518,11 @@ Here is the call graph for this function:</div>
   </dd>
 </dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00417">417</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00451">451</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00121">auto_scroll_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00120">scroll_to_address_</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00119">selected_address_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00141">auto_scroll_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00140">scroll_to_address_</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00139">selected_address_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00266">RenderContextMenu()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00300">RenderContextMenu()</a>.</p>
 
 </div>
 </div>
@@ -529,7 +554,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00101">101</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00121">auto_scroll_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00141">auto_scroll_</a>.</p>
 
 </div>
 </div>
@@ -550,11 +575,11 @@ Here is the call graph for this function:</div>
 
 <p>Get sorted list of addresses for rendering. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00423">423</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00457">457</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00115">instructions_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00131">instructions_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00390">ExportToFile()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00424">ExportToFile()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>.</p>
 
 </div>
 </div>
@@ -585,7 +610,130 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00111">111</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00115">instructions_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00131">instructions_</a>.</p>
+
+</div>
+</div>
+<a id="a7a815ee99e7627b85d31a3f1595072b3" name="a7a815ee99e7627b85d31a3f1595072b3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7a815ee99e7627b85d31a3f1595072b3">&#9670;&#160;</a></span>SetRecording()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::debug::DisassemblyViewer::SetRecording </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>enabled</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Enable/disable recording (for performance) </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00116">116</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00134">recording_enabled_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00541">yaze::emu::Emulator::RenderNavBar()</a>.</p>
+
+</div>
+</div>
+<a id="abb352f3e92a581c6487d8a635067fdca" name="abb352f3e92a581c6487d8a635067fdca"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abb352f3e92a581c6487d8a635067fdca">&#9670;&#160;</a></span>IsRecording()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::emu::debug::DisassemblyViewer::IsRecording </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00117">117</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00134">recording_enabled_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00541">yaze::emu::Emulator::RenderNavBar()</a>.</p>
+
+</div>
+</div>
+<a id="af835fb7696c5c3a088cb52431c90e69c" name="af835fb7696c5c3a088cb52431c90e69c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af835fb7696c5c3a088cb52431c90e69c">&#9670;&#160;</a></span>SetMaxInstructions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::debug::DisassemblyViewer::SetMaxInstructions </td>
+          <td>(</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Set maximum number of instructions to keep. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00122">122</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00135">max_instructions_</a>.</p>
+
+</div>
+</div>
+<a id="aa225cd124d2185516c7b2c069be00828" name="aa225cd124d2185516c7b2c069be00828"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa225cd124d2185516c7b2c069be00828">&#9670;&#160;</a></span>TrimToSize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::debug::DisassemblyViewer::TrimToSize </td>
+          <td>(</td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>target_size</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Clear old instructions to save memory. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00066">66</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00131">instructions_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00030">RecordInstruction()</a>.</p>
 
 </div>
 </div>
@@ -611,13 +759,13 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000059">Todo:</a></b></dt><dd>Open file dialog and export </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000062">Todo:</a></b></dt><dd>Open file dialog and export </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00069">69</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00103">103</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00121">auto_scroll_</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00384">Clear()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00390">ExportToFile()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00415">ICON_MD_CLEAR_ALL</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01193">ICON_MD_MEMORY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01642">ICON_MD_SAVE</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00115">instructions_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00122">show_execution_counts_</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00123">show_hex_dump_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00141">auto_scroll_</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00418">Clear()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00424">ExportToFile()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00415">ICON_MD_CLEAR_ALL</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01193">ICON_MD_MEMORY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01642">ICON_MD_SAVE</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00131">instructions_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00142">show_execution_counts_</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00143">show_hex_dump_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00055">Render()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00089">Render()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -670,13 +818,13 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000060">Todo:</a></b></dt><dd>Open documentation for this mnemonic </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000063">Todo:</a></b></dt><dd>Open documentation for this mnemonic </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">130</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">164</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00121">auto_scroll_</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00330">FormatHexDump()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00296">GetAddressColor()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00307">GetMnemonicColor()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00423">GetSortedAddresses()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00409">ICON_MD_CIRCLE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01860">ICON_MD_STOP</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02014">ICON_MD_TRENDING_UP</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00115">instructions_</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00350">PassesFilter()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00266">RenderContextMenu()</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00120">scroll_to_address_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00119">selected_address_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00122">show_execution_counts_</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00123">show_hex_dump_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00141">auto_scroll_</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00364">FormatHexDump()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00330">GetAddressColor()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00341">GetMnemonicColor()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00457">GetSortedAddresses()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00409">ICON_MD_CIRCLE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01860">ICON_MD_STOP</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02014">ICON_MD_TRENDING_UP</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00131">instructions_</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00384">PassesFilter()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00300">RenderContextMenu()</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00140">scroll_to_address_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00139">selected_address_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00142">show_execution_counts_</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00143">show_hex_dump_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00055">Render()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00089">Render()</a>.</p>
 
 </div>
 </div>
@@ -703,14 +851,14 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000061">Todo:</a></b></dt><dd>Implement breakpoint toggle callback </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000062">Todo:</a></b></dt><dd>Show detailed instruction info </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000064">Todo:</a></b></dt><dd>Implement breakpoint toggle callback </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000065">Todo:</a></b></dt><dd>Show detailed instruction info </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00266">266</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00300">300</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00463">ICON_MD_CONTENT_COPY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00782">ICON_MD_FLAG</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01268">ICON_MD_MY_LOCATION</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00115">instructions_</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00417">JumpToAddress()</a>.</p>
+<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l00463">ICON_MD_CONTENT_COPY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00782">ICON_MD_FLAG</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01268">ICON_MD_MY_LOCATION</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00131">instructions_</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00451">JumpToAddress()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -747,11 +895,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00121">121</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00155">155</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l01671">ICON_MD_SEARCH</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00118">search_filter_</a>.</p>
+<p class="reference">References <a class="el" href="../../de/dbf/icons_8h_source.html#l01671">ICON_MD_SEARCH</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00138">search_filter_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00055">Render()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00089">Render()</a>.</p>
 
 </div>
 </div>
@@ -789,11 +937,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00296">296</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00330">330</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00029">yaze::emu::debug::DisassemblyEntry::is_breakpoint</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00030">yaze::emu::debug::DisassemblyEntry::is_current_pc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>.</p>
 
 </div>
 </div>
@@ -821,11 +969,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00307">307</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00341">341</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00025">yaze::emu::debug::DisassemblyEntry::mnemonic</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>.</p>
 
 </div>
 </div>
@@ -853,11 +1001,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00330">330</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00364">364</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00023">yaze::emu::debug::DisassemblyEntry::opcode</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00024">yaze::emu::debug::DisassemblyEntry::operands</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00390">ExportToFile()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00424">ExportToFile()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>.</p>
 
 </div>
 </div>
@@ -885,11 +1033,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00350">350</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00384">384</a> of file <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html">disassembly_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00022">yaze::emu::debug::DisassemblyEntry::address</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00025">yaze::emu::debug::DisassemblyEntry::mnemonic</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00026">yaze::emu::debug::DisassemblyEntry::operand_str</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00118">search_filter_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00022">yaze::emu::debug::DisassemblyEntry::address</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00025">yaze::emu::debug::DisassemblyEntry::mnemonic</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00026">yaze::emu::debug::DisassemblyEntry::operand_str</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00138">search_filter_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>.</p>
 
 </div>
 </div>
@@ -914,9 +1062,61 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00115">115</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00131">131</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00384">Clear()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00390">ExportToFile()</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00083">GetInstructionCount()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00423">GetSortedAddresses()</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00111">IsAvailable()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00030">RecordInstruction()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00055">Render()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00266">RenderContextMenu()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00069">RenderToolbar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00418">Clear()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00424">ExportToFile()</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00083">GetInstructionCount()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00457">GetSortedAddresses()</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00111">IsAvailable()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00030">RecordInstruction()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00089">Render()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00300">RenderContextMenu()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00103">RenderToolbar()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00066">TrimToSize()</a>.</p>
+
+</div>
+</div>
+<a id="a19f175b6779f3bd401a7d437d4c67565" name="a19f175b6779f3bd401a7d437d4c67565"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a19f175b6779f3bd401a7d437d4c67565">&#9670;&#160;</a></span>recording_enabled_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::emu::debug::DisassemblyViewer::recording_enabled_ = true</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00134">134</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00117">IsRecording()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00030">RecordInstruction()</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00116">SetRecording()</a>.</p>
+
+</div>
+</div>
+<a id="a33653e5883cb43375e1003e465c9929d" name="a33653e5883cb43375e1003e465c9929d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a33653e5883cb43375e1003e465c9929d">&#9670;&#160;</a></span>max_instructions_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t yaze::emu::debug::DisassemblyViewer::max_instructions_ = 10000</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00135">135</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00030">RecordInstruction()</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00122">SetMaxInstructions()</a>.</p>
 
 </div>
 </div>
@@ -940,9 +1140,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00118">118</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00138">138</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00350">PassesFilter()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00121">RenderSearchBar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00384">PassesFilter()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00155">RenderSearchBar()</a>.</p>
 
 </div>
 </div>
@@ -966,9 +1166,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00119">119</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00139">139</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00384">Clear()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00417">JumpToAddress()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00418">Clear()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00451">JumpToAddress()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>.</p>
 
 </div>
 </div>
@@ -992,9 +1192,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00120">120</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00140">140</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00384">Clear()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00417">JumpToAddress()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00418">Clear()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00451">JumpToAddress()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>.</p>
 
 </div>
 </div>
@@ -1018,9 +1218,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00121">121</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00141">141</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00417">JumpToAddress()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00069">RenderToolbar()</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00101">SetAutoScroll()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00451">JumpToAddress()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00103">RenderToolbar()</a>, and <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00101">SetAutoScroll()</a>.</p>
 
 </div>
 </div>
@@ -1044,9 +1244,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00122">122</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00142">142</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00069">RenderToolbar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00103">RenderToolbar()</a>.</p>
 
 </div>
 </div>
@@ -1070,9 +1270,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00123">123</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00143">143</a> of file <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html">disassembly_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00130">RenderDisassemblyTable()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00069">RenderToolbar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00164">RenderDisassemblyTable()</a>, and <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00103">RenderToolbar()</a>.</p>
 
 </div>
 </div>

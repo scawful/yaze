@@ -1,0 +1,5 @@
+<map id="yaze::emu::BreakpointManager::ShouldBreakOnExecute" name="yaze::emu::BreakpointManager::ShouldBreakOnExecute">
+<area shape="rect" id="Node000001" title="Check if execution should break at this address." alt="" coords="5,5,202,46"/>
+<area shape="rect" id="Node000002" href="$d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#a8b2234c031dbd70a4ac7038e8a833c70" title=" " alt="" coords="250,5,446,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,23,234,23,234,28,202,28"/>
+</map>

@@ -1,7 +1,7 @@
 <map id="yaze::util::SaveFile" name="yaze::util::SaveFile">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,133,31"/>
-<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="181,5,365,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,16,165,16,165,21,133,21"/>
-<area shape="rect" id="Node000003" href="$d4/de1/namespaceyaze_1_1util.html#a80fd0ef42172aad687b3f22ddb997194" title=" " alt="" coords="413,5,593,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="365,16,397,16,397,21,365,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,133,39"/>
+<area shape="rect" id="Node000002" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="181,5,340,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="133,23,165,23,165,28,133,28"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a12f8860efbb23052a82006f24b221c6f" title="Get the user&#45;specific application data directory for YAZE." alt="" coords="388,5,547,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="340,23,373,23,373,28,340,28"/>
 </map>

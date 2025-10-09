@@ -1,0 +1,11 @@
+<map id="src/app/emu/debug/apu_debugger.h" name="src/app/emu/debug/apu_debugger.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="200,5,357,46"/>
+<area shape="rect" id="Node000002" href="$da/ddf/apu_8cc.html" title=" " alt="" coords="5,102,176,127"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,55,118,103,116,99,221,50"/>
+<area shape="rect" id="Node000003" href="$d3/d3d/apu__debugger_8cc.html" title=" " alt="" coords="200,94,357,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="281,62,281,94,276,94,276,62"/>
+<area shape="rect" id="Node000004" href="$d2/de3/emu_2snes_8h.html" title=" " alt="" coords="382,102,517,127"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="332,51,427,99,424,103,329,56"/>
+<area shape="rect" id="Node000005" href="$d8/d5b/emu_8cc.html" title=" " alt="" coords="380,183,519,208"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="452,143,452,182,447,182,447,143"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="yaze::emu::WatchpointManager::OnMemoryAccess" name="yaze::emu::WatchpointManager::OnMemoryAccess">
+<area shape="rect" id="Node000001" title="Check if memory access should break/log." alt="" coords="5,5,205,46"/>
+<area shape="rect" id="Node000002" href="$d7/d17/classyaze_1_1emu_1_1WatchpointManager.html#a4403f812588473febc803d48c30d25e7" title=" " alt="" coords="253,5,452,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,23,237,23,237,28,205,28"/>
+</map>

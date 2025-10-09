@@ -1,9 +1,9 @@
 <map id="anonymous_namespace{agent_chat_widget::cc}::ResolveHistoryPath" name="anonymous_namespace{agent_chat_widget::cc}::ResolveHistoryPath">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,167,94"/>
-<area shape="rect" id="Node000002" href="$df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#a3aaf3d0a0eac7b21e8028e9b6a84ac97" title=" " alt="" coords="226,5,388,61"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,52,210,45,211,50,168,57"/>
-<area shape="rect" id="Node000003" href="$d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="215,86,399,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="168,76,199,80,199,86,167,81"/>
-<area shape="rect" id="Node000004" href="$d4/de1/namespaceyaze_1_1util.html#a80fd0ef42172aad687b3f22ddb997194" title=" " alt="" coords="447,86,627,111"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="399,96,431,96,431,101,399,101"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,41,167,97"/>
+<area shape="rect" id="Node000002" href="$df/da6/namespaceanonymous__namespace_02agent__chat__widget_8cc_03.html#a3aaf3d0a0eac7b21e8028e9b6a84ac97" title=" " alt="" coords="215,5,376,61"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,53,199,47,200,52,168,58"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="216,85,375,126"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="168,80,201,86,200,91,167,86"/>
+<area shape="rect" id="Node000004" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a12f8860efbb23052a82006f24b221c6f" title="Get the user&#45;specific application data directory for YAZE." alt="" coords="424,85,583,126"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="376,103,408,103,408,108,376,108"/>
 </map>

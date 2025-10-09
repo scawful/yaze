@@ -13,6 +13,11 @@ var classyaze_1_1editor_1_1MusicEditor =
     [ "Find", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#a0560ab8daa478754b8d6f75824710046", null ],
     [ "set_rom", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ade2d57c8f33396ac3d0cbba3e0175235", null ],
     [ "rom", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#a131bbdb6ad48b6365c8aba7a4f71467e", null ],
+    [ "set_emulator", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#abd710ff59767044235389a6912a98cb7", null ],
+    [ "emulator", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#a58041b1b6f96b15085e1872e01b3f0ef", null ],
+    [ "PlaySong", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ac1ee9dfbb4c0dbddc0f24a188d67533a", null ],
+    [ "StopSong", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#a538aa42e0fc02a5b455a9d2e6139b9a9", null ],
+    [ "SetVolume", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#a52f41107c12f9f3c4397841d9f7907f1", null ],
     [ "DrawTrackerView", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#a5465e04f8e2b3afcbd0b2855bf72c9b5", null ],
     [ "DrawInstrumentEditor", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#a0a2a69bb06565c7141970dd9aa1e3451", null ],
     [ "DrawSampleEditor", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#aacdde5c06d71cdfe9e5d0f8f4db2f361", null ],
@@ -31,5 +36,6 @@ var classyaze_1_1editor_1_1MusicEditor =
     [ "song_names_", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ac923c19133c1bb5eab5643829ca665bf", null ],
     [ "music_editor_flags_", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ac19304456569f679ff2a08091057d047", null ],
     [ "toolset_table_flags_", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ac8e6fd5545e47dedcba5b29f08b306d6", null ],
-    [ "rom_", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ad3bea6ea3167b3e32ff4702b63809927", null ]
+    [ "rom_", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ad3bea6ea3167b3e32ff4702b63809927", null ],
+    [ "emulator_", "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#a326be9aaaa144d6ca6181f8279cfd6be", null ]
 ];

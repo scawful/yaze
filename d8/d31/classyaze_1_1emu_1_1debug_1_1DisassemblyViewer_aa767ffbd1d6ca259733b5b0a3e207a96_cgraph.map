@@ -1,0 +1,5 @@
+<map id="yaze::emu::debug::DisassemblyViewer::RecordInstruction" name="yaze::emu::debug::DisassemblyViewer::RecordInstruction">
+<area shape="rect" id="Node000001" title="Record an instruction execution." alt="" coords="5,5,205,46"/>
+<area shape="rect" id="Node000002" href="$d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#aa225cd124d2185516c7b2c069be00828" title="Clear old instructions to save memory." alt="" coords="253,5,452,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="205,23,237,23,237,28,205,28"/>
+</map>

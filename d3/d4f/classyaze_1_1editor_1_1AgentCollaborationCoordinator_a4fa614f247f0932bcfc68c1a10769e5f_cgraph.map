@@ -1,7 +1,7 @@
 <map id="yaze::editor::AgentCollaborationCoordinator::SessionsDirectory" name="yaze::editor::AgentCollaborationCoordinator::SessionsDirectory">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,5,206,46"/>
-<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="254,13,438,39"/>
+<area shape="rect" id="Node000002" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="254,5,413,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,23,238,23,238,28,206,28"/>
-<area shape="rect" id="Node000003" href="$d4/de1/namespaceyaze_1_1util.html#a80fd0ef42172aad687b3f22ddb997194" title=" " alt="" coords="486,13,666,39"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="438,23,470,23,470,28,438,28"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a12f8860efbb23052a82006f24b221c6f" title="Get the user&#45;specific application data directory for YAZE." alt="" coords="461,5,620,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="413,23,446,23,446,28,413,28"/>
 </map>

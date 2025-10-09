@@ -1,12 +1,12 @@
 <map id="yaze::gui::ThemeManager::GetThemesDirectory" name="yaze::gui::ThemeManager::GetThemesDirectory">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,16,172,57"/>
-<area shape="rect" id="Node000002" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#aa2e1248d86460a354b1b46205bf02ab7" title=" " alt="" coords="220,16,386,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,34,204,34,204,39,172,39"/>
-<area shape="rect" id="Node000003" href="$d4/de1/namespaceyaze_1_1util.html#af39466acaa761050d58692560db0f3e6" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="666,23,886,49"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="386,15,434,8,526,3,619,8,692,18,691,23,618,14,526,8,434,14,387,20"/>
-<area shape="rect" id="Node000004" href="$d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="434,23,618,49"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="386,34,418,34,418,39,386,39"/>
-<area shape="rect" id="Node000006" href="$d4/de1/namespaceyaze_1_1util.html#a7703a0042939839472c7f445c07f390f" title=" " alt="" coords="437,73,616,98"/>
-<area shape="poly" id="edge4_Node000002_Node000006" title=" " alt="" coords="387,52,451,66,450,71,386,57"/>
-<area shape="poly" id="edge5_Node000006_Node000003" title=" " alt="" coords="595,69,692,50,693,55,596,75"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,24,172,64"/>
+<area shape="rect" id="Node000002" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#aa2e1248d86460a354b1b46205bf02ab7" title=" " alt="" coords="220,24,386,64"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,41,204,41,204,47,172,47"/>
+<area shape="rect" id="Node000003" href="$d4/de1/namespaceyaze_1_1util.html#af39466acaa761050d58692560db0f3e6" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="661,31,881,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="376,21,434,10,524,3,614,9,703,25,702,30,613,15,524,8,434,15,377,26"/>
+<area shape="rect" id="Node000004" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="444,24,603,64"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="387,41,428,41,428,47,387,47"/>
+<area shape="rect" id="Node000009" href="$d4/de1/namespaceyaze_1_1util.html#a7703a0042939839472c7f445c07f390f" title=" " alt="" coords="434,89,613,114"/>
+<area shape="poly" id="edge4_Node000002_Node000009" title=" " alt="" coords="384,62,457,82,456,87,383,68"/>
+<area shape="poly" id="edge5_Node000009_Node000003" title=" " alt="" coords="582,85,697,58,698,64,583,91"/>
 </map>

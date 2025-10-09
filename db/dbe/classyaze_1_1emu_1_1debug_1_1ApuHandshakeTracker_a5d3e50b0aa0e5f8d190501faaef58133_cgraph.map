@@ -1,0 +1,9 @@
+<map id="yaze::emu::debug::ApuHandshakeTracker::OnCpuPortWrite" name="yaze::emu::debug::ApuHandshakeTracker::OnCpuPortWrite">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,220,79"/>
+<area shape="rect" id="Node000002" href="$db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#a79443d0811ac65e85db2a464af7ebbc8" title=" " alt="" coords="268,5,482,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,43,252,39,253,44,221,48"/>
+<area shape="rect" id="Node000003" href="$db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#a693a6f898d4c1d1c6b75e2754a53ab90" title=" " alt="" coords="268,71,482,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,69,253,73,252,79,220,75"/>
+<area shape="rect" id="Node000004" href="$db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#a564050e20596ad058a230d6414aa83f2" title=" " alt="" coords="530,71,744,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="483,88,515,88,515,94,483,94"/>
+</map>

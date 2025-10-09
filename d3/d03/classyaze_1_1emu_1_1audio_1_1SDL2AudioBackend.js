@@ -1,0 +1,23 @@
+var classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend =
+[
+    [ "SDL2AudioBackend", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#ac170081a1a21a70ec60828d4a3e8126d", null ],
+    [ "~SDL2AudioBackend", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a828c8a6fb7a1a6b763e6f2f5cd2258f6", null ],
+    [ "Initialize", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a7e42a1bd00a542bdc6b944e3790493a5", null ],
+    [ "Shutdown", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a3fae2e4cd760d88f605dbeceb82c3210", null ],
+    [ "Play", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a10b1550e6da7385e1757aa43a38ed64b", null ],
+    [ "Pause", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#af9aec992e0d5a5f02fb92e7c3144d340", null ],
+    [ "Stop", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#ac45a588deb1aa58eb5d1f9671062c2af", null ],
+    [ "Clear", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#ab042a9146e446a05e23d08f358f2508d", null ],
+    [ "QueueSamples", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#aebd2155c24994e465978390fb7d5afb1", null ],
+    [ "QueueSamples", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a60cc79ca39b9b42200e41d688a5fcc10", null ],
+    [ "GetStatus", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#ad9dadd0aa7f4c49c3e15faaa3b95a3f0", null ],
+    [ "IsInitialized", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a929b3919644a3dd3f688651f382f3b2b", null ],
+    [ "GetConfig", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a02e681c4bceb866cf22996b74f715bf4", null ],
+    [ "SetVolume", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a439b99d26eca69b2646c95d72accff91", null ],
+    [ "GetVolume", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#ae768496ab1ba16d24d49337b5bad44fa", null ],
+    [ "GetBackendName", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#abeee46fd990372ab4633cffcf36e00c1", null ],
+    [ "device_id_", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a25e03e47fd258efa8d0ffb889c23a4e4", null ],
+    [ "config_", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#ad16e7801c2820196b4c50a8ba4f1e206", null ],
+    [ "initialized_", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a1e8b17320e12c5fbdb397f001ff017c9", null ],
+    [ "volume_", "d3/d03/classyaze_1_1emu_1_1audio_1_1SDL2AudioBackend.html#a5a82b5d698ce8510237652762505c086", null ]
+];

@@ -1,11 +1,11 @@
 <map id="yaze::emu::Apu::Reset" name="yaze::emu::Apu::Reset">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,70,153,96"/>
-<area shape="rect" id="Node000002" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#abde3ced3bd179f5dd6f768b12a74e64b" title=" " alt="" coords="207,5,342,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,67,191,47,193,52,126,72"/>
-<area shape="rect" id="Node000003" href="$dc/d01/classyaze_1_1emu_1_1Dsp.html#a856a28e8bab7146e4c0fef5ed5bfd9c4" title=" " alt="" coords="201,70,348,96"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,80,185,80,185,86,153,86"/>
-<area shape="rect" id="Node000004" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#a55e122e7b548c7109442da9f364f1325" title=" " alt="" coords="207,120,342,161"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="126,94,193,114,191,119,125,99"/>
-<area shape="rect" id="Node000005" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#af7bbb7b6fd9373cb4ae8d21596ab7932" title=" " alt="" coords="396,120,530,161"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="342,138,381,138,381,143,342,143"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,100,153,125"/>
+<area shape="rect" id="Node000002" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#abde3ced3bd179f5dd6f768b12a74e64b" title=" " alt="" coords="241,5,375,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,96,200,55,225,46,227,51,202,60,108,101"/>
+<area shape="rect" id="Node000003" href="$dc/d01/classyaze_1_1emu_1_1Dsp.html#a856a28e8bab7146e4c0fef5ed5bfd9c4" title=" " alt="" coords="234,70,382,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,100,219,92,219,97,153,106"/>
+<area shape="rect" id="Node000004" href="$db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#acfe04364cd8d7df5c80c68560cf8a1b9" title=" " alt="" coords="201,120,415,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="153,119,185,123,185,128,153,124"/>
+<area shape="rect" id="Node000005" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#a55e122e7b548c7109442da9f364f1325" title=" " alt="" coords="241,185,375,226"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="105,123,202,170,227,179,225,184,200,175,103,128"/>
 </map>

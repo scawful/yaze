@@ -1,0 +1,5 @@
+<map id="yaze::emu::BreakpointManager" name="yaze::emu::BreakpointManager">
+<area shape="rect" id="Node000001" title="Manages CPU and SPC700 breakpoints for debugging." alt="" coords="5,109,202,135"/>
+<area shape="rect" id="Node000002" href="$d8/d28/structyaze_1_1emu_1_1BreakpointManager_1_1Breakpoint.html" title=" " alt="" coords="5,5,202,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,61,106,109,101,109,101,61"/>
+</map>

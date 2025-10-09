@@ -106,8 +106,6 @@ var namespaceyaze_1_1test =
     [ "TestStatusToString", "d4/d0a/namespaceyaze_1_1test.html#a058eaf5116bdab8de369f76e7a0af0d2", null ],
     [ "TestCategoryToString", "d4/d0a/namespaceyaze_1_1test.html#a68a6024d219a6e3927991ad286dd1500", null ],
     [ "GetTestStatusColor", "d4/d0a/namespaceyaze_1_1test.html#a78c70b999b0c45c674c6457ef7fb6a3a", null ],
-    [ "HarnessStatusToString", "d4/d0a/namespaceyaze_1_1test.html#afac246c83263232d9fd33e3d84257a44", null ],
-    [ "HarnessStatusFromString", "d4/d0a/namespaceyaze_1_1test.html#a83b20a98be952d2a824e558e6869a2cb", null ],
     [ "RegisterZ3edTestSuites", "d4/d0a/namespaceyaze_1_1test.html#af99a07bc806bef3cb66962c1ac456014", null ],
     [ "RegisterObjectBrowserTests_SelectObject", "d4/d0a/namespaceyaze_1_1test.html#a713763ead5bd63e570512f2d9ad31231", null ],
     [ "RegisterObjectBrowserTests_SearchFilter", "d4/d0a/namespaceyaze_1_1test.html#ad5e89372590f398d80b5ee2149ef8b8f", null ],

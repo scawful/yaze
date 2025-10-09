@@ -1,0 +1,12 @@
+<map id="src/app/emu/audio/audio_backend.h" name="src/app/emu/audio/audio_backend.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="97,5,261,46"/>
+<area shape="rect" id="Node000002" href="$df/dc6/audio__backend_8cc.html" title=" " alt="" coords="5,94,169,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="149,59,110,96,106,92,145,55"/>
+<area shape="rect" id="Node000003" href="$db/dc0/emulator_8h.html" title=" " alt="" coords="192,102,350,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="213,55,260,99,257,103,209,59"/>
+<area shape="rect" id="Node000004" href="$d0/dd9/editor__manager_8cc.html" title=" " alt="" coords="202,271,338,312"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="260,142,246,183,243,203,246,223,262,270,257,272,240,224,238,203,240,182,255,140"/>
+<area shape="rect" id="Node000005" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="255,183,391,223"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="288,139,314,181,309,184,284,142"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="305,238,284,272,279,269,301,235"/>
+</map>

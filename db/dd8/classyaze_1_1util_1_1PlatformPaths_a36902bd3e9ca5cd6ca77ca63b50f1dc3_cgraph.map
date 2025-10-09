@@ -2,7 +2,7 @@
 <area shape="rect" id="Node000001" title="Get a subdirectory within the app data folder." alt="" coords="5,35,176,75"/>
 <area shape="rect" id="Node000002" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a84dcfd258a5319e7fbf34fe53081b87e" title="Ensure a directory exists, creating it if necessary." alt="" coords="431,5,590,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="176,46,416,30,416,35,177,52"/>
-<area shape="rect" id="Node000004" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a12f8860efbb23052a82006f24b221c6f" title="Get application data directory for YAZE." alt="" coords="224,63,383,103"/>
+<area shape="rect" id="Node000004" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a12f8860efbb23052a82006f24b221c6f" title="Get the user&#45;specific application data directory for YAZE." alt="" coords="224,63,383,103"/>
 <area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="176,64,209,68,208,73,176,69"/>
 <area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#ac630fae629aa23f1e48d8242b3fa7df2" title="Check if a file or directory exists." alt="" coords="638,5,798,46"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="591,23,623,23,623,28,591,28"/>

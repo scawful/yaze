@@ -10,6 +10,7 @@ var namespaceyaze_1_1emu_1_1debug =
       [ "kColorBreakpoint", "d1/d6d/namespaceyaze_1_1emu_1_1debug_1_1anonymous__namespace_02disassembly__viewer_8cc_03.html#aa520b9b1456561393197092ed038c736", null ],
       [ "kColorHotPath", "d1/d6d/namespaceyaze_1_1emu_1_1debug_1_1anonymous__namespace_02disassembly__viewer_8cc_03.html#a91778f0886cb4992cb88a6f9d45db1fc", null ]
     ] ],
+    [ "ApuHandshakeTracker", "db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html", "db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker" ],
     [ "DisassemblyEntry", "d1/df8/structyaze_1_1emu_1_1debug_1_1DisassemblyEntry.html", "d1/df8/structyaze_1_1emu_1_1debug_1_1DisassemblyEntry" ],
     [ "DisassemblyViewer", "d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html", "d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer" ]
 ];

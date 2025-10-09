@@ -13,6 +13,7 @@ var classyaze_1_1emu_1_1Apu =
     [ "dsp", "d7/da7/classyaze_1_1emu_1_1Apu.html#a2764ac75dec1c12445109690f73ec509", null ],
     [ "spc700", "d7/da7/classyaze_1_1emu_1_1Apu.html#a3737f0d7d2285d5c8760cbe57ce3618b", null ],
     [ "GetCycles", "d7/da7/classyaze_1_1emu_1_1Apu.html#af051918f247bef86f7983ae778ecab6e", null ],
+    [ "set_handshake_tracker", "d7/da7/classyaze_1_1emu_1_1Apu.html#a75b0ccd168858f9abb41b95646bc8be9", null ],
     [ "GetStatus", "d7/da7/classyaze_1_1emu_1_1Apu.html#af25ab90ed641fcf1a7e36b83b110c2a3", null ],
     [ "GetControl", "d7/da7/classyaze_1_1emu_1_1Apu.html#ab58f0674d9a09744b0b7c6dcceeef07f", null ],
     [ "GetSamples", "d7/da7/classyaze_1_1emu_1_1Apu.html#aee91ec31f7cadca4b23a136264a6a58d", null ],
@@ -27,6 +28,7 @@ var classyaze_1_1emu_1_1Apu =
     [ "in_transfer_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a01a3dc00e23d3054fa61a4e7e17269f4", null ],
     [ "memory_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a2782614192cfb79d5b0e9cb32f65651b", null ],
     [ "timer_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a05ba1105dda55417c09b696f9ebca9e0", null ],
+    [ "handshake_tracker_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a29d73bce37ce78e56b8f2e0c80720815", null ],
     [ "callbacks_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a248312b56cd2c2fed588e7911d2d4c54", null ],
     [ "dsp_", "d7/da7/classyaze_1_1emu_1_1Apu.html#aa983247945c59ef9a2d2a8916a91f6f4", null ],
     [ "spc700_", "d7/da7/classyaze_1_1emu_1_1Apu.html#a91c68079be46a0f5eb955d91e7ff2362", null ]

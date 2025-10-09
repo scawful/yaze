@@ -34,6 +34,7 @@ var classyaze_1_1emu_1_1Snes =
     [ "memory", "d3/d15/classyaze_1_1emu_1_1Snes.html#ae55211e6c9c0884f73b2890da336fe82", null ],
     [ "get_ram", "d3/d15/classyaze_1_1emu_1_1Snes.html#a5f804ce15176736facc90658d926509a", null ],
     [ "mutable_cycles", "d3/d15/classyaze_1_1emu_1_1Snes.html#a05fa3257d744b2f2be072db807a93d07", null ],
+    [ "apu_handshake_tracker", "d3/d15/classyaze_1_1emu_1_1Snes.html#a26efe770d14071f17b2e98f2c6df6aee", null ],
     [ "access_time", "d3/d15/classyaze_1_1emu_1_1Snes.html#a3c6153e69b2bccfc0c75f149e9e39ada", null ],
     [ "fast_mem_", "d3/d15/classyaze_1_1emu_1_1Snes.html#a50d446c5bd1c6e37dca9f6d6573729fa", null ],
     [ "memory_", "d3/d15/classyaze_1_1emu_1_1Snes.html#af60c99652ed0f5ea7c175cbf20158b7f", null ],
@@ -67,5 +68,6 @@ var classyaze_1_1emu_1_1Snes =
     [ "port_auto_read_", "d3/d15/classyaze_1_1emu_1_1Snes.html#a28fe24359849342a92ed1137777d2941", null ],
     [ "auto_joy_read_", "d3/d15/classyaze_1_1emu_1_1Snes.html#aa83090e72f5a579aeff5f2654137264c", null ],
     [ "auto_joy_timer_", "d3/d15/classyaze_1_1emu_1_1Snes.html#aeb05e0df6d3b942d8ea412fb08501f30", null ],
-    [ "ppu_latch_", "d3/d15/classyaze_1_1emu_1_1Snes.html#afb993056a77c17a13ecb5e4be8526dc4", null ]
+    [ "ppu_latch_", "d3/d15/classyaze_1_1emu_1_1Snes.html#afb993056a77c17a13ecb5e4be8526dc4", null ],
+    [ "apu_handshake_tracker_", "d3/d15/classyaze_1_1emu_1_1Snes.html#a3cf2423a12c3892167b63d889717f2de", null ]
 ];

@@ -8,5 +8,6 @@ var searchData=
   ['entrances_5',['ENTRANCES',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2e69c2a1cc9d97253715c18ddb58e975acbf379de389a64412c5353c6e7157c46',1,'yaze::editor::OverworldEditor']]],
   ['error_6',['error',['../db/d04/namespaceyaze_1_1editor_1_1AgentUI.html#a4e9ad91e75a4f9f2de19c8d60d85311ca902b0d55fddef6f8d651fe1035b7d4bd',1,'yaze::editor::AgentUI::Error'],['../d3/dbf/namespaceyaze_1_1gui.html#a06923b5ae243458c28d9e9203ee2da5aa902b0d55fddef6f8d651fe1035b7d4bd',1,'yaze::gui::Error'],['../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3abb1ca97ec761fc37101737ba0aa2e7c5',1,'yaze::util::ERROR']]],
   ['errormarker_7',['ErrorMarker',['../d0/d28/classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9a925f0a2ad0b8d8ce7d4562ff043cdbbe',1,'TextEditor']]],
-  ['exits_8',['EXITS',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2e69c2a1cc9d97253715c18ddb58e975ae6ee5369534ca2bd9eab6e8c01407356',1,'yaze::editor::OverworldEditor']]]
+  ['execute_8',['EXECUTE',['../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ab89cacd2103b2dbebc7632199f14d9b8a5d76688e2261e6805ee36ad961b3fa7a',1,'yaze::emu::BreakpointManager']]],
+  ['exits_9',['EXITS',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a2e69c2a1cc9d97253715c18ddb58e975ae6ee5369534ca2bd9eab6e8c01407356',1,'yaze::editor::OverworldEditor']]]
 ];

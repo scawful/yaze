@@ -7,6 +7,7 @@ var namespaceyaze_1_1emu =
       [ "input_latch", "d2/de7/namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a34f0bcbc0fe70ab704bb3d117f3a73b1", null ],
       [ "input_read", "d2/de7/namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#ac647c716cf7e74b51fd5993fa6ff70fa", null ]
     ] ],
+    [ "audio", "d2/dc8/namespaceyaze_1_1emu_1_1audio.html", "d2/dc8/namespaceyaze_1_1emu_1_1audio" ],
     [ "debug", "d9/dd4/namespaceyaze_1_1emu_1_1debug.html", "d9/dd4/namespaceyaze_1_1emu_1_1debug" ],
     [ "Apu", "d7/da7/classyaze_1_1emu_1_1Apu.html", "d7/da7/classyaze_1_1emu_1_1Apu" ],
     [ "ApuCallbacks", "df/d64/structyaze_1_1emu_1_1ApuCallbacks.html", "df/d64/structyaze_1_1emu_1_1ApuCallbacks" ],
@@ -22,6 +23,7 @@ var namespaceyaze_1_1emu =
     [ "BGNBA", "da/d26/structyaze_1_1emu_1_1BGNBA.html", "da/d26/structyaze_1_1emu_1_1BGNBA" ],
     [ "BGSC", "d2/d99/structyaze_1_1emu_1_1BGSC.html", "d2/d99/structyaze_1_1emu_1_1BGSC" ],
     [ "BGVOFS", "d0/dd5/structyaze_1_1emu_1_1BGVOFS.html", "d0/dd5/structyaze_1_1emu_1_1BGVOFS" ],
+    [ "BreakpointManager", "d9/ded/classyaze_1_1emu_1_1BreakpointManager.html", "d9/ded/classyaze_1_1emu_1_1BreakpointManager" ],
     [ "CGADD", "d0/d4e/structyaze_1_1emu_1_1CGADD.html", "d0/d4e/structyaze_1_1emu_1_1CGADD" ],
     [ "CGADSUB", "d2/d1a/structyaze_1_1emu_1_1CGADSUB.html", "d2/d1a/structyaze_1_1emu_1_1CGADSUB" ],
     [ "CGDATA", "de/da2/structyaze_1_1emu_1_1CGDATA.html", "de/da2/structyaze_1_1emu_1_1CGDATA" ],
@@ -101,6 +103,7 @@ var namespaceyaze_1_1emu =
     [ "VMDATALREAD", "db/d62/structyaze_1_1emu_1_1VMDATALREAD.html", "db/d62/structyaze_1_1emu_1_1VMDATALREAD" ],
     [ "W12SEL", "d0/d7a/structyaze_1_1emu_1_1W12SEL.html", "d0/d7a/structyaze_1_1emu_1_1W12SEL" ],
     [ "W34SEL", "d4/dd2/structyaze_1_1emu_1_1W34SEL.html", "d4/dd2/structyaze_1_1emu_1_1W34SEL" ],
+    [ "WatchpointManager", "d7/d17/classyaze_1_1emu_1_1WatchpointManager.html", "d7/d17/classyaze_1_1emu_1_1WatchpointManager" ],
     [ "WBGLOG", "d4/d87/structyaze_1_1emu_1_1WBGLOG.html", "d4/d87/structyaze_1_1emu_1_1WBGLOG" ],
     [ "WH0", "de/ded/structyaze_1_1emu_1_1WH0.html", "de/ded/structyaze_1_1emu_1_1WH0" ],
     [ "WH1", "dc/d07/structyaze_1_1emu_1_1WH1.html", "dc/d07/structyaze_1_1emu_1_1WH1" ],

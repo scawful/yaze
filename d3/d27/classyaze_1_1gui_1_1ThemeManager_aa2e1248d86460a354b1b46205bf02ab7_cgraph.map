@@ -1,12 +1,12 @@
 <map id="yaze::gui::ThemeManager::GetThemeSearchPaths" name="yaze::gui::ThemeManager::GetThemeSearchPaths">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,23,172,64"/>
-<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#af39466acaa761050d58692560db0f3e6" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="452,5,671,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,22,219,16,330,9,436,10,436,15,331,15,220,21,173,28"/>
-<area shape="rect" id="Node000003" href="$d4/de1/namespaceyaze_1_1util.html#a5016f561eea43ebe5a07ebd504205409" title=" " alt="" coords="220,80,404,106"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="173,59,236,74,235,79,171,64"/>
-<area shape="rect" id="Node000005" href="$d4/de1/namespaceyaze_1_1util.html#a7703a0042939839472c7f445c07f390f" title=" " alt="" coords="222,31,402,56"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="172,41,206,41,206,46,172,46"/>
-<area shape="rect" id="Node000004" href="$d4/de1/namespaceyaze_1_1util.html#a80fd0ef42172aad687b3f22ddb997194" title=" " alt="" coords="472,80,652,106"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="405,90,456,90,456,96,405,96"/>
-<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="402,32,436,28,437,34,402,37"/>
+<area shape="rect" id="Node000002" href="$d4/de1/namespaceyaze_1_1util.html#af39466acaa761050d58692560db0f3e6" title="GetBundleResourcePath returns the path to the bundle resource directory. Specific to MacOS." alt="" coords="447,5,666,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,22,219,16,328,10,432,10,432,15,328,15,220,21,173,28"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a629daba112fc1c989572eab96ab0ffcd" title="Get the user&#45;specific configuration directory for YAZE." alt="" coords="230,81,389,121"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="170,62,215,74,214,79,169,67"/>
+<area shape="rect" id="Node000008" href="$d4/de1/namespaceyaze_1_1util.html#a7703a0042939839472c7f445c07f390f" title=" " alt="" coords="220,31,399,56"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="172,41,204,41,204,46,172,46"/>
+<area shape="rect" id="Node000004" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a12f8860efbb23052a82006f24b221c6f" title="Get the user&#45;specific application data directory for YAZE." alt="" coords="477,81,636,121"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="389,98,462,98,462,104,389,104"/>
+<area shape="poly" id="edge5_Node000008_Node000002" title=" " alt="" coords="399,32,431,28,432,34,400,37"/>
 </map>
