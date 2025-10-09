@@ -1,6 +1,83 @@
 #ifndef YAZE_APP_EDITOR_MESSAGE_MESSAGE_DATA_H
 #define YAZE_APP_EDITOR_MESSAGE_MESSAGE_DATA_H
 
+// ===========================================================================
+// Message Data System for Zelda 3 (A Link to the Past)
+// ===========================================================================
+//
+// This system handles the parsing, editing, and serialization of in-game text
+// messages from The Legend of Zelda: A Link to the Past (SNES).
+//
+// ## Architecture Overview
+//
+// The message system consists of several key components:
+//
+// 1. **Character Encoding** (`CharEncoder`):
+//    Maps byte values (0x00-0x66) to displayable characters (A-Z, a-z, 0-9,
+//    punctuation). This is the basic text representation in the ROM.
+//
+// 2. **Text Commands** (`TextCommands`):
+//    Special control codes (0x67-0x80) that control message display behavior:
+//    - Window appearance (border, position)
+//    - Text flow (line breaks, scrolling, delays)
+//    - Interactive elements (choices, player name insertion)
+//    - Some commands have arguments (e.g., [W:02] = window border type 2)
+//
+// 3. **Special Characters** (`SpecialChars`):
+//    Extended character set (0x43-0x5E) for game-specific symbols:
+//    - Directional arrows
+//    - Button prompts (A, B, X, Y)
+//    - HP indicators
+//    - Hieroglyphs
+//
+// 4. **Dictionary System** (`DictionaryEntry`):
+//    Compression system using byte values 0x88+ to reference common words/phrases
+//    stored separately in ROM. This saves space by replacing frequently-used
+//    text with single-byte references.
+//
+// 5. **Message Data** (`MessageData`):
+//    Represents a single in-game message with both raw binary data and parsed
+//    human-readable text. Each message is terminated by 0x7F in ROM.
+//
+// ## Data Flow
+//
+// ### Reading from ROM:
+// ROM bytes → ReadAllTextData() → MessageData (raw) → ParseMessageData() → 
+// Human-readable string with [command] tokens
+//
+// ### Writing to ROM:
+// User edits text → ParseMessageToData() → Binary bytes → ROM
+//
+// ### Dictionary Optimization:
+// Text string → OptimizeMessageForDictionary() → Replace common phrases with
+// [D:XX] tokens → Smaller binary representation
+//
+// ## ROM Memory Layout (SNES)
+//
+// - Text Data Block 1: 0xE0000 - 0xE7FFF (32KB)
+// - Text Data Block 2: 0x75F40 - 0x773FF (5.3KB)
+// - Dictionary Pointers: 0x74703
+// - Character Widths: Table storing pixel widths for proportional font
+// - Font Graphics: 0x70000+ (2bpp tile data)
+//
+// ## Message Format
+//
+// Messages are stored as byte sequences terminated by 0x7F:
+// Example: [0x00, 0x01, 0x02, 0x7F] = "ABC"
+// Example: [0x6A, 0x59, 0x2C, 0x61, 0x32, 0x28, 0x2B, 0x23, 0x7F] 
+//          = "[L] saved Hyrule" (0x6A = player name command)
+//
+// ## Token Syntax (Human-Readable Format)
+//
+// Commands:     [TOKEN:HEX] or [TOKEN]
+//               Examples: [W:02] (window border), [K] (wait for key)
+// Dictionary:   [D:HEX]
+//               Examples: [D:00] (first dictionary entry)
+// Special Chars:[TOKEN]
+//               Examples: [A] (A button), [UP] (up arrow)
+//
+// ===========================================================================
+
 #include <optional>
 #include <regex>
 #include <string>
@@ -18,10 +95,12 @@ namespace editor {
 
 const std::string kBankToken = "BANK";
 const std::string DICTIONARYTOKEN = "D";
-constexpr uint8_t kMessageTerminator = 0x7F;
-constexpr uint8_t DICTOFF = 0x88;
+constexpr uint8_t kMessageTerminator = 0x7F;  // Marks end of message in ROM
+constexpr uint8_t DICTOFF = 0x88;  // Dictionary entries start at byte 0x88
 constexpr uint8_t kWidthArraySize = 100;
 
+// Character encoding table: Maps ROM byte values to displayable characters
+// Used for both parsing ROM data into text and converting text back to bytes
 static const std::unordered_map<uint8_t, wchar_t> CharEncoder = {
     {0x00, 'A'},  {0x01, 'B'},  {0x02, 'C'},  {0x03, 'D'},  {0x04, 'E'},
     {0x05, 'F'},  {0x06, 'G'},  {0x07, 'H'},  {0x08, 'I'},  {0x09, 'J'},
@@ -42,16 +121,27 @@ static const std::unordered_map<uint8_t, wchar_t> CharEncoder = {
     {0x65, ' '},  {0x66, '_'},
 };
 
+// Finds the ROM byte value for a given character (reverse lookup in CharEncoder)
+// Returns 0xFF if character is not found
 uint8_t FindMatchingCharacter(char value);
+
+// Checks if a byte value represents a dictionary entry
+// Returns dictionary index (0-96) or -1 if not a dictionary entry
 int8_t FindDictionaryEntry(uint8_t value);
+
+// Converts a human-readable message string (with [command] tokens) into ROM bytes
+// This is the inverse operation of ParseMessageData
 std::vector<uint8_t> ParseMessageToData(std::string str);
 
+// Represents a single dictionary entry (common word/phrase) used for text compression
+// Dictionary entries are stored separately in ROM and referenced by bytes 0x88-0xE8
+// Example: Dictionary entry 0x00 might contain "the" and be referenced as [D:00]
 struct DictionaryEntry {
-  uint8_t ID = 0;
-  std::string Contents = "";
-  std::vector<uint8_t> Data;
-  int Length = 0;
-  std::string Token = "";
+  uint8_t ID = 0;            // Dictionary index (0-96)
+  std::string Contents = ""; // The actual text this entry represents
+  std::vector<uint8_t> Data; // Binary representation of Contents
+  int Length = 0;            // Character count
+  std::string Token = "";    // Human-readable token like "[D:00]"
 
   DictionaryEntry() = default;
   DictionaryEntry(uint8_t i, std::string_view s)
@@ -60,10 +150,14 @@ struct DictionaryEntry {
     Data = ParseMessageToData(Contents);
   }
 
+  // Checks if this dictionary entry's text appears in the given string
   bool ContainedInString(std::string_view s) const {
-    return absl::StrContains(s, Contents);
+    // Convert to std::string to avoid Debian string_view bug with absl::StrContains
+    return absl::StrContains(std::string(s), Contents);
   }
 
+  // Replaces all occurrences of this dictionary entry's text with its token
+  // Example: "the cat" with dictionary[0]="the" becomes "[D:00] cat"
   std::string ReplaceInstancesOfIn(std::string_view s) const {
     auto replaced_string = std::string(s);
     size_t pos = replaced_string.find(Contents);
@@ -84,22 +178,33 @@ constexpr uint8_t kLine1 = 0x74;
 constexpr uint8_t kLine2 = 0x75;
 constexpr uint8_t kLine3 = 0x76;
 
+// Reads all dictionary entries from ROM and builds the dictionary table
 std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom);
-std::string ReplaceAllDictionaryWords(std::string str,
-                                      std::vector<DictionaryEntry> dictionary);
-DictionaryEntry FindRealDictionaryEntry(
-    uint8_t value, std::vector<DictionaryEntry> dictionary);
 
-// Inserted into commands to protect them from dictionary replacements.
+// Replaces all dictionary words in a string with their [D:XX] tokens
+// Used for text compression when saving messages back to ROM
+std::string ReplaceAllDictionaryWords(std::string str,
+                                      const std::vector<DictionaryEntry>& dictionary);
+
+// Looks up a dictionary entry by its ROM byte value
+DictionaryEntry FindRealDictionaryEntry(
+    uint8_t value, const std::vector<DictionaryEntry>& dictionary);
+
+// Special marker inserted into commands to protect them from dictionary replacements
+// during optimization. Removed after dictionary replacement is complete.
 const std::string CHEESE = "\uBEBE";
 
+// Represents a complete in-game message with both raw and parsed representations
+// Messages can exist in two forms:
+// 1. Raw: Direct ROM bytes with dictionary references as [D:XX] tokens
+// 2. Parsed: Fully expanded with dictionary words replaced by actual text
 struct MessageData {
-  int ID = 0;
-  int Address = 0;
-  std::string RawString;
-  std::string ContentsParsed;
-  std::vector<uint8_t> Data;
-  std::vector<uint8_t> DataParsed;
+  int ID = 0;                      // Message index in the ROM
+  int Address = 0;                 // ROM address where this message is stored
+  std::string RawString;           // Human-readable with [D:XX] dictionary tokens
+  std::string ContentsParsed;      // Fully expanded human-readable text
+  std::vector<uint8_t> Data;       // Raw ROM bytes (may contain dict references)
+  std::vector<uint8_t> DataParsed; // Expanded bytes (dict entries expanded)
 
   MessageData() = default;
   MessageData(int id, int address, const std::string& rawString,
@@ -123,11 +228,16 @@ struct MessageData {
     ContentsParsed = other.ContentsParsed;
   }
 
+  // Optimizes a message by replacing common phrases with dictionary tokens
+  // Inserts CHEESE markers inside commands to prevent dictionary replacement
+  // from corrupting command syntax like [W:02]
+  // Example: "Link saved the day" → "[D:00] saved [D:01] day"
   std::string OptimizeMessageForDictionary(
       std::string_view message_string,
       const std::vector<DictionaryEntry>& dictionary) {
     std::stringstream protons;
     bool command = false;
+    // Insert CHEESE markers inside commands to protect them
     for (const auto& c : message_string) {
       if (c == '[') {
         command = true;
@@ -137,7 +247,7 @@ struct MessageData {
 
       protons << c;
       if (command) {
-        protons << CHEESE;
+        protons << CHEESE;  // Protect command contents from replacement
       }
     }
 
@@ -150,6 +260,8 @@ struct MessageData {
     return final_string;
   }
 
+  // Updates this message with new text content
+  // Automatically optimizes the message using dictionary compression
   void SetMessage(const std::string& message,
                   const std::vector<DictionaryEntry>& dictionary) {
     RawString = message;
@@ -157,14 +269,17 @@ struct MessageData {
   }
 };
 
+// Represents a text command or special character definition
+// Text commands control message display (line breaks, colors, choices, etc.)
+// Special characters are game-specific symbols (arrows, buttons, HP hearts)
 struct TextElement {
-  uint8_t ID;
-  std::string Token;
-  std::string GenericToken;
-  std::string Pattern;
-  std::string StrictPattern;
-  std::string Description;
-  bool HasArgument;
+  uint8_t ID;                 // ROM byte value for this element
+  std::string Token;          // Short token like "W" or "UP"
+  std::string GenericToken;   // Display format like "[W:##]" or "[UP]"
+  std::string Pattern;        // Regex pattern for parsing
+  std::string StrictPattern;  // Strict regex pattern for exact matching
+  std::string Description;    // Human-readable description
+  bool HasArgument;           // True if command takes a parameter byte
 
   TextElement() = default;
   TextElement(uint8_t id, const std::string& token, bool arg,
@@ -197,7 +312,7 @@ struct TextElement {
     }
   }
 
-  std::smatch MatchMe(std::string dfrag) const {
+  std::smatch MatchMe(const std::string& dfrag) const {
     std::regex pattern(StrictPattern);
     std::smatch match;
     std::regex_match(dfrag, match, pattern);
@@ -258,8 +373,12 @@ static const std::vector<TextElement> TextCommands = {
     TextElement(0x70, "NONO", false, kCrash),
 };
 
+// Finds the TextElement definition for a command byte value
+// Returns nullopt if the byte is not a recognized command
 std::optional<TextElement> FindMatchingCommand(uint8_t b);
 
+// Special characters available in Zelda 3 messages
+// These are symbols and game-specific icons that appear in text
 static const std::vector<TextElement> SpecialChars = {
     TextElement(0x43, "...", false, "Ellipsis …"),
     TextElement(0x4D, "UP", false, "Arrow ↑"),
@@ -284,25 +403,39 @@ static const std::vector<TextElement> SpecialChars = {
     TextElement(0x4B, "LFR", false, "Link face right"),
 };
 
+// Finds the TextElement definition for a special character byte
+// Returns nullopt if the byte is not a recognized special character
 std::optional<TextElement> FindMatchingSpecial(uint8_t b);
 
+// Result of parsing a text token like "[W:02]"
+// Contains both the command definition and its argument value
 struct ParsedElement {
-  TextElement Parent;
-  uint8_t Value;
-  bool Active = false;
+  TextElement Parent;  // The command or special character definition
+  uint8_t Value;       // Argument value (if command has argument)
+  bool Active = false; // True if parsing was successful
 
   ParsedElement() = default;
   ParsedElement(const TextElement& textElement, uint8_t value)
       : Parent(textElement), Value(value), Active(true) {}
 };
 
+// Parses a token string like "[W:02]" and returns its ParsedElement
+// Returns inactive ParsedElement if token is invalid
 ParsedElement FindMatchingElement(const std::string& str);
 
+// Converts a single ROM byte into its human-readable text representation
+// Handles characters, commands, special chars, and dictionary references
 std::string ParseTextDataByte(uint8_t value);
 
+// Parses a single message from ROM data starting at current_pos
+// Updates current_pos to point after the message terminator
+// Returns error if message is malformed (e.g., missing terminator)
 absl::StatusOr<MessageData> ParseSingleMessage(
     const std::vector<uint8_t>& rom_data, int* current_pos);
 
+// Converts MessageData objects into human-readable strings with [command] tokens
+// This is the main function for displaying messages in the editor
+// Properly handles commands with arguments to avoid parsing errors
 std::vector<std::string> ParseMessageData(
     std::vector<MessageData>& message_data,
     const std::vector<DictionaryEntry>& dictionary_entries);
