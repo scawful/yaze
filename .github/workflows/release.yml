@@ -117,24 +117,13 @@ jobs:
         include:
           - name: "Windows x64"
             os: windows-2022
-            vcpkg_triplet: x64-windows
-            cmake_generator: "Visual Studio 17 2022"
-            cmake_generator_platform: x64
             artifact_name: "yaze-windows-x64"
-          - name: "Windows arm64"
-            os: windows-2022
-            vcpkg_triplet: arm64-windows
-            cmake_generator: "Visual Studio 17 2022"
-            cmake_generator_platform: ARM64
-            artifact_name: "yaze-windows-arm64"
           - name: "macOS arm64"
             os: macos-14
-            vcpkg_triplet: arm64-osx
             mac_arch: arm64
             artifact_name: "yaze-macos-arm64-slice"
           - name: "macOS x86_64"
             os: macos-14
-            vcpkg_triplet: x64-osx
             mac_arch: x86_64
             artifact_name: "yaze-macos-x86_64-slice"
           - name: "Linux x64"
@@ -149,58 +138,54 @@ jobs:
         with:
           submodules: recursive
 
-      - name: "Install Dependencies (Linux)"
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential ninja-build pkg-config libglew-dev libxext-dev libwavpack-dev libabsl-dev libboost-all-dev libpng-dev python3-dev libpython3-dev libasound2-dev libpulse-dev libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev
-
-      - name: "Install Dependencies (macOS)"
-        if: runner.os == 'macOS'
-        run: brew install ninja cmake
-
-      - name: "Set up vcpkg"
+      - name: "Set up vcpkg (Windows only)"
+        if: runner.os == 'Windows'
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: '4334d8b4c8916018600212ab4dd4bbdc343065d1'
           runVcpkgInstall: true
-        env:
-          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-          VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
 
-      - name: "Configure CMake"
+      - name: "Install Dependencies"
         shell: bash
         run: |
-          set -x
-          CMAKE_ARGS=(
-            "-S ."
-            "-B build"
-            "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}"
-            "-DYAZE_BUILD_TESTS=OFF"
-            "-DYAZE_BUILD_EMU=OFF"
-            "-DYAZE_BUILD_Z3ED=ON"
-          )
-
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            CMAKE_ARGS+=(
-              "-G" "${{ matrix.cmake_generator }}"
-              "-A" "${{ matrix.cmake_generator_platform }}"
-              "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-            )
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            sudo apt-get update
+            sudo apt-get install -y \
+              build-essential ninja-build pkg-config \
+              libglew-dev libxext-dev libwavpack-dev libabsl-dev libboost-all-dev \
+              libpng-dev python3-dev libpython3-dev \
+              libasound2-dev libpulse-dev libx11-dev libxrandr-dev libxcursor-dev \
+              libxinerama-dev libxi-dev
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            CMAKE_ARGS+=(
-              "-G" "Ninja"
-              "-DCMAKE_OSX_ARCHITECTURES=${{ matrix.mac_arch }}"
-              "-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0"
-              "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-            )
-          else # Linux
-            CMAKE_ARGS+=("-G" "Ninja")
+            brew install ninja cmake pkg-config
           fi
 
-          cmake "${CMAKE_ARGS[@]}"
+      - name: "Configure"
+        shell: bash
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            cmake -B build -G "Visual Studio 17 2022" -A x64 \
+              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+              -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
+              -DYAZE_BUILD_TESTS=OFF \
+              -DYAZE_BUILD_EMU=OFF \
+              -DYAZE_BUILD_Z3ED=ON
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+              -DCMAKE_OSX_ARCHITECTURES=${{ matrix.mac_arch }} \
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+              -DYAZE_BUILD_TESTS=OFF \
+              -DYAZE_BUILD_EMU=OFF \
+              -DYAZE_BUILD_Z3ED=ON
+          else
+            cmake -B build -G Ninja \
+              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+              -DYAZE_BUILD_TESTS=OFF \
+              -DYAZE_BUILD_EMU=OFF \
+              -DYAZE_BUILD_Z3ED=ON
+          fi
 
-      - name: "Build Project"
+      - name: "Build"
         run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
 
       - name: "Package Artifacts"
