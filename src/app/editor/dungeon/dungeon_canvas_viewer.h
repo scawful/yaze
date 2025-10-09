@@ -65,17 +65,9 @@ class DungeonCanvasViewer {
   }
 
  private:
-  void RenderObjectInCanvas(const zelda3::RoomObject &object,
-                            const gfx::SnesPalette &palette);
   void DisplayObjectInfo(const zelda3::RoomObject &object, int canvas_x,
                          int canvas_y);
-  void RenderStairObjects(const zelda3::Room& room, 
-                          const gfx::SnesPalette& palette);
   void RenderSprites(const zelda3::Room& room);
-  void RenderChests(const zelda3::Room& room);
-  void RenderDoorObjects(const zelda3::Room& room);
-  void RenderWallObjects(const zelda3::Room& room);
-  void RenderPotObjects(const zelda3::Room& room);
   
   // Coordinate conversion helpers
   std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y) const;

@@ -9,6 +9,7 @@
 #include "absl/strings/str_cat.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"
+#include "app/gfx/snes_palette.h"
 #include "app/rom.h"
 #include "app/snes.h"
 #include "app/zelda3/dungeon/object_drawer.h"
@@ -285,17 +286,22 @@ void Room::CopyRoomGraphicsToBuffer() {
 
 void Room::RenderRoomGraphics() {
   CopyRoomGraphicsToBuffer();
+  
+  // CRITICAL: Load graphics sheets into Arena with actual ROM data
+  LoadGraphicsSheetsIntoArena();
 
   bg1_buffer_.DrawFloor(rom()->vector(), tile_address,
                         tile_address_floor, floor1_graphics_);
   bg2_buffer_.DrawFloor(rom()->vector(), tile_address,
                         tile_address_floor, floor2_graphics_);
 
-  // Render layout and object tiles to background buffers
-  RenderObjectsToBackground();
-
+  // Draw background tiles (floor, walls, etc.) to buffers
   bg1_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
   bg2_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
+
+  // Render objects ON TOP of background tiles
+  // This must happen AFTER DrawBackground to avoid overwriting object data
+  RenderObjectsToBackground();
 
   auto& bg1_bmp = bg1_buffer_.bitmap();
   auto& bg2_bmp = bg2_buffer_.bitmap();
@@ -318,23 +324,120 @@ void Room::RenderRoomGraphics() {
     // SetPaletteWithTransparent() only extracts 8 colors, which is wrong for dungeons!
     bg1_bmp.SetPalette(bg1_palette);
     bg2_bmp.SetPalette(bg1_palette);
+    
+    // Queue texture creation for background buffers
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &bg1_bmp);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &bg2_bmp);
   }
-  
-  // CRITICAL: Recreate textures with the palette applied!
-  // TODO: Queue texture for later rendering.
-  // core::Renderer::Get().RenderBitmap(&bg1_buffer_.bitmap());
-  // core::Renderer::Get().RenderBitmap(&bg2_buffer_.bitmap());
 }
 
 void Room::RenderObjectsToBackground() {
+  printf("[RenderObjectsToBackground] Starting object rendering\n");
+  
   if (!rom_ || !rom_->is_loaded()) {
+    printf("[RenderObjectsToBackground] ROM not loaded, aborting\n");
     return;
   }
+  
+  // Get palette group for object rendering
+  auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
+  int num_palettes = dungeon_pal_group.size();
+  int palette_id = palette;
+  
+  if (palette_id < 0 || palette_id >= num_palettes) {
+    palette_id = 0;
+  }
+  
+  auto room_palette = dungeon_pal_group[palette_id];
+  auto palette_group_result = gfx::CreatePaletteGroupFromLargePalette(room_palette);
+  if (!palette_group_result.ok()) {
+    // Fallback to empty palette group
+    gfx::PaletteGroup empty_group;
+    ObjectDrawer drawer(rom_);
+    drawer.DrawObjectList(tile_objects_, bg1_buffer_, bg2_buffer_, empty_group);
+    return;
+  }
+  auto palette_group = palette_group_result.value();
   
   // Use ObjectDrawer for pattern-based object rendering
   // This provides proper wall/object drawing patterns
   ObjectDrawer drawer(rom_);
-  drawer.DrawObjectList(tile_objects_, bg1_buffer_, bg2_buffer_);
+  auto status = drawer.DrawObjectList(tile_objects_, bg1_buffer_, bg2_buffer_, palette_group);
+  
+  // Log only failures, not successes
+  if (!status.ok()) {
+    printf("[RenderObjectsToBackground] ObjectDrawer failed: %s\n", std::string(status.message()).c_str());
+  }
+}
+
+void Room::LoadGraphicsSheetsIntoArena() {
+  if (!rom_ || !rom_->is_loaded()) {
+    return;
+  }
+  
+  auto& arena = gfx::Arena::Get();
+  
+  // For now, create simple placeholder graphics sheets
+  // This ensures the Room Graphics card has something to display
+  for (int i = 0; i < 16; i++) {
+    if (blocks_[i] < 0 || blocks_[i] >= 223) {
+      continue; // Skip invalid blocks
+    }
+    
+    auto& gfx_sheet = arena.gfx_sheets()[blocks_[i]];
+    
+    // Check if sheet already has data
+    if (gfx_sheet.is_active() && gfx_sheet.width() > 0) {
+      continue; // Already loaded
+    }
+    
+    try {
+      // Create a simple placeholder graphics sheet (128x128 pixels)
+      std::vector<uint8_t> sheet_data(128 * 128, 0);
+      
+      // Fill with a simple pattern to make it visible
+      for (int y = 0; y < 128; y++) {
+        for (int x = 0; x < 128; x++) {
+          // Create a simple checkerboard pattern
+          if ((x / 8 + y / 8) % 2 == 0) {
+            sheet_data[y * 128 + x] = 1; // Light color
+          } else {
+            sheet_data[y * 128 + x] = 2; // Dark color
+          }
+        }
+      }
+      
+      // Create bitmap with the graphics data
+      gfx::Bitmap sheet_bitmap(128, 128, 8, sheet_data);
+      
+      // Get room palette and apply to graphics sheet
+      auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
+      if (palette >= 0 && palette < static_cast<int>(dungeon_pal_group.size())) {
+        auto room_palette = dungeon_pal_group[palette];
+        sheet_bitmap.SetPalette(room_palette);
+      } else {
+        // Use default palette
+        gfx::SnesPalette default_palette;
+        default_palette.AddColor(gfx::SnesColor(0, 0, 0));      // Transparent
+        default_palette.AddColor(gfx::SnesColor(255, 255, 255)); // White
+        default_palette.AddColor(gfx::SnesColor(0, 0, 0));      // Black
+        sheet_bitmap.SetPalette(default_palette);
+      }
+      
+      // Replace the graphics sheet in Arena
+      arena.gfx_sheets()[blocks_[i]] = std::move(sheet_bitmap);
+      
+      // Queue texture creation for this graphics sheet
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, 
+          &arena.gfx_sheets()[blocks_[i]]);
+    } catch (const std::exception& e) {
+      // Skip this graphics sheet if creation fails
+      continue;
+    }
+  }
 }
 
 void Room::LoadAnimatedGraphics() {

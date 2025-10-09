@@ -71,23 +71,46 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   ImGui::BeginGroup();
 
   if (rooms_) {
-    gui::InputHexByte("Layout", &(*rooms_)[room_id].layout);
+    auto& room = (*rooms_)[room_id];
+    
+    // Store previous values to detect changes
+    static int prev_blockset = -1;
+    static int prev_palette = -1;
+    static int prev_layout = -1;
+    static int prev_spriteset = -1;
+    
+    gui::InputHexByte("Layout", &room.layout);
     ImGui::SameLine();
-    gui::InputHexByte("Blockset", &(*rooms_)[room_id].blockset);
+    gui::InputHexByte("Gfx", &room.blockset);
     ImGui::SameLine();
-    gui::InputHexByte("Spriteset", &(*rooms_)[room_id].spriteset);
+    gui::InputHexByte("Spriteset", &room.spriteset);
     ImGui::SameLine();
-    gui::InputHexByte("Palette", &(*rooms_)[room_id].palette);
+    gui::InputHexByte("Palette", &room.palette);
 
-    gui::InputHexByte("Floor1", &(*rooms_)[room_id].floor1);
+    gui::InputHexByte("Floor1", &room.floor1);
     ImGui::SameLine();
-    gui::InputHexByte("Floor2", &(*rooms_)[room_id].floor2);
+    gui::InputHexByte("Floor2", &room.floor2);
     ImGui::SameLine();
-    gui::InputHexWord("Message ID", &(*rooms_)[room_id].message_id_);
-    ImGui::SameLine();
-
-    if (Button("Load Room Graphics")) {
-      (void)LoadAndRenderRoomGraphics(room_id);
+    gui::InputHexWord("Message ID", &room.message_id_);
+    
+    // Check if critical properties changed and trigger reload
+    if (prev_blockset != room.blockset || prev_palette != room.palette || 
+        prev_layout != room.layout || prev_spriteset != room.spriteset) {
+      
+      // Only reload if ROM is properly loaded
+      if (room.rom() && room.rom()->is_loaded()) {
+        // Force reload of room graphics
+        room.LoadRoomGraphics(room.blockset);
+        room.RenderRoomGraphics();
+        
+        // Update background layers
+        UpdateRoomBackgroundLayers(room_id);
+      }
+      
+      prev_blockset = room.blockset;
+      prev_palette = room.palette;
+      prev_layout = room.layout;
+      prev_spriteset = room.spriteset;
     }
   }
 
@@ -106,9 +129,14 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     auto& bg1_bitmap = room.bg1_buffer().bitmap();
     bool needs_render = !bg1_bitmap.is_active() || bg1_bitmap.width() == 0;
     
-    // Render immediately if needed
-    if (needs_render) {
+    // Render immediately if needed (but only once per room change)
+    static int last_rendered_room = -1;
+    static bool has_rendered = false;
+    if (needs_render && (last_rendered_room != room_id || !has_rendered)) {
+      printf("[DungeonCanvasViewer] Loading and rendering graphics for room %d\n", room_id);
       (void)LoadAndRenderRoomGraphics(room_id);
+      last_rendered_room = room_id;
+      has_rendered = true;
     }
     
     // Load room objects if not already loaded
@@ -119,24 +147,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // Render the room's background layers
     // This already includes objects drawn by ObjectDrawer in Room::RenderObjectsToBackground()
     RenderRoomBackgroundLayers(room_id);
-    
-    // TEMPORARY: Render all objects as primitives until proper rendering is fixed
-    // This ensures we can see objects while debugging the texture pipeline
-    if (current_palette_id_ < current_palette_group_.size()) {
-      auto room_palette = current_palette_group_[current_palette_id_];
-      
-      // Render regular objects as colored rectangles (FALLBACK)
-      for (const auto& object : room.GetTileObjects()) {
-        RenderObjectInCanvas(object, room_palette);
-      }
-      
-      // Render special objects with primitive shapes (overlays)
-      RenderStairObjects(room, room_palette);
-      RenderChests(room);
-      RenderDoorObjects(room);
-      RenderWallObjects(room);
-      RenderPotObjects(room);
-    }
     
     // Render sprites as simple 16x16 squares with labels
     // (Sprites are not part of the background buffers)
@@ -175,107 +185,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   }
 }
 
-void DungeonCanvasViewer::RenderObjectInCanvas(const zelda3::RoomObject &object,
-                                               const gfx::SnesPalette &palette) {
-  // Validate ROM is loaded
-  if (!rom_ || !rom_->is_loaded()) {
-    return;
-  }
-  
-  // Convert room coordinates to canvas coordinates
-  auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
-
-  // Check if object is within canvas bounds
-  if (!IsWithinCanvasBounds(canvas_x, canvas_y, 32)) {
-    return;  // Skip objects outside visible area
-  }
-
-  // Calculate palette hash for caching
-  uint64_t palette_hash = 0;
-  for (size_t i = 0; i < palette.size() && i < 16; ++i) {
-    palette_hash ^= std::hash<uint16_t>{}(palette[i].snes()) + 0x9e3779b9 +
-                    (palette_hash << 6) + (palette_hash >> 2);
-  }
-
-  // Check cache first
-  for (auto& cached : object_render_cache_) {
-    if (cached.object_id == object.id_ && cached.object_x == object.x_ &&
-        cached.object_y == object.y_ && cached.object_size == object.size_ &&
-        cached.palette_hash == palette_hash && cached.is_valid) {
-      canvas_.DrawBitmap(cached.rendered_bitmap, canvas_x, canvas_y, 1.0f, 255);
-      return;
-    }
-  }
-
-  // Create a mutable copy of the object to ensure tiles are loaded
-  auto mutable_object = object;
-  mutable_object.set_rom(rom_);
-  mutable_object.EnsureTilesLoaded();
-
-  // Try to render the object with proper graphics
-  auto render_result = object_renderer_.RenderObject(mutable_object, palette);
-  if (render_result.ok()) {
-    auto object_bitmap = std::move(render_result.value());
-    
-    // Ensure the bitmap is valid and has content
-    if (object_bitmap.width() > 0 && object_bitmap.height() > 0) {
-      object_bitmap.SetPalette(palette);
-      
-      // Add to cache
-      ObjectRenderCache cache_entry;
-      cache_entry.object_id = object.id_;
-      cache_entry.object_x = object.x_;
-      cache_entry.object_y = object.y_;
-      cache_entry.object_size = object.size_;
-      cache_entry.palette_hash = palette_hash;
-      cache_entry.rendered_bitmap = std::move(object_bitmap); // Move bitmap into cache
-      cache_entry.is_valid = true;
-
-      if (object_render_cache_.size() >= 200) { // Limit cache size
-        object_render_cache_.erase(object_render_cache_.begin());
-      }
-      object_render_cache_.push_back(std::move(cache_entry));
-      
-      // Get pointer to cached bitmap and queue texture creation
-      gfx::Bitmap* cached_bitmap = &object_render_cache_.back().rendered_bitmap;
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, cached_bitmap);
-      canvas_.DrawBitmap(*cached_bitmap, canvas_x, canvas_y, 1.0f, 255);
-      return;
-    }
-  }
-  
-  // Fallback: Draw object as colored rectangle with ID if rendering fails
-  ImVec4 object_color;
-  
-  // Color-code objects based on layer
-  switch (object.layer_) {
-    case zelda3::RoomObject::LayerType::BG1:
-      object_color = ImVec4(0.8f, 0.4f, 0.4f, 0.8f); // Red-ish for BG1
-      break;
-    case zelda3::RoomObject::LayerType::BG2:
-      object_color = ImVec4(0.4f, 0.8f, 0.4f, 0.8f); // Green-ish for BG2
-      break;
-    case zelda3::RoomObject::LayerType::BG3:
-      object_color = ImVec4(0.4f, 0.4f, 0.8f, 0.8f); // Blue-ish for BG3
-      break;
-    default:
-      object_color = ImVec4(0.6f, 0.6f, 0.6f, 0.8f); // Gray for unknown
-      break;
-  }
-  
-  // Calculate object size (8x8 is base, size affects width/height)
-  int object_width = 8 + (object.size_ & 0x0F) * 8;
-  int object_height = 8 + ((object.size_ >> 4) & 0x0F) * 8;
-  
-  canvas_.DrawRect(canvas_x, canvas_y, object_width, object_height, object_color);
-  canvas_.DrawRect(canvas_x, canvas_y, object_width, object_height, 
-                  ImVec4(0.0f, 0.0f, 0.0f, 1.0f)); // Black border
-  
-  // Draw object ID
-  std::string object_text = absl::StrFormat("0x%X", object.id_);
-  canvas_.DrawText(object_text, canvas_x + object_width + 2, canvas_y);
-}
 
 void DungeonCanvasViewer::DisplayObjectInfo(const zelda3::RoomObject &object,
                                             int canvas_x, int canvas_y) {
@@ -285,37 +194,6 @@ void DungeonCanvasViewer::DisplayObjectInfo(const zelda3::RoomObject &object,
 
   // Draw text at the object position
   canvas_.DrawText(info_text, canvas_x, canvas_y - 12);
-}
-
-void DungeonCanvasViewer::RenderStairObjects(const zelda3::Room& room, 
-                                             const gfx::SnesPalette& palette) {
-  // Render stair objects with special highlighting to show they enable layer transitions
-  // Stair object IDs from room.h: {0x139, 0x138, 0x13B, 0x12E, 0x12D}
-  constexpr uint16_t stair_ids[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D};
-  
-  for (const auto& object : room.GetTileObjects()) {
-    bool is_stair = false;
-    for (uint16_t stair_id : stair_ids) {
-      if (object.id_ == stair_id) {
-        is_stair = true;
-        break;
-      }
-    }
-    
-    if (is_stair) {
-      auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
-      
-      if (IsWithinCanvasBounds(canvas_x, canvas_y, 32)) {
-        // Draw stair object with special highlighting
-        canvas_.DrawRect(canvas_x - 2, canvas_y - 2, 20, 20, 
-                        ImVec4(1.0f, 1.0f, 0.0f, 0.8f)); // Yellow highlight
-        
-        // Draw text label
-        std::string stair_text = absl::StrFormat("STAIR\n0x%X", object.id_);
-        canvas_.DrawText(stair_text, canvas_x + 22, canvas_y);
-      }
-    }
-  }
 }
 
 void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
@@ -360,179 +238,6 @@ void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
       }
       
       canvas_.DrawText(sprite_text, canvas_x + 18, canvas_y);
-    }
-  }
-}
-
-void DungeonCanvasViewer::RenderChests(const zelda3::Room& room) {
-  // Render chest objects from tile objects - chests are objects with IDs 0xF9, 0xFA
-  for (const auto& object : room.GetTileObjects()) {
-    if (object.id_ == 0xF9 || object.id_ == 0xFA) { // Chest object IDs
-      auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
-    
-      if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
-        // Determine if it's a big chest based on object ID
-        bool is_big_chest = (object.id_ == 0xFA);
-        
-        // Draw chest base
-        ImVec4 chest_color = is_big_chest ? 
-          ImVec4(0.8f, 0.6f, 0.2f, 0.9f) : // Gold for big chest
-          ImVec4(0.6f, 0.4f, 0.2f, 0.9f);  // Brown for small chest
-        
-        int chest_size = is_big_chest ? 16 : 8; // Big chests are larger
-        canvas_.DrawRect(canvas_x, canvas_y + 4, chest_size, 4, chest_color);
-        
-        // Draw chest lid (slightly lighter)
-        ImVec4 lid_color = is_big_chest ? 
-          ImVec4(0.9f, 0.7f, 0.3f, 0.9f) : 
-          ImVec4(0.7f, 0.5f, 0.3f, 0.9f);
-        canvas_.DrawRect(canvas_x, canvas_y + 2, chest_size, 3, lid_color);
-        
-        // Draw chest borders
-        canvas_.DrawRect(canvas_x, canvas_y + 2, chest_size, 6, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-        
-        // Draw text label
-        std::string chest_text = is_big_chest ? "BIG\nCHEST" : "CHEST";
-        canvas_.DrawText(chest_text, canvas_x + chest_size + 2, canvas_y + 3);
-      }
-    }
-  }
-}
-
-void DungeonCanvasViewer::RenderDoorObjects(const zelda3::Room& room) {
-  // Render door objects from tile objects based on IDs from assembly constants
-  constexpr uint16_t door_ids[] = {0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E};
-  
-  for (const auto& object : room.GetTileObjects()) {
-    bool is_door = false;
-    for (uint16_t door_id : door_ids) {
-      if (object.id_ == door_id) {
-        is_door = true;
-        break;
-      }
-    }
-    
-    if (is_door) {
-      auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
-      
-      if (IsWithinCanvasBounds(canvas_x, canvas_y, 16)) {
-        // Draw door frame
-        canvas_.DrawRect(canvas_x, canvas_y, 16, 16, ImVec4(0.5f, 0.3f, 0.2f, 0.8f)); // Brown frame
-        
-        // Draw door opening (darker)
-        canvas_.DrawRect(canvas_x + 2, canvas_y + 2, 12, 12, ImVec4(0.1f, 0.1f, 0.1f, 0.9f));
-        
-        // Draw door border
-        canvas_.DrawRect(canvas_x, canvas_y, 16, 16, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-        
-        // Draw text label
-        std::string door_text = absl::StrFormat("DOOR\n0x%X", object.id_);
-        canvas_.DrawText(door_text, canvas_x + 18, canvas_y + 4);
-      }
-    }
-  }
-}
-
-void DungeonCanvasViewer::RenderWallObjects(const zelda3::Room& room) {
-  // Render wall objects with proper dimensions based on properties
-  for (const auto& object : room.GetTileObjects()) {
-    if (object.id_ >= 0x10 && object.id_ <= 0x1F) { // Wall objects range
-      auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
-      
-      if (IsWithinCanvasBounds(canvas_x, canvas_y, 32)) {
-        // Different wall types based on ID
-        ImVec4 wall_color;
-        std::string wall_type;
-        
-        switch (object.id_) {
-          case 0x10: // Basic wall
-            wall_color = ImVec4(0.6f, 0.6f, 0.6f, 0.8f);
-            wall_type = "WALL";
-            break;
-          case 0x11: // Corner wall
-            wall_color = ImVec4(0.7f, 0.7f, 0.6f, 0.8f);
-            wall_type = "CORNER";
-            break;
-          case 0x12: // Decorative wall
-            wall_color = ImVec4(0.8f, 0.7f, 0.6f, 0.8f);
-            wall_type = "DEC_WALL";
-            break;
-          default:
-            wall_color = ImVec4(0.5f, 0.5f, 0.5f, 0.8f);
-            wall_type = "WALL";
-            break;
-        }
-        
-        // Calculate wall size with proper length handling
-        int wall_width, wall_height;
-        // For walls, use the size field to determine length and orientation
-        if (object.id_ >= 0x10 && object.id_ <= 0x1F) {
-          uint8_t size_x = object.size_ & 0x0F;
-          uint8_t size_y = (object.size_ >> 4) & 0x0F;
-          
-          if (size_x > size_y) {
-            // Horizontal wall
-            wall_width = 8 + size_x * 8;
-            wall_height = 8;
-          } else if (size_y > size_x) {
-            // Vertical wall
-            wall_width = 8;
-            wall_height = 8 + size_y * 8;
-          } else {
-            // Square wall or corner
-            wall_width = 8 + size_x * 4;
-            wall_height = 8 + size_y * 4;
-          }
-        } else {
-          // For other objects, use standard size calculation
-          wall_width = 8 + (object.size_ & 0x0F) * 4;
-          wall_height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
-        }
-        wall_width = std::min(wall_width, 256);
-        wall_height = std::min(wall_height, 256);
-        
-        canvas_.DrawRect(canvas_x, canvas_y, wall_width, wall_height, wall_color);
-        canvas_.DrawRect(canvas_x, canvas_y, wall_width, wall_height, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-        
-        // Add stone block pattern
-        for (int i = 0; i < wall_width; i += 8) {
-          for (int j = 0; j < wall_height; j += 8) {
-            canvas_.DrawRect(canvas_x + i, canvas_y + j, 6, 6, 
-                           ImVec4(wall_color.x * 0.9f, wall_color.y * 0.9f, wall_color.z * 0.9f, wall_color.w));
-          }
-        }
-        
-        // Draw text label
-        std::string wall_text = absl::StrFormat("%s\n0x%X\n%dx%d", wall_type.c_str(), object.id_, wall_width/16, wall_height/16);
-        canvas_.DrawText(wall_text, canvas_x + wall_width + 2, canvas_y + 4);
-      }
-    }
-  }
-}
-
-void DungeonCanvasViewer::RenderPotObjects(const zelda3::Room& room) {
-  // Render pot objects based on assembly constants - Object_Pot is 0x2F
-  for (const auto& object : room.GetTileObjects()) {
-    if (object.id_ == 0x2F || object.id_ == 0x2B) { // Pot objects from assembly
-      auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
-      
-      if (IsWithinCanvasBounds(canvas_x, canvas_y, 8)) {
-        // Draw pot base (wider at bottom)
-        canvas_.DrawRect(canvas_x + 1, canvas_y + 5, 6, 3, ImVec4(0.7f, 0.5f, 0.3f, 0.8f)); // Brown base
-        
-        // Draw pot middle
-        canvas_.DrawRect(canvas_x + 2, canvas_y + 3, 4, 3, ImVec4(0.8f, 0.6f, 0.4f, 0.8f)); // Lighter middle
-        
-        // Draw pot rim
-        canvas_.DrawRect(canvas_x + 2, canvas_y + 2, 4, 2, ImVec4(0.9f, 0.7f, 0.5f, 0.8f)); // Lightest top
-        
-        // Draw pot outline
-        canvas_.DrawRect(canvas_x + 1, canvas_y + 2, 6, 6, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-        
-        // Draw text label
-        std::string pot_text = absl::StrFormat("POT\n0x%X", object.id_);
-        canvas_.DrawText(pot_text, canvas_x + 9, canvas_y + 3);
-      }
     }
   }
 }
@@ -744,9 +449,15 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
       // Queue texture creation for background layer 1 via Arena's deferred system
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::CREATE, &bg1_bitmap);
+      
+      // CRITICAL FIX: Process texture queue immediately to ensure texture is created before drawing
+      gfx::Arena::Get().ProcessTextureQueue(nullptr);
     }
 
-    canvas_.DrawBitmap(bg1_bitmap, 0, 0, 1.0f, 255);
+    // Only draw if texture was successfully created
+    if (bg1_bitmap.texture()) {
+      canvas_.DrawBitmap(bg1_bitmap, 0, 0, 1.0f, 255);
+    }
   } 
   
   if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
@@ -754,8 +465,25 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
       // Queue texture creation for background layer 2 via Arena's deferred system
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::CREATE, &bg2_bitmap);
+      
+      // CRITICAL FIX: Process texture queue immediately to ensure texture is created before drawing
+      gfx::Arena::Get().ProcessTextureQueue(nullptr);
     }
-    canvas_.DrawBitmap(bg2_bitmap, 0, 0, 1.0f, 200);
+    
+    // Only draw if texture was successfully created
+    if (bg2_bitmap.texture()) {
+      canvas_.DrawBitmap(bg2_bitmap, 0, 0, 1.0f, 200);
+    }
+  }
+  
+  // DEBUG: Check if background buffers have content
+  if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0) {
+    printf("[RenderRoomBackgroundLayers] BG1 bitmap: %dx%d, active=%d\n", 
+           bg1_bitmap.width(), bg1_bitmap.height(), bg1_bitmap.is_active());
+  }
+  if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0) {
+    printf("[RenderRoomBackgroundLayers] BG2 bitmap: %dx%d, active=%d\n", 
+           bg2_bitmap.width(), bg2_bitmap.height(), bg2_bitmap.is_active());
   }
   
   // TEST: Draw a bright red rectangle to verify canvas drawing works

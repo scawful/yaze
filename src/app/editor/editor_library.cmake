@@ -14,7 +14,6 @@ set(
   app/editor/dungeon/dungeon_object_selector.cc
   app/editor/dungeon/dungeon_toolset.cc
   app/editor/dungeon/dungeon_object_interaction.cc
-  app/editor/dungeon/dungeon_renderer.cc
   app/editor/dungeon/dungeon_room_loader.cc
   app/editor/dungeon/dungeon_usage_tracker.cc
   app/editor/dungeon/object_editor_card.cc
@@ -43,7 +42,6 @@ set(
   app/editor/system/popup_manager.cc
   app/editor/system/proposal_drawer.cc
   app/editor/agent/agent_chat_history_codec.cc
-  app/editor/dungeon/manual_object_renderer.cc
 )
 
 if(YAZE_WITH_GRPC)

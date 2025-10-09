@@ -756,8 +756,14 @@ absl::Status ObjectRenderer::RenderTileToBitmap(const gfx::Tile16& tile, gfx::Bi
 }
 
 void ObjectRenderer::Render8x8Tile(gfx::Bitmap& bitmap, gfx::Bitmap* graphics_sheet, const gfx::TileInfo& tile_info, int x, int y, const gfx::SnesPalette& palette) {
+  // Calculate tile position within the graphics sheet
+  // Each graphics sheet is 128x128 pixels (16x16 tiles of 8x8 pixels each)
   int tile_x = (tile_info.id_ % 16) * 8;
   int tile_y = ((tile_info.id_ % 256) / 16) * 8;
+  
+  // Get the correct sub-palette for this tile
+  // Each tile uses a 4-bit palette index (0-7), so we need to extract the right 8-color sub-palette
+  int palette_offset = tile_info.palette_ * 16;  // Each sub-palette is 16 colors (2 bytes each)
   
   for (int py = 0; py < 8; ++py) {
     for (int px = 0; px < 8; ++px) {
@@ -782,7 +788,15 @@ void ObjectRenderer::Render8x8Tile(gfx::Bitmap& bitmap, gfx::Bitmap* graphics_sh
       
       uint8_t color_index = graphics_sheet->at(pixel_index);
       
-      if (color_index >= palette.size()) {
+      // Skip transparent pixels (color 0)
+      if (color_index == 0) {
+        continue;
+      }
+      
+      // Calculate the final color index in the full palette
+      int final_color_index = palette_offset + color_index;
+      
+      if (final_color_index >= static_cast<int>(palette.size())) {
         continue;
       }
       
@@ -800,7 +814,7 @@ void ObjectRenderer::Render8x8Tile(gfx::Bitmap& bitmap, gfx::Bitmap* graphics_sh
       }
       
       if (render_x >= 0 && render_y >= 0 && render_x < bitmap.width() && render_y < bitmap.height()) {
-        bitmap.SetPixel(render_x, render_y, palette[color_index]);
+        bitmap.SetPixel(render_x, render_y, palette[final_color_index]);
       }
     }
   }
