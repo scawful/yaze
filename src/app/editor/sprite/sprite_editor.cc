@@ -24,7 +24,32 @@ using ImGui::TableNextRow;
 using ImGui::TableSetupColumn;
 using ImGui::Text;
 
-void SpriteEditor::Initialize() {}
+void SpriteEditor::Initialize() {
+  // Register cards with EditorCardManager during initialization (once)
+  auto& card_manager = gui::EditorCardManager::Get();
+  
+  card_manager.RegisterCard({
+      .card_id = "sprite.vanilla_editor",
+      .display_name = "Vanilla Sprites",
+      .icon = ICON_MD_SMART_TOY,
+      .category = "Sprite",
+      .shortcut_hint = "Alt+Shift+1",
+      .visibility_flag = &show_vanilla_editor_,
+      .priority = 10
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "sprite.custom_editor",
+      .display_name = "Custom Sprites",
+      .icon = ICON_MD_ADD_CIRCLE,
+      .category = "Sprite",
+      .shortcut_hint = "Alt+Shift+2",
+      .visibility_flag = &show_custom_editor_,
+      .priority = 20
+  });
+  
+  printf("[SpriteEditor] Registered 2 cards with EditorCardManager\n");
+}
 
 absl::Status SpriteEditor::Load() { 
   gfx::ScopedTimer timer("SpriteEditor::Load");

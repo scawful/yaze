@@ -157,7 +157,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   
   // Process queued texture commands
   if (rom_ && rom_->is_loaded()) {
-    gfx::Arena::Get().ProcessTextureQueue(nullptr); // Will use default renderer
+    // Process texture queue using Arena's stored renderer
+    // The renderer was initialized in EditorManager::LoadAssets()
+    gfx::Arena::Get().ProcessTextureQueue(nullptr);
   }
   
   // Draw layer information overlay

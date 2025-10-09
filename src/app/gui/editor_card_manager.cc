@@ -22,6 +22,13 @@ void EditorCardManager::RegisterCard(const CardInfo& info) {
     return;
   }
   
+  // Check if already registered to avoid duplicates
+  if (cards_.find(info.card_id) != cards_.end()) {
+    printf("[EditorCardManager] WARNING: Card '%s' already registered, skipping duplicate\n", 
+           info.card_id.c_str());
+    return;
+  }
+  
   cards_[info.card_id] = info;
   printf("[EditorCardManager] Registered card: %s (%s)\n", 
          info.card_id.c_str(), info.display_name.c_str());

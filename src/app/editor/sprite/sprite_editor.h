@@ -8,6 +8,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/gui/canvas.h"
+#include "app/gui/editor_card_manager.h"
 #include "app/gui/editor_layout.h"
 #include "app/rom.h"
 
@@ -83,8 +84,9 @@ class SpriteEditor : public Editor {
   void DrawAnimationFrames();
   void DrawToolset();
 
-  // Card visibility
-  bool show_vanilla_editor_ = true;
+  // Card visibility - ALL FALSE by default to prevent crash on ROM load
+  // Cards only shown when user explicitly opens them via View menu or shortcuts
+  bool show_vanilla_editor_ = false;
   bool show_custom_editor_ = false;
 
   ImVector<int> active_sprites_; /**< Active sprites. */

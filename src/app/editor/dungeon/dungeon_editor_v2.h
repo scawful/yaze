@@ -120,14 +120,16 @@ class DungeonEditorV2 : public Editor {
   std::unordered_map<int, std::shared_ptr<gui::EditorCard>> room_cards_;
   int current_room_id_ = 0;
   
-  // Card visibility flags
-  bool show_room_selector_ = true;
+  // Card visibility flags - Start with only control panel visible
+  // Other cards hidden by default to prevent crash on ROM load
+  // User can open them via View menu or shortcuts
+  bool show_room_selector_ = false;
   bool show_room_matrix_ = false;
   bool show_entrances_list_ = false;
-  bool show_room_graphics_ = false;    // Room graphics card
-  bool show_object_editor_ = true;     // Unified object editor card
-  bool show_palette_editor_ = true;
-  bool show_control_panel_ = true;     // Optional control panel
+  bool show_room_graphics_ = false;
+  bool show_object_editor_ = false;
+  bool show_palette_editor_ = false;
+  bool show_control_panel_ = true;     // Only control panel visible on start
   bool control_panel_minimized_ = false;
   
   // Palette management

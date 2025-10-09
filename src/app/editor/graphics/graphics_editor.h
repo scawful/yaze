@@ -7,6 +7,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/palette_editor.h"
 #include "app/gfx/bitmap.h"
+#include "app/gui/editor_card_manager.h"
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/editor_layout.h"
@@ -116,8 +117,9 @@ class GraphicsEditor : public Editor {
   absl::Status DecompressSuperDonkey();
 
   // Member Variables
-  // Card visibility
-  bool show_sheet_editor_ = true;
+  // Card visibility - ALL FALSE by default to prevent crash on ROM load
+  // Cards only shown when user explicitly opens them via View menu or shortcuts
+  bool show_sheet_editor_ = false;
   bool show_sheet_browser_ = false;
   bool show_player_animations_ = false;
   bool show_prototype_viewer_ = false;

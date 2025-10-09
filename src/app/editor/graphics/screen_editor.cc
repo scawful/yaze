@@ -29,7 +29,62 @@ namespace editor {
 
 constexpr uint32_t kRedPen = 0xFF0000FF;
 
-void ScreenEditor::Initialize() {}
+void ScreenEditor::Initialize() {
+  // Register cards with EditorCardManager during initialization (once)
+  auto& card_manager = gui::EditorCardManager::Get();
+  
+  card_manager.RegisterCard({
+      .card_id = "screen.dungeon_maps",
+      .display_name = "Dungeon Maps",
+      .icon = ICON_MD_MAP,
+      .category = "Screen",
+      .shortcut_hint = "Alt+1",
+      .visibility_flag = &show_dungeon_maps_,
+      .priority = 10
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "screen.inventory_menu",
+      .display_name = "Inventory Menu",
+      .icon = ICON_MD_INVENTORY,
+      .category = "Screen",
+      .shortcut_hint = "Alt+2",
+      .visibility_flag = &show_inventory_menu_,
+      .priority = 20
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "screen.overworld_map",
+      .display_name = "Overworld Map",
+      .icon = ICON_MD_PUBLIC,
+      .category = "Screen",
+      .shortcut_hint = "Alt+3",
+      .visibility_flag = &show_overworld_map_,
+      .priority = 30
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "screen.title_screen",
+      .display_name = "Title Screen",
+      .icon = ICON_MD_TITLE,
+      .category = "Screen",
+      .shortcut_hint = "Alt+4",
+      .visibility_flag = &show_title_screen_,
+      .priority = 40
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "screen.naming_screen",
+      .display_name = "Naming Screen",
+      .icon = ICON_MD_EDIT,
+      .category = "Screen",
+      .shortcut_hint = "Alt+5",
+      .visibility_flag = &show_naming_screen_,
+      .priority = 50
+  });
+  
+  printf("[ScreenEditor] Registered 5 cards with EditorCardManager\n");
+}
 
 absl::Status ScreenEditor::Load() {
   gfx::ScopedTimer timer("ScreenEditor::Load");

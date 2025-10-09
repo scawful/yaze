@@ -41,7 +41,52 @@ constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable |
     ImGuiTableFlags_SizingFixedFit;
 
-void GraphicsEditor::Initialize() {}
+void GraphicsEditor::Initialize() {
+  // Register cards with EditorCardManager during initialization (once)
+  auto& card_manager = gui::EditorCardManager::Get();
+  
+  card_manager.RegisterCard({
+      .card_id = "graphics.sheet_editor",
+      .display_name = "Sheet Editor",
+      .icon = ICON_MD_EDIT,
+      .category = "Graphics",
+      .shortcut_hint = "Ctrl+Shift+1",
+      .visibility_flag = &show_sheet_editor_,
+      .priority = 10
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "graphics.sheet_browser",
+      .display_name = "Sheet Browser",
+      .icon = ICON_MD_VIEW_LIST,
+      .category = "Graphics",
+      .shortcut_hint = "Ctrl+Shift+2",
+      .visibility_flag = &show_sheet_browser_,
+      .priority = 20
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "graphics.player_animations",
+      .display_name = "Player Animations",
+      .icon = ICON_MD_PERSON,
+      .category = "Graphics",
+      .shortcut_hint = "Ctrl+Shift+3",
+      .visibility_flag = &show_player_animations_,
+      .priority = 30
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "graphics.prototype_viewer",
+      .display_name = "Prototype Viewer",
+      .icon = ICON_MD_CONSTRUCTION,
+      .category = "Graphics",
+      .shortcut_hint = "Ctrl+Shift+4",
+      .visibility_flag = &show_prototype_viewer_,
+      .priority = 40
+  });
+  
+  printf("[GraphicsEditor] Registered 4 cards with EditorCardManager\n");
+}
 
 absl::Status GraphicsEditor::Load() { 
   gfx::ScopedTimer timer("GraphicsEditor::Load");

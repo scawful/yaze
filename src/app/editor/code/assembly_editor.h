@@ -6,6 +6,7 @@
 #include "app/editor/editor.h"
 #include "app/gui/modules/text_editor.h"
 #include "app/gui/editor_layout.h"
+#include "app/gui/editor_card_manager.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
 

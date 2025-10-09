@@ -24,55 +24,8 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   // Setup docking class for room windows
   room_window_class_.ClassId = ImGui::GetID("DungeonRoomClass");
   room_window_class_.DockingAllowUnclassed = false;  // Room windows dock together
-}
-
-void DungeonEditorV2::Initialize() {}
-
-absl::Status DungeonEditorV2::Load() {
-  if (!rom_ || !rom_->is_loaded()) {
-    return absl::FailedPreconditionError("ROM not loaded");
-  }
-
-  // Load all rooms using the loader component - DEFERRED for lazy loading
-  // RETURN_IF_ERROR(room_loader_.LoadAllRooms(rooms_));
-  RETURN_IF_ERROR(room_loader_.LoadRoomEntrances(entrances_));
-
-  // Load palette group
-  auto dungeon_main_pal_group = rom_->palette_group().dungeon_main;
-  current_palette_ = dungeon_main_pal_group[current_palette_group_id_];
-  ASSIGN_OR_RETURN(current_palette_group_,
-                   gfx::CreatePaletteGroupFromLargePalette(current_palette_));
-
-  // Initialize components with loaded data
-  room_selector_.set_rooms(&rooms_);
-  room_selector_.set_entrances(&entrances_);
-  room_selector_.set_active_rooms(active_rooms_);
-  room_selector_.set_room_selected_callback(
-      [this](int room_id) { OnRoomSelected(room_id); });
-
-  canvas_viewer_.SetRooms(&rooms_);
-  canvas_viewer_.SetCurrentPaletteGroup(current_palette_group_);
-  canvas_viewer_.SetCurrentPaletteId(current_palette_id_);
-
-  object_selector_.SetCurrentPaletteGroup(current_palette_group_);
-  object_selector_.SetCurrentPaletteId(current_palette_id_);
-  object_selector_.set_rooms(&rooms_);
-
-  // NOW initialize emulator preview with loaded ROM
-  object_emulator_preview_.Initialize(renderer_, rom_);
   
-  // Initialize palette editor with loaded ROM
-  palette_editor_.Initialize(rom_);
-  
-  // Initialize unified object editor card
-  object_editor_card_ = std::make_unique<ObjectEditorCard>(renderer_, rom_, &canvas_viewer_);
-  
-  // Initialize manual renderer for debugging (uses canvas from canvas_viewer_)
-  manual_renderer_ = std::make_unique<ManualObjectRenderer>(
-      &canvas_viewer_.canvas(), rom_);
-  printf("[DungeonEditorV2] Manual renderer initialized for debugging\n");
-  
-  // Register all cards with the card manager for unified control
+  // Register all cards with the card manager (done once during initialization)
   auto& card_manager = gui::EditorCardManager::Get();
   
   card_manager.RegisterCard({
@@ -146,6 +99,53 @@ absl::Status DungeonEditorV2::Load() {
   });
   
   printf("[DungeonEditorV2] Registered 7 cards with EditorCardManager\n");
+}
+
+void DungeonEditorV2::Initialize() {}
+
+absl::Status DungeonEditorV2::Load() {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  // Load all rooms using the loader component - DEFERRED for lazy loading
+  // RETURN_IF_ERROR(room_loader_.LoadAllRooms(rooms_));
+  RETURN_IF_ERROR(room_loader_.LoadRoomEntrances(entrances_));
+
+  // Load palette group
+  auto dungeon_main_pal_group = rom_->palette_group().dungeon_main;
+  current_palette_ = dungeon_main_pal_group[current_palette_group_id_];
+  ASSIGN_OR_RETURN(current_palette_group_,
+                   gfx::CreatePaletteGroupFromLargePalette(current_palette_));
+
+  // Initialize components with loaded data
+  room_selector_.set_rooms(&rooms_);
+  room_selector_.set_entrances(&entrances_);
+  room_selector_.set_active_rooms(active_rooms_);
+  room_selector_.set_room_selected_callback(
+      [this](int room_id) { OnRoomSelected(room_id); });
+
+  canvas_viewer_.SetRooms(&rooms_);
+  canvas_viewer_.SetCurrentPaletteGroup(current_palette_group_);
+  canvas_viewer_.SetCurrentPaletteId(current_palette_id_);
+
+  object_selector_.SetCurrentPaletteGroup(current_palette_group_);
+  object_selector_.SetCurrentPaletteId(current_palette_id_);
+  object_selector_.set_rooms(&rooms_);
+
+  // NOW initialize emulator preview with loaded ROM
+  object_emulator_preview_.Initialize(renderer_, rom_);
+  
+  // Initialize palette editor with loaded ROM
+  palette_editor_.Initialize(rom_);
+  
+  // Initialize unified object editor card
+  object_editor_card_ = std::make_unique<ObjectEditorCard>(renderer_, rom_, &canvas_viewer_);
+  
+  // Initialize manual renderer for debugging (uses canvas from canvas_viewer_)
+  manual_renderer_ = std::make_unique<ManualObjectRenderer>(
+      &canvas_viewer_.canvas(), rom_);
+  printf("[DungeonEditorV2] Manual renderer initialized for debugging\n");
   
   // Wire palette changes to trigger room re-renders
   palette_editor_.SetOnPaletteChanged([this](int /*palette_id*/) {
@@ -267,12 +267,16 @@ void DungeonEditorV2::DrawToolset() {
 
 void DungeonEditorV2::DrawControlPanel() {
   // Small, collapsible control panel for dungeon editor
-  ImGui::SetNextWindowSize(ImVec2(250, 200), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2(280, 280), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowPos(ImVec2(10, 100), ImGuiCond_FirstUseEver);
   
   ImGuiWindowFlags flags = ImGuiWindowFlags_None;
   
   if (ImGui::Begin(ICON_MD_CASTLE " Dungeon Controls", &show_control_panel_, flags)) {
+    ImGui::TextWrapped("Welcome to Dungeon Editor V2!");
+    ImGui::TextDisabled("Use checkboxes below to open cards");
+    ImGui::Separator();
+    
     DrawToolset();
     
     ImGui::Separator();
