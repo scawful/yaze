@@ -1,5 +1,7 @@
 <map id="yaze::editor::DungeonEditorV2::Initialize" name="yaze::editor::DungeonEditorV2::Initialize">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,181,46"/>
-<area shape="rect" id="Node000002" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ac8d098b29c24c13e3ec01cae88d883f4" title=" " alt="" coords="229,5,404,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,23,213,23,213,28,181,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,181,68"/>
+<area shape="rect" id="Node000002" href="$d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#a91e8e431313cc77b068dc47f74bb417d" title=" " alt="" coords="229,5,442,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,34,213,30,213,36,182,40"/>
+<area shape="rect" id="Node000003" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ac8d098b29c24c13e3ec01cae88d883f4" title=" " alt="" coords="248,55,423,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,55,233,61,232,66,181,60"/>
 </map>

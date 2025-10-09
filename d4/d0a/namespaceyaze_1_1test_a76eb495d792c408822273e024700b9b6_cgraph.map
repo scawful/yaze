@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,78,135,104"/>
 <area shape="rect" id="Node000002" href="$da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#adcdd7c86ceda3bbd7176b6ae5b3daf84" title=" " alt="" coords="183,71,358,111"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,88,167,88,167,94,135,94"/>
-<area shape="rect" id="Node000003" href="$d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a022e8ec19c3072337f573bc727ce55de" title=" " alt="" coords="420,5,606,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="347,68,419,48,421,53,349,73"/>
-<area shape="rect" id="Node000004" href="$d0/d27/namespaceyaze_1_1gfx.html#aeccc5ded5a311afcdf70cb43e466c220" title="Take a SNESPalette, divide it into palettes of 8 colors." alt="" coords="433,71,593,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="359,88,417,88,417,94,359,94"/>
-<area shape="rect" id="Node000008" href="$d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#a91e8e431313cc77b068dc47f74bb417d" title=" " alt="" coords="406,136,619,161"/>
-<area shape="poly" id="edge4_Node000002_Node000008" title=" " alt="" coords="359,109,441,129,440,134,358,114"/>
+<area shape="rect" id="Node000003" href="$d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a022e8ec19c3072337f573bc727ce55de" title=" " alt="" coords="406,5,592,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="343,68,410,48,412,53,345,73"/>
+<area shape="rect" id="Node000004" href="$d0/d27/namespaceyaze_1_1gfx.html#aeccc5ded5a311afcdf70cb43e466c220" title="Take a SNESPalette, divide it into palettes of 8 colors." alt="" coords="419,71,579,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="358,88,403,88,403,94,358,94"/>
+<area shape="rect" id="Node000008" href="$d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a2d4252cde9533c529313ae861b85f8ca" title=" " alt="" coords="413,136,585,177"/>
+<area shape="poly" id="edge4_Node000002_Node000008" title=" " alt="" coords="345,109,412,129,410,134,343,114"/>
 </map>

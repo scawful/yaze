@@ -1009,12 +1009,15 @@ $(document).ready(function(){initNavTree('da/d46/dungeon__editor_8cc_source.html
 <div class="foldopen" id="foldopen00882" data-start="{" data-end="}">
 <div class="line"><a id="l00882" name="l00882"></a><span class="lineno"><a class="line" href="../../d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#a3491b1b7b76c7df6dbdd99d30b1bb209">  882</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d8/d98/classyaze_1_1editor_1_1DungeonEditor.html#a3491b1b7b76c7df6dbdd99d30b1bb209">DungeonEditor::ProcessDeferredTextures</a>() {</div>
 <div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span>  <span class="comment">// Process queued texture commands via Arena&#39;s deferred system</span></div>
-<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span>  <span class="comment">// Note: Arena will use its stored renderer reference</span></div>
-<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>  <a class="code hl_function" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55">gfx::Arena::Get</a>().<a class="code hl_function" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#aaa4008abdfc004444497722d9a9167c9">ProcessTextureQueue</a>(<span class="keyword">nullptr</span>);</div>
-<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>}</div>
+<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span>  <span class="comment">// Note: Arena uses its stored renderer reference (initialized in EditorManager)</span></div>
+<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>  <span class="comment">// The parameter is ignored, but we pass nullptr to indicate we&#39;re using the stored renderer</span></div>
+<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>  <a class="code hl_function" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55">gfx::Arena::Get</a>().<a class="code hl_function" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#aaa4008abdfc004444497722d9a9167c9">ProcessTextureQueue</a>(<span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>  </div>
+<div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>  <span class="comment">// NOTE: This is deprecated - use DungeonEditorV2 instead</span></div>
+<div class="line"><a id="l00889" name="l00889"></a><span class="lineno">  889</span>}</div>
 </div>
-<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span> </div>
-<div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>}  <span class="comment">// namespace yaze::editor</span></div>
+<div class="line"><a id="l00890" name="l00890"></a><span class="lineno">  890</span> </div>
+<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span>}  <span class="comment">// namespace yaze::editor</span></div>
 <div class="ttc" id="aarena_8h_html"><div class="ttname"><a href="../../da/d0c/arena_8h.html">arena.h</a></div></div>
 <div class="ttc" id="acanvas_8h_html"><div class="ttname"><a href="../../d4/dcf/canvas_8h.html">canvas.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a30ec716ea7eafc1fff75856ab67e27f7"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a30ec716ea7eafc1fff75856ab67e27f7">yaze::Rom::palette_group</a></div><div class="ttdeci">auto palette_group() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00212">rom.h:212</a></div></div>
