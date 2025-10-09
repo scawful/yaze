@@ -207,9 +207,9 @@ jobs:
           cmake -B build -G "Visual Studio 17 2022" -A x64 `
             -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
             -DCMAKE_TOOLCHAIN_FILE="$vcpkgToolchain" `
-            -DYAZE_BUILD_TESTS=OFF `
-            -DYAZE_BUILD_EMU=OFF `
-            -DYAZE_BUILD_APP=ON 2>&1 | Tee-Object -FilePath cmake_config.log
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+            -DVCPKG_MANIFEST_MODE=ON `
+            -DYAZE_BUILD_TESTS=OFF 2>&1 | Tee-Object -FilePath cmake_config.log
           
           if ($LASTEXITCODE -ne 0) {
             Write-Host "::error::CMake configuration failed with exit code $LASTEXITCODE"
@@ -229,9 +229,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_OSX_ARCHITECTURES=${{ matrix.mac_arch }} \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
-            -DYAZE_BUILD_TESTS=OFF \
-            -DYAZE_BUILD_EMU=OFF \
-            -DYAZE_BUILD_APP=ON 2>&1 | tee cmake_config.log
+            -DYAZE_BUILD_TESTS=OFF 2>&1 | tee cmake_config.log
           echo "::endgroup::"
       
       - name: "Configure (Linux)"
@@ -243,9 +241,7 @@ jobs:
           echo "::group::CMake Configuration (Linux)"
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DYAZE_BUILD_TESTS=OFF \
-            -DYAZE_BUILD_EMU=OFF \
-            -DYAZE_BUILD_APP=ON 2>&1 | tee cmake_config.log
+            -DYAZE_BUILD_TESTS=OFF 2>&1 | tee cmake_config.log
           echo "::endgroup::"
       
       - name: "Report Configure Failure"
