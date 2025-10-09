@@ -209,7 +209,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="$vcpkgToolchain" `
             -DYAZE_BUILD_TESTS=OFF `
             -DYAZE_BUILD_EMU=OFF `
-            -DYAZE_BUILD_Z3ED=ON 2>&1 | Tee-Object -FilePath cmake_config.log
+            -DYAZE_BUILD_APP=ON 2>&1 | Tee-Object -FilePath cmake_config.log
           
           if ($LASTEXITCODE -ne 0) {
             Write-Host "::error::CMake configuration failed with exit code $LASTEXITCODE"
@@ -231,7 +231,7 @@ jobs:
             -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
             -DYAZE_BUILD_TESTS=OFF \
             -DYAZE_BUILD_EMU=OFF \
-            -DYAZE_BUILD_Z3ED=ON 2>&1 | tee cmake_config.log
+            -DYAZE_BUILD_APP=ON 2>&1 | tee cmake_config.log
           echo "::endgroup::"
       
       - name: "Configure (Linux)"
@@ -245,7 +245,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DYAZE_BUILD_TESTS=OFF \
             -DYAZE_BUILD_EMU=OFF \
-            -DYAZE_BUILD_Z3ED=ON 2>&1 | tee cmake_config.log
+            -DYAZE_BUILD_APP=ON 2>&1 | tee cmake_config.log
           echo "::endgroup::"
       
       - name: "Report Configure Failure"

@@ -4,6 +4,23 @@
 
 #include <SDL.h>
 
+// Undefine Windows macros that conflict with protobuf generated code
+// SDL.h includes Windows.h on Windows, which defines these macros
+#ifdef _WIN32
+#ifdef DWORD
+#undef DWORD
+#endif
+#ifdef ERROR
+#undef ERROR
+#endif
+#ifdef OVERFLOW
+#undef OVERFLOW
+#endif
+#ifdef IGNORE
+#undef IGNORE
+#endif
+#endif  // _WIN32
+
 #include <algorithm>
 #include <chrono>
 #include <deque>
