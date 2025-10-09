@@ -1,5 +1,11 @@
 <map id="yaze::emu::Emulator::RenderSnesPpu" name="yaze::emu::Emulator::RenderSnesPpu">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,141,46"/>
-<area shape="rect" id="Node000002" href="$d3/d15/classyaze_1_1emu_1_1Snes.html#a3e788cd529d979b10a8d85d7ea22f026" title=" " alt="" coords="189,13,351,39"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,23,173,23,173,28,141,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,141,103"/>
+<area shape="rect" id="Node000002" href="$d4/d91/namespaceyaze_1_1emu_1_1ui.html#a7908ff246814344b3cf00ae8f3c9c862" title="SNES PPU output display." alt="" coords="189,70,383,96"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,80,173,80,173,86,141,86"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="445,5,611,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="343,67,429,46,430,52,344,72"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="431,70,624,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="383,80,416,80,416,86,383,86"/>
+<area shape="rect" id="Node000005" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html#ac15aee65e9daf50206b5378dc312dde1" title=" " alt="" coords="460,120,595,161"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="344,94,446,118,444,123,343,99"/>
 </map>

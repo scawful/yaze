@@ -1,8 +1,5 @@
 var namespaceyaze_1_1emu =
 [
-    [ "anonymous_namespace{emulator.cc}", "df/d97/namespaceyaze_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html", [
-      [ "ShouldDisplay", "df/d97/namespaceyaze_1_1emu_1_1anonymous__namespace_02emulator_8cc_03.html#a9fd47357fde3f087bedba71cc56b471d", null ]
-    ] ],
     [ "anonymous_namespace{snes.cc}", "d2/de7/namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html", [
       [ "input_latch", "d2/de7/namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#a34f0bcbc0fe70ab704bb3d117f3a73b1", null ],
       [ "input_read", "d2/de7/namespaceyaze_1_1emu_1_1anonymous__namespace_02snes_8cc_03.html#ac647c716cf7e74b51fd5993fa6ff70fa", null ]
@@ -10,19 +7,7 @@ var namespaceyaze_1_1emu =
     [ "audio", "d2/dc8/namespaceyaze_1_1emu_1_1audio.html", "d2/dc8/namespaceyaze_1_1emu_1_1audio" ],
     [ "debug", "d9/dd4/namespaceyaze_1_1emu_1_1debug.html", "d9/dd4/namespaceyaze_1_1emu_1_1debug" ],
     [ "input", "d5/df0/namespaceyaze_1_1emu_1_1input.html", "d5/df0/namespaceyaze_1_1emu_1_1input" ],
-    [ "ui", "d4/d91/namespaceyaze_1_1emu_1_1ui.html", [
-      [ "RenderModernCpuDebugger", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#a492c44eca5081bee10533eea002e1b2b", null ],
-      [ "RenderBreakpointList", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#a8643bf5bc4bbd777e95f4fa04ae352e2", null ],
-      [ "RenderMemoryViewer", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#af20034c8bd273d685479fb6c85275fd5", null ],
-      [ "RenderCpuInstructionLog", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#af7f2e1b2082bcaeb87d1e3b3ef296ce3", null ],
-      [ "RenderApuDebugger", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#ac97e1a541624122026c204304f041028", null ],
-      [ "RenderAIAgentPanel", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#a71990851776f17dd62b9d3d8b25cf3da", null ],
-      [ "RenderEmulatorInterface", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#ada7a67b7ac3f428c8de3b9722831584c", null ],
-      [ "RenderNavBar", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#a7ff0f5b545fdc2433d8068b2093fa060", null ],
-      [ "RenderSnesPpu", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#a7908ff246814344b3cf00ae8f3c9c862", null ],
-      [ "RenderPerformanceMonitor", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#a2f797b87d98d859524af5b42988ee39d", null ],
-      [ "RenderKeyboardConfig", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#a099d929bda42195211396c79bf4d6e9e", null ]
-    ] ],
+    [ "ui", "d4/d91/namespaceyaze_1_1emu_1_1ui.html", "d4/d91/namespaceyaze_1_1emu_1_1ui" ],
     [ "Apu", "d7/da7/classyaze_1_1emu_1_1Apu.html", "d7/da7/classyaze_1_1emu_1_1Apu" ],
     [ "ApuCallbacks", "df/d64/structyaze_1_1emu_1_1ApuCallbacks.html", "df/d64/structyaze_1_1emu_1_1ApuCallbacks" ],
     [ "ApuDspTest", "d2/d3e/classyaze_1_1emu_1_1ApuDspTest.html", "d2/d3e/classyaze_1_1emu_1_1ApuDspTest" ],

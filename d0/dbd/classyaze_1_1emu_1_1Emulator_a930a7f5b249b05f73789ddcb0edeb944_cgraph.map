@@ -1,0 +1,11 @@
+<map id="yaze::emu::Emulator::RenderAIAgentPanel" name="yaze::emu::Emulator::RenderAIAgentPanel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,154,103"/>
+<area shape="rect" id="Node000002" href="$d4/d91/namespaceyaze_1_1emu_1_1ui.html#a71990851776f17dd62b9d3d8b25cf3da" title="AI Agent panel for automated testing/gameplay." alt="" coords="202,63,390,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,80,186,80,186,86,154,86"/>
+<area shape="rect" id="Node000003" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="452,5,618,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="383,59,436,47,437,52,384,65"/>
+<area shape="rect" id="Node000004" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="438,70,631,96"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="391,80,423,80,423,86,391,86"/>
+<area shape="rect" id="Node000005" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html#af5519b13f2491c968536a7b5a36ef152" title=" " alt="" coords="467,120,602,161"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="384,101,452,118,451,123,383,107"/>
+</map>

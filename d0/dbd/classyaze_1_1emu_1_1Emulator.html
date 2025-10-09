@@ -126,7 +126,7 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad9808f4ae6174fdbecfd3f76ec9e612c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab796b2904a8f7b6cc8e4cabc71032ce2" id="r_ab796b2904a8f7b6cc8e4cabc71032ce2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#ab796b2904a8f7b6cc8e4cabc71032ce2">~Emulator</a> ()</td></tr>
 <tr class="separator:ab796b2904a8f7b6cc8e4cabc71032ce2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a04de9f35e6d2a2799f80bc9bfcb95377" id="r_a04de9f35e6d2a2799f80bc9bfcb95377"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a04de9f35e6d2a2799f80bc9bfcb95377">Initialize</a> (<a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html">gfx::IRenderer</a> *renderer, const std::vector&lt; uint8_t &gt; &amp;rom_data)</td></tr>
+<tr class="memitem:a04de9f35e6d2a2799f80bc9bfcb95377" id="r_a04de9f35e6d2a2799f80bc9bfcb95377"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a04de9f35e6d2a2799f80bc9bfcb95377">Initialize</a> (<a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html">gfx::IRenderer</a> *<a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a04cb41b2da2d64959d2ef97cc33981a7">renderer</a>, const std::vector&lt; uint8_t &gt; &amp;rom_data)</td></tr>
 <tr class="separator:a04de9f35e6d2a2799f80bc9bfcb95377"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf834cdf89a31bf4ec94894039cb3118" id="r_adf834cdf89a31bf4ec94894039cb3118"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#adf834cdf89a31bf4ec94894039cb3118">Run</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
 <tr class="separator:adf834cdf89a31bf4ec94894039cb3118"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -136,6 +136,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae7676db1e19dc323e578195bc5699297"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb8057d7c853b6f52dc64b5b24ab3746" id="r_aeb8057d7c853b6f52dc64b5b24ab3746"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#aeb8057d7c853b6f52dc64b5b24ab3746">running</a> () const -&gt; bool</td></tr>
 <tr class="separator:aeb8057d7c853b6f52dc64b5b24ab3746"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc3c1a7cbe20540ffdaea762229e7d08" id="r_abc3c1a7cbe20540ffdaea762229e7d08"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#abc3c1a7cbe20540ffdaea762229e7d08">set_running</a> (bool <a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#aeb8057d7c853b6f52dc64b5b24ab3746">running</a>)</td></tr>
+<tr class="separator:abc3c1a7cbe20540ffdaea762229e7d08"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae424c65f818b392a32e972828d2b8f46" id="r_ae424c65f818b392a32e972828d2b8f46"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html">audio::IAudioBackend</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#ae424c65f818b392a32e972828d2b8f46">audio_backend</a> ()</td></tr>
 <tr class="separator:ae424c65f818b392a32e972828d2b8f46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a62766ed1e2142ab6e6e0c632de9c7e04" id="r_a62766ed1e2142ab6e6e0c632de9c7e04"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a62766ed1e2142ab6e6e0c632de9c7e04">set_audio_buffer</a> (int16_t *audio_buffer)</td></tr>
@@ -144,14 +146,30 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8744a05e34c38f5365d8bead60b051b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10d946348186d108370bdbe0c18fb7d1" id="r_a10d946348186d108370bdbe0c18fb7d1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a10d946348186d108370bdbe0c18fb7d1">wanted_samples</a> () const -&gt; int</td></tr>
 <tr class="separator:a10d946348186d108370bdbe0c18fb7d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a688f3036a951ac710a0716b042e13953" id="r_a688f3036a951ac710a0716b042e13953"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a688f3036a951ac710a0716b042e13953">set_renderer</a> (<a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html">gfx::IRenderer</a> *renderer)</td></tr>
+<tr class="memitem:a688f3036a951ac710a0716b042e13953" id="r_a688f3036a951ac710a0716b042e13953"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a688f3036a951ac710a0716b042e13953">set_renderer</a> (<a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html">gfx::IRenderer</a> *<a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a04cb41b2da2d64959d2ef97cc33981a7">renderer</a>)</td></tr>
 <tr class="separator:a688f3036a951ac710a0716b042e13953"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04cb41b2da2d64959d2ef97cc33981a7" id="r_a04cb41b2da2d64959d2ef97cc33981a7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html">gfx::IRenderer</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a04cb41b2da2d64959d2ef97cc33981a7">renderer</a> ()</td></tr>
+<tr class="separator:a04cb41b2da2d64959d2ef97cc33981a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3753c067e38b6c80dda17bc51c25f6c4" id="r_a3753c067e38b6c80dda17bc51c25f6c4"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a3753c067e38b6c80dda17bc51c25f6c4">ppu_texture</a> ()</td></tr>
+<tr class="separator:a3753c067e38b6c80dda17bc51c25f6c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa519c0c8514607d60d4dda99fc945980" id="r_aa519c0c8514607d60d4dda99fc945980"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#aa519c0c8514607d60d4dda99fc945980">turbo_mode</a> () const</td></tr>
+<tr class="separator:aa519c0c8514607d60d4dda99fc945980"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a181d0ce259b73db282597b0d44ea259e" id="r_a181d0ce259b73db282597b0d44ea259e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a181d0ce259b73db282597b0d44ea259e">set_turbo_mode</a> (bool turbo)</td></tr>
+<tr class="separator:a181d0ce259b73db282597b0d44ea259e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05c552712bf33cbe32deddfa6d2878ba" id="r_a05c552712bf33cbe32deddfa6d2878ba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html">BreakpointManager</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a05c552712bf33cbe32deddfa6d2878ba">breakpoint_manager</a> ()</td></tr>
 <tr class="separator:a05c552712bf33cbe32deddfa6d2878ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92a4f0fa746976be9aeaa58be38a1299" id="r_a92a4f0fa746976be9aeaa58be38a1299"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html">debug::DisassemblyViewer</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a92a4f0fa746976be9aeaa58be38a1299">disassembly_viewer</a> ()</td></tr>
+<tr class="separator:a92a4f0fa746976be9aeaa58be38a1299"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89d4926afde8e3635ed1e27d3dae6fdd" id="r_a89d4926afde8e3635ed1e27d3dae6fdd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html">input::InputManager</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a89d4926afde8e3635ed1e27d3dae6fdd">input_manager</a> ()</td></tr>
+<tr class="separator:a89d4926afde8e3635ed1e27d3dae6fdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14c1a83d0a2e81d3e0cfd320959d5279" id="r_a14c1a83d0a2e81d3e0cfd320959d5279"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a14c1a83d0a2e81d3e0cfd320959d5279">is_debugging</a> () const</td></tr>
 <tr class="separator:a14c1a83d0a2e81d3e0cfd320959d5279"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5f6ff551de14ef30f401c349c24d2202" id="r_a5f6ff551de14ef30f401c349c24d2202"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a5f6ff551de14ef30f401c349c24d2202">set_debugging</a> (bool debugging)</td></tr>
 <tr class="separator:a5f6ff551de14ef30f401c349c24d2202"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ecdba1b8fba11968bf7ec869d58748b" id="r_a1ecdba1b8fba11968bf7ec869d58748b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a1ecdba1b8fba11968bf7ec869d58748b">is_initialized</a> () const</td></tr>
+<tr class="separator:a1ecdba1b8fba11968bf7ec869d58748b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac15aee65e9daf50206b5378dc312dde1" id="r_ac15aee65e9daf50206b5378dc312dde1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#ac15aee65e9daf50206b5378dc312dde1">is_snes_initialized</a> () const</td></tr>
+<tr class="separator:ac15aee65e9daf50206b5378dc312dde1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3774f160f1a7cf10c81532bd9a8774f2" id="r_a3774f160f1a7cf10c81532bd9a8774f2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a3774f160f1a7cf10c81532bd9a8774f2">IsEmulatorReady</a> () const</td></tr>
 <tr class="separator:a3774f160f1a7cf10c81532bd9a8774f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5242d1c4f82b0e7f94acf2aaf68c4e9a" id="r_a5242d1c4f82b0e7f94acf2aaf68c4e9a"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a5242d1c4f82b0e7f94acf2aaf68c4e9a">GetCurrentFPS</a> () const</td></tr>
@@ -306,9 +324,9 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00059">59</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00027">27</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00114">running_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00127">running_</a>.</p>
 
 </div>
 </div>
@@ -339,25 +357,9 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00079">79</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00047">47</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00137">audio_backend_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00147">breakpoint_manager_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00025">yaze::emu::audio::AudioConfig::buffer_frames</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00024">yaze::emu::audio::AudioConfig::channels</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ac8a0731654f403685cc4d7af00d1e520afb32f35a2a5e74549e890369b4cc3934">yaze::emu::BreakpointManager::CPU_65816</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00182">yaze::emu::audio::AudioBackendFactory::Create()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00148">disassembly_viewer_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00026">yaze::emu::audio::AudioConfig::format</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00140">initialized_</a>, <a class="el" href="../../d2/dc8/namespaceyaze_1_1emu_1_1audio.html#a870fe4320e8f6ce85c55f7a2aa695898a5f90af42814c0a419d715d43ae54fd7a">yaze::emu::audio::INT16</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00097">LOG_ERROR</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00030">yaze::emu::debug::DisassemblyViewer::RecordInstruction()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00143">renderer_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00150">rom_data_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00114">running_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00023">yaze::emu::audio::AudioConfig::sample_rate</a>, <a class="el" href="../../d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory.html#adf10bc89980079fa405fa9cdd8c94406a2320cc88dc435ddbb381c8b30b85e8a9">yaze::emu::audio::AudioBackendFactory::SDL2</a>, <a class="el" href="../../d3/d46/breakpoint__manager_8cc_source.html#l00049">yaze::emu::BreakpointManager::ShouldBreakOnExecute()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00141">snes_initialized_</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d0/dbd/classyaze_1_1emu_1_1Emulator_a04de9f35e6d2a2799f80bc9bfcb95377_cgraph.png" border="0" usemap="#ad0/dbd/classyaze_1_1emu_1_1Emulator_a04de9f35e6d2a2799f80bc9bfcb95377_cgraph" alt=""/></div>
-<map name="ad0/dbd/classyaze_1_1emu_1_1Emulator_a04de9f35e6d2a2799f80bc9bfcb95377_cgraph" id="ad0/dbd/classyaze_1_1emu_1_1Emulator_a04de9f35e6d2a2799f80bc9bfcb95377_cgraph">
-<area shape="rect" title=" " alt="" coords="5,89,141,129"/>
-<area shape="rect" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a8dd716e4ae561f358d40be65f9cc9847" title=" " alt="" coords="221,5,362,31"/>
-<area shape="poly" title=" " alt="" coords="104,86,143,63,188,41,210,33,211,38,190,46,145,67,107,90"/>
-<area shape="rect" href="../../d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory.html#a3da6a6b4e9298006c2ee7feafd90057d" title=" " alt="" coords="189,55,394,96"/>
-<area shape="poly" title=" " alt="" coords="140,96,173,91,173,96,141,101"/>
-<area shape="rect" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html#aa767ffbd1d6ca259733b5b0a3e207a96" title="Record an instruction execution." alt="" coords="192,121,391,161"/>
-<area shape="poly" title=" " alt="" coords="141,116,177,121,176,127,140,121"/>
-<area shape="rect" href="../../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#a17a84429e8a9c1f92f5799aed3d66ec9" title="Check if execution should break at this address." alt="" coords="193,186,390,227"/>
-<area shape="poly" title=" " alt="" coords="109,127,190,170,207,178,205,183,188,175,106,132"/>
-</map>
-</div>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00150">audio_backend_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00160">breakpoint_manager_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00025">yaze::emu::audio::AudioConfig::buffer_frames</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00024">yaze::emu::audio::AudioConfig::channels</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ac8a0731654f403685cc4d7af00d1e520afb32f35a2a5e74549e890369b4cc3934">yaze::emu::BreakpointManager::CPU_65816</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00182">yaze::emu::audio::AudioBackendFactory::Create()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00161">disassembly_viewer_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00026">yaze::emu::audio::AudioConfig::format</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00153">initialized_</a>, <a class="el" href="../../d2/dc8/namespaceyaze_1_1emu_1_1audio.html#a870fe4320e8f6ce85c55f7a2aa695898a5f90af42814c0a419d715d43ae54fd7a">yaze::emu::audio::INT16</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00097">LOG_ERROR</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../d7/dad/disassembly__viewer_8cc_source.html#l00030">yaze::emu::debug::DisassemblyViewer::RecordInstruction()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00054">renderer()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00156">renderer_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00163">rom_data_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00127">running_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00023">yaze::emu::audio::AudioConfig::sample_rate</a>, <a class="el" href="../../d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory.html#adf10bc89980079fa405fa9cdd8c94406a2320cc88dc435ddbb381c8b30b85e8a9">yaze::emu::audio::AudioBackendFactory::SDL2</a>, <a class="el" href="../../d3/d46/breakpoint__manager_8cc_source.html#l00049">yaze::emu::BreakpointManager::ShouldBreakOnExecute()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00154">snes_initialized_</a>.</p>
 
 </div>
 </div>
@@ -377,9 +379,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">123</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">91</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00069">yaze::emu::Snes::apu()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00075">yaze::emu::Snes::apu_handshake_tracker()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00137">audio_backend_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00133">audio_buffer_</a>, <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00060">yaze::emu::input::InputManager::backend()</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00025">yaze::emu::audio::AudioConfig::buffer_frames</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00024">yaze::emu::audio::AudioConfig::channels</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00124">count_frequency</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00182">yaze::emu::audio::AudioBackendFactory::Create()</a>, <a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html#ad9258f0291f0e8e847e7fa125b614c76">yaze::gfx::IRenderer::CreateTextureWithFormat()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00131">current_fps_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00026">yaze::emu::audio::AudioConfig::format</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00130">fps_timer_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00129">frame_count_</a>, <a class="el" href="../../d7/d60/window_8cc_source.html#l00055">yaze::core::g_window_is_resizing</a>, <a class="el" href="../../d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html#a50ae8f4acf5dcfefb69dcb250cc85b58">yaze::emu::input::IInputBackend::GetBackendName()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00033">yaze::emu::Snes::Init()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00010">yaze::emu::input::InputManager::Initialize()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00153">input_manager_</a>, <a class="el" href="../../d2/dc8/namespaceyaze_1_1emu_1_1audio.html#a870fe4320e8f6ce85c55f7a2aa695898a5f90af42814c0a419d715d43ae54fd7a">yaze::emu::audio::INT16</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00031">yaze::emu::audio::AudioStatus::is_playing</a>, <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00066">yaze::emu::input::InputManager::IsInitialized()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00125">last_count</a>, <a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a27ee4b699d27cd3612cb8d2867313285">yaze::gfx::IRenderer::LockTexture()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00097">LOG_ERROR</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00095">LOG_WARN</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00070">yaze::emu::Snes::memory()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00047">yaze::emu::input::InputManager::Poll()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00144">ppu_texture_</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00380">RenderEmulatorInterface()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00143">renderer_</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00553">RenderNavBar()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00150">rom_data_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00093">yaze::emu::Snes::RunFrame()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00066">yaze::emu::Snes::running()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00114">running_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00023">yaze::emu::audio::AudioConfig::sample_rate</a>, <a class="el" href="../../d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory.html#adf10bc89980079fa405fa9cdd8c94406a2320cc88dc435ddbb381c8b30b85e8a9">yaze::emu::audio::AudioBackendFactory::SDL2</a>, <a class="el" href="../../d1/de9/classyaze_1_1emu_1_1input_1_1InputBackendFactory.html#a4646ca1a12ebf8e628c5ba7da551b2d2a2320cc88dc435ddbb381c8b30b85e8a9">yaze::emu::input::InputBackendFactory::SDL2</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00635">yaze::emu::Snes::SetPixels()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">yaze::emu::Snes::SetSamples()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00141">snes_initialized_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00126">time_adder</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00115">turbo_mode_</a>, <a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a08129a91eef8093b0d0dbe64356d5273">yaze::gfx::IRenderer::UnlockTexture()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00206">yaze::Rom::vector()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00117">wanted_frames_</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00118">wanted_samples_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00069">yaze::emu::Snes::apu()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00075">yaze::emu::Snes::apu_handshake_tracker()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00150">audio_backend_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00146">audio_buffer_</a>, <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00060">yaze::emu::input::InputManager::backend()</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00025">yaze::emu::audio::AudioConfig::buffer_frames</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00024">yaze::emu::audio::AudioConfig::channels</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00137">count_frequency</a>, <a class="el" href="../../df/dc6/audio__backend_8cc_source.html#l00182">yaze::emu::audio::AudioBackendFactory::Create()</a>, <a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html#ad9258f0291f0e8e847e7fa125b614c76">yaze::gfx::IRenderer::CreateTextureWithFormat()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00144">current_fps_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00026">yaze::emu::audio::AudioConfig::format</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00143">fps_timer_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00142">frame_count_</a>, <a class="el" href="../../d7/d60/window_8cc_source.html#l00055">yaze::core::g_window_is_resizing</a>, <a class="el" href="../../d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html#a50ae8f4acf5dcfefb69dcb250cc85b58">yaze::emu::input::IInputBackend::GetBackendName()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00033">yaze::emu::Snes::Init()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00010">yaze::emu::input::InputManager::Initialize()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00166">input_manager_</a>, <a class="el" href="../../d2/dc8/namespaceyaze_1_1emu_1_1audio.html#a870fe4320e8f6ce85c55f7a2aa695898a5f90af42814c0a419d715d43ae54fd7a">yaze::emu::audio::INT16</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00031">yaze::emu::audio::AudioStatus::is_playing</a>, <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00066">yaze::emu::input::InputManager::IsInitialized()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00138">last_count</a>, <a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a27ee4b699d27cd3612cb8d2867313285">yaze::gfx::IRenderer::LockTexture()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00097">LOG_ERROR</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00095">LOG_WARN</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00070">yaze::emu::Snes::memory()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00047">yaze::emu::input::InputManager::Poll()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00157">ppu_texture_</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00348">RenderEmulatorInterface()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00156">renderer_</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00503">RenderNavBar()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00163">rom_data_</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00093">yaze::emu::Snes::RunFrame()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00066">yaze::emu::Snes::running()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00127">running_</a>, <a class="el" href="../../d4/d03/audio__backend_8h_source.html#l00023">yaze::emu::audio::AudioConfig::sample_rate</a>, <a class="el" href="../../d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory.html#adf10bc89980079fa405fa9cdd8c94406a2320cc88dc435ddbb381c8b30b85e8a9">yaze::emu::audio::AudioBackendFactory::SDL2</a>, <a class="el" href="../../d1/de9/classyaze_1_1emu_1_1input_1_1InputBackendFactory.html#a4646ca1a12ebf8e628c5ba7da551b2d2a2320cc88dc435ddbb381c8b30b85e8a9">yaze::emu::input::InputBackendFactory::SDL2</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00635">yaze::emu::Snes::SetPixels()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">yaze::emu::Snes::SetSamples()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00154">snes_initialized_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">time_adder</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00128">turbo_mode_</a>, <a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a08129a91eef8093b0d0dbe64356d5273">yaze::gfx::IRenderer::UnlockTexture()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00206">yaze::Rom::vector()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00130">wanted_frames_</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00131">wanted_samples_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l01271">yaze::editor::EditorManager::DrawMenuBar()</a>.</p>
 
@@ -400,9 +402,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00065">65</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00033">33</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00144">ppu_texture_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00114">running_</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00141">snes_initialized_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00157">ppu_texture_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00127">running_</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00154">snes_initialized_</a>.</p>
 
 </div>
 </div>
@@ -431,9 +433,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00040">40</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00219">yaze::editor::MusicEditor::PlaySong()</a>, and <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00252">yaze::editor::MusicEditor::StopSong()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00219">yaze::editor::MusicEditor::PlaySong()</a>, <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00336">yaze::emu::ui::RenderApuDebugger()</a>, <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00216">yaze::emu::ui::RenderBreakpointList()</a>, <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00269">yaze::emu::ui::RenderMemoryViewer()</a>, <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00031">yaze::emu::ui::RenderModernCpuDebugger()</a>, <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00038">yaze::emu::ui::RenderNavBar()</a>, <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00215">yaze::emu::ui::RenderPerformanceMonitor()</a>, and <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00252">yaze::editor::MusicEditor::StopSong()</a>.</p>
 
 </div>
 </div>
@@ -462,7 +464,51 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00041">41</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00114">running_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00127">running_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00038">yaze::emu::ui::RenderNavBar()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00042">set_running()</a>.</p>
+
+</div>
+</div>
+<a id="abc3c1a7cbe20540ffdaea762229e7d08" name="abc3c1a7cbe20540ffdaea762229e7d08"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc3c1a7cbe20540ffdaea762229e7d08">&#9670;&#160;</a></span>set_running()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::Emulator::set_running </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>running</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00042">42</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00041">running()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00127">running_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00031">yaze::emu::ui::RenderModernCpuDebugger()</a>, and <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00038">yaze::emu::ui::RenderNavBar()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d0/dbd/classyaze_1_1emu_1_1Emulator_abc3c1a7cbe20540ffdaea762229e7d08_cgraph.png" border="0" usemap="#ad0/dbd/classyaze_1_1emu_1_1Emulator_abc3c1a7cbe20540ffdaea762229e7d08_cgraph" alt=""/></div>
+<map name="ad0/dbd/classyaze_1_1emu_1_1Emulator_abc3c1a7cbe20540ffdaea762229e7d08_cgraph" id="ad0/dbd/classyaze_1_1emu_1_1Emulator_abc3c1a7cbe20540ffdaea762229e7d08_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,141,46"/>
+<area shape="rect" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#aeb8057d7c853b6f52dc64b5b24ab3746" title=" " alt="" coords="189,5,324,46"/>
+<area shape="poly" title=" " alt="" coords="141,23,173,23,173,28,141,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -489,11 +535,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00044">44</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00045">45</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00137">audio_backend_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00150">audio_backend_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00219">yaze::editor::MusicEditor::PlaySong()</a>, <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00271">yaze::editor::MusicEditor::SetVolume()</a>, and <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00252">yaze::editor::MusicEditor::StopSong()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00219">yaze::editor::MusicEditor::PlaySong()</a>, <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00038">yaze::emu::ui::RenderNavBar()</a>, <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00215">yaze::emu::ui::RenderPerformanceMonitor()</a>, <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00271">yaze::editor::MusicEditor::SetVolume()</a>, and <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00252">yaze::editor::MusicEditor::StopSong()</a>.</p>
 
 </div>
 </div>
@@ -521,9 +567,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00045">45</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00046">46</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00133">audio_buffer_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00146">audio_buffer_</a>.</p>
 
 </div>
 </div>
@@ -551,9 +597,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00046">46</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00047">47</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00134">audio_device_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00147">audio_device_</a>.</p>
 
 </div>
 </div>
@@ -580,9 +626,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00049">49</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00050">50</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00118">wanted_samples_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00131">wanted_samples_</a>.</p>
 
 </div>
 </div>
@@ -610,11 +656,142 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00050">50</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00051">51</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00143">renderer_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00054">renderer()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00156">renderer_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02111">yaze::editor::EditorManager::LoadAssets()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d0/dbd/classyaze_1_1emu_1_1Emulator_a688f3036a951ac710a0716b042e13953_cgraph.png" border="0" usemap="#ad0/dbd/classyaze_1_1emu_1_1Emulator_a688f3036a951ac710a0716b042e13953_cgraph" alt=""/></div>
+<map name="ad0/dbd/classyaze_1_1emu_1_1Emulator_a688f3036a951ac710a0716b042e13953_cgraph" id="ad0/dbd/classyaze_1_1emu_1_1Emulator_a688f3036a951ac710a0716b042e13953_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,141,46"/>
+<area shape="rect" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a04cb41b2da2d64959d2ef97cc33981a7" title=" " alt="" coords="189,5,324,46"/>
+<area shape="poly" title=" " alt="" coords="141,23,173,23,173,28,141,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a04cb41b2da2d64959d2ef97cc33981a7" name="a04cb41b2da2d64959d2ef97cc33981a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a04cb41b2da2d64959d2ef97cc33981a7">&#9670;&#160;</a></span>renderer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html">gfx::IRenderer</a> * yaze::emu::Emulator::renderer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00054">54</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00156">renderer_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00047">Initialize()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00051">set_renderer()</a>.</p>
+
+</div>
+</div>
+<a id="a3753c067e38b6c80dda17bc51c25f6c4" name="a3753c067e38b6c80dda17bc51c25f6c4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3753c067e38b6c80dda17bc51c25f6c4">&#9670;&#160;</a></span>ppu_texture()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void * yaze::emu::Emulator::ppu_texture </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00055">55</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00157">ppu_texture_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00169">yaze::emu::ui::RenderSnesPpu()</a>.</p>
+
+</div>
+</div>
+<a id="aa519c0c8514607d60d4dda99fc945980" name="aa519c0c8514607d60d4dda99fc945980"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa519c0c8514607d60d4dda99fc945980">&#9670;&#160;</a></span>turbo_mode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::emu::Emulator::turbo_mode </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00058">58</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00128">turbo_mode_</a>.</p>
+
+</div>
+</div>
+<a id="a181d0ce259b73db282597b0d44ea259e" name="a181d0ce259b73db282597b0d44ea259e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a181d0ce259b73db282597b0d44ea259e">&#9670;&#160;</a></span>set_turbo_mode()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::Emulator::set_turbo_mode </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>turbo</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00059">59</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00128">turbo_mode_</a>.</p>
 
 </div>
 </div>
@@ -641,9 +818,69 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00053">53</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00062">62</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00147">breakpoint_manager_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00160">breakpoint_manager_</a>.</p>
+
+</div>
+</div>
+<a id="a92a4f0fa746976be9aeaa58be38a1299" name="a92a4f0fa746976be9aeaa58be38a1299"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92a4f0fa746976be9aeaa58be38a1299">&#9670;&#160;</a></span>disassembly_viewer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html">debug::DisassemblyViewer</a> &amp; yaze::emu::Emulator::disassembly_viewer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00063">63</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00161">disassembly_viewer_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00305">yaze::emu::ui::RenderCpuInstructionLog()</a>.</p>
+
+</div>
+</div>
+<a id="a89d4926afde8e3635ed1e27d3dae6fdd" name="a89d4926afde8e3635ed1e27d3dae6fdd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a89d4926afde8e3635ed1e27d3dae6fdd">&#9670;&#160;</a></span>input_manager()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html">input::InputManager</a> &amp; yaze::emu::Emulator::input_manager </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00064">64</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00166">input_manager_</a>.</p>
 
 </div>
 </div>
@@ -670,9 +907,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00054">54</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00065">65</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00142">debugging_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00155">debugging_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00038">yaze::emu::ui::RenderNavBar()</a>.</p>
 
 </div>
 </div>
@@ -700,9 +939,71 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00055">55</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00066">66</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00142">debugging_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00155">debugging_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00038">yaze::emu::ui::RenderNavBar()</a>.</p>
+
+</div>
+</div>
+<a id="a1ecdba1b8fba11968bf7ec869d58748b" name="a1ecdba1b8fba11968bf7ec869d58748b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ecdba1b8fba11968bf7ec869d58748b">&#9670;&#160;</a></span>is_initialized()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::emu::Emulator::is_initialized </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00067">67</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00153">initialized_</a>.</p>
+
+</div>
+</div>
+<a id="ac15aee65e9daf50206b5378dc312dde1" name="ac15aee65e9daf50206b5378dc312dde1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac15aee65e9daf50206b5378dc312dde1">&#9670;&#160;</a></span>is_snes_initialized()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::emu::Emulator::is_snes_initialized </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00068">68</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00154">snes_initialized_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00169">yaze::emu::ui::RenderSnesPpu()</a>.</p>
 
 </div>
 </div>
@@ -729,11 +1030,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00058">58</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00071">71</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00150">rom_data_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00066">yaze::emu::Snes::running()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00163">rom_data_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00066">yaze::emu::Snes::running()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01131">RenderAIAgentPanel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00539">yaze::emu::ui::RenderAIAgentPanel()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -770,9 +1071,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00059">59</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00072">72</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00131">current_fps_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00144">current_fps_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00038">yaze::emu::ui::RenderNavBar()</a>.</p>
 
 </div>
 </div>
@@ -799,9 +1102,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00060">60</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00073">73</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00072">yaze::emu::Snes::mutable_cycles()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00072">yaze::emu::Snes::mutable_cycles()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -838,9 +1141,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00061">61</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00074">74</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -877,9 +1180,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00062">62</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00075">75</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -916,11 +1219,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00063">63</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00076">76</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01131">RenderAIAgentPanel()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -958,11 +1259,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00064">64</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00077">77</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01131">RenderAIAgentPanel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00031">yaze::emu::ui::RenderModernCpuDebugger()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -999,11 +1300,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00065">65</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00078">78</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01131">RenderAIAgentPanel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00031">yaze::emu::ui::RenderModernCpuDebugger()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1040,11 +1341,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00066">66</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00079">79</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01131">RenderAIAgentPanel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00216">yaze::emu::ui::RenderBreakpointList()</a>, and <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00031">yaze::emu::ui::RenderModernCpuDebugger()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1081,11 +1382,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00077">77</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00090">90</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00134">audio_device_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00131">current_fps_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00070">yaze::emu::Emulator::EmulatorMetrics::fps</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00072">yaze::emu::Snes::mutable_cycles()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00114">running_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00118">wanted_samples_</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00147">audio_device_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00144">current_fps_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00083">yaze::emu::Emulator::EmulatorMetrics::fps</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00072">yaze::emu::Snes::mutable_cycles()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00127">running_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00131">wanted_samples_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01131">RenderAIAgentPanel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00539">yaze::emu::ui::RenderAIAgentPanel()</a>, and <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00215">yaze::emu::ui::RenderPerformanceMonitor()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1124,11 +1425,27 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00553">553</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00503">503</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00137">audio_backend_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00131">current_fps_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00148">disassembly_viewer_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01193">ICON_MD_MEMORY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01387">ICON_MD_PAUSE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01477">ICON_MD_PLAY_ARROW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01642">ICON_MD_SAVE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01697">ICON_MD_SETTINGS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01771">ICON_MD_SKIP_NEXT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01860">ICON_MD_STOP</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01926">ICON_MD_SYSTEM_UPDATE_ALT</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00033">yaze::emu::Snes::Init()</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00117">yaze::emu::debug::DisassemblyViewer::IsRecording()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00754">RenderMemoryViewer()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00051">yaze::emu::Snes::Reset()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00150">rom_data_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00114">running_</a>, <a class="el" href="../../d4/dd1/disassembly__viewer_8h_source.html#l00116">yaze::emu::debug::DisassemblyViewer::SetRecording()</a>, <a class="el" href="../../d2/d3f/classyaze_1_1util_1_1FileDialogWrapper.html#a6b6052a259965e33017135077dad1205">yaze::util::FileDialogWrapper::ShowOpenFileDialog()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00115">turbo_mode_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00038">yaze::emu::ui::RenderNavBar()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d0/dbd/classyaze_1_1emu_1_1Emulator_a633c7813e4160322bcc71056bf8df523_cgraph.png" border="0" usemap="#ad0/dbd/classyaze_1_1emu_1_1Emulator_a633c7813e4160322bcc71056bf8df523_cgraph" alt=""/></div>
+<map name="ad0/dbd/classyaze_1_1emu_1_1Emulator_a633c7813e4160322bcc71056bf8df523_cgraph" id="ad0/dbd/classyaze_1_1emu_1_1Emulator_a633c7813e4160322bcc71056bf8df523_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,141,111"/>
+<area shape="rect" href="../../d4/d91/namespaceyaze_1_1emu_1_1ui.html#a7ff0f5b545fdc2433d8068b2093fa060" title="Navigation bar with play/pause, step, reset controls." alt="" coords="189,78,374,104"/>
+<area shape="poly" title=" " alt="" coords="141,88,173,88,173,94,141,94"/>
+<area shape="rect" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#ae424c65f818b392a32e972828d2b8f46" title=" " alt="" coords="451,5,586,46"/>
+<area shape="poly" title=" " alt="" coords="330,75,435,46,437,51,331,80"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="436,71,602,111"/>
+<area shape="poly" title=" " alt="" coords="374,88,420,88,420,94,374,94"/>
+<area shape="rect" href="../../d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="422,136,615,161"/>
+<area shape="poly" title=" " alt="" coords="338,102,448,129,447,134,337,107"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1155,11 +1472,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00380">380</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00348">348</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">yaze::gui::EditorCard::Begin()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba2ad9d63b69c4a10a5cc9cad923133bc4">yaze::gui::EditorCard::Bottom</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00306">yaze::gui::EditorCard::End()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bac8df43648942ec3a9aec140f07f47b7c">yaze::gui::EditorCard::Floating</a>, <a class="el" href="../../dd/d4c/theme__manager_8cc_source.html#l00114">yaze::gui::ThemeManager::Get()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00325">ICON_MD_BUG_REPORT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00517">ICON_MD_DATA_ARRAY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01026">ICON_MD_KEYBOARD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01193">ICON_MD_MEMORY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01262">ICON_MD_MUSIC_NOTE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01642">ICON_MD_SAVE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01779">ICON_MD_SMART_TOY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01815">ICON_MD_SPEED</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02074">ICON_MD_VIDEOGAME_ASSET</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01131">RenderAIAgentPanel()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01393">RenderApuDebugger()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00693">RenderBreakpointList()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01388">RenderKeyboardConfig()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00754">RenderMemoryViewer()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00837">RenderModernCpuDebugger()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01053">RenderPerformanceMonitor()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01301">RenderSaveStates()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00530">RenderSnesPpu()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba92b09c7c48c520c3c55e497875da437c">yaze::gui::EditorCard::Right</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">yaze::gui::EditorCard::SetDefaultSize()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00246">yaze::gui::EditorCard::SetPosition()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">yaze::gui::EditorCard::Begin()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba2ad9d63b69c4a10a5cc9cad923133bc4">yaze::gui::EditorCard::Bottom</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00306">yaze::gui::EditorCard::End()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bac8df43648942ec3a9aec140f07f47b7c">yaze::gui::EditorCard::Floating</a>, <a class="el" href="../../dd/d4c/theme__manager_8cc_source.html#l00114">yaze::gui::ThemeManager::Get()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00325">ICON_MD_BUG_REPORT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00517">ICON_MD_DATA_ARRAY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01026">ICON_MD_KEYBOARD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01193">ICON_MD_MEMORY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01262">ICON_MD_MUSIC_NOTE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01642">ICON_MD_SAVE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01779">ICON_MD_SMART_TOY</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01815">ICON_MD_SPEED</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l02074">ICON_MD_VIDEOGAME_ASSET</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00743">RenderAIAgentPanel()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00769">RenderApuDebugger()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00512">RenderBreakpointList()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00764">RenderKeyboardConfig()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00517">RenderMemoryViewer()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00522">RenderModernCpuDebugger()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00738">RenderPerformanceMonitor()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00754">RenderSaveStates()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00498">RenderSnesPpu()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba92b09c7c48c520c3c55e497875da437c">yaze::gui::EditorCard::Right</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">yaze::gui::EditorCard::SetDefaultSize()</a>, and <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00246">yaze::gui::EditorCard::SetPosition()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>
@@ -1186,19 +1503,25 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00530">530</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00498">498</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00144">ppu_texture_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00066">yaze::emu::Snes::running()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00169">yaze::emu::ui::RenderSnesPpu()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00380">RenderEmulatorInterface()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00348">RenderEmulatorInterface()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d0/dbd/classyaze_1_1emu_1_1Emulator_a7ba570e817991c947635a0dafb0fbbd5_cgraph.png" border="0" usemap="#ad0/dbd/classyaze_1_1emu_1_1Emulator_a7ba570e817991c947635a0dafb0fbbd5_cgraph" alt=""/></div>
 <map name="ad0/dbd/classyaze_1_1emu_1_1Emulator_a7ba570e817991c947635a0dafb0fbbd5_cgraph" id="ad0/dbd/classyaze_1_1emu_1_1Emulator_a7ba570e817991c947635a0dafb0fbbd5_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,141,46"/>
-<area shape="rect" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a3e788cd529d979b10a8d85d7ea22f026" title=" " alt="" coords="189,13,351,39"/>
-<area shape="poly" title=" " alt="" coords="141,23,173,23,173,28,141,28"/>
+<area shape="rect" title=" " alt="" coords="5,63,141,103"/>
+<area shape="rect" href="../../d4/d91/namespaceyaze_1_1emu_1_1ui.html#a7908ff246814344b3cf00ae8f3c9c862" title="SNES PPU output display." alt="" coords="189,70,383,96"/>
+<area shape="poly" title=" " alt="" coords="141,80,173,80,173,86,141,86"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="445,5,611,46"/>
+<area shape="poly" title=" " alt="" coords="343,67,429,46,430,52,344,72"/>
+<area shape="rect" href="../../d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="431,70,624,96"/>
+<area shape="poly" title=" " alt="" coords="383,80,416,80,416,86,383,86"/>
+<area shape="rect" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#ac15aee65e9daf50206b5378dc312dde1" title=" " alt="" coords="460,120,595,161"/>
+<area shape="poly" title=" " alt="" coords="344,94,446,118,444,123,343,99"/>
 </map>
 </div>
 
@@ -1227,25 +1550,25 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00693">693</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00512">512</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00069">yaze::emu::Snes::apu()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00189">yaze::gui::InputHexByte()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00175">yaze::gui::InputHexWord()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00120">manual_pb_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00121">manual_pc_</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00216">yaze::emu::ui::RenderBreakpointList()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00380">RenderEmulatorInterface()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00348">RenderEmulatorInterface()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d0/dbd/classyaze_1_1emu_1_1Emulator_a9548a53ee762f8ae08f6732af5f92cd8_cgraph.png" border="0" usemap="#ad0/dbd/classyaze_1_1emu_1_1Emulator_a9548a53ee762f8ae08f6732af5f92cd8_cgraph" alt=""/></div>
 <map name="ad0/dbd/classyaze_1_1emu_1_1Emulator_a9548a53ee762f8ae08f6732af5f92cd8_cgraph" id="ad0/dbd/classyaze_1_1emu_1_1Emulator_a9548a53ee762f8ae08f6732af5f92cd8_cgraph">
-<area shape="rect" title=" " alt="" coords="5,73,158,113"/>
-<area shape="rect" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a5f4b8b830b46e8b590319bd24dec91fd" title=" " alt="" coords="214,5,356,31"/>
-<area shape="poly" title=" " alt="" coords="129,70,205,40,222,34,224,39,207,45,131,75"/>
-<area shape="rect" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a8dd716e4ae561f358d40be65f9cc9847" title=" " alt="" coords="214,55,356,80"/>
-<area shape="poly" title=" " alt="" coords="158,81,198,76,199,81,158,86"/>
-<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#ad6fc4f91fda0b724a3d134d7837af651" title=" " alt="" coords="208,104,362,130"/>
-<area shape="poly" title=" " alt="" coords="158,99,193,103,192,109,158,104"/>
-<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a2be4bdb4d48912825342ba9df3da5237" title=" " alt="" coords="206,153,364,179"/>
-<area shape="poly" title=" " alt="" coords="133,111,207,140,224,146,222,151,205,145,131,116"/>
+<area shape="rect" title=" " alt="" coords="5,63,158,103"/>
+<area shape="rect" href="../../d4/d91/namespaceyaze_1_1emu_1_1ui.html#a8643bf5bc4bbd777e95f4fa04ae352e2" title="Breakpoint list and management." alt="" coords="206,70,431,96"/>
+<area shape="poly" title=" " alt="" coords="158,80,190,80,190,86,158,86"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="493,5,659,46"/>
+<area shape="poly" title=" " alt="" coords="379,67,476,45,478,50,380,72"/>
+<area shape="rect" href="../../d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="479,70,672,96"/>
+<area shape="poly" title=" " alt="" coords="431,80,464,80,464,86,431,86"/>
+<area shape="rect" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#afabbae5e15134b2b9b4271dc8644a369" title=" " alt="" coords="508,120,643,161"/>
+<area shape="poly" title=" " alt="" coords="380,94,493,119,492,125,379,99"/>
 </map>
 </div>
 
@@ -1274,25 +1597,25 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00754">754</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00517">517</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00069">yaze::emu::Snes::apu()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00106">bookmarks</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00071">yaze::emu::Snes::get_ram()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01846">ICON_MD_STAR</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00156">yaze::gui::InputHex()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00070">yaze::emu::Snes::memory()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00269">yaze::emu::ui::RenderMemoryViewer()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00380">RenderEmulatorInterface()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00553">RenderNavBar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00348">RenderEmulatorInterface()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d0/dbd/classyaze_1_1emu_1_1Emulator_a655e0f73f3f700e8c340c70a2899c61d_cgraph.png" border="0" usemap="#ad0/dbd/classyaze_1_1emu_1_1Emulator_a655e0f73f3f700e8c340c70a2899c61d_cgraph" alt=""/></div>
 <map name="ad0/dbd/classyaze_1_1emu_1_1Emulator_a655e0f73f3f700e8c340c70a2899c61d_cgraph" id="ad0/dbd/classyaze_1_1emu_1_1Emulator_a655e0f73f3f700e8c340c70a2899c61d_cgraph">
-<area shape="rect" title=" " alt="" coords="5,73,160,113"/>
-<area shape="rect" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a5f4b8b830b46e8b590319bd24dec91fd" title=" " alt="" coords="221,5,362,31"/>
-<area shape="poly" title=" " alt="" coords="131,69,207,40,225,33,227,39,209,45,133,74"/>
-<area shape="rect" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a5f804ce15176736facc90658d926509a" title=" " alt="" coords="208,55,375,80"/>
-<area shape="poly" title=" " alt="" coords="160,81,192,77,192,82,160,86"/>
-<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a85c0af649d4fdc913fcabb1634667602" title=" " alt="" coords="227,104,356,130"/>
-<area shape="poly" title=" " alt="" coords="160,99,212,105,211,110,160,104"/>
-<area shape="rect" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#ae55211e6c9c0884f73b2890da336fe82" title=" " alt="" coords="208,153,375,179"/>
-<area shape="poly" title=" " alt="" coords="134,111,209,140,227,146,225,151,207,145,132,116"/>
+<area shape="rect" title=" " alt="" coords="5,63,160,103"/>
+<area shape="rect" href="../../d4/d91/namespaceyaze_1_1emu_1_1ui.html#af20034c8bd273d685479fb6c85275fd5" title="Memory viewer/editor." alt="" coords="208,63,395,103"/>
+<area shape="poly" title=" " alt="" coords="160,80,192,80,192,86,160,86"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="457,5,623,46"/>
+<area shape="poly" title=" " alt="" coords="388,59,441,47,442,52,389,65"/>
+<area shape="rect" href="../../d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="443,70,636,96"/>
+<area shape="poly" title=" " alt="" coords="395,80,427,80,427,86,395,86"/>
+<area shape="rect" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#ae7676db1e19dc323e578195bc5699297" title=" " alt="" coords="472,120,607,161"/>
+<area shape="poly" title=" " alt="" coords="389,101,457,118,456,123,388,107"/>
 </map>
 </div>
 
@@ -1321,11 +1644,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00837">837</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00522">522</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d46/breakpoint__manager_8cc_source.html#l00009">yaze::emu::BreakpointManager::AddBreakpoint()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00069">yaze::emu::Snes::apu()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00147">breakpoint_manager_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ac8a0731654f403685cc4d7af00d1e520afb32f35a2a5e74549e890369b4cc3934">yaze::emu::BreakpointManager::CPU_65816</a>, <a class="el" href="../../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ab89cacd2103b2dbebc7632199f14d9b8a5d76688e2261e6805ee36ad961b3fa7a">yaze::emu::BreakpointManager::EXECUTE</a>, <a class="el" href="../../dd/d4c/theme__manager_8cc_source.html#l00114">yaze::gui::ThemeManager::Get()</a>, <a class="el" href="../../d3/d46/breakpoint__manager_8cc_source.html#l00116">yaze::emu::BreakpointManager::GetAllBreakpoints()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00325">ICON_MD_BUG_REPORT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00528">ICON_MD_DELETE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01387">ICON_MD_PAUSE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01477">ICON_MD_PLAY_ARROW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01771">ICON_MD_SKIP_NEXT</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00070">yaze::emu::Snes::memory()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00072">yaze::emu::Snes::mutable_cycles()</a>, <a class="el" href="../../d3/d46/breakpoint__manager_8cc_source.html#l00033">yaze::emu::BreakpointManager::RemoveBreakpoint()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00051">yaze::emu::Snes::Reset()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00114">running_</a>, <a class="el" href="../../d3/d46/breakpoint__manager_8cc_source.html#l00041">yaze::emu::BreakpointManager::SetEnabled()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d46/breakpoint__manager_8cc_source.html#l00009">yaze::emu::BreakpointManager::AddBreakpoint()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00069">yaze::emu::Snes::apu()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00160">breakpoint_manager_</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ac8a0731654f403685cc4d7af00d1e520afb32f35a2a5e74549e890369b4cc3934">yaze::emu::BreakpointManager::CPU_65816</a>, <a class="el" href="../../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ab89cacd2103b2dbebc7632199f14d9b8a5d76688e2261e6805ee36ad961b3fa7a">yaze::emu::BreakpointManager::EXECUTE</a>, <a class="el" href="../../dd/d4c/theme__manager_8cc_source.html#l00114">yaze::gui::ThemeManager::Get()</a>, <a class="el" href="../../d3/d46/breakpoint__manager_8cc_source.html#l00116">yaze::emu::BreakpointManager::GetAllBreakpoints()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00325">ICON_MD_BUG_REPORT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00528">ICON_MD_DELETE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01387">ICON_MD_PAUSE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01477">ICON_MD_PLAY_ARROW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01771">ICON_MD_SKIP_NEXT</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00070">yaze::emu::Snes::memory()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00072">yaze::emu::Snes::mutable_cycles()</a>, <a class="el" href="../../d3/d46/breakpoint__manager_8cc_source.html#l00033">yaze::emu::BreakpointManager::RemoveBreakpoint()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00051">yaze::emu::Snes::Reset()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00127">running_</a>, <a class="el" href="../../d3/d46/breakpoint__manager_8cc_source.html#l00041">yaze::emu::BreakpointManager::SetEnabled()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">snes_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00380">RenderEmulatorInterface()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00348">RenderEmulatorInterface()</a>.</p>
 
 </div>
 </div>
@@ -1352,19 +1675,25 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01053">1053</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00738">738</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00137">audio_backend_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00131">current_fps_</a>, <a class="el" href="../../dd/d4c/theme__manager_8cc_source.html#l00114">yaze::gui::ThemeManager::Get()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00150">rom_data_</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00114">running_</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/d01/emulator__ui_8cc_source.html#l00215">yaze::emu::ui::RenderPerformanceMonitor()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00380">RenderEmulatorInterface()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00348">RenderEmulatorInterface()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d0/dbd/classyaze_1_1emu_1_1Emulator_a8e08f4c2ab725e1c8d81a2260340b7ab_cgraph.png" border="0" usemap="#ad0/dbd/classyaze_1_1emu_1_1Emulator_a8e08f4c2ab725e1c8d81a2260340b7ab_cgraph" alt=""/></div>
 <map name="ad0/dbd/classyaze_1_1emu_1_1Emulator_a8e08f4c2ab725e1c8d81a2260340b7ab_cgraph" id="ad0/dbd/classyaze_1_1emu_1_1Emulator_a8e08f4c2ab725e1c8d81a2260340b7ab_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,191,46"/>
-<area shape="rect" href="../../d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="239,13,432,39"/>
-<area shape="poly" title=" " alt="" coords="191,23,223,23,223,28,191,28"/>
+<area shape="rect" title=" " alt="" coords="5,71,191,111"/>
+<area shape="rect" href="../../d4/d91/namespaceyaze_1_1emu_1_1ui.html#a2f797b87d98d859524af5b42988ee39d" title="Performance metrics (FPS, frame time, audio status)" alt="" coords="239,71,454,111"/>
+<area shape="poly" title=" " alt="" coords="191,88,223,88,223,94,191,94"/>
+<area shape="rect" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#ae424c65f818b392a32e972828d2b8f46" title=" " alt="" coords="531,5,666,46"/>
+<area shape="poly" title=" " alt="" coords="427,67,516,44,517,49,428,73"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="516,71,682,111"/>
+<area shape="poly" title=" " alt="" coords="455,88,500,88,500,94,455,94"/>
+<area shape="rect" href="../../d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="502,136,695,161"/>
+<area shape="poly" title=" " alt="" coords="439,109,524,129,523,134,438,115"/>
 </map>
 </div>
 
@@ -1392,13 +1721,28 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000066">Todo:</a></b></dt><dd>Implement individual breakpoint removal </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01131">1131</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00743">743</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00065">ClearAllBreakpoints()</a>, <a class="el" href="../../dd/d4c/theme__manager_8cc_source.html#l00114">yaze::gui::ThemeManager::Get()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00066">GetBreakpoints()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00077">GetMetrics()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00058">IsEmulatorReady()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00114">running_</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00064">SetBreakpoint()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00063">StepSingleInstruction()</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00539">yaze::emu::ui::RenderAIAgentPanel()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00380">RenderEmulatorInterface()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00348">RenderEmulatorInterface()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d0/dbd/classyaze_1_1emu_1_1Emulator_a930a7f5b249b05f73789ddcb0edeb944_cgraph.png" border="0" usemap="#ad0/dbd/classyaze_1_1emu_1_1Emulator_a930a7f5b249b05f73789ddcb0edeb944_cgraph" alt=""/></div>
+<map name="ad0/dbd/classyaze_1_1emu_1_1Emulator_a930a7f5b249b05f73789ddcb0edeb944_cgraph" id="ad0/dbd/classyaze_1_1emu_1_1Emulator_a930a7f5b249b05f73789ddcb0edeb944_cgraph">
+<area shape="rect" title=" " alt="" coords="5,63,154,103"/>
+<area shape="rect" href="../../d4/d91/namespaceyaze_1_1emu_1_1ui.html#a71990851776f17dd62b9d3d8b25cf3da" title="AI Agent panel for automated testing/gameplay." alt="" coords="202,63,390,103"/>
+<area shape="poly" title=" " alt="" coords="154,80,186,80,186,86,154,86"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="452,5,618,46"/>
+<area shape="poly" title=" " alt="" coords="383,59,436,47,437,52,384,65"/>
+<area shape="rect" href="../../d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="438,70,631,96"/>
+<area shape="poly" title=" " alt="" coords="391,80,423,80,423,86,391,86"/>
+<area shape="rect" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#af5519b13f2491c968536a7b5a36ef152" title=" " alt="" coords="467,120,602,161"/>
+<area shape="poly" title=" " alt="" coords="384,101,452,118,451,123,383,107"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1424,17 +1768,13 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000067">Todo:</a></b></dt><dd>Implement save state to slot </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000068">Todo:</a></b></dt><dd>Implement load state from slot </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000069">Todo:</a></b></dt><dd>Implement save to file </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000070">Todo:</a></b></dt><dd>Implement load from file </dd></dl>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000071">Todo:</a></b></dt><dd>Implement rewind </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000066">Todo:</a></b></dt><dd>Create ui::RenderSaveStates() when save state system is implemented </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01301">1301</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00754">754</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dd/d4c/theme__manager_8cc_source.html#l00114">yaze::gui::ThemeManager::Get()</a>.</p>
+<p class="reference">References <a class="el" href="../../dd/d4c/theme__manager_8cc_source.html#l00114">yaze::gui::ThemeManager::Get()</a>, and <a class="el" href="../../de/dbf/icons_8h_source.html#l01642">ICON_MD_SAVE</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00380">RenderEmulatorInterface()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00348">RenderEmulatorInterface()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1471,11 +1811,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01388">1388</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00764">764</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00153">input_manager_</a>, and <a class="el" href="../../d8/d34/input__handler_8cc_source.html#l00011">yaze::emu::ui::RenderKeyboardConfig()</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dc0/emulator_8h_source.html#l00166">input_manager_</a>, and <a class="el" href="../../d8/d34/input__handler_8cc_source.html#l00011">yaze::emu::ui::RenderKeyboardConfig()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00380">RenderEmulatorInterface()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00348">RenderEmulatorInterface()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1518,25 +1858,25 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01393">1393</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00769">769</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00069">yaze::emu::Snes::apu()</a>, <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00075">yaze::emu::Snes::apu_handshake_tracker()</a>, <a class="el" href="../../dd/d4c/theme__manager_8cc_source.html#l00114">yaze::gui::ThemeManager::Get()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00093">LOG_INFO</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">snes_</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00562">yaze::emu::Snes::Write()</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00336">yaze::emu::ui::RenderApuDebugger()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00380">RenderEmulatorInterface()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00348">RenderEmulatorInterface()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d0/dbd/classyaze_1_1emu_1_1Emulator_a1045474656f49047e511ba2c3be7c1c0_cgraph.png" border="0" usemap="#ad0/dbd/classyaze_1_1emu_1_1Emulator_a1045474656f49047e511ba2c3be7c1c0_cgraph" alt=""/></div>
 <map name="ad0/dbd/classyaze_1_1emu_1_1Emulator_a1045474656f49047e511ba2c3be7c1c0_cgraph" id="ad0/dbd/classyaze_1_1emu_1_1Emulator_a1045474656f49047e511ba2c3be7c1c0_cgraph">
-<area shape="rect" title=" " alt="" coords="5,85,152,125"/>
-<area shape="rect" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a5f4b8b830b46e8b590319bd24dec91fd" title=" " alt="" coords="226,5,367,31"/>
-<area shape="poly" title=" " alt="" coords="114,82,199,41,221,33,223,38,201,46,117,86"/>
-<area shape="rect" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a26efe770d14071f17b2e98f2c6df6aee" title=" " alt="" coords="226,55,367,96"/>
-<area shape="poly" title=" " alt="" coords="152,92,210,84,210,90,152,98"/>
-<area shape="rect" href="../../d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="200,120,393,146"/>
-<area shape="poly" title=" " alt="" coords="152,112,185,116,184,121,152,117"/>
-<area shape="rect" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a8b7d6d33a6bb4e38e32b170255557ee5" title=" " alt="" coords="221,169,372,195"/>
-<area shape="poly" title=" " alt="" coords="123,123,201,156,221,162,220,167,199,161,121,128"/>
+<area shape="rect" title=" " alt="" coords="5,63,152,103"/>
+<area shape="rect" href="../../d4/d91/namespaceyaze_1_1emu_1_1ui.html#ac97e1a541624122026c204304f041028" title="APU/Audio debugger with handshake tracker." alt="" coords="200,63,364,103"/>
+<area shape="poly" title=" " alt="" coords="152,80,184,80,184,86,152,86"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="426,5,592,46"/>
+<area shape="poly" title=" " alt="" coords="363,60,410,48,411,53,365,65"/>
+<area shape="rect" href="../../d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="412,70,605,96"/>
+<area shape="poly" title=" " alt="" coords="364,80,396,80,396,86,364,86"/>
+<area shape="rect" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#ae7676db1e19dc323e578195bc5699297" title=" " alt="" coords="441,120,576,161"/>
+<area shape="poly" title=" " alt="" coords="365,101,427,117,425,122,363,106"/>
 </map>
 </div>
 
@@ -1566,9 +1906,25 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01269">1269</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00748">748</a> of file <a class="el" href="../../d3/d87/emulator_8cc_source.html">emulator.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dc/d02/cpu_2internal_2opcodes_8h_source.html#l00007">opcode_to_mnemonic</a>.</p>
+<p class="reference">References <a class="el" href="../../d9/dc0/debugger__ui_8cc_source.html#l00305">yaze::emu::ui::RenderCpuInstructionLog()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d0/dbd/classyaze_1_1emu_1_1Emulator_acc465b8cf566e600996a713f9b90d5f0_cgraph.png" border="0" usemap="#ad0/dbd/classyaze_1_1emu_1_1Emulator_acc465b8cf566e600996a713f9b90d5f0_cgraph" alt=""/></div>
+<map name="ad0/dbd/classyaze_1_1emu_1_1Emulator_acc465b8cf566e600996a713f9b90d5f0_cgraph" id="ad0/dbd/classyaze_1_1emu_1_1Emulator_acc465b8cf566e600996a713f9b90d5f0_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,180,111"/>
+<area shape="rect" href="../../d4/d91/namespaceyaze_1_1emu_1_1ui.html#af7f2e1b2082bcaeb87d1e3b3ef296ce3" title="CPU instruction log (legacy, prefer DisassemblyViewer)" alt="" coords="228,71,392,111"/>
+<area shape="poly" title=" " alt="" coords="180,88,212,88,212,94,180,94"/>
+<area shape="rect" href="../../d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="454,5,620,46"/>
+<area shape="poly" title=" " alt="" coords="382,68,448,48,450,53,383,73"/>
+<area shape="rect" href="../../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a92a4f0fa746976be9aeaa58be38a1299" title=" " alt="" coords="465,71,609,111"/>
+<area shape="poly" title=" " alt="" coords="392,88,449,88,449,94,392,94"/>
+<area shape="rect" href="../../d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="440,136,633,161"/>
+<area shape="poly" title=" " alt="" coords="393,109,469,129,467,134,391,114"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1593,9 +1949,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00106">106</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00754">RenderMemoryViewer()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00119">119</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
 </div>
 </div>
@@ -1619,7 +1973,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00111">111</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00124">124</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
 </div>
 </div>
@@ -1643,7 +1997,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00112">112</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00125">125</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
 </div>
 </div>
@@ -1667,7 +2021,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00113">113</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00126">126</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
 </div>
 </div>
@@ -1691,9 +2045,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00114">114</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00127">127</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00065">Cleanup()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00077">GetMetrics()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00079">Initialize()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01131">RenderAIAgentPanel()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00837">RenderModernCpuDebugger()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00553">RenderNavBar()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01053">RenderPerformanceMonitor()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00041">running()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00059">~Emulator()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00033">Cleanup()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00090">GetMetrics()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00047">Initialize()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00522">RenderModernCpuDebugger()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00041">running()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00042">set_running()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00027">~Emulator()</a>.</p>
 
 </div>
 </div>
@@ -1717,9 +2071,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00115">115</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00128">128</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00553">RenderNavBar()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00059">set_turbo_mode()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00058">turbo_mode()</a>.</p>
 
 </div>
 </div>
@@ -1743,9 +2097,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00117">117</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00130">130</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>
@@ -1769,9 +2123,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00118">118</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00131">131</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00077">GetMetrics()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00049">wanted_samples()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00090">GetMetrics()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00050">wanted_samples()</a>.</p>
 
 </div>
 </div>
@@ -1795,9 +2149,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00120">120</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00693">RenderBreakpointList()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00133">133</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
 </div>
 </div>
@@ -1821,9 +2173,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00121">121</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00693">RenderBreakpointList()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00134">134</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
 </div>
 </div>
@@ -1847,9 +2197,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00124">124</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00137">137</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>
@@ -1873,9 +2223,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00125">125</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00138">138</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>
@@ -1899,9 +2249,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00126">126</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">139</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>
@@ -1925,9 +2275,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00129">129</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00142">142</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>
@@ -1951,9 +2301,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00130">130</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00143">143</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>
@@ -1977,9 +2327,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00131">131</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00144">144</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00059">GetCurrentFPS()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00077">GetMetrics()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00553">RenderNavBar()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01053">RenderPerformanceMonitor()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00072">GetCurrentFPS()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00090">GetMetrics()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>
@@ -2003,9 +2353,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00133">133</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00146">146</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00045">set_audio_buffer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00046">set_audio_buffer()</a>.</p>
 
 </div>
 </div>
@@ -2029,9 +2379,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00134">134</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00147">147</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00077">GetMetrics()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00046">set_audio_device_id()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00090">GetMetrics()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00047">set_audio_device_id()</a>.</p>
 
 </div>
 </div>
@@ -2055,9 +2405,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00137">137</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00150">150</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00044">audio_backend()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00079">Initialize()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00553">RenderNavBar()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01053">RenderPerformanceMonitor()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00045">audio_backend()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00047">Initialize()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>
@@ -2081,9 +2431,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00139">139</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00152">152</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00065">ClearAllBreakpoints()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00066">GetBreakpoints()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00062">GetCPUB()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00061">GetCPUPC()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00060">GetCurrentCycle()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00077">GetMetrics()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00079">Initialize()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00058">IsEmulatorReady()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01393">RenderApuDebugger()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00693">RenderBreakpointList()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00754">RenderMemoryViewer()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00837">RenderModernCpuDebugger()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00553">RenderNavBar()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00530">RenderSnesPpu()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00064">SetBreakpoint()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00040">snes()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00063">StepSingleInstruction()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00078">ClearAllBreakpoints()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00079">GetBreakpoints()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00075">GetCPUB()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00074">GetCPUPC()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00073">GetCurrentCycle()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00090">GetMetrics()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00047">Initialize()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00071">IsEmulatorReady()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00522">RenderModernCpuDebugger()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00077">SetBreakpoint()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00040">snes()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00076">StepSingleInstruction()</a>.</p>
 
 </div>
 </div>
@@ -2107,9 +2457,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00140">140</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00153">153</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00079">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00047">Initialize()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00067">is_initialized()</a>.</p>
 
 </div>
 </div>
@@ -2133,9 +2483,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00141">141</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00154">154</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00065">Cleanup()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00079">Initialize()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00033">Cleanup()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00047">Initialize()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00068">is_snes_initialized()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>
@@ -2159,9 +2509,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00142">142</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00155">155</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00054">is_debugging()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00055">set_debugging()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00065">is_debugging()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00066">set_debugging()</a>.</p>
 
 </div>
 </div>
@@ -2185,9 +2535,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00143">143</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00156">156</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00079">Initialize()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00050">set_renderer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00047">Initialize()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00054">renderer()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>, and <a class="el" href="../../db/dc0/emulator_8h_source.html#l00051">set_renderer()</a>.</p>
 
 </div>
 </div>
@@ -2211,9 +2561,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00144">144</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00157">157</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00065">Cleanup()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00530">RenderSnesPpu()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00033">Cleanup()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00055">ppu_texture()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>
@@ -2237,9 +2587,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00147">147</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00160">160</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00053">breakpoint_manager()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00079">Initialize()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00837">RenderModernCpuDebugger()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00062">breakpoint_manager()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00047">Initialize()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00522">RenderModernCpuDebugger()</a>.</p>
 
 </div>
 </div>
@@ -2263,9 +2613,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00148">148</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00161">161</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00079">Initialize()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00553">RenderNavBar()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00063">disassembly_viewer()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00047">Initialize()</a>.</p>
 
 </div>
 </div>
@@ -2289,9 +2639,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00150">150</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00163">163</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00079">Initialize()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00058">IsEmulatorReady()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00553">RenderNavBar()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01053">RenderPerformanceMonitor()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00047">Initialize()</a>, <a class="el" href="../../db/dc0/emulator_8h_source.html#l00071">IsEmulatorReady()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>
@@ -2315,9 +2665,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00153">153</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dc0/emulator_8h_source.html#l00166">166</a> of file <a class="el" href="../../db/dc0/emulator_8h_source.html">emulator.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l01388">RenderKeyboardConfig()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00123">Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/dc0/emulator_8h_source.html#l00064">input_manager()</a>, <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00764">RenderKeyboardConfig()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00091">Run()</a>.</p>
 
 </div>
 </div>

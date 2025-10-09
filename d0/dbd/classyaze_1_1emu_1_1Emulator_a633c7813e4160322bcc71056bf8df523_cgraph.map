@@ -1,0 +1,11 @@
+<map id="yaze::emu::Emulator::RenderNavBar" name="yaze::emu::Emulator::RenderNavBar">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,141,111"/>
+<area shape="rect" id="Node000002" href="$d4/d91/namespaceyaze_1_1emu_1_1ui.html#a7ff0f5b545fdc2433d8068b2093fa060" title="Navigation bar with play/pause, step, reset controls." alt="" coords="189,78,374,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,88,173,88,173,94,141,94"/>
+<area shape="rect" id="Node000003" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html#ae424c65f818b392a32e972828d2b8f46" title=" " alt="" coords="451,5,586,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="330,75,435,46,437,51,331,80"/>
+<area shape="rect" id="Node000004" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="436,71,602,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="374,88,420,88,420,94,374,94"/>
+<area shape="rect" id="Node000005" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="422,136,615,161"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="338,102,448,129,447,134,337,107"/>
+</map>

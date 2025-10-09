@@ -135,7 +135,7 @@ $(document).ready(function(){initNavTree('db/dcf/dungeon__test__harness_8cc_sour
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keyword">auto</span>&amp; ppu = snes.<a class="code hl_function" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a30fb924208f2153a364f9d2be6f69adc">ppu</a>();</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
 <div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>    <span class="comment">// Run emulator until the main game loop is reached</span></div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keywordtype">int</span> max_cycles = 5000000;  <span class="comment">// 5 million cycles should be plenty</span></div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>    <span class="keywordtype">int</span> max_cycles = 15000000;  <span class="comment">// 15 million cycles should be plenty</span></div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keywordtype">int</span> cycles = 0;</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="keywordflow">while</span> (cycles &lt; max_cycles) {</div>
 <div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>      snes.<a class="code hl_function" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#af7584e6c050e654612f0dad1b36c5546">RunCycle</a>();</div>

@@ -1,10 +1,16 @@
 <map id="src/app/emu/ui" name="src/app/emu/ui">
 <area shape="rect" id="node1" href="dir_2cb89f6be1b5316a4fb8a2738b385dd2.html" title="input" alt="" coords="27,126,77,152"/>
-<area shape="rect" id="node2" href="dir_c96cf71bac328d098e4801908136418a.html" title="ui" alt="" coords="35,52,74,78"/>
-<area shape="poly" id="edge1" href="dir_000073_000034.html" alt="" coords="57,78,56,111,50,110,52,78"/>
-<area shape="rect" id="edge1-headlabel" href="dir_000073_000034.html" title="1" alt="" coords="58,100,65,115"/>
-<area shape="rect" id="node3" href="dir_8fca90320bcc7393a52982c8dc104a2a.html" title="gui" alt="" coords="101,126,139,152"/>
-<area shape="poly" id="edge2" href="dir_000073_000029.html" alt="" coords="67,76,101,113,97,116,63,80"/>
-<area shape="rect" id="edge2-headlabel" href="dir_000073_000029.html" title="1" alt="" coords="99,99,106,114"/>
-<area shape="rect" id="clust1" href="dir_1f6e893081ea55766fadff5a66800644.html" title="emu" alt="" coords="16,16,88,162"/>
+<area shape="rect" id="node2" href="dir_5f14b529a0bc8a32a40cd7cbc6a47684.html" title="cpu" alt="" coords="100,126,143,152"/>
+<area shape="rect" id="node3" href="dir_c96cf71bac328d098e4801908136418a.html" title="ui" alt="" coords="103,52,142,78"/>
+<area shape="poly" id="edge1" href="dir_000073_000034.html" alt="" coords="113,80,76,117,73,113,109,76"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000073_000034.html" title="1" alt="" coords="79,111,86,126"/>
+<area shape="poly" id="edge2" href="dir_000073_000015.html" alt="" coords="125,78,125,110,119,110,120,78"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000073_000015.html" title="1" alt="" coords="127,100,134,115"/>
+<area shape="rect" id="node4" href="dir_8fca90320bcc7393a52982c8dc104a2a.html" title="gui" alt="" coords="166,126,205,152"/>
+<area shape="poly" id="edge3" href="dir_000073_000029.html" alt="" coords="135,76,167,112,163,116,131,80"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000073_000029.html" title="8" alt="" coords="166,99,173,114"/>
+<area shape="rect" id="node5" href="dir_b7878ad5ecbf2506f4125b9d34c97e45.html" title="util" alt="" coords="229,126,267,152"/>
+<area shape="poly" id="edge4" href="dir_000073_000076.html" alt="" coords="144,75,216,116,213,121,141,80"/>
+<area shape="rect" id="edge4-headlabel" href="dir_000073_000076.html" title="2" alt="" coords="213,102,220,117"/>
+<area shape="rect" id="clust1" href="dir_1f6e893081ea55766fadff5a66800644.html" title="emu" alt="" coords="16,16,153,162"/>
 </map>

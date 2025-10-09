@@ -1,5 +1,11 @@
 <map id="yaze::emu::Emulator::RenderPerformanceMonitor" name="yaze::emu::Emulator::RenderPerformanceMonitor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,191,46"/>
-<area shape="rect" id="Node000002" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="239,13,432,39"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,23,223,23,223,28,191,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,191,111"/>
+<area shape="rect" id="Node000002" href="$d4/d91/namespaceyaze_1_1emu_1_1ui.html#a2f797b87d98d859524af5b42988ee39d" title="Performance metrics (FPS, frame time, audio status)" alt="" coords="239,71,454,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,88,223,88,223,94,191,94"/>
+<area shape="rect" id="Node000003" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html#ae424c65f818b392a32e972828d2b8f46" title=" " alt="" coords="531,5,666,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="427,67,516,44,517,49,428,73"/>
+<area shape="rect" id="Node000004" href="$d3/dbf/namespaceyaze_1_1gui.html#a0a2f4e28780bd8cf64f9d6e7b67be924" title=" " alt="" coords="516,71,682,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="455,88,500,88,500,94,455,94"/>
+<area shape="rect" id="Node000005" href="$d3/d27/classyaze_1_1gui_1_1ThemeManager.html#ab3423e72fe874f8c370ed2d3e52ac278" title=" " alt="" coords="502,136,695,161"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="439,109,524,129,523,134,438,115"/>
 </map>
