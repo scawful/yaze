@@ -20,101 +20,84 @@ on:
 
 env:
   BUILD_TYPE: RelWithDebInfo
-  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
-  # This job determines which build matrix to use based on the event type
-  prepare-matrix:
-    name: "⚙️ Prepare Build Matrix"
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - id: set-matrix
-        shell: bash
-        run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "Using focused matrix for PR"
-            echo 'matrix={"include":[{"name":"Ubuntu 22.04 (GCC-12)","os":"ubuntu-22.04","cc":"gcc-12","cxx":"g++-12"},{"name":"macOS 14 (Clang)","os":"macos-14","cc":"clang","cxx":"clang++","vcpkg_triplet":"arm64-osx"},{"name":"Windows 2022 (MSVC x64)","os":"windows-2022","cc":"cl","cxx":"cl","vcpkg_triplet":"x64-windows","cmake_generator":"Visual Studio 17 2022","cmake_generator_platform":"x64"}]}' >> "$GITHUB_OUTPUT"
-          else
-            echo "Using comprehensive matrix for push"
-            # NOTE: Removed x86 Windows build - cpp-httplib doesn't support 32-bit Windows
-            echo 'matrix={"include":[{"name":"Ubuntu 22.04 (GCC-12)","os":"ubuntu-22.04","cc":"gcc-12","cxx":"g++-12"},{"name":"Ubuntu 22.04 (Clang)","os":"ubuntu-22.04","cc":"clang-15","cxx":"clang++-15"},{"name":"macOS 13 (Clang)","os":"macos-13","cc":"clang","cxx":"clang++","vcpkg_triplet":"x64-osx"},{"name":"macOS 14 (Clang)","os":"macos-14","cc":"clang","cxx":"clang++","vcpkg_triplet":"arm64-osx"},{"name":"Windows 2022 (MSVC x64)","os":"windows-2022","cc":"cl","cxx":"cl","vcpkg_triplet":"x64-windows","cmake_generator":"Visual Studio 17 2022","cmake_generator_platform":"x64"}]}' >> "$GITHUB_OUTPUT"
-          fi
-
   build-and-test:
     name: "${{ matrix.name }}"
-    needs: prepare-matrix
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
-    runs-on: ${{ matrix.os }}
+      matrix:
+        include:
+          - name: "Ubuntu 22.04 (GCC-12)"
+            os: ubuntu-22.04
+            cc: gcc-12
+            cxx: g++-12
+          - name: "macOS 14 (Clang)"
+            os: macos-14
+            cc: clang
+            cxx: clang++
+          - name: "Windows 2022 (MSVC)"
+            os: windows-2022
+            cc: cl
+            cxx: cl
 
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
       with:
         submodules: recursive
 
-    - name: Set up vcpkg
-      if: runner.os != 'Linux'
-      uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
-        runVcpkgInstall: true
-      env:
-        VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
-
-    - name: Install Linux dependencies
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y build-essential ninja-build pkg-config libglew-dev libxext-dev libwavpack-dev libabsl-dev libboost-all-dev libpng-dev python3-dev libpython3-dev libasound2-dev libpulse-dev libaudio-dev libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev libgtk-3-dev libdbus-1-dev gcc-12 g++-12 clang-15
-
-    - name: Configure CMake
+    - name: Install Dependencies
       shell: bash
       run: |
-        set -x
-        CMAKE_ARGS=(
-          "-S ."
-          "-B build"
-          "-DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}"
-          "-DYAZE_MINIMAL_BUILD=ON"
-          "-DYAZE_ENABLE_ROM_TESTS=OFF"
-        )
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          CMAKE_ARGS+=(
-            "-G" "${{ matrix.cmake_generator }}"
-            "-A" "${{ matrix.cmake_generator_platform }}"
-            "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-          )
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential ninja-build pkg-config \
+            libglew-dev libxext-dev libwavpack-dev libabsl-dev libboost-all-dev \
+            libpng-dev python3-dev libpython3-dev \
+            libasound2-dev libpulse-dev libaudio-dev \
+            libx11-dev libxrandr-dev libxcursor-dev libxinerama-dev libxi-dev \
+            libxss-dev libxxf86vm-dev libxkbcommon-dev libwayland-dev libdecor-0-dev \
+            libgtk-3-dev libdbus-1-dev \
+            ${{ matrix.cc }} ${{ matrix.cxx }}
         elif [[ "${{ runner.os }}" == "macOS" ]]; then
-          CMAKE_ARGS+=(
-            "-G" "Ninja"
-            "-DCMAKE_C_COMPILER=${{ matrix.cc }}"
-            "-DCMAKE_CXX_COMPILER=${{ matrix.cxx }}"
-            "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
-          )
-        else # Linux
-          CMAKE_ARGS+=(
-            "-G" "Ninja"
-            "-DCMAKE_C_COMPILER=${{ matrix.cc }}"
-            "-DCMAKE_CXX_COMPILER=${{ matrix.cxx }}"
-          )
+          brew install ninja pkg-config
         fi
-        cmake "${CMAKE_ARGS[@]}"
+
+    - name: Configure
+      shell: bash
+      run: |
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          cmake -B build -G "Visual Studio 17 2022" -A x64 \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DYAZE_MINIMAL_BUILD=ON \
+            -DYAZE_ENABLE_ROM_TESTS=OFF
+        else
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+            -DYAZE_MINIMAL_BUILD=ON \
+            -DYAZE_ENABLE_ROM_TESTS=OFF
+        fi
 
     - name: Build
       run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
 
-    - name: Run Core Tests
+    - name: Test (Core)
       working-directory: build
-      run: ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure -j1 -R "AsarWrapperTest|SnesTileTest|CompressionTest|SnesPaletteTest|HexTest|MessageTest"
+      run: |
+        ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure -j1 \
+          -R "AsarWrapperTest|SnesTileTest|CompressionTest|SnesPaletteTest|HexTest|MessageTest"
 
-    - name: Run Additional Unit Tests (Informational)
+    - name: Test (Additional - Informational)
       working-directory: build
       continue-on-error: true
-      run: ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure --parallel -R ".*Test" -E ".*RomTest.*|.*E2E.*|.*ZSCustomOverworld.*|.*IntegrationTest.*|CpuTest|Spc700Test|ApuTest"
+      run: |
+        ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure --parallel \
+          -R ".*Test" -E ".*RomTest.*|.*E2E.*|.*ZSCustomOverworld.*|.*IntegrationTest.*|CpuTest|Spc700Test|ApuTest"
 
   code-quality:
     name: "✨ Code Quality"
@@ -122,35 +105,43 @@ jobs:
     continue-on-error: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') }}
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Install linters
+    - uses: actions/checkout@v4
+    
+    - name: Install Tools
       run: |
         sudo apt-get update
         sudo apt-get install -y clang-format-14 clang-tidy-14 cppcheck
+    
     - name: Check Formatting
-      run: |
-        find src test -name "*.cc" -o -name "*.h" | xargs clang-format-14 --dry-run --Werror
+      run: find src test -name "*.cc" -o -name "*.h" | xargs clang-format-14 --dry-run --Werror
+    
     - name: Run cppcheck
       run: |
-        cppcheck --enable=warning,style,performance --error-exitcode=0 --suppress=missingIncludeSystem --suppress=unusedFunction --inconclusive src/
+        cppcheck --enable=warning,style,performance --error-exitcode=0 \
+          --suppress=missingIncludeSystem --suppress=unusedFunction --inconclusive src/
+    
     - name: Run clang-tidy
       run: |
-        find src -name "*.cc" -not -path "*/lib/*" | head -20 | xargs clang-tidy-14 --header-filter='src/.*\.(h|hpp)$'
+        find src -name "*.cc" -not -path "*/lib/*" | head -20 | \
+          xargs clang-tidy-14 --header-filter='src/.*\.(h|hpp)$'
 
   memory-sanitizer:
-    name: "🔬 Memory Sanitizer (Linux)"
+    name: "🔬 Memory Sanitizer"
     runs-on: ubuntu-22.04
     if: github.event_name == 'pull_request'
+    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
-    - name: Install dependencies
+    
+    - name: Install Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential ninja-build clang-14 libc++-14-dev libc++abi-14-dev libglew-dev libxext-dev libwavpack-dev libpng-dev libgtk-3-dev libdbus-1-dev
+        sudo apt-get install -y \
+          build-essential ninja-build clang-14 libc++-14-dev libc++abi-14-dev \
+          libglew-dev libxext-dev libwavpack-dev libpng-dev libgtk-3-dev libdbus-1-dev
+    
     - name: Configure with AddressSanitizer
       run: |
         cmake -B build -G Ninja \
@@ -159,34 +150,43 @@ jobs:
           -DCMAKE_CXX_COMPILER=clang++-14 \
           -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer" \
           -DYAZE_MINIMAL_BUILD=ON
+    
     - name: Build
       run: cmake --build build --parallel
-    - name: Test with AddressSanitizer
+    
+    - name: Test
       working-directory: build
       env:
         ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
       run: ctest --output-on-failure
 
   z3ed-agent-test:
-    name: "🤖 z3ed Agent Test (macOS)"
+    name: "🤖 z3ed Agent"
     runs-on: macos-14
+    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
       with:
         submodules: recursive
-    - name: Install dependencies
+    
+    - name: Install Dependencies
       run: brew install ollama ninja
-    - name: Configure and Build z3ed
+    
+    - name: Build z3ed
       run: |
-        cmake -B build_test -G Ninja -DCMAKE_BUILD_TYPE=Release -DZ3ED_AI=ON -DYAZE_BUILD_Z3ED=ON
-        cmake --build build_test --config Release --target z3ed
+        cmake -B build_test -G Ninja \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DZ3ED_AI=ON \
+          -DYAZE_BUILD_Z3ED=ON
+        cmake --build build_test --target z3ed
+    
     - name: Start Ollama
       run: |
         ollama serve & 
         sleep 10
         ollama pull qwen2.5-coder:7b
-    - name: Run z3ed Agent Test Suite
+    
+    - name: Run Test Suite
       run: |
         chmod +x scripts/agent_test_suite.sh
         ./scripts/agent_test_suite.sh ollama
