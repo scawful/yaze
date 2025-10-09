@@ -213,7 +213,7 @@ absl::Status YazeProject::LoadFromYazeFormat(const std::string& project_path) {
       else if (key == "apply_zs_custom_overworld_asm") feature_flags.overworld.kApplyZSCustomOverworldASM = ParseBool(value);
       else if (key == "save_dungeon_maps") feature_flags.kSaveDungeonMaps = ParseBool(value);
       else if (key == "save_graphics_sheet") feature_flags.kSaveGraphicsSheet = ParseBool(value);
-      else if (key == "log_instructions") feature_flags.kLogInstructions = ParseBool(value);
+      // REMOVED: log_instructions (deprecated - DisassemblyViewer always active)
     }
     else if (current_section == "workspace") {
       if (key == "font_global_scale") workspace_settings.font_global_scale = ParseFloat(value);
@@ -317,7 +317,7 @@ absl::Status YazeProject::SaveToYazeFormat() {
   file << "apply_zs_custom_overworld_asm=" << (feature_flags.overworld.kApplyZSCustomOverworldASM ? "true" : "false") << "\n";
   file << "save_dungeon_maps=" << (feature_flags.kSaveDungeonMaps ? "true" : "false") << "\n";
   file << "save_graphics_sheet=" << (feature_flags.kSaveGraphicsSheet ? "true" : "false") << "\n";
-  file << "log_instructions=" << (feature_flags.kLogInstructions ? "true" : "false") << "\n\n";
+  // REMOVED: log_instructions (deprecated)\n\n";
   
   // Workspace settings section
   file << "[workspace]\n";
@@ -582,7 +582,7 @@ void YazeProject::InitializeDefaults() {
   feature_flags.overworld.kApplyZSCustomOverworldASM = false;
   feature_flags.kSaveDungeonMaps = true;
   feature_flags.kSaveGraphicsSheet = true;
-  feature_flags.kLogInstructions = false;
+  // REMOVED: kLogInstructions (deprecated)
   
   // Initialize default workspace settings
   workspace_settings.font_global_scale = 1.0f;
@@ -976,8 +976,7 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
       // Feature flags
       if (proj.contains("feature_flags")) {
         auto& flags = proj["feature_flags"];
-        if (flags.contains("kLogInstructions")) 
-          feature_flags.kLogInstructions = flags["kLogInstructions"].get<bool>();
+        // REMOVED: kLogInstructions (deprecated - DisassemblyViewer always active)
         if (flags.contains("kSaveDungeonMaps")) 
           feature_flags.kSaveDungeonMaps = flags["kSaveDungeonMaps"].get<bool>();
         if (flags.contains("kSaveGraphicsSheet")) 
@@ -1032,7 +1031,7 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["use_embedded_labels"] = use_embedded_labels;
   
   // Feature flags
-  proj["feature_flags"]["kLogInstructions"] = feature_flags.kLogInstructions;
+  // REMOVED: kLogInstructions (deprecated)
   proj["feature_flags"]["kSaveDungeonMaps"] = feature_flags.kSaveDungeonMaps;
   proj["feature_flags"]["kSaveGraphicsSheet"] = feature_flags.kSaveGraphicsSheet;
   

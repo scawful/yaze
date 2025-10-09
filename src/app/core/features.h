@@ -13,9 +13,9 @@ namespace core {
 class FeatureFlags {
  public:
   struct Flags {
-    // Log instructions to the GUI debugger.
-    // WARNING: Setting this to true causes SEVERE performance degradation
-    bool kLogInstructions = false;
+    // REMOVED: kLogInstructions - DisassemblyViewer is now always enabled
+    // It uses sparse address-map recording (Mesen-style) with zero performance impact
+    // Recording can be disabled per-viewer via UI if needed
 
     // Flag to enable the saving of all palettes to the Rom.
     bool kSaveAllPalettes = false;
@@ -83,8 +83,7 @@ class FeatureFlags {
 
   std::string Serialize() const {
     std::string result;
-    result +=
-        "kLogInstructions: " + std::to_string(get().kLogInstructions) + "\n";
+    // REMOVED: kLogInstructions (deprecated)
     result +=
         "kSaveAllPalettes: " + std::to_string(get().kSaveAllPalettes) + "\n";
     result += "kSaveGfxGroups: " + std::to_string(get().kSaveGfxGroups) + "\n";

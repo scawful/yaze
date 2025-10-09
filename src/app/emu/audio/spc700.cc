@@ -86,14 +86,10 @@ void Spc700::RunOpcode() {
     step = 1;
     return;
   }
-  // Emit instruction log via util logger to align with CPU logging controls.
-  if (core::FeatureFlags::get().kLogInstructions) {
-    try {
-      LogInstruction(PC, opcode);
-    } catch (...) {
-      // ignore mapping failures
-    }
-  }
+  // TODO: Add SPC700 DisassemblyViewer similar to CPU
+  // For now, skip logging to avoid performance overhead
+  // SPC700 runs at ~1.024 MHz, logging every instruction would be expensive
+  // without the sparse address-map optimization
   
   static int exec_log = 0;
   if ((PC >= 0xFFF0 && PC <= 0xFFFF) && exec_log++ < 5) {

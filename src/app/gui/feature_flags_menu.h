@@ -59,8 +59,8 @@ struct FlagsMenu {
     Checkbox("Enable Console Logging", &core::FeatureFlags::get().kLogToConsole);
     Checkbox("Enable Performance Monitoring",
              &core::FeatureFlags::get().kEnablePerformanceMonitoring);
-    Checkbox("Log Instructions to Emulator Debugger",
-             &core::FeatureFlags::get().kLogInstructions);
+    // REMOVED: "Log Instructions" - DisassemblyViewer is always active
+    // Use the viewer's UI controls to enable/disable recording if needed
     Checkbox("Use Native File Dialog (NFD)",
              &core::FeatureFlags::get().kUseNativeFileDialog);
   }

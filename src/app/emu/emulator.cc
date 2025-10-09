@@ -166,8 +166,8 @@ void Emulator::Run(Rom* rom) {
     }
     snes_.Init(rom_data_);
     
-    // Enable instruction logging for disassembly viewer
-    snes_.cpu().SetInstructionLogging(true);
+    // Note: DisassemblyViewer recording is always enabled via callback
+    // No explicit setup needed - callback is set in Initialize()
 
     // Note: PPU pixel format set to 1 (XBGR) in Init() which matches ARGB8888 texture
 
@@ -615,7 +615,14 @@ void Emulator::RenderNavBar() {
     ImGui::SetTooltip("About Debugger");
   }
   SameLine();
-  ImGui::Checkbox("Logging", snes_.cpu().mutable_log_instructions());
+  // Recording control moved to DisassemblyViewer UI
+  bool recording = disassembly_viewer_.IsRecording();
+  if (ImGui::Checkbox("Recording", &recording)) {
+    disassembly_viewer_.SetRecording(recording);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Toggle instruction recording to DisassemblyViewer\n(Always lightweight - uses sparse address map)");
+  }
 
   SameLine();
   ImGui::Checkbox("Turbo", &turbo_mode_);
