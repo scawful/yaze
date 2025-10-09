@@ -1,0 +1,11 @@
+<map id="yaze::editor::DungeonEditor::ProcessDeferredTextures" name="yaze::editor::DungeonEditor::ProcessDeferredTextures">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,27,181,68"/>
+<area shape="rect" id="Node000002" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="242,5,380,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,33,227,27,228,32,182,38"/>
+<area shape="rect" id="Node000003" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#aaa4008abdfc004444497722d9a9167c9" title=" " alt="" coords="229,55,393,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="182,56,214,60,213,66,181,61"/>
+<area shape="rect" id="Node000004" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a0c7628e8d85b52be66fa417503c24747" title="Creates a new, empty texture." alt="" coords="441,22,573,63"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="393,59,425,53,426,59,394,64"/>
+<area shape="rect" id="Node000005" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html#aa6af4ae256b62659ce1222b20e3d695e" title="Destroys a texture and frees its associated resources." alt="" coords="441,87,573,128"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="394,86,426,92,425,97,393,92"/>
+</map>

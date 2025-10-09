@@ -19,6 +19,10 @@ var classyaze_1_1editor_1_1DungeonObjectInteraction =
     [ "GetSelectedObjectIndices", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#acac2c424fd8c645a59d5142b69743aa9", null ],
     [ "IsObjectSelectActive", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a8c96a5db2bfe15698290003704dbfe19", null ],
     [ "ClearSelection", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a9868aefd984244c692bbe8f2167bb578", null ],
+    [ "ShowContextMenu", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a446d4c1fdb48403f5fba6f72ad24ec76", null ],
+    [ "HandleDeleteSelected", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a03437236175159a76ca7b48de8932af9", null ],
+    [ "HandleCopySelected", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#ae06889fc044795b8e3ff4d4c7d10a633", null ],
+    [ "HandlePasteObjects", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#ab7ce3c52616530057199716673c0a21e", null ],
     [ "SetObjectPlacedCallback", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a6aa133bd298d8b4b16c423d557d9ee7d", null ],
     [ "SetCacheInvalidationCallback", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a1dfdd5768b2baf1cb57b0bd58afd5168", null ],
     [ "canvas_", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#afbb106d621232d2967241877aa5052c6", null ],
@@ -38,5 +42,7 @@ var classyaze_1_1editor_1_1DungeonObjectInteraction =
     [ "object_select_end_", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#aaea2ec79332707ba797ae6160b88b223", null ],
     [ "selected_object_indices_", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a97c956d0841b9df6741f2e16d439c3cf", null ],
     [ "object_placed_callback_", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#abd9afc8fe70b26a6e3f6845f33be31b0", null ],
-    [ "cache_invalidation_callback_", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#addc4192ab3b0df17189a1e497ad061c5", null ]
+    [ "cache_invalidation_callback_", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#addc4192ab3b0df17189a1e497ad061c5", null ],
+    [ "clipboard_", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#aaed8cac3f151883cb3a7f1d64d0f916f", null ],
+    [ "has_clipboard_data_", "d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#a65efe169f73cb2fbd3b9c17ada0797c5", null ]
 ];
