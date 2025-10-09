@@ -1,6 +1,7 @@
 #include "dungeon_object_interaction.h"
 
-#include "app/gui/color.h"
+#include <algorithm>
+
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
@@ -67,7 +68,34 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
     }
     if (is_dragging_) {
       is_dragging_ = false;
-      // TODO: Apply drag transformation to selected objects
+      // Apply drag transformation to selected objects
+      if (!selected_object_indices_.empty() && rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
+        auto& room = (*rooms_)[current_room_id_];
+        ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
+                                   drag_current_pos_.y - drag_start_pos_.y);
+        
+        // Convert pixel delta to tile delta
+        int tile_delta_x = static_cast<int>(drag_delta.x) / 8;
+        int tile_delta_y = static_cast<int>(drag_delta.y) / 8;
+        
+        // Move all selected objects
+        auto& objects = room.GetTileObjects();
+        for (size_t index : selected_object_indices_) {
+          if (index < objects.size()) {
+            objects[index].x_ += tile_delta_x;
+            objects[index].y_ += tile_delta_y;
+            
+            // Clamp to room bounds (64x64 tiles)
+            objects[index].x_ = std::clamp(static_cast<int>(objects[index].x_), 0, 63);
+            objects[index].y_ = std::clamp(static_cast<int>(objects[index].y_), 0, 63);
+          }
+        }
+        
+        // Trigger cache invalidation and re-render
+        if (cache_invalidation_callback_) {
+          cache_invalidation_callback_();
+        }
+      }
     }
   }
 }
@@ -252,7 +280,8 @@ void DungeonObjectInteraction::DrawSelectBox() {
 }
 
 void DungeonObjectInteraction::DrawDragPreview() {
-  if (!is_dragging_) return;
+  if (!is_dragging_ || selected_object_indices_.empty() || !rooms_) return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296) return;
   
   // Draw drag preview for selected objects
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -260,11 +289,30 @@ void DungeonObjectInteraction::DrawDragPreview() {
   ImVec2 drag_delta = ImVec2(drag_current_pos_.x - drag_start_pos_.x,
                              drag_current_pos_.y - drag_start_pos_.y);
   
+  auto& room = (*rooms_)[current_room_id_];
+  const auto& objects = room.GetTileObjects();
+  
   // Draw preview of where objects would be moved
-  for (int obj_id : selected_objects_) {
-    // TODO: Draw preview of object at new position
-    // This would require getting the object's current position and drawing it
-    // offset by drag_delta
+  for (size_t index : selected_object_indices_) {
+    if (index < objects.size()) {
+      const auto& object = objects[index];
+      auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(object.x_, object.y_);
+      
+      // Calculate object size
+      int obj_width = 8 + (object.size_ & 0x0F) * 4;
+      int obj_height = 8 + ((object.size_ >> 4) & 0x0F) * 4;
+      obj_width = std::min(obj_width, 64);
+      obj_height = std::min(obj_height, 64);
+      
+      // Draw semi-transparent preview at new position
+      ImVec2 preview_start(canvas_pos.x + canvas_x + drag_delta.x,
+                          canvas_pos.y + canvas_y + drag_delta.y);
+      ImVec2 preview_end(preview_start.x + obj_width, preview_start.y + obj_height);
+      
+      // Draw ghosted object
+      draw_list->AddRectFilled(preview_start, preview_end, IM_COL32(0, 255, 255, 64));
+      draw_list->AddRect(preview_start, preview_end, IM_COL32(0, 255, 255, 255), 0.0f, 0, 1.5f);
+    }
   }
 }
 
@@ -339,6 +387,130 @@ void DungeonObjectInteraction::ClearSelection() {
   object_select_active_ = false;
   is_selecting_ = false;
   is_dragging_ = false;
+}
+
+void DungeonObjectInteraction::ShowContextMenu() {
+  if (!canvas_->IsMouseHovering()) return;
+  
+  // Show context menu on right-click when not dragging
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && !is_dragging_) {
+    ImGui::OpenPopup("DungeonObjectContextMenu");
+  }
+  
+  if (ImGui::BeginPopup("DungeonObjectContextMenu")) {
+    // Show different options based on current state
+    if (!selected_object_indices_.empty()) {
+      if (ImGui::MenuItem("Delete Selected", "Del")) {
+        HandleDeleteSelected();
+      }
+      if (ImGui::MenuItem("Copy Selected", "Ctrl+C")) {
+        HandleCopySelected();
+      }
+      ImGui::Separator();
+    }
+    
+    if (has_clipboard_data_) {
+      if (ImGui::MenuItem("Paste Objects", "Ctrl+V")) {
+        HandlePasteObjects();
+      }
+      ImGui::Separator();
+    }
+    
+    if (object_loaded_) {
+      ImGui::Text("Placing: Object 0x%02X", preview_object_.id_);
+      if (ImGui::MenuItem("Cancel Placement", "Esc")) {
+        object_loaded_ = false;
+      }
+    } else {
+      ImGui::Text("Right-click + drag to select");
+      ImGui::Text("Left-click + drag to move");
+    }
+    
+    ImGui::EndPopup();
+  }
+}
+
+void DungeonObjectInteraction::HandleDeleteSelected() {
+  if (selected_object_indices_.empty() || !rooms_) return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296) return;
+  
+  auto& room = (*rooms_)[current_room_id_];
+  
+  // Sort indices in descending order to avoid index shifts during deletion
+  std::vector<size_t> sorted_indices = selected_object_indices_;
+  std::sort(sorted_indices.rbegin(), sorted_indices.rend());
+  
+  // Delete selected objects using Room's RemoveTileObject method
+  for (size_t index : sorted_indices) {
+    room.RemoveTileObject(index);
+  }
+  
+  // Clear selection
+  ClearSelection();
+  
+  // Trigger cache invalidation and re-render
+  if (cache_invalidation_callback_) {
+    cache_invalidation_callback_();
+  }
+}
+
+void DungeonObjectInteraction::HandleCopySelected() {
+  if (selected_object_indices_.empty() || !rooms_) return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296) return;
+  
+  auto& room = (*rooms_)[current_room_id_];
+  const auto& objects = room.GetTileObjects();
+  
+  // Copy selected objects to clipboard
+  clipboard_.clear();
+  for (size_t index : selected_object_indices_) {
+    if (index < objects.size()) {
+      clipboard_.push_back(objects[index]);
+    }
+  }
+  
+  has_clipboard_data_ = !clipboard_.empty();
+}
+
+void DungeonObjectInteraction::HandlePasteObjects() {
+  if (!has_clipboard_data_ || !rooms_) return;
+  if (current_room_id_ < 0 || current_room_id_ >= 296) return;
+  
+  auto& room = (*rooms_)[current_room_id_];
+  
+  // Get mouse position for paste location
+  const ImGuiIO& io = ImGui::GetIO();
+  ImVec2 mouse_pos = io.MousePos;
+  ImVec2 canvas_pos = canvas_->zero_point();
+  ImVec2 canvas_mouse_pos =
+      ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
+  auto [paste_x, paste_y] = CanvasToRoomCoordinates(
+      static_cast<int>(canvas_mouse_pos.x),
+      static_cast<int>(canvas_mouse_pos.y));
+  
+  // Calculate offset from first object in clipboard
+  if (!clipboard_.empty()) {
+    int offset_x = paste_x - clipboard_[0].x_;
+    int offset_y = paste_y - clipboard_[0].y_;
+    
+    // Paste all objects with offset
+    for (const auto& obj : clipboard_) {
+      auto new_obj = obj;
+      new_obj.x_ = obj.x_ + offset_x;
+      new_obj.y_ = obj.y_ + offset_y;
+      
+      // Clamp to room bounds
+      new_obj.x_ = std::clamp(static_cast<int>(new_obj.x_), 0, 63);
+      new_obj.y_ = std::clamp(static_cast<int>(new_obj.y_), 0, 63);
+      
+      room.AddTileObject(new_obj);
+    }
+    
+    // Trigger cache invalidation and re-render
+    if (cache_invalidation_callback_) {
+      cache_invalidation_callback_();
+    }
+  }
 }
 
 }  // namespace yaze::editor
