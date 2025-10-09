@@ -8,6 +8,7 @@
 #include "app/emu/audio/audio_backend.h"
 #include "app/emu/debug/breakpoint_manager.h"
 #include "app/emu/debug/disassembly_viewer.h"
+#include "app/emu/input/input_manager.h"
 #include "app/rom.h"
 
 namespace yaze {
@@ -21,20 +22,8 @@ class IRenderer;
  */
 namespace emu {
 
-struct EmulatorKeybindings {
-  ImGuiKey a_button = ImGuiKey_Z;
-  ImGuiKey b_button = ImGuiKey_A;
-  ImGuiKey x_button = ImGuiKey_S;
-  ImGuiKey y_button = ImGuiKey_X;
-  ImGuiKey l_button = ImGuiKey_Q;
-  ImGuiKey r_button = ImGuiKey_W;
-  ImGuiKey start_button = ImGuiKey_Enter;
-  ImGuiKey select_button = ImGuiKey_Backspace;
-  ImGuiKey up_button = ImGuiKey_UpArrow;
-  ImGuiKey down_button = ImGuiKey_DownArrow;
-  ImGuiKey left_button = ImGuiKey_LeftArrow;
-  ImGuiKey right_button = ImGuiKey_RightArrow;
-};
+// REMOVED: EmulatorKeybindings (ImGuiKey-based)
+// Now using ui::InputHandler with SDL_GetKeyboardState() for proper continuous polling
 
 /**
  * @class Emulator
@@ -98,7 +87,6 @@ class Emulator {
 
  private:
   void RenderNavBar();
-  void HandleEvents();
   void RenderEmulatorInterface();
 
   void RenderSnesPpu();
@@ -161,7 +149,8 @@ class Emulator {
 
   std::vector<uint8_t> rom_data_;
 
-  EmulatorKeybindings keybindings_;
+  // Input handling (abstracted for SDL2/SDL3/custom backends)
+  input::InputManager input_manager_;
 };
 
 }  // namespace emu

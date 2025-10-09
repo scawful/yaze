@@ -13,6 +13,7 @@ namespace yaze::core {
 
 #include "app/emu/cpu/internal/opcodes.h"
 #include "app/emu/debug/disassembly_viewer.h"
+#include "app/emu/ui/input_handler.h"
 #include "app/gui/color.h"
 #include "app/gui/editor_layout.h"
 #include "app/gui/icons.h"
@@ -146,6 +147,16 @@ void Emulator::Run(Rom* rom) {
     }
   }
   
+  // Initialize input manager if not already done
+  if (!input_manager_.IsInitialized()) {
+    if (!input_manager_.Initialize(input::InputBackendFactory::BackendType::SDL2)) {
+      LOG_ERROR("Emulator", "Failed to initialize input manager");
+    } else {
+      LOG_INFO("Emulator", "Input manager initialized: %s",
+               input_manager_.backend()->GetBackendName().c_str());
+    }
+  }
+  
   // Initialize SNES and create PPU texture on first run
   // This happens lazily when user opens the emulator window
   if (!snes_initialized_ && rom->is_loaded()) {
@@ -209,7 +220,8 @@ void Emulator::Run(Rom* rom) {
   }
 
   if (running_) {
-    HandleEvents();
+    // Poll input and update SNES controller state
+    input_manager_.Poll(&snes_, 1);  // Player 1
 
     uint64_t current_count = SDL_GetPerformanceCounter();
     uint64_t delta = current_count - last_count;
@@ -674,104 +686,9 @@ void Emulator::RenderNavBar() {
   }
 }
 
-void Emulator::HandleEvents() {
-  // Handle user input events
-  if (ImGui::IsKeyPressed(keybindings_.a_button)) {
-    snes_.SetButtonState(1, 0, true);
-  }
-
-  if (ImGui::IsKeyPressed(keybindings_.b_button)) {
-    snes_.SetButtonState(1, 1, true);
-  }
-
-  if (ImGui::IsKeyPressed(keybindings_.select_button)) {
-    snes_.SetButtonState(1, 2, true);
-  }
-
-  if (ImGui::IsKeyPressed(keybindings_.start_button)) {
-    snes_.SetButtonState(1, 3, true);
-  }
-
-  if (ImGui::IsKeyPressed(keybindings_.up_button)) {
-    snes_.SetButtonState(1, 4, true);
-  }
-
-  if (ImGui::IsKeyPressed(keybindings_.down_button)) {
-    snes_.SetButtonState(1, 5, true);
-  }
-
-  if (ImGui::IsKeyPressed(keybindings_.left_button)) {
-    snes_.SetButtonState(1, 6, true);
-  }
-
-  if (ImGui::IsKeyPressed(keybindings_.right_button)) {
-    snes_.SetButtonState(1, 7, true);
-  }
-
-  if (ImGui::IsKeyPressed(keybindings_.x_button)) {
-    snes_.SetButtonState(1, 8, true);
-  }
-
-  if (ImGui::IsKeyPressed(keybindings_.y_button)) {
-    snes_.SetButtonState(1, 9, true);
-  }
-
-  if (ImGui::IsKeyPressed(keybindings_.l_button)) {
-    snes_.SetButtonState(1, 10, true);
-  }
-
-  if (ImGui::IsKeyPressed(keybindings_.r_button)) {
-    snes_.SetButtonState(1, 11, true);
-  }
-
-  if (ImGui::IsKeyReleased(keybindings_.a_button)) {
-    snes_.SetButtonState(1, 0, false);
-  }
-
-  if (ImGui::IsKeyReleased(keybindings_.b_button)) {
-    snes_.SetButtonState(1, 1, false);
-  }
-
-  if (ImGui::IsKeyReleased(keybindings_.select_button)) {
-    snes_.SetButtonState(1, 2, false);
-  }
-
-  if (ImGui::IsKeyReleased(keybindings_.start_button)) {
-    snes_.SetButtonState(1, 3, false);
-  }
-
-  if (ImGui::IsKeyReleased(keybindings_.up_button)) {
-    snes_.SetButtonState(1, 4, false);
-  }
-
-  if (ImGui::IsKeyReleased(keybindings_.down_button)) {
-    snes_.SetButtonState(1, 5, false);
-  }
-
-  if (ImGui::IsKeyReleased(keybindings_.left_button)) {
-    snes_.SetButtonState(1, 6, false);
-  }
-
-  if (ImGui::IsKeyReleased(keybindings_.right_button)) {
-    snes_.SetButtonState(1, 7, false);
-  }
-
-  if (ImGui::IsKeyReleased(keybindings_.x_button)) {
-    snes_.SetButtonState(1, 8, false);
-  }
-
-  if (ImGui::IsKeyReleased(keybindings_.y_button)) {
-    snes_.SetButtonState(1, 9, false);
-  }
-
-  if (ImGui::IsKeyReleased(keybindings_.l_button)) {
-    snes_.SetButtonState(1, 10, false);
-  }
-
-  if (ImGui::IsKeyReleased(keybindings_.r_button)) {
-    snes_.SetButtonState(1, 11, false);
-  }
-}
+// REMOVED: HandleEvents() - replaced by ui::InputHandler::Poll()
+// The old ImGui::IsKeyPressed/Released approach was event-based and didn't work properly
+// for continuous game input. Now using SDL_GetKeyboardState() for proper polling.
 
 void Emulator::RenderBreakpointList() {
   if (ImGui::Button("Set SPC PC")) {
@@ -1469,90 +1386,8 @@ void Emulator::RenderSaveStates() {
 }
 
 void Emulator::RenderKeyboardConfig() {
-  try {
-    auto& theme_manager = gui::ThemeManager::Get();
-    const auto& theme = theme_manager.GetCurrentTheme();
-
-    ImGui::PushStyleColor(ImGuiCol_ChildBg,
-                          ConvertColorToImVec4(theme.child_bg));
-    ImGui::BeginChild("##KeyboardConfig", ImVec2(0, 0), true);
-
-    // Keyboard Configuration
-    if (ImGui::CollapsingHeader("SNES Controller Mapping",
-                                ImGuiTreeNodeFlags_DefaultOpen)) {
-      ImGui::TextWrapped("Click on a button and press a key to remap it.");
-      ImGui::Separator();
-
-      if (ImGui::BeginTable("KeyboardTable", 2,
-                            ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
-        ImGui::TableSetupColumn("Button", ImGuiTableColumnFlags_WidthFixed,
-                                120);
-        ImGui::TableSetupColumn("Key", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableHeadersRow();
-
-        auto DrawKeyBinding = [&](const char* label, ImGuiKey& key) {
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::TextColored(ConvertColorToImVec4(theme.accent), "%s", label);
-          ImGui::TableNextColumn();
-
-          std::string button_label =
-              absl::StrFormat("%s##%s", ImGui::GetKeyName(key), label);
-          if (ImGui::Button(button_label.c_str(), ImVec2(-1, 0))) {
-            // TODO: Implement key remapping
-            ImGui::OpenPopup(absl::StrFormat("Remap%s", label).c_str());
-          }
-
-          if (ImGui::BeginPopup(absl::StrFormat("Remap%s", label).c_str())) {
-            ImGui::Text("Press any key...");
-            // TODO: Detect key press and update binding
-            ImGui::EndPopup();
-          }
-        };
-
-        DrawKeyBinding("A Button", keybindings_.a_button);
-        DrawKeyBinding("B Button", keybindings_.b_button);
-        DrawKeyBinding("X Button", keybindings_.x_button);
-        DrawKeyBinding("Y Button", keybindings_.y_button);
-        DrawKeyBinding("L Button", keybindings_.l_button);
-        DrawKeyBinding("R Button", keybindings_.r_button);
-        DrawKeyBinding("Start", keybindings_.start_button);
-        DrawKeyBinding("Select", keybindings_.select_button);
-        DrawKeyBinding("Up", keybindings_.up_button);
-        DrawKeyBinding("Down", keybindings_.down_button);
-        DrawKeyBinding("Left", keybindings_.left_button);
-        DrawKeyBinding("Right", keybindings_.right_button);
-
-        ImGui::EndTable();
-      }
-    }
-
-    // Emulator Hotkeys
-    if (ImGui::CollapsingHeader("Emulator Hotkeys")) {
-      ImGui::TextWrapped("System-level keyboard shortcuts:");
-      ImGui::Separator();
-
-      ImGui::BulletText("F1-F4: Quick save to slot 1-4");
-      ImGui::BulletText("Shift+F1-F4: Quick load from slot 1-4");
-      ImGui::BulletText("Backquote (`): Rewind gameplay");
-      ImGui::BulletText("Tab: Fast forward (turbo mode)");
-      ImGui::BulletText("Pause/Break: Pause/Resume emulation");
-      ImGui::BulletText("F12: Take screenshot");
-    }
-
-    // Reset to defaults
-    if (ImGui::Button("Reset to Defaults", ImVec2(-1, 35))) {
-      keybindings_ = EmulatorKeybindings();
-    }
-
-    ImGui::EndChild();
-    ImGui::PopStyleColor();
-  } catch (const std::exception& e) {
-    try {
-      ImGui::PopStyleColor();
-    } catch (...) {}
-    ImGui::Text("Keyboard Config Error: %s", e.what());
-  }
+  // Delegate to the input manager UI
+  ui::RenderKeyboardConfig(&input_manager_);
 }
 
 void Emulator::RenderApuDebugger() {
@@ -1677,23 +1512,79 @@ void Emulator::RenderApuDebugger() {
     }
 
     // Quick Actions
-    if (ImGui::CollapsingHeader("Quick Actions")) {
-      if (ImGui::Button("Force Handshake ($CC)", ImVec2(-1, 30))) {
+    if (ImGui::CollapsingHeader("Quick Actions", ImGuiTreeNodeFlags_DefaultOpen)) {
+      ImGui::TextColored(ConvertColorToImVec4(theme.warning), 
+                        "⚠️  Manual Testing Tools");
+      ImGui::Separator();
+      
+      // Full handshake sequence test
+      if (ImGui::Button("🎯 Full Handshake Test", ImVec2(-1, 35))) {
+        LOG_INFO("APU_DEBUG", "=== MANUAL HANDSHAKE TEST SEQUENCE ===");
+        
+        // Step 1: Write $CC to F4 (initiate handshake)
         snes_.Write(0x002140, 0xCC);
-        LOG_INFO("APU_DEBUG", "Manually forced handshake by writing $CC to F4");
+        LOG_INFO("APU_DEBUG", "Step 1: Wrote $CC to F4 (port $2140)");
+        
+        // Step 2: Write $01 to F5 (data port)
+        snes_.Write(0x002141, 0x01);
+        LOG_INFO("APU_DEBUG", "Step 2: Wrote $01 to F5 (port $2141)");
+        
+        // Step 3: Write $00 to F6 (address low)
+        snes_.Write(0x002142, 0x00);
+        LOG_INFO("APU_DEBUG", "Step 3: Wrote $00 to F6 (port $2142)");
+        
+        // Step 4: Write $02 to F7 (address high)
+        snes_.Write(0x002143, 0x02);
+        LOG_INFO("APU_DEBUG", "Step 4: Wrote $02 to F7 (port $2143)");
+        
+        LOG_INFO("APU_DEBUG", "Handshake initiated - check Port Activity Log");
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Manually trigger CPU handshake (for testing)");
+        ImGui::SetTooltip("Manually execute full handshake sequence:\n"
+                         "$CC → F4 (init), $01 → F5, $00 → F6, $02 → F7");
       }
       
+      ImGui::Spacing();
+      
+      // Individual port writes for debugging
+      if (ImGui::CollapsingHeader("Manual Port Writes")) {
+        static uint8_t port_values[4] = {0xCC, 0x01, 0x00, 0x02};
+        
+        for (int i = 0; i < 4; ++i) {
+          ImGui::PushID(i);
+          ImGui::Text("F%d ($214%d):", i + 4, i);
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(80);
+          ImGui::InputScalar("##val", ImGuiDataType_U8, &port_values[i], NULL, NULL, "%02X",
+                            ImGuiInputTextFlags_CharsHexadecimal);
+          ImGui::SameLine();
+          if (ImGui::Button("Write")) {
+            snes_.Write(0x002140 + i, port_values[i]);
+            LOG_INFO("APU_DEBUG", "Wrote $%02X to F%d (port $214%d)", 
+                     port_values[i], i + 4, i);
+          }
+          ImGui::PopID();
+        }
+      }
+      
+      ImGui::Spacing();
+      ImGui::Separator();
+      
+      // System controls
       if (ImGui::Button("Reset APU", ImVec2(-1, 30))) {
         snes_.apu().Reset();
         LOG_INFO("APU_DEBUG", "APU manually reset");
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Full APU reset - clears all state");
       }
       
       if (ImGui::Button("Clear Port History", ImVec2(-1, 30))) {
         snes_.apu_handshake_tracker().Reset();
         LOG_INFO("APU_DEBUG", "Port history cleared");
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Clear the port activity log");
       }
     }
 

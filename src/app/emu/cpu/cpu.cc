@@ -123,33 +123,72 @@ void Cpu::RunOpcode() {
   } else {
     uint8_t opcode = ReadOpcode();
     
-    // Debug: Log key instructions during boot
+    // AUDIO DEBUG: Enhanced logging for audio initialization tracking
     static int instruction_count = 0;
     instruction_count++;
-    
-    // Log first 50 fully, then every 100th until 3000, then stop
-    bool should_log = (instruction_count < 50) || 
-                      (instruction_count < 3000 && instruction_count % 100 == 0);
-    
-    // CRITICAL: Log LoadSongBank routine ($8888-$88FF) to trace data reads
     uint16_t cur_pc = PC - 1;
-    if (PB == 0x00 && cur_pc >= 0x8888 && cur_pc <= 0x88FF) {
-      // Detailed logging at critical handshake points
-      static int handshake_log_count = 0;
-      if (cur_pc == 0x88B3 || cur_pc == 0x88B6) {
-        if (handshake_log_count++ < 5 || handshake_log_count % 1000 == 0) {
-          // At $88B3: CMP.w APUIO0 - comparing A with F4
-          // At $88B6: BNE .wait_for_sync_a - branch if not equal
-          uint8_t f4_val = callbacks_.read_byte(0x2140);  // Read F4 directly
-          LOG_DEBUG("CPU", "Handshake wait: PC=$%04X A(counter)=$%02X F4(SPC)=$%02X X(remain)=$%04X",
-                   cur_pc, A & 0xFF, f4_val, X);
-        }
-      }
-      should_log = (cur_pc >= 0x88CF && cur_pc <= 0x88E0);  // Only log setup, not tight loop
+    
+    // Track entry into Bank $00 (where all audio code lives)
+    static bool entered_bank00 = false;
+    static bool logged_first_nmi = false;
+    
+    if (PB == 0x00 && !entered_bank00) {
+      LOG_INFO("CPU_AUDIO", "=== ENTERED BANK $00 at PC=$%04X (instruction #%d) ===", 
+               cur_pc, instruction_count);
+      entered_bank00 = true;
     }
     
+    // Monitor NMI interrupts (audio init usually happens in NMI)
+    if (nmi_wanted_ && !logged_first_nmi) {
+      LOG_INFO("CPU_AUDIO", "=== FIRST NMI TRIGGERED at PC=$%02X:%04X ===", PB, cur_pc);
+      logged_first_nmi = true;
+    }
+    
+    // Track key audio routines in Bank $00
+    if (PB == 0x00) {
+      static bool logged_routines[0x10000] = {false};
+      
+      // NMI handler entry ($0080-$00FF region)
+      if (cur_pc >= 0x0080 && cur_pc <= 0x00FF) {
+        if (cur_pc == 0x0080 || cur_pc == 0x0090 || cur_pc == 0x00A0) {
+          if (!logged_routines[cur_pc]) {
+            LOG_INFO("CPU_AUDIO", "NMI code: PC=$00:%04X A=$%02X X=$%04X Y=$%04X", 
+                     cur_pc, A & 0xFF, X, Y);
+            logged_routines[cur_pc] = true;
+          }
+        }
+      }
+      
+      // LoadSongBank routine ($8888-$88FF) - This is where handshake happens!
+      if (cur_pc >= 0x8888 && cur_pc <= 0x88FF) {
+        // Log entry
+        if (cur_pc == 0x8888) {
+          LOG_INFO("CPU_AUDIO", ">>> LoadSongBank ENTRY at $8888! A=$%02X X=$%04X", 
+                   A & 0xFF, X);
+        }
+        
+        // Log handshake initiation ($88A0-$88B0 area writes $CC to F4)
+        if (cur_pc >= 0x88A0 && cur_pc <= 0x88B0 && !logged_routines[cur_pc]) {
+          LOG_INFO("CPU_AUDIO", "Handshake setup: PC=$%04X A=$%02X", cur_pc, A & 0xFF);
+          logged_routines[cur_pc] = true;
+        }
+        
+        // Log handshake wait loop
+        static int handshake_log_count = 0;
+        if (cur_pc == 0x88B3 || cur_pc == 0x88B6) {
+          if (handshake_log_count++ < 20 || handshake_log_count % 500 == 0) {
+            uint8_t f4_val = callbacks_.read_byte(0x2140);
+            LOG_INFO("CPU_AUDIO", "Handshake wait: PC=$%04X A=$%02X F4=$%02X X=$%04X [loop #%d]",
+                     cur_pc, A & 0xFF, f4_val, X, handshake_log_count);
+          }
+        }
+      }
+    }
+    
+    // Log first 50 instructions for boot tracking
+    bool should_log = instruction_count < 50;
     if (should_log) {
-      LOG_DEBUG("CPU", "Exec #%d: $%02X:%04X opcode=$%02X", 
+      LOG_DEBUG("CPU", "Boot #%d: $%02X:%04X opcode=$%02X", 
                instruction_count, PB, PC - 1, opcode);
     }
     
