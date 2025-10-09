@@ -104,54 +104,22 @@ absl::Status GraphicsEditor::Load() {
     
     LOG_INFO("GraphicsEditor", "Initializing textures for %d graphics sheets", kNumGfxSheets);
     
-    int sheets_initialized = 0;
+    int sheets_queued = 0;
     for (int i = 0; i < kNumGfxSheets; i++) {
       if (!sheets[i].is_active() || !sheets[i].surface()) {
         continue;  // Skip inactive or surface-less sheets
       }
       
-      // Determine which palette group to use based on sheet index
-      gfx::SnesPalette sheet_palette;
-      
-      if (i < 113) {
-        // Overworld/Dungeon graphics - use dungeon main palette
-        auto palette_group = rom()->palette_group().dungeon_main;
-        if (palette_group.size() > 0) {
-          sheet_palette = palette_group[0];
-        }
-      } else if (i < 128) {
-        // Sprite graphics - use sprite palettes
-        auto palette_group = rom()->palette_group().sprites_aux1;
-        if (palette_group.size() > 0) {
-          sheet_palette = palette_group[0];
-        }
-      } else {
-        // Auxiliary graphics - use HUD/menu palettes
-        auto palette_group = rom()->palette_group().hud;
-        if (palette_group.size() > 0) {
-          sheet_palette = palette_group.palette(0);
-        }
-      }
-      
-      // CRITICAL: Apply palette BEFORE queueing texture creation
-      // The palette must be set on the surface before creating the texture
-      if (!sheet_palette.empty()) {
-        sheets[i].SetPalette(sheet_palette);
-        sheets_initialized++;
-      } else {
-        LOG_WARN("GraphicsEditor", "Sheet %d: Empty palette, skipping", i);
-        continue;
-      }
-      
-      // Queue texture creation if not already created
+      // Palettes are now applied during ROM loading in LoadAllGraphicsData()
+      // Just queue texture creation for sheets that don't have textures yet
       if (!sheets[i].texture()) {
         gfx::Arena::Get().QueueTextureCommand(
             gfx::Arena::TextureCommandType::CREATE, &sheets[i]);
+        sheets_queued++;
       }
     }
     
-    LOG_INFO("GraphicsEditor", "Initialized %d sheets with palettes, queued for texture creation", 
-             sheets_initialized);
+    LOG_INFO("GraphicsEditor", "Queued texture creation for %d graphics sheets", sheets_queued);
   }
   
   return absl::OkStatus(); 
@@ -478,19 +446,16 @@ absl::Status GraphicsEditor::UpdateGfxTabView() {
         auto draw_tile_event = [&]() {
           current_sheet_canvas_.DrawTileOnBitmap(tile_size_, &current_bitmap,
                                                  current_color_);
-          // Use batch operations for texture updates
-          // current_bitmap.QueueTextureUpdate(core::Renderer::Get().renderer());
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::UPDATE, &current_bitmap);
+        // Notify Arena that this sheet has been modified for cross-editor synchronization
+        gfx::Arena::Get().NotifySheetModified(sheet_id);
         };
 
         current_sheet_canvas_.UpdateColorPainter(
             nullptr, gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id),
             current_color_, draw_tile_event, tile_size_, current_scale_);
 
-        gfx::Arena::Get().QueueTextureCommand(
-            gfx::Arena::TextureCommandType::UPDATE, 
-            &gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id));
+        // Notify Arena that this sheet has been modified for cross-editor synchronization
+        gfx::Arena::Get().NotifySheetModified(sheet_id);
 
         ImGui::EndChild();
         ImGui::EndTabItem();
@@ -580,10 +545,8 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
         auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->data()[i];
         if (sheet.is_active() && sheet.surface()) {
           sheet.SetPaletteWithTransparent(palette, edit_palette_sub_index_);
-          if (sheet.texture()) {
-            gfx::Arena::Get().QueueTextureCommand(
-                gfx::Arena::TextureCommandType::UPDATE, &sheet);
-          }
+          // Notify Arena that this sheet has been modified
+          gfx::Arena::Get().NotifySheetModified(i);
         }
       }
     }
@@ -605,13 +568,8 @@ absl::Status GraphicsEditor::UpdatePaletteColumn() {
       auto& current = gfx::Arena::Get().mutable_gfx_sheets()->data()[current_sheet_];
       if (current.is_active() && current.surface()) {
         current.SetPaletteWithTransparent(palette, edit_palette_sub_index_);
-        if (current.texture()) {
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::UPDATE, &current);
-        } else {
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::CREATE, &current);
-        }
+        // Notify Arena that this sheet has been modified
+        gfx::Arena::Get().NotifySheetModified(current_sheet_);
       }
       refresh_graphics_ = false;
     }

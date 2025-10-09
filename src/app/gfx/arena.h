@@ -96,6 +96,13 @@ class Arena {
    * @return Pointer to mutable array of 223 Bitmap objects
    */
   auto mutable_gfx_sheets() { return &gfx_sheets_; }
+  
+  /**
+   * @brief Notify Arena that a graphics sheet has been modified
+   * @param sheet_index Index of the modified sheet (0-222)
+   * @details This ensures textures are updated across all editors
+   */
+  void NotifySheetModified(int sheet_index);
 
   // Background buffer access for SNES layer rendering
   /**

@@ -19,6 +19,7 @@
 #include "imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/hex.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace editor {
@@ -124,7 +125,7 @@ void MessageEditor::Initialize() {
   gfx::Arena::Get().QueueTextureCommand(
       gfx::Arena::TextureCommandType::CREATE, &font_gfx_bitmap_);
   
-  printf("[MessageEditor] Font bitmap created and texture queued\n");
+  LOG_INFO("MessageEditor", "Font bitmap created and texture queued");
   *current_font_gfx16_bitmap_.mutable_palette() = font_preview_colors_;
 
   auto load_font = LoadFontGraphics(*rom());
@@ -372,13 +373,32 @@ void MessageEditor::DrawDictionary() {
 }
 
 void MessageEditor::DrawMessagePreview() {
+  // Render the message to the preview bitmap
   message_preview_.DrawMessagePreview(current_message_);
+  
+  // Validate preview data before updating
+  if (message_preview_.current_preview_data_.empty()) {
+    LOG_WARN("MessageEditor", "Preview data is empty, skipping bitmap update");
+    return;
+  }
+  
   if (current_font_gfx16_bitmap_.is_active()) {
-    current_font_gfx16_bitmap_.mutable_data() =
-        message_preview_.current_preview_data_;
-    // Queue texture update via Arena's deferred system
+    // CRITICAL: Use set_data() to properly update both data_ AND surface_
+    // mutable_data() returns a reference but doesn't update the surface!
+    current_font_gfx16_bitmap_.set_data(message_preview_.current_preview_data_);
+    
+    // Validate surface was updated
+    if (!current_font_gfx16_bitmap_.surface()) {
+      LOG_ERROR("MessageEditor", "Bitmap surface is null after set_data()");
+      return;
+    }
+    
+    // Queue texture update so changes are visible immediately
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::UPDATE, &current_font_gfx16_bitmap_);
+    
+    LOG_DEBUG("MessageEditor", "Updated message preview bitmap (size: %zu) and queued texture update",
+              message_preview_.current_preview_data_.size());
   } else {
     // Create bitmap and queue texture creation
     current_font_gfx16_bitmap_.Create(kCurrentMessageWidth, kCurrentMessageHeight, 
@@ -386,6 +406,9 @@ void MessageEditor::DrawMessagePreview() {
     current_font_gfx16_bitmap_.SetPalette(font_preview_colors_);
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &current_font_gfx16_bitmap_);
+    
+    LOG_INFO("MessageEditor", "Created message preview bitmap (%dx%d) and queued texture creation",
+             kCurrentMessageWidth, kCurrentMessageHeight);
   }
 }
 

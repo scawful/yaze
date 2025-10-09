@@ -206,6 +206,36 @@ absl::StatusOr<std::array<gfx::Bitmap, kNumGfxSheets>> LoadAllGraphicsData(
       graphics_sheets[i].Create(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                 gfx::kTilesheetDepth, converted_sheet);
       
+      // Apply default palette based on sheet index to prevent white sheets
+      // This ensures graphics are visible immediately after loading
+      if (!rom.palette_group().empty()) {
+        gfx::SnesPalette default_palette;
+        
+        if (i < 113) {
+          // Overworld/Dungeon graphics - use dungeon main palette
+          auto palette_group = rom.palette_group().dungeon_main;
+          if (palette_group.size() > 0) {
+            default_palette = palette_group[0];
+          }
+        } else if (i < 128) {
+          // Sprite graphics - use sprite palettes  
+          auto palette_group = rom.palette_group().sprites_aux1;
+          if (palette_group.size() > 0) {
+            default_palette = palette_group[0];
+          }
+        } else {
+          // Auxiliary graphics - use HUD/menu palettes
+          auto palette_group = rom.palette_group().hud;
+          if (palette_group.size() > 0) {
+            default_palette = palette_group.palette(0);
+          }
+        }
+        
+        // Apply palette if we have one
+        if (!default_palette.empty()) {
+          graphics_sheets[i].SetPalette(default_palette);
+        }
+      }
 
       for (int j = 0; j < graphics_sheets[i].size(); ++j) {
         rom.mutable_graphics_buffer()->push_back(graphics_sheets[i].at(j));
