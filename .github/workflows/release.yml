@@ -143,6 +143,7 @@ jobs:
         uses: lukka/run-vcpkg@v11
         with:
           runVcpkgInstall: true
+          doNotUpdateVcpkg: false
 
       - name: "Install Dependencies"
         shell: bash
