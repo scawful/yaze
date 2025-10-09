@@ -194,38 +194,66 @@ jobs:
             brew install ninja cmake pkg-config
           fi
 
-      - name: "Configure"
-        id: configure
+      - name: "Configure (Windows)"
+        if: runner.os == 'Windows'
+        id: configure_windows
+        shell: pwsh
+        run: |
+          Write-Host "::group::CMake Configuration (Windows)" -ForegroundColor Cyan
+          
+          $vcpkgToolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -replace '\\', '/'
+          Write-Host "Using vcpkg toolchain: $vcpkgToolchain"
+          
+          cmake -B build -G "Visual Studio 17 2022" -A x64 `
+            -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
+            -DCMAKE_TOOLCHAIN_FILE="$vcpkgToolchain" `
+            -DYAZE_BUILD_TESTS=OFF `
+            -DYAZE_BUILD_EMU=OFF `
+            -DYAZE_BUILD_Z3ED=ON 2>&1 | Tee-Object -FilePath cmake_config.log
+          
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::CMake configuration failed with exit code $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
+          
+          Write-Host "::endgroup::"
+      
+      - name: "Configure (macOS)"
+        if: runner.os == 'macOS'
+        id: configure_macos
         shell: bash
         run: |
           set -e
-          echo "::group::CMake Configuration"
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            cmake -B build -G "Visual Studio 17 2022" -A x64 \
-              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-              -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
-              -DYAZE_BUILD_TESTS=OFF \
-              -DYAZE_BUILD_EMU=OFF \
-              -DYAZE_BUILD_Z3ED=ON 2>&1 | tee cmake_config.log
-          elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            cmake -B build -G Ninja \
-              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-              -DCMAKE_OSX_ARCHITECTURES=${{ matrix.mac_arch }} \
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
-              -DYAZE_BUILD_TESTS=OFF \
-              -DYAZE_BUILD_EMU=OFF \
-              -DYAZE_BUILD_Z3ED=ON 2>&1 | tee cmake_config.log
-          else
-            cmake -B build -G Ninja \
-              -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-              -DYAZE_BUILD_TESTS=OFF \
-              -DYAZE_BUILD_EMU=OFF \
-              -DYAZE_BUILD_Z3ED=ON 2>&1 | tee cmake_config.log
-          fi
+          echo "::group::CMake Configuration (macOS)"
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_OSX_ARCHITECTURES=${{ matrix.mac_arch }} \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DYAZE_BUILD_TESTS=OFF \
+            -DYAZE_BUILD_EMU=OFF \
+            -DYAZE_BUILD_Z3ED=ON 2>&1 | tee cmake_config.log
+          echo "::endgroup::"
+      
+      - name: "Configure (Linux)"
+        if: runner.os == 'Linux'
+        id: configure_linux
+        shell: bash
+        run: |
+          set -e
+          echo "::group::CMake Configuration (Linux)"
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DYAZE_BUILD_TESTS=OFF \
+            -DYAZE_BUILD_EMU=OFF \
+            -DYAZE_BUILD_Z3ED=ON 2>&1 | tee cmake_config.log
           echo "::endgroup::"
       
       - name: "Report Configure Failure"
-        if: failure() && steps.configure.outcome == 'failure'
+        if: |
+          failure() && 
+          (steps.configure_windows.outcome == 'failure' || 
+           steps.configure_macos.outcome == 'failure' || 
+           steps.configure_linux.outcome == 'failure')
         shell: bash
         run: |
           echo "::error::CMake configuration failed for ${{ matrix.name }}"
@@ -343,7 +371,8 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           echo "### Build Status" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ steps.configure.outcome }}" == "success" ]]; then
+          CONFIGURE_OUTCOME="${{ steps.configure_windows.outcome || steps.configure_macos.outcome || steps.configure_linux.outcome }}"
+          if [[ "$CONFIGURE_OUTCOME" == "success" ]]; then
             echo "- ✅ Configure: Success" >> $GITHUB_STEP_SUMMARY
           else
             echo "- ❌ Configure: Failed" >> $GITHUB_STEP_SUMMARY
