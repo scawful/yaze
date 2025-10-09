@@ -1398,7 +1398,7 @@ var NAVTREEINDEX =
 "d9/df8/structyaze_1_1cli_1_1overworld_1_1EntranceDetails.html#aa95726a2e4610dfda86ab44e2d7a97b2",
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a138da043a8552c3c599baff50cf9842f",
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#ab5f77b8ff1b6b2ed0c4a0fa100e3a074",
-"da/d3e/classyaze_1_1test_1_1TestManager.html#ac2683269e10fc0fdfb06f3b61b71eb26",
+"da/d3e/classyaze_1_1test_1_1TestManager.html#ac37b52f7a9e71251dd91f907d5ab8cd9",
 "da/d5e/structyaze_1_1core_1_1YazeProject.html#a0fd21656193b21714dfeeeb6a98999c3",
 "da/d84/classyaze_1_1core_1_1anonymous__namespace_02asar__wrapper__test_8cc_03_1_1AsarWrapperTest.html#aca3a27a748c34c453ee5654c29875cde",
 "da/dbc/classyaze_1_1emu_1_1AsmParser.html#a6ebefb8ac2822d8030c691b1a3ce2402",
