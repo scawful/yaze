@@ -95,9 +95,10 @@ std::string ParseTextDataByte(uint8_t value) {
   }
 
   // Check for dictionary.
-  int dictionary = FindDictionaryEntry(value);
+  int8_t dictionary = FindDictionaryEntry(value);
   if (dictionary >= 0) {
-    return absl::StrFormat("[%s:%02X]", DICTIONARYTOKEN, dictionary);
+    return absl::StrFormat("[%s:%02X]", DICTIONARYTOKEN, 
+                           static_cast<unsigned char>(dictionary));
   }
 
   return "";
@@ -105,7 +106,7 @@ std::string ParseTextDataByte(uint8_t value) {
 
 std::vector<uint8_t> ParseMessageToData(std::string str) {
   std::vector<uint8_t> bytes;
-  std::string temp_string = str;
+  std::string temp_string = std::move(str);
   int pos = 0;
   while (pos < temp_string.size()) {
     // Get next text fragment.
@@ -181,8 +182,8 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom) {
 }
 
 std::string ReplaceAllDictionaryWords(std::string str,
-                                      std::vector<DictionaryEntry> dictionary) {
-  std::string temp = str;
+                                      const std::vector<DictionaryEntry>& dictionary) {
+  std::string temp = std::move(str);
   for (const auto& entry : dictionary) {
     if (entry.ContainedInString(temp)) {
       temp = entry.ReplaceInstancesOfIn(temp);
@@ -192,7 +193,7 @@ std::string ReplaceAllDictionaryWords(std::string str,
 }
 
 DictionaryEntry FindRealDictionaryEntry(
-    uint8_t value, std::vector<DictionaryEntry> dictionary) {
+    uint8_t value, const std::vector<DictionaryEntry>& dictionary) {
   for (const auto& entry : dictionary) {
     if (entry.ID + DICTOFF == value) {
       return entry;
@@ -245,12 +246,12 @@ absl::StatusOr<MessageData> ParseSingleMessage(
     }
 
     // Check for dictionary.
-    int dictionary = FindDictionaryEntry(current_byte);
+    int8_t dictionary = FindDictionaryEntry(current_byte);
     if (dictionary >= 0) {
       current_message_raw.append("[");
       current_message_raw.append(DICTIONARYTOKEN);
       current_message_raw.append(":");
-      current_message_raw.append(util::HexWord(dictionary));
+      current_message_raw.append(util::HexWord(static_cast<unsigned char>(dictionary)));
       current_message_raw.append("]");
 
       auto mutable_rom_data = const_cast<uint8_t*>(rom_data.data());
@@ -288,44 +289,53 @@ std::vector<std::string> ParseMessageData(
 
   for (auto& message : message_data) {
     std::string parsed_message = "";
-    int pos = 0;
-    for (const uint8_t& byte : message.Data) {
-      if (CharEncoder.contains(byte)) {
-        parsed_message.push_back(CharEncoder.at(byte));
-      } else {
-        if (byte >= DICTOFF && byte < (DICTOFF + 97)) {
-          DictionaryEntry dic_entry;
-          for (const auto& entry : dictionary_entries) {
-            if (entry.ID == byte - DICTOFF) {
-              dic_entry = entry;
-              break;
-            }
-          }
-          parsed_message.append(dic_entry.Contents);
+    // Use index-based loop to properly skip argument bytes
+    for (size_t pos = 0; pos < message.Data.size(); ++pos) {
+      uint8_t byte = message.Data[pos];
+      
+      // Check for text commands first (they may have arguments to skip)
+      auto text_element = FindMatchingCommand(byte);
+      if (text_element != std::nullopt) {
+        // Add newline for certain commands
+        if (text_element->ID == kScrollVertical ||
+            text_element->ID == kLine2 || text_element->ID == kLine3) {
+          parsed_message.append("\n");
+        }
+        // If command has an argument, get it from next byte and skip it
+        if (text_element->HasArgument && pos + 1 < message.Data.size()) {
+          uint8_t arg_byte = message.Data[pos + 1];
+          parsed_message.append(text_element->GetParamToken(arg_byte));
+          pos++;  // Skip the argument byte
         } else {
-          auto text_element = FindMatchingCommand(byte);
-          if (text_element != std::nullopt) {
-            if (text_element->ID == kScrollVertical ||
-                text_element->ID == kLine2 || text_element->ID == kLine3) {
-              parsed_message.append("\n");
-            }
-            // If there is a param, add it to the message using GetParamToken.
-            if (text_element->HasArgument) {
-              // The next byte is the param.
-              parsed_message.append(
-                  text_element->GetParamToken(message.Data[pos + 1]));
-              pos++;
-            } else {
-              parsed_message.append(text_element->GetParamToken());
-            }
-          }
-          auto special_element = FindMatchingSpecial(byte);
-          if (special_element != std::nullopt) {
-            parsed_message.append(special_element->GetParamToken());
+          parsed_message.append(text_element->GetParamToken());
+        }
+        continue;  // Move to next byte
+      }
+      
+      // Check for special characters
+      auto special_element = FindMatchingSpecial(byte);
+      if (special_element != std::nullopt) {
+        parsed_message.append(special_element->GetParamToken());
+        continue;
+      }
+      
+      // Check for dictionary entries
+      if (byte >= DICTOFF && byte < (DICTOFF + 97)) {
+        DictionaryEntry dic_entry;
+        for (const auto& entry : dictionary_entries) {
+          if (entry.ID == byte - DICTOFF) {
+            dic_entry = entry;
+            break;
           }
         }
+        parsed_message.append(dic_entry.Contents);
+        continue;
       }
-      pos++;
+      
+      // Finally check for regular characters
+      if (CharEncoder.contains(byte)) {
+        parsed_message.push_back(CharEncoder.at(byte));
+      }
     }
     parsed_messages.push_back(parsed_message);
   }
@@ -389,10 +399,10 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos) {
     }
 
     // Check for dictionary.
-    int dictionary = FindDictionaryEntry(current_byte);
+    int8_t dictionary = FindDictionaryEntry(current_byte);
     if (dictionary >= 0) {
       current_raw_message.append(absl::StrFormat("[%s:%s]", DICTIONARYTOKEN,
-                                                 util::HexByte(dictionary)));
+                                                 util::HexByte(static_cast<unsigned char>(dictionary))));
 
       uint32_t address =
           Get24LocalFromPC(rom, kPointersDictionaries + (dictionary * 2));
