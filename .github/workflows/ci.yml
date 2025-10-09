@@ -92,7 +92,7 @@ jobs:
         VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
       with:
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-        vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'  # 2024.07.12 release
+        vcpkgGitCommitId: '01f602195983451bc83e72f4214af2cbc495aa94'  # 2024.10.21 release
         runVcpkgInstall: false  # Let CMake handle installation via manifest mode
     
     - name: Retry vcpkg setup (Windows)
@@ -103,7 +103,7 @@ jobs:
         VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
       with:
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-        vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
+        vcpkgGitCommitId: '01f602195983451bc83e72f4214af2cbc495aa94'
         runVcpkgInstall: false
         doNotUpdateVcpkg: true  # Use existing clone on retry
     
