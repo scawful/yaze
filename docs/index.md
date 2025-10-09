@@ -36,6 +36,9 @@ Welcome to the official documentation for yaze, a comprehensive ROM editor for T
 ## I: Roadmap
 - [I1: Roadmap](I1-roadmap.md)
 
+## R: ROM Reference
+- [R1: A Link to the Past ROM Reference](R1-alttp-rom-reference.md) - Technical reference for ALTTP ROM structures, graphics, palettes, and compression.
+
 ---
 
-*Last updated: October 2025 - Version 0.3.2*
+*Last updated: October 2025 - Version 0.3.3 (In Flux)*

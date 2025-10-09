@@ -210,38 +210,51 @@ constexpr uint32_t kTriforcePalette = 0xF4CD0;
 constexpr uint32_t kOverworldMiniMapPalettes = 0x55B27;
 ```
 
-## Recent Fixes Applied
+## Graphics Sheet Palette Application
 
-### Fix 1: Palette Access Method (2025-01-07)
-- **File**: `room.cc`
-- **Change**: Use `dungeon_pal_group[palette_id]` instead of `dungeon_pal_group.palette(palette_id)`
-- **Result**: Palettes now load correctly with 90 colors
+### Default Palette Assignment
+Graphics sheets receive default palettes during ROM loading based on their index:
 
-### Fix 2: Bitmap Depth Parameter (2025-01-07)
-- **File**: `room.cc`
-- **Change**: Changed depth from `0x200` to `8` in `CreateAndRenderBitmap`
-- **Result**: Room graphics now render correctly across full bitmap
+```cpp
+// In LoadAllGraphicsData() - rom.cc
+if (i < 113) {
+  // Sheets 0-112: Overworld/Dungeon graphics
+  graphics_sheets[i].SetPalette(rom.palette_group().dungeon_main[0]);
+} else if (i < 128) {
+  // Sheets 113-127: Sprite graphics
+  graphics_sheets[i].SetPalette(rom.palette_group().sprites_aux1[0]);
+} else {
+  // Sheets 128-222: Auxiliary/HUD graphics
+  graphics_sheets[i].SetPalette(rom.palette_group().hud.palette(0));
+}
+```
 
-### Fix 3: Emulator Preview Initialization (2025-01-07)
-- **File**: `dungeon_editor_v2.cc`
-- **Change**: Moved `object_emulator_preview_.Initialize(rom_)` from `Initialize()` to `Load()`
-- **Result**: Emulator preview now correctly detects loaded ROM
+This ensures graphics are visible immediately after loading rather than appearing white.
 
-## Next Steps
+### Palette Update Workflow
+When changing a palette in any editor:
 
-1. **Palette Editor Enhancements**
-   - Add visual palette grid display
-   - Implement color picker integration
-   - Add undo/redo for palette changes
-   - Show ROM addresses for each palette
+1. Apply the palette: `bitmap.SetPalette(new_palette)`
+2. Notify Arena: `gfx::Arena::Get().NotifySheetModified(sheet_index)`
+3. Changes propagate to all editors automatically
 
-2. **Overworld Color Math Fix**
-   - Review and correct overworld entity color calculations
-   - Ensure 3BPP left/right palette assignment is correct
-   - Test with multiple overworld areas
+### Common Pitfalls
 
-3. **Documentation**
-   - Add inline comments explaining palette access patterns
-   - Create visual diagrams for palette organization
-   - Document palette editing workflows
+**Wrong Palette Access**:
+```cpp
+// WRONG - Returns copy, may be empty
+auto palette = group.palette(id);
+
+// CORRECT - Returns reference
+auto palette = group[id];
+```
+
+**Missing Surface Update**:
+```cpp
+// WRONG - Only updates vector, not SDL surface
+bitmap.mutable_data() = new_data;
+
+// CORRECT - Updates both vector and surface
+bitmap.set_data(new_data);
+```
 

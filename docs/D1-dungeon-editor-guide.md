@@ -1,7 +1,7 @@
 # Dungeon Editor Complete Guide
 
-**Last Updated**: October 7, 2025  
-**Status**: ✅ Core features complete, ready for production use
+**Last Updated**: October 9, 2025  
+**Status**: EXPERIMENTAL - Core features implemented but requires thorough testing
 
 ---
 
@@ -19,17 +19,18 @@
 
 ## Overview
 
-The Dungeon Editor V2 is a complete modular refactoring using an independent EditorCard system, providing full dungeon editing capabilities that match and exceed ZScream functionality.
+The Dungeon Editor uses a modular card-based architecture for editing dungeon rooms in The Legend of Zelda: A Link to the Past.
+
+**WARNING**: This editor is currently experimental. While core features are implemented, thorough testing is still required before production use.
 
 ### Key Capabilities
-- ✅ Visual room editing with 512x512 canvas
-- ✅ Object placement with pattern-based rendering
-- ✅ Live palette editing with instant preview
-- ✅ Independent dockable UI cards
-- ✅ Cross-editor navigation
-- ✅ Multi-room editing
-- ✅ Automatic graphics loading
-- ✅ Error recovery system
+- Visual room editing with 512x512 canvas
+- Object placement with pattern-based rendering
+- Live palette editing with instant preview
+- Independent dockable UI cards
+- Multi-room editing support
+- Automatic graphics loading
+- Error recovery system
 
 ---
 
@@ -809,76 +810,49 @@ int offset = (tile_row * 8 * 512) + (tile_col * 8);
 int offset = palette_id * 8;  // NOT << 4 !
 ```
 
-### Comparison with ZScream
-
-| Feature | ZScream | Yaze (DungeonEditorV2) |
-|---------|---------|------------------------|
-| Room List | ✓ Static | ✓ Searchable, Dynamic |
-| Entrance Config | ✓ Basic | ✓ Full Layout Match |
-| Room Matrix | ✗ None | ✓ 16x19 Color Grid |
-| Object Browser | ✓ Grid | ✓ List + Previews + Filters |
-| Palette Editor | ✓ Basic | ✓ Live HSV Picker |
-| Docking | ✗ Fixed Layout | ✓ Full Docking Support |
-| Error Handling | ✗ Crashes | ✓ Auto-Recovery |
-| Graphics Auto-Load | ✗ Manual | ✓ Automatic |
-| Cross-Editor Nav | ✗ None | ✓ Jump-to System |
-| Multi-Room Editing | ✗ One at a Time | ✓ Multiple Rooms |
-
 ### Performance Metrics
 
-**Before Optimization**:
-- Matrix load time: **2-4 seconds** (lazy loading 296 rooms)
-- Memory allocations: **~500 per matrix draw**
-- Frame drops: **Yes** (during initial render)
+**Matrix Loading**:
+- Load time: < 50ms (pure calculation, no I/O)
+- Memory allocations: ~20 per matrix draw (cached colors)
+- Frame drops: None
 
-**After Optimization**:
-- Matrix load time: **< 50ms** (pure math, no I/O)
-- Memory allocations: **~20 per matrix draw** (cached colors)
-- Frame drops: **None**
+**Room Loading**:
+- Lazy loading: Rooms loaded on-demand
+- Graphics caching: Reused across room switches
+- Texture batching: Up to 8 textures processed per frame
 
 ---
 
 ## Status Summary
 
-### ✅ What's Working
+### Implemented Features
 
-1. ✅ **Floor rendering** - Correct tile graphics with proper palette
-2. ✅ **Wall/object drawing** - ObjectDrawer with pattern-based rendering
-3. ✅ **Palette editing** - Full 90-color palettes with live HSV picker
-4. ✅ **Live updates** - Palette changes trigger immediate re-render
-5. ✅ **Per-room buffers** - No shared arena corruption
-6. ✅ **Independent cards** - Flexible dockable UI
-7. ✅ **Room matrix** - Instant loading, visual navigation
-8. ✅ **Entrance config** - Full ZScream parity
-9. ✅ **Cross-editor nav** - Jump between overworld/dungeon
-10. ✅ **Error recovery** - Auto-reset on ImGui errors
+**Rendering**:
+- Floor rendering with tile graphics and palettes
+- Object drawing via ObjectDrawer with pattern-based rendering
+- Live palette editing with HSV picker
+- Per-room background buffers (no shared state corruption)
 
-### 🔄 In Progress
+**UI**:
+- Independent dockable cards
+- Room matrix for visual navigation
+- Entrance configuration
+- Cross-editor navigation (jump between overworld/dungeon)
+- Error recovery system
 
-1. 🔄 **Entity interaction** - Click/drag sprites and objects
-2. 🔄 **Multi-select drag** - Group object movement
-3. 🔄 **Context menu** - Dungeon-aware operations
-4. 🔄 **Object thumbnails** - Rendered previews in selector
+### In Progress
 
-### 📋 Priority Implementation Order
+**Interaction**:
+- Entity click/drag for sprites and objects
+- Multi-select drag for group movement
+- Context-aware right-click menu
 
-**Must Have** (Before Release):
-1. ✅ Room matrix performance
-2. ✅ Object drawing patterns
-3. ✅ Palette editing
-4. ⏳ Entity interaction
-5. ⏳ Context menu awareness
-
-**Should Have** (Polish):
-6. ⏳ Multi-select drag
-7. ⏳ Object copy/paste
-8. ⏳ Object thumbnails
-
-**Nice to Have** (Future):
-9. Room layout visual editor
-10. Auto-tile placement
-11. Object snapping grid
-12. Animated graphics (water, lava)
+**Enhancement**:
+- Object thumbnails in selector
+- Room layout visual editor
+- Auto-tile placement
+- Object snapping grid
 
 ---
 
@@ -892,14 +866,32 @@ cmake --build build_ai --target yaze -j12
 
 ---
 
-**Status**: 🎯 **PRODUCTION READY**
+**Status**: EXPERIMENTAL
 
-The dungeon editor now provides:
-- ✅ Complete room editing capabilities
-- ✅ ZScream feature parity (and beyond)
-- ✅ Modern flexible UI
-- ✅ Live palette editing
-- ✅ Robust error handling
-- ✅ Multi-room workflow
+The dungeon editor provides core editing capabilities but requires thorough testing before production use. Users should save backups before editing ROMs.
 
-Ready to create beautiful dungeons! 🏰✨
+### Critical Rendering Pipeline Details
+
+#### Bitmap Data Synchronization
+When updating bitmap pixel data, two memory locations must stay synchronized:
+1. `data_` - C++ std::vector<uint8_t> 
+2. `surface_->pixels` - SDL raw pixel buffer used for texture creation
+
+**Always use**:
+- `set_data()` for bulk updates (updates both vector AND surface via memcpy)
+- `WriteToPixel()` for single pixel changes
+- **Never** assign directly to `mutable_data()` for replacement operations
+
+#### Texture Update Queue
+Texture operations are queued and processed in batches for performance:
+```cpp
+// Queue texture operation
+gfx::Arena::Get().QueueTextureCommand(
+    gfx::Arena::TextureCommandType::UPDATE, &bitmap);
+
+// Process queue every frame (required!)
+gfx::Arena::Get().ProcessTextureQueue(renderer_);
+```
+
+#### Graphics Sheet System
+All 223 graphics sheets are managed centrally by `gfx::Arena`. When one editor modifies a sheet, use `Arena::NotifySheetModified(sheet_index)` to propagate changes to all editors.
