@@ -53,18 +53,24 @@ jobs:
       uses: lukka/run-vcpkg@v11
       id: vcpkg
       continue-on-error: true
+      env:
+        VCPKG_DEFAULT_TRIPLET: x64-windows-static
+        VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
       with:
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
         vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'  # 2024.07.12 release
-        runVcpkgInstall: true
+        runVcpkgInstall: false  # Let CMake handle installation via manifest mode
     
     - name: Retry vcpkg setup (Windows only)
       if: runner.os == 'Windows' && steps.vcpkg.outcome == 'failure'
       uses: lukka/run-vcpkg@v11
+      env:
+        VCPKG_DEFAULT_TRIPLET: x64-windows-static
+        VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
       with:
         vcpkgDirectory: '${{ github.workspace }}/vcpkg'
         vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
-        runVcpkgInstall: true
+        runVcpkgInstall: false
         doNotUpdateVcpkg: true  # Use existing clone on retry
 
     - name: Install Dependencies
@@ -113,6 +119,8 @@ jobs:
     - name: Configure
       id: configure
       shell: bash
+      env:
+        VCPKG_DEFAULT_TRIPLET: x64-windows-static
       run: |
         set -e
         echo "::group::CMake Configuration"
@@ -120,6 +128,8 @@ jobs:
           cmake -B build -G "Visual Studio 17 2022" -A x64 \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static \
+            -DVCPKG_MANIFEST_MODE=ON \
             -DYAZE_MINIMAL_BUILD=ON \
             -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
         else

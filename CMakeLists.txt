@@ -220,40 +220,58 @@ elseif(YAZE_PLATFORM_MACOS)
     set(CMAKE_INSTALL_PREFIX /usr/local)
     target_compile_definitions(yaze_common INTERFACE MACOS)
 elseif(YAZE_PLATFORM_WINDOWS)
-    # Only include vcpkg configuration if vcpkg toolchain is available
+    # vcpkg configuration must be done early (in CMakeLists.txt or via command line)
+    # The vcpkg.cmake file contains post-toolchain configuration and reporting
     if(DEFINED CMAKE_TOOLCHAIN_FILE AND EXISTS "${CMAKE_TOOLCHAIN_FILE}")
+        # vcpkg toolchain is active
+        # Note: VCPKG_TARGET_TRIPLET and other settings should be set via command line
+        # or will be auto-detected by our cmake/vcpkg.cmake include
+        message(STATUS "✓ Using vcpkg integration")
+        message(STATUS "  ├─ Toolchain: ${CMAKE_TOOLCHAIN_FILE}")
+        if(DEFINED VCPKG_TARGET_TRIPLET)
+            message(STATUS "  └─ Triplet: ${VCPKG_TARGET_TRIPLET}")
+        endif()
+        
+        # Include our vcpkg configuration for additional settings
         include(cmake/vcpkg.cmake)
-        message(STATUS "Using vcpkg integration")
-        message(STATUS "  - Toolchain: ${CMAKE_TOOLCHAIN_FILE}")
     else()
-        message(STATUS "vcpkg not available - using system packages or bundled dependencies")
-        message(STATUS "  Tip: Set VCPKG_ROOT environment variable to enable vcpkg")
+        message(STATUS "○ vcpkg not available - using system packages or bundled dependencies")
+        message(STATUS "  Tip: Set VCPKG_ROOT environment variable or CMAKE_TOOLCHAIN_FILE to enable vcpkg")
     endif()
     target_compile_definitions(yaze_common INTERFACE WINDOWS)
     
     # Windows-specific build guidance
-    message(STATUS "===========================================")
+    message(STATUS "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     message(STATUS "Windows Build Configuration:")
-    message(STATUS "  - Generator: ${CMAKE_GENERATOR}")
-    message(STATUS "  - Architecture: ${CMAKE_GENERATOR_PLATFORM}")
-    message(STATUS "  - JSON Support: ${YAZE_WITH_JSON}")
-    message(STATUS "  - AI Features: ${Z3ED_AI}")
-    message(STATUS "  - gRPC Support: ${YAZE_WITH_GRPC}")
-    message(STATUS "===========================================")
+    message(STATUS "  ├─ Generator: ${CMAKE_GENERATOR}")
+    message(STATUS "  ├─ Architecture: ${CMAKE_GENERATOR_PLATFORM}")
+    message(STATUS "  ├─ Build Type: ${CMAKE_BUILD_TYPE}")
+    message(STATUS "  ├─ Minimal Build: ${YAZE_MINIMAL_BUILD}")
+    message(STATUS "  ├─ JSON Support: ${YAZE_WITH_JSON}")
+    message(STATUS "  ├─ AI Features: ${Z3ED_AI}")
+    message(STATUS "  └─ gRPC Support: ${YAZE_WITH_GRPC}")
+    message(STATUS "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     
     # Helpful messages about build configuration
-    if(NOT Z3ED_AI)
-        message(STATUS "Note: AI agent features disabled (JSON is enabled)")
-        message(STATUS "      To enable AI: cmake --preset windows-ai-debug")
+    if(YAZE_MINIMAL_BUILD)
+        message(STATUS "ℹ️  Minimal Build Mode:")
+        message(STATUS "   • gRPC disabled for faster CI builds")
+        message(STATUS "   • UI tests disabled")
+        message(STATUS "   • JSON support enabled (header-only, lightweight)")
+    endif()
+    
+    if(NOT Z3ED_AI AND NOT YAZE_MINIMAL_BUILD)
+        message(STATUS "Note: AI agent features disabled")
+        message(STATUS "      To enable: cmake -DYAZE_WITH_GRPC=ON -DZ3ED_AI=ON ...")
     endif()
     
     if(NOT YAZE_WITH_JSON)
-        message(STATUS "Warning: JSON disabled - some features may not compile")
-        message(STATUS "         Recommend keeping JSON enabled (it's header-only)")
+        message(WARNING "JSON disabled - some features may not compile")
+        message(WARNING "Recommend keeping JSON enabled (it's header-only)")
     endif()
     
-    # Note about httplib and AI features
-    message(STATUS "httplib: Header-only mode (compression libs disabled)")
+    # Note about httplib
+    message(STATUS "httplib: Header-only mode (compression features disabled)")
     if(Z3ED_AI)
         message(STATUS "         For Gemini API: curl.exe must be in PATH")
         message(STATUS "         (Usually included with Windows 10/11 or Git)")
