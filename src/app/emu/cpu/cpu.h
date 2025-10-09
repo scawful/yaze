@@ -52,9 +52,9 @@ class Cpu {
   void Nmi() { nmi_wanted_ = true; }
 
   std::vector<uint32_t> breakpoints_;
-  std::vector<InstructionEntry> instruction_log_;  // Legacy log for compatibility
+  // REMOVED: instruction_log_ - replaced by efficient DisassemblyViewer
   
-  // New disassembly viewer
+  // Disassembly viewer (always enabled, uses sparse address map)
   debug::DisassemblyViewer& disassembly_viewer();
   const debug::DisassemblyViewer& disassembly_viewer() const;
   
@@ -773,12 +773,10 @@ class Cpu {
     int_delay_ = false;
   }
 
-  auto mutable_log_instructions() -> bool* { return &log_instructions_; }
   bool stopped() const { return stopped_; }
   
-  // Instruction logging control
-  void SetInstructionLogging(bool enabled) { log_instructions_ = enabled; }
-  bool IsInstructionLoggingEnabled() const { return log_instructions_; }
+  // REMOVED: SetInstructionLogging - DisassemblyViewer is always active
+  // Use disassembly_viewer().SetRecording(bool) for runtime control
 
  private:
   void compare(uint16_t register_value, uint16_t memory_value) {
@@ -808,7 +806,7 @@ class Cpu {
 
   bool GetFlag(uint8_t mask) const { return (status & mask) != 0; }
 
-  bool log_instructions_ = false;
+  // REMOVED: log_instructions_ flag - no longer needed
 
   bool waiting_ = false;
   bool stopped_ = false;

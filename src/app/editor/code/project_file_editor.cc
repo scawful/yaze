@@ -205,7 +205,7 @@ output_folder=build
 additional_roms=
 
 [feature_flags]
-kLogInstructions=false
+# REMOVED: kLogInstructions - DisassemblyViewer is always active
 kSaveDungeonMaps=true
 kSaveGraphicsSheet=true
 kLoadCustomOverworld=false
