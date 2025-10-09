@@ -12,10 +12,6 @@
       "features": []
     },
     {
-      "name": "abseil",
-      "platform": "windows"
-    },
-    {
       "name": "yaml-cpp",
       "platform": "windows"
     },

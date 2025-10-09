@@ -18,11 +18,11 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 set(FETCHCONTENT_QUIET OFF)
 
-# CRITICAL: Prevent CMake from finding system-installed protobuf
+# CRITICAL: Prevent CMake from finding system-installed protobuf/abseil
 # This ensures gRPC uses its own bundled versions
-# NOTE: We allow gRPC to use our FetchContent abseil to keep versions in sync
 set(CMAKE_DISABLE_FIND_PACKAGE_Protobuf TRUE)
 set(CMAKE_DISABLE_FIND_PACKAGE_gRPC TRUE)
+set(CMAKE_DISABLE_FIND_PACKAGE_absl TRUE)
 
 # Also prevent pkg-config from finding system packages
 set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH FALSE)

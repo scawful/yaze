@@ -16,6 +16,14 @@
 #include "httplib.h"
 #endif
 
+// Undefine Windows macros that conflict with our method names
+// Must be outside the #ifdef so it applies to all code below
+#ifdef _WIN32
+#ifdef SendMessage
+#undef SendMessage
+#endif
+#endif
+
 namespace yaze {
 namespace cli {
 namespace net {
