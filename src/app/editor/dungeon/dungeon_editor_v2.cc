@@ -411,7 +411,7 @@ void DungeonEditorV2::DrawLayout() {
 }
 
 void DungeonEditorV2::DrawRoomTab(int room_id) {
-  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+  if (room_id < 0 || room_id >= 0x128) {
     ImGui::Text("Invalid room ID: %d", room_id);
     return;
   }
