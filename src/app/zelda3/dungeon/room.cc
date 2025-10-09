@@ -16,6 +16,7 @@
 #include "app/zelda3/dungeon/room_diagnostic.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -312,7 +313,7 @@ void Room::RenderRoomGraphics() {
   int palette_id = palette;
   
   if (palette_id < 0 || palette_id >= num_palettes) {
-    std::printf("5. WARNING: palette_id %d is out of bounds [0, %d), using palette %d\n", 
+    LOG_DEBUG("[RenderRoomGraphics]", "5. WARNING: palette_id %d is out of bounds [0, %d), using palette %d", 
                 palette_id, num_palettes, palette_id % num_palettes);
     palette_id = palette_id % num_palettes;  // Use modulo to wrap around instead of defaulting to 0
   }
@@ -334,10 +335,10 @@ void Room::RenderRoomGraphics() {
 }
 
 void Room::RenderObjectsToBackground() {
-  printf("[RenderObjectsToBackground] Starting object rendering\n");
+  LOG_DEBUG("[RenderObjectsToBackground]", "Starting object rendering");
   
   if (!rom_ || !rom_->is_loaded()) {
-    printf("[RenderObjectsToBackground] ROM not loaded, aborting\n");
+    LOG_DEBUG("[RenderObjectsToBackground]", "ROM not loaded, aborting");
     return;
   }
   
@@ -368,7 +369,7 @@ void Room::RenderObjectsToBackground() {
   
   // Log only failures, not successes
   if (!status.ok()) {
-    printf("[RenderObjectsToBackground] ObjectDrawer failed: %s\n", std::string(status.message()).c_str());
+    LOG_DEBUG("[RenderObjectsToBackground]", "ObjectDrawer failed: %s", std::string(status.message()).c_str());
   }
 }
 

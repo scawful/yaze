@@ -47,8 +47,6 @@ void SpriteEditor::Initialize() {
       .visibility_flag = &show_custom_editor_,
       .priority = 20
   });
-  
-  printf("[SpriteEditor] Registered 2 cards with EditorCardManager\n");
 }
 
 absl::Status SpriteEditor::Load() { 

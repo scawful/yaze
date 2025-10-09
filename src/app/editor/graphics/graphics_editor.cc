@@ -85,8 +85,6 @@ void GraphicsEditor::Initialize() {
       .visibility_flag = &show_prototype_viewer_,
       .priority = 40
   });
-  
-  printf("[GraphicsEditor] Registered 4 cards with EditorCardManager\n");
 }
 
 absl::Status GraphicsEditor::Load() { 

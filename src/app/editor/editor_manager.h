@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_EDITOR_MANAGER_H
 #define YAZE_APP_EDITOR_EDITOR_MANAGER_H
 
+#include "editor/system/user_settings.h"
+#include "editor/ui/workspace_manager.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 
 #include "imgui/imgui.h"
@@ -51,7 +53,7 @@ namespace editor {
  */
 class EditorSet {
  public:
-  explicit EditorSet(Rom* rom = nullptr)
+  explicit EditorSet(Rom* rom = nullptr, UserSettings* user_settings = nullptr)
       : assembly_editor_(rom),
         dungeon_editor_(rom),
         graphics_editor_(rom),
@@ -60,13 +62,17 @@ class EditorSet {
         palette_editor_(rom),
         screen_editor_(rom),
         sprite_editor_(rom),
-        settings_editor_(rom),
+        settings_editor_(rom, user_settings),
         message_editor_(rom),
         memory_editor_(rom) {
     active_editors_ = {&overworld_editor_, &dungeon_editor_, &graphics_editor_,
                        &palette_editor_,   &sprite_editor_,  &message_editor_,
                        &music_editor_,     &screen_editor_,  &settings_editor_,
                        &assembly_editor_};
+  }
+  
+  void set_user_settings(UserSettings* settings) {
+    settings_editor_.set_user_settings(settings);
   }
 
   AssemblyEditor assembly_editor_;
@@ -97,7 +103,7 @@ class EditorSet {
  */
 class EditorManager {
  public:
-  EditorManager() {
+  EditorManager() : blank_editor_set_(nullptr, &user_settings_) {
     std::stringstream ss;
     ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
        << YAZE_VERSION_PATCH;
@@ -106,6 +112,10 @@ class EditorManager {
   }
 
   void Initialize(gfx::IRenderer* renderer, const std::string& filename = "");
+
+  // Processes startup flags to open a specific editor and cards.
+  void OpenEditorAndCardsFromFlags(const std::string& editor_name,
+                                     const std::string& cards_str);
   absl::Status Update();
   void DrawMenuBar();
 
@@ -118,6 +128,9 @@ class EditorManager {
   auto GetCurrentEditorSet() -> EditorSet* { return current_editor_set_; }
   auto overworld() -> yaze::zelda3::Overworld* { return &current_editor_set_->overworld_editor_.overworld(); }
 
+  // Session management helpers
+  size_t GetCurrentSessionIndex() const;
+  
   // Get current session's feature flags (falls back to global if no session)
   core::FeatureFlags::Flags* GetCurrentFeatureFlags() {
     size_t current_index = GetCurrentSessionIndex();
@@ -128,29 +141,71 @@ class EditorManager {
   }
 
   void SetFontGlobalScale(float scale) {
-    font_global_scale_ = scale;
+    user_settings_.prefs().font_global_scale = scale;
     ImGui::GetIO().FontGlobalScale = scale;
     SaveUserSettings();
   }
   
   void BuildModernMenu();
   
+  // User settings helpers
+  void LoadUserSettings();
+  void SaveUserSettings();
+  
+  // Workspace management (delegates to WorkspaceManager)
+  void RefreshWorkspacePresets() { workspace_manager_.RefreshPresets(); }
+  void SaveWorkspacePreset(const std::string& name) { workspace_manager_.SaveWorkspacePreset(name); }
+  void LoadWorkspacePreset(const std::string& name) { workspace_manager_.LoadWorkspacePreset(name); }
+  
   // Jump-to functionality for cross-editor navigation
   void JumpToDungeonRoom(int room_id);
   void JumpToOverworldMap(int map_id);
   void SwitchToEditor(EditorType editor_type);
+  
+  // Session management
+  void CreateNewSession();
+  void DuplicateCurrentSession();
+  void CloseCurrentSession();
+  void RemoveSession(size_t index);
+  void SwitchToSession(size_t index);
+  size_t GetActiveSessionCount() const;
+  
+  // Workspace layout management
+  void SaveWorkspaceLayout();
+  void LoadWorkspaceLayout();
+  void ResetWorkspaceLayout();
+  void ShowAllWindows();
+  void HideAllWindows();
+  void MaximizeCurrentWindow();
+  void RestoreAllWindows();
+  void CloseAllFloatingWindows();
+  
+  // Layout presets
+  void LoadDeveloperLayout();
+  void LoadDesignerLayout();
+  void LoadModderLayout();
+  
+  // Helper methods
+  std::string GenerateUniqueEditorTitle(EditorType type, size_t session_index) const;
+  bool HasDuplicateSession(const std::string& filepath);
+  void RenameSession(size_t index, const std::string& new_name);
 
  private:
   void DrawWelcomeScreen();
   absl::Status DrawRomSelector();
   void DrawContextSensitiveCardControl();  // Card control for current editor
+  void DrawSessionSwitcher();
+  void DrawSessionManager();
+  void DrawLayoutPresets();
+  void DrawSessionRenameDialog();
+  
   absl::Status LoadRom();
   absl::Status LoadAssets();
   absl::Status SaveRom();
   absl::Status SaveRomAs(const std::string& filename);
   absl::Status OpenRomOrProject(const std::string& filename);
 
-  // Enhanced project management
+  // Project and session management
   absl::Status CreateNewProject(
       const std::string& template_name = "Basic ROM Hack");
   absl::Status OpenProject();
@@ -164,11 +219,6 @@ class EditorManager {
   void InitializeTestSuites();
 
   bool quit_ = false;
-  bool backup_rom_ = false;
-  bool save_new_auto_ = true;
-  bool autosave_enabled_ = false;
-  float autosave_interval_secs_ = 120.0f;
-  float autosave_timer_ = 0.0f;
   bool new_project_menu = false;
 
   bool show_emulator_ = false;
@@ -226,13 +276,6 @@ class EditorManager {
 #endif
 
   std::string version_ = "";
-  std::string settings_filename_ = "settings.ini";
-  float font_global_scale_ = 1.0f;
-  std::vector<std::string> workspace_presets_;
-  std::string last_workspace_preset_ = "";
-  std::string status_message_ = "";
-  bool workspace_presets_loaded_ = false;
-
   absl::Status status_;
   emu::Emulator emulator_;
 
@@ -244,7 +287,8 @@ class EditorManager {
     core::FeatureFlags::Flags feature_flags;  // Per-session feature flags
 
     RomSession() = default;
-    explicit RomSession(Rom&& r) : rom(std::move(r)), editors(&rom) {
+    explicit RomSession(Rom&& r, UserSettings* user_settings = nullptr) 
+        : rom(std::move(r)), editors(&rom, user_settings) {
       filepath = rom.filename();
       // Initialize with default feature flags
       feature_flags = core::FeatureFlags::Flags{};
@@ -272,49 +316,10 @@ class EditorManager {
   std::unique_ptr<PopupManager> popup_manager_;
   ToastManager toast_manager_;
   MenuBuilder menu_builder_;
-
-  // Settings helpers
-  void LoadUserSettings();
-  void SaveUserSettings();
-
-  void RefreshWorkspacePresets();
-  void SaveWorkspacePreset(const std::string& name);
-  void LoadWorkspacePreset(const std::string& name);
-
-  // Workspace management
-  void CreateNewSession();
-  void DuplicateCurrentSession();
-  void CloseCurrentSession();
-  void RemoveSession(size_t index);
-  void SwitchToSession(size_t index);
-  size_t GetCurrentSessionIndex() const;
-  size_t GetActiveSessionCount() const;
-  void ResetWorkspaceLayout();
-
-  // Multi-session editor management
-  std::string GenerateUniqueEditorTitle(EditorType type,
-                                        size_t session_index) const;
-  void SaveWorkspaceLayout();
-  void LoadWorkspaceLayout();
-  void ShowAllWindows();
-  void HideAllWindows();
-  void MaximizeCurrentWindow();
-  void RestoreAllWindows();
-  void CloseAllFloatingWindows();
-  void LoadDeveloperLayout();
-  void LoadDesignerLayout();
-  void LoadModderLayout();
-
-  // Session management helpers
-  bool HasDuplicateSession(const std::string& filepath);
-  void RenameSession(size_t index, const std::string& new_name);
-  std::string GenerateUniqueEditorTitle(EditorType type, size_t session_index);
-
-  // UI drawing helpers
-  void DrawSessionSwitcher();
-  void DrawSessionManager();
-  void DrawLayoutPresets();
-  void DrawSessionRenameDialog();
+  UserSettings user_settings_;
+  WorkspaceManager workspace_manager_{&toast_manager_};
+  
+  float autosave_timer_ = 0.0f;
 };
 
 }  // namespace editor

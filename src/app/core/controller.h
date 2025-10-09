@@ -29,6 +29,9 @@ class Controller {
   absl::Status OnLoad();
   void DoRender() const;
   void OnExit();
+  
+  // Set startup editor and cards from command-line flags
+  void SetStartupEditor(const std::string& editor_name, const std::string& cards);
 
   auto window() -> SDL_Window* { return window_.window_.get(); }
   void set_active(bool active) { active_ = active; }

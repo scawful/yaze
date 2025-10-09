@@ -2,6 +2,7 @@
 
 #include "absl/status/status.h"
 #include "app/zelda3/dungeon/object_parser.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -153,28 +154,28 @@ void RoomObject::DrawTile(gfx::Tile16 t, int xx, int yy,
 }
 
 void RoomObject::EnsureTilesLoaded() {
-  printf("[EnsureTilesLoaded] Object ID=0x%02X, tiles_loaded=%d\n", id_, tiles_loaded_);
+  LOG_DEBUG("RoomObject", "Object ID=0x%02X, tiles_loaded=%d", id_, tiles_loaded_);
   
   if (tiles_loaded_) {
-    printf("[EnsureTilesLoaded] Tiles already loaded for object 0x%02X\n", id_);
+    LOG_DEBUG("RoomObject", "Tiles already loaded for object 0x%02X", id_);
     return;
   }
   
   if (rom_ == nullptr) {
-    printf("[EnsureTilesLoaded] ERROR: ROM not set for object 0x%02X\n", id_);
+    LOG_DEBUG("RoomObject", "ERROR: ROM not set for object 0x%02X", id_);
     return;
   }
 
   // Try the new parser first - this is more efficient and accurate
-  printf("[EnsureTilesLoaded] Trying parser for object 0x%02X\n", id_);
+  LOG_DEBUG("RoomObject", "Trying parser for object 0x%02X", id_);
   auto parser_status = LoadTilesWithParser();
   if (parser_status.ok()) {
-    printf("[EnsureTilesLoaded] Parser succeeded for object 0x%02X, loaded %zu tiles\n", id_, tiles_.size());
+    LOG_DEBUG("RoomObject", "Parser succeeded for object 0x%02X, loaded %zu tiles", id_, tiles_.size());
     tiles_loaded_ = true;
     return;
   }
   
-  printf("[EnsureTilesLoaded] Parser failed for object 0x%02X: %s\n", id_, parser_status.message().data());
+  LOG_DEBUG("RoomObject", "Parser failed for object 0x%02X: %s", id_, parser_status.message().data());
 
   // Fallback to legacy method for compatibility with enhanced validation
   auto rom_data = rom_->data();

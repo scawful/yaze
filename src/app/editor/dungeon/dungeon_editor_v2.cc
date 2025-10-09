@@ -10,6 +10,7 @@
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
 
 namespace yaze::editor {
 
@@ -97,8 +98,6 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       .visibility_flag = &show_palette_editor_,
       .priority = 70
   });
-  
-  printf("[DungeonEditorV2] Registered 7 cards with EditorCardManager\n");
 }
 
 void DungeonEditorV2::Initialize() {}
@@ -214,7 +213,7 @@ absl::Status DungeonEditorV2::Save() {
     auto status = room.SaveObjects();
     if (!status.ok()) {
       // Log error but continue with other rooms
-      std::printf("Failed to save room: %s\n", status.message().data());
+      LOG_ERROR("DungeonEditorV2", "Failed to save room: %s", status.message().data());
     }
   }
 

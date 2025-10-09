@@ -70,9 +70,6 @@ void DungeonEditor::Initialize() {
     config.grid_size = 16;  // 16x16 tiles
     object_editor_->SetConfig(config);
   }
-  
-  // Initialize manual renderer for debugging
-  printf("[DungeonEditor] Manual renderer initialized\n");
 }
 
 absl::Status DungeonEditor::Load() {

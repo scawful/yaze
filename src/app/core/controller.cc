@@ -2,13 +2,15 @@
 
 #include <SDL.h>
 
+#include <string>
+
 #include "absl/status/status.h"
 #include "app/core/timing.h"
 #include "app/core/window.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/ui/background_renderer.h"
-#include "app/gfx/arena.h" // Add include for Arena
-#include "app/gfx/backend/sdl2_renderer.h" // Add include for new renderer
+#include "app/gfx/arena.h"                  // Add include for Arena
+#include "app/gfx/backend/sdl2_renderer.h"  // Add include for new renderer
 #include "app/gui/theme_manager.h"
 #include "app/gui/widgets/widget_id_registry.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
@@ -21,21 +23,31 @@ namespace core {
 absl::Status Controller::OnEntry(std::string filename) {
   // Create renderer FIRST
   renderer_ = std::make_unique<gfx::SDL2Renderer>();
-  
+
   // Call CreateWindow with our renderer
   RETURN_IF_ERROR(CreateWindow(window_, renderer_.get(), SDL_WINDOW_RESIZABLE));
-  
+
   // Initialize the graphics Arena with the renderer
   gfx::Arena::Get().Initialize(renderer_.get());
 
   // Set up audio for emulator
   editor_manager_.emulator().set_audio_buffer(window_.audio_buffer_.get());
   editor_manager_.emulator().set_audio_device_id(window_.audio_device_);
-  
+
   // Initialize editor manager with renderer
   editor_manager_.Initialize(renderer_.get(), filename);
+
   active_ = true;
   return absl::OkStatus();
+}
+
+void Controller::SetStartupEditor(const std::string& editor_name,
+                                   const std::string& cards) {
+  // Process command-line flags for editor and cards
+  // Example: --editor=Dungeon --cards="Rooms List,Room 0,Room 105"
+  if (!editor_name.empty()) {
+    editor_manager_.OpenEditorAndCardsFromFlags(editor_name, cards);
+  }
 }
 
 void Controller::OnInput() {
@@ -53,7 +65,7 @@ absl::Status Controller::OnLoad() {
   ImGui_ImplSDL2_NewFrame();
   ImGui::NewFrame();
 
-  const ImGuiViewport *viewport = ImGui::GetMainViewport();
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
   ImGui::SetNextWindowPos(viewport->WorkPos);
   ImGui::SetNextWindowSize(viewport->WorkSize);
   ImGui::SetNextWindowViewport(viewport->ID);
@@ -73,8 +85,8 @@ absl::Status Controller::OnLoad() {
 
   // Create DockSpace first
   ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-  gui::DockSpaceRenderer::BeginEnhancedDockSpace(dockspace_id, ImVec2(0.0f, 0.0f),
-                                                 ImGuiDockNodeFlags_PassthruCentralNode);
+  gui::DockSpaceRenderer::BeginEnhancedDockSpace(
+      dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
   editor_manager_.DrawMenuBar();  // Draw the fixed menu bar at the top
 
@@ -93,13 +105,14 @@ void Controller::DoRender() const {
 
   ImGui::Render();
   renderer_->Clear();
-  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(),
-                                        static_cast<SDL_Renderer*>(renderer_->GetBackendRenderer()));
+  ImGui_ImplSDLRenderer2_RenderDrawData(
+      ImGui::GetDrawData(),
+      static_cast<SDL_Renderer*>(renderer_->GetBackendRenderer()));
   renderer_->Present();
-  
+
   // Use TimingManager for accurate frame timing in sync with SDL
   float delta_time = TimingManager::Get().Update();
-  
+
   // Gentle frame rate cap to prevent excessive CPU usage
   // Only delay if we're rendering faster than 144 FPS (< 7ms per frame)
   if (delta_time < 0.007f) {
@@ -107,11 +120,10 @@ void Controller::DoRender() const {
   }
 }
 
-void Controller::OnExit() { 
+void Controller::OnExit() {
   renderer_->Shutdown();
   PRINT_IF_ERROR(ShutdownWindow(window_));
 }
 
 }  // namespace core
 }  // namespace yaze
-

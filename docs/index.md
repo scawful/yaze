@@ -20,7 +20,8 @@ Welcome to the official documentation for yaze, a comprehensive ROM editor for T
 - [E1: Assembly Style Guide](E1-asm-style-guide.md) - 65816 assembly coding standards.
 - [E2: Development Guide](E2-development-guide.md) - Core architectural patterns, UI systems, and best practices.
 - [E3: API Reference](E3-api-reference.md) - C/C++ API documentation for extensions.
-- [E4: Emulator Development Guide](E4-Emulator-Development-Guide.md) - A master guide to the SNES emulator subsystem.
+- [E4: Emulator Development Guide](E4-Emulator-Development-Guide.md)
+- [E5: Debugging and Testing Guide](E5-debugging-guide.md) - A master guide to the SNES emulator subsystem.
 
 ## F: Technical Documentation
 - [F1: Dungeon Editor Guide](F1-dungeon-editor-guide.md) - A master guide to the dungeon editing system.

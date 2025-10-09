@@ -9,6 +9,7 @@
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/sprite/sprite.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
 
 namespace yaze::editor {
 
@@ -337,30 +338,30 @@ void DungeonCanvasViewer::CalculateWallDimensions(const zelda3::RoomObject& obje
 
 // Room graphics management methods
 absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
-  printf("[LoadAndRender] START room_id=%d\n", room_id);
+  LOG_DEBUG("[LoadAndRender]", "START room_id=%d", room_id);
   
   if (room_id < 0 || room_id >= 128) {
-    printf("[LoadAndRender] ERROR: Invalid room ID\n");
+    LOG_DEBUG("[LoadAndRender]", "ERROR: Invalid room ID");
     return absl::InvalidArgumentError("Invalid room ID");
   }
   
   if (!rom_ || !rom_->is_loaded()) {
-    printf("[LoadAndRender] ERROR: ROM not loaded\n");
+    LOG_DEBUG("[LoadAndRender]", "ERROR: ROM not loaded");
     return absl::FailedPreconditionError("ROM not loaded");
   }
   
   if (!rooms_) {
-    printf("[LoadAndRender] ERROR: Room data not available\n");
+    LOG_DEBUG("[LoadAndRender]", "ERROR: Room data not available");
     return absl::FailedPreconditionError("Room data not available");
   }
   
   auto& room = (*rooms_)[room_id];
-  printf("[LoadAndRender] Got room reference\n");
+  LOG_DEBUG("[LoadAndRender]", "Got room reference");
   
   // Load room graphics with proper blockset
-  printf("[LoadAndRender] Loading graphics for blockset %d\n", room.blockset);
+  LOG_DEBUG("[LoadAndRender]", "Loading graphics for blockset %d", room.blockset);
   room.LoadRoomGraphics(room.blockset);
-  printf("[LoadAndRender] Graphics loaded\n");
+  LOG_DEBUG("[LoadAndRender]", "Graphics loaded");
   
   // Load the room's palette with bounds checking
   if (room.palette < rom_->paletteset_ids.size() && 
@@ -373,22 +374,22 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
         auto full_palette = rom_->palette_group().dungeon_main[current_palette_group_id_];
         ASSIGN_OR_RETURN(current_palette_group_,
                          gfx::CreatePaletteGroupFromLargePalette(full_palette));
-        printf("[LoadAndRender] Palette loaded: group_id=%zu\n", current_palette_group_id_);
+        LOG_DEBUG("[LoadAndRender]", "Palette loaded: group_id=%zu", current_palette_group_id_);
       }
     }
   }
   
   // Render the room graphics to the graphics arena
-  printf("[LoadAndRender] Calling room.RenderRoomGraphics()...\n");
+  LOG_DEBUG("[LoadAndRender]", "Calling room.RenderRoomGraphics()...");
   room.RenderRoomGraphics();
-  printf("[LoadAndRender] RenderRoomGraphics() complete\n");
+  LOG_DEBUG("[LoadAndRender]", "RenderRoomGraphics() complete");
   
   // Update the background layers with proper palette
-  printf("[LoadAndRender] Updating background layers...\n");
+  LOG_DEBUG("[LoadAndRender]", "Updating background layers...");
   RETURN_IF_ERROR(UpdateRoomBackgroundLayers(room_id));
-  printf("[LoadAndRender] UpdateRoomBackgroundLayers() complete\n");
+  LOG_DEBUG("[LoadAndRender]", "UpdateRoomBackgroundLayers() complete");
   
-  printf("[LoadAndRender] SUCCESS\n");
+  LOG_DEBUG("[LoadAndRender]", "SUCCESS");
   return absl::OkStatus();
 }
 
@@ -475,10 +476,10 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
 
     // Only draw if texture was successfully created
     if (bg1_bitmap.texture()) {
-      printf("[RenderRoomBackgroundLayers] Drawing BG1 bitmap to canvas with texture %p\n", bg1_bitmap.texture());
+      LOG_DEBUG("DungeonCanvasViewer", "Drawing BG1 bitmap to canvas with texture %p", bg1_bitmap.texture());
       canvas_.DrawBitmap(bg1_bitmap, 0, 0, 1.0f, 255);
     } else {
-      printf("[RenderRoomBackgroundLayers] ERROR: BG1 bitmap has no texture!\n");
+      LOG_DEBUG("DungeonCanvasViewer", "ERROR: BG1 bitmap has no texture!");
     }
   } 
   
@@ -498,16 +499,16 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
       // Use the selected BG2 layer type alpha value
       const int bg2_alpha_values[] = {255, 191, 127, 64, 0};
       int alpha_value = bg2_alpha_values[std::min(bg2_layer_type_, 4)];
-      printf("[RenderRoomBackgroundLayers] Drawing BG2 bitmap to canvas with texture %p, alpha=%d\n", bg2_bitmap.texture(), alpha_value);
+      LOG_DEBUG("DungeonCanvasViewer", "Drawing BG2 bitmap to canvas with texture %p, alpha=%d", bg2_bitmap.texture(), alpha_value);
       canvas_.DrawBitmap(bg2_bitmap, 0, 0, 1.0f, alpha_value);
     } else {
-      printf("[RenderRoomBackgroundLayers] ERROR: BG2 bitmap has no texture!\n");
+      LOG_DEBUG("DungeonCanvasViewer", "ERROR: BG2 bitmap has no texture!");
     }
   }
   
   // DEBUG: Check if background buffers have content
   if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0) {
-    printf("[RenderRoomBackgroundLayers] BG1 bitmap: %dx%d, active=%d, visible=%d, texture=%p\n", 
+    LOG_DEBUG("DungeonCanvasViewer", "BG1 bitmap: %dx%d, active=%d, visible=%d, texture=%p", 
            bg1_bitmap.width(), bg1_bitmap.height(), bg1_bitmap.is_active(), bg1_visible_, bg1_bitmap.texture());
     
     // Check bitmap data content
@@ -516,11 +517,11 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
     for (size_t i = 0; i < bg1_data.size(); i += 100) {  // Sample every 100th pixel
       if (bg1_data[i] != 0) non_zero_pixels++;
     }
-    printf("[RenderRoomBackgroundLayers] BG1 bitmap data: %zu pixels, ~%d non-zero samples\n", 
+    LOG_DEBUG("DungeonCanvasViewer", "BG1 bitmap data: %zu pixels, ~%d non-zero samples", 
            bg1_data.size(), non_zero_pixels);
   }
   if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0) {
-    printf("[RenderRoomBackgroundLayers] BG2 bitmap: %dx%d, active=%d, visible=%d, layer_type=%d, texture=%p\n", 
+    LOG_DEBUG("DungeonCanvasViewer", "BG2 bitmap: %dx%d, active=%d, visible=%d, layer_type=%d, texture=%p", 
            bg2_bitmap.width(), bg2_bitmap.height(), bg2_bitmap.is_active(), bg2_visible_, bg2_layer_type_, bg2_bitmap.texture());
     
     // Check bitmap data content
@@ -529,7 +530,7 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
     for (size_t i = 0; i < bg2_data.size(); i += 100) {  // Sample every 100th pixel
       if (bg2_data[i] != 0) non_zero_pixels++;
     }
-    printf("[RenderRoomBackgroundLayers] BG2 bitmap data: %zu pixels, ~%d non-zero samples\n", 
+    LOG_DEBUG("DungeonCanvasViewer", "BG2 bitmap data: %zu pixels, ~%d non-zero samples", 
            bg2_data.size(), non_zero_pixels);
   }
   
@@ -542,9 +543,9 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
       IM_COL32(255, 0, 0, 255));  // Bright red
   
   // DEBUG: Show canvas and bitmap info
-  printf("[RenderRoomBackgroundLayers] Canvas pos: (%.1f, %.1f), Canvas size: (%.1f, %.1f)\n", 
+  LOG_DEBUG("DungeonCanvasViewer", "Canvas pos: (%.1f, %.1f), Canvas size: (%.1f, %.1f)", 
          canvas_pos.x, canvas_pos.y, canvas_.canvas_size().x, canvas_.canvas_size().y);
-  printf("[RenderRoomBackgroundLayers] BG1 bitmap size: %dx%d, BG2 bitmap size: %dx%d\n", 
+  LOG_DEBUG("DungeonCanvasViewer", "BG1 bitmap size: %dx%d, BG2 bitmap size: %dx%d", 
          bg1_bitmap.width(), bg1_bitmap.height(), bg2_bitmap.width(), bg2_bitmap.height());
 }
 
