@@ -43,6 +43,7 @@ set(
   app/editor/system/popup_manager.cc
   app/editor/system/proposal_drawer.cc
   app/editor/agent/agent_chat_history_codec.cc
+  app/editor/dungeon/manual_object_renderer.cc
 )
 
 if(YAZE_WITH_GRPC)

@@ -1,6 +1,19 @@
 #ifndef YAZE_APP_EDITOR_DUNGEONEDITOR_H
 #define YAZE_APP_EDITOR_DUNGEONEDITOR_H
 
+/**
+ * @deprecated This file is deprecated in favor of dungeon_editor_v2.h
+ * 
+ * DungeonEditorV2 uses a cleaner component-based architecture with:
+ * - Card-based UI for better UX
+ * - Lazy loading for performance
+ * - Proper component delegation
+ * - Simplified state management
+ * 
+ * This file is kept temporarily for reference during migration.
+ * TODO: Remove once all functionality is verified in V2.
+ */
+
 #include "absl/container/flat_hash_map.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
@@ -22,6 +35,7 @@
 #include "dungeon_renderer.h"
 #include "dungeon_room_loader.h"
 #include "dungeon_usage_tracker.h"
+#include "manual_object_renderer.h"
 
 namespace yaze {
 namespace editor {
@@ -187,6 +201,7 @@ class DungeonEditor : public Editor {
   DungeonRenderer renderer_;
   DungeonRoomLoader room_loader_;
   DungeonUsageTracker usage_tracker_;
+  ManualObjectRenderer manual_renderer_;
 
   absl::Status status_;
 

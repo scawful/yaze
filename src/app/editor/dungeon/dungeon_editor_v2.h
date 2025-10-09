@@ -14,6 +14,7 @@
 #include "dungeon_object_selector.h"
 #include "dungeon_room_loader.h"
 #include "object_editor_card.h"
+#include "manual_object_renderer.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/dungeon/room_entrance.h"
 #include "app/gui/editor_layout.h"
@@ -97,6 +98,9 @@ class DungeonEditorV2 : public Editor {
   void DrawEntrancesListCard();
   void DrawRoomGraphicsCard();
   
+  // Texture processing (critical for rendering)
+  void ProcessDeferredTextures();
+  
   // Room selection callback
   void OnRoomSelected(int room_id);
   void OnEntranceSelected(int entrance_id);
@@ -136,6 +140,7 @@ class DungeonEditorV2 : public Editor {
   gui::DungeonObjectEmulatorPreview object_emulator_preview_;
   gui::PaletteEditorWidget palette_editor_;
   std::unique_ptr<ObjectEditorCard> object_editor_card_;  // Unified object editor
+  std::unique_ptr<ManualObjectRenderer> manual_renderer_;  // Debugging renderer
   
   bool is_loaded_ = false;
   

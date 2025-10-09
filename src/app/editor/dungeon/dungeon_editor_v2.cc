@@ -67,6 +67,11 @@ absl::Status DungeonEditorV2::Load() {
   // Initialize unified object editor card
   object_editor_card_ = std::make_unique<ObjectEditorCard>(renderer_, rom_, &canvas_viewer_);
   
+  // Initialize manual renderer for debugging (uses canvas from canvas_viewer_)
+  manual_renderer_ = std::make_unique<ManualObjectRenderer>(
+      &canvas_viewer_.canvas(), rom_);
+  printf("[DungeonEditorV2] Manual renderer initialized for debugging\n");
+  
   // Wire palette changes to trigger room re-renders
   palette_editor_.SetOnPaletteChanged([this](int /*palette_id*/) {
     // Re-render all active rooms when palette changes
@@ -710,6 +715,12 @@ void DungeonEditorV2::DrawRoomGraphicsCard() {
     }
   }
   graphics_card.End();
+}
+
+void DungeonEditorV2::ProcessDeferredTextures() {
+  // Process queued texture commands via Arena's deferred system
+  // This is critical for ensuring textures are actually created and updated
+  gfx::Arena::Get().ProcessTextureQueue(renderer_);
 }
 
 }  // namespace yaze::editor
