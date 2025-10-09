@@ -1,0 +1,9 @@
+<map id="yaze::zelda3::DungeonRenderingIntegrationTest::CreateTestPaletteGroup" name="yaze::zelda3::DungeonRenderingIntegrationTest::CreateTestPaletteGroup">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,260,79"/>
+<area shape="rect" id="Node000002" href="$d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb" title=" " alt="" coords="341,5,494,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="260,41,326,34,326,39,260,47"/>
+<area shape="rect" id="Node000003" href="$d2/dd6/classyaze_1_1zelda3_1_1DungeonRenderingIntegrationTest.html#ac1902f16724c5b737867648808b610a2" title=" " alt="" coords="308,71,527,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="260,71,292,74,292,80,260,76"/>
+<area shape="rect" id="Node000004" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2" title=" " alt="" coords="575,71,722,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="528,88,559,88,559,94,528,94"/>
+</map>

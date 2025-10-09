@@ -4,6 +4,7 @@ var classyaze_1_1zelda3_1_1Room =
     [ "Room", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a03f4e5bc6472b1f91bbf39693baf4cf4", null ],
     [ "LoadRoomGraphics", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a3ef7c65750b189c256c700d2f320e141", null ],
     [ "CopyRoomGraphicsToBuffer", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a31a5c3edb2e2912eac7fc01696530f97", null ],
+    [ "LoadGraphicsSheetsIntoArena", "d7/df6/classyaze_1_1zelda3_1_1Room.html#ad1d6c1a3754ddd56699a769d0f3957b9", null ],
     [ "RenderRoomGraphics", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a90a5706117083d42136fa54adc2e59a2", null ],
     [ "RenderObjectsToBackground", "d7/df6/classyaze_1_1zelda3_1_1Room.html#af6b23b07160ceb1f89b7c91affc5e8dc", null ],
     [ "LoadAnimatedGraphics", "d7/df6/classyaze_1_1zelda3_1_1Room.html#ad5b4db9991d91d05149f1f042b584200", null ],

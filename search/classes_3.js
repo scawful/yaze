@@ -38,7 +38,7 @@ var searchData=
   ['dungeonobjectrenderinge2etests_35',['DungeonObjectRenderingE2ETests',['../d0/dc7/classyaze_1_1test_1_1DungeonObjectRenderingE2ETests.html',1,'yaze::test']]],
   ['dungeonobjectrenderingtests_36',['DungeonObjectRenderingTests',['../dd/d40/classyaze_1_1test_1_1DungeonObjectRenderingTests.html',1,'yaze::test']]],
   ['dungeonobjectselector_37',['DungeonObjectSelector',['../dc/d4f/classyaze_1_1editor_1_1DungeonObjectSelector.html',1,'yaze::editor']]],
-  ['dungeonrenderer_38',['DungeonRenderer',['../d9/df1/classyaze_1_1editor_1_1DungeonRenderer.html',1,'yaze::editor']]],
+  ['dungeonrenderingintegrationtest_38',['DungeonRenderingIntegrationTest',['../d2/dd6/classyaze_1_1zelda3_1_1DungeonRenderingIntegrationTest.html',1,'yaze::zelda3']]],
   ['dungeonroomloader_39',['DungeonRoomLoader',['../d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html',1,'yaze::editor']]],
   ['dungeonroomselector_40',['DungeonRoomSelector',['../db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html',1,'yaze::editor']]],
   ['dungeonroomtest_41',['DungeonRoomTest',['../d6/d4f/classyaze_1_1test_1_1DungeonRoomTest.html',1,'yaze::test']]],

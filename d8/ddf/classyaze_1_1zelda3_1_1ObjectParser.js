@@ -6,6 +6,7 @@ var classyaze_1_1zelda3_1_1ObjectParser =
     [ "GetObjectSubtype", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#a02d01e32f46dffcc009ed5f1a7118f0c", null ],
     [ "ParseObjectSize", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#a3ef1e414f59a698b0295aac853b938f1", null ],
     [ "DetermineSubtype", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#af7be6d73b4620312b5731976b5c6baa1", null ],
+    [ "GetObjectDrawInfo", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#af01aaf62522091921afc30c7e2d75309", null ],
     [ "ParseSubtype1", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#afb365588dfacf2b7d5e29c7d939b7ea5", null ],
     [ "ParseSubtype2", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#a967dcebcdaab57106db63cea2236daae", null ],
     [ "ParseSubtype3", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#aaad88c6f5561400b9eb53d18a17c34e8", null ],

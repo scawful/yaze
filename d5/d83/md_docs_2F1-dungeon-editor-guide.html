@@ -160,7 +160,7 @@ Critical Fix 1: The Coordinate System</h2>
 <ul>
 <li><b>Problem</b>: Objects were rendering at twice their correct distance from the origin, often appearing outside the canvas entirely.</li>
 <li><b>Root Cause</b>: The code incorrectly assumed dungeon tiles were 16x16 pixels, using <code>* 16</code> for coordinate conversions. SNES dungeon tiles are <b>8x8 pixels</b>.</li>
-<li><b>The Fix</b>: All coordinate conversion functions in <code><a class="el" href="../../d4/dc2/dungeon__renderer_8cc.html">dungeon_renderer.cc</a></code>, <code><a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc.html">dungeon_canvas_viewer.cc</a></code>, and <code><a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc.html">dungeon_object_interaction.cc</a></code> were corrected to use <code>* 8</code> and <code>/ 8</code>.</li>
+<li><b>The Fix</b>: All coordinate conversion functions in <code>dungeon_renderer.cc</code>, <code><a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc.html">dungeon_canvas_viewer.cc</a></code>, and <code><a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc.html">dungeon_object_interaction.cc</a></code> were corrected to use <code>* 8</code> and <code>/ 8</code>.</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md589"></a>
 Critical Fix 2: The Test Suite</h2>

@@ -1,0 +1,7 @@
+<map id="yaze::zelda3::ObjectDrawer::DrawRightwards2x4spaced4_1to16_BothBG" name="yaze::zelda3::ObjectDrawer::DrawRightwards2x4spaced4_1to16_BothBG">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,197,61"/>
+<area shape="rect" id="Node000002" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a0c0095ddce370ad3dc93e9dfe98c0210" title=" " alt="" coords="245,13,475,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,31,229,31,229,36,197,36"/>
+<area shape="rect" id="Node000003" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="523,13,698,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="475,31,507,31,507,36,475,36"/>
+</map>

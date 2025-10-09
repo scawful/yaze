@@ -100,6 +100,7 @@ $(document).ready(function(){initNavTree('d8/d17/classyaze_1_1zelda3_1_1ObjectDr
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-types">Private Types</a> &#124;
 <a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="#pri-static-attribs">Static Private Attributes</a> &#124;
@@ -131,27 +132,77 @@ Collaboration diagram for yaze::zelda3::ObjectDrawer:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a634707d23ce34a42739229ab37aba7d3" id="r_a634707d23ce34a42739229ab37aba7d3"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a634707d23ce34a42739229ab37aba7d3">ObjectDrawer</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
 <tr class="separator:a634707d23ce34a42739229ab37aba7d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afa8acb09999ef4a54433f3490fa545af" id="r_afa8acb09999ef4a54433f3490fa545af"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#afa8acb09999ef4a54433f3490fa545af">DrawObject</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;object, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg1, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg2)</td></tr>
-<tr class="memdesc:afa8acb09999ef4a54433f3490fa545af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draw a room object to background buffers.  <br /></td></tr>
-<tr class="separator:afa8acb09999ef4a54433f3490fa545af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7bcb363a225aac116b33c43da8df819b" id="r_a7bcb363a225aac116b33c43da8df819b"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a7bcb363a225aac116b33c43da8df819b">DrawObjectList</a> (const std::vector&lt; <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &gt; &amp;objects, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg1, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg2)</td></tr>
-<tr class="memdesc:a7bcb363a225aac116b33c43da8df819b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draw all objects in a room.  <br /></td></tr>
-<tr class="separator:a7bcb363a225aac116b33c43da8df819b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a613dbb7e72a9b42c077e4b3c404b8d38" id="r_a613dbb7e72a9b42c077e4b3c404b8d38"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a613dbb7e72a9b42c077e4b3c404b8d38">DrawObject</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;object, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg1, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg2, const <a class="el" href="../../d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html">gfx::PaletteGroup</a> &amp;palette_group)</td></tr>
+<tr class="memdesc:a613dbb7e72a9b42c077e4b3c404b8d38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draw a room object to background buffers.  <br /></td></tr>
+<tr class="separator:a613dbb7e72a9b42c077e4b3c404b8d38"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4620f6bf4aa0a916b7420fc9529dc768" id="r_a4620f6bf4aa0a916b7420fc9529dc768"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a4620f6bf4aa0a916b7420fc9529dc768">DrawObjectList</a> (const std::vector&lt; <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &gt; &amp;objects, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg1, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg2, const <a class="el" href="../../d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html">gfx::PaletteGroup</a> &amp;palette_group)</td></tr>
+<tr class="memdesc:a4620f6bf4aa0a916b7420fc9529dc768"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draw all objects in a room.  <br /></td></tr>
+<tr class="separator:a4620f6bf4aa0a916b7420fc9529dc768"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a031dccb40ca1d801c49dd0157376b472" id="r_a031dccb40ca1d801c49dd0157376b472"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a031dccb40ca1d801c49dd0157376b472">GetDrawRoutineId</a> (int16_t object_id) const</td></tr>
+<tr class="memdesc:a031dccb40ca1d801c49dd0157376b472"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get draw routine ID for an object.  <br /></td></tr>
+<tr class="separator:a031dccb40ca1d801c49dd0157376b472"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a13316f72119d7001e60c69132c400066" id="r_a13316f72119d7001e60c69132c400066"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a13316f72119d7001e60c69132c400066">InitializeDrawRoutines</a> ()</td></tr>
+<tr class="memdesc:a13316f72119d7001e60c69132c400066"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize draw routine registry Must be called before drawing objects.  <br /></td></tr>
+<tr class="separator:a13316f72119d7001e60c69132c400066"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11773ef80d98284bba3f1d43e6eec70b" id="r_a11773ef80d98284bba3f1d43e6eec70b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b">DrawTileToBitmap</a> (<a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;bitmap, const <a class="el" href="../../d3/de4/classyaze_1_1gfx_1_1TileInfo.html">gfx::TileInfo</a> &amp;tile_info, int pixel_x, int pixel_y, const uint8_t *tiledata)</td></tr>
+<tr class="memdesc:a11773ef80d98284bba3f1d43e6eec70b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Draw a single tile directly to bitmap.  <br /></td></tr>
+<tr class="separator:a11773ef80d98284bba3f1d43e6eec70b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-types" name="pri-types"></a>
+Private Types</h2></td></tr>
+<tr class="memitem:a199262c1b3c16543377b2739b54b0d58" id="r_a199262c1b3c16543377b2739b54b0d58"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a199262c1b3c16543377b2739b54b0d58">DrawRoutine</a> = std::function&lt; void(<a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html">ObjectDrawer</a> *, const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;)&gt;</td></tr>
+<tr class="separator:a199262c1b3c16543377b2739b54b0d58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:ac24803bc4a4368bdb853e70301c9a167" id="r_ac24803bc4a4368bdb853e70301c9a167"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ac24803bc4a4368bdb853e70301c9a167">DrawRightwards2x2</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;tile)</td></tr>
-<tr class="separator:ac24803bc4a4368bdb853e70301c9a167"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa4bfd3587117bee0b0a2c7a23581972d" id="r_aa4bfd3587117bee0b0a2c7a23581972d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#aa4bfd3587117bee0b0a2c7a23581972d">DrawDownwards2x2</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;tile)</td></tr>
-<tr class="separator:aa4bfd3587117bee0b0a2c7a23581972d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57ce6c2fd3b0c73f29ceef3b1e4ccc93" id="r_a57ce6c2fd3b0c73f29ceef3b1e4ccc93"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a57ce6c2fd3b0c73f29ceef3b1e4ccc93">DrawDiagonalAcute</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;tile)</td></tr>
-<tr class="separator:a57ce6c2fd3b0c73f29ceef3b1e4ccc93"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad1793b57faeb4e73bba3f6450f3d50c6" id="r_ad1793b57faeb4e73bba3f6450f3d50c6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ad1793b57faeb4e73bba3f6450f3d50c6">DrawDiagonalGrave</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;tile)</td></tr>
-<tr class="separator:ad1793b57faeb4e73bba3f6450f3d50c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc44b84724736001572fac2468568d15" id="r_afc44b84724736001572fac2468568d15"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#afc44b84724736001572fac2468568d15">Draw1x1Solid</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;tile)</td></tr>
-<tr class="separator:afc44b84724736001572fac2468568d15"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2be49266a08b1f49f83b36f76e1b96c7" id="r_a2be49266a08b1f49f83b36f76e1b96c7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a2be49266a08b1f49f83b36f76e1b96c7">Draw4x4Block</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;tile)</td></tr>
-<tr class="separator:a2be49266a08b1f49f83b36f76e1b96c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68612cb31933b5b447bd7aa50b3ae2be" id="r_a68612cb31933b5b447bd7aa50b3ae2be"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a68612cb31933b5b447bd7aa50b3ae2be">DrawRightwards2x2_1to15or32</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a68612cb31933b5b447bd7aa50b3ae2be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2480f28a7775e55b8efb2dfdd45da651" id="r_a2480f28a7775e55b8efb2dfdd45da651"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a2480f28a7775e55b8efb2dfdd45da651">DrawRightwards2x4_1to15or26</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a2480f28a7775e55b8efb2dfdd45da651"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0c0095ddce370ad3dc93e9dfe98c0210" id="r_a0c0095ddce370ad3dc93e9dfe98c0210"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a0c0095ddce370ad3dc93e9dfe98c0210">DrawRightwards2x4spaced4_1to16</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a0c0095ddce370ad3dc93e9dfe98c0210"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a987b842eb7c9ac188eea94eef66c1188" id="r_a987b842eb7c9ac188eea94eef66c1188"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a987b842eb7c9ac188eea94eef66c1188">DrawRightwards2x4spaced4_1to16_BothBG</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a987b842eb7c9ac188eea94eef66c1188"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7258e474faa5d8b1e23dada3fea7f6c1" id="r_a7258e474faa5d8b1e23dada3fea7f6c1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a7258e474faa5d8b1e23dada3fea7f6c1">DrawRightwards2x2_1to16</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a7258e474faa5d8b1e23dada3fea7f6c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a89049c331dbc9311f8acdb3584e26a8f" id="r_a89049c331dbc9311f8acdb3584e26a8f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a89049c331dbc9311f8acdb3584e26a8f">DrawDiagonalAcute_1to16</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a89049c331dbc9311f8acdb3584e26a8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e7ffdf23ef54eec889d76359c6d4419" id="r_a1e7ffdf23ef54eec889d76359c6d4419"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a1e7ffdf23ef54eec889d76359c6d4419">DrawDiagonalGrave_1to16</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a1e7ffdf23ef54eec889d76359c6d4419"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a784bb219d85a2e375221411dbc9cc09b" id="r_a784bb219d85a2e375221411dbc9cc09b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a784bb219d85a2e375221411dbc9cc09b">DrawDiagonalAcute_1to16_BothBG</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a784bb219d85a2e375221411dbc9cc09b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f175d355afe4e6a4cd8664927701f17" id="r_a1f175d355afe4e6a4cd8664927701f17"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a1f175d355afe4e6a4cd8664927701f17">DrawDiagonalGrave_1to16_BothBG</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a1f175d355afe4e6a4cd8664927701f17"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab7433e1054f37c962b4d035f1fe3abbe" id="r_ab7433e1054f37c962b4d035f1fe3abbe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ab7433e1054f37c962b4d035f1fe3abbe">DrawRightwards1x2_1to16_plus2</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:ab7433e1054f37c962b4d035f1fe3abbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8fb981e9adc304f3e54b7a7a3f8ffeee" id="r_a8fb981e9adc304f3e54b7a7a3f8ffeee"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a8fb981e9adc304f3e54b7a7a3f8ffeee">DrawRightwardsHasEdge1x1_1to16_plus3</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a8fb981e9adc304f3e54b7a7a3f8ffeee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adaccd7cf8ab04d5ffcfd813eb3e79dd0" id="r_adaccd7cf8ab04d5ffcfd813eb3e79dd0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#adaccd7cf8ab04d5ffcfd813eb3e79dd0">DrawRightwardsHasEdge1x1_1to16_plus2</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:adaccd7cf8ab04d5ffcfd813eb3e79dd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af685c88e6481f13bf6761dd12ce9242f" id="r_af685c88e6481f13bf6761dd12ce9242f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#af685c88e6481f13bf6761dd12ce9242f">DrawRightwardsTopCorners1x2_1to16_plus13</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:af685c88e6481f13bf6761dd12ce9242f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae89a24fa9587322d12684a9a751b722d" id="r_ae89a24fa9587322d12684a9a751b722d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ae89a24fa9587322d12684a9a751b722d">DrawRightwardsBottomCorners1x2_1to16_plus13</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:ae89a24fa9587322d12684a9a751b722d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa1002ce1cca4b63311d0622b893818d4" id="r_aa1002ce1cca4b63311d0622b893818d4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#aa1002ce1cca4b63311d0622b893818d4">CustomDraw</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:aa1002ce1cca4b63311d0622b893818d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab84d97570f6ddcaaec4b126077cf4126" id="r_ab84d97570f6ddcaaec4b126077cf4126"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ab84d97570f6ddcaaec4b126077cf4126">DrawRightwards4x4_1to16</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:ab84d97570f6ddcaaec4b126077cf4126"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c1cb5854f8d9158105e8bb47f92606d" id="r_a7c1cb5854f8d9158105e8bb47f92606d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a7c1cb5854f8d9158105e8bb47f92606d">DrawRightwards1x1Solid_1to16_plus3</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a7c1cb5854f8d9158105e8bb47f92606d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af108ed6b8d0b321815a0ea48f9b226cd" id="r_af108ed6b8d0b321815a0ea48f9b226cd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#af108ed6b8d0b321815a0ea48f9b226cd">DrawDoorSwitcherer</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:af108ed6b8d0b321815a0ea48f9b226cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1cb3dc605be906529375ed52617bd12" id="r_ac1cb3dc605be906529375ed52617bd12"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ac1cb3dc605be906529375ed52617bd12">DrawRightwardsDecor4x4spaced2_1to16</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:ac1cb3dc605be906529375ed52617bd12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1ae55b559d5f3742ddfb19402a3063d2" id="r_a1ae55b559d5f3742ddfb19402a3063d2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a1ae55b559d5f3742ddfb19402a3063d2">DrawRightwardsStatue2x3spaced2_1to16</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a1ae55b559d5f3742ddfb19402a3063d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab80e9d5fea6656a12a00a0238a32a53d" id="r_ab80e9d5fea6656a12a00a0238a32a53d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ab80e9d5fea6656a12a00a0238a32a53d">DrawRightwardsPillar2x4spaced4_1to16</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:ab80e9d5fea6656a12a00a0238a32a53d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac56e6bf5d2c9243a6980d2fc177ca3cb" id="r_ac56e6bf5d2c9243a6980d2fc177ca3cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ac56e6bf5d2c9243a6980d2fc177ca3cb">DrawRightwardsDecor4x3spaced4_1to16</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:ac56e6bf5d2c9243a6980d2fc177ca3cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a393601eda8281847d9cdf8c104c6e520" id="r_a393601eda8281847d9cdf8c104c6e520"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a393601eda8281847d9cdf8c104c6e520">DrawRightwardsDoubled2x2spaced2_1to16</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a393601eda8281847d9cdf8c104c6e520"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4881ba4b073a39e3aff52db91a852909" id="r_a4881ba4b073a39e3aff52db91a852909"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a4881ba4b073a39e3aff52db91a852909">DrawRightwardsDecor2x2spaced12_1to16</a> (const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;obj, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;tiles)</td></tr>
+<tr class="separator:a4881ba4b073a39e3aff52db91a852909"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abce1fd062cafe9da9bf0e3a20c866d34" id="r_abce1fd062cafe9da9bf0e3a20c866d34"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34">WriteTile16</a> (<a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;bg, int tile_x, int tile_y, const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;tile)</td></tr>
 <tr class="separator:abce1fd062cafe9da9bf0e3a20c866d34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae85785664b7291b357e9e70813cc6e1d" id="r_ae85785664b7291b357e9e70813cc6e1d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ae85785664b7291b357e9e70813cc6e1d">IsValidTilePosition</a> (int tile_x, int tile_y) const</td></tr>
@@ -159,6 +210,12 @@ Private Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
+<tr class="memitem:a9e933ca81a4afd6b7e79a49aa41591d3" id="r_a9e933ca81a4afd6b7e79a49aa41591d3"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; int16_t, int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a9e933ca81a4afd6b7e79a49aa41591d3">object_to_routine_map_</a></td></tr>
+<tr class="separator:a9e933ca81a4afd6b7e79a49aa41591d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21e2c69741a1a58d1dd55d9a389ad4e6" id="r_a21e2c69741a1a58d1dd55d9a389ad4e6"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a199262c1b3c16543377b2739b54b0d58">DrawRoutine</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a21e2c69741a1a58d1dd55d9a389ad4e6">draw_routines_</a></td></tr>
+<tr class="separator:a21e2c69741a1a58d1dd55d9a389ad4e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac275759f94f7bb4ebbbdb1ba8f1c4205" id="r_ac275759f94f7bb4ebbbdb1ba8f1c4205"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ac275759f94f7bb4ebbbdb1ba8f1c4205">routines_initialized_</a> = false</td></tr>
+<tr class="separator:ac275759f94f7bb4ebbbdb1ba8f1c4205"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a36417b33b90755701be2ccde880f98d4" id="r_a36417b33b90755701be2ccde880f98d4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a36417b33b90755701be2ccde880f98d4">rom_</a></td></tr>
 <tr class="separator:a36417b33b90755701be2ccde880f98d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -171,16 +228,42 @@ Static Private Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Draws dungeon objects to background buffers using game patterns. </p>
-<p>This class interprets object IDs and draws them to BG1/BG2 buffers using the patterns extracted from the game's drawing routines.</p>
+<p>This class interprets object IDs and draws them to BG1/BG2 buffers using the patterns extracted from the game's drawing routines. Based on ZScream's DungeonObjectData.cs and Subtype1_Draw.cs patterns.</p>
 <p>Architecture:</p><ol type="1">
 <li>Load tile data from ROM for the object</li>
-<li>Determine drawing pattern (rightward, downward, diagonal, special)</li>
+<li>Look up draw routine ID from object ID mapping</li>
+<li>Execute appropriate draw routine with size/orientation</li>
 <li>Write tiles to BackgroundBuffer according to pattern</li>
-<li>Handle size bytes for repeating patterns </li>
+<li>Handle palette coordination and graphics sheet access </li>
 </ol>
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00027">27</a> of file <a class="el" href="../../d8/d55/object__drawer_8h_source.html">object_drawer.h</a>.</p>
-</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<p class="definition">Definition at line <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00032">32</a> of file <a class="el" href="../../d8/d55/object__drawer_8h_source.html">object_drawer.h</a>.</p>
+</div><h2 class="groupheader">Member Typedef Documentation</h2>
+<a id="a199262c1b3c16543377b2739b54b0d58" name="a199262c1b3c16543377b2739b54b0d58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a199262c1b3c16543377b2739b54b0d58">&#9670;&#160;</a></span>DrawRoutine</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a199262c1b3c16543377b2739b54b0d58">yaze::zelda3::ObjectDrawer::DrawRoutine</a> =  std::function&lt;void(<a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html">ObjectDrawer</a>*, const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a>&amp;, <a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a>&amp;, const std::vector&lt;<a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a>&gt;&amp;)&gt;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00088">88</a> of file <a class="el" href="../../d8/d55/object__drawer_8h_source.html">object_drawer.h</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a634707d23ce34a42739229ab37aba7d3" name="a634707d23ce34a42739229ab37aba7d3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a634707d23ce34a42739229ab37aba7d3">&#9670;&#160;</a></span>ObjectDrawer()</h2>
 
@@ -207,11 +290,30 @@ Static Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00011">11</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
 
+<p class="reference">References <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a634707d23ce34a42739229ab37aba7d3_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a634707d23ce34a42739229ab37aba7d3_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a634707d23ce34a42739229ab37aba7d3_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a634707d23ce34a42739229ab37aba7d3_cgraph">
+<area shape="rect" title=" " alt="" coords="5,63,181,103"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a13316f72119d7001e60c69132c400066" title="Initialize draw routine registry Must be called before drawing objects." alt="" coords="229,63,404,103"/>
+<area shape="poly" title=" " alt="" coords="181,80,213,80,213,86,181,86"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#aa1002ce1cca4b63311d0622b893818d4" title=" " alt="" coords="481,5,656,46"/>
+<area shape="poly" title=" " alt="" coords="404,60,465,46,467,52,405,66"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a89049c331dbc9311f8acdb3584e26a8f" title=" " alt="" coords="733,92,914,133"/>
+<area shape="poly" title=" " alt="" coords="405,85,718,104,718,109,404,91"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a784bb219d85a2e375221411dbc9cc09b" title=" " alt="" coords="452,120,685,161"/>
+<area shape="poly" title=" " alt="" coords="405,100,462,113,460,119,404,106"/>
+<area shape="poly" title=" " alt="" coords="685,125,717,121,718,127,686,130"/>
+</map>
+</div>
+
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="afa8acb09999ef4a54433f3490fa545af" name="afa8acb09999ef4a54433f3490fa545af"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afa8acb09999ef4a54433f3490fa545af">&#9670;&#160;</a></span>DrawObject()</h2>
+<a id="a613dbb7e72a9b42c077e4b3c404b8d38" name="a613dbb7e72a9b42c077e4b3c404b8d38"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a613dbb7e72a9b42c077e4b3c404b8d38">&#9670;&#160;</a></span>DrawObject()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -232,7 +334,13 @@ Static Private Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
-          <td class="paramname"><em>bg2</em>&#160;</td>
+          <td class="paramname"><em>bg2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html">gfx::PaletteGroup</a> &amp;&#160;</td>
+          <td class="paramname"><em>palette_group</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -248,21 +356,39 @@ Static Private Attributes</h2></td></tr>
     <tr><td class="paramname">object</td><td>The object to draw </td></tr>
     <tr><td class="paramname">bg1</td><td>Background layer 1 buffer </td></tr>
     <tr><td class="paramname">bg2</td><td>Background layer 2 buffer </td></tr>
+    <tr><td class="paramname">palette_group</td><td>Current palette group for color mapping </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Status of the drawing operation </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00013">13</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00015">15</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00058">yaze::zelda3::RoomObject::BG2</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00104">Draw1x1Solid()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00170">Draw4x4Block()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00142">DrawDiagonalAcute()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00156">DrawDiagonalGrave()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00127">DrawDownwards2x2()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00111">DrawRightwards2x2()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00073">rom_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00074">yaze::zelda3::RoomObject::set_rom()</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00058">yaze::zelda3::RoomObject::BG2</a>, <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00148">draw_routines_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00225">GetDrawRoutineId()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00151">rom_</a>, <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00149">routines_initialized_</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00094">yaze::zelda3::RoomObject::tiles()</a>, and <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00072">DrawObjectList()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00067">DrawObjectList()</a>, <a class="el" href="../../d1/d13/object__rendering__test_8cc_source.html#l00217">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d1/d13/object__rendering__test_8cc_source.html#l00121">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d1/d13/object__rendering__test_8cc_source.html#l00168">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d1/d13/object__rendering__test_8cc_source.html#l00244">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d1/d13/object__rendering__test_8cc_source.html#l00141">yaze::zelda3::TEST_F()</a>, and <a class="el" href="../../d1/d13/object__rendering__test_8cc_source.html#l00094">yaze::zelda3::TEST_F()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a613dbb7e72a9b42c077e4b3c404b8d38_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a613dbb7e72a9b42c077e4b3c404b8d38_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a613dbb7e72a9b42c077e4b3c404b8d38_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a613dbb7e72a9b42c077e4b3c404b8d38_cgraph">
+<area shape="rect" title="Draw a room object to background buffers." alt="" coords="5,92,181,133"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a031dccb40ca1d801c49dd0157376b472" title="Get draw routine ID for an object." alt="" coords="229,5,404,46"/>
+<area shape="poly" title=" " alt="" coords="147,89,246,50,248,55,149,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="452,132,593,157"/>
+<area shape="poly" title=" " alt="" coords="181,101,288,98,347,100,404,106,473,123,472,128,404,111,346,105,288,103,181,106"/>
+<area shape="rect" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a0e2f2cab3d3cca8ef1230e33773fdb61" title=" " alt="" coords="232,120,401,161"/>
+<area shape="poly" title=" " alt="" coords="181,121,217,125,216,130,181,126"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="229,185,404,226"/>
+<area shape="poly" title=" " alt="" coords="141,131,230,170,246,177,244,182,228,175,138,136"/>
+<area shape="poly" title=" " alt="" coords="386,182,462,159,463,165,388,187"/>
+</map>
+</div>
 
 </div>
 </div>
-<a id="a7bcb363a225aac116b33c43da8df819b" name="a7bcb363a225aac116b33c43da8df819b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7bcb363a225aac116b33c43da8df819b">&#9670;&#160;</a></span>DrawObjectList()</h2>
+<a id="a4620f6bf4aa0a916b7420fc9529dc768" name="a4620f6bf4aa0a916b7420fc9529dc768"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4620f6bf4aa0a916b7420fc9529dc768">&#9670;&#160;</a></span>DrawObjectList()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -283,7 +409,13 @@ Static Private Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
-          <td class="paramname"><em>bg2</em>&#160;</td>
+          <td class="paramname"><em>bg2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html">gfx::PaletteGroup</a> &amp;&#160;</td>
+          <td class="paramname"><em>palette_group</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -299,37 +431,176 @@ Static Private Attributes</h2></td></tr>
     <tr><td class="paramname">objects</td><td>Vector of room objects </td></tr>
     <tr><td class="paramname">bg1</td><td>Background layer 1 buffer </td></tr>
     <tr><td class="paramname">bg2</td><td>Background layer 2 buffer </td></tr>
+    <tr><td class="paramname">palette_group</td><td>Current palette group for color mapping </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Status of the drawing operation </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00072">72</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00067">67</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00013">DrawObject()</a>.</p>
+<p class="reference">References <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00015">DrawObject()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00329">yaze::zelda3::Room::RenderObjectsToBackground()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d5/d1b/room_8cc_source.html#l00336">yaze::zelda3::Room::RenderObjectsToBackground()</a>, <a class="el" href="../../d9/d12/dungeon__rendering__test_8cc_source.html#l00097">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d9/d12/dungeon__rendering__test_8cc_source.html#l00310">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d9/d12/dungeon__rendering__test_8cc_source.html#l00199">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d9/d12/dungeon__rendering__test_8cc_source.html#l00116">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d9/d12/dungeon__rendering__test_8cc_source.html#l00240">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d9/d12/dungeon__rendering__test_8cc_source.html#l00327">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d9/d12/dungeon__rendering__test_8cc_source.html#l00268">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d9/d12/dungeon__rendering__test_8cc_source.html#l00139">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d9/d12/dungeon__rendering__test_8cc_source.html#l00176">yaze::zelda3::TEST_F()</a>, <a class="el" href="../../d1/d13/object__rendering__test_8cc_source.html#l00195">yaze::zelda3::TEST_F()</a>, and <a class="el" href="../../d1/d13/object__rendering__test_8cc_source.html#l00288">yaze::zelda3::TEST_F()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a7bcb363a225aac116b33c43da8df819b_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a7bcb363a225aac116b33c43da8df819b_cgraph" alt=""/></div>
-<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a7bcb363a225aac116b33c43da8df819b_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a7bcb363a225aac116b33c43da8df819b_cgraph">
-<area shape="rect" title="Draw all objects in a room." alt="" coords="5,71,181,111"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#afa8acb09999ef4a54433f3490fa545af" title="Draw a room object to background buffers." alt="" coords="229,71,404,111"/>
-<area shape="poly" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#afc44b84724736001572fac2468568d15" title=" " alt="" coords="452,5,627,46"/>
-<area shape="poly" title=" " alt="" coords="387,68,452,48,454,54,389,73"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a2be49266a08b1f49f83b36f76e1b96c7" title=" " alt="" coords="452,71,627,111"/>
-<area shape="poly" title=" " alt="" coords="404,88,437,88,437,94,404,94"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a57ce6c2fd3b0c73f29ceef3b1e4ccc93" title=" " alt="" coords="452,136,627,177"/>
-<area shape="poly" title=" " alt="" coords="389,109,454,128,452,134,387,114"/>
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a4620f6bf4aa0a916b7420fc9529dc768_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a4620f6bf4aa0a916b7420fc9529dc768_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a4620f6bf4aa0a916b7420fc9529dc768_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a4620f6bf4aa0a916b7420fc9529dc768_cgraph">
+<area shape="rect" title="Draw all objects in a room." alt="" coords="5,63,181,103"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a613dbb7e72a9b42c077e4b3c404b8d38" title="Draw a room object to background buffers." alt="" coords="229,63,404,103"/>
+<area shape="poly" title=" " alt="" coords="181,80,213,80,213,86,181,86"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a031dccb40ca1d801c49dd0157376b472" title="Get draw routine ID for an object." alt="" coords="452,5,627,46"/>
+<area shape="poly" title=" " alt="" coords="397,60,442,48,444,53,399,65"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="469,70,610,96"/>
+<area shape="poly" title=" " alt="" coords="404,80,453,80,453,86,404,86"/>
+<area shape="rect" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a0e2f2cab3d3cca8ef1230e33773fdb61" title=" " alt="" coords="456,120,624,161"/>
+<area shape="poly" title=" " alt="" coords="399,101,444,113,442,118,397,106"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="ac24803bc4a4368bdb853e70301c9a167" name="ac24803bc4a4368bdb853e70301c9a167"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac24803bc4a4368bdb853e70301c9a167">&#9670;&#160;</a></span>DrawRightwards2x2()</h2>
+<a id="a031dccb40ca1d801c49dd0157376b472" name="a031dccb40ca1d801c49dd0157376b472"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a031dccb40ca1d801c49dd0157376b472">&#9670;&#160;</a></span>GetDrawRoutineId()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int yaze::zelda3::ObjectDrawer::GetDrawRoutineId </td>
+          <td>(</td>
+          <td class="paramtype">int16_t&#160;</td>
+          <td class="paramname"><em>object_id</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get draw routine ID for an object. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">object_id</td><td>The object ID to look up </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Draw routine ID (0-24) based on ZScream mapping </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00225">225</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00147">object_to_routine_map_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00015">DrawObject()</a>.</p>
+
+</div>
+</div>
+<a id="a13316f72119d7001e60c69132c400066" name="a13316f72119d7001e60c69132c400066"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a13316f72119d7001e60c69132c400066">&#9670;&#160;</a></span>InitializeDrawRoutines()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::InitializeDrawRoutines </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Initialize draw routine registry Must be called before drawing objects. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">103</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00418">CustomDraw()</a>, <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00148">draw_routines_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00315">DrawDiagonalAcute_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00343">DrawDiagonalAcute_1to16_BothBG()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00329">DrawDiagonalGrave_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00349">DrawDiagonalGrave_1to16_BothBG()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00457">DrawDoorSwitcherer()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00445">DrawRightwards1x1Solid_1to16_plus3()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00355">DrawRightwards1x2_1to16_plus2()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00239">DrawRightwards2x2_1to15or32()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00300">DrawRightwards2x2_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00256">DrawRightwards2x4_1to15or26()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00275">DrawRightwards2x4spaced4_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00293">DrawRightwards2x4spaced4_1to16_BothBG()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00427">DrawRightwards4x4_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00405">DrawRightwardsBottomCorners1x2_1to16_plus13()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00556">DrawRightwardsDecor2x2spaced12_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00520">DrawRightwardsDecor4x3spaced4_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00466">DrawRightwardsDecor4x4spaced2_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00538">DrawRightwardsDoubled2x2spaced2_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00380">DrawRightwardsHasEdge1x1_1to16_plus2()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00368">DrawRightwardsHasEdge1x1_1to16_plus3()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00502">DrawRightwardsPillar2x4spaced4_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00484">DrawRightwardsStatue2x3spaced2_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00392">DrawRightwardsTopCorners1x2_1to16_plus13()</a>, <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00147">object_to_routine_map_</a>, and <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00149">routines_initialized_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00011">ObjectDrawer()</a>.</p>
+
+</div>
+</div>
+<a id="a11773ef80d98284bba3f1d43e6eec70b" name="a11773ef80d98284bba3f1d43e6eec70b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11773ef80d98284bba3f1d43e6eec70b">&#9670;&#160;</a></span>DrawTileToBitmap()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawTileToBitmap </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html">gfx::Bitmap</a> &amp;&#160;</td>
+          <td class="paramname"><em>bitmap</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="../../d3/de4/classyaze_1_1gfx_1_1TileInfo.html">gfx::TileInfo</a> &amp;&#160;</td>
+          <td class="paramname"><em>tile_info</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pixel_x</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>pixel_y</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const uint8_t *&#160;</td>
+          <td class="paramname"><em>tiledata</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Draw a single tile directly to bitmap. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">bitmap</td><td>Target bitmap to draw to </td></tr>
+    <tr><td class="paramname">tile_info</td><td>Tile information (ID, palette, mirroring) </td></tr>
+    <tr><td class="paramname">pixel_x</td><td>X pixel coordinate in bitmap </td></tr>
+    <tr><td class="paramname">pixel_y</td><td>Y pixel coordinate in bitmap </td></tr>
+    <tr><td class="paramname">tiledata</td><td>Source graphics data from ROM </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00611">611</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00254">yaze::gfx::Bitmap::height()</a>, <a class="el" href="../../d0/d8d/snes__tile_8h_source.html#l00056">yaze::gfx::TileInfo::horizontal_mirror_</a>, <a class="el" href="../../d0/d8d/snes__tile_8h_source.html#l00052">yaze::gfx::TileInfo::id_</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00264">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00258">yaze::gfx::Bitmap::mutable_data()</a>, <a class="el" href="../../d0/d8d/snes__tile_8h_source.html#l00053">yaze::gfx::TileInfo::palette_</a>, <a class="el" href="../../d0/d8d/snes__tile_8h_source.html#l00055">yaze::gfx::TileInfo::vertical_mirror_</a>, and <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00253">yaze::gfx::Bitmap::width()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a11773ef80d98284bba3f1d43e6eec70b_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a11773ef80d98284bba3f1d43e6eec70b_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a11773ef80d98284bba3f1d43e6eec70b_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a11773ef80d98284bba3f1d43e6eec70b_cgraph">
+<area shape="rect" title="Draw a single tile directly to bitmap." alt="" coords="5,104,181,145"/>
+<area shape="rect" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="229,5,352,46"/>
+<area shape="poly" title=" " alt="" coords="134,101,233,51,236,56,137,106"/>
+<area shape="rect" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919" title=" " alt="" coords="229,71,352,111"/>
+<area shape="poly" title=" " alt="" coords="180,107,213,101,214,107,181,112"/>
+<area shape="rect" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html#aba6e7ff12ec269f3d2de46bf600f7fa6" title=" " alt="" coords="229,136,352,177"/>
+<area shape="poly" title=" " alt="" coords="181,136,214,141,213,147,180,141"/>
+<area shape="rect" href="../../df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="229,201,352,242"/>
+<area shape="poly" title=" " alt="" coords="137,143,235,192,232,196,135,148"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a68612cb31933b5b447bd7aa50b3ae2be" name="a68612cb31933b5b447bd7aa50b3ae2be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a68612cb31933b5b447bd7aa50b3ae2be">&#9670;&#160;</a></span>DrawRightwards2x2_1to15or32()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -338,7 +609,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwards2x2 </td>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwards2x2_1to15or32 </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
@@ -352,8 +623,8 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;&#160;</td>
-          <td class="paramname"><em>tile</em>&#160;</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -368,32 +639,32 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00111">111</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00239">239</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00188">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00013">DrawObject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ac24803bc4a4368bdb853e70301c9a167_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ac24803bc4a4368bdb853e70301c9a167_cgraph" alt=""/></div>
-<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ac24803bc4a4368bdb853e70301c9a167_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ac24803bc4a4368bdb853e70301c9a167_cgraph">
-<area shape="rect" title=" " alt="" coords="5,71,181,111"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="229,71,404,111"/>
-<area shape="poly" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ae85785664b7291b357e9e70813cc6e1d" title=" " alt="" coords="454,5,629,46"/>
-<area shape="poly" title=" " alt="" coords="388,68,453,48,455,54,389,73"/>
-<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a9a7be412d7cf193aff2c97890b788374" title=" " alt="" coords="452,71,631,111"/>
-<area shape="poly" title=" " alt="" coords="404,88,437,88,437,94,404,94"/>
-<area shape="rect" href="../../d0/d27/namespaceyaze_1_1gfx.html#a66b9ad66f02a591afa773753724ea892" title=" " alt="" coords="460,136,624,161"/>
-<area shape="poly" title=" " alt="" coords="399,109,474,129,473,134,398,114"/>
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a68612cb31933b5b447bd7aa50b3ae2be_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a68612cb31933b5b447bd7aa50b3ae2be_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a68612cb31933b5b447bd7aa50b3ae2be_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a68612cb31933b5b447bd7aa50b3ae2be_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,212,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="260,71,435,111"/>
+<area shape="poly" title=" " alt="" coords="212,88,244,88,244,94,212,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="483,5,662,46"/>
+<area shape="poly" title=" " alt="" coords="419,68,484,48,486,54,420,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="485,71,660,111"/>
+<area shape="poly" title=" " alt="" coords="435,88,469,88,469,94,435,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="502,136,643,161"/>
+<area shape="poly" title=" " alt="" coords="430,109,505,129,504,134,429,114"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="aa4bfd3587117bee0b0a2c7a23581972d" name="aa4bfd3587117bee0b0a2c7a23581972d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa4bfd3587117bee0b0a2c7a23581972d">&#9670;&#160;</a></span>DrawDownwards2x2()</h2>
+<a id="a2480f28a7775e55b8efb2dfdd45da651" name="a2480f28a7775e55b8efb2dfdd45da651"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2480f28a7775e55b8efb2dfdd45da651">&#9670;&#160;</a></span>DrawRightwards2x4_1to15or26()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -402,7 +673,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawDownwards2x2 </td>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwards2x4_1to15or26 </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
@@ -416,8 +687,8 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;&#160;</td>
-          <td class="paramname"><em>tile</em>&#160;</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -432,32 +703,32 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00127">127</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00256">256</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00188">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00013">DrawObject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_aa4bfd3587117bee0b0a2c7a23581972d_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_aa4bfd3587117bee0b0a2c7a23581972d_cgraph" alt=""/></div>
-<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_aa4bfd3587117bee0b0a2c7a23581972d_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_aa4bfd3587117bee0b0a2c7a23581972d_cgraph">
-<area shape="rect" title=" " alt="" coords="5,71,181,111"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="229,71,404,111"/>
-<area shape="poly" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ae85785664b7291b357e9e70813cc6e1d" title=" " alt="" coords="454,5,629,46"/>
-<area shape="poly" title=" " alt="" coords="388,68,453,48,455,54,389,73"/>
-<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a9a7be412d7cf193aff2c97890b788374" title=" " alt="" coords="452,71,631,111"/>
-<area shape="poly" title=" " alt="" coords="404,88,437,88,437,94,404,94"/>
-<area shape="rect" href="../../d0/d27/namespaceyaze_1_1gfx.html#a66b9ad66f02a591afa773753724ea892" title=" " alt="" coords="460,136,624,161"/>
-<area shape="poly" title=" " alt="" coords="399,109,474,129,473,134,398,114"/>
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a2480f28a7775e55b8efb2dfdd45da651_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a2480f28a7775e55b8efb2dfdd45da651_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a2480f28a7775e55b8efb2dfdd45da651_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a2480f28a7775e55b8efb2dfdd45da651_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,212,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="260,71,435,111"/>
+<area shape="poly" title=" " alt="" coords="212,88,244,88,244,94,212,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="483,5,662,46"/>
+<area shape="poly" title=" " alt="" coords="419,68,484,48,486,54,420,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="485,71,660,111"/>
+<area shape="poly" title=" " alt="" coords="435,88,469,88,469,94,435,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="502,136,643,161"/>
+<area shape="poly" title=" " alt="" coords="430,109,505,129,504,134,429,114"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="a57ce6c2fd3b0c73f29ceef3b1e4ccc93" name="a57ce6c2fd3b0c73f29ceef3b1e4ccc93"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57ce6c2fd3b0c73f29ceef3b1e4ccc93">&#9670;&#160;</a></span>DrawDiagonalAcute()</h2>
+<a id="a0c0095ddce370ad3dc93e9dfe98c0210" name="a0c0095ddce370ad3dc93e9dfe98c0210"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0c0095ddce370ad3dc93e9dfe98c0210">&#9670;&#160;</a></span>DrawRightwards2x4spaced4_1to16()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -466,7 +737,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawDiagonalAcute </td>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwards2x4spaced4_1to16 </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
@@ -480,8 +751,8 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;&#160;</td>
-          <td class="paramname"><em>tile</em>&#160;</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -496,32 +767,32 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00142">142</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00275">275</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00188">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00013">DrawObject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00293">DrawRightwards2x4spaced4_1to16_BothBG()</a>, and <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a57ce6c2fd3b0c73f29ceef3b1e4ccc93_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a57ce6c2fd3b0c73f29ceef3b1e4ccc93_cgraph" alt=""/></div>
-<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a57ce6c2fd3b0c73f29ceef3b1e4ccc93_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a57ce6c2fd3b0c73f29ceef3b1e4ccc93_cgraph">
-<area shape="rect" title=" " alt="" coords="5,71,181,111"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="229,71,404,111"/>
-<area shape="poly" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ae85785664b7291b357e9e70813cc6e1d" title=" " alt="" coords="454,5,629,46"/>
-<area shape="poly" title=" " alt="" coords="388,68,453,48,455,54,389,73"/>
-<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a9a7be412d7cf193aff2c97890b788374" title=" " alt="" coords="452,71,631,111"/>
-<area shape="poly" title=" " alt="" coords="404,88,437,88,437,94,404,94"/>
-<area shape="rect" href="../../d0/d27/namespaceyaze_1_1gfx.html#a66b9ad66f02a591afa773753724ea892" title=" " alt="" coords="460,136,624,161"/>
-<area shape="poly" title=" " alt="" coords="399,109,474,129,473,134,398,114"/>
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a0c0095ddce370ad3dc93e9dfe98c0210_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a0c0095ddce370ad3dc93e9dfe98c0210_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a0c0095ddce370ad3dc93e9dfe98c0210_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a0c0095ddce370ad3dc93e9dfe98c0210_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,236,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="284,71,459,111"/>
+<area shape="poly" title=" " alt="" coords="236,88,268,88,268,94,236,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="507,5,686,46"/>
+<area shape="poly" title=" " alt="" coords="443,68,508,48,510,54,444,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="509,71,684,111"/>
+<area shape="poly" title=" " alt="" coords="459,88,493,88,493,94,459,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="526,136,667,161"/>
+<area shape="poly" title=" " alt="" coords="454,109,529,129,528,134,453,114"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="ad1793b57faeb4e73bba3f6450f3d50c6" name="ad1793b57faeb4e73bba3f6450f3d50c6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1793b57faeb4e73bba3f6450f3d50c6">&#9670;&#160;</a></span>DrawDiagonalGrave()</h2>
+<a id="a987b842eb7c9ac188eea94eef66c1188" name="a987b842eb7c9ac188eea94eef66c1188"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a987b842eb7c9ac188eea94eef66c1188">&#9670;&#160;</a></span>DrawRightwards2x4spaced4_1to16_BothBG()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -530,7 +801,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawDiagonalGrave </td>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwards2x4spaced4_1to16_BothBG </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
@@ -544,8 +815,8 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;&#160;</td>
-          <td class="paramname"><em>tile</em>&#160;</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -560,32 +831,28 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00156">156</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00293">293</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00188">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+<p class="reference">References <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00275">DrawRightwards2x4spaced4_1to16()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00013">DrawObject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ad1793b57faeb4e73bba3f6450f3d50c6_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ad1793b57faeb4e73bba3f6450f3d50c6_cgraph" alt=""/></div>
-<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ad1793b57faeb4e73bba3f6450f3d50c6_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ad1793b57faeb4e73bba3f6450f3d50c6_cgraph">
-<area shape="rect" title=" " alt="" coords="5,71,181,111"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="229,71,404,111"/>
-<area shape="poly" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ae85785664b7291b357e9e70813cc6e1d" title=" " alt="" coords="454,5,629,46"/>
-<area shape="poly" title=" " alt="" coords="388,68,453,48,455,54,389,73"/>
-<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a9a7be412d7cf193aff2c97890b788374" title=" " alt="" coords="452,71,631,111"/>
-<area shape="poly" title=" " alt="" coords="404,88,437,88,437,94,404,94"/>
-<area shape="rect" href="../../d0/d27/namespaceyaze_1_1gfx.html#a66b9ad66f02a591afa773753724ea892" title=" " alt="" coords="460,136,624,161"/>
-<area shape="poly" title=" " alt="" coords="399,109,474,129,473,134,398,114"/>
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a987b842eb7c9ac188eea94eef66c1188_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a987b842eb7c9ac188eea94eef66c1188_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a987b842eb7c9ac188eea94eef66c1188_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a987b842eb7c9ac188eea94eef66c1188_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,197,61"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a0c0095ddce370ad3dc93e9dfe98c0210" title=" " alt="" coords="245,13,475,54"/>
+<area shape="poly" title=" " alt="" coords="197,31,229,31,229,36,197,36"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="523,13,698,54"/>
+<area shape="poly" title=" " alt="" coords="475,31,507,31,507,36,475,36"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="afc44b84724736001572fac2468568d15" name="afc44b84724736001572fac2468568d15"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc44b84724736001572fac2468568d15">&#9670;&#160;</a></span>Draw1x1Solid()</h2>
+<a id="a7258e474faa5d8b1e23dada3fea7f6c1" name="a7258e474faa5d8b1e23dada3fea7f6c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7258e474faa5d8b1e23dada3fea7f6c1">&#9670;&#160;</a></span>DrawRightwards2x2_1to16()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -594,7 +861,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::zelda3::ObjectDrawer::Draw1x1Solid </td>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwards2x2_1to16 </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
@@ -608,8 +875,8 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;&#160;</td>
-          <td class="paramname"><em>tile</em>&#160;</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -624,32 +891,32 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00104">104</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00300">300</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00188">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00013">DrawObject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_afc44b84724736001572fac2468568d15_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_afc44b84724736001572fac2468568d15_cgraph" alt=""/></div>
-<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_afc44b84724736001572fac2468568d15_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_afc44b84724736001572fac2468568d15_cgraph">
-<area shape="rect" title=" " alt="" coords="5,71,181,111"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="229,71,404,111"/>
-<area shape="poly" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ae85785664b7291b357e9e70813cc6e1d" title=" " alt="" coords="454,5,629,46"/>
-<area shape="poly" title=" " alt="" coords="388,68,453,48,455,54,389,73"/>
-<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a9a7be412d7cf193aff2c97890b788374" title=" " alt="" coords="452,71,631,111"/>
-<area shape="poly" title=" " alt="" coords="404,88,437,88,437,94,404,94"/>
-<area shape="rect" href="../../d0/d27/namespaceyaze_1_1gfx.html#a66b9ad66f02a591afa773753724ea892" title=" " alt="" coords="460,136,624,161"/>
-<area shape="poly" title=" " alt="" coords="399,109,474,129,473,134,398,114"/>
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a7258e474faa5d8b1e23dada3fea7f6c1_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a7258e474faa5d8b1e23dada3fea7f6c1_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a7258e474faa5d8b1e23dada3fea7f6c1_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a7258e474faa5d8b1e23dada3fea7f6c1_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,187,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="235,71,410,111"/>
+<area shape="poly" title=" " alt="" coords="187,88,219,88,219,94,187,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="458,5,637,46"/>
+<area shape="poly" title=" " alt="" coords="394,68,459,48,461,54,395,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="460,71,635,111"/>
+<area shape="poly" title=" " alt="" coords="410,88,444,88,444,94,410,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="477,136,618,161"/>
+<area shape="poly" title=" " alt="" coords="405,109,480,129,479,134,404,114"/>
 </map>
 </div>
 
 </div>
 </div>
-<a id="a2be49266a08b1f49f83b36f76e1b96c7" name="a2be49266a08b1f49f83b36f76e1b96c7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2be49266a08b1f49f83b36f76e1b96c7">&#9670;&#160;</a></span>Draw4x4Block()</h2>
+<a id="a89049c331dbc9311f8acdb3584e26a8f" name="a89049c331dbc9311f8acdb3584e26a8f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a89049c331dbc9311f8acdb3584e26a8f">&#9670;&#160;</a></span>DrawDiagonalAcute_1to16()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -658,7 +925,7 @@ Here is the call graph for this function:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void yaze::zelda3::ObjectDrawer::Draw4x4Block </td>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawDiagonalAcute_1to16 </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
           <td class="paramname"><em>obj</em>, </td>
@@ -672,8 +939,8 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &amp;&#160;</td>
-          <td class="paramname"><em>tile</em>&#160;</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -688,25 +955,1169 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00170">170</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00315">315</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00188">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00013">DrawObject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00343">DrawDiagonalAcute_1to16_BothBG()</a>, and <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a2be49266a08b1f49f83b36f76e1b96c7_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a2be49266a08b1f49f83b36f76e1b96c7_cgraph" alt=""/></div>
-<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a2be49266a08b1f49f83b36f76e1b96c7_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a2be49266a08b1f49f83b36f76e1b96c7_cgraph">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a89049c331dbc9311f8acdb3584e26a8f_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a89049c331dbc9311f8acdb3584e26a8f_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a89049c331dbc9311f8acdb3584e26a8f_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a89049c331dbc9311f8acdb3584e26a8f_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,186,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="234,71,409,111"/>
+<area shape="poly" title=" " alt="" coords="186,88,218,88,218,94,186,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="457,5,636,46"/>
+<area shape="poly" title=" " alt="" coords="393,68,458,48,460,54,394,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="459,71,634,111"/>
+<area shape="poly" title=" " alt="" coords="409,88,443,88,443,94,409,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="476,136,617,161"/>
+<area shape="poly" title=" " alt="" coords="404,109,479,129,478,134,403,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a1e7ffdf23ef54eec889d76359c6d4419" name="a1e7ffdf23ef54eec889d76359c6d4419"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e7ffdf23ef54eec889d76359c6d4419">&#9670;&#160;</a></span>DrawDiagonalGrave_1to16()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawDiagonalGrave_1to16 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00329">329</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00349">DrawDiagonalGrave_1to16_BothBG()</a>, and <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a1e7ffdf23ef54eec889d76359c6d4419_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a1e7ffdf23ef54eec889d76359c6d4419_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a1e7ffdf23ef54eec889d76359c6d4419_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a1e7ffdf23ef54eec889d76359c6d4419_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,187,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="235,71,410,111"/>
+<area shape="poly" title=" " alt="" coords="187,88,219,88,219,94,187,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="458,5,637,46"/>
+<area shape="poly" title=" " alt="" coords="394,68,459,48,461,54,395,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="460,71,635,111"/>
+<area shape="poly" title=" " alt="" coords="410,88,444,88,444,94,410,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="477,136,618,161"/>
+<area shape="poly" title=" " alt="" coords="405,109,480,129,479,134,404,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a784bb219d85a2e375221411dbc9cc09b" name="a784bb219d85a2e375221411dbc9cc09b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a784bb219d85a2e375221411dbc9cc09b">&#9670;&#160;</a></span>DrawDiagonalAcute_1to16_BothBG()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawDiagonalAcute_1to16_BothBG </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00343">343</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00315">DrawDiagonalAcute_1to16()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a784bb219d85a2e375221411dbc9cc09b_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a784bb219d85a2e375221411dbc9cc09b_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a784bb219d85a2e375221411dbc9cc09b_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a784bb219d85a2e375221411dbc9cc09b_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,239,46"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a89049c331dbc9311f8acdb3584e26a8f" title=" " alt="" coords="287,5,467,46"/>
+<area shape="poly" title=" " alt="" coords="239,23,271,23,271,28,239,28"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="515,5,690,46"/>
+<area shape="poly" title=" " alt="" coords="468,23,499,23,499,28,468,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a1f175d355afe4e6a4cd8664927701f17" name="a1f175d355afe4e6a4cd8664927701f17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f175d355afe4e6a4cd8664927701f17">&#9670;&#160;</a></span>DrawDiagonalGrave_1to16_BothBG()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawDiagonalGrave_1to16_BothBG </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00349">349</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00329">DrawDiagonalGrave_1to16()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a1f175d355afe4e6a4cd8664927701f17_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a1f175d355afe4e6a4cd8664927701f17_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a1f175d355afe4e6a4cd8664927701f17_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a1f175d355afe4e6a4cd8664927701f17_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,240,46"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a1e7ffdf23ef54eec889d76359c6d4419" title=" " alt="" coords="288,5,469,46"/>
+<area shape="poly" title=" " alt="" coords="240,23,272,23,272,28,240,28"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="517,5,692,46"/>
+<area shape="poly" title=" " alt="" coords="469,23,501,23,501,28,469,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ab7433e1054f37c962b4d035f1fe3abbe" name="ab7433e1054f37c962b4d035f1fe3abbe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab7433e1054f37c962b4d035f1fe3abbe">&#9670;&#160;</a></span>DrawRightwards1x2_1to16_plus2()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwards1x2_1to16_plus2 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00355">355</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ab7433e1054f37c962b4d035f1fe3abbe_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ab7433e1054f37c962b4d035f1fe3abbe_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ab7433e1054f37c962b4d035f1fe3abbe_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ab7433e1054f37c962b4d035f1fe3abbe_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,225,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="273,71,448,111"/>
+<area shape="poly" title=" " alt="" coords="225,88,257,88,257,94,225,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="496,5,675,46"/>
+<area shape="poly" title=" " alt="" coords="432,68,497,48,499,54,433,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="498,71,673,111"/>
+<area shape="poly" title=" " alt="" coords="448,88,482,88,482,94,448,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="515,136,656,161"/>
+<area shape="poly" title=" " alt="" coords="443,109,518,129,517,134,442,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a8fb981e9adc304f3e54b7a7a3f8ffeee" name="a8fb981e9adc304f3e54b7a7a3f8ffeee"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8fb981e9adc304f3e54b7a7a3f8ffeee">&#9670;&#160;</a></span>DrawRightwardsHasEdge1x1_1to16_plus3()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus3 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00368">368</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a8fb981e9adc304f3e54b7a7a3f8ffeee_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a8fb981e9adc304f3e54b7a7a3f8ffeee_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a8fb981e9adc304f3e54b7a7a3f8ffeee_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a8fb981e9adc304f3e54b7a7a3f8ffeee_cgraph">
+<area shape="rect" title=" " alt="" coords="5,63,201,119"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="249,71,424,111"/>
+<area shape="poly" title=" " alt="" coords="201,88,233,88,233,94,201,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="472,5,651,46"/>
+<area shape="poly" title=" " alt="" coords="408,68,473,48,475,54,409,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="474,71,649,111"/>
+<area shape="poly" title=" " alt="" coords="424,88,458,88,458,94,424,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="491,136,632,161"/>
+<area shape="poly" title=" " alt="" coords="419,109,494,129,493,134,418,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="adaccd7cf8ab04d5ffcfd813eb3e79dd0" name="adaccd7cf8ab04d5ffcfd813eb3e79dd0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adaccd7cf8ab04d5ffcfd813eb3e79dd0">&#9670;&#160;</a></span>DrawRightwardsHasEdge1x1_1to16_plus2()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus2 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00380">380</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_adaccd7cf8ab04d5ffcfd813eb3e79dd0_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_adaccd7cf8ab04d5ffcfd813eb3e79dd0_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_adaccd7cf8ab04d5ffcfd813eb3e79dd0_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_adaccd7cf8ab04d5ffcfd813eb3e79dd0_cgraph">
+<area shape="rect" title=" " alt="" coords="5,63,201,119"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="249,71,424,111"/>
+<area shape="poly" title=" " alt="" coords="201,88,233,88,233,94,201,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="472,5,651,46"/>
+<area shape="poly" title=" " alt="" coords="408,68,473,48,475,54,409,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="474,71,649,111"/>
+<area shape="poly" title=" " alt="" coords="424,88,458,88,458,94,424,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="491,136,632,161"/>
+<area shape="poly" title=" " alt="" coords="419,109,494,129,493,134,418,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="af685c88e6481f13bf6761dd12ce9242f" name="af685c88e6481f13bf6761dd12ce9242f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af685c88e6481f13bf6761dd12ce9242f">&#9670;&#160;</a></span>DrawRightwardsTopCorners1x2_1to16_plus13()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwardsTopCorners1x2_1to16_plus13 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00392">392</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_af685c88e6481f13bf6761dd12ce9242f_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_af685c88e6481f13bf6761dd12ce9242f_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_af685c88e6481f13bf6761dd12ce9242f_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_af685c88e6481f13bf6761dd12ce9242f_cgraph">
+<area shape="rect" title=" " alt="" coords="5,63,215,119"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="263,71,438,111"/>
+<area shape="poly" title=" " alt="" coords="215,88,247,88,247,94,215,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="486,5,665,46"/>
+<area shape="poly" title=" " alt="" coords="422,68,487,48,489,54,423,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="488,71,663,111"/>
+<area shape="poly" title=" " alt="" coords="438,88,472,88,472,94,438,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="505,136,646,161"/>
+<area shape="poly" title=" " alt="" coords="433,109,508,129,507,134,432,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ae89a24fa9587322d12684a9a751b722d" name="ae89a24fa9587322d12684a9a751b722d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae89a24fa9587322d12684a9a751b722d">&#9670;&#160;</a></span>DrawRightwardsBottomCorners1x2_1to16_plus13()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwardsBottomCorners1x2_1to16_plus13 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00405">405</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ae89a24fa9587322d12684a9a751b722d_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ae89a24fa9587322d12684a9a751b722d_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ae89a24fa9587322d12684a9a751b722d_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ae89a24fa9587322d12684a9a751b722d_cgraph">
+<area shape="rect" title=" " alt="" coords="5,63,235,119"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="283,71,458,111"/>
+<area shape="poly" title=" " alt="" coords="235,88,267,88,267,94,235,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="506,5,685,46"/>
+<area shape="poly" title=" " alt="" coords="442,68,507,48,509,54,443,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="508,71,683,111"/>
+<area shape="poly" title=" " alt="" coords="458,88,492,88,492,94,458,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="525,136,666,161"/>
+<area shape="poly" title=" " alt="" coords="453,109,528,129,527,134,452,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="aa1002ce1cca4b63311d0622b893818d4" name="aa1002ce1cca4b63311d0622b893818d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa1002ce1cca4b63311d0622b893818d4">&#9670;&#160;</a></span>CustomDraw()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::CustomDraw </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00418">418</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_aa1002ce1cca4b63311d0622b893818d4_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_aa1002ce1cca4b63311d0622b893818d4_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_aa1002ce1cca4b63311d0622b893818d4_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_aa1002ce1cca4b63311d0622b893818d4_cgraph">
 <area shape="rect" title=" " alt="" coords="5,71,181,111"/>
 <area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="229,71,404,111"/>
 <area shape="poly" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ae85785664b7291b357e9e70813cc6e1d" title=" " alt="" coords="454,5,629,46"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="452,5,631,46"/>
 <area shape="poly" title=" " alt="" coords="388,68,453,48,455,54,389,73"/>
-<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a9a7be412d7cf193aff2c97890b788374" title=" " alt="" coords="452,71,631,111"/>
-<area shape="poly" title=" " alt="" coords="404,88,437,88,437,94,404,94"/>
-<area shape="rect" href="../../d0/d27/namespaceyaze_1_1gfx.html#a66b9ad66f02a591afa773753724ea892" title=" " alt="" coords="460,136,624,161"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="454,71,629,111"/>
+<area shape="poly" title=" " alt="" coords="404,88,438,88,438,94,404,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="471,136,612,161"/>
 <area shape="poly" title=" " alt="" coords="399,109,474,129,473,134,398,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ab84d97570f6ddcaaec4b126077cf4126" name="ab84d97570f6ddcaaec4b126077cf4126"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab84d97570f6ddcaaec4b126077cf4126">&#9670;&#160;</a></span>DrawRightwards4x4_1to16()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwards4x4_1to16 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00427">427</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ab84d97570f6ddcaaec4b126077cf4126_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ab84d97570f6ddcaaec4b126077cf4126_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ab84d97570f6ddcaaec4b126077cf4126_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ab84d97570f6ddcaaec4b126077cf4126_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,187,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="235,71,410,111"/>
+<area shape="poly" title=" " alt="" coords="187,88,219,88,219,94,187,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="458,5,637,46"/>
+<area shape="poly" title=" " alt="" coords="394,68,459,48,461,54,395,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="460,71,635,111"/>
+<area shape="poly" title=" " alt="" coords="410,88,444,88,444,94,410,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="477,136,618,161"/>
+<area shape="poly" title=" " alt="" coords="405,109,480,129,479,134,404,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a7c1cb5854f8d9158105e8bb47f92606d" name="a7c1cb5854f8d9158105e8bb47f92606d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c1cb5854f8d9158105e8bb47f92606d">&#9670;&#160;</a></span>DrawRightwards1x1Solid_1to16_plus3()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwards1x1Solid_1to16_plus3 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00445">445</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a7c1cb5854f8d9158105e8bb47f92606d_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a7c1cb5854f8d9158105e8bb47f92606d_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a7c1cb5854f8d9158105e8bb47f92606d_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a7c1cb5854f8d9158105e8bb47f92606d_cgraph">
+<area shape="rect" title=" " alt="" coords="5,63,181,119"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="229,71,404,111"/>
+<area shape="poly" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="452,5,631,46"/>
+<area shape="poly" title=" " alt="" coords="388,68,453,48,455,54,389,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="454,71,629,111"/>
+<area shape="poly" title=" " alt="" coords="404,88,438,88,438,94,404,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="471,136,612,161"/>
+<area shape="poly" title=" " alt="" coords="399,109,474,129,473,134,398,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="af108ed6b8d0b321815a0ea48f9b226cd" name="af108ed6b8d0b321815a0ea48f9b226cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af108ed6b8d0b321815a0ea48f9b226cd">&#9670;&#160;</a></span>DrawDoorSwitcherer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawDoorSwitcherer </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00457">457</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_af108ed6b8d0b321815a0ea48f9b226cd_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_af108ed6b8d0b321815a0ea48f9b226cd_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_af108ed6b8d0b321815a0ea48f9b226cd_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_af108ed6b8d0b321815a0ea48f9b226cd_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,181,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="229,71,404,111"/>
+<area shape="poly" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="452,5,631,46"/>
+<area shape="poly" title=" " alt="" coords="388,68,453,48,455,54,389,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="454,71,629,111"/>
+<area shape="poly" title=" " alt="" coords="404,88,438,88,438,94,404,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="471,136,612,161"/>
+<area shape="poly" title=" " alt="" coords="399,109,474,129,473,134,398,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ac1cb3dc605be906529375ed52617bd12" name="ac1cb3dc605be906529375ed52617bd12"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1cb3dc605be906529375ed52617bd12">&#9670;&#160;</a></span>DrawRightwardsDecor4x4spaced2_1to16()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwardsDecor4x4spaced2_1to16 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00466">466</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ac1cb3dc605be906529375ed52617bd12_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ac1cb3dc605be906529375ed52617bd12_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ac1cb3dc605be906529375ed52617bd12_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ac1cb3dc605be906529375ed52617bd12_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,270,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="318,71,493,111"/>
+<area shape="poly" title=" " alt="" coords="270,88,302,88,302,94,270,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="541,5,720,46"/>
+<area shape="poly" title=" " alt="" coords="477,68,542,48,544,54,478,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="543,71,718,111"/>
+<area shape="poly" title=" " alt="" coords="493,88,527,88,527,94,493,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="560,136,701,161"/>
+<area shape="poly" title=" " alt="" coords="488,109,563,129,562,134,487,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a1ae55b559d5f3742ddfb19402a3063d2" name="a1ae55b559d5f3742ddfb19402a3063d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1ae55b559d5f3742ddfb19402a3063d2">&#9670;&#160;</a></span>DrawRightwardsStatue2x3spaced2_1to16()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwardsStatue2x3spaced2_1to16 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00484">484</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a1ae55b559d5f3742ddfb19402a3063d2_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a1ae55b559d5f3742ddfb19402a3063d2_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a1ae55b559d5f3742ddfb19402a3063d2_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a1ae55b559d5f3742ddfb19402a3063d2_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,274,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="322,71,497,111"/>
+<area shape="poly" title=" " alt="" coords="274,88,306,88,306,94,274,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="545,5,724,46"/>
+<area shape="poly" title=" " alt="" coords="481,68,546,48,548,54,482,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="547,71,722,111"/>
+<area shape="poly" title=" " alt="" coords="497,88,531,88,531,94,497,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="564,136,705,161"/>
+<area shape="poly" title=" " alt="" coords="492,109,567,129,566,134,491,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ab80e9d5fea6656a12a00a0238a32a53d" name="ab80e9d5fea6656a12a00a0238a32a53d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab80e9d5fea6656a12a00a0238a32a53d">&#9670;&#160;</a></span>DrawRightwardsPillar2x4spaced4_1to16()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwardsPillar2x4spaced4_1to16 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00502">502</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ab80e9d5fea6656a12a00a0238a32a53d_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ab80e9d5fea6656a12a00a0238a32a53d_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ab80e9d5fea6656a12a00a0238a32a53d_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ab80e9d5fea6656a12a00a0238a32a53d_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,265,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="313,71,488,111"/>
+<area shape="poly" title=" " alt="" coords="265,88,297,88,297,94,265,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="536,5,715,46"/>
+<area shape="poly" title=" " alt="" coords="472,68,537,48,539,54,473,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="538,71,713,111"/>
+<area shape="poly" title=" " alt="" coords="488,88,522,88,522,94,488,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="555,136,696,161"/>
+<area shape="poly" title=" " alt="" coords="483,109,558,129,557,134,482,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="ac56e6bf5d2c9243a6980d2fc177ca3cb" name="ac56e6bf5d2c9243a6980d2fc177ca3cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac56e6bf5d2c9243a6980d2fc177ca3cb">&#9670;&#160;</a></span>DrawRightwardsDecor4x3spaced4_1to16()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00520">520</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ac56e6bf5d2c9243a6980d2fc177ca3cb_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ac56e6bf5d2c9243a6980d2fc177ca3cb_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ac56e6bf5d2c9243a6980d2fc177ca3cb_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_ac56e6bf5d2c9243a6980d2fc177ca3cb_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,270,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="318,71,493,111"/>
+<area shape="poly" title=" " alt="" coords="270,88,302,88,302,94,270,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="541,5,720,46"/>
+<area shape="poly" title=" " alt="" coords="477,68,542,48,544,54,478,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="543,71,718,111"/>
+<area shape="poly" title=" " alt="" coords="493,88,527,88,527,94,493,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="560,136,701,161"/>
+<area shape="poly" title=" " alt="" coords="488,109,563,129,562,134,487,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a393601eda8281847d9cdf8c104c6e520" name="a393601eda8281847d9cdf8c104c6e520"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a393601eda8281847d9cdf8c104c6e520">&#9670;&#160;</a></span>DrawRightwardsDoubled2x2spaced2_1to16()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwardsDoubled2x2spaced2_1to16 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00538">538</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a393601eda8281847d9cdf8c104c6e520_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a393601eda8281847d9cdf8c104c6e520_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a393601eda8281847d9cdf8c104c6e520_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a393601eda8281847d9cdf8c104c6e520_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,283,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="331,71,506,111"/>
+<area shape="poly" title=" " alt="" coords="283,88,315,88,315,94,283,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="554,5,733,46"/>
+<area shape="poly" title=" " alt="" coords="490,68,555,48,557,54,491,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="556,71,731,111"/>
+<area shape="poly" title=" " alt="" coords="506,88,540,88,540,94,506,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="573,136,714,161"/>
+<area shape="poly" title=" " alt="" coords="501,109,576,129,575,134,500,114"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a4881ba4b073a39e3aff52db91a852909" name="a4881ba4b073a39e3aff52db91a852909"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4881ba4b073a39e3aff52db91a852909">&#9670;&#160;</a></span>DrawRightwardsDecor2x2spaced12_1to16()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::zelda3::ObjectDrawer::DrawRightwardsDecor2x2spaced12_1to16 </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="../../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html">RoomObject</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html">gfx::BackgroundBuffer</a> &amp;&#160;</td>
+          <td class="paramname"><em>bg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d1/dae/classyaze_1_1gfx_1_1Tile16.html">gfx::Tile16</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>tiles</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00556">556</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d0/dff/room__object_8h_source.html#l00166">yaze::zelda3::RoomObject::size_</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>, <a class="el" href="../../d0/dff/room__object_8h_source.html#l00164">yaze::zelda3::RoomObject::x_</a>, and <a class="el" href="../../d0/dff/room__object_8h_source.html#l00165">yaze::zelda3::RoomObject::y_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a4881ba4b073a39e3aff52db91a852909_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a4881ba4b073a39e3aff52db91a852909_cgraph" alt=""/></div>
+<map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a4881ba4b073a39e3aff52db91a852909_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_a4881ba4b073a39e3aff52db91a852909_cgraph">
+<area shape="rect" title=" " alt="" coords="5,71,277,111"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34" title=" " alt="" coords="325,71,500,111"/>
+<area shape="poly" title=" " alt="" coords="277,88,309,88,309,94,277,94"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="548,5,727,46"/>
+<area shape="poly" title=" " alt="" coords="484,68,549,48,551,54,485,73"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="550,71,725,111"/>
+<area shape="poly" title=" " alt="" coords="500,88,534,88,534,94,500,94"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="567,136,708,161"/>
+<area shape="poly" title=" " alt="" coords="495,109,570,129,569,134,494,114"/>
 </map>
 </div>
 
@@ -758,23 +2169,25 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00188">188</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">576</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00213">IsValidTilePosition()</a>, <a class="el" href="../../d3/d90/background__buffer_8cc_source.html#l00019">yaze::gfx::BackgroundBuffer::SetTileAt()</a>, <a class="el" href="../../d0/d8d/snes__tile_8h_source.html#l00139">yaze::gfx::Tile16::tile0_</a>, <a class="el" href="../../d0/d8d/snes__tile_8h_source.html#l00140">yaze::gfx::Tile16::tile1_</a>, <a class="el" href="../../d0/d8d/snes__tile_8h_source.html#l00141">yaze::gfx::Tile16::tile2_</a>, <a class="el" href="../../d0/d8d/snes__tile_8h_source.html#l00142">yaze::gfx::Tile16::tile3_</a>, and <a class="el" href="../../d3/d73/snes__tile_8cc_source.html#l00291">yaze::gfx::TileInfoToWord()</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/d54/background__buffer_8h_source.html#l00033">yaze::gfx::BackgroundBuffer::bitmap()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00611">DrawTileToBitmap()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00211">yaze::Rom::mutable_graphics_buffer()</a>, <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00151">rom_</a>, <a class="el" href="../../d0/d8d/snes__tile_8h_source.html#l00139">yaze::gfx::Tile16::tile0_</a>, <a class="el" href="../../d0/d8d/snes__tile_8h_source.html#l00140">yaze::gfx::Tile16::tile1_</a>, <a class="el" href="../../d0/d8d/snes__tile_8h_source.html#l00141">yaze::gfx::Tile16::tile2_</a>, and <a class="el" href="../../d0/d8d/snes__tile_8h_source.html#l00142">yaze::gfx::Tile16::tile3_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00104">Draw1x1Solid()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00170">Draw4x4Block()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00142">DrawDiagonalAcute()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00156">DrawDiagonalGrave()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00127">DrawDownwards2x2()</a>, and <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00111">DrawRightwards2x2()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00418">CustomDraw()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00315">DrawDiagonalAcute_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00329">DrawDiagonalGrave_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00457">DrawDoorSwitcherer()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00015">DrawObject()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00445">DrawRightwards1x1Solid_1to16_plus3()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00355">DrawRightwards1x2_1to16_plus2()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00239">DrawRightwards2x2_1to15or32()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00300">DrawRightwards2x2_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00256">DrawRightwards2x4_1to15or26()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00275">DrawRightwards2x4spaced4_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00427">DrawRightwards4x4_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00405">DrawRightwardsBottomCorners1x2_1to16_plus13()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00556">DrawRightwardsDecor2x2spaced12_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00520">DrawRightwardsDecor4x3spaced4_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00466">DrawRightwardsDecor4x4spaced2_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00538">DrawRightwardsDoubled2x2spaced2_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00380">DrawRightwardsHasEdge1x1_1to16_plus2()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00368">DrawRightwardsHasEdge1x1_1to16_plus3()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00502">DrawRightwardsPillar2x4spaced4_1to16()</a>, <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00484">DrawRightwardsStatue2x3spaced2_1to16()</a>, and <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00392">DrawRightwardsTopCorners1x2_1to16_plus13()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_abce1fd062cafe9da9bf0e3a20c866d34_cgraph.png" border="0" usemap="#ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_abce1fd062cafe9da9bf0e3a20c866d34_cgraph" alt=""/></div>
 <map name="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_abce1fd062cafe9da9bf0e3a20c866d34_cgraph" id="ad8/d17/classyaze_1_1zelda3_1_1ObjectDrawer_abce1fd062cafe9da9bf0e3a20c866d34_cgraph">
-<area shape="rect" title=" " alt="" coords="5,71,181,111"/>
-<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ae85785664b7291b357e9e70813cc6e1d" title=" " alt="" coords="231,5,406,46"/>
-<area shape="poly" title=" " alt="" coords="165,68,230,48,232,54,166,73"/>
-<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a9a7be412d7cf193aff2c97890b788374" title=" " alt="" coords="229,71,408,111"/>
-<area shape="poly" title=" " alt="" coords="181,88,213,88,213,94,181,94"/>
-<area shape="rect" href="../../d0/d27/namespaceyaze_1_1gfx.html#a66b9ad66f02a591afa773753724ea892" title=" " alt="" coords="236,136,401,161"/>
-<area shape="poly" title=" " alt="" coords="176,109,251,129,250,134,175,114"/>
+<area shape="rect" title=" " alt="" coords="5,100,181,141"/>
+<area shape="rect" href="../../dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="229,5,408,46"/>
+<area shape="poly" title=" " alt="" coords="137,97,228,57,245,50,247,55,230,61,139,102"/>
+<area shape="rect" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="231,71,406,111"/>
+<area shape="poly" title=" " alt="" coords="181,106,215,102,216,107,181,112"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="248,136,389,161"/>
+<area shape="poly" title=" " alt="" coords="181,129,232,135,232,140,181,134"/>
+<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a13a1dcdedd508ace2a5c6c998573736e" title=" " alt="" coords="252,185,385,226"/>
+<area shape="poly" title=" " alt="" coords="147,139,230,171,245,177,243,182,228,176,145,144"/>
 </map>
 </div>
 
@@ -814,15 +2227,91 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00213">213</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00606">606</a> of file <a class="el" href="../../df/ddd/object__drawer_8cc_source.html">object_drawer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00076">kMaxTilesX</a>, and <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00077">kMaxTilesY</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00188">WriteTile16()</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00154">kMaxTilesX</a>, and <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00155">kMaxTilesY</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="a9e933ca81a4afd6b7e79a49aa41591d3" name="a9e933ca81a4afd6b7e79a49aa41591d3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e933ca81a4afd6b7e79a49aa41591d3">&#9670;&#160;</a></span>object_to_routine_map_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unordered_map&lt;int16_t, int&gt; yaze::zelda3::ObjectDrawer::object_to_routine_map_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00147">147</a> of file <a class="el" href="../../d8/d55/object__drawer_8h_source.html">object_drawer.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00225">GetDrawRoutineId()</a>, and <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+
+</div>
+</div>
+<a id="a21e2c69741a1a58d1dd55d9a389ad4e6" name="a21e2c69741a1a58d1dd55d9a389ad4e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a21e2c69741a1a58d1dd55d9a389ad4e6">&#9670;&#160;</a></span>draw_routines_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;<a class="el" href="../../d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a199262c1b3c16543377b2739b54b0d58">DrawRoutine</a>&gt; yaze::zelda3::ObjectDrawer::draw_routines_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00148">148</a> of file <a class="el" href="../../d8/d55/object__drawer_8h_source.html">object_drawer.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00015">DrawObject()</a>, and <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+
+</div>
+</div>
+<a id="ac275759f94f7bb4ebbbdb1ba8f1c4205" name="ac275759f94f7bb4ebbbdb1ba8f1c4205"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac275759f94f7bb4ebbbdb1ba8f1c4205">&#9670;&#160;</a></span>routines_initialized_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::zelda3::ObjectDrawer::routines_initialized_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00149">149</a> of file <a class="el" href="../../d8/d55/object__drawer_8h_source.html">object_drawer.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00015">DrawObject()</a>, and <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00103">InitializeDrawRoutines()</a>.</p>
+
+</div>
+</div>
 <a id="a36417b33b90755701be2ccde880f98d4" name="a36417b33b90755701be2ccde880f98d4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a36417b33b90755701be2ccde880f98d4">&#9670;&#160;</a></span>rom_</h2>
 
@@ -843,9 +2332,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00073">73</a> of file <a class="el" href="../../d8/d55/object__drawer_8h_source.html">object_drawer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00151">151</a> of file <a class="el" href="../../d8/d55/object__drawer_8h_source.html">object_drawer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00013">DrawObject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00015">DrawObject()</a>, and <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00576">WriteTile16()</a>.</p>
 
 </div>
 </div>
@@ -869,9 +2358,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00076">76</a> of file <a class="el" href="../../d8/d55/object__drawer_8h_source.html">object_drawer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00154">154</a> of file <a class="el" href="../../d8/d55/object__drawer_8h_source.html">object_drawer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00213">IsValidTilePosition()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00606">IsValidTilePosition()</a>.</p>
 
 </div>
 </div>
@@ -895,9 +2384,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00077">77</a> of file <a class="el" href="../../d8/d55/object__drawer_8h_source.html">object_drawer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/d55/object__drawer_8h_source.html#l00155">155</a> of file <a class="el" href="../../d8/d55/object__drawer_8h_source.html">object_drawer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00213">IsValidTilePosition()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../df/ddd/object__drawer_8cc_source.html#l00606">IsValidTilePosition()</a>.</p>
 
 </div>
 </div>

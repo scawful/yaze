@@ -1,0 +1,11 @@
+<map id="yaze::zelda3::TEST_F" name="yaze::zelda3::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,78,150,104"/>
+<area shape="rect" id="Node000002" href="$d7/df6/classyaze_1_1zelda3_1_1Room.html#ab6da1ba4c575b76919b9e5f5aed9aad4" title=" " alt="" coords="220,5,351,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,75,205,48,206,53,122,80"/>
+<area shape="rect" id="Node000003" href="$d7/df6/classyaze_1_1zelda3_1_1Room.html#af9eb6a15fe15f87f2514b4f2feed6a86" title=" " alt="" coords="220,71,351,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="150,88,205,88,205,94,150,94"/>
+<area shape="rect" id="Node000004" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a4620f6bf4aa0a916b7420fc9529dc768" title="Draw all objects in a room." alt="" coords="198,136,373,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="122,102,204,128,203,133,120,107"/>
+<area shape="rect" id="Node000005" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a613dbb7e72a9b42c077e4b3c404b8d38" title="Draw a room object to background buffers." alt="" coords="421,136,596,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="373,154,406,154,406,159,373,159"/>
+</map>

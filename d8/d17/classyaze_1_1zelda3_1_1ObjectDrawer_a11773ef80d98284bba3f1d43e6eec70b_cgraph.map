@@ -1,0 +1,11 @@
+<map id="yaze::zelda3::ObjectDrawer::DrawTileToBitmap" name="yaze::zelda3::ObjectDrawer::DrawTileToBitmap">
+<area shape="rect" id="Node000001" title="Draw a single tile directly to bitmap." alt="" coords="5,104,181,145"/>
+<area shape="rect" id="Node000002" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a7729f6c60dee1836a303ce39448febc3" title=" " alt="" coords="229,5,352,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="134,101,233,51,236,56,137,106"/>
+<area shape="rect" id="Node000003" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a5df0c9b0c6a7368e87893881c176c919" title=" " alt="" coords="229,71,352,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="180,107,213,101,214,107,181,112"/>
+<area shape="rect" id="Node000004" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#aba6e7ff12ec269f3d2de46bf600f7fa6" title=" " alt="" coords="229,136,352,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="181,136,214,141,213,147,180,141"/>
+<area shape="rect" id="Node000005" href="$df/d0e/classyaze_1_1gfx_1_1Bitmap.html#a8bf88ae41aef8eee49c560b96cf4d050" title=" " alt="" coords="229,201,352,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="137,143,235,192,232,196,135,148"/>
+</map>

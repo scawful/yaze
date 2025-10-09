@@ -1,0 +1,11 @@
+<map id="yaze::zelda3::DungeonRenderingIntegrationTest" name="yaze::zelda3::DungeonRenderingIntegrationTest">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,213,211,253"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="41,109,133,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,150,107,212,102,213,89,151"/>
+<area shape="rect" id="Node000003" href="$d7/df6/classyaze_1_1zelda3_1_1Room.html" title=" " alt="" coords="158,109,288,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="201,148,130,214,127,210,197,144"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="107,5,187,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="167,42,216,107,212,110,163,45"/>
+<area shape="rect" id="Node000008" href="$dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html" title=" " alt="" coords="210,5,390,31"/>
+<area shape="poly" id="edge4_Node000003_Node000008" title=" " alt="" coords="284,45,234,110,230,107,279,42"/>
+</map>

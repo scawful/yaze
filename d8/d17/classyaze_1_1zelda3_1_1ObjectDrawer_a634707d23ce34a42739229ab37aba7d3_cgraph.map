@@ -1,0 +1,12 @@
+<map id="yaze::zelda3::ObjectDrawer::ObjectDrawer" name="yaze::zelda3::ObjectDrawer::ObjectDrawer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,181,103"/>
+<area shape="rect" id="Node000002" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a13316f72119d7001e60c69132c400066" title="Initialize draw routine registry Must be called before drawing objects." alt="" coords="229,63,404,103"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,80,213,80,213,86,181,86"/>
+<area shape="rect" id="Node000003" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#aa1002ce1cca4b63311d0622b893818d4" title=" " alt="" coords="481,5,656,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="404,60,465,46,467,52,405,66"/>
+<area shape="rect" id="Node000013" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a89049c331dbc9311f8acdb3584e26a8f" title=" " alt="" coords="733,92,914,133"/>
+<area shape="poly" id="edge3_Node000002_Node000013" title=" " alt="" coords="405,85,718,104,718,109,404,91"/>
+<area shape="rect" id="Node000014" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a784bb219d85a2e375221411dbc9cc09b" title=" " alt="" coords="452,120,685,161"/>
+<area shape="poly" id="edge4_Node000002_Node000014" title=" " alt="" coords="405,100,462,113,460,119,404,106"/>
+<area shape="poly" id="edge5_Node000014_Node000013" title=" " alt="" coords="685,125,717,121,718,127,686,130"/>
+</map>

@@ -10,8 +10,6 @@ var dir_cd4dc95f398f1156ac1c74435e1ddcd0 =
     [ "dungeon_object_interaction.h", "d4/ded/dungeon__object__interaction_8h.html", "d4/ded/dungeon__object__interaction_8h" ],
     [ "dungeon_object_selector.cc", "dc/dcc/dungeon__object__selector_8cc.html", null ],
     [ "dungeon_object_selector.h", "d3/d83/dungeon__object__selector_8h.html", "d3/d83/dungeon__object__selector_8h" ],
-    [ "dungeon_renderer.cc", "d4/dc2/dungeon__renderer_8cc.html", null ],
-    [ "dungeon_renderer.h", "d3/dc5/dungeon__renderer_8h.html", "d3/dc5/dungeon__renderer_8h" ],
     [ "dungeon_room_loader.cc", "df/dfd/dungeon__room__loader_8cc.html", null ],
     [ "dungeon_room_loader.h", "d0/d91/dungeon__room__loader_8h.html", "d0/d91/dungeon__room__loader_8h" ],
     [ "dungeon_room_selector.cc", "d1/d69/dungeon__room__selector_8cc.html", null ],
@@ -20,8 +18,6 @@ var dir_cd4dc95f398f1156ac1c74435e1ddcd0 =
     [ "dungeon_toolset.h", "d0/d9a/dungeon__toolset_8h.html", "d0/d9a/dungeon__toolset_8h" ],
     [ "dungeon_usage_tracker.cc", "dd/d1d/dungeon__usage__tracker_8cc.html", null ],
     [ "dungeon_usage_tracker.h", "d8/d05/dungeon__usage__tracker_8h.html", "d8/d05/dungeon__usage__tracker_8h" ],
-    [ "manual_object_renderer.cc", "d9/df4/manual__object__renderer_8cc.html", null ],
-    [ "manual_object_renderer.h", "de/d04/manual__object__renderer_8h.html", "de/d04/manual__object__renderer_8h" ],
     [ "object_editor_card.cc", "d3/d91/object__editor__card_8cc.html", null ],
     [ "object_editor_card.h", "d8/d7c/object__editor__card_8h.html", "d8/d7c/object__editor__card_8h" ]
 ];
