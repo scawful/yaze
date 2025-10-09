@@ -142,11 +142,6 @@ absl::Status DungeonEditorV2::Load() {
   // Initialize unified object editor card
   object_editor_card_ = std::make_unique<ObjectEditorCard>(renderer_, rom_, &canvas_viewer_);
   
-  // Initialize manual renderer for debugging (uses canvas from canvas_viewer_)
-  manual_renderer_ = std::make_unique<ManualObjectRenderer>(
-      &canvas_viewer_.canvas(), rom_);
-  printf("[DungeonEditorV2] Manual renderer initialized for debugging\n");
-  
   // Wire palette changes to trigger room re-renders
   palette_editor_.SetOnPaletteChanged([this](int /*palette_id*/) {
     // Re-render all active rooms when palette changes
@@ -422,9 +417,11 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     return;
   }
 
+  auto& room = rooms_[room_id];
+
   // Lazy load room data
-  if (!rooms_[room_id].IsLoaded()) {
-    auto status = room_loader_.LoadRoom(room_id, rooms_[room_id]);
+  if (!room.IsLoaded()) {
+    auto status = room_loader_.LoadRoom(room_id, room);
     if (!status.ok()) {
       ImGui::TextColored(ImVec4(1, 0, 0, 1), "Failed to load room: %s",
                        status.message().data());
@@ -432,10 +429,31 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     }
   }
 
+  // Initialize room graphics and objects if not already done
+  // This ensures objects are drawn to background buffers before canvas displays them
+  if (room.IsLoaded()) {
+    // Load room graphics (populates blocks, gfx sheets)
+    if (room.blocks().empty()) {
+      room.RenderRoomGraphics();
+    }
+    
+    // Load room objects (populates tile_objects_)
+    if (room.GetTileObjects().empty()) {
+      room.LoadObjects();
+    }
+    
+    // Render objects to background buffers (CRITICAL: this must happen before canvas drawing)
+    // This uses ObjectDrawer to draw all objects into bg1_buffer_ and bg2_buffer_
+    auto& bg1_bitmap = room.bg1_buffer().bitmap();
+    if (!bg1_bitmap.is_active() || bg1_bitmap.width() == 0) {
+      room.RenderObjectsToBackground();
+    }
+  }
+
   // Room info header
   ImGui::Text("Room %03X", room_id);
   ImGui::SameLine();
-  if (rooms_[room_id].IsLoaded()) {
+  if (room.IsLoaded()) {
     ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), ICON_MD_CHECK " Loaded");
   } else {
     ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), ICON_MD_PENDING " Not Loaded");
@@ -840,6 +858,11 @@ void DungeonEditorV2::DrawRoomGraphicsCard() {
         blocks = room.blocks();
       }
       
+      // Only render room graphics if ROM is properly loaded
+      if (room.rom() && room.rom()->is_loaded()) {
+        room.RenderRoomGraphics();
+      }
+      
       int current_block = 0;
       constexpr int max_blocks_per_row = 2;
       constexpr int block_width = 128;
@@ -851,6 +874,13 @@ void DungeonEditorV2::DrawRoomGraphicsCard() {
         // Ensure the graphics sheet is loaded
         if (block < static_cast<int>(gfx::Arena::Get().gfx_sheets().size())) {
           auto& gfx_sheet = gfx::Arena::Get().gfx_sheets()[block];
+          
+          // Create texture if it doesn't exist
+          if (!gfx_sheet.texture() && gfx_sheet.is_active() && gfx_sheet.width() > 0) {
+            gfx::Arena::Get().QueueTextureCommand(
+                gfx::Arena::TextureCommandType::CREATE, &gfx_sheet);
+            gfx::Arena::Get().ProcessTextureQueue(nullptr);
+          }
           
           // Calculate grid position
           int row = current_block / max_blocks_per_row;
@@ -865,6 +895,16 @@ void DungeonEditorV2::DrawRoomGraphicsCard() {
                 (ImTextureID)(intptr_t)gfx_sheet.texture(),
                 ImVec2(x, y),
                 ImVec2(x + block_width, y + block_height));
+          } else {
+            // Draw placeholder for missing graphics
+            room_gfx_canvas.draw_list()->AddRectFilled(
+                ImVec2(x, y),
+                ImVec2(x + block_width, y + block_height),
+                IM_COL32(64, 64, 64, 255));
+            room_gfx_canvas.draw_list()->AddText(
+                ImVec2(x + 10, y + 10),
+                IM_COL32(255, 255, 255, 255),
+                "No Graphics");
           }
         }
         current_block++;

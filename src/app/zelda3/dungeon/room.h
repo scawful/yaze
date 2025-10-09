@@ -206,6 +206,7 @@ class Room {
 
   void LoadRoomGraphics(uint8_t entrance_blockset = 0xFF);
   void CopyRoomGraphicsToBuffer();
+  void LoadGraphicsSheetsIntoArena();
   void RenderRoomGraphics();
   void RenderObjectsToBackground();
   void LoadAnimatedGraphics();

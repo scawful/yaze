@@ -62,6 +62,26 @@ struct ObjectSizeInfo {
 };
 
 /**
+ * @brief Draw routine information for object rendering
+ */
+struct ObjectDrawInfo {
+  int draw_routine_id;  // Which drawing pattern to use (0-24)
+  int tile_count;       // How many tiles this object has
+  bool is_horizontal;   // Orientation
+  bool is_vertical;
+  bool both_layers;     // Draw to both BG1 and BG2
+  std::string routine_name; // Human-readable routine name
+
+  ObjectDrawInfo()
+      : draw_routine_id(0),
+        tile_count(1),
+        is_horizontal(true),
+        is_vertical(false),
+        both_layers(false),
+        routine_name("Unknown") {}
+};
+
+/**
  * @brief Direct ROM parser for dungeon objects
  *
  * This class replaces the SNES emulation approach with direct ROM parsing,
@@ -109,6 +129,13 @@ class ObjectParser {
    * @brief Determine object subtype from ID
    */
   int DetermineSubtype(int16_t object_id) const;
+  
+  /**
+   * @brief Get draw routine information for an object
+   * @param object_id The object ID to look up
+   * @return ObjectDrawInfo containing draw routine details
+   */
+  ObjectDrawInfo GetObjectDrawInfo(int16_t object_id) const;
 
  private:
   /**

@@ -32,7 +32,6 @@
 #include "dungeon_object_selector.h"
 #include "dungeon_toolset.h"
 #include "dungeon_object_interaction.h"
-#include "dungeon_renderer.h"
 #include "dungeon_room_loader.h"
 #include "dungeon_usage_tracker.h"
 
@@ -65,7 +64,7 @@ class DungeonEditor : public Editor {
   explicit DungeonEditor(Rom* rom = nullptr)
       : rom_(rom), object_renderer_(rom), preview_object_(0, 0, 0, 0, 0),
         room_selector_(rom), canvas_viewer_(rom), object_selector_(rom),
-        object_interaction_(&canvas_), renderer_(&canvas_, rom), room_loader_(rom) {
+        object_interaction_(&canvas_), room_loader_(rom) {
     type_ = EditorType::kDungeon;
     // Initialize the new dungeon editor system
     if (rom) {
@@ -197,7 +196,6 @@ class DungeonEditor : public Editor {
   // Refactored components
   DungeonToolset toolset_;
   DungeonObjectInteraction object_interaction_;
-  DungeonRenderer renderer_;
   DungeonRoomLoader room_loader_;
   DungeonUsageTracker usage_tracker_;
 

@@ -151,12 +151,6 @@ absl::Status DungeonEditor::Load() {
   
   // Set up component callbacks
   object_interaction_.SetCurrentRoom(&rooms_, current_room_id_);
-  object_interaction_.SetObjectPlacedCallback([this](const zelda3::RoomObject& object) {
-    renderer_.ClearObjectCache();
-  });
-  object_interaction_.SetCacheInvalidationCallback([this]() {
-    renderer_.ClearObjectCache();
-  });
   
   // Set up toolset callbacks
   toolset_.SetUndoCallback([this]() { PRINT_IF_ERROR(Undo()); });
@@ -493,10 +487,6 @@ void DungeonEditor::DrawRoomPropertiesDebugPopup() {
     room.LoadObjects();
   }
   ImGui::SameLine();
-    if (ImGui::Button("Clear Cache")) {
-      renderer_.ClearObjectCache();
-    }
-  ImGui::SameLine();
   if (ImGui::Button("Close")) {
     ImGui::CloseCurrentPopup();
   }
@@ -609,14 +599,6 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 
     static bool show_layout_objects = false;
     ImGui::Checkbox("Show Layout Objects", &show_layout_objects);
-
-    if (ImGui::Button("Clear Object Cache")) {
-      renderer_.ClearObjectCache();
-    }
-
-    ImGui::SameLine();
-    ImGui::Text("Cache: %zu objects", renderer_.GetCacheSize());
-
     // Object statistics and metadata
     ImGui::Separator();
     ImGui::Text("Room Statistics:");
@@ -630,7 +612,6 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
     // Palette information
     ImGui::Text("Current Palette Group: %llu",
                 static_cast<unsigned long long>(current_palette_group_id_));
-    ImGui::Text("Cache Size: %zu objects", renderer_.GetCacheSize());
 
     // Object type breakdown
     ImGui::Separator();
@@ -755,9 +736,6 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
       canvas_.DrawBitmap(bg2_bitmap, 0, 0, 1.0f, 200);
     }
     
-    // Render sprites as simple 16x16 squares with labels
-    // (Sprites are not part of the background buffers)
-    renderer_.RenderSprites(rooms_[room_id]);
   }
 
   // Phase 5: Render with integrated object editor
