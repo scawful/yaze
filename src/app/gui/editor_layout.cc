@@ -248,7 +248,24 @@ void EditorCard::SetPosition(Position pos) {
 }
 
 bool EditorCard::Begin(bool* p_open) {
+  // Handle icon-collapsed state
+  if (icon_collapsible_ && collapsed_to_icon_) {
+    DrawFloatingIconButton();
+    return false;
+  }
+  
   ImGuiWindowFlags flags = ImGuiWindowFlags_None;
+  
+  // Apply headless mode
+  if (headless_) {
+    flags |= ImGuiWindowFlags_NoTitleBar;
+    flags |= ImGuiWindowFlags_NoCollapse;
+  }
+  
+  // Control docking
+  if (!docking_allowed_) {
+    flags |= ImGuiWindowFlags_NoDocking;
+  }
   
   // Set initial position based on position enum
   if (first_draw_) {
@@ -290,7 +307,13 @@ bool EditorCard::Begin(bool* p_open) {
   ImGui::PushStyleColor(ImGuiCol_TitleBg, GetThemeColor(ImGuiCol_TitleBg));
   ImGui::PushStyleColor(ImGuiCol_TitleBgActive, GetAccentColor());
   
-  bool visible = ImGui::Begin(window_title.c_str(), p_open, flags);
+  // Use p_open parameter if provided, otherwise use stored p_open_
+  bool* actual_p_open = p_open ? p_open : p_open_;
+  
+  // If closable is false, don't pass p_open (removes X button)
+  bool visible = ImGui::Begin(window_title.c_str(), 
+                             closable_ ? actual_p_open : nullptr, 
+                             flags);
   
   // Register card window for test automation
   if (ImGui::GetCurrentWindow() && ImGui::GetCurrentWindow()->ID != 0) {
@@ -316,6 +339,38 @@ void EditorCard::Focus() {
   // Set window focus using ImGui's focus system
   ImGui::SetWindowFocus(window_name_.c_str());
   focused_ = true;
+}
+
+void EditorCard::DrawFloatingIconButton() {
+  // Draw a small floating button with the icon
+  ImGui::SetNextWindowPos(saved_icon_pos_, ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(50, 50));
+  
+  ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | 
+                          ImGuiWindowFlags_NoResize |
+                          ImGuiWindowFlags_NoScrollbar |
+                          ImGuiWindowFlags_NoCollapse;
+  
+  std::string icon_window_name = window_name_ + "##IconCollapsed";
+  
+  if (ImGui::Begin(icon_window_name.c_str(), nullptr, flags)) {
+    // Draw icon button
+    if (ImGui::Button(icon_.c_str(), ImVec2(40, 40))) {
+      collapsed_to_icon_ = false;  // Expand back to full window
+    }
+    
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Expand %s", title_.c_str());
+    }
+    
+    // Allow dragging the icon
+    if (ImGui::IsWindowHovered() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+      ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
+      saved_icon_pos_.x += mouse_delta.x;
+      saved_icon_pos_.y += mouse_delta.y;
+    }
+  }
+  ImGui::End();
 }
 
 // ============================================================================

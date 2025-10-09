@@ -189,6 +189,7 @@ class EditorManager {
   bool show_session_rename_dialog_ = false;
   bool show_welcome_screen_ = false;
   bool welcome_screen_manually_closed_ = false;
+  bool show_card_browser_ = false;
   size_t session_to_rename_ = 0;
   char session_rename_buffer_[256] = {};
 

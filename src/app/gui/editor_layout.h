@@ -121,6 +121,9 @@ class EditorCard {
   void SetPosition(Position pos);
   void SetMinimizable(bool minimizable) { minimizable_ = minimizable; }
   void SetClosable(bool closable) { closable_ = closable; }
+  void SetHeadless(bool headless) { headless_ = headless; }
+  void SetDockingAllowed(bool allowed) { docking_allowed_ = allowed; }
+  void SetIconCollapsible(bool collapsible) { icon_collapsible_ = collapsible; }
   
   // Begin drawing the card
   bool Begin(bool* p_open = nullptr);
@@ -151,6 +154,15 @@ class EditorCard {
   bool first_draw_ = true;
   bool focused_ = false;
   bool* p_open_ = nullptr;
+  
+  // UX enhancements
+  bool headless_ = false;  // Minimal chrome, no title bar
+  bool docking_allowed_ = true;  // Allow docking
+  bool icon_collapsible_ = false;  // Can collapse to floating icon
+  bool collapsed_to_icon_ = false;  // Currently collapsed
+  ImVec2 saved_icon_pos_ = ImVec2(10, 100);  // Position when collapsed to icon
+  
+  void DrawFloatingIconButton();
 };
 
 /**

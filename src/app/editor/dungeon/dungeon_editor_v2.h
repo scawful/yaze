@@ -15,6 +15,7 @@
 #include "dungeon_room_loader.h"
 #include "object_editor_card.h"
 #include "manual_object_renderer.h"
+#include "app/gui/editor_card_manager.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/dungeon/room_entrance.h"
 #include "app/gui/editor_layout.h"
@@ -97,6 +98,7 @@ class DungeonEditorV2 : public Editor {
   void DrawRoomsListCard();
   void DrawEntrancesListCard();
   void DrawRoomGraphicsCard();
+  void DrawControlPanel();
   
   // Texture processing (critical for rendering)
   void ProcessDeferredTextures();
@@ -125,6 +127,8 @@ class DungeonEditorV2 : public Editor {
   bool show_room_graphics_ = false;    // Room graphics card
   bool show_object_editor_ = true;     // Unified object editor card
   bool show_palette_editor_ = true;
+  bool show_control_panel_ = true;     // Optional control panel
+  bool control_panel_minimized_ = false;
   
   // Palette management
   gfx::SnesPalette current_palette_;
