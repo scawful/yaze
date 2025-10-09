@@ -9,6 +9,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/message/message_data.h"
 #include "app/editor/message/message_preview.h"
+#include "app/gui/editor_card_manager.h"
 #include "app/gfx/bitmap.h"
 #include "app/gui/canvas.h"
 #include "app/gui/style.h"
@@ -84,6 +85,12 @@ class MessageEditor : public Editor {
   gui::TextBox message_text_box_;
   Rom* rom_;
   Rom expanded_message_bin_;
+  
+  // Card visibility states
+  bool show_message_list_ = false;
+  bool show_message_editor_ = false;
+  bool show_font_atlas_ = false;
+  bool show_dictionary_ = false;
 };
 
 }  // namespace editor

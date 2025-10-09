@@ -5,6 +5,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/graphics/palette_editor.h"
+#include "app/gui/editor_card_manager.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/overworld_entity_renderer.h"
@@ -293,8 +294,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool show_map_properties_panel_ = false;
   bool show_overlay_preview_ = false;
   
-  // Card visibility states
-  bool show_tile16_selector_ = true;
+  // Card visibility states - Start hidden to prevent crash
+  bool show_tile16_selector_ = false;
   bool show_tile8_selector_ = false;
   bool show_area_gfx_ = false;
   bool show_scratch_ = false;

@@ -60,6 +60,47 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
                                                ImGuiTableFlags_Resizable;
 
 void MessageEditor::Initialize() {
+  // Register cards with EditorCardManager
+  auto& card_manager = gui::EditorCardManager::Get();
+  
+  card_manager.RegisterCard({
+      .card_id = "message.message_list",
+      .display_name = "Message List",
+      .icon = ICON_MD_LIST,
+      .category = "Message",
+      .visibility_flag = &show_message_list_,
+      .priority = 10
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "message.message_editor",
+      .display_name = "Message Editor",
+      .icon = ICON_MD_EDIT,
+      .category = "Message",
+      .visibility_flag = &show_message_editor_,
+      .priority = 20
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "message.font_atlas",
+      .display_name = "Font Atlas",
+      .icon = ICON_MD_FONT_DOWNLOAD,
+      .category = "Message",
+      .visibility_flag = &show_font_atlas_,
+      .priority = 30
+  });
+  
+  card_manager.RegisterCard({
+      .card_id = "message.dictionary",
+      .display_name = "Dictionary",
+      .icon = ICON_MD_BOOK,
+      .category = "Message",
+      .visibility_flag = &show_dictionary_,
+      .priority = 40
+  });
+  
+  printf("[MessageEditor] Registered 4 cards with EditorCardManager\n");
+  
   for (int i = 0; i < kWidthArraySize; i++) {
     message_preview_.width_array[i] = rom()->data()[kCharactersWidth + i];
   }

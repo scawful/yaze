@@ -261,6 +261,95 @@ void EditorCardManager::DrawViewMenuAll() {
   }
 }
 
+void EditorCardManager::DrawCompactCardControl(const std::string& category) {
+  auto cards_in_category = GetCardsInCategory(category);
+  
+  if (cards_in_category.empty()) {
+    return;  // Nothing to show
+  }
+  
+  // Draw as a small button with popup menu
+  ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.4f, 0.8f));
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.5f, 1.0f));
+  
+  if (ImGui::SmallButton(ICON_MD_VIEW_MODULE)) {
+    ImGui::OpenPopup("CardControlPopup");
+  }
+  
+  ImGui::PopStyleColor(2);
+  
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s Card Controls", category.c_str());
+  }
+  
+  // Compact popup with checkboxes
+  if (ImGui::BeginPopup("CardControlPopup")) {
+    ImGui::TextColored(ImVec4(0.7f, 0.9f, 1.0f, 1.0f), "%s %s Cards", 
+                      ICON_MD_DASHBOARD, category.c_str());
+    ImGui::Separator();
+    
+    for (const auto& info : cards_in_category) {
+      if (!info.visibility_flag) continue;
+      
+      std::string label = info.icon.empty() 
+          ? info.display_name 
+          : info.icon + " " + info.display_name;
+      
+      bool visible = *info.visibility_flag;
+      if (ImGui::Checkbox(label.c_str(), &visible)) {
+        *info.visibility_flag = visible;
+        if (visible && info.on_show) {
+          info.on_show();
+        } else if (!visible && info.on_hide) {
+          info.on_hide();
+        }
+      }
+      
+      // Show shortcut hint
+      if (!info.shortcut_hint.empty()) {
+        ImGui::SameLine();
+        ImGui::TextDisabled("(%s)", info.shortcut_hint.c_str());
+      }
+    }
+    
+    ImGui::Separator();
+    
+    if (ImGui::MenuItem(absl::StrFormat("%s Show All", ICON_MD_VISIBILITY).c_str())) {
+      ShowAllCardsInCategory(category);
+    }
+    
+    if (ImGui::MenuItem(absl::StrFormat("%s Hide All", ICON_MD_VISIBILITY_OFF).c_str())) {
+      HideAllCardsInCategory(category);
+    }
+    
+    ImGui::EndPopup();
+  }
+}
+
+void EditorCardManager::DrawInlineCardToggles(const std::string& category) {
+  auto cards_in_category = GetCardsInCategory(category);
+  
+  if (cards_in_category.empty()) {
+    return;
+  }
+  
+  // Show visible count as indicator
+  size_t visible_count = 0;
+  for (const auto& info : cards_in_category) {
+    if (info.visibility_flag && *info.visibility_flag) {
+      visible_count++;
+    }
+  }
+  
+  ImGui::TextDisabled("%s %zu/%zu", ICON_MD_DASHBOARD, visible_count, cards_in_category.size());
+  
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s cards: %zu visible, %zu hidden", 
+                     category.c_str(), visible_count, 
+                     cards_in_category.size() - visible_count);
+  }
+}
+
 void EditorCardManager::DrawCardBrowser(bool* p_open) {
   if (!p_open || !*p_open) return;
   

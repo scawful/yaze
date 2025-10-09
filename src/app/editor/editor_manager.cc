@@ -616,67 +616,23 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
       "Card Browser", {ImGuiKey_B, ImGuiMod_Ctrl, ImGuiMod_Shift},
       [this]() { show_card_browser_ = true; });
   
-  // === DUNGEON CARD SHORTCUTS (Ctrl+Shift+Key) ===
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Dungeon Controls", {ImGuiKey_D, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.control_panel"); });
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Room Selector", {ImGuiKey_R, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.room_selector"); });
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Room Matrix", {ImGuiKey_M, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.room_matrix"); });
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Dungeon Entrances", {ImGuiKey_E, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.entrances"); });
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Room Graphics", {ImGuiKey_G, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.room_graphics"); });
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Object Editor", {ImGuiKey_O, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.object_editor"); });
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Dungeon Palette", {ImGuiKey_P, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("dungeon.palette_editor"); });
+  // === SIMPLIFIED CARD SHORTCUTS - Use Card Browser instead of individual shortcuts ===
+  // Individual card shortcuts removed to prevent hash table overflow
+  // Users can:
+  // 1. Use Card Browser (Ctrl+Shift+B) to toggle any card
+  // 2. Use compact card control button in menu bar
+  // 3. Use View menu for category-based toggles
   
-  // === GRAPHICS CARD SHORTCUTS (Ctrl+Shift+Number) ===
+  // Only register essential category-level shortcuts
   context_.shortcut_manager.RegisterShortcut(
-      "Toggle Sheet Editor", {ImGuiKey_1, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("graphics.sheet_editor"); });
+      "Show All Dungeon Cards", {ImGuiKey_D, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ShowAllCardsInCategory("Dungeon"); });
   context_.shortcut_manager.RegisterShortcut(
-      "Toggle Sheet Browser", {ImGuiKey_2, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("graphics.sheet_browser"); });
+      "Show All Graphics Cards", {ImGuiKey_G, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ShowAllCardsInCategory("Graphics"); });
   context_.shortcut_manager.RegisterShortcut(
-      "Toggle Player Animations", {ImGuiKey_3, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("graphics.player_animations"); });
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Prototype Viewer", {ImGuiKey_4, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("graphics.prototype_viewer"); });
-  
-  // === SCREEN EDITOR SHORTCUTS (Alt+Number) ===
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Dungeon Maps", {ImGuiKey_1, ImGuiMod_Alt},
-      []() { gui::EditorCardManager::Get().ToggleCard("screen.dungeon_maps"); });
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Inventory Menu", {ImGuiKey_2, ImGuiMod_Alt},
-      []() { gui::EditorCardManager::Get().ToggleCard("screen.inventory_menu"); });
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Overworld Map Screen", {ImGuiKey_3, ImGuiMod_Alt},
-      []() { gui::EditorCardManager::Get().ToggleCard("screen.overworld_map"); });
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Title Screen", {ImGuiKey_4, ImGuiMod_Alt},
-      []() { gui::EditorCardManager::Get().ToggleCard("screen.title_screen"); });
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Naming Screen", {ImGuiKey_5, ImGuiMod_Alt},
-      []() { gui::EditorCardManager::Get().ToggleCard("screen.naming_screen"); });
-  
-  // === SPRITE EDITOR SHORTCUTS (Alt+Shift+Number) ===
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Vanilla Sprites", {ImGuiKey_1, ImGuiMod_Alt, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("sprite.vanilla_editor"); });
-  context_.shortcut_manager.RegisterShortcut(
-      "Toggle Custom Sprites", {ImGuiKey_2, ImGuiMod_Alt, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ToggleCard("sprite.custom_editor"); });
+      "Show All Screen Cards", {ImGuiKey_S, ImGuiMod_Ctrl, ImGuiMod_Shift},
+      []() { gui::EditorCardManager::Get().ShowAllCardsInCategory("Screen"); });
 
 #ifdef YAZE_WITH_GRPC
   // Agent Editor shortcut
@@ -953,10 +909,60 @@ absl::Status EditorManager::DrawRomSelector() {
     // Inline status next to ROM selector
     SameLine();
     Text("Size: %.1f MB", current_rom_->size() / 1048576.0f);
+    
+    // Context-sensitive card control (right after ROM info)
+    SameLine();
+    DrawContextSensitiveCardControl();
   } else {
     Text("No ROM loaded");
   }
   return absl::OkStatus();
+}
+
+void EditorManager::DrawContextSensitiveCardControl() {
+  if (!current_editor_set_ || !current_editor_) {
+    return;
+  }
+  
+  // Determine which category to show based on active editor
+  std::string category;
+  
+  switch (current_editor_->type()) {
+    case EditorType::kDungeon:
+      category = "Dungeon";
+      break;
+    case EditorType::kGraphics:
+      category = "Graphics";
+      break;
+    case EditorType::kScreen:
+      category = "Screen";
+      break;
+    case EditorType::kSprite:
+      category = "Sprite";
+      break;
+    case EditorType::kOverworld:
+      category = "Overworld";
+      break;
+    case EditorType::kMessage:
+      category = "Message";
+      break;
+    case EditorType::kPalette:
+      // Palette editor doesn't use cards (uses internal tabs)
+      return;
+    case EditorType::kAssembly:
+      // Assembly editor uses dynamic file tabs
+      return;
+    default:
+      return;  // No cards for this editor type
+  }
+  
+  // Draw compact card control for the active editor's cards
+  auto& card_manager = gui::EditorCardManager::Get();
+  card_manager.DrawCompactCardControl(category);
+  
+  // Show visible/total count
+  SameLine();
+  card_manager.DrawInlineCardToggles(category);
 }
 
 void EditorManager::BuildModernMenu() {
@@ -1080,9 +1086,9 @@ void EditorManager::BuildModernMenu() {
 #endif
     .Separator();
   
-  // Dynamic card menu sections (from EditorCardManager)
-  auto& card_manager = gui::EditorCardManager::Get();
-  card_manager.DrawViewMenuAll();
+  // // Dynamic card menu sections (from EditorCardManager)
+  // auto& card_manager = gui::EditorCardManager::Get();
+  // card_manager.DrawViewMenuAll();
   
   menu_builder_
     .Separator()
