@@ -70,9 +70,7 @@
 - Implemented Windows COM-based file dialog fallback for minimal builds
 - Consistent cross-platform behavior and stack resources
 
-## 0.3.1 (October 2025)
-
-### Emulator: Audio System Infrastructure ✅ COMPLETE
+### Emulator: Audio System Infrastructure
 
 **Audio Backend Abstraction:**
 - **IAudioBackend Interface**: Clean abstraction layer for audio implementations, enabling easy migration between SDL2, SDL3, and custom backends
