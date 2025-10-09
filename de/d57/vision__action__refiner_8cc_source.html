@@ -220,9 +220,9 @@ $(document).ready(function(){initNavTree('de/d57/vision__action__refiner_8cc_sou
 <div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>            std::vector&lt;std::string&gt; parts = absl::StrSplit(coords, <span class="charliteral">&#39;,&#39;</span>);</div>
 <div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>            <span class="keywordflow">if</span> (parts.size() == 2) {</div>
 <div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>              refinement.<a class="code hl_variable" href="../../d4/d66/structyaze_1_1cli_1_1ai_1_1ActionRefinement.html#a4ee04c1b7fee7000370e50b213a17475">adjusted_parameters</a>[<span class="stringliteral">&quot;x&quot;</span>] = </div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>                  absl::StripAsciiWhitespace(parts[0]);</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>                  std::string(absl::StripAsciiWhitespace(parts[0]));</div>
 <div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>              refinement.<a class="code hl_variable" href="../../d4/d66/structyaze_1_1cli_1_1ai_1_1ActionRefinement.html#a4ee04c1b7fee7000370e50b213a17475">adjusted_parameters</a>[<span class="stringliteral">&quot;y&quot;</span>] = </div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>                  absl::StripAsciiWhitespace(parts[1]);</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>                  std::string(absl::StripAsciiWhitespace(parts[1]));</div>
 <div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>            }</div>
 <div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>          }</div>
 <div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>        }</div>
@@ -279,8 +279,8 @@ $(document).ready(function(){initNavTree('de/d57/vision__action__refiner_8cc_sou
 <div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>        std::string coords = text.substr(pos + 1, end - pos - 1);</div>
 <div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>        std::vector&lt;std::string&gt; parts = absl::StrSplit(coords, <span class="charliteral">&#39;,&#39;</span>);</div>
 <div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>        <span class="keywordflow">if</span> (parts.size() == 2) {</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>          location[<span class="stringliteral">&quot;x&quot;</span>] = absl::StripAsciiWhitespace(parts[0]);</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>          location[<span class="stringliteral">&quot;y&quot;</span>] = absl::StripAsciiWhitespace(parts[1]);</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>          location[<span class="stringliteral">&quot;x&quot;</span>] = std::string(absl::StripAsciiWhitespace(parts[0]));</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>          location[<span class="stringliteral">&quot;y&quot;</span>] = std::string(absl::StripAsciiWhitespace(parts[1]));</div>
 <div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>        }</div>
 <div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>      }</div>
 <div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>    }</div>
@@ -450,7 +450,7 @@ $(document).ready(function(){initNavTree('de/d57/vision__action__refiner_8cc_sou
 <div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>    <span class="keywordtype">size_t</span> pos = response_upper.find(<span class="stringliteral">&quot;SUCCESS:&quot;</span>);</div>
 <div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>    <span class="keywordflow">if</span> (pos != std::string::npos) {</div>
 <div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>      std::string desc = response.substr(pos + 8);</div>
-<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>      result.<a class="code hl_variable" href="../../d2/d07/structyaze_1_1cli_1_1ai_1_1VisionAnalysisResult.html#a1602098e150d4639be09912a447d37e1">description</a> = absl::StripAsciiWhitespace(desc);</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>      result.<a class="code hl_variable" href="../../d2/d07/structyaze_1_1cli_1_1ai_1_1VisionAnalysisResult.html#a1602098e150d4639be09912a447d37e1">description</a> = std::string(absl::StripAsciiWhitespace(desc));</div>
 <div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>    }</div>
 <div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>  }</div>
 <div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>  <span class="keywordflow">else</span> <span class="keywordflow">if</span> (response_upper.find(<span class="stringliteral">&quot;FAILURE&quot;</span>) != std::string::npos) {</div>
