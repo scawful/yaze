@@ -16,6 +16,7 @@ option(YAZE_USE_VCPKG_GRPC "Use vcpkg pre-compiled gRPC packages (Windows only)"
 
 if(WIN32 AND YAZE_USE_VCPKG_GRPC)
   message(STATUS "Attempting to use vcpkg gRPC packages for faster Windows builds...")
+  message(STATUS "  Note: This is only for full builds with YAZE_WITH_GRPC=ON")
   
   # Try to find gRPC via vcpkg
   find_package(gRPC CONFIG QUIET)
@@ -26,7 +27,9 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC)
     
     # Verify required targets exist
     if(NOT TARGET grpc++)
-      message(FATAL_ERROR "gRPC found but grpc++ target missing")
+      message(WARNING "gRPC found but grpc++ target missing - falling back to FetchContent")
+      set(YAZE_GRPC_CONFIGURED FALSE PARENT_SCOPE)
+      return()
     endif()
     
     if(NOT TARGET protoc)

@@ -6,12 +6,18 @@ set(YAZE_ABSL_GIT_TAG "20240116.2" CACHE STRING "Abseil release tag used when fe
 # missing the required components (e.g. macOS).
 set(_yaze_use_fetched_absl ${YAZE_FORCE_BUNDLED_ABSL})
 if(NOT _yaze_use_fetched_absl)
-  find_package(absl QUIET CONFIG)
+  # Try to find via vcpkg first on Windows
+  if(WIN32 AND DEFINED CMAKE_TOOLCHAIN_FILE)
+    find_package(absl CONFIG QUIET)
+  else()
+    find_package(absl QUIET CONFIG)
+  endif()
+  
   if(absl_FOUND)
-    message(STATUS "Using system-provided Abseil package")
+    message(STATUS "✓ Using system/vcpkg Abseil package")
   else()
     set(_yaze_use_fetched_absl TRUE)
-    message(STATUS "System Abseil not found. Fetching release ${YAZE_ABSL_GIT_TAG}.")
+    message(STATUS "○ System Abseil not found. Will fetch release ${YAZE_ABSL_GIT_TAG}")
   endif()
 endif()
 

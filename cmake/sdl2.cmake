@@ -1,16 +1,31 @@
 # SDL2
-# On Windows, try to use vcpkg first, then fall back to bundled SDL
+# On Windows with vcpkg, prefer vcpkg packages for faster builds
 if(WIN32)
-  # Try to find SDL2 via vcpkg first
-  find_package(SDL2 QUIET)
-  if(SDL2_FOUND)
-    # Use vcpkg SDL2
-    set(SDL_TARGETS SDL2::SDL2)
-    list(PREPEND SDL_TARGETS SDL2::SDL2main ws2_32)
-    add_definitions("-DSDL_MAIN_HANDLED")
-    message(STATUS "Using vcpkg SDL2")
-  else()
-    # Fall back to bundled SDL
+  # Try to find SDL2 via vcpkg first if toolchain is available
+  if(DEFINED CMAKE_TOOLCHAIN_FILE AND EXISTS "${CMAKE_TOOLCHAIN_FILE}")
+    find_package(SDL2 CONFIG QUIET)
+    if(SDL2_FOUND OR TARGET SDL2::SDL2)
+      # Use vcpkg SDL2
+      if(TARGET SDL2::SDL2)
+        set(SDL_TARGETS SDL2::SDL2)
+        if(TARGET SDL2::SDL2main)
+          list(PREPEND SDL_TARGETS SDL2::SDL2main)
+        endif()
+        list(APPEND SDL_TARGETS ws2_32)
+        add_definitions("-DSDL_MAIN_HANDLED")
+        message(STATUS "✓ Using vcpkg SDL2")
+        
+        # Get SDL2 include directories for reference
+        get_target_property(SDL2_INCLUDE_DIR SDL2::SDL2 INTERFACE_INCLUDE_DIRECTORIES)
+        set(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
+        return()
+      endif()
+    endif()
+  endif()
+  
+  # Fall back to bundled SDL if vcpkg not available or SDL2 not found
+  if(EXISTS "${CMAKE_SOURCE_DIR}/src/lib/SDL/CMakeLists.txt")
+    message(STATUS "○ vcpkg SDL2 not found, using bundled SDL2")
     add_subdirectory(src/lib/SDL)
     set(SDL_TARGETS SDL2-static)
     set(SDL2_INCLUDE_DIR 
@@ -19,9 +34,13 @@ if(WIN32)
       ${CMAKE_BINARY_DIR}/src/lib/SDL/include-config-${CMAKE_BUILD_TYPE}
     )
     set(SDL2_INCLUDE_DIRS ${SDL2_INCLUDE_DIR})
-    list(PREPEND SDL_TARGETS SDL2main ws2_32)
+    if(TARGET SDL2main)
+      list(PREPEND SDL_TARGETS SDL2main)
+    endif()
+    list(APPEND SDL_TARGETS ws2_32)
     add_definitions("-DSDL_MAIN_HANDLED")
-    message(STATUS "Using bundled SDL2")
+  else()
+    message(FATAL_ERROR "SDL2 not found via vcpkg and bundled SDL2 not available. Please install via vcpkg or ensure submodules are initialized.")
   endif()
 elseif(UNIX OR MINGW)
   # Non-Windows: use bundled SDL
@@ -36,7 +55,7 @@ elseif(UNIX OR MINGW)
   message(STATUS "Using bundled SDL2")
 else()
   # Fallback: try to find system SDL
-  find_package(SDL2)
+  find_package(SDL2 REQUIRED)
   set(SDL_TARGETS SDL2::SDL2)
   message(STATUS "Using system SDL2")
 endif()
