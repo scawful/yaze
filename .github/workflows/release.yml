@@ -310,24 +310,53 @@ jobs:
           mkdir -p stage
           
           if [[ "${{ runner.os }}" == "Windows" ]]; then
+            # Windows uses Visual Studio generator: build/bin/Release/
+            echo "Packaging Windows artifacts..."
+            if [[ ! -f build/bin/${{ env.BUILD_TYPE }}/yaze.exe ]]; then
+              echo "::error::Windows binary not found at build/bin/${{ env.BUILD_TYPE }}/yaze.exe"
+              ls -la build/bin/ || true
+              exit 1
+            fi
             cp -r build/bin/${{ env.BUILD_TYPE }}/* stage/
             cp -r assets/ stage/assets/
             cp LICENSE README.md stage/
             (cd stage && powershell -Command "Compress-Archive -Path * -DestinationPath ../${ARTIFACT_NAME}.zip")
             echo "Created ${ARTIFACT_NAME}.zip"
-            echo "PACKAGE_PATH=${ARTIFACT_NAME}.zip" >> "$GITHUB_ENV"
+            
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            # For macOS, we stage the .app bundle as a "slice" for the universal merge job
+            # macOS creates app bundle: build/bin/yaze.app
+            echo "Packaging macOS artifacts..."
+            if [[ ! -d build/bin/yaze.app ]]; then
+              echo "::error::macOS app bundle not found at build/bin/yaze.app"
+              ls -la build/bin/ || true
+              exit 1
+            fi
             cp -R build/bin/yaze.app stage/yaze.app
             echo "Staged yaze.app slice for ${ARTIFACT_NAME}"
-            echo "PACKAGE_PATH=stage/" >> "$GITHUB_ENV"
+            
           else # Linux
-            cp build/bin/yaze stage/
-            cp -r assets/ stage/assets/
+            # Linux uses Ninja generator: build/bin/yaze (no subdirectory)
+            echo "Packaging Linux artifacts..."
+            if [[ -f build/bin/yaze ]]; then
+              echo "Found binary at build/bin/yaze"
+              cp build/bin/yaze stage/
+            else
+              echo "::error::Linux binary not found at build/bin/yaze"
+              ls -la build/bin/ || true
+              exit 1
+            fi
+            
+            # Copy assets from source tree
+            if [[ -d assets ]]; then
+              cp -r assets/ stage/assets/
+            else
+              echo "::error::Assets directory not found"
+              exit 1
+            fi
+            
             cp LICENSE README.md stage/
             tar -czf "${ARTIFACT_NAME}.tar.gz" -C stage .
             echo "Created ${ARTIFACT_NAME}.tar.gz"
-            echo "PACKAGE_PATH=${ARTIFACT_NAME}.tar.gz" >> "$GITHUB_ENV"
           fi
 
       - name: "Upload Artifact (Windows)"
