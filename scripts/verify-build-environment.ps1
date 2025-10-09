@@ -73,13 +73,68 @@ function Test-GitSubmodules {
             $allPresent = $false
         } elseif ((Get-ChildItem $path -Force | Measure-Object).Count -eq 0) {
             Write-Status "Submodule empty: $submodule" "Error"
-            $script:issuesFound += "Empty submodule: $submodule (run git submodule update)"
+            $script:issuesFound += "Empty submodule: $submodule"
             $allPresent = $false
         } elseif ($Verbose) {
             Write-Status "Submodule found: $submodule" "Success"
         }
     }
     return $allPresent
+}
+
+function Test-GitConfig {
+    Write-Status "Checking Git for Windows configuration..." "Step"
+    $gitOk = $true
+
+    # Check for core.autocrlf
+    try {
+        $autocrlf = git config --get core.autocrlf
+        if ($autocrlf -ne "false") {
+            Write-Status "Git 'core.autocrlf' is '$autocrlf'. Recommended setting is 'false' for cross-platform projects." "Warning"
+            $script:warnings += "Git 'core.autocrlf' is not 'false'. This can cause line ending issues."
+            if ($FixIssues) {
+                Write-Status "Attempting to set 'core.autocrlf' to 'false' globally..." "Info"
+                git config --global core.autocrlf false
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Status "Successfully set 'core.autocrlf' to 'false'." "Success"
+                } else {
+                    Write-Status "Failed to set 'core.autocrlf'." "Error"
+                    $script:issuesFound += "Failed to automatically set 'core.autocrlf'."
+                }
+            }
+            $gitOk = $false
+        } else {
+            Write-Status "'core.autocrlf' is correctly set to 'false'." "Success"
+        }
+    } catch {
+        Write-Status "Could not check Git 'core.autocrlf' setting." "Warning"
+    }
+
+    # Check for core.longpaths
+    try {
+        $longpaths = git config --get core.longpaths
+        if ($longpaths -ne "true") {
+            Write-Status "Git 'core.longpaths' is not 'true'. This can cause build failures with deep file paths." "Warning"
+            $script:warnings += "Git 'core.longpaths' is not 'true'. This is highly recommended on Windows."
+            if ($FixIssues) {
+                Write-Status "Attempting to set 'core.longpaths' to 'true' globally..." "Info"
+                git config --global core.longpaths true
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Status "Successfully set 'core.longpaths' to 'true'." "Success"
+                } else {
+                    Write-Status "Failed to set 'core.longpaths'." "Error"
+                    $script:issuesFound += "Failed to automatically set 'core.longpaths'."
+                }
+            }
+            $gitOk = $false
+        } else {
+            Write-Status "'core.longpaths' is correctly set to 'true'." "Success"
+        }
+    } catch {
+        Write-Status "Could not check Git 'core.longpaths' setting." "Warning"
+    }
+
+    return $gitOk
 }
 
 function Test-Vcpkg {
@@ -104,14 +159,14 @@ function Test-Vcpkg {
             return $false
         }
     } else {
-        Write-Status "vcpkg not found (required for Windows builds)" "Error"
-        $script:issuesFound += "vcpkg not installed - run: git clone https://github.com/microsoft/vcpkg.git && vcpkg\bootstrap-vcpkg.bat"
+        Write-Status "vcpkg not found (optional, but recommended for gRPC)" "Info"
+        $script:warnings += "vcpkg not installed. For faster builds with gRPC, consider running scripts\setup-vcpkg-windows.ps1"
         return $false
     }
 }
 
 function Test-CMakeCache {
-    $buildDirs = @("build", "build-windows", "build-test", "build-grpc-test", "out/build")
+    $buildDirs = @("build", "build-windows", "build-test", "build-ai", "out/build")
     $cacheIssues = $false
     
     foreach ($dir in $buildDirs) {
@@ -120,7 +175,7 @@ function Test-CMakeCache {
             $cacheAge = (Get-Date) - (Get-Item $cachePath).LastWriteTime
             if ($cacheAge.TotalDays -gt 7) {
                 Write-Status "CMake cache in '$dir' is $([math]::Round($cacheAge.TotalDays)) days old" "Warning"
-                $script:warnings += "Old CMake cache in $dir (consider cleaning)"
+                $script:warnings += "Old CMake cache in '$dir'"
                 $cacheIssues = $true
             } elseif ($Verbose) {
                 Write-Status "CMake cache in '$dir' is recent" "Success"
@@ -130,130 +185,26 @@ function Test-CMakeCache {
     return -not $cacheIssues
 }
 
-function Test-DependencyCompatibility {
-    Write-Status "Testing dependency configuration..." "Step"
-    
-    # Check for potential conflicts
-    $conflicts = @()
-    
-    # Check if grpc is enabled but might conflict with system packages
-    $grpcPath = Join-Path $PSScriptRoot ".." "cmake" "grpc.cmake"
-    if (Test-Path $grpcPath) {
-        $grpcContent = Get-Content $grpcPath -Raw
-        if ($grpcContent -match "CMAKE_DISABLE_FIND_PACKAGE_Protobuf TRUE") {
-            Write-Status "gRPC isolation configured correctly" "Success"
-        } else {
-            Write-Status "gRPC may conflict with system protobuf" "Warning"
-            $script:warnings += "gRPC not properly isolated from system packages"
-        }
-    }
-    
-    # Check httplib configuration
-    $httplibPath = Join-Path $PSScriptRoot ".." "third_party" "httplib" "CMakeLists.txt"
-    if (Test-Path $httplibPath) {
-        Write-Status "httplib found in third_party" "Success"
-        $script:success += "httplib header-only library available"
-    }
-    
-    # Check json library
-    $jsonPath = Join-Path $PSScriptRoot ".." "third_party" "json" "include"
-    if (Test-Path $jsonPath) {
-        Write-Status "nlohmann/json found in third_party" "Success"
-        $script:success += "nlohmann/json header-only library available"
-    }
-    
-    return $conflicts.Count -eq 0
-}
-
-function Test-AgentFolderStructure {
-    Write-Status "Verifying agent folder structure..." "Step"
-    
-    $agentFiles = @(
-        "src/app/editor/agent/agent_editor.h",
-        "src/app/editor/agent/agent_editor.cc",
-        "src/app/editor/agent/agent_chat_widget.h",
-        "src/app/editor/agent/agent_chat_widget.cc",
-        "src/app/editor/agent/agent_chat_history_codec.h",
-        "src/app/editor/agent/agent_chat_history_codec.cc",
-        "src/app/editor/agent/agent_collaboration_coordinator.h",
-        "src/app/editor/agent/agent_collaboration_coordinator.cc",
-        "src/app/editor/agent/network_collaboration_coordinator.h",
-        "src/app/editor/agent/network_collaboration_coordinator.cc"
-    )
-    
-    $oldSystemFiles = @(
-        "src/app/editor/agent/agent_chat_widget.h",
-        "src/app/editor/agent/agent_collaboration_coordinator.h"
-    )
-    
-    $allPresent = $true
-    $hasOldStructure = $false
-    
-    foreach ($file in $agentFiles) {
-        $path = Join-Path $PSScriptRoot ".." $file
-        if (-not (Test-Path $path)) {
-            Write-Status "Agent file missing: $file" "Error"
-            $script:issuesFound += "Missing agent file: $file (may need to rebuild)"
-            $allPresent = $false
-        } elseif ($Verbose) {
-            Write-Status "Agent file found: $file" "Success"
-        }
-    }
-    
-    # Check for old structure (indicates stale cache)
-    foreach ($file in $oldSystemFiles) {
-        $path = Join-Path $PSScriptRoot ".." $file
-        if (Test-Path $path) {
-            Write-Status "Old agent file still present: $file" "Warning"
-            $script:warnings += "Old agent structure detected (CMake cache needs cleaning)"
-            $hasOldStructure = $true
-        }
-    }
-    
-    if ($allPresent -and -not $hasOldStructure) {
-        Write-Status "Agent folder structure is correct" "Success"
-        $script:success += "Agent refactoring structure verified"
-    } elseif ($hasOldStructure) {
-        Write-Status "Stale agent files detected - CMake cache should be cleaned" "Warning"
-        return $false
-    }
-    
-    return $allPresent
-}
-
 function Clean-CMakeCache {
     param([switch]$Force)
     
     Write-Status "Cleaning CMake cache and build directories..." "Step"
     
-    $buildDirs = @("build", "build_test", "build-grpc-test", "build_rooms")
+    $buildDirs = @("build", "build_test", "build-ai", "build_rooms", "out")
     $cleaned = $false
     
     foreach ($dir in $buildDirs) {
         $fullPath = Join-Path $PSScriptRoot ".." $dir
         if (Test-Path $fullPath) {
-            Write-Status "Removing $dir..." "Info"
+            Write-Status "Removing '$fullPath'..." "Info"
             try {
                 Remove-Item -Recurse -Force $fullPath -ErrorAction Stop
                 $cleaned = $true
-                Write-Status "  ✓ Removed $dir" "Success"
+                Write-Status "  ✓ Removed '$dir'" "Success"
             } catch {
-                Write-Status "  ✗ Failed to remove $dir`: $_" "Error"
-                $script:warnings += "Could not fully clean $dir (some files may be locked)"
+                Write-Status "  ✗ Failed to remove '$dir`: $_" "Error"
+                $script:warnings += "Could not fully clean '$dir' (some files may be locked)"
             }
-        }
-    }
-    
-    # Also clean Visual Studio CMake cache
-    $vsCache = Join-Path $PSScriptRoot ".." "out"
-    if (Test-Path $vsCache) {
-        Write-Status "Removing Visual Studio CMake cache (out/)..." "Info"
-        try {
-            Remove-Item -Recurse -Force $vsCache -ErrorAction Stop
-            $cleaned = $true
-            Write-Status "  ✓ Removed Visual Studio cache" "Success"
-        } catch {
-            Write-Status "  ✗ Failed to remove Visual Studio cache: $_" "Warning"
         }
     }
     
@@ -267,14 +218,14 @@ function Clean-CMakeCache {
     foreach ($file in $cmakeFiles) {
         $fullPath = Join-Path $PSScriptRoot ".." $file
         if (Test-Path $fullPath) {
-            Write-Status "Removing root $file..." "Info"
+            Write-Status "Removing root '$file'..." "Info"
             Remove-Item -Force $fullPath -ErrorAction SilentlyContinue
         }
     }
     
     if ($cleaned) {
         Write-Status "CMake cache cleaned successfully" "Success"
-        $script:success += "Build directories cleaned - fresh build recommended"
+        $script:success += "Build directories cleaned. A fresh build is recommended."
     } else {
         Write-Status "No build directories found to clean" "Info"
     }
@@ -309,45 +260,6 @@ function Sync-GitSubmodules {
     }
 }
 
-function Test-CMakeConfiguration {
-    Write-Status "Testing CMake configuration..." "Step"
-    
-    $testBuildDir = Join-Path $PSScriptRoot ".." "build_test_config"
-    
-    try {
-        # Test basic CMake configuration
-        Write-Status "Configuring CMake (this may take a moment)..." "Info"
-        $output = & cmake -B $testBuildDir -S (Join-Path $PSScriptRoot "..") `
-            -DCMAKE_BUILD_TYPE=Debug `
-            -DYAZE_MINIMAL_BUILD=ON `
-            -DYAZE_BUILD_TESTS=OFF `
-            2>&1
-        
-        if ($LASTEXITCODE -eq 0) {
-            Write-Status "CMake configuration successful" "Success"
-            $script:success += "CMake configuration test passed"
-            
-            # Cleanup test build
-            if (Test-Path $testBuildDir) {
-                Remove-Item -Recurse -Force $testBuildDir -ErrorAction SilentlyContinue
-            }
-            return $true
-        } else {
-            Write-Status "CMake configuration failed (exit code: $LASTEXITCODE)" "Error"
-            if ($Verbose) {
-                Write-Status "CMake output:" "Info"
-                $output | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
-            }
-            $script:issuesFound += "CMake configuration test failed (see output with -Verbose)"
-            return $false
-        }
-    } catch {
-        Write-Status "CMake configuration test failed: $_" "Error"
-        $script:issuesFound += "CMake test exception: $_"
-        return $false
-    }
-}
-
 # ============================================================================
 # Main Verification Process
 # ============================================================================
@@ -358,6 +270,13 @@ Write-Host "╚═════════════════════�
 
 $startTime = Get-Date
 
+# Step 0: Handle Cache Cleaning
+if ($CleanCache) {
+    Clean-CMakeCache
+    Write-Status "Cache cleaning complete. Please re-run without -CleanCache to verify." "Info"
+    exit 0
+}
+
 # Step 1: Check CMake
 Write-Status "Checking CMake installation..." "Step"
 if (Test-Command "cmake") {
@@ -365,7 +284,6 @@ if (Test-Command "cmake") {
     if ($cmakeVersion) {
         Write-Status "CMake found: version $cmakeVersion" "Success"
         
-        # Parse version components
         try {
             $versionParts = $cmakeVersion.Split('.')
             $major = [int]$versionParts[0]
@@ -393,6 +311,7 @@ Write-Status "Checking Git installation..." "Step"
 if (Test-Command "git") {
     $gitVersion = (& git --version) -replace "git version ", ""
     Write-Status "Git found: version $gitVersion" "Success"
+    Test-GitConfig
 } else {
     Write-Status "Git not found in PATH" "Error"
     $script:issuesFound += "Git not installed or not in PATH"
@@ -402,97 +321,59 @@ if (Test-Command "git") {
 Write-Status "Checking Visual Studio installation..." "Step"
 $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 if (Test-Path $vswhere) {
-    $vsInstances = & $vswhere -latest -format json | ConvertFrom-Json
+    $vsInstances = & $vswhere -latest -requires Microsoft.VisualStudio.Workload.NativeDesktop -format json | ConvertFrom-Json
     if ($vsInstances) {
-        # Handle both single instance and array returns
         $vsInstance = if ($vsInstances -is [array]) { $vsInstances[0] } else { $vsInstances }
         $vsVersion = $vsInstance.installationVersion
         $vsPath = $vsInstance.installationPath
-        Write-Status "Visual Studio found: version $vsVersion" "Success"
+        Write-Status "Visual Studio with C++ Desktop workload found: version $vsVersion" "Success"
         Write-Status "  Path: $vsPath" "Info"
-        $script:success += "Visual Studio detected (version $vsVersion)"
+        $script:success += "Visual Studio C++ workload detected (version $vsVersion)"
+    } else {
+        Write-Status "Visual Studio found, but 'Desktop development with C++' workload is missing." "Error"
+        $script:issuesFound += "Visual Studio 'Desktop development with C++' workload not installed."
     }
 } else {
-    Write-Status "Visual Studio not found (vswhere.exe missing)" "Warning"
-    $script:warnings += "Could not detect Visual Studio installation"
+    Write-Status "Visual Studio not found (vswhere.exe missing)" "Error"
+    $script:issuesFound += "Visual Studio installation not detected."
 }
 
 # Step 4: Check vcpkg
-Write-Status "Checking vcpkg availability..." "Step"
 Test-Vcpkg | Out-Null
 
 # Step 5: Check Git Submodules
 Write-Status "Checking git submodules..." "Step"
 $submodulesOk = Test-GitSubmodules
 if ($submodulesOk) {
-    Write-Status "All required submodules present" "Success"
+    Write-Status "All required submodules appear to be present." "Success"
 } else {
-    Write-Status "Some submodules are missing or empty" "Error"
     if ($FixIssues) {
         Sync-GitSubmodules
-        # Re-check after sync
+        Write-Status "Re-checking submodules after sync..." "Info"
         $submodulesOk = Test-GitSubmodules
-        if (-not $submodulesOk) {
-            Write-Status "Submodule sync completed but some issues remain" "Warning"
-        }
-    } else {
-        # Auto-fix without confirmation
-        Write-Status "Automatically syncing submodules..." "Info"
-        if (Sync-GitSubmodules) {
-            Write-Status "Submodules synced successfully" "Success"
-            # Re-check after sync
-            $submodulesOk = Test-GitSubmodules
+        if ($submodulesOk) {
+            $script:success += "Submodules were successfully synced."
         } else {
-            Write-Status "Failed to sync submodules automatically" "Error"
-            Write-Status "Run with -FixIssues to try again, or manually run: git submodule update --init --recursive" "Info"
+            $script:issuesFound += "Submodule sync completed but some issues remain."
         }
     }
 }
 
-# Step 5: Check CMake Cache
+# Step 6: Check CMake Cache
 Write-Status "Checking CMake cache..." "Step"
-$cacheOk = Test-CMakeCache
-if ($cacheOk) {
-    Write-Status "CMake cache is up to date" "Success"
+if (Test-CMakeCache) {
+    Write-Status "CMake cache appears up to date." "Success"
 } else {
-    if ($CleanCache) {
-        Clean-CMakeCache
-    } elseif ($FixIssues) {
-        # Ask for confirmation before cleaning cache
+    if ($FixIssues) {
         Write-Host "`nCMake cache is older than 7 days. Clean it?" -ForegroundColor Yellow
-        Write-Host "This will remove build/, build_test/, build-grpc-test/, and out/ directories." -ForegroundColor Gray
+        Write-Host "This will remove all `build*` and `out` directories." -ForegroundColor Gray
         $response = Read-Host "Continue? (Y/n)"
         if ($response -eq "" -or $response -match "^[Yy]") {
             Clean-CMakeCache
         } else {
-            Write-Status "Skipping cache clean" "Info"
+            Write-Status "Skipping cache clean." "Info"
         }
-    } else {
-        Write-Status "CMake cache is older than 7 days (consider cleaning)" "Warning"
-        Write-Status "Run with -CleanCache to remove old cache files" "Info"
     }
-}
-
-# Step 6: Check Dependencies
-Test-DependencyCompatibility
-
-# Step 7: Check Agent Folder Structure
-Write-Status "Checking agent folder structure..." "Step"
-$agentStructureOk = Test-AgentFolderStructure
-if (-not $agentStructureOk) {
-    Write-Status "Agent folder structure has issues" "Warning"
-    if ($CleanCache -or $FixIssues) {
-        Write-Status "Cleaning CMake cache due to structural changes..." "Info"
-        Clean-CMakeCache
-        Write-Status "Please rebuild the project after cache cleaning" "Info"
-    } else {
-        Write-Status "Run with -CleanCache to fix structural issues" "Info"
-    }
-}
-
-# Step 8: Test CMake Configuration (if requested)
-if ($Verbose -or $FixIssues) {
-    Test-CMakeConfiguration
 }
 
 # ============================================================================
@@ -530,11 +411,35 @@ if ($script:issuesFound.Count -gt 0) {
     }
     Write-Host ""
     
-    Write-Host "Recommended Actions:" -ForegroundColor Yellow
-    Write-Host "  1. Run: .\scripts\verify-build-environment.ps1 -FixIssues" -ForegroundColor Cyan
-    Write-Host "  2. Install missing dependencies" -ForegroundColor Cyan
-    Write-Host "  3. Check build instructions: docs/02-build-instructions.md" -ForegroundColor Cyan
-    Write-Host ""
+    Write-Host "╔════════════════════════════════════════════════════════════════╗" -ForegroundColor Yellow
+    Write-Host "║                  Troubleshooting Steps                      ║" -ForegroundColor Yellow
+    Write-Host "╚════════════════════════════════════════════════════════════════╝`n" -ForegroundColor Yellow
+    Write-Host "Some issues were found. Here are some common solutions:`n"
+    
+    if ($script:issuesFound -join ' ' -match 'submodule') {
+        Write-Host " • Submodule problems:" -ForegroundColor White
+        Write-Host "   Run 'git submodule update --init --recursive' in your terminal." -ForegroundColor Gray
+        Write-Host "   Or, run this script again with the '-FixIssues' flag.`n"
+    }
+    if ($script:warnings -join ' ' -match 'cache') {
+        Write-Host " • Stale build files:" -ForegroundColor White
+        Write-Host "   Your build directory is old and may cause strange errors." -ForegroundColor Gray
+        Write-Host "   Run this script with the '-CleanCache' flag to delete all build files and start fresh.`n"
+    }
+    if ($script:issuesFound -join ' ' -match 'Visual Studio') {
+        Write-Host " • Visual Studio issues:" -ForegroundColor White
+        Write-Host "   Open the 'Visual Studio Installer' and ensure the" -ForegroundColor Gray
+        Write-Host "   'Desktop development with C++' workload is installed.`n"
+    }
+    if ($script:warnings -join ' ' -match 'Git') {
+        Write-Host " • Git configuration:" -ForegroundColor White
+        Write-Host "   Your Git settings might cause issues. For best results on Windows, run:" -ForegroundColor Gray
+        Write-Host "   git config --global core.autocrlf false" -ForegroundColor Gray
+        Write-Host "   git config --global core.longpaths true" -ForegroundColor Gray
+        Write-Host "   Or, run this script again with the '-FixIssues' flag.`n"
+    }
+    
+    Write-Host "If problems persist, check the build instructions in 'docs/B1-build-instructions.md'`n" -ForegroundColor Cyan
     
     exit 1
 } else {
@@ -543,18 +448,15 @@ if ($script:issuesFound.Count -gt 0) {
     Write-Host "╚════════════════════════════════════════════════════════════════╝`n" -ForegroundColor Green
     
     Write-Host "Next Steps:" -ForegroundColor Cyan
-    Write-Host "  Visual Studio CMake Workflow:" -ForegroundColor White
-    Write-Host "    1. Open Visual Studio 2022" -ForegroundColor Gray
-    Write-Host "    2. File → Open → Folder" -ForegroundColor Gray
-    Write-Host "    3. Select the yaze directory" -ForegroundColor Gray
-    Write-Host "    4. Visual Studio will detect CMakeLists.txt" -ForegroundColor Gray
-    Write-Host "    5. Select Debug/Release from toolbar" -ForegroundColor Gray
-    Write-Host "    6. Press F5 to build and run" -ForegroundColor Gray
-    Write-Host ""
-    Write-Host "  Command Line (Alternative):" -ForegroundColor White
-    Write-Host "    cmake -B build -DCMAKE_BUILD_TYPE=Debug" -ForegroundColor Gray
-    Write-Host "    cmake --build build --config Debug" -ForegroundColor Gray
-    Write-Host ""
+    Write-Host "  Visual Studio (Recommended):" -ForegroundColor White
+    Write-Host "    1. Open Visual Studio 2022." -ForegroundColor Gray
+    Write-Host "    2. Select 'File -> Open -> Folder...' and choose the 'yaze' directory." -ForegroundColor Gray
+    Write-Host "    3. Select a Windows preset (e.g., 'win-dbg') from the dropdown." -ForegroundColor Gray
+    Write-Host "    4. Press F5 to build and debug.`n" -ForegroundColor Gray
+    
+    Write-Host "  Command Line:" -ForegroundColor White
+    Write-Host "    cmake --preset win-dbg" -ForegroundColor Gray
+    Write-Host "    cmake --build --preset win-dbg`n" -ForegroundColor Gray
     
     exit 0
 }
