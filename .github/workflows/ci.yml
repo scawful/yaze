@@ -48,6 +48,13 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Set up vcpkg (Windows only)
+      if: runner.os == 'Windows'
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
+        runVcpkgInstall: true
+
     - name: Install Dependencies
       shell: bash
       run: |
@@ -72,6 +79,7 @@ jobs:
         if [[ "${{ runner.os }}" == "Windows" ]]; then
           cmake -B build -G "Visual Studio 17 2022" -A x64 \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DYAZE_MINIMAL_BUILD=ON \
             -DYAZE_ENABLE_ROM_TESTS=OFF
         else
