@@ -5,7 +5,6 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/object_renderer.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/sprite/sprite.h"
 #include "imgui/imgui.h"
@@ -13,7 +12,6 @@
 
 namespace yaze::editor {
 
-using ImGui::Button;
 using ImGui::Separator;
 
 void DungeonCanvasViewer::DrawDungeonTabView() {
@@ -59,7 +57,7 @@ void DungeonCanvasViewer::Draw(int room_id) {
 
 void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // Validate room_id and ROM
-  if (room_id < 0 || room_id >= 128) {
+  if (room_id < 0 || room_id >= 0x128) {
     ImGui::Text("Invalid room ID: %d", room_id);
     return;
   }
@@ -94,12 +92,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     ImGui::SameLine();
     gui::InputHexWord("Message ID", &room.message_id_);
     
-    // Layer visibility controls
+    // Per-room layer visibility controls
     ImGui::Separator();
-    ImGui::Text("Layer Controls:");
-    ImGui::Checkbox("Show BG1", &bg1_visible_);
+    ImGui::Text("Layer Controls (Per-Room):");
+    auto& layer_settings = GetRoomLayerSettings(room_id);
+    ImGui::Checkbox("Show BG1", &layer_settings.bg1_visible);
     ImGui::SameLine();
-    ImGui::Checkbox("Show BG2", &bg2_visible_);
+    ImGui::Checkbox("Show BG2", &layer_settings.bg2_visible);
     
     // BG2 layer type dropdown
     const char* bg2_layer_types[] = {
@@ -107,7 +106,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     };
     const int bg2_alpha_values[] = {255, 191, 127, 64, 0};
     
-    if (ImGui::Combo("BG2 Layer Type", &bg2_layer_type_, bg2_layer_types, 
+    if (ImGui::Combo("BG2 Layer Type", &layer_settings.bg2_layer_type, bg2_layer_types, 
                      sizeof(bg2_layer_types) / sizeof(bg2_layer_types[0]))) {
       // BG2 layer type changed, no need to reload graphics
     }
@@ -122,8 +121,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         room.LoadRoomGraphics(room.blockset);
         room.RenderRoomGraphics();
         
-        // Update background layers
-        UpdateRoomBackgroundLayers(room_id);
+        // Render palettes to graphics sheets
+        RenderGraphicsSheetPalettes(room_id);
       }
       
       prev_blockset = room.blockset;
@@ -163,9 +162,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       room.LoadObjects();
     }
     
-    // Render the room's background layers
-    // This already includes objects drawn by ObjectDrawer in Room::RenderObjectsToBackground()
-    RenderRoomBackgroundLayers(room_id);
+    // Draw the room's background layers to canvas
+    // This already includes objects rendered by ObjectDrawer in Room::RenderObjectsToBackground()
+    DrawRoomBackgroundLayers(room_id);
     
     // Render sprites as simple 16x16 squares with labels
     // (Sprites are not part of the background buffers)
@@ -385,15 +384,15 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
   LOG_DEBUG("[LoadAndRender]", "RenderRoomGraphics() complete");
   
   // Update the background layers with proper palette
-  LOG_DEBUG("[LoadAndRender]", "Updating background layers...");
-  RETURN_IF_ERROR(UpdateRoomBackgroundLayers(room_id));
-  LOG_DEBUG("[LoadAndRender]", "UpdateRoomBackgroundLayers() complete");
+  LOG_DEBUG("[LoadAndRender]", "Rendering palettes to graphics sheets...");
+  RETURN_IF_ERROR(RenderGraphicsSheetPalettes(room_id));
+  LOG_DEBUG("[LoadAndRender]", "RenderGraphicsSheetPalettes() complete");
   
   LOG_DEBUG("[LoadAndRender]", "SUCCESS");
   return absl::OkStatus();
 }
 
-absl::Status DungeonCanvasViewer::UpdateRoomBackgroundLayers(int room_id) {
+absl::Status DungeonCanvasViewer::RenderGraphicsSheetPalettes(int room_id) {
   if (room_id < 0 || room_id >= 128) {
     return absl::InvalidArgumentError("Invalid room ID");
   }
@@ -454,17 +453,18 @@ absl::Status DungeonCanvasViewer::UpdateRoomBackgroundLayers(int room_id) {
   return absl::OkStatus();
 }
 
-void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
+void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
   if (room_id < 0 || room_id >= 128 || !rooms_) return;
   
   auto& room = (*rooms_)[room_id];
+  auto& layer_settings = GetRoomLayerSettings(room_id);
   
   // Use THIS room's own buffers, not global arena!
   auto& bg1_bitmap = room.bg1_buffer().bitmap();
   auto& bg2_bitmap = room.bg2_buffer().bitmap();
   
   // Draw BG1 layer if visible and active
-  if (bg1_visible_ && bg1_bitmap.is_active() && bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
+  if (layer_settings.bg1_visible && bg1_bitmap.is_active() && bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
     if (!bg1_bitmap.texture()) {
       // Queue texture creation for background layer 1 via Arena's deferred system
       gfx::Arena::Get().QueueTextureCommand(
@@ -484,7 +484,7 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
   } 
   
   // Draw BG2 layer if visible and active
-  if (bg2_visible_ && bg2_bitmap.is_active() && bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
+  if (layer_settings.bg2_visible && bg2_bitmap.is_active() && bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
     if (!bg2_bitmap.texture()) {
       // Queue texture creation for background layer 2 via Arena's deferred system
       gfx::Arena::Get().QueueTextureCommand(
@@ -498,7 +498,7 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
     if (bg2_bitmap.texture()) {
       // Use the selected BG2 layer type alpha value
       const int bg2_alpha_values[] = {255, 191, 127, 64, 0};
-      int alpha_value = bg2_alpha_values[std::min(bg2_layer_type_, 4)];
+      int alpha_value = bg2_alpha_values[std::min(layer_settings.bg2_layer_type, 4)];
       LOG_DEBUG("DungeonCanvasViewer", "Drawing BG2 bitmap to canvas with texture %p, alpha=%d", bg2_bitmap.texture(), alpha_value);
       canvas_.DrawBitmap(bg2_bitmap, 0, 0, 1.0f, alpha_value);
     } else {
@@ -509,7 +509,7 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
   // DEBUG: Check if background buffers have content
   if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0) {
     LOG_DEBUG("DungeonCanvasViewer", "BG1 bitmap: %dx%d, active=%d, visible=%d, texture=%p", 
-           bg1_bitmap.width(), bg1_bitmap.height(), bg1_bitmap.is_active(), bg1_visible_, bg1_bitmap.texture());
+           bg1_bitmap.width(), bg1_bitmap.height(), bg1_bitmap.is_active(), layer_settings.bg1_visible, bg1_bitmap.texture());
     
     // Check bitmap data content
     auto& bg1_data = bg1_bitmap.mutable_data();
@@ -522,7 +522,7 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
   }
   if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0) {
     LOG_DEBUG("DungeonCanvasViewer", "BG2 bitmap: %dx%d, active=%d, visible=%d, layer_type=%d, texture=%p", 
-           bg2_bitmap.width(), bg2_bitmap.height(), bg2_bitmap.is_active(), bg2_visible_, bg2_layer_type_, bg2_bitmap.texture());
+           bg2_bitmap.width(), bg2_bitmap.height(), bg2_bitmap.is_active(), layer_settings.bg2_visible, layer_settings.bg2_layer_type, bg2_bitmap.texture());
     
     // Check bitmap data content
     auto& bg2_data = bg2_bitmap.mutable_data();

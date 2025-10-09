@@ -7,7 +7,6 @@ set(
   app/editor/ui/workspace_manager.cc
   app/editor/system/user_settings.cc
   app/editor/ui/background_renderer.cc
-  app/editor/dungeon/dungeon_editor.cc
   app/editor/dungeon/dungeon_editor_v2.cc
   app/editor/dungeon/dungeon_room_selector.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc

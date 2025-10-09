@@ -81,7 +81,6 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
     e2e/canvas_selection_test.cc
     e2e/framework_smoke_test.cc
     e2e/dungeon_editor_smoke_test.cc
-    e2e/dungeon_editor_tests.cc
     
     # Benchmarks
     benchmarks/gfx_optimization_benchmarks.cc

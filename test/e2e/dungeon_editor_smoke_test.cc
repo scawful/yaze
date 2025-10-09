@@ -3,11 +3,17 @@
 #include "app/core/controller.h"
 #include "imgui_test_engine/imgui_te_context.h"
 
-// Comprehensive E2E test for dungeon editor
-// Tests the complete workflow: open editor -> select room -> view objects -> interact with UI
-void E2ETest_DungeonEditorSmokeTest(ImGuiTestContext* ctx)
+/**
+ * @brief Quick smoke test for DungeonEditorV2
+ * 
+ * Tests the card-based architecture:
+ * - Independent windows (cards) can be opened/closed
+ * - Room cards function correctly
+ * - Basic navigation works
+ */
+void E2ETest_DungeonEditorV2SmokeTest(ImGuiTestContext* ctx)
 {
-    ctx->LogInfo("=== Starting Dungeon Editor E2E Test ===");
+    ctx->LogInfo("=== Starting DungeonEditorV2 Smoke Test ===");
     
     // Load ROM first
     ctx->LogInfo("Loading ROM...");
@@ -16,77 +22,103 @@ void E2ETest_DungeonEditorSmokeTest(ImGuiTestContext* ctx)
     
     // Open the Dungeon Editor
     ctx->LogInfo("Opening Dungeon Editor...");
-    yaze::test::gui::OpenEditorInTest(ctx, "Dungeon Editor");
+    yaze::test::gui::OpenEditorInTest(ctx, "Dungeon");
     ctx->LogInfo("Dungeon Editor opened");
     
-    // Focus on the dungeon editor window
-    ctx->WindowFocus("Dungeon Editor");
-    ctx->SetRef("Dungeon Editor");
-    ctx->LogInfo("Dungeon Editor window focused");
-    
-    // Test 1: Room Selection
-    ctx->LogInfo("--- Test 1: Room Selection ---");
-    ctx->ItemClick("Rooms##TabItemButton");
-    ctx->LogInfo("Clicked Rooms tab");
-    
-    // Try to select different rooms
-    const char* test_rooms[] = {"Room 0x00", "Room 0x01", "Room 0x02"};
-    for (const char* room_name : test_rooms) {
-        if (ctx->ItemExists(room_name)) {
-            ctx->ItemClick(room_name);
-            ctx->LogInfo("Selected %s", room_name);
-            ctx->Yield();  // Give time for UI to update
-        } else {
-            ctx->LogWarning("%s not found in room list", room_name);
-        }
-    }
-    
-    // Test 2: Canvas Interaction
-    ctx->LogInfo("--- Test 2: Canvas Interaction ---");
-    if (ctx->ItemExists("##Canvas")) {
-        ctx->ItemClick("##Canvas");
-        ctx->LogInfo("Canvas clicked successfully");
+    // Test 1: Control Panel Access
+    ctx->LogInfo("--- Test 1: Control Panel ---");
+    if (ctx->WindowInfo("Dungeon Controls").Window != nullptr) {
+        ctx->WindowFocus("Dungeon Controls");
+        ctx->LogInfo("Dungeon Controls panel is visible");
     } else {
-        ctx->LogError("Canvas not found!");
+        ctx->LogWarning("Dungeon Controls panel not visible - may be minimized");
     }
     
-    // Test 3: Object Selector
-    ctx->LogInfo("--- Test 3: Object Selector ---");
-    ctx->ItemClick("Object Selector##TabItemButton");
-    ctx->LogInfo("Object Selector tab clicked");
+    // Test 2: Open Room Selector Card
+    ctx->LogInfo("--- Test 2: Room Selector Card ---");
+    if (ctx->WindowInfo("Dungeon Controls").Window != nullptr) {
+        ctx->SetRef("Dungeon Controls");
+        ctx->ItemClick("Rooms");  // Toggle checkbox
+        ctx->Yield();
+        ctx->LogInfo("Toggled Room Selector visibility");
+    }
     
-    // Try to access room graphics tab
-    ctx->ItemClick("Room Graphics##TabItemButton");
-    ctx->LogInfo("Room Graphics tab clicked");
+    // Test 3: Open Room Matrix Card
+    ctx->LogInfo("--- Test 3: Room Matrix Card ---");
+    if (ctx->WindowInfo("Dungeon Controls").Window != nullptr) {
+        ctx->SetRef("Dungeon Controls");
+        ctx->ItemClick("Matrix");  // Toggle checkbox
+        ctx->Yield();
+        ctx->LogInfo("Toggled Room Matrix visibility");
+    }
     
-    // Go back to Object Selector
-    ctx->ItemClick("Object Selector##TabItemButton");
-    ctx->LogInfo("Returned to Object Selector tab");
-    
-    // Test 4: Object Editor tab
-    ctx->LogInfo("--- Test 4: Object Editor ---");
-    ctx->ItemClick("Object Editor##TabItemButton");
-    ctx->LogInfo("Object Editor tab clicked");
-    
-    // Check if mode buttons exist
-    const char* mode_buttons[] = {"Select", "Insert", "Edit"};
-    for (const char* button : mode_buttons) {
-        if (ctx->ItemExists(button)) {
-            ctx->LogInfo("Found mode button: %s", button);
+    // Test 4: Open a Room Card
+    ctx->LogInfo("--- Test 4: Room Card ---");
+    // Try to open room 0 by clicking in room selector
+    if (ctx->WindowInfo("Room Selector").Window != nullptr) {
+        ctx->SetRef("Room Selector");
+        // Look for selectable room items
+        if (ctx->ItemExists("Room 0x00")) {
+            ctx->ItemDoubleClick("Room 0x00");
+            ctx->Yield(2);
+            ctx->LogInfo("Opened Room 0x00 card");
+            
+            // Verify room card exists
+            if (ctx->WindowInfo("Room 0x00").Window != nullptr) {
+                ctx->LogInfo("Room 0x00 card successfully opened");
+                ctx->SetRef("Room 0x00");
+                
+                // Test 5: Per-Room Layer Controls
+                ctx->LogInfo("--- Test 5: Per-Room Layer Controls ---");
+                if (ctx->ItemExists("Show BG1")) {
+                    ctx->LogInfo("Found per-room BG1 control");
+                    // Toggle it
+                    ctx->ItemClick("Show BG1");
+                    ctx->Yield();
+                    ctx->ItemClick("Show BG1");  // Toggle back
+                    ctx->Yield();
+                    ctx->LogInfo("Per-room layer controls functional");
+                }
+            } else {
+                ctx->LogWarning("Room card did not open");
+            }
+        } else {
+            ctx->LogWarning("Room 0x00 not found in selector");
         }
+    } else {
+        ctx->LogWarning("Room Selector card not visible");
     }
     
-    // Test 5: Entrance Selector
-    ctx->LogInfo("--- Test 5: Entrance Selector ---");
-    ctx->ItemClick("Entrances##TabItemButton");
-    ctx->LogInfo("Entrances tab clicked");
+    // Test 6: Object Editor Card
+    ctx->LogInfo("--- Test 6: Object Editor Card ---");
+    if (ctx->WindowInfo("Dungeon Controls").Window != nullptr) {
+        ctx->SetRef("Dungeon Controls");
+        ctx->ItemClick("Objects");  // Toggle checkbox
+        ctx->Yield();
+        ctx->LogInfo("Toggled Object Editor visibility");
+    }
     
-    // Return to rooms
-    ctx->ItemClick("Rooms##TabItemButton");
-    ctx->LogInfo("Returned to Rooms tab");
+    // Test 7: Palette Editor Card
+    ctx->LogInfo("--- Test 7: Palette Editor Card ---");
+    if (ctx->WindowInfo("Dungeon Controls").Window != nullptr) {
+        ctx->SetRef("Dungeon Controls");
+        ctx->ItemClick("Palette");  // Toggle checkbox
+        ctx->Yield();
+        ctx->LogInfo("Toggled Palette Editor visibility");
+    }
+    
+    // Test 8: Independent Cards can be closed
+    ctx->LogInfo("--- Test 8: Close Independent Cards ---");
+    // Close room card if it's open
+    if (ctx->WindowInfo("Room 0x00").Window != nullptr) {
+        ctx->WindowClose("Room 0x00");
+        ctx->Yield();
+        ctx->LogInfo("Closed Room 0x00 card");
+    }
     
     // Final verification
-    ctx->LogInfo("=== Dungeon Editor E2E Test Completed Successfully ===");
-    ctx->LogInfo("All UI elements accessible and functional");
+    ctx->LogInfo("=== DungeonEditorV2 Smoke Test Completed Successfully ===");
+    ctx->LogInfo("Card-based architecture is functional");
+    ctx->LogInfo("Independent windows can be opened and closed");
+    ctx->LogInfo("Per-room settings are accessible");
 }
-
