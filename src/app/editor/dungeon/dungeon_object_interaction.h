@@ -52,6 +52,12 @@ class DungeonObjectInteraction {
   bool IsObjectSelectActive() const { return object_select_active_; }
   void ClearSelection();
   
+  // Context menu
+  void ShowContextMenu();
+  void HandleDeleteSelected();
+  void HandleCopySelected();
+  void HandlePasteObjects();
+  
   // Callbacks
   void SetObjectPlacedCallback(std::function<void(const zelda3::RoomObject&)> callback) {
     object_placed_callback_ = callback;
@@ -87,6 +93,10 @@ class DungeonObjectInteraction {
   // Callbacks
   std::function<void(const zelda3::RoomObject&)> object_placed_callback_;
   std::function<void()> cache_invalidation_callback_;
+  
+  // Clipboard for copy/paste
+  std::vector<zelda3::RoomObject> clipboard_;
+  bool has_clipboard_data_ = false;
 };
 
 }  // namespace editor

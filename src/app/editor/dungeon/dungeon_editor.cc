@@ -715,20 +715,42 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
     }
 
     // Render background layers with proper positioning
-    renderer_.RenderRoomBackgroundLayers(room_id);
-
-    // Render room objects and sprites with improved graphics
+    // This uses per-room buffers which already include objects drawn by ObjectDrawer
+    auto& room = rooms_[room_id];
+    auto& bg1_bitmap = room.bg1_buffer().bitmap();
+    auto& bg2_bitmap = room.bg2_buffer().bitmap();
+    
+    if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0) {
+      if (!bg1_bitmap.texture()) {
+        // Queue texture creation for background layer 1
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::CREATE, &bg1_bitmap);
+      }
+      canvas_.DrawBitmap(bg1_bitmap, 0, 0, 1.0f, 255);
+    }
+    
+    if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0) {
+      if (!bg2_bitmap.texture()) {
+        // Queue texture creation for background layer 2
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::CREATE, &bg2_bitmap);
+      }
+      canvas_.DrawBitmap(bg2_bitmap, 0, 0, 1.0f, 200);
+    }
+    
+    // TEMPORARY: Render all objects as primitives until proper rendering is fixed
     if (current_palette_id_ < current_palette_group_.size()) {
       auto room_palette = current_palette_group_[current_palette_id_];
       
-      // Render regular objects with improved fallback
-      for (const auto& object : rooms_[room_id].GetTileObjects()) {
+      // Render regular objects with primitive fallback
+      for (const auto& object : room.GetTileObjects()) {
         renderer_.RenderObjectInCanvas(object, room_palette);
       }
-      
-      // Render sprites as simple 16x16 squares with labels
-      renderer_.RenderSprites(rooms_[room_id]);
     }
+    
+    // Render sprites as simple 16x16 squares with labels
+    // (Sprites are not part of the background buffers)
+    renderer_.RenderSprites(rooms_[room_id]);
   }
 
   // Phase 5: Render with integrated object editor
@@ -740,6 +762,9 @@ void DungeonEditor::DrawDungeonCanvas(int room_id) {
 
   canvas_.DrawGrid();
   canvas_.DrawOverlay();
+  
+  // Process queued texture commands
+  ProcessDeferredTextures();
 }
 
 // ============================================================================
@@ -845,6 +870,12 @@ absl::Status DungeonEditor::ReloadAllRoomGraphics() {
 absl::Status DungeonEditor::UpdateRoomBackgroundLayers(int /*room_id*/) {
   // This method is deprecated - rendering is handled by DungeonRenderer component
   return absl::OkStatus();
+}
+
+void DungeonEditor::ProcessDeferredTextures() {
+  // Process queued texture commands via Arena's deferred system
+  // Note: Arena will use its stored renderer reference
+  gfx::Arena::Get().ProcessTextureQueue(nullptr);
 }
 
 }  // namespace yaze::editor

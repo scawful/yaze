@@ -110,6 +110,9 @@ class DungeonEditor : public Editor {
   void RenderRoomWithObjects(int room_id);
   void UpdateObjectEditor();
   
+  // Texture processing
+  void ProcessDeferredTextures();
+  
   // Room selection management
   void OnRoomSelected(int room_id);
 

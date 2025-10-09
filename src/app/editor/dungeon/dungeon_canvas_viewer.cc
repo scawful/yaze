@@ -117,27 +117,30 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     }
     
     // Render the room's background layers
+    // This already includes objects drawn by ObjectDrawer in Room::RenderObjectsToBackground()
     RenderRoomBackgroundLayers(room_id);
     
-    // Render room objects with proper graphics (old system as fallback)
+    // TEMPORARY: Render all objects as primitives until proper rendering is fixed
+    // This ensures we can see objects while debugging the texture pipeline
     if (current_palette_id_ < current_palette_group_.size()) {
       auto room_palette = current_palette_group_[current_palette_id_];
       
-      // Render regular objects with proper graphics
+      // Render regular objects as colored rectangles (FALLBACK)
       for (const auto& object : room.GetTileObjects()) {
         RenderObjectInCanvas(object, room_palette);
       }
       
-      // Render special objects with primitive shapes
+      // Render special objects with primitive shapes (overlays)
       RenderStairObjects(room, room_palette);
       RenderChests(room);
       RenderDoorObjects(room);
       RenderWallObjects(room);
       RenderPotObjects(room);
-      
-      // Render sprites as simple 16x16 squares with labels
-      RenderSprites(room);
     }
+    
+    // Render sprites as simple 16x16 squares with labels
+    // (Sprites are not part of the background buffers)
+    RenderSprites(room);
     
     // Handle object interaction if enabled
     if (object_interaction_enabled_) {
@@ -145,11 +148,17 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       object_interaction_.CheckForObjectSelection();
       object_interaction_.DrawSelectBox();
       object_interaction_.DrawSelectionHighlights();  // Draw selection highlights on top
+      object_interaction_.ShowContextMenu();  // Show dungeon-aware context menu
     }
   }
   
   canvas_.DrawGrid();
   canvas_.DrawOverlay();
+  
+  // Process queued texture commands
+  if (rom_ && rom_->is_loaded()) {
+    gfx::Arena::Get().ProcessTextureQueue(nullptr); // Will use default renderer
+  }
   
   // Draw layer information overlay
   if (rooms_ && rom_->is_loaded()) {
