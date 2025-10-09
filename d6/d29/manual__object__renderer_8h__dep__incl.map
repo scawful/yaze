@@ -1,11 +1,11 @@
 <map id="src/app/editor/dungeon/manual_object_renderer.h" name="src/app/editor/dungeon/manual_object_renderer.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="173,5,346,46"/>
-<area shape="rect" id="Node000002" href="$d6/df5/dungeon__editor_8h.html" title=" " alt="" coords="5,94,159,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="207,55,123,96,121,91,204,51"/>
-<area shape="rect" id="Node000009" href="$d7/d77/dungeon__editor__v2_8h.html" title=" " alt="" coords="183,94,336,135"/>
-<area shape="poly" id="edge3_Node000001_Node000009" title=" " alt="" coords="262,62,262,94,257,94,257,62"/>
-<area shape="rect" id="Node000027" href="$d9/df4/manual__object__renderer_8cc.html" title=" " alt="" coords="360,94,540,135"/>
-<area shape="poly" id="edge4_Node000001_Node000027" title=" " alt="" coords="317,50,408,91,406,96,315,55"/>
-<area shape="rect" id="Node000003" href="$da/d46/dungeon__editor_8cc.html" title=" " alt="" coords="5,183,159,223"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="85,150,85,182,79,182,79,150"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="174,5,347,46"/>
+<area shape="rect" id="Node000002" href="$d7/d77/dungeon__editor__v2_8h.html" title=" " alt="" coords="89,94,243,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="230,59,189,96,186,92,226,55"/>
+<area shape="rect" id="Node000022" href="$d9/df4/manual__object__renderer_8cc.html" title=" " alt="" coords="267,94,447,135"/>
+<area shape="poly" id="edge4_Node000001_Node000022" title=" " alt="" coords="296,55,337,92,333,96,292,59"/>
+<area shape="rect" id="Node000003" href="$d0/d0d/dungeon__editor__v2_8cc.html" title=" " alt="" coords="5,183,159,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="138,148,103,184,99,180,134,144"/>
+<area shape="rect" id="Node000004" href="$df/d60/editor__manager_8h.html" title=" " alt="" coords="183,183,320,223"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="198,144,234,180,230,184,194,148"/>
 </map>

@@ -11,6 +11,8 @@ var dir_8fca90320bcc7393a52982c8dc104a2a =
     [ "canvas_utils.h", "d1/d39/canvas__utils_8h.html", "d1/d39/canvas__utils_8h" ],
     [ "color.cc", "d3/de1/color_8cc.html", "d3/de1/color_8cc" ],
     [ "color.h", "da/dec/color_8h.html", "da/dec/color_8h" ],
+    [ "editor_card_manager.cc", "dc/d28/editor__card__manager_8cc.html", null ],
+    [ "editor_card_manager.h", "d3/d2f/editor__card__manager_8h.html", "d3/d2f/editor__card__manager_8h" ],
     [ "editor_layout.cc", "d5/ddd/editor__layout_8cc.html", "d5/ddd/editor__layout_8cc" ],
     [ "editor_layout.h", "d5/d1d/editor__layout_8h.html", "d5/d1d/editor__layout_8h" ],
     [ "feature_flags_menu.h", "d3/d47/feature__flags__menu_8h.html", "d3/d47/feature__flags__menu_8h" ],

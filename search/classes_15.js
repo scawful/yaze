@@ -33,7 +33,8 @@ var searchData=
   ['wobjlog_30',['WOBJLOG',['../d4/dd5/structyaze_1_1emu_1_1WOBJLOG.html',1,'yaze::emu']]],
   ['wobjsel_31',['WOBJSEL',['../d6/d04/structyaze_1_1emu_1_1WOBJSEL.html',1,'yaze::emu']]],
   ['workspacemanager_32',['WorkspaceManager',['../d9/d66/classyaze_1_1editor_1_1WorkspaceManager.html',1,'yaze::editor']]],
-  ['workspacesettings_33',['WorkspaceSettings',['../d1/def/structyaze_1_1core_1_1WorkspaceSettings.html',1,'yaze::core']]],
-  ['wramaccessregisters_34',['WramAccessRegisters',['../d3/d92/structyaze_1_1emu_1_1WramAccessRegisters.html',1,'yaze::emu']]],
-  ['writeaction_35',['WriteAction',['../d6/dea/structyaze_1_1Rom_1_1WriteAction.html',1,'yaze::Rom']]]
+  ['workspacepreset_33',['WorkspacePreset',['../dc/d80/structyaze_1_1gui_1_1EditorCardManager_1_1WorkspacePreset.html',1,'yaze::gui::EditorCardManager']]],
+  ['workspacesettings_34',['WorkspaceSettings',['../d1/def/structyaze_1_1core_1_1WorkspaceSettings.html',1,'yaze::core']]],
+  ['wramaccessregisters_35',['WramAccessRegisters',['../d3/d92/structyaze_1_1emu_1_1WramAccessRegisters.html',1,'yaze::emu']]],
+  ['writeaction_36',['WriteAction',['../d6/dea/structyaze_1_1Rom_1_1WriteAction.html',1,'yaze::Rom']]]
 ];
