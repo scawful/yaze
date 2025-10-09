@@ -1,9 +1,5 @@
 var NAVTREEINDEX91 =
 {
-"db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#a66af67154dadd240edd56e241144343f":[35,0,2,5,10,1,1],
-"db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#a66af67154dadd240edd56e241144343f":[34,0,7,7,13,1,1],
-"db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#a952f3c526f44d7b7ed5f9d2f275060b8":[35,0,2,5,10,1,0],
-"db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#a952f3c526f44d7b7ed5f9d2f275060b8":[34,0,7,7,13,1,0],
 "db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#ac77b472c3a3b22ef696113e1af707bfe":[35,0,2,5,10,1,2],
 "db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#ac77b472c3a3b22ef696113e1af707bfe":[34,0,7,7,13,1,2],
 "db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html":[35,0,2,2,21],
@@ -249,5 +245,9 @@ var NAVTREEINDEX91 =
 "dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a7a362e9af36f9d703c3a5802f0a139ea":[35,0,2,0,37,2],
 "dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a7c49acd31557a3aa9bdb2765f9b48e63":[34,0,7,2,52,3],
 "dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a7c49acd31557a3aa9bdb2765f9b48e63":[35,0,2,0,37,3],
-"dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a8837c4ce46b219621005885eb94eb8ac":[34,0,7,2,52,0]
+"dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a8837c4ce46b219621005885eb94eb8ac":[34,0,7,2,52,0],
+"dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#a8837c4ce46b219621005885eb94eb8ac":[35,0,2,0,37,0],
+"dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#ab9b6e4e086884aaf071f8cebcc51c833":[35,0,2,0,37,7],
+"dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#ab9b6e4e086884aaf071f8cebcc51c833":[34,0,7,2,52,7],
+"dc/d0c/structyaze_1_1cli_1_1GeminiConfig.html#abf3f49a990bd4479b358d15681bbe2b8":[35,0,2,0,37,6]
 };

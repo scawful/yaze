@@ -1,9 +1,5 @@
 var NAVTREEINDEX77 =
 {
-"d9/df1/classyaze_1_1editor_1_1DungeonRenderer.html#a3c907fccece64b18d37a2be9ba46a0a0":[34,0,7,4,31,3],
-"d9/df1/classyaze_1_1editor_1_1DungeonRenderer.html#a3c907fccece64b18d37a2be9ba46a0a0":[35,0,2,2,19,3],
-"d9/df1/classyaze_1_1editor_1_1DungeonRenderer.html#a45e3ad7273e6c5e116e85ee33bca3821":[35,0,2,2,19,16],
-"d9/df1/classyaze_1_1editor_1_1DungeonRenderer.html#a45e3ad7273e6c5e116e85ee33bca3821":[34,0,7,4,31,16],
 "d9/df1/classyaze_1_1editor_1_1DungeonRenderer.html#a46947006a8d380f47196e7a63e59b130":[34,0,7,4,31,4],
 "d9/df1/classyaze_1_1editor_1_1DungeonRenderer.html#a46947006a8d380f47196e7a63e59b130":[35,0,2,2,19,4],
 "d9/df1/classyaze_1_1editor_1_1DungeonRenderer.html#a52e8a1299d3d953c37494a824eaa3927":[35,0,2,2,19,13],
@@ -249,5 +245,9 @@ var NAVTREEINDEX77 =
 "da/d12/room__layout_8cc_source.html":[36,0,3,0,8,0,15],
 "da/d13/dungeon__editor__system_8cc.html":[36,0,3,0,8,0,0],
 "da/d13/dungeon__editor__system_8cc.html#a5f2bcb776569f17bd6615e2059e59a7d":[36,0,3,0,8,0,0,0],
-"da/d13/dungeon__editor__system_8cc_source.html":[36,0,3,0,8,0,0]
+"da/d13/dungeon__editor__system_8cc_source.html":[36,0,3,0,8,0,0],
+"da/d1c/ollama__ai__service_8h.html":[36,0,3,1,1,1,10],
+"da/d1c/ollama__ai__service_8h_source.html":[36,0,3,1,1,1,10],
+"da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html":[35,0,2,7,1,0],
+"da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html":[34,0,7,9,7,0]
 };

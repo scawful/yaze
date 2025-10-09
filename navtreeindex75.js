@@ -1,9 +1,5 @@
 var NAVTREEINDEX75 =
 {
-"d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#af5545979d47e519e96708681e0513fd7":[35,0,2,9,26,36],
-"d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#af55a53a8e629f7ddc74edad084f6f15e":[34,0,7,11,33,42],
-"d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#af55a53a8e629f7ddc74edad084f6f15e":[35,0,2,9,26,42],
-"d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#af57c5a4b4afad92783c63b4987d799b9":[34,0,7,11,33,91],
 "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#af57c5a4b4afad92783c63b4987d799b9":[35,0,2,9,26,91],
 "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#af5e22b0d28e94857306d433ec807badf":[34,0,7,11,33,99],
 "d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#af5e22b0d28e94857306d433ec807badf":[35,0,2,9,26,99],
@@ -249,5 +245,9 @@ var NAVTREEINDEX75 =
 "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html":[34,0,7,2,0,21],
 "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html":[35,0,2,0,0,11],
 "d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html#aac907af4a2874d6f0427a31d04321b89":[35,0,2,0,0,11,1],
-"d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html#aac907af4a2874d6f0427a31d04321b89":[34,0,7,2,0,21,1]
+"d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html#aac907af4a2874d6f0427a31d04321b89":[34,0,7,2,0,21,1],
+"d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html#ab4b318ecfca4783d3179b3f654a297d2":[35,0,2,0,0,11,3],
+"d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html#ab4b318ecfca4783d3179b3f654a297d2":[34,0,7,2,0,21,3],
+"d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html#ab67ca8ace52abac696303821e5d9fcea":[35,0,2,0,0,11,2],
+"d9/dce/structyaze_1_1cli_1_1agent_1_1ProposalCreationResult.html#ab67ca8ace52abac696303821e5d9fcea":[34,0,7,2,0,21,2]
 };

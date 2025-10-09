@@ -1,9 +1,5 @@
 var NAVTREEINDEX86 =
 {
-"db/d2e/structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#aaf86250ef9f46f8886cce14d6595ad6b":[34,0,7,11,9,8,1],
-"db/d2e/structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#aaf86250ef9f46f8886cce14d6595ad6b":[35,0,2,9,4,8,1],
-"db/d2e/structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ab28173d4514df73c8c75a2a4e5bf6efe":[34,0,7,11,9,8,6],
-"db/d2e/structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ab28173d4514df73c8c75a2a4e5bf6efe":[35,0,2,9,4,8,6],
 "db/d2e/structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ae4eb6acbaa3ca64f6691adcfee04368f":[34,0,7,11,9,8,4],
 "db/d2e/structyaze_1_1zelda3_1_1music_1_1ZeldaSfxInstrument.html#ae4eb6acbaa3ca64f6691adcfee04368f":[35,0,2,9,4,8,4],
 "db/d30/sprite__editor_8cc.html":[36,0,3,0,1,7,0],
@@ -249,5 +245,9 @@ var NAVTREEINDEX86 =
 "db/d5f/structyaze_1_1cli_1_1AgentResponse.html#a19fb46d77bc7e96f9335df1618378ced":[34,0,7,2,24,2],
 "db/d5f/structyaze_1_1cli_1_1AgentResponse.html#a19fb46d77bc7e96f9335df1618378ced":[35,0,2,0,9,2],
 "db/d5f/structyaze_1_1cli_1_1AgentResponse.html#a4a87e428fb48efe623f21afd78c7c2f0":[34,0,7,2,24,3],
-"db/d5f/structyaze_1_1cli_1_1AgentResponse.html#a4a87e428fb48efe623f21afd78c7c2f0":[35,0,2,0,9,3]
+"db/d5f/structyaze_1_1cli_1_1AgentResponse.html#a4a87e428fb48efe623f21afd78c7c2f0":[35,0,2,0,9,3],
+"db/d5f/structyaze_1_1cli_1_1AgentResponse.html#a5321a657f9a484c8033aaecf15930c18":[34,0,7,2,24,1],
+"db/d5f/structyaze_1_1cli_1_1AgentResponse.html#a5321a657f9a484c8033aaecf15930c18":[35,0,2,0,9,1],
+"db/d5f/structyaze_1_1cli_1_1AgentResponse.html#a6f42acd06be026e6b22783dbb591eccc":[34,0,7,2,24,0],
+"db/d5f/structyaze_1_1cli_1_1AgentResponse.html#a6f42acd06be026e6b22783dbb591eccc":[35,0,2,0,9,0]
 };

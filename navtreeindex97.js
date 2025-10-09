@@ -1,9 +1,5 @@
 var NAVTREEINDEX97 =
 {
-"dc/dee/snes__color_8cc.html#a9b4b6071aaee6f4570491682261ea5df":[36,0,3,0,3,23,8],
-"dc/dee/snes__color_8cc.html#aa7968f1891adda4d3f224100ed006a76":[36,0,3,0,3,23,10],
-"dc/dee/snes__color_8cc.html#ae3e101d19e3d8139f0d0aac4e9e53827":[36,0,3,0,3,23,6],
-"dc/dee/snes__color_8cc.html#af8fed1cb0f0baca7110e27e8594da601":[36,0,3,0,3,23,7],
 "dc/dee/snes__color_8cc_source.html":[36,0,3,0,3,23],
 "dc/df0/namespaceyaze_1_1gui_1_1canvas_1_1anonymous__namespace_02canvas__interaction__handler_8cc_03.html":[34,0,7,7,3,1],
 "dc/df0/namespaceyaze_1_1gui_1_1canvas_1_1anonymous__namespace_02canvas__interaction__handler_8cc_03.html#a1997cb7aec1a12055c39f4b36163a4c2":[34,0,7,7,3,1,0],
@@ -249,5 +245,9 @@ var NAVTREEINDEX97 =
 "dc/df4/classyaze_1_1emu_1_1Cpu.html#a85032a2395e68acc4644787df6c1c815":[35,0,2,3,27,214],
 "dc/df4/classyaze_1_1emu_1_1Cpu.html#a872d70b49bfdf7976bc04e521df4cced":[35,0,2,3,27,137],
 "dc/df4/classyaze_1_1emu_1_1Cpu.html#a872d70b49bfdf7976bc04e521df4cced":[34,0,7,5,29,137],
-"dc/df4/classyaze_1_1emu_1_1Cpu.html#a878ffdf6ad172a0316f2f9ea8090cb2e":[34,0,7,5,29,180]
+"dc/df4/classyaze_1_1emu_1_1Cpu.html#a878ffdf6ad172a0316f2f9ea8090cb2e":[34,0,7,5,29,180],
+"dc/df4/classyaze_1_1emu_1_1Cpu.html#a878ffdf6ad172a0316f2f9ea8090cb2e":[35,0,2,3,27,180],
+"dc/df4/classyaze_1_1emu_1_1Cpu.html#a88704ff8f5c9a7975c38476d98888b2b":[35,0,2,3,27,14],
+"dc/df4/classyaze_1_1emu_1_1Cpu.html#a88704ff8f5c9a7975c38476d98888b2b":[34,0,7,5,29,14],
+"dc/df4/classyaze_1_1emu_1_1Cpu.html#a8a6dd659543ec3cc58c186c9237ff522":[34,0,7,5,29,150]
 };

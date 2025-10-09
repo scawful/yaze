@@ -1,9 +1,5 @@
 var NAVTREEINDEX107 =
 {
-"de/d12/style_8h_source.html":[36,0,3,0,4,20],
-"de/d20/conversation__test_8cc.html":[36,0,3,1,0,0,3],
-"de/d20/conversation__test_8cc.html#a37533087fc7852924956641ea993c2df":[36,0,3,1,0,0,3,7],
-"de/d20/conversation__test_8cc.html#a427ee84d8ee9091e36f5659b068f7b6a":[36,0,3,1,0,0,3,4],
 "de/d20/conversation__test_8cc.html#a5794e5fd4ca012830e768053923da0fe":[36,0,3,1,0,0,3,5],
 "de/d20/conversation__test_8cc.html#a5e5cb629c8ae9bce1b274afbfa900b66":[36,0,3,1,0,0,3,9],
 "de/d20/conversation__test_8cc.html#a7f5ac0521fc7249a50eada72e493f16b":[36,0,3,1,0,0,3,6],
@@ -249,5 +245,9 @@ var NAVTREEINDEX107 =
 "de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a3b4127bfcac22c24bfb62d213e68c2ce":[35,0,2,2,60,9],
 "de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a3b4127bfcac22c24bfb62d213e68c2ce":[34,0,7,4,72,9],
 "de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a552785a0287ebe61e7f855e45c8d6777":[35,0,2,2,60,4],
-"de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a552785a0287ebe61e7f855e45c8d6777":[34,0,7,4,72,4]
+"de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a552785a0287ebe61e7f855e45c8d6777":[34,0,7,4,72,4],
+"de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a56dcca0ecb71707a892d20cb9f27dd54":[34,0,7,4,72,27],
+"de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a56dcca0ecb71707a892d20cb9f27dd54":[35,0,2,2,60,27],
+"de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a5a1aec00cab51df7459b1014527f9acf":[34,0,7,4,72,29],
+"de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a5a1aec00cab51df7459b1014527f9acf":[35,0,2,2,60,29]
 };

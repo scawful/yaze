@@ -1,9 +1,5 @@
 var NAVTREEINDEX89 =
 {
-"db/d9f/overworld__editor_8h.html#a1d8e24b671e1338c02fbe726de12a0a3":[36,0,3,0,1,6,5,14],
-"db/d9f/overworld__editor_8h.html#a21a3ee57d060881f0c1f7e062418a71f":[36,0,3,0,1,6,5,11],
-"db/d9f/overworld__editor_8h.html#a32e9005b4f1ea1908b9fac631338f632":[36,0,3,0,1,6,5,10],
-"db/d9f/overworld__editor_8h.html#a509c76430fe7bd64995ca4c2a0004443":[36,0,3,0,1,6,5,12],
 "db/d9f/overworld__editor_8h.html#a547f59f67b587aa557ea5c83a29ca4f9":[36,0,3,0,1,6,5,13],
 "db/d9f/overworld__editor_8h.html#a6b56576c02ee38f7f1eecd135aa1f43c":[36,0,3,0,1,6,5,9],
 "db/d9f/overworld__editor_8h.html#a6c5b2de380ffaaff96b0f397b6530509":[36,0,3,0,1,6,5,3],
@@ -249,5 +245,9 @@ var NAVTREEINDEX89 =
 "db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465a0c0d90ffb767c9988a17b6750fce6fd2":[34,0,7,7,3,20,2],
 "db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465a0ecf2780532cc0b1d282d48d0c152b70":[34,0,7,7,3,20,7],
 "db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465a3a09ec42f8f9af066489d8221bf9c144":[34,0,7,7,3,20,4],
-"db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465a8241fd8824f7894ed8247ac1369a4ac7":[34,0,7,7,3,20,3]
+"db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465a8241fd8824f7894ed8247ac1369a4ac7":[34,0,7,7,3,20,3],
+"db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465ad121683abd250843d718b565be12a720":[34,0,7,7,3,20,5],
+"db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465adf37164b601153bff2e32463b9ba499d":[34,0,7,7,3,20,6],
+"db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465ae1867dff3f2a34639104503d91af36ea":[34,0,7,7,3,20,8],
+"db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465ae5727e39450296796c46b7cdb3db970c":[34,0,7,7,3,20,1]
 };

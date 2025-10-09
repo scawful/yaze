@@ -1,9 +1,5 @@
 var NAVTREEINDEX81 =
 {
-"da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a36c782c97031495193da476a00e03874":[34,0,7,7,16,4],
-"da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a36c782c97031495193da476a00e03874":[35,0,2,5,13,4],
-"da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a74164a61a008fc42e92f94ea0c59db9e":[34,0,7,7,16,5],
-"da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a74164a61a008fc42e92f94ea0c59db9e":[35,0,2,5,13,5],
 "da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a7be185c0dfe7936c0b3f711699c4ddc0":[34,0,7,7,16,6],
 "da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a7be185c0dfe7936c0b3f711699c4ddc0":[35,0,2,5,13,6],
 "da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a875c684c5708299a452ce7356b4cd901":[35,0,2,5,13,1],
@@ -249,5 +245,9 @@ var NAVTREEINDEX81 =
 "da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html#a42be846c8595c37600eadddf37d1c3b1":[34,0,7,2,0,1,0,0],
 "da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html#a42be846c8595c37600eadddf37d1c3b1":[35,0,2,0,0,0,0,0],
 "da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html#a7a0d3b521eb16d1d2cc6083868cfc859":[34,0,7,2,0,1,0,2],
-"da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html#a7a0d3b521eb16d1d2cc6083868cfc859":[35,0,2,0,0,0,0,2]
+"da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html#a7a0d3b521eb16d1d2cc6083868cfc859":[35,0,2,0,0,0,0,2],
+"da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html#abc3d8ed3b6a23ae27761f0d2141fd078":[34,0,7,2,0,1,0,4],
+"da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html#abc3d8ed3b6a23ae27761f0d2141fd078":[35,0,2,0,0,0,0,4],
+"da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html#af3b6dd835b2e5006295864134386df6d":[35,0,2,0,0,0,0,1],
+"da/d74/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversation__test_8cc_03_1_1ConversationTestCase.html#af3b6dd835b2e5006295864134386df6d":[34,0,7,2,0,1,0,1]
 };

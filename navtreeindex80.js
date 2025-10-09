@@ -1,9 +1,5 @@
 var NAVTREEINDEX80 =
 {
-"da/d3e/classyaze_1_1test_1_1TestManager.html#a1a2f23afc297f032320873c3d0a1d224":[35,0,2,7,29,62],
-"da/d3e/classyaze_1_1test_1_1TestManager.html#a1d2eba0221278bb461dc19a580adadb3":[34,0,7,9,35,24],
-"da/d3e/classyaze_1_1test_1_1TestManager.html#a1d2eba0221278bb461dc19a580adadb3":[35,0,2,7,29,24],
-"da/d3e/classyaze_1_1test_1_1TestManager.html#a1dedc9ee9e25653bb04cf48ae8c647a1":[34,0,7,9,35,8],
 "da/d3e/classyaze_1_1test_1_1TestManager.html#a1dedc9ee9e25653bb04cf48ae8c647a1":[35,0,2,7,29,8],
 "da/d3e/classyaze_1_1test_1_1TestManager.html#a282ab3a3ff19d56c65140c596f2ab817":[35,0,2,7,29,61],
 "da/d3e/classyaze_1_1test_1_1TestManager.html#a282ab3a3ff19d56c65140c596f2ab817":[34,0,7,9,35,61],
@@ -249,5 +245,9 @@ var NAVTREEINDEX80 =
 "da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html":[35,0,2,5,13],
 "da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html":[34,0,7,7,16],
 "da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a20850955308917c2023e8c4bd7b6837e":[35,0,2,5,13,0],
-"da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a20850955308917c2023e8c4bd7b6837e":[34,0,7,7,16,0]
+"da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a20850955308917c2023e8c4bd7b6837e":[34,0,7,7,16,0],
+"da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a36c782c97031495193da476a00e03874":[34,0,7,7,16,4],
+"da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a36c782c97031495193da476a00e03874":[35,0,2,5,13,4],
+"da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a74164a61a008fc42e92f94ea0c59db9e":[34,0,7,7,16,5],
+"da/d4e/structyaze_1_1gui_1_1CanvasPaletteManager.html#a74164a61a008fc42e92f94ea0c59db9e":[35,0,2,5,13,5]
 };

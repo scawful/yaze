@@ -1,9 +1,5 @@
 var NAVTREEINDEX100 =
 {
-"dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5e6dadcc39392016b64eaf442f7f02ba":[35,0,2,2,27,83],
-"dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5f1094693321b0ba5a2bb18a7cc2264e":[34,0,7,4,39,102],
-"dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5f1094693321b0ba5a2bb18a7cc2264e":[35,0,2,2,27,102],
-"dd/d12/classyaze_1_1editor_1_1EditorManager.html#a6001e0ffa0e0e035024360d83805c1d6":[34,0,7,4,39,36],
 "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a6001e0ffa0e0e035024360d83805c1d6":[35,0,2,2,27,36],
 "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a6bd2531ab0c2a1b04e90bcbaafecf361":[34,0,7,4,39,13],
 "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a6bd2531ab0c2a1b04e90bcbaafecf361":[35,0,2,2,27,13],
@@ -249,5 +245,9 @@ var NAVTREEINDEX100 =
 "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a80b078809394ccf8bc5dc1d7e2264168":[34,0,7,2,20,2,20],
 "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a80b078809394ccf8bc5dc1d7e2264168":[35,0,2,0,5,1,20],
 "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a8f03affb1e8daf2e8b50296fea0a9885":[35,0,2,0,5,1,8],
-"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a8f03affb1e8daf2e8b50296fea0a9885":[34,0,7,2,20,2,8]
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a8f03affb1e8daf2e8b50296fea0a9885":[34,0,7,2,20,2,8],
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a9e30350e40f6fdf9600302b55c7a01a4":[35,0,2,0,5,1,10],
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a9e30350e40f6fdf9600302b55c7a01a4":[34,0,7,2,20,2,10],
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#aa95e486aa14d00a9cbc036ec91de5eb4":[35,0,2,0,5,1,0],
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#aa95e486aa14d00a9cbc036ec91de5eb4":[34,0,7,2,20,2,0]
 };

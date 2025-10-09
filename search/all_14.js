@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['january_202024_0',['0.0.7 (January 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md1068',1,'']]],
+  ['january_202024_0',['0.0.7 (January 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md1064',1,'']]],
   ['jml_1',['JML',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a0d7557981c654477aa034e1e44344974',1,'yaze::emu::Cpu']]],
   ['jmp_2',['jmp',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#ae6fa6c1c9b120d33deb5d3d027a43fbc',1,'yaze::emu::Cpu::JMP()'],['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a0f9709ced56bfe1de31e62d2580f2fce',1,'yaze::emu::Spc700::JMP()']]],
   ['join_5fcode_5fbuffer_5f_3',['join_code_buffer_',['../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#acbb92cc63fc2bd3a9f9cf075472f3fef',1,'yaze::editor::AgentChatWidget']]],
@@ -22,7 +22,7 @@ var searchData=
   ['jsontoprofile_19',['JsonToProfile',['../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3611fc5f7367b5346be7dda28c89a08d',1,'yaze::editor::AgentEditor']]],
   ['jsonvaluetostring_20',['JsonValueToString',['../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#ab0548a61f882b63d453ea1dd303186a2',1,'yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}']]],
   ['jsr_21',['JSR',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701',1,'yaze::emu::Cpu']]],
-  ['july_202024_22',['0.2.0 (July 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md1064',1,'']]],
+  ['july_202024_22',['0.2.0 (July 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md1060',1,'']]],
   ['jump_5faddress_5f_23',['jump_address_',['../d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html#adbca3194c58841cf7de3f6439739733a',1,'yaze::editor::MemoryEditorWithDiffChecker']]],
   ['jump_5fto_5ftab_24',['jump_to_tab',['../d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer.html#a09dd2423d5f66936f975dcc26fbb647a',1,'yaze::editor::OverworldEntityRenderer::jump_to_tab()'],['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9',1,'yaze::editor::OverworldEditor::jump_to_tab()']]],
   ['jump_5fto_5ftab_5f_25',['jump_to_tab_',['../d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer.html#aa525334b9408c63fa9225eb2bf87abbf',1,'yaze::editor::OverworldEntityRenderer::jump_to_tab_'],['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e',1,'yaze::editor::OverworldEditor::jump_to_tab_']]],

@@ -1,9 +1,5 @@
 var NAVTREEINDEX108 =
 {
-"de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a56dcca0ecb71707a892d20cb9f27dd54":[34,0,7,4,72,27],
-"de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a56dcca0ecb71707a892d20cb9f27dd54":[35,0,2,2,60,27],
-"de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a5a1aec00cab51df7459b1014527f9acf":[34,0,7,4,72,29],
-"de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a5a1aec00cab51df7459b1014527f9acf":[35,0,2,2,60,29],
 "de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a69a612f6b9fa4f4d003f29bc16584ee3":[34,0,7,4,72,15],
 "de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a69a612f6b9fa4f4d003f29bc16584ee3":[35,0,2,2,60,15],
 "de/d76/classyaze_1_1editor_1_1SpriteEditor.html#a6a85ffcf6965e27086da683e1f1b1295":[35,0,2,2,60,6],
@@ -241,13 +237,17 @@ var NAVTREEINDEX108 =
 "de/d82/dungeon__object__emulator__preview_8h.html":[36,0,3,0,4,2,5],
 "de/d82/dungeon__object__emulator__preview_8h_source.html":[36,0,3,0,4,2,5],
 "de/d82/md_scripts_2README.html":[27],
-"de/d82/md_scripts_2README.html#autotoc_md1145":[27,0],
-"de/d82/md_scripts_2README.html#autotoc_md1146":[27,0,0],
-"de/d82/md_scripts_2README.html#autotoc_md1147":[27,1],
-"de/d82/md_scripts_2README.html#autotoc_md1148":[27,1,0],
-"de/d82/md_scripts_2README.html#autotoc_md1149":[27,1,1],
-"de/d82/md_scripts_2README.html#autotoc_md1150":[27,1,2],
-"de/d82/md_scripts_2README.html#autotoc_md1151":[27,2],
-"de/d82/md_scripts_2README.html#autotoc_md1152":[27,2,0],
-"de/d82/md_scripts_2README.html#autotoc_md1153":[27,2,1]
+"de/d82/md_scripts_2README.html#autotoc_md1141":[27,0],
+"de/d82/md_scripts_2README.html#autotoc_md1142":[27,0,0],
+"de/d82/md_scripts_2README.html#autotoc_md1143":[27,1],
+"de/d82/md_scripts_2README.html#autotoc_md1144":[27,1,0],
+"de/d82/md_scripts_2README.html#autotoc_md1145":[27,1,1],
+"de/d82/md_scripts_2README.html#autotoc_md1146":[27,1,2],
+"de/d82/md_scripts_2README.html#autotoc_md1147":[27,2],
+"de/d82/md_scripts_2README.html#autotoc_md1148":[27,2,0],
+"de/d82/md_scripts_2README.html#autotoc_md1149":[27,2,1],
+"de/d82/md_scripts_2README.html#autotoc_md1150":[27,2,2],
+"de/d82/md_scripts_2README.html#autotoc_md1151":[27,3],
+"de/d82/md_scripts_2README.html#autotoc_md1152":[27,3,0],
+"de/d82/md_scripts_2README.html#autotoc_md1153":[27,3,1]
 };

@@ -1,9 +1,5 @@
 var NAVTREEINDEX70 =
 {
-"d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a3c2425e6b46c21d2813ac023de56f58a":[35,0,2,2,5,112],
-"d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a3c2425e6b46c21d2813ac023de56f58a":[34,0,7,4,17,112],
-"d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a41b9b94a2bab4e565c3b96164d019781":[35,0,2,2,5,111],
-"d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a41b9b94a2bab4e565c3b96164d019781":[34,0,7,4,17,111],
 "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a465a9b868e9ea57d9490513a8904f273":[35,0,2,2,5,75],
 "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a465a9b868e9ea57d9490513a8904f273":[34,0,7,4,17,75],
 "d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a477ecbf04c2d1c7f0c8344659ce0fadf":[34,0,7,4,17,45],
@@ -249,5 +245,9 @@ var NAVTREEINDEX70 =
 "d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac68a57b9e3b1359935c1cc6bf92d513b":[35,0,2,9,4,5,2],
 "d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac68a57b9e3b1359935c1cc6bf92d513b":[34,0,7,11,9,5,2],
 "d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac77e1929cfdff13a3d3772b95b8270ed":[34,0,7,11,9,5,6],
-"d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac77e1929cfdff13a3d3772b95b8270ed":[35,0,2,9,4,5,6]
+"d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html#ac77e1929cfdff13a3d3772b95b8270ed":[35,0,2,9,4,5,6],
+"d9/d47/message__editor_8cc.html":[36,0,3,0,1,4,2],
+"d9/d47/message__editor_8cc.html#abbdf1fbff1b3b401e9a764c5da0103d1":[36,0,3,0,1,4,2,1],
+"d9/d47/message__editor_8cc.html#aef9df899003974391ac30afec5b1d4c5":[36,0,3,0,1,4,2,0],
+"d9/d47/message__editor_8cc_source.html":[36,0,3,0,1,4,2]
 };

@@ -103,15 +103,28 @@ $(document).ready(function(){initNavTree('d6/da7/md_docs_2H1-changelog.html','..
 <div class="contents">
 <div class="textblock"><p><a class="anchor" id="autotoc_md1025"></a> </p>
 <h1><a class="anchor" id="autotoc_md1026"></a>
-0.3.3 (October 2025) - IN FLUX</h1>
-<p><b>Note</b>: Versions 0.3.2-0.3.3 experienced CI/CD issues with Windows releases. See <a class="el" href="../../d5/d4c/B4-release-workflows_8md.html">B4-release-workflows.md</a> for details on the fixes applied.</p>
+0.3.2 (October 2025)</h1>
 <h2><a class="anchor" id="autotoc_md1027"></a>
+CI/CD &amp; Release Improvements</h2>
+<p><b>Release Workflow Fixes</b>:</p><ul>
+<li>Fixed build matrix artifact upload issues (platform-specific uploads for Windows/Linux/macOS)</li>
+<li>Corrected macOS universal binary merge process with proper artifact paths</li>
+<li>Enhanced release to only include final artifacts (no intermediate build slices)</li>
+<li>Improved build diagnostics and error reporting across all platforms</li>
+</ul>
+<p><b>CI/CD Pipeline Enhancements</b>:</p><ul>
+<li>Added manual workflow trigger with configurable build types and options</li>
+<li>Implemented vcpkg caching for faster Windows builds</li>
+<li>Enhanced Windows diagnostics (vcpkg status, Visual Studio info, disk space monitoring)</li>
+<li>Added Windows-specific build failure analysis (linker errors, missing dependencies)</li>
+<li>Conditional artifact uploads for CI builds with configurable retention</li>
+<li>Comprehensive job summaries with platform-specific information</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md1028"></a>
 Rendering Pipeline Fixes</h2>
 <p><b>Graphics Editor White Sheets Fixed</b>:</p><ul>
 <li>Graphics sheets now receive appropriate default palettes during ROM loading</li>
-<li>Sheets 0-112: Dungeon main palettes</li>
-<li>Sheets 113-127: Sprite palettes</li>
-<li>Sheets 128-222: HUD/menu palettes</li>
+<li>Sheets 0-112: Dungeon main palettes, Sheets 113-127: Sprite palettes, Sheets 128-222: HUD/menu palettes</li>
 <li>Eliminated white/blank graphics on initial load</li>
 </ul>
 <p><b>Message Editor Preview Updates</b>:</p><ul>
@@ -122,32 +135,46 @@ Rendering Pipeline Fixes</h2>
 <p><b>Cross-Editor Graphics Synchronization</b>:</p><ul>
 <li>Added <code>Arena::NotifySheetModified()</code> for centralized texture management</li>
 <li>Graphics changes in one editor now propagate to all other editors</li>
-<li>Improves workflow when editing graphics that appear in multiple contexts</li>
-</ul>
-<p><b>Logging System Migration</b>:</p><ul>
 <li>Replaced raw <code>printf()</code> calls with structured <code>LOG_*</code> macros throughout graphics pipeline</li>
-<li>Better integration with logging system for debugging</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1028"></a>
+<h2><a class="anchor" id="autotoc_md1029"></a>
 Card-Based UI System</h2>
 <p><b>EditorCardManager</b>:</p><ul>
 <li>Centralized card registration and visibility management</li>
 <li>Context-sensitive card controls in main menu bar</li>
-<li>Category-based keyboard shortcuts (Ctrl+Shift+D for Dungeon, etc.)</li>
-<li>Card browser for visual card management (Ctrl+Shift+B)</li>
+<li>Category-based keyboard shortcuts (Ctrl+Shift+D for Dungeon, Ctrl+Shift+B for browser)</li>
+<li>Card browser for visual card management</li>
 </ul>
 <p><b>Editor Integration</b>:</p><ul>
-<li>DungeonEditor, GraphicsEditor, ScreenEditor, SpriteEditor, OverworldEditor, AssemblyEditor, MessageEditor, and Emulator now use card system</li>
-<li>Cards can be closed with X button like normal windows</li>
-<li>Proper docking behavior across all editors</li>
+<li>All major editors (Dungeon, Graphics, Screen, Sprite, Overworld, Assembly, Message, Emulator) now use card system</li>
+<li>Cards can be closed with X button, proper docking behavior across all editors</li>
 <li>Cards hidden by default to prevent crashes on ROM load</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1029"></a>
-0.3.2 (October 2025) - IN FLUX</h1>
-<p><b>Note</b>: CI/CD issues with Windows releases. Fixes implemented in 0.3.3.</p>
-<h1><a class="anchor" id="autotoc_md1030"></a>
-0.3.1 (October 2025)</h1>
+<h2><a class="anchor" id="autotoc_md1030"></a>
+Tile16 Editor &amp; Graphics System</h2>
+<p><b>Palette System Enhancements</b>:</p><ul>
+<li>Comprehensive palette coordination with overworld palette system</li>
+<li>Sheet-based palette mapping (Sheets 0,3-6: AUX; Sheets 1-2: MAIN; Sheet 7: ANIMATED)</li>
+<li>Enhanced scrollable UI layout with right-click tile picking</li>
+<li>Save/discard workflow preventing ROM changes until explicit user action</li>
+</ul>
+<p><b>Performance &amp; Stability</b>:</p><ul>
+<li>Fixed segmentation faults caused by tile cache <code>std::move()</code> operations invalidating Bitmap surface pointers</li>
+<li>Disabled problematic tile cache, implemented direct SDL texture updates</li>
+<li>Added comprehensive bounds checking to prevent palette crashes</li>
+<li>Implemented surface/texture pooling and performance profiling</li>
+</ul>
 <h2><a class="anchor" id="autotoc_md1031"></a>
+Windows Platform Stability</h2>
+<p><b>Build System Fixes</b>:</p><ul>
+<li>Increased Windows stack size from 1MB to 8MB (matches macOS/Linux defaults)</li>
+<li>Fixed linker errors in development utilities (<code>extract_vanilla_values</code>, <code>rom_patch_utility</code>)</li>
+<li>Implemented Windows COM-based file dialog fallback for minimal builds</li>
+<li>Consistent cross-platform behavior and stack resources</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md1032"></a>
+0.3.1 (October 2025)</h1>
+<h2><a class="anchor" id="autotoc_md1033"></a>
 Emulator: Audio System Infrastructure ✅ COMPLETE</h2>
 <p><b>Audio Backend Abstraction:</b></p><ul>
 <li><b>IAudioBackend Interface</b>: Clean abstraction layer for audio implementations, enabling easy migration between SDL2, SDL3, and custom backends</li>
@@ -170,7 +197,7 @@ Emulator: Audio System Infrastructure ✅ COMPLETE</h2>
 <p><b>Documentation:</b></p><ul>
 <li>Created comprehensive audio system guides covering IPL ROM protocol, handshake debugging, and testing procedures</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1032"></a>
+<h2><a class="anchor" id="autotoc_md1034"></a>
 Emulator: Critical Performance Fixes</h2>
 <p><b>Console Logging Performance Killer Fixed:</b></p><ul>
 <li><b>Issue</b>: Console logging code was executing on EVERY instruction even when disabled, causing severe performance degradation (&lt; 1 FPS)</li>
@@ -193,7 +220,7 @@ Emulator: Critical Performance Fixes</h2>
 <li><b>Fix</b>: Properly allocate as array using <code>new int16_t[size]</code> with custom deleter</li>
 <li><b>Result</b>: Audio system can now queue samples without corruption</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1033"></a>
+<h2><a class="anchor" id="autotoc_md1035"></a>
 Emulator: UI Organization &amp; Input System</h2>
 <p><b>New UI Architecture:</b></p><ul>
 <li><b>Created <code>src/app/emu/ui/</code> directory</b> for separation of concerns</li>
@@ -216,7 +243,7 @@ Emulator: UI Organization &amp; Input System</h2>
 <li>Removed deprecated <code>kLogInstructions</code> flag entirely</li>
 <li>DisassemblyViewer now always active with zero performance cost</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1034"></a>
+<h2><a class="anchor" id="autotoc_md1036"></a>
 Debugger: Breakpoint &amp; Watchpoint Systems</h2>
 <p><b>BreakpointManager:</b></p><ul>
 <li><b>CRUD Operations</b>: Add/Remove/Enable/Disable breakpoints with unique IDs</li>
@@ -238,7 +265,7 @@ Debugger: Breakpoint &amp; Watchpoint Systems</h2>
 <li><b>Live Disassembly</b>: DisassemblyViewer showing real-time execution</li>
 <li><b>Register Display</b>: Real-time CPU state (A, X, Y, D, SP, PC, PB, DB, flags)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1035"></a>
+<h2><a class="anchor" id="autotoc_md1037"></a>
 Build System Simplifications</h2>
 <p><b>Eliminated Conditional Compilation:</b></p><ul>
 <li><b>Before</b>: Optional flags for JSON (<code>YAZE_WITH_JSON</code>), gRPC (<code>YAZE_WITH_GRPC</code>), AI (<code>Z3ED_AI</code>)</li>
@@ -252,7 +279,7 @@ Build System Simplifications</h2>
 <li>Toggle recording on/off for performance testing</li>
 <li>Clear button to free memory</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1036"></a>
+<h2><a class="anchor" id="autotoc_md1038"></a>
 Build System: Windows Platform Improvements</h2>
 <p><b>gRPC v1.67.1 Upgrade:</b></p><ul>
 <li><b>Issue</b>: v1.62.0 had template instantiation errors on MSVC</li>
@@ -270,98 +297,28 @@ Build System: Windows Platform Improvements</h2>
 <li>No platform-specific code in audio backend or input abstraction</li>
 <li>Ready for SDL3 migration with minimal changes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1037"></a>
+<h2><a class="anchor" id="autotoc_md1039"></a>
 GUI &amp; UX Modernization</h2>
 <ul>
-<li><b>Theme System</b>: Implemented a comprehensive theme system (<code>AgentUITheme</code>) that centralizes all UI colors. All Agent UI components are now theme-aware, deriving colors from the main application theme.</li>
-<li><b>UI Helper Library</b>: Created a library of 30+ reusable UI helper functions (<code>AgentUI::*</code> and <code>gui::*</code>) to standardize panel styles, section headers, status indicators, and buttons, reducing boilerplate code by over 50%.</li>
-<li><b>Visual Polish</b>: Enhanced numerous UI panels (Agent Chat, Test Harness, Collaboration) with theme-aware colors, status badges (PASS/FAIL/RUN), connection indicators, and provider badges (Ollama/Gemini).</li>
+<li><b>Theme System</b>: Implemented comprehensive theme system (<code>AgentUITheme</code>) centralizing all UI colors</li>
+<li><b>UI Helper Library</b>: Created 30+ reusable UI helper functions reducing boilerplate code by over 50%</li>
+<li><b>Visual Polish</b>: Enhanced UI panels with theme-aware colors, status badges, connection indicators</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1038"></a>
+<h2><a class="anchor" id="autotoc_md1040"></a>
 Overworld Editor Refactoring</h2>
 <ul>
-<li><b>Modular Architecture</b>: Refactored the 3,400-line <code>OverworldEditor</code> into smaller, focused modules, including <code>OverworldEntityRenderer</code>.</li>
-<li><b>Progressive Loading</b>: Implemented a priority-based progressive loading system in the central <code>gfx::Arena</code> to prevent UI freezes during asset loading. This benefits all editors.</li>
-<li><b>Critical Graphics Fixes</b>: Resolved major bugs related to graphics not refreshing immediately, multi-quadrant map updates, and incorrect feature visibility on vanilla ROMs.</li>
-<li><b>Multi-Area Map Configuration</b>: Implemented a robust <code>ConfigureMultiAreaMap()</code> method to correctly handle parent/child relationships for all area sizes (Small, Large, Wide, Tall).</li>
+<li><b>Modular Architecture</b>: Refactored 3,400-line <code>OverworldEditor</code> into smaller focused modules</li>
+<li><b>Progressive Loading</b>: Implemented priority-based progressive loading in <code>gfx::Arena</code> to prevent UI freezes</li>
+<li><b>Critical Graphics Fixes</b>: Resolved bugs with graphics refresh, multi-quadrant map updates, and feature visibility</li>
+<li><b>Multi-Area Map Configuration</b>: Robust <code>ConfigureMultiAreaMap()</code> handling all area sizes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1039"></a>
+<h2><a class="anchor" id="autotoc_md1041"></a>
 Build System &amp; Stability</h2>
 <ul>
-<li><b>Build Fixes</b>: Resolved 7 critical build errors, including linker issues, missing virtual methods, and filesystem crashes.</li>
-<li><b>C API Separation</b>: Decoupled the C API library from the main application to improve build modularity.</li>
-</ul>
-<h1><a class="anchor" id="autotoc_md1040"></a>
-0.3.2 (December 2025) - In Development</h1>
-<h2><a class="anchor" id="autotoc_md1041"></a>
-Tile16 Editor Improvements (In Progress)</h2>
-<p><b>Palette System Enhancements:</b></p><ul>
-<li><b>Comprehensive Palette Coordination</b>: Enhanced tile16 editor now properly coordinates with overworld palette system</li>
-<li><b>Sheet-Based Palette Mapping</b>: Implemented sophisticated palette mapping where different graphics sheets use appropriate palette groups:<ul>
-<li>Sheets 0, 3-6: AUX palette group</li>
-<li>Sheets 1-2: MAIN palette group <br  />
-</li>
-<li>Sheet 7: ANIMATED palette group</li>
-</ul>
-</li>
-<li><b>Enhanced UI Layout</b>: Improved scrollable layout with better organization and visual clarity</li>
-<li><b>Right-Click Tile Picking</b>: New feature to pick tiles directly from the tile16 canvas for quick editing</li>
-<li><b>Save/Discard Workflow</b>: Implemented proper save/discard workflow that prevents ROM changes until explicit user confirmation</li>
-</ul>
-<p><b>Known Issues:</b></p><ul>
-<li>⚠️ Palette display still has some errors with certain sheet configurations (work in progress)</li>
-<li>Some edge cases in palette group selection need refinement</li>
+<li><b>Build Fixes</b>: Resolved 7 critical build errors including linker issues and filesystem crashes</li>
+<li><b>C API Separation</b>: Decoupled C API library from main application for improved modularity</li>
 </ul>
 <h2><a class="anchor" id="autotoc_md1042"></a>
-Graphics System Optimizations</h2>
-<p><b>Performance Improvements:</b></p><ul>
-<li><b>Segmentation Fault Resolution</b>: Fixed critical crashes in tile16 editor caused by tile cache system using <code>std::move()</code> operations that invalidated Bitmap surface pointers</li>
-<li><b>Direct SDL Texture Updates</b>: Disabled problematic tile cache and implemented direct texture update system for improved stability</li>
-<li><b>Comprehensive Bounds Checking</b>: Added extensive bounds checking throughout graphics pipeline to prevent crashes and palette corruption</li>
-<li><b>Surface/Texture Pooling</b>: Implemented graphics optimizations including surface/texture pooling while maintaining system stability</li>
-<li><b>Performance Profiling</b>: Added performance monitoring and profiling capabilities for graphics operations</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md1043"></a>
-Windows Platform Stability</h2>
-<p><b>Build System Fixes:</b></p><ul>
-<li><b>Stack Overflow Fix</b>: Increased Windows stack size from 1MB to 8MB to match macOS/Linux defaults<ul>
-<li>Prevents crashes during <code>EditorManager::LoadAssets()</code> which loads 223 graphics sheets</li>
-<li>Handles deep call stacks from multiple editor initializations</li>
-<li>Applied to both <code>yaze</code> executable and <code>yaze_test</code> test suite</li>
-</ul>
-</li>
-<li><b>Development Utility Fixes</b>: Fixed linker errors in <code>extract_vanilla_values</code> and <code>rom_patch_utility</code> executables<ul>
-<li>Resolved multiple <code><a class="el" href="../../d1/dd0/test__conversation__minimal_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main()</a></code> definition conflicts</li>
-<li>Added proper <code>yaze_core</code> library linkage</li>
-<li>Prevented CI/release builds from attempting to build development-only utilities</li>
-</ul>
-</li>
-<li><b>File Dialog Fallback Implementation</b>: Fixed non-functional file dialogs in minimal builds<ul>
-<li>Implemented proper Windows COM-based <code>IFileOpenDialog</code>/<code>IFileSaveDialog</code> fallback</li>
-<li>Previously returned empty string when NFD (Native File Dialog) was unavailable</li>
-<li>Now works in all Windows builds regardless of vcpkg/NFD availability</li>
-<li>Supports file open, file save, and folder selection dialogs</li>
-</ul>
-</li>
-<li><b>Consistent Cross-Platform Behavior</b>: Windows builds now have equivalent stack resources and stability as Unix-like systems</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md1044"></a>
-Memory Safety &amp; Stability</h2>
-<p><b>Critical Fixes:</b></p><ul>
-<li><b>Bitmap Surface Invalidation</b>: Root cause analysis and fix for segmentation faults in graphics rendering</li>
-<li><b>Tile Cache System</b>: Disabled move semantics in tile cache that caused pointer invalidation</li>
-<li><b>Memory Management</b>: Enhanced RAII patterns and smart pointer usage throughout graphics pipeline</li>
-<li><b>Bounds Verification</b>: Added comprehensive bounds checking for tile and palette access</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md1045"></a>
-Testing &amp; CI/CD Improvements</h2>
-<p><b>Test Infrastructure:</b></p><ul>
-<li><b>Windows Test Reliability</b>: Fixed test suite crashes by increasing stack size</li>
-<li><b>Development-Only Builds</b>: Properly isolated development utilities from CI/release builds</li>
-<li><b>Better Error Reporting</b>: Enhanced error messages for Windows build failures</li>
-<li><b>Cross-Platform Consistency</b>: Ensured consistent test behavior across all platforms</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md1046"></a>
 Future Optimizations (Planned)</h2>
 <p><b>Graphics System:</b></p><ul>
 <li>Lazy loading of graphics sheets (load on-demand rather than all at once)</li>
@@ -374,7 +331,7 @@ Future Optimizations (Planned)</h2>
 <li>Enhanced dependency caching strategies</li>
 <li>Improved vcpkg integration reliability</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1047"></a>
+<h2><a class="anchor" id="autotoc_md1043"></a>
 Technical Notes</h2>
 <p><b>Breaking Changes:</b></p><ul>
 <li>None - this is a patch release focused on stability and fixes</li>
@@ -385,9 +342,9 @@ Technical Notes</h2>
 <p><b>Migration Guide:</b></p><ul>
 <li>No migration required - this release is fully backward compatible with 0.3.1</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1048"></a>
+<h1><a class="anchor" id="autotoc_md1044"></a>
 0.3.1 (September 2025)</h1>
-<h2><a class="anchor" id="autotoc_md1049"></a>
+<h2><a class="anchor" id="autotoc_md1045"></a>
 Major Features</h2>
 <ul>
 <li><b>Complete Tile16 Editor Overhaul</b>: Professional-grade tile editing with modern UI and advanced capabilities</li>
@@ -397,7 +354,7 @@ Major Features</h2>
 <li><b>ZEML System Removal</b>: Converted overworld editor from markup to pure <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> for better performance and maintainability</li>
 <li><b>OverworldEditorManager</b>: New management system to handle complex v3 overworld features</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1050"></a>
+<h2><a class="anchor" id="autotoc_md1046"></a>
 Tile16 Editor Enhancements</h2>
 <ul>
 <li><b>Modern UI Layout</b>: Fully resizable 3-column interface (Tile8 Source, Editor, Preview &amp; Controls)</li>
@@ -406,7 +363,7 @@ Tile16 Editor Enhancements</h2>
 <li><b>Professional Workflow</b>: Copy/paste, 4-slot scratch space, live preview with auto-commit</li>
 <li><b>Pixel Normalization Settings</b>: Configurable pixel value masks (0x01-0xFF) for handling corrupted graphics sheets</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1051"></a>
+<h2><a class="anchor" id="autotoc_md1047"></a>
 ZSCustomOverworld v3 Implementation</h2>
 <ul>
 <li><b>SaveLargeMapsExpanded()</b>: Complex neighbor-aware transition calculations for all area sizes (Small, Large, Wide, Tall)</li>
@@ -417,7 +374,7 @@ ZSCustomOverworld v3 Implementation</h2>
 <li><b>Transition Logic</b>: Sophisticated camera transition calculations based on neighboring area types and quadrants</li>
 <li><b>Version Compatibility</b>: Maintains vanilla/v2 compatibility while adding full v3+ feature support</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1052"></a>
+<h2><a class="anchor" id="autotoc_md1048"></a>
 Technical Improvements</h2>
 <ul>
 <li><b>SNES Data Accuracy</b>: Proper 4-bit palette index handling with configurable normalization</li>
@@ -427,7 +384,7 @@ Technical Improvements</h2>
 <li><b>ASM Version Detection</b>: Automatic detection of custom overworld ASM version for feature availability</li>
 <li><b>Conditional Save Logic</b>: Different save paths for vanilla, v2, and v3+ ROMs</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1053"></a>
+<h2><a class="anchor" id="autotoc_md1049"></a>
 User Interface</h2>
 <ul>
 <li><b>Keyboard Shortcuts</b>: Comprehensive shortcuts for all operations (H/V/R for transforms, Q/E for palette cycling, 1-8 for direct palette selection)</li>
@@ -437,7 +394,7 @@ User Interface</h2>
 <li><b>Pure <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Layout</b>: Removed ZEML markup system in favor of native <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> tabs and tables for better performance</li>
 <li><b>v3 Settings Panel</b>: Dedicated UI for ZSCustomOverworld v3 features with ASM version detection and feature toggles</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1054"></a>
+<h2><a class="anchor" id="autotoc_md1050"></a>
 Bug Fixes</h2>
 <ul>
 <li><b>Tile16 Bitmap Display</b>: Fixed blank/white tile issue caused by unnormalized pixel values</li>
@@ -449,7 +406,7 @@ Bug Fixes</h2>
 <li><b>ZSCustomOverworld v3</b>: Fixed complex area transition calculations and neighbor-aware tilemap adjustments</li>
 <li><b>ZEML Performance</b>: Eliminated markup parsing overhead by converting to native <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> components</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1055"></a>
+<h2><a class="anchor" id="autotoc_md1051"></a>
 ZScream Compatibility Improvements</h2>
 <ul>
 <li><b>Complete Save.cs Implementation</b>: All major methods from ZScream's Save.cs now implemented in YAZE</li>
@@ -459,9 +416,9 @@ ZScream Compatibility Improvements</h2>
 <li><b>Custom ASM Integration</b>: Proper handling of ZSCustomOverworld ASM versions 1-3+</li>
 <li><b>Memory Layout</b>: Correct usage of expanded vs vanilla memory locations based on ROM type</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1056"></a>
+<h1><a class="anchor" id="autotoc_md1052"></a>
 0.3.0 (September 2025)</h1>
-<h2><a class="anchor" id="autotoc_md1057"></a>
+<h2><a class="anchor" id="autotoc_md1053"></a>
 Major Features</h2>
 <ul>
 <li><b>Complete Theme Management System</b>: 5+ built-in themes with custom theme creation and editing</li>
@@ -474,7 +431,7 @@ Major Features</h2>
 <li><b>Symbol Extraction</b>: Extract symbol names and opcodes from assembly files</li>
 <li><b>Modernized Build System</b>: Upgraded to CMake 3.16+ with target-based configuration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1058"></a>
+<h2><a class="anchor" id="autotoc_md1054"></a>
 User Interface &amp; Theming</h2>
 <ul>
 <li><b>Built-in Themes</b>: Classic YAZE, YAZE Tre, Cyberpunk, Sunset, Forest, and Midnight themes</li>
@@ -483,7 +440,7 @@ User Interface &amp; Theming</h2>
 <li><b>Theme Import/Export</b>: Share custom themes with the community</li>
 <li><b>Responsive UI</b>: All UI elements properly adapt to selected themes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1059"></a>
+<h2><a class="anchor" id="autotoc_md1055"></a>
 Enhancements</h2>
 <ul>
 <li><b>Enhanced CLI Tools</b>: Improved z3ed with modern command line interface and TUI</li>
@@ -493,7 +450,7 @@ Enhancements</h2>
 <li><b>ROM-Dependent Testing</b>: Separated testing infrastructure for CI compatibility with 46+ core tests</li>
 <li><b>Comprehensive Documentation</b>: Updated guides, help menus, and API documentation</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1060"></a>
+<h2><a class="anchor" id="autotoc_md1056"></a>
 Technical Improvements</h2>
 <ul>
 <li><b>Modern C++23</b>: Latest language features for performance and safety</li>
@@ -502,7 +459,7 @@ Technical Improvements</h2>
 <li><b>Cross-Platform</b>: Consistent experience across Windows, macOS, and Linux</li>
 <li><b>Performance</b>: Optimized rendering and data processing</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1061"></a>
+<h2><a class="anchor" id="autotoc_md1057"></a>
 Bug Fixes</h2>
 <ul>
 <li><b>Graphics Arena Crash</b>: Fixed double-free error during Arena singleton destruction</li>
@@ -511,48 +468,48 @@ Bug Fixes</h2>
 <li><b>CI/CD</b>: Fixed missing cstring include for Ubuntu compilation</li>
 <li><b>ROM Loading</b>: Fixed file path issues in tests</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1062"></a>
+<h1><a class="anchor" id="autotoc_md1058"></a>
 0.2.2 (December 2024)</h1>
 <ul>
 <li>DungeonMap editing improvements</li>
 <li>ZSCustomOverworld support</li>
 <li>Cross platform file handling</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1063"></a>
+<h1><a class="anchor" id="autotoc_md1059"></a>
 0.2.1 (August 2024)</h1>
 <ul>
 <li>Improved MessageEditor parsing</li>
 <li>Added integration test window</li>
 <li>Bitmap bug fixes</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1064"></a>
+<h1><a class="anchor" id="autotoc_md1060"></a>
 0.2.0 (July 2024)</h1>
 <ul>
 <li>iOS app support</li>
 <li>Graphics Sheet Browser</li>
 <li>Project Files</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1065"></a>
+<h1><a class="anchor" id="autotoc_md1061"></a>
 0.1.0 (May 2024)</h1>
 <ul>
 <li>Bitmap bug fixes</li>
 <li>Error handling improvements</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1066"></a>
+<h1><a class="anchor" id="autotoc_md1062"></a>
 0.0.9 (April 2024)</h1>
 <ul>
 <li>Documentation updates</li>
 <li>Entrance tile types</li>
 <li>Emulator subsystem overhaul</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1067"></a>
+<h1><a class="anchor" id="autotoc_md1063"></a>
 0.0.8 (February 2024)</h1>
 <ul>
 <li>Hyrule Magic Compression</li>
 <li>Dungeon Room Entrances</li>
 <li>PNG Export</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1068"></a>
+<h1><a class="anchor" id="autotoc_md1064"></a>
 0.0.7 (January 2024)</h1>
 <ul>
 <li>OverworldEntities<ul>
@@ -563,20 +520,20 @@ Bug Fixes</h2>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1069"></a>
+<h1><a class="anchor" id="autotoc_md1065"></a>
 0.0.6 (November 2023)</h1>
 <ul>
 <li>ScreenEditor DungeonMap</li>
 <li>Tile16 Editor</li>
 <li>Canvas updates</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1070"></a>
+<h1><a class="anchor" id="autotoc_md1066"></a>
 0.0.5 (November 2023)</h1>
 <ul>
 <li>DungeonEditor</li>
 <li>DungeonObjectRenderer</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1071"></a>
+<h1><a class="anchor" id="autotoc_md1067"></a>
 0.0.4 (November 2023)</h1>
 <ul>
 <li>Tile16Editor</li>
@@ -584,7 +541,7 @@ Bug Fixes</h2>
 <li>Add GfxGroups functions to Rom</li>
 <li>Add Tile16Editor and GfxGroupEditor to OverworldEditor</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1072"></a>
+<h1><a class="anchor" id="autotoc_md1068"></a>
 0.0.3 (October 2023)</h1>
 <ul>
 <li>Emulator subsystem<ul>

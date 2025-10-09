@@ -1,9 +1,5 @@
 var NAVTREEINDEX124 =
 {
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a8b53da98f73eb2558201538d2e58b31b":[35,0,2,0,0,14,14],
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a8b53da98f73eb2558201538d2e58b31b":[34,0,7,2,0,24,14],
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a9464aa3b6c191e50910b315e34a13a53":[35,0,2,0,0,14,11],
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a9464aa3b6c191e50910b315e34a13a53":[34,0,7,2,0,24,11],
 "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a9e5dee05202abd8b5cd3084d30825af2":[35,0,2,0,0,14,1],
 "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a9e5dee05202abd8b5cd3084d30825af2":[34,0,7,2,0,24,1],
 "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a9f499da273986a1f819a2f01a0d8feba":[34,0,7,2,0,24,5],
@@ -249,5 +245,9 @@ var NAVTREEINDEX124 =
 "df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a2a4d06b824e4cead9fea87ae27e1d20b":[34,0,7,11,14,2],
 "df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a3036199cbf19cf6aead7087576146e98":[34,0,7,11,14,7],
 "df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a3aeb4cf3c27a43872cebea89c84ef0aa":[34,0,7,11,14,11],
-"df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a4f4b1de492a0d6f097ba29663fc09950":[34,0,7,11,14,3]
+"df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a4f4b1de492a0d6f097ba29663fc09950":[34,0,7,11,14,3],
+"df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a5dc53f13b882c2f2c6287308cf74e87c":[34,0,7,11,14,14],
+"df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a6bc87e1dc9e35ca3930d07ff7c193146":[34,0,7,11,14,16],
+"df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a8b7cadad3566c56ac0bd7e86c23b859b":[34,0,7,11,14,10],
+"df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a9b34e485c1ce8b7b563c7f944c13b1df":[34,0,7,11,14,15]
 };

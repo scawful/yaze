@@ -1,9 +1,5 @@
 var NAVTREEINDEX94 =
 {
-"dc/d42/md_docs_2B1-build-instructions.html#autotoc_md49":[2,6,3],
-"dc/d42/md_docs_2B1-build-instructions.html#autotoc_md50":[2,7],
-"dc/d42/md_docs_2B1-build-instructions.html#autotoc_md51":[2,7,0],
-"dc/d42/md_docs_2B1-build-instructions.html#autotoc_md52":[2,7,1],
 "dc/d42/md_docs_2B1-build-instructions.html#autotoc_md53":[2,7,2],
 "dc/d42/md_docs_2B1-build-instructions.html#autotoc_md54":[2,7,2,0],
 "dc/d42/md_docs_2B1-build-instructions.html#autotoc_md55":[2,7,2,1],
@@ -249,5 +245,9 @@ var NAVTREEINDEX94 =
 "dc/d5b/structyaze_1_1editor_1_1AgentEditor_1_1SessionInfo.html#a9d60becbc9a7b3d0946a309bee11f15d":[34,0,7,4,19,3,2],
 "dc/d5b/structyaze_1_1editor_1_1AgentEditor_1_1SessionInfo.html#af594a3a9964c7736a5f77dca17c3ef46":[34,0,7,4,19,3,1],
 "dc/d5b/structyaze_1_1editor_1_1AgentEditor_1_1SessionInfo.html#af594a3a9964c7736a5f77dca17c3ef46":[35,0,2,2,7,3,1],
-"dc/d5d/structyaze_1_1emu_1_1ScreenDisplay.html":[34,0,7,5,70]
+"dc/d5d/structyaze_1_1emu_1_1ScreenDisplay.html":[34,0,7,5,70],
+"dc/d5d/structyaze_1_1emu_1_1ScreenDisplay.html":[35,0,2,3,68],
+"dc/d5d/structyaze_1_1emu_1_1ScreenDisplay.html#a29477c432daf3f1e07c17faa9a231b76":[34,0,7,5,70,0],
+"dc/d5d/structyaze_1_1emu_1_1ScreenDisplay.html#a29477c432daf3f1e07c17faa9a231b76":[35,0,2,3,68,0],
+"dc/d5d/structyaze_1_1emu_1_1ScreenDisplay.html#a67069e2bb21f04c86db07d2f930e2c6a":[35,0,2,3,68,2]
 };

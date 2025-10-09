@@ -1,9 +1,5 @@
 var NAVTREEINDEX78 =
 {
-"da/d1c/ollama__ai__service_8h.html":[36,0,3,1,1,1,10],
-"da/d1c/ollama__ai__service_8h_source.html":[36,0,3,1,1,1,10],
-"da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html":[35,0,2,7,1,0],
-"da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html":[34,0,7,9,7,0],
 "da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html#a00aef9c3bd06c0bfa8976cfd6167d8da":[34,0,7,9,7,0,6],
 "da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html#a00aef9c3bd06c0bfa8976cfd6167d8da":[35,0,2,7,1,0,6],
 "da/d22/classyaze_1_1test_1_1integration_1_1AsarIntegrationTest.html#a099eb2643c2986427412196c6d6c11d6":[35,0,2,7,1,0,7],
@@ -249,5 +245,9 @@ var NAVTREEINDEX78 =
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a86871e0ce37c27eb9186265e2e28a408":[35,0,2,5,9,129],
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a888123021e435f89f3c01436fdf63ca3":[35,0,2,5,9,161],
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a888123021e435f89f3c01436fdf63ca3":[34,0,7,7,12,161],
-"da/d2c/classyaze_1_1gui_1_1Canvas.html#a8a674f0b4bc418c55a1b9baee459ed70":[35,0,2,5,9,15]
+"da/d2c/classyaze_1_1gui_1_1Canvas.html#a8a674f0b4bc418c55a1b9baee459ed70":[35,0,2,5,9,15],
+"da/d2c/classyaze_1_1gui_1_1Canvas.html#a8a674f0b4bc418c55a1b9baee459ed70":[34,0,7,7,12,15],
+"da/d2c/classyaze_1_1gui_1_1Canvas.html#a8ab4eaba6694e3b41eb961b30d9ba0fa":[34,0,7,7,12,16],
+"da/d2c/classyaze_1_1gui_1_1Canvas.html#a8ab4eaba6694e3b41eb961b30d9ba0fa":[35,0,2,5,9,16],
+"da/d2c/classyaze_1_1gui_1_1Canvas.html#a8da8e6e91dc044c90ec7d0b3bb8178eb":[34,0,7,7,12,158]
 };

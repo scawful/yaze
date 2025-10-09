@@ -1,9 +1,5 @@
 var NAVTREEINDEX72 =
 {
-"d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html#af07c78bedabb4c501966e5a5ab1d2078":[34,0,7,2,0,3,0,3],
-"d9/d7f/classyaze_1_1core_1_1ProjectManager.html":[34,0,7,3,8],
-"d9/d7f/classyaze_1_1core_1_1ProjectManager.html":[35,0,2,1,6],
-"d9/d7f/classyaze_1_1gui_1_1PaletteWidget.html":[34,0,7,7,35],
 "d9/d7f/classyaze_1_1gui_1_1PaletteWidget.html":[35,0,2,5,32],
 "d9/d7f/classyaze_1_1gui_1_1PaletteWidget.html#a109e7f4aa0f3d4747729f8efd7a7c3f3":[35,0,2,5,32,27],
 "d9/d7f/classyaze_1_1gui_1_1PaletteWidget.html#a109e7f4aa0f3d4747729f8efd7a7c3f3":[34,0,7,7,35,27],
@@ -249,5 +245,9 @@ var NAVTREEINDEX72 =
 "d9/da1/structyaze_1_1emu_1_1Emulator_1_1Bookmark.html#a0c2985b0f928a6ea19cf5de06be55b7c":[35,0,2,3,33,0,0],
 "d9/da1/structyaze_1_1emu_1_1Emulator_1_1Bookmark.html#a0c2985b0f928a6ea19cf5de06be55b7c":[34,0,7,5,35,0,0],
 "d9/da1/structyaze_1_1emu_1_1Emulator_1_1Bookmark.html#ac440f222d2c5536f31ea76cca89805fe":[35,0,2,3,33,0,1],
-"d9/da1/structyaze_1_1emu_1_1Emulator_1_1Bookmark.html#ac440f222d2c5536f31ea76cca89805fe":[34,0,7,5,35,0,1]
+"d9/da1/structyaze_1_1emu_1_1Emulator_1_1Bookmark.html#ac440f222d2c5536f31ea76cca89805fe":[34,0,7,5,35,0,1],
+"d9/da7/namespaceyaze_1_1cli_1_1util_1_1colors.html":[34,0,7,2,22,0],
+"d9/da7/namespaceyaze_1_1cli_1_1util_1_1colors.html#a0630b21dd10043790b7f52042e0ae7a6":[34,0,7,2,22,0,11],
+"d9/da7/namespaceyaze_1_1cli_1_1util_1_1colors.html#a0cf35db81ebf93d53ddf88c6fceeead8":[34,0,7,2,22,0,21],
+"d9/da7/namespaceyaze_1_1cli_1_1util_1_1colors.html#a150b35e92c13ac68d71e10fdc4f3939d":[34,0,7,2,22,0,18]
 };

@@ -1,9 +1,5 @@
 var NAVTREEINDEX93 =
 {
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#a5954a4be7fefc8ba1b9fcac31ce98f9b":[34,0,7,4,48,41],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#a5a25fae04d8f11e23a5bb392ddb0fc52":[34,0,7,4,48,7],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#a5a25fae04d8f11e23a5bb392ddb0fc52":[35,0,2,2,36,7],
-"dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#a5d61d1556a78f3c2bb3d8b800dcc2ba3":[34,0,7,4,48,32],
 "dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#a5d61d1556a78f3c2bb3d8b800dcc2ba3":[35,0,2,2,36,32],
 "dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#a5e92536771b401fef476cb1102847a81":[35,0,2,2,36,33],
 "dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#a5e92536771b401fef476cb1102847a81":[34,0,7,4,48,33],
@@ -249,5 +245,9 @@ var NAVTREEINDEX93 =
 "dc/d42/md_docs_2B1-build-instructions.html#autotoc_md45":[2,6],
 "dc/d42/md_docs_2B1-build-instructions.html#autotoc_md46":[2,6,0],
 "dc/d42/md_docs_2B1-build-instructions.html#autotoc_md47":[2,6,1],
-"dc/d42/md_docs_2B1-build-instructions.html#autotoc_md48":[2,6,2]
+"dc/d42/md_docs_2B1-build-instructions.html#autotoc_md48":[2,6,2],
+"dc/d42/md_docs_2B1-build-instructions.html#autotoc_md49":[2,6,3],
+"dc/d42/md_docs_2B1-build-instructions.html#autotoc_md50":[2,7],
+"dc/d42/md_docs_2B1-build-instructions.html#autotoc_md51":[2,7,0],
+"dc/d42/md_docs_2B1-build-instructions.html#autotoc_md52":[2,7,1]
 };

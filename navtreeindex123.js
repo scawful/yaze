@@ -1,9 +1,5 @@
 var NAVTREEINDEX123 =
 {
-"df/d84/yaze_8cc.html":[36,0,3,4],
-"df/d84/yaze_8cc.html#a6b14017ad1ab9e7da860e59f6145c1d1":[36,0,3,4,14],
-"df/d84/yaze_8cc_source.html":[36,0,3,4],
-"df/d88/agent__ui__theme_8cc.html":[36,0,3,0,1,0,10],
 "df/d88/agent__ui__theme_8cc.html#a0d4c8f93a59e331f4947cf5328160c24":[36,0,3,0,1,0,10,1],
 "df/d88/agent__ui__theme_8cc.html#a5047157c450c5060330c7b1a3cd915d7":[36,0,3,0,1,0,10,3],
 "df/d88/agent__ui__theme_8cc.html#a60f3e5efb99e1ed40ed03da2b5332676":[36,0,3,0,1,0,10,5],
@@ -249,5 +245,9 @@ var NAVTREEINDEX123 =
 "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a80d9bc5c5e76ff1de3c4fc692b7b5166":[34,0,7,2,0,24,9],
 "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a80d9bc5c5e76ff1de3c4fc692b7b5166":[35,0,2,0,0,14,9],
 "df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a88d5a64d5ceb07d099d4fe459caf0fe2":[34,0,7,2,0,24,20],
-"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a88d5a64d5ceb07d099d4fe459caf0fe2":[35,0,2,0,0,14,20]
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a88d5a64d5ceb07d099d4fe459caf0fe2":[35,0,2,0,0,14,20],
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a8b53da98f73eb2558201538d2e58b31b":[35,0,2,0,0,14,14],
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a8b53da98f73eb2558201538d2e58b31b":[34,0,7,2,0,24,14],
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a9464aa3b6c191e50910b315e34a13a53":[35,0,2,0,0,14,11],
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#a9464aa3b6c191e50910b315e34a13a53":[34,0,7,2,0,24,11]
 };

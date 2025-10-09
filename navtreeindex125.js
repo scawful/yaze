@@ -1,9 +1,5 @@
 var NAVTREEINDEX125 =
 {
-"df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a5dc53f13b882c2f2c6287308cf74e87c":[34,0,7,11,14,14],
-"df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a6bc87e1dc9e35ca3930d07ff7c193146":[34,0,7,11,14,16],
-"df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a8b7cadad3566c56ac0bd7e86c23b859b":[34,0,7,11,14,10],
-"df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a9b34e485c1ce8b7b563c7f944c13b1df":[34,0,7,11,14,15],
 "df/dfe/namespaceyaze_1_1zelda3_1_1test.html#a9cb79058f1373fba9657694a721dd363":[34,0,7,11,14,12],
 "df/dfe/namespaceyaze_1_1zelda3_1_1test.html#aa464e7156d7c55191145c9754bebecf0":[34,0,7,11,14,13],
 "df/dfe/namespaceyaze_1_1zelda3_1_1test.html#ab59efd7c45d57cf02c39be4b62cad851":[34,0,7,11,14,8],
@@ -249,5 +245,9 @@ var NAVTREEINDEX125 =
 "namespacemembers_c.html":[34,1,0,2],
 "namespacemembers_d.html":[34,1,0,3],
 "namespacemembers_e.html":[34,1,0,4],
-"namespacemembers_enum.html":[34,1,4]
+"namespacemembers_enum.html":[34,1,4],
+"namespacemembers_eval.html":[34,1,5],
+"namespacemembers_f.html":[34,1,0,5],
+"namespacemembers_func.html":[34,1,1],
+"namespacemembers_func.html":[34,1,1,0]
 };

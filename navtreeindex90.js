@@ -1,9 +1,5 @@
 var NAVTREEINDEX90 =
 {
-"db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465ad121683abd250843d718b565be12a720":[34,0,7,7,3,20,5],
-"db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465adf37164b601153bff2e32463b9ba499d":[34,0,7,7,3,20,6],
-"db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465ae1867dff3f2a34639104503d91af36ea":[34,0,7,7,3,20,8],
-"db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465ae5727e39450296796c46b7cdb3db970c":[34,0,7,7,3,20,1],
 "db/dc3/namespaceyaze_1_1gui_1_1canvas.html#abdcad1e308cbd093d77259209fc11465aff26b0ca50d1a309798061c982ba66d9":[34,0,7,7,3,20,0],
 "db/dc3/namespaceyaze_1_1gui_1_1canvas.html#ac85c5d84b8dd6f8c3f612bd5a1396d0c":[34,0,7,7,3,22],
 "db/dc5/structyaze_1_1gfx_1_1MemoryPool_1_1MemoryBlock.html":[35,0,2,4,18,0],
@@ -249,5 +245,9 @@ var NAVTREEINDEX90 =
 "db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html":[35,0,2,5,10,1],
 "db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html":[34,0,7,7,13,1],
 "db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#a44d410e90b55c0e1bba9d2918e07c48a":[34,0,7,7,13,1,3],
-"db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#a44d410e90b55c0e1bba9d2918e07c48a":[35,0,2,5,10,1,3]
+"db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#a44d410e90b55c0e1bba9d2918e07c48a":[35,0,2,5,10,1,3],
+"db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#a66af67154dadd240edd56e241144343f":[35,0,2,5,10,1,1],
+"db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#a66af67154dadd240edd56e241144343f":[34,0,7,7,13,1,1],
+"db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#a952f3c526f44d7b7ed5f9d2f275060b8":[35,0,2,5,10,1,0],
+"db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html#a952f3c526f44d7b7ed5f9d2f275060b8":[34,0,7,7,13,1,0]
 };

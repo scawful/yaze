@@ -1,9 +1,5 @@
 var NAVTREEINDEX71 =
 {
-"d9/d47/message__editor_8cc.html":[36,0,3,0,1,4,2],
-"d9/d47/message__editor_8cc.html#abbdf1fbff1b3b401e9a764c5da0103d1":[36,0,3,0,1,4,2,1],
-"d9/d47/message__editor_8cc.html#aef9df899003974391ac30afec5b1d4c5":[36,0,3,0,1,4,2,0],
-"d9/d47/message__editor_8cc_source.html":[36,0,3,0,1,4,2],
 "d9/d50/yaze__test__ci_8cc.html":[36,0,4,12],
 "d9/d50/yaze__test__ci_8cc.html#a0ddf1224851353fc92bfbff6f499fa97":[36,0,4,12,0],
 "d9/d50/yaze__test__ci_8cc_source.html":[36,0,4,12],
@@ -249,5 +245,9 @@ var NAVTREEINDEX71 =
 "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html#a8bc2e4952c5d4490a0a72f2052ad5a2f":[34,0,7,2,0,3,0,2],
 "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html#ae00afd0f4ea8a2faf692bd05b35e386f":[35,0,2,0,0,1,0,4],
 "d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html#ae00afd0f4ea8a2faf692bd05b35e386f":[34,0,7,2,0,3,0,4],
-"d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html#af07c78bedabb4c501966e5a5ab1d2078":[35,0,2,0,0,1,0,3]
+"d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html#af07c78bedabb4c501966e5a5ab1d2078":[35,0,2,0,0,1,0,3],
+"d9/d7e/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02general__commands_8cc_03_1_1DescribeOptions.html#af07c78bedabb4c501966e5a5ab1d2078":[34,0,7,2,0,3,0,3],
+"d9/d7f/classyaze_1_1core_1_1ProjectManager.html":[34,0,7,3,8],
+"d9/d7f/classyaze_1_1core_1_1ProjectManager.html":[35,0,2,1,6],
+"d9/d7f/classyaze_1_1gui_1_1PaletteWidget.html":[34,0,7,7,35]
 };

@@ -1,9 +1,5 @@
 var NAVTREEINDEX64 =
 {
-"d8/d46/classyaze_1_1editor_1_1UserSettings.html#a4d7bc80e99ca101960a6764a5f9ead98":[34,0,7,4,78,2],
-"d8/d46/classyaze_1_1editor_1_1UserSettings.html#a4d7bc80e99ca101960a6764a5f9ead98":[35,0,2,2,66,2],
-"d8/d46/classyaze_1_1editor_1_1UserSettings.html#aa7da4b5b62ed4bc86377a311067a60ae":[35,0,2,2,66,6],
-"d8/d46/classyaze_1_1editor_1_1UserSettings.html#aa7da4b5b62ed4bc86377a311067a60ae":[34,0,7,4,78,6],
 "d8/d46/classyaze_1_1editor_1_1UserSettings.html#abd246cd1cfc54409eec3abb2af49e538":[34,0,7,4,78,3],
 "d8/d46/classyaze_1_1editor_1_1UserSettings.html#abd246cd1cfc54409eec3abb2af49e538":[35,0,2,2,66,3],
 "d8/d46/classyaze_1_1editor_1_1UserSettings.html#af304f257b1beb9bdf7d9121266c34d13":[35,0,2,2,66,4],
@@ -249,5 +245,9 @@ var NAVTREEINDEX64 =
 "d8/d72/structyaze_1_1emu_1_1Color.html#ae21f87ce751f581f450d28d405247800":[34,0,7,5,27,2],
 "d8/d72/structyaze_1_1emu_1_1Color.html#ae21f87ce751f581f450d28d405247800":[35,0,2,3,25,2],
 "d8/d73/md_docs_2E3-api-reference.html":[12],
-"d8/d73/md_docs_2E3-api-reference.html#autotoc_md551":[12,0]
+"d8/d73/md_docs_2E3-api-reference.html#autotoc_md551":[12,0],
+"d8/d73/md_docs_2E3-api-reference.html#autotoc_md552":[12,0,0],
+"d8/d73/md_docs_2E3-api-reference.html#autotoc_md553":[12,0,1],
+"d8/d73/md_docs_2E3-api-reference.html#autotoc_md554":[12,1],
+"d8/d73/md_docs_2E3-api-reference.html#autotoc_md555":[12,1,0]
 };
