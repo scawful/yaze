@@ -28,11 +28,22 @@ target_link_libraries(rom_patch_utility
   ${CMAKE_THREAD_LIBS_INIT}
 )
 
+# Add dungeon_test_harness tool
+add_executable(dungeon_test_harness
+  dungeon_test_harness.cc
+)
+
+target_link_libraries(dungeon_test_harness
+  yaze_core
+  ${CMAKE_THREAD_LIBS_INIT}
+)
+
 # Windows stack size configuration for helper tools
 set(HELPER_TOOLS
   overworld_golden_data_extractor
   extract_vanilla_values
   rom_patch_utility
+  dungeon_test_harness
 )
 
 foreach(TOOL ${HELPER_TOOLS})
@@ -48,6 +59,6 @@ foreach(TOOL ${HELPER_TOOLS})
 endforeach()
 
 # Install tools to bin directory
-install(TARGETS overworld_golden_data_extractor extract_vanilla_values rom_patch_utility
+install(TARGETS overworld_golden_data_extractor extract_vanilla_values rom_patch_utility dungeon_test_harness
   DESTINATION bin
 )

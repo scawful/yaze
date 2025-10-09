@@ -12,6 +12,9 @@ set(
   app/emu/debug/disassembly_viewer.cc
   app/emu/debug/breakpoint_manager.cc
   app/emu/debug/watchpoint_manager.cc
+  app/emu/input/input_backend.cc
+  app/emu/input/input_manager.cc
+  app/emu/ui/input_handler.cc
   app/emu/cpu/cpu.cc
   app/emu/video/ppu.cc
   app/emu/memory/dma.cc
@@ -922,6 +925,22 @@ source_group("Application\\Emulator\\Video" FILES
   app/emu/video/ppu.cc
   app/emu/video/ppu.h
   app/emu/video/ppu_registers.h
+)
+
+# Input System (abstracted for SDL2/SDL3)
+source_group("Application\\Emulator\\Input" FILES
+  app/emu/input/input_backend.cc
+  app/emu/input/input_backend.h
+  app/emu/input/input_manager.cc
+  app/emu/input/input_manager.h
+)
+
+# Emulator UI System
+source_group("Application\\Emulator\\UI" FILES
+  app/emu/ui/input_handler.cc
+  app/emu/ui/input_handler.h
+  app/emu/ui/emulator_ui.h
+  app/emu/ui/debugger_ui.h
 )
 
 # Debug System

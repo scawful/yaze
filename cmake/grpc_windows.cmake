@@ -1,5 +1,13 @@
 # Windows-optimized gRPC configuration using vcpkg
 # This file provides fast gRPC builds on Windows using pre-compiled packages
+#
+# Benefits:
+# - vcpkg build: ~5 minutes (pre-compiled)
+# - FetchContent build: ~45 minutes (compile from source)
+#
+# To use vcpkg (recommended):
+#   vcpkg install grpc:x64-windows
+#   cmake -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake ..
 
 cmake_minimum_required(VERSION 3.16)
 
@@ -53,8 +61,18 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC)
     set(YAZE_GRPC_CONFIGURED TRUE PARENT_SCOPE)
     return()
   else()
-    message(WARNING "vcpkg gRPC not found. Install with: vcpkg install grpc:x64-windows")
-    message(STATUS "Falling back to FetchContent build (this will be slow on first build)")
+    message(WARNING "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    message(WARNING "  vcpkg gRPC not found")
+    message(WARNING "  For faster builds (5 min vs 45 min), install:")
+    message(WARNING "  ")
+    message(WARNING "    vcpkg install grpc:x64-windows")
+    message(WARNING "  ")
+    message(WARNING "  Then configure with:")
+    message(WARNING "    cmake -DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake ..")
+    message(WARNING "  ")
+    message(WARNING "  Falling back to FetchContent (slow but works)")
+    message(WARNING "  Using gRPC v1.67.1 (MSVC-compatible)")
+    message(WARNING "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
   endif()
 endif()
 
