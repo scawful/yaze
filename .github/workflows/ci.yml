@@ -17,9 +17,30 @@ on:
       - 'cmake/**'
       - 'CMakeLists.txt'
       - '.github/workflows/**'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build Type (Debug, Release, RelWithDebInfo)'
+        required: false
+        default: 'RelWithDebInfo'
+        type: choice
+        options:
+          - Debug
+          - Release
+          - RelWithDebInfo
+      run_sanitizers:
+        description: 'Run memory sanitizers'
+        required: false
+        default: false
+        type: boolean
+      upload_artifacts:
+        description: 'Upload build artifacts'
+        required: false
+        default: false
+        type: boolean
 
 env:
-  BUILD_TYPE: RelWithDebInfo
+  BUILD_TYPE: ${{ github.event.inputs.build_type || 'RelWithDebInfo' }}
 
 jobs:
   build-and-test:
@@ -48,7 +69,20 @@ jobs:
       with:
         submodules: recursive
       
-    - name: Set up vcpkg (Windows only)
+    - name: Setup vcpkg Cache (Windows)
+      if: runner.os == 'Windows'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.workspace }}/vcpkg
+          !${{ github.workspace }}/vcpkg/buildtrees
+          !${{ github.workspace }}/vcpkg/packages
+          !${{ github.workspace }}/vcpkg/downloads
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-
+    
+    - name: Set up vcpkg (Windows)
       if: runner.os == 'Windows'
       uses: lukka/run-vcpkg@v11
       id: vcpkg
@@ -61,7 +95,7 @@ jobs:
         vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'  # 2024.07.12 release
         runVcpkgInstall: false  # Let CMake handle installation via manifest mode
     
-    - name: Retry vcpkg setup (Windows only)
+    - name: Retry vcpkg setup (Windows)
       if: runner.os == 'Windows' && steps.vcpkg.outcome == 'failure'
       uses: lukka/run-vcpkg@v11
       env:
@@ -72,6 +106,24 @@ jobs:
         vcpkgGitCommitId: 'a42af01b72c28a8e1d7b48107b33e4f286a55ef6'
         runVcpkgInstall: false
         doNotUpdateVcpkg: true  # Use existing clone on retry
+    
+    - name: Diagnose vcpkg (Windows)
+      if: runner.os == 'Windows' && (steps.vcpkg.outcome == 'failure' || steps.vcpkg.outcome == 'success')
+      shell: pwsh
+      run: |
+        Write-Host "=== vcpkg Diagnostics ===" -ForegroundColor Cyan
+        Write-Host "vcpkg directory: ${{ github.workspace }}/vcpkg"
+        
+        if (Test-Path "${{ github.workspace }}/vcpkg/vcpkg.exe") {
+          Write-Host "✅ vcpkg.exe found" -ForegroundColor Green
+          & "${{ github.workspace }}/vcpkg/vcpkg.exe" version
+        } else {
+          Write-Host "❌ vcpkg.exe not found" -ForegroundColor Red
+        }
+        
+        Write-Host "`nEnvironment:" -ForegroundColor Cyan
+        Write-Host "VCPKG_DEFAULT_TRIPLET: $env:VCPKG_DEFAULT_TRIPLET"
+        Write-Host "Workspace: ${{ github.workspace }}"
 
     - name: Install Dependencies
       id: deps
@@ -116,6 +168,44 @@ jobs:
           brew install ninja pkg-config
         fi
 
+    - name: Pre-configure Diagnostics (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Write-Host "=== Pre-configure Diagnostics ===" -ForegroundColor Cyan
+        Write-Host "Build Type: ${{ env.BUILD_TYPE }}"
+        Write-Host "Workspace: ${{ github.workspace }}"
+        
+        # Check Visual Studio installation
+        $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        if (Test-Path $vsWhere) {
+          Write-Host "`nVisual Studio Installation:" -ForegroundColor Cyan
+          & $vsWhere -latest -property displayName
+          & $vsWhere -latest -property installationVersion
+        }
+        
+        # Check CMake
+        Write-Host "`nCMake Version:" -ForegroundColor Cyan
+        cmake --version
+        
+        # Verify vcpkg toolchain
+        $toolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake"
+        if (Test-Path $toolchain) {
+          Write-Host "✅ vcpkg toolchain found at: $toolchain" -ForegroundColor Green
+        } else {
+          Write-Host "⚠️ vcpkg toolchain not found at: $toolchain" -ForegroundColor Yellow
+        }
+        
+        # Show vcpkg manifest
+        if (Test-Path "vcpkg.json") {
+          Write-Host "`nvcpkg.json contents:" -ForegroundColor Cyan
+          Get-Content "vcpkg.json" | Write-Host
+        }
+        
+        # Show available disk space
+        Write-Host "`nDisk Space:" -ForegroundColor Cyan
+        Get-PSDrive C | Select-Object Used,Free | Format-Table -AutoSize
+    
     - name: Configure
       id: configure
       shell: bash
@@ -125,11 +215,13 @@ jobs:
         set -e
         echo "::group::CMake Configuration"
         if [[ "${{ runner.os }}" == "Windows" ]]; then
+          # Windows-specific configuration with enhanced error handling
           cmake -B build -G "Visual Studio 17 2022" -A x64 \
             -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
             -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_TARGET_TRIPLET=x64-windows-static \
             -DVCPKG_MANIFEST_MODE=ON \
+            -DVCPKG_INSTALL_OPTIONS="--debug" \
             -DYAZE_MINIMAL_BUILD=ON \
             -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
         else
@@ -177,6 +269,77 @@ jobs:
           grep -i "error" build.log | head -20 || true
           echo "::endgroup::"
         fi
+    
+    - name: Windows Build Diagnostics
+      if: failure() && runner.os == 'Windows' && steps.build.outcome == 'failure'
+      shell: pwsh
+      run: |
+        Write-Host "=== Windows Build Diagnostics ===" -ForegroundColor Red
+        
+        # Check for vcpkg-related errors
+        if (Select-String -Path "build.log" -Pattern "vcpkg" -Quiet) {
+          Write-Host "`nvcpkg-related errors found:" -ForegroundColor Yellow
+          Select-String -Path "build.log" -Pattern "vcpkg.*error" -CaseSensitive:$false | Select-Object -First 10
+        }
+        
+        # Check for linker errors
+        if (Select-String -Path "build.log" -Pattern "LNK[0-9]{4}" -Quiet) {
+          Write-Host "`nLinker errors found:" -ForegroundColor Yellow
+          Select-String -Path "build.log" -Pattern "LNK[0-9]{4}" | Select-Object -First 10
+        }
+        
+        # Check for missing dependencies
+        if (Select-String -Path "build.log" -Pattern "fatal error.*No such file" -Quiet) {
+          Write-Host "`nMissing file errors found:" -ForegroundColor Yellow
+          Select-String -Path "build.log" -Pattern "fatal error.*No such file" | Select-Object -First 10
+        }
+        
+        # List vcpkg installed packages if available
+        $vcpkgExe = "${{ github.workspace }}/vcpkg/vcpkg.exe"
+        if (Test-Path $vcpkgExe) {
+          Write-Host "`nInstalled vcpkg packages:" -ForegroundColor Cyan
+          & $vcpkgExe list
+        }
+    
+    - name: Post-Build Diagnostics (Windows)
+      if: runner.os == 'Windows' && steps.build.outcome == 'success'
+      shell: pwsh
+      run: |
+        Write-Host "=== Post-Build Diagnostics ===" -ForegroundColor Green
+        
+        $binPath = "build/bin/${{ env.BUILD_TYPE }}"
+        if (Test-Path $binPath) {
+          Write-Host "`nBuilt executables and libraries:" -ForegroundColor Cyan
+          Get-ChildItem -Path $binPath -Include *.exe,*.dll -Recurse | ForEach-Object {
+            $size = [math]::Round($_.Length / 1MB, 2)
+            Write-Host "  $($_.Name) - ${size} MB"
+          }
+          
+          # Check for specific yaze executable
+          if (Test-Path "$binPath/yaze.exe") {
+            Write-Host "`n✅ yaze.exe successfully built" -ForegroundColor Green
+            $yazeSize = [math]::Round((Get-Item "$binPath/yaze.exe").Length / 1MB, 2)
+            Write-Host "   Size: ${yazeSize} MB"
+          } else {
+            Write-Host "`n⚠️ yaze.exe not found" -ForegroundColor Yellow
+          }
+        } else {
+          Write-Host "⚠️ Build output directory not found: $binPath" -ForegroundColor Yellow
+        }
+    
+    - name: Upload Build Artifacts (Windows)
+      if: |
+        runner.os == 'Windows' && 
+        steps.build.outcome == 'success' && 
+        (github.event.inputs.upload_artifacts == 'true' || github.event_name == 'push')
+      uses: actions/upload-artifact@v4
+      with:
+        name: yaze-windows-ci-${{ github.run_number }}
+        path: |
+          build/bin/${{ env.BUILD_TYPE }}/*.exe
+          build/bin/${{ env.BUILD_TYPE }}/*.dll
+        if-no-files-found: warn
+        retention-days: 3
 
     - name: Test (Core)
       id: test_core
@@ -226,12 +389,28 @@ jobs:
         echo "## Build Summary - ${{ matrix.name }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
+        # Workflow trigger info
+        echo "### Workflow Information" >> $GITHUB_STEP_SUMMARY
+        echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          echo "- **Manual Build Type**: ${{ github.event.inputs.build_type }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Upload Artifacts**: ${{ github.event.inputs.upload_artifacts }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Run Sanitizers**: ${{ github.event.inputs.run_sanitizers }}" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
         # Configuration info
         echo "### Configuration" >> $GITHUB_STEP_SUMMARY
         echo "- **Platform**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Compiler**: ${{ matrix.cc }}/${{ matrix.cxx }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Build Type**: ${{ env.BUILD_TYPE }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Minimal Build**: ON" >> $GITHUB_STEP_SUMMARY
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          echo "- **vcpkg Triplet**: x64-windows-static" >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ steps.vcpkg.outcome }}" != "" ]]; then
+            echo "- **vcpkg Setup**: ${{ steps.vcpkg.outcome }}" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
         echo "" >> $GITHUB_STEP_SUMMARY
         
         # Build status
@@ -262,6 +441,15 @@ jobs:
           echo "- ⏭️ Additional Tests: Skipped" >> $GITHUB_STEP_SUMMARY
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Artifacts info
+        if [[ "${{ runner.os }}" == "Windows" && "${{ steps.build.outcome }}" == "success" ]]; then
+          if [[ "${{ github.event.inputs.upload_artifacts }}" == "true" || "${{ github.event_name }}" == "push" ]]; then
+            echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+            echo "- 📦 Windows build artifacts uploaded: yaze-windows-ci-${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+        fi
         
         # Test results
         if [ -f build/core_test_results.xml ]; then
@@ -300,7 +488,9 @@ jobs:
   memory-sanitizer:
     name: "🔬 Memory Sanitizer"
     runs-on: ubuntu-22.04
-    if: github.event_name == 'pull_request'
+    if: |
+      github.event_name == 'pull_request' || 
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_sanitizers == 'true')
     
     steps:
     - uses: actions/checkout@v4
