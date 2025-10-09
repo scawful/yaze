@@ -20,6 +20,7 @@ var classyaze_1_1editor_1_1EditorManager =
     [ "SwitchToEditor", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a3760b587fd7b18f85187f9c86a1a6f53", null ],
     [ "DrawWelcomeScreen", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#aa1e288deb163d1a710c61e7125fbd487", null ],
     [ "DrawRomSelector", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#add1f35c5ca58aa1b9a6839173565cbe0", null ],
+    [ "DrawContextSensitiveCardControl", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a14e392a30ed9e0b410b497cc87e30409", null ],
     [ "LoadRom", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a9e31d2cdbb2d802bf8f2a8f458cb8edf", null ],
     [ "LoadAssets", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ae010594950b0cc8a3fc477163a6934cc", null ],
     [ "SaveRom", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#aee4518f88461d82f6f90834d98a271a4", null ],

@@ -1,5 +1,17 @@
 var NAVTREEINDEX41 =
 {
+"d5/d1f/namespaceyaze_1_1zelda3.html#a74cb33c6b3fbad72452e9b418ef67073":[33,0,7,11,336],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a7745249eeb5c180332b4a0b68f28c4fc":[33,0,7,11,236],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a774997795015cda5de65dd2621c1284a":[33,0,7,11,82],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a77e91b2dd4b4e263d21875344f253b44":[33,0,7,11,251],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a787eb7428db7c6be870acde35df19ba0":[33,0,7,11,182],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a7a48eac13151e1d97f3541eb802fd65c":[33,0,7,11,473],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a7b3fef27d6130dc2c34910603eeaa9f8":[33,0,7,11,320],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a7c58c54234df6bf6ce117f8a9c43a1bc":[33,0,7,11,106],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a7c7f8613eefb3d91b45e9e05f25c2ccd":[33,0,7,11,357],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a7cf9334bf1e1a7ffa0769d374e196e42":[33,0,7,11,409],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a7d2452ced36c98f46bc58efc4c0c5a12":[33,0,7,11,190],
+"d5/d1f/namespaceyaze_1_1zelda3.html#a7d300e24313ab04f10cff25a2a5f3dfa":[33,0,7,11,321],
 "d5/d1f/namespaceyaze_1_1zelda3.html#a7d6dd55b37251e4cadbe4d4db5549760":[33,0,7,11,396],
 "d5/d1f/namespaceyaze_1_1zelda3.html#a7e24e387dbfd3eb3e911b7e079d76ad7":[33,0,7,11,157],
 "d5/d1f/namespaceyaze_1_1zelda3.html#a804c4df997f0f44becc0bfe057782907":[33,0,7,11,466],
@@ -237,17 +249,5 @@ var NAVTREEINDEX41 =
 "d5/d23/structyaze_1_1gui_1_1AssetObject.html#a17a4ac7233ca97494d69fa581292d6c6":[34,0,2,5,3,2],
 "d5/d23/structyaze_1_1gui_1_1AssetObject.html#a17a4ac7233ca97494d69fa581292d6c6":[33,0,7,7,6,2],
 "d5/d23/structyaze_1_1gui_1_1AssetObject.html#a1e6a88999f94ceb0488c1f67a5ca0631":[34,0,2,5,3,1],
-"d5/d23/structyaze_1_1gui_1_1AssetObject.html#a1e6a88999f94ceb0488c1f67a5ca0631":[33,0,7,7,6,1],
-"d5/d23/structyaze_1_1gui_1_1AssetObject.html#a87ca7304e6ddd870b881396817f56340":[34,0,2,5,3,0],
-"d5/d23/structyaze_1_1gui_1_1AssetObject.html#a87ca7304e6ddd870b881396817f56340":[33,0,7,7,6,0],
-"d5/d28/classyaze_1_1gfx_1_1GfxContext.html":[34,0,2,4,11],
-"d5/d28/classyaze_1_1gfx_1_1GfxContext.html":[33,0,7,6,13],
-"d5/d28/resource__context__builder_8h.html":[35,0,3,1,1,5,3],
-"d5/d28/resource__context__builder_8h_source.html":[35,0,3,1,1,5,3],
-"d5/d30/structyaze_1_1gui_1_1SpriteAsset.html":[33,0,7,7,40],
-"d5/d30/structyaze_1_1gui_1_1SpriteAsset.html":[34,0,2,5,37],
-"d5/d30/structyaze_1_1gui_1_1SpriteAsset.html#ac1bd6e5a19545d11cffae871fd8bf1ff":[33,0,7,7,40,0],
-"d5/d30/structyaze_1_1gui_1_1SpriteAsset.html#ac1bd6e5a19545d11cffae871fd8bf1ff":[34,0,2,5,37,0],
-"d5/d31/classyaze_1_1gfx_1_1SnesColor.html":[33,0,7,6,35],
-"d5/d31/classyaze_1_1gfx_1_1SnesColor.html":[34,0,2,4,33]
+"d5/d23/structyaze_1_1gui_1_1AssetObject.html#a1e6a88999f94ceb0488c1f67a5ca0631":[33,0,7,7,6,1]
 };

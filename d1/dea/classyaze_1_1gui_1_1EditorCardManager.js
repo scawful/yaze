@@ -19,6 +19,8 @@ var classyaze_1_1gui_1_1EditorCardManager =
     [ "GetCardInfo", "d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#acb71dac7735025f829aaac21b6d59490", null ],
     [ "DrawViewMenuSection", "d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#a15b3034e7bcf07f13b220de0d72ce9d8", null ],
     [ "DrawViewMenuAll", "d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#aef1a0020d1dfcff0108465b2dfe39c79", null ],
+    [ "DrawCompactCardControl", "d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#a780d7479e2106b0007d7eaf13d1fe040", null ],
+    [ "DrawInlineCardToggles", "d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#a00b2543c2901e853783e07022d0b363b", null ],
     [ "DrawCardBrowser", "d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#a647daf0cb2dbb1a65f3fa2d51fb54501", null ],
     [ "DrawCardBrowserTable", "d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#ae0ca9d7567296d4b3938b09a12a25a83", null ],
     [ "DrawPresetsTab", "d1/dea/classyaze_1_1gui_1_1EditorCardManager.html#a4359b4f186e57a619c4bca2c6eb9fe20", null ],

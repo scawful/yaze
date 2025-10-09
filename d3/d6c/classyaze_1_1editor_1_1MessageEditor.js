@@ -40,5 +40,9 @@ var classyaze_1_1editor_1_1MessageEditor =
     [ "current_font_gfx16_canvas_", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#a65344708b40f7a237196c635a25844a0", null ],
     [ "message_text_box_", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#ad8509fbb55cdbaa59f94a9b9fbf8fc6d", null ],
     [ "rom_", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#a4897a547be5d7ad80aabfc55a000d477", null ],
-    [ "expanded_message_bin_", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#aae9675b240055c3208afbc59f58175e1", null ]
+    [ "expanded_message_bin_", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#aae9675b240055c3208afbc59f58175e1", null ],
+    [ "show_message_list_", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#a76cba312cda8873ecd4da29e7c0f5d68", null ],
+    [ "show_message_editor_", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#a81038eb7a8d922d5fc52a4b2e7d0ecad", null ],
+    [ "show_font_atlas_", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#ae14a27e6c153a7f780878f99c8b08e29", null ],
+    [ "show_dictionary_", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html#ac964c6af93fda2fc4ef9a21a8ec59498", null ]
 ];

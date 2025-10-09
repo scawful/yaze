@@ -170,7 +170,7 @@ var searchData=
   ['applyv3patch_167',['ApplyV3Patch',['../db/d1c/classROMPatchUtility.html#a5a874ba6cc6d106ffe9842a45c3f7326',1,'ROMPatchUtility']]],
   ['applyversionpatch_168',['applyversionpatch',['../dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html#a3039c1a5b92721cc4d3c8ab41b947b18',1,'yaze::test::ZSCustomOverworldTestSuite::ApplyVersionPatch()'],['../d1/de2/classyaze_1_1test_1_1ZSCustomOverworldUpgradeTest.html#a2b97e8416de04eb3b6c44f3498f026b8',1,'yaze::test::ZSCustomOverworldUpgradeTest::ApplyVersionPatch()']]],
   ['applyzscustomoverworldasm_169',['ApplyZSCustomOverworldASM',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#a1bf68d3b386fe5d05e77fdd603673176',1,'yaze::editor::OverworldEditor']]],
-  ['apu_170',['apu',['../d7/da7/classyaze_1_1emu_1_1Apu.html#ae8628974cd4e63169d4d5a7d81b34de6',1,'yaze::emu::Apu::Apu()'],['../d3/d15/classyaze_1_1emu_1_1Snes.html#a5f4b8b830b46e8b590319bd24dec91fd',1,'yaze::emu::Snes::apu() -&gt; Apu &amp;']]],
+  ['apu_170',['apu',['../d3/d15/classyaze_1_1emu_1_1Snes.html#a5f4b8b830b46e8b590319bd24dec91fd',1,'yaze::emu::Snes::apu()'],['../d7/da7/classyaze_1_1emu_1_1Apu.html#ae8628974cd4e63169d4d5a7d81b34de6',1,'yaze::emu::Apu::Apu()']]],
   ['apu_5fhandshake_5ftracker_171',['apu_handshake_tracker',['../d3/d15/classyaze_1_1emu_1_1Snes.html#a26efe770d14071f17b2e98f2c6df6aee',1,'yaze::emu::Snes']]],
   ['apuhandshaketracker_172',['ApuHandshakeTracker',['../db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#ae2cf51c5e43ca0faf61d04b5f50ac2a1',1,'yaze::emu::debug::ApuHandshakeTracker']]],
   ['area_5fgraphics_173',['area_graphics',['../d9/dcc/classyaze_1_1zelda3_1_1OverworldMap.html#a4896812c223749b7ea5d56337afb43de',1,'yaze::zelda3::OverworldMap']]],
