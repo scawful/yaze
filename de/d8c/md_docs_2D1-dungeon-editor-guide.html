@@ -101,10 +101,10 @@ $(document).ready(function(){initNavTree('de/d8c/md_docs_2D1-dungeon-editor-guid
   <div class="headertitle"><div class="title">Dungeon Editor Complete Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md293"></a> <b>Last Updated</b>: October 7, 2025 <br  />
- <b>Status</b>: ✅ Core features complete, ready for production use</p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md298"></a> <b>Last Updated</b>: October 9, 2025 <br  />
+ <b>Status</b>: EXPERIMENTAL - Core features implemented but requires thorough testing</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md295"></a>
+<h1><a class="anchor" id="autotoc_md300"></a>
 Table of Contents</h1>
 <ul>
 <li>Overview</li>
@@ -117,25 +117,25 @@ Table of Contents</h1>
 <li>Reference</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md297"></a>
+<h1><a class="anchor" id="autotoc_md302"></a>
 Overview</h1>
-<p>The Dungeon Editor V2 is a complete modular refactoring using an independent EditorCard system, providing full dungeon editing capabilities that match and exceed ZScream functionality.</p>
-<h2><a class="anchor" id="autotoc_md298"></a>
+<p>The Dungeon Editor uses a modular card-based architecture for editing dungeon rooms in The Legend of Zelda: A Link to the Past.</p>
+<p><b>WARNING</b>: This editor is currently experimental. While core features are implemented, thorough testing is still required before production use.</p>
+<h2><a class="anchor" id="autotoc_md303"></a>
 Key Capabilities</h2>
 <ul>
-<li>✅ Visual room editing with 512x512 canvas</li>
-<li>✅ Object placement with pattern-based rendering</li>
-<li>✅ Live palette editing with instant preview</li>
-<li>✅ Independent dockable UI cards</li>
-<li>✅ Cross-editor navigation</li>
-<li>✅ Multi-room editing</li>
-<li>✅ Automatic graphics loading</li>
-<li>✅ Error recovery system</li>
+<li>Visual room editing with 512x512 canvas</li>
+<li>Object placement with pattern-based rendering</li>
+<li>Live palette editing with instant preview</li>
+<li>Independent dockable UI cards</li>
+<li>Multi-room editing support</li>
+<li>Automatic graphics loading</li>
+<li>Error recovery system</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md300"></a>
+<h1><a class="anchor" id="autotoc_md305"></a>
 Architecture</h1>
-<h2><a class="anchor" id="autotoc_md301"></a>
+<h2><a class="anchor" id="autotoc_md306"></a>
 Component Hierarchy</h2>
 <div class="fragment"><div class="line">DungeonEditorV2 (Coordinator)</div>
 <div class="line">│</div>
@@ -162,7 +162,7 @@ Component Hierarchy</h2>
 <div class="line">        ├── bg1_buffer_ (BackgroundBuffer)</div>
 <div class="line">        ├── bg2_buffer_ (BackgroundBuffer)</div>
 <div class="line">        └── DungeonCanvasViewer</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md302"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md307"></a>
 Independent Card Architecture</h2>
 <p><b>Key Principle</b>: Each card is a top-level <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> window with NO table layout or window hierarchy inheritance.</p>
 <div class="fragment"><div class="line"><span class="comment">// Each card is completely independent</span></div>
@@ -199,9 +199,9 @@ Independent Card Architecture</h2>
 <li>✅ <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> handles all docking logic</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md304"></a>
+<h1><a class="anchor" id="autotoc_md309"></a>
 Implemented Features</h1>
-<h2><a class="anchor" id="autotoc_md305"></a>
+<h2><a class="anchor" id="autotoc_md310"></a>
 1. Rooms List Card</h2>
 <div class="fragment"><div class="line">Features:</div>
 <div class="line">- Filter/search functionality</div>
@@ -209,7 +209,7 @@ Implemented Features</h1>
 <div class="line">- Click to open room card</div>
 <div class="line">- Double-click <span class="keywordflow">for</span> instant focus</div>
 <div class="line">- Shows all 296 rooms (0x00-0x127)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md306"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md311"></a>
 2. Entrances List Card (ZScream Parity)</h2>
 <div class="fragment"><div class="line">Configuration UI:</div>
 <div class="line">- Entrance ID, Room ID, Dungeon ID</div>
@@ -224,7 +224,7 @@ Implemented Features</h1>
 <div class="line">- Format: [HEX_ID] Entrance Name -&gt; Room Name</div>
 <div class="line">- Shows entrance-to-room relationship</div>
 <div class="line">- Click to select and open associated room</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md307"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md312"></a>
 3. Room Matrix Card (16x19 Grid)</h2>
 <div class="fragment"><div class="line">Layout:</div>
 <div class="line">- 16 columns × 19 rows = 304 cells</div>
@@ -247,7 +247,7 @@ Implemented Features</h1>
 <li>Before: 2-4 seconds (lazy loading 296 rooms)</li>
 <li>After: &lt; 50ms (pure math, no I/O)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md308"></a>
+<h2><a class="anchor" id="autotoc_md313"></a>
 4. Room Graphics Card</h2>
 <div class="fragment"><div class="line">Features:</div>
 <div class="line">- Shows blockset graphics <span class="keywordflow">for</span> selected room</div>
@@ -255,7 +255,7 @@ Implemented Features</h1>
 <div class="line">- Auto-loads when room changes</div>
 <div class="line">- Up to 16 graphics blocks</div>
 <div class="line">- Toggleable via toolbar</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md309"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md314"></a>
 5. Object Editor Card (Unified)</h2>
 <div class="fragment"><div class="line">Improved UX:</div>
 <div class="line">- Mode controls at top: None | Place | Select | Delete</div>
@@ -269,7 +269,7 @@ Implemented Features</h1>
 <div class="line">- 32x32 preview icons</div>
 <div class="line">- Filter/search functionality</div>
 <div class="line">- Shows <span class="keywordtype">object</span> ID and type</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md310"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md315"></a>
 6. Palette Editor Card</h2>
 <div class="fragment"><div class="line">Features:</div>
 <div class="line">- Palette selector dropdown (20 dungeon palettes)</div>
@@ -284,7 +284,7 @@ Implemented Features</h1>
 <div class="line">Live Updates:</div>
 <div class="line">- Edit palette → all open rooms re-render automatically</div>
 <div class="line">- Callback system decouples palette editor from rooms</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md311"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md316"></a>
 7. Room Cards (Auto-Loading)</h2>
 <div class="fragment"><div class="line">Improvements:</div>
 <div class="line">- Auto-loads graphics when properties change</div>
@@ -298,7 +298,7 @@ Implemented Features</h1>
 <div class="line">- Can be undocked independently</div>
 <div class="line">- Maintains session state</div>
 <div class="ttc" id="atest__conversation__minimal_8cc_html_ae66f6b31b5ad750f1fe042a706a4e3d4"><div class="ttname"><a href="../../d1/dd0/test__conversation__minimal_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a></div><div class="ttdeci">int main()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/dd0/test__conversation__minimal_8cc_source.html#l00010">test_conversation_minimal.cc:10</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md312"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md317"></a>
 8. Object Drawing System</h2>
 <div class="fragment"><div class="line">ObjectDrawer (Native C++ Rendering):</div>
 <div class="line">- Pattern-based tile placement</div>
@@ -317,7 +317,7 @@ Implemented Features</h1>
 <div class="line"><span class="comment">// Simplified from 100+ lines to 3 lines</span></div>
 <div class="line">ObjectDrawer drawer(rom_);</div>
 <div class="line">drawer.DrawObjectList(tile_objects_, bg1_buffer_, bg2_buffer_);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md313"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md318"></a>
 9. Cross-Editor Navigation</h2>
 <div class="fragment"><div class="line">From Overworld Editor:</div>
 <div class="line">editor_manager-&gt;JumpToDungeonRoom(room_id);</div>
@@ -331,7 +331,7 @@ Implemented Features</h1>
 <div class="line">- Focus() method brings window to front</div>
 <div class="line">- Works with docked and floating windows</div>
 <div class="line">- Avoids duplicate cards</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md314"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md319"></a>
 10. Error Handling &amp; Recovery</h2>
 <div class="fragment"><div class="line">Custom <a class="code hl_namespace" href="../../df/de4/namespaceImGui.html">ImGui</a> Assertion Handler:</div>
 <div class="line">- Catches UI assertion failures</div>
@@ -348,9 +348,9 @@ Implemented Features</h1>
 <div class="line">- User-friendly error handling</div>
 <div class="ttc" id="anamespaceImGui_html"><div class="ttname"><a href="../../df/de4/namespaceImGui.html">ImGui</a></div><div class="ttdef"><b>Definition</b> <a href="../../de/d4c/input_8cc_source.html#l00020">input.cc:20</a></div></div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md316"></a>
+<h1><a class="anchor" id="autotoc_md321"></a>
 Technical Details</h1>
-<h2><a class="anchor" id="autotoc_md317"></a>
+<h2><a class="anchor" id="autotoc_md322"></a>
 Rendering Pipeline</h2>
 <div class="fragment"><div class="line">1. Room::CopyRoomGraphicsToBuffer()</div>
 <div class="line">   → Loads tile graphics into current_gfx16_ [128×N indexed pixels]</div>
@@ -377,7 +377,7 @@ Rendering Pipeline</h2>
 <div class="line"> </div>
 <div class="line">7. DungeonCanvasViewer::RenderRoomBackgroundLayers()</div>
 <div class="line">   → Draw texture to canvas with ImGui::Image()</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md318"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md323"></a>
 SNES Graphics Format</h2>
 <p><b>8-bit Indexed Color (3BPP for dungeons)</b>: </p><div class="fragment"><div class="line"><span class="comment">// Each pixel is a palette index (0-7)</span></div>
 <div class="line"><span class="comment">// RGB color comes from applying dungeon palette</span></div>
@@ -396,7 +396,7 @@ SNES Graphics Format</h2>
 <li>90 colors per palette (full SNES BG palette)</li>
 <li>ROM address: <code>kDungeonMainPalettes</code> (0xDD734)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md319"></a>
+<h2><a class="anchor" id="autotoc_md324"></a>
 Critical Math Formulas</h2>
 <p><b>Tile Position in Tilesheet (128px wide)</b>: </p><div class="fragment"><div class="line"><span class="keywordtype">int</span> tile_x = (tile_id % 16) * 8;</div>
 <div class="line"><span class="keywordtype">int</span> tile_y = (tile_id / 16) * 8;</div>
@@ -412,7 +412,7 @@ Critical Math Formulas</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// NOT 4BPP (× 16)!</span></div>
 <div class="line"><span class="comment">// int final_index = pixel_value + (palette_id &lt;&lt; 4);  // WRONG</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md320"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md325"></a>
 Per-Room Buffers (Critical for Multi-Room Editing)</h2>
 <p><b>Old way (broken)</b>: Multiple rooms shared <code>gfx::Arena::Get().bg1()</code> and corrupted each other.</p>
 <p><b>New way (fixed)</b>: Each <code>Room</code> has its own buffers: </p><div class="fragment"><div class="line"><span class="comment">// In room.h</span></div>
@@ -423,7 +423,7 @@ Per-Room Buffers (Critical for Multi-Room Editing)</h2>
 <div class="line">bg1_buffer_.DrawFloor(...);</div>
 <div class="line">bg1_buffer_.DrawBackground(std::span&lt;uint8_t&gt;(current_gfx16_));</div>
 <div class="line">Renderer::Get().RenderBitmap(&amp;bg1_buffer_.bitmap());</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md321"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md326"></a>
 Color Format Conversions</h2>
 <div class="fragment"><div class="line"><span class="comment">// ImGui → SNES BGR555</span></div>
 <div class="line"><span class="keywordtype">int</span> r_snes = (int)(imgui_r * 31.0f);  <span class="comment">// 0-1 → 0-31</span></div>
@@ -436,9 +436,9 @@ Color Format Conversions</h2>
 <div class="line">uint8_t g_rgb = ((snes &gt;&gt; 5) &amp; 0x1F) * 255 / 31;</div>
 <div class="line">uint8_t b_rgb = ((snes &gt;&gt; 10) &amp; 0x1F) * 255 / 31;</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md323"></a>
+<h1><a class="anchor" id="autotoc_md328"></a>
 Usage Guide</h1>
-<h2><a class="anchor" id="autotoc_md324"></a>
+<h2><a class="anchor" id="autotoc_md329"></a>
 Opening Rooms</h2>
 <ol type="1">
 <li><b>Rooms List</b>: Search and click room</li>
@@ -446,7 +446,7 @@ Opening Rooms</h2>
 <li><b>Room Matrix</b>: Visual navigation with color-coded grid</li>
 <li><b>Toolbar</b>: Use "Open Room" button</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md325"></a>
+<h2><a class="anchor" id="autotoc_md330"></a>
 Editing Objects</h2>
 <ol type="1">
 <li>Toggle <b>Object Editor</b> card</li>
@@ -456,7 +456,7 @@ Editing Objects</h2>
 <li>Click on canvas to place</li>
 <li>Use <b>Select</b> mode for multi-select (Ctrl+drag)</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md326"></a>
+<h2><a class="anchor" id="autotoc_md331"></a>
 Editing Palettes</h2>
 <ol type="1">
 <li>Toggle <b>Palette Editor</b> card</li>
@@ -466,7 +466,7 @@ Editing Palettes</h2>
 <li>See live updates in all open room cards</li>
 <li>Reset color if needed</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md327"></a>
+<h2><a class="anchor" id="autotoc_md332"></a>
 Configuring Entrances</h2>
 <ol type="1">
 <li>Toggle <b>Entrances List</b> card</li>
@@ -475,7 +475,7 @@ Configuring Entrances</h2>
 <li>All changes auto-save</li>
 <li>Click entrance to jump to associated room</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md328"></a>
+<h2><a class="anchor" id="autotoc_md333"></a>
 Managing Layout</h2>
 <ul>
 <li>All cards are dockable</li>
@@ -484,11 +484,11 @@ Managing Layout</h2>
 <li>If errors occur, layout auto-resets with backup</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md330"></a>
+<h1><a class="anchor" id="autotoc_md335"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md331"></a>
+<h2><a class="anchor" id="autotoc_md336"></a>
 Common Bugs &amp; Fixes</h2>
-<h3><a class="anchor" id="autotoc_md332"></a>
+<h3><a class="anchor" id="autotoc_md337"></a>
 Empty Palette (0 colors)</h3>
 <p><b>Symptom</b>: Graphics render as solid color or invisible <br  />
  <b>Cause</b>: Using <code>palette()</code> method (copy) instead of <code>operator[]</code> (reference) </p><div class="fragment"><div class="line"><span class="comment">// WRONG:</span></div>
@@ -496,7 +496,7 @@ Empty Palette (0 colors)</h3>
 <div class="line"> </div>
 <div class="line"><span class="comment">// CORRECT:</span></div>
 <div class="line"><span class="keyword">auto</span> pal = group[id];  <span class="comment">// Reference</span></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md333"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md338"></a>
 Bitmap Stretched/Corrupted</h3>
 <p><b>Symptom</b>: Graphics only in top portion, repeated/stretched <br  />
  <b>Cause</b>: Wrong offset in DrawBackground() </p><div class="fragment"><div class="line"><span class="comment">// WRONG:</span></div>
@@ -504,14 +504,14 @@ Bitmap Stretched/Corrupted</h3>
 <div class="line"> </div>
 <div class="line"><span class="comment">// CORRECT:</span></div>
 <div class="line"><span class="keywordtype">int</span> offset = (yy * 8 * 512) + (xx * 8);  <span class="comment">// Advances 4096 per row</span></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md334"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md339"></a>
 Black Canvas Despite Correct Data</h3>
 <p><b>Symptom</b>: current_gfx16_ has data, palette loaded, but canvas black <br  />
  <b>Cause</b>: Bitmap not synced to SDL surface </p><div class="fragment"><div class="line"><span class="comment">// FIX: After DrawTile() loop</span></div>
 <div class="line">SDL_LockSurface(surface);</div>
 <div class="line">memcpy(surface-&gt;pixels, bitmap_data.data(), bitmap_data.size());</div>
 <div class="line">SDL_UnlockSurface(surface);</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md335"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md340"></a>
 Wrong Colors</h3>
 <p><b>Symptom</b>: Colors don't match expected palette <br  />
  <b>Cause</b>: Using 4BPP offset for 3BPP graphics </p><div class="fragment"><div class="line"><span class="comment">// WRONG (4BPP):</span></div>
@@ -519,7 +519,7 @@ Wrong Colors</h3>
 <div class="line"> </div>
 <div class="line"><span class="comment">// CORRECT (3BPP):</span></div>
 <div class="line"><span class="keywordtype">int</span> offset = palette_id * 8;  <span class="comment">// × 8</span></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md336"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md341"></a>
 Wrong Bitmap Depth</h3>
 <p><b>Symptom</b>: Room graphics corrupted, only showing in small portion <b>Cause</b>: Depth parameter wrong in CreateAndRenderBitmap </p><div class="fragment"><div class="line"><span class="comment">// WRONG:</span></div>
 <div class="line">CreateAndRenderBitmap(0x200, 0x200, 0x200, data, bitmap, palette);</div>
@@ -528,7 +528,7 @@ Wrong Bitmap Depth</h3>
 <div class="line"><span class="comment">// CORRECT:</span></div>
 <div class="line">CreateAndRenderBitmap(0x200, 0x200, 8, data, bitmap, palette);</div>
 <div class="line"><span class="comment">//                                   ^ 8-bit indexed</span></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md337"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md342"></a>
 Emulator Preview "ROM Not Loaded"</h3>
 <p><b>Symptom</b>: Preview shows error despite ROM being loaded <b>Cause</b>: Emulator initialized before ROM loaded </p><div class="fragment"><div class="line"><span class="comment">// WRONG (in Initialize()):</span></div>
 <div class="line">object_emulator_preview_.Initialize(rom_);  <span class="comment">// Too early!</span></div>
@@ -536,7 +536,7 @@ Emulator Preview "ROM Not Loaded"</h3>
 <div class="line"><span class="comment">// CORRECT (in Load()):</span></div>
 <div class="line"><span class="keywordflow">if</span> (!rom_ || !rom_-&gt;is_loaded()) <span class="keywordflow">return</span> error;</div>
 <div class="line">object_emulator_preview_.Initialize(rom_);  <span class="comment">// After ROM confirmed</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md338"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md343"></a>
 Debugging Tips</h2>
 <p>If objects don't appear:</p>
 <ol type="1">
@@ -559,7 +559,7 @@ Debugging Tips</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md339"></a>
+<h2><a class="anchor" id="autotoc_md344"></a>
 Floor &amp; Wall Rendering Debug Guide</h2>
 <p><b>What Should Happen</b>:</p><ol type="1">
 <li><code>DrawFloor()</code> writes 4096 floor tile IDs to the buffer</li>
@@ -575,22 +575,22 @@ Floor &amp; Wall Rendering Debug Guide</h2>
 <div class="line">[BG:DrawBackground] Using existing bitmap (preserving floor)</div>
 <div class="line">[BG:DrawBackground] gfx16_data size=XXXXX, first 32 bytes: XX XX XX XX...</div>
 </div><!-- fragment --><p><b>Common Floor/Wall Issues</b>:</p>
-<h3><a class="anchor" id="autotoc_md340"></a>
+<h3><a class="anchor" id="autotoc_md345"></a>
 Issue 1: Floor tiles are all 0x0000</h3>
 <p><b>Symptom</b>: <code>Floor tile words: 0000 0000 0000 0000 0000 0000 0000 0000</code> <br  />
  <b>Cause</b>: <code>tile_address</code> or <code>tile_address_floor</code> is wrong, or <code>floor_graphics</code> is wrong <br  />
  <b>Fix</b>: Check that room data loaded correctly</p>
-<h3><a class="anchor" id="autotoc_md341"></a>
+<h3><a class="anchor" id="autotoc_md346"></a>
 Issue 2: gfx16_data is all 0x00</h3>
 <p><b>Symptom</b>: <code>gfx16_data size=16384, first 32 bytes: 00 00 00 00 00 00 00 00...</code> <br  />
  <b>Cause</b>: <code>CopyRoomGraphicsToBuffer()</code> failed to load graphics <br  />
  <b>Fix</b>: Check <code>current_gfx16_</code> is populated in Room</p>
-<h3><a class="anchor" id="autotoc_md342"></a>
+<h3><a class="anchor" id="autotoc_md347"></a>
 Issue 3: "Creating new bitmap" instead of "Using existing bitmap"</h3>
 <p><b>Symptom</b>: DrawBackground creates a new zero-filled bitmap <br  />
  <b>Cause</b>: Bitmap wasn't active when DrawBackground was called <br  />
  <b>Fix</b>: DrawBackground now checks <code>bitmap_.is_active()</code> before recreating</p>
-<h3><a class="anchor" id="autotoc_md343"></a>
+<h3><a class="anchor" id="autotoc_md348"></a>
 Issue 4: Buffer has tiles but bitmap is empty</h3>
 <p><b>Symptom</b>: DrawFloor reports writing tiles, but canvas shows nothing <br  />
  <b>Cause</b>: DrawBackground isn't actually rendering the buffer's tiles <br  />
@@ -670,17 +670,17 @@ Issue 4: Buffer has tiles but bitmap is empty</h3>
 <li>Being created with wrong data</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md345"></a>
+<h1><a class="anchor" id="autotoc_md350"></a>
 Next Steps</h1>
-<h2><a class="anchor" id="autotoc_md346"></a>
+<h2><a class="anchor" id="autotoc_md351"></a>
 Remaining Issues</h2>
-<h3><a class="anchor" id="autotoc_md347"></a>
+<h3><a class="anchor" id="autotoc_md352"></a>
 Issue 1: Room Layout Not Rendering (COMPLETED ✅)</h3>
 <ul>
 <li><b>Solution</b>: ObjectDrawer integration complete</li>
 <li>Walls and floors now render properly</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md348"></a>
+<h3><a class="anchor" id="autotoc_md353"></a>
 Issue 2: Entity Interaction</h3>
 <p><b>Problem</b>: Can't click/drag dungeon entities like overworld <br  />
  <b>Reference</b>: <code><a class="el" href="../../d2/dae/overworld__entity__renderer_8cc.html">overworld_entity_renderer.cc</a></code> lines 23-91</p>
@@ -703,7 +703,7 @@ Issue 2: Entity Interaction</h3>
 <li><code>dungeon_entity_interaction.h/cc</code> (new)</li>
 <li><code><a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc.html">dungeon_canvas_viewer.cc</a></code> (integrate)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md349"></a>
+<h3><a class="anchor" id="autotoc_md354"></a>
 Issue 3: Multi-Select for Objects</h3>
 <p><b>Problem</b>: No group selection/movement <br  />
  <b>Status</b>: Partially implemented in <code>DungeonObjectInteraction</code></p>
@@ -720,7 +720,7 @@ Issue 3: Multi-Select for Objects</h3>
 <div class="line">    obj.y_ += delta.y;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md350"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md355"></a>
 Issue 4: Context Menu Not Dungeon-Aware</h3>
 <p><b>Problem</b>: Generic canvas context menu <br  />
  <b>Solution</b>: Use <code>Canvas::AddContextMenuItem()</code>:</p>
@@ -741,7 +741,7 @@ Issue 4: Context Menu Not Dungeon-Aware</h3>
 <div class="line">});</div>
 <div class="ttc" id="aicons_8h_html_a9db9587cd41970cdc44e0b730c504e6f"><div class="ttname"><a href="../../de/dbf/icons_8h.html#a9db9587cd41970cdc44e0b730c504e6f">ICON_MD_ADD</a></div><div class="ttdeci">#define ICON_MD_ADD</div><div class="ttdef"><b>Definition</b> <a href="../../de/dbf/icons_8h_source.html#l00084">icons.h:84</a></div></div>
 <div class="ttc" id="aicons_8h_html_acfe2e24609756c3e475d0f9517181d2d"><div class="ttname"><a href="../../de/dbf/icons_8h.html#acfe2e24609756c3e475d0f9517181d2d">ICON_MD_DELETE</a></div><div class="ttdeci">#define ICON_MD_DELETE</div><div class="ttdef"><b>Definition</b> <a href="../../de/dbf/icons_8h_source.html#l00528">icons.h:528</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md351"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md356"></a>
 Future Enhancements</h2>
 <ol type="1">
 <li><b>Object Preview Thumbnails</b><ul>
@@ -776,9 +776,9 @@ Future Enhancements</h2>
 </li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md353"></a>
+<h1><a class="anchor" id="autotoc_md358"></a>
 Reference</h1>
-<h2><a class="anchor" id="autotoc_md354"></a>
+<h2><a class="anchor" id="autotoc_md359"></a>
 File Organization</h2>
 <p><b>Core Rendering</b>:</p><ul>
 <li><code>src/app/zelda3/dungeon/room.{h,cc}</code> - Room state, buffers</li>
@@ -800,7 +800,7 @@ File Organization</h2>
 <li><code>src/app/gui/widgets/palette_editor_widget.{h,cc}</code> - Visual editor</li>
 <li><code><a class="el" href="../../d4/d13/bitmap_8cc.html">src/app/gfx/bitmap.cc</a></code> - SetPalette() implementation</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md355"></a>
+<h2><a class="anchor" id="autotoc_md360"></a>
 Quick Reference: Key Functions</h2>
 <div class="fragment"><div class="line"><span class="comment">// Load dungeon palette</span></div>
 <div class="line"><span class="keyword">auto</span>&amp; pal_group = rom-&gt;palette_group().dungeon_main;</div>
@@ -820,106 +820,82 @@ Quick Reference: Key Functions</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Palette offset (3BPP)</span></div>
 <div class="line"><span class="keywordtype">int</span> offset = palette_id * 8;  <span class="comment">// NOT &lt;&lt; 4 !</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md356"></a>
-Comparison with ZScream</h2>
-<table class="markdownTable">
-<tr class="markdownTableHead">
-<th class="markdownTableHeadNone">Feature   </th><th class="markdownTableHeadNone">ZScream   </th><th class="markdownTableHeadNone">Yaze (DungeonEditorV2)    </th></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Room List   </td><td class="markdownTableBodyNone">✓ Static   </td><td class="markdownTableBodyNone">✓ Searchable, Dynamic    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Entrance Config   </td><td class="markdownTableBodyNone">✓ Basic   </td><td class="markdownTableBodyNone">✓ Full Layout Match    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Room Matrix   </td><td class="markdownTableBodyNone">✗ None   </td><td class="markdownTableBodyNone">✓ 16x19 Color Grid    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Object Browser   </td><td class="markdownTableBodyNone">✓ Grid   </td><td class="markdownTableBodyNone">✓ List + Previews + Filters    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Palette Editor   </td><td class="markdownTableBodyNone">✓ Basic   </td><td class="markdownTableBodyNone">✓ Live HSV Picker    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Docking   </td><td class="markdownTableBodyNone">✗ Fixed Layout   </td><td class="markdownTableBodyNone">✓ Full Docking Support    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Error Handling   </td><td class="markdownTableBodyNone">✗ Crashes   </td><td class="markdownTableBodyNone">✓ Auto-Recovery    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Graphics Auto-Load   </td><td class="markdownTableBodyNone">✗ Manual   </td><td class="markdownTableBodyNone">✓ Automatic    </td></tr>
-<tr class="markdownTableRowOdd">
-<td class="markdownTableBodyNone">Cross-Editor Nav   </td><td class="markdownTableBodyNone">✗ None   </td><td class="markdownTableBodyNone">✓ Jump-to System    </td></tr>
-<tr class="markdownTableRowEven">
-<td class="markdownTableBodyNone">Multi-Room Editing   </td><td class="markdownTableBodyNone">✗ One at a Time   </td><td class="markdownTableBodyNone">✓ Multiple Rooms   </td></tr>
-</table>
-<h2><a class="anchor" id="autotoc_md357"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md361"></a>
 Performance Metrics</h2>
-<p><b>Before Optimization</b>:</p><ul>
-<li>Matrix load time: <b>2-4 seconds</b> (lazy loading 296 rooms)</li>
-<li>Memory allocations: **~500 per matrix draw**</li>
-<li>Frame drops: <b>Yes</b> (during initial render)</li>
+<p><b>Matrix Loading</b>:</p><ul>
+<li>Load time: &lt; 50ms (pure calculation, no I/O)</li>
+<li>Memory allocations: ~20 per matrix draw (cached colors)</li>
+<li>Frame drops: None</li>
 </ul>
-<p><b>After Optimization</b>:</p><ul>
-<li>Matrix load time: **&lt; 50ms** (pure math, no I/O)</li>
-<li>Memory allocations: **~20 per matrix draw** (cached colors)</li>
-<li>Frame drops: <b>None</b></li>
+<p><b>Room Loading</b>:</p><ul>
+<li>Lazy loading: Rooms loaded on-demand</li>
+<li>Graphics caching: Reused across room switches</li>
+<li>Texture batching: Up to 8 textures processed per frame</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md359"></a>
+<h1><a class="anchor" id="autotoc_md363"></a>
 Status Summary</h1>
-<h2><a class="anchor" id="autotoc_md360"></a>
-✅ What's Working</h2>
-<ol type="1">
-<li>✅ <b>Floor rendering</b> - Correct tile graphics with proper palette</li>
-<li>✅ <b>Wall/object drawing</b> - ObjectDrawer with pattern-based rendering</li>
-<li>✅ <b>Palette editing</b> - Full 90-color palettes with live HSV picker</li>
-<li>✅ <b>Live updates</b> - Palette changes trigger immediate re-render</li>
-<li>✅ <b>Per-room buffers</b> - No shared arena corruption</li>
-<li>✅ <b>Independent cards</b> - Flexible dockable UI</li>
-<li>✅ <b>Room matrix</b> - Instant loading, visual navigation</li>
-<li>✅ <b>Entrance config</b> - Full ZScream parity</li>
-<li>✅ <b>Cross-editor nav</b> - Jump between overworld/dungeon</li>
-<li>✅ <b>Error recovery</b> - Auto-reset on <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> errors</li>
-</ol>
-<h2><a class="anchor" id="autotoc_md361"></a>
-🔄 In Progress</h2>
-<ol type="1">
-<li>🔄 <b>Entity interaction</b> - Click/drag sprites and objects</li>
-<li>🔄 <b>Multi-select drag</b> - Group object movement</li>
-<li>🔄 <b>Context menu</b> - Dungeon-aware operations</li>
-<li>🔄 <b>Object thumbnails</b> - Rendered previews in selector</li>
-</ol>
-<h2><a class="anchor" id="autotoc_md362"></a>
-📋 Priority Implementation Order</h2>
-<p><b>Must Have</b> (Before Release):</p><ol type="1">
-<li>✅ Room matrix performance</li>
-<li>✅ Object drawing patterns</li>
-<li>✅ Palette editing</li>
-<li>⏳ Entity interaction</li>
-<li>⏳ Context menu awareness</li>
-</ol>
-<p><b>Should Have</b> (Polish):</p><ol type="1">
-<li>⏳ Multi-select drag</li>
-<li>⏳ Object copy/paste</li>
-<li>⏳ Object thumbnails</li>
-</ol>
-<p><b>Nice to Have</b> (Future):</p><ol type="1">
+<h2><a class="anchor" id="autotoc_md364"></a>
+Implemented Features</h2>
+<p><b>Rendering</b>:</p><ul>
+<li>Floor rendering with tile graphics and palettes</li>
+<li>Object drawing via ObjectDrawer with pattern-based rendering</li>
+<li>Live palette editing with HSV picker</li>
+<li>Per-room background buffers (no shared state corruption)</li>
+</ul>
+<p><b>UI</b>:</p><ul>
+<li>Independent dockable cards</li>
+<li>Room matrix for visual navigation</li>
+<li>Entrance configuration</li>
+<li>Cross-editor navigation (jump between overworld/dungeon)</li>
+<li>Error recovery system</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md365"></a>
+In Progress</h2>
+<p><b>Interaction</b>:</p><ul>
+<li>Entity click/drag for sprites and objects</li>
+<li>Multi-select drag for group movement</li>
+<li>Context-aware right-click menu</li>
+</ul>
+<p><b>Enhancement</b>:</p><ul>
+<li>Object thumbnails in selector</li>
 <li>Room layout visual editor</li>
 <li>Auto-tile placement</li>
 <li>Object snapping grid</li>
-<li>Animated graphics (water, lava)</li>
-</ol>
+</ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md364"></a>
+<h1><a class="anchor" id="autotoc_md367"></a>
 Build Instructions</h1>
 <div class="fragment"><div class="line">cd /Users/scawful/Code/yaze</div>
 <div class="line">cmake --build build_ai --target yaze -j12</div>
 <div class="line">./build_ai/bin/yaze.app/Contents/MacOS/yaze</div>
 </div><!-- fragment --><hr  />
-<p><b>Status</b>: 🎯 <b>PRODUCTION READY</b></p>
-<p>The dungeon editor now provides:</p><ul>
-<li>✅ Complete room editing capabilities</li>
-<li>✅ ZScream feature parity (and beyond)</li>
-<li>✅ Modern flexible UI</li>
-<li>✅ Live palette editing</li>
-<li>✅ Robust error handling</li>
-<li>✅ Multi-room workflow</li>
+<p><b>Status</b>: EXPERIMENTAL</p>
+<p>The dungeon editor provides core editing capabilities but requires thorough testing before production use. Users should save backups before editing ROMs.</p>
+<h2><a class="anchor" id="autotoc_md369"></a>
+Critical Rendering Pipeline Details</h2>
+<h3><a class="anchor" id="autotoc_md370"></a>
+Bitmap Data Synchronization</h3>
+<p>When updating bitmap pixel data, two memory locations must stay synchronized:</p><ol type="1">
+<li><code>data_</code> - C++ std::vector&lt;uint8_t&gt;</li>
+<li><code>surface_-&gt;pixels</code> - SDL raw pixel buffer used for texture creation</li>
+</ol>
+<p><b>Always use</b>:</p><ul>
+<li><code>set_data()</code> for bulk updates (updates both vector AND surface via memcpy)</li>
+<li><code>WriteToPixel()</code> for single pixel changes</li>
+<li><b>Never</b> assign directly to <code>mutable_data()</code> for replacement operations</li>
 </ul>
-<p>Ready to create beautiful dungeons! 🏰✨ </p>
+<h3><a class="anchor" id="autotoc_md371"></a>
+Texture Update Queue</h3>
+<p>Texture operations are queued and processed in batches for performance: </p><div class="fragment"><div class="line"><span class="comment">// Queue texture operation</span></div>
+<div class="line">gfx::Arena::Get().QueueTextureCommand(</div>
+<div class="line">    gfx::Arena::TextureCommandType::UPDATE, &amp;bitmap);</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// Process queue every frame (required!)</span></div>
+<div class="line">gfx::Arena::Get().ProcessTextureQueue(renderer_);</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md372"></a>
+Graphics Sheet System</h3>
+<p>All 223 graphics sheets are managed centrally by <code>gfx::Arena</code>. When one editor modifies a sheet, use <code>Arena::NotifySheetModified(sheet_index)</code> to propagate changes to all editors. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

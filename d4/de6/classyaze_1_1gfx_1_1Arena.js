@@ -24,6 +24,7 @@ var classyaze_1_1gfx_1_1Arena =
     [ "gfx_sheet", "d4/de6/classyaze_1_1gfx_1_1Arena.html#a3621ae26db5f0322530dded1dc2a6dbe", null ],
     [ "mutable_gfx_sheet", "d4/de6/classyaze_1_1gfx_1_1Arena.html#aa41e0aa5873588ea59e80e2a8fb91605", null ],
     [ "mutable_gfx_sheets", "d4/de6/classyaze_1_1gfx_1_1Arena.html#a700e6d369fd67535824bd9dba3606fc5", null ],
+    [ "NotifySheetModified", "d4/de6/classyaze_1_1gfx_1_1Arena.html#ad059f82020f8763afc618965d5908b43", null ],
     [ "bg1", "d4/de6/classyaze_1_1gfx_1_1Arena.html#ad0f203b2f2a24eb23c980f4572670582", null ],
     [ "bg2", "d4/de6/classyaze_1_1gfx_1_1Arena.html#ab4b9ad9acd7039bf316e83e2131c21e7", null ],
     [ "bg1_", "d4/de6/classyaze_1_1gfx_1_1Arena.html#aa6c483d4485a75e6446d42adf87a7bd2", null ],

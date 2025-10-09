@@ -16,7 +16,8 @@ var searchData=
   ['notc_13',['NOTC',['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a920808e5ffd0598476d16861729fd4bd',1,'yaze::emu::Spc700']]],
   ['notifynewmessage_14',['NotifyNewMessage',['../d2/d4e/classyaze_1_1editor_1_1AgentChatHistoryPopup.html#a57a53769524a7dd6378c536a6bcce28c',1,'yaze::editor::AgentChatHistoryPopup']]],
   ['notifyproposalcreated_15',['NotifyProposalCreated',['../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a4e01117a5a7444195eba772593cf8ad1',1,'yaze::editor::AgentChatWidget']]],
-  ['notifyvalue_16',['notifyvalue',['../de/d82/classyaze_1_1util_1_1NotifyValue.html#a3ec30e0f28aed54366ff93c8d009ab69',1,'yaze::util::NotifyValue::NotifyValue()'],['../de/d82/classyaze_1_1util_1_1NotifyValue.html#a5e043e96e569c1097bc1fc35dfcf18c6',1,'yaze::util::NotifyValue::NotifyValue(const T &amp;value)']]],
-  ['nx_17',['nx',['../d6/db1/classyaze_1_1zelda3_1_1Sprite.html#adbbc2669926bc228ccb2d0a20e01bc6a',1,'yaze::zelda3::Sprite']]],
-  ['ny_18',['ny',['../d6/db1/classyaze_1_1zelda3_1_1Sprite.html#af2bd1685f01fc3cfe9c164793855461f',1,'yaze::zelda3::Sprite']]]
+  ['notifysheetmodified_16',['NotifySheetModified',['../d4/de6/classyaze_1_1gfx_1_1Arena.html#ad059f82020f8763afc618965d5908b43',1,'yaze::gfx::Arena']]],
+  ['notifyvalue_17',['notifyvalue',['../de/d82/classyaze_1_1util_1_1NotifyValue.html#a3ec30e0f28aed54366ff93c8d009ab69',1,'yaze::util::NotifyValue::NotifyValue()'],['../de/d82/classyaze_1_1util_1_1NotifyValue.html#a5e043e96e569c1097bc1fc35dfcf18c6',1,'yaze::util::NotifyValue::NotifyValue(const T &amp;value)']]],
+  ['nx_18',['nx',['../d6/db1/classyaze_1_1zelda3_1_1Sprite.html#adbbc2669926bc228ccb2d0a20e01bc6a',1,'yaze::zelda3::Sprite']]],
+  ['ny_19',['ny',['../d6/db1/classyaze_1_1zelda3_1_1Sprite.html#af2bd1685f01fc3cfe9c164793855461f',1,'yaze::zelda3::Sprite']]]
 ];
