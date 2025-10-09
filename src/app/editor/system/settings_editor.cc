@@ -162,60 +162,81 @@ void SettingsEditor::DrawThemeSettings() {
 void SettingsEditor::DrawEditorBehavior() {
   using namespace ImGui;
   
+  if (!user_settings_) {
+    Text("No user settings available");
+    return;
+  }
+  
   Text("%s Editor Behavior Settings", ICON_MD_TUNE);
   Separator();
   
   // Autosave settings
   if (CollapsingHeader(ICON_MD_SAVE " Auto-Save", ImGuiTreeNodeFlags_DefaultOpen)) {
-    static bool autosave_enabled = true;
-    Checkbox("Enable Auto-Save", &autosave_enabled);
+    if (Checkbox("Enable Auto-Save", &user_settings_->prefs().autosave_enabled)) {
+      user_settings_->Save();
+    }
     
-    if (autosave_enabled) {
-      static int autosave_interval = 300;
-      SliderInt("Interval (seconds)", &autosave_interval, 60, 600);
+    if (user_settings_->prefs().autosave_enabled) {
+      int interval = static_cast<int>(user_settings_->prefs().autosave_interval);
+      if (SliderInt("Interval (seconds)", &interval, 60, 600)) {
+        user_settings_->prefs().autosave_interval = static_cast<float>(interval);
+        user_settings_->Save();
+      }
       
-      static bool backup_before_save = true;
-      Checkbox("Create Backup Before Save", &backup_before_save);
+      if (Checkbox("Create Backup Before Save", &user_settings_->prefs().backup_before_save)) {
+        user_settings_->Save();
+      }
     }
   }
   
   // Recent files
   if (CollapsingHeader(ICON_MD_HISTORY " Recent Files")) {
-    static int recent_files_limit = 10;
-    SliderInt("Recent Files Limit", &recent_files_limit, 5, 50);
+    if (SliderInt("Recent Files Limit", &user_settings_->prefs().recent_files_limit, 5, 50)) {
+      user_settings_->Save();
+    }
   }
   
   // Editor defaults
   if (CollapsingHeader(ICON_MD_EDIT " Default Editor")) {
     Text("Editor to open on ROM load:");
-    static int default_editor = 0;
     const char* editors[] = { "None", "Overworld", "Dungeon", "Graphics" };
-    Combo("##DefaultEditor", &default_editor, editors, IM_ARRAYSIZE(editors));
+    if (Combo("##DefaultEditor", &user_settings_->prefs().default_editor, editors, IM_ARRAYSIZE(editors))) {
+      user_settings_->Save();
+    }
   }
 }
 
 void SettingsEditor::DrawPerformanceSettings() {
   using namespace ImGui;
   
+  if (!user_settings_) {
+    Text("No user settings available");
+    return;
+  }
+  
   Text("%s Performance Settings", ICON_MD_SPEED);
   Separator();
   
   // Graphics settings
   if (CollapsingHeader(ICON_MD_IMAGE " Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
-    static bool vsync = true;
-    Checkbox("V-Sync", &vsync);
+    if (Checkbox("V-Sync", &user_settings_->prefs().vsync)) {
+      user_settings_->Save();
+    }
     
-    static int target_fps = 60;
-    SliderInt("Target FPS", &target_fps, 30, 144);
+    if (SliderInt("Target FPS", &user_settings_->prefs().target_fps, 30, 144)) {
+      user_settings_->Save();
+    }
   }
   
   // Memory settings
   if (CollapsingHeader(ICON_MD_MEMORY " Memory")) {
-    static int cache_size = 512;
-    SliderInt("Cache Size (MB)", &cache_size, 128, 2048);
+    if (SliderInt("Cache Size (MB)", &user_settings_->prefs().cache_size_mb, 128, 2048)) {
+      user_settings_->Save();
+    }
     
-    static int undo_size = 50;
-    SliderInt("Undo History", &undo_size, 10, 200);
+    if (SliderInt("Undo History", &user_settings_->prefs().undo_history_size, 10, 200)) {
+      user_settings_->Save();
+    }
   }
   
   Separator();
@@ -226,46 +247,67 @@ void SettingsEditor::DrawPerformanceSettings() {
 void SettingsEditor::DrawAIAgentSettings() {
   using namespace ImGui;
   
+  if (!user_settings_) {
+    Text("No user settings available");
+    return;
+  }
+  
   Text("%s AI Agent Configuration", ICON_MD_SMART_TOY);
   Separator();
   
   // Provider selection
   if (CollapsingHeader(ICON_MD_CLOUD " AI Provider", ImGuiTreeNodeFlags_DefaultOpen)) {
-    static int provider = 0;
     const char* providers[] = { "Ollama (Local)", "Gemini (Cloud)", "Mock (Testing)" };
-    Combo("Provider", &provider, providers, IM_ARRAYSIZE(providers));
+    if (Combo("Provider", &user_settings_->prefs().ai_provider, providers, IM_ARRAYSIZE(providers))) {
+      user_settings_->Save();
+    }
     
     Spacing();
     
-    if (provider == 0) {  // Ollama
-      static char ollama_url[256] = "http://localhost:11434";
-      InputText("URL", ollama_url, IM_ARRAYSIZE(ollama_url));
-    } else if (provider == 1) {  // Gemini
-      static char api_key[128] = "";
-      InputText("API Key", api_key, IM_ARRAYSIZE(api_key), ImGuiInputTextFlags_Password);
+    if (user_settings_->prefs().ai_provider == 0) {  // Ollama
+      char url_buffer[256];
+      strncpy(url_buffer, user_settings_->prefs().ollama_url.c_str(), sizeof(url_buffer) - 1);
+      url_buffer[sizeof(url_buffer) - 1] = '\0';
+      if (InputText("URL", url_buffer, IM_ARRAYSIZE(url_buffer))) {
+        user_settings_->prefs().ollama_url = url_buffer;
+        user_settings_->Save();
+      }
+    } else if (user_settings_->prefs().ai_provider == 1) {  // Gemini
+      char key_buffer[128];
+      strncpy(key_buffer, user_settings_->prefs().gemini_api_key.c_str(), sizeof(key_buffer) - 1);
+      key_buffer[sizeof(key_buffer) - 1] = '\0';
+      if (InputText("API Key", key_buffer, IM_ARRAYSIZE(key_buffer), ImGuiInputTextFlags_Password)) {
+        user_settings_->prefs().gemini_api_key = key_buffer;
+        user_settings_->Save();
+      }
     }
   }
   
   // Model parameters
   if (CollapsingHeader(ICON_MD_TUNE " Model Parameters")) {
-    static float temperature = 0.7f;
-    SliderFloat("Temperature", &temperature, 0.0f, 2.0f);
+    if (SliderFloat("Temperature", &user_settings_->prefs().ai_temperature, 0.0f, 2.0f)) {
+      user_settings_->Save();
+    }
     TextDisabled("Higher = more creative");
     
-    static int max_tokens = 2048;
-    SliderInt("Max Tokens", &max_tokens, 256, 8192);
+    if (SliderInt("Max Tokens", &user_settings_->prefs().ai_max_tokens, 256, 8192)) {
+      user_settings_->Save();
+    }
   }
   
   // Agent behavior
   if (CollapsingHeader(ICON_MD_PSYCHOLOGY " Behavior")) {
-    static bool proactive = true;
-    Checkbox("Proactive Suggestions", &proactive);
+    if (Checkbox("Proactive Suggestions", &user_settings_->prefs().ai_proactive)) {
+      user_settings_->Save();
+    }
     
-    static bool auto_learn = true;
-    Checkbox("Auto-Learn Preferences", &auto_learn);
+    if (Checkbox("Auto-Learn Preferences", &user_settings_->prefs().ai_auto_learn)) {
+      user_settings_->Save();
+    }
     
-    static bool multimodal = true;
-    Checkbox("Enable Vision/Multimodal", &multimodal);
+    if (Checkbox("Enable Vision/Multimodal", &user_settings_->prefs().ai_multimodal)) {
+      user_settings_->Save();
+    }
   }
   
   // z3ed CLI logging settings
@@ -273,21 +315,12 @@ void SettingsEditor::DrawAIAgentSettings() {
     Text("Configure z3ed command-line logging behavior");
     Spacing();
     
-    // Declare all static variables first
-    static int log_level = 1;  // 0=Debug, 1=Info, 2=Warning, 3=Error, 4=Fatal
-    static bool log_to_file = false;
-    static char log_file_path[512] = "";
-    static bool log_ai_requests = true;
-    static bool log_rom_operations = true;
-    static bool log_gui_automation = true;
-    static bool log_proposals = true;
-    
     // Log level selection
     const char* log_levels[] = { "Debug (Verbose)", "Info (Normal)", "Warning (Quiet)", "Error (Critical)", "Fatal Only" };
-    if (Combo("Log Level", &log_level, log_levels, IM_ARRAYSIZE(log_levels))) {
+    if (Combo("Log Level", &user_settings_->prefs().log_level, log_levels, IM_ARRAYSIZE(log_levels))) {
       // Apply log level immediately using existing LogManager
       util::LogLevel level;
-      switch (log_level) {
+      switch (user_settings_->prefs().log_level) {
         case 0: level = util::LogLevel::YAZE_DEBUG; break;
         case 1: level = util::LogLevel::INFO; break;
         case 2: level = util::LogLevel::WARNING; break;
@@ -298,13 +331,14 @@ void SettingsEditor::DrawAIAgentSettings() {
       
       // Get current categories
       std::set<std::string> categories;
-      if (log_ai_requests) categories.insert("AI");
-      if (log_rom_operations) categories.insert("ROM");
-      if (log_gui_automation) categories.insert("GUI");
-      if (log_proposals) categories.insert("Proposals");
+      if (user_settings_->prefs().log_ai_requests) categories.insert("AI");
+      if (user_settings_->prefs().log_rom_operations) categories.insert("ROM");
+      if (user_settings_->prefs().log_gui_automation) categories.insert("GUI");
+      if (user_settings_->prefs().log_proposals) categories.insert("Proposals");
       
       // Reconfigure with new level
-      util::LogManager::instance().configure(level, std::string(log_file_path), categories);
+      util::LogManager::instance().configure(level, user_settings_->prefs().log_file_path, categories);
+      user_settings_->Save();
       Text("✓ Log level applied");
     }
     TextDisabled("Controls verbosity of YAZE and z3ed output");
@@ -312,36 +346,41 @@ void SettingsEditor::DrawAIAgentSettings() {
     Spacing();
     
     // Logging targets
-    
-    if (Checkbox("Log to File", &log_to_file)) {
-      if (log_to_file) {
+    if (Checkbox("Log to File", &user_settings_->prefs().log_to_file)) {
+      if (user_settings_->prefs().log_to_file) {
         // Set default path if empty
-        if (strlen(log_file_path) == 0) {
+        if (user_settings_->prefs().log_file_path.empty()) {
           const char* home = std::getenv("HOME");
           if (home) {
-            snprintf(log_file_path, sizeof(log_file_path), "%s/.yaze/logs/yaze.log", home);
+            user_settings_->prefs().log_file_path = std::string(home) + "/.yaze/logs/yaze.log";
           }
         }
         
         // Enable file logging
         std::set<std::string> categories;
-        util::LogLevel level = static_cast<util::LogLevel>(log_level);
-        util::LogManager::instance().configure(level, std::string(log_file_path), categories);
+        util::LogLevel level = static_cast<util::LogLevel>(user_settings_->prefs().log_level);
+        util::LogManager::instance().configure(level, user_settings_->prefs().log_file_path, categories);
       } else {
         // Disable file logging
         std::set<std::string> categories;
-        util::LogLevel level = static_cast<util::LogLevel>(log_level);
+        util::LogLevel level = static_cast<util::LogLevel>(user_settings_->prefs().log_level);
         util::LogManager::instance().configure(level, "", categories);
       }
+      user_settings_->Save();
     }
     
-    if (log_to_file) {
+    if (user_settings_->prefs().log_to_file) {
       Indent();
-      if (InputText("Log File", log_file_path, IM_ARRAYSIZE(log_file_path))) {
+      char path_buffer[512];
+      strncpy(path_buffer, user_settings_->prefs().log_file_path.c_str(), sizeof(path_buffer) - 1);
+      path_buffer[sizeof(path_buffer) - 1] = '\0';
+      if (InputText("Log File", path_buffer, IM_ARRAYSIZE(path_buffer))) {
         // Update log file path
+        user_settings_->prefs().log_file_path = path_buffer;
         std::set<std::string> categories;
-        util::LogLevel level = static_cast<util::LogLevel>(log_level);
-        util::LogManager::instance().configure(level, std::string(log_file_path), categories);
+        util::LogLevel level = static_cast<util::LogLevel>(user_settings_->prefs().log_level);
+        util::LogManager::instance().configure(level, user_settings_->prefs().log_file_path, categories);
+        user_settings_->Save();
       }
       
       TextDisabled("Log file path (supports ~ for home directory)");
@@ -358,40 +397,43 @@ void SettingsEditor::DrawAIAgentSettings() {
     
     bool categories_changed = false;
     
-    categories_changed |= Checkbox("AI API Requests", &log_ai_requests);
-    categories_changed |= Checkbox("ROM Operations", &log_rom_operations);
-    categories_changed |= Checkbox("GUI Automation", &log_gui_automation);
-    categories_changed |= Checkbox("Proposal Generation", &log_proposals);
+    categories_changed |= Checkbox("AI API Requests", &user_settings_->prefs().log_ai_requests);
+    categories_changed |= Checkbox("ROM Operations", &user_settings_->prefs().log_rom_operations);
+    categories_changed |= Checkbox("GUI Automation", &user_settings_->prefs().log_gui_automation);
+    categories_changed |= Checkbox("Proposal Generation", &user_settings_->prefs().log_proposals);
     
     if (categories_changed) {
       // Rebuild category set
       std::set<std::string> categories;
-      if (log_ai_requests) categories.insert("AI");
-      if (log_rom_operations) categories.insert("ROM");
-      if (log_gui_automation) categories.insert("GUI");
-      if (log_proposals) categories.insert("Proposals");
+      if (user_settings_->prefs().log_ai_requests) categories.insert("AI");
+      if (user_settings_->prefs().log_rom_operations) categories.insert("ROM");
+      if (user_settings_->prefs().log_gui_automation) categories.insert("GUI");
+      if (user_settings_->prefs().log_proposals) categories.insert("Proposals");
       
       // Reconfigure LogManager
-      util::LogLevel level = static_cast<util::LogLevel>(log_level);
-      util::LogManager::instance().configure(level, log_to_file ? std::string(log_file_path) : "", categories);
+      util::LogLevel level = static_cast<util::LogLevel>(user_settings_->prefs().log_level);
+      util::LogManager::instance().configure(level, 
+          user_settings_->prefs().log_to_file ? user_settings_->prefs().log_file_path : "", 
+          categories);
+      user_settings_->Save();
     }
     
     Spacing();
     
     // Quick actions
     if (Button(ICON_MD_DELETE " Clear Logs")) {
-      if (log_to_file && strlen(log_file_path) > 0) {
-        std::filesystem::path path(log_file_path);
+      if (user_settings_->prefs().log_to_file && !user_settings_->prefs().log_file_path.empty()) {
+        std::filesystem::path path(user_settings_->prefs().log_file_path);
         if (std::filesystem::exists(path)) {
           std::filesystem::remove(path);
-          LOG_DEBUG("Settings", "Log file cleared: %s", log_file_path);
+          LOG_DEBUG("Settings", "Log file cleared: %s", user_settings_->prefs().log_file_path.c_str());
         }
       }
     }
     SameLine();
     if (Button(ICON_MD_FOLDER_OPEN " Open Log Directory")) {
-      if (log_to_file && strlen(log_file_path) > 0) {
-        std::filesystem::path path(log_file_path);
+      if (user_settings_->prefs().log_to_file && !user_settings_->prefs().log_file_path.empty()) {
+        std::filesystem::path path(user_settings_->prefs().log_file_path);
         std::filesystem::path dir = path.parent_path();
         
         // Platform-specific command to open directory

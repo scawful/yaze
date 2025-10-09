@@ -87,6 +87,15 @@ class DungeonEditorV2 : public Editor {
     return absl::StrFormat("ROM loaded: %s", rom_->title());
   }
 
+  // Card visibility flags - Public for command-line flag access
+  bool show_room_selector_ = false;    // Room selector/list card
+  bool show_room_matrix_ = false;      // Dungeon matrix layout
+  bool show_entrances_list_ = false;   // Entrance list card (renamed from entrances_matrix_)
+  bool show_room_graphics_ = false;    // Room graphics card
+  bool show_object_editor_ = false;    // Object editor card
+  bool show_palette_editor_ = false;   // Palette editor card
+  bool show_control_panel_ = true;     // Control panel (visible by default)
+
  private:
   gfx::IRenderer* renderer_ = nullptr;
   // Simple UI layout
@@ -119,16 +128,6 @@ class DungeonEditorV2 : public Editor {
   std::unordered_map<int, std::shared_ptr<gui::EditorCard>> room_cards_;
   int current_room_id_ = 0;
   
-  // Card visibility flags - Start with only control panel visible
-  // Other cards hidden by default to prevent crash on ROM load
-  // User can open them via View menu or shortcuts
-  bool show_room_selector_ = false;
-  bool show_room_matrix_ = false;
-  bool show_entrances_list_ = false;
-  bool show_room_graphics_ = false;
-  bool show_object_editor_ = false;
-  bool show_palette_editor_ = false;
-  bool show_control_panel_ = true;     // Only control panel visible on start
   bool control_panel_minimized_ = false;
   
   // Palette management

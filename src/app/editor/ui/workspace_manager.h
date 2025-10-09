@@ -36,6 +36,7 @@ class WorkspaceManager {
   // Preset management
   void SaveWorkspacePreset(const std::string& name);
   void LoadWorkspacePreset(const std::string& name);
+  void RefreshPresets();
   void LoadDeveloperLayout();
   void LoadDesignerLayout();
   void LoadModderLayout();
@@ -53,10 +54,15 @@ class WorkspaceManager {
   
   void set_sessions(std::deque<SessionInfo>* sessions) { sessions_ = sessions; }
   
+  const std::vector<std::string>& workspace_presets() const { return workspace_presets_; }
+  bool workspace_presets_loaded() const { return workspace_presets_loaded_; }
+  
  private:
   ToastManager* toast_manager_;
   std::deque<SessionInfo>* sessions_ = nullptr;
   std::string last_workspace_preset_;
+  std::vector<std::string> workspace_presets_;
+  bool workspace_presets_loaded_ = false;
 };
 
 }  // namespace editor

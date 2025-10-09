@@ -25,6 +25,16 @@ using namespace yaze;
 DEFINE_FLAG(std::string, rom_file, "", "The ROM file to load.");
 DEFINE_FLAG(std::string, log_file, "", "Output log file path for debugging.");
 DEFINE_FLAG(bool, debug, false, "Enable debug logging and verbose output.");
+DEFINE_FLAG(std::string, editor, "", 
+            "The editor to open on startup. "
+            "Available editors: Assembly, Dungeon, Graphics, Music, Overworld, "
+            "Palette, Screen, Sprite, Message, Hex, Agent, Settings. "
+            "Example: --editor=Dungeon");
+DEFINE_FLAG(std::string, cards, "",
+            "A comma-separated list of cards to open within the specified editor. "
+            "For Dungeon editor: 'Rooms List', 'Room Matrix', 'Entrances List', "
+            "'Room Graphics', 'Object Editor', 'Palette Editor', or 'Room N' (where N is room ID). "
+            "Example: --cards=\"Rooms List,Room 0,Room 105\"");
 
 #ifdef YAZE_WITH_GRPC
 // gRPC test harness flags
@@ -102,6 +112,11 @@ int main(int argc, char **argv) {
 
   auto controller = std::make_unique<core::Controller>();
   EXIT_IF_ERROR(controller->OnEntry(rom_filename))
+  
+  // Set startup editor and cards from flags (after OnEntry initializes editor manager)
+  if (!FLAGS_editor->Get().empty()) {
+    controller->SetStartupEditor(FLAGS_editor->Get(), FLAGS_cards->Get());
+  }
 
   while (controller->IsActive()) {
     controller->OnInput();

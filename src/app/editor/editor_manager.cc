@@ -13,6 +13,9 @@
 #include "app/core/features.h"
 #include "app/core/timing.h"
 #include "util/file_util.h"
+#include "app/gui/widgets/widget_id_registry.h"
+#include "imgui/imgui.h"
+#include "util/log.h"
 #include "util/platform_paths.h"
 #include "app/core/project.h"
 #include "app/editor/code/assembly_editor.h"
@@ -81,126 +84,7 @@ std::string GetEditorName(EditorType type) {
 
 }  // namespace
 
-// Settings + preset helpers
-void EditorManager::LoadUserSettings() {
-  auto config_dir = util::PlatformPaths::GetConfigDirectory();
-  if (!config_dir.ok()) {
-    LOG_WARN("EditorManager", "Could not determine config directory for settings.");
-    return;
-  }
-  
-  std::string settings_path = (*config_dir / settings_filename_).string();
 
-  try {
-    auto data = util::LoadFile(settings_path);
-    if (!data.empty()) {
-      std::istringstream ss(data);
-      std::string line;
-      while (std::getline(ss, line)) {
-        auto eq = line.find('=');
-        if (eq == std::string::npos)
-          continue;
-        auto key = line.substr(0, eq);
-        auto val = line.substr(eq + 1);
-        if (key == "font_global_scale")
-          font_global_scale_ = std::stof(val);
-        if (key == "autosave_enabled")
-          autosave_enabled_ = (val == "1");
-        if (key == "autosave_interval_secs")
-          autosave_interval_secs_ = std::stof(val);
-      }
-      ImGui::GetIO().FontGlobalScale = font_global_scale_;
-    }
-  } catch (...) {
-      // Could not load file, just use defaults.
-  }
-}
-
-void EditorManager::SaveUserSettings() {
-  std::ostringstream ss;
-  ss << "font_global_scale=" << font_global_scale_ << "\n";
-  ss << "autosave_enabled=" << (autosave_enabled_ ? 1 : 0) << "\n";
-  ss << "autosave_interval_secs=" << autosave_interval_secs_ << "\n";
-  util::SaveFile(settings_filename_, ss.str());
-}
-
-void EditorManager::RefreshWorkspacePresets() {
-  // Safe clearing with error handling
-  try {
-    // Create a new vector instead of clearing to avoid corruption
-    std::vector<std::string> new_presets;
-
-    // Try to read a simple index file of presets
-    try {
-      auto config_dir = util::PlatformPaths::GetConfigDirectory();
-      if (config_dir.ok()) {
-        std::string presets_path = (*config_dir / "workspace_presets.txt").string();
-        auto data = util::LoadFile(presets_path);
-        if (!data.empty()) {
-          std::istringstream ss(data);
-          std::string name;
-          while (std::getline(ss, name)) {
-            // Trim whitespace and validate
-            name.erase(0, name.find_first_not_of(" \t\r\n"));
-            name.erase(name.find_last_not_of(" \t\r\n") + 1);
-            if (!name.empty() &&
-                name.length() < 256) {  // Reasonable length limit
-              new_presets.emplace_back(std::move(name));
-            }
-          }
-        }
-      }
-    } catch (const std::exception& e) {
-      LOG_WARN("EditorManager", "Failed to load workspace presets: %s", e.what());
-    }
-
-    // Safely replace the vector
-    workspace_presets_ = std::move(new_presets);
-    workspace_presets_loaded_ = true;
-
-  } catch (const std::exception& e) {
-    LOG_ERROR("EditorManager", "Error in RefreshWorkspacePresets: %s", e.what());
-    // Ensure we have a valid empty vector
-    workspace_presets_ = std::vector<std::string>();
-    workspace_presets_loaded_ =
-        true;  // Mark as loaded even if empty to avoid retry
-  }
-}
-
-void EditorManager::SaveWorkspacePreset(const std::string& name) {
-  if (name.empty())
-    return;
-  std::string ini_name = absl::StrCat("yaze_workspace_", name, ".ini");
-  ImGui::SaveIniSettingsToDisk(ini_name.c_str());
-
-  // Ensure presets are loaded before updating
-  if (!workspace_presets_loaded_) {
-    RefreshWorkspacePresets();
-  }
-
-  // Update index
-  if (std::find(workspace_presets_.begin(), workspace_presets_.end(), name) ==
-      workspace_presets_.end()) {
-    workspace_presets_.emplace_back(name);
-    try {
-      std::ostringstream ss;
-      for (const auto& n : workspace_presets_)
-        ss << n << "\n";
-      util::SaveFile("workspace_presets.txt", ss.str());
-    } catch (const std::exception& e) {
-      LOG_WARN("EditorManager", "Failed to save workspace presets: %s", e.what());
-    }
-  }
-  last_workspace_preset_ = name;
-}
-
-void EditorManager::LoadWorkspacePreset(const std::string& name) {
-  if (name.empty())
-    return;
-  std::string ini_name = absl::StrCat("yaze_workspace_", name, ".ini");
-  ImGui::LoadIniSettingsFromDisk(ini_name.c_str());
-  last_workspace_preset_ = name;
-}
 
 void EditorManager::InitializeTestSuites() {
   auto& test_manager = test::TestManager::Get();
@@ -424,6 +308,11 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
 #endif
 
   // Load critical user settings first
+  status_ = user_settings_.Load();
+  if (!status_.ok()) {
+    LOG_WARN("EditorManager", "Failed to load user settings: %s", status_.ToString().c_str());
+  }
+
   // Initialize welcome screen callbacks
   welcome_screen_.SetOpenRomCallback([this]() {
     status_ = LoadRom();
@@ -499,6 +388,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
     }
   });
 
+  // Load user settings - this must happen after context is initialized
   LoadUserSettings();
 
   // Defer workspace presets loading to avoid initialization crashes
@@ -682,7 +572,79 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
       "Maximize Window", ImGuiKey_F11, [this]() { MaximizeCurrentWindow(); });
 }
 
+void EditorManager::OpenEditorAndCardsFromFlags(
+    const std::string& editor_name, const std::string& cards_str) {
+  if (editor_name.empty()) {
+    return;
+  }
+
+  LOG_INFO("EditorManager", "Processing startup flags: editor='%s', cards='%s'",
+           editor_name.c_str(), cards_str.c_str());
+
+  EditorType editor_type_to_open = EditorType::kUnknown;
+  for (int i = 0; i < static_cast<int>(EditorType::kSettings); ++i) {
+    if (GetEditorName(static_cast<EditorType>(i)) == editor_name) {
+      editor_type_to_open = static_cast<EditorType>(i);
+      break;
+    }
+  }
+
+  if (editor_type_to_open == EditorType::kUnknown) {
+    LOG_WARN("EditorManager", "Unknown editor specified via flag: %s",
+             editor_name.c_str());
+    return;
+  }
+
+  // Activate the main editor window
+  if (current_editor_set_) {
+    auto* editor = current_editor_set_->active_editors_[static_cast<int>(editor_type_to_open)];
+    if (editor) {
+      editor->set_active(true);
+    }
+  }
+
+  // Handle specific cards for the Dungeon Editor
+  if (editor_type_to_open == EditorType::kDungeon && !cards_str.empty()) {
+    std::stringstream ss(cards_str);
+    std::string card_name;
+    while (std::getline(ss, card_name, ',')) {
+      // Trim whitespace
+      card_name.erase(0, card_name.find_first_not_of(" \t"));
+      card_name.erase(card_name.find_last_not_of(" \t") + 1);
+
+      LOG_DEBUG("EditorManager", "Attempting to open card: '%s'",
+                card_name.c_str());
+
+      if (card_name == "Rooms List") {
+        current_editor_set_->dungeon_editor_.show_room_selector_ = true;
+      } else if (card_name == "Room Matrix") {
+        current_editor_set_->dungeon_editor_.show_room_matrix_ = true;
+      } else if (card_name == "Entrances List") {
+        current_editor_set_->dungeon_editor_.show_entrances_list_ = true;
+      } else if (card_name == "Room Graphics") {
+        current_editor_set_->dungeon_editor_.show_room_graphics_ = true;
+      } else if (card_name == "Object Editor") {
+        current_editor_set_->dungeon_editor_.show_object_editor_ = true;
+      } else if (card_name == "Palette Editor") {
+        current_editor_set_->dungeon_editor_.show_palette_editor_ = true;
+      } else if (absl::StartsWith(card_name, "Room ")) {
+        try {
+          int room_id = std::stoi(card_name.substr(5));
+          current_editor_set_->dungeon_editor_.add_room(room_id);
+        } catch (const std::exception& e) {
+          LOG_WARN("EditorManager", "Invalid room ID format: %s",
+                   card_name.c_str());
+        }
+      } else {
+        LOG_WARN("EditorManager", "Unknown card name for Dungeon Editor: %s",
+                 card_name.c_str());
+      }
+    }
+  }
+}
+
 absl::Status EditorManager::Update() {
+
   // Update timing manager for accurate delta time across the application
   // This fixes animation timing issues that occur when mouse isn't moving
   core::TimingManager::Get().Update();
@@ -739,9 +701,9 @@ absl::Status EditorManager::Update() {
   }
 
   // Autosave timer
-  if (autosave_enabled_ && current_rom_ && current_rom_->dirty()) {
+  if (user_settings_.prefs().autosave_enabled && current_rom_ && current_rom_->dirty()) {
     autosave_timer_ += ImGui::GetIO().DeltaTime;
-    if (autosave_timer_ >= autosave_interval_secs_) {
+    if (autosave_timer_ >= user_settings_.prefs().autosave_interval) {
       autosave_timer_ = 0.0f;
       Rom::SaveSettings s;
       s.backup = true;
@@ -2122,18 +2084,18 @@ void EditorManager::DrawMenuBar() {
           ImGuiWindowFlags_AlwaysAutoResize);
 
     // Lazy load workspace presets when UI is accessed
-    if (!workspace_presets_loaded_) {
+    if (!workspace_manager_.workspace_presets_loaded()) {
       RefreshWorkspacePresets();
     }
 
-    for (const auto& name : workspace_presets_) {
+    for (const auto& name : workspace_manager_.workspace_presets()) {
       if (Selectable(name.c_str())) {
         LoadWorkspacePreset(name);
         toast_manager_.Show("Preset loaded", editor::ToastType::kSuccess);
         show_load_workspace_preset_ = false;
       }
     }
-    if (workspace_presets_.empty())
+    if (workspace_manager_.workspace_presets().empty())
       Text("No presets found");
     End();
   }
@@ -2180,7 +2142,7 @@ absl::Status EditorManager::LoadRom() {
     current_editor_set_ = &target_session->editors;
   } else {
     // Create new session only if no empty ones exist
-    sessions_.emplace_back(std::move(temp_rom));
+    sessions_.emplace_back(std::move(temp_rom), &user_settings_);
     RomSession& session = sessions_.back();
     session.filepath = file_name;  // Store filepath for duplicate detection
 
@@ -2269,8 +2231,8 @@ absl::Status EditorManager::SaveRom() {
         SaveAllGraphicsData(*current_rom_, gfx::Arena::Get().gfx_sheets()));
 
   Rom::SaveSettings settings;
-  settings.backup = backup_rom_;
-  settings.save_new = save_new_auto_;
+  settings.backup = user_settings_.prefs().backup_rom;
+  settings.save_new = user_settings_.prefs().save_new_auto;
   return current_rom_->SaveToFile(settings);
 }
 
@@ -2297,7 +2259,7 @@ absl::Status EditorManager::SaveRomAs(const std::string& filename) {
 
   // Create save settings with custom filename
   Rom::SaveSettings settings;
-  settings.backup = backup_rom_;
+  settings.backup = user_settings_.prefs().backup_rom;
   settings.save_new = false;  // Don't auto-generate name, use provided filename
   settings.filename = filename;
 
@@ -2331,7 +2293,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
   } else {
     Rom temp_rom;
     RETURN_IF_ERROR(temp_rom.LoadFromFile(filename));
-    sessions_.emplace_back(std::move(temp_rom));
+    sessions_.emplace_back(std::move(temp_rom), &user_settings_);
     RomSession& session = sessions_.back();
     for (auto* editor : session.editors.active_editors_) {
       editor->set_context(&context_);
@@ -2394,7 +2356,7 @@ absl::Status EditorManager::OpenProject() {
       }
     }
 
-    sessions_.emplace_back(std::move(temp_rom));
+    sessions_.emplace_back(std::move(temp_rom), &user_settings_);
     RomSession& session = sessions_.back();
     for (auto* editor : session.editors.active_editors_) {
       editor->set_context(&context_);
@@ -2427,11 +2389,11 @@ absl::Status EditorManager::OpenProject() {
   }
 
   // Apply workspace settings
-  font_global_scale_ = current_project_.workspace_settings.font_global_scale;
-  autosave_enabled_ = current_project_.workspace_settings.autosave_enabled;
-  autosave_interval_secs_ =
+  user_settings_.prefs().font_global_scale = current_project_.workspace_settings.font_global_scale;
+  user_settings_.prefs().autosave_enabled = current_project_.workspace_settings.autosave_enabled;
+  user_settings_.prefs().autosave_interval =
       current_project_.workspace_settings.autosave_interval_secs;
-  ImGui::GetIO().FontGlobalScale = font_global_scale_;
+  ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
 
   // Add to recent files
   auto& manager = core::RecentFilesManager::GetInstance();
@@ -2457,10 +2419,10 @@ absl::Status EditorManager::SaveProject() {
       current_project_.feature_flags = sessions_[session_idx].feature_flags;
     }
 
-    current_project_.workspace_settings.font_global_scale = font_global_scale_;
-    current_project_.workspace_settings.autosave_enabled = autosave_enabled_;
+    current_project_.workspace_settings.font_global_scale = user_settings_.prefs().font_global_scale;
+    current_project_.workspace_settings.autosave_enabled = user_settings_.prefs().autosave_enabled;
     current_project_.workspace_settings.autosave_interval_secs =
-        autosave_interval_secs_;
+        user_settings_.prefs().autosave_interval;
 
     // Save recent files
     auto& manager = core::RecentFilesManager::GetInstance();
@@ -2578,6 +2540,9 @@ void EditorManager::CreateNewSession() {
   // Create a blank session
   sessions_.emplace_back();
   RomSession& session = sessions_.back();
+  
+  // Set user settings for the blank session
+  session.editors.set_user_settings(&user_settings_);
 
   // Wire editor contexts for new session
   for (auto* editor : session.editors.active_editors_) {
@@ -2606,7 +2571,7 @@ void EditorManager::DuplicateCurrentSession() {
 
   // Create a copy of the current ROM
   Rom rom_copy = *current_rom_;
-  sessions_.emplace_back(std::move(rom_copy));
+  sessions_.emplace_back(std::move(rom_copy), &user_settings_);
   RomSession& session = sessions_.back();
 
   // Wire editor contexts
@@ -3282,11 +3247,11 @@ void EditorManager::DrawLayoutPresets() {
     ImGui::Text("%s Custom Presets", ICON_MD_BOOKMARK);
 
     // Lazy load workspace presets when UI is accessed
-    if (!workspace_presets_loaded_) {
+    if (!workspace_manager_.workspace_presets_loaded()) {
       RefreshWorkspacePresets();
     }
 
-    for (const auto& preset : workspace_presets_) {
+    for (const auto& preset : workspace_manager_.workspace_presets()) {
       if (ImGui::Button(
               absl::StrFormat("%s %s", ICON_MD_BOOKMARK, preset.c_str())
                   .c_str(),
@@ -3298,7 +3263,7 @@ void EditorManager::DrawLayoutPresets() {
       }
     }
 
-    if (workspace_presets_.empty()) {
+    if (workspace_manager_.workspace_presets().empty()) {
       ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
                          "No custom presets saved");
     }
@@ -3328,26 +3293,6 @@ void EditorManager::RenameSession(size_t index, const std::string& new_name) {
         absl::StrFormat("Session renamed to: %s", new_name.c_str()),
         editor::ToastType::kSuccess);
   }
-}
-
-std::string EditorManager::GenerateUniqueEditorTitle(EditorType type,
-                                                     size_t session_index) {
-  std::string base_name = GetEditorName(type);
-
-  if (sessions_.size() <= 1) {
-    return base_name;  // No need for session identifier with single session
-  }
-
-  // Add session identifier
-  const auto& session = sessions_[session_index];
-  std::string session_name = session.GetDisplayName();
-
-  // Truncate long session names
-  if (session_name.length() > 15) {
-    session_name = session_name.substr(0, 12) + "...";
-  }
-
-  return absl::StrFormat("%s (%s)", base_name.c_str(), session_name.c_str());
 }
 
 void EditorManager::DrawSessionRenameDialog() {
@@ -3435,6 +3380,28 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
       // This will make it visible when tabs are rendered
       break;
     }
+  }
+}
+
+// ============================================================================
+// User Settings Management
+// ============================================================================
+
+void EditorManager::LoadUserSettings() {
+  // Apply font scale after loading
+  ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
+  
+  // Apply welcome screen preference
+  if (!user_settings_.prefs().show_welcome_on_startup) {
+    show_welcome_screen_ = false;
+    welcome_screen_manually_closed_ = true;
+  }
+}
+
+void EditorManager::SaveUserSettings() {
+  auto status = user_settings_.Save();
+  if (!status.ok()) {
+    LOG_WARN("EditorManager", "Failed to save user settings: %s", status.ToString().c_str());
   }
 }
 

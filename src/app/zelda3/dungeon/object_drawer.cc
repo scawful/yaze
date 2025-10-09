@@ -4,6 +4,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/snes_tile.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -26,27 +27,27 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
 
   // Ensure object has tiles loaded
   auto mutable_obj = const_cast<RoomObject&>(object);
-  printf("[DrawObject] Setting ROM for object ID=0x%02X\n", object.id_);
+  LOG_DEBUG("ObjectDrawer", "Setting ROM for object ID=0x%02X", object.id_);
   mutable_obj.set_rom(rom_);
-  printf("[DrawObject] Calling EnsureTilesLoaded for object ID=0x%02X\n", object.id_);
+  LOG_DEBUG("ObjectDrawer", "Calling EnsureTilesLoaded for object ID=0x%02X", object.id_);
   mutable_obj.EnsureTilesLoaded();
   
   // Check if tiles were actually loaded on the mutable object
-  printf("[DrawObject] After EnsureTilesLoaded: mutable object has %zu tiles\n", 
+  LOG_DEBUG("ObjectDrawer", "After EnsureTilesLoaded: mutable object has %zu tiles", 
          mutable_obj.tiles().size());
 
   // Select buffer based on layer
   auto& target_bg = (object.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
-  printf("[DrawObject] Object ID=0x%02X using %s buffer (layer=%d)\n", 
+  LOG_DEBUG("ObjectDrawer", "Object ID=0x%02X using %s buffer (layer=%d)", 
          object.id_, (object.layer_ == RoomObject::LayerType::BG2) ? "BG2" : "BG1", object.layer_);
 
   // Skip objects that don't have tiles loaded - check mutable object
   if (mutable_obj.tiles().empty()) {
-    printf("[DrawObject] Object ID=0x%02X has no tiles loaded, skipping\n", object.id_);
+    LOG_DEBUG("ObjectDrawer", "Object ID=0x%02X has no tiles loaded, skipping", object.id_);
     return absl::OkStatus();
   }
 
-  printf("[DrawObject] Object ID=0x%02X has %zu tiles, proceeding with drawing\n", 
+  LOG_DEBUG("ObjectDrawer", "Object ID=0x%02X has %zu tiles, proceeding with drawing", 
          object.id_, mutable_obj.tiles().size());
 
   // Look up draw routine for this object
@@ -70,7 +71,7 @@ absl::Status ObjectDrawer::DrawObjectList(
     gfx::BackgroundBuffer& bg2,
     const gfx::PaletteGroup& palette_group) {
   
-  printf("[DrawObjectList] Drawing %zu objects\n", objects.size());
+  LOG_DEBUG("ObjectDrawer", "Drawing %zu objects", objects.size());
   
   int drawn_count = 0;
   int skipped_count = 0;
@@ -90,7 +91,7 @@ absl::Status ObjectDrawer::DrawObjectList(
   
   // Only log if there are failures
   if (skipped_count > 0) {
-    printf("[ObjectDrawer] Drew %d objects, skipped %d\n", drawn_count, skipped_count);
+    LOG_DEBUG("ObjectDrawer", "Drew %d objects, skipped %d", drawn_count, skipped_count);
   }
   
   return absl::OkStatus();
@@ -575,14 +576,14 @@ void ObjectDrawer::DrawRightwardsDecor2x2spaced12_1to16(const RoomObject& obj, g
 
 void ObjectDrawer::WriteTile16(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
                                const gfx::Tile16& tile) {
-  printf("[WriteTile16] Writing Tile16 at tile pos (%d,%d) to bitmap\n", tile_x, tile_y);
+  LOG_DEBUG("ObjectDrawer", "Writing Tile16 at tile pos (%d,%d) to bitmap", tile_x, tile_y);
   
   // Draw directly to bitmap instead of tile buffer to avoid being overwritten
   auto& bitmap = bg.bitmap();
-  printf("[WriteTile16] Bitmap status: active=%d, width=%d, height=%d, surface=%p\n", 
+  LOG_DEBUG("ObjectDrawer", "Bitmap status: active=%d, width=%d, height=%d, surface=%p", 
          bitmap.is_active(), bitmap.width(), bitmap.height(), bitmap.surface());
   if (!bitmap.is_active() || bitmap.width() == 0) {
-    printf("[WriteTile16] Bitmap not ready: active=%d, width=%d\n", bitmap.is_active(), bitmap.width());
+    LOG_DEBUG("ObjectDrawer", "Bitmap not ready: active=%d, width=%d", bitmap.is_active(), bitmap.width());
     return; // Bitmap not ready
   }
 
@@ -615,7 +616,7 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& ti
   
   // DEBUG: Check if bitmap is valid
   if (!bitmap.is_active() || bitmap.width() == 0 || bitmap.height() == 0) {
-    printf("[DrawTileToBitmap] ERROR: Invalid bitmap - active=%d, size=%dx%d\n", 
+    LOG_DEBUG("ObjectDrawer", "ERROR: Invalid bitmap - active=%d, size=%dx%d", 
            bitmap.is_active(), bitmap.width(), bitmap.height());
     return;
   }
@@ -658,7 +659,7 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& ti
           
           // Debug first pixel of each tile
           if (py == 0 && px == 0) {
-            printf("[DrawTileToBitmap] Tile ID=0x%02X at (%d,%d): palette=%d, pixel_index=%d, final_color=%d\n", 
+            LOG_DEBUG("ObjectDrawer", "Tile ID=0x%02X at (%d,%d): palette=%d, pixel_index=%d, final_color=%d", 
                    tile_info.id_, pixel_x, pixel_y, palette_id, pixel_index, final_color);
           }
         }

@@ -120,8 +120,6 @@ void OverworldEditor::Initialize() {
       .priority = 70
   });
   
-  printf("[OverworldEditor] Registered 7 cards with EditorCardManager\n");
-  
   // Original initialization code below:
   // Initialize MapPropertiesSystem with canvas and bitmap data
   map_properties_system_ = std::make_unique<MapPropertiesSystem>(

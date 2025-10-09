@@ -82,8 +82,6 @@ void ScreenEditor::Initialize() {
       .visibility_flag = &show_naming_screen_,
       .priority = 50
   });
-  
-  printf("[ScreenEditor] Registered 5 cards with EditorCardManager\n");
 }
 
 absl::Status ScreenEditor::Load() {

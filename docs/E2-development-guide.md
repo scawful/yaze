@@ -104,7 +104,37 @@ To ensure a consistent and polished look and feel, all new UI components must ad
     - **Items**: Bright red
     - **Sprites**: Bright magenta
 
-### 3.5. Bitmap and Texture Synchronization
+## 4. Debugging and Testing
+
+### 4.1. Quick Debugging with Startup Flags
+
+To accelerate your debugging workflow, use command-line flags to jump directly to specific editors and open relevant UI cards:
+
+```bash
+# Quick dungeon room testing
+./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards="Room 0"
+
+# Compare multiple rooms
+./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards="Room 0,Room 1,Room 105"
+
+# Full dungeon workspace
+./yaze --rom_file=zelda3.sfc --editor=Dungeon \
+  --cards="Rooms List,Room Matrix,Object Editor,Palette Editor"
+
+# Enable debug logging
+./yaze --debug --log_file=debug.log --rom_file=zelda3.sfc --editor=Dungeon
+```
+
+**Available Editors**: Assembly, Dungeon, Graphics, Music, Overworld, Palette, Screen, Sprite, Message, Hex, Agent, Settings
+
+**Dungeon Editor Cards**: Rooms List, Room Matrix, Entrances List, Room Graphics, Object Editor, Palette Editor, Room N (where N is room ID 0-319)
+
+See [debugging-startup-flags.md](debugging-startup-flags.md) for complete documentation.
+
+### 4.2. Testing Strategies
+
+For a comprehensive overview of debugging tools and testing strategies, including how to use the logging framework, command-line test runners, and the GUI automation harness for AI agents, please refer to the [Debugging and Testing Guide](E5-debugging-guide.md).
+
 
 When working with bitmaps and textures, understand that two memory locations must stay synchronized:
 

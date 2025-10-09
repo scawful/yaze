@@ -100,8 +100,6 @@ void MessageEditor::Initialize() {
       .priority = 40
   });
   
-  printf("[MessageEditor] Registered 4 cards with EditorCardManager\n");
-  
   for (int i = 0; i < kWidthArraySize; i++) {
     message_preview_.width_array[i] = rom()->data()[kCharactersWidth + i];
   }

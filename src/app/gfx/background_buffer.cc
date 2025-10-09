@@ -6,6 +6,7 @@
 
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_tile.h"
+#include "util/log.h"
 
 namespace yaze::gfx {
 
@@ -43,19 +44,18 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
   // DEBUG: For floor tiles, check what we're actually reading
   static int debug_count = 0;
   if (debug_count < 4 && (tile.id_ == 0xEC || tile.id_ == 0xED || tile.id_ == 0xFC || tile.id_ == 0xFD)) {
-    printf("[DrawTile] Floor tile 0x%02X at sheet pos (%d,%d), palette=%d, mirror=(%d,%d)\n",
+    LOG_DEBUG("[DrawTile]", "Floor tile 0x%02X at sheet pos (%d,%d), palette=%d, mirror=(%d,%d)",
            tile.id_, tile_x, tile_y, tile.palette_, tile.horizontal_mirror_, tile.vertical_mirror_);
-    printf("[DrawTile] First row (8 pixels): ");
+    LOG_DEBUG("[DrawTile]", "First row (8 pixels): ");
     for (int i = 0; i < 8; i++) {
       int src_index = tile_y * 128 + (tile_x + i);
-      printf("%d ", tiledata[src_index]);
+      LOG_DEBUG("[DrawTile]", "%d ", tiledata[src_index]);
     }
-    printf("\n[DrawTile] Second row (8 pixels): ");
+    LOG_DEBUG("[DrawTile]", "Second row (8 pixels): ");
     for (int i = 0; i < 8; i++) {
       int src_index = (tile_y + 1) * 128 + (tile_x + i);
-      printf("%d ", tiledata[src_index]);
+      LOG_DEBUG("[DrawTile]", "%d ", tiledata[src_index]);
     }
-    printf("\n");
     debug_count++;
   }
   
@@ -146,13 +146,13 @@ void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
                                  uint8_t floor_graphics) {
   // Create bitmap ONCE at the start if it doesn't exist
   if (!bitmap_.is_active() || bitmap_.width() == 0) {
-    printf("[DrawFloor] Creating bitmap: %dx%d, active=%d, width=%d\n", 
+    LOG_DEBUG("[DrawFloor]", "Creating bitmap: %dx%d, active=%d, width=%d", 
            width_, height_, bitmap_.is_active(), bitmap_.width());
     bitmap_.Create(width_, height_, 8, std::vector<uint8_t>(width_ * height_, 0));
-    printf("[DrawFloor] After Create: active=%d, width=%d, height=%d\n", 
+    LOG_DEBUG("[DrawFloor]", "After Create: active=%d, width=%d, height=%d", 
            bitmap_.is_active(), bitmap_.width(), bitmap_.height());
   } else {
-    printf("[DrawFloor] Bitmap already exists: active=%d, width=%d, height=%d\n", 
+    LOG_DEBUG("[DrawFloor]", "Bitmap already exists: active=%d, width=%d, height=%d", 
            bitmap_.is_active(), bitmap_.width(), bitmap_.height());
   }
   
