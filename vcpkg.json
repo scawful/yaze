@@ -3,7 +3,7 @@
   "name": "yaze",
   "version": "0.3.2",
   "description": "Yet Another Zelda3 Editor",
-  "builtin-baseline": "a42af01b72c28a8e1d7b48107b33e4f286a55ef6",
+  "builtin-baseline": "01f602195983451bc83e72f4214af2cbc495aa94",
   "dependencies": [
     {
       "name": "sdl2",
@@ -21,6 +21,10 @@
     },
     {
       "name": "zlib",
+      "platform": "windows"
+    },
+    {
+      "name": "openssl",
       "platform": "windows"
     }
   ],

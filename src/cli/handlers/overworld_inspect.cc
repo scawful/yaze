@@ -102,21 +102,21 @@ void PopulateCommonWarpFields(WarpEntry& entry, uint16_t raw_map_id,
 
 absl::StatusOr<int> ParseNumeric(std::string_view value, int base) {
   try {
-    size_t processed = 0;
-    int result = std::stoi(std::string(value), &processed, base);
-    if (processed != value.size()) {
-      return absl::InvalidArgumentError(
-          absl::StrCat("Invalid numeric value: ", value));
-    }
-    return result;
-  } catch (const std::exception&) {
+  size_t processed = 0;
+  int result = std::stoi(std::string(value), &processed, base);
+  if (processed != value.size()) {
     return absl::InvalidArgumentError(
-        absl::StrCat("Invalid numeric value: ", value));
+        absl::StrCat("Invalid numeric value: ", std::string(value)));
   }
+  return result;
+} catch (const std::exception&) {
+  return absl::InvalidArgumentError(
+      absl::StrCat("Invalid numeric value: ", std::string(value)));
+}
 }
 
 absl::StatusOr<int> ParseWorldSpecifier(std::string_view value) {
-  std::string lower = absl::AsciiStrToLower(value);
+  std::string lower = absl::AsciiStrToLower(std::string(value));
   if (lower == "0" || lower == "light") {
     return 0;
   }
@@ -127,7 +127,7 @@ absl::StatusOr<int> ParseWorldSpecifier(std::string_view value) {
     return 2;
   }
   return absl::InvalidArgumentError(
-      absl::StrCat("Unknown world value: ", value));
+      absl::StrCat("Unknown world value: ", std::string(value)));
 }
 
 absl::StatusOr<int> InferWorldFromMapId(int map_id) {
