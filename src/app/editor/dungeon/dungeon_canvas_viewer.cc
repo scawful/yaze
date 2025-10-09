@@ -93,6 +93,24 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     ImGui::SameLine();
     gui::InputHexWord("Message ID", &room.message_id_);
     
+    // Layer visibility controls
+    ImGui::Separator();
+    ImGui::Text("Layer Controls:");
+    ImGui::Checkbox("Show BG1", &bg1_visible_);
+    ImGui::SameLine();
+    ImGui::Checkbox("Show BG2", &bg2_visible_);
+    
+    // BG2 layer type dropdown
+    const char* bg2_layer_types[] = {
+        "Normal (100%)", "Translucent (75%)", "Addition (50%)", "Dark (25%)", "Off (0%)"
+    };
+    const int bg2_alpha_values[] = {255, 191, 127, 64, 0};
+    
+    if (ImGui::Combo("BG2 Layer Type", &bg2_layer_type_, bg2_layer_types, 
+                     sizeof(bg2_layer_types) / sizeof(bg2_layer_types[0]))) {
+      // BG2 layer type changed, no need to reload graphics
+    }
+    
     // Check if critical properties changed and trigger reload
     if (prev_blockset != room.blockset || prev_palette != room.palette || 
         prev_layout != room.layout || prev_spriteset != room.spriteset) {
@@ -444,7 +462,8 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
   auto& bg1_bitmap = room.bg1_buffer().bitmap();
   auto& bg2_bitmap = room.bg2_buffer().bitmap();
   
-  if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
+  // Draw BG1 layer if visible and active
+  if (bg1_visible_ && bg1_bitmap.is_active() && bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
     if (!bg1_bitmap.texture()) {
       // Queue texture creation for background layer 1 via Arena's deferred system
       gfx::Arena::Get().QueueTextureCommand(
@@ -456,11 +475,15 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
 
     // Only draw if texture was successfully created
     if (bg1_bitmap.texture()) {
+      printf("[RenderRoomBackgroundLayers] Drawing BG1 bitmap to canvas with texture %p\n", bg1_bitmap.texture());
       canvas_.DrawBitmap(bg1_bitmap, 0, 0, 1.0f, 255);
+    } else {
+      printf("[RenderRoomBackgroundLayers] ERROR: BG1 bitmap has no texture!\n");
     }
   } 
   
-  if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
+  // Draw BG2 layer if visible and active
+  if (bg2_visible_ && bg2_bitmap.is_active() && bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
     if (!bg2_bitmap.texture()) {
       // Queue texture creation for background layer 2 via Arena's deferred system
       gfx::Arena::Get().QueueTextureCommand(
@@ -472,18 +495,42 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
     
     // Only draw if texture was successfully created
     if (bg2_bitmap.texture()) {
-      canvas_.DrawBitmap(bg2_bitmap, 0, 0, 1.0f, 200);
+      // Use the selected BG2 layer type alpha value
+      const int bg2_alpha_values[] = {255, 191, 127, 64, 0};
+      int alpha_value = bg2_alpha_values[std::min(bg2_layer_type_, 4)];
+      printf("[RenderRoomBackgroundLayers] Drawing BG2 bitmap to canvas with texture %p, alpha=%d\n", bg2_bitmap.texture(), alpha_value);
+      canvas_.DrawBitmap(bg2_bitmap, 0, 0, 1.0f, alpha_value);
+    } else {
+      printf("[RenderRoomBackgroundLayers] ERROR: BG2 bitmap has no texture!\n");
     }
   }
   
   // DEBUG: Check if background buffers have content
   if (bg1_bitmap.is_active() && bg1_bitmap.width() > 0) {
-    printf("[RenderRoomBackgroundLayers] BG1 bitmap: %dx%d, active=%d\n", 
-           bg1_bitmap.width(), bg1_bitmap.height(), bg1_bitmap.is_active());
+    printf("[RenderRoomBackgroundLayers] BG1 bitmap: %dx%d, active=%d, visible=%d, texture=%p\n", 
+           bg1_bitmap.width(), bg1_bitmap.height(), bg1_bitmap.is_active(), bg1_visible_, bg1_bitmap.texture());
+    
+    // Check bitmap data content
+    auto& bg1_data = bg1_bitmap.mutable_data();
+    int non_zero_pixels = 0;
+    for (size_t i = 0; i < bg1_data.size(); i += 100) {  // Sample every 100th pixel
+      if (bg1_data[i] != 0) non_zero_pixels++;
+    }
+    printf("[RenderRoomBackgroundLayers] BG1 bitmap data: %zu pixels, ~%d non-zero samples\n", 
+           bg1_data.size(), non_zero_pixels);
   }
   if (bg2_bitmap.is_active() && bg2_bitmap.width() > 0) {
-    printf("[RenderRoomBackgroundLayers] BG2 bitmap: %dx%d, active=%d\n", 
-           bg2_bitmap.width(), bg2_bitmap.height(), bg2_bitmap.is_active());
+    printf("[RenderRoomBackgroundLayers] BG2 bitmap: %dx%d, active=%d, visible=%d, layer_type=%d, texture=%p\n", 
+           bg2_bitmap.width(), bg2_bitmap.height(), bg2_bitmap.is_active(), bg2_visible_, bg2_layer_type_, bg2_bitmap.texture());
+    
+    // Check bitmap data content
+    auto& bg2_data = bg2_bitmap.mutable_data();
+    int non_zero_pixels = 0;
+    for (size_t i = 0; i < bg2_data.size(); i += 100) {  // Sample every 100th pixel
+      if (bg2_data[i] != 0) non_zero_pixels++;
+    }
+    printf("[RenderRoomBackgroundLayers] BG2 bitmap data: %zu pixels, ~%d non-zero samples\n", 
+           bg2_data.size(), non_zero_pixels);
   }
   
   // TEST: Draw a bright red rectangle to verify canvas drawing works
@@ -493,6 +540,12 @@ void DungeonCanvasViewer::RenderRoomBackgroundLayers(int room_id) {
       ImVec2(canvas_pos.x + 50, canvas_pos.y + 50),
       ImVec2(canvas_pos.x + 150, canvas_pos.y + 150),
       IM_COL32(255, 0, 0, 255));  // Bright red
+  
+  // DEBUG: Show canvas and bitmap info
+  printf("[RenderRoomBackgroundLayers] Canvas pos: (%.1f, %.1f), Canvas size: (%.1f, %.1f)\n", 
+         canvas_pos.x, canvas_pos.y, canvas_.canvas_size().x, canvas_.canvas_size().y);
+  printf("[RenderRoomBackgroundLayers] BG1 bitmap size: %dx%d, BG2 bitmap size: %dx%d\n", 
+         bg1_bitmap.width(), bg1_bitmap.height(), bg2_bitmap.width(), bg2_bitmap.height());
 }
 
 }  // namespace yaze::editor

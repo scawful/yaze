@@ -56,6 +56,16 @@ class DungeonCanvasViewer {
   void SetObjectInteractionEnabled(bool enabled) { object_interaction_enabled_ = enabled; }
   bool IsObjectInteractionEnabled() const { return object_interaction_enabled_; }
   
+  // Layer visibility controls
+  void SetBG1Visible(bool visible) { bg1_visible_ = visible; }
+  void SetBG2Visible(bool visible) { bg2_visible_ = visible; }
+  bool IsBG1Visible() const { return bg1_visible_; }
+  bool IsBG2Visible() const { return bg2_visible_; }
+  
+  // BG2 layer type controls
+  void SetBG2LayerType(int type) { bg2_layer_type_ = type; }
+  int GetBG2LayerType() const { return bg2_layer_type_; }
+  
   // Set the object to be placed
   void SetPreviewObject(const zelda3::RoomObject& object) {
     object_interaction_.SetPreviewObject(object, true);
@@ -94,6 +104,11 @@ class DungeonCanvasViewer {
   
   // Object interaction state
   bool object_interaction_enabled_ = true;
+  
+  // Layer visibility controls
+  bool bg1_visible_ = true;
+  bool bg2_visible_ = true;
+  int bg2_layer_type_ = 0;  // 0=Normal, 1=Translucent, 2=Addition, etc.
   
   // Palette data
   uint64_t current_palette_group_id_ = 0;

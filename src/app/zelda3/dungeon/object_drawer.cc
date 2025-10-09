@@ -37,6 +37,8 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
 
   // Select buffer based on layer
   auto& target_bg = (object.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
+  printf("[DrawObject] Object ID=0x%02X using %s buffer (layer=%d)\n", 
+         object.id_, (object.layer_ == RoomObject::LayerType::BG2) ? "BG2" : "BG1", object.layer_);
 
   // Skip objects that don't have tiles loaded - check mutable object
   if (mutable_obj.tiles().empty()) {
@@ -577,6 +579,8 @@ void ObjectDrawer::WriteTile16(gfx::BackgroundBuffer& bg, int tile_x, int tile_y
   
   // Draw directly to bitmap instead of tile buffer to avoid being overwritten
   auto& bitmap = bg.bitmap();
+  printf("[WriteTile16] Bitmap status: active=%d, width=%d, height=%d, surface=%p\n", 
+         bitmap.is_active(), bitmap.width(), bitmap.height(), bitmap.surface());
   if (!bitmap.is_active() || bitmap.width() == 0) {
     printf("[WriteTile16] Bitmap not ready: active=%d, width=%d\n", bitmap.is_active(), bitmap.width());
     return; // Bitmap not ready
@@ -609,8 +613,12 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& ti
   // Draw an 8x8 tile directly to bitmap at pixel coordinates
   if (!tiledata) return;
   
-  printf("[DrawTileToBitmap] Drawing tile ID=0x%02X at (%d,%d) with palette=%d\n", 
-         tile_info.id_, pixel_x, pixel_y, tile_info.palette_);
+  // DEBUG: Check if bitmap is valid
+  if (!bitmap.is_active() || bitmap.width() == 0 || bitmap.height() == 0) {
+    printf("[DrawTileToBitmap] ERROR: Invalid bitmap - active=%d, size=%dx%d\n", 
+           bitmap.is_active(), bitmap.width(), bitmap.height());
+    return;
+  }
   
   // Calculate tile position in graphics sheet (128 pixels wide)
   int tile_sheet_x = (tile_info.id_ % 16) * 8;  // 16 tiles per row
@@ -620,6 +628,12 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& ti
   uint8_t palette_id = tile_info.palette_ & 0x0F;
   if (palette_id > 10) palette_id = palette_id % 11;
   uint8_t palette_offset = palette_id * 8;  // 3BPP: 8 colors per palette
+  
+  // Force a visible palette for debugging
+  if (palette_id == 0) {
+    palette_id = 1;  // Use palette 1 instead of 0
+    palette_offset = palette_id * 8;
+  }
   
   // Draw 8x8 pixels
   for (int py = 0; py < 8; py++) {
@@ -632,8 +646,8 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& ti
       int src_index = (tile_sheet_y + src_y) * 128 + (tile_sheet_x + src_x);
       uint8_t pixel_index = tiledata[src_index];
       
-      // Apply palette and write to bitmap
-      uint8_t final_color = pixel_index + palette_offset;
+              // Apply palette and write to bitmap
+              uint8_t final_color = pixel_index + palette_offset;
       int dest_x = pixel_x + px;
       int dest_y = pixel_y + py;
       
@@ -641,6 +655,12 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& ti
         int dest_index = dest_y * bitmap.width() + dest_x;
         if (dest_index >= 0 && dest_index < static_cast<int>(bitmap.mutable_data().size())) {
           bitmap.mutable_data()[dest_index] = final_color;
+          
+          // Debug first pixel of each tile
+          if (py == 0 && px == 0) {
+            printf("[DrawTileToBitmap] Tile ID=0x%02X at (%d,%d): palette=%d, pixel_index=%d, final_color=%d\n", 
+                   tile_info.id_, pixel_x, pixel_y, palette_id, pixel_index, final_color);
+          }
         }
       }
     }
