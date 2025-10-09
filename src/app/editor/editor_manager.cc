@@ -952,6 +952,12 @@ void EditorManager::DrawContextSensitiveCardControl() {
     case EditorType::kAssembly:
       // Assembly editor uses dynamic file tabs
       return;
+    case EditorType::kEmulator:
+      category = "Emulator";
+      break;
+    case EditorType::kMusic:
+      // Music editor doesn't use cards yet
+      return;
     default:
       return;  // No cards for this editor type
   }

@@ -114,12 +114,17 @@ void MessageEditor::Initialize() {
   }
   message_preview_.font_gfx16_data_ =
       gfx::SnesTo8bppSheet(raw_font_gfx_data_, /*bpp=*/2, /*num_sheets=*/2);
-  // Create bitmap and queue texture creation
+  
+  // Create bitmap for font graphics
   font_gfx_bitmap_.Create(kFontGfxMessageSize, kFontGfxMessageSize, 
                          kFontGfxMessageDepth, message_preview_.font_gfx16_data_);
   font_gfx_bitmap_.SetPalette(font_preview_colors_);
+  
+  // Queue texture creation - will be processed in render loop
   gfx::Arena::Get().QueueTextureCommand(
       gfx::Arena::TextureCommandType::CREATE, &font_gfx_bitmap_);
+  
+  printf("[MessageEditor] Font bitmap created and texture queued\n");
   *current_font_gfx16_bitmap_.mutable_palette() = font_preview_colors_;
 
   auto load_font = LoadFontGraphics(*rom());
