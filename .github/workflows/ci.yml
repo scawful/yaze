@@ -59,7 +59,7 @@ jobs:
       if: runner.os != 'Linux'
       uses: lukka/run-vcpkg@v11
       with:
-        vcpkgGitCommitId: 'c8696863d371ab7f46e213d8f5ca923c4aef2a00'
+        vcpkgGitCommitId: '4bee3f5aae7aefbc129ca81c33d6a062b02fcf3b'
         runVcpkgInstall: true
       env:
         VCPKG_DEFAULT_TRIPLET: ${{ matrix.vcpkg_triplet }}
