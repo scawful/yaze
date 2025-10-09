@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "app/gfx/backend/irenderer.h"
+#include "util/log.h"
 #include "util/sdl_deleter.h"
 
 namespace yaze {
@@ -79,7 +80,7 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
               should_remove = false;  // Retry next frame
             }
           } catch (...) {
-            printf("[Arena] ERROR: Exception during texture creation\n");
+            LOG_ERROR("Arena", "Exception during texture creation");
             should_remove = true;  // Remove bad command
           }
         }
@@ -94,7 +95,7 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
             active_renderer->UpdateTexture(command.bitmap->texture(), *command.bitmap);
             processed++;
           } catch (...) {
-            printf("[Arena] ERROR: Exception during texture update\n");
+            LOG_ERROR("Arena", "Exception during texture update");
           }
         }
         break;
@@ -106,7 +107,7 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
             command.bitmap->set_texture(nullptr);
             processed++;
           } catch (...) {
-            printf("[Arena] ERROR: Exception during texture destruction\n");
+            LOG_ERROR("Arena", "Exception during texture destruction");
           }
         }
         break;
@@ -177,6 +178,29 @@ void Arena::Shutdown() {
   
   // Clear any remaining queue items
   texture_command_queue_.clear();
+}
+
+void Arena::NotifySheetModified(int sheet_index) {
+  if (sheet_index < 0 || sheet_index >= 223) {
+    LOG_WARN("Arena", "Invalid sheet index %d, ignoring notification", sheet_index);
+    return;
+  }
+  
+  auto& sheet = gfx_sheets_[sheet_index];
+  if (!sheet.is_active() || !sheet.surface()) {
+    LOG_DEBUG("Arena", "Sheet %d not active or no surface, skipping notification", sheet_index);
+    return;
+  }
+  
+  // Queue texture update so changes are visible in all editors
+  if (sheet.texture()) {
+    QueueTextureCommand(TextureCommandType::UPDATE, &sheet);
+    LOG_DEBUG("Arena", "Queued texture update for modified sheet %d", sheet_index);
+  } else {
+    // Create texture if it doesn't exist
+    QueueTextureCommand(TextureCommandType::CREATE, &sheet);
+    LOG_DEBUG("Arena", "Queued texture creation for modified sheet %d", sheet_index);
+  }
 }
 
 
