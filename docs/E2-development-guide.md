@@ -1,6 +1,17 @@
 # E2 - Development Guide
 
-This guide outlines the core architectural patterns, UI systems, and best practices for developing and maintaining the Yaze editor. Adhering to these patterns is crucial for ensuring consistency, maintainability, and performance.
+This guide outlines the core architectural patterns, UI systems, and best practices for developing and maintaining the yaze editor.
+
+## Editor Status
+
+- **Overworld Editor**: Production ready
+- **Message Editor**: Production ready (requires testing of recent rendering fixes)
+- **Emulator**: Production ready
+- **Dungeon Editor**: EXPERIMENTAL - Requires thorough testing
+- **Graphics Editor**: EXPERIMENTAL - Recent rendering pipeline changes need validation
+- **Palette Editor**: Production ready
+- **Sprite Editor**: EXPERIMENTAL
+- **Assembly Editor**: Production ready
 
 ## 1. Core Architectural Patterns
 
@@ -92,3 +103,38 @@ To ensure a consistent and polished look and feel, all new UI components must ad
     - **Exits**: Cyan-white
     - **Items**: Bright red
     - **Sprites**: Bright magenta
+
+### 3.5. Bitmap and Texture Synchronization
+
+When working with bitmaps and textures, understand that two memory locations must stay synchronized:
+
+1. **`data_` vector**: C++ std::vector<uint8_t> holding pixel data
+2. **`surface_->pixels`**: SDL surface's raw pixel buffer (used for texture creation)
+
+**Critical Rules**:
+- Use `set_data()` for bulk data replacement (syncs both vector and surface)
+- Use `WriteToPixel()` for single-pixel modifications
+- Never assign directly to `mutable_data()` for replacements (only updates vector, not surface)
+- Always call `ProcessTextureQueue()` every frame to process pending texture operations
+
+**Example**:
+```cpp
+// WRONG - only updates vector
+bitmap.mutable_data() = new_data;
+
+// CORRECT - updates both vector and SDL surface
+bitmap.set_data(new_data);
+```
+
+### 3.6. Graphics Sheet Management
+
+Graphics sheets (223 total) are managed centrally by `gfx::Arena`. When modifying a sheet:
+
+1. Modify the sheet: `auto& sheet = Arena::Get().mutable_gfx_sheet(index);`
+2. Notify Arena: `Arena::Get().NotifySheetModified(index);`
+3. Changes automatically propagate to all editors
+
+Default palettes are applied during ROM loading based on sheet index:
+- Sheets 0-112: Dungeon main palettes
+- Sheets 113-127: Sprite palettes
+- Sheets 128-222: HUD/menu palettes

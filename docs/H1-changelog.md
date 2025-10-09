@@ -1,6 +1,51 @@
 # Changelog
 
-## 0.3.3 (October 2025)
+## 0.3.3 (October 2025) - IN FLUX
+
+**Note**: Versions 0.3.2-0.3.3 experienced CI/CD issues with Windows releases. See B4-release-workflows.md for details on the fixes applied.
+
+### Rendering Pipeline Fixes
+
+**Graphics Editor White Sheets Fixed**:
+- Graphics sheets now receive appropriate default palettes during ROM loading
+- Sheets 0-112: Dungeon main palettes
+- Sheets 113-127: Sprite palettes
+- Sheets 128-222: HUD/menu palettes
+- Eliminated white/blank graphics on initial load
+
+**Message Editor Preview Updates**:
+- Fixed static message preview issue where changes weren't visible
+- Corrected `mutable_data()` usage to `set_data()` for proper SDL surface synchronization
+- Message preview now updates in real-time when selecting or editing messages
+
+**Cross-Editor Graphics Synchronization**:
+- Added `Arena::NotifySheetModified()` for centralized texture management
+- Graphics changes in one editor now propagate to all other editors
+- Improves workflow when editing graphics that appear in multiple contexts
+
+**Logging System Migration**:
+- Replaced raw `printf()` calls with structured `LOG_*` macros throughout graphics pipeline
+- Better integration with logging system for debugging
+
+### Card-Based UI System
+
+**EditorCardManager**:
+- Centralized card registration and visibility management
+- Context-sensitive card controls in main menu bar
+- Category-based keyboard shortcuts (Ctrl+Shift+D for Dungeon, etc.)
+- Card browser for visual card management (Ctrl+Shift+B)
+
+**Editor Integration**:
+- DungeonEditor, GraphicsEditor, ScreenEditor, SpriteEditor, OverworldEditor, AssemblyEditor, MessageEditor, and Emulator now use card system
+- Cards can be closed with X button like normal windows
+- Proper docking behavior across all editors
+- Cards hidden by default to prevent crashes on ROM load
+
+## 0.3.2 (October 2025) - IN FLUX
+
+**Note**: CI/CD issues with Windows releases. Fixes implemented in 0.3.3.
+
+## 0.3.1 (October 2025)
 
 ### Emulator: Audio System Infrastructure ✅ COMPLETE
 
