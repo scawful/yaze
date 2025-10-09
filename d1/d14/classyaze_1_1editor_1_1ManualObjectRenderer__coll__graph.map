@@ -1,0 +1,12 @@
+<map id="yaze::editor::ManualObjectRenderer" name="yaze::editor::ManualObjectRenderer">
+<area shape="rect" id="Node000001" title="Manual object renderer for debugging and testing basic object rendering." alt="" coords="260,198,431,238"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="223,109,343,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="302,146,335,196,330,199,297,149"/>
+<area shape="rect" id="Node000003" href="$dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html" title="Handles all tile&#45;based interactions for Canvas." alt="" coords="5,5,177,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="115,56,144,83,183,100,223,111,222,116,181,105,141,87,111,60"/>
+<area shape="rect" id="Node000004" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html" title="Defines an abstract interface for all rendering operations." alt="" coords="201,13,333,39"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="268,54,271,84,279,107,274,109,266,86,263,55"/>
+<area shape="rect" id="Node000010" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="363,13,443,39"/>
+<area shape="poly" id="edge5_Node000001_Node000010" title=" " alt="" coords="403,55,395,111,376,175,363,199,358,196,371,173,389,110,398,54"/>
+<area shape="poly" id="edge4_Node000002_Node000010" title=" " alt="" coords="377,50,300,111,297,106,374,46"/>
+</map>

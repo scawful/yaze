@@ -1,0 +1,5 @@
+<map id="yaze::editor::ManualObjectRenderer::CreateSimpleTile" name="yaze::editor::ManualObjectRenderer::CreateSimpleTile">
+<area shape="rect" id="Node000001" title="Create a simple 16x16 tile manually." alt="" coords="5,5,184,46"/>
+<area shape="rect" id="Node000002" href="$d8/deb/classyaze_1_1editor_1_1ManualObjectRenderer.html#a29d7bb67e80e6489fe74f3a0793adb2f" title=" " alt="" coords="232,5,403,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,23,216,23,216,28,184,28"/>
+</map>

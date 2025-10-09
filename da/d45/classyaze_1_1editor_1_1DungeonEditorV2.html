@@ -192,6 +192,8 @@ Private Member Functions</h2></td></tr>
 <tr class="separator:a17eba885f177b00364b41353f85c4719"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec2931720824e24660c9b7e4bd9c6544" id="r_aec2931720824e24660c9b7e4bd9c6544"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#aec2931720824e24660c9b7e4bd9c6544">DrawRoomGraphicsCard</a> ()</td></tr>
 <tr class="separator:aec2931720824e24660c9b7e4bd9c6544"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6cb5d547fa6c4d16f1b98413fc13cd16" id="r_a6cb5d547fa6c4d16f1b98413fc13cd16"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a6cb5d547fa6c4d16f1b98413fc13cd16">ProcessDeferredTextures</a> ()</td></tr>
+<tr class="separator:a6cb5d547fa6c4d16f1b98413fc13cd16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5b46bb90815fb2548d1f2e4344abe97" id="r_af5b46bb90815fb2548d1f2e4344abe97"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#af5b46bb90815fb2548d1f2e4344abe97">OnRoomSelected</a> (int room_id)</td></tr>
 <tr class="separator:af5b46bb90815fb2548d1f2e4344abe97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b2047230797eb907652c3f2f75c2b6b" id="r_a3b2047230797eb907652c3f2f75c2b6b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a3b2047230797eb907652c3f2f75c2b6b">OnEntranceSelected</a> (int entrance_id)</td></tr>
@@ -249,6 +251,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a8a7c57ea1fbb75ebacc5c4846a61f19e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a539bf56701942e3af9945278949896" id="r_a2a539bf56701942e3af9945278949896"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="../../dc/dfc/classyaze_1_1editor_1_1ObjectEditorCard.html">ObjectEditorCard</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a2a539bf56701942e3af9945278949896">object_editor_card_</a></td></tr>
 <tr class="separator:a2a539bf56701942e3af9945278949896"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4d475aa5f468e9f0ffe6a5f3fccfcfa6" id="r_a4d475aa5f468e9f0ffe6a5f3fccfcfa6"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="../../d8/deb/classyaze_1_1editor_1_1ManualObjectRenderer.html">ManualObjectRenderer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a4d475aa5f468e9f0ffe6a5f3fccfcfa6">manual_renderer_</a></td></tr>
+<tr class="separator:a4d475aa5f468e9f0ffe6a5f3fccfcfa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79b8d29cb8e69181cba0c59c9c009427" id="r_a79b8d29cb8e69181cba0c59c9c009427"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a79b8d29cb8e69181cba0c59c9c009427">is_loaded_</a> = false</td></tr>
 <tr class="separator:a79b8d29cb8e69181cba0c59c9c009427"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abb5c5273881c20b651a8e20a53571517" id="r_abb5c5273881c20b651a8e20a53571517"><td class="memItemLeft" align="right" valign="top">ImGuiWindowClass&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#abb5c5273881c20b651a8e20a53571517">room_window_class_</a></td></tr>
@@ -281,7 +285,7 @@ Additional Inherited Members</h2></td></tr>
 </ul>
 <p>The editor acts as a coordinator, not an implementer. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00041">41</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00042">42</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="af37c2da982693fa565a0da3feb7eb403" name="af37c2da982693fa565a0da3feb7eb403"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af37c2da982693fa565a0da3feb7eb403">&#9670;&#160;</a></span>DungeonEditorV2()</h2>
@@ -307,7 +311,7 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00043">43</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00044">44</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
 <p class="reference">References <a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a297b0603822af41a3d23fbc2da2a622aa773324726da2f589c757da4c39336156">yaze::editor::kDungeon</a>, and <a class="el" href="../../dd/d60/editor_8h_source.html#l00121">yaze::editor::Editor::type_</a>.</p>
 
@@ -342,7 +346,7 @@ Additional Inherited Members</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00018">18</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00090">renderer_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00075">rom()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00105">rom_</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00143">room_window_class_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00091">renderer_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00076">rom()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00109">rom_</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00148">room_window_class_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02111">yaze::editor::EditorManager::LoadAssets()</a>, and <a class="el" href="../../d3/d0c/dungeon__editor__v2__test_8cc_source.html#l00161">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
@@ -414,7 +418,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">31</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00113">active_rooms_</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00134">canvas_viewer_</a>, <a class="el" href="../../de/d89/snes__palette_8cc_source.html#l00321">yaze::gfx::CreatePaletteGroupFromLargePalette()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00126">current_palette_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00127">current_palette_group_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00129">current_palette_group_id_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00128">current_palette_id_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00107">entrances_</a>, <a class="el" href="../../d5/d7c/dungeon__object__emulator__preview_8cc_source.html#l00023">yaze::gui::DungeonObjectEmulatorPreview::Initialize()</a>, <a class="el" href="../../d8/da5/palette__editor__widget_8cc_source.html#l00009">yaze::gui::PaletteEditorWidget::Initialize()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00140">is_loaded_</a>, <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00128">yaze::editor::DungeonRoomLoader::LoadRoomEntrances()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00138">object_editor_card_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00136">object_emulator_preview_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00135">object_selector_</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00284">OnRoomSelected()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00137">palette_editor_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00212">yaze::Rom::palette_group()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00090">renderer_</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00105">rom_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00132">room_loader_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00133">room_selector_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00106">rooms_</a>, <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00031">yaze::editor::DungeonRoomSelector::set_active_rooms()</a>, <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00041">yaze::editor::DungeonRoomSelector::set_entrances()</a>, <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00044">yaze::editor::DungeonRoomSelector::set_room_selected_callback()</a>, <a class="el" href="../../d3/d83/dungeon__object__selector_8h_source.html#l00046">yaze::editor::DungeonObjectSelector::set_rooms()</a>, <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00040">yaze::editor::DungeonRoomSelector::set_rooms()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00046">yaze::editor::DungeonCanvasViewer::SetCurrentPaletteGroup()</a>, <a class="el" href="../../d3/d83/dungeon__object__selector_8h_source.html#l00051">yaze::editor::DungeonObjectSelector::SetCurrentPaletteGroup()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00045">yaze::editor::DungeonCanvasViewer::SetCurrentPaletteId()</a>, <a class="el" href="../../d3/d83/dungeon__object__selector_8h_source.html#l00052">yaze::editor::DungeonObjectSelector::SetCurrentPaletteId()</a>, <a class="el" href="../../d3/dee/palette__editor__widget_8h_source.html#l00028">yaze::gui::PaletteEditorWidget::SetOnPaletteChanged()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00039">yaze::editor::DungeonCanvasViewer::SetRooms()</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00117">active_rooms_</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00049">yaze::editor::DungeonCanvasViewer::canvas()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00138">canvas_viewer_</a>, <a class="el" href="../../de/d89/snes__palette_8cc_source.html#l00321">yaze::gfx::CreatePaletteGroupFromLargePalette()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00130">current_palette_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00131">current_palette_group_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00133">current_palette_group_id_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00132">current_palette_id_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00111">entrances_</a>, <a class="el" href="../../d5/d7c/dungeon__object__emulator__preview_8cc_source.html#l00023">yaze::gui::DungeonObjectEmulatorPreview::Initialize()</a>, <a class="el" href="../../d8/da5/palette__editor__widget_8cc_source.html#l00009">yaze::gui::PaletteEditorWidget::Initialize()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00145">is_loaded_</a>, <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00128">yaze::editor::DungeonRoomLoader::LoadRoomEntrances()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00143">manual_renderer_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00142">object_editor_card_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00140">object_emulator_preview_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00139">object_selector_</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00289">OnRoomSelected()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00141">palette_editor_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00212">yaze::Rom::palette_group()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00091">renderer_</a>, <a class="el" href="../../d4/d9e/macro_8h_source.html#l00053">RETURN_IF_ERROR</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00109">rom_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00136">room_loader_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00137">room_selector_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00110">rooms_</a>, <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00031">yaze::editor::DungeonRoomSelector::set_active_rooms()</a>, <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00041">yaze::editor::DungeonRoomSelector::set_entrances()</a>, <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00044">yaze::editor::DungeonRoomSelector::set_room_selected_callback()</a>, <a class="el" href="../../d3/d83/dungeon__object__selector_8h_source.html#l00046">yaze::editor::DungeonObjectSelector::set_rooms()</a>, <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00040">yaze::editor::DungeonRoomSelector::set_rooms()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00046">yaze::editor::DungeonCanvasViewer::SetCurrentPaletteGroup()</a>, <a class="el" href="../../d3/d83/dungeon__object__selector_8h_source.html#l00051">yaze::editor::DungeonObjectSelector::SetCurrentPaletteGroup()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00045">yaze::editor::DungeonCanvasViewer::SetCurrentPaletteId()</a>, <a class="el" href="../../d3/d83/dungeon__object__selector_8h_source.html#l00052">yaze::editor::DungeonObjectSelector::SetCurrentPaletteId()</a>, <a class="el" href="../../d3/dee/palette__editor__widget_8h_source.html#l00028">yaze::gui::PaletteEditorWidget::SetOnPaletteChanged()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00039">yaze::editor::DungeonCanvasViewer::SetRooms()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l02111">yaze::editor::EditorManager::LoadAssets()</a>, <a class="el" href="../../d3/d0c/dungeon__editor__v2__test_8cc_source.html#l00034">yaze::test::TEST_F()</a>, and <a class="el" href="../../d3/d0c/dungeon__editor__v2__test_8cc_source.html#l00161">yaze::test::TEST_F()</a>.</p>
 
@@ -445,9 +449,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#aed50bffbba9a0d98f8f3d24ad753f887">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00085">85</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00090">90</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00128">DrawToolset()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00140">is_loaded_</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00133">DrawToolset()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00145">is_loaded_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -492,7 +496,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#af70b26886a360613f59e8f45b4bfcdec">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00058">58</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00059">59</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
 </div>
 </div>
@@ -521,7 +525,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#a127b4d84d1a76c5af2998a1a30f45e95">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00059">59</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00060">60</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
 </div>
 </div>
@@ -550,7 +554,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#a0c8c0eae68a91298050a709c146a9472">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00060">60</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00061">61</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
 </div>
 </div>
@@ -579,7 +583,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#a0d1cad7dc7377bcf699c76dc1da4bd2f">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00061">61</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00062">62</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
 </div>
 </div>
@@ -608,7 +612,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#adcc475a4870b75a9db44e78244c6fc4e">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00062">62</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00063">63</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
 </div>
 </div>
@@ -637,7 +641,7 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#aac357035ff66579bbad4181c5aa47e56">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00063">63</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00064">64</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
 </div>
 </div>
@@ -666,9 +670,9 @@ Here is the call graph for this function:</div>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#a89afe8fdd51463ff3d4259f40c98d464">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00111">111</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00116">116</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00105">rom_</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00106">rooms_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00109">rom_</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00110">rooms_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/d0c/dungeon__editor__v2__test_8cc_source.html#l00076">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
@@ -708,9 +712,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00067">67</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00068">68</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00134">canvas_viewer_</a>, <a class="el" href="../../d5/d7c/dungeon__object__emulator__preview_8cc_source.html#l00023">yaze::gui::DungeonObjectEmulatorPreview::Initialize()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00136">object_emulator_preview_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00135">object_selector_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00090">renderer_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00075">rom()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00105">rom_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00132">room_loader_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00133">room_selector_</a>, <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00024">yaze::editor::DungeonRoomSelector::set_rom()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00032">yaze::editor::DungeonCanvasViewer::SetRom()</a>, and <a class="el" href="../../d3/d83/dungeon__object__selector_8h_source.html#l00031">yaze::editor::DungeonObjectSelector::SetRom()</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00138">canvas_viewer_</a>, <a class="el" href="../../d5/d7c/dungeon__object__emulator__preview_8cc_source.html#l00023">yaze::gui::DungeonObjectEmulatorPreview::Initialize()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00140">object_emulator_preview_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00139">object_selector_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00091">renderer_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00076">rom()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00109">rom_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00136">room_loader_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00137">room_selector_</a>, <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00024">yaze::editor::DungeonRoomSelector::set_rom()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00032">yaze::editor::DungeonCanvasViewer::SetRom()</a>, and <a class="el" href="../../d3/d83/dungeon__object__selector_8h_source.html#l00031">yaze::editor::DungeonObjectSelector::SetRom()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/d0c/dungeon__editor__v2__test_8cc_source.html#l00150">yaze::test::TEST_F()</a>, and <a class="el" href="../../d3/d0c/dungeon__editor__v2__test_8cc_source.html#l00161">yaze::test::TEST_F()</a>.</p>
 
@@ -739,11 +743,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00075">75</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00076">76</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00105">rom_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00109">rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00018">Initialize()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00067">set_rom()</a>, and <a class="el" href="../../d3/d0c/dungeon__editor__v2__test_8cc_source.html#l00150">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00018">Initialize()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00068">set_rom()</a>, and <a class="el" href="../../d3/d0c/dungeon__editor__v2__test_8cc_source.html#l00150">yaze::test::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -763,9 +767,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00313">313</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00318">318</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00284">OnRoomSelected()</a>.</p>
+<p class="reference">References <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00289">OnRoomSelected()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/dd9/editor__manager_8cc_source.html#l03301">yaze::editor::EditorManager::JumpToDungeonRoom()</a>.</p>
 <div class="dynheader">
@@ -801,11 +805,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00317">317</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00322">322</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00114">room_cards_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00118">room_cards_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00284">OnRoomSelected()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00289">OnRoomSelected()</a>.</p>
 
 </div>
 </div>
@@ -834,9 +838,9 @@ Here is the call graph for this function:</div>
 
 <p>Reimplemented from <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#a97b9351230a4009008f1e53b135acc1f">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00082">82</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00083">83</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00105">rom_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00109">rom_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/d0c/dungeon__editor__v2__test_8cc_source.html#l00150">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
@@ -877,9 +881,9 @@ Here is the call graph for this function:</div>
 
 <p>Reimplemented from <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#a8293165f236b0d03875df48a3de943ff">yaze::editor::Editor</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00083">83</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00084">84</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00105">rom_</a>, and <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::title()</a>.</p>
+<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00109">rom_</a>, and <a class="el" href="../../da/de5/rom_8h_source.html#l00200">yaze::Rom::title()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -918,11 +922,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">167</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">172</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00113">active_rooms_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">yaze::gui::EditorCard::Begin()</a>, <a class="el" href="../../d8/da5/palette__editor__widget_8cc_source.html#l00015">yaze::gui::PaletteEditorWidget::Draw()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00392">DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00638">DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00493">DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00325">DrawRoomsListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00252">DrawRoomTab()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00306">yaze::gui::EditorCard::End()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bac8df43648942ec3a9aec140f07f47b7c">yaze::gui::EditorCard::Floating</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00894">ICON_MD_GRID_ON</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00433">yaze::zelda3::kRoomNames</a>, <a class="el" href="../../dd/d60/editor_8h_source.html#l00125">yaze::editor::Editor::MakeCardTitle()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00138">object_editor_card_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00137">palette_editor_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00114">room_cards_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00143">room_window_class_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00120">show_entrances_list_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00122">show_object_editor_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00123">show_palette_editor_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00121">show_room_graphics_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00119">show_room_matrix_</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00118">show_room_selector_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00117">active_rooms_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">yaze::gui::EditorCard::Begin()</a>, <a class="el" href="../../d8/da5/palette__editor__widget_8cc_source.html#l00015">yaze::gui::PaletteEditorWidget::Draw()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00397">DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00643">DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00498">DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00330">DrawRoomsListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00257">DrawRoomTab()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00306">yaze::gui::EditorCard::End()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8bac8df43648942ec3a9aec140f07f47b7c">yaze::gui::EditorCard::Floating</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00894">ICON_MD_GRID_ON</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00433">yaze::zelda3::kRoomNames</a>, <a class="el" href="../../dd/d60/editor_8h_source.html#l00125">yaze::editor::Editor::MakeCardTitle()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00142">object_editor_card_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00141">palette_editor_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00118">room_cards_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00148">room_window_class_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00124">show_entrances_list_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00126">show_object_editor_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00127">show_palette_editor_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00125">show_room_graphics_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00123">show_room_matrix_</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00122">show_room_selector_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00085">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00090">Update()</a>.</p>
 
 </div>
 </div>
@@ -950,11 +954,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00252">252</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00257">257</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00134">canvas_viewer_</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00059">yaze::editor::DungeonCanvasViewer::DrawDungeonCanvas()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00395">ICON_MD_CHECK</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01396">ICON_MD_PENDING</a>, <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00016">yaze::editor::DungeonRoomLoader::LoadRoom()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00132">room_loader_</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00106">rooms_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00138">canvas_viewer_</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00059">yaze::editor::DungeonCanvasViewer::DrawDungeonCanvas()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00395">ICON_MD_CHECK</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01396">ICON_MD_PENDING</a>, <a class="el" href="../../df/dfd/dungeon__room__loader_8cc_source.html#l00016">yaze::editor::DungeonRoomLoader::LoadRoom()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00136">room_loader_</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00110">rooms_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -997,11 +1001,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00128">128</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00133">133</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00171">yaze::gui::Toolset::AddAction()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00097">yaze::gui::Toolset::AddSeparator()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00165">yaze::gui::Toolset::AddToggle()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00021">yaze::gui::Toolset::Begin()</a>, <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00029">yaze::editor::DungeonRoomSelector::current_room_id()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00034">yaze::gui::Toolset::End()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00456">ICON_MD_CONSTRUCTION</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00611">ICON_MD_DOOR_FRONT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00895">ICON_MD_GRID_VIEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00980">ICON_MD_IMAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01092">ICON_MD_LIST</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00284">OnRoomSelected()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00133">room_selector_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00120">show_entrances_list_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00122">show_object_editor_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00123">show_palette_editor_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00121">show_room_graphics_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00119">show_room_matrix_</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00118">show_room_selector_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00171">yaze::gui::Toolset::AddAction()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00097">yaze::gui::Toolset::AddSeparator()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00165">yaze::gui::Toolset::AddToggle()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00021">yaze::gui::Toolset::Begin()</a>, <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00029">yaze::editor::DungeonRoomSelector::current_room_id()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00034">yaze::gui::Toolset::End()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00456">ICON_MD_CONSTRUCTION</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00611">ICON_MD_DOOR_FRONT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00895">ICON_MD_GRID_VIEW</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00980">ICON_MD_IMAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01092">ICON_MD_LIST</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01368">ICON_MD_PALETTE</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00289">OnRoomSelected()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00137">room_selector_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00124">show_entrances_list_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00126">show_object_editor_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00127">show_palette_editor_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00125">show_room_graphics_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00123">show_room_matrix_</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00122">show_room_selector_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00085">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00090">Update()</a>.</p>
 
 </div>
 </div>
@@ -1028,11 +1032,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00493">493</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00498">498</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00113">active_rooms_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">yaze::gui::EditorCard::Begin()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00115">current_room_id_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00306">yaze::gui::EditorCard::End()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00895">ICON_MD_GRID_VIEW</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00433">yaze::zelda3::kRoomNames</a>, <a class="el" href="../../dd/d60/editor_8h_source.html#l00125">yaze::editor::Editor::MakeCardTitle()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00284">OnRoomSelected()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">yaze::gui::EditorCard::SetDefaultSize()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00119">show_room_matrix_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00117">active_rooms_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">yaze::gui::EditorCard::Begin()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00119">current_room_id_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00306">yaze::gui::EditorCard::End()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00895">ICON_MD_GRID_VIEW</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00433">yaze::zelda3::kRoomNames</a>, <a class="el" href="../../dd/d60/editor_8h_source.html#l00125">yaze::editor::Editor::MakeCardTitle()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00289">OnRoomSelected()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">yaze::gui::EditorCard::SetDefaultSize()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00123">show_room_matrix_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>.</p>
 
 </div>
 </div>
@@ -1059,11 +1063,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00325">325</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00330">330</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">yaze::gui::EditorCard::Begin()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00115">current_room_id_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00306">yaze::gui::EditorCard::End()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01092">ICON_MD_LIST</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01671">ICON_MD_SEARCH</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00433">yaze::zelda3::kRoomNames</a>, <a class="el" href="../../dd/d60/editor_8h_source.html#l00125">yaze::editor::Editor::MakeCardTitle()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00284">OnRoomSelected()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00105">rom_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">yaze::gui::EditorCard::SetDefaultSize()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00118">show_room_selector_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">yaze::gui::EditorCard::Begin()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00119">current_room_id_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00306">yaze::gui::EditorCard::End()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01092">ICON_MD_LIST</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01671">ICON_MD_SEARCH</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00433">yaze::zelda3::kRoomNames</a>, <a class="el" href="../../dd/d60/editor_8h_source.html#l00125">yaze::editor::Editor::MakeCardTitle()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00289">OnRoomSelected()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00109">rom_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">yaze::gui::EditorCard::SetDefaultSize()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00122">show_room_selector_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>.</p>
 
 </div>
 </div>
@@ -1090,11 +1094,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00392">392</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00397">397</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">yaze::gui::EditorCard::Begin()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00110">current_entrance_id_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00306">yaze::gui::EditorCard::End()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00107">entrances_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00611">ICON_MD_DOOR_FRONT</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00189">yaze::gui::InputHexByte()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00175">yaze::gui::InputHexWord()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d4/db5/app_2zelda3_2common_8h_source.html#l00047">yaze::zelda3::kEntranceNames</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00433">yaze::zelda3::kRoomNames</a>, <a class="el" href="../../dd/d60/editor_8h_source.html#l00125">yaze::editor::Editor::MakeCardTitle()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00301">OnEntranceSelected()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00105">rom_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">yaze::gui::EditorCard::SetDefaultSize()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00120">show_entrances_list_</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">yaze::gui::EditorCard::Begin()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00114">current_entrance_id_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00306">yaze::gui::EditorCard::End()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00111">entrances_</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00611">ICON_MD_DOOR_FRONT</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00189">yaze::gui::InputHexByte()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00175">yaze::gui::InputHexWord()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d4/db5/app_2zelda3_2common_8h_source.html#l00047">yaze::zelda3::kEntranceNames</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00433">yaze::zelda3::kRoomNames</a>, <a class="el" href="../../dd/d60/editor_8h_source.html#l00125">yaze::editor::Editor::MakeCardTitle()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00306">OnEntranceSelected()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00109">rom_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">yaze::gui::EditorCard::SetDefaultSize()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00124">show_entrances_list_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>.</p>
 
 </div>
 </div>
@@ -1121,11 +1125,56 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00638">638</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00643">643</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">yaze::gui::EditorCard::Begin()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00115">current_room_id_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00304">yaze::gui::Canvas::draw_list()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00384">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00435">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01312">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01339">yaze::gui::Canvas::DrawOverlay()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00852">yaze::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00306">yaze::gui::EditorCard::End()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00014">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00078">yaze::gfx::Arena::gfx_sheets()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00980">ICON_MD_IMAGE</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../dd/d60/editor_8h_source.html#l00125">yaze::editor::Editor::MakeCardTitle()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba92b09c7c48c520c3c55e497875da437c">yaze::gui::EditorCard::Right</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00105">rom_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00106">rooms_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">yaze::gui::EditorCard::SetDefaultSize()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00246">yaze::gui::EditorCard::SetPosition()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00121">show_room_graphics_</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00305">yaze::gui::Canvas::zero_point()</a>.</p>
+<p class="reference">References <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00250">yaze::gui::EditorCard::Begin()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00119">current_room_id_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00304">yaze::gui::Canvas::draw_list()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00384">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00435">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01312">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01339">yaze::gui::Canvas::DrawOverlay()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00852">yaze::gui::Canvas::DrawTileSelector()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00306">yaze::gui::EditorCard::End()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00014">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../da/d0c/arena_8h_source.html#l00078">yaze::gfx::Arena::gfx_sheets()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00980">ICON_MD_IMAGE</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../dd/d60/editor_8h_source.html#l00125">yaze::editor::Editor::MakeCardTitle()</a>, <a class="el" href="../../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8ba92b09c7c48c520c3c55e497875da437c">yaze::gui::EditorCard::Right</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00109">rom_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00110">rooms_</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00242">yaze::gui::EditorCard::SetDefaultSize()</a>, <a class="el" href="../../d5/ddd/editor__layout_8cc_source.html#l00246">yaze::gui::EditorCard::SetPosition()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00125">show_room_graphics_</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00305">yaze::gui::Canvas::zero_point()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>.</p>
+
+</div>
+</div>
+<a id="a6cb5d547fa6c4d16f1b98413fc13cd16" name="a6cb5d547fa6c4d16f1b98413fc13cd16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6cb5d547fa6c4d16f1b98413fc13cd16">&#9670;&#160;</a></span>ProcessDeferredTextures()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::editor::DungeonEditorV2::ProcessDeferredTextures </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00720">720</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d2/dee/arena_8cc_source.html#l00014">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00035">yaze::gfx::Arena::ProcessTextureQueue()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00091">renderer_</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../da/d45/classyaze_1_1editor_1_1DungeonEditorV2_a6cb5d547fa6c4d16f1b98413fc13cd16_cgraph.png" border="0" usemap="#ada/d45/classyaze_1_1editor_1_1DungeonEditorV2_a6cb5d547fa6c4d16f1b98413fc13cd16_cgraph" alt=""/></div>
+<map name="ada/d45/classyaze_1_1editor_1_1DungeonEditorV2_a6cb5d547fa6c4d16f1b98413fc13cd16_cgraph" id="ada/d45/classyaze_1_1editor_1_1DungeonEditorV2_a6cb5d547fa6c4d16f1b98413fc13cd16_cgraph">
+<area shape="rect" title=" " alt="" coords="5,27,196,68"/>
+<area shape="rect" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="257,5,395,31"/>
+<area shape="poly" title=" " alt="" coords="196,32,241,26,242,32,197,38"/>
+<area shape="rect" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#aaa4008abdfc004444497722d9a9167c9" title=" " alt="" coords="244,55,408,96"/>
+<area shape="poly" title=" " alt="" coords="197,57,229,61,228,66,196,62"/>
+<area shape="rect" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html#a0c7628e8d85b52be66fa417503c24747" title="Creates a new, empty texture." alt="" coords="456,22,588,63"/>
+<area shape="poly" title=" " alt="" coords="408,59,440,53,441,59,409,64"/>
+<area shape="rect" href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html#aa6af4ae256b62659ce1222b20e3d695e" title="Destroys a texture and frees its associated resources." alt="" coords="456,87,588,128"/>
+<area shape="poly" title=" " alt="" coords="409,86,441,92,440,97,408,92"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1153,11 +1202,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00284">284</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00289">289</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00113">active_rooms_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00115">current_room_id_</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00317">FocusRoom()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00133">room_selector_</a>, and <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00031">yaze::editor::DungeonRoomSelector::set_active_rooms()</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00117">active_rooms_</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00119">current_room_id_</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00322">FocusRoom()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00137">room_selector_</a>, and <a class="el" href="../../d2/d24/dungeon__room__selector_8h_source.html#l00031">yaze::editor::DungeonRoomSelector::set_active_rooms()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00313">add_room()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00493">DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00325">DrawRoomsListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00128">DrawToolset()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00301">OnEntranceSelected()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00318">add_room()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00498">DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00330">DrawRoomsListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00133">DrawToolset()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00306">OnEntranceSelected()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1197,11 +1246,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00301">301</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00306">306</a> of file <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html">dungeon_editor_v2.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00107">entrances_</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00284">OnRoomSelected()</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00111">entrances_</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00289">OnRoomSelected()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00392">DrawEntrancesListCard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00397">DrawEntrancesListCard()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1240,9 +1289,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00090">90</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00091">91</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00018">Initialize()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00067">set_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00018">Initialize()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00720">ProcessDeferredTextures()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00068">set_rom()</a>.</p>
 
 </div>
 </div>
@@ -1266,9 +1315,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00105">105</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00109">109</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00392">DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00638">DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00325">DrawRoomsListCard()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00083">GetRomStatus()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00018">Initialize()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00082">IsRomLoaded()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00075">rom()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00111">Save()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00067">set_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00397">DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00643">DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00330">DrawRoomsListCard()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00084">GetRomStatus()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00018">Initialize()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00083">IsRomLoaded()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00076">rom()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00116">Save()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00068">set_rom()</a>.</p>
 
 </div>
 </div>
@@ -1292,9 +1341,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00106">106</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00110">110</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00638">DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00252">DrawRoomTab()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00111">Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00643">DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00257">DrawRoomTab()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00116">Save()</a>.</p>
 
 </div>
 </div>
@@ -1318,9 +1367,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00107">107</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00111">111</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00392">DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00301">OnEntranceSelected()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00397">DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00306">OnEntranceSelected()</a>.</p>
 
 </div>
 </div>
@@ -1344,9 +1393,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00110">110</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00114">114</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00392">DrawEntrancesListCard()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00397">DrawEntrancesListCard()</a>.</p>
 
 </div>
 </div>
@@ -1370,9 +1419,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00113">113</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00117">117</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00493">DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00284">OnRoomSelected()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00498">DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00289">OnRoomSelected()</a>.</p>
 
 </div>
 </div>
@@ -1396,9 +1445,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00114">114</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00118">118</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00317">FocusRoom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00322">FocusRoom()</a>.</p>
 
 </div>
 </div>
@@ -1422,9 +1471,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00115">115</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00119">119</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00638">DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00493">DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00325">DrawRoomsListCard()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00284">OnRoomSelected()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00643">DrawRoomGraphicsCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00498">DrawRoomMatrixCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00330">DrawRoomsListCard()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00289">OnRoomSelected()</a>.</p>
 
 </div>
 </div>
@@ -1448,9 +1497,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00118">118</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00122">122</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00325">DrawRoomsListCard()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00128">DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00330">DrawRoomsListCard()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00133">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -1474,9 +1523,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00119">119</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00123">123</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00493">DrawRoomMatrixCard()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00128">DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00498">DrawRoomMatrixCard()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00133">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -1500,9 +1549,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00120">120</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00124">124</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00392">DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00128">DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00397">DrawEntrancesListCard()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00133">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -1526,9 +1575,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00121">121</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00125">125</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00638">DrawRoomGraphicsCard()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00128">DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00643">DrawRoomGraphicsCard()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00133">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -1552,9 +1601,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00122">122</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00126">126</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00128">DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00133">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -1578,9 +1627,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00123">123</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00127">127</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00128">DrawToolset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00133">DrawToolset()</a>.</p>
 
 </div>
 </div>
@@ -1604,7 +1653,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00126">126</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00130">130</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>.</p>
 
@@ -1630,7 +1679,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00127">127</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00131">131</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>.</p>
 
@@ -1656,7 +1705,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00128">128</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00132">132</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>.</p>
 
@@ -1682,7 +1731,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00129">129</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00133">133</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>.</p>
 
@@ -1708,9 +1757,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00132">132</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00136">136</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00252">DrawRoomTab()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00067">set_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00257">DrawRoomTab()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00068">set_rom()</a>.</p>
 
 </div>
 </div>
@@ -1734,9 +1783,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00133">133</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00137">137</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00128">DrawToolset()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00284">OnRoomSelected()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00067">set_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00133">DrawToolset()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00289">OnRoomSelected()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00068">set_rom()</a>.</p>
 
 </div>
 </div>
@@ -1760,9 +1809,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00134">134</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00138">138</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00252">DrawRoomTab()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00067">set_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00257">DrawRoomTab()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00068">set_rom()</a>.</p>
 
 </div>
 </div>
@@ -1786,9 +1835,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00135">135</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00139">139</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00067">set_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00068">set_rom()</a>.</p>
 
 </div>
 </div>
@@ -1812,9 +1861,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00136">136</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00140">140</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00067">set_rom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00068">set_rom()</a>.</p>
 
 </div>
 </div>
@@ -1838,9 +1887,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00137">137</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00141">141</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>.</p>
 
 </div>
 </div>
@@ -1864,9 +1913,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00138">138</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00142">142</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>.</p>
+
+</div>
+</div>
+<a id="a4d475aa5f468e9f0ffe6a5f3fccfcfa6" name="a4d475aa5f468e9f0ffe6a5f3fccfcfa6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4d475aa5f468e9f0ffe6a5f3fccfcfa6">&#9670;&#160;</a></span>manual_renderer_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt;<a class="el" href="../../d8/deb/classyaze_1_1editor_1_1ManualObjectRenderer.html">ManualObjectRenderer</a>&gt; yaze::editor::DungeonEditorV2::manual_renderer_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00143">143</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>.</p>
 
 </div>
 </div>
@@ -1890,9 +1965,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00140">140</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00145">145</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00085">Update()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00031">Load()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00090">Update()</a>.</p>
 
 </div>
 </div>
@@ -1916,9 +1991,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00143">143</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00148">148</a> of file <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html">dungeon_editor_v2.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00167">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00018">Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00172">DrawLayout()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00018">Initialize()</a>.</p>
 
 </div>
 </div>

@@ -25,6 +25,7 @@ var classyaze_1_1editor_1_1DungeonEditorV2 =
     [ "DrawRoomsListCard", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a8dc714152f4bcbb8279ba00553649cea", null ],
     [ "DrawEntrancesListCard", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a17eba885f177b00364b41353f85c4719", null ],
     [ "DrawRoomGraphicsCard", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#aec2931720824e24660c9b7e4bd9c6544", null ],
+    [ "ProcessDeferredTextures", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a6cb5d547fa6c4d16f1b98413fc13cd16", null ],
     [ "OnRoomSelected", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#af5b46bb90815fb2548d1f2e4344abe97", null ],
     [ "OnEntranceSelected", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a3b2047230797eb907652c3f2f75c2b6b", null ],
     [ "renderer_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a3d783610490f7e18fbaa379e5c951ba0", null ],
@@ -52,6 +53,7 @@ var classyaze_1_1editor_1_1DungeonEditorV2 =
     [ "object_emulator_preview_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a4dcfa08a5390c5ef986561d5726644f7", null ],
     [ "palette_editor_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a8a7c57ea1fbb75ebacc5c4846a61f19e", null ],
     [ "object_editor_card_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a2a539bf56701942e3af9945278949896", null ],
+    [ "manual_renderer_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a4d475aa5f468e9f0ffe6a5f3fccfcfa6", null ],
     [ "is_loaded_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#a79b8d29cb8e69181cba0c59c9c009427", null ],
     [ "room_window_class_", "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#abb5c5273881c20b651a8e20a53571517", null ]
 ];

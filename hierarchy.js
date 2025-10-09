@@ -356,6 +356,7 @@ var hierarchy =
     [ "yaze::emu::M7X", "d1/d12/structyaze_1_1emu_1_1M7X.html", null ],
     [ "yaze::emu::M7Y", "db/dd1/structyaze_1_1emu_1_1M7Y.html", null ],
     [ "yaze::emu::MainSubScreenDesignation", "d6/df6/structyaze_1_1emu_1_1MainSubScreenDesignation.html", null ],
+    [ "yaze::editor::ManualObjectRenderer", "d8/deb/classyaze_1_1editor_1_1ManualObjectRenderer.html", null ],
     [ "yaze::editor::MapPropertiesSystem", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html", null ],
     [ "yaze::cli::overworld::MapSummary", "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html", null ],
     [ "yaze::emu::MaskLogicSettings", "d9/d57/structyaze_1_1emu_1_1MaskLogicSettings.html", null ],

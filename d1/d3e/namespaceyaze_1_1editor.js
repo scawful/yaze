@@ -114,6 +114,7 @@ var namespaceyaze_1_1editor =
     [ "GfxGroupEditor", "db/d71/classyaze_1_1editor_1_1GfxGroupEditor.html", "db/d71/classyaze_1_1editor_1_1GfxGroupEditor" ],
     [ "GraphicsEditor", "dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html", "dc/d31/classyaze_1_1editor_1_1GraphicsEditor" ],
     [ "HistoryManager", "d9/d6c/classyaze_1_1editor_1_1HistoryManager.html", "d9/d6c/classyaze_1_1editor_1_1HistoryManager" ],
+    [ "ManualObjectRenderer", "d8/deb/classyaze_1_1editor_1_1ManualObjectRenderer.html", "d8/deb/classyaze_1_1editor_1_1ManualObjectRenderer" ],
     [ "MapPropertiesSystem", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem" ],
     [ "MemoryEditorWithDiffChecker", "d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html", "d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker" ],
     [ "MenuBuilder", "d7/d73/classyaze_1_1editor_1_1MenuBuilder.html", "d7/d73/classyaze_1_1editor_1_1MenuBuilder" ],
