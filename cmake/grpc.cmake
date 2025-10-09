@@ -27,11 +27,25 @@ set(CMAKE_DISABLE_FIND_PACKAGE_gRPC TRUE)
 # Also prevent pkg-config from finding system packages
 set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH FALSE)
 
-# Add compiler flags for Clang 15+ compatibility
-# gRPC v1.62.0 requires C++17 (std::result_of removed in C++20)
+# Add compiler flags for modern compiler compatibility
+# These flags are scoped to gRPC and its dependencies only
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-Wno-error=missing-template-arg-list-after-template-kw)
+    # Clang 15+ compatibility for gRPC
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=missing-template-arg-list-after-template-kw")
     add_compile_definitions(_LIBCPP_ENABLE_CXX20_REMOVED_TYPE_TRAITS)
+elseif(MSVC)
+    # MSVC/Visual Studio compatibility for gRPC templates
+    # v1.67.1 fixes most issues, but these flags help with large template instantiations
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")  # Large object files
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /permissive-")  # Standards conformance
+    
+    # Suppress common gRPC warnings on MSVC (don't use add_compile_options to avoid affecting user code)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4267 /wd4244")
+    
+    # Increase template instantiation depth for complex promise chains (MSVC 2019+)
+    if(MSVC_VERSION GREATER_EQUAL 1920)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /constexpr:depth2048")
+    endif()
 endif()
 
 # Save YAZE's C++ standard and temporarily set to C++17 for gRPC
@@ -77,12 +91,15 @@ set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
 set(ABSL_ENABLE_INSTALL ON CACHE BOOL "" FORCE)
 set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
-# Declare gRPC - use v1.62.0 which fixes health_check_client incomplete type bug
-# and is compatible with Clang 18
+# Declare gRPC - use v1.67.1 which fixes MSVC template issues and is compatible with modern compilers
+# v1.67.1 includes:
+# - MSVC/Visual Studio compatibility fixes (template instantiation errors)
+# - Clang 18+ compatibility
+# - Abseil compatibility updates
 FetchContent_Declare(
   grpc
   GIT_REPOSITORY https://github.com/grpc/grpc.git
-  GIT_TAG        v1.62.0
+  GIT_TAG        v1.67.1
   GIT_PROGRESS   TRUE
   GIT_SHALLOW    TRUE
   USES_TERMINAL_DOWNLOAD TRUE
