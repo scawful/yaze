@@ -206,36 +206,51 @@ jobs:
         Write-Host "`nDisk Space:" -ForegroundColor Cyan
         Get-PSDrive C | Select-Object Used,Free | Format-Table -AutoSize
     
-    - name: Configure
-      id: configure
-      shell: bash
+    - name: Configure (Windows)
+      if: runner.os == 'Windows'
+      id: configure_windows
+      shell: pwsh
       env:
         VCPKG_DEFAULT_TRIPLET: x64-windows-static
       run: |
+        Write-Host "::group::CMake Configuration (Windows)" -ForegroundColor Cyan
+        
+        $vcpkgToolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -replace '\\', '/'
+        Write-Host "Using vcpkg toolchain: $vcpkgToolchain"
+        
+        cmake -B build -G "Visual Studio 17 2022" -A x64 `
+          -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
+          -DCMAKE_TOOLCHAIN_FILE="$vcpkgToolchain" `
+          -DVCPKG_TARGET_TRIPLET=x64-windows-static `
+          -DVCPKG_MANIFEST_MODE=ON `
+          -DVCPKG_INSTALL_OPTIONS="--debug" `
+          -DYAZE_MINIMAL_BUILD=ON `
+          -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | Tee-Object -FilePath cmake_config.log
+        
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "::error::CMake configuration failed with exit code $LASTEXITCODE"
+          exit $LASTEXITCODE
+        }
+        
+        Write-Host "::endgroup::"
+    
+    - name: Configure (Unix)
+      if: runner.os != 'Windows'
+      id: configure_unix
+      shell: bash
+      run: |
         set -e
         echo "::group::CMake Configuration"
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          # Windows-specific configuration with enhanced error handling
-          cmake -B build -G "Visual Studio 17 2022" -A x64 \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake \
-            -DVCPKG_TARGET_TRIPLET=x64-windows-static \
-            -DVCPKG_MANIFEST_MODE=ON \
-            -DVCPKG_INSTALL_OPTIONS="--debug" \
-            -DYAZE_MINIMAL_BUILD=ON \
-            -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
-        else
-          cmake -B build -G Ninja \
-            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
-            -DYAZE_MINIMAL_BUILD=ON \
-            -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
-        fi
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+          -DYAZE_MINIMAL_BUILD=ON \
+          -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
         echo "::endgroup::"
     
     - name: Report Configure Failure
-      if: failure() && steps.configure.outcome == 'failure'
+      if: failure() && (steps.configure_windows.outcome == 'failure' || steps.configure_unix.outcome == 'failure')
       shell: bash
       run: |
         echo "::error::CMake configuration failed. Check cmake_config.log for details."
@@ -415,7 +430,8 @@ jobs:
         
         # Build status
         echo "### Build Status" >> $GITHUB_STEP_SUMMARY
-        if [[ "${{ steps.configure.outcome }}" == "success" ]]; then
+        CONFIGURE_OUTCOME="${{ steps.configure_windows.outcome || steps.configure_unix.outcome }}"
+        if [[ "$CONFIGURE_OUTCOME" == "success" ]]; then
           echo "- ✅ Configure: Success" >> $GITHUB_STEP_SUMMARY
         else
           echo "- ❌ Configure: Failed" >> $GITHUB_STEP_SUMMARY
