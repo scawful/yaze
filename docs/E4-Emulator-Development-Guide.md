@@ -913,6 +913,237 @@ cmake --build build --target yaze -j12
 
 ---
 
+## 11.5 Audio System Architecture (October 2025)
+
+### Overview
+
+The emulator now features a **production-quality audio abstraction layer** that decouples the audio implementation from the emulation core. This architecture enables easy migration between SDL2, SDL3, and custom platform-native backends.
+
+### Audio Backend Abstraction
+
+**Architecture:**
+```
+┌─────────────────────────────────────┐
+│    Emulator / Music Editor          │
+├─────────────────────────────────────┤
+│    IAudioBackend (Interface)        │
+├──────────┬──────────┬───────────────┤
+│  SDL2    │  SDL3    │  Platform     │
+│ Backend  │ Backend  │  Native       │
+└──────────┴──────────┴───────────────┘
+```
+
+**Key Components:**
+
+1. **IAudioBackend Interface** (`src/app/emu/audio/audio_backend.h`)
+   - `Initialize(config)` - Setup audio device
+   - `QueueSamples(samples, count)` - Queue audio for playback
+   - `SetVolume(volume)` - Control output volume (0.0-1.0)
+   - `GetStatus()` - Query buffer state (queued frames, underruns)
+   - `Play/Pause/Stop/Clear()` - Playback control
+
+2. **SDL2AudioBackend** (`src/app/emu/audio/audio_backend.cc`)
+   - Complete implementation using SDL2 audio API
+   - Smart buffer management (maintains 2-6 frames)
+   - Automatic underrun/overflow protection
+   - Volume scaling at backend level
+
+3. **AudioBackendFactory**
+   - Factory pattern for creating backends
+   - Easy to add new backend types
+   - Minimal coupling to emulator core
+
+**Usage in Emulator:**
+```cpp
+// Emulator automatically creates audio backend
+void Emulator::Initialize() {
+  audio_backend_ = AudioBackendFactory::Create(BackendType::SDL2);
+  AudioConfig config{48000, 2, 1024, SampleFormat::INT16};
+  audio_backend_->Initialize(config);
+}
+
+// Smart buffer management in frame loop
+void Emulator::Run() {
+  snes_.SetSamples(audio_buffer_, wanted_samples_);
+  
+  auto status = audio_backend_->GetStatus();
+  if (status.queued_frames < 2) {
+    // Underrun risk - queue more
+  } else if (status.queued_frames > 6) {
+    // Overflow - clear and restart
+    audio_backend_->Clear();
+  }
+  audio_backend_->QueueSamples(audio_buffer_, wanted_samples_ * 2);
+}
+```
+
+### APU Handshake Debugging System
+
+The **ApuHandshakeTracker** provides comprehensive monitoring of CPU-SPC700 communication during the IPL ROM boot sequence.
+
+**Features:**
+- **Phase Tracking**: Monitors handshake progression through distinct phases
+  - `RESET` - Initial state after reset
+  - `IPL_BOOT` - SPC700 executing IPL ROM
+  - `WAITING_BBAA` - CPU waiting for SPC ready signal
+  - `HANDSHAKE_CC` - CPU sent acknowledge
+  - `TRANSFER_ACTIVE` - Data transfer in progress
+  - `TRANSFER_DONE` - Upload complete
+  - `RUNNING` - Audio driver executing
+
+- **Port Activity Monitor**: Records last 1000 port write events
+  - Tracks both CPU→SPC and SPC→CPU communications
+  - Shows PC address for each write
+  - Displays port values (F4-F7)
+  - Timestamps for timing analysis
+
+- **Visual Debugger UI**: Real-time display in APU Debugger window
+  - Current phase with color-coded status
+  - Port activity log with scrollable history
+  - Transfer progress bar
+  - Current port values table
+  - Manual handshake testing buttons
+
+**Integration Points:**
+```cpp
+// In Snes::WriteBBus() - CPU writes to APU ports
+if (adr >= 0x40 && adr < 0x44) {  // $2140-$2143
+  apu_.in_ports_[adr & 0x3] = val;
+  if (handshake_tracker_) {
+    handshake_tracker_->OnCpuPortWrite(adr & 0x3, val, cpu_.PC);
+  }
+}
+
+// In Apu::Write() - SPC700 writes to output ports
+if (adr >= 0xF4 && adr <= 0xF7) {
+  out_ports_[adr - 0xF4] = val;
+  if (handshake_tracker_) {
+    handshake_tracker_->OnSpcPortWrite(adr - 0xF4, val, spc700_.PC);
+  }
+}
+```
+
+### IPL ROM Handshake Protocol
+
+The SNES audio system uses a carefully orchestrated handshake between CPU and SPC700:
+
+**Phase 1: IPL ROM Boot (SPC700 Side)**
+1. SPC700 resets, PC = $FFC0 (IPL ROM)
+2. Executes boot sequence
+3. Writes $AA to port F4, $BB to port F5 (ready signal)
+4. Enters wait loop at $FFDA: `CMP A, ($F4)` waiting for $CC
+
+**Phase 2: CPU Handshake (From bank $00)**
+1. CPU reads F4:F5, expects $BBAA
+2. CPU writes $CC to F4 (acknowledge)
+3. SPC detects $CC, proceeds to transfer loop
+
+**Phase 3: Data Transfer**
+1. CPU writes: size (2 bytes), dest (2 bytes), data bytes
+2. Uses counter protocol: CPU writes data+counter, SPC echoes counter
+3. Repeat until final block (F5 bit 0 = 1)
+4. SPC disables IPL ROM, jumps to uploaded driver
+
+**Debugging Stuck Handshakes:**
+
+If stuck at `WAITING_BBAA`:
+```
+[APU_DEBUG] Phase: WAITING_BBAA
+[APU_DEBUG] Port Activity:
+[0001] SPC→ F4 = $AA @ PC=$FFD6
+[0002] SPC→ F5 = $BB @ PC=$FFD8
+(no CPU write of $CC)
+```
+**Diagnosis**: CPU not calling LoadIntroSongBank at $008029
+- Set breakpoint at $008029 in CPU debugger
+- Verify JSR executes
+- Check reset vector points to bank $00
+
+**Force Handshake Testing:**
+Use "Force Handshake ($CC)" button in APU Debugger to manually test SPC response without CPU code.
+
+### Music Editor Integration
+
+The music editor is now integrated with the audio backend for live music playback.
+
+**Features:**
+```cpp
+class MusicEditor {
+  void PlaySong(int song_id) {
+    // Write song request to game memory
+    emulator_->snes().Write(0x7E012C, song_id);
+    // Ensure audio is playing
+    if (auto* audio = emulator_->audio_backend()) {
+      audio->Play();
+    }
+  }
+  
+  void SetVolume(float volume) {
+    if (auto* audio = emulator_->audio_backend()) {
+      audio->SetVolume(volume);  // 0.0 - 1.0
+    }
+  }
+  
+  void StopSong() {
+    if (auto* audio = emulator_->audio_backend()) {
+      audio->Stop();
+    }
+  }
+};
+```
+
+**Workflow:**
+1. User selects song from dropdown
+2. Music editor calls `PlaySong(song_id)`
+3. Writes to $7E012C triggers game's audio driver
+4. SPC700 processes request and generates samples
+5. DSP outputs samples to audio backend
+6. User hears music through system audio
+
+### Audio Testing & Diagnostics
+
+**Quick Test:**
+```bash
+./build/bin/yaze.app/Contents/MacOS/yaze \
+  --log-level=DEBUG \
+  --log-categories=APU_DEBUG,AUDIO
+
+# Look for:
+# [AUDIO] Audio backend initialized: SDL2
+# [APU_DEBUG] Phase: RUNNING
+# [APU_DEBUG] SPC700_PC=$0200 (game code, not IPL ROM)
+```
+
+**APU Debugger Window:**
+- View → APU Debugger
+- Watch phase progression in real-time
+- Monitor port activity log
+- Check transfer progress
+- Use force handshake button for testing
+
+**Success Criteria:**
+- Audio backend initializes without errors
+- SPC ready signal ($BBAA) appears in port log
+- CPU writes handshake acknowledge ($CC)
+- Transfer completes (Phase = RUNNING)
+- SPC PC leaves IPL ROM range ($FFxx)
+- Audio samples are non-zero
+- Music plays from speakers
+
+### Future Enhancements
+
+1. **SDL3 Backend** - When SDL3 is stable, add `SDL3AudioBackend` implementation
+2. **Platform-Native Backends**:
+   - CoreAudio (macOS) - Lower latency
+   - WASAPI (Windows) - Exclusive mode support
+   - PulseAudio/ALSA (Linux) - Better integration
+3. **Audio Recording** - Record gameplay audio to WAV/OGG
+4. **Real-time DSP Effects** - Echo, reverb, EQ for music editor
+5. **Multi-channel Mixer** - Solo/mute individual SPC700 channels
+6. **Spectrum Analyzer** - Visualize audio frequencies in real-time
+
+---
+
 ## 12. Next Steps & Roadmap
 
 ### 🎯 Immediate Priorities (Critical Path to Full Functionality)

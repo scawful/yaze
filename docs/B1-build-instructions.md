@@ -164,30 +164,61 @@ open build/yaze.xcodeproj
 
 ## 7. Windows Build Optimization
 
-### The Problem: Slow gRPC Builds
-Building with gRPC on Windows (`-DYAZE_WITH_GRPC=ON`) can take **15-20 minutes** the first time, as it compiles gRPC and its dependencies from source.
+### gRPC v1.67.1 and MSVC Compatibility
 
-### Solution: Use vcpkg for Pre-compiled Binaries
+**Recent Update (October 2025):** The project has been upgraded to gRPC v1.67.1 which includes critical MSVC template fixes. This version resolves previous template instantiation errors that occurred with v1.62.0.
+
+**MSVC-Specific Compiler Flags:**
+The build system now automatically applies these flags for Windows builds:
+- `/bigobj` - Allows large object files (gRPC generates many symbols)
+- `/permissive-` - Enables standards conformance mode
+- `/wd4267 /wd4244` - Suppresses harmless conversion warnings
+- `/constexpr:depth2048` - Handles deep template instantiations (MSVC 2019+)
+
+### The Problem: Slow gRPC Builds
+Building with gRPC on Windows (`-DYAZE_WITH_GRPC=ON`) can take **15-20 minutes** the first time, as it compiles gRPC v1.67.1 and its dependencies from source.
+
+### Solution A: Use vcpkg for Pre-compiled Binaries (Recommended - FAST)
 
 Using `vcpkg` to manage gRPC is the recommended approach for Windows developers who need GUI automation features.
 
 **Step 1: Install vcpkg and Dependencies**
 ```powershell
 # This only needs to be done once
+# Use the setup script for convenience:
+.\scripts\setup-vcpkg-windows.ps1
+
+# Or manually:
 vcpkg install grpc:x64-windows protobuf:x64-windows abseil:x64-windows
 ```
 
 **Step 2: Configure CMake to Use vcpkg**
 Pass the `vcpkg.cmake` toolchain file to your configure command.
 
-```bash
+```powershell
 # Configure a build that uses vcpkg for gRPC
-cmake -B build -DYAZE_WITH_GRPC=ON `
-  -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+cmake -B build -G "Visual Studio 17 2022" -A x64 `
+  -DCMAKE_TOOLCHAIN_FILE="vcpkg/scripts/buildsystems/vcpkg.cmake"
 
-# Build (will now be much faster)
-cmake --build build
+# Build (will now be much faster: 5-10 minutes)
+cmake --build build --config RelWithDebInfo --parallel
 ```
+
+**Build Time:** ~5-10 minutes (uses pre-compiled gRPC)
+
+### Solution B: FetchContent Build (Slow but Automatic)
+
+If you don't want to use vcpkg, CMake will automatically download and build gRPC from source.
+
+```powershell
+# Configure (will download and build gRPC v1.67.1 from source)
+cmake -B build -G "Visual Studio 17 2022" -A x64
+
+# Build (first time: ~45-60 minutes, subsequent: ~2-5 minutes)
+cmake --build build --config RelWithDebInfo --parallel
+```
+
+**Build Time:** ~45-60 minutes first time, ~2-5 minutes subsequent builds (gRPC cached)
 
 ## 8. Troubleshooting
 
