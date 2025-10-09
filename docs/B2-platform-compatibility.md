@@ -10,13 +10,18 @@ YAZE now features native file dialogs on all platforms:
 - **Linux**: GTK3 dialogs that match system appearance
 - **Fallback**: Bespoke implementation when native dialogs unavailable
 
-## Cross-Platform Build Reliability
+## Filesystem Abstraction
 
-Enhanced build system ensures consistent compilation:
-- **Windows**: Resolved MSVC compatibility issues and dependency conflicts
-- **Linux**: Fixed standard library compatibility for older distributions  
-- **macOS**: Proper support for both Intel and Apple Silicon architectures
-- **All Platforms**: Bundled dependencies eliminate external package requirements
+To ensure robust and consistent behavior across platforms, YAZE has standardized its filesystem operations:
+
+-   **`std::filesystem`**: All new and refactored code uses the C++17 `std::filesystem` library for path manipulation, directory iteration, and file operations. This eliminates a major source of platform-specific bugs related to path separators (`/` vs `\`) and other inconsistencies.
+
+-   **`PlatformPaths` Utility**: A dedicated utility class, `yaze::util::PlatformPaths`, provides a centralized and platform-aware API for retrieving standard directory locations. It correctly resolves paths for:
+    -   **Application Data**: Uses `%APPDATA%` on Windows, `~/Library/Application Support` on macOS, and the XDG Base Directory Specification on Linux.
+    -   **Configuration Files**: Provides a semantically clear API for config file locations.
+    -   **Home and Temporary Directories**: Safely resolves user-specific and temporary folders.
+
+This strategy removes legacy, platform-specific APIs (like `dirent.h` or Win32 directory functions) from the application codebase, leading to cleaner, more maintainable, and more reliable file handling.
 
 ## Build Configuration Options
 

@@ -191,30 +191,68 @@ cmake --build build
 
 ## 8. Troubleshooting
 
-### "nlohmann/json.hpp: No such file or directory"
-**Cause**: You are building code that requires AI features without using an AI-enabled preset.
-**Solution**: Use an AI preset like `win-ai` or `mac-ai`.
-```bash
-cmake --preset win-ai
-cmake --build --preset win-ai
+Build issues, especially on Windows, often stem from environment misconfiguration. Before anything else, run the verification script.
+
+```powershell
+# Run the verification script in PowerShell
+.\scripts\verify-build-environment.ps1
 ```
 
-### "Cannot open file 'yaze.exe': Permission denied"
+This script is your primary diagnostic tool and can detect most common problems.
+
+### Automatic Fixes
+
+If the script finds issues, you can often fix them automatically by running it with the `-FixIssues` flag. This can:
+- Synchronize Git submodules.
+- Correct Git `core.autocrlf` and `core.longpaths` settings, which are critical for cross-platform compatibility on Windows.
+- Prompt to clean stale CMake caches.
+
+```powershell
+# Attempt to fix detected issues automatically
+.\scripts\verify-build-environment.ps1 -FixIssues
+```
+
+### Cleaning Stale Builds
+
+After pulling major changes or switching branches, your build directory can become "stale," leading to strange compiler or linker errors. The verification script will warn you about old build files. You can clean them manually or use the `-CleanCache` flag.
+
+**This will delete all `build*` and `out` directories.**
+
+```powershell
+# Clean all build artifacts to start fresh
+.\scripts\verify-build-environment.ps1 -CleanCache
+```
+
+### Common Issues
+
+#### "nlohmann/json.hpp: No such file or directory"
+**Cause**: You are building code that requires AI features without using an AI-enabled preset, or your Git submodules are not initialized.
+**Solution**:
+1.  Use an AI preset like `win-ai` or `mac-ai`.
+2.  Ensure submodules are present by running `git submodule update --init --recursive`.
+
+#### "Cannot open file 'yaze.exe': Permission denied"
 **Cause**: A previous instance of `yaze.exe` is still running in the background.
 **Solution**: Close it using Task Manager or run:
 ```cmd
 taskkill /F /IM yaze.exe
 ```
 
-### "C++ standard 'cxx_std_23' not supported"
+#### "C++ standard 'cxx_std_23' not supported"
 **Cause**: Your compiler is too old.
-**Solution**: Update your tools. You need Visual Studio 2022 17.4+, GCC 13+, or Clang 16+.
+**Solution**: Update your tools. You need Visual Studio 2022 17.4+, GCC 13+, or Clang 16+. The verification script checks this.
 
-### Visual Studio Can't Find Presets
-**Cause**: VS failed to parse `CMakePresets.json`.
-**Solution**: Close and reopen the folder (`File -> Close Folder`). If that fails, check the "CMake" pane in the Output window for specific JSON parsing errors.
+#### Visual Studio Can't Find Presets
+**Cause**: VS failed to parse `CMakePresets.json` or its cache is corrupt.
+**Solution**:
+1.  Close and reopen the folder (`File -> Close Folder`).
+2.  Check the "CMake" pane in the Output window for specific JSON parsing errors.
+3.  Delete the hidden `.vs` directory in the project root to force Visual Studio to re-index the project.
 
-### General Advice
-1.  **Start Simple**: Begin with a basic preset like `win-dbg` or `mac-dbg`.
-2.  **Clean Build**: If you switch presets or make major changes to `CMakeLists.txt`, delete the `build` directory and re-configure.
-3.  **Use the Script**: `verify-build-environment.sh` and `.ps1` can diagnose most toolchain issues.
+#### Git Line Ending (CRLF) Issues
+**Cause**: Git may be automatically converting line endings, which can break shell scripts and other assets.
+**Solution**: The verification script checks for this. Use the `-FixIssues` flag or run `git config --global core.autocrlf false` to prevent this behavior.
+
+#### File Path Length Limit on Windows
+**Cause**: By default, Windows has a 260-character path limit, which can be exceeded by nested dependencies.
+**Solution**: The verification script checks for this. Use the `-FixIssues` flag or run `git config --global core.longpaths true` to enable long path support.
