@@ -1,5 +1,8 @@
 var NAVTREEINDEX103 =
 {
+"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a1ac2a9e828f497220b4b54a424280a1c":[34,0,2,2,53,28],
+"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a1ac2a9e828f497220b4b54a424280a1c":[33,0,7,4,65,28],
+"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a1d14311464dc64aa00c8f56ba83a22b1":[34,0,2,2,53,12],
 "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a1d14311464dc64aa00c8f56ba83a22b1":[33,0,7,4,65,12],
 "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a211d1601701e21d52f27d1073c4f11a5":[34,0,2,2,53,22],
 "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a211d1601701e21d52f27d1073c4f11a5":[33,0,7,4,65,22],
@@ -246,8 +249,5 @@ var NAVTREEINDEX103 =
 "dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#afbe1d2e2ebdd21eac7adeb018bd04d51":[33,0,7,7,3,5,4],
 "dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#afbe1d2e2ebdd21eac7adeb018bd04d51":[34,0,2,5,0,2,4],
 "dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#afc7c53dc3c4258a7abdbab2b5f60b071":[33,0,7,7,3,5,12],
-"dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#afc7c53dc3c4258a7abdbab2b5f60b071":[34,0,2,5,0,2,12],
-"dd/de3/classyaze_1_1test_1_1PerformanceTestSuite.html":[33,0,7,9,26],
-"dd/de3/classyaze_1_1test_1_1PerformanceTestSuite.html":[34,0,2,7,20],
-"dd/de3/classyaze_1_1test_1_1PerformanceTestSuite.html#a1d1aed938643da9edc0b3c0e52fd4762":[34,0,2,7,20,6]
+"dd/ddf/classyaze_1_1gui_1_1canvas_1_1CanvasContextMenu.html#afc7c53dc3c4258a7abdbab2b5f60b071":[34,0,2,5,0,2,12]
 };

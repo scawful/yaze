@@ -1,11 +1,11 @@
 var searchData=
 [
-  ['✅_0',['✅',['../d2/dde/md_docs_2F2-tile16-editor-palette-system.html#autotoc_md699',1,'Completed Items ✅'],['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md343',1,'Issue 1: Room Layout Not Rendering (COMPLETED ✅)'],['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html#autotoc_md379',1,'What Works ✅']]],
-  ['✅_20complete_1',['Emulator: Audio System Infrastructure ✅ COMPLETE',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md1014',1,'']]],
-  ['✅_20completed_2',['✅ Completed',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md279',1,'']]],
-  ['✅_20confirmed_20working_3',['✅ Confirmed Working',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md556',1,'']]],
-  ['✅_20production_20ready_4',['✅ Production Ready',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md654',1,'']]],
-  ['✅_20recently_20completed_20v0_202_200_20alpha_20october_205_202025_5',['✅ Recently Completed (v0.2.0-alpha - October 5, 2025)',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md282',1,'']]],
-  ['✅_20what_20s_20working_6',['✅ What&apos;s Working',['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md356',1,'']]],
-  ['✅_20working_20tests_7',['✅ Working Tests',['../d9/db0/md_test_2e2e_2README.html#autotoc_md1157',1,'']]]
+  ['✅_0',['✅',['../d2/dde/md_docs_2F2-tile16-editor-palette-system.html#autotoc_md703',1,'Completed Items ✅'],['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md347',1,'Issue 1: Room Layout Not Rendering (COMPLETED ✅)'],['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html#autotoc_md383',1,'What Works ✅']]],
+  ['✅_20complete_1',['Emulator: Audio System Infrastructure ✅ COMPLETE',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md1018',1,'']]],
+  ['✅_20completed_2',['✅ Completed',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md283',1,'']]],
+  ['✅_20confirmed_20working_3',['✅ Confirmed Working',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md560',1,'']]],
+  ['✅_20production_20ready_4',['✅ Production Ready',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md658',1,'']]],
+  ['✅_20recently_20completed_20v0_202_200_20alpha_20october_205_202025_5',['✅ Recently Completed (v0.2.0-alpha - October 5, 2025)',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md286',1,'']]],
+  ['✅_20what_20s_20working_6',['✅ What&apos;s Working',['../de/d8c/md_docs_2D1-dungeon-editor-guide.html#autotoc_md360',1,'']]],
+  ['✅_20working_20tests_7',['✅ Working Tests',['../d9/db0/md_test_2e2e_2README.html#autotoc_md1161',1,'']]]
 ];

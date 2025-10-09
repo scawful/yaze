@@ -1,5 +1,8 @@
 var NAVTREEINDEX123 =
 {
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#aee64fa7d76df4e168135007cd05fff3e":[33,0,7,2,0,24,23],
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#af767df0886636b476ddaa7e875e7c5a0":[34,0,2,0,0,14,7],
+"df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#af767df0886636b476ddaa7e875e7c5a0":[33,0,7,2,0,24,7],
 "df/dc2/structyaze_1_1editor_1_1PopupParams.html":[34,0,2,2,51],
 "df/dc2/structyaze_1_1editor_1_1PopupParams.html":[33,0,7,4,63],
 "df/dc2/structyaze_1_1editor_1_1PopupParams.html#a546c3169bbe7b4a5bc0cb6866f62f6d5":[34,0,2,2,51,0],
@@ -246,8 +249,5 @@ var NAVTREEINDEX123 =
 "df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#a3679239e2e80ea658c1e0ec135800660":[34,0,2,9,30,2],
 "df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#a3679239e2e80ea658c1e0ec135800660":[33,0,7,11,37,2],
 "df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#a9ab52a0e2c15c6e622cb3c369377a1a1":[33,0,7,11,37,5],
-"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#a9ab52a0e2c15c6e622cb3c369377a1a1":[34,0,2,9,30,5],
-"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#aa12ab8ef8cdfaed1c6cee46c90a24880":[33,0,7,11,37,4],
-"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#aa12ab8ef8cdfaed1c6cee46c90a24880":[34,0,2,9,30,4],
-"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#ac40e451dc67db9d9aeba380cd977e842":[33,0,7,11,37,1]
+"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#a9ab52a0e2c15c6e622cb3c369377a1a1":[34,0,2,9,30,5]
 };

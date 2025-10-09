@@ -1,5 +1,8 @@
 var NAVTREEINDEX52 =
 {
+"d6/db1/classyaze_1_1zelda3_1_1Sprite.html#ae91674decf920e5ac6add25d972916d7":[34,0,2,9,42,45],
+"d6/db1/classyaze_1_1zelda3_1_1Sprite.html#ae91674decf920e5ac6add25d972916d7":[33,0,7,11,49,45],
+"d6/db1/classyaze_1_1zelda3_1_1Sprite.html#aec8a5fc8d13ed9331e3ced8173efc7fc":[33,0,7,11,49,22],
 "d6/db1/classyaze_1_1zelda3_1_1Sprite.html#aec8a5fc8d13ed9331e3ced8173efc7fc":[34,0,2,9,42,22],
 "d6/db1/classyaze_1_1zelda3_1_1Sprite.html#aef6dc1c4a94891dc5f2080c3b0755fe3":[33,0,7,11,49,17],
 "d6/db1/classyaze_1_1zelda3_1_1Sprite.html#aef6dc1c4a94891dc5f2080c3b0755fe3":[34,0,2,9,42,17],
@@ -246,8 +249,5 @@ var NAVTREEINDEX52 =
 "d6/de2/tilemap_8cc.html#a397e84472b7ae0309b3e692909c0f30b":[35,0,3,0,3,29,9],
 "d6/de2/tilemap_8cc.html#a40698cffafde3d5a50c3be58d56879b1":[35,0,3,0,3,29,1],
 "d6/de2/tilemap_8cc.html#a508f2b61283381bc576c808d12a96454":[35,0,3,0,3,29,8],
-"d6/de2/tilemap_8cc.html#a81fc255b3304168fc367e5a8df9f4184":[35,0,3,0,3,29,4],
-"d6/de2/tilemap_8cc.html#a85cdb560638714d7afc71b20b1b8526c":[35,0,3,0,3,29,11],
-"d6/de2/tilemap_8cc.html#a974993ee4accb2b826a92903000df634":[35,0,3,0,3,29,0],
-"d6/de2/tilemap_8cc.html#a9d4788c9c33874f8144a8a4af4170f07":[35,0,3,0,3,29,12]
+"d6/de2/tilemap_8cc.html#a81fc255b3304168fc367e5a8df9f4184":[35,0,3,0,3,29,4]
 };

@@ -1,5 +1,8 @@
 var NAVTREEINDEX124 =
 {
+"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#aa12ab8ef8cdfaed1c6cee46c90a24880":[33,0,7,11,37,4],
+"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#aa12ab8ef8cdfaed1c6cee46c90a24880":[34,0,2,9,30,4],
+"df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#ac40e451dc67db9d9aeba380cd977e842":[33,0,7,11,37,1],
 "df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#ac40e451dc67db9d9aeba380cd977e842":[34,0,2,9,30,1],
 "df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#af65538737712e33be96e4ba76d17e0da":[34,0,2,9,30,0],
 "df/dff/classyaze_1_1zelda3_1_1OverworldIntegrationTest.html#af65538737712e33be96e4ba76d17e0da":[33,0,7,11,37,0],
@@ -246,8 +249,5 @@ var NAVTREEINDEX124 =
 "namespacemembers_func_m.html":[33,1,1,12],
 "namespacemembers_func_n.html":[33,1,1,13],
 "namespacemembers_func_o.html":[33,1,1,14],
-"namespacemembers_func_p.html":[33,1,1,15],
-"namespacemembers_func_q.html":[33,1,1,16],
-"namespacemembers_func_r.html":[33,1,1,17],
-"namespacemembers_func_s.html":[33,1,1,18]
+"namespacemembers_func_p.html":[33,1,1,15]
 };

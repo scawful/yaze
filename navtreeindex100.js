@@ -1,5 +1,8 @@
 var NAVTREEINDEX100 =
 {
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html":[33,0,7,2,20,2],
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a07df9a47875e6bda83e2c3f440b34974":[33,0,7,2,20,2,15],
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a07df9a47875e6bda83e2c3f440b34974":[34,0,2,0,5,1,15],
 "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a08ee5c08c4c08b556fc6da4e1761364f":[34,0,2,0,5,1,13],
 "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a08ee5c08c4c08b556fc6da4e1761364f":[33,0,7,2,20,2,13],
 "dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a0fb5a7f6f16323a5b4cd64c7efb35609":[33,0,7,2,20,2,21],
@@ -246,8 +249,5 @@ var NAVTREEINDEX100 =
 "dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ad3f384ccc6aa0183d7d3a3778d530fb2":[34,0,2,2,23,0],
 "dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ad3f384ccc6aa0183d7d3a3778d530fb2":[33,0,7,4,35,0],
 "dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ade88ad93e815703f5f0203c869e799fb":[33,0,7,4,35,15],
-"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ade88ad93e815703f5f0203c869e799fb":[34,0,2,2,23,15],
-"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ae4cea41fb2973cb6460be14783d2a7dc":[33,0,7,4,35,10],
-"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ae4cea41fb2973cb6460be14783d2a7dc":[34,0,2,2,23,10],
-"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ae7165a876f0efa4cb9204567e1d464c9":[33,0,7,4,35,14]
+"dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ade88ad93e815703f5f0203c869e799fb":[34,0,2,2,23,15]
 };

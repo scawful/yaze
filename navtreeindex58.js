@@ -1,5 +1,8 @@
 var NAVTREEINDEX58 =
 {
+"d7/d9c/overworld_8h.html#aa83813e72b6c1e5691c65745de37aee7":[35,0,3,0,8,2,1,42],
+"d7/d9c/overworld_8h.html#aad378435391c77fde26fd3955221a24b":[35,0,3,0,8,2,1,23],
+"d7/d9c/overworld_8h.html#aaefc69f1138337fca202cc371d26430a":[35,0,3,0,8,2,1,22],
 "d7/d9c/overworld_8h.html#ab12277550d7aea2b576b2f9688ae60e4":[35,0,3,0,8,2,1,20],
 "d7/d9c/overworld_8h.html#ab407b24f6ffe9ba32e12284d16ccb82d":[35,0,3,0,8,2,1,76],
 "d7/d9c/overworld_8h.html#ab4bddd5800d59131e7daa4eb4a95d73e":[35,0,3,0,8,2,1,28],
@@ -246,8 +249,5 @@ var NAVTREEINDEX58 =
 "d7/dcb/classyaze_1_1gui_1_1Toolset.html#abe6946a1b8ada2567c16938cae0da886":[34,0,2,5,39,7],
 "d7/dcb/classyaze_1_1gui_1_1Toolset.html#ac9e4a37a74e8316cbd0baa2ec632f440":[34,0,2,5,39,21],
 "d7/dcb/classyaze_1_1gui_1_1Toolset.html#ac9e4a37a74e8316cbd0baa2ec632f440":[33,0,7,7,42,21],
-"d7/dcb/classyaze_1_1gui_1_1Toolset.html#aca421292e4e3c79ac7f643dbc1b8a50e":[34,0,2,5,39,15],
-"d7/dcb/classyaze_1_1gui_1_1Toolset.html#aca421292e4e3c79ac7f643dbc1b8a50e":[33,0,7,7,42,15],
-"d7/dcb/classyaze_1_1gui_1_1Toolset.html#aceb47f2bdbf18cda796efca8b5020cf4":[33,0,7,7,42,11],
-"d7/dcb/classyaze_1_1gui_1_1Toolset.html#aceb47f2bdbf18cda796efca8b5020cf4":[34,0,2,5,39,11]
+"d7/dcb/classyaze_1_1gui_1_1Toolset.html#aca421292e4e3c79ac7f643dbc1b8a50e":[34,0,2,5,39,15]
 };

@@ -1,5 +1,8 @@
 var NAVTREEINDEX48 =
 {
+"d6/d2d/build__cleaner_8py.html#af76ba2aab214862f32afd2c050f20871":[35,0,2,0,10],
+"d6/d2d/build__cleaner_8py_source.html":[35,0,2,0],
+"d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html":[33,0,7,11,58],
 "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html":[34,0,2,9,51],
 "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a00c11a329ff43505331079b74a68caf0":[34,0,2,9,51,22],
 "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a00c11a329ff43505331079b74a68caf0":[33,0,7,11,58,22],
@@ -246,8 +249,5 @@ var NAVTREEINDEX48 =
 "d6/d30/classyaze_1_1Rom.html#ac1848b47fb6ac63afe391b562d1f09a9":[33,0,7,15,24],
 "d6/d30/classyaze_1_1Rom.html#ac1848b47fb6ac63afe391b562d1f09a9":[34,0,2,13,24],
 "d6/d30/classyaze_1_1Rom.html#ac23281ff175b6881f3c5d53866390e66":[34,0,2,13,5],
-"d6/d30/classyaze_1_1Rom.html#ac23281ff175b6881f3c5d53866390e66":[33,0,7,15,5],
-"d6/d30/classyaze_1_1Rom.html#ac66ee910fc7602a9e87750e6214fe117":[33,0,7,15,50],
-"d6/d30/classyaze_1_1Rom.html#ac66ee910fc7602a9e87750e6214fe117":[34,0,2,13,50],
-"d6/d30/classyaze_1_1Rom.html#ac6840844a3206b776b6f287357e22f31":[33,0,7,15,15]
+"d6/d30/classyaze_1_1Rom.html#ac23281ff175b6881f3c5d53866390e66":[33,0,7,15,5]
 };

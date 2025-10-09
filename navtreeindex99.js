@@ -1,5 +1,8 @@
 var NAVTREEINDEX99 =
 {
+"dd/d12/classyaze_1_1editor_1_1EditorManager.html#a51c9aed6a4bc8ff39a5459db82a2e6c4":[33,0,7,4,39,2],
+"dd/d12/classyaze_1_1editor_1_1EditorManager.html#a51c9aed6a4bc8ff39a5459db82a2e6c4":[34,0,2,2,27,2],
+"dd/d12/classyaze_1_1editor_1_1EditorManager.html#a56464282ceb8039bbdf124b78d975bff":[33,0,7,4,39,96],
 "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a56464282ceb8039bbdf124b78d975bff":[34,0,2,2,27,96],
 "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a576e53b70d9edb41a751ff376180028c":[33,0,7,4,39,83],
 "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a576e53b70d9edb41a751ff376180028c":[34,0,2,2,27,83],
@@ -246,8 +249,5 @@ var NAVTREEINDEX99 =
 "dd/d23/namespaceyaze_1_1gui_1_1canvas_1_1anonymous__namespace_02canvas__modals_8cc_03.html":[33,0,7,7,3,2],
 "dd/d23/namespaceyaze_1_1gui_1_1canvas_1_1anonymous__namespace_02canvas__modals_8cc_03.html#a017c66b59d86d74a02251c90298d2d63":[33,0,7,7,3,2,1],
 "dd/d23/namespaceyaze_1_1gui_1_1canvas_1_1anonymous__namespace_02canvas__modals_8cc_03.html#ab3480df9aa8082406ea04dab1af26ee0":[33,0,7,7,3,2,0],
-"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html":[34,0,2,0,5,1],
-"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html":[33,0,7,2,20,2],
-"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a07df9a47875e6bda83e2c3f440b34974":[33,0,7,2,20,2,15],
-"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html#a07df9a47875e6bda83e2c3f440b34974":[34,0,2,0,5,1,15]
+"dd/d26/structyaze_1_1cli_1_1overworld_1_1MapSummary.html":[34,0,2,0,5,1]
 };

@@ -1,5 +1,8 @@
 var NAVTREEINDEX85 =
 {
+"db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a159bc25d0883729abfd39a45c22f5b88":[34,0,2,0,36,0],
+"db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a3a4bacc8f298fe12928485d5da741cdb":[33,0,7,2,51,4],
+"db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a3a4bacc8f298fe12928485d5da741cdb":[34,0,2,0,36,4],
 "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a3b983e01884a58d17271442bebcb72c6":[34,0,2,0,36,9],
 "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a3b983e01884a58d17271442bebcb72c6":[33,0,7,2,51,9],
 "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a405569111c5447467e48f505ea051465":[33,0,7,2,51,5],
@@ -246,8 +249,5 @@ var NAVTREEINDEX85 =
 "db/d5a/classyaze_1_1cli_1_1OverworldSetZoom.html#a0b576de6cdc88f259b43302387b90389":[34,0,2,0,57,0],
 "db/d5a/classyaze_1_1cli_1_1OverworldSetZoom.html#a0b576de6cdc88f259b43302387b90389":[33,0,7,2,72,0],
 "db/d5c/performance__dashboard_8h.html":[35,0,3,0,3,18],
-"db/d5c/performance__dashboard_8h_source.html":[35,0,3,0,3,18],
-"db/d5d/ui__constants_8h.html":[35,0,3,0,1,6,11],
-"db/d5d/ui__constants_8h.html#a123bba914e43372d79b22898fe0901e0":[35,0,3,0,1,6,11,9],
-"db/d5d/ui__constants_8h.html#a146db12b58f4cfdeb2113c7f744e4641":[35,0,3,0,1,6,11,2]
+"db/d5c/performance__dashboard_8h_source.html":[35,0,3,0,3,18]
 };

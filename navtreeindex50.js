@@ -1,5 +1,8 @@
 var NAVTREEINDEX50 =
 {
+"d6/d52/structyaze_1_1cli_1_1Tile16Change.html#ade76758bcc58e495c184750cfeb9cd2d":[33,0,7,2,115,3],
+"d6/d52/structyaze_1_1cli_1_1Tile16Change.html#af1daa47025b3524638d3af89cf9e865c":[34,0,2,0,100,0],
+"d6/d52/structyaze_1_1cli_1_1Tile16Change.html#af1daa47025b3524638d3af89cf9e865c":[33,0,7,2,115,0],
 "d6/d52/structyaze_1_1cli_1_1Tile16Change.html#afedb295cf2c5c3a6cf9e69b4ae726fc5":[33,0,7,2,115,4],
 "d6/d52/structyaze_1_1cli_1_1Tile16Change.html#afedb295cf2c5c3a6cf9e69b4ae726fc5":[34,0,2,0,100,4],
 "d6/d54/dungeon__object__editor_8cc.html":[35,0,3,0,8,0,2],
@@ -246,8 +249,5 @@ var NAVTREEINDEX50 =
 "d6/d99/structyaze_1_1cli_1_1PanelState.html":[33,0,7,2,77],
 "d6/d99/structyaze_1_1cli_1_1PanelState.html":[34,0,2,0,62],
 "d6/d99/structyaze_1_1cli_1_1PanelState.html#a0c51e3feb5c1a6aa9bdf221269c5adf5":[34,0,2,0,62,1],
-"d6/d99/structyaze_1_1cli_1_1PanelState.html#a0c51e3feb5c1a6aa9bdf221269c5adf5":[33,0,7,2,77,1],
-"d6/d99/structyaze_1_1cli_1_1PanelState.html#a444e53f10d5f50ab6c26b7ac38e10ef4":[33,0,7,2,77,4],
-"d6/d99/structyaze_1_1cli_1_1PanelState.html#a444e53f10d5f50ab6c26b7ac38e10ef4":[34,0,2,0,62,4],
-"d6/d99/structyaze_1_1cli_1_1PanelState.html#a65b2c09d0febb08372604c8e283c59bb":[33,0,7,2,77,5]
+"d6/d99/structyaze_1_1cli_1_1PanelState.html#a0c51e3feb5c1a6aa9bdf221269c5adf5":[33,0,7,2,77,1]
 };

@@ -1,5 +1,8 @@
 var NAVTREEINDEX80 =
 {
+"da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ac006142a4edc18c648d1aef3c25c3a07":[33,0,7,4,28,45],
+"da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ac3961b5f0195ec6b13c75766d4352552":[33,0,7,4,28,6],
+"da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ac3961b5f0195ec6b13c75766d4352552":[34,0,2,2,16,6],
 "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ac67c8bfc1bbd6ebe581d4f37a10743fa":[33,0,7,4,28,35],
 "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ac67c8bfc1bbd6ebe581d4f37a10743fa":[34,0,2,2,16,35],
 "da/d45/classyaze_1_1editor_1_1DungeonEditorV2.html#ac8d098b29c24c13e3ec01cae88d883f4":[33,0,7,4,28,13],
@@ -246,8 +249,5 @@ var NAVTREEINDEX80 =
 "da/d68/classyaze_1_1gfx_1_1SnesPalette.html#aaed07ca5ee5c66f239bc709030609fda":[33,0,7,6,36,4],
 "da/d68/classyaze_1_1gfx_1_1SnesPalette.html#aaed07ca5ee5c66f239bc709030609fda":[34,0,2,4,34,4],
 "da/d68/classyaze_1_1gfx_1_1SnesPalette.html#ab18a68493c6122eb55dd3d0466686a78":[33,0,7,6,36,10],
-"da/d68/classyaze_1_1gfx_1_1SnesPalette.html#ab18a68493c6122eb55dd3d0466686a78":[34,0,2,4,34,10],
-"da/d68/classyaze_1_1gfx_1_1SnesPalette.html#acb2001e70c7d35d073f13449041b21fa":[34,0,2,4,34,9],
-"da/d68/classyaze_1_1gfx_1_1SnesPalette.html#acb2001e70c7d35d073f13449041b21fa":[33,0,7,6,36,9],
-"da/d68/classyaze_1_1gfx_1_1SnesPalette.html#ada0823d0a153d7ca55fc0f95b42e9f07":[34,0,2,4,34,23]
+"da/d68/classyaze_1_1gfx_1_1SnesPalette.html#ab18a68493c6122eb55dd3d0466686a78":[34,0,2,4,34,10]
 };

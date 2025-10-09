@@ -1,5 +1,8 @@
 var NAVTREEINDEX41 =
 {
+"d5/d1f/namespaceyaze_1_1zelda3.html#ab407b24f6ffe9ba32e12284d16ccb82d":[33,0,7,11,349],
+"d5/d1f/namespaceyaze_1_1zelda3.html#ab4bddd5800d59131e7daa4eb4a95d73e":[33,0,7,11,301],
+"d5/d1f/namespaceyaze_1_1zelda3.html#ab50b9ca4453d8c22553f2849274dbee6":[33,0,7,11,309],
 "d5/d1f/namespaceyaze_1_1zelda3.html#ab6fb240c3b6d1aedc43fd68c8078e773":[33,0,7,11,328],
 "d5/d1f/namespaceyaze_1_1zelda3.html#ab77d18fdb72f1304bcdf701f7401d33d":[33,0,7,11,385],
 "d5/d1f/namespaceyaze_1_1zelda3.html#ab856ab8bbcaa17a82b9243a480c43c6f":[33,0,7,11,229],
@@ -246,8 +249,5 @@ var NAVTREEINDEX41 =
 "d5/d46/classyaze_1_1gfx_1_1PoolAllocator.html#ae54e64524dfc9340b388fa9dcc1be1b2":[34,0,2,4,28,0],
 "d5/d46/classyaze_1_1gfx_1_1PoolAllocator.html#ae54e64524dfc9340b388fa9dcc1be1b2":[33,0,7,6,30,0],
 "d5/d46/classyaze_1_1gfx_1_1PoolAllocator.html#aef4c22b1f2b7af2857aa55616eac670d":[33,0,7,6,30,7],
-"d5/d46/classyaze_1_1gfx_1_1PoolAllocator.html#aef4c22b1f2b7af2857aa55616eac670d":[34,0,2,4,28,7],
-"d5/d48/cli__main_8cc.html":[35,0,3,1,6],
-"d5/d48/cli__main_8cc.html#a0d8b1270562eb5430ea7f2a61df78496":[35,0,3,1,6,5],
-"d5/d48/cli__main_8cc.html#a0ddf1224851353fc92bfbff6f499fa97":[35,0,3,1,6,14]
+"d5/d46/classyaze_1_1gfx_1_1PoolAllocator.html#aef4c22b1f2b7af2857aa55616eac670d":[34,0,2,4,28,7]
 };

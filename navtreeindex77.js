@@ -1,5 +1,8 @@
 var NAVTREEINDEX77 =
 {
+"d9/dff/ppu__registers_8h.html#aba2368fa52dee82c2b6e07edc822ef3d":[35,0,3,0,2,6,2,91],
+"d9/dff/ppu__registers_8h.html#ac0a1ce4c9b84186dba3ccb1ef3a364ac":[35,0,3,0,2,6,2,56],
+"d9/dff/ppu__registers_8h.html#ac1c56bca42ac125ec4fb4d1177ed9006":[35,0,3,0,2,6,2,79],
 "d9/dff/ppu__registers_8h.html#acd44a920c5f6d46bfeb5eb928916c7ff":[35,0,3,0,2,6,2,96],
 "d9/dff/ppu__registers_8h.html#aceff6f3c67cd8d75e5c5a9b2f6065c9c":[35,0,3,0,2,6,2,99],
 "d9/dff/ppu__registers_8h.html#ad5ca3e19448aae57af02fad21a169830":[35,0,3,0,2,6,2,84],
@@ -246,8 +249,5 @@ var NAVTREEINDEX77 =
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a694922bd86e7076a343deb4bafed62bf":[34,0,2,5,9,56],
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a6a667bbd9d7981b0904555ea75c90e46":[33,0,7,7,12,125],
 "da/d2c/classyaze_1_1gui_1_1Canvas.html#a6a667bbd9d7981b0904555ea75c90e46":[34,0,2,5,9,125],
-"da/d2c/classyaze_1_1gui_1_1Canvas.html#a6bd0fc774adeb1b17b8baf0069065c5a":[33,0,7,7,12,43],
-"da/d2c/classyaze_1_1gui_1_1Canvas.html#a6bd0fc774adeb1b17b8baf0069065c5a":[34,0,2,5,9,43],
-"da/d2c/classyaze_1_1gui_1_1Canvas.html#a6d1500b9057ff6ce49a091be184180bc":[33,0,7,7,12,76],
-"da/d2c/classyaze_1_1gui_1_1Canvas.html#a6d1500b9057ff6ce49a091be184180bc":[34,0,2,5,9,76]
+"da/d2c/classyaze_1_1gui_1_1Canvas.html#a6bd0fc774adeb1b17b8baf0069065c5a":[33,0,7,7,12,43]
 };

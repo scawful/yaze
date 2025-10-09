@@ -1,5 +1,8 @@
 var NAVTREEINDEX102 =
 {
+"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#aa2e9786868a9697bb222029a35a74bfd":[34,0,2,5,0,3,7],
+"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#aa2e9786868a9697bb222029a35a74bfd":[33,0,7,7,3,6,7],
+"dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#ab55bd18cb9404d720704a6e5270df926":[34,0,2,5,0,3,1],
 "dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#ab55bd18cb9404d720704a6e5270df926":[33,0,7,7,3,6,1],
 "dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#abe4b7fae6a26169810ba2036d56d6d2c":[34,0,2,5,0,3,15],
 "dd/d71/classyaze_1_1gui_1_1canvas_1_1CanvasInteractionHandler.html#abe4b7fae6a26169810ba2036d56d6d2c":[33,0,7,7,3,6,15],
@@ -246,8 +249,5 @@ var NAVTREEINDEX102 =
 "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a11017f90202637a319008b327d03f2a9":[34,0,2,2,53,8],
 "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a11017f90202637a319008b327d03f2a9":[33,0,7,4,65,8],
 "dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a17d7f09418092ad9c7efbf4da9db9b3e":[33,0,7,4,65,11],
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a17d7f09418092ad9c7efbf4da9db9b3e":[34,0,2,2,53,11],
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a1ac2a9e828f497220b4b54a424280a1c":[34,0,2,2,53,28],
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a1ac2a9e828f497220b4b54a424280a1c":[33,0,7,4,65,28],
-"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a1d14311464dc64aa00c8f56ba83a22b1":[34,0,2,2,53,12]
+"dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a17d7f09418092ad9c7efbf4da9db9b3e":[34,0,2,2,53,11]
 };

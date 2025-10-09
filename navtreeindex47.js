@@ -1,5 +1,8 @@
 var NAVTREEINDEX47 =
 {
+"d6/d0d/gui__action__generator_8cc.html":[35,0,3,1,1,2,0],
+"d6/d0d/gui__action__generator_8cc_source.html":[35,0,3,1,1,2,0],
+"d6/d10/md_docs_2A1-testing-guide.html":[1],
 "d6/d10/md_docs_2A1-testing-guide.html#autotoc_md10":[1,0],
 "d6/d10/md_docs_2A1-testing-guide.html#autotoc_md11":[1,1],
 "d6/d10/md_docs_2A1-testing-guide.html#autotoc_md12":[1,1,0],
@@ -246,8 +249,5 @@ var NAVTREEINDEX47 =
 "d6/d2d/build__cleaner_8py.html#ac8a6011f6771e9e3261c6bd7dbb5f06e":[35,0,2,0,5],
 "d6/d2d/build__cleaner_8py.html#ad097404b7f34e9f764fa465e32590329":[35,0,2,0,18],
 "d6/d2d/build__cleaner_8py.html#aeddeacf8e0fe2d3ccaf5bb7972000cc2":[35,0,2,0,14],
-"d6/d2d/build__cleaner_8py.html#af4c19e931f5acae4ebbfa6ec5025ae7e":[35,0,2,0,7],
-"d6/d2d/build__cleaner_8py.html#af76ba2aab214862f32afd2c050f20871":[35,0,2,0,10],
-"d6/d2d/build__cleaner_8py_source.html":[35,0,2,0],
-"d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html":[33,0,7,11,58]
+"d6/d2d/build__cleaner_8py.html#af4c19e931f5acae4ebbfa6ec5025ae7e":[35,0,2,0,7]
 };

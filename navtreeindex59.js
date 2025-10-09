@@ -1,5 +1,8 @@
 var NAVTREEINDEX59 =
 {
+"d7/dcb/classyaze_1_1gui_1_1Toolset.html#aca421292e4e3c79ac7f643dbc1b8a50e":[33,0,7,7,42,15],
+"d7/dcb/classyaze_1_1gui_1_1Toolset.html#aceb47f2bdbf18cda796efca8b5020cf4":[33,0,7,7,42,11],
+"d7/dcb/classyaze_1_1gui_1_1Toolset.html#aceb47f2bdbf18cda796efca8b5020cf4":[34,0,2,5,39,11],
 "d7/dcb/classyaze_1_1gui_1_1Toolset.html#aed16b6107ce73e7b9999ccc087878ddc":[33,0,7,7,42,20],
 "d7/dcb/classyaze_1_1gui_1_1Toolset.html#aed16b6107ce73e7b9999ccc087878ddc":[34,0,2,5,39,20],
 "d7/dcc/structyaze_1_1gfx_1_1PaletteGroupMap.html":[33,0,7,6,25],
@@ -246,8 +249,5 @@ var NAVTREEINDEX59 =
 "d7/df6/classyaze_1_1zelda3_1_1Room.html#a2c9a41aa48ed642008b6cd04e65a0767":[34,0,2,9,35,103],
 "d7/df6/classyaze_1_1zelda3_1_1Room.html#a2df186e8f139c560ec4a4acd872ee6f1":[34,0,2,9,35,102],
 "d7/df6/classyaze_1_1zelda3_1_1Room.html#a2df186e8f139c560ec4a4acd872ee6f1":[33,0,7,11,42,102],
-"d7/df6/classyaze_1_1zelda3_1_1Room.html#a31a5c3edb2e2912eac7fc01696530f97":[34,0,2,9,35,3],
-"d7/df6/classyaze_1_1zelda3_1_1Room.html#a31a5c3edb2e2912eac7fc01696530f97":[33,0,7,11,42,3],
-"d7/df6/classyaze_1_1zelda3_1_1Room.html#a322e683046befa7f1b015388e5a0f8bd":[34,0,2,9,35,109],
-"d7/df6/classyaze_1_1zelda3_1_1Room.html#a322e683046befa7f1b015388e5a0f8bd":[33,0,7,11,42,109]
+"d7/df6/classyaze_1_1zelda3_1_1Room.html#a31a5c3edb2e2912eac7fc01696530f97":[34,0,2,9,35,3]
 };

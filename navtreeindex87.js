@@ -1,5 +1,8 @@
 var NAVTREEINDEX87 =
 {
+"db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a52f4d12e30c1e235b9750d8051d1fc39":[34,0,2,2,62,88],
+"db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a5377d0102aa81a9a368daedafbfb40da":[33,0,7,4,74,15],
+"db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a5377d0102aa81a9a368daedafbfb40da":[34,0,2,2,62,15],
 "db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a56d2e00be2cc222cbf517c42313caf5d":[34,0,2,2,62,8],
 "db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a56d2e00be2cc222cbf517c42313caf5d":[33,0,7,4,74,8],
 "db/d82/classyaze_1_1editor_1_1Tile16Editor.html#a572f4bd7544c75082f7f3d80f99f0bec":[34,0,2,2,62,62],
@@ -246,8 +249,5 @@ var NAVTREEINDEX87 =
 "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ac923c19133c1bb5eab5643829ca665bf":[33,0,7,4,56,33],
 "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ad3bea6ea3167b3e32ff4702b63809927":[33,0,7,4,56,36],
 "db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ad3bea6ea3167b3e32ff4702b63809927":[34,0,2,2,44,36],
-"db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ade2d57c8f33396ac3d0cbba3e0175235":[34,0,2,2,44,11],
-"db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ade2d57c8f33396ac3d0cbba3e0175235":[33,0,7,4,56,11],
-"db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ae1d595782ad417ddd2dc03abac8fb2fd":[34,0,2,2,44,25],
-"db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ae1d595782ad417ddd2dc03abac8fb2fd":[33,0,7,4,56,25]
+"db/d9a/classyaze_1_1editor_1_1MusicEditor.html#ade2d57c8f33396ac3d0cbba3e0175235":[34,0,2,2,44,11]
 };

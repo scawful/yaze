@@ -1,5 +1,8 @@
 var NAVTREEINDEX89 =
 {
+"db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#ac40f343f9dab63c74173cd00d6f3e43d":[34,0,2,3,1,0,24],
+"db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#acfe04364cd8d7df5c80c68560cf8a1b9":[33,0,7,5,2,1,17],
+"db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#acfe04364cd8d7df5c80c68560cf8a1b9":[34,0,2,3,1,0,17],
 "db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#ad023dd7297a1072884a3c3c47e7cd7a3":[34,0,2,3,1,0,23],
 "db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#ad023dd7297a1072884a3c3c47e7cd7a3":[33,0,7,5,2,1,23],
 "db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#ad9d2c5318d00c8038ba34e6ceeeee30c":[34,0,2,3,1,0,5],
@@ -246,8 +249,5 @@ var NAVTREEINDEX89 =
 "db/ddb/network__collaboration__coordinator_8h.html":[35,0,3,0,1,0,15],
 "db/ddb/network__collaboration__coordinator_8h_source.html":[35,0,3,0,1,0,15],
 "db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html":[34,0,2,9,46],
-"db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html":[33,0,7,11,53],
-"db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html#a2658ac31b6407a30e20860a09057c2a9":[34,0,2,9,46,2],
-"db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html#a2658ac31b6407a30e20860a09057c2a9":[33,0,7,11,53,2],
-"db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html#a5215da3dfbc4f7a422d61a7e871b7253":[34,0,2,9,46,0]
+"db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html":[33,0,7,11,53]
 };

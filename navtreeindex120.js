@@ -1,5 +1,8 @@
 var NAVTREEINDEX120 =
 {
+"df/d0c/structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#ab612b34497ef49c4231fc4487244a74e":[33,0,7,11,35,1],
+"df/d0c/structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#ab612b34497ef49c4231fc4487244a74e":[34,0,2,9,28,1],
+"df/d0c/structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935":[33,0,7,11,35,0],
 "df/d0c/structyaze_1_1zelda3_1_1OverworldEntranceTileTypes.html#aefea936272105776bc0165dc35c91935":[34,0,2,9,28,0],
 "df/d0e/classyaze_1_1gfx_1_1Bitmap.html":[33,0,7,6,7],
 "df/d0e/classyaze_1_1gfx_1_1Bitmap.html":[34,0,2,4,5],
@@ -246,8 +249,5 @@ var NAVTREEINDEX120 =
 "df/d2f/structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9ad182a0c2d0af79ff188e6dcc2b0a65":[33,0,7,11,9,9,3],
 "df/d2f/structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9ad182a0c2d0af79ff188e6dcc2b0a65":[34,0,2,9,4,9,3],
 "df/d2f/structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7":[34,0,2,9,4,9,1],
-"df/d2f/structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7":[33,0,7,11,9,9,1],
-"df/d30/notify_8h.html":[35,0,3,3,11],
-"df/d30/notify_8h_source.html":[35,0,3,3,11],
-"df/d33/scad__format_8h.html":[35,0,3,0,3,22]
+"df/d2f/structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9c5b92e655a7b553432bc4a7e581e6b7":[33,0,7,11,9,9,1]
 };

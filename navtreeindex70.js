@@ -1,5 +1,8 @@
 var NAVTREEINDEX70 =
 {
+"d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory.html#adf10bc89980079fa405fa9cdd8c94406afb945e5e5827c63cfaa929efecfd127c":[33,0,7,5,1,0,0,2],
+"d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory.html#adf10bc89980079fa405fa9cdd8c94406afb945e5e5827c63cfaa929efecfd127c":[34,0,2,3,0,0,0,2],
+"d9/d30/imgui__test__harness__service_8h.html":[35,0,3,0,0,0,3],
 "d9/d30/imgui__test__harness__service_8h_source.html":[35,0,3,0,0,0,3],
 "d9/d36/structyaze_1_1Rom_1_1SaveSettings.html":[34,0,2,13,0],
 "d9/d36/structyaze_1_1Rom_1_1SaveSettings.html":[33,0,7,15,0],
@@ -246,8 +249,5 @@ var NAVTREEINDEX70 =
 "d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a35abf412e04984432ae8027880e917a9":[33,0,7,7,22,0],
 "d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a3825e9f4b6f960b688ee0bea27ac855a":[33,0,7,7,22,16],
 "d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a3825e9f4b6f960b688ee0bea27ac855a":[34,0,2,5,19,16],
-"d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a3c167356e7a890cfa4254cb5325c0b72":[34,0,2,5,19,7],
-"d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a3c167356e7a890cfa4254cb5325c0b72":[33,0,7,7,22,7],
-"d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a3c42fc2312f21246ce9d5d7b70a5ca0f":[33,0,7,7,22,5],
-"d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a3c42fc2312f21246ce9d5d7b70a5ca0f":[34,0,2,5,19,5]
+"d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a3c167356e7a890cfa4254cb5325c0b72":[34,0,2,5,19,7]
 };

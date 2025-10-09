@@ -1,5 +1,8 @@
 var NAVTREEINDEX84 =
 {
+"db/d00/classyaze_1_1editor_1_1DungeonToolset.html#ac9170fbc1d88691828b594c519f8ad40af86c22480ecc11a9fd87d302b0060ed1":[33,0,7,4,34,1,1],
+"db/d00/classyaze_1_1editor_1_1DungeonToolset.html#ac9170fbc1d88691828b594c519f8ad40af86c22480ecc11a9fd87d302b0060ed1":[34,0,2,2,22,1,1],
+"db/d00/classyaze_1_1editor_1_1DungeonToolset.html#ae433049c50019f665fd95694780dac20":[33,0,7,4,34,9],
 "db/d00/classyaze_1_1editor_1_1DungeonToolset.html#ae433049c50019f665fd95694780dac20":[34,0,2,2,22,9],
 "db/d00/classyaze_1_1editor_1_1DungeonToolset.html#ae48314b74c45b9a9b12125c92b63df26":[33,0,7,4,34,11],
 "db/d00/classyaze_1_1editor_1_1DungeonToolset.html#ae48314b74c45b9a9b12125c92b63df26":[34,0,2,2,22,11],
@@ -246,8 +249,5 @@ var NAVTREEINDEX84 =
 "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html":[34,0,2,0,36],
 "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a0767d7fb1097b5c331c386b88ae9099e":[34,0,2,0,36,7],
 "db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a0767d7fb1097b5c331c386b88ae9099e":[33,0,7,2,51,7],
-"db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a159bc25d0883729abfd39a45c22f5b88":[33,0,7,2,51,0],
-"db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a159bc25d0883729abfd39a45c22f5b88":[34,0,2,0,36,0],
-"db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a3a4bacc8f298fe12928485d5da741cdb":[33,0,7,2,51,4],
-"db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a3a4bacc8f298fe12928485d5da741cdb":[34,0,2,0,36,4]
+"db/d2d/classyaze_1_1cli_1_1GeminiAIService.html#a159bc25d0883729abfd39a45c22f5b88":[33,0,7,2,51,0]
 };

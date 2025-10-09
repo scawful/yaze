@@ -1,5 +1,8 @@
 var NAVTREEINDEX90 =
 {
+"db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html#a2658ac31b6407a30e20860a09057c2a9":[34,0,2,9,46,2],
+"db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html#a2658ac31b6407a30e20860a09057c2a9":[33,0,7,11,53,2],
+"db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html#a5215da3dfbc4f7a422d61a7e871b7253":[34,0,2,9,46,0],
 "db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html#a5215da3dfbc4f7a422d61a7e871b7253":[33,0,7,11,53,0],
 "db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html#a82f628fe76875a433a7a286b1517a485":[34,0,2,9,46,3],
 "db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html#a82f628fe76875a433a7a286b1517a485":[33,0,7,11,53,3],
@@ -246,8 +249,5 @@ var NAVTREEINDEX90 =
 "dc/d02/cpu_2internal_2opcodes_8h.html#a67a067e14e127267cfa234e6413a5791":[35,0,3,0,2,1,0,2,1],
 "dc/d02/cpu_2internal_2opcodes_8h_source.html":[35,0,3,0,2,1,0,2],
 "dc/d07/structyaze_1_1emu_1_1WH1.html":[33,0,7,5,101],
-"dc/d07/structyaze_1_1emu_1_1WH1.html":[34,0,2,3,99],
-"dc/d07/structyaze_1_1emu_1_1WH1.html#af8cab831f91847bfd79dd4e4270bb4dd":[33,0,7,5,101,0],
-"dc/d07/structyaze_1_1emu_1_1WH1.html#af8cab831f91847bfd79dd4e4270bb4dd":[34,0,2,3,99,0],
-"dc/d0a/namespaceyaze_1_1cli_1_1anonymous__namespace_02rom__sandbox__manager_8cc_03.html":[33,0,7,2,9]
+"dc/d07/structyaze_1_1emu_1_1WH1.html":[34,0,2,3,99]
 };

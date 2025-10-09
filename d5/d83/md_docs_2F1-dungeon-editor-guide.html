@@ -101,9 +101,9 @@ $(document).ready(function(){initNavTree('d5/d83/md_docs_2F1-dungeon-editor-guid
   <div class="headertitle"><div class="title">Yaze Dungeon Editor: Master Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md655"></a> <b>Last Updated</b>: October 4, 2025</p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md659"></a> <b>Last Updated</b>: October 4, 2025</p>
 <p>This document provides a comprehensive, up-to-date overview of the Yaze Dungeon Editor, consolidating all recent design plans, testing results, and critical fixes. It serves as the single source of truth for the editor's architecture, data structures, and future development.</p>
-<h1><a class="anchor" id="autotoc_md656"></a>
+<h1><a class="anchor" id="autotoc_md660"></a>
 1. Current Status: Production Ready</h1>
 <p>After a significant refactoring and bug-fixing effort, the Dungeon Editor's core functionality is <b>complete and stable</b>.</p>
 <ul>
@@ -112,7 +112,7 @@ $(document).ready(function(){initNavTree('d5/d83/md_docs_2F1-dungeon-editor-guid
 <li><b>Rendering</b>: The rendering pipeline is verified, correct, and performant, properly using the graphics arena and a component-based architecture.</li>
 <li><b>Coordinate System</b>: A critical object positioning bug has been fixed, ensuring all objects render in their correct locations.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md657"></a>
+<h2><a class="anchor" id="autotoc_md661"></a>
 Known Issues &amp; Next Steps</h2>
 <p>While the core is stable, several UI and performance items remain:</p>
 <ol type="1">
@@ -130,10 +130,10 @@ Known Issues &amp; Next Steps</h2>
 </ul>
 </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md658"></a>
+<h1><a class="anchor" id="autotoc_md662"></a>
 2. Architecture: A Component-Based Design</h1>
 <p>The editor was refactored into a modern, component-based architecture, reducing the main editor's complexity by <b>79%</b>. The <code>DungeonEditorV2</code> class now acts as a thin coordinator, delegating all work to specialized components.</p>
-<h2><a class="anchor" id="autotoc_md659"></a>
+<h2><a class="anchor" id="autotoc_md663"></a>
 Core Components</h2>
 <ul>
 <li>**<code>DungeonEditorV2</code>**: The main orchestrator. Manages the 3-column layout and coordinates the other components.</li>
@@ -144,7 +144,7 @@ Core Components</h2>
 <li>**<code>DungeonObjectInteraction</code>**: Manages all mouse input, selection, and drag-and-drop on the canvas.</li>
 <li>**<code>ObjectRenderer</code>**: A high-performance system for rendering individual dungeon objects, featuring a graphics cache.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md660"></a>
+<h2><a class="anchor" id="autotoc_md664"></a>
 Data Flow</h2>
 <ol type="1">
 <li><b>Load</b>: <code>DungeonEditorV2::Load()</code> calls <code>DungeonRoomLoader</code> to load all room data from the ROM.</li>
@@ -152,27 +152,27 @@ Data Flow</h2>
 <li><b>Interaction</b>: <code>DungeonObjectInteraction</code> captures mouse events on the canvas and translates them into actions, such as selecting or moving an object.</li>
 <li><b>Save</b>: Changes are propagated back through the <code>DungeonEditorSystem</code> to be written to the ROM.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md661"></a>
+<h1><a class="anchor" id="autotoc_md665"></a>
 3. Key Recent Fixes</h1>
 <p>The editor's current stability is the result of two major fixes:</p>
-<h2><a class="anchor" id="autotoc_md662"></a>
+<h2><a class="anchor" id="autotoc_md666"></a>
 Critical Fix 1: The Coordinate System</h2>
 <ul>
 <li><b>Problem</b>: Objects were rendering at twice their correct distance from the origin, often appearing outside the canvas entirely.</li>
 <li><b>Root Cause</b>: The code incorrectly assumed dungeon tiles were 16x16 pixels, using <code>* 16</code> for coordinate conversions. SNES dungeon tiles are <b>8x8 pixels</b>.</li>
 <li><b>The Fix</b>: All coordinate conversion functions in <code><a class="el" href="../../d4/dc2/dungeon__renderer_8cc.html">dungeon_renderer.cc</a></code>, <code><a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc.html">dungeon_canvas_viewer.cc</a></code>, and <code><a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc.html">dungeon_object_interaction.cc</a></code> were corrected to use <code>* 8</code> and <code>/ 8</code>.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md663"></a>
+<h2><a class="anchor" id="autotoc_md667"></a>
 Critical Fix 2: The Test Suite</h2>
 <ul>
 <li><b>Problem</b>: The integration test suite was unusable, crashing with <code>SIGBUS</code> and <code>SIGSEGV</code> errors.</li>
 <li><b>Root Cause</b>: The <code>MockRom</code> implementation had severe memory management issues, causing crashes when test data was copied.</li>
 <li><b>The Fix</b>: The <code>MockRom</code> was <b>completely abandoned</b>. All 28 integration and unit tests were refactored to use a real <code>zelda3.sfc</code> ROM via the <code>TestRomManager</code>. This provides more realistic testing and resolved all crashes.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md664"></a>
+<h1><a class="anchor" id="autotoc_md668"></a>
 4. ROM Internals &amp; Data Structures</h1>
 <p>This information is critical for understanding the editor's core logic and has been cross-referenced with the <code>usdasm</code> disassembly.</p>
-<h2><a class="anchor" id="autotoc_md665"></a>
+<h2><a class="anchor" id="autotoc_md669"></a>
 Object Encoding</h2>
 <p>Dungeon objects are stored in one of three formats. The encoding logic is correctly implemented in <code><a class="el" href="../../d5/da0/room__object_8cc.html">src/app/zelda3/dungeon/room_object.cc</a></code>.</p>
 <ul>
@@ -192,7 +192,7 @@ Object Encoding</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md666"></a>
+<h2><a class="anchor" id="autotoc_md670"></a>
 Core Data Tables in ROM</h2>
 <ul>
 <li>**<code>bank_01.asm</code>**:<ul>
@@ -205,7 +205,7 @@ Core Data Tables in ROM</h2>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md667"></a>
+<h1><a class="anchor" id="autotoc_md671"></a>
 5. Testing: 100% Pass Rate</h1>
 <p>The dungeon editor has comprehensive test coverage, ensuring its stability and correctness.</p>
 <table class="markdownTable">
@@ -220,17 +220,17 @@ Core Data Tables in ROM</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><b>TOTAL</b>   </td><td class="markdownTableBodyNone"><b>29</b>   </td><td class="markdownTableBodyNone"><b>29</b>   </td><td class="markdownTableBodyNone"><b>100%</b> ✅   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md668"></a>
+<h2><a class="anchor" id="autotoc_md672"></a>
 How to Run Tests</h2>
 <ol type="1">
 <li><b>Build the Tests</b>: <code>bash cmake --preset macos-dev -B build_test cmake --build build_test --target yaze_test </code></li>
 <li><b>Run All Dungeon Tests</b>: <code>bash ./build_test/bin/yaze_test --gtest_filter="*Dungeon*" </code></li>
 <li><b>Run E2E Smoke Test (Requires GUI)</b>: <code>bash ./build_test/bin/yaze_test --show-gui --gtest_filter="*DungeonEditorSmokeTest*" </code></li>
 </ol>
-<h1><a class="anchor" id="autotoc_md669"></a>
+<h1><a class="anchor" id="autotoc_md673"></a>
 6. Dungeon Object Reference Tables</h1>
 <p>The following tables were generated by parsing the <code>DrawObjects</code> tables in <code>bank_01.asm</code>.</p>
-<h2><a class="anchor" id="autotoc_md670"></a>
+<h2><a class="anchor" id="autotoc_md674"></a>
 Type 1 Object Reference Table</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -748,7 +748,7 @@ Type 1 Object Reference Table</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyLeft">0xFF   </td><td class="markdownTableBodyLeft">255   </td><td class="markdownTableBodyLeft">Nothing   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md671"></a>
+<h2><a class="anchor" id="autotoc_md675"></a>
 Type 2 Object Reference Table</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -882,7 +882,7 @@ Type 2 Object Reference Table</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyLeft">0x13F   </td><td class="markdownTableBodyLeft">319   </td><td class="markdownTableBodyLeft">Magic Bat Altar   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md672"></a>
+<h2><a class="anchor" id="autotoc_md676"></a>
 Type 3 Object Reference Table</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">

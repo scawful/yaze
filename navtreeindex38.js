@@ -1,5 +1,8 @@
 var NAVTREEINDEX38 =
 {
+"d4/dde/namespaceyaze_1_1cli_1_1util_1_1icons.html#a5f5869cfe7ba9a7e4ef7f744067f01c2":[33,0,7,2,22,1,7],
+"d4/dde/namespaceyaze_1_1cli_1_1util_1_1icons.html#a65d3408c243aa0be9502cbee349b38f7":[33,0,7,2,22,1,6],
+"d4/dde/namespaceyaze_1_1cli_1_1util_1_1icons.html#a65e61289c6ca01eabf0bfc89b72adac5":[33,0,7,2,22,1,2],
 "d4/dde/namespaceyaze_1_1cli_1_1util_1_1icons.html#a9f07630820b486854a2fe33df345af40":[33,0,7,2,22,1,1],
 "d4/dde/namespaceyaze_1_1cli_1_1util_1_1icons.html#abfffd541dc54dc25e44381dc7be6d2c1":[33,0,7,2,22,1,3],
 "d4/dde/namespaceyaze_1_1cli_1_1util_1_1icons.html#ac4c915a3f3eee597bc20f40fe0012b3c":[33,0,7,2,22,1,5],
@@ -246,8 +249,5 @@ var NAVTREEINDEX38 =
 "d5/d0f/classyaze_1_1cli_1_1OverworldGetVisibleRegion.html#ae2bdf68d1c632216f2f67c140634d3dd":[33,0,7,2,67,0],
 "d5/d0f/classyaze_1_1cli_1_1OverworldGetVisibleRegion.html#ae2bdf68d1c632216f2f67c140634d3dd":[34,0,2,0,52,0],
 "d5/d10/structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html":[34,0,2,5,1,0],
-"d5/d10/structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html":[33,0,7,7,4,0],
-"d5/d10/structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html#a173729c7376c00a0b037c9faf9d8a9c8":[34,0,2,5,1,0,7],
-"d5/d10/structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html#a173729c7376c00a0b037c9faf9d8a9c8":[33,0,7,7,4,0,7],
-"d5/d10/structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html#a19b50267b872ab4fbd20b79c8c73060f":[33,0,7,7,4,0,2]
+"d5/d10/structyaze_1_1gui_1_1CanvasUtils_1_1CanvasRenderContext.html":[33,0,7,7,4,0]
 };

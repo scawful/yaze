@@ -107,6 +107,18 @@ $(document).ready(function(){initNavTree('d1/d30/md_docs_2B2-platform-compatibil
 <h1><a class="anchor" id="autotoc_md62"></a>
 Recent CI/CD Fixes (October 9, 2025)</h1>
 <h2><a class="anchor" id="autotoc_md63"></a>
+Overview</h2>
+<p>Multiple CI/CD pipeline failures have been resolved by simplifying dependency management and removing problematic configurations.</p>
+<p><b>Key Changes:</b></p><ul>
+<li>✅ Removed vcpkg from CI workflow (use FetchContent instead)</li>
+<li>✅ Removed Windows x86 build (cpp-httplib incompatibility)</li>
+<li>✅ Added Windows macro pollution prevention</li>
+<li>✅ Simplified vcpkg.json (no baseline)</li>
+</ul>
+<hr  />
+<h1><a class="anchor" id="autotoc_md65"></a>
+Recent CI/CD Fixes (October 9, 2025)</h1>
+<h2><a class="anchor" id="autotoc_md66"></a>
 Issue #1: vcpkg Version Database Errors</h2>
 <p><b>Problem:</b> </p><div class="fragment"><div class="line">error: no version database entry for sdl2 at 2.30.0</div>
 <div class="line">error: no version database entry for zlib at 1.3.1</div>
@@ -118,12 +130,28 @@ Issue #1: vcpkg Version Database Errors</h2>
 </ul>
 <p><b>Fix:</b></p><ul>
 <li>Removed <code>builtin-baseline</code> from <code>vcpkg.json</code></li>
-<li>Synchronized CI workflow to use stable vcpkg commit: <code>c8696863d371ab7f46e213d8f5ca923c4aef2a00</code></li>
-<li>vcpkg now uses default versions available at that commit</li>
+<li><b>Removed vcpkg entirely from CI workflow</b> - now uses FetchContent for all dependencies</li>
+<li>macOS: Uses FetchContent with Homebrew-installed tools (ninja, pkg-config)</li>
+<li>Windows: Uses FetchContent (no vcpkg dependency)</li>
+<li>Linux: Uses system packages (unchanged)</li>
 </ul>
-<p><b>Result:</b> ✅ Package version mismatches resolved</p>
+<p><b>Result:</b> ✅ Package version mismatches resolved, CI builds simplified</p>
+<h2><a class="anchor" id="autotoc_md67"></a>
+Issue #1b: macOS yaml-cpp CMake Version Incompatibility</h2>
+<p><b>Problem:</b> </p><div class="fragment"><div class="line">CMake Error: Compatibility with CMake &lt; 3.5 has been removed from CMake.</div>
+</div><!-- fragment --><p><b>Root Cause:</b></p><ul>
+<li>Old vcpkg commit had yaml-cpp version requiring CMake &lt; 3.5</li>
+<li>GitHub Actions runner has CMake 4.1.1 which dropped support for old CMake versions</li>
+<li>vcpkg yaml-cpp package couldn't build</li>
+</ul>
+<p><b>Fix:</b></p><ul>
+<li>Removed vcpkg from macOS CI builds</li>
+<li>Now uses FetchContent to fetch yaml-cpp 0.8.0 directly (configured in <code>cmake/</code> files)</li>
+<li>CMake files already had fallback to FetchContent when yaml-cpp not found via package config</li>
+</ul>
+<p><b>Result:</b> ✅ yaml-cpp builds successfully via FetchContent</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md65"></a>
+<h2><a class="anchor" id="autotoc_md69"></a>
 Issue #2: Windows x86 Build Failure</h2>
 <p><b>Problem:</b> </p><div class="fragment"><div class="line">cpp-httplib doesn&#39;t support 32-bit Windows. Please use a 64-bit compiler.</div>
 </div><!-- fragment --><p><b>Root Cause:</b></p><ul>
@@ -137,7 +165,7 @@ Issue #2: Windows x86 Build Failure</h2>
 </ul>
 <p><b>Result:</b> ✅ Windows builds now only target x64</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md67"></a>
+<h2><a class="anchor" id="autotoc_md71"></a>
 Issue #3: Windows Macro Pollution in Protobuf Headers</h2>
 <p><b>Problem:</b> </p><div class="fragment"><div class="line">error C2143: syntax error: missing &#39;)&#39; before &#39;constant&#39;</div>
 <div class="line">error C2789: &#39;DWORD&#39;: an object of const-qualified type must be initialized</div>
@@ -154,16 +182,16 @@ Issue #3: Windows Macro Pollution in Protobuf Headers</h2>
 <div class="line">)</div>
 </div><!-- fragment --><p><b>Result:</b> ✅ Protobuf headers no longer conflict with Windows macros</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md69"></a>
+<h1><a class="anchor" id="autotoc_md73"></a>
 CI/CD Build Matrix</h1>
-<h2><a class="anchor" id="autotoc_md70"></a>
+<h2><a class="anchor" id="autotoc_md74"></a>
 Pull Request Builds (Fast - 3 platforms)</h2>
 <p>Focused matrix for quick PR validation:</p><ul>
 <li>Ubuntu 22.04 (GCC-12)</li>
 <li>macOS 14 (Clang, ARM64)</li>
 <li>Windows 2022 (MSVC x64)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md71"></a>
+<h2><a class="anchor" id="autotoc_md75"></a>
 Push Builds (Comprehensive - 5 platforms)</h2>
 <p>Full matrix for master/develop branch commits:</p><ul>
 <li>Ubuntu 22.04 (GCC-12)</li>
@@ -174,9 +202,9 @@ Push Builds (Comprehensive - 5 platforms)</h2>
 </ul>
 <p><b>Note:</b> Windows x86 removed due to cpp-httplib incompatibility</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md73"></a>
+<h1><a class="anchor" id="autotoc_md77"></a>
 vcpkg Configuration</h1>
-<h2><a class="anchor" id="autotoc_md74"></a>
+<h2><a class="anchor" id="autotoc_md78"></a>
 Current Setup</h2>
 <p><b>vcpkg.json Dependencies:</b></p><ul>
 <li><code>sdl2</code> (with vulkan feature, excluded on UWP)</li>
@@ -185,7 +213,7 @@ Current Setup</h2>
 </ul>
 <p><b>No baseline specified</b> - uses vcpkg's default versions at the commit specified in CI</p>
 <p><b>CI vcpkg Commit:</b> <code>c8696863d371ab7f46e213d8f5ca923c4aef2a00</code></p>
-<h2><a class="anchor" id="autotoc_md75"></a>
+<h2><a class="anchor" id="autotoc_md79"></a>
 Why No Baseline?</h2>
 <ol type="1">
 <li><b>Flexibility</b>: Allows vcpkg to use whatever versions are available</li>
@@ -194,9 +222,9 @@ Why No Baseline?</h2>
 <li><b>FetchContent</b>: Most dependencies (gRPC, abseil, protobuf) use FetchContent, not vcpkg</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md77"></a>
+<h1><a class="anchor" id="autotoc_md81"></a>
 Platform-Specific Notes</h1>
-<h2><a class="anchor" id="autotoc_md78"></a>
+<h2><a class="anchor" id="autotoc_md82"></a>
 Windows</h2>
 <p><b>Build System:</b></p><ul>
 <li>Uses vcpkg for: SDL2, yaml-cpp, zlib (fast, pre-compiled)</li>
@@ -218,7 +246,7 @@ Windows</h2>
 <li>Subsequent builds: ~2-5 minutes</li>
 <li>With vcpkg pre-compiled gRPC: ~5-10 minutes first time</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md79"></a>
+<h2><a class="anchor" id="autotoc_md83"></a>
 macOS</h2>
 <p><b>Build System:</b></p><ul>
 <li>Uses vcpkg for: SDL2, yaml-cpp, zlib</li>
@@ -232,7 +260,7 @@ macOS</h2>
 <li>First build: ~20-30 minutes</li>
 <li>Subsequent builds: ~3-5 minutes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md80"></a>
+<h2><a class="anchor" id="autotoc_md84"></a>
 Linux</h2>
 <p><b>Build System:</b></p><ul>
 <li>Uses system packages (apt) for most dependencies</li>
@@ -250,24 +278,24 @@ Linux</h2>
 <li>Subsequent builds: ~2-4 minutes</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md82"></a>
+<h1><a class="anchor" id="autotoc_md86"></a>
 Cross-Platform Code Validation</h1>
 <p>All recent additions (October 2025) are cross-platform compatible:</p>
-<h2><a class="anchor" id="autotoc_md83"></a>
+<h2><a class="anchor" id="autotoc_md87"></a>
 Audio System</h2>
 <ul>
 <li>✅ <code><a class="el" href="../../d4/d03/audio__backend_8h.html">src/app/emu/audio/audio_backend.h</a>/cc</code> - Uses SDL2 (cross-platform)</li>
 <li>✅ No platform-specific code</li>
 <li>✅ Ready for SDL3 migration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md84"></a>
+<h2><a class="anchor" id="autotoc_md88"></a>
 Input System</h2>
 <ul>
 <li>✅ <code><a class="el" href="../../d9/d2a/input__backend_8h.html">src/app/emu/input/input_backend.h</a>/cc</code> - Uses SDL2 (cross-platform)</li>
 <li>✅ <code><a class="el" href="../../d8/dd2/input__manager_8h.html">src/app/emu/input/input_manager.h</a>/cc</code> - Platform-agnostic</li>
 <li>✅ Ready for SDL3 migration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md85"></a>
+<h2><a class="anchor" id="autotoc_md89"></a>
 Debugger System</h2>
 <ul>
 <li>✅ <code><a class="el" href="../../d9/d51/apu__debugger_8h.html">src/app/emu/debug/apu_debugger.h</a>/cc</code> - No platform dependencies</li>
@@ -275,35 +303,35 @@ Debugger System</h2>
 <li>✅ <code><a class="el" href="../../da/d65/watchpoint__manager_8h.html">src/app/emu/debug/watchpoint_manager.h</a>/cc</code> - Platform-agnostic</li>
 <li>✅ All use <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> (cross-platform)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md86"></a>
+<h2><a class="anchor" id="autotoc_md90"></a>
 UI Layer</h2>
 <ul>
 <li>✅ <code>src/app/emu/ui/*</code> - Uses <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> + SDL2 (both cross-platform)</li>
 <li>✅ No platform-specific rendering code</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md88"></a>
+<h1><a class="anchor" id="autotoc_md92"></a>
 Common Build Issues &amp; Solutions</h1>
-<h2><a class="anchor" id="autotoc_md89"></a>
+<h2><a class="anchor" id="autotoc_md93"></a>
 Windows: "use of undefined type 'PromiseLike'"</h2>
 <p><b>Cause:</b> Old gRPC version (&lt; v1.67.1) <br  />
  <b>Fix:</b> Clear build cache and reconfigure </p><div class="fragment"><div class="line">rm -r build/_deps/grpc-*</div>
 <div class="line">cmake -B build -G &quot;Visual Studio 17 2022&quot; -A x64</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md90"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md94"></a>
 macOS: "absl not found"</h2>
 <p><b>Cause:</b> vcpkg not finding abseil packages <br  />
  <b>Fix:</b> Use FetchContent (default) - abseil is fetched automatically by gRPC </p><div class="fragment"><div class="line">cmake -B build</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md91"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md95"></a>
 Linux: CMake configuration fails</h2>
 <p><b>Cause:</b> Missing system dependencies <br  />
  <b>Fix:</b> Install required packages </p><div class="fragment"><div class="line">sudo apt-get update</div>
 <div class="line">sudo apt-get install -y [see package list above]</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md92"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md96"></a>
 Windows: "DWORD syntax error"</h2>
 <p><b>Cause:</b> Windows macros conflicting with protobuf enums <br  />
  <b>Fix:</b> Ensure <code>NOGDI</code> is defined (now automatic in grpc.cmake)</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md94"></a>
+<h1><a class="anchor" id="autotoc_md98"></a>
 CI/CD Validation Checklist</h1>
 <p>Before merging platform-specific changes:</p>
 <ul>
@@ -315,9 +343,9 @@ CI/CD Validation Checklist</h1>
 <li>⏳ Validate CI builds pass on next push</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md96"></a>
+<h1><a class="anchor" id="autotoc_md100"></a>
 Testing Strategy</h1>
-<h2><a class="anchor" id="autotoc_md97"></a>
+<h2><a class="anchor" id="autotoc_md101"></a>
 Automated (CI)</h2>
 <ul>
 <li>✅ Build on Ubuntu 22.04 (GCC-12, Clang-15)</li>
@@ -327,7 +355,7 @@ Automated (CI)</h2>
 <li>✅ Code quality checks (clang-format, cppcheck, clang-tidy)</li>
 <li>✅ Memory sanitizer (Linux AddressSanitizer)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md98"></a>
+<h2><a class="anchor" id="autotoc_md102"></a>
 Manual Testing</h2>
 <p>After successful CI build:</p><ul>
 <li>🔲 Windows: Audio backend initializes</li>
@@ -337,9 +365,9 @@ Manual Testing</h2>
 <li>🔲 macOS: All features functional</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md100"></a>
+<h1><a class="anchor" id="autotoc_md104"></a>
 Quick Reference</h1>
-<h2><a class="anchor" id="autotoc_md101"></a>
+<h2><a class="anchor" id="autotoc_md105"></a>
 Build Command (All Platforms)</h2>
 <div class="fragment"><div class="line"># Simple - no flags needed!</div>
 <div class="line">cmake -B build</div>
@@ -348,11 +376,11 @@ Build Command (All Platforms)</h2>
 <div class="line"># Or use presets:</div>
 <div class="line">cmake --preset [mac-dbg|lin-dbg|win-dbg]</div>
 <div class="line">cmake --build --preset [mac-dbg|lin-dbg|win-dbg]</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md102"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md106"></a>
 Enable Features</h2>
 <p>All features (JSON, gRPC, AI) are <b>always enabled</b> by default. <br  />
  No need to specify <code>-DZ3ED_AI=ON</code> or <code>-DYAZE_WITH_GRPC=ON</code>.</p>
-<h2><a class="anchor" id="autotoc_md103"></a>
+<h2><a class="anchor" id="autotoc_md107"></a>
 Windows Troubleshooting</h2>
 <div class="fragment"><div class="line"># Verify environment</div>
 <div class="line">.\scripts\verify-build-environment.ps1</div>
@@ -361,7 +389,7 @@ Windows Troubleshooting</h2>
 <div class="line">.\scripts\setup-vcpkg-windows.ps1</div>
 <div class="line">cmake -B build -DCMAKE_TOOLCHAIN_FILE=&quot;vcpkg/scripts/buildsystems/vcpkg.cmake&quot;</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md105"></a>
+<h1><a class="anchor" id="autotoc_md109"></a>
 Filesystem Abstraction</h1>
 <p>To ensure robust and consistent behavior across platforms, YAZE has standardized its filesystem operations:</p>
 <ul>
@@ -375,7 +403,7 @@ Filesystem Abstraction</h1>
 </ul>
 <p>This removes legacy platform-specific APIs (like <code>dirent.h</code> or Win32 directory functions) for cleaner, more maintainable file handling.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md107"></a>
+<h1><a class="anchor" id="autotoc_md111"></a>
 Native File Dialog Support</h1>
 <p>YAZE features native file dialogs on all platforms:</p><ul>
 <li><b>macOS</b>: Cocoa-based file selection with proper sandboxing support</li>
