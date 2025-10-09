@@ -101,7 +101,7 @@ jobs:
             "-DCMAKE_CXX_COMPILER=${{ matrix.cxx }}"
           )
         fi
-        cmake "${{ CMAKE_ARGS[@] }}"
+        cmake "${CMAKE_ARGS[@]}"
 
     - name: Build
       run: cmake --build build --config ${{ env.BUILD_TYPE }} --parallel
