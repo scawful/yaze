@@ -1,0 +1,9 @@
+<map id="yaze::emu::input::SDL2InputBackend" name="yaze::emu::input::SDL2InputBackend">
+<area shape="rect" id="Node000001" title="SDL2 input backend implementation." alt="" coords="315,63,495,103"/>
+<area shape="rect" id="Node000002" href="$d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html" title="Abstract input backend interface." alt="" coords="21,5,173,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,40,315,64,314,69,187,45"/>
+<area shape="rect" id="Node000003" href="$de/d9a/structyaze_1_1emu_1_1input_1_1InputConfig.html" title="Input configuration (platform&#45;agnostic key codes)" alt="" coords="5,70,189,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,80,314,80,314,86,204,86"/>
+<area shape="rect" id="Node000004" href="$df/d22/structyaze_1_1emu_1_1input_1_1ControllerState.html" title="Controller state (16&#45;bit SNES controller format)" alt="" coords="10,120,184,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="199,119,314,97,315,102,200,124"/>
+</map>

@@ -28,7 +28,6 @@ var classyaze_1_1emu_1_1Emulator =
     [ "GetBreakpoints", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#afabbae5e15134b2b9b4271dc8644a369", null ],
     [ "GetMetrics", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#af5519b13f2491c968536a7b5a36ef152", null ],
     [ "RenderNavBar", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a633c7813e4160322bcc71056bf8df523", null ],
-    [ "HandleEvents", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a476e68b4c3a44ef7152278f9cceda30c", null ],
     [ "RenderEmulatorInterface", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#af0decb21c491b4f2eef222db4d06f0b8", null ],
     [ "RenderSnesPpu", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a7ba570e817991c947635a0dafb0fbbd5", null ],
     [ "RenderBreakpointList", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a9548a53ee762f8ae08f6732af5f92cd8", null ],
@@ -68,5 +67,5 @@ var classyaze_1_1emu_1_1Emulator =
     [ "breakpoint_manager_", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a96a9d81d94ccf1c7224a36f4731c7b2f", null ],
     [ "disassembly_viewer_", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a7d62682a41e062e1d70eb6a133755ea4", null ],
     [ "rom_data_", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a8532516d071862efe4ad42f9e6eca403", null ],
-    [ "keybindings_", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a4559b9d5fd7974f6244c16717a10c392", null ]
+    [ "input_manager_", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#abace1ddca75f1b401aa784ab6c5b1758", null ]
 ];

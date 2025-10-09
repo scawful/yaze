@@ -101,15 +101,15 @@ $(document).ready(function(){initNavTree('d6/df7/md_src_2app_2editor_2agent_2REA
   <div class="headertitle"><div class="title">Agent Editor Module</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1060"></a> This directory contains all agent and network collaboration functionality for yaze and <a href="https://github.com/scawful/yaze-server">yaze-server</a>.</p>
-<h1><a class="anchor" id="autotoc_md1061"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1064"></a> This directory contains all agent and network collaboration functionality for yaze and <a href="https://github.com/scawful/yaze-server">yaze-server</a>.</p>
+<h1><a class="anchor" id="autotoc_md1065"></a>
 Overview</h1>
 <p>The Agent Editor module provides AI-powered assistance and collaborative editing features for ROM hacking projects. It integrates conversational AI agents, local and network-based collaboration, and multimodal (vision) capabilities.</p>
-<h1><a class="anchor" id="autotoc_md1062"></a>
+<h1><a class="anchor" id="autotoc_md1066"></a>
 Architecture</h1>
-<h2><a class="anchor" id="autotoc_md1063"></a>
+<h2><a class="anchor" id="autotoc_md1067"></a>
 Core Components</h2>
-<h3><a class="anchor" id="autotoc_md1064"></a>
+<h3><a class="anchor" id="autotoc_md1068"></a>
 AgentEditor (&lt;tt&gt;agent_editor.h/cc&lt;/tt&gt;)</h3>
 <p>The main manager class that coordinates all agent-related functionality:</p><ul>
 <li>Manages the chat widget lifecycle</li>
@@ -123,7 +123,7 @@ AgentEditor (&lt;tt&gt;agent_editor.h/cc&lt;/tt&gt;)</h3>
 <li>ROM context management for agent queries</li>
 <li>Integration with toast notifications and proposal drawer</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1065"></a>
+<h3><a class="anchor" id="autotoc_md1069"></a>
 AgentChatWidget (&lt;tt&gt;agent_chat_widget.h/cc&lt;/tt&gt;)</h3>
 <p>ImGui-based chat interface for interacting with AI agents:</p><ul>
 <li>Real-time conversation with AI assistant</li>
@@ -139,7 +139,7 @@ AgentChatWidget (&lt;tt&gt;agent_chat_widget.h/cc&lt;/tt&gt;)</h3>
 <li>Table data visualization</li>
 <li>Proposal metadata display</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md1066"></a>
+<h3><a class="anchor" id="autotoc_md1070"></a>
 AgentChatHistoryCodec (&lt;tt&gt;agent_chat_history_codec.h/cc&lt;/tt&gt;)</h3>
 <p>Serialization/deserialization for chat history:</p><ul>
 <li>JSON-based persistence (when built with <code>YAZE_WITH_JSON</code>)</li>
@@ -147,9 +147,9 @@ AgentChatHistoryCodec (&lt;tt&gt;agent_chat_history_codec.h/cc&lt;/tt&gt;)</h3>
 <li>Saves collaboration state, multimodal state, and full chat history</li>
 <li>Shared history support for collaborative sessions</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1067"></a>
+<h2><a class="anchor" id="autotoc_md1071"></a>
 Collaboration Coordinators</h2>
-<h3><a class="anchor" id="autotoc_md1068"></a>
+<h3><a class="anchor" id="autotoc_md1072"></a>
 AgentCollaborationCoordinator (&lt;tt&gt;agent_collaboration_coordinator.h/cc&lt;/tt&gt;)</h3>
 <p>Local filesystem-based collaboration:</p><ul>
 <li>Creates session files in <code>~/.yaze/agent/sessions/</code></li>
@@ -158,7 +158,7 @@ AgentCollaborationCoordinator (&lt;tt&gt;agent_collaboration_coordinator.h/cc&lt
 <li>Polling-based synchronization</li>
 </ul>
 <p><b>Use Case:</b> Same-machine collaboration or cloud-folder syncing (Dropbox, iCloud)</p>
-<h3><a class="anchor" id="autotoc_md1069"></a>
+<h3><a class="anchor" id="autotoc_md1073"></a>
 NetworkCollaborationCoordinator (&lt;tt&gt;network_collaboration_coordinator.h/cc&lt;/tt&gt;)</h3>
 <p>WebSocket-based network collaboration (requires <code>YAZE_WITH_GRPC</code> and <code>YAZE_WITH_JSON</code>):</p><ul>
 <li>Real-time connection to collaboration server</li>
@@ -174,9 +174,9 @@ NetworkCollaborationCoordinator (&lt;tt&gt;network_collaboration_coordinator.h/c
 </ul>
 <p><b>Use Case:</b> Remote collaboration across networks</p>
 <p><b>Server:</b> See <code>yaze-server</code> repository for the Node.js WebSocket server v2.0</p>
-<h1><a class="anchor" id="autotoc_md1070"></a>
+<h1><a class="anchor" id="autotoc_md1074"></a>
 Usage</h1>
-<h2><a class="anchor" id="autotoc_md1071"></a>
+<h2><a class="anchor" id="autotoc_md1075"></a>
 Initialization</h2>
 <div class="fragment"><div class="line"><span class="comment">// In EditorManager or main application:</span></div>
 <div class="line">agent_editor_.Initialize(&amp;toast_manager_, &amp;proposal_drawer_);</div>
@@ -189,11 +189,11 @@ Initialization</h2>
 <div class="line">callbacks.capture_snapshot = [](std::filesystem::path* out) { <span class="comment">/* ... */</span> };</div>
 <div class="line">callbacks.send_to_gemini = [](<span class="keyword">const</span> std::filesystem::path&amp; img, <span class="keyword">const</span> std::string&amp; prompt) { <span class="comment">/* ... */</span> };</div>
 <div class="line">agent_editor_.GetChatWidget()-&gt;SetMultimodalCallbacks(callbacks);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1072"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1076"></a>
 Drawing</h2>
 <div class="fragment"><div class="line"><span class="comment">// In main render loop:</span></div>
 <div class="line">agent_editor_.Draw();</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1073"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1077"></a>
 Session Management</h2>
 <div class="fragment"><div class="line"><span class="comment">// Host a local session</span></div>
 <div class="line"><span class="keyword">auto</span> session = agent_editor_.HostSession(<span class="stringliteral">&quot;My ROM Hack&quot;</span>, </div>
@@ -205,7 +205,7 @@ Session Management</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Leave session</span></div>
 <div class="line">agent_editor_.LeaveSession();</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1074"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md1078"></a>
 Network Mode (requires YAZE_WITH_GRPC and YAZE_WITH_JSON)</h2>
 <div class="fragment"><div class="line"><span class="comment">// Connect to collaboration server</span></div>
 <div class="line">agent_editor_.ConnectToServer(<span class="stringliteral">&quot;ws://localhost:8765&quot;</span>);</div>
@@ -226,7 +226,7 @@ Network Mode (requires YAZE_WITH_GRPC and YAZE_WITH_JSON)</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Send AI query</span></div>
 <div class="line">network_coordinator-&gt;SendAIQuery(username, <span class="stringliteral">&quot;What enemies are in room 5?&quot;</span>);</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1075"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1079"></a>
 File Structure</h1>
 <div class="fragment"><div class="line">agent/</div>
 <div class="line">├── README.md                               (this file)</div>
@@ -240,14 +240,14 @@ File Structure</h1>
 <div class="line">├── agent_collaboration_coordinator.cc</div>
 <div class="line">├── network_collaboration_coordinator.h     WebSocket collaboration</div>
 <div class="line">└── network_collaboration_coordinator.cc</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1076"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1080"></a>
 Build Configuration</h1>
-<h2><a class="anchor" id="autotoc_md1077"></a>
+<h2><a class="anchor" id="autotoc_md1081"></a>
 Required</h2>
 <ul>
 <li><code>YAZE_WITH_JSON</code> - Enables chat history persistence (via nlohmann/json)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1078"></a>
+<h2><a class="anchor" id="autotoc_md1082"></a>
 Optional</h2>
 <ul>
 <li><code>YAZE_WITH_GRPC</code> - Enables all agent features including network collaboration<ul>
@@ -255,16 +255,16 @@ Optional</h2>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1079"></a>
+<h1><a class="anchor" id="autotoc_md1083"></a>
 Data Files</h1>
-<h2><a class="anchor" id="autotoc_md1080"></a>
+<h2><a class="anchor" id="autotoc_md1084"></a>
 Local Storage</h2>
 <ul>
 <li><b>Chat History:</b> <code>~/.yaze/agent/chat_history.json</code></li>
 <li><b>Shared Sessions:</b> <code>~/.yaze/agent/sessions/&lt;session_id&gt;_history.json</code></li>
 <li><b>Session Metadata:</b> <code>~/.yaze/agent/sessions/&lt;code&gt;.session</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1081"></a>
+<h2><a class="anchor" id="autotoc_md1085"></a>
 Session File Format</h2>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;session_name&quot;: &quot;My ROM Hack&quot;,</div>
@@ -272,7 +272,7 @@ Session File Format</h2>
 <div class="line">  &quot;host&quot;: &quot;username&quot;,</div>
 <div class="line">  &quot;participants&quot;: [&quot;username&quot;, &quot;friend1&quot;, &quot;friend2&quot;]</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1082"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1086"></a>
 Integration with EditorManager</h1>
 <p>The <code>AgentEditor</code> is instantiated as a member of <code>EditorManager</code> and integrated into the main UI:</p>
 <div class="fragment"><div class="line"><span class="keyword">class </span>EditorManager {</div>
@@ -284,9 +284,9 @@ Integration with EditorManager</h1>
 <div class="line"> [<span class="keyword">this</span>]() { agent_editor_.ToggleChat(); },</div>
 <div class="line"> [<span class="keyword">this</span>]() { <span class="keywordflow">return</span> agent_editor_.IsChatActive(); }}</div>
 <div class="ttc" id="aicons_8h_html_a25b5800345d13008e13c60ca2a9aeb7e"><div class="ttname"><a href="../../de/dbf/icons_8h.html#a25b5800345d13008e13c60ca2a9aeb7e">ICON_MD_CHAT</a></div><div class="ttdeci">#define ICON_MD_CHAT</div><div class="ttdef"><b>Definition</b> <a href="../../de/dbf/icons_8h_source.html#l00392">icons.h:392</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1083"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md1087"></a>
 Dependencies</h1>
-<h2><a class="anchor" id="autotoc_md1084"></a>
+<h2><a class="anchor" id="autotoc_md1088"></a>
 Internal</h2>
 <ul>
 <li><code>cli::agent::ConversationalAgentService</code> - AI agent backend</li>
@@ -295,24 +295,24 @@ Internal</h2>
 <li><code>ProposalDrawer</code> - Displays agent proposals</li>
 <li><code>ToastManager</code> - User notifications</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1085"></a>
+<h2><a class="anchor" id="autotoc_md1089"></a>
 External (when enabled)</h2>
 <ul>
 <li>nlohmann/json - Chat history serialization</li>
 <li>httplib - WebSocket client implementation</li>
 <li>Abseil - Status handling, time utilities</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1086"></a>
+<h1><a class="anchor" id="autotoc_md1090"></a>
 Advanced Features (v2.0)</h1>
 <p>The network collaboration coordinator now supports:</p>
-<h2><a class="anchor" id="autotoc_md1087"></a>
+<h2><a class="anchor" id="autotoc_md1091"></a>
 ROM Synchronization</h2>
 <p>Share ROM edits in real-time:</p><ul>
 <li>Send diff data (base64 encoded) to all participants</li>
 <li>Automatic ROM hash tracking</li>
 <li>Size limits enforced by server (5MB max)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1088"></a>
+<h2><a class="anchor" id="autotoc_md1092"></a>
 Multimodal Snapshot Sharing</h2>
 <p>Share screenshots and images:</p><ul>
 <li>Capture and share specific editor views</li>
@@ -320,28 +320,28 @@ Multimodal Snapshot Sharing</h2>
 <li>Base64 encoding for efficient transfer</li>
 <li>Size limits enforced by server (10MB max)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1089"></a>
+<h2><a class="anchor" id="autotoc_md1093"></a>
 Proposal Management</h2>
 <p>Collaborative proposal workflow:</p><ul>
 <li>Share AI-generated proposals with all participants</li>
 <li>Track proposal status (pending, accepted, rejected)</li>
 <li>Real-time status updates broadcast to all users</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1090"></a>
+<h2><a class="anchor" id="autotoc_md1094"></a>
 AI Agent Integration</h2>
 <p>Server-side AI routing:</p><ul>
 <li>Send queries through the collaboration server</li>
 <li>Shared AI responses visible to all participants</li>
 <li>Query history tracked in server database</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1091"></a>
+<h2><a class="anchor" id="autotoc_md1095"></a>
 Health Monitoring</h2>
 <p>Server health and metrics:</p><ul>
 <li><code>/health</code> endpoint for server status</li>
 <li><code>/metrics</code> endpoint for usage statistics</li>
 <li>Graceful shutdown notifications</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1092"></a>
+<h1><a class="anchor" id="autotoc_md1096"></a>
 Future Enhancements</h1>
 <ol type="1">
 <li><b>Voice chat integration</b> - Audio channels for remote collaboration</li>
@@ -351,10 +351,10 @@ Future Enhancements</h1>
 <li><b>Agent memory</b> - Persistent context across sessions</li>
 <li><b>Real-time cursor tracking</b> - See where collaborators are working</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md1093"></a>
+<h1><a class="anchor" id="autotoc_md1097"></a>
 Server Protocol</h1>
 <p>The server uses JSON WebSocket messages. Key message types:</p>
-<h2><a class="anchor" id="autotoc_md1094"></a>
+<h2><a class="anchor" id="autotoc_md1098"></a>
 Client → Server</h2>
 <ul>
 <li><code>host_session</code> - Create new session (v2.0: supports <code>rom_hash</code>, <code>ai_enabled</code>)</li>
@@ -367,7 +367,7 @@ Client → Server</h2>
 <li><code>proposal_update</code> - <b>New in v2.0</b> - Update proposal status</li>
 <li><code>ai_query</code> - <b>New in v2.0</b> - Query AI agent</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1095"></a>
+<h2><a class="anchor" id="autotoc_md1099"></a>
 Server → Client</h2>
 <ul>
 <li><code>session_hosted</code> - Session created confirmation</li>

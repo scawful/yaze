@@ -1,18 +1,13 @@
 var searchData=
 [
-  ['zelda3_5fbg2_5faddition_0',['ZELDA3_BG2_ADDITION',['../d3/d81/group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a5962e692a939ecf5c4b0fd12f18452e8',1,'zelda.h']]],
-  ['zelda3_5fbg2_5fdark_1',['ZELDA3_BG2_DARK',['../d3/d81/group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a0f2b113530c0ebb93e878df8a81c13b4',1,'zelda.h']]],
-  ['zelda3_5fbg2_5fdark_5froom_2',['ZELDA3_BG2_DARK_ROOM',['../d3/d81/group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a8a5f91de89459c376c5235df56447fb1',1,'zelda.h']]],
-  ['zelda3_5fbg2_5fnormal_3',['ZELDA3_BG2_NORMAL',['../d3/d81/group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339aa0a72847c4ea374a8ac999b4e487bc9e',1,'zelda.h']]],
-  ['zelda3_5fbg2_5foff_4',['ZELDA3_BG2_OFF',['../d3/d81/group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339acf8409d09b628e7a204b2b5391c95f17',1,'zelda.h']]],
-  ['zelda3_5fbg2_5fon_5ftop_5',['ZELDA3_BG2_ON_TOP',['../d3/d81/group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a241a3b63324c0afdb4e4017f40caba4f',1,'zelda.h']]],
-  ['zelda3_5fbg2_5fparallax_6',['ZELDA3_BG2_PARALLAX',['../d3/d81/group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a096e7c8bc34f9d2042e8865205e18e32',1,'zelda.h']]],
-  ['zelda3_5fbg2_5ftranslucent_7',['ZELDA3_BG2_TRANSLUCENT',['../d3/d81/group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a3c3e8f6bba7d6e0843ef1bda683fa8df',1,'zelda.h']]],
-  ['zelda3_5fbg2_5ftransparent_8',['ZELDA3_BG2_TRANSPARENT',['../d3/d81/group__dungeon.html#ggaae3c30030730adfb9b8f6b941ac36339a0941b527f3e57ecb2bff4d1267bc0064',1,'zelda.h']]],
-  ['zelda3_5fversion_5feu_9',['ZELDA3_VERSION_EU',['../d2/d94/group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da39fc207d55edf33cf5df4c7a657f98d0',1,'zelda.h']]],
-  ['zelda3_5fversion_5fjp_10',['ZELDA3_VERSION_JP',['../d2/d94/group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da27a57373ac8e5341843f728b6518c25c',1,'zelda.h']]],
-  ['zelda3_5fversion_5fproto_11',['ZELDA3_VERSION_PROTO',['../d2/d94/group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da36b64bd670faca8068e92797b36e03f1',1,'zelda.h']]],
-  ['zelda3_5fversion_5frandomizer_12',['ZELDA3_VERSION_RANDOMIZER',['../d2/d94/group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da9fca2b62b1a38047a490a2bdd1bc924b',1,'zelda.h']]],
-  ['zelda3_5fversion_5funknown_13',['ZELDA3_VERSION_UNKNOWN',['../d2/d94/group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575dabc527f6cbb32739b65a293d12630647e',1,'zelda.h']]],
-  ['zelda3_5fversion_5fus_14',['ZELDA3_VERSION_US',['../d2/d94/group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575da92b836748459feaa481e0f105c74fd73',1,'zelda.h']]]
+  ['y_0',['Y',['../d5/df0/namespaceyaze_1_1emu_1_1input.html#adba5be4e20df51e4ba9273c1d018cbbba57cec4137b614c87cb4e24a3d003a3e0',1,'yaze::emu::input']]],
+  ['yaze_5fdebug_1',['YAZE_DEBUG',['../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a66927c1a962aefd4e6239111b8a9cf41',1,'yaze::util']]],
+  ['yaze_5ferror_5fcorruption_2',['YAZE_ERROR_CORRUPTION',['../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0a12943b18436620116b0a70a3de85cb8d',1,'yaze.h']]],
+  ['yaze_5ferror_5ffile_5fnot_5ffound_3',['YAZE_ERROR_FILE_NOT_FOUND',['../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0a7e431fc9d3586467cd8df8cb5ef93761',1,'yaze.h']]],
+  ['yaze_5ferror_5finvalid_5farg_4',['YAZE_ERROR_INVALID_ARG',['../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0a8ef2fee5b623ed94287d443e9835e88f',1,'yaze.h']]],
+  ['yaze_5ferror_5fio_5',['YAZE_ERROR_IO',['../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0a7236ccb06720e1c0f7794601f17a3af2',1,'yaze.h']]],
+  ['yaze_5ferror_5fmemory_6',['YAZE_ERROR_MEMORY',['../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0aa417c4bc0c4411826af3a501f608fca4',1,'yaze.h']]],
+  ['yaze_5ferror_5fnot_5finitialized_7',['YAZE_ERROR_NOT_INITIALIZED',['../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0ac2d0ae3485a71218d2746a810879fe55',1,'yaze.h']]],
+  ['yaze_5ferror_5funknown_8',['YAZE_ERROR_UNKNOWN',['../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0af82920677ab3ffbe060b219da27359c1',1,'yaze.h']]],
+  ['yaze_5fok_9',['YAZE_OK',['../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0a07a60c9eac361f06ec1a03be228225ed',1,'yaze.h']]]
 ];

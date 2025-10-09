@@ -1,0 +1,5 @@
+<map id="yaze::emu::input::InputManager::Poll" name="yaze::emu::input::InputManager::Poll">
+<area shape="rect" id="Node000001" title="Poll input and update SNES controller state." alt="" coords="5,5,203,46"/>
+<area shape="rect" id="Node000002" href="$d3/d15/classyaze_1_1emu_1_1Snes.html#a36610fdc93a127c79dc5ffc5e772dee4" title=" " alt="" coords="251,5,429,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="203,23,235,23,235,28,203,28"/>
+</map>

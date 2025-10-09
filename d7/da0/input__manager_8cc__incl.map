@@ -1,0 +1,13 @@
+<map id="src/app/emu/input/input_manager.cc" name="src/app/emu/input/input_manager.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="142,5,300,46"/>
+<area shape="rect" id="Node000002" href="$d8/dd2/input__manager_8h.html" title=" " alt="" coords="5,94,141,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,49,121,88,118,84,186,44"/>
+<area shape="rect" id="Node000007" href="$d2/de3/emu_2snes_8h.html" title=" " alt="" coords="164,102,278,127"/>
+<area shape="poly" id="edge3_Node000001_Node000007" title=" " alt="" coords="224,47,224,86,218,86,218,47"/>
+<area shape="rect" id="Node000051" href="$d7/d7f/log_8h.html" title=" " alt="" coords="302,102,372,127"/>
+<area shape="poly" id="edge5_Node000001_Node000051" title=" " alt="" coords="249,44,311,90,308,95,246,49"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="187,183,255,208"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="111,133,186,173,184,177,109,138"/>
+<area shape="poly" id="edge4_Node000007_Node000003" title=" " alt="" coords="224,128,224,167,218,167,218,128"/>
+<area shape="poly" id="edge6_Node000051_Node000003" title=" " alt="" coords="321,130,253,176,250,171,318,125"/>
+</map>

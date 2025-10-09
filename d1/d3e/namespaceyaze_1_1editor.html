@@ -375,10 +375,10 @@ Functions</h2></td></tr>
 <tr class="separator:ab631002fa2510fae663f6347362ba82d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa29017b4244db6fa3e3a6fbcb33142b0" id="r_aa29017b4244db6fa3e3a6fbcb33142b0"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="../../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#aa29017b4244db6fa3e3a6fbcb33142b0">BuildDictionaryEntries</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom)</td></tr>
 <tr class="separator:aa29017b4244db6fa3e3a6fbcb33142b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7075dfdde53bf6bb5ec8a4a5a5123c1f" id="r_a7075dfdde53bf6bb5ec8a4a5a5123c1f"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a7075dfdde53bf6bb5ec8a4a5a5123c1f">ReplaceAllDictionaryWords</a> (std::string str, std::vector&lt; <a class="el" href="../../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt; dictionary)</td></tr>
-<tr class="separator:a7075dfdde53bf6bb5ec8a4a5a5123c1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a508cbba41214d784ba112a4c3f14ec78" id="r_a508cbba41214d784ba112a4c3f14ec78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a508cbba41214d784ba112a4c3f14ec78">FindRealDictionaryEntry</a> (uint8_t value, std::vector&lt; <a class="el" href="../../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt; dictionary)</td></tr>
-<tr class="separator:a508cbba41214d784ba112a4c3f14ec78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f8ecc7b344748667e5f0a1745ca5833" id="r_a5f8ecc7b344748667e5f0a1745ca5833"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a5f8ecc7b344748667e5f0a1745ca5833">ReplaceAllDictionaryWords</a> (std::string str, const std::vector&lt; <a class="el" href="../../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt; &amp;dictionary)</td></tr>
+<tr class="separator:a5f8ecc7b344748667e5f0a1745ca5833"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a05d9080a01b2e42e60dca65a60922858" id="r_a05d9080a01b2e42e60dca65a60922858"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a05d9080a01b2e42e60dca65a60922858">FindRealDictionaryEntry</a> (uint8_t value, const std::vector&lt; <a class="el" href="../../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt; &amp;dictionary)</td></tr>
+<tr class="separator:a05d9080a01b2e42e60dca65a60922858"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f9b61eee2bb838f10efe0d1062c8990" id="r_a7f9b61eee2bb838f10efe0d1062c8990"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../d3/d89/structyaze_1_1editor_1_1MessageData.html">MessageData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a7f9b61eee2bb838f10efe0d1062c8990">ParseSingleMessage</a> (const std::vector&lt; uint8_t &gt; &amp;rom_data, int *current_pos)</td></tr>
 <tr class="separator:a7f9b61eee2bb838f10efe0d1062c8990"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91359909a674306622aa5a533e0c2377" id="r_a91359909a674306622aa5a533e0c2377"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d3e/namespaceyaze_1_1editor.html#a91359909a674306622aa5a533e0c2377">ParseMessageData</a> (std::vector&lt; <a class="el" href="../../d3/d89/structyaze_1_1editor_1_1MessageData.html">MessageData</a> &gt; &amp;message_data, const std::vector&lt; <a class="el" href="../../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt; &amp;dictionary_entries)</td></tr>
@@ -902,7 +902,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00013">13</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d0e/message__preview_8cc_source.html#l00041">yaze::editor::MessagePreview::DrawCharacterToPreview()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00106">ParseMessageToData()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00071">yaze::test::TEST_F()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00064">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d0e/message__preview_8cc_source.html#l00041">yaze::editor::MessagePreview::DrawCharacterToPreview()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00107">ParseMessageToData()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00071">yaze::test::TEST_F()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00064">yaze::test::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -924,9 +924,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00022">22</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00022">DICTOFF</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00099">DICTOFF</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00204">ParseSingleMessage()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00336">ReadAllTextData()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00081">yaze::test::TEST_F()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00076">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00205">ParseSingleMessage()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00346">ReadAllTextData()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00081">yaze::test::TEST_F()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00076">yaze::test::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -948,7 +948,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00029">29</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00284">ParseMessageData()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00204">ParseSingleMessage()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00336">ReadAllTextData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00285">ParseMessageData()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00205">ParseSingleMessage()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00346">ReadAllTextData()</a>.</p>
 
 </div>
 </div>
@@ -970,9 +970,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00038">38</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00161">yaze::editor::TextElement::ID</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00276">yaze::editor::TextElement::ID</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00284">ParseMessageData()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00336">ReadAllTextData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00285">ParseMessageData()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00346">ReadAllTextData()</a>.</p>
 
 </div>
 </div>
@@ -994,9 +994,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00049">49</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00020">DICTIONARYTOKEN</a>, and <a class="el" href="../../db/d9c/message__data_8h_source.html#l00022">DICTOFF</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00097">DICTIONARYTOKEN</a>, and <a class="el" href="../../db/d9c/message__data_8h_source.html#l00099">DICTOFF</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00106">ParseMessageToData()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00189">yaze::test::TEST_F()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00198">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00107">ParseMessageToData()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00189">yaze::test::TEST_F()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00198">yaze::test::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -1018,9 +1018,9 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">77</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00020">DICTIONARYTOKEN</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00022">FindDictionaryEntry()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00029">FindMatchingCommand()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00038">FindMatchingSpecial()</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00097">DICTIONARYTOKEN</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00022">FindDictionaryEntry()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00029">FindMatchingCommand()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00038">FindMatchingSpecial()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00151">BuildDictionaryEntries()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00204">ParseSingleMessage()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00336">ReadAllTextData()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00116">yaze::test::TEST_F()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00110">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00152">BuildDictionaryEntries()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00205">ParseSingleMessage()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00346">ReadAllTextData()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00116">yaze::test::TEST_F()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00110">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1054,11 +1054,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00106">106</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00107">107</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00292">yaze::editor::ParsedElement::Active</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00020">DICTIONARYTOKEN</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00013">FindMatchingCharacter()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00049">FindMatchingElement()</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00167">yaze::editor::TextElement::HasArgument</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00161">yaze::editor::TextElement::ID</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00103">yaze::util::logf()</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00290">yaze::editor::ParsedElement::Parent</a>, and <a class="el" href="../../db/d9c/message__data_8h_source.html#l00291">yaze::editor::ParsedElement::Value</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00415">yaze::editor::ParsedElement::Active</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00097">DICTIONARYTOKEN</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00013">FindMatchingCharacter()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00049">FindMatchingElement()</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00282">yaze::editor::TextElement::HasArgument</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00276">yaze::editor::TextElement::ID</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00103">yaze::util::logf()</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00413">yaze::editor::ParsedElement::Parent</a>, and <a class="el" href="../../db/d9c/message__data_8h_source.html#l00414">yaze::editor::ParsedElement::Value</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/d9c/message__data_8h_source.html#l00057">yaze::editor::DictionaryEntry::DictionaryEntry()</a>, <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00177">yaze::editor::MessageEditor::DrawCurrentMessage()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00086">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/d9c/message__data_8h_source.html#l00147">yaze::editor::DictionaryEntry::DictionaryEntry()</a>, <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00177">yaze::editor::MessageEditor::DrawCurrentMessage()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00086">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1095,9 +1095,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00151">151</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00152">152</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00051">yaze::editor::DictionaryEntry::Contents</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00202">yaze::Rom::data()</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00080">kNumDictionaryEntries</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00081">kPointersDictionaries</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00078">kTextData</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>, and <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00141">yaze::editor::DictionaryEntry::Contents</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00202">yaze::Rom::data()</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00174">kNumDictionaryEntries</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00175">kPointersDictionaries</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00172">kTextData</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>, and <a class="el" href="../../d7/d5e/snes_8h_source.html#l00008">yaze::SnesToPc()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00062">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00013">yaze::test::MessageRomTest::SetUp()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00205">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
@@ -1119,8 +1119,8 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
-<a id="a7075dfdde53bf6bb5ec8a4a5a5123c1f" name="a7075dfdde53bf6bb5ec8a4a5a5123c1f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7075dfdde53bf6bb5ec8a4a5a5123c1f">&#9670;&#160;</a></span>ReplaceAllDictionaryWords()</h2>
+<a id="a5f8ecc7b344748667e5f0a1745ca5833" name="a5f8ecc7b344748667e5f0a1745ca5833"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5f8ecc7b344748667e5f0a1745ca5833">&#9670;&#160;</a></span>ReplaceAllDictionaryWords()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1134,7 +1134,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="../../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt;&#160;</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>dictionary</em>&#160;</td>
         </tr>
         <tr>
@@ -1145,14 +1145,14 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00183">183</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00184">184</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/d9c/message__data_8h_source.html#l00126">yaze::editor::MessageData::OptimizeMessageForDictionary()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00102">yaze::test::TEST_F()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00093">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/d9c/message__data_8h_source.html#l00235">yaze::editor::MessageData::OptimizeMessageForDictionary()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00102">yaze::test::TEST_F()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00093">yaze::test::TEST_F()</a>.</p>
 
 </div>
 </div>
-<a id="a508cbba41214d784ba112a4c3f14ec78" name="a508cbba41214d784ba112a4c3f14ec78"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a508cbba41214d784ba112a4c3f14ec78">&#9670;&#160;</a></span>FindRealDictionaryEntry()</h2>
+<a id="a05d9080a01b2e42e60dca65a60922858" name="a05d9080a01b2e42e60dca65a60922858"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a05d9080a01b2e42e60dca65a60922858">&#9670;&#160;</a></span>FindRealDictionaryEntry()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1166,7 +1166,7 @@ Here is the call graph for this function:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="../../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt;&#160;</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="../../d7/dca/structyaze_1_1editor_1_1DictionaryEntry.html">DictionaryEntry</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>dictionary</em>&#160;</td>
         </tr>
         <tr>
@@ -1177,9 +1177,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00194">194</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00195">195</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00022">DICTOFF</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00099">DICTOFF</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d1/d0e/message__preview_8cc_source.html#l00047">yaze::editor::MessagePreview::DrawCharacterToPreview()</a>.</p>
 
@@ -1211,9 +1211,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00204">204</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00205">205</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00098">yaze::editor::MessageData::Address</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00100">yaze::editor::MessageData::ContentsParsed</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00101">yaze::editor::MessageData::Data</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00102">yaze::editor::MessageData::DataParsed</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00020">DICTIONARYTOKEN</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00022">FindDictionaryEntry()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00029">FindMatchingCommand()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00030">yaze::Get24LocalFromPC()</a>, <a class="el" href="../../df/dcb/hex_8cc_source.html#l00041">yaze::util::HexWord()</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00097">yaze::editor::MessageData::ID</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00021">kMessageTerminator</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00081">kPointersDictionaries</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>, and <a class="el" href="../../db/d9c/message__data_8h_source.html#l00099">yaze::editor::MessageData::RawString</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00203">yaze::editor::MessageData::Address</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00205">yaze::editor::MessageData::ContentsParsed</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00206">yaze::editor::MessageData::Data</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00207">yaze::editor::MessageData::DataParsed</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00097">DICTIONARYTOKEN</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00022">FindDictionaryEntry()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00029">FindMatchingCommand()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00030">yaze::Get24LocalFromPC()</a>, <a class="el" href="../../df/dcb/hex_8cc_source.html#l00041">yaze::util::HexWord()</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00202">yaze::editor::MessageData::ID</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00098">kMessageTerminator</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00175">kPointersDictionaries</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>, and <a class="el" href="../../db/d9c/message__data_8h_source.html#l00204">yaze::editor::MessageData::RawString</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00048">yaze::test::TEST_F()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00035">yaze::test::TEST_F()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00132">yaze::test::TEST_F()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00152">yaze::test::TEST_F()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00144">yaze::test::TEST_F()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00120">yaze::test::TEST_F()</a>.</p>
 
@@ -1245,11 +1245,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00284">284</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00285">285</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00051">yaze::editor::DictionaryEntry::Contents</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00022">DICTOFF</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00029">FindMatchingCommand()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00038">FindMatchingSpecial()</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00084">kLine2</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00085">kLine3</a>, and <a class="el" href="../../db/d9c/message__data_8h_source.html#l00082">kScrollVertical</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00141">yaze::editor::DictionaryEntry::Contents</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00206">yaze::editor::MessageData::Data</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00099">DICTOFF</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00029">FindMatchingCommand()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00038">FindMatchingSpecial()</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00178">kLine2</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00179">kLine3</a>, and <a class="el" href="../../db/d9c/message__data_8h_source.html#l00176">kScrollVertical</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00062">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00423">LoadExpandedMessages()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00048">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00062">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00433">LoadExpandedMessages()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00211">yaze::test::TEST_F()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00259">yaze::test::TEST_F()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00277">yaze::test::TEST_F()</a>, <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00236">yaze::test::TEST_F()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00048">yaze::test::TEST_F()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1291,11 +1291,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00336">336</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00346">346</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00020">DICTIONARYTOKEN</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00022">FindDictionaryEntry()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00029">FindMatchingCommand()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00038">FindMatchingSpecial()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00030">yaze::Get24LocalFromPC()</a>, <a class="el" href="../../df/dcb/hex_8cc_source.html#l00030">yaze::util::HexByte()</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00019">kBankToken</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00021">kMessageTerminator</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00081">kPointersDictionaries</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00310">kTextData2</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>.</p>
+<p class="reference">References <a class="el" href="../../db/d9c/message__data_8h_source.html#l00097">DICTIONARYTOKEN</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00022">FindDictionaryEntry()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00029">FindMatchingCommand()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00038">FindMatchingSpecial()</a>, <a class="el" href="../../d7/d5e/snes_8h_source.html#l00030">yaze::Get24LocalFromPC()</a>, <a class="el" href="../../df/dcb/hex_8cc_source.html#l00030">yaze::util::HexByte()</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00096">kBankToken</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00098">kMessageTerminator</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00175">kPointersDictionaries</a>, <a class="el" href="../../db/d9c/message__data_8h_source.html#l00443">kTextData2</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/de2/dialogue__tool__commands_8cc_source.html#l00017">yaze::cli::agent::HandleDialogueListCommand()</a>, <a class="el" href="../../d7/de2/dialogue__tool__commands_8cc_source.html#l00103">yaze::cli::agent::HandleDialogueReadCommand()</a>, <a class="el" href="../../d7/de2/dialogue__tool__commands_8cc_source.html#l00183">yaze::cli::agent::HandleDialogueSearchCommand()</a>, <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00062">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00423">LoadExpandedMessages()</a>, <a class="el" href="../../d4/d7a/message_8cc_source.html#l00045">yaze::cli::message::anonymous_namespace{message.cc}::LoadMessages()</a>, and <a class="el" href="../../df/d84/yaze_8cc_source.html#l00234">yaze_load_messages()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/de2/dialogue__tool__commands_8cc_source.html#l00017">yaze::cli::agent::HandleDialogueListCommand()</a>, <a class="el" href="../../d7/de2/dialogue__tool__commands_8cc_source.html#l00103">yaze::cli::agent::HandleDialogueReadCommand()</a>, <a class="el" href="../../d7/de2/dialogue__tool__commands_8cc_source.html#l00183">yaze::cli::agent::HandleDialogueSearchCommand()</a>, <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00062">yaze::editor::MessageEditor::Initialize()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00433">LoadExpandedMessages()</a>, <a class="el" href="../../d4/d7a/message_8cc_source.html#l00045">yaze::cli::message::anonymous_namespace{message.cc}::LoadMessages()</a>, and <a class="el" href="../../df/d84/yaze_8cc_source.html#l00234">yaze_load_messages()</a>.</p>
 
 </div>
 </div>
@@ -1337,9 +1337,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00423">423</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../da/da0/message__data_8cc_source.html#l00433">433</a> of file <a class="el" href="../../da/da0/message__data_8cc_source.html">message_data.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00259">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00203">yaze::Rom::mutable_data()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00284">ParseMessageData()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00336">ReadAllTextData()</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00259">yaze::Rom::LoadFromFile()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00203">yaze::Rom::mutable_data()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00285">ParseMessageData()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00346">ReadAllTextData()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00240">yaze::editor::MessageEditor::DrawExpandedMessageSettings()</a>.</p>
 <div class="dynheader">
@@ -2685,9 +2685,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00019">19</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00096">96</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00336">ReadAllTextData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00346">ReadAllTextData()</a>.</p>
 
 </div>
 </div>
@@ -2703,9 +2703,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00020">20</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00097">97</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/d9c/message__data_8h_source.html#l00057">yaze::editor::DictionaryEntry::DictionaryEntry()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00049">FindMatchingElement()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00106">ParseMessageToData()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00204">ParseSingleMessage()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00336">ReadAllTextData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/d9c/message__data_8h_source.html#l00147">yaze::editor::DictionaryEntry::DictionaryEntry()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00049">FindMatchingElement()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00107">ParseMessageToData()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00205">ParseSingleMessage()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00077">ParseTextDataByte()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00346">ReadAllTextData()</a>.</p>
 
 </div>
 </div>
@@ -2729,9 +2729,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00021">21</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00098">98</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00204">ParseSingleMessage()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00336">ReadAllTextData()</a>, and <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00346">yaze::editor::MessageEditor::Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00205">ParseSingleMessage()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00346">ReadAllTextData()</a>, and <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00346">yaze::editor::MessageEditor::Save()</a>.</p>
 
 </div>
 </div>
@@ -2755,9 +2755,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00022">22</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00099">99</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d0e/message__preview_8cc_source.html#l00047">yaze::editor::MessagePreview::DrawCharacterToPreview()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00022">FindDictionaryEntry()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00049">FindMatchingElement()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00194">FindRealDictionaryEntry()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00284">ParseMessageData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d0e/message__preview_8cc_source.html#l00047">yaze::editor::MessagePreview::DrawCharacterToPreview()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00022">FindDictionaryEntry()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00049">FindMatchingElement()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00195">FindRealDictionaryEntry()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00285">ParseMessageData()</a>.</p>
 
 </div>
 </div>
@@ -2781,7 +2781,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00023">23</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00100">100</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00062">yaze::editor::MessageEditor::Initialize()</a>, and <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00346">yaze::editor::MessageEditor::Save()</a>.</p>
 
@@ -2807,9 +2807,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00078">78</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00172">172</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00151">BuildDictionaryEntries()</a>, <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00027">yaze::editor::anonymous_namespace{message_editor.cc}::DisplayTextOverflowError()</a>, <a class="el" href="../../d4/d7a/message_8cc_source.html#l00045">yaze::cli::message::anonymous_namespace{message.cc}::LoadMessages()</a>, and <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00346">yaze::editor::MessageEditor::Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00152">BuildDictionaryEntries()</a>, <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00027">yaze::editor::anonymous_namespace{message_editor.cc}::DisplayTextOverflowError()</a>, <a class="el" href="../../d4/d7a/message_8cc_source.html#l00045">yaze::cli::message::anonymous_namespace{message.cc}::LoadMessages()</a>, and <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00346">yaze::editor::MessageEditor::Save()</a>.</p>
 
 </div>
 </div>
@@ -2833,7 +2833,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00079">79</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00173">173</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00027">yaze::editor::anonymous_namespace{message_editor.cc}::DisplayTextOverflowError()</a>, and <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00346">yaze::editor::MessageEditor::Save()</a>.</p>
 
@@ -2859,9 +2859,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00080">80</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00174">174</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00151">BuildDictionaryEntries()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00205">yaze::test::TEST_F()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00152">BuildDictionaryEntries()</a>, and <a class="el" href="../../d2/d5c/message__test_8cc_source.html#l00205">yaze::test::TEST_F()</a>.</p>
 
 </div>
 </div>
@@ -2885,9 +2885,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00081">81</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00175">175</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00151">BuildDictionaryEntries()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00204">ParseSingleMessage()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00336">ReadAllTextData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../da/da0/message__data_8cc_source.html#l00152">BuildDictionaryEntries()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00205">ParseSingleMessage()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00346">ReadAllTextData()</a>.</p>
 
 </div>
 </div>
@@ -2911,9 +2911,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00082">82</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00176">176</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d0e/message__preview_8cc_source.html#l00047">yaze::editor::MessagePreview::DrawCharacterToPreview()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00284">ParseMessageData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d0e/message__preview_8cc_source.html#l00047">yaze::editor::MessagePreview::DrawCharacterToPreview()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00285">ParseMessageData()</a>.</p>
 
 </div>
 </div>
@@ -2937,7 +2937,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00083">83</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00177">177</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d1/d0e/message__preview_8cc_source.html#l00047">yaze::editor::MessagePreview::DrawCharacterToPreview()</a>.</p>
 
@@ -2963,9 +2963,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00084">84</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00178">178</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d0e/message__preview_8cc_source.html#l00047">yaze::editor::MessagePreview::DrawCharacterToPreview()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00284">ParseMessageData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d0e/message__preview_8cc_source.html#l00047">yaze::editor::MessagePreview::DrawCharacterToPreview()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00285">ParseMessageData()</a>.</p>
 
 </div>
 </div>
@@ -2989,9 +2989,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00085">85</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00179">179</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d0e/message__preview_8cc_source.html#l00047">yaze::editor::MessagePreview::DrawCharacterToPreview()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00284">ParseMessageData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d0e/message__preview_8cc_source.html#l00047">yaze::editor::MessagePreview::DrawCharacterToPreview()</a>, and <a class="el" href="../../da/da0/message__data_8cc_source.html#l00285">ParseMessageData()</a>.</p>
 
 </div>
 </div>
@@ -3007,9 +3007,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00094">94</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00195">195</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../db/d9c/message__data_8h_source.html#l00126">yaze::editor::MessageData::OptimizeMessageForDictionary()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/d9c/message__data_8h_source.html#l00235">yaze::editor::MessageData::OptimizeMessageForDictionary()</a>.</p>
 
 </div>
 </div>
@@ -3033,9 +3033,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00310">310</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00443">443</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00027">yaze::editor::anonymous_namespace{message_editor.cc}::DisplayTextOverflowError()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00336">ReadAllTextData()</a>, and <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00346">yaze::editor::MessageEditor::Save()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00027">yaze::editor::anonymous_namespace{message_editor.cc}::DisplayTextOverflowError()</a>, <a class="el" href="../../da/da0/message__data_8cc_source.html#l00346">ReadAllTextData()</a>, and <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00346">yaze::editor::MessageEditor::Save()</a>.</p>
 
 </div>
 </div>
@@ -3059,7 +3059,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00311">311</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/d9c/message__data_8h_source.html#l00444">444</a> of file <a class="el" href="../../db/d9c/message__data_8h_source.html">message_data.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00027">yaze::editor::anonymous_namespace{message_editor.cc}::DisplayTextOverflowError()</a>, and <a class="el" href="../../d9/d47/message__editor_8cc_source.html#l00346">yaze::editor::MessageEditor::Save()</a>.</p>
 

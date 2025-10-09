@@ -292,6 +292,15 @@ var annotated_dup =
           [ "DisassemblyEntry", "d1/df8/structyaze_1_1emu_1_1debug_1_1DisassemblyEntry.html", "d1/df8/structyaze_1_1emu_1_1debug_1_1DisassemblyEntry" ],
           [ "DisassemblyViewer", "d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer.html", "d8/d31/classyaze_1_1emu_1_1debug_1_1DisassemblyViewer" ]
         ] ],
+        [ "input", "d5/df0/namespaceyaze_1_1emu_1_1input.html", [
+          [ "ControllerState", "df/d22/structyaze_1_1emu_1_1input_1_1ControllerState.html", "df/d22/structyaze_1_1emu_1_1input_1_1ControllerState" ],
+          [ "IInputBackend", "d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html", "d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend" ],
+          [ "InputBackendFactory", "d1/de9/classyaze_1_1emu_1_1input_1_1InputBackendFactory.html", "d1/de9/classyaze_1_1emu_1_1input_1_1InputBackendFactory" ],
+          [ "InputConfig", "de/d9a/structyaze_1_1emu_1_1input_1_1InputConfig.html", "de/d9a/structyaze_1_1emu_1_1input_1_1InputConfig" ],
+          [ "InputManager", "de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html", "de/d91/classyaze_1_1emu_1_1input_1_1InputManager" ],
+          [ "NullInputBackend", "d2/d2c/classyaze_1_1emu_1_1input_1_1NullInputBackend.html", "d2/d2c/classyaze_1_1emu_1_1input_1_1NullInputBackend" ],
+          [ "SDL2InputBackend", "df/dd3/classyaze_1_1emu_1_1input_1_1SDL2InputBackend.html", "df/dd3/classyaze_1_1emu_1_1input_1_1SDL2InputBackend" ]
+        ] ],
         [ "Apu", "d7/da7/classyaze_1_1emu_1_1Apu.html", "d7/da7/classyaze_1_1emu_1_1Apu" ],
         [ "ApuCallbacks", "df/d64/structyaze_1_1emu_1_1ApuCallbacks.html", "df/d64/structyaze_1_1emu_1_1ApuCallbacks" ],
         [ "ApuDspTest", "d2/d3e/classyaze_1_1emu_1_1ApuDspTest.html", "d2/d3e/classyaze_1_1emu_1_1ApuDspTest" ],
@@ -323,7 +332,6 @@ var annotated_dup =
         [ "Dsp", "dc/d01/classyaze_1_1emu_1_1Dsp.html", "dc/d01/classyaze_1_1emu_1_1Dsp" ],
         [ "DspChannel", "d5/da0/structyaze_1_1emu_1_1DspChannel.html", "d5/da0/structyaze_1_1emu_1_1DspChannel" ],
         [ "Emulator", "d0/dbd/classyaze_1_1emu_1_1Emulator.html", "d0/dbd/classyaze_1_1emu_1_1Emulator" ],
-        [ "EmulatorKeybindings", "dd/df4/structyaze_1_1emu_1_1EmulatorKeybindings.html", "dd/df4/structyaze_1_1emu_1_1EmulatorKeybindings" ],
         [ "INIDISP", "d8/d31/structyaze_1_1emu_1_1INIDISP.html", "d8/d31/structyaze_1_1emu_1_1INIDISP" ],
         [ "Input", "d8/db7/structyaze_1_1emu_1_1Input.html", "d8/db7/structyaze_1_1emu_1_1Input" ],
         [ "InstructionEntry", "d2/def/classyaze_1_1emu_1_1InstructionEntry.html", "d2/def/classyaze_1_1emu_1_1InstructionEntry" ],
@@ -680,6 +688,7 @@ var annotated_dup =
     [ "chest_data", "d7/d34/structchest__data.html", "d7/d34/structchest__data" ],
     [ "destination", "d0/dd9/structdestination.html", "d0/dd9/structdestination" ],
     [ "dungeon_sprite", "d2/d04/structdungeon__sprite.html", "d2/d04/structdungeon__sprite" ],
+    [ "DungeonTestHarness", "d7/d0f/classDungeonTestHarness.html", "d7/d0f/classDungeonTestHarness" ],
     [ "object_door", "d6/d61/structobject__door.html", "d6/d61/structobject__door" ],
     [ "overloaded", "d9/d94/structoverloaded.html", null ],
     [ "OverworldGoldenDataExtractor", "d8/ddf/classOverworldGoldenDataExtractor.html", "d8/ddf/classOverworldGoldenDataExtractor" ],

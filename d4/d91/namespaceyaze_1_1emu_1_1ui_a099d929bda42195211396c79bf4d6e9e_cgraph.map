@@ -1,0 +1,11 @@
+<map id="yaze::emu::ui::RenderKeyboardConfig" name="yaze::emu::ui::RenderKeyboardConfig">
+<area shape="rect" id="Node000001" title="Render keyboard configuration UI." alt="" coords="5,104,201,145"/>
+<area shape="rect" id="Node000002" href="$de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#afd26a3fd294fd7d5168ee1bb76112f2f" title="Get backend for configuration." alt="" coords="249,5,446,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,101,248,57,267,49,269,54,250,61,149,106"/>
+<area shape="rect" id="Node000003" href="$d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html#a50ae8f4acf5dcfefb69dcb250cc85b58" title="Get backend name for debugging." alt="" coords="255,71,440,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="201,108,239,103,239,108,202,114"/>
+<area shape="rect" id="Node000004" href="$de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#acbd4a31c930a8dc1f186249f5a1b4ba8" title="Get/set configuration." alt="" coords="249,136,446,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="202,135,234,139,233,144,201,140"/>
+<area shape="rect" id="Node000005" href="$de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a7d1236a8d3472374ab426c699a85c9b9" title=" " alt="" coords="249,201,446,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="150,143,250,186,269,193,267,198,248,191,148,148"/>
+</map>

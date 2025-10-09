@@ -101,15 +101,15 @@ $(document).ready(function(){initNavTree('de/d77/md_docs_2E1-emulator-enhancemen
   <div class="headertitle"><div class="title">YAZE Emulator Enhancement Roadmap</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md329"></a> <b>Version</b>: 1.0 <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md333"></a> <b>Version</b>: 1.0 <br  />
  <b>Date</b>: October 8, 2025 <br  />
  <b>Status</b>: Planning Phase <br  />
  <b>Target</b>: Mesen2-Level Debugging + AI Integration</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md331"></a>
+<h1><a class="anchor" id="autotoc_md335"></a>
 📋 Executive Summary</h1>
 <p>This document outlines the roadmap for evolving YAZE's SNES emulator from a basic runtime into a <b>world-class debugging platform</b> with AI agent integration. The goal is to achieve feature parity with Mesen2's advanced debugging capabilities while adding unique AI-powered features through the z3ed CLI system.</p>
-<h2><a class="anchor" id="autotoc_md332"></a>
+<h2><a class="anchor" id="autotoc_md336"></a>
 Core Objectives</h2>
 <ol type="1">
 <li><b>Advanced Debugger</b> - Breakpoints, watchpoints, memory inspection, trace logging</li>
@@ -119,9 +119,9 @@ Core Objectives</h2>
 <li><b>SPC700 Debugger</b> - Full audio CPU debugging with APU state inspection</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md334"></a>
+<h1><a class="anchor" id="autotoc_md338"></a>
 🎯 Current State Analysis</h1>
-<h2><a class="anchor" id="autotoc_md335"></a>
+<h2><a class="anchor" id="autotoc_md339"></a>
 What Works ✅</h2>
 <ul>
 <li><b>CPU Emulation</b>: 65816 core functional, runs games</li>
@@ -132,7 +132,7 @@ What Works ✅</h2>
 <li><b>Renderer Integration</b>: Now using <code>IRenderer</code> interface (SDL3-ready!)</li>
 <li><b>Stability</b>: Emulator pauses during window resize (macOS protection)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md336"></a>
+<h2><a class="anchor" id="autotoc_md340"></a>
 What's Broken ❌</h2>
 <ul>
 <li><b>Audio Output</b>: SDL2 audio device initialized but no sound plays</li>
@@ -142,7 +142,7 @@ What's Broken ❌</h2>
 <li><b>Memory Viewer</b>: Basic hex view, no structured inspection</li>
 <li><b>Trace Logging</b>: No execution tracing capability</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md337"></a>
+<h2><a class="anchor" id="autotoc_md341"></a>
 What's Missing 🚧</h2>
 <ul>
 <li><b>Advanced Breakpoints</b>: Conditional, access-based, CPU/SPC700</li>
@@ -155,9 +155,9 @@ What's Missing 🚧</h2>
 <li><b>AI Integration</b>: z3ed agent can't access emulator yet</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md339"></a>
+<h1><a class="anchor" id="autotoc_md343"></a>
 🔧 Phase 1: Audio System Fix (Priority: CRITICAL)</h1>
-<h2><a class="anchor" id="autotoc_md340"></a>
+<h2><a class="anchor" id="autotoc_md344"></a>
 Problem Analysis</h2>
 <p><b>Current State</b>: </p><div class="fragment"><div class="line"><span class="comment">// controller.cc:31-33</span></div>
 <div class="line">editor_manager_.emulator().set_audio_buffer(window_.audio_buffer_.get());</div>
@@ -167,7 +167,7 @@ Problem Analysis</h2>
 <div class="line">window.audio_device_ = SDL_OpenAudioDevice(NULL, 0, &amp;want, &amp;have, 0);</div>
 <div class="line">SDL_PauseAudioDevice(window.audio_device_, 0);  <span class="comment">// Unpause</span></div>
 </div><!-- fragment --><p><b>The Issue</b>: Audio device is initialized and unpaused, but <code>SDL_QueueAudio()</code> in emulator isn't producing sound.</p>
-<h2><a class="anchor" id="autotoc_md341"></a>
+<h2><a class="anchor" id="autotoc_md345"></a>
 Investigation Steps</h2>
 <ol type="1">
 <li><b>Verify Audio Device State</b> <div class="fragment"><div class="line"><span class="comment">// Add to Emulator::Run()</span></div>
@@ -210,7 +210,7 @@ Investigation Steps</h2>
 <div class="ttc" id="alog_8h_html_a81229895d58d7ea5d7b6fa913cc417fc"><div class="ttname"><a href="../../d7/d7f/log_8h.html#a81229895d58d7ea5d7b6fa913cc417fc">LOG_ERROR</a></div><div class="ttdeci">#define LOG_ERROR(category, format,...)</div><div class="ttdef"><b>Definition</b> <a href="../../d7/d7f/log_8h_source.html#l00097">log.h:97</a></div></div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md342"></a>
+<h2><a class="anchor" id="autotoc_md346"></a>
 Likely Fixes</h2>
 <p><b>Fix 1: Audio Device Paused State</b> </p><div class="fragment"><div class="line"><span class="comment">// The audio device might be re-pausing itself</span></div>
 <div class="line"><span class="comment">// Try forcing unpause in the emulator loop</span></div>
@@ -238,7 +238,7 @@ Likely Fixes</h2>
 <div class="line"><span class="comment">// = 1600 int16_t samples (800 per channel)</span></div>
 <div class="line"><span class="comment">// MISMATCH! Should be:</span></div>
 <div class="line">window.audio_buffer_ = std::make_shared&lt;int16_t&gt;(audio_frequency / 50 * 2);  <span class="comment">// Stereo</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md343"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md347"></a>
 Quick Win Actions</h2>
 <p><b>File</b>: <code><a class="el" href="../../d7/d60/window_8cc.html">window.cc</a></code> <b>Line</b>: 128 <b>Change</b>: </p><div class="fragment"><div class="line"><span class="comment">// Before:</span></div>
 <div class="line">window.audio_buffer_ = std::make_shared&lt;int16_t&gt;(audio_frequency / 50 * 4);</div>
@@ -257,9 +257,9 @@ Quick Win Actions</h2>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Estimated Fix Time</b>: 2-4 hours</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md345"></a>
+<h1><a class="anchor" id="autotoc_md349"></a>
 🐛 Phase 2: Advanced Debugger (Mesen2 Feature Parity)</h1>
-<h2><a class="anchor" id="autotoc_md346"></a>
+<h2><a class="anchor" id="autotoc_md350"></a>
 Feature Comparison: YAZE vs Mesen2</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -287,7 +287,7 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Scripting   </td><td class="markdownTableBodyNone">✅ Lua   </td><td class="markdownTableBodyNone">❌ None   </td><td class="markdownTableBodyNone">✅ z3ed + AI!   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md347"></a>
+<h2><a class="anchor" id="autotoc_md351"></a>
 2.1 Breakpoint System</h2>
 <p><b>Architecture</b>: </p><div class="fragment"><div class="line"><span class="comment">// src/app/emu/debug/breakpoint_manager.h</span></div>
 <div class="line"><span class="keyword">class </span>BreakpointManager {</div>
@@ -350,7 +350,7 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">→ Agent finds damage code address → z3ed emu breakpoint add</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 8-12 hours</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md349"></a>
+<h2><a class="anchor" id="autotoc_md353"></a>
 2.2 Memory Watchpoints</h2>
 <p><b>Features</b>:</p><ul>
 <li>Track specific memory regions</li>
@@ -394,7 +394,7 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">z3ed emu watch export --format csv</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 6-8 hours</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md351"></a>
+<h2><a class="anchor" id="autotoc_md355"></a>
 2.3 Live Disassembly Viewer</h2>
 <p><b>Mesen2 Inspiration</b>:</p><ul>
 <li>Scrollable code view with current PC highlighted</li>
@@ -469,7 +469,7 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 10-12 hours</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md353"></a>
+<h2><a class="anchor" id="autotoc_md357"></a>
 2.4 Enhanced Memory Viewer</h2>
 <p><b>Multi-Region Support</b>: </p><div class="fragment"><div class="line"><span class="keyword">enum class</span> MemoryRegion {</div>
 <div class="line">  WRAM,        <span class="comment">// 0x7E0000-0x7FFFFF (128KB)</span></div>
@@ -510,9 +510,9 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">└────────────────────────────────────────────────┘</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 6-8 hours</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md355"></a>
+<h1><a class="anchor" id="autotoc_md359"></a>
 🚀 Phase 3: Performance Optimizations</h1>
-<h2><a class="anchor" id="autotoc_md356"></a>
+<h2><a class="anchor" id="autotoc_md360"></a>
 3.1 Cycle-Accurate Timing</h2>
 <p><b>Current Issue</b>: Emulator runs on frame timing, not cycle timing</p>
 <p><b>Mesen2 Approach</b>: </p><div class="fragment"><div class="line"><span class="keyword">class </span>CPU {</div>
@@ -545,7 +545,7 @@ Feature Comparison: YAZE vs Mesen2</h2>
 </ul>
 <p><b>Estimated Effort</b>: 20-30 hours (major refactor)</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md358"></a>
+<h2><a class="anchor" id="autotoc_md362"></a>
 3.2 Dynamic Recompilation (Dynarec)</h2>
 <p><b>Why</b>: Cycle-accurate interpretation is slow (~30 FPS). Dynarec can hit 60 FPS.</p>
 <p><b>Strategy</b>: </p><div class="fragment"><div class="line"><span class="keyword">class </span>Dynarec {</div>
@@ -572,7 +572,7 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <p><b>Alternative</b>: Use existing dynarec library like <code>bsnes-jit</code></p>
 <p><b>Estimated Effort</b>: 40-60 hours (or use library: 10 hours)</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md360"></a>
+<h2><a class="anchor" id="autotoc_md364"></a>
 3.3 Frame Pacing Improvements</h2>
 <p><b>Current Issue</b>: SDL_Delay(1) is too coarse</p>
 <p><b>Better Approach</b>: </p><div class="fragment"><div class="line"><span class="keywordtype">void</span> Emulator::RunFrame() {</div>
@@ -596,9 +596,9 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 2-3 hours</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md362"></a>
+<h1><a class="anchor" id="autotoc_md366"></a>
 🎮 Phase 4: SPC700 Audio CPU Debugger</h1>
-<h2><a class="anchor" id="autotoc_md363"></a>
+<h2><a class="anchor" id="autotoc_md367"></a>
 4.1 APU Inspector Window</h2>
 <p><b>Layout</b>: </p><div class="fragment"><div class="line">┌─────────────────────────────────────────────────────────┐</div>
 <div class="line">│ APU Debugger                                            │</div>
@@ -644,7 +644,7 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">z3ed emu apu export-samples --channel 0 --format wav</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 12-15 hours</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md365"></a>
+<h2><a class="anchor" id="autotoc_md369"></a>
 4.2 Audio Sample Export</h2>
 <p><b>Feature</b>: Export audio samples to WAV for analysis</p>
 <div class="fragment"><div class="line"><span class="keyword">class </span>AudioExporter {</div>
@@ -664,9 +664,9 @@ Feature Comparison: YAZE vs Mesen2</h2>
 </ul>
 <p><b>Estimated Effort</b>: 4-6 hours</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md367"></a>
+<h1><a class="anchor" id="autotoc_md371"></a>
 🤖 Phase 5: z3ed AI Agent Integration</h1>
-<h2><a class="anchor" id="autotoc_md368"></a>
+<h2><a class="anchor" id="autotoc_md372"></a>
 5.1 Emulator State Access</h2>
 <p><b>Add to ConversationalAgentService</b>: </p><div class="fragment"><div class="line"><span class="comment">// src/cli/service/agent/conversational_agent_service.h</span></div>
 <div class="line"><span class="keyword">class </span>ConversationalAgentService {</div>
@@ -704,7 +704,7 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">Agent: [calls emulator-cpu-state]</div>
 <div class="line">       → Response: &quot;PC=$00:8234 - Infinite loop in NMI handler&quot;</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md370"></a>
+<h2><a class="anchor" id="autotoc_md374"></a>
 5.2 Automated Test Generation</h2>
 <p><b>Use Case</b>: AI generates emulator tests from natural language</p>
 <p><b>Example Flow</b>: </p><div class="fragment"><div class="line">z3ed agent test-scenario --prompt &quot;Test that Link takes damage from enemies&quot;</div>
@@ -739,7 +739,7 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">};</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 8-10 hours</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md372"></a>
+<h2><a class="anchor" id="autotoc_md376"></a>
 5.3 Memory Map Learning</h2>
 <p><b>Feature</b>: AI learns ROM's memory layout from debugging sessions</p>
 <p><b>Architecture</b>: </p><div class="fragment"><div class="line"><span class="comment">// Extends existing learn command</span></div>
@@ -761,9 +761,9 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 6-8 hours</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md374"></a>
+<h1><a class="anchor" id="autotoc_md378"></a>
 📊 Phase 6: Performance Profiling</h1>
-<h2><a class="anchor" id="autotoc_md375"></a>
+<h2><a class="anchor" id="autotoc_md379"></a>
 6.1 Cycle Counter &amp; Profiler</h2>
 <p><b>Mesen2 Feature</b>: Shows which code is hot, helps optimize hacks</p>
 <p><b>Implementation</b>: </p><div class="fragment"><div class="line"><span class="keyword">class </span>PerformanceProfiler {</div>
@@ -803,7 +803,7 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">z3ed emu profile export --format flamegraph --output profile.svg</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 10-12 hours</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md377"></a>
+<h2><a class="anchor" id="autotoc_md381"></a>
 6.2 Frame Time Analysis</h2>
 <p><b>Track frame timing issues</b>: </p><div class="fragment"><div class="line"><span class="keyword">class </span>FrameTimeAnalyzer {</div>
 <div class="line">  <span class="keyword">struct </span>FrameStats {</div>
@@ -821,9 +821,9 @@ Feature Comparison: YAZE vs Mesen2</h2>
 </div><!-- fragment --><p><b>Visualization</b>: Real-time graph showing frame time spikes</p>
 <p><b>Estimated Effort</b>: 4-6 hours</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md379"></a>
+<h1><a class="anchor" id="autotoc_md383"></a>
 🎯 Phase 7: Event System &amp; Timeline</h1>
-<h2><a class="anchor" id="autotoc_md380"></a>
+<h2><a class="anchor" id="autotoc_md384"></a>
 7.1 Event Logger</h2>
 <p><b>Mesen2 Feature</b>: Timeline view of all hardware events</p>
 <p><b>Events to Track</b>:</p><ul>
@@ -862,9 +862,9 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">         16.67ms  18ms   20ms (timing shown)</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 8-10 hours</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md382"></a>
+<h1><a class="anchor" id="autotoc_md386"></a>
 🧠 Phase 8: AI-Powered Debugging</h1>
-<h2><a class="anchor" id="autotoc_md383"></a>
+<h2><a class="anchor" id="autotoc_md387"></a>
 8.1 Intelligent Crash Analysis</h2>
 <p><b>Feature</b>: AI analyzes emulator state when game crashes/freezes</p>
 <div class="fragment"><div class="line">z3ed agent debug-crash --state latest_crash.state</div>
@@ -889,7 +889,7 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">- Verify NMI handler only runs when PPU is ready&quot;</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 15-20 hours</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md385"></a>
+<h2><a class="anchor" id="autotoc_md389"></a>
 8.2 Automated Bug Reproduction</h2>
 <p><b>Feature</b>: AI creates minimal test case from bug description</p>
 <div class="fragment"><div class="line">z3ed agent repro --prompt &quot;Link takes damage when he shouldn&#39;t&quot;</div>
@@ -907,9 +907,9 @@ Feature Comparison: YAZE vs Mesen2</h2>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 12-15 hours</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md387"></a>
+<h1><a class="anchor" id="autotoc_md391"></a>
 🗺️ Implementation Roadmap</h1>
-<h2><a class="anchor" id="autotoc_md388"></a>
+<h2><a class="anchor" id="autotoc_md392"></a>
 Sprint 1: Audio Fix (Week 1)</h2>
 <p><b>Priority</b>: CRITICAL <br  />
  <b>Time</b>: 4 hours <br  />
@@ -919,7 +919,7 @@ Sprint 1: Audio Fix (Week 1)</h2>
 <li>✅ Fix SDL2 audio output</li>
 <li>✅ Verify audio plays correctly</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md389"></a>
+<h2><a class="anchor" id="autotoc_md393"></a>
 Sprint 2: Basic Debugger (Weeks 2-3)</h2>
 <p><b>Priority</b>: HIGH <br  />
  <b>Time</b>: 20 hours <br  />
@@ -929,7 +929,7 @@ Sprint 2: Basic Debugger (Weeks 2-3)</h2>
 <li>✅ Improved memory viewer with regions</li>
 <li>✅ z3ed CLI commands for debugging</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md390"></a>
+<h2><a class="anchor" id="autotoc_md394"></a>
 Sprint 3: SPC700 Debugger (Week 4)</h2>
 <p><b>Priority</b>: MEDIUM <br  />
  <b>Time</b>: 15 hours <br  />
@@ -939,7 +939,7 @@ Sprint 3: SPC700 Debugger (Week 4)</h2>
 <li>✅ Audio RAM viewer</li>
 <li>✅ Sample export to WAV</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md391"></a>
+<h2><a class="anchor" id="autotoc_md395"></a>
 Sprint 4: AI Integration (Weeks 5-6)</h2>
 <p><b>Priority</b>: MEDIUM <br  />
  <b>Time</b>: 25 hours <br  />
@@ -949,7 +949,7 @@ Sprint 4: AI Integration (Weeks 5-6)</h2>
 <li>✅ Automated test scenario generation</li>
 <li>✅ Crash analysis AI</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md392"></a>
+<h2><a class="anchor" id="autotoc_md396"></a>
 Sprint 5: Performance (Weeks 7-8)</h2>
 <p><b>Priority</b>: LOW (Future) <br  />
  <b>Time</b>: 40+ hours <br  />
@@ -960,9 +960,9 @@ Sprint 5: Performance (Weeks 7-8)</h2>
 <li>✅ Frame pacing improvements</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md394"></a>
+<h1><a class="anchor" id="autotoc_md398"></a>
 🔬 Technical Deep Dives</h1>
-<h2><a class="anchor" id="autotoc_md395"></a>
+<h2><a class="anchor" id="autotoc_md399"></a>
 Audio System Architecture (SDL2)</h2>
 <p><b>Current Flow</b>: </p><div class="fragment"><div class="line">SPC700 → APU::GetSamples() → Snes::SetSamples() → audio_buffer_</div>
 <div class="line">         → SDL_QueueAudio() → SDL Audio Device → System Audio</div>
@@ -995,7 +995,7 @@ Audio System Architecture (SDL2)</h2>
 <li><b>No APU timing</b> - SPC700 not running or too slow</li>
 </ol>
 <hr  />
-<h2><a class="anchor" id="autotoc_md397"></a>
+<h2><a class="anchor" id="autotoc_md401"></a>
 Memory Regions Reference</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -1025,9 +1025,9 @@ Memory Regions Reference</h2>
 <div class="line"><span class="comment">// CPU → ARAM (through APU registers)</span></div>
 <div class="line">cpu.Write(0x2140, data);  <span class="comment">// APU I/O port 0</span></div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md399"></a>
+<h1><a class="anchor" id="autotoc_md403"></a>
 🎮 Phase 9: Advanced Features (Mesen2 Parity)</h1>
-<h2><a class="anchor" id="autotoc_md400"></a>
+<h2><a class="anchor" id="autotoc_md404"></a>
 9.1 Rewind Feature</h2>
 <p><b>User Experience</b>: Hold button to rewind gameplay</p>
 <div class="fragment"><div class="line"><span class="keyword">class </span>RewindManager {</div>
@@ -1041,7 +1041,7 @@ Memory Regions Reference</h2>
 </div><!-- fragment --><p><b>Memory Impact</b>: ~600 * 100KB = 60MB (acceptable)</p>
 <p><b>Estimated Effort</b>: 6-8 hours</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md402"></a>
+<h2><a class="anchor" id="autotoc_md406"></a>
 9.2 TAS (Tool-Assisted Speedrun) Input Recording</h2>
 <p><b>Feature</b>: Record and replay input sequences</p>
 <div class="fragment"><div class="line"><span class="keyword">class </span>InputRecorder {</div>
@@ -1074,7 +1074,7 @@ Memory Regions Reference</h2>
 <div class="line">z3ed agent tas --prompt &quot;Beat the first dungeon as fast as possible&quot;</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 8-10 hours</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md404"></a>
+<h2><a class="anchor" id="autotoc_md408"></a>
 9.3 Comparison Mode</h2>
 <p><b>Feature</b>: Run two emulator instances side-by-side</p>
 <p><b>Use Case</b>: Compare vanilla vs hacked ROM, or before/after AI changes</p>
@@ -1097,9 +1097,9 @@ Memory Regions Reference</h2>
 <div class="line">Memory Diff: 147 bytes different</div>
 </div><!-- fragment --><p><b>Estimated Effort</b>: 12-15 hours</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md406"></a>
+<h1><a class="anchor" id="autotoc_md410"></a>
 🛠️ Optimization Summary</h1>
-<h2><a class="anchor" id="autotoc_md407"></a>
+<h2><a class="anchor" id="autotoc_md411"></a>
 Quick Wins (&lt; 1 week)</h2>
 <ol type="1">
 <li><b>Fix audio output</b> - 4 hours</li>
@@ -1107,7 +1107,7 @@ Quick Wins (&lt; 1 week)</h2>
 <li><b>Enhanced memory viewer</b> - 6 hours</li>
 <li><b>Frame pacing</b> - 3 hours</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md408"></a>
+<h2><a class="anchor" id="autotoc_md412"></a>
 Medium Term (1-2 months)</h2>
 <ol type="1">
 <li><b>Live disassembly</b> - 10 hours</li>
@@ -1115,7 +1115,7 @@ Medium Term (1-2 months)</h2>
 <li><b>Event logger</b> - 8 hours</li>
 <li><b>AI emulator tools</b> - 25 hours</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md409"></a>
+<h2><a class="anchor" id="autotoc_md413"></a>
 Long Term (3-6 months)</h2>
 <ol type="1">
 <li><b>Cycle accuracy</b> - 30 hours</li>
@@ -1124,9 +1124,9 @@ Long Term (3-6 months)</h2>
 <li><b>Comparison mode</b> - 15 hours</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md411"></a>
+<h1><a class="anchor" id="autotoc_md415"></a>
 🤖 z3ed Agent Emulator Tools</h1>
-<h2><a class="anchor" id="autotoc_md412"></a>
+<h2><a class="anchor" id="autotoc_md416"></a>
 New Tool Categories</h2>
 <p><b>Emulator Control</b>: </p><div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;name&quot;: &quot;emulator-control&quot;,</div>
@@ -1180,7 +1180,7 @@ New Tool Categories</h2>
 <div class="line">  &quot;parameters&quot;: {&quot;top_n&quot;: &quot;integer&quot;},</div>
 <div class="line">  &quot;returns&quot;: &quot;array of most-executed code addresses&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md413"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md417"></a>
 Example AI Conversations</h2>
 <p><b>Debugging</b>: </p><div class="fragment"><div class="line">User: &quot;Why is Link&#39;s HP decreasing randomly?&quot;</div>
 <div class="line"> </div>
@@ -1216,7 +1216,7 @@ Example AI Conversations</h2>
 <div class="line">Agent: &quot;Confirmed! The new sword deals 8 damage instead of 4. </div>
 <div class="line">       The 2x multiplier is working correctly.&quot;</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md415"></a>
+<h1><a class="anchor" id="autotoc_md419"></a>
 📁 File Structure for New Features</h1>
 <div class="fragment"><div class="line">src/app/emu/</div>
 <div class="line">├── debug/</div>
@@ -1243,9 +1243,9 @@ Example AI Conversations</h2>
 <div class="line">    ├── emulator_memory_tool.cc            # NEW</div>
 <div class="line">    └── emulator_debug_tool.cc             # NEW</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md417"></a>
+<h1><a class="anchor" id="autotoc_md421"></a>
 🎨 UI Mockups</h1>
-<h2><a class="anchor" id="autotoc_md418"></a>
+<h2><a class="anchor" id="autotoc_md422"></a>
 Debugger Layout (ImGui)</h2>
 <div class="fragment"><div class="line">┌────────────────────────────────────────────────────────────────┐</div>
 <div class="line">│ YAZE Emulator - Debugging Mode                                │</div>
@@ -1268,7 +1268,7 @@ Debugger Layout (ImGui)</h2>
 <div class="line">│ 7E0010  1F 00 │                        │  0x1FD: 0x04 ← SP    │</div>
 <div class="line">│               │                        │                       │</div>
 <div class="line">└───────────────┴────────────────────────┴───────────────────────┘</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md419"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md423"></a>
 APU Debugger Layout</h2>
 <div class="fragment"><div class="line">┌────────────────────────────────────────────────────────────────┐</div>
 <div class="line">│ SPC700 Audio Debugger                                          │</div>
@@ -1288,9 +1288,9 @@ APU Debugger Layout</h2>
 <div class="line">│ [Export Samples]   │                                           │</div>
 <div class="line">└────────────────────┴───────────────────────────────────────────┘</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md421"></a>
+<h1><a class="anchor" id="autotoc_md425"></a>
 🚀 Performance Targets</h1>
-<h2><a class="anchor" id="autotoc_md422"></a>
+<h2><a class="anchor" id="autotoc_md426"></a>
 Current Performance</h2>
 <ul>
 <li><b>Emulation Speed</b>: ~60 FPS (with frame skipping)</li>
@@ -1298,7 +1298,7 @@ Current Performance</h2>
 <li><b>Memory</b>: 80MB (emulator only)</li>
 <li><b>Accuracy</b>: ~85% (some timing issues)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md423"></a>
+<h2><a class="anchor" id="autotoc_md427"></a>
 Target Performance (Post-Optimization)</h2>
 <ul>
 <li><b>Emulation Speed</b>: Solid 60 FPS (no skipping)</li>
@@ -1306,7 +1306,7 @@ Target Performance (Post-Optimization)</h2>
 <li><b>Memory</b>: 100MB (with debug features)</li>
 <li><b>Accuracy</b>: 98%+ (cycle-accurate)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md424"></a>
+<h2><a class="anchor" id="autotoc_md428"></a>
 Optimization Strategy Priority</h2>
 <ol type="1">
 <li><b>Audio fix</b> - Enables testing with sound</li>
@@ -1316,9 +1316,9 @@ Optimization Strategy Priority</h2>
 <li><b>Dynarec</b> - 3x speed boost</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md426"></a>
+<h1><a class="anchor" id="autotoc_md430"></a>
 🧪 Testing Integration</h1>
-<h2><a class="anchor" id="autotoc_md427"></a>
+<h2><a class="anchor" id="autotoc_md431"></a>
 Automated Emulator Tests (z3ed)</h2>
 <p><b>Unit Tests</b>: </p><div class="fragment"><div class="line"># Test CPU instructions</div>
 <div class="line">z3ed emu test cpu --test-suite 65816_opcodes.json</div>
@@ -1349,9 +1349,9 @@ Automated Emulator Tests (z3ed)</h2>
 <div class="line">  ]</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md429"></a>
+<h1><a class="anchor" id="autotoc_md433"></a>
 🔌 z3ed Agent + Emulator Integration</h1>
-<h2><a class="anchor" id="autotoc_md430"></a>
+<h2><a class="anchor" id="autotoc_md434"></a>
 New Agent Tools</h2>
 <p><b>Tool Registration</b> (automatic): </p><div class="fragment"><div class="line"><span class="comment">// src/cli/service/agent/tool_dispatcher.cc</span></div>
 <div class="line"><span class="keywordtype">void</span> ToolDispatcher::RegisterEmulatorTools(Emulator* emulator) {</div>
@@ -1417,9 +1417,9 @@ New Agent Tools</h2>
 <div class="line">       - Dungeon 7: Crash at room 0x12 (invalid sprite ID)</div>
 <div class="line">       All other dungeons: ✅ PASS&quot;</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md432"></a>
+<h1><a class="anchor" id="autotoc_md436"></a>
 🎓 Learning from Mesen2</h1>
-<h2><a class="anchor" id="autotoc_md433"></a>
+<h2><a class="anchor" id="autotoc_md437"></a>
 What Makes Mesen2 Great</h2>
 <ol type="1">
 <li><b>Comprehensive Debugging</b><ul>
@@ -1447,7 +1447,7 @@ What Makes Mesen2 Great</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md434"></a>
+<h2><a class="anchor" id="autotoc_md438"></a>
 Our Unique Advantages</h2>
 <p><b>YAZE + z3ed has features Mesen2 doesn't</b>:</p>
 <ol type="1">
@@ -1477,9 +1477,9 @@ Our Unique Advantages</h2>
 </li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md436"></a>
+<h1><a class="anchor" id="autotoc_md440"></a>
 📊 Resource Requirements</h1>
-<h2><a class="anchor" id="autotoc_md437"></a>
+<h2><a class="anchor" id="autotoc_md441"></a>
 Development Time Estimates</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -1497,7 +1497,7 @@ Development Time Estimates</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><b>Total</b>   </td><td class="markdownTableBodyNone"><b>104</b>   </td><td class="markdownTableBodyNone"><b>13</b>   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md438"></a>
+<h2><a class="anchor" id="autotoc_md442"></a>
 Memory Requirements</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -1515,7 +1515,7 @@ Memory Requirements</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone"><b>Total</b>   </td><td class="markdownTableBodyNone">**~160 MB**   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md439"></a>
+<h2><a class="anchor" id="autotoc_md443"></a>
 CPU Requirements</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -1530,32 +1530,32 @@ CPU Requirements</h2>
 <td class="markdownTableBodyNone">+ Dynarec (future)   </td><td class="markdownTableBodyNone">20-30%   </td></tr>
 </table>
 <hr  />
-<h1><a class="anchor" id="autotoc_md441"></a>
+<h1><a class="anchor" id="autotoc_md445"></a>
 🛣️ Recommended Implementation Order</h1>
-<h2><a class="anchor" id="autotoc_md442"></a>
+<h2><a class="anchor" id="autotoc_md446"></a>
 Month 1: Foundation</h2>
 <p><b>Weeks 1-2</b>: Audio fix + Basic breakpoints <br  />
  <b>Weeks 3-4</b>: Memory viewer + Disassembly enhancements</p>
-<h2><a class="anchor" id="autotoc_md443"></a>
+<h2><a class="anchor" id="autotoc_md447"></a>
 Month 2: Audio &amp; Events</h2>
 <p><b>Weeks 5-6</b>: SPC700 debugger + APU inspector <br  />
  <b>Weeks 7-8</b>: Event logger + Timeline view</p>
-<h2><a class="anchor" id="autotoc_md444"></a>
+<h2><a class="anchor" id="autotoc_md448"></a>
 Month 3: AI Integration</h2>
 <p><b>Weeks 9-10</b>: z3ed emulator tools + Agent integration <br  />
  <b>Weeks 11-12</b>: Automated testing + Scenario runner</p>
-<h2><a class="anchor" id="autotoc_md445"></a>
+<h2><a class="anchor" id="autotoc_md449"></a>
 Month 4: Performance</h2>
 <p><b>Weeks 13-14</b>: Cycle accuracy refactor <br  />
  <b>Weeks 15-16</b>: Dynarec or JIT library integration</p>
-<h2><a class="anchor" id="autotoc_md446"></a>
+<h2><a class="anchor" id="autotoc_md450"></a>
 Month 5: Polish</h2>
 <p><b>Weeks 17-18</b>: UI/UX improvements <br  />
  <b>Weeks 19-20</b>: Documentation + Examples</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md448"></a>
+<h1><a class="anchor" id="autotoc_md452"></a>
 🔮 Future Vision: AI-Powered ROM Hacking</h1>
-<h2><a class="anchor" id="autotoc_md449"></a>
+<h2><a class="anchor" id="autotoc_md453"></a>
 The Ultimate Workflow</h2>
 <ol type="1">
 <li><b>AI Explores the Game</b> <div class="fragment"><div class="line">z3ed agent explore --rom zelda3.sfc --goal &quot;Find all heart piece locations&quot;</div>
@@ -1595,22 +1595,22 @@ The Ultimate Workflow</h2>
 </div><!-- fragment --></li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md451"></a>
+<h1><a class="anchor" id="autotoc_md455"></a>
 🐛 Appendix A: Audio Debugging Checklist</h1>
 <p><b>Run these checks to diagnose audio issues</b>:</p>
-<h2><a class="anchor" id="autotoc_md452"></a>
+<h2><a class="anchor" id="autotoc_md456"></a>
 Check 1: Device Status</h2>
 <div class="fragment"><div class="line">SDL_AudioStatus status = SDL_GetAudioDeviceStatus(audio_device_);</div>
 <div class="line">printf(<span class="stringliteral">&quot;Audio Status: %d (1=playing, 2=paused, 3=stopped)\n&quot;</span>, status);</div>
 <div class="line"><span class="comment">// Expected: 1 (SDL_AUDIO_PLAYING)</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md453"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md457"></a>
 Check 2: Queue Size</h2>
 <div class="fragment"><div class="line">uint32_t queued = SDL_GetQueuedAudioSize(audio_device_);</div>
 <div class="line">printf(<span class="stringliteral">&quot;Queued Audio: %u bytes\n&quot;</span>, queued);</div>
 <div class="line"><span class="comment">// Expected: 1000-8000 bytes (1-2 frames worth)</span></div>
 <div class="line"><span class="comment">// If 0: Not queueing</span></div>
 <div class="line"><span class="comment">// If &gt;50000: Overflowing, audio thread stalled</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md454"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md458"></a>
 Check 3: Sample Validation</h2>
 <div class="fragment"><div class="line">int16_t* samples = audio_buffer_;</div>
 <div class="line"><span class="keywordtype">bool</span> all_zero = <span class="keyword">true</span>;</div>
@@ -1623,7 +1623,7 @@ Check 3: Sample Validation</h2>
 <div class="line"><span class="keywordflow">if</span> (all_zero) {</div>
 <div class="line">  printf(<span class="stringliteral">&quot;ERROR: All audio samples are zero! SPC700 not outputting.\n&quot;</span>);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md455"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md459"></a>
 Check 4: Buffer Allocation</h2>
 <div class="fragment"><div class="line"><span class="comment">// In window.cc:128, verify size calculation:</span></div>
 <div class="line"><span class="comment">// For 48000Hz, 60 FPS, stereo:</span></div>
@@ -1633,13 +1633,13 @@ Check 4: Buffer Allocation</h2>
 <div class="line"> </div>
 <div class="line">printf(<span class="stringliteral">&quot;Audio buffer size: %zu int16_t\n&quot;</span>, audio_buffer_.size());</div>
 <div class="line"><span class="comment">// Expected: 1600-1920 (for 60-50Hz)</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md456"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md460"></a>
 Check 5: SPC700 Execution</h2>
 <div class="fragment"><div class="line"><span class="comment">// Verify SPC700 is actually running</span></div>
 <div class="line">uint64_t apu_cycles = snes_.apu().GetCycles();</div>
 <div class="line"><span class="comment">// Should increase every frame</span></div>
 <div class="line"><span class="comment">// If stuck: SPC700 deadlock or not running</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md457"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md461"></a>
 Quick Fixes to Try</h2>
 <p><b>Fix A: Force Unpause</b> </p><div class="fragment"><div class="line"><span class="comment">// emulator.cc, in RunFrame():</span></div>
 <div class="line">SDL_PauseAudioDevice(audio_device_, 0);  <span class="comment">// Force play state</span></div>
@@ -1650,9 +1650,9 @@ Quick Fixes to Try</h2>
 <div class="line">  SDL_ClearQueuedAudio(audio_device_);  <span class="comment">// Reset</span></div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md459"></a>
+<h1><a class="anchor" id="autotoc_md463"></a>
 📝 Appendix B: Mesen2 Feature Reference</h1>
-<h2><a class="anchor" id="autotoc_md460"></a>
+<h2><a class="anchor" id="autotoc_md464"></a>
 Debugger Windows (Inspiration)</h2>
 <ol type="1">
 <li><b>CPU Debugger</b>: Disassembly, registers, breakpoints</li>
@@ -1663,7 +1663,7 @@ Debugger Windows (Inspiration)</h2>
 <li><b>Performance Profiler</b>: Hotspot analysis</li>
 <li><b>Script Window</b>: Lua scripting for automation</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md461"></a>
+<h2><a class="anchor" id="autotoc_md465"></a>
 Event Types Tracked</h2>
 <ul>
 <li><b>CPU</b>: NMI, IRQ, BRK instruction, RESET</li>
@@ -1672,7 +1672,7 @@ Event Types Tracked</h2>
 <li><b>APU</b>: Sample playback, DSP writes, Timer IRQ</li>
 <li><b>Cart</b>: Save RAM write, special chip events</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md462"></a>
+<h2><a class="anchor" id="autotoc_md466"></a>
 Trace Logger Format</h2>
 <div class="fragment"><div class="line">Cycle    PC      Opcode  A  X  Y  SP  Flags  Event</div>
 <div class="line">0        $00FFD9 SEI     00 00 00 1FF nvmxdiZc</div>
@@ -1681,9 +1681,9 @@ Trace Logger Format</h2>
 <div class="line">...</div>
 <div class="line">16749    $008234 LDA     05 00 00 1EF Nvmxdizc [NMI]</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md464"></a>
+<h1><a class="anchor" id="autotoc_md468"></a>
 🎯 Success Criteria</h1>
-<h2><a class="anchor" id="autotoc_md465"></a>
+<h2><a class="anchor" id="autotoc_md469"></a>
 Phase 1 Complete When:</h2>
 <ul>
 <li>✅ Audio plays correctly from SDL2</li>
@@ -1691,7 +1691,7 @@ Phase 1 Complete When:</h2>
 <li>✅ No audio crackling or dropouts</li>
 <li>✅ Audio buffer diagnostics implemented</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md466"></a>
+<h2><a class="anchor" id="autotoc_md470"></a>
 Phase 2 Complete When:</h2>
 <ul>
 <li>✅ Can set breakpoints on any address</li>
@@ -1699,14 +1699,14 @@ Phase 2 Complete When:</h2>
 <li>✅ Memory viewer has multi-region support</li>
 <li>✅ z3ed CLI can control debugger</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md467"></a>
+<h2><a class="anchor" id="autotoc_md471"></a>
 Phase 3 Complete When:</h2>
 <ul>
 <li>✅ SPC700 debugger shows all APU state</li>
 <li>✅ Can visualize audio channels</li>
 <li>✅ Can export audio samples to WAV</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md468"></a>
+<h2><a class="anchor" id="autotoc_md472"></a>
 Phase 4 Complete When:</h2>
 <ul>
 <li>✅ AI agent can read emulator memory</li>
@@ -1714,7 +1714,7 @@ Phase 4 Complete When:</h2>
 <li>✅ AI can generate test scenarios</li>
 <li>✅ Automated ROM testing works</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md469"></a>
+<h2><a class="anchor" id="autotoc_md473"></a>
 Phase 5 Complete When:</h2>
 <ul>
 <li>✅ Emulator is cycle-accurate</li>
@@ -1723,9 +1723,9 @@ Phase 5 Complete When:</h2>
 <li>✅ All Mesen2 features implemented</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md471"></a>
+<h1><a class="anchor" id="autotoc_md475"></a>
 🎓 Learning Resources</h1>
-<h2><a class="anchor" id="autotoc_md472"></a>
+<h2><a class="anchor" id="autotoc_md476"></a>
 SNES Emulation</h2>
 <ul>
 <li><a href="https://www.romhacking.net/documents/226/">SNES Development Manual</a></li>
@@ -1733,21 +1733,21 @@ SNES Emulation</h2>
 <li><a href="https://github.com/bsnes-emu/bsnes">bsnes source code</a> - Reference implementation</li>
 <li><a href="https://github.com/SourMesen/Mesen2">Mesen2 source code</a> - Feature inspiration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md473"></a>
+<h2><a class="anchor" id="autotoc_md477"></a>
 Audio Debugging</h2>
 <ul>
 <li><a href="https://wiki.superfamicom.org/spc700-reference">SPC700 Reference</a></li>
 <li><a href="https://wiki.superfamicom.org/dsp-registers">DSP Register Guide</a></li>
 <li><a href="https://wiki.superfamicom.org/bit-rate-reduction-brr">BRR Audio Format</a></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md474"></a>
+<h2><a class="anchor" id="autotoc_md478"></a>
 Performance Optimization</h2>
 <ul>
 <li><a href="https://github.com/arm9/snes9x-rpi">Fast SNES Emulation</a> - ARM optimization</li>
 <li><a href="https://github.com/rasky/r64emu/wiki/Dynamic-Recompilation">Dynarec Tutorial</a> - N64 but applicable</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md476"></a>
+<h1><a class="anchor" id="autotoc_md480"></a>
 🙏 Credits &amp; Acknowledgments</h1>
 <p><b>Emulator Core</b>: Based on LakeSnes by elzo-d <br  />
  <b>Debugger Inspiration</b>: Mesen2 by SourMesen <br  />

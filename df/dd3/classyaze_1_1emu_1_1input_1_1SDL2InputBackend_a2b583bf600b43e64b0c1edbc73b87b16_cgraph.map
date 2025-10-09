@@ -1,0 +1,7 @@
+<map id="yaze::emu::input::SDL2InputBackend::ProcessEvent" name="yaze::emu::input::SDL2InputBackend::ProcessEvent">
+<area shape="rect" id="Node000001" title="Process platform&#45;specific events (optional)" alt="" coords="5,5,186,46"/>
+<area shape="rect" id="Node000002" href="$df/dd3/classyaze_1_1emu_1_1input_1_1SDL2InputBackend.html#a2da157f6cfe169f09da697219b02a05b" title=" " alt="" coords="234,5,418,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,23,218,23,218,28,186,28"/>
+<area shape="rect" id="Node000003" href="$df/d22/structyaze_1_1emu_1_1input_1_1ControllerState.html#ab3c75d8d12cdf56bee86b9d7a33e055d" title=" " alt="" coords="466,5,639,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="418,23,451,23,451,28,418,28"/>
+</map>

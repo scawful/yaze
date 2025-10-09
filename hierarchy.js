@@ -183,6 +183,7 @@ var hierarchy =
     [ "yaze::gui::canvas::CanvasContextMenu::ContextMenuItem", "d3/d94/structyaze_1_1gui_1_1canvas_1_1CanvasContextMenu_1_1ContextMenuItem.html", null ],
     [ "yaze::gui::Canvas::ContextMenuItem", "d3/df3/structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html", null ],
     [ "yaze::core::Controller", "d4/d84/classyaze_1_1core_1_1Controller.html", null ],
+    [ "yaze::emu::input::ControllerState", "df/d22/structyaze_1_1emu_1_1input_1_1ControllerState.html", null ],
     [ "yaze::cli::ai::ControlLoopConfig", "d2/d73/structyaze_1_1cli_1_1ai_1_1ControlLoopConfig.html", null ],
     [ "yaze::cli::ai::ControlResult", "d0/dfd/structyaze_1_1cli_1_1ai_1_1ControlResult.html", null ],
     [ "yaze::cli::agent::ConversationalAgentService", "d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html", null ],
@@ -222,6 +223,7 @@ var hierarchy =
     [ "yaze::editor::DungeonRoomSelector", "db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html", null ],
     [ "yaze::test::DungeonObjectRenderingTests::DungeonScenario", "dc/d0a/structyaze_1_1test_1_1DungeonObjectRenderingTests_1_1DungeonScenario.html", null ],
     [ "yaze::zelda3::DungeonEditorSystem::DungeonSettings", "d5/d95/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1DungeonSettings.html", null ],
+    [ "DungeonTestHarness", "d7/d0f/classDungeonTestHarness.html", null ],
     [ "yaze::editor::DungeonToolset", "db/d00/classyaze_1_1editor_1_1DungeonToolset.html", null ],
     [ "yaze::editor::DungeonUsageTracker", "dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html", null ],
     [ "yaze::zelda3::DungeonObjectEditor::EditingState", "d4/d68/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1EditingState.html", null ],
@@ -252,7 +254,6 @@ var hierarchy =
     [ "TextEditor::EditorState", "dd/d5f/structTextEditor_1_1EditorState.html", null ],
     [ "yaze::zelda3::DungeonEditorSystem::EditorState", "d2/dd9/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1EditorState.html", null ],
     [ "yaze::emu::Emulator", "d0/dbd/classyaze_1_1emu_1_1Emulator.html", null ],
-    [ "yaze::emu::EmulatorKeybindings", "dd/df4/structyaze_1_1emu_1_1EmulatorKeybindings.html", null ],
     [ "yaze::emu::Emulator::EmulatorMetrics", "dc/ddc/structyaze_1_1emu_1_1Emulator_1_1EmulatorMetrics.html", null ],
     [ "yaze::cli::EnhancedChatComponent", "d6/d00/classyaze_1_1cli_1_1EnhancedChatComponent.html", null ],
     [ "yaze::cli::EnhancedStatusPanel", "d1/d6e/classyaze_1_1cli_1_1EnhancedStatusPanel.html", null ],
@@ -313,6 +314,10 @@ var hierarchy =
     [ "yaze::util::IFlag", "d7/df7/classyaze_1_1util_1_1IFlag.html", [
       [ "yaze::util::Flag< T >", "d7/dc5/classyaze_1_1util_1_1Flag.html", null ]
     ] ],
+    [ "yaze::emu::input::IInputBackend", "d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html", [
+      [ "yaze::emu::input::NullInputBackend", "d2/d2c/classyaze_1_1emu_1_1input_1_1NullInputBackend.html", null ],
+      [ "yaze::emu::input::SDL2InputBackend", "df/dd3/classyaze_1_1emu_1_1input_1_1SDL2InputBackend.html", null ]
+    ] ],
     [ "ImGuiSelectionBasicStorage", null, [
       [ "yaze::gui::ExampleSelectionWithDeletion", "d4/d4b/structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html", null ]
     ] ],
@@ -320,6 +325,9 @@ var hierarchy =
     [ "yaze::net::WebSocketClient::Impl", "d0/d34/classyaze_1_1net_1_1WebSocketClient_1_1Impl.html", null ],
     [ "yaze::emu::INIDISP", "d8/d31/structyaze_1_1emu_1_1INIDISP.html", null ],
     [ "yaze::emu::Input", "d8/db7/structyaze_1_1emu_1_1Input.html", null ],
+    [ "yaze::emu::input::InputBackendFactory", "d1/de9/classyaze_1_1emu_1_1input_1_1InputBackendFactory.html", null ],
+    [ "yaze::emu::input::InputConfig", "de/d9a/structyaze_1_1emu_1_1input_1_1InputConfig.html", null ],
+    [ "yaze::emu::input::InputManager", "de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html", null ],
     [ "yaze::emu::InstructionEntry", "d2/def/classyaze_1_1emu_1_1InstructionEntry.html", null ],
     [ "yaze::cli::agent::ConversationalAgentService::InternalMetrics", "db/d80/structyaze_1_1cli_1_1agent_1_1ConversationalAgentService_1_1InternalMetrics.html", null ],
     [ "yaze::zelda3::Inventory", "d6/d3c/classyaze_1_1zelda3_1_1Inventory.html", null ],

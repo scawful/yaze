@@ -1,0 +1,5 @@
+<map id="yaze::emu::input::SDL2InputBackend" name="yaze::emu::input::SDL2InputBackend">
+<area shape="rect" id="Node000001" title="SDL2 input backend implementation." alt="" coords="5,94,186,135"/>
+<area shape="rect" id="Node000002" href="$d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html" title="Abstract input backend interface." alt="" coords="20,5,171,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,62,98,94,93,94,93,62"/>
+</map>

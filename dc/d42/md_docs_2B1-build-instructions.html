@@ -259,26 +259,52 @@ Solution: Use vcpkg for Pre-compiled Binaries</h2>
 <div class="line">cmake --build build</div>
 </div><!-- fragment --><h1><a class="anchor" id="autotoc_md48"></a>
 8. Troubleshooting</h1>
+<p>Build issues, especially on Windows, often stem from environment misconfiguration. Before anything else, run the verification script.</p>
+<div class="fragment"><div class="line"># Run the verification script in PowerShell</div>
+<div class="line">.\scripts\verify-build-environment.ps1</div>
+</div><!-- fragment --><p>This script is your primary diagnostic tool and can detect most common problems.</p>
 <h2><a class="anchor" id="autotoc_md49"></a>
-"nlohmann/json.hpp: No such file or directory"</h2>
-<p><b>Cause</b>: You are building code that requires AI features without using an AI-enabled preset. <b>Solution</b>: Use an AI preset like <code>win-ai</code> or <code>mac-ai</code>. </p><div class="fragment"><div class="line">cmake --preset win-ai</div>
-<div class="line">cmake --build --preset win-ai</div>
+Automatic Fixes</h2>
+<p>If the script finds issues, you can often fix them automatically by running it with the <code>-FixIssues</code> flag. This can:</p><ul>
+<li>Synchronize Git submodules.</li>
+<li>Correct Git <code>core.autocrlf</code> and <code>core.longpaths</code> settings, which are critical for cross-platform compatibility on Windows.</li>
+<li>Prompt to clean stale CMake caches.</li>
+</ul>
+<div class="fragment"><div class="line"># Attempt to fix detected issues automatically</div>
+<div class="line">.\scripts\verify-build-environment.ps1 -FixIssues</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md50"></a>
-"Cannot open file 'yaze.exe': Permission denied"</h2>
-<p><b>Cause</b>: A previous instance of <code>yaze.exe</code> is still running in the background. <b>Solution</b>: Close it using Task Manager or run: </p><div class="fragment"><div class="line">taskkill /F /IM yaze.exe</div>
+Cleaning Stale Builds</h2>
+<p>After pulling major changes or switching branches, your build directory can become "stale," leading to strange compiler or linker errors. The verification script will warn you about old build files. You can clean them manually or use the <code>-CleanCache</code> flag.</p>
+<p><b>This will delete all <code>build*</code> and <code>out</code> directories.</b></p>
+<div class="fragment"><div class="line"># Clean all build artifacts to start fresh</div>
+<div class="line">.\scripts\verify-build-environment.ps1 -CleanCache</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md51"></a>
-"C++ standard 'cxx_std_23' not supported"</h2>
-<p><b>Cause</b>: Your compiler is too old. <b>Solution</b>: Update your tools. You need Visual Studio 2022 17.4+, GCC 13+, or Clang 16+.</p>
-<h2><a class="anchor" id="autotoc_md52"></a>
-Visual Studio Can't Find Presets</h2>
-<p><b>Cause</b>: VS failed to parse <code>CMakePresets.json</code>. <b>Solution</b>: Close and reopen the folder (<code>File -&gt; Close Folder</code>). If that fails, check the "CMake" pane in the Output window for specific JSON parsing errors.</p>
-<h2><a class="anchor" id="autotoc_md53"></a>
-General Advice</h2>
-<ol type="1">
-<li><b>Start Simple</b>: Begin with a basic preset like <code>win-dbg</code> or <code>mac-dbg</code>.</li>
-<li><b>Clean Build</b>: If you switch presets or make major changes to <code>CMakeLists.txt</code>, delete the <code>build</code> directory and re-configure.</li>
-<li><b>Use the Script</b>: <code>verify-build-environment.sh</code> and <code>.ps1</code> can diagnose most toolchain issues. </li>
+Common Issues</h2>
+<h3><a class="anchor" id="autotoc_md52"></a>
+"nlohmann/json.hpp: No such file or directory"</h3>
+<p><b>Cause</b>: You are building code that requires AI features without using an AI-enabled preset, or your Git submodules are not initialized. <b>Solution</b>:</p><ol type="1">
+<li>Use an AI preset like <code>win-ai</code> or <code>mac-ai</code>.</li>
+<li>Ensure submodules are present by running <code>git submodule update --init --recursive</code>.</li>
 </ol>
+<h3><a class="anchor" id="autotoc_md53"></a>
+"Cannot open file 'yaze.exe': Permission denied"</h3>
+<p><b>Cause</b>: A previous instance of <code>yaze.exe</code> is still running in the background. <b>Solution</b>: Close it using Task Manager or run: </p><div class="fragment"><div class="line">taskkill /F /IM yaze.exe</div>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md54"></a>
+"C++ standard 'cxx_std_23' not supported"</h3>
+<p><b>Cause</b>: Your compiler is too old. <b>Solution</b>: Update your tools. You need Visual Studio 2022 17.4+, GCC 13+, or Clang 16+. The verification script checks this.</p>
+<h3><a class="anchor" id="autotoc_md55"></a>
+Visual Studio Can't Find Presets</h3>
+<p><b>Cause</b>: VS failed to parse <code>CMakePresets.json</code> or its cache is corrupt. <b>Solution</b>:</p><ol type="1">
+<li>Close and reopen the folder (<code>File -&gt; Close Folder</code>).</li>
+<li>Check the "CMake" pane in the Output window for specific JSON parsing errors.</li>
+<li>Delete the hidden <code>.vs</code> directory in the project root to force Visual Studio to re-index the project.</li>
+</ol>
+<h3><a class="anchor" id="autotoc_md56"></a>
+Git Line Ending (CRLF) Issues</h3>
+<p><b>Cause</b>: Git may be automatically converting line endings, which can break shell scripts and other assets. <b>Solution</b>: The verification script checks for this. Use the <code>-FixIssues</code> flag or run <code>git config --global core.autocrlf false</code> to prevent this behavior.</p>
+<h3><a class="anchor" id="autotoc_md57"></a>
+File Path Length Limit on Windows</h3>
+<p><b>Cause</b>: By default, Windows has a 260-character path limit, which can be exceeded by nested dependencies. <b>Solution</b>: The verification script checks for this. Use the <code>-FixIssues</code> flag or run <code>git config --global core.longpaths true</code> to enable long path support. </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

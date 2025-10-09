@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['backendtype_0',['BackendType',['../d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory.html#adf10bc89980079fa405fa9cdd8c94406',1,'yaze::emu::audio::AudioBackendFactory']]],
+  ['backendtype_0',['backendtype',['../d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory.html#adf10bc89980079fa405fa9cdd8c94406',1,'yaze::emu::audio::AudioBackendFactory::BackendType'],['../d1/de9/classyaze_1_1emu_1_1input_1_1InputBackendFactory.html#a4646ca1a12ebf8e628c5ba7da551b2d2',1,'yaze::emu::input::InputBackendFactory::BackendType']]],
   ['backgroundmode_1',['BackgroundMode',['../d6/d20/namespaceyaze_1_1emu.html#a5447aec0bc02ba1ff714b6c4c8df382b',1,'yaze::emu']]],
   ['backgroundtype_2',['BackgroundType',['../db/d00/classyaze_1_1editor_1_1DungeonToolset.html#a80f31cfece9908992060f93f0366003a',1,'yaze::editor::DungeonToolset']]],
   ['bitmapformat_3',['BitmapFormat',['../d0/d27/namespaceyaze_1_1gfx.html#a2dbad3152b14109b6d797128f9c2c3ba',1,'yaze::gfx']]],

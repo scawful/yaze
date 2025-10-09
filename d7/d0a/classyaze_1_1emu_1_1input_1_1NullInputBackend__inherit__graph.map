@@ -1,0 +1,5 @@
+<map id="yaze::emu::input::NullInputBackend" name="yaze::emu::input::NullInputBackend">
+<area shape="rect" id="Node000001" title="Null input backend for testing/replay." alt="" coords="5,94,176,135"/>
+<area shape="rect" id="Node000002" href="$d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html" title="Abstract input backend interface." alt="" coords="15,5,166,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="93,62,93,94,88,94,88,62"/>
+</map>

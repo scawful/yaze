@@ -20,5 +20,9 @@ var message__test_8cc =
     [ "TEST_F", "d2/d5c/message__test_8cc.html#a2597cfa2a2630b8c3e5ad922bbfa5f98", null ],
     [ "TEST_F", "d2/d5c/message__test_8cc.html#ab9c1bc9a53b6937beba5c7230615b5d6", null ],
     [ "TEST_F", "d2/d5c/message__test_8cc.html#aa85adf18f412c10e0387b25060953663", null ],
-    [ "TEST_F", "d2/d5c/message__test_8cc.html#a63f1fc7b6c95bee32feed740990cccb9", null ]
+    [ "TEST_F", "d2/d5c/message__test_8cc.html#a63f1fc7b6c95bee32feed740990cccb9", null ],
+    [ "TEST_F", "d2/d5c/message__test_8cc.html#aa48838f9830b116cdb0ed0f396ebd94b", null ],
+    [ "TEST_F", "d2/d5c/message__test_8cc.html#a81b51cb922b3d0fcabf52bf846196661", null ],
+    [ "TEST_F", "d2/d5c/message__test_8cc.html#a6e34ffd49f187eea3fd23369763c7e6e", null ],
+    [ "TEST_F", "d2/d5c/message__test_8cc.html#afeaed72de7ab35d2cda62ff98bb9d9a0", null ]
 ];

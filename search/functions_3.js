@@ -254,7 +254,7 @@ var searchData=
   ['drawobjimport_251',['DrawObjImport',['../dc/d31/classyaze_1_1editor_1_1GraphicsEditor.html#adb4a06b3d53959a9c51300a675e01316',1,'yaze::editor::GraphicsEditor']]],
   ['drawopenromhelppopup_252',['DrawOpenRomHelpPopup',['../d3/d8d/classyaze_1_1editor_1_1PopupManager.html#ae6a92e37f1201d82cc280b6e68fa22ae',1,'yaze::editor::PopupManager']]],
   ['drawoutline_253',['DrawOutline',['../da/d2c/classyaze_1_1gui_1_1Canvas.html#ac43b436728dbc8fcef7b618f00345727',1,'yaze::gui::Canvas']]],
-  ['drawoutlinewithcolor_254',['drawoutlinewithcolor',['../da/d2c/classyaze_1_1gui_1_1Canvas.html#ac6d2a15c340e837634f462b3311ad9a6',1,'yaze::gui::Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color)'],['../da/d2c/classyaze_1_1gui_1_1Canvas.html#a2995122ee4e7d273cddb9bbc2b4bbade',1,'yaze::gui::Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color)']]],
+  ['drawoutlinewithcolor_254',['drawoutlinewithcolor',['../da/d2c/classyaze_1_1gui_1_1Canvas.html#a2995122ee4e7d273cddb9bbc2b4bbade',1,'yaze::gui::Canvas::DrawOutlineWithColor(int x, int y, int w, int h, ImVec4 color)'],['../da/d2c/classyaze_1_1gui_1_1Canvas.html#ac6d2a15c340e837634f462b3311ad9a6',1,'yaze::gui::Canvas::DrawOutlineWithColor(int x, int y, int w, int h, uint32_t color)']]],
   ['drawoverlay_255',['DrawOverlay',['../da/d2c/classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9',1,'yaze::gui::Canvas']]],
   ['drawoverlaycontrols_256',['DrawOverlayControls',['../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#af2a098e5cec6a74c4b324cc4ec3f1a78',1,'yaze::editor::MapPropertiesSystem']]],
   ['drawoverlayeditor_257',['DrawOverlayEditor',['../d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html#a28204da147523d30af76ad3ad3e8f32d',1,'yaze::editor::MapPropertiesSystem']]],
@@ -395,8 +395,9 @@ var searchData=
   ['dungeonrenderer_392',['DungeonRenderer',['../d9/df1/classyaze_1_1editor_1_1DungeonRenderer.html#aa47b9f15370587cee694f6fda4170d89',1,'yaze::editor::DungeonRenderer']]],
   ['dungeonroomloader_393',['DungeonRoomLoader',['../d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#acb74e89b4ea14eec56010a7bee0cac3d',1,'yaze::editor::DungeonRoomLoader']]],
   ['dungeonroomselector_394',['DungeonRoomSelector',['../db/de8/classyaze_1_1editor_1_1DungeonRoomSelector.html#a99f0de620ef43f1759ae3db94351eb86',1,'yaze::editor::DungeonRoomSelector']]],
-  ['dungeontoolset_395',['DungeonToolset',['../db/d00/classyaze_1_1editor_1_1DungeonToolset.html#a5adb58cd5ca0892600341edb4bce3c9d',1,'yaze::editor::DungeonToolset']]],
-  ['dungeonusagetracker_396',['DungeonUsageTracker',['../dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ad3f384ccc6aa0183d7d3a3778d530fb2',1,'yaze::editor::DungeonUsageTracker']]],
-  ['duplicatecurrentsession_397',['DuplicateCurrentSession',['../dd/d12/classyaze_1_1editor_1_1EditorManager.html#a51655b6c1c74509f74f8cd58fb79af2d',1,'yaze::editor::EditorManager']]],
-  ['duplicateroom_398',['DuplicateRoom',['../d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a0a40ae03bcfe1a31962b7f868be9f75d',1,'yaze::zelda3::DungeonEditorSystem']]]
+  ['dungeontestharness_395',['DungeonTestHarness',['../d7/d0f/classDungeonTestHarness.html#a7fa51d7bc0a4fb5a6ee6ab0deefff1da',1,'DungeonTestHarness']]],
+  ['dungeontoolset_396',['DungeonToolset',['../db/d00/classyaze_1_1editor_1_1DungeonToolset.html#a5adb58cd5ca0892600341edb4bce3c9d',1,'yaze::editor::DungeonToolset']]],
+  ['dungeonusagetracker_397',['DungeonUsageTracker',['../dd/d4b/classyaze_1_1editor_1_1DungeonUsageTracker.html#ad3f384ccc6aa0183d7d3a3778d530fb2',1,'yaze::editor::DungeonUsageTracker']]],
+  ['duplicatecurrentsession_398',['DuplicateCurrentSession',['../dd/d12/classyaze_1_1editor_1_1EditorManager.html#a51655b6c1c74509f74f8cd58fb79af2d',1,'yaze::editor::EditorManager']]],
+  ['duplicateroom_399',['DuplicateRoom',['../d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#a0a40ae03bcfe1a31962b7f868be9f75d',1,'yaze::zelda3::DungeonEditorSystem']]]
 ];
