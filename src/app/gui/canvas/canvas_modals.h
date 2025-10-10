@@ -7,7 +7,7 @@
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/bpp_format_manager.h"
-#include "app/gui/canvas_utils.h"
+#include "app/gui/canvas/canvas_utils.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

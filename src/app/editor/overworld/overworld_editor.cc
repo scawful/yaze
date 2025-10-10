@@ -1115,7 +1115,6 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
         break;
       case AreaSizeEnum::SmallArea:
       default:
-        // 1x1 grid (512x512)
         ow_map_canvas_.DrawOutline(parent_map_x * kOverworldMapSize,
                                    parent_map_y * kOverworldMapSize,
                                    kOverworldMapSize, kOverworldMapSize);
@@ -1123,6 +1122,7 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
     }
   } else {
     // Legacy logic for vanilla and v2 ROMs
+    int world_offset = current_world_ * 0x40;
     if (overworld_.overworld_map(current_map_)->is_large_map() ||
         overworld_.overworld_map(current_map_)->large_index() != 0) {
       const int highlight_parent =
@@ -1141,6 +1141,8 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
         current_map_x = current_highlighted_map % 8;
         current_map_y = current_highlighted_map / 8;
       } else if (current_world_ == 1) {
+        // TODO: Vanilla fix dark world large map outline
+        // When switching to dark world, large maps dont outline properly.
         // Dark World (0x40-0x7F)
         current_map_x = (current_highlighted_map - 0x40) % 8;
         current_map_y = (current_highlighted_map - 0x40) / 8;
@@ -2352,14 +2354,13 @@ void OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {
   float tile_x = static_cast<float>(tile_col * kTileDisplaySize);
   float tile_y = static_cast<float>(tile_row * kTileDisplaySize);
 
-  ImVec2 canvas_size = blockset_canvas_.canvas_size();
-  float scroll_x = tile_x - (canvas_size.x / 2.0F) + (kTileDisplaySize / 2.0F);
-  float scroll_y = tile_y - (canvas_size.y / 2.0F) + (kTileDisplaySize / 2.0F);
+  const ImVec2 window_size = ImGui::GetWindowSize();
+  float scroll_x = tile_x - (window_size.x / 2.0F) + (kTileDisplaySize / 2.0F);
+  float scroll_y = tile_y - (window_size.y / 2.0F) + (kTileDisplaySize / 2.0F);
 
-  if (scroll_x < 0) scroll_x = 0;
-  if (scroll_y < 0) scroll_y = 0;
-
-  blockset_canvas_.set_scrolling(ImVec2(-scroll_x, -scroll_y));
+  // Use ImGui scroll API so both the canvas and child scroll view stay in sync.
+  ImGui::SetScrollX(std::max(0.0f, scroll_x));
+  ImGui::SetScrollY(std::max(0.0f, scroll_y));
 }
 
 void OverworldEditor::DrawOverworldProperties() {

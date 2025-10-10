@@ -440,7 +440,7 @@ SDL_Surface* Arena::AllocateSurface(int w, int h, int depth, int format) {
 - `src/app/emu/emu.cc` - Standalone emulator with SDL2Renderer
 
 ### GUI/Widget Files
-- `src/app/gui/canvas_utils.cc` - Fixed palette application logic
+- `src/app/gui/canvas/canvas_utils.cc` - Fixed palette application logic
 - `src/app/gui/canvas/canvas_context_menu.cc` - Arena queue for bitmap ops
 - `src/app/gui/widgets/palette_widget.cc` - Arena queue for palette changes
 - `src/app/gui/widgets/dungeon_object_emulator_preview.{h,cc}` - Optional renderer
