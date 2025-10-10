@@ -7,18 +7,48 @@
 namespace yaze {
 namespace zelda3 {
 
-absl::StatusOr<gfx::Tile16> RoomLayoutObject::GetTile() const {
-  // This would typically look up the actual tile data from the graphics sheets
-  // For now, we'll create a placeholder tile based on the object type
-
+absl::StatusOr<gfx::Tile16> RoomLayoutObject::GetTile(const uint8_t* room_gfx_buffer) const {
+  // Map layout code to actual VRAM tile ID
+  // Layout codes (id_) are indices into a layout tilemap
+  // The actual tile graphics are in the room's graphics buffer
+  
+  // For dungeon layouts, the tile ID from the layout data directly maps to
+  // a tile in the room's graphics sheets (current_gfx16_)
+  // Layout codes typically range from 0x00 to 0xFF
+  
+  // Use the layout code directly as tile ID
+  // The palette will be determined by the tile's position and room palette
+  uint16_t tile_id = static_cast<uint16_t>(id_);
+  
+  // Determine palette based on object type
+  uint8_t palette = 0;
+  switch (type_) {
+    case Type::kWall:
+      palette = 2;  // Walls typically use palette 2
+      break;
+    case Type::kFloor:
+      palette = 0;  // Floors use palette 0
+      break;
+    case Type::kWater:
+      palette = 4;  // Water uses palette 4
+      break;
+    case Type::kDoor:
+      palette = 3;  // Doors use palette 3
+      break;
+    default:
+      palette = 0;
+      break;
+  }
+  
   gfx::TileInfo tile_info;
-  tile_info.id_ = static_cast<uint16_t>(id_);
-  tile_info.palette_ = 0;  // Default palette
+  tile_info.id_ = tile_id;
+  tile_info.palette_ = palette;
   tile_info.vertical_mirror_ = false;
   tile_info.horizontal_mirror_ = false;
   tile_info.over_ = false;
 
-  // Create a 16x16 tile with the same tile info for all 4 sub-tiles
+  // Create a Tile16 with the same 8x8 tile in all 4 positions
+  // This makes the layout tile appear as a single repeated pattern
   return gfx::Tile16(tile_info, tile_info, tile_info, tile_info);
 }
 

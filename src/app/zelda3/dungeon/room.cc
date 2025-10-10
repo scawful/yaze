@@ -292,12 +292,17 @@ void Room::RenderRoomGraphics() {
   // LoadGraphicsSheetsIntoArena() removed - using per-room graphics instead
   // Arena sheets are optional and not needed for room rendering
 
+  // STEP 1: Draw floor tiles to bitmaps (base layer)
   bg1_buffer_.DrawFloor(rom()->vector(), tile_address,
                         tile_address_floor, floor1_graphics_);
   bg2_buffer_.DrawFloor(rom()->vector(), tile_address,
                         tile_address_floor, floor2_graphics_);
 
-  // Draw background tiles (floor, walls, etc.) to buffers
+  // STEP 2: Load layout tiles into tile buffer before DrawBackground
+  // This populates the buffer with wall/structure tiles from the layout
+  LoadLayoutTilesToBuffer();
+
+  // STEP 3: Draw background tiles (walls from layout) to buffers
   bg1_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
   bg2_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
 
@@ -372,7 +377,7 @@ void Room::RenderObjectsToBackground() {
   if (!palette_group_result.ok()) {
     // Fallback to empty palette group
     gfx::PaletteGroup empty_group;
-    ObjectDrawer drawer(rom_);
+    ObjectDrawer drawer(rom_, current_gfx16_.data());
     drawer.DrawObjectList(tile_objects_, bg1_buffer_, bg2_buffer_, empty_group);
     return;
   }
@@ -380,7 +385,8 @@ void Room::RenderObjectsToBackground() {
   
   // Use ObjectDrawer for pattern-based object rendering
   // This provides proper wall/object drawing patterns
-  ObjectDrawer drawer(rom_);
+  // Pass the room-specific graphics buffer (current_gfx16_) so objects use correct tiles
+  ObjectDrawer drawer(rom_, current_gfx16_.data());
   auto status = drawer.DrawObjectList(tile_objects_, bg1_buffer_, bg2_buffer_, palette_group);
   
   // Log only failures, not successes
@@ -856,6 +862,73 @@ void Room::LoadRoomLayout() {
   
   // Store the layout ID for compatibility with existing code
   layout = static_cast<uint8_t>(room_id_ & 0xFF);
+}
+
+void Room::LoadLayoutTilesToBuffer() {
+  // Load layout tiles into the BackgroundBuffer tile buffers
+  // This populates the buffer with wall/structure tile IDs from the layout
+  
+  LOG_DEBUG("RenderRoomGraphics", "LoadLayoutTilesToBuffer START for room %d", room_id_);
+  
+  if (!rom_ || !rom_->is_loaded()) {
+    LOG_DEBUG("RenderRoomGraphics", "ROM not loaded, aborting");
+    return;
+  }
+  
+  // Get layout data
+  auto& layout_objects = layout_.GetObjects();
+  LOG_DEBUG("RenderRoomGraphics", "Layout has %zu objects", layout_objects.size());
+  
+  if (layout_objects.empty()) {
+    LOG_DEBUG("RenderRoomGraphics", "No layout objects for room %d", room_id_);
+    return;
+  }
+  
+  int tiles_written_bg1 = 0;
+  int tiles_written_bg2 = 0;
+  int tiles_skipped = 0;
+  
+  // Write each layout object's tile to the appropriate buffer
+  for (const auto& layout_obj : layout_objects) {
+    uint8_t x = layout_obj.x();
+    uint8_t y = layout_obj.y();
+    
+    // Get the tile16 for this layout object, passing room graphics buffer
+    auto tile_result = layout_obj.GetTile(current_gfx16_.data());
+    if (!tile_result.ok()) {
+      tiles_skipped++;
+      continue;  // Skip objects that don't have valid tiles
+    }
+    
+    auto& tile16 = tile_result.value();
+    
+    // Convert Tile16 to a 16-bit tile ID word (use first tile)
+    uint16_t tile_word = gfx::TileInfoToWord(tile16.tile0_);
+    
+    // Debug first few tiles to verify data
+    if (tiles_written_bg1 + tiles_written_bg2 < 5) {
+      LOG_DEBUG("RenderRoomGraphics", "Layout tile[%d] at (%d,%d): ID=0x%04X, palette=%d, type=%d, layer=%d", 
+               tiles_written_bg1 + tiles_written_bg2, x, y, tile16.tile0_.id_, tile16.tile0_.palette_, 
+               static_cast<int>(layout_obj.type()), layout_obj.layer());
+    }
+    
+    // Determine which buffer based on layer
+    auto* target_buffer = &bg1_buffer_;
+    if (layout_obj.layer() == 1) {
+      target_buffer = &bg2_buffer_;
+      tiles_written_bg2++;
+    } else {
+      tiles_written_bg1++;
+    }
+    
+    // Write tile ID to buffer at position (x, y)
+    if (x < 64 && y < 64) {  // 64x64 tiles = 512x512 pixels
+      target_buffer->SetTileAt(x, y, tile_word);
+    }
+  }
+  
+  LOG_DEBUG("RenderRoomGraphics", "Wrote %d BG1 tiles, %d BG2 tiles, skipped %d", 
+           tiles_written_bg1, tiles_written_bg2, tiles_skipped);
 }
 
 void Room::LoadDoors() {

@@ -12,13 +12,6 @@
 namespace yaze {
 namespace zelda3 {
 
-struct SubtypeInfo {
-  uint32_t subtype_ptr;
-  uint32_t routine_ptr;
-};
-
-SubtypeInfo FetchSubtypeInfo(uint16_t object_id);
-
 enum class SpecialObjectType { Chest, BigChest, InterroomStairs };
 
 enum Sorting {
@@ -132,27 +125,9 @@ class RoomObject {
   
   // ============================================================================
 
-  void AddTiles(int nbr, int pos) {
-    // Reads nbr Tile16 entries from ROM object data starting at pos (8 bytes per Tile16)
-    for (int i = 0; i < nbr; i++) {
-      int tpos = pos + (i * 8);
-      auto rom_data = rom()->data();
-      if (tpos + 7 >= (int)rom()->size()) break;
-      uint16_t w0 = (uint16_t)(rom_data[tpos] | (rom_data[tpos + 1] << 8));
-      uint16_t w1 = (uint16_t)(rom_data[tpos + 2] | (rom_data[tpos + 3] << 8));
-      uint16_t w2 = (uint16_t)(rom_data[tpos + 4] | (rom_data[tpos + 5] << 8));
-      uint16_t w3 = (uint16_t)(rom_data[tpos + 6] | (rom_data[tpos + 7] << 8));
-      gfx::Tile16 tile(gfx::WordToTileInfo(w0), gfx::WordToTileInfo(w1),
-                       gfx::WordToTileInfo(w2), gfx::WordToTileInfo(w3));
-      tiles_.push_back(tile);
-    }
-  }
-
-  void DrawTile(gfx::Tile16 t, int xx, int yy,
-                std::vector<uint8_t>& current_gfx16,
-                std::vector<uint8_t>& tiles_bg1_buffer,
-                std::vector<uint8_t>& tiles_bg2_buffer,
-                uint16_t tile_under = 0xFFFF);
+  // NOTE: Legacy ZScream methods removed. Modern rendering uses:
+  // - ObjectParser for loading tiles from ROM
+  // - ObjectDrawer for rendering tiles to BackgroundBuffer
 
   auto options() const { return options_; }
   void set_options(ObjectOption options) { options_ = options; }
@@ -197,90 +172,9 @@ class RoomObject {
   Rom* rom_;
 };
 
-class Subtype1 : public RoomObject {
- public:
-  bool all_bgs;
-  int tile_count_;
-  std::string name;
-  Sorting sort;
-
-  Subtype1(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer,
-           int tile_count)
-      : RoomObject(id, x, y, size, layer), tile_count_(tile_count) {
-    auto rom_data = rom()->data();
-    int pos = kRoomObjectTileAddress +
-              static_cast<int16_t>(
-                  (rom_data[kRoomObjectSubtype1 + ((id & 0xFF) * 2) + 1] << 8) +
-                  rom_data[kRoomObjectSubtype1 + ((id & 0xFF) * 2)]);
-    AddTiles(tile_count_, pos);
-    sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
-  }
-
-  void Draw(std::vector<uint8_t>& current_gfx16,
-            std::vector<uint8_t>& tiles_bg1_buffer,
-            std::vector<uint8_t>& tiles_bg2_buffer) {
-    for (int s = 0; s < size_ + (tile_count_ == 8 ? 1 : 0); s++) {
-      for (int i = 0; i < tile_count_; i++) {
-        DrawTile(tiles_[i], ((s * 2)) * 8, (i / 2) * 8, current_gfx16,
-                 tiles_bg1_buffer, tiles_bg2_buffer);
-      }
-    }
-  }
-};
-
-class Subtype2 : public RoomObject {
- public:
-  std::string name;
-  bool all_bgs;
-  Sorting sort;
-
-  Subtype2(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
-      : RoomObject(id, x, y, size, layer) {
-    auto rom_data = rom()->data();
-    int pos = kRoomObjectTileAddress +
-              static_cast<int16_t>(
-                  (rom_data[kRoomObjectSubtype2 + ((id & 0x7F) * 2) + 1] << 8) +
-                  rom_data[kRoomObjectSubtype2 + ((id & 0x7F) * 2)]);
-    AddTiles(8, pos);
-    sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
-  }
-
-  void Draw(std::vector<uint8_t>& current_gfx16,
-            std::vector<uint8_t>& tiles_bg1_buffer,
-            std::vector<uint8_t>& tiles_bg2_buffer) {
-    for (int i = 0; i < 8; i++) {
-      DrawTile(tiles_[i], x_ * 8, (y_ + i) * 8, current_gfx16, tiles_bg1_buffer,
-               tiles_bg2_buffer);
-    }
-  }
-};
-
-class Subtype3 : public RoomObject {
- public:
-  bool all_bgs;
-  std::string name;
-  Sorting sort;
-
-  Subtype3(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer)
-      : RoomObject(id, x, y, size, layer) {
-    auto rom_data = rom()->data();
-    int pos = kRoomObjectTileAddress +
-              static_cast<int16_t>(
-                  (rom_data[kRoomObjectSubtype3 + ((id & 0xFF) * 2) + 1] << 8) +
-                  rom_data[kRoomObjectSubtype3 + ((id & 0xFF) * 2)]);
-    AddTiles(8, pos);
-    sort = (Sorting)(Sorting::Horizontal | Sorting::Wall);
-  }
-
-  void Draw(std::vector<uint8_t>& current_gfx16,
-            std::vector<uint8_t>& tiles_bg1_buffer,
-            std::vector<uint8_t>& tiles_bg2_buffer) {
-    for (int i = 0; i < 8; i++) {
-      DrawTile(tiles_[i], x_ * 8, (y_ + i) * 8, current_gfx16, tiles_bg1_buffer,
-               tiles_bg2_buffer);
-    }
-  }
-};
+// NOTE: Legacy Subtype1, Subtype2, Subtype3 classes removed.
+// These were ported from ZScream but are no longer used.
+// Modern code uses: ObjectParser + ObjectDrawer + ObjectRenderer
 
 constexpr static inline const char* Type1RoomObjectNames[] = {
     "Ceiling ↔",

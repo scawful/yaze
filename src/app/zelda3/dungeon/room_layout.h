@@ -51,7 +51,9 @@ class RoomLayoutObject {
   void set_layer(uint8_t layer) { layer_ = layer; }
 
   // Get tile data for this layout object
-  absl::StatusOr<gfx::Tile16> GetTile() const;
+  // NOTE: Layout codes need to be mapped to actual VRAM tile IDs
+  // The room_gfx_buffer provides the assembled graphics for this specific room
+  absl::StatusOr<gfx::Tile16> GetTile(const uint8_t* room_gfx_buffer = nullptr) const;
   
   // Get the name/description of this layout object type
   std::string GetTypeName() const;

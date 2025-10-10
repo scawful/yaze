@@ -194,6 +194,7 @@ class Room {
   void LoadSprites();
   void LoadChests();
   void LoadRoomLayout();
+  void LoadLayoutTilesToBuffer();  // NEW: Write layout tiles to BG tile buffers
   void LoadDoors();
   void LoadTorches();
   void LoadBlocks();
