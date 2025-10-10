@@ -2,6 +2,7 @@
 #define YAZE_APP_ZELDA3_DUNGEON_ROM_ADDRESSES_H
 
 #include <cstdint>
+#include <array> // Added for std::array
 
 namespace yaze {
 namespace zelda3 {
@@ -92,6 +93,12 @@ constexpr uint16_t kStairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D};
 // - Layout arrays are NOT exactly the same as rooms
 // - Object array is terminated by 0xFFFF (no layers)
 // - In normal room, 0xFFFF goes to next layer (layers 0, 1, 2)
+
+// Static pointers for the 8 predefined room layouts
+static const std::array<int, 8> kRoomLayoutPointers = {
+    0x47EF04, 0xAFEF04, 0xF0EF04, 0x4CF004,
+    0xA8F004, 0xECF004, 0x48F104, 0xA4F104,
+};
 
 }  // namespace zelda3
 }  // namespace yaze
