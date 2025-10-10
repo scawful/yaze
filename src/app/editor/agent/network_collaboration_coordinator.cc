@@ -229,7 +229,7 @@ absl::Status NetworkCollaborationCoordinator::LeaveSession() {
   return absl::OkStatus();
 }
 
-absl::Status NetworkCollaborationCoordinator::SendMessage(
+absl::Status NetworkCollaborationCoordinator::SendChatMessage(
     const std::string& sender, const std::string& message,
     const std::string& message_type, const std::string& metadata) {
   if (!in_session_) {
@@ -587,7 +587,7 @@ absl::Status NetworkCollaborationCoordinator::LeaveSession() {
   return absl::UnimplementedError("Network collaboration requires JSON support");
 }
 
-absl::Status NetworkCollaborationCoordinator::SendMessage(
+absl::Status NetworkCollaborationCoordinator::SendChatMessage(
     const std::string&, const std::string&, const std::string&, const std::string&) {
   return absl::UnimplementedError("Network collaboration requires JSON support");
 }
