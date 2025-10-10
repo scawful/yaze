@@ -14,8 +14,19 @@
 namespace yaze {
 namespace emu {
 
-static const double apuCyclesPerMaster = (32040 * 32) / (1364 * 262 * 60.0);
-static const double apuCyclesPerMasterPal = (32040 * 32) / (1364 * 312 * 50.0);
+// Fixed-point cycle ratio for perfect precision (no floating-point drift)
+// APU runs at ~1.024 MHz, master clock at ~21.477 MHz (NTSC)
+// Ratio = (32040 * 32) / (1364 * 262 * 60) = 1,025,280 / 21,437,280
+static constexpr uint64_t kApuCyclesNumerator = 32040 * 32;          // 1,025,280
+static constexpr uint64_t kApuCyclesDenominator = 1364 * 262 * 60;   // 21,437,280
+
+// PAL timing: (32040 * 32) / (1364 * 312 * 50)
+static constexpr uint64_t kApuCyclesNumeratorPal = 32040 * 32;       // 1,025,280
+static constexpr uint64_t kApuCyclesDenominatorPal = 1364 * 312 * 50; // 21,268,800
+
+// Legacy floating-point ratios (deprecated, kept for reference)
+// static const double apuCyclesPerMaster = (32040 * 32) / (1364 * 262 * 60.0);
+// static const double apuCyclesPerMasterPal = (32040 * 32) / (1364 * 312 * 50.0);
 
 // SNES IPL ROM - Anomie's official hardware dump (64 bytes)
 // With our critical fixes: CMP Z flag, multi-step bstep, address preservation
@@ -71,14 +82,16 @@ void Apu::Reset() {
 }
 
 void Apu::RunCycles(uint64_t master_cycles) {
-  // Convert CPU master cycles to APU cycles target and step SPC/DSP accordingly.
-  const double ratio = memory_.pal_timing() ? apuCyclesPerMasterPal : apuCyclesPerMaster;
-  
-  // Track last master cycles to only advance by the delta
+  // Track master cycle delta (only advance by the difference since last call)
   uint64_t master_delta = master_cycles - g_last_master_cycles;
   g_last_master_cycles = master_cycles;
-  
-  const uint64_t target_apu_cycles = cycles_ + static_cast<uint64_t>(master_delta * ratio);
+
+  // Convert CPU master cycles to APU cycles using fixed-point ratio (no floating-point drift)
+  // target_apu_cycles = cycles_ + (master_delta * numerator) / denominator
+  uint64_t numerator = memory_.pal_timing() ? kApuCyclesNumeratorPal : kApuCyclesNumerator;
+  uint64_t denominator = memory_.pal_timing() ? kApuCyclesDenominatorPal : kApuCyclesDenominator;
+
+  const uint64_t target_apu_cycles = cycles_ + (master_delta * numerator) / denominator;
 
   // Watchdog to detect infinite loops
   static uint64_t last_log_cycle = 0;
@@ -127,15 +140,13 @@ void Apu::RunCycles(uint64_t master_cycles) {
       stuck_counter = 0;
     }
     last_pc = current_pc;
-    
-    spc700_.RunOpcode();
-    
-    // Get the actual cycle count from the last opcode execution
-    // This is critical for proper IPL ROM handshake timing
-    int spc_cycles = spc700_.GetLastOpcodeCycles();
-    
-    // Advance APU cycles based on actual SPC700 opcode timing
-    // The SPC700 runs at 1.024 MHz, and we need to synchronize with the DSP/timers
+
+    // Execute one complete SPC700 instruction and get exact cycle count
+    // Step() returns the precise number of cycles consumed by the instruction
+    int spc_cycles = spc700_.Step();
+
+    // Advance APU cycles based on actual SPC700 instruction timing
+    // Each Cycle() call: ticks DSP every 32 cycles, updates timers, increments cycles_
     for (int i = 0; i < spc_cycles; ++i) {
       Cycle();
     }
