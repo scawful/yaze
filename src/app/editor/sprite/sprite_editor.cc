@@ -1,6 +1,6 @@
 #include "sprite_editor.h"
 
-#include "app/gfx/performance_profiler.h"
+#include "app/gfx/performance/performance_profiler.h"
 #include "gui/ui_helpers.h"
 #include "util/file_util.h"
 #include "app/editor/sprite/zsprite.h"

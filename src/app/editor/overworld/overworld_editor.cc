@@ -20,7 +20,7 @@
 #include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
 #include "app/gui/widgets/tile_selector_widget.h"
-#include "app/gfx/performance_profiler.h"
+#include "app/gfx/performance/performance_profiler.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gfx/tilemap.h"
 #include "app/gui/canvas.h"

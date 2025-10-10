@@ -7,7 +7,7 @@
 #include <memory>
 
 #include "app/gfx/bitmap.h"
-#include "app/gfx/performance_profiler.h"
+#include "app/gfx/performance/performance_profiler.h"
 #include "app/gfx/bpp_format_manager.h"
 
 namespace yaze {

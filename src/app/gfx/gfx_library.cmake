@@ -6,8 +6,8 @@ set(
   app/gfx/bitmap.cc
   app/gfx/compression.cc
   app/gfx/memory_pool.cc
-  app/gfx/performance_dashboard.cc
-  app/gfx/performance_profiler.cc
+  app/gfx/performance/performance_dashboard.cc
+  app/gfx/performance/performance_profiler.cc
   app/gfx/scad_format.cc
   app/gfx/snes_palette.cc
   app/gfx/snes_tile.cc

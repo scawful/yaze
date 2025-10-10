@@ -29,7 +29,7 @@
 #include "app/editor/ui/editor_selection_dialog.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/arena.h"
-#include "app/gfx/performance_profiler.h"
+#include "app/gfx/performance/performance_profiler.h"
 #include "app/editor/ui/background_renderer.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
@@ -53,7 +53,7 @@
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/emu/emulator.h"
-#include "app/gfx/performance_dashboard.h"
+#include "app/gfx/performance/performance_dashboard.h"
 #include "editor/editor.h"
 #ifdef YAZE_WITH_GRPC
 #include "app/core/service/screenshot_utils.h"

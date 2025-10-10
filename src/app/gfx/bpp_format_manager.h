@@ -9,7 +9,7 @@
 
 #include "app/gfx/bitmap.h"
 #include "app/gfx/snes_palette.h"
-#include "app/gfx/performance_profiler.h"
+#include "app/gfx/performance/performance_profiler.h"
 
 namespace yaze {
 namespace gfx {

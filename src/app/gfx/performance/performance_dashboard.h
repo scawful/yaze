@@ -1,12 +1,12 @@
-#ifndef YAZE_APP_GFX_PERFORMANCE_DASHBOARD_H
-#define YAZE_APP_GFX_PERFORMANCE_DASHBOARD_H
+#ifndef YAZE_APP_GFX_PERFORMANCE_PERFORMANCE_DASHBOARD_H
+#define YAZE_APP_GFX_PERFORMANCE_PERFORMANCE_DASHBOARD_H
 
 #include <string>
 #include <vector>
 #include <memory>
 #include <chrono>
 
-#include "app/gfx/performance_profiler.h"
+#include "app/gfx/performance/performance_profiler.h"
 #include "app/gfx/memory_pool.h"
 #include "app/gfx/atlas_renderer.h"
 
@@ -159,4 +159,4 @@ class PerformanceDashboard {
 }  // namespace gfx
 }  // namespace yaze
 
-#endif  // YAZE_APP_GFX_PERFORMANCE_DASHBOARD_H
+#endif  // YAZE_APP_GFX_PERFORMANCE_PERFORMANCE_DASHBOARD_H

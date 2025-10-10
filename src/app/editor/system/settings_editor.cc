@@ -3,7 +3,7 @@
 
 #include "absl/status/status.h"
 #include "app/gui/feature_flags_menu.h"
-#include "app/gfx/performance_profiler.h"
+#include "app/gfx/performance/performance_profiler.h"
 #include "app/gui/style.h"
 #include "app/gui/icons.h"
 #include "app/gui/theme_manager.h"

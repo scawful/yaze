@@ -21,7 +21,7 @@
 #include "app/gui/modules/asset_browser.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
-#include "app/gfx/performance_profiler.h"
+#include "app/gfx/performance/performance_profiler.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "imgui_memory_editor.h"
