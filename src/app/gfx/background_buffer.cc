@@ -106,22 +106,29 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
   // For each tile on the tile buffer
   int drawn_count = 0;
   int skipped_count = 0;
-  int non_floor_count = 0;
   for (int yy = 0; yy < tiles_h; yy++) {
     for (int xx = 0; xx < tiles_w; xx++) {
       uint16_t word = buffer_[xx + yy * tiles_w];
-      // Prevent draw if tile == 0xFFFF since it's 0 indexed
+      
+      // Skip empty tiles (0xFFFF) - these show the floor
       if (word == 0xFFFF) {
         skipped_count++;
         continue;
       }
+      
+      // Skip zero tiles - also show the floor
+      if (word == 0) {
+        skipped_count++;
+        continue;
+      }
+      
       auto tile = gfx::WordToTileInfo(word);
       
-      // Count floor tiles vs non-floor
-      if (tile.id_ >= 0xEE && tile.id_ <= 0xFF) {
-        // This looks like a floor tile (based on DrawFloor's 14EE pattern)
-      } else if (word != 0) {
-        non_floor_count++;
+      // Skip floor tiles (0xEC-0xFD) - don't overwrite DrawFloor's work
+      // These are the animated floor tiles, already drawn by DrawFloor
+      if (tile.id_ >= 0xEC && tile.id_ <= 0xFD) {
+        skipped_count++;
+        continue;
       }
       
       // Calculate pixel offset for tile position (xx, yy) in the 512x512 bitmap
@@ -176,6 +183,9 @@ void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
                            rom_data[tile_address_floor + f + 5]);
   gfx::TileInfo floorTile8(rom_data[tile_address_floor + f + 6],
                            rom_data[tile_address_floor + f + 7]);
+  
+  // Floor tiles specify which 8-color sub-palette from the 90-color dungeon palette
+  // e.g., palette 6 = colors 48-55 (6 * 8 = 48)
 
   // Draw the floor tiles in a pattern
   // Convert TileInfo to 16-bit words with palette information

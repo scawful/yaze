@@ -312,36 +312,29 @@ void Room::RenderRoomGraphics() {
   // Get and apply palette BEFORE rendering objects (so objects use correct colors)
   auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
   int num_palettes = dungeon_pal_group.size();
-  int palette_id = palette;
   
-  LOG_DEBUG("[RenderRoomGraphics]", "Room palette byte: %d, num_palettes available: %d", 
-            palette_id, num_palettes);
+  // Use palette indirection table lookup (same as dungeon_canvas_viewer.cc line 854)
+  int palette_id = palette;  // Default fallback
+  if (palette < rom()->paletteset_ids.size() && !rom()->paletteset_ids[palette].empty()) {
+    auto dungeon_palette_ptr = rom()->paletteset_ids[palette][0];
+    auto palette_word = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
+    if (palette_word.ok()) {
+      palette_id = palette_word.value() / 180;  // Divide by 180 to get group index
+      LOG_DEBUG("[RenderRoomGraphics]", "Palette lookup: byte=0x%02X → group_id=%d", palette, palette_id);
+    }
+  }
   
+  // Clamp to valid range
   if (palette_id < 0 || palette_id >= num_palettes) {
-    LOG_DEBUG("[RenderRoomGraphics]", "WARNING: palette_id %d out of bounds, clamping to %d", 
-                palette_id, palette_id % num_palettes);
     palette_id = palette_id % num_palettes;
   }
   
   auto bg1_palette = dungeon_pal_group[palette_id];
 
   if (bg1_palette.size() > 0) {
-    LOG_DEBUG("[RenderRoomGraphics]", "Applying palette_id=%d with %d colors to bitmaps", 
-              palette_id, (int)bg1_palette.size());
-    
-    // Debug: Log first few palette colors
-    for (int i = 0; i < std::min(16, (int)bg1_palette.size()); i++) {
-      auto rgb = bg1_palette[i].rgb();
-      LOG_DEBUG("[RenderRoomGraphics]", "  Palette[%d]: R=%.0f G=%.0f B=%.0f A=%.0f %s", 
-                i, rgb.x, rgb.y, rgb.z, rgb.w, 
-                bg1_palette[i].is_transparent() ? "(TRANSPARENT)" : "");
-    }
-    
     // Apply FULL 90-color dungeon palette
     bg1_bmp.SetPalette(bg1_palette);
     bg2_bmp.SetPalette(bg1_palette);
-  } else {
-    LOG_DEBUG("[RenderRoomGraphics]", "ERROR: Palette is empty!");
   }
   
   // Render objects ON TOP of background tiles (AFTER palette is set)
@@ -379,10 +372,19 @@ void Room::RenderObjectsToBackground() {
     return;
   }
   
-  // Get palette group for object rendering
+  // Get palette group for object rendering (use SAME lookup as RenderRoomGraphics)
   auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
   int num_palettes = dungeon_pal_group.size();
+  
+  // Use palette indirection table lookup
   int palette_id = palette;
+  if (palette < rom()->paletteset_ids.size() && !rom()->paletteset_ids[palette].empty()) {
+    auto dungeon_palette_ptr = rom()->paletteset_ids[palette][0];
+    auto palette_word = rom()->ReadWord(0xDEC4B + dungeon_palette_ptr);
+    if (palette_word.ok()) {
+      palette_id = palette_word.value() / 180;
+    }
+  }
   
   if (palette_id < 0 || palette_id >= num_palettes) {
     palette_id = 0;
