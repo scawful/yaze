@@ -100,13 +100,10 @@ endif()
     include(app/net/net_library.cmake)
     include(app/zelda3/zelda3_library.cmake)
     include(app/editor/editor_library.cmake)
+    include(app/emu/emu_library.cmake)
 
     if(YAZE_BUILD_TESTS AND NOT YAZE_MINIMAL_BUILD)
       include(app/test/test.cmake)
-    endif()
-
-    if(YAZE_BUILD_EMU)
-      include(app/emu/emu_library.cmake)
     endif()
   endif()
 
@@ -197,14 +194,10 @@ if (YAZE_BUILD_APP)
   endif()
 
   if(YAZE_USE_MODULAR_BUILD)
-    set(_yaze_modular_links yaze_editor)
+    set(_yaze_modular_links yaze_editor yaze_emulator)
 
     if(TARGET yaze_agent)
       list(APPEND _yaze_modular_links yaze_agent)
-    endif()
-
-    if(YAZE_BUILD_EMU AND TARGET yaze_emulator)
-      list(APPEND _yaze_modular_links yaze_emulator)
     endif()
 
     if(YAZE_BUILD_TESTS AND TARGET yaze_test_support)
@@ -432,6 +425,31 @@ target_link_libraries(yaze_emu PUBLIC
         grpc++_reflection
         libprotobuf)
     endif()
+  endif()
+
+  # Headless Emulator Test Harness (minimal dependencies, fast compile)
+  if(NOT YAZE_MINIMAL_BUILD)
+    add_executable(yaze_emu_test emu_test.cc)
+
+    target_include_directories(
+      yaze_emu_test PRIVATE
+      ${CMAKE_SOURCE_DIR}/src/lib/
+      ${CMAKE_SOURCE_DIR}/src/app/
+      ${CMAKE_SOURCE_DIR}/src/
+      ${SDL2_INCLUDE_DIR}
+      ${CMAKE_CURRENT_BINARY_DIR}
+      ${PROJECT_BINARY_DIR}
+    )
+
+    target_link_libraries(yaze_emu_test PRIVATE
+      ${ABSL_TARGETS}
+      ${SDL_TARGETS}
+      ${CMAKE_DL_LIBS}
+      yaze_emulator
+      yaze_util
+    )
+
+    message(STATUS "✓ yaze_emu_test: Headless emulator test harness configured")
   endif()
 endif()
 if (YAZE_BUILD_Z3ED)

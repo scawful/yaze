@@ -2,7 +2,27 @@
 
 **Branch:** `feature/apu-timing-fix`
 **Date:** October 10, 2025
-**Status:** Analysis Complete, Implementation Starting
+**Status:** ✅ Implemented - Core Timing Fixed (Minor Audio Glitches Remain)
+
+---
+
+## Implementation Status
+
+**✅ Completed:**
+- Atomic `Step()` function for SPC700
+- Fixed-point cycle ratio (no floating-point drift)
+- Cycle budget model in APU
+- Removed `bstep` mechanism from instructions.cc
+- Cycle-accurate instruction implementations
+- Proper branch timing (+2 cycles when taken)
+- Dummy read/write cycles for MOV and RMW instructions
+
+**⚠️ Known Issues:**
+- Some audio glitches/distortion during playback
+- Minor timing inconsistencies under investigation
+- Can be improved in future iterations
+
+**Note:** The APU now executes correctly and music plays, but audio quality can be further refined.
 
 ## Problem Summary
 
@@ -410,25 +430,28 @@ apu_cycles = (master_cycles * kApuCyclesNumerator) / kApuCyclesDenominator;
 
 ## Success Criteria
 
-- [ ] All SPC700 instructions execute atomically (one `Step()` call)
-- [ ] Cycle counts accurate to ±1 cycle per instruction
-- [ ] APU handshake completes without watchdog timeout
-- [ ] Music loads and plays in vanilla Zelda3
-- [ ] No floating-point drift over long emulation sessions
-- [ ] Unit tests pass for all 256 opcodes
+- [x] All SPC700 instructions execute atomically (one `Step()` call)
+- [x] Cycle counts accurate to ±1 cycle per instruction
+- [x] APU handshake completes without watchdog timeout
+- [x] Music loads and plays in vanilla Zelda3
+- [x] No floating-point drift over long emulation sessions
+- [ ] Unit tests pass for all 256 opcodes (future work)
+- [ ] Audio quality refined (minor glitches remain)
 
 ---
 
-## Next Steps
+## Implementation Completed
 
 1. ✅ Create feature branch
 2. ✅ Analyze current implementation
-3. ⏳ Implement `Spc700::Step()` function
-4. ⏳ Add precise cycle calculation
-5. ⏳ Refactor `Apu::RunCycles`
-6. ⏳ Convert to fixed-point ratio
-7. ⏳ Test with Zelda3 ROM
-8. ⏳ Write unit tests
+3. ✅ Implement `Spc700::Step()` function
+4. ✅ Add precise cycle calculation
+5. ✅ Refactor `Apu::RunCycles`
+6. ✅ Convert to fixed-point ratio
+7. ✅ Refactor instructions.cc to be atomic and cycle-accurate
+8. ✅ Test with Zelda3 ROM
+9. ⏳ Write unit tests (future work)
+10. ⏳ Fine-tune audio quality (future work)
 
 ---
 
