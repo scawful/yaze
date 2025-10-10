@@ -92,6 +92,23 @@ add_executable(
 target_compile_definitions(z3ed PRIVATE YAZE_ASSETS_PATH="${CMAKE_SOURCE_DIR}/assets")
 
 # ============================================================================ 
+# Copy Agent Assets for z3ed CLI
+# ============================================================================ 
+# Copy agent assets to build directory so z3ed can find them when running
+if(EXISTS ${CMAKE_SOURCE_DIR}/assets/agent)
+  file(GLOB AGENT_ASSET_FILES "${CMAKE_SOURCE_DIR}/assets/agent/*")
+  file(COPY ${AGENT_ASSET_FILES} DESTINATION "${CMAKE_BINARY_DIR}/assets/agent/")
+  
+  # Also add post-build copy for development workflow
+  add_custom_command(TARGET z3ed POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      ${CMAKE_SOURCE_DIR}/assets/agent
+      $<TARGET_FILE_DIR:z3ed>/assets/agent
+    COMMENT "Copying agent assets for z3ed"
+  )
+endif()
+
+# ============================================================================ 
 # AI Agent Support (Consolidated via Z3ED_AI flag)
 # ============================================================================ 
 if(Z3ED_AI OR YAZE_WITH_JSON)
