@@ -230,6 +230,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_OSX_ARCHITECTURES=${{ matrix.mac_arch }} \
             -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DYAZE_BUILD_EMU=OFF \
             -DYAZE_BUILD_TESTS=OFF 2>&1 | tee cmake_config.log
           echo "::endgroup::"
       
@@ -242,6 +243,7 @@ jobs:
           echo "::group::CMake Configuration (Linux)"
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DYAZE_BUILD_EMU=OFF \
             -DYAZE_BUILD_TESTS=OFF 2>&1 | tee cmake_config.log
           echo "::endgroup::"
       
