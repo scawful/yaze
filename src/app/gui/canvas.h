@@ -11,10 +11,10 @@
 
 #include "app/gfx/bitmap.h"
 #include "app/rom.h"
-#include "app/gui/canvas_utils.h"
+#include "canvas/canvas_utils.h"
 #include "app/gui/widgets/palette_widget.h"
 #include "app/gfx/bpp_format_manager.h"
-#include "app/gui/bpp_format_ui.h"
+#include "canvas/bpp_format_ui.h"
 #include "app/gui/canvas/canvas_modals.h"
 #include "app/gui/canvas/canvas_context_menu.h"
 #include "app/gui/canvas/canvas_usage_tracker.h"

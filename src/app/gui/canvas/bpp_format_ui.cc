@@ -1,4 +1,4 @@
-#include "app/gui/bpp_format_ui.h"
+#include "bpp_format_ui.h"
 
 #include <algorithm>
 #include <sstream>
