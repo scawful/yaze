@@ -11,6 +11,16 @@
 #include "app/core/service/widget_discovery_service.h"
 #include "app/core/testing/test_recorder.h"
 
+// Undefine Windows macros that conflict with protobuf generated code
+#ifdef _WIN32
+#ifdef DWORD
+#undef DWORD
+#endif
+#ifdef ERROR
+#undef ERROR
+#endif
+#endif  // _WIN32
+
 // Include grpcpp headers for unique_ptr<Server> in member variable
 #include <grpcpp/server.h>
 
