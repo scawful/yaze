@@ -94,6 +94,7 @@ class DungeonEditorV2 : public Editor {
   bool show_room_graphics_ = false;    // Room graphics card
   bool show_object_editor_ = false;    // Object editor card
   bool show_palette_editor_ = false;   // Palette editor card
+  bool show_debug_controls_ = false;   // Debug controls card
   bool show_control_panel_ = true;     // Control panel (visible by default)
 
  private:
@@ -106,6 +107,7 @@ class DungeonEditorV2 : public Editor {
   void DrawRoomsListCard();
   void DrawEntrancesListCard();
   void DrawRoomGraphicsCard();
+  void DrawDebugControlsCard();
   void DrawControlPanel();
   
   // Texture processing (critical for rendering)
