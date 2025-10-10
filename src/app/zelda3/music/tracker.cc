@@ -31,6 +31,14 @@ void AddSpcReloc(music::SongSpcBlock *sbl, short addr) {
 }  // namespace
 
 namespace music {
+/**
+ * @brief Allocates a new SongSpcBlock for holding generated SPC data.
+ * These blocks are the building blocks for the final binary output that will be
+ * written to the ROM and eventually loaded into the APU.
+ * @param len The size of the data buffer to allocate for this block.
+ * @param bank The target sound bank for this block.
+ * @return A pointer to the newly allocated SongSpcBlock.
+ */
 SongSpcBlock *Tracker::AllocSpcBlock(int len, int bank) {
   SongSpcBlock *sbl;
   if (!len) {
@@ -54,6 +62,16 @@ SongSpcBlock *Tracker::AllocSpcBlock(int len, int bank) {
   return sbl;
 }
 
+/**
+ * @brief Gets a direct pointer to music data within the ROM.
+ * This function is critical for parsing. It correctly resolves a virtual SPC
+ * address and bank into a physical offset within the loaded ROM file, handling
+ * the game's specific sound bank mapping.
+ * @param rom The ROM object.
+ * @param addr The 16-bit virtual address of the data.
+ * @param bank The sound bank where the data resides.
+ * @return A pointer to the data within the ROM buffer, or nullptr if not found.
+ */
 unsigned char *Tracker::GetSpcAddr(Rom &rom, unsigned short addr, short bank) {
   unsigned char *rom_ptr;
   unsigned short a;
@@ -88,6 +106,12 @@ again:
   }
 }
 
+/**
+ * @brief Allocates a new SpcCommand from a pre-allocated pool.
+ * This uses a classic free-list implementation for efficient memory management
+ * without repeated malloc/free calls.
+ * @return The index of the newly allocated command.
+ */
 short Tracker::AllocSpcCommand() {
   int i = m_free;
   int j;
@@ -112,6 +136,15 @@ short Tracker::AllocSpcCommand() {
   return i;
 }
 
+/**
+ * @brief Calculates the total time (duration) of a block of SpcCommands.
+ * This is essential for synchronization and editor display. It works backwards
+ * from the end of a command list, calculating and caching the duration.
+ * @param rom The ROM object.
+ * @param num The starting command index.
+ * @param prevtime The duration of the subsequent block.
+ * @return The total duration in ticks.
+ */
 short Tracker::GetBlockTime(Rom &rom, short num, short prevtime) {
   SpcCommand *spc_command = current_spc_command_;
   SpcCommand *spc_command2;
@@ -204,6 +237,16 @@ short Tracker::GetBlockTime(Rom &rom, short num, short prevtime) {
   return spc_command[num].tim + prevtime * spc_command[num].tim2;
 }
 
+/**
+ * @brief Loads a block of music data from a given ROM address.
+ * This is the main parser. It reads the raw byte stream from the ROM and
+ * converts it into a doubly-linked list of SpcCommand structs.
+ * @param rom The ROM object.
+ * @param addr The starting address in the ROM.
+ * @param bank The sound bank.
+ * @param t A time limit for parsing, to handle potentially infinite loops.
+ * @return The index of the first command in the newly loaded block.
+ */
 short Tracker::LoadSpcCommand(Rom &rom, unsigned short addr, short bank,
                               int t) {
   int b = 0;
@@ -378,6 +421,13 @@ short Tracker::LoadSpcCommand(Rom &rom, unsigned short addr, short bank,
   return h;
 }
 
+/**
+ * @brief High-level function to load all song data from the ROM.
+ * (Currently commented out, but this would be the main entry point for parsing.)
+ * It would iterate through the main song table in the ROM, and for each song,
+ * recursively load all its parts and commands using LoadSpcCommand. It would
+ * also load instrument and sample data.
+ */
 void Tracker::LoadSongs(Rom &rom) {
   // unsigned char *b;
   // unsigned char *c;
@@ -648,6 +698,16 @@ void Tracker::LoadSongs(Rom &rom) {
   // w_modf = 0;
 }
 
+/**
+ * @brief Saves a block of edited SpcCommands back into a binary format.
+ * This is the serializer, the inverse of LoadSpcCommand. It walks the linked
+ * list of commands and writes the corresponding bytes into a new SongSpcBlock.
+ * @param rom The ROM object.
+ * @param num The index of the first command to save.
+ * @param songtime The total duration of the song, used for padding.
+ * @param endtr Flag indicating if this is the end of a track.
+ * @return The new virtual address of the saved block.
+ */
 short Tracker::SaveSpcCommand(Rom &rom, short num, short songtime,
                               short endtr) {
   SpcCommand *spc_command = current_spc_command_;
@@ -769,6 +829,18 @@ short Tracker::SaveSpcCommand(Rom &rom, short num, short songtime,
   return 0;
 }
 
+/**
+ * @brief Writes a prepared data block into the ROM file.
+ * This is a utility for SaveSongs, formatting the data with a header
+ * containing the length and target SPC address.
+ * @param rom The ROM object.
+ * @param buf The data to write.
+ * @param len The length of the data.
+ * @param addr The ROM address to write to.
+ * @param spc The target SPC address for this data.
+ * @param limit The upper bound for writing in the ROM.
+ * @return The next available ROM address after writing.
+ */
 int Tracker::WriteSpcData(Rom &rom, void *buf, int len, int addr, int spc,
                           int limit) {
   unsigned char *rom_data = rom.mutable_data();
@@ -797,6 +869,14 @@ int Tracker::WriteSpcData(Rom &rom, void *buf, int len, int addr, int spc,
   return addr + len + 4;
 }
 
+/**
+ * @brief High-level function to save all modified song data back to the ROM.
+ * (Currently commented out, but this would orchestrate the entire save process.)
+ * This function would be responsible for taking all the edited, in-memory
+ * SongSpcBlocks, arranging them into a final binary layout, patching all the
+ * relocated pointers, and writing the result back into the ROM file using
+ * WriteSpcData.
+ */
 void Tracker::SaveSongs(Rom &rom) {
   // int i;
   // int j;
@@ -1245,6 +1325,12 @@ void Tracker::SaveSongs(Rom &rom) {
   // free(ssblt);
 }
 
+/**
+ * @brief Opens an editor window for a specific track.
+ * (Legacy UI-related function)
+ * @param rom The ROM object.
+ * @param i The index of the first command of the track to edit.
+ */
 void Tracker::EditTrack(Rom &rom, short i) {
   int j, k, l;
   SongRange *sr = song_range_;
@@ -1295,6 +1381,12 @@ void Tracker::EditTrack(Rom &rom, short i) {
 // CRITICAL_SECTION cs_song;
 //  =============================================================================
 
+/**
+ * @brief Creates a new, empty song range (SongRange) and opens it for editing.
+ * (Legacy UI-related function)
+ * @param rom The ROM object.
+ * @param bank The target bank for the new song.
+ */
 void Tracker::NewSR(Rom &rom, int bank) {
   SpcCommand *spc_command;
   SongRange *sr;
