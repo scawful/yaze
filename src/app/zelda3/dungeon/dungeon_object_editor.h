@@ -15,7 +15,6 @@
 #include "app/rom.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/dungeon/room_object.h"
-#include "object_renderer.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -150,7 +149,6 @@ class DungeonObjectEditor {
   absl::Status ValidateObjectType(int object_type);
 
   // Rendering and preview
-  absl::StatusOr<gfx::Bitmap> RenderRoom();
   absl::StatusOr<gfx::Bitmap> RenderPreview(int x, int y);
   void SetPreviewPosition(int x, int y);
   void UpdatePreview();
@@ -237,7 +235,6 @@ class DungeonObjectEditor {
   // Member variables
   Rom* rom_;
   std::unique_ptr<Room> current_room_;
-  std::unique_ptr<ObjectRenderer> renderer_;
 
   SelectionState selection_state_;
   EditingState editing_state_;

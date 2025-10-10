@@ -104,7 +104,6 @@ class DungeonCanvasViewer {
   void CalculateWallDimensions(const zelda3::RoomObject& object, int& width, int& height);
   
   // Visualization
-  void DrawRoomLayout(zelda3::Room& room);  // Non-const to call LoadLayout
   void DrawObjectPositionOutlines(const zelda3::Room& room);
   
   // Room graphics management
@@ -155,13 +154,14 @@ class DungeonCanvasViewer {
   std::vector<ObjectRenderCache> object_render_cache_;
   uint64_t last_palette_hash_ = 0;
   
-  // Debug state (persistent between frames for debug windows)
+  // Debug state flags
   bool show_room_debug_info_ = false;
   bool show_texture_debug_ = false;
   bool show_object_bounds_ = false;
   bool show_layer_info_ = false;
-  
-  // Object outline category toggles
+  int layout_override_ = -1; // -1 for no override
+
+  // Object outline filtering toggles
   struct ObjectOutlineToggles {
     bool show_type1_objects = true;   // Standard objects (0x00-0xFF)
     bool show_type2_objects = true;   // Extended objects (0x100-0x1FF)

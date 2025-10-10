@@ -481,7 +481,6 @@ absl::Status HandleDungeonDescribeRoomCommand(
   room.LoadObjects();
   room.LoadSprites();
 
-  auto dimensions = room.GetLayout().GetDimensions();
   const auto& sprites = room.GetSprites();
   const auto& chests = room.GetChests();
   const auto& stairs = room.GetStairs();
@@ -537,8 +536,6 @@ absl::Status HandleDungeonDescribeRoomCommand(
     std::cout << absl::StrFormat("  \"name\": \"%s\",\n", room_name);
     std::cout << absl::StrFormat("  \"light\": %s,\n",
                                   room.IsLight() ? "true" : "false");
-    std::cout << absl::StrFormat("  \"layout\": {\"width\": %d, \"height\": %d},\n",
-                                  dimensions.first, dimensions.second);
     std::cout << absl::StrFormat(
         "  \"counts\": {\"sprites\": %zu, \"chests\": %zu, \"stairs\": %zu, \"tile_objects\": %zu},\n",
         sprite_count, chest_count, stair_count, object_count);
@@ -609,10 +606,6 @@ absl::Status HandleDungeonDescribeRoomCommand(
     std::cout << "}\n";
   } else {
     std::cout << absl::StrFormat("🏰 Room 0x%03X — %s\n", room_id, room_name);
-    std::cout << absl::StrFormat(
-        "  Layout: %d×%d tiles | Lighting: %s\n",
-        dimensions.first, dimensions.second,
-        room.IsLight() ? "light" : "dark");
     std::cout << absl::StrFormat(
         "  Sprites: %zu  Chests: %zu  Stairs: %zu  Tile Objects: %zu\n",
         sprite_count, chest_count, stair_count, object_count);

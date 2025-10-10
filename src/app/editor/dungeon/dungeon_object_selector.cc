@@ -10,7 +10,6 @@
 #include "app/gui/canvas.h"
 #include "app/gui/modules/asset_browser.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/object_renderer.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/dungeon/dungeon_editor_system.h"
 #include "app/zelda3/dungeon/dungeon_object_editor.h"

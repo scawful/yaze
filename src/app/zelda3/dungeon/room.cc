@@ -182,9 +182,6 @@ Room LoadRoomFromRom(Rom *rom, int room_id) {
   int spr_ptr = 0x040000 | rooms_sprite_pointer;
   int sprite_address = SnesToPc(dungeon_spr_ptrs | spr_ptr + (room_id * 2));
 
-  // Load room layout
-  room.LoadRoomLayout();
-  
   // Load additional room features
   room.LoadDoors();
   room.LoadTorches();
@@ -284,6 +281,7 @@ void Room::CopyRoomGraphicsToBuffer() {
 
 void Room::RenderRoomGraphics() {
   CopyRoomGraphicsToBuffer();
+  LoadLayoutTilesToBuffer();
   
   // Debug: Log floor graphics values
   LOG_DEBUG("[RenderRoomGraphics]", "Room %d: floor1=%d, floor2=%d, blocks_size=%zu", 
@@ -298,13 +296,7 @@ void Room::RenderRoomGraphics() {
   bg2_buffer_.DrawFloor(rom()->vector(), tile_address,
                         tile_address_floor, floor2_graphics_);
 
-  // STEP 2: Load layout tiles into tile buffer before DrawBackground
-  // This populates the buffer with wall/structure tiles from the layout
-  // DISABLED: Layout tiles are overwriting object graphics
-  // TODO: Research layout data format properly before re-enabling
-  // LoadLayoutTilesToBuffer();
-
-  // STEP 3: Draw background tiles (walls from layout) to buffers
+  // STEP 2: Draw background tiles (walls/structure) to buffers
   bg1_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
   bg2_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
 
@@ -366,6 +358,48 @@ void Room::RenderRoomGraphics() {
   LOG_DEBUG("[RenderRoomGraphics]", "Processed texture queue immediately");
 }
 
+void Room::LoadLayoutTilesToBuffer() {
+  LOG_DEBUG("RenderRoomGraphics", "LoadLayoutTilesToBuffer START for room %d", room_id_);
+
+  if (!rom_ || !rom_->is_loaded()) {
+    LOG_DEBUG("RenderRoomGraphics", "ROM not loaded, aborting");
+    return;
+  }
+
+  const auto& layout_objects = layout_.GetObjects();
+  LOG_DEBUG("RenderRoomGraphics", "Layout has %zu objects", layout_objects.size());
+  if (layout_objects.empty()) {
+    return;
+  }
+
+  int tiles_written_bg1 = 0;
+  int tiles_written_bg2 = 0;
+  int tiles_skipped = 0;
+
+  for (const auto& layout_obj : layout_objects) {
+    uint8_t x = layout_obj.x();
+    uint8_t y = layout_obj.y();
+
+    auto tile_result = layout_obj.GetTile(0);
+    if (!tile_result.ok()) {
+      tiles_skipped++;
+      continue;
+    }
+    const auto* tile16 = tile_result.value();
+    uint16_t tile_word = gfx::TileInfoToWord(tile16->tile0_);
+
+    if (layout_obj.GetLayerValue() == 1) {
+      bg2_buffer_.SetTileAt(x, y, tile_word);
+      tiles_written_bg2++;
+    } else {
+      bg1_buffer_.SetTileAt(x, y, tile_word);
+      tiles_written_bg1++;
+    }
+  }
+
+  LOG_DEBUG("RenderRoomGraphics", "Layout tiles: BG1=%d BG2=%d skipped=%d", tiles_written_bg1, tiles_written_bg2, tiles_skipped);
+}
+
 void Room::RenderObjectsToBackground() {
   LOG_DEBUG("[RenderObjectsToBackground]", "Starting object rendering");
   
@@ -393,7 +427,8 @@ void Room::RenderObjectsToBackground() {
   }
   
   auto room_palette = dungeon_pal_group[palette_id];
-  auto palette_group_result = gfx::CreatePaletteGroupFromLargePalette(room_palette);
+  // Dungeon palettes are 16-color sub-palettes. Split the 90-color palette into 16-color groups.
+  auto palette_group_result = gfx::CreatePaletteGroupFromLargePalette(room_palette, 16);
   if (!palette_group_result.ok()) {
     // Fallback to empty palette group
     gfx::PaletteGroup empty_group;
@@ -873,85 +908,6 @@ void Room::LoadChests() {
           chest_data{rom_data[cpos + (i * 3) + 2], big});
     }
   }
-}
-
-void Room::LoadRoomLayout() {
-  // Use the new RoomLayout system to load walls, floors, and structural elements
-  auto status = layout_.LoadLayout(room_id_);
-  if (!status.ok()) {
-    // Log error but don't fail - some rooms might not have layout data
-    return;
-  }
-  
-  // Store the layout ID for compatibility with existing code
-  layout = static_cast<uint8_t>(room_id_ & 0xFF);
-}
-
-void Room::LoadLayoutTilesToBuffer() {
-  // Load layout tiles into the BackgroundBuffer tile buffers
-  // This populates the buffer with wall/structure tile IDs from the layout
-  
-  LOG_DEBUG("RenderRoomGraphics", "LoadLayoutTilesToBuffer START for room %d", room_id_);
-  
-  if (!rom_ || !rom_->is_loaded()) {
-    LOG_DEBUG("RenderRoomGraphics", "ROM not loaded, aborting");
-    return;
-  }
-  
-  // Get layout data
-  auto& layout_objects = layout_.GetObjects();
-  LOG_DEBUG("RenderRoomGraphics", "Layout has %zu objects", layout_objects.size());
-  
-  if (layout_objects.empty()) {
-    LOG_DEBUG("RenderRoomGraphics", "No layout objects for room %d", room_id_);
-    return;
-  }
-  
-  int tiles_written_bg1 = 0;
-  int tiles_written_bg2 = 0;
-  int tiles_skipped = 0;
-  
-  // Write each layout object's tile to the appropriate buffer
-  for (const auto& layout_obj : layout_objects) {
-    uint8_t x = layout_obj.x();
-    uint8_t y = layout_obj.y();
-    
-    // Get the tile16 for this layout object, passing room graphics buffer
-    auto tile_result = layout_obj.GetTile(current_gfx16_.data());
-    if (!tile_result.ok()) {
-      tiles_skipped++;
-      continue;  // Skip objects that don't have valid tiles
-    }
-    
-    auto& tile16 = tile_result.value();
-    
-    // Convert Tile16 to a 16-bit tile ID word (use first tile)
-    uint16_t tile_word = gfx::TileInfoToWord(tile16.tile0_);
-    
-    // Debug first few tiles to verify data
-    if (tiles_written_bg1 + tiles_written_bg2 < 5) {
-      LOG_DEBUG("RenderRoomGraphics", "Layout tile[%d] at (%d,%d): ID=0x%04X, palette=%d, type=%d, layer=%d", 
-               tiles_written_bg1 + tiles_written_bg2, x, y, tile16.tile0_.id_, tile16.tile0_.palette_, 
-               static_cast<int>(layout_obj.type()), layout_obj.layer());
-    }
-    
-    // Determine which buffer based on layer
-    auto* target_buffer = &bg1_buffer_;
-    if (layout_obj.layer() == 1) {
-      target_buffer = &bg2_buffer_;
-      tiles_written_bg2++;
-    } else {
-      tiles_written_bg1++;
-    }
-    
-    // Write tile ID to buffer at position (x, y)
-    if (x < 64 && y < 64) {  // 64x64 tiles = 512x512 pixels
-      target_buffer->SetTileAt(x, y, tile_word);
-    }
-  }
-  
-  LOG_DEBUG("RenderRoomGraphics", "Wrote %d BG1 tiles, %d BG2 tiles, skipped %d", 
-           tiles_written_bg1, tiles_written_bg2, tiles_skipped);
 }
 
 void Room::LoadDoors() {
