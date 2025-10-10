@@ -408,6 +408,16 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::Checkbox("BG2 Visible", &layer_settings.bg2_visible);
       ImGui::SliderInt("BG2 Type", &layer_settings.bg2_layer_type, 0, 4);
       
+      ImGui::Separator();
+      ImGui::Text("Layout Override");
+      static bool enable_override = false;
+      ImGui::Checkbox("Enable Override", &enable_override);
+      if (enable_override) {
+        ImGui::SliderInt("Layout ID", &layout_override_, 0, 7);
+      } else {
+        layout_override_ = -1; // Disable override
+      }
+
       if (show_object_bounds_) {
         ImGui::Separator();
         ImGui::Text("Object Outline Filters");
@@ -523,11 +533,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
     
-    // DISABLED: Room layout drawing - causes visual clutter
-    // Layout tiles (2793) render over everything and obscure objects
-    // if (show_layout_overlay_) {
-    //   DrawRoomLayout(room);
-    // }
+    // Draw the room layout first as the base layer
     
     // VISUALIZATION: Draw object position rectangles (for debugging)
     // This shows where objects are placed regardless of whether graphics render
@@ -693,60 +699,6 @@ void DungeonCanvasViewer::CalculateWallDimensions(const zelda3::RoomObject& obje
 }
 
 // Room layout visualization
-void DungeonCanvasViewer::DrawRoomLayout(zelda3::Room& room) {
-  // Draw room layout structural elements (walls, floors, pits)
-  // This is the immovable BASE LAYER that defines room structure
-  
-  auto& layout = room.GetLayout();
-  
-  // Ensure layout is loaded (critical!)
-  if (layout.GetObjects().empty()) {
-    auto status = layout.LoadLayout(room.id());
-    if (!status.ok()) {
-      LOG_DEBUG("[DrawRoomLayout]", "Failed to load layout: %s", status.message().data());
-      return;
-    }
-  }
-  
-  // Get structural elements by type
-  auto walls = layout.GetObjectsByType(zelda3::RoomLayoutObject::Type::kWall);
-  auto floors = layout.GetObjectsByType(zelda3::RoomLayoutObject::Type::kFloor);
-  auto pits = layout.GetObjectsByType(zelda3::RoomLayoutObject::Type::kPit);
-  auto water = layout.GetObjectsByType(zelda3::RoomLayoutObject::Type::kWater);
-  auto doors = layout.GetObjectsByType(zelda3::RoomLayoutObject::Type::kDoor);
-  
-  LOG_DEBUG("[DrawRoomLayout]", "Layout elements: %zu walls, %zu floors, %zu pits, %zu water, %zu doors",
-           walls.size(), floors.size(), pits.size(), water.size(), doors.size());
-  
-  // IMPORTANT: Use UNSCALED dimensions - canvas drawing functions apply scale internally
-  constexpr int kTileSize = 8;  // Dungeon tiles are 8x8 pixels (UNSCALED)
-  
-  // Draw walls (dark gray, semi-transparent) - immovable structure
-  for (const auto& wall : walls) {
-    auto [x, y] = RoomToCanvasCoordinates(wall.x(), wall.y());
-    canvas_.DrawRect(x, y, kTileSize, kTileSize, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
-  }
-  
-  // Draw pits (orange warning) - damage zones
-  for (const auto& pit : pits) {
-    auto [x, y] = RoomToCanvasCoordinates(pit.x(), pit.y());
-    canvas_.DrawRect(x, y, kTileSize, kTileSize, ImVec4(1.0f, 0.4f, 0.0f, 0.6f));
-  }
-  
-  // Draw water (blue, semi-transparent)
-  for (const auto& water_tile : water) {
-    auto [x, y] = RoomToCanvasCoordinates(water_tile.x(), water_tile.y());
-    canvas_.DrawRect(x, y, kTileSize, kTileSize, ImVec4(0.2f, 0.4f, 0.8f, 0.5f));
-  }
-  
-  // Draw doors (purple) - connection points
-  for (const auto& door : doors) {
-    auto [x, y] = RoomToCanvasCoordinates(door.x(), door.y());
-    canvas_.DrawRect(x, y, kTileSize, kTileSize, ImVec4(0.8f, 0.2f, 0.8f, 0.7f));
-    // Text is drawn in logical space, canvas scales it
-    canvas_.DrawText("DOOR", x + 2, y + 2);
-  }
-}
 
 // Object visualization methods
 void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
@@ -859,8 +811,9 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
       current_palette_group_id_ = palette_id.value() / 180;
       if (current_palette_group_id_ < rom_->palette_group().dungeon_main.size()) {
         auto full_palette = rom_->palette_group().dungeon_main[current_palette_group_id_];
+        // TODO: Fix palette assignment to buffer.
         ASSIGN_OR_RETURN(current_palette_group_,
-                         gfx::CreatePaletteGroupFromLargePalette(full_palette));
+                     gfx::CreatePaletteGroupFromLargePalette(full_palette, 16));
         LOG_DEBUG("[LoadAndRender]", "Palette loaded: group_id=%zu", current_palette_group_id_);
       }
     }

@@ -14,7 +14,6 @@ namespace yaze {
 namespace zelda3 {
 
 DungeonObjectEditor::DungeonObjectEditor(Rom* rom) : rom_(rom) {
-  renderer_ = std::make_unique<ObjectRenderer>(rom);
 }
 
 absl::Status DungeonObjectEditor::InitializeEditor() {
@@ -1153,27 +1152,6 @@ absl::Status DungeonObjectEditor::HandleDragOperation(int current_x, int current
   return absl::OkStatus();
 }
 
-absl::StatusOr<gfx::Bitmap> DungeonObjectEditor::RenderRoom() {
-  if (current_room_ == nullptr) {
-    return absl::FailedPreconditionError("No room loaded");
-  }
-  
-  // Create a palette for rendering
-  gfx::SnesPalette palette;
-  for (int i = 0; i < 16; i++) {
-    int intensity = i * 16;
-    palette.AddColor(gfx::SnesColor(intensity, intensity, intensity));
-  }
-  
-  // Render room objects
-  auto result = renderer_->RenderObjects(current_room_->GetTileObjects(), palette);
-  if (!result.ok()) {
-    return result.status();
-  }
-  
-  return result.value();
-}
-
 absl::Status DungeonObjectEditor::ValidateRoom() {
   if (current_room_ == nullptr) {
     return absl::FailedPreconditionError("No room loaded for validation");
@@ -1213,9 +1191,6 @@ void DungeonObjectEditor::SetConfig(const EditorConfig& config) {
 
 void DungeonObjectEditor::SetROM(Rom* rom) {
   rom_ = rom;
-  if (renderer_) {
-    renderer_->SetROM(rom);
-  }
   // Reinitialize editor with new ROM
   InitializeEditor();
 }

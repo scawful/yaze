@@ -155,20 +155,17 @@ int RoomObject::GetTileCount() const {
 // Object Encoding/Decoding Implementation (Phase 1, Task 1.1)
 // ============================================================================
 
-int RoomObject::DetermineObjectType(uint8_t b1, uint8_t b3) {
+int RoomObject::DetermineObjectType(uint8_t /* b1 */, uint8_t b3) {
   // Type 3: Objects with ID >= 0xF00
   // These have b3 >= 0xF8 (top nibble is 0xF)
   if (b3 >= 0xF8) {
     return 3;
   }
   
-  // Type 2: Objects with ID >= 0x100
-  // These have b1 >= 0xFC (marker for Type2 encoding)
-  if (b1 >= 0xFC) {
-    return 2;
-  }
+  // Type 1: Standard objects (ID 0x00-0xFF) - check this first
+  // Type 2: Objects with ID >= 0x100 (these have b1 >= 0xFC)
+  // We'll handle Type 2 in the decoding logic after Type 1
   
-  // Type 1: Standard objects (ID 0x00-0xFF)
   return 1;
 }
 
@@ -179,39 +176,36 @@ RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
   uint8_t size = 0;
   uint16_t id = 0;
 
-  int type = DetermineObjectType(b1, b3);
-
-  switch (type) {
-    case 1:  // Type1: xxxxxxss yyyyyyss iiiiiiii
-      x = (b1 & 0xFC) >> 2;
-      y = (b2 & 0xFC) >> 2;
-      size = ((b1 & 0x03) << 2) | (b2 & 0x03);
-      id = b3;
-      break;
-
-    case 2:  // Type2: 111111xx xxxxyyyy yyiiiiii
-      x = ((b1 & 0x03) << 4) | ((b2 & 0xF0) >> 4);
+  // Follow ZScream's parsing logic exactly
+  if (b3 >= 0xF8) {
+    // Type 3: xxxxxxii yyyyyyii 11111iii
+    // ZScream: oid = (ushort)((b3 << 4) | 0x80 + (((b2 & 0x03) << 2) + ((b1 & 0x03))));
+    id = (static_cast<uint16_t>(b3) << 4) | 0x80 | 
+         ((static_cast<uint16_t>(b2 & 0x03) << 2) + (b1 & 0x03));
+    x = (b1 & 0xFC) >> 2;
+    y = (b2 & 0xFC) >> 2;
+    size = ((b1 & 0x03) << 2) | (b2 & 0x03);
+    LOG_DEBUG("ObjectParser", "Type3: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d", 
+              b1, b2, b3, id, x, y, size);
+  } else {
+    // Type 1: xxxxxxss yyyyyyss iiiiiiii
+    id = b3;
+    x = (b1 & 0xFC) >> 2;
+    y = (b2 & 0xFC) >> 2;
+    size = ((b1 & 0x03) << 2) | (b2 & 0x03);
+    
+    // Check for Type 2 override: 111111xx xxxxyyyy yyiiiiii
+    if (b1 >= 0xFC) {
+      id = (b3 & 0x3F) | 0x100;
+      x = ((b2 & 0xF0) >> 4) | ((b1 & 0x03) << 4);
       y = ((b2 & 0x0F) << 2) | ((b3 & 0xC0) >> 6);
       size = 0;
-      id = (b3 & 0x3F) | 0x100;
-      break;
-
-    case 3:  // Type3: xxxxxxii yyyyyyii 11111iii
-      x = (b1 & 0xFC) >> 2;
-      y = (b2 & 0xFC) >> 2;
-      size = 0;  // Type 3 has no size parameter in this encoding
-      id = (static_cast<uint16_t>(b3) << 4) |
-           ((static_cast<uint16_t>(b2 & 0x03)) << 2) |
-           (static_cast<uint16_t>(b1 & 0x03));
-      // The above is a direct reversal of the encoding logic.
-      // However, ZScream uses a slightly different formula which seems to be the source of truth.
-      // ZScream: id = ((b3 << 4) & 0xF00) | ((b2 & 0x03) << 2) | (b1 & 0x03) | 0x80;
-      // Let's use the ZScream one as it's the reference.
-      id = (static_cast<uint16_t>(b3 & 0x0F) << 8) |
-           ((static_cast<uint16_t>(b2 & 0x03)) << 6) |
-           ((static_cast<uint16_t>(b1 & 0x03)) << 4) |
-           (static_cast<uint16_t>(b3 >> 4));
-      break;
+      LOG_DEBUG("ObjectParser", "Type2: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d", 
+                b1, b2, b3, id, x, y, size);
+    } else {
+      LOG_DEBUG("ObjectParser", "Type1: b1=%02X b2=%02X b3=%02X -> id=%04X x=%d y=%d size=%d", 
+                b1, b2, b3, id, x, y, size);
+    }
   }
 
   return RoomObject(static_cast<int16_t>(id), x, y, size, layer);

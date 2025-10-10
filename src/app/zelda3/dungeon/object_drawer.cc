@@ -45,7 +45,10 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
   // Look up draw routine for this object
   int routine_id = GetDrawRoutineId(object.id_);
   
+  LOG_DEBUG("ObjectDrawer", "Object %04X -> routine_id=%d", object.id_, routine_id);
+  
   if (routine_id < 0 || routine_id >= static_cast<int>(draw_routines_.size())) {
+    LOG_DEBUG("ObjectDrawer", "Using fallback 1x1 drawing for object %04X", object.id_);
     // Fallback to simple 1x1 drawing using first 8x8 tile
     if (!mutable_obj.tiles().empty()) {
       const auto& tile16 = mutable_obj.tiles()[0];
@@ -54,6 +57,7 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
     return absl::OkStatus();
   }
   
+  LOG_DEBUG("ObjectDrawer", "Executing draw routine %d for object %04X", routine_id, object.id_);
   // Execute the appropriate draw routine
   draw_routines_[routine_id](this, object, target_bg, mutable_obj.tiles());
 
@@ -78,196 +82,110 @@ absl::Status ObjectDrawer::DrawObjectList(
 // ============================================================================
 
 void ObjectDrawer::InitializeDrawRoutines() {
-  // Initialize draw routine registry based on ZScream's subtype1_routines table
-  // This maps object IDs to draw routine indices (0-24)
-  
-  // Routine 0: RoomDraw_Rightwards2x2_1to15or32
-  for (int id = 0x00; id <= 0x00; id++) {
-    object_to_routine_map_[id] = 0;
-  }
-  
-  // Routine 1: RoomDraw_Rightwards2x4_1to15or26  
-  for (int id = 0x01; id <= 0x02; id++) {
-    object_to_routine_map_[id] = 1;
-  }
-  
-  // Routine 2: RoomDraw_Rightwards2x4spaced4_1to16
-  for (int id = 0x03; id <= 0x04; id++) {
-    object_to_routine_map_[id] = 2;
-  }
-  
-  // Routine 3: RoomDraw_Rightwards2x4spaced4_1to16_BothBG
-  for (int id = 0x05; id <= 0x06; id++) {
-    object_to_routine_map_[id] = 3;
-  }
-  
-  // Routine 4: RoomDraw_Rightwards2x2_1to16
-  for (int id = 0x07; id <= 0x08; id++) {
-    object_to_routine_map_[id] = 4;
-  }
-  
-  // Routine 5: RoomDraw_DiagonalAcute_1to16
-  for (int id = 0x09; id <= 0x09; id++) {
-    object_to_routine_map_[id] = 5;
-  }
-  
-  // Routine 6: RoomDraw_DiagonalGrave_1to16
-  for (int id = 0x0A; id <= 0x0B; id++) {
-    object_to_routine_map_[id] = 6;
-  }
-  
-  // Routine 7: RoomDraw_Downwards2x2_1to15or32 (object 0x60)
-  for (int id = 0x60; id <= 0x60; id++) {
-    object_to_routine_map_[id] = 7;
-  }
-  
-  // Routine 8: RoomDraw_Downwards4x2_1to15or26 (objects 0x61-0x62)
-  for (int id = 0x61; id <= 0x62; id++) {
-    object_to_routine_map_[id] = 8;
-  }
-  
-  // Routine 9: RoomDraw_Downwards4x2_1to16_BothBG (objects 0x63-0x64)
-  for (int id = 0x63; id <= 0x64; id++) {
-    object_to_routine_map_[id] = 9;
-  }
-  
-  // Routine 10: RoomDraw_DownwardsDecor4x2spaced4_1to16 (objects 0x65-0x66)
-  for (int id = 0x65; id <= 0x66; id++) {
-    object_to_routine_map_[id] = 10;
-  }
-  
-  // Routine 11: RoomDraw_Downwards2x2_1to16 (objects 0x67-0x68)
-  for (int id = 0x67; id <= 0x68; id++) {
-    object_to_routine_map_[id] = 11;
-  }
-  
-  // Routine 12: RoomDraw_DownwardsHasEdge1x1_1to16_plus3 (object 0x69)
-  for (int id = 0x69; id <= 0x69; id++) {
-    object_to_routine_map_[id] = 12;
-  }
-  
-  // Routine 13: RoomDraw_DownwardsEdge1x1_1to16 (objects 0x6A-0x6B)
-  for (int id = 0x6A; id <= 0x6B; id++) {
-    object_to_routine_map_[id] = 13;
-  }
-  
-  // Routine 14: RoomDraw_DownwardsLeftCorners2x1_1to16_plus12 (object 0x6C)
-  for (int id = 0x6C; id <= 0x6C; id++) {
-    object_to_routine_map_[id] = 14;
-  }
-  
-  // Routine 15: RoomDraw_DownwardsRightCorners2x1_1to16_plus12 (object 0x6D)
-  for (int id = 0x6D; id <= 0x6D; id++) {
-    object_to_routine_map_[id] = 15;
-  }
-  
-  // Continue mapping more object IDs...
-  // (This is a simplified version - the full table has 248 entries)
-  
-  // Initialize draw routine function array
+  // This function maps object IDs to their corresponding draw routines.
+  // The mapping is based on ZScream's DungeonObjectData.cs and the game's assembly code.
+  // The order of functions in draw_routines_ MUST match the indices used here.
+
+  object_to_routine_map_.clear();
   draw_routines_.clear();
-  draw_routines_.reserve(25);
+
+  // Subtype 1 Object Mappings (Horizontal)
+  object_to_routine_map_[0x00] = 0;
+  for (int id = 0x01; id <= 0x02; id++) { object_to_routine_map_[id] = 1; }
+  for (int id = 0x03; id <= 0x04; id++) { object_to_routine_map_[id] = 2; }
+  for (int id = 0x05; id <= 0x06; id++) { object_to_routine_map_[id] = 3; }
+  for (int id = 0x07; id <= 0x08; id++) { object_to_routine_map_[id] = 4; }
+  object_to_routine_map_[0x09] = 5;
+  for (int id = 0x0A; id <= 0x0B; id++) { object_to_routine_map_[id] = 6; }
   
+  // Subtype 1 Object Mappings (Vertical)
+  object_to_routine_map_[0x60] = 7;
+  for (int id = 0x61; id <= 0x62; id++) { object_to_routine_map_[id] = 8; }
+  for (int id = 0x63; id <= 0x64; id++) { object_to_routine_map_[id] = 9; }
+  for (int id = 0x65; id <= 0x66; id++) { object_to_routine_map_[id] = 10; }
+  for (int id = 0x67; id <= 0x68; id++) { object_to_routine_map_[id] = 11; }
+  object_to_routine_map_[0x69] = 12;
+  for (int id = 0x6A; id <= 0x6B; id++) { object_to_routine_map_[id] = 13; }
+  object_to_routine_map_[0x6C] = 14;
+  object_to_routine_map_[0x6D] = 15;
+
+  // Subtype 2 Object Mappings
+  for (int id = 0x100; id <= 0x10F; id++) { object_to_routine_map_[id] = 16; }
+
+  // Additional object mappings from logs
+  object_to_routine_map_[0x33] = 16;
+  object_to_routine_map_[0xC6] = 7; // Vertical draw
+
+  // Initialize draw routine function array in the correct order
+  draw_routines_.reserve(35);
+  
+  // Routine 0
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawRightwards2x2_1to15or32(obj, bg, tiles);
   });
+  // Routine 1
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawRightwards2x4_1to15or26(obj, bg, tiles);
   });
+  // Routine 2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawRightwards2x4spaced4_1to16(obj, bg, tiles);
   });
+  // Routine 3
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawRightwards2x4spaced4_1to16_BothBG(obj, bg, tiles);
   });
+  // Routine 4
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawRightwards2x2_1to16(obj, bg, tiles);
   });
+  // Routine 5
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawDiagonalAcute_1to16(obj, bg, tiles);
   });
+  // Routine 6
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawDiagonalGrave_1to16(obj, bg, tiles);
   });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawDiagonalAcute_1to16_BothBG(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawDiagonalGrave_1to16_BothBG(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwards1x2_1to16_plus2(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwardsHasEdge1x1_1to16_plus3(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwardsHasEdge1x1_1to16_plus2(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwardsTopCorners1x2_1to16_plus13(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwardsBottomCorners1x2_1to16_plus13(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->CustomDraw(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwards4x4_1to16(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwards1x1Solid_1to16_plus3(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawDoorSwitcherer(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwardsDecor4x4spaced2_1to16(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwardsStatue2x3spaced2_1to16(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwardsPillar2x4spaced4_1to16(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwardsDecor4x3spaced4_1to16(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwardsDoubled2x2spaced2_1to16(obj, bg, tiles);
-  });
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
-    self->DrawRightwardsDecor2x2spaced12_1to16(obj, bg, tiles);
-  });
-  
-  // Add missing Downwards routines
+  // Routine 7
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawDownwards2x2_1to15or32(obj, bg, tiles);
   });
+  // Routine 8
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawDownwards4x2_1to15or26(obj, bg, tiles);
   });
+  // Routine 9
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawDownwards4x2_1to16_BothBG(obj, bg, tiles);
   });
+  // Routine 10
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawDownwardsDecor4x2spaced4_1to16(obj, bg, tiles);
   });
+  // Routine 11
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawDownwards2x2_1to16(obj, bg, tiles);
   });
+  // Routine 12
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawDownwardsHasEdge1x1_1to16_plus3(obj, bg, tiles);
   });
+  // Routine 13
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawDownwardsEdge1x1_1to16(obj, bg, tiles);
   });
+  // Routine 14
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawDownwardsLeftCorners2x1_1to16_plus12(obj, bg, tiles);
   });
+  // Routine 15
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawDownwardsRightCorners2x1_1to16_plus12(obj, bg, tiles);
+  });
+  // Routine 16
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
+    self->DrawRightwards4x4_1to16(obj, bg, tiles);
   });
   
   routines_initialized_ = true;
@@ -732,9 +650,28 @@ void ObjectDrawer::DrawDownwards4x2_1to15or26(const RoomObject& obj, gfx::Backgr
   int size = obj.size_;
   if (size == 0) size = 26;  // Special case
   
+  LOG_DEBUG("ObjectDrawer", "DrawDownwards4x2_1to15or26: obj=%04X tiles=%zu size=%d", 
+            obj.id_, tiles.size(), size);
+  
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 1) {
-      // Draw 4x2 pattern using 8x8 tiles from the first Tile16
+    if (tiles.size() >= 2) {
+      // Draw 4x2 pattern using 8 tiles from 2 Tile16s (like ZScream)
+      const auto& tile16_0 = tiles[0];
+      const auto& tile16_1 = tiles[1];
+      
+      // Top row: tiles 0,1,2,3
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tile16_0.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tile16_0.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2), tile16_0.tile2_);  // Top-middle-left
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2), tile16_0.tile3_);  // Top-middle-right
+      
+      // Bottom row: tiles 4,5,6,7
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tile16_1.tile0_);  // Bottom-left
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1, tile16_1.tile1_); // Bottom-right
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2) + 1, tile16_1.tile2_); // Bottom-middle-left
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2) + 1, tile16_1.tile3_); // Bottom-middle-right
+    } else if (tiles.size() >= 1) {
+      // Fallback: use only first Tile16
       const auto& tile16 = tiles[0];
       WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tile16.tile0_);      // Top-left
       WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tile16.tile1_);  // Top-right
@@ -863,19 +800,9 @@ void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
     return; // Bitmap not ready
   }
 
-  // Get graphics data - prefer room-specific buffer if available
-  const uint8_t* gfx_data = nullptr;
-  
-  if (room_gfx_buffer_) {
-    // Use room-specific graphics buffer (current_gfx16_)
-    gfx_data = room_gfx_buffer_;
-  } else if (rom_ && rom_->is_loaded()) {
-    // Fallback to ROM graphics buffer
-    auto rom_gfx = rom_->mutable_graphics_buffer();
-    if (rom_gfx && !rom_gfx->empty()) {
-      gfx_data = rom_gfx->data();
-    }
-  }
+  // The room-specific graphics buffer (current_gfx16_) contains the assembled
+  // tile graphics for the current room. Object tile IDs are relative to this buffer.
+  const uint8_t* gfx_data = room_gfx_buffer_;
   
   if (!gfx_data) {
     LOG_DEBUG("ObjectDrawer", "ERROR: No graphics data available");
@@ -907,16 +834,8 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& ti
   int tile_sheet_x = (tile_info.id_ % 16) * 8;  // 16 tiles per row
   int tile_sheet_y = (tile_info.id_ / 16) * 8;  // Each row is 16 tiles
   
-  // CRITICAL: Dungeon palettes are 90 colors organized as:
-  // - 10 sub-palettes of 8 colors each (0-79)
-  // - Plus 10 additional colors (80-89)
-  // Each tile uses palette field (0-10) to select which 8-color sub-palette
-  uint8_t palette_id = tile_info.palette_ & 0x0F;  // 0-15 possible
-  if (palette_id > 10) palette_id = 10;  // Clamp to 0-10 for dungeons
-  
-  // Calculate color offset in dungeon palette
-  // For dungeon: palette 0 = colors 0-7, palette 1 = colors 8-15, etc.
-  uint8_t palette_offset = palette_id * 8;
+  // Palettes are 3bpp (8 colors). Convert palette index to base color offset.
+  uint8_t palette_offset = (tile_info.palette_ & 0x0F) * 8;
   
   // Draw 8x8 pixels
   for (int py = 0; py < 8; py++) {
@@ -928,9 +847,10 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& ti
       // Read pixel from graphics sheet
       int src_index = (tile_sheet_y + src_y) * 128 + (tile_sheet_x + src_x);
       uint8_t pixel_index = tiledata[src_index];
-      
-              // Apply palette and write to bitmap
-              uint8_t final_color = pixel_index + palette_offset;
+      if (pixel_index == 0) {
+        continue;
+      }
+      uint8_t final_color = pixel_index + palette_offset;
       int dest_x = pixel_x + px;
       int dest_y = pixel_y + py;
       

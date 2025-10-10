@@ -10,8 +10,8 @@
 #include "app/rom.h"
 #include "app/gfx/background_buffer.h"
 #include "app/zelda3/dungeon/dungeon_rom_addresses.h"
-#include "app/zelda3/dungeon/room_layout.h"
 #include "app/zelda3/dungeon/room_object.h"
+#include "app/zelda3/dungeon/room_layout.h"
 #include "app/zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -182,7 +182,7 @@ enum TagKey {
 class Room {
  public:
   Room() = default;
-  Room(int room_id, Rom* rom) : room_id_(room_id), rom_(rom), layout_(rom) {}
+  Room(int room_id, Rom* rom) : room_id_(room_id), rom_(rom) {}
 
   void LoadRoomGraphics(uint8_t entrance_blockset = 0xFF);
   void CopyRoomGraphicsToBuffer();
@@ -193,15 +193,13 @@ class Room {
   void LoadObjects();
   void LoadSprites();
   void LoadChests();
-  void LoadRoomLayout();
-  void LoadLayoutTilesToBuffer();  // NEW: Write layout tiles to BG tile buffers
   void LoadDoors();
   void LoadTorches();
   void LoadBlocks();
   void LoadPits();
+  void LoadRoomLayout();
+  void LoadLayoutTilesToBuffer();
 
-  const RoomLayout& GetLayout() const { return layout_; }
-  RoomLayout& GetLayout() { return layout_; }
 
   // Public getters and manipulators for sprites
   const std::vector<zelda3::Sprite>& GetSprites() const { return sprites_; }
@@ -214,6 +212,8 @@ class Room {
   // Public getters and manipulators for stairs
   const std::vector<staircase>& GetStairs() const { return z3_staircases_; }
   std::vector<staircase>& GetStairs() { return z3_staircases_; }
+
+  const RoomLayout& GetLayout() const { return layout_; }
 
 
   // Public getters and manipulators for tile objects
@@ -385,9 +385,8 @@ class Room {
   std::vector<zelda3::Sprite> sprites_;
   std::vector<staircase> z3_staircases_;
   std::vector<chest_data> chests_in_room_;
-
-  // Room layout system for walls, floors, and structural elements
   RoomLayout layout_;
+
 
   LayerMergeType layer_merging_;
   CollisionKey collision_;

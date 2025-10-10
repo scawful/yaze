@@ -83,6 +83,9 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
       
       // Apply palette offset and write to canvas
       // For 3BPP: final color = base_pixel (0-7) + palette_offset (0, 8, 16, 24, ...)
+      if (pixel_index == 0) {
+        continue;
+      }
       uint8_t final_color = pixel_index + palette_offset;
       int dest_index = indexoffset + (py * width_) + px;
       canvas[dest_index] = final_color;
