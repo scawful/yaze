@@ -290,8 +290,8 @@ void Room::RenderRoomGraphics() {
   LOG_DEBUG("[RenderRoomGraphics]", "Room %d: floor1=%d, floor2=%d, blocks_size=%zu", 
            room_id_, floor1_graphics_, floor2_graphics_, blocks_.size());
   
-  // CRITICAL: Load graphics sheets into Arena with actual ROM data
-  LoadGraphicsSheetsIntoArena();
+  // LoadGraphicsSheetsIntoArena() removed - using per-room graphics instead
+  // Arena sheets are optional and not needed for room rendering
 
   bg1_buffer_.DrawFloor(rom()->vector(), tile_address,
                         tile_address_floor, floor1_graphics_);
@@ -375,73 +375,8 @@ void Room::RenderObjectsToBackground() {
   }
 }
 
-void Room::LoadGraphicsSheetsIntoArena() {
-  if (!rom_ || !rom_->is_loaded()) {
-    return;
-  }
-  
-  auto& arena = gfx::Arena::Get();
-  
-  // For now, create simple placeholder graphics sheets
-  // This ensures the Room Graphics card has something to display
-  for (int i = 0; i < 16; i++) {
-    if (blocks_[i] < 0 || blocks_[i] >= 223) {
-      continue; // Skip invalid blocks
-    }
-    
-    auto& gfx_sheet = arena.gfx_sheets()[blocks_[i]];
-    
-    // Check if sheet already has data
-    if (gfx_sheet.is_active() && gfx_sheet.width() > 0) {
-      continue; // Already loaded
-    }
-    
-    try {
-      // Create a simple placeholder graphics sheet (128x128 pixels)
-      std::vector<uint8_t> sheet_data(128 * 128, 0);
-      
-      // Fill with a simple pattern to make it visible
-      for (int y = 0; y < 128; y++) {
-        for (int x = 0; x < 128; x++) {
-          // Create a simple checkerboard pattern
-          if ((x / 8 + y / 8) % 2 == 0) {
-            sheet_data[y * 128 + x] = 1; // Light color
-          } else {
-            sheet_data[y * 128 + x] = 2; // Dark color
-          }
-        }
-      }
-      
-      // Create bitmap with the graphics data
-      gfx::Bitmap sheet_bitmap(128, 128, 8, sheet_data);
-      
-      // Get room palette and apply to graphics sheet
-      auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
-      if (palette >= 0 && palette < static_cast<int>(dungeon_pal_group.size())) {
-        auto room_palette = dungeon_pal_group[palette];
-        sheet_bitmap.SetPalette(room_palette);
-      } else {
-        // Use default palette
-        gfx::SnesPalette default_palette;
-        default_palette.AddColor(gfx::SnesColor(0, 0, 0));      // Transparent
-        default_palette.AddColor(gfx::SnesColor(255, 255, 255)); // White
-        default_palette.AddColor(gfx::SnesColor(0, 0, 0));      // Black
-        sheet_bitmap.SetPalette(default_palette);
-      }
-      
-      // Replace the graphics sheet in Arena
-      arena.gfx_sheets()[blocks_[i]] = std::move(sheet_bitmap);
-      
-      // Queue texture creation for this graphics sheet
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, 
-          &arena.gfx_sheets()[blocks_[i]]);
-    } catch (const std::exception& e) {
-      // Skip this graphics sheet if creation fails
-      continue;
-    }
-  }
-}
+// LoadGraphicsSheetsIntoArena() removed - using per-room graphics instead
+// Room rendering no longer depends on Arena graphics sheets
 
 void Room::LoadAnimatedGraphics() {
   if (!rom_ || !rom_->is_loaded()) {
