@@ -1,7 +1,7 @@
 var classyaze_1_1zelda3_1_1ObjectDrawer =
 [
     [ "DrawRoutine", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a199262c1b3c16543377b2739b54b0d58", null ],
-    [ "ObjectDrawer", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a634707d23ce34a42739229ab37aba7d3", null ],
+    [ "ObjectDrawer", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a6ee68d9a46f5c23fa21630231c78cc79", null ],
     [ "DrawObject", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a613dbb7e72a9b42c077e4b3c404b8d38", null ],
     [ "DrawObjectList", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a4620f6bf4aa0a916b7420fc9529dc768", null ],
     [ "GetDrawRoutineId", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a031dccb40ca1d801c49dd0157376b472", null ],
@@ -31,10 +31,11 @@ var classyaze_1_1zelda3_1_1ObjectDrawer =
     [ "DrawRightwardsDecor4x3spaced4_1to16", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ac56e6bf5d2c9243a6980d2fc177ca3cb", null ],
     [ "DrawRightwardsDoubled2x2spaced2_1to16", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a393601eda8281847d9cdf8c104c6e520", null ],
     [ "DrawRightwardsDecor2x2spaced12_1to16", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a4881ba4b073a39e3aff52db91a852909", null ],
-    [ "WriteTile16", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#abce1fd062cafe9da9bf0e3a20c866d34", null ],
+    [ "WriteTile8", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a03a71b31c1dc551bda263e1aac07d3ac", null ],
     [ "IsValidTilePosition", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ae85785664b7291b357e9e70813cc6e1d", null ],
     [ "object_to_routine_map_", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a9e933ca81a4afd6b7e79a49aa41591d3", null ],
     [ "draw_routines_", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a21e2c69741a1a58d1dd55d9a389ad4e6", null ],
     [ "routines_initialized_", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#ac275759f94f7bb4ebbbdb1ba8f1c4205", null ],
-    [ "rom_", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a36417b33b90755701be2ccde880f98d4", null ]
+    [ "rom_", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a36417b33b90755701be2ccde880f98d4", null ],
+    [ "room_gfx_buffer_", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a48c87a84bcd6095d4196f210fb7abe48", null ]
 ];

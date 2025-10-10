@@ -1,11 +1,7 @@
 var room__object_8h =
 [
-    [ "yaze::zelda3::SubtypeInfo", "da/d92/structyaze_1_1zelda3_1_1SubtypeInfo.html", "da/d92/structyaze_1_1zelda3_1_1SubtypeInfo" ],
     [ "yaze::zelda3::RoomObject", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject" ],
     [ "yaze::zelda3::RoomObject::ObjectBytes", "d1/d0e/structyaze_1_1zelda3_1_1RoomObject_1_1ObjectBytes.html", "d1/d0e/structyaze_1_1zelda3_1_1RoomObject_1_1ObjectBytes" ],
-    [ "yaze::zelda3::Subtype1", "d8/db7/classyaze_1_1zelda3_1_1Subtype1.html", "d8/db7/classyaze_1_1zelda3_1_1Subtype1" ],
-    [ "yaze::zelda3::Subtype2", "dc/d10/classyaze_1_1zelda3_1_1Subtype2.html", "dc/d10/classyaze_1_1zelda3_1_1Subtype2" ],
-    [ "yaze::zelda3::Subtype3", "d1/dc6/classyaze_1_1zelda3_1_1Subtype3.html", "d1/dc6/classyaze_1_1zelda3_1_1Subtype3" ],
     [ "SpecialObjectType", "d0/dff/room__object_8h.html#a479da514040cddc99b5da1235244c421", [
       [ "Chest", "d0/dff/room__object_8h.html#a479da514040cddc99b5da1235244c421a080a546abcbea74459f27ba33313993d", null ],
       [ "BigChest", "d0/dff/room__object_8h.html#a479da514040cddc99b5da1235244c421a52a3e405eb69e72cd81af3c5e1f93065", null ],
@@ -30,7 +26,6 @@ var room__object_8h =
       [ "Bgr", "d0/dff/room__object_8h.html#aacf2dac35353426c864a8a4cefe412a8a103b58155b4c5cc09249629e7ccd5dc2", null ],
       [ "Stairs", "d0/dff/room__object_8h.html#aacf2dac35353426c864a8a4cefe412a8a0b01cc688e1e0b5f6b70f858a1b389ae", null ]
     ] ],
-    [ "FetchSubtypeInfo", "d0/dff/room__object_8h.html#abfbe2444d2fac0e5cce5c8368a329835", null ],
     [ "operator|", "d0/dff/room__object_8h.html#a599b7198a7dd0ec9da754a83f9a7e5f9", null ],
     [ "operator&", "d0/dff/room__object_8h.html#ac507bdbc1fe4503baebb7c8d6fcc0d55", null ],
     [ "operator^", "d0/dff/room__object_8h.html#a5f1053148284ef69ee84ef1d04d61fad", null ],

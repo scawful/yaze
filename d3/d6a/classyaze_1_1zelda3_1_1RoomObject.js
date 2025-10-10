@@ -25,8 +25,6 @@ var classyaze_1_1zelda3_1_1RoomObject =
     [ "GetTileCount", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a68abf2469e9d1ff0345d785b8ab88c07", null ],
     [ "EncodeObjectToBytes", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a45dd7e2be4e1d231ef9f77c75e8ee9a3", null ],
     [ "GetLayerValue", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#adf4020ef318e955892b6272bb766ee5b", null ],
-    [ "AddTiles", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a4d44a317ea56cd659ddce9b650e07606", null ],
-    [ "DrawTile", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#aabb5310703f9b83fb67c7b265b2f41ed", null ],
     [ "options", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#af4be44e2e6210a18098d18f78d7a5ee7", null ],
     [ "set_options", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#afb81cf6fe16c69444cfd683687f95d11", null ],
     [ "all_bgs_", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a557dccc256dc1195a782354a6b354551", null ],

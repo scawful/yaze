@@ -1,4 +1,4 @@
-<map id="yaze::zelda3::ObjectDrawer::WriteTile16" name="yaze::zelda3::ObjectDrawer::WriteTile16">
+<map id="yaze::zelda3::ObjectDrawer::WriteTile8" name="yaze::zelda3::ObjectDrawer::WriteTile8">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,100,181,141"/>
 <area shape="rect" id="Node000002" href="$dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="229,5,408,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,97,228,57,245,50,247,55,230,61,139,102"/>

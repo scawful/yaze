@@ -21,7 +21,7 @@ var classyaze_1_1zelda3_1_1RoomLayoutObject =
     [ "set_y", "d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a4a6f0a5d5c68404b3acd9e69a5e9915e", null ],
     [ "set_type", "d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a12ee11ee44fcd49994b309aa7a2ac6a6", null ],
     [ "set_layer", "d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a1cb17f9dcca5e20a4648aa456910c87c", null ],
-    [ "GetTile", "d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#ae3176eacb5a72b83c8af1a18f32ccdcd", null ],
+    [ "GetTile", "d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#ae3041830b51dce5b61584fe05bb542f5", null ],
     [ "GetTypeName", "d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a49c353a16fb27f218ad6777174c0d84f", null ],
     [ "id_", "d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a8cd0501c7fbf58d10ee8a2c5e075b93c", null ],
     [ "x_", "d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a623038b23950cea54e1817c15a1c89ac", null ],

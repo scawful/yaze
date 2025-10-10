@@ -49,7 +49,6 @@ var searchData=
   ['roomobject_46',['RoomObject',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html',1,'yaze::zelda3']]],
   ['roomproperties_47',['RoomProperties',['../d4/d8a/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html',1,'yaze::zelda3::DungeonEditorSystem']]],
   ['roomsize_48',['RoomSize',['../d6/df8/structyaze_1_1zelda3_1_1RoomSize.html',1,'yaze::zelda3']]],
-  ['roomvisualdiagnostic_49',['RoomVisualDiagnostic',['../d1/d91/classyaze_1_1zelda3_1_1dungeon_1_1RoomVisualDiagnostic.html',1,'yaze::zelda3::dungeon']]],
-  ['routecontext_50',['RouteContext',['../dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html',1,'yaze::cli::agent::AdvancedRouter']]],
-  ['routedresponse_51',['RoutedResponse',['../d8/d99/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RoutedResponse.html',1,'yaze::cli::agent::AdvancedRouter']]]
+  ['routecontext_49',['RouteContext',['../dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html',1,'yaze::cli::agent::AdvancedRouter']]],
+  ['routedresponse_50',['RoutedResponse',['../d8/d99/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RoutedResponse.html',1,'yaze::cli::agent::AdvancedRouter']]]
 ];

@@ -514,14 +514,9 @@ var hierarchy =
     [ "yaze::editor::DungeonCanvasViewer::RoomLayerSettings", "d1/d23/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1RoomLayerSettings.html", null ],
     [ "yaze::zelda3::RoomLayout", "d9/d70/classyaze_1_1zelda3_1_1RoomLayout.html", null ],
     [ "yaze::zelda3::RoomLayoutObject", "d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html", null ],
-    [ "yaze::zelda3::RoomObject", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html", [
-      [ "yaze::zelda3::Subtype1", "d8/db7/classyaze_1_1zelda3_1_1Subtype1.html", null ],
-      [ "yaze::zelda3::Subtype2", "dc/d10/classyaze_1_1zelda3_1_1Subtype2.html", null ],
-      [ "yaze::zelda3::Subtype3", "d1/dc6/classyaze_1_1zelda3_1_1Subtype3.html", null ]
-    ] ],
+    [ "yaze::zelda3::RoomObject", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html", null ],
     [ "yaze::zelda3::DungeonEditorSystem::RoomProperties", "d4/d8a/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html", null ],
     [ "yaze::zelda3::RoomSize", "d6/df8/structyaze_1_1zelda3_1_1RoomSize.html", null ],
-    [ "yaze::zelda3::dungeon::RoomVisualDiagnostic", "d1/d91/classyaze_1_1zelda3_1_1dungeon_1_1RoomVisualDiagnostic.html", null ],
     [ "yaze::cli::agent::AdvancedRouter::RouteContext", "dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html", null ],
     [ "yaze::cli::agent::AdvancedRouter::RoutedResponse", "d8/d99/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RoutedResponse.html", null ],
     [ "std::runtime_error", null, [
@@ -593,7 +588,6 @@ var hierarchy =
     [ "yaze::cli::StopRecordingResult", "db/de2/structyaze_1_1cli_1_1StopRecordingResult.html", null ],
     [ "yaze::test::TestRecorder::StopRecordingSummary", "d1/d95/structyaze_1_1test_1_1TestRecorder_1_1StopRecordingSummary.html", null ],
     [ "yaze::editor::zsprite::SubEditor", "de/d9d/structyaze_1_1editor_1_1zsprite_1_1SubEditor.html", null ],
-    [ "yaze::zelda3::SubtypeInfo", "da/d92/structyaze_1_1zelda3_1_1SubtypeInfo.html", null ],
     [ "yaze::zelda3::anonymous_namespace{room_object.cc}::SubtypeTableInfo", "d2/d79/structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html", null ],
     [ "yaze::cli::Suggestion", "d6/d3a/structyaze_1_1cli_1_1Suggestion.html", null ],
     [ "yaze::gfx::Arena::SurfacePool", "d7/d5d/structyaze_1_1gfx_1_1Arena_1_1SurfacePool.html", null ],

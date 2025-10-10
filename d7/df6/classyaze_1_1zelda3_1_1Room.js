@@ -11,6 +11,7 @@ var classyaze_1_1zelda3_1_1Room =
     [ "LoadSprites", "d7/df6/classyaze_1_1zelda3_1_1Room.html#ae60ce2221b8652fc959db9ca1d9bd87b", null ],
     [ "LoadChests", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a1ca35c25ce36211a3eca5f6c2a9a4089", null ],
     [ "LoadRoomLayout", "d7/df6/classyaze_1_1zelda3_1_1Room.html#aca30f4ed6a972158f7156dfb88565b65", null ],
+    [ "LoadLayoutTilesToBuffer", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a5bfa1d594978426178e76e1e4bcf3043", null ],
     [ "LoadDoors", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a5e4be6dff5369be8773c5168382fac77", null ],
     [ "LoadTorches", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a6f422cb5a4d82765f9aba638e9f647d5", null ],
     [ "LoadBlocks", "d7/df6/classyaze_1_1zelda3_1_1Room.html#a5402d6db43d831803d969e7562655979", null ],

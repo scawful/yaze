@@ -600,9 +600,6 @@ var annotated_dup =
         [ "anonymous_namespace{room_object.cc}", "d5/da6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03.html", [
           [ "SubtypeTableInfo", "d2/d79/structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html", "d2/d79/structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo" ]
         ] ],
-        [ "dungeon", "df/d3e/namespaceyaze_1_1zelda3_1_1dungeon.html", [
-          [ "RoomVisualDiagnostic", "d1/d91/classyaze_1_1zelda3_1_1dungeon_1_1RoomVisualDiagnostic.html", null ]
-        ] ],
         [ "EntranceTypes", "dc/dcb/namespaceyaze_1_1zelda3_1_1EntranceTypes.html", [
           [ "EntranceInfo", "dc/dfb/structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo.html", "dc/dfb/structyaze_1_1zelda3_1_1EntranceTypes_1_1EntranceInfo" ]
         ] ],
@@ -670,10 +667,6 @@ var annotated_dup =
         [ "SpriteBuilder", "d4/d57/classyaze_1_1zelda3_1_1SpriteBuilder.html", "d4/d57/classyaze_1_1zelda3_1_1SpriteBuilder" ],
         [ "SpriteInstruction", "d3/d60/classyaze_1_1zelda3_1_1SpriteInstruction.html", "d3/d60/classyaze_1_1zelda3_1_1SpriteInstruction" ],
         [ "SpritePositionTest", "db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest.html", "db/ddc/classyaze_1_1zelda3_1_1SpritePositionTest" ],
-        [ "Subtype1", "d8/db7/classyaze_1_1zelda3_1_1Subtype1.html", "d8/db7/classyaze_1_1zelda3_1_1Subtype1" ],
-        [ "Subtype2", "dc/d10/classyaze_1_1zelda3_1_1Subtype2.html", "dc/d10/classyaze_1_1zelda3_1_1Subtype2" ],
-        [ "Subtype3", "d1/dc6/classyaze_1_1zelda3_1_1Subtype3.html", "d1/dc6/classyaze_1_1zelda3_1_1Subtype3" ],
-        [ "SubtypeInfo", "da/d92/structyaze_1_1zelda3_1_1SubtypeInfo.html", "da/d92/structyaze_1_1zelda3_1_1SubtypeInfo" ],
         [ "TitleScreen", "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html", "d6/d2e/classyaze_1_1zelda3_1_1TitleScreen" ],
         [ "Zelda3Labels", "d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html", null ]
       ] ],

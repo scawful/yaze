@@ -1,7 +1,0 @@
-<map id="yaze::zelda3::Subtype1" name="yaze::zelda3::Subtype1">
-<area shape="rect" id="Node000001" title=" " alt="" coords="14,169,165,195"/>
-<area shape="rect" id="Node000002" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html" title=" " alt="" coords="5,94,174,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,135,92,169,87,169,87,135"/>
-<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="49,5,130,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="92,47,92,94,87,94,87,47"/>
-</map>

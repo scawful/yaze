@@ -22,7 +22,7 @@ var searchData=
   ['selectionstate_19',['selectionstate',['../db/de3/structyaze_1_1gui_1_1CanvasAutomationAPI_1_1SelectionState.html',1,'yaze::gui::CanvasAutomationAPI::SelectionState'],['../d6/dfb/structyaze_1_1zelda3_1_1DungeonObjectEditor_1_1SelectionState.html',1,'yaze::zelda3::DungeonObjectEditor::SelectionState']]],
   ['sessioncontext_20',['SessionContext',['../d4/dd3/structyaze_1_1editor_1_1AgentChatWidget_1_1CollaborationCallbacks_1_1SessionContext.html',1,'yaze::editor::AgentChatWidget::CollaborationCallbacks']]],
   ['sessionfiledata_21',['SessionFileData',['../d0/d42/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionFileData.html',1,'yaze::editor::AgentCollaborationCoordinator']]],
-  ['sessioninfo_22',['sessioninfo',['../d2/df2/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionInfo.html',1,'yaze::editor::AgentCollaborationCoordinator::SessionInfo'],['../de/d42/structyaze_1_1net_1_1SessionInfo.html',1,'yaze::net::SessionInfo'],['../dc/d5b/structyaze_1_1editor_1_1AgentEditor_1_1SessionInfo.html',1,'yaze::editor::AgentEditor::SessionInfo'],['../d3/d68/structyaze_1_1editor_1_1WorkspaceManager_1_1SessionInfo.html',1,'yaze::editor::WorkspaceManager::SessionInfo']]],
+  ['sessioninfo_22',['sessioninfo',['../dc/d5b/structyaze_1_1editor_1_1AgentEditor_1_1SessionInfo.html',1,'yaze::editor::AgentEditor::SessionInfo'],['../d3/d68/structyaze_1_1editor_1_1WorkspaceManager_1_1SessionInfo.html',1,'yaze::editor::WorkspaceManager::SessionInfo'],['../de/d42/structyaze_1_1net_1_1SessionInfo.html',1,'yaze::net::SessionInfo'],['../d2/df2/structyaze_1_1editor_1_1AgentCollaborationCoordinator_1_1SessionInfo.html',1,'yaze::editor::AgentCollaborationCoordinator::SessionInfo']]],
   ['sessionmetrics_23',['SessionMetrics',['../d5/d86/structyaze_1_1cli_1_1agent_1_1ChatMessage_1_1SessionMetrics.html',1,'yaze::cli::agent::ChatMessage']]],
   ['setini_24',['SETINI',['../da/dd7/structyaze_1_1emu_1_1SETINI.html',1,'yaze::emu']]],
   ['settingseditor_25',['SettingsEditor',['../dd/d00/classyaze_1_1editor_1_1SettingsEditor.html',1,'yaze::editor']]],
@@ -73,12 +73,8 @@ var searchData=
   ['stoprecordingresult_70',['StopRecordingResult',['../db/de2/structyaze_1_1cli_1_1StopRecordingResult.html',1,'yaze::cli']]],
   ['stoprecordingsummary_71',['StopRecordingSummary',['../d1/d95/structyaze_1_1test_1_1TestRecorder_1_1StopRecordingSummary.html',1,'yaze::test::TestRecorder']]],
   ['subeditor_72',['SubEditor',['../de/d9d/structyaze_1_1editor_1_1zsprite_1_1SubEditor.html',1,'yaze::editor::zsprite']]],
-  ['subtype1_73',['Subtype1',['../d8/db7/classyaze_1_1zelda3_1_1Subtype1.html',1,'yaze::zelda3']]],
-  ['subtype2_74',['Subtype2',['../dc/d10/classyaze_1_1zelda3_1_1Subtype2.html',1,'yaze::zelda3']]],
-  ['subtype3_75',['Subtype3',['../d1/dc6/classyaze_1_1zelda3_1_1Subtype3.html',1,'yaze::zelda3']]],
-  ['subtypeinfo_76',['SubtypeInfo',['../da/d92/structyaze_1_1zelda3_1_1SubtypeInfo.html',1,'yaze::zelda3']]],
-  ['subtypetableinfo_77',['SubtypeTableInfo',['../d2/d79/structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html',1,'yaze::zelda3::anonymous_namespace{room_object.cc}']]],
-  ['suggestion_78',['Suggestion',['../d6/d3a/structyaze_1_1cli_1_1Suggestion.html',1,'yaze::cli']]],
-  ['surfacepool_79',['SurfacePool',['../d7/d5d/structyaze_1_1gfx_1_1Arena_1_1SurfacePool.html',1,'yaze::gfx::Arena']]],
-  ['systeminfo_80',['SystemInfo',['../d5/de1/structyaze_1_1cli_1_1EnhancedStatusPanel_1_1SystemInfo.html',1,'yaze::cli::EnhancedStatusPanel']]]
+  ['subtypetableinfo_73',['SubtypeTableInfo',['../d2/d79/structyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03_1_1SubtypeTableInfo.html',1,'yaze::zelda3::anonymous_namespace{room_object.cc}']]],
+  ['suggestion_74',['Suggestion',['../d6/d3a/structyaze_1_1cli_1_1Suggestion.html',1,'yaze::cli']]],
+  ['surfacepool_75',['SurfacePool',['../d7/d5d/structyaze_1_1gfx_1_1Arena_1_1SurfacePool.html',1,'yaze::gfx::Arena']]],
+  ['systeminfo_76',['SystemInfo',['../d5/de1/structyaze_1_1cli_1_1EnhancedStatusPanel_1_1SystemInfo.html',1,'yaze::cli::EnhancedStatusPanel']]]
 ];

@@ -2,11 +2,11 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="313,5,454,46"/>
 <area shape="rect" id="Node000002" href="$db/d08/sprite_8h.html" title=" " alt="" coords="259,94,401,135"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="366,61,344,95,340,92,361,58"/>
-<area shape="rect" id="Node000063" href="$d3/d1f/zelda3__labels_8cc.html" title=" " alt="" coords="400,183,546,223"/>
-<area shape="poly" id="edge5_Node000001_Node000063" title=" " alt="" coords="403,59,465,181,460,183,398,61"/>
+<area shape="rect" id="Node000062" href="$d3/d1f/zelda3__labels_8cc.html" title=" " alt="" coords="400,183,546,223"/>
+<area shape="poly" id="edge5_Node000001_Node000062" title=" " alt="" coords="403,59,465,181,460,183,398,61"/>
 <area shape="rect" id="Node000003" href="$d1/d35/dungeon__canvas__viewer_8cc.html" title=" " alt="" coords="5,183,191,223"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="264,143,152,185,150,180,262,138"/>
 <area shape="rect" id="Node000004" href="$d8/d83/entity_8h.html" title=" " alt="" coords="215,183,376,223"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="319,150,306,183,301,181,314,148"/>
-<area shape="poly" id="edge4_Node000002_Node000063" title=" " alt="" coords="376,141,442,180,439,185,374,145"/>
+<area shape="poly" id="edge4_Node000002_Node000062" title=" " alt="" coords="376,141,442,180,439,185,374,145"/>
 </map>
