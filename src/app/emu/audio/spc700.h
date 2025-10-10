@@ -82,6 +82,7 @@ class Spc700 {
   uint8_t dat;
   uint16_t dat16;
   uint8_t param;
+  int extra_cycles_ = 0;
   
   // Cycle tracking for accurate APU synchronization
   int last_opcode_cycles_ = 0;
@@ -171,11 +172,13 @@ class Spc700 {
   }
 
   void DoBranch(uint8_t value, bool check) {
+    callbacks_.idle(false); // Add missing base cycle for all branches
     if (check) {
       // taken branch: 2 extra cycles
       callbacks_.idle(false);
       callbacks_.idle(false);
       PC += (int8_t)value;
+      extra_cycles_ = 2;
     }
   }
 
