@@ -85,23 +85,69 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::EndTable();
     }
     
-    // Layer visibility controls in compact table
+    // Advanced room properties (Effect, Tags, Layer Merge)
     ImGui::Separator();
-    if (ImGui::BeginTable("##LayerControls", 3, ImGuiTableFlags_SizingStretchSame)) {
+    if (ImGui::BeginTable("##AdvancedProperties", 3, ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Borders)) {
+      ImGui::TableSetupColumn("Effect");
+      ImGui::TableSetupColumn("Tag 1");
+      ImGui::TableSetupColumn("Tag 2");
+      ImGui::TableHeadersRow();
+      
+      ImGui::TableNextRow();
+      
+      // Effect dropdown
+      ImGui::TableNextColumn();
+      const char* effect_names[] = {"Nothing", "One", "Moving Floor", "Moving Water", "Four", "Red Flashes", "Torch Show Floor", "Ganon Room"};
+      int effect_val = static_cast<int>(room.effect());
+      if (ImGui::Combo("##Effect", &effect_val, effect_names, 8)) {
+        room.SetEffect(static_cast<zelda3::EffectKey>(effect_val));
+      }
+      
+      // Tag 1 dropdown (abbreviated for space)
+      ImGui::TableNextColumn();
+      const char* tag_names[] = {"Nothing", "NW Kill", "NE Kill", "SW Kill", "SE Kill", "W Kill", "E Kill", "N Kill", "S Kill", 
+                                 "Clear Quad", "Clear Room", "NW Push", "NE Push", "SW Push", "SE Push", "W Push", "E Push", 
+                                 "N Push", "S Push", "Push Block", "Pull Lever", "Clear Level", "Switch Hold", "Switch Toggle"};
+      int tag1_val = static_cast<int>(room.tag1());
+      if (ImGui::Combo("##Tag1", &tag1_val, tag_names, 24)) {
+        room.SetTag1(static_cast<zelda3::TagKey>(tag1_val));
+      }
+      
+      // Tag 2 dropdown
+      ImGui::TableNextColumn();
+      int tag2_val = static_cast<int>(room.tag2());
+      if (ImGui::Combo("##Tag2", &tag2_val, tag_names, 24)) {
+        room.SetTag2(static_cast<zelda3::TagKey>(tag2_val));
+      }
+      
+      ImGui::EndTable();
+    }
+    
+    // Layer visibility and merge controls
+    ImGui::Separator();
+    if (ImGui::BeginTable("##LayerControls", 4, ImGuiTableFlags_SizingStretchSame)) {
       ImGui::TableNextRow();
       
       ImGui::TableNextColumn();
       auto& layer_settings = GetRoomLayerSettings(room_id);
-      ImGui::Checkbox("Show BG1", &layer_settings.bg1_visible);
+      ImGui::Checkbox("BG1", &layer_settings.bg1_visible);
       
       ImGui::TableNextColumn();
-      ImGui::Checkbox("Show BG2", &layer_settings.bg2_visible);
+      ImGui::Checkbox("BG2", &layer_settings.bg2_visible);
       
       ImGui::TableNextColumn();
-      // BG2 layer type dropdown
-      const char* bg2_layer_types[] = {"Normal", "Trans", "Add", "Dark", "Off"};
+      // BG2 layer type
+      const char* bg2_types[] = {"Norm", "Trans", "Add", "Dark", "Off"};
       ImGui::SetNextItemWidth(-FLT_MIN);
-      ImGui::Combo("##BG2Type", &layer_settings.bg2_layer_type, bg2_layer_types, 5);
+      ImGui::Combo("##BG2Type", &layer_settings.bg2_layer_type, bg2_types, 5);
+      
+      ImGui::TableNextColumn();
+      // Layer merge type
+      const char* merge_types[] = {"Off", "Parallax", "Dark", "On top", "Translucent", "Addition", "Normal", "Transparent", "Dark room"};
+      int merge_val = room.layer_merging().ID;
+      if (ImGui::Combo("##Merge", &merge_val, merge_types, 9)) {
+        room.SetLayerMerging(zelda3::kLayerMergeTypeList[merge_val]);
+      }
       
       ImGui::EndTable();
     }
@@ -391,20 +437,61 @@ void DungeonCanvasViewer::CalculateWallDimensions(const zelda3::RoomObject& obje
 }
 
 // Room layout visualization
-void DungeonCanvasViewer::DrawRoomLayout(const zelda3::Room& room) {
+void DungeonCanvasViewer::DrawRoomLayout(zelda3::Room& room) {
   // Draw room layout structural elements (walls, floors, pits)
-  // This provides visual context for where objects should be placed
+  // This is the immovable BASE LAYER that defines room structure
   
-  const auto& layout = room.GetLayout();
+  auto& layout = room.GetLayout();
   
-  // Get dimensions (64x64 tiles = 512x512 pixels)
-  auto [width_tiles, height_tiles] = layout.GetDimensions();
+  // Ensure layout is loaded (critical!)
+  if (layout.GetObjects().empty()) {
+    auto status = layout.LoadLayout(room.id());
+    if (!status.ok()) {
+      LOG_DEBUG("[DrawRoomLayout]", "Failed to load layout: %s", status.message().data());
+      return;
+    }
+  }
   
-  // TODO: Get layout objects by type
-  // For now, draw a grid overlay to show the room structure
-  // Future: Implement GetObjectsByType() in RoomLayout
+  // Get structural elements by type
+  auto walls = layout.GetObjectsByType(zelda3::RoomLayoutObject::Type::kWall);
+  auto floors = layout.GetObjectsByType(zelda3::RoomLayoutObject::Type::kFloor);
+  auto pits = layout.GetObjectsByType(zelda3::RoomLayoutObject::Type::kPit);
+  auto water = layout.GetObjectsByType(zelda3::RoomLayoutObject::Type::kWater);
+  auto doors = layout.GetObjectsByType(zelda3::RoomLayoutObject::Type::kDoor);
   
-  LOG_DEBUG("[DrawRoomLayout]", "Room layout: %dx%d tiles", width_tiles, height_tiles);
+  LOG_DEBUG("[DrawRoomLayout]", "Layout elements: %zu walls, %zu floors, %zu pits, %zu water, %zu doors",
+           walls.size(), floors.size(), pits.size(), water.size(), doors.size());
+  
+  // Get canvas scale for proper sizing
+  float scale = canvas_.global_scale();
+  int tile_size = static_cast<int>(8 * scale);  // 8x8 pixels scaled
+  
+  // Draw walls (dark gray, semi-transparent) - immovable structure
+  for (const auto& wall : walls) {
+    auto [x, y] = RoomToCanvasCoordinates(wall.x(), wall.y());
+    canvas_.DrawRect(x, y, tile_size, tile_size, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
+  }
+  
+  // Draw pits (orange warning) - damage zones
+  for (const auto& pit : pits) {
+    auto [x, y] = RoomToCanvasCoordinates(pit.x(), pit.y());
+    canvas_.DrawRect(x, y, tile_size, tile_size, ImVec4(1.0f, 0.4f, 0.0f, 0.6f));
+  }
+  
+  // Draw water (blue, semi-transparent)
+  for (const auto& water_tile : water) {
+    auto [x, y] = RoomToCanvasCoordinates(water_tile.x(), water_tile.y());
+    canvas_.DrawRect(x, y, tile_size, tile_size, ImVec4(0.2f, 0.4f, 0.8f, 0.5f));
+  }
+  
+  // Draw doors (purple) - connection points
+  for (const auto& door : doors) {
+    auto [x, y] = RoomToCanvasCoordinates(door.x(), door.y());
+    canvas_.DrawRect(x, y, tile_size, tile_size, ImVec4(0.8f, 0.2f, 0.8f, 0.7f));
+    if (scale >= 1.0f) {  // Only show label if zoomed in enough
+      canvas_.DrawText("DOOR", x + 2, y + 2);
+    }
+  }
 }
 
 // Object visualization methods
@@ -413,6 +500,9 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
   // This helps visualize object placement even if graphics don't render correctly
   
   const auto& objects = room.GetTileObjects();
+  
+  // Get canvas scale for proper sizing
+  float scale = canvas_.global_scale();
   
   for (const auto& obj : objects) {
     // Convert object position (tile coordinates) to canvas pixel coordinates
@@ -430,6 +520,10 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
     // Objects are typically (size+1) tiles wide/tall
     width = (size_h + 1) * 8;
     height = (size_v + 1) * 8;
+    
+    // Apply canvas scale
+    width = static_cast<int>(width * scale);
+    height = static_cast<int>(height * scale);
     
     // Clamp to reasonable sizes
     width = std::min(width, 512);
