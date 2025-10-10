@@ -23,12 +23,14 @@
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/overworld/overworld.h"
 #include "cli/handlers/message.h"
+#include "cli/handlers/mock_rom.h"
 #include "cli/handlers/overworld_inspect.h"
 #include "cli/service/resources/resource_context_builder.h"
 #include "nlohmann/json.hpp"
 #include "util/macro.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
+ABSL_DECLARE_FLAG(bool, mock_rom);
 
 namespace yaze {
 namespace cli {
@@ -37,10 +39,22 @@ namespace agent {
 namespace {
 
 absl::StatusOr<Rom> LoadRomFromFlag() {
+  // Check if mock ROM mode is enabled
+  bool use_mock = absl::GetFlag(FLAGS_mock_rom);
+  if (use_mock) {
+    Rom rom;
+    auto status = InitializeMockRom(rom);
+    if (!status.ok()) {
+      return status;
+    }
+    return rom;
+  }
+
+  // Otherwise load from file
   std::string rom_path = absl::GetFlag(FLAGS_rom);
   if (rom_path.empty()) {
     return absl::FailedPreconditionError(
-        "No ROM loaded. Use --rom=<path> to specify ROM file.");
+        "No ROM loaded. Use --rom=<path> or --mock-rom for testing.");
   }
 
   Rom rom;
