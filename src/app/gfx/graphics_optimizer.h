@@ -3,12 +3,9 @@
 
 #include <vector>
 #include <unordered_map>
-#include <memory>
 #include <string>
 
-#include "app/gfx/bitmap.h"
 #include "app/gfx/bpp_format_manager.h"
-#include "app/gfx/atlas_renderer.h"
 #include "app/gfx/performance_profiler.h"
 
 namespace yaze {

@@ -105,7 +105,7 @@ class DungeonCanvasViewer {
   void CalculateWallDimensions(const zelda3::RoomObject& object, int& width, int& height);
   
   // Visualization
-  void DrawRoomLayout(const zelda3::Room& room);
+  void DrawRoomLayout(zelda3::Room& room);  // Non-const to call LoadLayout
   void DrawObjectPositionOutlines(const zelda3::Room& room);
   
   // Room graphics management

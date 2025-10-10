@@ -331,17 +331,24 @@ void Room::RenderRoomGraphics() {
   // Update textures with all the data (floor + background + objects + palette)
   if (bg1_bmp.texture()) {
     // Texture exists - UPDATE it with new object data
+    LOG_DEBUG("[RenderRoomGraphics]", "Queueing UPDATE for existing textures");
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::UPDATE, &bg1_bmp);
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::UPDATE, &bg2_bmp);
   } else {
     // No texture yet - CREATE it
+    LOG_DEBUG("[RenderRoomGraphics]", "Queueing CREATE for new textures");
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &bg1_bmp);
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &bg2_bmp);
   }
+  
+  // CRITICAL: Process texture queue immediately so objects appear!
+  // Don't wait for next frame - update NOW!
+  gfx::Arena::Get().ProcessTextureQueue(nullptr);
+  LOG_DEBUG("[RenderRoomGraphics]", "Processed texture queue immediately");
 }
 
 void Room::RenderObjectsToBackground() {
