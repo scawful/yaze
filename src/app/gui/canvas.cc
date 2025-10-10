@@ -150,8 +150,8 @@ void Canvas::Cleanup() {
   selection_.Clear();
 
   // Stop performance monitoring before cleanup to prevent segfault
-  if (performance/performance_integration_) {
-    performance/performance_integration_->StopMonitoring();
+  if (performance_integration_) {
+    performance_integration_->StopMonitoring();
   }
 
   // Cleanup enhanced components
@@ -175,7 +175,7 @@ void Canvas::InitializeEnhancedComponents() {
   canvas::CanvasUsageManager::Get().RegisterTracker(canvas_id_, usage_tracker_);
 
   // Initialize performance integration
-  performance/performance_integration_ =
+  performance_integration_ =
       std::make_shared<canvas::CanvasPerformanceIntegration>();
   performance_integration_->Initialize(canvas_id_);
   performance_integration_->SetUsageTracker(usage_tracker_);
@@ -208,15 +208,15 @@ void Canvas::RecordCanvasOperation(const std::string& operation_name,
   if (usage_tracker_) {
     usage_tracker_->RecordOperation(operation_name, time_ms);
   }
-  if (performance/performance_integration_) {
-    performance/performance_integration_->RecordOperation(operation_name, time_ms,
+  if (performance_integration_) {
+    performance_integration_->RecordOperation(operation_name, time_ms,
                                               GetUsageMode());
   }
 }
 
 void Canvas::ShowPerformanceUI() {
-  if (performance/performance_integration_) {
-    performance/performance_integration_->RenderPerformanceUI();
+  if (performance_integration_) {
+    performance_integration_->RenderPerformanceUI();
   }
 }
 

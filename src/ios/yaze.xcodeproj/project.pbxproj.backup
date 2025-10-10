@@ -734,18 +734,18 @@
 		E3BE450F2E90A64D0075AC22 /* bpp_format_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45022E90A64D0075AC22 /* bpp_format_manager.cc */; };
 		E3BE45102E90A64D0075AC22 /* tilemap.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE450C2E90A64D0075AC22 /* tilemap.cc */; };
 		E3BE45112E90A64D0075AC22 /* memory_pool.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45062E90A64D0075AC22 /* memory_pool.cc */; };
-		E3BE45122E90A64D0075AC22 /* performance_dashboard.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45082E90A64D0075AC22 /* performance_dashboard.cc */; };
+		E3BE45122E90A64D0075AC22 /* performance/performance_dashboard.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45082E90A64D0075AC22 /* performance/performance_dashboard.cc */; };
 		E3BE45132E90A64D0075AC22 /* arena.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE44FC2E90A64D0075AC22 /* arena.cc */; };
-		E3BE45142E90A64D0075AC22 /* performance_profiler.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE450A2E90A64D0075AC22 /* performance_profiler.cc */; };
+		E3BE45142E90A64D0075AC22 /* performance/performance_profiler.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE450A2E90A64D0075AC22 /* performance/performance_profiler.cc */; };
 		E3BE45152E90A64D0075AC22 /* atlas_renderer.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE44FE2E90A64D0075AC22 /* atlas_renderer.cc */; };
 		E3BE45162E90A64D0075AC22 /* graphics_optimizer.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45042E90A64D0075AC22 /* graphics_optimizer.cc */; };
 		E3BE45172E90A64D0075AC22 /* background_buffer.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45002E90A64D0075AC22 /* background_buffer.cc */; };
 		E3BE45182E90A64D0075AC22 /* bpp_format_manager.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45022E90A64D0075AC22 /* bpp_format_manager.cc */; };
 		E3BE45192E90A64D0075AC22 /* tilemap.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE450C2E90A64D0075AC22 /* tilemap.cc */; };
 		E3BE451A2E90A64D0075AC22 /* memory_pool.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45062E90A64D0075AC22 /* memory_pool.cc */; };
-		E3BE451B2E90A64D0075AC22 /* performance_dashboard.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45082E90A64D0075AC22 /* performance_dashboard.cc */; };
+		E3BE451B2E90A64D0075AC22 /* performance/performance_dashboard.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45082E90A64D0075AC22 /* performance/performance_dashboard.cc */; };
 		E3BE451C2E90A64D0075AC22 /* arena.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE44FC2E90A64D0075AC22 /* arena.cc */; };
-		E3BE451D2E90A64D0075AC22 /* performance_profiler.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE450A2E90A64D0075AC22 /* performance_profiler.cc */; };
+		E3BE451D2E90A64D0075AC22 /* performance/performance_profiler.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE450A2E90A64D0075AC22 /* performance/performance_profiler.cc */; };
 		E3BE451E2E90A64D0075AC22 /* atlas_renderer.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE44FE2E90A64D0075AC22 /* atlas_renderer.cc */; };
 		E3BE453F2E90A6690075AC22 /* enhanced_palette_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45342E90A6690075AC22 /* enhanced_palette_editor.cc */; };
 		E3BE45402E90A6690075AC22 /* bpp_format_ui.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45222E90A6690075AC22 /* bpp_format_ui.cc */; };
@@ -758,7 +758,7 @@
 		E3BE45472E90A6690075AC22 /* asset_browser.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45362E90A6690075AC22 /* asset_browser.cc */; };
 		E3BE45482E90A6690075AC22 /* background_renderer.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45202E90A6690075AC22 /* background_renderer.cc */; };
 		E3BE45492E90A6690075AC22 /* text_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45392E90A6690075AC22 /* text_editor.cc */; };
-		E3BE454A2E90A6690075AC22 /* canvas_performance_integration.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE452B2E90A6690075AC22 /* canvas_performance_integration.cc */; };
+		E3BE454A2E90A6690075AC22 /* canvas_performance/performance_integration.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE452B2E90A6690075AC22 /* canvas_performance/performance_integration.cc */; };
 		E3BE454B2E90A6690075AC22 /* widget_id_registry.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE453E2E90A6690075AC22 /* widget_id_registry.cc */; };
 		E3BE454C2E90A6690075AC22 /* canvas_context_menu.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45252E90A6690075AC22 /* canvas_context_menu.cc */; };
 		E3BE454D2E90A6690075AC22 /* canvas.cmake in Resources */ = {isa = PBXBuildFile; fileRef = E3BE45232E90A6690075AC22 /* canvas.cmake */; };
@@ -774,7 +774,7 @@
 		E3BE45572E90A6690075AC22 /* asset_browser.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45362E90A6690075AC22 /* asset_browser.cc */; };
 		E3BE45582E90A6690075AC22 /* background_renderer.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45202E90A6690075AC22 /* background_renderer.cc */; };
 		E3BE45592E90A6690075AC22 /* text_editor.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45392E90A6690075AC22 /* text_editor.cc */; };
-		E3BE455A2E90A6690075AC22 /* canvas_performance_integration.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE452B2E90A6690075AC22 /* canvas_performance_integration.cc */; };
+		E3BE455A2E90A6690075AC22 /* canvas_performance/performance_integration.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE452B2E90A6690075AC22 /* canvas_performance/performance_integration.cc */; };
 		E3BE455B2E90A6690075AC22 /* widget_id_registry.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE453E2E90A6690075AC22 /* widget_id_registry.cc */; };
 		E3BE455C2E90A6690075AC22 /* canvas_context_menu.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45252E90A6690075AC22 /* canvas_context_menu.cc */; };
 		E3BE45642E90A6E20075AC22 /* window.cc in Sources */ = {isa = PBXBuildFile; fileRef = E3BE45632E90A6E20075AC22 /* window.cc */; };
@@ -2467,10 +2467,10 @@
 		E3BE45042E90A64D0075AC22 /* graphics_optimizer.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = graphics_optimizer.cc; sourceTree = "<group>"; };
 		E3BE45052E90A64D0075AC22 /* memory_pool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = memory_pool.h; sourceTree = "<group>"; };
 		E3BE45062E90A64D0075AC22 /* memory_pool.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = memory_pool.cc; sourceTree = "<group>"; };
-		E3BE45072E90A64D0075AC22 /* performance_dashboard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = performance_dashboard.h; sourceTree = "<group>"; };
-		E3BE45082E90A64D0075AC22 /* performance_dashboard.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = performance_dashboard.cc; sourceTree = "<group>"; };
-		E3BE45092E90A64D0075AC22 /* performance_profiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = performance_profiler.h; sourceTree = "<group>"; };
-		E3BE450A2E90A64D0075AC22 /* performance_profiler.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = performance_profiler.cc; sourceTree = "<group>"; };
+		E3BE45072E90A64D0075AC22 /* performance/performance_dashboard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = performance/performance_dashboard.h; sourceTree = "<group>"; };
+		E3BE45082E90A64D0075AC22 /* performance/performance_dashboard.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = performance/performance_dashboard.cc; sourceTree = "<group>"; };
+		E3BE45092E90A64D0075AC22 /* performance/performance_profiler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = performance/performance_profiler.h; sourceTree = "<group>"; };
+		E3BE450A2E90A64D0075AC22 /* performance/performance_profiler.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = performance/performance_profiler.cc; sourceTree = "<group>"; };
 		E3BE450B2E90A64D0075AC22 /* tilemap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tilemap.h; sourceTree = "<group>"; };
 		E3BE450C2E90A64D0075AC22 /* tilemap.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tilemap.cc; sourceTree = "<group>"; };
 		E3BE451F2E90A6690075AC22 /* background_renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = background_renderer.h; sourceTree = "<group>"; };
@@ -2484,8 +2484,8 @@
 		E3BE45272E90A6690075AC22 /* canvas_interaction_handler.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = canvas_interaction_handler.cc; sourceTree = "<group>"; };
 		E3BE45282E90A6690075AC22 /* canvas_modals.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = canvas_modals.h; sourceTree = "<group>"; };
 		E3BE45292E90A6690075AC22 /* canvas_modals.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = canvas_modals.cc; sourceTree = "<group>"; };
-		E3BE452A2E90A6690075AC22 /* canvas_performance_integration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = canvas_performance_integration.h; sourceTree = "<group>"; };
-		E3BE452B2E90A6690075AC22 /* canvas_performance_integration.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = canvas_performance_integration.cc; sourceTree = "<group>"; };
+		E3BE452A2E90A6690075AC22 /* canvas_performance/performance_integration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = canvas_performance/performance_integration.h; sourceTree = "<group>"; };
+		E3BE452B2E90A6690075AC22 /* canvas_performance/performance_integration.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = canvas_performance/performance_integration.cc; sourceTree = "<group>"; };
 		E3BE452C2E90A6690075AC22 /* canvas_usage_tracker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = canvas_usage_tracker.h; sourceTree = "<group>"; };
 		E3BE452D2E90A6690075AC22 /* canvas_usage_tracker.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = canvas_usage_tracker.cc; sourceTree = "<group>"; };
 		E3BE452E2E90A6690075AC22 /* canvas_utils_moved.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = canvas_utils_moved.h; sourceTree = "<group>"; };
@@ -2899,10 +2899,10 @@
 				E3BE45042E90A64D0075AC22 /* graphics_optimizer.cc */,
 				E3BE45052E90A64D0075AC22 /* memory_pool.h */,
 				E3BE45062E90A64D0075AC22 /* memory_pool.cc */,
-				E3BE45072E90A64D0075AC22 /* performance_dashboard.h */,
-				E3BE45082E90A64D0075AC22 /* performance_dashboard.cc */,
-				E3BE45092E90A64D0075AC22 /* performance_profiler.h */,
-				E3BE450A2E90A64D0075AC22 /* performance_profiler.cc */,
+				E3BE45072E90A64D0075AC22 /* performance/performance_dashboard.h */,
+				E3BE45082E90A64D0075AC22 /* performance/performance_dashboard.cc */,
+				E3BE45092E90A64D0075AC22 /* performance/performance_profiler.h */,
+				E3BE450A2E90A64D0075AC22 /* performance/performance_profiler.cc */,
 				E3BE450B2E90A64D0075AC22 /* tilemap.h */,
 				E3BE450C2E90A64D0075AC22 /* tilemap.cc */,
 				E318D8B82C59C08300091322 /* bitmap.cc */,
@@ -5215,8 +5215,8 @@
 				E3BE45272E90A6690075AC22 /* canvas_interaction_handler.cc */,
 				E3BE45282E90A6690075AC22 /* canvas_modals.h */,
 				E3BE45292E90A6690075AC22 /* canvas_modals.cc */,
-				E3BE452A2E90A6690075AC22 /* canvas_performance_integration.h */,
-				E3BE452B2E90A6690075AC22 /* canvas_performance_integration.cc */,
+				E3BE452A2E90A6690075AC22 /* canvas_performance/performance_integration.h */,
+				E3BE452B2E90A6690075AC22 /* canvas_performance/performance_integration.cc */,
 				E3BE452C2E90A6690075AC22 /* canvas_usage_tracker.h */,
 				E3BE452D2E90A6690075AC22 /* canvas_usage_tracker.cc */,
 				E3BE452E2E90A6690075AC22 /* canvas_utils_moved.h */,
@@ -5601,9 +5601,9 @@
 				E3BE45182E90A64D0075AC22 /* bpp_format_manager.cc in Sources */,
 				E3BE45192E90A64D0075AC22 /* tilemap.cc in Sources */,
 				E3BE451A2E90A64D0075AC22 /* memory_pool.cc in Sources */,
-				E3BE451B2E90A64D0075AC22 /* performance_dashboard.cc in Sources */,
+				E3BE451B2E90A64D0075AC22 /* performance/performance_dashboard.cc in Sources */,
 				E3BE451C2E90A64D0075AC22 /* arena.cc in Sources */,
-				E3BE451D2E90A64D0075AC22 /* performance_profiler.cc in Sources */,
+				E3BE451D2E90A64D0075AC22 /* performance/performance_profiler.cc in Sources */,
 				E3BE451E2E90A64D0075AC22 /* atlas_renderer.cc in Sources */,
 				E318E7BF2C5A548C00091322 /* pngset.c in Sources */,
 				E318E2252C5A4FC200091322 /* civil_time_detail.cc in Sources */,
@@ -5652,7 +5652,7 @@
 				E3BE45472E90A6690075AC22 /* asset_browser.cc in Sources */,
 				E3BE45482E90A6690075AC22 /* background_renderer.cc in Sources */,
 				E3BE45492E90A6690075AC22 /* text_editor.cc in Sources */,
-				E3BE454A2E90A6690075AC22 /* canvas_performance_integration.cc in Sources */,
+				E3BE454A2E90A6690075AC22 /* canvas_performance/performance_integration.cc in Sources */,
 				E3BE454B2E90A6690075AC22 /* widget_id_registry.cc in Sources */,
 				E3BE454C2E90A6690075AC22 /* canvas_context_menu.cc in Sources */,
 				E318D9392C59C08300091322 /* dsp.cc in Sources */,
@@ -5985,9 +5985,9 @@
 				E3BE450F2E90A64D0075AC22 /* bpp_format_manager.cc in Sources */,
 				E3BE45102E90A64D0075AC22 /* tilemap.cc in Sources */,
 				E3BE45112E90A64D0075AC22 /* memory_pool.cc in Sources */,
-				E3BE45122E90A64D0075AC22 /* performance_dashboard.cc in Sources */,
+				E3BE45122E90A64D0075AC22 /* performance/performance_dashboard.cc in Sources */,
 				E3BE45132E90A64D0075AC22 /* arena.cc in Sources */,
-				E3BE45142E90A64D0075AC22 /* performance_profiler.cc in Sources */,
+				E3BE45142E90A64D0075AC22 /* performance/performance_profiler.cc in Sources */,
 				E3BE45152E90A64D0075AC22 /* atlas_renderer.cc in Sources */,
 				E318D97C2C59C08300091322 /* inventory.cc in Sources */,
 				E318D9162C59C08300091322 /* palette_editor.cc in Sources */,
@@ -6093,7 +6093,7 @@
 				E3BE45572E90A6690075AC22 /* asset_browser.cc in Sources */,
 				E3BE45582E90A6690075AC22 /* background_renderer.cc in Sources */,
 				E3BE45592E90A6690075AC22 /* text_editor.cc in Sources */,
-				E3BE455A2E90A6690075AC22 /* canvas_performance_integration.cc in Sources */,
+				E3BE455A2E90A6690075AC22 /* canvas_performance/performance_integration.cc in Sources */,
 				E3BE455B2E90A6690075AC22 /* widget_id_registry.cc in Sources */,
 				E3BE455C2E90A6690075AC22 /* canvas_context_menu.cc in Sources */,
 				E318D93C2C59C08300091322 /* spc700.cc in Sources */,
