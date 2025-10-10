@@ -89,9 +89,11 @@ add_executable(
   cli/service/testing/test_suite_writer.cc
 )
 
-# ============================================================================
+target_compile_definitions(z3ed PRIVATE YAZE_ASSETS_PATH="${CMAKE_SOURCE_DIR}/assets")
+
+# ============================================================================ 
 # AI Agent Support (Consolidated via Z3ED_AI flag)
-# ============================================================================
+# ============================================================================ 
 if(Z3ED_AI OR YAZE_WITH_JSON)
   target_compile_definitions(z3ed PRIVATE YAZE_WITH_JSON)
   message(STATUS "✓ z3ed AI agent enabled (Ollama + Gemini support)")
@@ -100,9 +102,9 @@ if(Z3ED_AI OR YAZE_WITH_JSON)
   target_link_libraries(z3ed PRIVATE nlohmann_json::nlohmann_json)
 endif()
 
-# ============================================================================
+# ============================================================================ 
 # SSL/HTTPS Support (Optional - Required for Gemini API)
-# ============================================================================
+# ============================================================================ 
 # SSL is only enabled when AI features are active
 # Ollama (localhost) works without SSL, Gemini (HTTPS) requires it
 if((Z3ED_AI OR YAZE_WITH_JSON) AND (YAZE_WITH_GRPC OR Z3ED_AI))
@@ -158,9 +160,9 @@ else()
   )
 endif()
 
-# ============================================================================
+# ============================================================================ 
 # Optional gRPC Support for CLI Agent Test Command
-# ============================================================================
+# ============================================================================ 
 if(YAZE_WITH_GRPC)
   message(STATUS "Adding gRPC support to z3ed CLI")
   

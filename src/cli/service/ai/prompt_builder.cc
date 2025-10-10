@@ -11,14 +11,13 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "nlohmann/json.hpp"
+#include "util/platform_paths.h"
 #include "yaml-cpp/yaml.h"
 
 namespace yaze {
 namespace cli {
 
 namespace {
-
-namespace fs = std::filesystem;
 
 bool IsYamlBool(const std::string& value) {
   const std::string lower = absl::AsciiStrToLower(value);
@@ -64,44 +63,6 @@ nlohmann::json YamlToJson(const YAML::Node& node) {
   }
 }
 
-std::vector<fs::path> BuildCatalogueSearchPaths(const std::string& explicit_path) {
-  std::vector<fs::path> paths;
-  if (!explicit_path.empty()) {
-    paths.emplace_back(explicit_path);
-  }
-
-  if (const char* env_path = std::getenv("YAZE_AGENT_CATALOGUE")) {
-    if (*env_path != '\0') {
-      paths.emplace_back(env_path);
-    }
-  }
-
-  // Try to get executable directory for better path resolution
-  fs::path exe_dir;
-  try {
-    exe_dir = fs::current_path();
-  } catch (...) {
-    exe_dir = ".";
-  }
-
-  const std::vector<std::string> defaults = {
-      "assets/agent/prompt_catalogue.yaml",
-      "../assets/agent/prompt_catalogue.yaml",
-      "../../assets/agent/prompt_catalogue.yaml",
-      "../../../assets/agent/prompt_catalogue.yaml",  // From build/bin/
-      "../../../../assets/agent/prompt_catalogue.yaml",  // From build/bin/yaze.app/Contents/MacOS/
-      "../Resources/assets/agent/prompt_catalogue.yaml",  // macOS app bundle
-      "assets/z3ed/prompt_catalogue.yaml",
-      "../assets/z3ed/prompt_catalogue.yaml",
-  };
-
-  for (const auto& candidate : defaults) {
-    paths.emplace_back(candidate);
-  }
-
-  return paths;
-}
-
 }  // namespace
 
 PromptBuilder::PromptBuilder() = default;
@@ -116,35 +77,35 @@ void PromptBuilder::ClearCatalogData() {
 
 absl::StatusOr<std::string> PromptBuilder::ResolveCataloguePath(
     const std::string& yaml_path) const {
-  const auto search_paths = BuildCatalogueSearchPaths(yaml_path);
-  for (const auto& candidate : search_paths) {
-    fs::path resolved = candidate;
-    if (resolved.is_relative()) {
-      try {
-        resolved = fs::absolute(resolved);
-      } catch (const std::exception& e) {
-        // If we can't resolve the absolute path (e.g., cwd doesn't exist),
-        // just try the relative path as-is
-        continue;
-      }
-    }
-    
-    try {
-      if (fs::exists(resolved)) {
-        return resolved.string();
-      }
-    } catch (const std::exception& e) {
-      // If checking existence fails, just continue to next path
-      continue;
+  // If an explicit path is provided, check it first
+  if (!yaml_path.empty()) {
+    std::error_code ec;
+    if (std::filesystem::exists(yaml_path, ec) && !ec) {
+      return yaml_path;
     }
   }
-
-  return absl::NotFoundError(
-      absl::StrCat("Prompt catalogue not found. Checked paths: ",
-                   absl::StrJoin(search_paths, ", ",
-                                 [](std::string* out, const fs::path& path) {
-                                   absl::StrAppend(out, path.string());
-                                 })));
+  
+  // Check environment variable override
+  if (const char* env_path = std::getenv("YAZE_AGENT_CATALOGUE")) {
+    if (*env_path != '\0') {
+      std::error_code ec;
+      if (std::filesystem::exists(env_path, ec) && !ec) {
+        return std::string(env_path);
+      }
+    }
+  }
+  
+  // Use PlatformPaths to find the asset in standard locations
+  // Try the requested path (default is prompt_catalogue.yaml)
+  std::string relative_path = yaml_path.empty() ? 
+      "agent/prompt_catalogue.yaml" : yaml_path;
+  
+  auto result = util::PlatformPaths::FindAsset(relative_path);
+  if (result.ok()) {
+    return result->string();
+  }
+  
+  return result.status();
 }
 
 absl::Status PromptBuilder::LoadResourceCatalogue(const std::string& yaml_path) {
@@ -548,15 +509,10 @@ std::string PromptBuilder::BuildFewShotExamplesSection() const {
 }
 
 std::string PromptBuilder::BuildConstraintsSection() const {
-  // Try to load from file first
-  const std::vector<std::string> search_paths = {
-      "assets/agent/tool_calling_instructions.txt",
-      "../assets/agent/tool_calling_instructions.txt",
-      "../../assets/agent/tool_calling_instructions.txt",
-  };
-  
-  for (const auto& path : search_paths) {
-    std::ifstream file(path);
+  // Try to load from file first using FindAsset
+  auto file_path = util::PlatformPaths::FindAsset("agent/tool_calling_instructions.txt");
+  if (file_path.ok()) {
+    std::ifstream file(file_path->string());
     if (file.is_open()) {
       std::string content((std::istreambuf_iterator<char>(file)),
                           std::istreambuf_iterator<char>());
@@ -743,15 +699,10 @@ std::string PromptBuilder::BuildContextSection(const RomContext& context) {
 }
 
 std::string PromptBuilder::BuildSystemInstruction() {
-  // Try to load from file first
-  const std::vector<std::string> search_paths = {
-      "assets/agent/system_prompt.txt",
-      "../assets/agent/system_prompt.txt",
-      "../../assets/agent/system_prompt.txt",
-  };
-  
-  for (const auto& path : search_paths) {
-    std::ifstream file(path);
+  // Try to load from file first using FindAsset
+  auto file_path = util::PlatformPaths::FindAsset("agent/system_prompt.txt");
+  if (file_path.ok()) {
+    std::ifstream file(file_path->string());
     if (file.is_open()) {
       std::string content((std::istreambuf_iterator<char>(file)),
                           std::istreambuf_iterator<char>());
@@ -876,3 +827,4 @@ std::vector<FewShotExample> PromptBuilder::GetExamplesForCategory(
 
 }  // namespace cli
 }  // namespace yaze
+

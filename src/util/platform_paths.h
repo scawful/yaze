@@ -35,8 +35,7 @@ class PlatformPaths {
    * and cache files. The directory is created if it doesn't exist.
    *
    * - Windows: `%APPDATA%\yaze` (e.g., C:\Users\user\AppData\Roaming\yaze)
-   * - macOS: `~/Library/Application Support/yaze`
-   * - Linux: `$XDG_CONFIG_HOME/yaze` or `~/.config/yaze`
+   * - macOS/Unix: `~/.yaze`
    *
    * @return StatusOr with path to the application data directory.
    */
@@ -46,13 +45,10 @@ class PlatformPaths {
    * @brief Get the user-specific configuration directory for YAZE.
    *
    * This is the standard location for storing user configuration files.
-   * It often maps to the same location as GetAppDataDirectory but provides
-   * a more semantically correct API for config files.
    * The directory is created if it doesn't exist.
    *
    * - Windows: `%APPDATA%\yaze`
-   * - macOS: `~/Library/Application Support/yaze`
-   * - Linux: `$XDG_CONFIG_HOME/yaze` or `~/.config/yaze`
+   * - macOS/Unix: `~/.yaze`
    *
    * @return StatusOr with path to the configuration directory.
    */
@@ -117,6 +113,23 @@ class PlatformPaths {
    * @return Native path string
    */
   static std::string ToNativePath(const std::filesystem::path& path);
+  
+  /**
+   * @brief Find an asset file in multiple standard locations
+   * 
+   * Searches for an asset file in the following order:
+   * 1. YAZE_ASSETS_PATH (if defined at compile time) + relative_path
+   * 2. Current working directory + assets/ + relative_path  
+   * 3. Executable directory + assets/ + relative_path
+   * 4. Parent directory + assets/ + relative_path
+   * 5. ~/.yaze/assets/ + relative_path (user-installed assets)
+   * 6. /usr/local/share/yaze/assets/ + relative_path (system-wide on Unix)
+   * 
+   * @param relative_path Path relative to assets directory (e.g., "agent/prompt_catalogue.yaml")
+   * @return StatusOr with absolute path to found asset file
+   */
+  static absl::StatusOr<std::filesystem::path> FindAsset(
+      const std::string& relative_path);
 };
 
 }  // namespace util
