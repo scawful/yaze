@@ -10,8 +10,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 Z3ED="./build_test/bin/z3ed"
-ROM="assets/zelda3.sfc"
 RESULTS_FILE="/tmp/z3ed_ai_test_results.txt"
+USE_MOCK_ROM=true  # Set to false if you want to test with a real ROM
 
 echo "=========================================="
 echo "  Z3ED AI Provider Test Suite"
@@ -22,7 +22,6 @@ echo ""
 > "$RESULTS_FILE"
 
 # --- Pre-flight Checks ---
-print_header "Performing Pre-flight Checks"
 
 if [ -z "$1" ]; then
   echo "❌ Error: No AI provider specified."
@@ -32,28 +31,34 @@ fi
 PROVIDER=$1
 echo "✅ Provider: $PROVIDER"
 
-# Check binaries and files
-for f in "$Z3ED_BIN" "$ROM_PATH" "$TEST_DIR/../prompt_catalogue.yaml" "$TEST_DIR/function_schemas.json"; do
-    if [ ! -f "$f" ]; then
-        echo -e "${RED}✗ Prerequisite file not found: $f${NC}"
-        exit 1
-    fi
-done
-echo "✅ Core binaries and files found."
-
-# Verify schemas
-if python3 -m json.tool "$TEST_DIR/function_schemas.json" > /dev/null 2>&1; then
-    echo "✅ Function schemas JSON is valid."
-else
-    echo "${RED}✗ Invalid JSON in function_schemas.json${NC}"
+# Check binary exists
+if [ ! -f "$Z3ED" ]; then
+    echo -e "${RED}✗ z3ed binary not found at: $Z3ED${NC}"
+    echo "Run: cmake --build build_test"
     exit 1
 fi
+echo "✅ z3ed binary found"
 
-# Verify manual tool execution
-if "$Z3ED_BIN" agent overworld-find-tile --tile 0x02E --format json --rom "$ROM_PATH" > /dev/null 2>&1; then
-    echo "✅ Manual tool execution successful."
+# Set ROM flags based on mode
+if [ "$USE_MOCK_ROM" = true ]; then
+    ROM_FLAGS="--mock-rom"
+    echo "✅ Using mock ROM mode (no ROM file required)"
 else
-    echo "${RED}✗ Manual tool execution failed.${NC}"
+    ROM="assets/zelda3.sfc"
+    if [ ! -f "$ROM" ]; then
+        echo -e "${RED}✗ ROM file not found: $ROM${NC}"
+        echo "Tip: Use mock ROM mode by setting USE_MOCK_ROM=true"
+        exit 1
+    fi
+    ROM_FLAGS="--rom=\"$ROM\""
+    echo "✅ Real ROM found: $ROM"
+fi
+
+# Verify z3ed can execute
+if "$Z3ED" --help > /dev/null 2>&1; then
+    echo "✅ z3ed executable works"
+else
+    echo "${RED}✗ z3ed failed to execute${NC}"
     exit 1
 fi
 
@@ -107,7 +112,7 @@ run_test() {
     echo "Query: $query"
     echo ""
     
-    local cmd="$Z3ED agent simple-chat \"$query\" --rom=\"$ROM\" --ai_provider=$provider $extra_args"
+    local cmd="$Z3ED agent simple-chat \"$query\" $ROM_FLAGS --ai_provider=$provider $extra_args"
     echo "Running: $cmd"
     echo ""
     
