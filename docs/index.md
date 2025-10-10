@@ -15,6 +15,7 @@ Welcome to the official documentation for yaze, a comprehensive ROM editor for T
 
 ## C: `z3ed` CLI
 - [C1: `z3ed` Agent Guide](C1-z3ed-agent-guide.md) - The AI-powered command-line interface.
+- [C2: Testing Without ROMs](C2-testing-without-roms.md) - Using mock ROM mode for testing and CI/CD.
 
 ## E: Development & API
 - [E1: Assembly Style Guide](E1-asm-style-guide.md) - 65816 assembly coding standards.
