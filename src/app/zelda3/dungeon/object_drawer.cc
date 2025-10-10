@@ -18,6 +18,9 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
                                      gfx::BackgroundBuffer& bg1,
                                      gfx::BackgroundBuffer& bg2,
                                      const gfx::PaletteGroup& palette_group) {
+  LOG_DEBUG("ObjectDrawer", "Drawing object 0x%02X at (%d,%d) size=%d", 
+            object.id_, object.x_, object.y_, object.size_);
+  
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -113,6 +116,51 @@ void ObjectDrawer::InitializeDrawRoutines() {
     object_to_routine_map_[id] = 6;
   }
   
+  // Routine 7: RoomDraw_Downwards2x2_1to15or32 (object 0x60)
+  for (int id = 0x60; id <= 0x60; id++) {
+    object_to_routine_map_[id] = 7;
+  }
+  
+  // Routine 8: RoomDraw_Downwards4x2_1to15or26 (objects 0x61-0x62)
+  for (int id = 0x61; id <= 0x62; id++) {
+    object_to_routine_map_[id] = 8;
+  }
+  
+  // Routine 9: RoomDraw_Downwards4x2_1to16_BothBG (objects 0x63-0x64)
+  for (int id = 0x63; id <= 0x64; id++) {
+    object_to_routine_map_[id] = 9;
+  }
+  
+  // Routine 10: RoomDraw_DownwardsDecor4x2spaced4_1to16 (objects 0x65-0x66)
+  for (int id = 0x65; id <= 0x66; id++) {
+    object_to_routine_map_[id] = 10;
+  }
+  
+  // Routine 11: RoomDraw_Downwards2x2_1to16 (objects 0x67-0x68)
+  for (int id = 0x67; id <= 0x68; id++) {
+    object_to_routine_map_[id] = 11;
+  }
+  
+  // Routine 12: RoomDraw_DownwardsHasEdge1x1_1to16_plus3 (object 0x69)
+  for (int id = 0x69; id <= 0x69; id++) {
+    object_to_routine_map_[id] = 12;
+  }
+  
+  // Routine 13: RoomDraw_DownwardsEdge1x1_1to16 (objects 0x6A-0x6B)
+  for (int id = 0x6A; id <= 0x6B; id++) {
+    object_to_routine_map_[id] = 13;
+  }
+  
+  // Routine 14: RoomDraw_DownwardsLeftCorners2x1_1to16_plus12 (object 0x6C)
+  for (int id = 0x6C; id <= 0x6C; id++) {
+    object_to_routine_map_[id] = 14;
+  }
+  
+  // Routine 15: RoomDraw_DownwardsRightCorners2x1_1to16_plus12 (object 0x6D)
+  for (int id = 0x6D; id <= 0x6D; id++) {
+    object_to_routine_map_[id] = 15;
+  }
+  
   // Continue mapping more object IDs...
   // (This is a simplified version - the full table has 248 entries)
   
@@ -191,6 +239,35 @@ void ObjectDrawer::InitializeDrawRoutines() {
   });
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
     self->DrawRightwardsDecor2x2spaced12_1to16(obj, bg, tiles);
+  });
+  
+  // Add missing Downwards routines
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
+    self->DrawDownwards2x2_1to15or32(obj, bg, tiles);
+  });
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
+    self->DrawDownwards4x2_1to15or26(obj, bg, tiles);
+  });
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
+    self->DrawDownwards4x2_1to16_BothBG(obj, bg, tiles);
+  });
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
+    self->DrawDownwardsDecor4x2spaced4_1to16(obj, bg, tiles);
+  });
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
+    self->DrawDownwards2x2_1to16(obj, bg, tiles);
+  });
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
+    self->DrawDownwardsHasEdge1x1_1to16_plus3(obj, bg, tiles);
+  });
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
+    self->DrawDownwardsEdge1x1_1to16(obj, bg, tiles);
+  });
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
+    self->DrawDownwardsLeftCorners2x1_1to16_plus12(obj, bg, tiles);
+  });
+  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg, const std::vector<gfx::Tile16>& tiles) {
+    self->DrawDownwardsRightCorners2x1_1to16_plus12(obj, bg, tiles);
   });
   
   routines_initialized_ = true;
@@ -622,6 +699,154 @@ void ObjectDrawer::DrawRightwardsDecor2x2spaced12_1to16(const RoomObject& obj, g
       WriteTile8(bg, obj.x_ + (s * 14) + 1, obj.y_, tile16.tile1_);  // Top-right
       WriteTile8(bg, obj.x_ + (s * 14), obj.y_ + 1, tile16.tile2_);  // Bottom-left
       WriteTile8(bg, obj.x_ + (s * 14) + 1, obj.y_ + 1, tile16.tile3_); // Bottom-right
+    }
+  }
+}
+
+// ============================================================================
+// Downwards Draw Routines (Missing Implementation)
+// ============================================================================
+
+void ObjectDrawer::DrawDownwards2x2_1to15or32(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                              const std::vector<gfx::Tile16>& tiles) {
+  // Pattern: Draws 2x2 tiles downward (object 0x60)
+  // Size byte determines how many times to repeat (1-15 or 32)
+  int size = obj.size_;
+  if (size == 0) size = 32;  // Special case for object 0x60
+  
+  for (int s = 0; s < size; s++) {
+    if (tiles.size() >= 1) {
+      // Draw 2x2 pattern using 8x8 tiles from the first Tile16
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tile16.tile2_);  // Bottom-left
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1, tile16.tile3_); // Bottom-right
+    }
+  }
+}
+
+void ObjectDrawer::DrawDownwards4x2_1to15or26(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                              const std::vector<gfx::Tile16>& tiles) {
+  // Pattern: Draws 4x2 tiles downward (objects 0x61-0x62)
+  int size = obj.size_;
+  if (size == 0) size = 26;  // Special case
+  
+  for (int s = 0; s < size; s++) {
+    if (tiles.size() >= 1) {
+      // Draw 4x2 pattern using 8x8 tiles from the first Tile16
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2), tile16.tile0_);  // Top-left (repeat)
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2), tile16.tile1_);  // Top-right (repeat)
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tile16.tile2_);  // Bottom-left
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1, tile16.tile3_); // Bottom-right
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 2) + 1, tile16.tile2_); // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 2) + 1, tile16.tile3_); // Bottom-right (repeat)
+    }
+  }
+}
+
+void ObjectDrawer::DrawDownwards4x2_1to16_BothBG(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                                 const std::vector<gfx::Tile16>& tiles) {
+  // Pattern: Same as above but draws to both BG1 and BG2 (objects 0x63-0x64)
+  DrawDownwards4x2_1to15or26(obj, bg, tiles);
+  // Note: BothBG would require access to both buffers - simplified for now
+}
+
+void ObjectDrawer::DrawDownwardsDecor4x2spaced4_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                                       const std::vector<gfx::Tile16>& tiles) {
+  // Pattern: Draws 4x2 decoration downward with spacing (objects 0x65-0x66)
+  int size = obj.size_ & 0x0F;
+  
+  for (int s = 0; s < size; s++) {
+    if (tiles.size() >= 1) {
+      // Draw 4x2 pattern with spacing using 8x8 tiles from first Tile16
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 6), tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 6), tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 6), tile16.tile0_);  // Top-left (repeat)
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 6), tile16.tile1_);  // Top-right (repeat)
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 6) + 1, tile16.tile2_);  // Bottom-left
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 6) + 1, tile16.tile3_); // Bottom-right
+      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 6) + 1, tile16.tile2_); // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 6) + 1, tile16.tile3_); // Bottom-right (repeat)
+    }
+  }
+}
+
+void ObjectDrawer::DrawDownwards2x2_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                           const std::vector<gfx::Tile16>& tiles) {
+  // Pattern: Draws 2x2 tiles downward (objects 0x67-0x68)
+  int size = obj.size_ & 0x0F;
+  
+  for (int s = 0; s < size; s++) {
+    if (tiles.size() >= 1) {
+      // Draw 2x2 pattern using 8x8 tiles from first Tile16
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2), tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2), tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_, obj.y_ + (s * 2) + 1, tile16.tile2_);  // Bottom-left
+      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 2) + 1, tile16.tile3_); // Bottom-right
+    }
+  }
+}
+
+void ObjectDrawer::DrawDownwardsHasEdge1x1_1to16_plus3(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                                        const std::vector<gfx::Tile16>& tiles) {
+  // Pattern: 1x1 tiles with edge detection +3 offset downward (object 0x69)
+  int size = obj.size_ & 0x0F;
+  
+  for (int s = 0; s < size; s++) {
+    if (tiles.size() >= 1) {
+      // Use first 8x8 tile from first tile16
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_ + 3, obj.y_ + s, tile16.tile0_);
+    }
+  }
+}
+
+void ObjectDrawer::DrawDownwardsEdge1x1_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                               const std::vector<gfx::Tile16>& tiles) {
+  // Pattern: 1x1 edge tiles downward (objects 0x6A-0x6B)
+  int size = obj.size_ & 0x0F;
+  
+  for (int s = 0; s < size; s++) {
+    if (tiles.size() >= 1) {
+      // Use first 8x8 tile from first tile16
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_, obj.y_ + s, tile16.tile0_);
+    }
+  }
+}
+
+void ObjectDrawer::DrawDownwardsLeftCorners2x1_1to16_plus12(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                                            const std::vector<gfx::Tile16>& tiles) {
+  // Pattern: Left corner 2x1 tiles with +12 offset downward (object 0x6C)
+  int size = obj.size_ & 0x0F;
+  
+  for (int s = 0; s < size; s++) {
+    if (tiles.size() >= 1) {
+      // Use first tile16 for 2x1 pattern
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_ + 12, obj.y_ + s, tile16.tile0_);
+      WriteTile8(bg, obj.x_ + 12 + 1, obj.y_ + s, tile16.tile1_);
+    }
+  }
+}
+
+void ObjectDrawer::DrawDownwardsRightCorners2x1_1to16_plus12(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                                             const std::vector<gfx::Tile16>& tiles) {
+  // Pattern: Right corner 2x1 tiles with +12 offset downward (object 0x6D)
+  int size = obj.size_ & 0x0F;
+  
+  for (int s = 0; s < size; s++) {
+    if (tiles.size() >= 1) {
+      // Use first tile16 for 2x1 pattern
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_ + 12, obj.y_ + s, tile16.tile0_);
+      WriteTile8(bg, obj.x_ + 12 + 1, obj.y_ + s, tile16.tile1_);
     }
   }
 }
