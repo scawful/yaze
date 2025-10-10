@@ -216,18 +216,18 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    ::yaze::test::HarnessTestStatus status) {</div>
 <div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>  <span class="keywordflow">switch</span> (status) {</div>
 <div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    case ::yaze::test::HarnessTestStatus::kQueued:</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      return ::yaze::test::GetTestStatusResponse::STATUS_QUEUED;</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      return ::yaze::test::GetTestStatusResponse::TEST_STATUS_QUEUED;</div>
 <div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    case ::yaze::test::HarnessTestStatus::kRunning:</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>      return ::yaze::test::GetTestStatusResponse::STATUS_RUNNING;</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>      return ::yaze::test::GetTestStatusResponse::TEST_STATUS_RUNNING;</div>
 <div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    case ::yaze::test::HarnessTestStatus::kPassed:</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>      return ::yaze::test::GetTestStatusResponse::STATUS_PASSED;</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>      return ::yaze::test::GetTestStatusResponse::TEST_STATUS_PASSED;</div>
 <div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    case ::yaze::test::HarnessTestStatus::kFailed:</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>      return ::yaze::test::GetTestStatusResponse::STATUS_FAILED;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>      return ::yaze::test::GetTestStatusResponse::TEST_STATUS_FAILED;</div>
 <div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>    case ::yaze::test::HarnessTestStatus::kTimeout:</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>      return ::yaze::test::GetTestStatusResponse::STATUS_TIMEOUT;</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>      return ::yaze::test::GetTestStatusResponse::TEST_STATUS_TIMEOUT;</div>
 <div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    case ::yaze::test::HarnessTestStatus::kUnspecified:</div>
 <div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>    <span class="keywordflow">default</span>:</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>      return ::yaze::test::GetTestStatusResponse::STATUS_UNSPECIFIED;</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>      return ::yaze::test::GetTestStatusResponse::TEST_STATUS_UNSPECIFIED;</div>
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>  }</div>
 <div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>}</div>
 <div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span> </div>
@@ -1352,7 +1352,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l01249" name="l01249"></a><span class="lineno"> 1249</span>  <span class="keyword">auto</span> execution_or =</div>
 <div class="line"><a id="l01250" name="l01250"></a><span class="lineno"> 1250</span>      test_manager_-&gt;GetHarnessTestExecution(request-&gt;test_id());</div>
 <div class="line"><a id="l01251" name="l01251"></a><span class="lineno"> 1251</span>  <span class="keywordflow">if</span> (!execution_or.ok()) {</div>
-<div class="line"><a id="l01252" name="l01252"></a><span class="lineno"> 1252</span>    response-&gt;set_status(GetTestStatusResponse::STATUS_UNSPECIFIED);</div>
+<div class="line"><a id="l01252" name="l01252"></a><span class="lineno"> 1252</span>    response-&gt;set_status(GetTestStatusResponse::TEST_STATUS_UNSPECIFIED);</div>
 <div class="line"><a id="l01253" name="l01253"></a><span class="lineno"> 1253</span>    response-&gt;set_error_message(std::string(execution_or.status().message()));</div>
 <div class="line"><a id="l01254" name="l01254"></a><span class="lineno"> 1254</span>    <span class="keywordflow">return</span> absl::OkStatus();</div>
 <div class="line"><a id="l01255" name="l01255"></a><span class="lineno"> 1255</span>  }</div>

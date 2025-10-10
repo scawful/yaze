@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: G1 - Canvas System and Automation</title>
+<title>yaze: Canvas System Overview</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -98,152 +98,111 @@ $(document).ready(function(){initNavTree('d1/dc6/md_docs_2G1-canvas-guide.html',
 </div>
 
 <div><div class="header">
-  <div class="headertitle"><div class="title">G1 - Canvas System and Automation</div></div>
+  <div class="headertitle"><div class="title">Canvas System Overview</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md811"></a> This document provides a comprehensive guide to the Canvas system in yaze, including its architecture, features, and the powerful automation API that enables programmatic control for the <code>z3ed</code> CLI, AI agents, and GUI testing.</p>
-<h1><a class="anchor" id="autotoc_md812"></a>
-1. Core Concepts</h1>
-<h2><a class="anchor" id="autotoc_md813"></a>
-Canvas Structure</h2>
+<div class="textblock"><p><a class="anchor" id="autotoc_md762"></a> </p>
+<h1><a class="anchor" id="autotoc_md763"></a>
+Canvas Architecture</h1>
 <ul>
-<li><b>Background</b>: Drawing surface with border and optional scrolling</li>
-<li><b>Content Layer</b>: Bitmaps, tiles, custom graphics</li>
-<li><b>Grid Overlay</b>: Optional grid with hex labels</li>
-<li><b>Interaction Layer</b>: Hover previews, selection rectangles</li>
+<li><b>Canvas States</b>: track <code>canvas</code>, <code>content</code>, and <code>draw</code> rectangles independently; expose size/scale through <code>CanvasState</code> inspection panel</li>
+<li><b>Layer Stack</b>: background ➝ bitmaps ➝ entity overlays ➝ selection/tooltip layers</li>
+<li><b>Interaction Modes</b>: Tile Paint, Tile Select, Rectangle Select, Entity Manipulation, Palette Editing, Diagnostics</li>
+<li><b>Context Menu</b>: persistent menu with material icon sections (Mode, View, Info, Bitmap, Palette, BPP, Performance, Layout, Custom)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md814"></a>
-Coordinate Systems</h2>
+<h1><a class="anchor" id="autotoc_md764"></a>
+Core API Patterns</h1>
 <ul>
-<li><b>Screen Space</b>: <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> window coordinates</li>
-<li><b>Canvas Space</b>: Relative to canvas origin (0,0)</li>
-<li><b>Tile Space</b>: Grid-aligned tile indices</li>
-<li><b>World Space</b>: Overworld 4096x4096 large map coordinates</li>
+<li>Modern usage: <code>Begin/End</code> (auto grid/overlay, persistent context menu)</li>
+<li>Legacy helpers still available (<code>DrawBackground</code>, <code>DrawGrid</code>, <code>DrawSelectRect</code>, etc.)</li>
+<li>Unified state snapshot: <code>CanvasState</code> exposes geometry, zoom, scroll</li>
+<li>Interaction handler manages mode-specific tools (tile brush, select rect, entity gizmo)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md815"></a>
-2. Canvas API and Usage</h1>
-<h2><a class="anchor" id="autotoc_md816"></a>
-Modern Begin/End Pattern</h2>
-<p>The recommended way to use the canvas is with the <code>Begin()</code>/<code>End()</code> pattern, which handles setup and teardown automatically.</p>
-<div class="fragment"><div class="line">canvas.Begin(ImVec2(512, 512));</div>
-<div class="line">canvas.DrawBitmap(bitmap, 0, 0, 2.0f);</div>
-<div class="line">canvas.End();  <span class="comment">// Automatic grid + overlay</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md817"></a>
-Feature: Tile Painting</h2>
-<p>The canvas provides methods for painting single tiles, painting from a tilemap, and painting with solid colors.</p>
-<div class="fragment"><div class="line"><span class="keywordflow">if</span> (canvas.DrawTilePainter(current_tile_bitmap, 16, 2.0f)) {</div>
-<div class="line">  ImVec2 paint_pos = canvas.drawn_tile_position();</div>
-<div class="line">  ApplyTileToMap(paint_pos, current_tile_id);</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md818"></a>
-Feature: Tile Selection</h2>
-<p>The canvas supports both single-tile and multi-tile rectangle selection.</p>
-<div class="fragment"><div class="line">canvas.DrawSelectRect(current_map_id, 16, 1.0f);</div>
-<div class="line"> </div>
-<div class="line"><span class="keywordflow">if</span> (canvas.select_rect_active()) {</div>
-<div class="line">  <span class="keyword">const</span> <span class="keyword">auto</span>&amp; selected_tiles = canvas.selected_tiles();</div>
-<div class="line">  <span class="comment">// Process selection...</span></div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md819"></a>
-Feature: Large Map Support</h2>
-<p>The canvas can handle large maps with multiple local maps, including boundary clamping to prevent selection wrapping.</p>
-<div class="fragment"><div class="line">canvas.SetClampRectToLocalMaps(<span class="keyword">true</span>);  <span class="comment">// Default - prevents wrapping</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md820"></a>
-Feature: Context Menu</h2>
-<p>The canvas has a customizable context menu.</p>
-<div class="fragment"><div class="line">canvas.AddContextMenuItem({</div>
-<div class="line">  <span class="stringliteral">&quot;My Action&quot;</span>,</div>
-<div class="line">  [<span class="keyword">this</span>]() { DoAction(); }</div>
-<div class="line">});</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md821"></a>
-3. Canvas Automation API</h1>
-<p>The <code>CanvasAutomationAPI</code> provides a programmatic interface for controlling canvas operations, enabling scripted editing, AI agent integration, and automated testing.</p>
-<h2><a class="anchor" id="autotoc_md822"></a>
-Accessing the API</h2>
-<div class="fragment"><div class="line"><span class="keyword">auto</span>* api = canvas.GetAutomationAPI();</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md823"></a>
-Tile Operations</h2>
-<div class="fragment"><div class="line"><span class="comment">// Paint a single tile</span></div>
-<div class="line"><span class="keywordtype">bool</span> SetTileAt(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">int</span> tile_id);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Get the tile ID at a specific location</span></div>
-<div class="line"><span class="keywordtype">int</span> GetTileAt(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y) <span class="keyword">const</span>;</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Paint multiple tiles in a batch</span></div>
-<div class="line"><span class="keywordtype">bool</span> SetTiles(<span class="keyword">const</span> std::vector&lt;std::tuple&lt;int,int,int&gt;&gt;&amp; tiles);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md824"></a>
-Selection Operations</h2>
-<div class="fragment"><div class="line"><span class="comment">// Select a single tile</span></div>
-<div class="line"><span class="keywordtype">void</span> SelectTile(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Select a rectangular region of tiles</span></div>
-<div class="line"><span class="keywordtype">void</span> SelectTileRect(<span class="keywordtype">int</span> x1, <span class="keywordtype">int</span> y1, <span class="keywordtype">int</span> x2, <span class="keywordtype">int</span> y2);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Get the current selection state</span></div>
-<div class="line">SelectionState GetSelection() <span class="keyword">const</span>;</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Clear the current selection</span></div>
-<div class="line"><span class="keywordtype">void</span> ClearSelection();</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md825"></a>
-View Operations</h2>
-<div class="fragment"><div class="line"><span class="comment">// Scroll the canvas to make a tile visible</span></div>
-<div class="line"><span class="keywordtype">void</span> ScrollToTile(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Set the canvas zoom level</span></div>
-<div class="line"><span class="keywordtype">void</span> SetZoom(<span class="keywordtype">float</span> zoom_level);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Get the current zoom level</span></div>
-<div class="line"><span class="keywordtype">float</span> GetZoom() <span class="keyword">const</span>;</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Center the canvas view on a specific coordinate</span></div>
-<div class="line"><span class="keywordtype">void</span> CenterOn(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md826"></a>
-Query Operations</h2>
-<div class="fragment"><div class="line"><span class="comment">// Get the dimensions of the canvas in tiles</span></div>
-<div class="line">CanvasDimensions GetDimensions() <span class="keyword">const</span>;</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Get the currently visible region of the canvas</span></div>
-<div class="line">VisibleRegion GetVisibleRegion() <span class="keyword">const</span>;</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Check if a tile is currently visible</span></div>
-<div class="line"><span class="keywordtype">bool</span> IsTileVisible(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y) <span class="keyword">const</span>;</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Get the cursor position in logical tile coordinates</span></div>
-<div class="line">ImVec2 GetCursorPosition() <span class="keyword">const</span>;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md827"></a>
-Simulation Operations (for GUI Automation)</h2>
-<div class="fragment"><div class="line"><span class="comment">// Simulate a mouse click at a specific tile</span></div>
-<div class="line"><span class="keywordtype">void</span> SimulateClick(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, ImGuiMouseButton button = ImGuiMouseButton_Left);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Simulate a drag operation between two tiles</span></div>
-<div class="line"><span class="keywordtype">void</span> SimulateDrag(<span class="keywordtype">int</span> x1, <span class="keywordtype">int</span> y1, <span class="keywordtype">int</span> x2, <span class="keywordtype">int</span> y2);</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Wait for the canvas to finish processing</span></div>
-<div class="line"><span class="keywordtype">void</span> WaitForIdle();</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md828"></a>
-4. &lt;tt&gt;z3ed&lt;/tt&gt; CLI Integration</h1>
-<p>The Canvas Automation API is exposed through the <code>z3ed</code> CLI, allowing for scripted overworld editing.</p>
-<div class="fragment"><div class="line"># Set a tile</div>
-<div class="line">z3ed overworld set-tile --map 0 --x 10 --y 10 --tile-id 0x0042 --rom zelda3.sfc</div>
-<div class="line"> </div>
-<div class="line"># Get a tile</div>
-<div class="line">z3ed overworld get-tile --map 0 --x 10 --y 10 --rom zelda3.sfc</div>
-<div class="line"> </div>
-<div class="line"># Select a rectangle</div>
-<div class="line">z3ed overworld select-rect --map 0 --x1 5 --y1 5 --x2 15 --y2 15 --rom zelda3.sfc</div>
-<div class="line"> </div>
-<div class="line"># Scroll to a tile</div>
-<div class="line">z3ed overworld scroll-to --map 0 --x 20 --y 20 --center --rom zelda3.sfc</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md829"></a>
-5. gRPC Service</h1>
-<p>The Canvas Automation API is also exposed via a gRPC service, allowing for remote control of the canvas.</p>
-<p>**Proto Definition (<code>protos/canvas_automation.proto</code>):** </p><div class="fragment"><div class="line">service CanvasAutomation {</div>
-<div class="line">  rpc SetTileAt(SetTileRequest) returns (SetTileResponse);</div>
-<div class="line">  rpc GetTileAt(GetTileRequest) returns (GetTileResponse);</div>
-<div class="line">  rpc SelectTileRect(SelectTileRectRequest) returns (SelectTileRectResponse);</div>
-<div class="line">  // ... and so on for all API methods</div>
-<div class="line">}</div>
-</div><!-- fragment --><p>This service is hosted by the <code>UnifiedGRPCServer</code> in the main yaze application, allowing tools like <code>grpcurl</code> or custom clients to interact with the canvas remotely. </p>
+<h1><a class="anchor" id="autotoc_md765"></a>
+Context Menu Sections</h1>
+<ul>
+<li><b>Mode Selector</b>: switch modes with icons (Brush, Select, Rect, Bitmap, Palette, BPP, Perf)</li>
+<li><b>View &amp; Grid</b>: reset/zoom, toggle grid/labels, advanced/scaling dialogs</li>
+<li><b>Canvas Info</b>: real-time canvas/content size, scale, scroll, mouse position</li>
+<li><b>Bitmap/Palette/BPP</b>: format conversion, palette analysis, BPP workflows with persistent modals</li>
+<li><b>Performance</b>: profiler metrics, dashboard, usage report</li>
+<li><b>Layout</b>: draggable toggle, auto resize, grid step</li>
+<li><b>Custom Actions</b>: consumer-provided menu items</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md766"></a>
+Interaction Modes &amp; Capabilities</h1>
+<ul>
+<li><b>Tile Painting</b>: tile16 painter, brush size, finish stroke callbacks<ul>
+<li>Operations: finish_paint, reset_view, zoom, grid, scaling</li>
+</ul>
+</li>
+<li><b>Tile Selection</b>: multi-select rectangle, copy/paste selection<ul>
+<li>Operations: select_all, clear_selection, reset_view, zoom, grid, scaling</li>
+</ul>
+</li>
+<li><b>Rectangle Selection</b>: drag-select area, clear selection<ul>
+<li>Operations: clear_selection, reset_view, zoom, grid, scaling</li>
+</ul>
+</li>
+<li><b>Bitmap Editing</b>: format conversion, bitmap manipulation<ul>
+<li>Operations: bitmap_convert, palette_edit, bpp_analysis, reset_view, zoom, grid, scaling</li>
+</ul>
+</li>
+<li><b>Palette Editing</b>: inline palette editor, ROM palette picker, color analysis<ul>
+<li>Operations: palette_edit, palette_analysis, reset_palette, reset_view, zoom, grid, scaling</li>
+</ul>
+</li>
+<li><b>BPP Conversion</b>: format analysis, conversion workflows<ul>
+<li>Operations: bpp_analysis, bpp_conversion, bitmap_convert, reset_view, zoom, grid, scaling</li>
+</ul>
+</li>
+<li><b>Performance Mode</b>: diagnostics, texture queue, performance overlays<ul>
+<li>Operations: performance, usage_report, copy_metrics, reset_view, zoom, grid, scaling</li>
+</ul>
+</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md767"></a>
+Debug &amp; Diagnostics</h1>
+<ul>
+<li>Persistent modals (<code>View→Advanced</code>, <code>View→Scaling</code>, <code>Palette</code>, <code>BPP</code>) stay open until closed</li>
+<li>Texture inspector shows current bitmap, VRAM sheet, palette group, usage stats</li>
+<li>State overlay: canvas size, content size, global scale, scroll, highlight entity</li>
+<li>Performance HUD: operation counts, timing graphs, usage recommendations</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md768"></a>
+Automation API</h1>
+<ul>
+<li>CanvasAutomationAPI: tile operations (<code>SetTileAt</code>, <code>SelectRect</code>), view control (<code>ScrollToTile</code>, <code>SetZoom</code>), entity manipulation hooks</li>
+<li>Exposed through CLI (<code>z3ed</code>) and gRPC service, matching UI modes</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md769"></a>
+Integration Steps for Editors</h1>
+<ol type="1">
+<li>Construct <code>Canvas</code>, set renderer (optional) and ID</li>
+<li>Call <code>InitializePaletteEditor</code> and <code>SetUsageMode</code></li>
+<li>Configure available modes: <code>SetAvailableModes({kTilePainting, kTileSelecting})</code></li>
+<li>Register mode callbacks (tile paint finish, selection clear, etc.)</li>
+<li>During frame: <code>canvas.Begin(size)</code> → draw bitmaps/entities → <code>canvas.End()</code></li>
+<li>Provide custom menu items via <code>AddMenuItem</code>/<code>AddMenuItem(item, usage)</code></li>
+<li>Use <code>GetConfig()</code>/<code>GetSelection()</code> for state; respond to context menu commands via callback lambda in <code>Render</code></li>
+</ol>
+<h1><a class="anchor" id="autotoc_md770"></a>
+Migration Checklist</h1>
+<ul>
+<li>Replace direct <code>DrawContextMenu</code> logic with new render callback signature</li>
+<li>Move palette/BPP helpers into <code>canvas/</code> module; update includes</li>
+<li>Ensure persistent modals wired (advanced/scaling/palette/bpp/perf)</li>
+<li>Update usage tracker integrations to record mode switches</li>
+<li>Validate overworld/tile16/dungeon editors in tile paint, select, entity modes</li>
+</ul>
+<h1><a class="anchor" id="autotoc_md771"></a>
+Testing Notes</h1>
+<ul>
+<li>Manual regression: overworld paint/select, tile16 painter, dungeon entity drag</li>
+<li>Verify context menu persists and modals remain until closed</li>
+<li>Ensure palette/BPP modals populate with correct bitmap/palette data</li>
+<li>Automation: run CanvasAutomation API tests/end-to-end scripts for overworld edits </li>
+</ul>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

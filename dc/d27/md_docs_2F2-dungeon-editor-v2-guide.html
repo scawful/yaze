@@ -101,9 +101,7 @@ $(document).ready(function(){initNavTree('dc/d27/md_docs_2F2-dungeon-editor-v2-g
   <div class="headertitle"><div class="title">F2: Dungeon Editor v2 - Complete Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md566"></a> <b>Version</b>: v0.4.0 <br  />
- <b>Last Updated</b>: October 10, 2025 <br  />
- <b>Status</b>: ✅ Production Ready <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md566"></a> <b>Last Updated</b>: October 10, 2025 <br  />
  <b>Related</b>: <a class="el" href="../../d5/d18/md_docs_2E2-development-guide.html">E2-development-guide.md</a>, <a class="el" href="../../de/dc5/md_docs_2E5-debugging-guide.html">E5-debugging-guide.md</a></p>
 <hr  />
 <h1><a class="anchor" id="autotoc_md568"></a>
@@ -120,49 +118,7 @@ Key Features</h2>
 <li>✅ <b>Overworld integration</b> - Double-click entrances to open dungeon rooms</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md571"></a>
-Recent Refactoring (Oct 9-10, 2025)</h1>
-<h2><a class="anchor" id="autotoc_md572"></a>
-Critical Bugs Fixed ✅</h2>
-<h3><a class="anchor" id="autotoc_md573"></a>
-Bug #1: Segfault on Startup</h3>
-<p><b>Cause</b>: <code>ImGui::GetID()</code> called before <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> context ready <br  />
- <b>Fix</b>: Moved to <code>Update()</code> when <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> is initialized <br  />
- <b>File</b>: <code><a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc.html">dungeon_editor_v2.cc</a>:160-163</code></p>
-<h3><a class="anchor" id="autotoc_md574"></a>
-Bug #2: Floor Values Always Zero</h3>
-<p><b>Cause</b>: <code>RenderRoomGraphics()</code> called before <code>LoadObjects()</code> <br  />
- <b>Fix</b>: Correct loading sequence: </p><div class="fragment"><div class="line"><span class="comment">// CORRECT ORDER:</span></div>
-<div class="line"><span class="keywordflow">if</span> (room.blocks().empty()) {</div>
-<div class="line">  room.LoadRoomGraphics(room.blockset);  <span class="comment">// 1. Load blocks from ROM</span></div>
-<div class="line">}</div>
-<div class="line"><span class="keywordflow">if</span> (room.GetTileObjects().empty()) {</div>
-<div class="line">  room.LoadObjects();  <span class="comment">// 2. Load objects (SETS floor1_graphics_!)</span></div>
-<div class="line">}</div>
-<div class="line"><span class="keywordflow">if</span> (needs_render || !bg1_bitmap.is_active()) {</div>
-<div class="line">  room.RenderRoomGraphics();  <span class="comment">// 3. Render with correct floor values</span></div>
-<div class="line">}</div>
-</div><!-- fragment --><p> <b>Impact</b>: Floor graphics now load correctly (4, 8, etc. instead of 0)</p>
-<h3><a class="anchor" id="autotoc_md575"></a>
-Bug #3: Duplicate Floor Variables</h3>
-<p><b>Cause</b>: <code>floor1</code> (public) vs <code>floor1_graphics_</code> (private) - two sources of truth <br  />
- <b>Fix</b>: Removed public members, added accessors: <code>floor1()</code>, <code>set_floor1()</code> <br  />
- <b>Impact</b>: UI floor edits now trigger immediate re-render</p>
-<h3><a class="anchor" id="autotoc_md576"></a>
-Bug #4: Wall Graphics Not Rendering</h3>
-<p><b>Cause</b>: Textures created BEFORE objects drawn, never updated <br  />
- <b>Fix</b>: Added UPDATE commands after <code>RenderObjectsToBackground()</code> </p><div class="fragment"><div class="line"><span class="comment">// room.cc:327-344</span></div>
-<div class="line">RenderObjectsToBackground();  <span class="comment">// Draw objects to bitmaps</span></div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Update textures with new data</span></div>
-<div class="line"><span class="keywordflow">if</span> (bg1_bmp.texture()) {</div>
-<div class="line">  gfx::Arena::Get().QueueTextureCommand(UPDATE, &amp;bg1_bmp);</div>
-<div class="line">  gfx::Arena::Get().QueueTextureCommand(UPDATE, &amp;bg2_bmp);</div>
-<div class="line">} <span class="keywordflow">else</span> {</div>
-<div class="line">  gfx::Arena::Get().QueueTextureCommand(CREATE, &amp;bg1_bmp);</div>
-<div class="line">  gfx::Arena::Get().QueueTextureCommand(CREATE, &amp;bg2_bmp);</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md577"></a>
+<h2><a class="anchor" id="autotoc_md571"></a>
 Architecture Improvements ✅</h2>
 <ol type="1">
 <li><b>Room Buffers Decoupled</b> - No dependency on Arena graphics sheets</li>
@@ -172,7 +128,7 @@ Architecture Improvements ✅</h2>
 <li><b>Texture Atlas Infrastructure</b> - Future-proof stub created</li>
 <li><b>Test Suite Cleaned</b> - Deleted 1270 lines of redundant tests</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md578"></a>
+<h2><a class="anchor" id="autotoc_md572"></a>
 UI Improvements ✅</h2>
 <ul>
 <li>Room ID in card title: <code>[003] Room Name</code></li>
@@ -182,9 +138,9 @@ UI Improvements ✅</h2>
 <li>Object count in status bar</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md580"></a>
+<h1><a class="anchor" id="autotoc_md574"></a>
 Architecture</h1>
-<h2><a class="anchor" id="autotoc_md581"></a>
+<h2><a class="anchor" id="autotoc_md575"></a>
 Component Overview</h2>
 <div class="fragment"><div class="line">DungeonEditorV2 (UI Layer)</div>
 <div class="line">├─ Card-based UI system</div>
@@ -203,8 +159,9 @@ Component Overview</h2>
 <div class="line">├─ Object storage (tile_objects_)</div>
 <div class="line">├─ Graphics loading</div>
 <div class="line">└─ Rendering pipeline</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md582"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md576"></a>
 Room Rendering Pipeline</h2>
+<p>TODO: Update this to latest code.</p>
 <div class="fragment"><div class="line">1. LoadRoomGraphics(blockset)</div>
 <div class="line">   └─&gt; Reads blocks[] from ROM</div>
 <div class="line">   └─&gt; Loads blockset data → current_gfx16_</div>
@@ -229,14 +186,13 @@ Room Rendering Pipeline</h2>
 <div class="line">5. DrawObjectPositionOutlines(room)</div>
 <div class="line">   └─&gt; Colored rectangles by layer</div>
 <div class="line">   └─&gt; Object ID labels</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md583"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md577"></a>
 Room Structure (Bottom to Top)</h2>
 <p>Understanding ALTTP dungeon composition is critical:</p>
 <div class="fragment"><div class="line">Room Composition:</div>
 <div class="line">├─ Room Layout (BASE LAYER - immovable)</div>
-<div class="line">│  ├─ Walls (structural boundaries)</div>
-<div class="line">│  ├─ Floors (walkable areas)</div>
-<div class="line">│  └─ Pits (holes/damage zones)</div>
+<div class="line">│  ├─ Walls (structural boundaries, 7 configurations of squares in 2x2 grid)</div>
+<div class="line">│  ├─ Floors (walkable areas, repeated tile pattern set to BG1/BG2)</div>
 <div class="line">├─ Layer 0 Objects (floor decorations, some walls)</div>
 <div class="line">├─ Layer 1 Objects (chests, decorations)</div>
 <div class="line">└─ Layer 2 Objects (stairs, transitions)</div>
@@ -244,40 +200,12 @@ Room Structure (Bottom to Top)</h2>
 <div class="line">Doors: Positioned at room edges to connect rooms</div>
 </div><!-- fragment --><p><b>Key Insight</b>: Layouts are immovable base structure. Objects are placed ON TOP and can be moved/edited. This allows for large rooms, 4-quadrant rooms, tall/wide rooms, etc.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md585"></a>
+<h1><a class="anchor" id="autotoc_md579"></a>
 Next Development Steps</h1>
-<h2><a class="anchor" id="autotoc_md586"></a>
+<h2><a class="anchor" id="autotoc_md580"></a>
 High Priority (Must Do)</h2>
-<h3><a class="anchor" id="autotoc_md587"></a>
-1. Implement Room Layout Base Layer Rendering</h3>
-<p><b>File</b>: <code><a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc.html">dungeon_canvas_viewer.cc</a>:377-391</code> (stub exists)</p>
-<p><b>What</b>: Render the immovable room structure (walls, floors, pits)</p>
-<p><b>Implementation</b>: </p><div class="fragment"><div class="line"><span class="keywordtype">void</span> DungeonCanvasViewer::DrawRoomLayout(<span class="keyword">const</span> zelda3::Room&amp; room) {</div>
-<div class="line">  <span class="keyword">const</span> <span class="keyword">auto</span>&amp; layout = room.GetLayout();</div>
-<div class="line">  </div>
-<div class="line">  <span class="comment">// layout.LoadLayout(room_id);</span></div>
-<div class="line">  </div>
-<div class="line">  <span class="comment">// Get structural elements</span></div>
-<div class="line">  <span class="keyword">auto</span> walls = layout.GetObjectsByType(RoomLayoutObject::Type::kWall);</div>
-<div class="line">  <span class="keyword">auto</span> floors = layout.GetObjectsByType(RoomLayoutObject::Type::kFloor);</div>
-<div class="line">  <span class="keyword">auto</span> pits = layout.GetObjectsByType(RoomLayoutObject::Type::kPit);</div>
-<div class="line">  </div>
-<div class="line">  <span class="comment">// Draw walls (dark gray, semi-transparent)</span></div>
-<div class="line">  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; wall : walls) {</div>
-<div class="line">    <span class="keyword">auto</span> [x, y] = RoomToCanvasCoordinates(wall.x(), wall.y());</div>
-<div class="line">    canvas_.DrawRect(x, y, 8, 8, ImVec4(0.3f, 0.3f, 0.3f, 0.6f));</div>
-<div class="line">  }</div>
-<div class="line">  </div>
-<div class="line">  <span class="comment">// Draw pits (orange warning)</span></div>
-<div class="line">  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; pit : pits) {</div>
-<div class="line">    <span class="keyword">auto</span> [x, y] = RoomToCanvasCoordinates(pit.x(), pit.y());</div>
-<div class="line">    canvas_.DrawRect(x, y, 8, 8, ImVec4(1.0f, 0.5f, 0.0f, 0.7f));</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><p><b>Reference</b>: <code><a class="el" href="../../da/d96/room__layout_8h.html">src/app/zelda3/dungeon/room_layout.h</a>/cc</code> for LoadLayout() logic</p>
-<hr  />
-<h3><a class="anchor" id="autotoc_md589"></a>
-2. Door Rendering at Room Edges</h3>
+<h3><a class="anchor" id="autotoc_md581"></a>
+1. Door Rendering at Room Edges</h3>
 <p><b>What</b>: Render doors with proper patterns at room connections</p>
 <p><b>Pattern Reference</b>: ZScream's door drawing patterns</p>
 <p><b>Implementation</b>: </p><div class="fragment"><div class="line"><span class="keywordtype">void</span> DungeonCanvasViewer::DrawDoors(<span class="keyword">const</span> zelda3::Room&amp; room) {</div>
@@ -287,8 +215,8 @@ High Priority (Must Do)</h2>
 <div class="line">  </div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h3><a class="anchor" id="autotoc_md591"></a>
-3. Object Name Labels from String Array</h3>
+<h3><a class="anchor" id="autotoc_md583"></a>
+2. Object Name Labels from String Array</h3>
 <p><b>File</b>: <code><a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc.html">dungeon_canvas_viewer.cc</a>:416</code> (DrawObjectPositionOutlines)</p>
 <p><b>What</b>: Show real object names instead of just IDs</p>
 <p><b>Implementation</b>: </p><div class="fragment"><div class="line"><span class="comment">// Instead of:</span></div>
@@ -304,7 +232,7 @@ High Priority (Must Do)</h2>
 <div class="line">  <span class="keywordflow">return</span> <span class="stringliteral">&quot;Object&quot;</span>;</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h3><a class="anchor" id="autotoc_md593"></a>
+<h3><a class="anchor" id="autotoc_md585"></a>
 4. Fix Plus Button to Select Any Room</h3>
 <p><b>File</b>: <code><a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc.html">dungeon_editor_v2.cc</a>:228</code> (DrawToolset)</p>
 <p><b>Current Issue</b>: Opens Room 0x00 (Ganon) always</p>
@@ -327,17 +255,9 @@ High Priority (Must Do)</h2>
 <div class="line">}</div>
 <div class="ttc" id="aicons_8h_html_a9db9587cd41970cdc44e0b730c504e6f"><div class="ttname"><a href="../../de/dbf/icons_8h.html#a9db9587cd41970cdc44e0b730c504e6f">ICON_MD_ADD</a></div><div class="ttdeci">#define ICON_MD_ADD</div><div class="ttdef"><b>Definition</b> <a href="../../de/dbf/icons_8h_source.html#l00084">icons.h:84</a></div></div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md595"></a>
+<h2><a class="anchor" id="autotoc_md587"></a>
 Medium Priority (Should Do)</h2>
-<h3><a class="anchor" id="autotoc_md596"></a>
-5. Update current_room_id on Card Hover</h3>
-<p><b>What</b>: Update DungeonEditorV2::current_room_id_ when hovering room cards</p>
-<p><b>Implementation</b>: </p><div class="fragment"><div class="line"><span class="comment">// In dungeon_editor_v2.cc, after room_card-&gt;Begin():</span></div>
-<div class="line"><span class="keywordflow">if</span> (ImGui::IsWindowHovered()) {</div>
-<div class="line">  current_room_id_ = room_id;</div>
-<div class="line">}</div>
-</div><!-- fragment --><hr  />
-<h3><a class="anchor" id="autotoc_md598"></a>
+<h3><a class="anchor" id="autotoc_md588"></a>
 6. Fix InputHexByte +/- Button Events</h3>
 <p><b>File</b>: <code><a class="el" href="../../de/d4c/input_8cc.html">src/app/gui/input.cc</a></code> (likely)</p>
 <p><b>Issue</b>: Buttons don't respond to clicks</p>
@@ -346,28 +266,9 @@ Medium Priority (Should Do)</h2>
 <li>Verify event logic matches working examples</li>
 <li>Keep existing event style if it works elsewhere</li>
 </ul>
-<hr  />
-<h3><a class="anchor" id="autotoc_md600"></a>
-7. Update Room Graphics Card</h3>
-<p><b>File</b>: <code><a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc.html">dungeon_editor_v2.cc</a>:856-920</code></p>
-<p><b>What</b>: Show per-room graphics from <code>current_gfx16_</code> instead of Arena sheets</p>
-<p><b>Implementation</b>: </p><div class="fragment"><div class="line"><span class="comment">// Instead of Arena sheets:</span></div>
-<div class="line"><span class="keyword">auto</span>&amp; gfx_sheet = gfx::Arena::Get().gfx_sheets()[block];</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Use room&#39;s current_gfx16_:</span></div>
-<div class="line"><span class="keyword">const</span> <span class="keyword">auto</span>&amp; gfx_buffer = room.get_gfx_buffer();  <span class="comment">// Returns current_gfx16_</span></div>
-<div class="line"><span class="comment">// Extract 128x128 block from gfx_buffer</span></div>
-<div class="line"><span class="comment">// Display as 128x32 strips (16 blocks, 2 columns)</span></div>
-</div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md602"></a>
+<h2><a class="anchor" id="autotoc_md589"></a>
 Lower Priority (Nice to Have)</h2>
-<h3><a class="anchor" id="autotoc_md603"></a>
-8. Selection System with Primitive Squares</h3>
-<p><b>What</b>: Allow selecting objects even if graphics don't render</p>
-<p><b>Current</b>: Selection works on bitmaps <br  />
- <b>Enhancement</b>: Selection works on position outlines</p>
-<hr  />
-<h3><a class="anchor" id="autotoc_md605"></a>
+<h3><a class="anchor" id="autotoc_md590"></a>
 9. Move Backend Logic to DungeonEditorSystem</h3>
 <p><b>What</b>: Separate UI (V2) from data operations (System)</p>
 <p><b>Migration</b>:</p><ul>
@@ -378,14 +279,9 @@ Lower Priority (Nice to Have)</h2>
 </ul>
 <p><b>Result</b>: DungeonEditorV2 becomes pure UI coordinator</p>
 <hr  />
-<h3><a class="anchor" id="autotoc_md607"></a>
-10. Extract ROM Addresses to Separate File</h3>
-<p><b>File</b>: <code><a class="el" href="../../d9/dc0/room_8h.html">room.h</a></code> lines 18-84 (66 lines of constants)</p>
-<p><b>Action</b>: Move to <code><a class="el" href="../../d8/d89/dungeon__rom__addresses_8h.html">dungeon_rom_addresses.h</a></code></p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md609"></a>
+<h1><a class="anchor" id="autotoc_md592"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md610"></a>
+<h2><a class="anchor" id="autotoc_md593"></a>
 Build &amp; Run</h2>
 <div class="fragment"><div class="line">cd /Users/scawful/Code/yaze</div>
 <div class="line">cmake --preset mac-ai -B build_ai</div>
@@ -396,24 +292,10 @@ Build &amp; Run</h2>
 <div class="line"> </div>
 <div class="line"># Open specific room</div>
 <div class="line">./build_ai/bin/yaze.app/Contents/MacOS/yaze --rom_file=zelda3.sfc --editor=Dungeon --cards=&quot;Room 0x00&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md611"></a>
-Expected Visuals</h2>
-<ul>
-<li>✅ <b>Floor tiles</b>: Proper dungeon graphics with correct colors</li>
-<li>✅ <b>Floor values</b>: Show 4, 8, etc. (not 0!)</li>
-<li>✅ <b>Object outlines</b>: Colored rectangles by layer<ul>
-<li>🟥 Red = Layer 0 (walls, floors)</li>
-<li>🟩 Green = Layer 1 (decorations, chests)</li>
-<li>🟦 Blue = Layer 2 (stairs, transitions)</li>
-</ul>
-</li>
-<li>✅ <b>Object IDs</b>: Labels like "0x10", "0x20"</li>
-<li>⏳ <b>Wall graphics</b>: Should render inside rectangles (needs verification)</li>
-</ul>
-<hr  />
-<h1><a class="anchor" id="autotoc_md613"></a>
+</div><!-- fragment --><hr  />
+<h1><a class="anchor" id="autotoc_md595"></a>
 Testing &amp; Verification</h1>
-<h2><a class="anchor" id="autotoc_md614"></a>
+<h2><a class="anchor" id="autotoc_md596"></a>
 Debug Commands</h2>
 <div class="fragment"><div class="line"># Verify floor values load correctly</div>
 <div class="line">./build_ai/bin/yaze.app/Contents/MacOS/yaze --rom_file=zelda3.sfc --editor=Dungeon 2&gt;&amp;1 | grep &quot;floor1=&quot;</div>
@@ -425,203 +307,7 @@ Debug Commands</h2>
 <div class="line"> </div>
 <div class="line"># Check object drawing details</div>
 <div class="line">./build_ai/bin/yaze.app/Contents/MacOS/yaze --rom_file=zelda3.sfc --editor=Dungeon 2&gt;&amp;1 | grep &quot;Writing Tile16&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md615"></a>
-Visual Checklist</h2>
-<ul>
-<li>[ ] Floor tiles render with correct colors</li>
-<li>[ ] Object position outlines visible</li>
-<li>[ ] Room ID shows in card title as <code>[000] Ganon</code></li>
-<li>[ ] Properties in clean table layout (4 columns)</li>
-<li>[ ] Layer controls compact (1 row)</li>
-<li>[ ] Can edit floor1/floor2 values</li>
-<li>[ ] Changes update canvas immediately</li>
-<li>[ ] Room graphics card height correct (257px, not 1025px)</li>
-</ul>
-<hr  />
-<h1><a class="anchor" id="autotoc_md617"></a>
-Technical Reference</h1>
-<h2><a class="anchor" id="autotoc_md618"></a>
-Correct Loading Order</h2>
-<p>The loading sequence is <b>critical</b>:</p>
-<div class="fragment"><div class="line">1. LoadRoomGraphics(blockset)  - Loads blocks[], current_gfx16_</div>
-<div class="line">2. LoadObjects()               - Parses objects, SETS floor graphics</div>
-<div class="line">3. RenderRoomGraphics()        - Uses floor graphics from step 2</div>
-</div><!-- fragment --><p><b>Why</b>: <code>LoadObjects()</code> sets <code>floor1_graphics_</code> and <code>floor2_graphics_</code> during parsing. If you render before loading objects, floor values are still 0!</p>
-<h2><a class="anchor" id="autotoc_md619"></a>
-Floor Graphics Accessors</h2>
-<div class="fragment"><div class="line"><span class="comment">// room.h:341-350</span></div>
-<div class="line">uint8_t floor1()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> floor1_graphics_; }</div>
-<div class="line">uint8_t floor2()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> floor2_graphics_; }</div>
-<div class="line"><span class="keywordtype">void</span> set_floor1(uint8_t value) { </div>
-<div class="line">  floor1_graphics_ = value;</div>
-<div class="line">  <span class="comment">// UI code triggers re-render when changed</span></div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md620"></a>
-Object Visualization</h2>
-<div class="fragment"><div class="line"><span class="comment">// dungeon_canvas_viewer.cc:394-425</span></div>
-<div class="line"><span class="keywordtype">void</span> DungeonCanvasViewer::DrawObjectPositionOutlines(<span class="keyword">const</span> zelda3::Room&amp; room) {</div>
-<div class="line">  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; obj : room.GetTileObjects()) {</div>
-<div class="line">    <span class="keyword">auto</span> [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment">// Size from object.size_ field</span></div>
-<div class="line">    <span class="keywordtype">int</span> width = ((obj.size() &amp; 0x0F) + 1) * 8;</div>
-<div class="line">    <span class="keywordtype">int</span> height = (((obj.size() &gt;&gt; 4) &amp; 0x0F) + 1) * 8;</div>
-<div class="line">    </div>
-<div class="line">    <span class="comment">// Color by layer</span></div>
-<div class="line">    ImVec4 color = (layer == 0) ? Red : (layer == 1) ? Green : Blue;</div>
-<div class="line">    </div>
-<div class="line">    canvas_.DrawRect(canvas_x, canvas_y, width, height, color);</div>
-<div class="line">    canvas_.DrawText(absl::StrFormat(<span class="stringliteral">&quot;0x%02X&quot;</span>, obj.id_), canvas_x + 2, canvas_y + 2);</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md621"></a>
-Texture Atlas (Future-Proof Stub)</h2>
-<div class="fragment"><div class="line"><span class="comment">// src/app/gfx/texture_atlas.h</span></div>
-<div class="line"><span class="keyword">class </span>TextureAtlas {</div>
-<div class="line">  AtlasRegion* AllocateRegion(<span class="keywordtype">int</span> source_id, <span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height);</div>
-<div class="line">  absl::Status PackBitmap(<span class="keyword">const</span> Bitmap&amp; src, <span class="keyword">const</span> AtlasRegion&amp; region);</div>
-<div class="line">  absl::Status DrawRegion(<span class="keywordtype">int</span> source_id, <span class="keywordtype">int</span> dest_x, <span class="keywordtype">int</span> dest_y);</div>
-<div class="line">};</div>
-<div class="line"> </div>
-<div class="line"><span class="comment">// Future usage:</span></div>
-<div class="line">TextureAtlas atlas(2048, 2048);</div>
-<div class="line"><span class="keyword">auto</span>* region = atlas.AllocateRegion(room_id, 512, 512);</div>
-<div class="line">atlas.PackBitmap(room.bg1_buffer().bitmap(), *region);</div>
-<div class="line">atlas.DrawRegion(room_id, x, y);</div>
-</div><!-- fragment --><p>When implemented:</p><ul>
-<li>Single GPU texture for all rooms</li>
-<li>Fewer texture binds per frame</li>
-<li>Better performance with many rooms</li>
-</ul>
-<hr  />
-<h1><a class="anchor" id="autotoc_md623"></a>
-Files Modified (16 files)</h1>
-<h2><a class="anchor" id="autotoc_md624"></a>
-Dungeon Editor</h2>
-<div class="fragment"><div class="line">✅ src/app/editor/dungeon/dungeon_editor_v2.cc</div>
-<div class="line">   - Room ID in title `[003] Room Name`</div>
-<div class="line">   - Object count in status bar</div>
-<div class="line">   - Room graphics canvas 257x257 (fixed from 1025 tall)</div>
-<div class="line">   - Loading order fix (CRITICAL)</div>
-<div class="line"> </div>
-<div class="line">✅ src/app/editor/dungeon/dungeon_canvas_viewer.h/cc</div>
-<div class="line">   - Properties in table layout</div>
-<div class="line">   - Compact layer controls</div>
-<div class="line">   - DrawRoomLayout() stub</div>
-<div class="line">   - DrawObjectPositionOutlines() working</div>
-<div class="line">   - Removed ObjectRenderer</div>
-<div class="line"> </div>
-<div class="line">✅ src/app/editor/dungeon/dungeon_object_selector.h/cc</div>
-<div class="line">   - Removed ObjectRenderer</div>
-<div class="line">   - TODO for ObjectDrawer-based preview</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md625"></a>
-Room System</h2>
-<div class="fragment"><div class="line">✅ src/app/zelda3/dungeon/room.h</div>
-<div class="line">   - floor1()/floor2() accessors</div>
-<div class="line">   - Removed LoadGraphicsSheetsIntoArena()</div>
-<div class="line"> </div>
-<div class="line">✅ src/app/zelda3/dungeon/room.cc</div>
-<div class="line">   - Removed LoadGraphicsSheetsIntoArena() impl</div>
-<div class="line">   - Added UPDATE texture commands</div>
-<div class="line">   - Palette before objects (correct order)</div>
-<div class="line">   - Debug logging</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md626"></a>
-Graphics Infrastructure</h2>
-<div class="fragment"><div class="line">✅ src/app/gfx/texture_atlas.h          - NEW</div>
-<div class="line">✅ src/app/gfx/texture_atlas.cc         - NEW  </div>
-<div class="line">✅ src/app/gfx/gfx_library.cmake        - Added texture_atlas.cc</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md627"></a>
-Tests</h2>
-<div class="fragment"><div class="line">❌ test/unit/zelda3/dungeon_object_renderer_mock_test.cc            - DELETED</div>
-<div class="line">❌ test/integration/zelda3/dungeon_object_renderer_integration_test.cc - DELETED</div>
-<div class="line">✅ test/CMakeLists.txt                                              - Updated</div>
-<div class="line">✅ test/unit/zelda3/test_dungeon_objects.cc                        - ObjectDrawer</div>
-<div class="line">✅ test/integration/zelda3/dungeon_object_rendering_tests.cc       - Simplified</div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md629"></a>
-Statistics</h1>
-<div class="fragment"><div class="line">Tasks Completed:      13/20 (65%)</div>
-<div class="line">Code Deleted:         ~1600 lines (tests + obsolete methods)</div>
-<div class="line">Code Added:           ~400 lines (fixes + features + atlas)</div>
-<div class="line">Net Change:           -1200 lines</div>
-<div class="line">Files Modified:       16</div>
-<div class="line">Files Deleted:        2 (tests)</div>
-<div class="line">Files Created:        2 (atlas.h/cc)</div>
-<div class="line">Documentation:        Consolidated 4 guides → 1</div>
-<div class="line">Build Status:         ✅ Core libraries compile</div>
-<div class="line">User Verification:    ✅ &quot;it does render correct now&quot;</div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md631"></a>
-Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md632"></a>
-Floor tiles blank/wrong?</h2>
-<p><b>Check</b>: Debug output should show <code>floor1=4, floor2=8</code> (NOT 0) <br  />
- <b>Fix</b>: Verify loading order in <code><a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc.html">dungeon_editor_v2.cc</a>:442-460</code></p>
-<h2><a class="anchor" id="autotoc_md633"></a>
-Objects not visible?</h2>
-<p><b>Check</b>: Object outlines should show colored rectangles <br  />
- <b>If no outlines</b>: LoadObjects() failed <br  />
- <b>If outlines but no graphics</b>: ObjectDrawer or tile data issue</p>
-<h2><a class="anchor" id="autotoc_md634"></a>
-Wall graphics not rendering?</h2>
-<p><b>Check</b>: Texture UPDATE commands in <code><a class="el" href="../../d5/d1b/room_8cc.html">room.cc</a>:332-344</code> <br  />
- <b>Debug</b>: Check ObjectDrawer logs for "Writing Tile16" <br  />
- <b>Verify</b>: Objects drawn to bitmaps before texture update</p>
-<h2><a class="anchor" id="autotoc_md635"></a>
-Performance issues?</h2>
-<p><b>Cause</b>: Each room = ~2MB (2x 512x512 bitmaps) <br  />
- <b>Solution</b>: Close unused room windows or implement texture pooling</p>
-<hr  />
-<h1><a class="anchor" id="autotoc_md637"></a>
-Session Summary</h1>
-<h2><a class="anchor" id="autotoc_md638"></a>
-Accomplished This Session</h2>
-<ul>
-<li>✅ Fixed 6 critical bugs (segfault, loading order, floor variables, property detection, wall rendering, ObjectRenderer confusion)</li>
-<li>✅ Decoupled room buffers from Arena</li>
-<li>✅ Deleted 1270 lines of redundant test code</li>
-<li>✅ UI improvements (tables, titles, compact controls)</li>
-<li>✅ Object position visualization</li>
-<li>✅ Texture atlas infrastructure</li>
-<li>✅ Documentation consolidated</li>
-</ul>
-<h2><a class="anchor" id="autotoc_md639"></a>
-Statistics</h2>
-<ul>
-<li><b>Lines Deleted</b>: ~1600</li>
-<li><b>Lines Added</b>: ~400</li>
-<li><b>Net Change</b>: -1200 lines</li>
-<li><b>Build Status</b>: ✅ Success</li>
-<li><b>Test Status</b>: ✅ Core libraries pass</li>
-</ul>
-<hr  />
-<h1><a class="anchor" id="autotoc_md641"></a>
-Code Reference</h1>
-<h2><a class="anchor" id="autotoc_md642"></a>
-Property Table (NEW)</h2>
-<div class="fragment"><div class="line"><span class="comment">// dungeon_canvas_viewer.cc:45-86</span></div>
-<div class="line"><span class="keywordflow">if</span> (ImGui::BeginTable(<span class="stringliteral">&quot;##RoomProperties&quot;</span>, 4, ...)) {</div>
-<div class="line">  <span class="comment">// Graphics | Layout | Floors | Message</span></div>
-<div class="line">  gui::InputHexByte(<span class="stringliteral">&quot;Gfx&quot;</span>, &amp;room.blockset);</div>
-<div class="line">  gui::InputHexByte(<span class="stringliteral">&quot;Sprite&quot;</span>, &amp;room.spriteset);</div>
-<div class="line">  gui::InputHexByte(<span class="stringliteral">&quot;Palette&quot;</span>, &amp;room.palette);</div>
-<div class="line">  <span class="comment">// ... etc</span></div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md643"></a>
-Compact Layer Controls (NEW)</h2>
-<div class="fragment"><div class="line"><span class="comment">// dungeon_canvas_viewer.cc:90-107</span></div>
-<div class="line"><span class="keywordflow">if</span> (ImGui::BeginTable(<span class="stringliteral">&quot;##LayerControls&quot;</span>, 3, ...)) {</div>
-<div class="line">  ImGui::Checkbox(<span class="stringliteral">&quot;Show BG1&quot;</span>, &amp;layer_settings.bg1_visible);</div>
-<div class="line">  ImGui::Checkbox(<span class="stringliteral">&quot;Show BG2&quot;</span>, &amp;layer_settings.bg2_visible);</div>
-<div class="line">  ImGui::Combo(<span class="stringliteral">&quot;##BG2Type&quot;</span>, &amp;layer_settings.bg2_layer_type, ...);</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md644"></a>
-Room ID in Title (NEW)</h2>
-<div class="fragment"><div class="line"><span class="comment">// dungeon_editor_v2.cc:378</span></div>
-<div class="line">base_name = absl::StrFormat(<span class="stringliteral">&quot;[%03X] %s&quot;</span>, room_id, zelda3::kRoomNames[room_id]);</div>
-<div class="line"><span class="comment">// Result: &quot;[002] Behind Sanctuary (Switch)&quot;</span></div>
-</div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md646"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md597"></a>
 Related Documentation</h1>
 <ul>
 <li><b><a class="el" href="../../de/dfd/E2-development-guide_8md.html">E2-development-guide.md</a></b> - Core architectural patterns</li>

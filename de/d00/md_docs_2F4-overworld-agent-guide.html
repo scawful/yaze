@@ -101,11 +101,11 @@ $(document).ready(function(){initNavTree('de/d00/md_docs_2F4-overworld-agent-gui
   <div class="headertitle"><div class="title">Overworld Agent Guide - AI-Powered Overworld Editing</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md731"></a> <b>Version</b>: 1.0 <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md682"></a> <b>Version</b>: 1.0 <br  />
  <b>Last Updated</b>: October 6, 2025 <br  />
  <b>Audience</b>: AI Agents, z3ed users, automation developers</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md733"></a>
+<h1><a class="anchor" id="autotoc_md684"></a>
 Overview</h1>
 <p>This guide explains how AI agents can interact with YAZE's overworld editor through the <code>z3ed</code> CLI and automation APIs. It covers:</p><ul>
 <li>Available tools and commands</li>
@@ -114,9 +114,9 @@ Overview</h1>
 <li>Best practices for AI-generated edits</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md735"></a>
+<h1><a class="anchor" id="autotoc_md686"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md736"></a>
+<h2><a class="anchor" id="autotoc_md687"></a>
 Prerequisites</h2>
 <div class="fragment"><div class="line"># Build YAZE with AI and gRPC support</div>
 <div class="line">cmake -B build -DZ3ED_AI=ON -DYAZE_WITH_GRPC=ON</div>
@@ -124,7 +124,7 @@ Prerequisites</h2>
 <div class="line"> </div>
 <div class="line"># Set up AI provider (Gemini recommended for vision)</div>
 <div class="line">export GEMINI_API_KEY=&quot;your-key-here&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md737"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md688"></a>
 First Agent Interaction</h2>
 <div class="fragment"><div class="line"># Ask AI about a map</div>
 <div class="line">z3ed agent simple-chat &quot;What tiles are at position 10,10 on map 0?&quot; --rom zelda3.sfc</div>
@@ -137,11 +137,11 @@ First Agent Interaction</h2>
 <div class="line">z3ed agent diff --proposal-id &lt;id&gt;</div>
 <div class="line">z3ed agent accept --proposal-id &lt;id&gt;</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md739"></a>
+<h1><a class="anchor" id="autotoc_md690"></a>
 Available Tools</h1>
-<h2><a class="anchor" id="autotoc_md740"></a>
+<h2><a class="anchor" id="autotoc_md691"></a>
 Read-Only Tools (Safe for AI)</h2>
-<h3><a class="anchor" id="autotoc_md741"></a>
+<h3><a class="anchor" id="autotoc_md692"></a>
 overworld-get-tile</h3>
 <p>Query tile ID at coordinates.</p>
 <p><b>Purpose</b>: Analyze existing tile placement <br  />
@@ -166,7 +166,7 @@ overworld-get-tile</h3>
 <li>Verify expected tiles after edits</li>
 </ul>
 <hr  />
-<h3><a class="anchor" id="autotoc_md743"></a>
+<h3><a class="anchor" id="autotoc_md694"></a>
 overworld-get-visible-region</h3>
 <p>Get tiles currently visible on canvas.</p>
 <p><b>Purpose</b>: Understand what the user is looking at <br  />
@@ -197,7 +197,7 @@ overworld-get-visible-region</h3>
 <li>Understand user's current focus</li>
 </ul>
 <hr  />
-<h3><a class="anchor" id="autotoc_md745"></a>
+<h3><a class="anchor" id="autotoc_md696"></a>
 overworld-analyze-region</h3>
 <p>Get tile composition and patterns in a region.</p>
 <p><b>Purpose</b>: Deep analysis of tile distribution <br  />
@@ -238,9 +238,9 @@ overworld-analyze-region</h3>
 <li>Generate statistics for reports</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md747"></a>
+<h2><a class="anchor" id="autotoc_md698"></a>
 Write Tools (Sandboxed - Creates Proposals)</h2>
-<h3><a class="anchor" id="autotoc_md748"></a>
+<h3><a class="anchor" id="autotoc_md699"></a>
 overworld-set-tile</h3>
 <p>Paint a single tile (creates proposal).</p>
 <p><b>Purpose</b>: Modify single tile <br  />
@@ -266,7 +266,7 @@ overworld-set-tile</h3>
 <li>Correct tile placement errors</li>
 </ul>
 <hr  />
-<h3><a class="anchor" id="autotoc_md750"></a>
+<h3><a class="anchor" id="autotoc_md701"></a>
 overworld-set-tiles-batch</h3>
 <p>Paint multiple tiles in one operation (creates proposal).</p>
 <p><b>Purpose</b>: Efficient multi-tile editing <br  />
@@ -294,9 +294,9 @@ overworld-set-tiles-batch</h3>
 <li>Generate complex map structures</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md752"></a>
+<h1><a class="anchor" id="autotoc_md703"></a>
 Multimodal Vision Workflow</h1>
-<h2><a class="anchor" id="autotoc_md753"></a>
+<h2><a class="anchor" id="autotoc_md704"></a>
 Step 1: Capture Canvas Screenshot</h2>
 <div class="fragment"><div class="line"># From CLI</div>
 <div class="line">z3ed agent vision --capture-canvas &quot;Overworld Canvas&quot; \</div>
@@ -306,7 +306,7 @@ Step 1: Capture Canvas Screenshot</h2>
 <div class="line"># From agent workflow</div>
 <div class="line">z3ed agent run --prompt &quot;Analyze map 0 and suggest improvements&quot; \</div>
 <div class="line">  --rom zelda3.sfc --sandbox</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md754"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md705"></a>
 Step 2: AI Analyzes Screenshot</h2>
 <p>Gemini Vision API receives:</p><ul>
 <li>Screenshot of canvas (PNG/JPEG)</li>
@@ -332,7 +332,7 @@ Step 2: AI Analyzes Screenshot</h2>
 <div class="line">    ]</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md755"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md706"></a>
 Step 3: Generate Edit Plan</h2>
 <p>AI creates actionable plan: </p><div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;plan&quot;: [</div>
@@ -350,11 +350,11 @@ Step 3: Generate Edit Plan</h2>
 <div class="line">    }</div>
 <div class="line">  ]</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md756"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md707"></a>
 Step 4: Execute Plan (Sandbox)</h2>
 <div class="fragment"><div class="line"># z3ed executes plan in sandbox</div>
 <div class="line">z3ed agent run --plan plan.json --rom zelda3.sfc --sandbox</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md757"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md708"></a>
 Step 5: Human Review</h2>
 <div class="fragment"><div class="line"># View proposed changes</div>
 <div class="line">z3ed agent diff --proposal-id abc123</div>
@@ -364,9 +364,9 @@ Step 5: Human Review</h2>
 <div class="line"># or</div>
 <div class="line">z3ed agent reject --proposal-id abc123</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md759"></a>
+<h1><a class="anchor" id="autotoc_md710"></a>
 Example Workflows</h1>
-<h2><a class="anchor" id="autotoc_md760"></a>
+<h2><a class="anchor" id="autotoc_md711"></a>
 Workflow 1: Create Forest Area</h2>
 <p><b>User Prompt</b>: "Create a forest clearing at position 15,15 with grass in the center"</p>
 <p><b>AI Plan</b>: </p><div class="fragment"><div class="line">{</div>
@@ -415,7 +415,7 @@ Workflow 1: Create Forest Area</h2>
 <div class="line">  --rom zelda3.sfc --sandbox</div>
 </div><!-- fragment --><p><b>Result</b>: Proposal created with 50+ tile changes</p>
 <hr  />
-<h2><a class="anchor" id="autotoc_md762"></a>
+<h2><a class="anchor" id="autotoc_md713"></a>
 Workflow 2: Fix Tile Placement Errors</h2>
 <p><b>User Prompt</b>: "Fix any water tiles that should be grass in the visible region"</p>
 <p><b>AI Plan</b>: </p><div class="fragment"><div class="line">{</div>
@@ -455,7 +455,7 @@ Workflow 2: Fix Tile Placement Errors</h2>
 <div class="line">  ]</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md764"></a>
+<h2><a class="anchor" id="autotoc_md715"></a>
 Workflow 3: Generate Path</h2>
 <p><b>User Prompt</b>: "Create a path from (5,5) to (25,25) using path tiles"</p>
 <p><b>AI Plan</b>: </p><div class="fragment"><div class="line">{</div>
@@ -481,9 +481,9 @@ Workflow 3: Generate Path</h2>
 <div class="line">  ]</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md766"></a>
+<h1><a class="anchor" id="autotoc_md717"></a>
 Common Tile IDs Reference</h1>
-<h2><a class="anchor" id="autotoc_md767"></a>
+<h2><a class="anchor" id="autotoc_md718"></a>
 Grass &amp; Ground</h2>
 <ul>
 <li><code>0x0028</code> (40) - Grass</li>
@@ -491,28 +491,28 @@ Grass &amp; Ground</h2>
 <li><code>0x002A</code> (42) - Dirt</li>
 <li><code>0x002B</code> (43) - Sand</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md768"></a>
+<h2><a class="anchor" id="autotoc_md719"></a>
 Trees &amp; Plants</h2>
 <ul>
 <li><code>0x0042</code> (66) - Tree</li>
 <li><code>0x0043</code> (67) - Bush</li>
 <li><code>0x0044</code> (68) - Flower</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md769"></a>
+<h2><a class="anchor" id="autotoc_md720"></a>
 Water</h2>
 <ul>
 <li><code>0x0050</code> (80) - Water</li>
 <li><code>0x0051</code> (81) - Deep water</li>
 <li><code>0x0052</code> (82) - Shore</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md770"></a>
+<h2><a class="anchor" id="autotoc_md721"></a>
 Paths &amp; Roads</h2>
 <ul>
 <li><code>0x0032</code> (50) - Path</li>
 <li><code>0x0033</code> (51) - Road</li>
 <li><code>0x0034</code> (52) - Bridge</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md771"></a>
+<h2><a class="anchor" id="autotoc_md722"></a>
 Structures</h2>
 <ul>
 <li><code>0x0060</code> (96) - Wall</li>
@@ -520,75 +520,75 @@ Structures</h2>
 <li><code>0x0062</code> (98) - Window</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md773"></a>
+<h1><a class="anchor" id="autotoc_md724"></a>
 Best Practices for AI Agents</h1>
-<h2><a class="anchor" id="autotoc_md774"></a>
+<h2><a class="anchor" id="autotoc_md725"></a>
 1. Always Analyze Before Editing</h2>
 <div class="fragment"><div class="line"># GOOD: Check current state first</div>
 <div class="line">z3ed agent run --prompt &quot;Analyze map 0 then suggest improvements&quot; --rom zelda3.sfc --sandbox</div>
 <div class="line"> </div>
 <div class="line"># BAD: Blindly paint without context</div>
 <div class="line">z3ed agent run --prompt &quot;Paint trees everywhere&quot; --rom zelda3.sfc --sandbox</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md775"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md726"></a>
 2. Use Batch Operations</h2>
 <div class="fragment"><div class="line"># GOOD: Single batch operation</div>
 <div class="line">overworld-set-tiles-batch (50 tiles)</div>
 <div class="line"> </div>
 <div class="line"># BAD: 50 individual operations</div>
 <div class="line">overworld-set-tile (×50)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md776"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md727"></a>
 3. Provide Clear Reasoning</h2>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;tool&quot;: &quot;overworld-set-tile&quot;,</div>
 <div class="line">  &quot;parameters&quot;: {&quot;x&quot;: 10, &quot;y&quot;: 10, &quot;tile_id&quot;: 66},</div>
 <div class="line">  &quot;reason&quot;: &quot;Creating forest theme - tree tile at center&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md777"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md728"></a>
 4. Respect Tile Boundaries</h2>
 <p>Large maps (0x00-0x09, 0x80-0x89) are 512×512 pixels = 32×32 tiles. <br  />
  Don't paint beyond <code>(31, 31)</code> for these maps.</p>
-<h2><a class="anchor" id="autotoc_md778"></a>
+<h2><a class="anchor" id="autotoc_md729"></a>
 5. Check Visibility</h2>
 <div class="fragment"><div class="line">{</div>
 <div class="line">  &quot;step&quot;: 1,</div>
 <div class="line">  &quot;tool&quot;: &quot;overworld-get-visible-region&quot;,</div>
 <div class="line">  &quot;reason&quot;: &quot;Ensure tiles are visible before analysis&quot;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md779"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md730"></a>
 6. Create Reversible Edits</h2>
 <p>Always generate proposals that can be rejected: </p><div class="fragment"><div class="line">z3ed agent run --prompt &quot;...&quot; --rom zelda3.sfc --sandbox  # Creates proposal</div>
 <div class="line">z3ed agent reject --proposal-id abc123                     # Can undo</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md781"></a>
+<h1><a class="anchor" id="autotoc_md732"></a>
 Error Handling</h1>
-<h2><a class="anchor" id="autotoc_md782"></a>
+<h2><a class="anchor" id="autotoc_md733"></a>
 "Tile ID out of range"</h2>
 <ul>
 <li><b>Cause</b>: Invalid tile ID (&gt;4095 for Tile16)</li>
 <li><b>Fix</b>: Validate tile IDs before <code>set-tile</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md783"></a>
+<h2><a class="anchor" id="autotoc_md734"></a>
 "Coordinates out of bounds"</h2>
 <ul>
 <li><b>Cause</b>: Painting beyond map boundaries</li>
 <li><b>Fix</b>: Check map dimensions (typically 32×32 tiles)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md784"></a>
+<h2><a class="anchor" id="autotoc_md735"></a>
 "Proposal rejected"</h2>
 <ul>
 <li><b>Cause</b>: Human reviewer rejected changes</li>
 <li><b>Fix</b>: Analyze feedback, adjust plan, try again</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md785"></a>
+<h2><a class="anchor" id="autotoc_md736"></a>
 "ROM file locked"</h2>
 <ul>
 <li><b>Cause</b>: ROM file open in another process</li>
 <li><b>Fix</b>: Close other instances of YAZE</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md787"></a>
+<h1><a class="anchor" id="autotoc_md738"></a>
 Testing AI-Generated Edits</h1>
-<h2><a class="anchor" id="autotoc_md788"></a>
+<h2><a class="anchor" id="autotoc_md739"></a>
 Manual Testing</h2>
 <div class="fragment"><div class="line"># Generate proposal</div>
 <div class="line">z3ed agent run --prompt &quot;...&quot; --rom zelda3.sfc --sandbox</div>
@@ -597,7 +597,7 @@ Manual Testing</h2>
 <div class="line">yaze zelda3.sfc</div>
 <div class="line"># Open Debug → Agent Chat → Proposals</div>
 <div class="line"># Review proposal, accept/reject</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md789"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md740"></a>
 Automated Testing</h2>
 <div class="fragment"><div class="line"># GUI automation test</div>
 <div class="line">z3ed agent test replay overworld_ai_edit.jsonl --rom zelda3.sfc --grpc localhost:50051</div>
@@ -605,9 +605,9 @@ Automated Testing</h2>
 <div class="line"># Validate tile placement</div>
 <div class="line">z3ed agent test assert --tile-at 10,10 --expected-tile 66 --rom zelda3.sfc</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md791"></a>
+<h1><a class="anchor" id="autotoc_md742"></a>
 Advanced Techniques</h1>
-<h2><a class="anchor" id="autotoc_md792"></a>
+<h2><a class="anchor" id="autotoc_md743"></a>
 Technique 1: Pattern Recognition</h2>
 <p>Use multimodal vision to detect patterns: </p><div class="fragment"><div class="line">z3ed agent vision --capture-canvas &quot;Overworld Canvas&quot; \</div>
 <div class="line">  --prompt &quot;Identify repeated tile patterns in this map&quot; \</div>
@@ -618,7 +618,7 @@ Technique 1: Pattern Recognition</h2>
 <li>Paths and roads</li>
 <li>Building layouts</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md793"></a>
+<h2><a class="anchor" id="autotoc_md744"></a>
 Technique 2: Style Transfer</h2>
 <div class="fragment"><div class="line">z3ed agent run --prompt &quot;Make this map look like Kakariko Village from the dark world&quot; \</div>
 <div class="line">  --rom zelda3.sfc --sandbox</div>
@@ -627,7 +627,7 @@ Technique 2: Style Transfer</h2>
 <li>Extracts tile palette and patterns</li>
 <li>Applies similar patterns to target map</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md794"></a>
+<h2><a class="anchor" id="autotoc_md745"></a>
 Technique 3: Procedural Generation</h2>
 <div class="fragment"><div class="line">z3ed agent run --prompt &quot;Generate a random forest area at 10,10 with natural-looking tree placement&quot; \</div>
 <div class="line">  --rom zelda3.sfc --sandbox</div>
@@ -637,20 +637,20 @@ Technique 3: Procedural Generation</h2>
 <li>Edge smoothing for organic boundaries</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md796"></a>
+<h1><a class="anchor" id="autotoc_md747"></a>
 Integration with GUI Automation</h1>
-<h2><a class="anchor" id="autotoc_md797"></a>
+<h2><a class="anchor" id="autotoc_md748"></a>
 Record Human Edits</h2>
 <div class="fragment"><div class="line"># Record editing session</div>
 <div class="line">z3ed agent test record --suite overworld_forest.jsonl --rom zelda3.sfc</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md798"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md749"></a>
 Replay for AI Training</h2>
 <div class="fragment"><div class="line"># Replay recorded session</div>
 <div class="line">z3ed agent test replay overworld_forest.jsonl --rom zelda3.sfc</div>
 <div class="line"> </div>
 <div class="line"># AI learns from human edits</div>
 <div class="line">z3ed agent learn --from-recording overworld_forest.jsonl</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md799"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md750"></a>
 Validate AI Edits</h2>
 <div class="fragment"><div class="line"># AI generates edits</div>
 <div class="line">z3ed agent run --prompt &quot;...&quot; --rom zelda3.sfc --sandbox</div>
@@ -658,9 +658,9 @@ Validate AI Edits</h2>
 <div class="line"># GUI automation validates</div>
 <div class="line">z3ed agent test verify --proposal-id abc123 --suite validation_tests.jsonl</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md801"></a>
+<h1><a class="anchor" id="autotoc_md752"></a>
 Collaboration Features</h1>
-<h2><a class="anchor" id="autotoc_md802"></a>
+<h2><a class="anchor" id="autotoc_md753"></a>
 Network Collaboration</h2>
 <div class="fragment"><div class="line"># Connect to yaze-server</div>
 <div class="line">z3ed net connect ws://localhost:8765</div>
@@ -672,7 +672,7 @@ Network Collaboration</h2>
 <div class="line">z3ed agent run --prompt &quot;...&quot; --rom zelda3.sfc --sandbox</div>
 <div class="line"> </div>
 <div class="line"># Proposal synced to all participants</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md803"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md754"></a>
 Proposal Voting</h2>
 <div class="fragment"><div class="line"># Submit proposal to session</div>
 <div class="line">z3ed proposal submit --proposal-id abc123 --session ABC123</div>
@@ -684,16 +684,16 @@ Proposal Voting</h2>
 <div class="line">z3ed proposal status --proposal-id abc123</div>
 <div class="line"># Output: approved (3/3 votes)</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md805"></a>
+<h1><a class="anchor" id="autotoc_md756"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md806"></a>
+<h2><a class="anchor" id="autotoc_md757"></a>
 Agent Not Responding</h2>
 <div class="fragment"><div class="line"># Check AI provider</div>
 <div class="line">z3ed agent ping</div>
 <div class="line"> </div>
 <div class="line"># Test simple query</div>
 <div class="line">z3ed agent simple-chat &quot;Hello&quot; --rom zelda3.sfc</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md807"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md758"></a>
 Tools Not Available</h2>
 <div class="fragment"><div class="line"># Verify z3ed build</div>
 <div class="line">z3ed agent describe --resource overworld</div>
@@ -702,7 +702,7 @@ Tools Not Available</h2>
 <div class="line"># - overworld-get-tile</div>
 <div class="line"># - overworld-set-tile</div>
 <div class="line"># - overworld-analyze-region</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md808"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md759"></a>
 gRPC Connection Failed</h2>
 <div class="fragment"><div class="line"># Check YAZE is running with gRPC</div>
 <div class="line">z3ed agent test ping --grpc localhost:50051</div>
@@ -710,7 +710,7 @@ gRPC Connection Failed</h2>
 <div class="line"># Start YAZE with gRPC enabled</div>
 <div class="line">yaze --enable-grpc zelda3.sfc</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md810"></a>
+<h1><a class="anchor" id="autotoc_md761"></a>
 See Also</h1>
 <ul>
 <li>Canvas Automation API - C++ API reference</li>

@@ -1,5 +1,7 @@
 var dir_2e70ebb92041ee9a8b6891199983e337 =
 [
+    [ "bpp_format_ui.cc", "db/d3e/bpp__format__ui_8cc.html", null ],
+    [ "bpp_format_ui.h", "db/da7/bpp__format__ui_8h.html", "db/da7/bpp__format__ui_8h" ],
     [ "canvas_automation_api.cc", "d1/d50/canvas__automation__api_8cc.html", null ],
     [ "canvas_automation_api.h", "df/de8/canvas__automation__api_8h.html", "df/de8/canvas__automation__api_8h" ],
     [ "canvas_context_menu.cc", "df/db2/canvas__context__menu_8cc.html", "df/db2/canvas__context__menu_8cc" ],
@@ -11,5 +13,7 @@ var dir_2e70ebb92041ee9a8b6891199983e337 =
     [ "canvas_performance_integration.cc", "d6/d44/canvas__performance__integration_8cc.html", null ],
     [ "canvas_performance_integration.h", "d5/d75/canvas__performance__integration_8h.html", "d5/d75/canvas__performance__integration_8h" ],
     [ "canvas_usage_tracker.cc", "da/d11/canvas__usage__tracker_8cc.html", null ],
-    [ "canvas_usage_tracker.h", "d3/dbf/canvas__usage__tracker_8h.html", "d3/dbf/canvas__usage__tracker_8h" ]
+    [ "canvas_usage_tracker.h", "d3/dbf/canvas__usage__tracker_8h.html", "d3/dbf/canvas__usage__tracker_8h" ],
+    [ "canvas_utils.cc", "dd/df4/canvas__utils_8cc.html", "dd/df4/canvas__utils_8cc" ],
+    [ "canvas_utils.h", "d1/d39/canvas__utils_8h.html", "d1/d39/canvas__utils_8h" ]
 ];

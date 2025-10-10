@@ -1,4 +1,4 @@
-<map id="src/app/gui/canvas_utils.h" name="src/app/gui/canvas_utils.h">
+<map id="src/app/gui/canvas/canvas_utils.h" name="src/app/gui/canvas/canvas_utils.h">
 <area shape="rect" id="Node000001" title=" " alt="" coords="62,5,193,46"/>
 <area shape="rect" id="Node000002" href="$da/dbb/canvas_8cc.html" title=" " alt="" coords="5,256,154,282"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,60,78,116,64,149,54,183,53,203,58,222,74,255,69,257,53,224,48,203,49,182,59,148,73,114,104,58"/>

@@ -101,12 +101,12 @@ $(document).ready(function(){initNavTree('da/dfd/md_docs_2G3-palete-system-overv
   <div class="headertitle"><div class="title">SNES Palette System Overview</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md841"></a> </p>
-<h1><a class="anchor" id="autotoc_md842"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md783"></a> </p>
+<h1><a class="anchor" id="autotoc_md784"></a>
 Understanding SNES Color and Palette Organization</h1>
-<h2><a class="anchor" id="autotoc_md843"></a>
+<h2><a class="anchor" id="autotoc_md785"></a>
 Core Concepts</h2>
-<h3><a class="anchor" id="autotoc_md844"></a>
+<h3><a class="anchor" id="autotoc_md786"></a>
 1. SNES Color Format (15-bit BGR555)</h3>
 <ul>
 <li><b>Storage</b>: 2 bytes per color (16 bits total, 15 bits used)</li>
@@ -120,7 +120,7 @@ Core Concepts</h2>
 <li><b>Range</b>: Each channel has 32 levels (0-31)</li>
 <li><b>Total Colors</b>: 32,768 possible colors (2^15)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md845"></a>
+<h3><a class="anchor" id="autotoc_md787"></a>
 2. Palette Groups in Zelda 3</h3>
 <p>Zelda 3 organizes palettes into logical groups for different game areas and entities:</p>
 <div class="fragment"><div class="line"><span class="keyword">struct </span>PaletteGroupMap {</div>
@@ -140,16 +140,16 @@ Core Concepts</h2>
 <div class="line">  PaletteGroup object_3d;           <span class="comment">// 3D object palettes (8 colors each)</span></div>
 <div class="line">  PaletteGroup overworld_mini_map;  <span class="comment">// Mini-map palettes (128 colors each)</span></div>
 <div class="line">};</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md846"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md788"></a>
 Dungeon Palette System</h2>
-<h3><a class="anchor" id="autotoc_md847"></a>
+<h3><a class="anchor" id="autotoc_md789"></a>
 Structure</h3>
 <ul>
 <li><b>20 dungeon palettes</b> in the <code>dungeon_main</code> group</li>
 <li><b>90 colors per palette</b> (full SNES palette for BG layers)</li>
 <li><b>ROM Location</b>: <code>kDungeonMainPalettes</code> (check <code><a class="el" href="../../de/d89/snes__palette_8cc.html">snes_palette.cc</a></code> for exact address)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md848"></a>
+<h3><a class="anchor" id="autotoc_md790"></a>
 Usage</h3>
 <div class="fragment"><div class="line"><span class="comment">// Loading a dungeon palette</span></div>
 <div class="line"><span class="keyword">auto</span>&amp; dungeon_pal_group = rom-&gt;palette_group().dungeon_main;</div>
@@ -159,7 +159,7 @@ Usage</h3>
 <div class="line"><span class="comment">// IMPORTANT: Use operator[] not palette() method!</span></div>
 <div class="line"><span class="keyword">auto</span> palette = dungeon_pal_group[palette_id];  <span class="comment">// Returns reference</span></div>
 <div class="line"><span class="comment">// NOT: auto palette = dungeon_pal_group.palette(palette_id);  // Returns copy!</span></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md849"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md791"></a>
 Color Distribution (90 colors)</h3>
 <p>The 90 colors are typically distributed as:</p><ul>
 <li><b>BG1 Palette</b> (Background Layer 1): First 8-16 subpalettes</li>
@@ -167,16 +167,16 @@ Color Distribution (90 colors)</h3>
 <li><b>Sprite Palettes</b>: Remaining colors (handled separately)</li>
 </ul>
 <p>Each "subpalette" is 16 colors (one SNES palette unit).</p>
-<h2><a class="anchor" id="autotoc_md850"></a>
+<h2><a class="anchor" id="autotoc_md792"></a>
 Overworld Palette System</h2>
-<h3><a class="anchor" id="autotoc_md851"></a>
+<h3><a class="anchor" id="autotoc_md793"></a>
 Structure</h3>
 <ul>
 <li><b>Main Overworld</b>: 35 colors per palette</li>
 <li><b>Auxiliary</b>: 21 colors per palette</li>
 <li><b>Animated</b>: 7 colors per palette (for water, lava effects)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md852"></a>
+<h3><a class="anchor" id="autotoc_md794"></a>
 3BPP Graphics and Left/Right Palettes</h3>
 <p>Overworld graphics use 3BPP (3 bits per pixel) format:</p><ul>
 <li><b>8 colors per tile</b> (2^3 = 8)</li>
@@ -191,16 +191,16 @@ Structure</h3>
 <div class="line">  <span class="comment">// Right side of screen</span></div>
 <div class="line">  tile_palette_offset = 8;  <span class="comment">// Use colors 8-15</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md853"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md795"></a>
 Common Issues and Solutions</h2>
-<h3><a class="anchor" id="autotoc_md854"></a>
+<h3><a class="anchor" id="autotoc_md796"></a>
 Issue 1: Empty Palette</h3>
 <p><b>Symptom</b>: "Palette size: 0 colors" <b>Cause</b>: Using <code>palette()</code> method instead of <code>operator[]</code> <b>Solution</b>: </p><div class="fragment"><div class="line"><span class="comment">// WRONG:</span></div>
 <div class="line"><span class="keyword">auto</span> palette = group.palette(<span class="keywordtype">id</span>);  <span class="comment">// Returns copy, may be empty</span></div>
 <div class="line"> </div>
 <div class="line"><span class="comment">// CORRECT:</span></div>
 <div class="line"><span class="keyword">auto</span> palette = group[id];  <span class="comment">// Returns reference</span></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md855"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md797"></a>
 Issue 2: Bitmap Corruption</h3>
 <p><b>Symptom</b>: Graphics render only in top portion of image <b>Cause</b>: Wrong depth parameter in <code>CreateAndRenderBitmap</code> <b>Solution</b>: </p><div class="fragment"><div class="line"><span class="comment">// WRONG:</span></div>
 <div class="line">CreateAndRenderBitmap(0x200, 0x200, 0x200, data, bitmap, palette);</div>
@@ -209,7 +209,7 @@ Issue 2: Bitmap Corruption</h3>
 <div class="line"><span class="comment">// CORRECT:</span></div>
 <div class="line">CreateAndRenderBitmap(0x200, 0x200, 8, data, bitmap, palette);</div>
 <div class="line"><span class="comment">//                              width, height, depth=8 bits</span></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md856"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md798"></a>
 Issue 3: ROM Not Loaded in Preview</h3>
 <p><b>Symptom</b>: "ROM not loaded" error in emulator preview <b>Cause</b>: Initializing before ROM is set <b>Solution</b>: </p><div class="fragment"><div class="line"><span class="comment">// Initialize emulator preview AFTER ROM is loaded and set</span></div>
 <div class="line"><span class="keywordtype">void</span> Load() {</div>
@@ -219,9 +219,9 @@ Issue 3: ROM Not Loaded in Preview</h3>
 <div class="line">  <span class="comment">// NOW initialize emulator preview with loaded ROM</span></div>
 <div class="line">  object_emulator_preview_.Initialize(rom_);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md857"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md799"></a>
 Palette Editor Integration</h2>
-<h3><a class="anchor" id="autotoc_md858"></a>
+<h3><a class="anchor" id="autotoc_md800"></a>
 Key Functions for UI</h3>
 <div class="fragment"><div class="line"><span class="comment">// Reading a color from ROM</span></div>
 <div class="line">absl::StatusOr&lt;uint16_t&gt; ReadColorFromRom(uint32_t address, <span class="keyword">const</span> uint8_t* rom);</div>
@@ -236,7 +236,7 @@ Key Functions for UI</h3>
 <div class="line">uint16_t snes_value = color.snes();  <span class="comment">// Get 15-bit BGR555 value</span></div>
 <div class="line">rom-&gt;WriteByte(address, snes_value &amp; 0xFF);        <span class="comment">// Low byte</span></div>
 <div class="line">rom-&gt;WriteByte(address + 1, (snes_value &gt;&gt; 8) &amp; 0xFF);  <span class="comment">// High byte</span></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md859"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md801"></a>
 Palette Widget Requirements</h3>
 <ol type="1">
 <li><b>Display</b>: Show colors in organized grids (16 colors per row for SNES standard)</li>
@@ -246,9 +246,9 @@ Palette Widget Requirements</h3>
 <li><b>Preview</b>: Show before/after comparison</li>
 <li><b>Save</b>: Write modified palette back to ROM</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md860"></a>
+<h2><a class="anchor" id="autotoc_md802"></a>
 Graphics Manager Integration</h2>
-<h3><a class="anchor" id="autotoc_md861"></a>
+<h3><a class="anchor" id="autotoc_md803"></a>
 Sheet Palette Assignment</h3>
 <div class="fragment"><div class="line"><span class="comment">// Assigning palette to graphics sheet</span></div>
 <div class="line"><span class="keywordflow">if</span> (sheet_id &gt; 115) {</div>
@@ -260,7 +260,7 @@ Sheet Palette Assignment</h3>
 <div class="line">  graphics_sheet.SetPaletteWithTransparent(</div>
 <div class="line">      rom.palette_group().dungeon_main[0], 0);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md862"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md804"></a>
 Best Practices</h2>
 <ol type="1">
 <li><b>Always use <code>operator[]</code> for palette access</b> - returns reference, not copy</li>
@@ -273,7 +273,7 @@ Best Practices</h2>
 <li><b>Cache palettes</b> when repeatedly accessing the same palette</li>
 <li><b>Update textures</b> after changing palettes (textures don't auto-update)</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md863"></a>
+<h2><a class="anchor" id="autotoc_md805"></a>
 ROM Addresses (for reference)</h2>
 <div class="fragment"><div class="line"><span class="comment">// From snes_palette.cc</span></div>
 <div class="line"><span class="keyword">constexpr</span> uint32_t kOverworldPaletteMain = 0xDE6C8;</div>
@@ -291,9 +291,9 @@ ROM Addresses (for reference)</h2>
 <div class="line"><span class="keyword">constexpr</span> uint32_t kHardcodedGrassLW = 0x5FEA9;</div>
 <div class="line"><span class="keyword">constexpr</span> uint32_t kTriforcePalette = 0xF4CD0;</div>
 <div class="line"><span class="keyword">constexpr</span> uint32_t kOverworldMiniMapPalettes = 0x55B27;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md864"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md806"></a>
 Graphics Sheet Palette Application</h1>
-<h2><a class="anchor" id="autotoc_md865"></a>
+<h2><a class="anchor" id="autotoc_md807"></a>
 Default Palette Assignment</h2>
 <p>Graphics sheets receive default palettes during ROM loading based on their index:</p>
 <div class="fragment"><div class="line"><span class="comment">// In LoadAllGraphicsData() - rom.cc</span></div>
@@ -308,7 +308,7 @@ Default Palette Assignment</h2>
 <div class="line">  graphics_sheets[i].SetPalette(rom.palette_group().hud.palette(0));</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>This ensures graphics are visible immediately after loading rather than appearing white.</p>
-<h2><a class="anchor" id="autotoc_md866"></a>
+<h2><a class="anchor" id="autotoc_md808"></a>
 Palette Update Workflow</h2>
 <p>When changing a palette in any editor:</p>
 <ol type="1">
@@ -316,7 +316,7 @@ Palette Update Workflow</h2>
 <li>Notify Arena: <code>gfx::Arena::Get().NotifySheetModified(sheet_index)</code></li>
 <li>Changes propagate to all editors automatically</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md867"></a>
+<h2><a class="anchor" id="autotoc_md809"></a>
 Common Pitfalls</h2>
 <p><b>Wrong Palette Access</b>: </p><div class="fragment"><div class="line"><span class="comment">// WRONG - Returns copy, may be empty</span></div>
 <div class="line"><span class="keyword">auto</span> palette = group.palette(<span class="keywordtype">id</span>);</div>

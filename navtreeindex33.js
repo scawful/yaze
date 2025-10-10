@@ -1,14 +1,5 @@
 var NAVTREEINDEX33 =
 {
-"d4/d0a/namespaceyaze_1_1test.html#a33e8a96eb05a5da8733a1a7d46656c1e":[35,0,7,9,261],
-"d4/d0a/namespaceyaze_1_1test.html#a35d42c73f2ee66d915eadbc8c129a131":[35,0,7,9,281],
-"d4/d0a/namespaceyaze_1_1test.html#a368c5cd37b98a60401338e19f7a1e4b6":[35,0,7,9,228],
-"d4/d0a/namespaceyaze_1_1test.html#a36b2453a72f0dc90c417570bd4861213":[35,0,7,9,126],
-"d4/d0a/namespaceyaze_1_1test.html#a399d4714bf0dd0a09c3bda17884d23c6":[35,0,7,9,155],
-"d4/d0a/namespaceyaze_1_1test.html#a3bb6ee4b7823a7c87b9795334a425552":[35,0,7,9,89],
-"d4/d0a/namespaceyaze_1_1test.html#a3e0c337b945a985895fe3a45da8c1116":[35,0,7,9,304],
-"d4/d0a/namespaceyaze_1_1test.html#a3e88eaa8cc8b562acf2f8e61e19f2cdc":[35,0,7,9,124],
-"d4/d0a/namespaceyaze_1_1test.html#a3ede561396ab6f4cb081a1031b530a01":[35,0,7,9,223],
 "d4/d0a/namespaceyaze_1_1test.html#a407e0ca5626547aa057c267463d58161":[35,0,7,9,215],
 "d4/d0a/namespaceyaze_1_1test.html#a40e1243f468a2fd7ada6084bae1ec9d1":[35,0,7,9,66],
 "d4/d0a/namespaceyaze_1_1test.html#a430efc49db49558f12f724b431fea406":[35,0,7,9,199],
@@ -249,5 +240,14 @@ var NAVTREEINDEX33 =
 "d4/d12/compression__test_8cc.html#acc77db7170c43fcdb3afc011685f371e":[37,0,4,4,3,0,15],
 "d4/d12/compression__test_8cc.html#adf116b63a46b6698d5d5fe40373a9089":[37,0,4,4,3,0,5],
 "d4/d12/compression__test_8cc.html#ae1a14246d70580fc72dd3737852b2b29":[37,0,4,4,3,0,14],
-"d4/d12/compression__test_8cc.html#aea2a498a83c2d824402e1632a4c0c14b":[37,0,4,4,3,0,2]
+"d4/d12/compression__test_8cc.html#aea2a498a83c2d824402e1632a4c0c14b":[37,0,4,4,3,0,2],
+"d4/d12/compression__test_8cc.html#af3005defc83190d728d018695f20b0b3":[37,0,4,4,3,0,8],
+"d4/d12/compression__test_8cc.html#afad12658ca145aee11152446e8637c31":[37,0,4,4,3,0,26],
+"d4/d12/compression__test_8cc.html#afdc17efba505293c96aeb8793f341060":[37,0,4,4,3,0,24],
+"d4/d12/compression__test_8cc.html#afef760a422e5f5f3f155f11b419ef8c6":[37,0,4,4,3,0,17],
+"d4/d12/compression__test_8cc_source.html":[37,0,4,4,3,0],
+"d4/d13/bitmap_8cc.html":[37,0,3,0,3,8],
+"d4/d13/bitmap_8cc.html#a88d0646ee27ae9755070c4e936cb36bf":[37,0,3,0,3,8,1],
+"d4/d13/bitmap_8cc_source.html":[37,0,3,0,3,8],
+"d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html":[36,0,2,0,0,8,2]
 };
