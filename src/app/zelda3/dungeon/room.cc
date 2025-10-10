@@ -300,7 +300,9 @@ void Room::RenderRoomGraphics() {
 
   // STEP 2: Load layout tiles into tile buffer before DrawBackground
   // This populates the buffer with wall/structure tiles from the layout
-  LoadLayoutTilesToBuffer();
+  // DISABLED: Layout tiles are overwriting object graphics
+  // TODO: Research layout data format properly before re-enabling
+  // LoadLayoutTilesToBuffer();
 
   // STEP 3: Draw background tiles (walls from layout) to buffers
   bg1_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
@@ -478,6 +480,7 @@ void Room::LoadAnimatedGraphics() {
 }
 
 void Room::LoadObjects() {
+  LOG_DEBUG("[LoadObjects]", "Starting LoadObjects for room %d", room_id_);
   auto rom_data = rom()->vector();
   
   // Enhanced object loading with comprehensive validation
@@ -513,6 +516,8 @@ void Room::LoadObjects() {
     if (is_floor_) {
       floor1_graphics_ = static_cast<uint8_t>(rom_data[objects_location] & 0x0F);
       floor2_graphics_ = static_cast<uint8_t>((rom_data[objects_location] >> 4) & 0x0F);
+      LOG_DEBUG("[LoadObjects]", "Room %d: Set floor1_graphics_=%d, floor2_graphics_=%d", 
+                room_id_, floor1_graphics_, floor2_graphics_);
     }
 
     layout = static_cast<uint8_t>((rom_data[objects_location + 1] >> 2) & 0x07);

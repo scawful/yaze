@@ -138,6 +138,26 @@ class ObjectDrawer {
   void DrawRightwardsDecor2x2spaced12_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                                             const std::vector<gfx::Tile16>& tiles);
   
+  // Downwards draw routines (missing implementation)
+  void DrawDownwards2x2_1to15or32(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                   const std::vector<gfx::Tile16>& tiles);
+  void DrawDownwards4x2_1to15or26(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                   const std::vector<gfx::Tile16>& tiles);
+  void DrawDownwards4x2_1to16_BothBG(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                      const std::vector<gfx::Tile16>& tiles);
+  void DrawDownwardsDecor4x2spaced4_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                           const std::vector<gfx::Tile16>& tiles);
+  void DrawDownwards2x2_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                               const std::vector<gfx::Tile16>& tiles);
+  void DrawDownwardsHasEdge1x1_1to16_plus3(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                            const std::vector<gfx::Tile16>& tiles);
+  void DrawDownwardsEdge1x1_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                   const std::vector<gfx::Tile16>& tiles);
+  void DrawDownwardsLeftCorners2x1_1to16_plus12(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                                 const std::vector<gfx::Tile16>& tiles);
+  void DrawDownwardsRightCorners2x1_1to16_plus12(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                                                  const std::vector<gfx::Tile16>& tiles);
+  
   // Utility methods
   void WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
                   const gfx::TileInfo& tile_info);
