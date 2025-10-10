@@ -286,8 +286,7 @@ class Room {
   void SetStaircaseRoom(int index, uint8_t room) {
     if (index >= 0 && index < 4) staircase_rooms_[index] = room;
   }
-  void SetFloor1(uint8_t floor1) { this->floor1 = floor1; }
-  void SetFloor2(uint8_t floor2) { this->floor2 = floor2; }
+  // SetFloor1/SetFloor2 removed - use set_floor1()/set_floor2() instead (defined above)
   void SetMessageId(uint16_t message_id) { message_id_ = message_id; }
 
   // Getters for LoadRoomFromRom function
@@ -333,9 +332,21 @@ class Room {
   uint8_t palette = 0;
   uint8_t layout = 0;
   uint8_t holewarp = 0;
-  uint8_t floor1 = 0;
-  uint8_t floor2 = 0;
+  // NOTE: floor1/floor2 removed - use floor1() and floor2() accessors instead
+  // Floor graphics are now private (floor1_graphics_, floor2_graphics_)
   uint16_t message_id_ = 0;
+  
+  // Floor graphics accessors (use these instead of direct members!)
+  uint8_t floor1() const { return floor1_graphics_; }
+  uint8_t floor2() const { return floor2_graphics_; }
+  void set_floor1(uint8_t value) { 
+    floor1_graphics_ = value;
+    // TODO: Trigger re-render if needed
+  }
+  void set_floor2(uint8_t value) { 
+    floor2_graphics_ = value;
+    // TODO: Trigger re-render if needed
+  }
   // Enhanced object parsing methods
   void ParseObjectsFromLocation(int objects_location);
   void HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY,

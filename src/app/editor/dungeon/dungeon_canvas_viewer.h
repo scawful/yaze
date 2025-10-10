@@ -24,21 +24,21 @@ namespace editor {
  */
 class DungeonCanvasViewer {
  public:
-  explicit DungeonCanvasViewer(Rom* rom = nullptr) 
-      : rom_(rom), object_renderer_(rom), object_interaction_(&canvas_) {}
+  explicit DungeonCanvasViewer(Rom* rom = nullptr)
+      : rom_(rom), object_interaction_(&canvas_) {}
 
-  void DrawDungeonTabView();
+  // DrawDungeonTabView() removed - using EditorCard system instead
   void DrawDungeonCanvas(int room_id);
   void Draw(int room_id);
   
   void SetRom(Rom* rom) { 
     rom_ = rom; 
-    object_renderer_.SetROM(rom);
   }
   Rom* rom() const { return rom_; }
 
   // Room data access
   void SetRooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
+  // Used by overworld editor when double-clicking entrances
   void set_active_rooms(const ImVector<int>& rooms) { active_rooms_ = rooms; }
   void set_current_active_room_tab(int tab) { current_active_room_tab_ = tab; }
 
@@ -104,19 +104,22 @@ class DungeonCanvasViewer {
   // Object dimension calculation
   void CalculateWallDimensions(const zelda3::RoomObject& object, int& width, int& height);
   
+  // Object visualization
+  void DrawObjectPositionOutlines(const zelda3::Room& room);
+  
   // Room graphics management
   // Load: Read from ROM, Render: Process pixels, Draw: Display on canvas
   absl::Status LoadAndRenderRoomGraphics(int room_id);
-  absl::Status RenderGraphicsSheetPalettes(int room_id);  // Renamed from UpdateRoomBackgroundLayers
-  void DrawRoomBackgroundLayers(int room_id);  // Renamed from RenderRoomBackgroundLayers
+  void DrawRoomBackgroundLayers(int room_id);  // Draw room buffers to canvas
 
   Rom* rom_ = nullptr;
   gui::Canvas canvas_{"##DungeonCanvas", ImVec2(0x200, 0x200)};
-  zelda3::ObjectRenderer object_renderer_;
+  // ObjectRenderer removed - use ObjectDrawer for rendering (production system)
   DungeonObjectInteraction object_interaction_;
   
   // Room data
   std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  // Used by overworld editor for double-click entrance → open dungeon room
   ImVector<int> active_rooms_;
   int current_active_room_tab_ = 0;
   

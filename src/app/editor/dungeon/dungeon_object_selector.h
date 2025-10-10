@@ -3,7 +3,7 @@
 
 #include "app/gui/canvas.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/object_renderer.h"
+// object_renderer.h removed - using ObjectDrawer for production rendering
 #include "app/zelda3/dungeon/dungeon_object_editor.h"
 #include "app/zelda3/dungeon/dungeon_editor_system.h"
 #include "app/gfx/snes_palette.h"
@@ -17,7 +17,7 @@ namespace editor {
  */
 class DungeonObjectSelector {
  public:
-  explicit DungeonObjectSelector(Rom* rom = nullptr) : rom_(rom), object_renderer_(rom) {}
+  explicit DungeonObjectSelector(Rom* rom = nullptr) : rom_(rom) {}
 
   void DrawTileSelector();
   void DrawObjectRenderer();
@@ -26,11 +26,9 @@ class DungeonObjectSelector {
   
   void set_rom(Rom* rom) { 
     rom_ = rom; 
-    object_renderer_.SetROM(rom);
   }
   void SetRom(Rom* rom) { 
     rom_ = rom; 
-    object_renderer_.SetROM(rom);
   }
   Rom* rom() const { return rom_; }
 
@@ -89,7 +87,7 @@ class DungeonObjectSelector {
   Rom* rom_ = nullptr;
   gui::Canvas room_gfx_canvas_{"##RoomGfxCanvas", ImVec2(0x100 + 1, 0x10 * 0x40 + 1)};
   gui::Canvas object_canvas_;
-  zelda3::ObjectRenderer object_renderer_;
+  // ObjectRenderer removed - using ObjectDrawer in Room::RenderObjectsToBackground()
   
   // Editor systems
   std::unique_ptr<zelda3::DungeonEditorSystem>* dungeon_editor_system_ = nullptr;

@@ -85,23 +85,9 @@ void DungeonObjectSelector::DrawObjectRenderer() {
       int preview_x = 128 - 16;  // Center horizontally
       int preview_y = 128 - 16;  // Center vertically
 
-      auto preview_result = object_renderer_.RenderObject(preview_object_, preview_palette_);
-      if (preview_result.ok()) {
-        auto preview_bitmap = std::move(preview_result.value());
-        if (preview_bitmap.width() > 0 && preview_bitmap.height() > 0) {
-          preview_bitmap.SetPalette(preview_palette_);
-          // Queue texture creation via Arena's deferred system
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::CREATE, &preview_bitmap);
-          object_canvas_.DrawBitmap(preview_bitmap, preview_x, preview_y, 1.0f, 255);
-        } else {
-          // Fallback: Draw primitive shape
-          RenderObjectPrimitive(preview_object_, preview_x, preview_y);
-        }
-      } else {
-        // Fallback: Draw primitive shape
-        RenderObjectPrimitive(preview_object_, preview_x, preview_y);
-      }
+      // TODO: Implement preview using ObjectDrawer + small BackgroundBuffer
+      // For now, use primitive shape rendering (shows object ID and rough dimensions)
+      RenderObjectPrimitive(preview_object_, preview_x, preview_y);
     }
 
     object_canvas_.DrawOverlay();
