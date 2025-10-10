@@ -1038,13 +1038,15 @@ absl::Status OverworldEditor::Paste() {
 
 absl::Status OverworldEditor::CheckForCurrentMap() {
   // 4096x4096, 512x512 maps and some are larges maps 1024x1024
-  const auto mouse_position = ImGui::GetIO().MousePos;
+  // CRITICAL FIX: Use canvas hover position (not raw ImGui mouse) for proper coordinate sync
+  // hover_mouse_pos() already returns canvas-local coordinates (world space, not screen space)
+  const auto mouse_position = ow_map_canvas_.hover_mouse_pos();
   const int large_map_size = 1024;
-  const auto canvas_zero_point = ow_map_canvas_.zero_point();
 
   // Calculate which small map the mouse is currently over
-  int map_x = (mouse_position.x - canvas_zero_point.x) / kOverworldMapSize;
-  int map_y = (mouse_position.y - canvas_zero_point.y) / kOverworldMapSize;
+  // No need to subtract canvas_zero_point - mouse_position is already in world coordinates
+  int map_x = mouse_position.x / kOverworldMapSize;
+  int map_y = mouse_position.y / kOverworldMapSize;
 
   // Calculate the index of the map in the `maps_bmp_` vector
   int hovered_map = map_x + map_y * 8;
@@ -1127,8 +1129,27 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
         overworld_.overworld_map(current_map_)->large_index() != 0) {
       const int highlight_parent =
           overworld_.overworld_map(current_highlighted_map)->parent();
-      const int parent_map_x = highlight_parent % 8;
-      const int parent_map_y = highlight_parent / 8;
+
+      // CRITICAL FIX: Account for world offset when calculating parent coordinates
+      // For Dark World (0x40-0x7F), parent IDs are in range 0x40-0x7F
+      // For Special World (0x80-0x9F), parent IDs are in range 0x80-0x9F
+      // We need to subtract the world offset to get display grid coordinates (0-7)
+      int parent_map_x;
+      int parent_map_y;
+      if (current_world_ == 0) {
+        // Light World (0x00-0x3F)
+        parent_map_x = highlight_parent % 8;
+        parent_map_y = highlight_parent / 8;
+      } else if (current_world_ == 1) {
+        // Dark World (0x40-0x7F) - subtract 0x40 to get display coordinates
+        parent_map_x = (highlight_parent - 0x40) % 8;
+        parent_map_y = (highlight_parent - 0x40) / 8;
+      } else {
+        // Special World (0x80-0x9F) - subtract 0x80 to get display coordinates
+        parent_map_x = (highlight_parent - 0x80) % 8;
+        parent_map_y = (highlight_parent - 0x80) / 8;
+      }
+
       ow_map_canvas_.DrawOutline(parent_map_x * kOverworldMapSize,
                                  parent_map_y * kOverworldMapSize,
                                  large_map_size, large_map_size);
@@ -1141,8 +1162,6 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
         current_map_x = current_highlighted_map % 8;
         current_map_y = current_highlighted_map / 8;
       } else if (current_world_ == 1) {
-        // TODO: Vanilla fix dark world large map outline
-        // When switching to dark world, large maps dont outline properly.
         // Dark World (0x40-0x7F)
         current_map_x = (current_highlighted_map - 0x40) % 8;
         current_map_y = (current_highlighted_map - 0x40) / 8;
@@ -1398,7 +1417,11 @@ void OverworldEditor::DrawOverworldCanvas() {
     if (current_mode == EditingMode::DRAW_TILE) {
       CheckForOverworldEdits();
     }
-    if (IsItemHovered())
+    // CRITICAL FIX: Use canvas hover state, not ImGui::IsItemHovered()
+    // IsItemHovered() checks the LAST drawn item, which could be entities/overlay,
+    // not the canvas InvisibleButton. ow_map_canvas_.IsMouseHovering() correctly
+    // tracks whether mouse is over the canvas area.
+    if (ow_map_canvas_.IsMouseHovering())
       status_ = CheckForCurrentMap();
   }
 
@@ -2345,22 +2368,16 @@ void OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {
     return;
   }
 
-  // Fallback: maintain legacy behavior when the selector is unavailable.
-  constexpr int kTilesPerRow = 8;
-  constexpr int kTileDisplaySize = 32;
-
-  int tile_col = current_tile16_ % kTilesPerRow;
-  int tile_row = current_tile16_ / kTilesPerRow;
-  float tile_x = static_cast<float>(tile_col * kTileDisplaySize);
-  float tile_y = static_cast<float>(tile_row * kTileDisplaySize);
-
-  const ImVec2 window_size = ImGui::GetWindowSize();
-  float scroll_x = tile_x - (window_size.x / 2.0F) + (kTileDisplaySize / 2.0F);
-  float scroll_y = tile_y - (window_size.y / 2.0F) + (kTileDisplaySize / 2.0F);
-
-  // Use ImGui scroll API so both the canvas and child scroll view stay in sync.
-  ImGui::SetScrollX(std::max(0.0f, scroll_x));
-  ImGui::SetScrollY(std::max(0.0f, scroll_y));
+  // CRITICAL FIX: Do NOT use fallback scrolling from overworld canvas context!
+  // The fallback code uses ImGui::SetScrollX/Y which scrolls the CURRENT window,
+  // and when called from CheckForSelectRectangle() during overworld canvas rendering,
+  // it incorrectly scrolls the overworld canvas instead of the tile16 selector.
+  //
+  // The blockset_selector_ should always be available in modern code paths.
+  // If it's not available, we skip scrolling rather than scroll the wrong window.
+  //
+  // This fixes the bug where right-clicking to select tiles on the Dark World
+  // causes the overworld canvas to scroll unexpectedly.
 }
 
 void OverworldEditor::DrawOverworldProperties() {

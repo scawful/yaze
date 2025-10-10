@@ -411,6 +411,15 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
 
   ImGui::InvisibleButton(canvas_id_.c_str(), scaled_size, kMouseFlags);
 
+  // CRITICAL FIX: Always update hover mouse position when hovering over canvas
+  // This fixes the regression where CheckForCurrentMap() couldn't track hover
+  if (IsItemHovered()) {
+    const ImGuiIO& io = GetIO();
+    const ImVec2 origin(canvas_p0_.x + scrolling_.x, canvas_p0_.y + scrolling_.y);
+    const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
+    mouse_pos_in_canvas_ = mouse_pos;
+  }
+
   if (config_.is_draggable && IsItemHovered()) {
     const ImGuiIO& io = GetIO();
     const bool is_active = IsItemActive();  // Held
