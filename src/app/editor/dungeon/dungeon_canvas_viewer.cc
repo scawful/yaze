@@ -283,13 +283,60 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       }
     });
     
-    // Show object bounds
-    debug_menu.subitems.push_back({
-      ICON_MD_CROP_SQUARE " Show Object Bounds",
+    // Show object bounds with sub-menu for categories
+    gui::Canvas::ContextMenuItem object_bounds_menu;
+    object_bounds_menu.label = ICON_MD_CROP_SQUARE " Show Object Bounds";
+    object_bounds_menu.callback = [this]() {
+      show_object_bounds_ = !show_object_bounds_;
+    };
+    
+    // Sub-menu for filtering by type
+    object_bounds_menu.subitems.push_back({
+      "Type 1 (0x00-0xFF)",
       [this]() {
-        show_object_bounds_ = !show_object_bounds_;
+        object_outline_toggles_.show_type1_objects = !object_outline_toggles_.show_type1_objects;
       }
     });
+    object_bounds_menu.subitems.push_back({
+      "Type 2 (0x100-0x1FF)",
+      [this]() {
+        object_outline_toggles_.show_type2_objects = !object_outline_toggles_.show_type2_objects;
+      }
+    });
+    object_bounds_menu.subitems.push_back({
+      "Type 3 (0xF00-0xFFF)",
+      [this]() {
+        object_outline_toggles_.show_type3_objects = !object_outline_toggles_.show_type3_objects;
+      }
+    });
+    
+    // Separator
+    gui::Canvas::ContextMenuItem sep;
+    sep.label = "---";
+    sep.enabled_condition = []() { return false; };
+    object_bounds_menu.subitems.push_back(sep);
+    
+    // Sub-menu for filtering by layer
+    object_bounds_menu.subitems.push_back({
+      "Layer 0 (BG1)",
+      [this]() {
+        object_outline_toggles_.show_layer0_objects = !object_outline_toggles_.show_layer0_objects;
+      }
+    });
+    object_bounds_menu.subitems.push_back({
+      "Layer 1 (BG2)",
+      [this]() {
+        object_outline_toggles_.show_layer1_objects = !object_outline_toggles_.show_layer1_objects;
+      }
+    });
+    object_bounds_menu.subitems.push_back({
+      "Layer 2 (BG3)",
+      [this]() {
+        object_outline_toggles_.show_layer2_objects = !object_outline_toggles_.show_layer2_objects;
+      }
+    });
+    
+    debug_menu.subitems.push_back(object_bounds_menu);
     
     // Show layer info
     debug_menu.subitems.push_back({
@@ -360,6 +407,19 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::Checkbox("BG1 Visible", &layer_settings.bg1_visible);
       ImGui::Checkbox("BG2 Visible", &layer_settings.bg2_visible);
       ImGui::SliderInt("BG2 Type", &layer_settings.bg2_layer_type, 0, 4);
+      
+      if (show_object_bounds_) {
+        ImGui::Separator();
+        ImGui::Text("Object Outline Filters");
+        ImGui::Text("By Type:");
+        ImGui::Checkbox("Type 1", &object_outline_toggles_.show_type1_objects);
+        ImGui::Checkbox("Type 2", &object_outline_toggles_.show_type2_objects);
+        ImGui::Checkbox("Type 3", &object_outline_toggles_.show_type3_objects);
+        ImGui::Text("By Layer:");
+        ImGui::Checkbox("Layer 0", &object_outline_toggles_.show_layer0_objects);
+        ImGui::Checkbox("Layer 1", &object_outline_toggles_.show_layer1_objects);
+        ImGui::Checkbox("Layer 2", &object_outline_toggles_.show_layer2_objects);
+      }
     }
     ImGui::End();
   }
@@ -694,6 +754,33 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
   const auto& objects = room.GetTileObjects();
   
   for (const auto& obj : objects) {
+    // Filter by object type (default to true if unknown type)
+    bool show_this_type = true;  // Default to showing
+    if (obj.id_ < 0x100) {
+      show_this_type = object_outline_toggles_.show_type1_objects;
+    } else if (obj.id_ >= 0x100 && obj.id_ < 0x200) {
+      show_this_type = object_outline_toggles_.show_type2_objects;
+    } else if (obj.id_ >= 0xF00) {
+      show_this_type = object_outline_toggles_.show_type3_objects;
+    }
+    // else: unknown type, use default (true)
+    
+    // Filter by layer (default to true if unknown layer)
+    bool show_this_layer = true;  // Default to showing
+    if (obj.GetLayerValue() == 0) {
+      show_this_layer = object_outline_toggles_.show_layer0_objects;
+    } else if (obj.GetLayerValue() == 1) {
+      show_this_layer = object_outline_toggles_.show_layer1_objects;
+    } else if (obj.GetLayerValue() == 2) {
+      show_this_layer = object_outline_toggles_.show_layer2_objects;
+    }
+    // else: unknown layer, use default (true)
+    
+    // Skip if filtered out
+    if (!show_this_type || !show_this_layer) {
+      continue;
+    }
+    
     // Convert object position (tile coordinates) to canvas pixel coordinates (UNSCALED)
     auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());
     
@@ -718,24 +805,19 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
     // Color-code by layer
     ImVec4 outline_color;
     if (obj.GetLayerValue() == 0) {
-      outline_color = ImVec4(1.0f, 0.0f, 0.0f, 0.7f);  // Red for layer 0
+      outline_color = ImVec4(1.0f, 0.0f, 0.0f, 0.5f);  // Red for layer 0
     } else if (obj.GetLayerValue() == 1) {
-      outline_color = ImVec4(0.0f, 1.0f, 0.0f, 0.7f);  // Green for layer 1
+      outline_color = ImVec4(0.0f, 1.0f, 0.0f, 0.5f);  // Green for layer 1
     } else {
-      outline_color = ImVec4(0.0f, 0.0f, 1.0f, 0.7f);  // Blue for layer 2
+      outline_color = ImVec4(0.0f, 0.0f, 1.0f, 0.5f);  // Blue for layer 2
     }
     
     // Draw outline rectangle
     canvas_.DrawRect(canvas_x, canvas_y, width, height, outline_color);
     
-    // Draw object ID label
-    std::string label = absl::StrFormat("0x%02X", obj.id_);
-    canvas_.DrawText(label, canvas_x + 2, canvas_y + 2);
-  }
-  
-  // Log object count
-  if (!objects.empty()) {
-    LOG_DEBUG("[DrawObjectPositionOutlines]", "Drew %zu object outlines", objects.size());
+    // Draw object ID label (smaller, less obtrusive)
+    std::string label = absl::StrFormat("%02X", obj.id_);
+    canvas_.DrawText(label, canvas_x + 1, canvas_y + 1);
   }
 }
 

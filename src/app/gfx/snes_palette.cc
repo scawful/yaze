@@ -323,9 +323,14 @@ absl::StatusOr<PaletteGroup> CreatePaletteGroupFromLargePalette(
   PaletteGroup palette_group;
   for (int i = 0; i < palette.size(); i += num_colors) {
     SnesPalette new_palette;
-    if (i + num_colors < palette.size()) {
+    if (i + num_colors <= palette.size()) {
       for (int j = 0; j < num_colors; j++) {
-        new_palette.AddColor(palette[i + j]);
+        auto color = palette[i + j];
+        // Ensure first color of each sub-palette (index 0) is transparent
+        if (j == 0) {
+          color.set_transparent(true);
+        }
+        new_palette.AddColor(color);
       }
     }
     palette_group.AddPalette(new_palette);

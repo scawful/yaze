@@ -162,29 +162,18 @@ absl::Status RoomLayout::ParseLayoutData(const std::vector<uint8_t>& data) {
       uint8_t tile_id = data[index];
 
       // Determine object type based on tile ID
+      // NOTE: Layout format needs research - using simplified heuristics
       RoomLayoutObject::Type type = RoomLayoutObject::Type::kUnknown;
+      
       if (tile_id == 0) {
         // Empty space - skip
         continue;
-      } else if (tile_id >= 0x01 && tile_id <= 0x20) {
-        // Wall tiles
-        type = RoomLayoutObject::Type::kWall;
-      } else if (tile_id >= 0x21 && tile_id <= 0x40) {
-        // Floor tiles
-        type = RoomLayoutObject::Type::kFloor;
-      } else if (tile_id >= 0x41 && tile_id <= 0x60) {
-        // Ceiling tiles
-        type = RoomLayoutObject::Type::kCeiling;
-      } else if (tile_id >= 0x61 && tile_id <= 0x80) {
-        // Water tiles
-        type = RoomLayoutObject::Type::kWater;
-      } else if (tile_id >= 0x81 && tile_id <= 0xA0) {
-        // Stairs
-        type = RoomLayoutObject::Type::kStairs;
-      } else if (tile_id >= 0xA1 && tile_id <= 0xC0) {
-        // Doors
-        type = RoomLayoutObject::Type::kDoor;
       }
+      
+      // Just mark everything as unknown for now
+      // The room graphics bitmap handles the actual visual appearance
+      // Layout objects are just for structural information
+      type = RoomLayoutObject::Type::kUnknown;
 
       // Create layout object
       objects_.emplace_back(tile_id, x, y, type, 0);

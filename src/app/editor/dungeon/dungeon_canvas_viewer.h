@@ -160,6 +160,17 @@ class DungeonCanvasViewer {
   bool show_texture_debug_ = false;
   bool show_object_bounds_ = false;
   bool show_layer_info_ = false;
+  
+  // Object outline category toggles
+  struct ObjectOutlineToggles {
+    bool show_type1_objects = true;   // Standard objects (0x00-0xFF)
+    bool show_type2_objects = true;   // Extended objects (0x100-0x1FF)
+    bool show_type3_objects = true;   // Special objects (0xF00-0xFFF)
+    bool show_layer0_objects = true;  // Layer 0 (BG1)
+    bool show_layer1_objects = true;  // Layer 1 (BG2)
+    bool show_layer2_objects = true;  // Layer 2 (BG3)
+  };
+  ObjectOutlineToggles object_outline_toggles_;
 };
 
 }  // namespace editor

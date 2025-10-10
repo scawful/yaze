@@ -314,8 +314,11 @@ void Room::RenderRoomGraphics() {
   int num_palettes = dungeon_pal_group.size();
   int palette_id = palette;
   
+  LOG_DEBUG("[RenderRoomGraphics]", "Room palette byte: %d, num_palettes available: %d", 
+            palette_id, num_palettes);
+  
   if (palette_id < 0 || palette_id >= num_palettes) {
-    LOG_DEBUG("[RenderRoomGraphics]", "WARNING: palette_id %d out of bounds, using %d", 
+    LOG_DEBUG("[RenderRoomGraphics]", "WARNING: palette_id %d out of bounds, clamping to %d", 
                 palette_id, palette_id % num_palettes);
     palette_id = palette_id % num_palettes;
   }
@@ -323,9 +326,22 @@ void Room::RenderRoomGraphics() {
   auto bg1_palette = dungeon_pal_group[palette_id];
 
   if (bg1_palette.size() > 0) {
+    LOG_DEBUG("[RenderRoomGraphics]", "Applying palette_id=%d with %d colors to bitmaps", 
+              palette_id, (int)bg1_palette.size());
+    
+    // Debug: Log first few palette colors
+    for (int i = 0; i < std::min(16, (int)bg1_palette.size()); i++) {
+      auto rgb = bg1_palette[i].rgb();
+      LOG_DEBUG("[RenderRoomGraphics]", "  Palette[%d]: R=%.0f G=%.0f B=%.0f A=%.0f %s", 
+                i, rgb.x, rgb.y, rgb.z, rgb.w, 
+                bg1_palette[i].is_transparent() ? "(TRANSPARENT)" : "");
+    }
+    
     // Apply FULL 90-color dungeon palette
     bg1_bmp.SetPalette(bg1_palette);
     bg2_bmp.SetPalette(bg1_palette);
+  } else {
+    LOG_DEBUG("[RenderRoomGraphics]", "ERROR: Palette is empty!");
   }
   
   // Render objects ON TOP of background tiles (AFTER palette is set)
