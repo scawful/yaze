@@ -5,7 +5,7 @@
 #include "app/gfx/arena.h"
 #include "app/gfx/atlas_renderer.h"
 #include "app/gfx/bitmap.h"
-#include "app/gfx/performance_profiler.h"
+#include "app/gfx/performance/performance_profiler.h"
 #include "app/gfx/snes_tile.h"
 
 namespace yaze {

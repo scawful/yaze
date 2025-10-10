@@ -10,7 +10,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/features.h"
-#include "app/gfx/performance_profiler.h"
+#include "app/gfx/performance/performance_profiler.h"
 #include "app/gfx/compression.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"

@@ -2,7 +2,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "app/gfx/performance_profiler.h"
+#include "app/gfx/performance/performance_profiler.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/color.h"
 #include "imgui/imgui.h"

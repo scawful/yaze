@@ -6,7 +6,7 @@
 #include <string>
 
 #include "app/gfx/bpp_format_manager.h"
-#include "app/gfx/performance_profiler.h"
+#include "app/gfx/performance/performance_profiler.h"
 
 namespace yaze {
 namespace gfx {
