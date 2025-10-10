@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # YAZE Collaboration Server Launcher
 # Starts the WebSocket collaboration server for networked YAZE sessions
+# https://github.com/scawful/yaze-server
+
 
 set -e
 

@@ -567,5 +567,5 @@ jobs:
     
     - name: Run Test Suite
       run: |
-        chmod +x scripts/agent_test_suite.sh
+        chmod +x ./scripts/agent_test_suite.sh
         ./scripts/agent_test_suite.sh ollama
