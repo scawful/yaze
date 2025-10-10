@@ -41,52 +41,69 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     static int prev_layout = -1;
     static int prev_spriteset = -1;
     
-    gui::InputHexByte("Layout", &room.layout);
-    ImGui::SameLine();
-    gui::InputHexByte("Gfx", &room.blockset);
-    ImGui::SameLine();
-    gui::InputHexByte("Spriteset", &room.spriteset);
-    ImGui::SameLine();
-    gui::InputHexByte("Palette", &room.palette);
-
-    // Floor graphics - use temp variables and setters (floor1/floor2 are now accessors)
-    uint8_t floor1_val = room.floor1();
-    uint8_t floor2_val = room.floor2();
-    if (gui::InputHexByte("Floor1", &floor1_val) && ImGui::IsItemDeactivatedAfterEdit()) {
-      room.set_floor1(floor1_val);
-      // Trigger re-render since floor graphics changed
-      if (room.rom() && room.rom()->is_loaded()) {
-        room.RenderRoomGraphics();
+    // Room properties in organized table
+    if (ImGui::BeginTable("##RoomProperties", 4, ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_Borders)) {
+      ImGui::TableSetupColumn("Graphics");
+      ImGui::TableSetupColumn("Layout");
+      ImGui::TableSetupColumn("Floors");
+      ImGui::TableSetupColumn("Message");
+      ImGui::TableHeadersRow();
+      
+      ImGui::TableNextRow();
+      
+      // Column 1: Graphics (Blockset, Spriteset, Palette)
+      ImGui::TableNextColumn();
+      gui::InputHexByte("Gfx", &room.blockset, 50.f);
+      gui::InputHexByte("Sprite", &room.spriteset, 50.f);
+      gui::InputHexByte("Palette", &room.palette, 50.f);
+      
+      // Column 2: Layout
+      ImGui::TableNextColumn();
+      gui::InputHexByte("Layout", &room.layout, 50.f);
+      
+      // Column 3: Floors
+      ImGui::TableNextColumn();
+      uint8_t floor1_val = room.floor1();
+      uint8_t floor2_val = room.floor2();
+      if (gui::InputHexByte("Floor1", &floor1_val, 50.f) && ImGui::IsItemDeactivatedAfterEdit()) {
+        room.set_floor1(floor1_val);
+        if (room.rom() && room.rom()->is_loaded()) {
+          room.RenderRoomGraphics();
+        }
       }
-    }
-    ImGui::SameLine();
-    if (gui::InputHexByte("Floor2", &floor2_val) && ImGui::IsItemDeactivatedAfterEdit()) {
-      room.set_floor2(floor2_val);
-      // Trigger re-render since floor graphics changed
-      if (room.rom() && room.rom()->is_loaded()) {
-        room.RenderRoomGraphics();
+      if (gui::InputHexByte("Floor2", &floor2_val, 50.f) && ImGui::IsItemDeactivatedAfterEdit()) {
+        room.set_floor2(floor2_val);
+        if (room.rom() && room.rom()->is_loaded()) {
+          room.RenderRoomGraphics();
+        }
       }
+      
+      // Column 4: Message
+      ImGui::TableNextColumn();
+      gui::InputHexWord("MsgID", &room.message_id_, 70.f);
+      
+      ImGui::EndTable();
     }
-    ImGui::SameLine();
-    gui::InputHexWord("Message ID", &room.message_id_);
     
-    // Per-room layer visibility controls
+    // Layer visibility controls in compact table
     ImGui::Separator();
-    ImGui::Text("Layer Controls (Per-Room):");
-    auto& layer_settings = GetRoomLayerSettings(room_id);
-    ImGui::Checkbox("Show BG1", &layer_settings.bg1_visible);
-    ImGui::SameLine();
-    ImGui::Checkbox("Show BG2", &layer_settings.bg2_visible);
-    
-    // BG2 layer type dropdown
-    const char* bg2_layer_types[] = {
-        "Normal (100%)", "Translucent (75%)", "Addition (50%)", "Dark (25%)", "Off (0%)"
-    };
-    const int bg2_alpha_values[] = {255, 191, 127, 64, 0};
-    
-    if (ImGui::Combo("BG2 Layer Type", &layer_settings.bg2_layer_type, bg2_layer_types, 
-                     sizeof(bg2_layer_types) / sizeof(bg2_layer_types[0]))) {
-      // BG2 layer type changed, no need to reload graphics
+    if (ImGui::BeginTable("##LayerControls", 3, ImGuiTableFlags_SizingStretchSame)) {
+      ImGui::TableNextRow();
+      
+      ImGui::TableNextColumn();
+      auto& layer_settings = GetRoomLayerSettings(room_id);
+      ImGui::Checkbox("Show BG1", &layer_settings.bg1_visible);
+      
+      ImGui::TableNextColumn();
+      ImGui::Checkbox("Show BG2", &layer_settings.bg2_visible);
+      
+      ImGui::TableNextColumn();
+      // BG2 layer type dropdown
+      const char* bg2_layer_types[] = {"Normal", "Trans", "Add", "Dark", "Off"};
+      ImGui::SetNextItemWidth(-FLT_MIN);
+      ImGui::Combo("##BG2Type", &layer_settings.bg2_layer_type, bg2_layer_types, 5);
+      
+      ImGui::EndTable();
     }
     
     // Check if critical properties changed and trigger reload
@@ -195,6 +212,10 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // Draw the room's background layers to canvas
     // This already includes objects rendered by ObjectDrawer in Room::RenderObjectsToBackground()
     DrawRoomBackgroundLayers(room_id);
+    
+    // Draw room layout (structural elements like walls, pits)
+    // This provides context for object placement
+    DrawRoomLayout(room);
     
     // VISUALIZATION: Draw object position rectangles (for debugging)
     // This shows where objects are placed regardless of whether graphics render
@@ -367,6 +388,23 @@ void DungeonCanvasViewer::CalculateWallDimensions(const zelda3::RoomObject& obje
   // Clamp to reasonable limits
   width = std::min(width, 256);
   height = std::min(height, 256);
+}
+
+// Room layout visualization
+void DungeonCanvasViewer::DrawRoomLayout(const zelda3::Room& room) {
+  // Draw room layout structural elements (walls, floors, pits)
+  // This provides visual context for where objects should be placed
+  
+  const auto& layout = room.GetLayout();
+  
+  // Get dimensions (64x64 tiles = 512x512 pixels)
+  auto [width_tiles, height_tiles] = layout.GetDimensions();
+  
+  // TODO: Get layout objects by type
+  // For now, draw a grid overlay to show the room structure
+  // Future: Implement GetObjectsByType() in RoomLayout
+  
+  LOG_DEBUG("[DrawRoomLayout]", "Room layout: %dx%d tiles", width_tiles, height_tiles);
 }
 
 // Object visualization methods

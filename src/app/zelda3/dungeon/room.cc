@@ -302,33 +302,41 @@ void Room::RenderRoomGraphics() {
   bg1_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
   bg2_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
 
-  // Render objects ON TOP of background tiles
-  // This must happen AFTER DrawBackground to avoid overwriting object data
-  RenderObjectsToBackground();
-
   auto& bg1_bmp = bg1_buffer_.bitmap();
   auto& bg2_bmp = bg2_buffer_.bitmap();
   
-  // Get and apply palette FIRST (before marking modified)
+  // Get and apply palette BEFORE rendering objects (so objects use correct colors)
   auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
   int num_palettes = dungeon_pal_group.size();
   int palette_id = palette;
   
   if (palette_id < 0 || palette_id >= num_palettes) {
-    LOG_DEBUG("[RenderRoomGraphics]", "5. WARNING: palette_id %d is out of bounds [0, %d), using palette %d", 
-                palette_id, num_palettes, palette_id % num_palettes);
-    palette_id = palette_id % num_palettes;  // Use modulo to wrap around instead of defaulting to 0
+    LOG_DEBUG("[RenderRoomGraphics]", "WARNING: palette_id %d out of bounds, using %d", 
+                palette_id, palette_id % num_palettes);
+    palette_id = palette_id % num_palettes;
   }
   
   auto bg1_palette = dungeon_pal_group[palette_id];
 
   if (bg1_palette.size() > 0) {
-    // Use SetPalette() to apply the FULL 90-color dungeon palette
-    // SetPaletteWithTransparent() only extracts 8 colors, which is wrong for dungeons!
+    // Apply FULL 90-color dungeon palette
     bg1_bmp.SetPalette(bg1_palette);
     bg2_bmp.SetPalette(bg1_palette);
-    
-    // Queue texture creation for background buffers
+  }
+  
+  // Render objects ON TOP of background tiles (AFTER palette is set)
+  // ObjectDrawer will write indexed pixel data that uses the palette we just set
+  RenderObjectsToBackground();
+  
+  // Update textures with all the data (floor + background + objects + palette)
+  if (bg1_bmp.texture()) {
+    // Texture exists - UPDATE it with new object data
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &bg1_bmp);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, &bg2_bmp);
+  } else {
+    // No texture yet - CREATE it
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &bg1_bmp);
     gfx::Arena::Get().QueueTextureCommand(
