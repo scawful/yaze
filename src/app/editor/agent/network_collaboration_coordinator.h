@@ -95,7 +95,7 @@ class NetworkCollaborationCoordinator {
   absl::Status LeaveSession();
 
   // Communication methods
-  absl::Status SendMessage(const std::string& sender, 
+  absl::Status SendChatMessage(const std::string& sender, 
                           const std::string& message,
                           const std::string& message_type = "chat",
                           const std::string& metadata = "");
