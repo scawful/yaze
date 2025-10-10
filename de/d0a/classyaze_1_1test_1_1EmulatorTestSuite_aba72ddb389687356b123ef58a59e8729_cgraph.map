@@ -1,0 +1,11 @@
+<map id="yaze::test::EmulatorTestSuite::RunAudioBackendTest" name="yaze::test::EmulatorTestSuite::RunAudioBackendTest">
+<area shape="rect" id="Node000001" title="Tests the audio backend abstraction layer." alt="" coords="5,104,196,145"/>
+<area shape="rect" id="Node000002" href="$d2/d60/structyaze_1_1test_1_1TestResults.html#abe5ca04144ec78a21183b44d5f87a597" title=" " alt="" coords="271,5,422,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="142,101,243,57,262,49,264,54,245,61,145,106"/>
+<area shape="rect" id="Node000003" href="$d9/d2b/classyaze_1_1emu_1_1audio_1_1AudioBackendFactory.html#a3da6a6b4e9298006c2ee7feafd90057d" title=" " alt="" coords="244,71,449,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,109,228,104,228,110,197,114"/>
+<area shape="rect" id="Node000004" href="$de/d0a/classyaze_1_1test_1_1EmulatorTestSuite.html#ac761ddb8349a45731aac6a1f1dd26150" title=" " alt="" coords="267,136,426,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="197,134,252,141,251,147,196,139"/>
+<area shape="rect" id="Node000005" href="$de/d0a/classyaze_1_1test_1_1EmulatorTestSuite.html#ab263af7a3607e3e01a43e40a6d9bb277" title=" " alt="" coords="267,201,426,242"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="146,143,245,186,265,193,263,198,243,191,144,148"/>
+</map>

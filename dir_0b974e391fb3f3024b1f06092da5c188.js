@@ -1,6 +1,7 @@
 var dir_0b974e391fb3f3024b1f06092da5c188 =
 [
     [ "backend", "dir_784a83bb080884888e34b265f0a3846e.html", "dir_784a83bb080884888e34b265f0a3846e" ],
+    [ "performance", "dir_54446c4229d517694e0df2aa5c27dcc5.html", "dir_54446c4229d517694e0df2aa5c27dcc5" ],
     [ "arena.cc", "d2/dee/arena_8cc.html", null ],
     [ "arena.h", "da/d0c/arena_8h.html", "da/d0c/arena_8h" ],
     [ "atlas_renderer.cc", "dd/d53/atlas__renderer_8cc.html", null ],
@@ -17,10 +18,6 @@ var dir_0b974e391fb3f3024b1f06092da5c188 =
     [ "graphics_optimizer.h", "dd/d54/graphics__optimizer_8h.html", "dd/d54/graphics__optimizer_8h" ],
     [ "memory_pool.cc", "d9/dc6/memory__pool_8cc.html", "d9/dc6/memory__pool_8cc" ],
     [ "memory_pool.h", "de/d5c/memory__pool_8h.html", "de/d5c/memory__pool_8h" ],
-    [ "performance_dashboard.cc", "d4/d9f/performance__dashboard_8cc.html", null ],
-    [ "performance_dashboard.h", "db/d5c/performance__dashboard_8h.html", "db/d5c/performance__dashboard_8h" ],
-    [ "performance_profiler.cc", "d5/da6/performance__profiler_8cc.html", null ],
-    [ "performance_profiler.h", "dd/db2/performance__profiler_8h.html", "dd/db2/performance__profiler_8h" ],
     [ "scad_format.cc", "d1/de3/scad__format_8cc.html", "d1/de3/scad__format_8cc" ],
     [ "scad_format.h", "df/d33/scad__format_8h.html", "df/d33/scad__format_8h" ],
     [ "snes_color.cc", "dc/dee/snes__color_8cc.html", "dc/dee/snes__color_8cc" ],

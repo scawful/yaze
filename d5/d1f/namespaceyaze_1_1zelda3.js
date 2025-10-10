@@ -16,6 +16,10 @@ var namespaceyaze_1_1zelda3 =
       [ "GetAllTile16", "db/dbd/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#a7f1673e0c824b4cf30a284499cea45ad", null ],
       [ "CompareItemsArrays", "db/dbd/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02overworld_8cc_03.html#a5b374fda1bb2eb9781736fd765e1ef4b", null ]
     ] ],
+    [ "anonymous_namespace{room_layout.cc}", "de/d5a/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__layout_8cc_03.html", [
+      [ "ReadWord", "de/d5a/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__layout_8cc_03.html#ad2bb255febc3457470239dfd8210bc40", null ],
+      [ "kLayerTerminator", "de/d5a/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__layout_8cc_03.html#af315f4f7f927c441da2b69fa90323777", null ]
+    ] ],
     [ "anonymous_namespace{room_object.cc}", "d5/da6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03.html", "d5/da6/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object_8cc_03" ],
     [ "anonymous_namespace{room_object_encoding_test.cc}", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html", [
       [ "TEST", "df/d19/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02room__object__encoding__test_8cc_03.html#ac5333b8280a8760583801bb4e3d05886", null ],
@@ -48,13 +52,6 @@ var namespaceyaze_1_1zelda3 =
     [ "ItemTypes", "da/d9f/namespaceyaze_1_1zelda3_1_1ItemTypes.html", "da/d9f/namespaceyaze_1_1zelda3_1_1ItemTypes" ],
     [ "music", "d7/d68/namespaceyaze_1_1zelda3_1_1music.html", "d7/d68/namespaceyaze_1_1zelda3_1_1music" ],
     [ "ObjectCategories", "d0/d1c/namespaceyaze_1_1zelda3_1_1ObjectCategories.html", "d0/d1c/namespaceyaze_1_1zelda3_1_1ObjectCategories" ],
-    [ "ObjectRenderingUtils", "d1/d67/namespaceyaze_1_1zelda3_1_1ObjectRenderingUtils.html", [
-      [ "ValidateObjectData", "d1/d67/namespaceyaze_1_1zelda3_1_1ObjectRenderingUtils.html#a346b84d6805e1b96a2eec88c955f278d", null ],
-      [ "EstimateMemoryUsage", "d1/d67/namespaceyaze_1_1zelda3_1_1ObjectRenderingUtils.html#a2b7f6cd947824faa4da7963b5c067681", null ],
-      [ "IsObjectInBounds", "d1/d67/namespaceyaze_1_1zelda3_1_1ObjectRenderingUtils.html#ac5560ddd29a4ce06be48a4e8668370d4", null ],
-      [ "GetObjectSubtype", "d1/d67/namespaceyaze_1_1zelda3_1_1ObjectRenderingUtils.html#abe726f23dbe5b31d72686c3fb5ab2b36", null ],
-      [ "IsValidObjectID", "d1/d67/namespaceyaze_1_1zelda3_1_1ObjectRenderingUtils.html#a95f40577f3d7fc860e7ad9b3254d1a0f", null ]
-    ] ],
     [ "palette_internal", "d6/d52/namespaceyaze_1_1zelda3_1_1palette__internal.html", [
       [ "SetColorsPalette", "d6/d52/namespaceyaze_1_1zelda3_1_1palette__internal.html#a7f32e9b2fd815c57c56c9a2e878e8165", null ]
     ] ],
@@ -72,7 +69,6 @@ var namespaceyaze_1_1zelda3 =
     [ "ObjectDrawer", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html", "d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer" ],
     [ "ObjectDrawInfo", "d0/d01/structyaze_1_1zelda3_1_1ObjectDrawInfo.html", "d0/d01/structyaze_1_1zelda3_1_1ObjectDrawInfo" ],
     [ "ObjectParser", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html", "d8/ddf/classyaze_1_1zelda3_1_1ObjectParser" ],
-    [ "ObjectRenderer", "d7/dfa/classyaze_1_1zelda3_1_1ObjectRenderer.html", "d7/dfa/classyaze_1_1zelda3_1_1ObjectRenderer" ],
     [ "ObjectRenderingTest", "d9/db6/classyaze_1_1zelda3_1_1ObjectRenderingTest.html", "d9/db6/classyaze_1_1zelda3_1_1ObjectRenderingTest" ],
     [ "ObjectRoutineInfo", "dc/d8c/structyaze_1_1zelda3_1_1ObjectRoutineInfo.html", "dc/d8c/structyaze_1_1zelda3_1_1ObjectRoutineInfo" ],
     [ "ObjectSizeInfo", "da/d08/structyaze_1_1zelda3_1_1ObjectSizeInfo.html", "da/d08/structyaze_1_1zelda3_1_1ObjectSizeInfo" ],
@@ -89,7 +85,6 @@ var namespaceyaze_1_1zelda3 =
     [ "Room", "d7/df6/classyaze_1_1zelda3_1_1Room.html", "d7/df6/classyaze_1_1zelda3_1_1Room" ],
     [ "RoomEntrance", "d8/d1e/classyaze_1_1zelda3_1_1RoomEntrance.html", "d8/d1e/classyaze_1_1zelda3_1_1RoomEntrance" ],
     [ "RoomLayout", "d9/d70/classyaze_1_1zelda3_1_1RoomLayout.html", "d9/d70/classyaze_1_1zelda3_1_1RoomLayout" ],
-    [ "RoomLayoutObject", "d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html", "d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject" ],
     [ "RoomObject", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html", "d3/d6a/classyaze_1_1zelda3_1_1RoomObject" ],
     [ "RoomSize", "d6/df8/structyaze_1_1zelda3_1_1RoomSize.html", "d6/df8/structyaze_1_1zelda3_1_1RoomSize" ],
     [ "ScrollWheelConfig", "da/dfb/structyaze_1_1zelda3_1_1ScrollWheelConfig.html", "da/dfb/structyaze_1_1zelda3_1_1ScrollWheelConfig" ],
@@ -218,7 +213,6 @@ var namespaceyaze_1_1zelda3 =
     ] ],
     [ "CreateDungeonEditorSystem", "d5/d1f/namespaceyaze_1_1zelda3.html#a5f2bcb776569f17bd6615e2059e59a7d", null ],
     [ "CreateDungeonObjectEditor", "d5/d1f/namespaceyaze_1_1zelda3.html#a5ce27ca80434a42b0843ac3fcf513581", null ],
-    [ "CreateObjectRenderer", "d5/d1f/namespaceyaze_1_1zelda3.html#a9c6166444e3191ad2f65d7503696d66e", null ],
     [ "CalculateRoomSize", "d5/d1f/namespaceyaze_1_1zelda3.html#a62286f1cb2eebc9d5834551ead453371", null ],
     [ "LoadRoomFromRom", "d5/d1f/namespaceyaze_1_1zelda3.html#aa0d397af98a0f5652a8741144abc15e9", null ],
     [ "operator|", "d5/d1f/namespaceyaze_1_1zelda3.html#a599b7198a7dd0ec9da754a83f9a7e5f9", null ],

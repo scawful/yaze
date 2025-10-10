@@ -1,0 +1,11 @@
+<map id="test/mocks/mock_rom.h" name="test/mocks/mock_rom.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="308,5,469,31"/>
+<area shape="rect" id="Node000002" href="$d0/d57/tile16__proposal__generator__test_8cc.html" title=" " alt="" coords="5,79,190,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="330,38,171,81,169,76,328,33"/>
+<area shape="rect" id="Node000003" href="$d6/d74/rom__test_8cc.html" title=" " alt="" coords="214,87,381,112"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="365,43,313,88,310,84,361,39"/>
+<area shape="rect" id="Node000004" href="$d6/daa/object__parser__test_8cc.html" title=" " alt="" coords="405,79,553,120"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="415,39,458,77,455,81,412,43"/>
+<area shape="rect" id="Node000005" href="$d5/da6/test__dungeon__objects_8h.html" title=" " alt="" coords="577,79,714,120"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="443,33,582,76,580,81,441,38"/>
+</map>

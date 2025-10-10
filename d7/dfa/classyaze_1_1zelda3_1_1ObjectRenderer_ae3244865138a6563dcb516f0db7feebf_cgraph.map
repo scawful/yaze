@@ -1,8 +1,0 @@
-<map id="yaze::zelda3::ObjectRenderer::ValidateInputs" name="yaze::zelda3::ObjectRenderer::ValidateInputs">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,192,46"/>
-<area shape="rect" id="Node000002" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html#aeb01c20c88b1ad90bff7289f1b5c8205" title=" " alt="" coords="474,5,621,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,20,240,19,426,19,459,20,458,25,426,24,240,24,192,25"/>
-<area shape="rect" id="Node000003" href="$d7/dfa/classyaze_1_1zelda3_1_1ObjectRenderer.html#afbce58547d7f88ae990f4d392c6b9d3a" title=" " alt="" coords="240,33,426,74"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,34,224,38,224,43,192,39"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="426,39,459,35,459,40,427,44"/>
-</map>

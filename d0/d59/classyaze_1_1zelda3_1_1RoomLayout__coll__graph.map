@@ -1,5 +1,5 @@
 <map id="yaze::zelda3::RoomLayout" name="yaze::zelda3::RoomLayout">
-<area shape="rect" id="Node000001" title="Manages room layout data and objects." alt="" coords="105,198,274,223"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="105,198,274,223"/>
 <area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="150,109,230,135"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,150,192,197,187,197,187,150"/>
 <area shape="rect" id="Node000003" href="$d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="5,5,177,46"/>

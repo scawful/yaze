@@ -2,12 +2,12 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,51,178,107"/>
 <area shape="rect" id="Node000002" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a099765be74969bf3f42bea9eabcc9ee2" title=" " alt="" coords="226,29,398,70"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,65,210,61,211,66,179,70"/>
-<area shape="rect" id="Node000005" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#afd819f43f28aa53b38c3dddf1c8d3084" title=" " alt="" coords="446,10,626,36"/>
-<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="140,48,180,29,225,15,277,7,330,4,431,7,430,12,331,9,278,12,226,20,182,34,142,53"/>
-<area shape="rect" id="Node000006" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a9f255833419702a2cec47230e4e84fe5" title=" " alt="" coords="446,64,626,89"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="178,78,226,79,398,79,430,78,430,84,398,84,226,84,178,84"/>
-<area shape="rect" id="Node000007" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a45dd7e2be4e1d231ef9f77c75e8ee9a3" title=" " alt="" coords="228,144,396,185"/>
-<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="166,105,244,136,242,141,164,110"/>
-<area shape="poly" id="edge2_Node000002_Node000005" title=" " alt="" coords="398,37,430,33,431,38,399,42"/>
-<area shape="poly" id="edge3_Node000002_Node000006" title=" " alt="" coords="399,57,431,61,430,67,398,63"/>
+<area shape="rect" id="Node000004" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#afd819f43f28aa53b38c3dddf1c8d3084" title=" " alt="" coords="446,10,626,36"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="140,48,180,29,225,15,277,7,330,4,431,7,430,12,331,9,278,12,226,20,182,34,142,53"/>
+<area shape="rect" id="Node000005" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a9f255833419702a2cec47230e4e84fe5" title=" " alt="" coords="446,64,626,89"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="178,78,226,79,398,79,430,78,430,84,398,84,226,84,178,84"/>
+<area shape="rect" id="Node000006" href="$d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a45dd7e2be4e1d231ef9f77c75e8ee9a3" title=" " alt="" coords="228,144,396,185"/>
+<area shape="poly" id="edge4_Node000001_Node000006" title=" " alt="" coords="166,105,244,136,242,141,164,110"/>
+<area shape="poly" id="edge2_Node000002_Node000004" title=" " alt="" coords="398,37,430,33,431,38,399,42"/>
+<area shape="poly" id="edge3_Node000002_Node000005" title=" " alt="" coords="399,57,431,61,430,67,398,63"/>
 </map>

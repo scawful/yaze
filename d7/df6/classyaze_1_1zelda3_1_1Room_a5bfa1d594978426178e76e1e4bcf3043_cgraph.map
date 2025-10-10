@@ -1,6 +1,6 @@
 <map id="yaze::zelda3::Room::LoadLayoutTilesToBuffer" name="yaze::zelda3::Room::LoadLayoutTilesToBuffer">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,92,178,133"/>
-<area shape="rect" id="Node000002" href="$d9/d70/classyaze_1_1zelda3_1_1RoomLayout.html#a95c3d2cfd70c9e30ba3323e51755b6ad" title=" " alt="" coords="231,5,400,46"/>
+<area shape="rect" id="Node000002" href="$d9/d70/classyaze_1_1zelda3_1_1RoomLayout.html#a6e0750ec23b8bc6da497a3a940478c75" title=" " alt="" coords="231,5,400,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,89,225,55,240,49,242,54,227,60,143,94"/>
 <area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="245,70,386,96"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="177,98,229,92,229,97,178,104"/>

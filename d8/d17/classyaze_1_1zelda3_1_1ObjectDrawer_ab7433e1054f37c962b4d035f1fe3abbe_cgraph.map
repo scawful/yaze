@@ -1,11 +1,9 @@
 <map id="yaze::zelda3::ObjectDrawer::DrawRightwards1x2_1to16_plus2" name="yaze::zelda3::ObjectDrawer::DrawRightwards1x2_1to16_plus2">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,225,111"/>
-<area shape="rect" id="Node000002" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a03a71b31c1dc551bda263e1aac07d3ac" title=" " alt="" coords="273,71,448,111"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,88,257,88,257,94,225,94"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,225,79"/>
+<area shape="rect" id="Node000002" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a03a71b31c1dc551bda263e1aac07d3ac" title=" " alt="" coords="273,39,448,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,56,257,56,257,62,225,62"/>
 <area shape="rect" id="Node000003" href="$dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="496,5,675,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="432,68,497,48,499,54,433,73"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="448,43,480,39,481,44,449,49"/>
 <area shape="rect" id="Node000004" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a11773ef80d98284bba3f1d43e6eec70b" title="Draw a single tile directly to bitmap." alt="" coords="498,71,673,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="448,88,482,88,482,94,448,94"/>
-<area shape="rect" id="Node000009" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="515,136,656,161"/>
-<area shape="poly" id="edge4_Node000002_Node000009" title=" " alt="" coords="443,109,518,129,517,134,442,114"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="449,69,483,74,482,79,448,74"/>
 </map>

@@ -33,7 +33,6 @@ var classyaze_1_1editor_1_1DungeonCanvasViewer =
     [ "CanvasToRoomCoordinates", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a07a1bd1cbd790be6b8babf9cbeaeee44", null ],
     [ "IsWithinCanvasBounds", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#acee2e7d7b4e75a7009c33e6d4c0775b7", null ],
     [ "CalculateWallDimensions", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#ad1d92bede6cf7971a70e64c85c2aba68", null ],
-    [ "DrawRoomLayout", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a31ee0d742ce95349a44cc733c3d8ae0e", null ],
     [ "DrawObjectPositionOutlines", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a751e66013cf1eace0a0241ebca80e3cd", null ],
     [ "LoadAndRenderRoomGraphics", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a2d99509c086bcf9917810835283ebbf2", null ],
     [ "DrawRoomBackgroundLayers", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a55e2615df1dc8b8934c3818f431a7b20", null ],
@@ -55,5 +54,6 @@ var classyaze_1_1editor_1_1DungeonCanvasViewer =
     [ "show_texture_debug_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#ae7c364a2ec56be1cbd315c53eab74836", null ],
     [ "show_object_bounds_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a197c4d3153fed6821d1877c72c439156", null ],
     [ "show_layer_info_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a162e256a278b58501b577deaad3a0143", null ],
+    [ "layout_override_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#aa562a5871179a41bf579be0328543bc2", null ],
     [ "object_outline_toggles_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a2484c6fdee2efc280549dec64002204c", null ]
 ];

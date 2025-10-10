@@ -26,7 +26,7 @@ var searchData=
   ['romdependenttestsuite_23',['RomDependentTestSuite',['../d5/dd0/classyaze_1_1test_1_1RomDependentTestSuite.html',1,'yaze::test']]],
   ['romdiff_24',['RomDiff',['../d1/d9c/classyaze_1_1cli_1_1RomDiff.html',1,'yaze::cli']]],
   ['romgenerategolden_25',['RomGenerateGolden',['../d2/d4a/classyaze_1_1cli_1_1RomGenerateGolden.html',1,'yaze::cli']]],
-  ['rominfo_26',['rominfo',['../d1/dae/structyaze_1_1cli_1_1EnhancedStatusPanel_1_1RomInfo.html',1,'yaze::cli::EnhancedStatusPanel::RomInfo'],['../d2/de6/classyaze_1_1cli_1_1RomInfo.html',1,'yaze::cli::RomInfo']]],
+  ['rominfo_26',['rominfo',['../d2/de6/classyaze_1_1cli_1_1RomInfo.html',1,'yaze::cli::RomInfo'],['../d1/dae/structyaze_1_1cli_1_1EnhancedStatusPanel_1_1RomInfo.html',1,'yaze::cli::EnhancedStatusPanel::RomInfo']]],
   ['romloadoptions_27',['RomLoadOptions',['../db/d22/structyaze_1_1RomLoadOptions.html',1,'yaze']]],
   ['rompatchutility_28',['ROMPatchUtility',['../db/d1c/classROMPatchUtility.html',1,'']]],
   ['rompattern_29',['ROMPattern',['../d4/d16/structyaze_1_1cli_1_1agent_1_1LearnedKnowledgeService_1_1ROMPattern.html',1,'yaze::cli::agent::LearnedKnowledgeService']]],
@@ -44,11 +44,10 @@ var searchData=
   ['roomintegrationtest_41',['RoomIntegrationTest',['../df/d80/classyaze_1_1zelda3_1_1test_1_1RoomIntegrationTest.html',1,'yaze::zelda3::test']]],
   ['roomlayersettings_42',['RoomLayerSettings',['../d1/d23/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1RoomLayerSettings.html',1,'yaze::editor::DungeonCanvasViewer']]],
   ['roomlayout_43',['RoomLayout',['../d9/d70/classyaze_1_1zelda3_1_1RoomLayout.html',1,'yaze::zelda3']]],
-  ['roomlayoutobject_44',['RoomLayoutObject',['../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html',1,'yaze::zelda3']]],
-  ['roommanipulationtest_45',['RoomManipulationTest',['../d7/dc3/classyaze_1_1zelda3_1_1test_1_1RoomManipulationTest.html',1,'yaze::zelda3::test']]],
-  ['roomobject_46',['RoomObject',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html',1,'yaze::zelda3']]],
-  ['roomproperties_47',['RoomProperties',['../d4/d8a/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html',1,'yaze::zelda3::DungeonEditorSystem']]],
-  ['roomsize_48',['RoomSize',['../d6/df8/structyaze_1_1zelda3_1_1RoomSize.html',1,'yaze::zelda3']]],
-  ['routecontext_49',['RouteContext',['../dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html',1,'yaze::cli::agent::AdvancedRouter']]],
-  ['routedresponse_50',['RoutedResponse',['../d8/d99/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RoutedResponse.html',1,'yaze::cli::agent::AdvancedRouter']]]
+  ['roommanipulationtest_44',['RoomManipulationTest',['../d7/dc3/classyaze_1_1zelda3_1_1test_1_1RoomManipulationTest.html',1,'yaze::zelda3::test']]],
+  ['roomobject_45',['RoomObject',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html',1,'yaze::zelda3']]],
+  ['roomproperties_46',['RoomProperties',['../d4/d8a/structyaze_1_1zelda3_1_1DungeonEditorSystem_1_1RoomProperties.html',1,'yaze::zelda3::DungeonEditorSystem']]],
+  ['roomsize_47',['RoomSize',['../d6/df8/structyaze_1_1zelda3_1_1RoomSize.html',1,'yaze::zelda3']]],
+  ['routecontext_48',['RouteContext',['../dc/da3/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RouteContext.html',1,'yaze::cli::agent::AdvancedRouter']]],
+  ['routedresponse_49',['RoutedResponse',['../d8/d99/structyaze_1_1cli_1_1agent_1_1AdvancedRouter_1_1RoutedResponse.html',1,'yaze::cli::agent::AdvancedRouter']]]
 ];
