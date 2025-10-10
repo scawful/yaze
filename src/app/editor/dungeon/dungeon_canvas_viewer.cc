@@ -519,13 +519,15 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     }
   }
   
-  // Draw layout overlays on top of background bitmap
+  // Draw optional overlays on top of background bitmap
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
     
-    // Draw room layout (structural elements like walls, pits)
-    // This provides context for object placement  
-    DrawRoomLayout(room);
+    // DISABLED: Room layout drawing - causes visual clutter
+    // Layout tiles (2793) render over everything and obscure objects
+    // if (show_layout_overlay_) {
+    //   DrawRoomLayout(room);
+    // }
     
     // VISUALIZATION: Draw object position rectangles (for debugging)
     // This shows where objects are placed regardless of whether graphics render

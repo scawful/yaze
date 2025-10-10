@@ -269,13 +269,23 @@ void Bitmap::ApplyStoredPalette() {
   }
 
   SDL_UnlockSurface(surface_);
+  
+  // Apply all palette colors from the SnesPalette
   for (size_t i = 0; i < palette_.size() && i < 256; ++i) {
     const auto& pal_color = palette_[i];
-    sdl_palette->colors[i].r = pal_color.rgb().x;
-    sdl_palette->colors[i].g = pal_color.rgb().y;
-    sdl_palette->colors[i].b = pal_color.rgb().z;
-    sdl_palette->colors[i].a = pal_color.rgb().w;
+    // NOTE: rgb() stores 0-255 values directly in ImVec4 (unconventional but intentional)
+    sdl_palette->colors[i].r = static_cast<Uint8>(pal_color.rgb().x);
+    sdl_palette->colors[i].g = static_cast<Uint8>(pal_color.rgb().y);
+    sdl_palette->colors[i].b = static_cast<Uint8>(pal_color.rgb().z);
+    
+    // CRITICAL: Transparency for color 0 of each sub-palette
+    if (pal_color.is_transparent()) {
+      sdl_palette->colors[i].a = 0;  // Fully transparent
+    } else {
+      sdl_palette->colors[i].a = 255;  // Fully opaque
+    }
   }
+  
   SDL_LockSurface(surface_);
 }
 
@@ -285,6 +295,9 @@ void Bitmap::SetPalette(const SnesPalette &palette) {
   
   // Apply it immediately if surface is ready
   ApplyStoredPalette();
+  
+  // Mark as modified to trigger texture update
+  modified_ = true;
 }
 
 void Bitmap::SetPaletteWithTransparent(const SnesPalette &palette, size_t index,

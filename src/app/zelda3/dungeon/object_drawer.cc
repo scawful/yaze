@@ -28,28 +28,16 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
 
   // Ensure object has tiles loaded
   auto mutable_obj = const_cast<RoomObject&>(object);
-  LOG_DEBUG("ObjectDrawer", "Setting ROM for object ID=0x%02X", object.id_);
   mutable_obj.set_rom(rom_);
-  LOG_DEBUG("ObjectDrawer", "Calling EnsureTilesLoaded for object ID=0x%02X", object.id_);
   mutable_obj.EnsureTilesLoaded();
-  
-  // Check if tiles were actually loaded on the mutable object
-  LOG_DEBUG("ObjectDrawer", "After EnsureTilesLoaded: mutable object has %zu tiles", 
-         mutable_obj.tiles().size());
 
   // Select buffer based on layer
   auto& target_bg = (object.layer_ == RoomObject::LayerType::BG2) ? bg2 : bg1;
-  LOG_DEBUG("ObjectDrawer", "Object ID=0x%02X using %s buffer (layer=%d)", 
-         object.id_, (object.layer_ == RoomObject::LayerType::BG2) ? "BG2" : "BG1", object.layer_);
 
   // Skip objects that don't have tiles loaded - check mutable object
   if (mutable_obj.tiles().empty()) {
-    LOG_DEBUG("ObjectDrawer", "Object ID=0x%02X has no tiles loaded, skipping", object.id_);
     return absl::OkStatus();
   }
-
-  LOG_DEBUG("ObjectDrawer", "Object ID=0x%02X has %zu tiles, proceeding with drawing", 
-         object.id_, mutable_obj.tiles().size());
 
   // Look up draw routine for this object
   int routine_id = GetDrawRoutineId(object.id_);
@@ -75,27 +63,8 @@ absl::Status ObjectDrawer::DrawObjectList(
     gfx::BackgroundBuffer& bg2,
     const gfx::PaletteGroup& palette_group) {
   
-  LOG_DEBUG("ObjectDrawer", "Drawing %zu objects", objects.size());
-  
-  int drawn_count = 0;
-  int skipped_count = 0;
-  
   for (const auto& object : objects) {
-    auto status = DrawObject(object, bg1, bg2, palette_group);
-    if (status.ok()) {
-      drawn_count++;
-    } else {
-      skipped_count++;
-      // Only print errors that aren't "no tiles" (which is common and expected)
-      if (status.code() != absl::StatusCode::kOk) {
-        // Skip silently - many objects don't have tiles loaded yet
-      }
-    }
-  }
-  
-  // Only log if there are failures
-  if (skipped_count > 0) {
-    LOG_DEBUG("ObjectDrawer", "Drew %d objects, skipped %d", drawn_count, skipped_count);
+    DrawObject(object, bg1, bg2, palette_group);
   }
   
   return absl::OkStatus();
@@ -663,14 +632,9 @@ void ObjectDrawer::DrawRightwardsDecor2x2spaced12_1to16(const RoomObject& obj, g
 
 void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
                               const gfx::TileInfo& tile_info) {
-  LOG_DEBUG("ObjectDrawer", "Writing 8x8 tile at tile pos (%d,%d) to bitmap", tile_x, tile_y);
-  
   // Draw directly to bitmap instead of tile buffer to avoid being overwritten
   auto& bitmap = bg.bitmap();
-  LOG_DEBUG("ObjectDrawer", "Bitmap status: active=%d, width=%d, height=%d, surface=%p", 
-         bitmap.is_active(), bitmap.width(), bitmap.height(), bitmap.surface());
   if (!bitmap.is_active() || bitmap.width() == 0) {
-    LOG_DEBUG("ObjectDrawer", "Bitmap not ready: active=%d, width=%d", bitmap.is_active(), bitmap.width());
     return; // Bitmap not ready
   }
 
@@ -714,20 +678,20 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& ti
     return;
   }
   
-  // Calculate tile position in graphics sheet (128 pixels wide)
+  // Calculate tile position in graphics sheet (128 pixels wide, 16 tiles per row)
   int tile_sheet_x = (tile_info.id_ % 16) * 8;  // 16 tiles per row
   int tile_sheet_y = (tile_info.id_ / 16) * 8;  // Each row is 16 tiles
   
-  // Clamp palette to valid range
-  uint8_t palette_id = tile_info.palette_ & 0x0F;
-  if (palette_id > 10) palette_id = palette_id % 11;
-  uint8_t palette_offset = palette_id * 8;  // 3BPP: 8 colors per palette
+  // CRITICAL: Dungeon palettes are 90 colors organized as:
+  // - 10 sub-palettes of 8 colors each (0-79)
+  // - Plus 10 additional colors (80-89)
+  // Each tile uses palette field (0-10) to select which 8-color sub-palette
+  uint8_t palette_id = tile_info.palette_ & 0x0F;  // 0-15 possible
+  if (palette_id > 10) palette_id = 10;  // Clamp to 0-10 for dungeons
   
-  // Force a visible palette for debugging
-  if (palette_id == 0) {
-    palette_id = 1;  // Use palette 1 instead of 0
-    palette_offset = palette_id * 8;
-  }
+  // Calculate color offset in dungeon palette
+  // For dungeon: palette 0 = colors 0-7, palette 1 = colors 8-15, etc.
+  uint8_t palette_offset = palette_id * 8;
   
   // Draw 8x8 pixels
   for (int py = 0; py < 8; py++) {
@@ -749,12 +713,6 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& ti
         int dest_index = dest_y * bitmap.width() + dest_x;
         if (dest_index >= 0 && dest_index < static_cast<int>(bitmap.mutable_data().size())) {
           bitmap.mutable_data()[dest_index] = final_color;
-          
-          // Debug first pixel of each tile
-          if (py == 0 && px == 0) {
-            LOG_DEBUG("ObjectDrawer", "Tile ID=0x%02X at (%d,%d): palette=%d, pixel_index=%d, final_color=%d", 
-                   tile_info.id_, pixel_x, pixel_y, palette_id, pixel_index, final_color);
-          }
         }
       }
     }

@@ -50,28 +50,20 @@ ObjectOption operator~(ObjectOption option) {
 // Modern rendering uses ObjectDrawer which draws directly to BackgroundBuffer bitmaps.
 
 void RoomObject::EnsureTilesLoaded() {
-  LOG_DEBUG("RoomObject", "Object ID=0x%02X, tiles_loaded=%d", id_, tiles_loaded_);
-  
   if (tiles_loaded_) {
-    LOG_DEBUG("RoomObject", "Tiles already loaded for object 0x%02X", id_);
     return;
   }
   
   if (rom_ == nullptr) {
-    LOG_DEBUG("RoomObject", "ERROR: ROM not set for object 0x%02X", id_);
     return;
   }
 
   // Try the new parser first - this is more efficient and accurate
-  LOG_DEBUG("RoomObject", "Trying parser for object 0x%02X", id_);
   auto parser_status = LoadTilesWithParser();
   if (parser_status.ok()) {
-    LOG_DEBUG("RoomObject", "Parser succeeded for object 0x%02X, loaded %zu tiles", id_, tiles_.size());
     tiles_loaded_ = true;
     return;
   }
-  
-  LOG_DEBUG("RoomObject", "Parser failed for object 0x%02X: %s", id_, parser_status.message().data());
 
   // Fallback to legacy method for compatibility with enhanced validation
   auto rom_data = rom_->data();
