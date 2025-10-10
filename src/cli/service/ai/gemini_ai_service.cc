@@ -11,13 +11,13 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
+#include "util/platform_paths.h"
 
 #ifdef YAZE_WITH_JSON
 #include <filesystem>
 #include <fstream>
 #include "httplib.h"
 #include "nlohmann/json.hpp"
-namespace fs = std::filesystem;
 
 // OpenSSL initialization for HTTPS support
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
@@ -76,34 +76,29 @@ GeminiAIService::GeminiAIService(const GeminiConfig& config)
       std::cerr << "[DEBUG] Building system instruction..." << std::endl;
     }
     
-    // Try to load version-specific system prompt file
+    // Try to load version-specific system prompt file using FindAsset
     std::string prompt_file;
     if (config_.prompt_version == "v3") {
-      prompt_file = "assets/agent/system_prompt_v3.txt";
+      prompt_file = "agent/system_prompt_v3.txt";
     } else if (config_.prompt_version == "v2") {
-      prompt_file = "assets/agent/system_prompt_v2.txt";
+      prompt_file = "agent/system_prompt_v2.txt";
     } else {
-      prompt_file = "assets/agent/system_prompt.txt";
+      prompt_file = "agent/system_prompt.txt";
     }
     
-    std::vector<std::string> search_paths = {
-        prompt_file,
-        "../" + prompt_file,
-        "../../" + prompt_file
-    };
-    
+    auto prompt_path = util::PlatformPaths::FindAsset(prompt_file);
     bool loaded = false;
-    for (const auto& path : search_paths) {
-      std::ifstream file(path);
+    
+    if (prompt_path.ok()) {
+      std::ifstream file(prompt_path->string());
       if (file.good()) {
         std::stringstream buffer;
         buffer << file.rdbuf();
         config_.system_instruction = buffer.str();
         if (config_.verbose) {
-          std::cerr << "[DEBUG] Loaded prompt: " << path << std::endl;
+          std::cerr << "[DEBUG] Loaded prompt: " << prompt_path->string() << std::endl;
         }
         loaded = true;
-        break;
       }
     }
     
@@ -148,38 +143,22 @@ std::string GeminiAIService::BuildFunctionCallSchemas() {
     return schemas;
   }
   
-  // Fallback: Search for function_schemas.json
-  const std::vector<std::string> search_paths = {
-      "assets/agent/function_schemas.json",
-      "../assets/agent/function_schemas.json",
-      "../../assets/agent/function_schemas.json",
-  };
+  // Fallback: Search for function_schemas.json using FindAsset
+  auto schema_path_or = util::PlatformPaths::FindAsset("agent/function_schemas.json");
   
-  fs::path schema_path;
-  bool found = false;
-  
-  for (const auto& candidate : search_paths) {
-    fs::path resolved = fs::absolute(candidate);
-    if (fs::exists(resolved)) {
-      schema_path = resolved;
-      found = true;
-      break;
-    }
-  }
-  
-  if (!found) {
-    std::cerr << "⚠️  Function schemas file not found. Tried paths:" << std::endl;
-    for (const auto& path : search_paths) {
-      std::cerr << "   - " << fs::absolute(path).string() << std::endl;
+  if (!schema_path_or.ok()) {
+    if (config_.verbose) {
+      std::cerr << "⚠️  Function schemas file not found: " 
+                << schema_path_or.status().message() << std::endl;
     }
     return "[]";  // Return empty array as fallback
   }
   
   // Load and parse the JSON file
-  std::ifstream file(schema_path);
+  std::ifstream file(schema_path_or->string());
   if (!file.is_open()) {
     std::cerr << "⚠️  Failed to open function schemas file: " 
-              << schema_path.string() << std::endl;
+              << schema_path_or->string() << std::endl;
     return "[]";
   }
   
