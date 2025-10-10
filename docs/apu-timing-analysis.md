@@ -122,6 +122,120 @@ This happens because cycle counts are off by 1-2 cycles per instruction, which a
 
 ---
 
+## LakeSnes Comparison Analysis
+
+### What LakeSnes Does Right
+
+**1. Atomic Instruction Execution (spc.c:73-93)**
+```c
+void spc_runOpcode(Spc* spc) {
+  if(spc->resetWanted) { /* handle reset */ return; }
+  if(spc->stopped) { spc_idleWait(spc); return; }
+
+  uint8_t opcode = spc_readOpcode(spc);
+  spc_doOpcode(spc, opcode);  // COMPLETE instruction in one call
+}
+```
+
+**Key insight:** LakeSnes executes instructions **atomically** - no `bstep`, no `step`, no state leakage.
+
+**2. Cycle Tracking via Callbacks (spc.c:406-409)**
+```c
+static void spc_movsy(Spc* spc, uint16_t adr) {
+  spc_read(spc, adr);          // Calls apu_cycle()
+  spc_write(spc, adr, spc->y); // Calls apu_cycle()
+}
+```
+
+Every `spc_read()`, `spc_write()`, and `spc_idle()` call triggers `apu_cycle()`, which:
+- Advances APU cycle counter
+- Ticks DSP every 32 cycles
+- Updates timers
+
+**3. Simple Addressing Mode Functions (spc.c:189-275)**
+```c
+static uint16_t spc_adrDp(Spc* spc) {
+  return spc_readOpcode(spc) | (spc->p << 8);
+}
+
+static uint16_t spc_adrDpx(Spc* spc) {
+  uint16_t res = ((spc_readOpcode(spc) + spc->x) & 0xff) | (spc->p << 8);
+  spc_idle(spc);  // Extra cycle for indexed addressing
+  return res;
+}
+```
+
+Each memory access and idle call automatically advances cycles.
+
+**4. APU Main Loop (apu.c:73-82)**
+```c
+int apu_runCycles(Apu* apu, int wantedCycles) {
+  int runCycles = 0;
+  uint32_t startCycles = apu->cycles;
+  while(runCycles < wantedCycles) {
+    spc_runOpcode(apu->spc);
+    runCycles += (uint32_t) (apu->cycles - startCycles);
+    startCycles = apu->cycles;
+  }
+  return runCycles;
+}
+```
+
+**Problem:** This approach tracks cycles by **delta**, which works because every memory access calls `apu_cycle()`.
+
+### Where LakeSnes Falls Short (And How We Can Do Better)
+
+**1. No Explicit Cycle Return**
+- LakeSnes relies on tracking `cycles` delta after each opcode
+- Doesn't return precise cycle count from `spc_runOpcode()`
+- Makes it hard to validate cycle accuracy per instruction
+
+**Our improvement:** Return exact cycle count from `Step()`:
+```cpp
+int Spc700::Step() {
+  uint8_t opcode = ReadOpcode();
+  int cycles = CalculatePreciseCycles(opcode);
+  ExecuteInstructionAtomic(opcode);
+  return cycles;  // EXPLICIT return
+}
+```
+
+**2. Implicit Cycle Counting**
+- Cycles accumulated implicitly through callbacks
+- Hard to debug when cycles are wrong
+- No way to verify cycle accuracy per instruction
+
+**Our improvement:** Explicit cycle budget model in `Apu::RunCycles()`:
+```cpp
+while (cycles_ < target_apu_cycles) {
+  int spc_cycles = spc700_.Step();  // Explicit cycle count
+  for (int i = 0; i < spc_cycles; ++i) {
+    Cycle();  // Explicit cycle advancement
+  }
+}
+```
+
+**3. No Fixed-Point Ratio**
+- LakeSnes also uses floating-point (implicitly in SNES main loop)
+- Subject to same precision drift issues
+
+**Our improvement:** Integer numerator/denominator for perfect precision.
+
+### What We're Adopting from LakeSnes
+
+✅ **Atomic instruction execution** - No `bstep` mechanism
+✅ **Simple addressing mode functions** - Return address, advance cycles via callbacks
+✅ **Cycle advancement per memory access** - Every read/write/idle advances cycles
+
+### What We're Improving Over LakeSnes
+
+✅ **Explicit cycle counting** - `Step()` returns exact cycles consumed
+✅ **Cycle budget model** - Clear loop with explicit cycle advancement
+✅ **Fixed-point ratio** - Integer arithmetic for perfect precision
+✅ **Testability** - Easy to verify cycle counts per instruction
+
+---
+
 ## Solution Design
 
 ### Phase 1: Atomic Instruction Execution
