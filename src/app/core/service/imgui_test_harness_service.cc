@@ -113,18 +113,18 @@ namespace {
     ::yaze::test::HarnessTestStatus status) {
   switch (status) {
     case ::yaze::test::HarnessTestStatus::kQueued:
-      return ::yaze::test::GetTestStatusResponse::STATUS_QUEUED;
+      return ::yaze::test::GetTestStatusResponse::TEST_STATUS_QUEUED;
     case ::yaze::test::HarnessTestStatus::kRunning:
-      return ::yaze::test::GetTestStatusResponse::STATUS_RUNNING;
+      return ::yaze::test::GetTestStatusResponse::TEST_STATUS_RUNNING;
     case ::yaze::test::HarnessTestStatus::kPassed:
-      return ::yaze::test::GetTestStatusResponse::STATUS_PASSED;
+      return ::yaze::test::GetTestStatusResponse::TEST_STATUS_PASSED;
     case ::yaze::test::HarnessTestStatus::kFailed:
-      return ::yaze::test::GetTestStatusResponse::STATUS_FAILED;
+      return ::yaze::test::GetTestStatusResponse::TEST_STATUS_FAILED;
     case ::yaze::test::HarnessTestStatus::kTimeout:
-      return ::yaze::test::GetTestStatusResponse::STATUS_TIMEOUT;
+      return ::yaze::test::GetTestStatusResponse::TEST_STATUS_TIMEOUT;
     case ::yaze::test::HarnessTestStatus::kUnspecified:
     default:
-      return ::yaze::test::GetTestStatusResponse::STATUS_UNSPECIFIED;
+      return ::yaze::test::GetTestStatusResponse::TEST_STATUS_UNSPECIFIED;
   }
 }
 
@@ -1249,7 +1249,7 @@ absl::Status ImGuiTestHarnessServiceImpl::GetTestStatus(
   auto execution_or =
       test_manager_->GetHarnessTestExecution(request->test_id());
   if (!execution_or.ok()) {
-    response->set_status(GetTestStatusResponse::STATUS_UNSPECIFIED);
+    response->set_status(GetTestStatusResponse::TEST_STATUS_UNSPECIFIED);
     response->set_error_message(std::string(execution_or.status().message()));
     return absl::OkStatus();
   }
