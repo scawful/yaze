@@ -554,6 +554,15 @@ void Canvas::DrawContextMenu() {
       modals_->Render();
     }
 
+    // CRITICAL: Render custom context menu items AFTER enhanced menu
+    // Don't return early - we need to show custom items too!
+    if (!context_menu_items_.empty() && ImGui::BeginPopupContextItem(context_id_.c_str())) {
+      for (const auto& item : context_menu_items_) {
+        DrawContextMenuItem(item);
+      }
+      ImGui::EndPopup();
+    }
+
     return;
   }
 
