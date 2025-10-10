@@ -5,7 +5,6 @@
 
 #include "app/gui/canvas.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/object_renderer.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/gfx/snes_palette.h"
 #include "dungeon_object_interaction.h"
@@ -155,6 +154,12 @@ class DungeonCanvasViewer {
   };
   std::vector<ObjectRenderCache> object_render_cache_;
   uint64_t last_palette_hash_ = 0;
+  
+  // Debug state (persistent between frames for debug windows)
+  bool show_room_debug_info_ = false;
+  bool show_texture_debug_ = false;
+  bool show_object_bounds_ = false;
+  bool show_layer_info_ = false;
 };
 
 }  // namespace editor

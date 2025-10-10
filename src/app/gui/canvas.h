@@ -197,6 +197,11 @@ class Canvas {
   void ClearContextMenuItems();
   void SetContextMenuEnabled(bool enabled) { context_menu_enabled_ = enabled; }
   
+  // Persistent popup management for context menu actions
+  void OpenPersistentPopup(const std::string& popup_id, std::function<void()> render_callback);
+  void ClosePersistentPopup(const std::string& popup_id);
+  void RenderPersistentPopups();
+  
   // Enhanced view and edit operations
   void ShowAdvancedCanvasProperties();
   void ShowScalingControls();
@@ -272,7 +277,7 @@ class Canvas {
 
   void DrawRect(int x, int y, int w, int h, ImVec4 color);
 
-  void DrawText(std::string text, int x, int y);
+  void DrawText(const std::string& text, int x, int y);
   void DrawGridLines(float grid_step);
 
   void DrawInfoGrid(float grid_step = 64.0f, int tile_id_offset = 8,
@@ -418,6 +423,14 @@ class Canvas {
   // Context menu system
   std::vector<ContextMenuItem> context_menu_items_;
   bool context_menu_enabled_ = true;
+  
+  // Persistent popup state for context menu actions
+  struct PopupState {
+    std::string popup_id;
+    bool is_open = false;
+    std::function<void()> render_callback;
+  };
+  std::vector<PopupState> active_popups_;
 
   // Legacy members (to be gradually replaced)
   int current_labels_ = 0;
