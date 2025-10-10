@@ -12,6 +12,7 @@ set(
   app/gfx/snes_palette.cc
   app/gfx/snes_tile.cc
   app/gfx/snes_color.cc
+  app/gfx/texture_atlas.cc
   app/gfx/tilemap.cc
   app/gfx/graphics_optimizer.cc
   app/gfx/bpp_format_manager.cc

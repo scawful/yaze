@@ -12,8 +12,6 @@
 
 namespace yaze::editor {
 
-using ImGui::Separator;
-
 // DrawDungeonTabView() removed - DungeonEditorV2 uses EditorCard system for flexible docking
 
 void DungeonCanvasViewer::Draw(int room_id) {
