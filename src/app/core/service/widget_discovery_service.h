@@ -5,7 +5,17 @@
 #include <vector>
 
 #include "absl/strings/string_view.h"
+#ifdef _WIN32
+#pragma push_macro("DWORD")
+#pragma push_macro("ERROR")
+#undef DWORD
+#undef ERROR
+#endif  // _WIN32
 #include "protos/imgui_test_harness.pb.h"
+#ifdef _WIN32
+#pragma pop_macro("DWORD")
+#pragma pop_macro("ERROR")
+#endif  // _WIN32
 #include "app/gui/widgets/widget_id_registry.h"
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
