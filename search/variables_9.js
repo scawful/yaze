@@ -7,5 +7,5 @@ var searchData=
   ['json_5fpretty_4',['json_pretty',['../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#aa16f125bb3d03778e8e8deb5504284ab',1,'yaze::cli::agent::ChatMessage']]],
   ['json_5ftext_5fcolor_5',['json_text_color',['../db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#a320edf244a15576e42e85d9832f79656',1,'yaze::editor::AgentUITheme']]],
   ['jump_5faddress_5f_6',['jump_address_',['../d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html#adbca3194c58841cf7de3f6439739733a',1,'yaze::editor::MemoryEditorWithDiffChecker']]],
-  ['jump_5fto_5ftab_5f_7',['jump_to_tab_',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e',1,'yaze::editor::OverworldEditor::jump_to_tab_'],['../d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer.html#aa525334b9408c63fa9225eb2bf87abbf',1,'yaze::editor::OverworldEntityRenderer::jump_to_tab_']]]
+  ['jump_5fto_5ftab_5f_7',['jump_to_tab_',['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e',1,'yaze::editor::OverworldEditor']]]
 ];

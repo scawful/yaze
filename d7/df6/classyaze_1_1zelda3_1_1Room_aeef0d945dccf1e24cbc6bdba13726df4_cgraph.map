@@ -1,0 +1,5 @@
+<map id="yaze::zelda3::Room::RemoveTileObject" name="yaze::zelda3::Room::RemoveTileObject">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,140,46"/>
+<area shape="rect" id="Node000002" href="$d7/df6/classyaze_1_1zelda3_1_1Room.html#a20a327a2c32be04520d888d6d0824d24" title=" " alt="" coords="188,5,318,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,23,172,23,172,28,140,28"/>
+</map>

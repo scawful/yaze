@@ -1,0 +1,12 @@
+<map id="yaze::editor::OverworldEntityRenderer" name="yaze::editor::OverworldEntityRenderer">
+<area shape="rect" id="Node000001" title="Handles visualization of all overworld entities (entrances, exits, items, sprites)" alt="" coords="180,183,362,223"/>
+<area shape="rect" id="Node000002" href="$d3/d9d/classyaze_1_1zelda3_1_1GameEntity.html" title="Base class for all overworld and dungeon entities." alt="" coords="5,94,169,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,126,173,156,224,180,221,185,170,161,117,130"/>
+<area shape="rect" id="Node000003" href="$d9/dc5/classyaze_1_1zelda3_1_1Overworld.html" title="Represents the full Overworld data, light and dark world." alt="" coords="193,94,349,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="274,135,274,182,268,182,268,135"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="311,5,391,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="332,44,284,95,280,92,328,41"/>
+<area shape="rect" id="Node000009" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="372,94,493,120"/>
+<area shape="poly" id="edge5_Node000009_Node000004" title=" " alt="" coords="375,41,423,92,419,95,371,44"/>
+<area shape="poly" id="edge4_Node000001_Node000009" title=" " alt="" coords="400,130,306,184,303,180,397,125"/>
+</map>

@@ -35,6 +35,7 @@ var classyaze_1_1Rom =
     [ "operator[]", "d6/d30/classyaze_1_1Rom.html#acdcd28c581c25d7be40dc0c3816ae46d", null ],
     [ "is_loaded", "d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d", null ],
     [ "dirty", "d6/d30/classyaze_1_1Rom.html#a9e9a54976ee16d9f2690fad05d78d0c9", null ],
+    [ "set_dirty", "d6/d30/classyaze_1_1Rom.html#a4824c22121f98d6b26bfd54e919c105f", null ],
     [ "ClearDirty", "d6/d30/classyaze_1_1Rom.html#a20d18e8fc71a698ea6c56cbbb43d43e5", null ],
     [ "title", "d6/d30/classyaze_1_1Rom.html#af5e08233e024cd447098ebdf21c76418", null ],
     [ "size", "d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777", null ],

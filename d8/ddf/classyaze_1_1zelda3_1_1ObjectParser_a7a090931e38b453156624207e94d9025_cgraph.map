@@ -1,0 +1,11 @@
+<map id="yaze::zelda3::ObjectParser::ParseObject" name="yaze::zelda3::ObjectParser::ParseObject">
+<area shape="rect" id="Node000001" title="Parse object data directly from ROM." alt="" coords="5,104,178,145"/>
+<area shape="rect" id="Node000002" href="$d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#af7be6d73b4620312b5731976b5c6baa1" title="Determine object subtype from ID." alt="" coords="226,5,398,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,101,225,57,240,50,242,55,227,61,134,106"/>
+<area shape="rect" id="Node000003" href="$d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#ab18f54ccb36d8e5ae5df8e667fadffb0" title="Parse subtype 1 objects (0x00&#45;0xFF)" alt="" coords="226,71,398,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,109,210,104,211,109,179,114"/>
+<area shape="rect" id="Node000008" href="$d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#a5c2254d7385f4d3ee679dde706703973" title="Parse subtype 2 objects (0x100&#45;0x1FF)" alt="" coords="226,136,398,177"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="179,134,211,139,210,144,178,140"/>
+<area shape="rect" id="Node000009" href="$d8/ddf/classyaze_1_1zelda3_1_1ObjectParser.html#acfe3f33934cb2fa66481b46ffb16eae9" title="Parse subtype 3 objects (0x200+)" alt="" coords="226,201,398,242"/>
+<area shape="poly" id="edge4_Node000001_Node000009" title=" " alt="" coords="135,143,227,186,242,193,240,197,225,191,133,148"/>
+</map>

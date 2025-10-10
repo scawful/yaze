@@ -189,7 +189,6 @@ var namespaceyaze_1_1editor =
     [ "LoadExpandedMessages", "d1/d3e/namespaceyaze_1_1editor.html#a21e1869b2d34d14502246beaca8f4f4e", null ],
     [ "IsMouseHoveringOverEntity", "d1/d3e/namespaceyaze_1_1editor.html#a71d65cf584d77dc9d9ccb1446d7870f6", null ],
     [ "MoveEntityOnGrid", "d1/d3e/namespaceyaze_1_1editor.html#a06ac44536e73112b10156d6ea830d66c", null ],
-    [ "HandleEntityDragging", "d1/d3e/namespaceyaze_1_1editor.html#a6b13948b033b60fa0dc966717fc52a82", null ],
     [ "DrawEntranceInserterPopup", "d1/d3e/namespaceyaze_1_1editor.html#a42ab40215215873039ccda6d5bea5121", null ],
     [ "DrawOverworldEntrancePopup", "d1/d3e/namespaceyaze_1_1editor.html#a6f1f3ac8a0fb4fb27b07decb4b01aa01", null ],
     [ "DrawExitInserterPopup", "d1/d3e/namespaceyaze_1_1editor.html#a068e18c7e1f5b249c88204686e8bfafe", null ],

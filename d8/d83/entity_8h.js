@@ -8,7 +8,6 @@ var entity_8h =
     ] ],
     [ "IsMouseHoveringOverEntity", "d8/d83/entity_8h.html#a71d65cf584d77dc9d9ccb1446d7870f6", null ],
     [ "MoveEntityOnGrid", "d8/d83/entity_8h.html#a06ac44536e73112b10156d6ea830d66c", null ],
-    [ "HandleEntityDragging", "d8/d83/entity_8h.html#a6b13948b033b60fa0dc966717fc52a82", null ],
     [ "DrawEntranceInserterPopup", "d8/d83/entity_8h.html#a42ab40215215873039ccda6d5bea5121", null ],
     [ "DrawOverworldEntrancePopup", "d8/d83/entity_8h.html#a6f1f3ac8a0fb4fb27b07decb4b01aa01", null ],
     [ "DrawExitInserterPopup", "d8/d83/entity_8h.html#a068e18c7e1f5b249c88204686e8bfafe", null ],

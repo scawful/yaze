@@ -1,7 +1,9 @@
 <map id="yaze::test::TEST_F" name="yaze::test::TEST_F">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,135,39"/>
-<area shape="rect" id="Node000002" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a4620f6bf4aa0a916b7420fc9529dc768" title="Draw all objects in a room." alt="" coords="183,5,358,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,23,167,23,167,28,135,28"/>
-<area shape="rect" id="Node000003" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a613dbb7e72a9b42c077e4b3c404b8d38" title="Draw a room object to background buffers." alt="" coords="406,5,581,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="358,23,391,23,391,28,358,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,46,135,72"/>
+<area shape="rect" id="Node000002" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a4620f6bf4aa0a916b7420fc9529dc768" title="Draw all objects in a room." alt="" coords="183,39,358,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,56,167,56,167,62,135,62"/>
+<area shape="rect" id="Node000003" href="$dd/dac/classyaze_1_1gfx_1_1BackgroundBuffer.html#a39e8c2049c33e59926e210c1fe6c7822" title=" " alt="" coords="406,5,585,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="358,43,390,39,391,44,359,49"/>
+<area shape="rect" id="Node000004" href="$d8/d17/classyaze_1_1zelda3_1_1ObjectDrawer.html#a613dbb7e72a9b42c077e4b3c404b8d38" title="Draw a room object to background buffers." alt="" coords="408,71,583,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="359,69,393,74,392,79,358,74"/>
 </map>
