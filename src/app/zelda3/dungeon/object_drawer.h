@@ -31,7 +31,7 @@ namespace zelda3 {
  */
 class ObjectDrawer {
  public:
-  explicit ObjectDrawer(Rom* rom);
+  explicit ObjectDrawer(Rom* rom, const uint8_t* room_gfx_buffer = nullptr);
   
   /**
    * @brief Draw a room object to background buffers
@@ -139,8 +139,8 @@ class ObjectDrawer {
                                             const std::vector<gfx::Tile16>& tiles);
   
   // Utility methods
-  void WriteTile16(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
-                   const gfx::Tile16& tile);
+  void WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
+                  const gfx::TileInfo& tile_info);
   bool IsValidTilePosition(int tile_x, int tile_y) const;
   
   // Draw routine registry
@@ -149,6 +149,7 @@ class ObjectDrawer {
   bool routines_initialized_ = false;
   
   Rom* rom_;
+  const uint8_t* room_gfx_buffer_;  // Room-specific graphics buffer (current_gfx16_)
   
   // Canvas dimensions in tiles (64x64 = 512x512 pixels)
   static constexpr int kMaxTilesX = 64;

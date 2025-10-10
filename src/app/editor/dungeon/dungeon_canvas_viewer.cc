@@ -393,8 +393,8 @@ std::pair<int, int> DungeonCanvasViewer::CanvasToRoomCoordinates(int canvas_x,
 bool DungeonCanvasViewer::IsWithinCanvasBounds(int canvas_x, int canvas_y,
                                                int margin) const {
   // Check if coordinates are within canvas bounds with optional margin
-  auto canvas_width = canvas_.width();
-  auto canvas_height = canvas_.height();
+  auto canvas_width = canvas_.width() * canvas_.global_scale();
+  auto canvas_height = canvas_.height() * canvas_.global_scale();
   return (canvas_x >= -margin && canvas_y >= -margin &&
           canvas_x <= canvas_width + margin &&
           canvas_y <= canvas_height + margin);
@@ -606,7 +606,7 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
 }
 
 void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
-  if (room_id < 0 || room_id >= 128 || !rooms_) return;
+  if (room_id < 0 || room_id >= zelda3::NumberOfRooms || !rooms_) return;
   
   auto& room = (*rooms_)[room_id];
   auto& layer_settings = GetRoomLayerSettings(room_id);
@@ -628,8 +628,10 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
 
     // Only draw if texture was successfully created
     if (bg1_bitmap.texture()) {
-      LOG_DEBUG("DungeonCanvasViewer", "Drawing BG1 bitmap to canvas with texture %p", bg1_bitmap.texture());
-      canvas_.DrawBitmap(bg1_bitmap, 0, 0, 1.0f, 255);
+      // Use canvas global scale so bitmap scales with zoom
+      float scale = canvas_.global_scale();
+      LOG_DEBUG("DungeonCanvasViewer", "Drawing BG1 bitmap to canvas with texture %p, scale=%.2f", bg1_bitmap.texture(), scale);
+      canvas_.DrawBitmap(bg1_bitmap, 0, 0, scale, 255);
     } else {
       LOG_DEBUG("DungeonCanvasViewer", "ERROR: BG1 bitmap has no texture!");
     }
@@ -651,8 +653,10 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
       // Use the selected BG2 layer type alpha value
       const int bg2_alpha_values[] = {255, 191, 127, 64, 0};
       int alpha_value = bg2_alpha_values[std::min(layer_settings.bg2_layer_type, 4)];
-      LOG_DEBUG("DungeonCanvasViewer", "Drawing BG2 bitmap to canvas with texture %p, alpha=%d", bg2_bitmap.texture(), alpha_value);
-      canvas_.DrawBitmap(bg2_bitmap, 0, 0, 1.0f, alpha_value);
+      // Use canvas global scale so bitmap scales with zoom
+      float scale = canvas_.global_scale();
+      LOG_DEBUG("DungeonCanvasViewer", "Drawing BG2 bitmap to canvas with texture %p, alpha=%d, scale=%.2f", bg2_bitmap.texture(), alpha_value, scale);
+      canvas_.DrawBitmap(bg2_bitmap, 0, 0, scale, alpha_value);
     } else {
       LOG_DEBUG("DungeonCanvasViewer", "ERROR: BG2 bitmap has no texture!");
     }
@@ -686,17 +690,9 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
            bg2_data.size(), non_zero_pixels);
   }
   
-  // TEST: Draw a bright red rectangle to verify canvas drawing works
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
-  draw_list->AddRectFilled(
-      ImVec2(canvas_pos.x + 50, canvas_pos.y + 50),
-      ImVec2(canvas_pos.x + 150, canvas_pos.y + 150),
-      IM_COL32(255, 0, 0, 255));  // Bright red
-  
   // DEBUG: Show canvas and bitmap info
   LOG_DEBUG("DungeonCanvasViewer", "Canvas pos: (%.1f, %.1f), Canvas size: (%.1f, %.1f)", 
-         canvas_pos.x, canvas_pos.y, canvas_.canvas_size().x, canvas_.canvas_size().y);
+    canvas_.zero_point().x, canvas_.zero_point().y, canvas_.width(), canvas_.height());
   LOG_DEBUG("DungeonCanvasViewer", "BG1 bitmap size: %dx%d, BG2 bitmap size: %dx%d", 
          bg1_bitmap.width(), bg1_bitmap.height(), bg2_bitmap.width(), bg2_bitmap.height());
 }

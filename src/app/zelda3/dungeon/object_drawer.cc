@@ -9,7 +9,8 @@
 namespace yaze {
 namespace zelda3 {
 
-ObjectDrawer::ObjectDrawer(Rom* rom) : rom_(rom) {
+ObjectDrawer::ObjectDrawer(Rom* rom, const uint8_t* room_gfx_buffer) 
+    : rom_(rom), room_gfx_buffer_(room_gfx_buffer) {
   InitializeDrawRoutines();
 }
 
@@ -54,8 +55,11 @@ absl::Status ObjectDrawer::DrawObject(const RoomObject& object,
   int routine_id = GetDrawRoutineId(object.id_);
   
   if (routine_id < 0 || routine_id >= static_cast<int>(draw_routines_.size())) {
-    // Fallback to simple 1x1 drawing
-    WriteTile16(target_bg, object.x_, object.y_, mutable_obj.tiles()[0]);
+    // Fallback to simple 1x1 drawing using first 8x8 tile
+    if (!mutable_obj.tiles().empty()) {
+      const auto& tile16 = mutable_obj.tiles()[0];
+      WriteTile8(target_bg, object.x_, object.y_, tile16.tile0_);
+    }
     return absl::OkStatus();
   }
   
@@ -245,11 +249,13 @@ void ObjectDrawer::DrawRightwards2x2_1to15or32(const RoomObject& obj, gfx::Backg
   if (size == 0) size = 32;  // Special case for object 0x00
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 4) {
-      WriteTile16(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);  // Top-left
-      WriteTile16(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[1]);  // Top-right
-      WriteTile16(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[2]);  // Bottom-left
-      WriteTile16(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tiles[3]);  // Bottom-right
+    if (tiles.size() >= 1) {
+      // Draw 2x2 pattern using 8x8 tiles from the first Tile16
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tile16.tile2_);  // Bottom-left
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tile16.tile3_); // Bottom-right
     }
   }
 }
@@ -261,14 +267,18 @@ void ObjectDrawer::DrawRightwards2x4_1to15or26(const RoomObject& obj, gfx::Backg
   if (size == 0) size = 26;  // Special case
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 8) {
-      // Draw 2x4 pattern
-      for (int y = 0; y < 4; y++) {
-        for (int x = 0; x < 2; x++) {
-          int tile_index = y * 2 + x;
-          WriteTile16(bg, obj.x_ + (s * 2) + x, obj.y_ + y, tiles[tile_index]);
-        }
-      }
+    if (tiles.size() >= 1) {
+      // Draw 2x4 pattern using 8x8 tiles from the first Tile16
+      const auto& tile16 = tiles[0];
+      // For 2x4, we'll use the same tile16 pattern repeated
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tile16.tile2_);  // Mid-left
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tile16.tile3_); // Mid-right
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tile16.tile0_);  // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 2, tile16.tile1_); // Bottom-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tile16.tile2_);  // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 3, tile16.tile3_); // Bottom-right (repeat)
     }
   }
 }
@@ -279,14 +289,17 @@ void ObjectDrawer::DrawRightwards2x4spaced4_1to16(const RoomObject& obj, gfx::Ba
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 8) {
-      // Draw 2x4 pattern with spacing
-      for (int y = 0; y < 4; y++) {
-        for (int x = 0; x < 2; x++) {
-          int tile_index = y * 2 + x;
-          WriteTile16(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[tile_index]);
-        }
-      }
+    if (tiles.size() >= 1) {
+      // Draw 2x4 pattern with spacing using 8x8 tiles from first Tile16
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_, tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_, tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tile16.tile2_);  // Mid-left
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 1, tile16.tile3_); // Mid-right
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 2, tile16.tile0_);  // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 2, tile16.tile1_); // Bottom-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 3, tile16.tile2_);  // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 3, tile16.tile3_); // Bottom-right (repeat)
     }
   }
 }
@@ -304,11 +317,13 @@ void ObjectDrawer::DrawRightwards2x2_1to16(const RoomObject& obj, gfx::Backgroun
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 4) {
-      WriteTile16(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);
-      WriteTile16(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[1]);
-      WriteTile16(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[2]);
-      WriteTile16(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tiles[3]);
+    if (tiles.size() >= 1) {
+      // Draw 2x2 pattern using 8x8 tiles from first Tile16
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tile16.tile2_);  // Bottom-left
+      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1, tile16.tile3_); // Bottom-right
     }
   }
 }
@@ -319,9 +334,15 @@ void ObjectDrawer::DrawDiagonalAcute_1to16(const RoomObject& obj, gfx::Backgroun
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size + 6; s++) {
-    if (tiles.size() >= 5) {
+    if (tiles.size() >= 1) {
+      // Use first tile16 for diagonal pattern
+      const auto& tile16 = tiles[0];
       for (int i = 0; i < 5; i++) {
-        WriteTile16(bg, obj.x_ + s, obj.y_ + (i - s), tiles[i]);
+        // Cycle through the 4 tiles in the tile16
+        const gfx::TileInfo& tile_info = (i % 4 == 0) ? tile16.tile0_ :
+                                        (i % 4 == 1) ? tile16.tile1_ :
+                                        (i % 4 == 2) ? tile16.tile2_ : tile16.tile3_;
+        WriteTile8(bg, obj.x_ + s, obj.y_ + (i - s), tile_info);
       }
     }
   }
@@ -333,9 +354,15 @@ void ObjectDrawer::DrawDiagonalGrave_1to16(const RoomObject& obj, gfx::Backgroun
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size + 6; s++) {
-    if (tiles.size() >= 5) {
+    if (tiles.size() >= 1) {
+      // Use first tile16 for diagonal pattern
+      const auto& tile16 = tiles[0];
       for (int i = 0; i < 5; i++) {
-        WriteTile16(bg, obj.x_ + s, obj.y_ + (i + s), tiles[i]);
+        // Cycle through the 4 tiles in the tile16
+        const gfx::TileInfo& tile_info = (i % 4 == 0) ? tile16.tile0_ :
+                                        (i % 4 == 1) ? tile16.tile1_ :
+                                        (i % 4 == 2) ? tile16.tile2_ : tile16.tile3_;
+        WriteTile8(bg, obj.x_ + s, obj.y_ + (i + s), tile_info);
       }
     }
   }
@@ -359,9 +386,11 @@ void ObjectDrawer::DrawRightwards1x2_1to16_plus2(const RoomObject& obj, gfx::Bac
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 2) {
-      WriteTile16(bg, obj.x_ + s + 2, obj.y_, tiles[0]);
-      WriteTile16(bg, obj.x_ + s + 2, obj.y_ + 1, tiles[1]);
+    if (tiles.size() >= 1) {
+      // Use first tile16 for 1x2 pattern
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_ + s + 2, obj.y_, tile16.tile0_);
+      WriteTile8(bg, obj.x_ + s + 2, obj.y_ + 1, tile16.tile2_);
     }
   }
 }
@@ -373,7 +402,9 @@ void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus3(const RoomObject& obj, g
   
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 1) {
-      WriteTile16(bg, obj.x_ + s + 3, obj.y_, tiles[0]);
+      // Use first 8x8 tile from first tile16
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_ + s + 3, obj.y_, tile16.tile0_);
     }
   }
 }
@@ -385,7 +416,9 @@ void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus2(const RoomObject& obj, g
   
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 1) {
-      WriteTile16(bg, obj.x_ + s + 2, obj.y_, tiles[0]);
+      // Use first 8x8 tile from first tile16
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_ + s + 2, obj.y_, tile16.tile0_);
     }
   }
 }
@@ -396,9 +429,11 @@ void ObjectDrawer::DrawRightwardsTopCorners1x2_1to16_plus13(const RoomObject& ob
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 2) {
-      WriteTile16(bg, obj.x_ + s + 13, obj.y_, tiles[0]);
-      WriteTile16(bg, obj.x_ + s + 13, obj.y_ + 1, tiles[1]);
+    if (tiles.size() >= 1) {
+      // Use first tile16 for 1x2 pattern
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_ + s + 13, obj.y_, tile16.tile0_);
+      WriteTile8(bg, obj.x_ + s + 13, obj.y_ + 1, tile16.tile2_);
     }
   }
 }
@@ -409,9 +444,11 @@ void ObjectDrawer::DrawRightwardsBottomCorners1x2_1to16_plus13(const RoomObject&
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 2) {
-      WriteTile16(bg, obj.x_ + s + 13, obj.y_ + 1, tiles[0]);
-      WriteTile16(bg, obj.x_ + s + 13, obj.y_ + 2, tiles[1]);
+    if (tiles.size() >= 1) {
+      // Use first tile16 for 1x2 pattern
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_ + s + 13, obj.y_ + 1, tile16.tile0_);
+      WriteTile8(bg, obj.x_ + s + 13, obj.y_ + 2, tile16.tile2_);
     }
   }
 }
@@ -421,7 +458,9 @@ void ObjectDrawer::CustomDraw(const RoomObject& obj, gfx::BackgroundBuffer& bg,
   // Pattern: Custom draw routine (objects 0x31-0x32)
   // For now, fall back to simple 1x1
   if (tiles.size() >= 1) {
-    WriteTile16(bg, obj.x_, obj.y_, tiles[0]);
+    // Use first 8x8 tile from first tile16
+    const auto& tile16 = tiles[0];
+    WriteTile8(bg, obj.x_, obj.y_, tile16.tile0_);
   }
 }
 
@@ -431,14 +470,26 @@ void ObjectDrawer::DrawRightwards4x4_1to16(const RoomObject& obj, gfx::Backgroun
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 16) {
-      // Draw 4x4 block
-      for (int y = 0; y < 4; y++) {
-        for (int x = 0; x < 4; x++) {
-          int tile_index = y * 4 + x;
-          WriteTile16(bg, obj.x_ + (s * 4) + x, obj.y_ + y, tiles[tile_index]);
-        }
-      }
+    if (tiles.size() >= 1) {
+      // Use first tile16 for 4x4 pattern (repeat the 2x2 pattern)
+      const auto& tile16 = tiles[0];
+      // Draw 2x2 pattern repeated to make 4x4
+      WriteTile8(bg, obj.x_ + (s * 4), obj.y_, tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + (s * 4) + 1, obj.y_, tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + (s * 4), obj.y_ + 1, tile16.tile2_);  // Bottom-left
+      WriteTile8(bg, obj.x_ + (s * 4) + 1, obj.y_ + 1, tile16.tile3_); // Bottom-right
+      WriteTile8(bg, obj.x_ + (s * 4) + 2, obj.y_, tile16.tile0_);  // Top-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 4) + 3, obj.y_, tile16.tile1_);  // Top-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 4) + 2, obj.y_ + 1, tile16.tile2_); // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 4) + 3, obj.y_ + 1, tile16.tile3_); // Bottom-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 4), obj.y_ + 2, tile16.tile0_);  // Top-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 4) + 1, obj.y_ + 2, tile16.tile1_); // Top-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 4), obj.y_ + 3, tile16.tile2_);  // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 4) + 1, obj.y_ + 3, tile16.tile3_); // Bottom-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 4) + 2, obj.y_ + 2, tile16.tile0_); // Top-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 4) + 3, obj.y_ + 2, tile16.tile1_); // Top-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 4) + 2, obj.y_ + 3, tile16.tile2_); // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 4) + 3, obj.y_ + 3, tile16.tile3_); // Bottom-right (repeat)
     }
   }
 }
@@ -450,7 +501,9 @@ void ObjectDrawer::DrawRightwards1x1Solid_1to16_plus3(const RoomObject& obj, gfx
   
   for (int s = 0; s < size; s++) {
     if (tiles.size() >= 1) {
-      WriteTile16(bg, obj.x_ + s + 3, obj.y_, tiles[0]);
+      // Use first 8x8 tile from first tile16
+      const auto& tile16 = tiles[0];
+      WriteTile8(bg, obj.x_ + s + 3, obj.y_, tile16.tile0_);
     }
   }
 }
@@ -460,7 +513,9 @@ void ObjectDrawer::DrawDoorSwitcherer(const RoomObject& obj, gfx::BackgroundBuff
   // Pattern: Door switcher (object 0x35)
   // Special door logic - simplified for now
   if (tiles.size() >= 1) {
-    WriteTile16(bg, obj.x_, obj.y_, tiles[0]);
+    // Use first 8x8 tile from first tile16
+    const auto& tile16 = tiles[0];
+    WriteTile8(bg, obj.x_, obj.y_, tile16.tile0_);
   }
 }
 
@@ -470,14 +525,26 @@ void ObjectDrawer::DrawRightwardsDecor4x4spaced2_1to16(const RoomObject& obj, gf
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 16) {
-      // Draw 4x4 block with spacing
-      for (int y = 0; y < 4; y++) {
-        for (int x = 0; x < 4; x++) {
-          int tile_index = y * 4 + x;
-          WriteTile16(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[tile_index]);
-        }
-      }
+    if (tiles.size() >= 1) {
+      // Use first tile16 for 4x4 pattern with spacing
+      const auto& tile16 = tiles[0];
+      // Draw 2x2 pattern repeated to make 4x4 with spacing
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_, tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_, tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tile16.tile2_);  // Bottom-left
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 1, tile16.tile3_); // Bottom-right
+      WriteTile8(bg, obj.x_ + (s * 6) + 2, obj.y_, tile16.tile0_);  // Top-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 3, obj.y_, tile16.tile1_);  // Top-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 2, obj.y_ + 1, tile16.tile2_); // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 3, obj.y_ + 1, tile16.tile3_); // Bottom-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 2, tile16.tile0_);  // Top-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 2, tile16.tile1_); // Top-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 3, tile16.tile2_);  // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 3, tile16.tile3_); // Bottom-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 2, obj.y_ + 2, tile16.tile0_); // Top-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 3, obj.y_ + 2, tile16.tile1_); // Top-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 2, obj.y_ + 3, tile16.tile2_); // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 3, obj.y_ + 3, tile16.tile3_); // Bottom-right (repeat)
     }
   }
 }
@@ -488,14 +555,16 @@ void ObjectDrawer::DrawRightwardsStatue2x3spaced2_1to16(const RoomObject& obj, g
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 6) {
-      // Draw 2x3 statue
-      for (int y = 0; y < 3; y++) {
-        for (int x = 0; x < 2; x++) {
-          int tile_index = y * 2 + x;
-          WriteTile16(bg, obj.x_ + (s * 4) + x, obj.y_ + y, tiles[tile_index]);
-        }
-      }
+    if (tiles.size() >= 1) {
+      // Use first tile16 for 2x3 statue pattern
+      const auto& tile16 = tiles[0];
+      // Draw 2x3 pattern using 8x8 tiles
+      WriteTile8(bg, obj.x_ + (s * 4), obj.y_, tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + (s * 4) + 1, obj.y_, tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + (s * 4), obj.y_ + 1, tile16.tile2_);  // Mid-left
+      WriteTile8(bg, obj.x_ + (s * 4) + 1, obj.y_ + 1, tile16.tile3_); // Mid-right
+      WriteTile8(bg, obj.x_ + (s * 4), obj.y_ + 2, tile16.tile0_);  // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 4) + 1, obj.y_ + 2, tile16.tile1_); // Bottom-right (repeat)
     }
   }
 }
@@ -506,14 +575,18 @@ void ObjectDrawer::DrawRightwardsPillar2x4spaced4_1to16(const RoomObject& obj, g
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 8) {
-      // Draw 2x4 pillar
-      for (int y = 0; y < 4; y++) {
-        for (int x = 0; x < 2; x++) {
-          int tile_index = y * 2 + x;
-          WriteTile16(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[tile_index]);
-        }
-      }
+    if (tiles.size() >= 1) {
+      // Use first tile16 for 2x4 pillar pattern
+      const auto& tile16 = tiles[0];
+      // Draw 2x4 pattern using 8x8 tiles
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_, tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_, tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tile16.tile2_);  // Mid-left
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 1, tile16.tile3_); // Mid-right
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 2, tile16.tile0_);  // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 2, tile16.tile1_); // Bottom-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 3, tile16.tile2_);  // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 3, tile16.tile3_); // Bottom-right (repeat)
     }
   }
 }
@@ -524,14 +597,22 @@ void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(const RoomObject& obj, gf
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 12) {
-      // Draw 4x3 decoration
-      for (int y = 0; y < 3; y++) {
-        for (int x = 0; x < 4; x++) {
-          int tile_index = y * 4 + x;
-          WriteTile16(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[tile_index]);
-        }
-      }
+    if (tiles.size() >= 1) {
+      // Use first tile16 for 4x3 decoration pattern
+      const auto& tile16 = tiles[0];
+      // Draw 4x3 pattern using 8x8 tiles
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_, tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_, tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + (s * 6) + 2, obj.y_, tile16.tile0_);  // Top-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 3, obj.y_, tile16.tile1_);  // Top-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tile16.tile2_);  // Mid-left
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 1, tile16.tile3_); // Mid-right
+      WriteTile8(bg, obj.x_ + (s * 6) + 2, obj.y_ + 1, tile16.tile2_); // Mid-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 3, obj.y_ + 1, tile16.tile3_); // Mid-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 2, tile16.tile0_);  // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 2, tile16.tile1_); // Bottom-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 2, obj.y_ + 2, tile16.tile0_); // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 3, obj.y_ + 2, tile16.tile1_); // Bottom-right (repeat)
     }
   }
 }
@@ -542,14 +623,18 @@ void ObjectDrawer::DrawRightwardsDoubled2x2spaced2_1to16(const RoomObject& obj, 
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 8) {
-      // Draw doubled 2x2 pattern
-      for (int y = 0; y < 2; y++) {
-        for (int x = 0; x < 4; x++) {
-          int tile_index = y * 4 + x;
-          WriteTile16(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[tile_index]);
-        }
-      }
+    if (tiles.size() >= 1) {
+      // Use first tile16 for doubled 2x2 pattern
+      const auto& tile16 = tiles[0];
+      // Draw doubled 2x2 pattern using 8x8 tiles
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_, tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_, tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + (s * 6) + 2, obj.y_, tile16.tile0_);  // Top-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 3, obj.y_, tile16.tile1_);  // Top-right (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6), obj.y_ + 1, tile16.tile2_);  // Bottom-left
+      WriteTile8(bg, obj.x_ + (s * 6) + 1, obj.y_ + 1, tile16.tile3_); // Bottom-right
+      WriteTile8(bg, obj.x_ + (s * 6) + 2, obj.y_ + 1, tile16.tile2_); // Bottom-left (repeat)
+      WriteTile8(bg, obj.x_ + (s * 6) + 3, obj.y_ + 1, tile16.tile3_); // Bottom-right (repeat)
     }
   }
 }
@@ -560,12 +645,14 @@ void ObjectDrawer::DrawRightwardsDecor2x2spaced12_1to16(const RoomObject& obj, g
   int size = obj.size_ & 0x0F;
   
   for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 4) {
-      // Draw 2x2 decoration with 12-tile spacing
-      WriteTile16(bg, obj.x_ + (s * 14), obj.y_, tiles[0]);
-      WriteTile16(bg, obj.x_ + (s * 14) + 1, obj.y_, tiles[1]);
-      WriteTile16(bg, obj.x_ + (s * 14), obj.y_ + 1, tiles[2]);
-      WriteTile16(bg, obj.x_ + (s * 14) + 1, obj.y_ + 1, tiles[3]);
+    if (tiles.size() >= 1) {
+      // Use first tile16 for 2x2 decoration with large spacing
+      const auto& tile16 = tiles[0];
+      // Draw 2x2 decoration with 12-tile spacing using 8x8 tiles
+      WriteTile8(bg, obj.x_ + (s * 14), obj.y_, tile16.tile0_);      // Top-left
+      WriteTile8(bg, obj.x_ + (s * 14) + 1, obj.y_, tile16.tile1_);  // Top-right
+      WriteTile8(bg, obj.x_ + (s * 14), obj.y_ + 1, tile16.tile2_);  // Bottom-left
+      WriteTile8(bg, obj.x_ + (s * 14) + 1, obj.y_ + 1, tile16.tile3_); // Bottom-right
     }
   }
 }
@@ -574,9 +661,9 @@ void ObjectDrawer::DrawRightwardsDecor2x2spaced12_1to16(const RoomObject& obj, g
 // Utility Methods
 // ============================================================================
 
-void ObjectDrawer::WriteTile16(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
-                               const gfx::Tile16& tile) {
-  LOG_DEBUG("ObjectDrawer", "Writing Tile16 at tile pos (%d,%d) to bitmap", tile_x, tile_y);
+void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
+                              const gfx::TileInfo& tile_info) {
+  LOG_DEBUG("ObjectDrawer", "Writing 8x8 tile at tile pos (%d,%d) to bitmap", tile_x, tile_y);
   
   // Draw directly to bitmap instead of tile buffer to avoid being overwritten
   auto& bitmap = bg.bitmap();
@@ -587,21 +674,27 @@ void ObjectDrawer::WriteTile16(gfx::BackgroundBuffer& bg, int tile_x, int tile_y
     return; // Bitmap not ready
   }
 
-  // Get graphics data from ROM
-  if (!rom_ || !rom_->is_loaded()) {
-    return;
+  // Get graphics data - prefer room-specific buffer if available
+  const uint8_t* gfx_data = nullptr;
+  
+  if (room_gfx_buffer_) {
+    // Use room-specific graphics buffer (current_gfx16_)
+    gfx_data = room_gfx_buffer_;
+  } else if (rom_ && rom_->is_loaded()) {
+    // Fallback to ROM graphics buffer
+    auto rom_gfx = rom_->mutable_graphics_buffer();
+    if (rom_gfx && !rom_gfx->empty()) {
+      gfx_data = rom_gfx->data();
+    }
   }
   
-  auto gfx_data = rom_->mutable_graphics_buffer();
-  if (!gfx_data || gfx_data->empty()) {
+  if (!gfx_data) {
+    LOG_DEBUG("ObjectDrawer", "ERROR: No graphics data available");
     return;
   }
 
-  // Draw each 8x8 tile directly to bitmap
-  DrawTileToBitmap(bitmap, tile.tile0_, tile_x * 8, tile_y * 8, gfx_data->data());
-  DrawTileToBitmap(bitmap, tile.tile1_, (tile_x + 1) * 8, tile_y * 8, gfx_data->data());
-  DrawTileToBitmap(bitmap, tile.tile2_, tile_x * 8, (tile_y + 1) * 8, gfx_data->data());
-  DrawTileToBitmap(bitmap, tile.tile3_, (tile_x + 1) * 8, (tile_y + 1) * 8, gfx_data->data());
+  // Draw single 8x8 tile directly to bitmap
+  DrawTileToBitmap(bitmap, tile_info, tile_x * 8, tile_y * 8, gfx_data);
 }
 
 bool ObjectDrawer::IsValidTilePosition(int tile_x, int tile_y) const {
