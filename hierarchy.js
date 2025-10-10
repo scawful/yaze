@@ -305,6 +305,7 @@ var hierarchy =
       [ "yaze::cli::ai::anonymous_namespace{ai_gui_controller_test.cc}::MockGuiAutomationClient", "d9/d8f/classyaze_1_1cli_1_1ai_1_1anonymous__namespace_02ai__gui__controller__test_8cc_03_1_1MockGuiAutomationClient.html", null ]
     ] ],
     [ "yaze::cli::HarnessTestSummary", "db/d43/structyaze_1_1cli_1_1HarnessTestSummary.html", null ],
+    [ "yaze::emu::test::HeadlessEmulator", "d4/dd7/classyaze_1_1emu_1_1test_1_1HeadlessEmulator.html", null ],
     [ "yaze::util::HexStringParams", "da/df6/structyaze_1_1util_1_1HexStringParams.html", null ],
     [ "yaze::editor::HistoryManager", "d9/d6c/classyaze_1_1editor_1_1HistoryManager.html", null ],
     [ "yaze::emu::audio::IAudioBackend", "d2/d50/classyaze_1_1emu_1_1audio_1_1IAudioBackend.html", [

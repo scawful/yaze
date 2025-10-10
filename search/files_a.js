@@ -25,8 +25,9 @@ var searchData=
   ['message_5fpreview_2eh_22',['message_preview.h',['../d5/dfd/message__preview_8h.html',1,'']]],
   ['message_5ftest_2ecc_23',['message_test.cc',['../d2/d5c/message__test_8cc.html',1,'']]],
   ['mock_5fmemory_2eh_24',['mock_memory.h',['../d5/d43/mock__memory_8h.html',1,'']]],
-  ['mock_5from_2eh_25',['mock_rom.h',['../de/dd9/mock__rom_8h.html',1,'']]],
-  ['music_5feditor_2ecc_26',['music_editor.cc',['../dc/d9f/music__editor_8cc.html',1,'']]],
-  ['music_5feditor_2eh_27',['music_editor.h',['../d5/de8/music__editor_8h.html',1,'']]],
-  ['music_5ftool_5fcommands_2ecc_28',['music_tool_commands.cc',['../d2/d25/music__tool__commands_8cc.html',1,'']]]
+  ['mock_5from_2ecc_25',['mock_rom.cc',['../dc/d5b/mock__rom_8cc.html',1,'']]],
+  ['mock_5from_2eh_26',['mock_rom.h',['../d7/d40/src_2cli_2handlers_2mock__rom_8h.html',1,'(Global Namespace)'],['../d6/d5b/test_2mocks_2mock__rom_8h.html',1,'(Global Namespace)']]],
+  ['music_5feditor_2ecc_27',['music_editor.cc',['../dc/d9f/music__editor_8cc.html',1,'']]],
+  ['music_5feditor_2eh_28',['music_editor.h',['../d5/de8/music__editor_8h.html',1,'']]],
+  ['music_5ftool_5fcommands_2ecc_29',['music_tool_commands.cc',['../d2/d25/music__tool__commands_8cc.html',1,'']]]
 ];

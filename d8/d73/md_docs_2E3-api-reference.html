@@ -101,11 +101,11 @@ $(document).ready(function(){initNavTree('d8/d73/md_docs_2E3-api-reference.html'
   <div class="headertitle"><div class="title">API Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md404"></a> This document provides a reference for the yaze C and C++ APIs, intended for developers creating extensions or contributing to the core application.</p>
-<h1><a class="anchor" id="autotoc_md405"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md361"></a> This document provides a reference for the yaze C and C++ APIs, intended for developers creating extensions or contributing to the core application.</p>
+<h1><a class="anchor" id="autotoc_md362"></a>
 C API (&lt;tt&gt;incl/yaze.h&lt;/tt&gt;)</h1>
 <p>The C API provides a stable, language-agnostic interface for interacting with yaze's core functionalities.</p>
-<h2><a class="anchor" id="autotoc_md406"></a>
+<h2><a class="anchor" id="autotoc_md363"></a>
 Core Library Functions</h2>
 <div class="fragment"><div class="line"> </div>
 <div class="line"><a class="code hl_enumeration" href="../../d0/de1/group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a> <a class="code hl_function" href="../../d0/de1/group__core.html#ga3a3a4e60f272ceed1dea6ccaefd39e65">yaze_library_init</a>(<span class="keywordtype">void</span>);</div>
@@ -117,7 +117,7 @@ Core Library Functions</h2>
 <div class="ttc" id="agroup__core_html_ga877a1f9eb894ff217e401e6a9674a4b9"><div class="ttname"><a href="../../d0/de1/group__core.html#ga877a1f9eb894ff217e401e6a9674a4b9">yaze_get_version_string</a></div><div class="ttdeci">const char * yaze_get_version_string(void)</div><div class="ttdoc">Get the current YAZE version string.</div><div class="ttdef"><b>Definition</b> <a href="../../df/d84/yaze_8cc_source.html#l00063">yaze.cc:63</a></div></div>
 <div class="ttc" id="agroup__core_html_ga8b8638fa48e18e420ef66414847265c0"><div class="ttname"><a href="../../d0/de1/group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a></div><div class="ttdeci">yaze_status</div><div class="ttdoc">Status codes returned by YAZE functions.</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00055">yaze.h:55</a></div></div>
 <div class="ttc" id="agroup__core_html_gaf7a72f08554c06a14ffa7114aac200f9"><div class="ttname"><a href="../../d0/de1/group__core.html#gaf7a72f08554c06a14ffa7114aac200f9">yaze_library_shutdown</a></div><div class="ttdeci">void yaze_library_shutdown(void)</div><div class="ttdoc">Shutdown the YAZE library.</div><div class="ttdef"><b>Definition</b> <a href="../../df/d84/yaze_8cc_source.html#l00029">yaze.cc:29</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md407"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md364"></a>
 ROM Operations</h2>
 <div class="fragment"><div class="line"> </div>
 <div class="line"><a class="code hl_struct" href="../../de/dad/structzelda3__rom.html">zelda3_rom</a>* <a class="code hl_function" href="../../d7/d60/group__rom__functions.html#gac870fb2b7713b670247082c171053148">yaze_load_rom</a>(<span class="keyword">const</span> <span class="keywordtype">char</span>* filename);</div>
@@ -129,13 +129,13 @@ ROM Operations</h2>
 <div class="ttc" id="agroup__rom__functions_html_gac870fb2b7713b670247082c171053148"><div class="ttname"><a href="../../d7/d60/group__rom__functions.html#gac870fb2b7713b670247082c171053148">yaze_load_rom</a></div><div class="ttdeci">zelda3_rom * yaze_load_rom(const char *filename)</div><div class="ttdoc">Load a ROM file.</div><div class="ttdef"><b>Definition</b> <a href="../../df/d84/yaze_8cc_source.html#l00118">yaze.cc:118</a></div></div>
 <div class="ttc" id="agroup__rom__functions_html_gafa82266eb6f9e734bb7aa406a687e1d4"><div class="ttname"><a href="../../d7/d60/group__rom__functions.html#gafa82266eb6f9e734bb7aa406a687e1d4">yaze_save_rom</a></div><div class="ttdeci">int yaze_save_rom(zelda3_rom *rom, const char *filename)</div><div class="ttdoc">Save ROM to file.</div><div class="ttdef"><b>Definition</b> <a href="../../df/d84/yaze_8cc_source.html#l00151">yaze.cc:151</a></div></div>
 <div class="ttc" id="astructzelda3__rom_html"><div class="ttname"><a href="../../de/dad/structzelda3__rom.html">zelda3_rom</a></div><div class="ttdoc">ROM data structure.</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/zelda_8h_source.html#l00210">zelda.h:210</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md408"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md365"></a>
 C++ API</h1>
 <p>The C++ API offers a more powerful, object-oriented interface. The primary entry point for many operations is the <code><a class="el" href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html" title="Modern C++ wrapper for Asar 65816 assembler integration.">yaze::core::AsarWrapper</a></code> class.</p>
-<h2><a class="anchor" id="autotoc_md409"></a>
+<h2><a class="anchor" id="autotoc_md366"></a>
 AsarWrapper (&lt;tt&gt;src/app/core/asar_wrapper.h&lt;/tt&gt;)</h2>
 <p>This class provides a complete, cross-platform interface for applying assembly patches, extracting symbols, and validating assembly code using the Asar library.</p>
-<h3><a class="anchor" id="autotoc_md410"></a>
+<h3><a class="anchor" id="autotoc_md367"></a>
 CLI Examples (&lt;tt&gt;z3ed&lt;/tt&gt;)</h3>
 <p>While the <code>AsarWrapper</code> can be used programmatically, the <code>z3ed</code> CLI is the most common way to interact with it.</p>
 <div class="fragment"><div class="line"># Apply an assembly patch to a ROM file.</div>
@@ -146,7 +146,7 @@ CLI Examples (&lt;tt&gt;z3ed&lt;/tt&gt;)</h3>
 </div><!-- fragment --> <blockquote class="doxtable">
 <p>&zwj;<b>Prompt:</b> "Apply the patch `mosaic_change.asm` to my ROM." </p>
 </blockquote>
-<h3><a class="anchor" id="autotoc_md411"></a>
+<h3><a class="anchor" id="autotoc_md368"></a>
 C++ API Example</h3>
 <div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="../../de/d62/asar__wrapper_8h.html">app/core/asar_wrapper.h</a>&quot;</span></div>
 <div class="line"><span class="preprocessor">#include &lt;vector&gt;</span></div>
@@ -169,7 +169,7 @@ C++ API Example</h3>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html">yaze::core::AsarWrapper</a></div><div class="ttdoc">Modern C++ wrapper for Asar 65816 assembler integration.</div><div class="ttdef"><b>Definition</b> <a href="../../de/d62/asar__wrapper_8h_source.html#l00048">asar_wrapper.h:48</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a9696c9ed3e363b0a989213d0d0862010"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a9696c9ed3e363b0a989213d0d0862010">yaze::core::AsarWrapper::Initialize</a></div><div class="ttdeci">absl::Status Initialize()</div><div class="ttdoc">Initialize the Asar library.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00025">asar_wrapper.cc:25</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a970cffb421b3db4f9697edbfa5027828"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828">yaze::core::AsarWrapper::ApplyPatch</a></div><div class="ttdeci">absl::StatusOr&lt; AsarPatchResult &gt; ApplyPatch(const std::string &amp;patch_path, std::vector&lt; uint8_t &gt; &amp;rom_data, const std::vector&lt; std::string &gt; &amp;include_paths={})</div><div class="ttdoc">Apply an assembly patch to a ROM.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00068">asar_wrapper.cc:68</a></div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md412"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md369"></a>
 Class Definition</h3>
 <div class="fragment"><div class="line"><span class="keyword">namespace </span><a class="code hl_namespace" href="../../db/d33/namespaceyaze_1_1core.html">yaze::core</a> {</div>
 <div class="line"> </div>
@@ -196,9 +196,9 @@ Class Definition</h3>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_a9012a1946992998bbefee51c3f8a57b3"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a9012a1946992998bbefee51c3f8a57b3">yaze::core::AsarWrapper::Shutdown</a></div><div class="ttdeci">void Shutdown()</div><div class="ttdoc">Clean up and close the Asar library.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00041">asar_wrapper.cc:41</a></div></div>
 <div class="ttc" id="aclassyaze_1_1core_1_1AsarWrapper_html_ac875ea1cb847a2a8d274f0217f624460"><div class="ttname"><a href="../../da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ac875ea1cb847a2a8d274f0217f624460">yaze::core::AsarWrapper::ExtractSymbols</a></div><div class="ttdeci">absl::StatusOr&lt; std::vector&lt; AsarSymbol &gt; &gt; ExtractSymbols(const std::string &amp;asm_path, const std::vector&lt; std::string &gt; &amp;include_paths={})</div><div class="ttdoc">Extract symbols from an assembly file without patching.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00160">asar_wrapper.cc:160</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1core_html"><div class="ttname"><a href="../../db/d33/namespaceyaze_1_1core.html">yaze::core</a></div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00015">asar_wrapper.cc:15</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md413"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md370"></a>
 Data Structures</h1>
-<h2><a class="anchor" id="autotoc_md414"></a>
+<h2><a class="anchor" id="autotoc_md371"></a>
 &lt;tt&gt;snes_color&lt;/tt&gt;</h2>
 <p>Represents a 15-bit SNES color, composed of 5 bits for each red, green, and blue component. </p><div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="../../df/d71/structsnes__color.html">snes_color</a> {</div>
 <div class="line">    uint16_t raw;   </div>
@@ -210,7 +210,7 @@ Data Structures</h1>
 <div class="ttc" id="astructsnes__color_html_a41ac72d54eb2dfa4383093677a111bd4"><div class="ttname"><a href="../../df/d71/structsnes__color.html#a41ac72d54eb2dfa4383093677a111bd4">snes_color::green</a></div><div class="ttdeci">uint16_t green</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00210">yaze.h:210</a></div></div>
 <div class="ttc" id="astructsnes__color_html_a60abec7840bbcbb72a19deef33c19a58"><div class="ttname"><a href="../../df/d71/structsnes__color.html#a60abec7840bbcbb72a19deef33c19a58">snes_color::red</a></div><div class="ttdeci">uint16_t red</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00209">yaze.h:209</a></div></div>
 <div class="ttc" id="astructsnes__color_html_abe07ebebd2f735f932b7a7a065506f9f"><div class="ttname"><a href="../../df/d71/structsnes__color.html#abe07ebebd2f735f932b7a7a065506f9f">snes_color::blue</a></div><div class="ttdeci">uint16_t blue</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00211">yaze.h:211</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md415"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md372"></a>
 &lt;tt&gt;zelda3_message&lt;/tt&gt;</h2>
 <p>Represents an in-game text message. </p><div class="fragment"><div class="line"><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="../../dd/dde/structzelda3__message.html">zelda3_message</a> {</div>
 <div class="line">    uint16_t <a class="code hl_variable" href="../../dd/dde/structzelda3__message.html#a8e6473e55f809b8813e0b32e919ecbd5">id</a>;            </div>
@@ -228,10 +228,10 @@ Data Structures</h1>
 <div class="ttc" id="astructzelda3__message_html_ab165c3cd0c512a2457fd0a5dd2f49acf"><div class="ttname"><a href="../../dd/dde/structzelda3__message.html#ab165c3cd0c512a2457fd0a5dd2f49acf">zelda3_message::is_compressed</a></div><div class="ttdeci">bool is_compressed</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/zelda_8h_source.html#l00277">zelda.h:277</a></div></div>
 <div class="ttc" id="astructzelda3__message_html_adf739cca315eb1c3507bb3b70b2b4865"><div class="ttname"><a href="../../dd/dde/structzelda3__message.html#adf739cca315eb1c3507bb3b70b2b4865">zelda3_message::parsed_text</a></div><div class="ttdeci">char * parsed_text</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/zelda_8h_source.html#l00276">zelda.h:276</a></div></div>
 <div class="ttc" id="astructzelda3__message_html_af5bf5fe89e44f0cdc289dd77dda0fef4"><div class="ttname"><a href="../../dd/dde/structzelda3__message.html#af5bf5fe89e44f0cdc289dd77dda0fef4">zelda3_message::length</a></div><div class="ttdeci">uint16_t length</div><div class="ttdef"><b>Definition</b> <a href="../../de/dae/zelda_8h_source.html#l00274">zelda.h:274</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md416"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md373"></a>
 Error Handling</h1>
 <p>The C API uses an enum <code>yaze_status</code> for error handling, while the C++ API uses <code>absl::Status</code> and <code>absl::StatusOr</code>.</p>
-<h2><a class="anchor" id="autotoc_md417"></a>
+<h2><a class="anchor" id="autotoc_md374"></a>
 C API Error Pattern</h2>
 <div class="fragment"><div class="line"><a class="code hl_enumeration" href="../../d0/de1/group__core.html#ga8b8638fa48e18e420ef66414847265c0">yaze_status</a> status = <a class="code hl_function" href="../../d0/de1/group__core.html#ga3a3a4e60f272ceed1dea6ccaefd39e65">yaze_library_init</a>();</div>
 <div class="line"><span class="keywordflow">if</span> (status != <a class="code hl_enumvalue" href="../../d0/de1/group__core.html#gga8b8638fa48e18e420ef66414847265c0a07a60c9eac361f06ec1a03be228225ed">YAZE_OK</a>) {</div>

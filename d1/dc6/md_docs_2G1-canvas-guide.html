@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('d1/dc6/md_docs_2G1-canvas-guide.html',
   <div class="headertitle"><div class="title">Canvas System Overview</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md762"></a> </p>
-<h1><a class="anchor" id="autotoc_md763"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md918"></a> </p>
+<h1><a class="anchor" id="autotoc_md919"></a>
 Canvas Architecture</h1>
 <ul>
 <li><b>Canvas States</b>: track <code>canvas</code>, <code>content</code>, and <code>draw</code> rectangles independently; expose size/scale through <code>CanvasState</code> inspection panel</li>
@@ -110,7 +110,7 @@ Canvas Architecture</h1>
 <li><b>Interaction Modes</b>: Tile Paint, Tile Select, Rectangle Select, Entity Manipulation, Palette Editing, Diagnostics</li>
 <li><b>Context Menu</b>: persistent menu with material icon sections (Mode, View, Info, Bitmap, Palette, BPP, Performance, Layout, Custom)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md764"></a>
+<h1><a class="anchor" id="autotoc_md920"></a>
 Core API Patterns</h1>
 <ul>
 <li>Modern usage: <code>Begin/End</code> (auto grid/overlay, persistent context menu)</li>
@@ -118,7 +118,7 @@ Core API Patterns</h1>
 <li>Unified state snapshot: <code>CanvasState</code> exposes geometry, zoom, scroll</li>
 <li>Interaction handler manages mode-specific tools (tile brush, select rect, entity gizmo)</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md765"></a>
+<h1><a class="anchor" id="autotoc_md921"></a>
 Context Menu Sections</h1>
 <ul>
 <li><b>Mode Selector</b>: switch modes with icons (Brush, Select, Rect, Bitmap, Palette, BPP, Perf)</li>
@@ -129,7 +129,7 @@ Context Menu Sections</h1>
 <li><b>Layout</b>: draggable toggle, auto resize, grid step</li>
 <li><b>Custom Actions</b>: consumer-provided menu items</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md766"></a>
+<h1><a class="anchor" id="autotoc_md922"></a>
 Interaction Modes &amp; Capabilities</h1>
 <ul>
 <li><b>Tile Painting</b>: tile16 painter, brush size, finish stroke callbacks<ul>
@@ -161,7 +161,7 @@ Interaction Modes &amp; Capabilities</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md767"></a>
+<h1><a class="anchor" id="autotoc_md923"></a>
 Debug &amp; Diagnostics</h1>
 <ul>
 <li>Persistent modals (<code>View→Advanced</code>, <code>View→Scaling</code>, <code>Palette</code>, <code>BPP</code>) stay open until closed</li>
@@ -169,13 +169,13 @@ Debug &amp; Diagnostics</h1>
 <li>State overlay: canvas size, content size, global scale, scroll, highlight entity</li>
 <li>Performance HUD: operation counts, timing graphs, usage recommendations</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md768"></a>
+<h1><a class="anchor" id="autotoc_md924"></a>
 Automation API</h1>
 <ul>
 <li>CanvasAutomationAPI: tile operations (<code>SetTileAt</code>, <code>SelectRect</code>), view control (<code>ScrollToTile</code>, <code>SetZoom</code>), entity manipulation hooks</li>
 <li>Exposed through CLI (<code>z3ed</code>) and gRPC service, matching UI modes</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md769"></a>
+<h1><a class="anchor" id="autotoc_md925"></a>
 Integration Steps for Editors</h1>
 <ol type="1">
 <li>Construct <code>Canvas</code>, set renderer (optional) and ID</li>
@@ -186,7 +186,7 @@ Integration Steps for Editors</h1>
 <li>Provide custom menu items via <code>AddMenuItem</code>/<code>AddMenuItem(item, usage)</code></li>
 <li>Use <code>GetConfig()</code>/<code>GetSelection()</code> for state; respond to context menu commands via callback lambda in <code>Render</code></li>
 </ol>
-<h1><a class="anchor" id="autotoc_md770"></a>
+<h1><a class="anchor" id="autotoc_md926"></a>
 Migration Checklist</h1>
 <ul>
 <li>Replace direct <code>DrawContextMenu</code> logic with new render callback signature</li>
@@ -195,7 +195,7 @@ Migration Checklist</h1>
 <li>Update usage tracker integrations to record mode switches</li>
 <li>Validate overworld/tile16/dungeon editors in tile paint, select, entity modes</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md771"></a>
+<h1><a class="anchor" id="autotoc_md927"></a>
 Testing Notes</h1>
 <ul>
 <li>Manual regression: overworld paint/select, tile16 painter, dungeon entity drag</li>

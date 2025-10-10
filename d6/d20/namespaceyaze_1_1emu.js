@@ -7,6 +7,7 @@ var namespaceyaze_1_1emu =
     [ "audio", "d2/dc8/namespaceyaze_1_1emu_1_1audio.html", "d2/dc8/namespaceyaze_1_1emu_1_1audio" ],
     [ "debug", "d9/dd4/namespaceyaze_1_1emu_1_1debug.html", "d9/dd4/namespaceyaze_1_1emu_1_1debug" ],
     [ "input", "d5/df0/namespaceyaze_1_1emu_1_1input.html", "d5/df0/namespaceyaze_1_1emu_1_1input" ],
+    [ "test", "d1/da8/namespaceyaze_1_1emu_1_1test.html", "d1/da8/namespaceyaze_1_1emu_1_1test" ],
     [ "ui", "d4/d91/namespaceyaze_1_1emu_1_1ui.html", "d4/d91/namespaceyaze_1_1emu_1_1ui" ],
     [ "Apu", "d7/da7/classyaze_1_1emu_1_1Apu.html", "d7/da7/classyaze_1_1emu_1_1Apu" ],
     [ "ApuCallbacks", "df/d64/structyaze_1_1emu_1_1ApuCallbacks.html", "df/d64/structyaze_1_1emu_1_1ApuCallbacks" ],

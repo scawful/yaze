@@ -8,10 +8,10 @@ var searchData=
   ['editor_5',['yaze - Yet Another Zelda3 Editor',['../d0/d30/md_README.html',1,'']]],
   ['editor_20module_6',['Agent Editor Module',['../d6/df7/md_src_2app_2editor_2agent_2README.html',1,'']]],
   ['editor_20palette_20system_7',['Tile16 Editor Palette System',['../d2/dde/md_docs_2F2-tile16-editor-palette-system.html',1,'']]],
-  ['editor_20v2_20complete_20guide_8',['F2: Dungeon Editor v2 - Complete Guide',['../dc/d27/md_docs_2F2-dungeon-editor-v2-guide.html',1,'']]],
-  ['emulator_20core_20improvements_20optimization_20roadmap_9',['Emulator Core Improvements &amp; Optimization Roadmap',['../d0/d63/md_docs_2Emulator__Improvements__Roadmap.html',1,'']]],
+  ['editor_20v2_20complete_20guide_8',['F2: Dungeon Editor v2 - Complete Guide',['../d5/d83/md_docs_2F1-dungeon-editor-guide.html',1,'']]],
+  ['emulator_20core_20improvements_20roadmap_9',['Emulator Core Improvements Roadmap',['../d3/d49/md_docs_2E6-emulator-improvements.html',1,'']]],
   ['emulator_20development_20guide_10',['E4 - Emulator Development Guide',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html',1,'']]],
-  ['emulator_20enhancement_20roadmap_11',['YAZE Emulator Enhancement Roadmap',['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html',1,'']]],
+  ['emulator_20enhancement_20roadmap_11',['YAZE Emulator Enhancement Roadmap',['../df/d0c/md_docs_2E8-emulator-debugging-vision.html',1,'']]],
   ['end_20to_20end_20e2e_20tests_12',['End-to-End (E2E) Tests',['../d9/db0/md_test_2e2e_2README.html',1,'']]],
-  ['enhancement_20roadmap_13',['YAZE Emulator Enhancement Roadmap',['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html',1,'']]]
+  ['enhancement_20roadmap_13',['YAZE Emulator Enhancement Roadmap',['../df/d0c/md_docs_2E8-emulator-debugging-vision.html',1,'']]]
 ];

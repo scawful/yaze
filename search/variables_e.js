@@ -66,7 +66,7 @@ var searchData=
   ['objects_5f_63',['objects_',['../d9/d70/classyaze_1_1zelda3_1_1RoomLayout.html#a3cfa68947008ecfdb817b4522ac1706a',1,'yaze::zelda3::RoomLayout']]],
   ['objects_5fdirty_5f_64',['objects_dirty_',['../d7/df6/classyaze_1_1zelda3_1_1Room.html#a8d99ac30411bcb54799c27c472f7d0c1',1,'yaze::zelda3::Room']]],
   ['objsel_65',['OBJSEL',['../d6/d20/namespaceyaze_1_1emu.html#aba117e7a9e91c7ac66256b429fb135ec',1,'yaze::emu']]],
-  ['offset_66',['offset',['../d5/db2/structyaze_1_1editor_1_1ExampleMemberInfo.html#a290a3cd08e27d9b2072c059b91482f96',1,'yaze::editor::ExampleMemberInfo::Offset'],['../d2/d09/structyaze_1_1emu_1_1ScrollRegister.html#a7719138fdd82cc7affd62ebbfbe376de',1,'yaze::emu::ScrollRegister::offset']]],
+  ['offset_66',['offset',['../d2/d09/structyaze_1_1emu_1_1ScrollRegister.html#a7719138fdd82cc7affd62ebbfbe376de',1,'yaze::emu::ScrollRegister::offset'],['../d5/db2/structyaze_1_1editor_1_1ExampleMemberInfo.html#a290a3cd08e27d9b2072c059b91482f96',1,'yaze::editor::ExampleMemberInfo::Offset']]],
   ['offset_5fx_5f_67',['offset_x_',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a7af011bcb00c9cbbe365526b13cf19ac',1,'yaze::zelda3::RoomObject']]],
   ['offset_5fy_5f_68',['offset_y_',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#ab51d96a171361d176bdae4770ff723a3',1,'yaze::zelda3::RoomObject']]],
   ['old_5ftile_69',['old_tile',['../d6/d52/structyaze_1_1cli_1_1Tile16Change.html#afedb295cf2c5c3a6cf9e69b4ae726fc5',1,'yaze::cli::Tile16Change']]],

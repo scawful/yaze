@@ -12,8 +12,7 @@ var namespaceyaze_1_1cli =
     ] ],
     [ "anonymous_namespace{prompt_builder.cc}", "d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html", [
       [ "IsYamlBool", "d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html#a5632bc9edf8847f5a8202b836f40b8da", null ],
-      [ "YamlToJson", "d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html#a8082ee60fb8f4942958bf890c16bdbf0", null ],
-      [ "BuildCatalogueSearchPaths", "d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html#a374b26f5aebc3cb63f3c072679674174", null ]
+      [ "YamlToJson", "d5/d7a/namespaceyaze_1_1cli_1_1anonymous__namespace_02prompt__builder_8cc_03.html#a8082ee60fb8f4942958bf890c16bdbf0", null ]
     ] ],
     [ "anonymous_namespace{proposal_registry.cc}", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html", [
       [ "DetermineDefaultRoot", "d1/da6/namespaceyaze_1_1cli_1_1anonymous__namespace_02proposal__registry_8cc_03.html#a935048446d732782954cb7db885d3e71", null ],
@@ -302,6 +301,8 @@ var namespaceyaze_1_1cli =
       [ "kSettings", "dd/d63/namespaceyaze_1_1cli.html#ae32db88762bb326629936fc2ed204666ac935a934100d15241aefe3f7081e7767", null ],
       [ "kHelp", "dd/d63/namespaceyaze_1_1cli.html#ae32db88762bb326629936fc2ed204666a244ce4b6c7f56eaa446d64fc2d068bbb", null ]
     ] ],
+    [ "InitializeMockRom", "dd/d63/namespaceyaze_1_1cli.html#a2c164e6cd26b8d8f65ff130d80f0f737", null ],
+    [ "ShouldUseMockRom", "dd/d63/namespaceyaze_1_1cli.html#aaf1e6019aefaecaef78c108cf709ecd9", null ],
     [ "CreateAIService", "dd/d63/namespaceyaze_1_1cli.html#a40be8377fef9b85066f54617143d652a", null ],
     [ "CreateAIService", "dd/d63/namespaceyaze_1_1cli.html#adbd91793ccd2732fa85d0cd642987169", null ],
     [ "ParseTestSuiteDefinition", "dd/d63/namespaceyaze_1_1cli.html#ab2e4e0fdaf85f4c7c05572fa6ed7be18", null ],

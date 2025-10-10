@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['link_20to_20the_20past_20rom_20reference_0',['A Link to the Past ROM Reference',['../d7/d4f/md_docs_2R1-alttp-rom-reference.html',1,'']]],
-  ['list_1',['list',['../da/d58/deprecated.html',1,'Deprecated List'],['../dd/da0/todo.html',1,'Todo List']]],
-  ['loading_20guide_2',['Overworld Loading Guide',['../d9/d85/md_docs_2F3-overworld-loading.html',1,'']]]
+  ['migration_20and_20rendering_20abstraction_20plan_0',['SDL2 to SDL3 Migration and Rendering Abstraction Plan',['../d6/df2/md_docs_2G2-renderer-migration-plan.html',1,'']]],
+  ['migration_20complete_20documentation_1',['Graphics Renderer Migration - Complete Documentation',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html',1,'']]],
+  ['module_2',['Agent Editor Module',['../d6/df7/md_src_2app_2editor_2agent_2README.html',1,'']]]
 ];

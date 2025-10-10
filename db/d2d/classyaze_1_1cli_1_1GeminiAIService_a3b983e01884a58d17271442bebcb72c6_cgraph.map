@@ -1,5 +1,9 @@
 <map id="yaze::cli::GeminiAIService::BuildFunctionCallSchemas" name="yaze::cli::GeminiAIService::BuildFunctionCallSchemas">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,189,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,189,79"/>
 <area shape="rect" id="Node000002" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a7718de59543f0e50f3e2fc369afc90d6" title=" " alt="" coords="237,5,420,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="189,23,221,23,221,28,189,28"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,43,221,38,221,44,189,48"/>
+<area shape="rect" id="Node000003" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a84030820b8aad96f5854dc6537bb3c47" title="Find an asset file in multiple standard locations." alt="" coords="249,71,408,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,69,233,75,233,80,188,74"/>
+<area shape="rect" id="Node000004" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#acd219cd2ca12de71da89694e5ad97d0e" title="Get the user&#39;s home directory in a cross&#45;platform way." alt="" coords="468,71,627,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="409,88,452,88,452,94,409,94"/>
 </map>

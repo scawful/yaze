@@ -101,65 +101,98 @@ $(document).ready(function(){initNavTree('d3/d4c/md_docs_2index.html','../../');
   <div class="headertitle"><div class="title">yaze Documentation</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md985"></a> Welcome to the official documentation for yaze, a comprehensive ROM editor for The Legend of Zelda: A Link to the Past.</p>
-<h1><a class="anchor" id="autotoc_md986"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1225"></a> Welcome to the official documentation for yaze, a comprehensive ROM editor for The Legend of Zelda: A Link to the Past.</p>
+<h1><a class="anchor" id="autotoc_md1226"></a>
 A: Getting Started &amp; Testing</h1>
 <ul>
 <li><a class="el" href="../../d7/dee/md_docs_2A1-getting-started.html">A1: Getting Started</a> - Basic setup and usage.</li>
 <li><a class="el" href="../../d6/d10/md_docs_2A1-testing-guide.html">A2: Testing Guide</a> - The testing framework and best practices.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md987"></a>
+<h1><a class="anchor" id="autotoc_md1227"></a>
 B: Build &amp; Platform</h1>
 <ul>
 <li><a class="el" href="../../dc/d42/md_docs_2B1-build-instructions.html">B1: Build Instructions</a> - How to build yaze on Windows, macOS, and Linux.</li>
 <li><a class="el" href="../../d1/d30/md_docs_2B2-platform-compatibility.html">B2: Platform Compatibility</a> - Cross-platform support details.</li>
 <li><a class="el" href="../../d7/d51/md_docs_2B3-build-presets.html">B3: Build Presets</a> - A guide to the CMake preset system.</li>
-<li>B4: Release Workflows - GitHub Actions release pipeline documentation.</li>
+<li><a class="el" href="../../da/dc1/md_docs_2B4-git-workflow.html">B4: Git Workflow</a> - Branching strategy, commit conventions, and release process.</li>
 <li><a class="el" href="../../dd/de3/md_docs_2B5-architecture-and-networking.html">B5: Architecture and Networking</a> - System architecture, gRPC, and networking.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md988"></a>
+<h1><a class="anchor" id="autotoc_md1228"></a>
 C: &lt;tt&gt;z3ed&lt;/tt&gt; CLI</h1>
 <ul>
 <li><a class="el" href="../../d2/d4a/md_docs_2C1-z3ed-agent-guide.html">C1: `z3ed` Agent Guide</a> - The AI-powered command-line interface.</li>
+<li><a class="el" href="../../d7/d43/md_docs_2C2-testing-without-roms.html">C2: Testing Without ROMs</a> - Using mock ROM mode for testing and CI/CD.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md989"></a>
+<h1><a class="anchor" id="autotoc_md1229"></a>
 E: Development &amp; API</h1>
 <ul>
 <li><a class="el" href="../../d7/d9a/md_docs_2E1-asm-style-guide.html">E1: Assembly Style Guide</a> - 65816 assembly coding standards.</li>
 <li><a class="el" href="../../d5/d18/md_docs_2E2-development-guide.html">E2: Development Guide</a> - Core architectural patterns, UI systems, and best practices.</li>
 <li><a class="el" href="../../d8/d73/md_docs_2E3-api-reference.html">E3: API Reference</a> - C/C++ API documentation for extensions.</li>
-<li><a class="el" href="../../d7/d44/md_docs_2E4-Emulator-Development-Guide.html">E4: Emulator Development Guide</a></li>
-<li><a class="el" href="../../de/dc5/md_docs_2E5-debugging-guide.html">E5: Debugging and Testing Guide</a> - A master guide to the SNES emulator subsystem.</li>
+<li><a class="el" href="../../d7/d44/md_docs_2E4-Emulator-Development-Guide.html">E4: Emulator Development Guide</a> - SNES emulator subsystem implementation guide.</li>
+<li><a class="el" href="../../de/dc5/md_docs_2E5-debugging-guide.html">E5: Debugging Guide</a> - Debugging techniques and workflows.</li>
+<li><a class="el" href="../../d3/d49/md_docs_2E6-emulator-improvements.html">E6: Emulator Improvements</a> - Core accuracy and performance improvements roadmap.</li>
+<li><a class="el" href="../../db/da6/md_docs_2E7-debugging-startup-flags.html">E7: Debugging Startup Flags</a> - CLI flags for quick editor access and testing.</li>
+<li><a class="el" href="../../df/d0c/md_docs_2E8-emulator-debugging-vision.html">E8: Emulator Debugging Vision</a> - Long-term vision for Mesen2-level debugging features.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md990"></a>
+<h1><a class="anchor" id="autotoc_md1230"></a>
 F: Technical Documentation</h1>
 <ul>
-<li>F1: Dungeon Editor Guide - A master guide to the dungeon editing system.</li>
+<li><a class="el" href="../../d5/d83/md_docs_2F1-dungeon-editor-guide.html">F1: Dungeon Editor Guide</a> - Master guide to the dungeon editing system.</li>
 <li><a class="el" href="../../d2/dde/md_docs_2F2-tile16-editor-palette-system.html">F2: Tile16 Editor Palette System</a> - Design of the palette system.</li>
 <li><a class="el" href="../../d9/d85/md_docs_2F3-overworld-loading.html">F3: Overworld Loading</a> - How vanilla and ZSCustomOverworld maps are loaded.</li>
+<li><a class="el" href="../../de/d00/md_docs_2F4-overworld-agent-guide.html">F4: Overworld Agent Guide</a> - AI agent integration for overworld editing.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md991"></a>
-G: GUI Guides</h1>
+<h1><a class="anchor" id="autotoc_md1231"></a>
+G: Graphics &amp; GUI Systems</h1>
 <ul>
 <li><a class="el" href="../../d1/dc6/md_docs_2G1-canvas-guide.html">G1: Canvas System and Automation</a> - The core GUI drawing and interaction system.</li>
+<li><a class="el" href="../../d6/df2/md_docs_2G2-renderer-migration-plan.html">G2: Renderer Migration Plan</a> - Historical plan for renderer refactoring.</li>
+<li><a class="el" href="../../da/dfd/md_docs_2G3-palete-system-overview.html">G3: Palette System Overview</a> - SNES palette system and editor integration.</li>
+<li><a class="el" href="../../d5/dc8/md_docs_2G3-renderer-migration-complete.html">G3: Renderer Migration Complete</a> - Post-migration analysis and results.</li>
+<li><a class="el" href="../../d5/db9/md_docs_2G4-canvas-coordinate-fix.html">G4: Canvas Coordinate Fix</a> - Technical deep-dive on canvas coordinate synchronization bug fix.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md992"></a>
+<h1><a class="anchor" id="autotoc_md1232"></a>
 H: Project Info</h1>
 <ul>
 <li><a class="el" href="../../d6/da7/md_docs_2H1-changelog.html">H1: Changelog</a></li>
 </ul>
-<h1><a class="anchor" id="autotoc_md993"></a>
-I: Roadmap</h1>
+<h1><a class="anchor" id="autotoc_md1233"></a>
+I: Roadmap &amp; Vision</h1>
 <ul>
-<li><a class="el" href="../../d8/d97/md_docs_2I1-roadmap.html">I1: Roadmap</a></li>
+<li><a class="el" href="../../d8/d97/md_docs_2I1-roadmap.html">I1: Roadmap</a> - Current development roadmap and planned releases.</li>
+<li><a class="el" href="../../db/da4/md_docs_2I2-future-improvements.html">I2: Future Improvements</a> - Long-term vision and aspirational features.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md994"></a>
+<h1><a class="anchor" id="autotoc_md1234"></a>
 R: ROM Reference</h1>
 <ul>
 <li><a class="el" href="../../d7/d4f/md_docs_2R1-alttp-rom-reference.html">R1: A Link to the Past ROM Reference</a> - Technical reference for ALTTP ROM structures, graphics, palettes, and compression.</li>
 </ul>
 <hr  />
-<p><em>Last updated: October 2025 - Version 0.3.3 (In Flux)</em> </p>
+<h1><a class="anchor" id="autotoc_md1236"></a>
+Documentation Standards</h1>
+<h2><a class="anchor" id="autotoc_md1237"></a>
+Naming Convention</h2>
+<ul>
+<li><b>A-series</b>: Getting Started &amp; Testing</li>
+<li><b>B-series</b>: Build, Platform &amp; Git Workflow</li>
+<li><b>C-series</b>: CLI Tools (<code>z3ed</code>)</li>
+<li><b>E-series</b>: Development, API &amp; Emulator</li>
+<li><b>F-series</b>: Feature-Specific Technical Docs</li>
+<li><b>G-series</b>: Graphics &amp; GUI Systems</li>
+<li><b>H-series</b>: Project Info (Changelog, etc.)</li>
+<li><b>I-series</b>: Roadmap &amp; Vision</li>
+<li><b>R-series</b>: ROM Technical Reference</li>
+</ul>
+<h2><a class="anchor" id="autotoc_md1238"></a>
+File Naming</h2>
+<ul>
+<li>Use descriptive, kebab-case names</li>
+<li>Prefix with series letter and number (e.g., <code>E4-emulator-development-guide.md</code>)</li>
+<li>Keep filenames concise but clear</li>
+</ul>
+<hr  />
+<p><em>Last updated: October 10, 2025 - Version 0.3.2 (Preparing for Release)</em> </p>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
 </div><!-- doc-content -->

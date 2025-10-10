@@ -139,6 +139,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a36fdb2c997e41edbfa712bb9e7d60db2" id="r_a36fdb2c997e41edbfa712bb9e7d60db2"><td class="memItemLeft" align="right" valign="top">static std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a36fdb2c997e41edbfa712bb9e7d60db2">ToNativePath</a> (const std::filesystem::path &amp;path)</td></tr>
 <tr class="memdesc:a36fdb2c997e41edbfa712bb9e7d60db2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Convert path to native format.  <br /></td></tr>
 <tr class="separator:a36fdb2c997e41edbfa712bb9e7d60db2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84030820b8aad96f5854dc6537bb3c47" id="r_a84030820b8aad96f5854dc6537bb3c47"><td class="memItemLeft" align="right" valign="top">static absl::StatusOr&lt; std::filesystem::path &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a84030820b8aad96f5854dc6537bb3c47">FindAsset</a> (const std::string &amp;relative_path)</td></tr>
+<tr class="memdesc:a84030820b8aad96f5854dc6537bb3c47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find an asset file in multiple standard locations.  <br /></td></tr>
+<tr class="separator:a84030820b8aad96f5854dc6537bb3c47"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Cross-platform utilities for file system paths. </p>
@@ -177,9 +180,9 @@ Static Public Member Functions</h2></td></tr>
 </ul>
 <dl class="section return"><dt>Returns</dt><dd>Path to user's home directory, or "." if not available </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00019">19</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00023">23</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00054">GetAppDataDirectory()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00184">FindAsset()</a>, and <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00073">GetAppDataDirectory()</a>.</p>
 
 </div>
 </div>
@@ -210,16 +213,15 @@ Static Public Member Functions</h2></td></tr>
 <p>This is the standard location for storing user-specific data, settings, and cache files. The directory is created if it doesn't exist.</p>
 <ul>
 <li>Windows: <code>APPDATA%\yaze</code> (e.g., C:\Users\user\AppData\Roaming\yaze)</li>
-<li>macOS: <code>~/Library/Application Support/yaze</code></li>
-<li>Linux: <code>$XDG_CONFIG_HOME/yaze</code> or <code>~/.config/yaze</code></li>
+<li>macOS/Unix: <code>~/.yaze</code></li>
 </ul>
 <dl class="section return"><dt>Returns</dt><dd>StatusOr with path to the application data directory. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00054">54</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00073">73</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00121">EnsureDirectoryExists()</a>, and <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00019">GetHomeDirectory()</a>.</p>
+<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00128">EnsureDirectoryExists()</a>, and <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00023">GetHomeDirectory()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00104">GetAppDataSubdirectory()</a>, and <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00098">GetConfigDirectory()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00111">GetAppDataSubdirectory()</a>, and <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00105">GetConfigDirectory()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -261,17 +263,16 @@ Here is the call graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Get the user-specific configuration directory for YAZE. </p>
-<p>This is the standard location for storing user configuration files. It often maps to the same location as GetAppDataDirectory but provides a more semantically correct API for config files. The directory is created if it doesn't exist.</p>
+<p>This is the standard location for storing user configuration files. The directory is created if it doesn't exist.</p>
 <ul>
 <li>Windows: <code>APPDATA%\yaze</code></li>
-<li>macOS: <code>~/Library/Application Support/yaze</code></li>
-<li>Linux: <code>$XDG_CONFIG_HOME/yaze</code> or <code>~/.config/yaze</code></li>
+<li>macOS/Unix: <code>~/.yaze</code></li>
 </ul>
 <dl class="section return"><dt>Returns</dt><dd>StatusOr with path to the configuration directory. </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00098">98</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00105">105</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00054">GetAppDataDirectory()</a>.</p>
+<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00073">GetAppDataDirectory()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../db/d6c/app_2core_2project_8cc_source.html#l01061">yaze::core::RecentFilesManager::GetFilePath()</a>, <a class="el" href="../../d5/d8c/agent__editor_8cc_source.html#l01241">yaze::editor::AgentEditor::GetProfilesDirectory()</a>, <a class="el" href="../../dd/d4c/theme__manager_8cc_source.html#l01909">yaze::gui::ThemeManager::GetThemeSearchPaths()</a>, <a class="el" href="../../d1/d2b/file__util_8cc_source.html#l00038">yaze::util::LoadFileFromConfigDir()</a>, <a class="el" href="../../d5/d7e/workspace__manager_8cc_source.html#l00075">yaze::editor::WorkspaceManager::RefreshPresets()</a>, <a class="el" href="../../d5/dde/editor_2agent_2agent__chat__widget_8cc_source.html#l00060">anonymous_namespace{agent_chat_widget.cc}::ResolveHistoryPath()</a>, <a class="el" href="../../db/d6c/app_2core_2project_8cc_source.html#l01069">yaze::core::RecentFilesManager::Save()</a>, <a class="el" href="../../d1/d2b/file__util_8cc_source.html#l00056">yaze::util::SaveFile()</a>, <a class="el" href="../../d0/daa/agent__collaboration__coordinator_8cc_source.html#l00265">yaze::editor::AgentCollaborationCoordinator::SessionsDirectory()</a>, and <a class="el" href="../../dd/dc5/user__settings_8cc_source.html#l00016">yaze::editor::UserSettings::UserSettings()</a>.</p>
 <div class="dynheader">
@@ -325,9 +326,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>StatusOr with path to subdirectory </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00104">104</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00111">111</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00121">EnsureDirectoryExists()</a>, and <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00054">GetAppDataDirectory()</a>.</p>
+<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00128">EnsureDirectoryExists()</a>, and <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00073">GetAppDataDirectory()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../de/dd1/learned__knowledge__service_8cc_source.html#l00037">yaze::cli::agent::LearnedKnowledgeService::LearnedKnowledgeService()</a>, and <a class="el" href="../../d9/dde/todo__manager_8cc_source.html#l00053">yaze::cli::agent::TodoManager::TodoManager()</a>.</p>
 <div class="dynheader">
@@ -384,11 +385,11 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>OK if directory exists or was created successfully </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00121">121</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00128">128</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00139">Exists()</a>.</p>
+<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00146">Exists()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00054">GetAppDataDirectory()</a>, <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00104">GetAppDataSubdirectory()</a>, <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00145">GetTempDirectory()</a>, <a class="el" href="../../de/dd1/learned__knowledge__service_8cc_source.html#l00061">yaze::cli::agent::LearnedKnowledgeService::Initialize()</a>, and <a class="el" href="../../d9/dde/todo__manager_8cc_source.html#l00067">yaze::cli::agent::TodoManager::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00073">GetAppDataDirectory()</a>, <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00111">GetAppDataSubdirectory()</a>, <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00152">GetTempDirectory()</a>, <a class="el" href="../../de/dd1/learned__knowledge__service_8cc_source.html#l00061">yaze::cli::agent::LearnedKnowledgeService::Initialize()</a>, and <a class="el" href="../../d9/dde/todo__manager_8cc_source.html#l00067">yaze::cli::agent::TodoManager::Initialize()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -435,9 +436,9 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>true if exists, false otherwise </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00139">139</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00146">146</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00121">EnsureDirectoryExists()</a>, <a class="el" href="../../de/dd1/learned__knowledge__service_8cc_source.html#l00031">yaze::cli::agent::anonymous_namespace{learned_knowledge_service.cc}::FileExists()</a>, and <a class="el" href="../../d9/dde/todo__manager_8cc_source.html#l00067">yaze::cli::agent::TodoManager::Initialize()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00128">EnsureDirectoryExists()</a>, <a class="el" href="../../de/dd1/learned__knowledge__service_8cc_source.html#l00031">yaze::cli::agent::anonymous_namespace{learned_knowledge_service.cc}::FileExists()</a>, and <a class="el" href="../../d9/dde/todo__manager_8cc_source.html#l00067">yaze::cli::agent::TodoManager::Initialize()</a>.</p>
 
 </div>
 </div>
@@ -471,9 +472,9 @@ Here is the call graph for this function:</div>
 </ul>
 <dl class="section return"><dt>Returns</dt><dd>StatusOr with path to temp directory </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00145">145</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00152">152</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00121">EnsureDirectoryExists()</a>.</p>
+<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00128">EnsureDirectoryExists()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -523,7 +524,7 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Normalized path string </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00164">164</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00171">171</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
 
 </div>
 </div>
@@ -561,7 +562,67 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Native path string </dd></dl>
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00172">172</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00179">179</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
+
+</div>
+</div>
+<a id="a84030820b8aad96f5854dc6537bb3c47" name="a84030820b8aad96f5854dc6537bb3c47"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a84030820b8aad96f5854dc6537bb3c47">&#9670;&#160;</a></span>FindAsset()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">absl::StatusOr&lt; std::filesystem::path &gt; yaze::util::PlatformPaths::FindAsset </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>relative_path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Find an asset file in multiple standard locations. </p>
+<p>Searches for an asset file in the following order:</p><ol type="1">
+<li>YAZE_ASSETS_PATH (if defined at compile time) + relative_path</li>
+<li>Current working directory + assets/ + relative_path <br  />
+</li>
+<li>Executable directory + assets/ + relative_path</li>
+<li>Parent directory + assets/ + relative_path</li>
+<li>~/.yaze/assets/ + relative_path (user-installed assets)</li>
+<li>/usr/local/share/yaze/assets/ + relative_path (system-wide on Unix)</li>
+</ol>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">relative_path</td><td>Path relative to assets directory (e.g., "agent/prompt_catalogue.yaml") </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>StatusOr with absolute path to found asset file </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00184">184</a> of file <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html">platform_paths.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d6/d7d/platform__paths_8cc_source.html#l00023">GetHomeDirectory()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00511">yaze::cli::PromptBuilder::BuildConstraintsSection()</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00136">yaze::cli::GeminiAIService::BuildFunctionCallSchemas()</a>, <a class="el" href="../../df/df3/gemini__ai__service_8cc_source.html#l00045">yaze::cli::GeminiAIService::GeminiAIService()</a>, and <a class="el" href="../../d0/d53/prompt__builder_8cc_source.html#l00078">yaze::cli::PromptBuilder::ResolveCataloguePath()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../db/dd8/classyaze_1_1util_1_1PlatformPaths_a84030820b8aad96f5854dc6537bb3c47_cgraph.png" border="0" usemap="#adb/dd8/classyaze_1_1util_1_1PlatformPaths_a84030820b8aad96f5854dc6537bb3c47_cgraph" alt=""/></div>
+<map name="adb/dd8/classyaze_1_1util_1_1PlatformPaths_a84030820b8aad96f5854dc6537bb3c47_cgraph" id="adb/dd8/classyaze_1_1util_1_1PlatformPaths_a84030820b8aad96f5854dc6537bb3c47_cgraph">
+<area shape="rect" title="Find an asset file in multiple standard locations." alt="" coords="5,5,165,46"/>
+<area shape="rect" href="../../db/dd8/classyaze_1_1util_1_1PlatformPaths.html#acd219cd2ca12de71da89694e5ad97d0e" title="Get the user&#39;s home directory in a cross&#45;platform way." alt="" coords="213,5,372,46"/>
+<area shape="poly" title=" " alt="" coords="165,23,197,23,197,28,165,28"/>
+</map>
+</div>
 
 </div>
 </div>

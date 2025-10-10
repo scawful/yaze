@@ -1,0 +1,13 @@
+<map id="yaze::emu::Spc700::Step" name="yaze::emu::Spc700::Step">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,59,167,84"/>
+<area shape="rect" id="Node000002" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#af04b816a9c301cbd6f79ad3c1f66804d" title=" " alt="" coords="215,51,350,92"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,69,199,69,199,74,167,74"/>
+<area shape="rect" id="Node000010" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#a1443b78b63f602f2b6874be4c39fe869" title=" " alt="" coords="398,5,557,31"/>
+<area shape="poly" id="edge5_Node000001_Node000010" title=" " alt="" coords="132,56,214,37,300,26,382,19,383,25,301,31,215,42,134,61"/>
+<area shape="rect" id="Node000005" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#af670db1f76ee0dfd845cf49f1d63d907" title=" " alt="" coords="411,109,545,149"/>
+<area shape="poly" id="edge6_Node000001_Node000005" title=" " alt="" coords="134,82,215,101,308,114,395,121,395,127,308,119,214,106,133,87"/>
+<area shape="rect" id="Node000003" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#af5d426d6a9e9e90a29c475b5fe487330" title=" " alt="" coords="400,59,555,84"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="351,69,384,69,384,74,351,74"/>
+<area shape="poly" id="edge3_Node000002_Node000010" title=" " alt="" coords="350,50,413,33,414,38,351,56"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="351,89,397,102,395,107,350,94"/>
+</map>

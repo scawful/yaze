@@ -1,5 +1,7 @@
 <map id="yaze::emu::Spc700::RET" name="yaze::emu::Spc700::RET">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,165,31"/>
-<area shape="rect" id="Node000002" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#a1443b78b63f602f2b6874be4c39fe869" title=" " alt="" coords="213,5,372,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,16,197,16,197,21,165,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,165,39"/>
+<area shape="rect" id="Node000002" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#a1432451833eb544f48add4d280397ac8" title=" " alt="" coords="213,5,347,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="165,23,197,23,197,28,165,28"/>
+<area shape="rect" id="Node000003" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#aeb42192c0d5a149ebb94d394212f33f9" title=" " alt="" coords="395,5,529,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="348,23,380,23,380,28,348,28"/>
 </map>

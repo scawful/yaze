@@ -124,6 +124,8 @@ Include dependency graph for flags.cc:</div>
 Functions</h2></td></tr>
 <tr class="memitem:a91812729dacce6b1853f0e70048b936c" id="r_a91812729dacce6b1853f0e70048b936c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d54/flags_8cc.html#a91812729dacce6b1853f0e70048b936c">ABSL_FLAG</a> (std::string, rom, &quot;&quot;, &quot;Path to the ROM file&quot;)</td></tr>
 <tr class="separator:a91812729dacce6b1853f0e70048b936c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd79096389fb2367e8f69d5dbae4bc38" id="r_afd79096389fb2367e8f69d5dbae4bc38"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d54/flags_8cc.html#afd79096389fb2367e8f69d5dbae4bc38">ABSL_FLAG</a> (bool, mock_rom, false, &quot;Use mock ROM mode for testing without requiring an actual ROM file. &quot; &quot;Loads all Zelda3 embedded labels but no actual ROM data.&quot;)</td></tr>
+<tr class="separator:afd79096389fb2367e8f69d5dbae4bc38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb90e2e657dfb9e765f3fb82b9f3ec3b" id="r_acb90e2e657dfb9e765f3fb82b9f3ec3b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d54/flags_8cc.html#acb90e2e657dfb9e765f3fb82b9f3ec3b">ABSL_FLAG</a> (std::string, ai_provider, &quot;auto&quot;, &quot;AI provider to use: 'auto' (try gemini→ollama→mock), 'gemini', 'ollama', or 'mock'&quot;)</td></tr>
 <tr class="separator:acb90e2e657dfb9e765f3fb82b9f3ec3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab9fbebedc6687ed5eb887d7419dc1774" id="r_ab9fbebedc6687ed5eb887d7419dc1774"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d5/d54/flags_8cc.html#ab9fbebedc6687ed5eb887d7419dc1774">ABSL_FLAG</a> (std::string, ai_model, &quot;&quot;, &quot;AI model to use (provider-specific, e.g., 'llama3' for Ollama, &quot; &quot;'gemini-1.5-flash' for Gemini)&quot;)</td></tr>
@@ -139,7 +141,7 @@ Functions</h2></td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="a91812729dacce6b1853f0e70048b936c" name="a91812729dacce6b1853f0e70048b936c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91812729dacce6b1853f0e70048b936c">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[1/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a91812729dacce6b1853f0e70048b936c">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[1/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -178,8 +180,48 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="afd79096389fb2367e8f69d5dbae4bc38" name="afd79096389fb2367e8f69d5dbae4bc38"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd79096389fb2367e8f69d5dbae4bc38">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[2/8]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">mock_rom&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">false&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&quot;Use mock ROM mode for testing without requiring an actual ROM file. &quot; &quot;Loads all Zelda3 embedded labels but no actual ROM data.&quot;&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="acb90e2e657dfb9e765f3fb82b9f3ec3b" name="acb90e2e657dfb9e765f3fb82b9f3ec3b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acb90e2e657dfb9e765f3fb82b9f3ec3b">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[2/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#acb90e2e657dfb9e765f3fb82b9f3ec3b">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[3/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -237,7 +279,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="ab9fbebedc6687ed5eb887d7419dc1774" name="ab9fbebedc6687ed5eb887d7419dc1774"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab9fbebedc6687ed5eb887d7419dc1774">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[3/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab9fbebedc6687ed5eb887d7419dc1774">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[4/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -277,7 +319,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="ab4114b3da440bec2ad5c0789c7913261" name="ab4114b3da440bec2ad5c0789c7913261"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab4114b3da440bec2ad5c0789c7913261">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[4/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab4114b3da440bec2ad5c0789c7913261">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[5/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -317,7 +359,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="a8c111c3fb875f7c4cbc7d5c0166242b0" name="a8c111c3fb875f7c4cbc7d5c0166242b0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8c111c3fb875f7c4cbc7d5c0166242b0">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[5/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c111c3fb875f7c4cbc7d5c0166242b0">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[6/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -357,7 +399,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="a960f14794d18953cd3a0b5c3a7b8e81e" name="a960f14794d18953cd3a0b5c3a7b8e81e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a960f14794d18953cd3a0b5c3a7b8e81e">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[6/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a960f14794d18953cd3a0b5c3a7b8e81e">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[7/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -397,7 +439,7 @@ Functions</h2></td></tr>
 </div>
 </div>
 <a id="ab997efc72ebdf74a70663ef011f0d5f9" name="ab997efc72ebdf74a70663ef011f0d5f9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab997efc72ebdf74a70663ef011f0d5f9">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[7/7]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab997efc72ebdf74a70663ef011f0d5f9">&#9670;&#160;</a></span>ABSL_FLAG() <span class="overload">[8/8]</span></h2>
 
 <div class="memitem">
 <div class="memproto">

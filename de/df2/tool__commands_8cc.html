@@ -127,6 +127,7 @@ $(document).ready(function(){initNavTree('de/df2/tool__commands_8cc.html','../..
 <code>#include &quot;<a class="el" href="../../d9/dc0/room_8h_source.html">app/zelda3/dungeon/room.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d7/d9c/overworld_8h_source.html">app/zelda3/overworld/overworld.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d2/d0d/message_8h_source.html">cli/handlers/message.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d7/d40/src_2cli_2handlers_2mock__rom_8h_source.html">cli/handlers/mock_rom.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../df/d12/overworld__inspect_8h_source.html">cli/handlers/overworld_inspect.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../d5/d28/resource__context__builder_8h_source.html">cli/service/resources/resource_context_builder.h</a>&quot;</code><br />
 <code>#include &quot;nlohmann/json.hpp&quot;</code><br />
@@ -151,6 +152,8 @@ Namespaces</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:aa9c3df97146a4533c1c78f5ac7c9e36e" id="r_aa9c3df97146a4533c1c78f5ac7c9e36e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/df2/tool__commands_8cc.html#aa9c3df97146a4533c1c78f5ac7c9e36e">ABSL_DECLARE_FLAG</a> (std::string, rom)</td></tr>
 <tr class="separator:aa9c3df97146a4533c1c78f5ac7c9e36e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7209bde2678bba5f11db665ae5933e29" id="r_a7209bde2678bba5f11db665ae5933e29"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/df2/tool__commands_8cc.html#a7209bde2678bba5f11db665ae5933e29">ABSL_DECLARE_FLAG</a> (bool, mock_rom)</td></tr>
+<tr class="separator:a7209bde2678bba5f11db665ae5933e29"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aacabbc0ab80e144c2a381ebad5dbf938" id="r_aacabbc0ab80e144c2a381ebad5dbf938"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html#aacabbc0ab80e144c2a381ebad5dbf938">yaze::cli::agent::anonymous_namespace{tool_commands.cc}::LoadRomFromFlag</a> ()</td></tr>
 <tr class="separator:aacabbc0ab80e144c2a381ebad5dbf938"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abfae29bd727b8759e06d2e7a728e72a8" id="r_abfae29bd727b8759e06d2e7a728e72a8"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d85/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__commands_8cc_03.html#abfae29bd727b8759e06d2e7a728e72a8">yaze::cli::agent::anonymous_namespace{tool_commands.cc}::LoadRomFromPathOrFlag</a> (const std::optional&lt; std::string &gt; &amp;override_path)</td></tr>
@@ -184,7 +187,7 @@ Functions</h2></td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
 <a id="aa9c3df97146a4533c1c78f5ac7c9e36e" name="aa9c3df97146a4533c1c78f5ac7c9e36e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa9c3df97146a4533c1c78f5ac7c9e36e">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9c3df97146a4533c1c78f5ac7c9e36e">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -199,6 +202,34 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">rom&#160;</td>
+          <td class="paramname">&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7209bde2678bba5f11db665ae5933e29" name="a7209bde2678bba5f11db665ae5933e29"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7209bde2678bba5f11db665ae5933e29">&#9670;&#160;</a></span>ABSL_DECLARE_FLAG() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">ABSL_DECLARE_FLAG </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname">, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">mock_rom&#160;</td>
           <td class="paramname">&#160;</td>
         </tr>
         <tr>

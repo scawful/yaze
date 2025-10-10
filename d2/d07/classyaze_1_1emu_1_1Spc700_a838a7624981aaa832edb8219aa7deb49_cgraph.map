@@ -1,5 +1,12 @@
 <map id="yaze::emu::Spc700::BRK" name="yaze::emu::Spc700::BRK">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,13,167,39"/>
-<area shape="rect" id="Node000002" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#a8b3ff8197f0bbaec2b26c75c3f7fb104" title=" " alt="" coords="215,5,349,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,23,199,23,199,28,167,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,100,167,125"/>
+<area shape="rect" id="Node000002" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#a6ba480f69b668f222134b5dd71f619a3" title=" " alt="" coords="215,5,349,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,97,219,50,221,55,118,101"/>
+<area shape="rect" id="Node000003" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#a630e46c8db7bb40c5c36839b7e69a70e" title=" " alt="" coords="397,92,531,133"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,107,215,106,349,106,381,106,381,112,349,111,215,111,167,112"/>
+<area shape="rect" id="Node000004" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#aac7d4138e5a1aca39518c42140850467" title=" " alt="" coords="215,120,349,161"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="167,121,200,126,199,131,167,127"/>
+<area shape="rect" id="Node000005" href="$d2/d07/classyaze_1_1emu_1_1Spc700.html#abde3ced3bd179f5dd6f768b12a74e64b" title=" " alt="" coords="215,185,349,226"/>
+<area shape="poly" id="edge5_Node000001_Node000005" title=" " alt="" coords="116,123,225,176,222,181,114,128"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="349,127,381,122,382,128,350,133"/>
 </map>

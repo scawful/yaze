@@ -1,11 +1,9 @@
 var searchData=
 [
-  ['palette_20system_0',['Tile16 Editor Palette System',['../d2/dde/md_docs_2F2-tile16-editor-palette-system.html',1,'']]],
-  ['palette_20system_20overview_1',['SNES Palette System Overview',['../da/dfd/md_docs_2G3-palete-system-overview.html',1,'']]],
-  ['past_20rom_20reference_2',['A Link to the Past ROM Reference',['../d7/d4f/md_docs_2R1-alttp-rom-reference.html',1,'']]],
-  ['plan_3',['plan',['../d4/db6/md_docs_2APU__Timing__Fix__Plan.html',1,'APU Timing and Handshake Bug Analysis &amp; Refactoring Plan'],['../d6/df2/md_docs_2G2-renderer-migration-plan.html',1,'SDL2 to SDL3 Migration and Rendering Abstraction Plan']]],
-  ['platform_20compatibility_20ci_20cd_20fixes_4',['Platform Compatibility &amp; CI/CD Fixes',['../d1/d30/md_docs_2B2-platform-compatibility.html',1,'']]],
-  ['powered_20cli_20for_20yaze_5',['z3ed: AI-Powered CLI for YAZE',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html',1,'']]],
-  ['powered_20overworld_20editing_6',['Overworld Agent Guide - AI-Powered Overworld Editing',['../de/d00/md_docs_2F4-overworld-agent-guide.html',1,'']]],
-  ['presets_20guide_7',['Build Presets Guide',['../d7/d51/md_docs_2B3-build-presets.html',1,'']]]
+  ['reference_0',['reference',['../d7/d4f/md_docs_2R1-alttp-rom-reference.html',1,'A Link to the Past ROM Reference'],['../d8/d73/md_docs_2E3-api-reference.html',1,'API Reference']]],
+  ['renderer_20migration_20complete_20documentation_1',['Graphics Renderer Migration - Complete Documentation',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html',1,'']]],
+  ['rendering_20abstraction_20plan_2',['SDL2 to SDL3 Migration and Rendering Abstraction Plan',['../d6/df2/md_docs_2G2-renderer-migration-plan.html',1,'']]],
+  ['roadmap_3',['roadmap',['../d3/d49/md_docs_2E6-emulator-improvements.html',1,'Emulator Core Improvements Roadmap'],['../d8/d97/md_docs_2I1-roadmap.html',1,'Roadmap'],['../df/d0c/md_docs_2E8-emulator-debugging-vision.html',1,'YAZE Emulator Enhancement Roadmap']]],
+  ['rom_20files_4',['Testing z3ed Without ROM Files',['../d7/d43/md_docs_2C2-testing-without-roms.html',1,'']]],
+  ['rom_20reference_5',['A Link to the Past ROM Reference',['../d7/d4f/md_docs_2R1-alttp-rom-reference.html',1,'']]]
 ];

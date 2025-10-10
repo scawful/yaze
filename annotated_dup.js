@@ -300,6 +300,9 @@ var annotated_dup =
           [ "NullInputBackend", "d2/d2c/classyaze_1_1emu_1_1input_1_1NullInputBackend.html", "d2/d2c/classyaze_1_1emu_1_1input_1_1NullInputBackend" ],
           [ "SDL2InputBackend", "df/dd3/classyaze_1_1emu_1_1input_1_1SDL2InputBackend.html", "df/dd3/classyaze_1_1emu_1_1input_1_1SDL2InputBackend" ]
         ] ],
+        [ "test", "d1/da8/namespaceyaze_1_1emu_1_1test.html", [
+          [ "HeadlessEmulator", "d4/dd7/classyaze_1_1emu_1_1test_1_1HeadlessEmulator.html", "d4/dd7/classyaze_1_1emu_1_1test_1_1HeadlessEmulator" ]
+        ] ],
         [ "Apu", "d7/da7/classyaze_1_1emu_1_1Apu.html", "d7/da7/classyaze_1_1emu_1_1Apu" ],
         [ "ApuCallbacks", "df/d64/structyaze_1_1emu_1_1ApuCallbacks.html", "df/d64/structyaze_1_1emu_1_1ApuCallbacks" ],
         [ "ApuDspTest", "d2/d3e/classyaze_1_1emu_1_1ApuDspTest.html", "d2/d3e/classyaze_1_1emu_1_1ApuDspTest" ],

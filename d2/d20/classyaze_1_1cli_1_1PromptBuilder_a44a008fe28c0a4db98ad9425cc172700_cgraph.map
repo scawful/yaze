@@ -1,7 +1,11 @@
 <map id="yaze::cli::PromptBuilder::BuildConstraintsSection" name="yaze::cli::PromptBuilder::BuildConstraintsSection">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,172,79"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,172,111"/>
 <area shape="rect" id="Node000002" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a7718de59543f0e50f3e2fc369afc90d6" title=" " alt="" coords="220,5,403,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="171,44,204,39,204,44,172,49"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,68,224,48,225,54,161,73"/>
 <area shape="rect" id="Node000003" href="$d2/d20/classyaze_1_1cli_1_1PromptBuilder.html#a44d1cdf04696b80832fc383c45b89d80" title=" " alt="" coords="221,71,402,111"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="172,68,206,73,205,78,171,74"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="172,88,205,88,205,94,172,94"/>
+<area shape="rect" id="Node000004" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#a84030820b8aad96f5854dc6537bb3c47" title="Find an asset file in multiple standard locations." alt="" coords="232,136,391,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="161,109,225,128,224,134,159,114"/>
+<area shape="rect" id="Node000005" href="$db/dd8/classyaze_1_1util_1_1PlatformPaths.html#acd219cd2ca12de71da89694e5ad97d0e" title="Get the user&#39;s home directory in a cross&#45;platform way." alt="" coords="451,136,610,177"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="392,154,435,154,435,159,392,159"/>
 </map>
