@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('d0/d63/md_docs_2Emulator__Improvements
   <div class="headertitle"><div class="title">Emulator Core Improvements &amp; Optimization Roadmap</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md683"></a> </p>
-<h1><a class="anchor" id="autotoc_md684"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md559"></a> </p>
+<h1><a class="anchor" id="autotoc_md560"></a>
 1. Introduction</h1>
 <p>This document outlines potential long-term improvements, refactors, and optimizations for the <code>yaze</code> emulator core. These suggestions aim to enhance accuracy, performance, and code maintainability.</p>
 <p>For a detailed analysis of the critical, high-priority bug affecting audio, please first refer to the separate document:</p>
@@ -110,7 +110,7 @@ $(document).ready(function(){initNavTree('d0/d63/md_docs_2Emulator__Improvements
 <li><b><a class="el" href="../../d4/db6/md_docs_2APU__Timing__Fix__Plan.html">APU Timing and Handshake Bug Analysis &amp; Refactoring Plan</a></b></li>
 </ul>
 <p>The items below are presented in order of descending priority, from critical accuracy fixes to quality-of-life code improvements.</p>
-<h1><a class="anchor" id="autotoc_md685"></a>
+<h1><a class="anchor" id="autotoc_md561"></a>
 2. Core Architecture &amp; Timing Model (High Priority)</h1>
 <p>The most significant improvements relate to the fundamental emulation loop and cycle timing, which are the root cause of the current audio bug and affect overall system stability.</p>
 <ul>
@@ -125,7 +125,7 @@ $(document).ready(function(){initNavTree('d0/d63/md_docs_2Emulator__Improvements
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md686"></a>
+<h1><a class="anchor" id="autotoc_md562"></a>
 3. PPU (Video Rendering) Performance</h1>
 <p>The Picture Processing Unit (PPU) is often a performance bottleneck. The following change could provide a significant speed boost.</p>
 <ul>
@@ -135,7 +135,7 @@ $(document).ready(function(){initNavTree('d0/d63/md_docs_2Emulator__Improvements
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md687"></a>
+<h1><a class="anchor" id="autotoc_md563"></a>
 4. APU (Audio) Code Quality &amp; Refinements</h1>
 <p>Beyond the critical timing fixes, the APU core would benefit from modernization.</p>
 <ul>
@@ -145,7 +145,7 @@ $(document).ready(function(){initNavTree('d0/d63/md_docs_2Emulator__Improvements
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md688"></a>
+<h1><a class="anchor" id="autotoc_md564"></a>
 5. Audio Subsystem &amp; Buffering</h1>
 <p>To ensure smooth, stutter-free audio, the interface between the emulator and the host audio API can be improved.</p>
 <ul>
@@ -155,7 +155,7 @@ $(document).ready(function(){initNavTree('d0/d63/md_docs_2Emulator__Improvements
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md689"></a>
+<h1><a class="anchor" id="autotoc_md565"></a>
 6. Debugger &amp; Tooling Optimizations (Lower Priority)</h1>
 <p>These are minor optimizations that would improve the performance of the debugging tools, especially under heavy use.</p>
 <ul>

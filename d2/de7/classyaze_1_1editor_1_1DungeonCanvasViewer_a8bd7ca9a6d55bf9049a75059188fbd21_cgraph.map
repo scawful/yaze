@@ -1,0 +1,7 @@
+<map id="yaze::editor::DungeonCanvasViewer::DrawRoomLayout" name="yaze::editor::DungeonCanvasViewer::DrawRoomLayout">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,192,79"/>
+<area shape="rect" id="Node000002" href="$d9/d70/classyaze_1_1zelda3_1_1RoomLayout.html#a22cec45141ca9bfdae1e7a526c9444fa" title=" " alt="" coords="240,5,409,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,43,224,38,224,43,192,48"/>
+<area shape="rect" id="Node000003" href="$d7/df6/classyaze_1_1zelda3_1_1Room.html#a9d6ac4e9bd59eed51ae0a8581c27706c" title=" " alt="" coords="259,71,390,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,70,244,77,243,82,192,75"/>
+</map>

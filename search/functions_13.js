@@ -96,7 +96,7 @@ var searchData=
   ['trypackrect_93',['TryPackRect',['../de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#ac93c37d5766f6500fdab13e5032c0a02',1,'yaze::gfx::TextureAtlas']]],
   ['tryparsebyte_94',['TryParseByte',['../da/dbc/classyaze_1_1emu_1_1AsmParser.html#a6ebefb8ac2822d8030c691b1a3ce2402',1,'yaze::emu::AsmParser']]],
   ['tryparsehex_95',['TryParseHex',['../da/dbc/classyaze_1_1emu_1_1AsmParser.html#a2dc4cfff44721a57acc183a7e122a9b0',1,'yaze::emu::AsmParser']]],
-  ['tsb_96',['tsb',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a7d149e83459d55b4519e0d7fa765b3ed',1,'yaze::emu::Cpu::Tsb(uint32_t low, uint32_t high)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a91fa3f2a2be7dd1b784e967ad421d1dd',1,'yaze::emu::Cpu::TSB(uint16_t address)']]],
+  ['tsb_96',['tsb',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a91fa3f2a2be7dd1b784e967ad421d1dd',1,'yaze::emu::Cpu::TSB(uint16_t address)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a7d149e83459d55b4519e0d7fa765b3ed',1,'yaze::emu::Cpu::Tsb(uint32_t low, uint32_t high)']]],
   ['tsc_97',['TSC',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#ae5c9c3ccec7248fe82b9e261d0aab84a',1,'yaze::emu::Cpu']]],
   ['tset1_98',['TSET1',['../d2/d07/classyaze_1_1emu_1_1Spc700.html#aec933e6fee8a8562c97a0bb1ede87ea7',1,'yaze::emu::Spc700']]],
   ['tsx_99',['TSX',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#aa9e52ad4678a5e0ed74f0602fa105f2c',1,'yaze::emu::Cpu']]],

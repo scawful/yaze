@@ -101,8 +101,8 @@ $(document).ready(function(){initNavTree('d6/df2/md_docs_2G2-renderer-migration-
   <div class="headertitle"><div class="title">SDL2 to SDL3 Migration and Rendering Abstraction Plan</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md872"></a> </p>
-<h1><a class="anchor" id="autotoc_md873"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md830"></a> </p>
+<h1><a class="anchor" id="autotoc_md831"></a>
 1. Introduction</h1>
 <p>This document outlines a strategic plan to refactor the rendering architecture of the <code>yaze</code> application. The primary goals are:</p>
 <ol type="1">
@@ -110,7 +110,7 @@ $(document).ready(function(){initNavTree('d6/df2/md_docs_2G2-renderer-migration-
 <li><b>Create a clear and straightforward path for migrating to SDL3.</b></li>
 <li><b>Enable support for multiple rendering backends</b> (e.g., OpenGL, Metal, DirectX) to improve cross-platform performance and leverage modern graphics APIs.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md874"></a>
+<h1><a class="anchor" id="autotoc_md832"></a>
 2. Current State Analysis</h1>
 <p>The current architecture exhibits tight coupling with the SDL2 rendering API.</p>
 <ul>
@@ -119,10 +119,10 @@ $(document).ready(function(){initNavTree('d6/df2/md_docs_2G2-renderer-migration-
 <li><b>Dual Rendering Pipelines:</b> The main application (<code><a class="el" href="../../df/d84/yaze_8cc.html">yaze.cc</a></code>, <code><a class="el" href="../../d2/dcf/app__delegate_8mm.html">app_delegate.mm</a></code>) and the standalone emulator (<code><a class="el" href="../../d8/d5b/emu_8cc.html">app/emu/emu.cc</a></code>) both perform their own separate, direct SDL initialization and rendering loops. This code duplication makes maintenance and migration efforts more complex.</li>
 </ul>
 <p>This tight coupling makes it brittle, difficult to maintain, and nearly impossible to adapt to newer rendering APIs like SDL3 or other backends without a major, project-wide rewrite.</p>
-<h1><a class="anchor" id="autotoc_md875"></a>
+<h1><a class="anchor" id="autotoc_md833"></a>
 3. Proposed Architecture: The &lt;tt&gt;Renderer&lt;/tt&gt; Abstraction</h1>
 <p>The core of this plan is to introduce a <code>Renderer</code> interface (an abstract base class) that defines a set of rendering primitives. The application will be refactored to program against this interface, not a concrete SDL2 implementation.</p>
-<h2><a class="anchor" id="autotoc_md876"></a>
+<h2><a class="anchor" id="autotoc_md834"></a>
 3.1. The &lt;tt&gt;IRenderer&lt;/tt&gt; Interface</h2>
 <p>A new interface, <code>IRenderer</code>, will be created. It will define the contract for all rendering operations.</p>
 <p><b>File:</b> <code>src/app/gfx/irenderer.h</code></p>
@@ -185,7 +185,7 @@ $(document).ready(function(){initNavTree('d6/df2/md_docs_2G2-renderer-migration-
 <div class="ttc" id="aclassyaze_1_1gfx_1_1IRenderer_html_aede7fef874a2970c2e365c660f701b78"><div class="ttname"><a href="../../d0/dca/classyaze_1_1gfx_1_1IRenderer.html#aede7fef874a2970c2e365c660f701b78">yaze::gfx::IRenderer::SetRenderTarget</a></div><div class="ttdeci">virtual void SetRenderTarget(TextureHandle texture)=0</div><div class="ttdoc">Sets the render target for subsequent drawing operations.</div></div>
 <div class="ttc" id="anamespaceyaze_1_1gfx_html_a64ee784c94d274a56a4a536b6a0cf41a"><div class="ttname"><a href="../../d0/d27/namespaceyaze_1_1gfx.html#a64ee784c94d274a56a4a536b6a0cf41a">yaze::gfx::TextureHandle</a></div><div class="ttdeci">void * TextureHandle</div><div class="ttdoc">An abstract handle representing a texture.</div><div class="ttdef"><b>Definition</b> <a href="../../df/d18/irenderer_8h_source.html#l00024">irenderer.h:24</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md877"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md835"></a>
 3.2. The &lt;tt&gt;SDL2Renderer&lt;/tt&gt; Implementation</h2>
 <p>A concrete class, <code>SDL2Renderer</code>, will be the first implementation of the <code>IRenderer</code> interface. It will encapsulate all the existing SDL2-specific rendering logic.</p>
 <p><b>File:</b> <code>src/app/gfx/sdl2_renderer.h</code> &amp; <code>src/app/gfx/sdl2_renderer.cc</code></p>
@@ -237,10 +237,10 @@ $(document).ready(function(){initNavTree('d6/df2/md_docs_2G2-renderer-migration-
 <div class="ttc" id="aclassyaze_1_1gfx_1_1SDL2Renderer_html_aee79e8a635bebffcfd82a3a8bef52fee"><div class="ttname"><a href="../../d9/dfe/classyaze_1_1gfx_1_1SDL2Renderer.html#aee79e8a635bebffcfd82a3a8bef52fee">yaze::gfx::SDL2Renderer::Shutdown</a></div><div class="ttdeci">void Shutdown() override</div><div class="ttdoc">Shuts down the renderer. The underlying SDL_Renderer is managed by a unique_ptr, so its destruction i...</div><div class="ttdef"><b>Definition</b> <a href="../../d0/dac/sdl2__renderer_8cc_source.html#l00038">sdl2_renderer.cc:38</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1SDL2Renderer_html_afda73b515b45619cee74930b5ee058bf"><div class="ttname"><a href="../../d9/dfe/classyaze_1_1gfx_1_1SDL2Renderer.html#afda73b515b45619cee74930b5ee058bf">yaze::gfx::SDL2Renderer::RenderCopy</a></div><div class="ttdeci">void RenderCopy(TextureHandle texture, const SDL_Rect *srcrect, const SDL_Rect *dstrect) override</div><div class="ttdoc">Copies a texture to the render target.</div><div class="ttdef"><b>Definition</b> <a href="../../d0/dac/sdl2__renderer_8cc_source.html#l00126">sdl2_renderer.cc:126</a></div></div>
 <div class="ttc" id="asdl__deleter_8h_html"><div class="ttname"><a href="../../d5/dd7/sdl__deleter_8h.html">sdl_deleter.h</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md878"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md836"></a>
 4. Migration Plan</h1>
 <p>The migration will be executed in phases to ensure stability and minimize disruption.</p>
-<h2><a class="anchor" id="autotoc_md879"></a>
+<h2><a class="anchor" id="autotoc_md837"></a>
 Phase 1: Implement the Abstraction Layer</h2>
 <ol type="1">
 <li><b>Create <code>IRenderer</code> and <code>SDL2Renderer</code>:</b> Implement the interface and concrete class as defined above.</li>
@@ -264,7 +264,7 @@ Phase 1: Implement the Abstraction Layer</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md880"></a>
+<h2><a class="anchor" id="autotoc_md838"></a>
 Phase 2: Migrate to SDL3</h2>
 <p>With the abstraction layer in place, migrating to SDL3 becomes significantly simpler.</p>
 <ol type="1">
@@ -277,7 +277,7 @@ Phase 2: Migrate to SDL3</h2>
 <li><b>Switch Implementation:</b> The application entry points (<code><a class="el" href="../../da/d0c/controller_8cc.html">controller.cc</a></code>, <code><a class="el" href="../../d8/d5b/emu_8cc.html">emu.cc</a></code>) will be changed to instantiate <code>SDL3Renderer</code> instead of <code>SDL2Renderer</code>.</li>
 </ol>
 <p>The rest of the application, which only knows about the <code>IRenderer</code> interface, will require <b>no changes</b>.</p>
-<h2><a class="anchor" id="autotoc_md881"></a>
+<h2><a class="anchor" id="autotoc_md839"></a>
 Phase 3: Support for Multiple Rendering Backends</h2>
 <p>The <code>IRenderer</code> interface makes adding new backends a modular task.</p>
 <ol type="1">
@@ -285,7 +285,7 @@ Phase 3: Support for Multiple Rendering Backends</h2>
 <li><b>Backend Selection:</b> Implement a factory function or a strategy in the main controller to select and create the desired renderer at startup, based on platform, user configuration, or command-line flags.</li>
 <li><b><a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Backend Alignment:</b> When a specific backend is chosen for <code>yaze</code>, the corresponding <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> backend implementation must also be used (e.g., <code>ImGui_ImplOpenGL3_Init</code>, <code>ImGui_ImplMetal_Init</code>). The <code>GetBackendRenderer()</code> method will provide the necessary context (e.g., <code>ID3D11Device*</code>, <code>MTLDevice*</code>) for each implementation.</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md882"></a>
+<h1><a class="anchor" id="autotoc_md840"></a>
 5. Conclusion</h1>
 <p>This plan transforms the rendering system from a tightly coupled, monolithic design into a flexible, modular, and future-proof architecture.</p>
 <p><b>Benefits:</b></p>
