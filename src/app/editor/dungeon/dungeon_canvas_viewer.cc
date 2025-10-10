@@ -31,6 +31,31 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   }
 
   ImGui::BeginGroup();
+  
+  // CRITICAL: Canvas coordinate system for dungeons
+  // The canvas system uses a two-stage scaling model:
+  // 1. Canvas size: UNSCALED content dimensions (512x512 for dungeon rooms)
+  // 2. Viewport size: canvas_size * global_scale (handles zoom)
+  // 3. Grid lines: grid_step * global_scale (auto-scales with zoom)
+  // 4. Bitmaps: drawn with scale = global_scale (matches viewport)
+  constexpr int kRoomPixelWidth = 512;  // 64 tiles * 8 pixels (UNSCALED)
+  constexpr int kRoomPixelHeight = 512;
+  constexpr int kDungeonTileSize = 8;   // Dungeon tiles are 8x8 pixels
+  
+  // Configure canvas for dungeon display
+  canvas_.SetCanvasSize(ImVec2(kRoomPixelWidth, kRoomPixelHeight));
+  canvas_.SetGridSize(gui::CanvasGridSize::k8x8);  // Match dungeon tile size
+  
+  // DEBUG: Log canvas configuration
+  static int debug_frame_count = 0;
+  if (debug_frame_count++ % 60 == 0) {  // Log once per second (assuming 60fps)
+    LOG_DEBUG("[DungeonCanvas]", "Canvas config: size=(%.0f,%.0f) scale=%.2f grid=%.0f",
+              canvas_.width(), canvas_.height(), canvas_.global_scale(), canvas_.custom_step());
+    LOG_DEBUG("[DungeonCanvas]", "Canvas viewport: p0=(%.0f,%.0f) p1=(%.0f,%.0f)",
+              canvas_.zero_point().x, canvas_.zero_point().y,
+              canvas_.zero_point().x + canvas_.width() * canvas_.global_scale(),
+              canvas_.zero_point().y + canvas_.height() * canvas_.global_scale());
+  }
 
   if (rooms_) {
     auto& room = (*rooms_)[room_id];
@@ -173,13 +198,24 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   ImGui::EndGroup();
 
-  canvas_.DrawBackground();
+  // CRITICAL: Draw canvas with explicit size to ensure viewport matches content
+  // Pass the unscaled room size directly to DrawBackground
+  canvas_.DrawBackground(ImVec2(kRoomPixelWidth, kRoomPixelHeight));
+  
+  // DEBUG: Log canvas state after DrawBackground
+  if (debug_frame_count % 60 == 1) {
+    LOG_DEBUG("[DungeonCanvas]", "After DrawBackground: canvas_sz=(%.0f,%.0f) canvas_p0=(%.0f,%.0f) canvas_p1=(%.0f,%.0f)",
+              canvas_.canvas_size().x, canvas_.canvas_size().y,
+              canvas_.zero_point().x, canvas_.zero_point().y,
+              canvas_.zero_point().x + canvas_.canvas_size().x, canvas_.zero_point().y + canvas_.canvas_size().y);
+  }
   
   // Add dungeon-specific context menu items
   canvas_.ClearContextMenuItems();
   
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
+    auto& layer_settings = GetRoomLayerSettings(room_id);
     
     // Add object placement option
     canvas_.AddContextMenuItem({
@@ -226,9 +262,159 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       },
       "Ctrl+R"
     });
+    
+    // === DEBUG MENU ===
+    gui::Canvas::ContextMenuItem debug_menu;
+    debug_menu.label = ICON_MD_BUG_REPORT " Debug";
+    
+    // Show room info
+    debug_menu.subitems.push_back({
+      ICON_MD_INFO " Show Room Info",
+      [this, room_id]() {
+        show_room_debug_info_ = !show_room_debug_info_;
+      }
+    });
+    
+    // Show texture info
+    debug_menu.subitems.push_back({
+      ICON_MD_IMAGE " Show Texture Debug",
+      [this]() {
+        show_texture_debug_ = !show_texture_debug_;
+      }
+    });
+    
+    // Show object bounds
+    debug_menu.subitems.push_back({
+      ICON_MD_CROP_SQUARE " Show Object Bounds",
+      [this]() {
+        show_object_bounds_ = !show_object_bounds_;
+      }
+    });
+    
+    // Show layer info
+    debug_menu.subitems.push_back({
+      ICON_MD_LAYERS " Show Layer Info",
+      [this]() {
+        show_layer_info_ = !show_layer_info_;
+      }
+    });
+    
+    // Force reload room
+    debug_menu.subitems.push_back({
+      ICON_MD_REFRESH " Force Reload",
+      [&room, room_id]() {
+        room.LoadObjects();
+        room.LoadRoomGraphics(room.blockset);
+        room.RenderRoomGraphics();
+      }
+    });
+    
+    // Log room state
+    debug_menu.subitems.push_back({
+      ICON_MD_PRINT " Log Room State",
+      [&room, room_id]() {
+        LOG_DEBUG("DungeonDebug", "=== Room %03X Debug ===", room_id);
+        LOG_DEBUG("DungeonDebug", "Blockset: %d, Palette: %d, Layout: %d", 
+                  room.blockset, room.palette, room.layout);
+        LOG_DEBUG("DungeonDebug", "Objects: %zu, Sprites: %zu", 
+                  room.GetTileObjects().size(), room.GetSprites().size());
+        LOG_DEBUG("DungeonDebug", "BG1: %dx%d, BG2: %dx%d",
+                  room.bg1_buffer().bitmap().width(), room.bg1_buffer().bitmap().height(),
+                  room.bg2_buffer().bitmap().width(), room.bg2_buffer().bitmap().height());
+      }
+    });
+    
+    canvas_.AddContextMenuItem(debug_menu);
   }
   
   canvas_.DrawContextMenu();
+  
+  // Draw persistent debug overlays
+  if (show_room_debug_info_ && rooms_ && rom_->is_loaded()) {
+    auto& room = (*rooms_)[room_id];
+    ImGui::SetNextWindowPos(ImVec2(canvas_.zero_point().x + 10, canvas_.zero_point().y + 10), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Room Debug Info", &show_room_debug_info_, ImGuiWindowFlags_NoCollapse)) {
+      ImGui::Text("Room: 0x%03X (%d)", room_id, room_id);
+      ImGui::Separator();
+      ImGui::Text("Graphics");
+      ImGui::Text("  Blockset: 0x%02X", room.blockset);
+      ImGui::Text("  Palette: 0x%02X", room.palette);
+      ImGui::Text("  Layout: 0x%02X", room.layout);
+      ImGui::Text("  Spriteset: 0x%02X", room.spriteset);
+      ImGui::Separator();
+      ImGui::Text("Content");
+      ImGui::Text("  Objects: %zu", room.GetTileObjects().size());
+      ImGui::Text("  Sprites: %zu", room.GetSprites().size());
+      ImGui::Separator();
+      ImGui::Text("Buffers");
+      auto& bg1 = room.bg1_buffer().bitmap();
+      auto& bg2 = room.bg2_buffer().bitmap();
+      ImGui::Text("  BG1: %dx%d %s", bg1.width(), bg1.height(), 
+                  bg1.texture() ? "(has texture)" : "(NO TEXTURE)");
+      ImGui::Text("  BG2: %dx%d %s", bg2.width(), bg2.height(),
+                  bg2.texture() ? "(has texture)" : "(NO TEXTURE)");
+      ImGui::Separator();
+      ImGui::Text("Layers");
+      auto& layer_settings = GetRoomLayerSettings(room_id);
+      ImGui::Checkbox("BG1 Visible", &layer_settings.bg1_visible);
+      ImGui::Checkbox("BG2 Visible", &layer_settings.bg2_visible);
+      ImGui::SliderInt("BG2 Type", &layer_settings.bg2_layer_type, 0, 4);
+    }
+    ImGui::End();
+  }
+  
+  if (show_texture_debug_ && rooms_ && rom_->is_loaded()) {
+    ImGui::SetNextWindowPos(ImVec2(canvas_.zero_point().x + 320, canvas_.zero_point().y + 10), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(250, 0), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Texture Debug", &show_texture_debug_, ImGuiWindowFlags_NoCollapse)) {
+      auto& room = (*rooms_)[room_id];
+      auto& bg1 = room.bg1_buffer().bitmap();
+      auto& bg2 = room.bg2_buffer().bitmap();
+      
+      ImGui::Text("BG1 Bitmap");
+      ImGui::Text("  Size: %dx%d", bg1.width(), bg1.height());
+      ImGui::Text("  Active: %s", bg1.is_active() ? "YES" : "NO");
+      ImGui::Text("  Texture: 0x%p", bg1.texture());
+      ImGui::Text("  Modified: %s", bg1.modified() ? "YES" : "NO");
+      
+      if (bg1.texture()) {
+        ImGui::Text("  Preview:");
+        ImGui::Image((ImTextureID)(intptr_t)bg1.texture(), ImVec2(128, 128));
+      }
+      
+      ImGui::Separator();
+      ImGui::Text("BG2 Bitmap");
+      ImGui::Text("  Size: %dx%d", bg2.width(), bg2.height());
+      ImGui::Text("  Active: %s", bg2.is_active() ? "YES" : "NO");
+      ImGui::Text("  Texture: 0x%p", bg2.texture());
+      ImGui::Text("  Modified: %s", bg2.modified() ? "YES" : "NO");
+      
+      if (bg2.texture()) {
+        ImGui::Text("  Preview:");
+        ImGui::Image((ImTextureID)(intptr_t)bg2.texture(), ImVec2(128, 128));
+      }
+    }
+    ImGui::End();
+  }
+  
+  if (show_layer_info_) {
+    ImGui::SetNextWindowPos(ImVec2(canvas_.zero_point().x + 580, canvas_.zero_point().y + 10), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(200, 0), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Layer Info", &show_layer_info_, ImGuiWindowFlags_NoCollapse)) {
+      ImGui::Text("Canvas Scale: %.2f", canvas_.global_scale());
+      ImGui::Text("Canvas Size: %.0fx%.0f", canvas_.width(), canvas_.height());
+      auto& layer_settings = GetRoomLayerSettings(room_id);
+      ImGui::Separator();
+      ImGui::Text("Layer Visibility:");
+      ImGui::Text("  BG1: %s", layer_settings.bg1_visible ? "VISIBLE" : "hidden");
+      ImGui::Text("  BG2: %s", layer_settings.bg2_visible ? "VISIBLE" : "hidden");
+      ImGui::Text("BG2 Type: %d", layer_settings.bg2_layer_type);
+      const char* bg2_type_names[] = {"Normal", "Translucent", "Addition", "Dark", "Off"};
+      ImGui::Text("  (%s)", bg2_type_names[std::min(layer_settings.bg2_layer_type, 4)]);
+    }
+    ImGui::End();
+  }
   
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
@@ -259,14 +445,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // This already includes objects rendered by ObjectDrawer in Room::RenderObjectsToBackground()
     DrawRoomBackgroundLayers(room_id);
     
-    // Draw room layout (structural elements like walls, pits)
-    // This provides context for object placement
-    DrawRoomLayout(room);
-    
-    // VISUALIZATION: Draw object position rectangles (for debugging)
-    // This shows where objects are placed regardless of whether graphics render
-    DrawObjectPositionOutlines(room);
-    
     // Render sprites as simple 16x16 squares with labels
     // (Sprites are not part of the background buffers)
     RenderSprites(room);
@@ -278,6 +456,21 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       object_interaction_.DrawSelectBox();
       object_interaction_.DrawSelectionHighlights();  // Draw selection highlights on top
       object_interaction_.ShowContextMenu();  // Show dungeon-aware context menu
+    }
+  }
+  
+  // Draw layout overlays on top of background bitmap
+  if (rooms_ && rom_->is_loaded()) {
+    auto& room = (*rooms_)[room_id];
+    
+    // Draw room layout (structural elements like walls, pits)
+    // This provides context for object placement  
+    DrawRoomLayout(room);
+    
+    // VISUALIZATION: Draw object position rectangles (for debugging)
+    // This shows where objects are placed regardless of whether graphics render
+    if (show_object_bounds_) {
+      DrawObjectPositionOutlines(room);
     }
   }
   
@@ -364,37 +557,38 @@ void DungeonCanvasViewer::RenderSprites(const zelda3::Room& room) {
 // Coordinate conversion helper functions  
 std::pair<int, int> DungeonCanvasViewer::RoomToCanvasCoordinates(int room_x,
                                                                 int room_y) const {
-  // Convert room coordinates (tile units) to canvas coordinates (pixels)
+  // Convert room coordinates (tile units) to UNSCALED canvas pixel coordinates
   // Dungeon tiles are 8x8 pixels (not 16x16!)
-  // Account for canvas scaling and offset
-  float scale = canvas_.global_scale();
-  int offset_x = static_cast<int>(canvas_.drawn_tile_position().x);
-  int offset_y = static_cast<int>(canvas_.drawn_tile_position().y);
+  // IMPORTANT: Return UNSCALED coordinates - Canvas drawing functions apply scale internally
+  // Do NOT multiply by scale here or we get double-scaling!
   
-  return {static_cast<int>((room_x * 8 + offset_x) * scale), 
-          static_cast<int>((room_y * 8 + offset_y) * scale)};
+  // Simple conversion: tile units → pixel units (no scale, no offset)
+  return {room_x * 8, room_y * 8};
 }
 
 std::pair<int, int> DungeonCanvasViewer::CanvasToRoomCoordinates(int canvas_x,
                                                                 int canvas_y) const {
-  // Convert canvas coordinates (pixels) to room coordinates (tile units)
-  // Dungeon tiles are 8x8 pixels (not 16x16!)
-  // Account for canvas scaling and offset
-  float scale = canvas_.global_scale();
-  int offset_x = static_cast<int>(canvas_.drawn_tile_position().x);
-  int offset_y = static_cast<int>(canvas_.drawn_tile_position().y);
+  // Convert canvas screen coordinates (pixels) to room coordinates (tile units)
+  // Input: Screen-space coordinates (affected by zoom/scale)
+  // Output: Logical tile coordinates (0-63 for each axis)
   
+  // IMPORTANT: Mouse coordinates are in screen space, must undo scale first
+  float scale = canvas_.global_scale();
   if (scale <= 0.0f) scale = 1.0f; // Prevent division by zero
   
-  return {static_cast<int>((canvas_x / scale - offset_x) / 8), 
-          static_cast<int>((canvas_y / scale - offset_y) / 8)};
+  // Step 1: Convert screen space → logical pixel space
+  int logical_x = static_cast<int>(canvas_x / scale);
+  int logical_y = static_cast<int>(canvas_y / scale);
+  
+  // Step 2: Convert logical pixels → tile units (8 pixels per tile)
+  return {logical_x / 8, logical_y / 8};
 }
 
 bool DungeonCanvasViewer::IsWithinCanvasBounds(int canvas_x, int canvas_y,
                                                int margin) const {
   // Check if coordinates are within canvas bounds with optional margin
-  auto canvas_width = canvas_.width() * canvas_.global_scale();
-  auto canvas_height = canvas_.height() * canvas_.global_scale();
+  auto canvas_width = canvas_.width();
+  auto canvas_height = canvas_.height();
   return (canvas_x >= -margin && canvas_y >= -margin &&
           canvas_x <= canvas_width + margin &&
           canvas_y <= canvas_height + margin);
@@ -462,35 +656,33 @@ void DungeonCanvasViewer::DrawRoomLayout(zelda3::Room& room) {
   LOG_DEBUG("[DrawRoomLayout]", "Layout elements: %zu walls, %zu floors, %zu pits, %zu water, %zu doors",
            walls.size(), floors.size(), pits.size(), water.size(), doors.size());
   
-  // Get canvas scale for proper sizing
-  float scale = canvas_.global_scale();
-  int tile_size = static_cast<int>(8 * scale);  // 8x8 pixels scaled
+  // IMPORTANT: Use UNSCALED dimensions - canvas drawing functions apply scale internally
+  constexpr int kTileSize = 8;  // Dungeon tiles are 8x8 pixels (UNSCALED)
   
   // Draw walls (dark gray, semi-transparent) - immovable structure
   for (const auto& wall : walls) {
     auto [x, y] = RoomToCanvasCoordinates(wall.x(), wall.y());
-    canvas_.DrawRect(x, y, tile_size, tile_size, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
+    canvas_.DrawRect(x, y, kTileSize, kTileSize, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
   }
   
   // Draw pits (orange warning) - damage zones
   for (const auto& pit : pits) {
     auto [x, y] = RoomToCanvasCoordinates(pit.x(), pit.y());
-    canvas_.DrawRect(x, y, tile_size, tile_size, ImVec4(1.0f, 0.4f, 0.0f, 0.6f));
+    canvas_.DrawRect(x, y, kTileSize, kTileSize, ImVec4(1.0f, 0.4f, 0.0f, 0.6f));
   }
   
   // Draw water (blue, semi-transparent)
   for (const auto& water_tile : water) {
     auto [x, y] = RoomToCanvasCoordinates(water_tile.x(), water_tile.y());
-    canvas_.DrawRect(x, y, tile_size, tile_size, ImVec4(0.2f, 0.4f, 0.8f, 0.5f));
+    canvas_.DrawRect(x, y, kTileSize, kTileSize, ImVec4(0.2f, 0.4f, 0.8f, 0.5f));
   }
   
   // Draw doors (purple) - connection points
   for (const auto& door : doors) {
     auto [x, y] = RoomToCanvasCoordinates(door.x(), door.y());
-    canvas_.DrawRect(x, y, tile_size, tile_size, ImVec4(0.8f, 0.2f, 0.8f, 0.7f));
-    if (scale >= 1.0f) {  // Only show label if zoomed in enough
-      canvas_.DrawText("DOOR", x + 2, y + 2);
-    }
+    canvas_.DrawRect(x, y, kTileSize, kTileSize, ImVec4(0.8f, 0.2f, 0.8f, 0.7f));
+    // Text is drawn in logical space, canvas scales it
+    canvas_.DrawText("DOOR", x + 2, y + 2);
   }
 }
 
@@ -501,14 +693,11 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
   
   const auto& objects = room.GetTileObjects();
   
-  // Get canvas scale for proper sizing
-  float scale = canvas_.global_scale();
-  
   for (const auto& obj : objects) {
-    // Convert object position (tile coordinates) to canvas pixel coordinates
+    // Convert object position (tile coordinates) to canvas pixel coordinates (UNSCALED)
     auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());
     
-    // Calculate object dimensions based on type and size
+    // Calculate object dimensions based on type and size (UNSCALED logical pixels)
     int width = 8;  // Default 8x8 pixels
     int height = 8;
     
@@ -517,15 +706,12 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
     int size_h = (obj.size() & 0x0F);
     int size_v = (obj.size() >> 4) & 0x0F;
     
-    // Objects are typically (size+1) tiles wide/tall
+    // Objects are typically (size+1) tiles wide/tall (8 pixels per tile)
     width = (size_h + 1) * 8;
     height = (size_v + 1) * 8;
     
-    // Apply canvas scale
-    width = static_cast<int>(width * scale);
-    height = static_cast<int>(height * scale);
-    
-    // Clamp to reasonable sizes
+    // IMPORTANT: Do NOT apply canvas scale here - DrawRect handles it
+    // Clamp to reasonable sizes (in logical space)
     width = std::min(width, 512);
     height = std::min(height, 512);
     

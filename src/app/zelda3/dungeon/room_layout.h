@@ -105,8 +105,8 @@ class RoomLayout {
  private:
   Rom* rom_ = nullptr;
   std::vector<RoomLayoutObject> objects_;
-  uint8_t width_ = 16;  // Default room width in tiles
-  uint8_t height_ = 11; // Default room height in tiles
+  uint8_t width_ = 64;  // Dungeon room width in tiles (512 pixels / 8)
+  uint8_t height_ = 64; // Dungeon room height in tiles (512 pixels / 8)
   
   // Parse layout data from ROM
   absl::Status ParseLayoutData(const std::vector<uint8_t>& data);

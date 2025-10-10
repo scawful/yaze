@@ -82,20 +82,14 @@ Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id, ImVec2 canvas_si
 
 Canvas::~Canvas() = default;
 
-using ImGui::BeginMenu;
-using ImGui::EndMenu;
 using ImGui::GetContentRegionAvail;
 using ImGui::GetCursorScreenPos;
 using ImGui::GetIO;
-using ImGui::GetMouseDragDelta;
 using ImGui::GetWindowDrawList;
 using ImGui::IsItemActive;
 using ImGui::IsItemHovered;
 using ImGui::IsMouseClicked;
 using ImGui::IsMouseDragging;
-using ImGui::MenuItem;
-using ImGui::OpenPopupOnItemClick;
-using ImGui::Selectable;
 using ImGui::Text;
 
 constexpr uint32_t kRectangleColor = IM_COL32(32, 32, 32, 255);
@@ -353,11 +347,14 @@ void Canvas::End() {
     DrawGrid();
   }
   DrawOverlay();
+  
+  // Render any persistent popups from context menu actions
+  RenderPersistentPopups();
 }
 
 // ==================== Legacy Interface ====================
 
-void Canvas::UpdateColorPainter(gfx::IRenderer* renderer, gfx::Bitmap& bitmap, const ImVec4& color,
+void Canvas::UpdateColorPainter(gfx::IRenderer* /*renderer*/, gfx::Bitmap& bitmap, const ImVec4& color,
                                 const std::function<void()>& event,
                                 int tile_size, float scale) {
   config_.global_scale = scale;
@@ -600,6 +597,59 @@ void Canvas::AddContextMenuItem(const ContextMenuItem& item) {
 
 void Canvas::ClearContextMenuItems() {
   context_menu_items_.clear();
+}
+
+void Canvas::OpenPersistentPopup(const std::string& popup_id, std::function<void()> render_callback) {
+  // Check if popup already exists
+  for (auto& popup : active_popups_) {
+    if (popup.popup_id == popup_id) {
+      popup.is_open = true;
+      popup.render_callback = std::move(render_callback);
+      ImGui::OpenPopup(popup_id.c_str());
+      return;
+    }
+  }
+  
+  // Add new popup
+  PopupState new_popup;
+  new_popup.popup_id = popup_id;
+  new_popup.is_open = true;
+  new_popup.render_callback = std::move(render_callback);
+  active_popups_.push_back(new_popup);
+  ImGui::OpenPopup(popup_id.c_str());
+}
+
+void Canvas::ClosePersistentPopup(const std::string& popup_id) {
+  for (auto& popup : active_popups_) {
+    if (popup.popup_id == popup_id) {
+      popup.is_open = false;
+      ImGui::CloseCurrentPopup();
+      return;
+    }
+  }
+}
+
+void Canvas::RenderPersistentPopups() {
+  // Render all active popups
+  auto it = active_popups_.begin();
+  while (it != active_popups_.end()) {
+    if (it->is_open && it->render_callback) {
+      // Call the render callback which should handle BeginPopup/EndPopup
+      it->render_callback();
+      
+      // If popup was closed by user, mark it for removal
+      if (!ImGui::IsPopupOpen(it->popup_id.c_str())) {
+        it->is_open = false;
+      }
+    }
+    
+    // Remove closed popups
+    if (!it->is_open) {
+      it = active_popups_.erase(it);
+    } else {
+      ++it;
+    }
+  }
 }
 
 void Canvas::SetZoomToFit(const gfx::Bitmap& bitmap) {
@@ -990,7 +1040,7 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   }
 }
 
-void Canvas::DrawBitmap(Bitmap& bitmap, int border_offset, float scale) {
+void Canvas::DrawBitmap(Bitmap& bitmap, int /*border_offset*/, float scale) {
   if (!bitmap.is_active()) {
     return;
   }
@@ -1014,12 +1064,17 @@ void Canvas::DrawBitmap(Bitmap& bitmap, int x_offset, int y_offset, float scale,
   bitmap_ = &bitmap;
 
   // Update content size for table integration
+  // CRITICAL: Store UNSCALED bitmap size as content - scale is applied during rendering
   config_.content_size = ImVec2(bitmap.width(), bitmap.height());
 
   // Calculate the actual rendered size including scale and offsets
+  // CRITICAL: Use scale parameter (NOT global_scale_) for per-bitmap scaling
   ImVec2 rendered_size(bitmap.width() * scale, bitmap.height() * scale);
   ImVec2 total_size(x_offset + rendered_size.x, y_offset + rendered_size.y);
 
+  // CRITICAL FIX: Draw bitmap WITHOUT additional global_scale multiplication
+  // The scale parameter already contains the correct scale factor
+  // The scrolling should NOT be scaled - it's already in screen space
   draw_list_->AddImage(
       (ImTextureID)(intptr_t)bitmap.texture(),
       ImVec2(canvas_p0_.x + x_offset + scrolling_.x,
@@ -1257,7 +1312,7 @@ void Canvas::DrawRect(int x, int y, int w, int h, ImVec4 color) {
                               color, config_.global_scale);
 }
 
-void Canvas::DrawText(std::string text, int x, int y) {
+void Canvas::DrawText(const std::string& text, int x, int y) {
   CanvasUtils::DrawCanvasText(draw_list_, canvas_p0_, scrolling_, text, x, y,
                               config_.global_scale);
 }
@@ -1350,6 +1405,9 @@ void Canvas::DrawOverlay() {
 
   // Use high-level utility function with local points (synchronized from interaction handler)
   CanvasUtils::DrawCanvasOverlay(ctx, points_, selected_points_);
+  
+  // Render any persistent popups from context menu actions
+  RenderPersistentPopups();
 }
 
 void Canvas::DrawLayeredElements() {
@@ -1797,7 +1855,7 @@ void Canvas::ShowBppConversionDialog() {
   if (bitmap_) {
     bpp_conversion_dialog_->Show(
         *bitmap_, bitmap_->palette(),
-        [this](gfx::BppFormat format, bool preserve_palette) {
+        [this](gfx::BppFormat format, bool /*preserve_palette*/) {
           ConvertBitmapFormat(format);
         });
   }
