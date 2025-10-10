@@ -598,6 +598,7 @@ var hierarchy =
       [ "yaze::gfx::GraphicsOptimizationBenchmarks", "de/d35/classyaze_1_1gfx_1_1GraphicsOptimizationBenchmarks.html", null ],
       [ "yaze::test::AITilePlacementTest", "d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html", null ],
       [ "yaze::test::CanvasAutomationAPITest", "dc/d2a/classyaze_1_1test_1_1CanvasAutomationAPITest.html", null ],
+      [ "yaze::test::CanvasCoordinateSyncTest", "df/d70/classyaze_1_1test_1_1CanvasCoordinateSyncTest.html", null ],
       [ "yaze::test::DungeonEditorIntegrationTest", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html", null ],
       [ "yaze::test::DungeonEditorV2IntegrationTest", "d3/d0a/classyaze_1_1test_1_1DungeonEditorV2IntegrationTest.html", null ],
       [ "yaze::test::DungeonRoomTest", "d6/d4f/classyaze_1_1test_1_1DungeonRoomTest.html", null ],

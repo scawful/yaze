@@ -1,0 +1,13 @@
+<map id="test/unit/gui/canvas_coordinate_sync_test.cc" name="test/unit/gui/canvas_coordinate_sync_test.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="114,5,283,46"/>
+<area shape="rect" id="Node000002" href="$d4/dcf/canvas_8h.html" title=" " alt="" coords="5,94,125,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,49,100,88,97,83,164,44"/>
+<area shape="rect" id="Node000059" title=" " alt="" coords="114,168,227,193"/>
+<area shape="poly" id="edge2_Node000001_Node000059" title=" " alt="" coords="197,47,178,153,173,152,192,46"/>
+<area shape="rect" id="Node000060" title=" " alt="" coords="256,168,349,193"/>
+<area shape="poly" id="edge3_Node000001_Node000060" title=" " alt="" coords="233,45,260,66,283,93,296,122,303,152,297,153,291,124,279,95,256,69,230,49"/>
+<area shape="rect" id="Node000061" href="$db/d56/testing_8h.html" title=" " alt="" coords="199,94,270,120"/>
+<area shape="poly" id="edge4_Node000001_Node000061" title=" " alt="" coords="210,45,225,78,220,81,205,48"/>
+<area shape="poly" id="edge5_Node000061_Node000059" title=" " alt="" coords="226,122,193,158,189,154,222,118"/>
+<area shape="poly" id="edge6_Node000061_Node000060" title=" " alt="" coords="247,118,283,155,279,158,244,122"/>
+</map>

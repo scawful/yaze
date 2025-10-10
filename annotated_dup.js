@@ -542,6 +542,7 @@ var annotated_dup =
         [ "AITilePlacementTest", "d0/d89/classyaze_1_1test_1_1AITilePlacementTest.html", "d0/d89/classyaze_1_1test_1_1AITilePlacementTest" ],
         [ "ArenaTestSuite", "dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html", "dc/de0/classyaze_1_1test_1_1ArenaTestSuite" ],
         [ "CanvasAutomationAPITest", "dc/d2a/classyaze_1_1test_1_1CanvasAutomationAPITest.html", "dc/d2a/classyaze_1_1test_1_1CanvasAutomationAPITest" ],
+        [ "CanvasCoordinateSyncTest", "df/d70/classyaze_1_1test_1_1CanvasCoordinateSyncTest.html", "df/d70/classyaze_1_1test_1_1CanvasCoordinateSyncTest" ],
         [ "DungeonEditorIntegrationTest", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest.html", "d7/dd7/classyaze_1_1test_1_1DungeonEditorIntegrationTest" ],
         [ "DungeonEditorV2IntegrationTest", "d3/d0a/classyaze_1_1test_1_1DungeonEditorV2IntegrationTest.html", "d3/d0a/classyaze_1_1test_1_1DungeonEditorV2IntegrationTest" ],
         [ "DungeonObjectRenderingE2ETests", "d0/dc7/classyaze_1_1test_1_1DungeonObjectRenderingE2ETests.html", "d0/dc7/classyaze_1_1test_1_1DungeonObjectRenderingE2ETests" ],
