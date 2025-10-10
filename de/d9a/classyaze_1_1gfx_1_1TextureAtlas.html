@@ -252,7 +252,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html#l00008">8</a> of file <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html">texture_atlas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00132">atlas_bitmap_</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00115">height()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00091">LOG_DEBUG</a>, and <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00114">width()</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00132">atlas_bitmap_</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00115">height()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, and <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00114">width()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -312,11 +312,11 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Pointer to allocated region, or nullptr if no space</dd></dl>
 <p>Uses simple rect packing algorithm. Future: implement more efficient packing. </p>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000086">Todo:</a></b></dt><dd>Implement more efficient rect packing (shelf, guillotine, etc.) </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000085">Todo:</a></b></dt><dd>Implement more efficient rect packing (shelf, guillotine, etc.) </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html#l00016">16</a> of file <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html">texture_atlas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00042">yaze::gfx::TextureAtlas::AtlasRegion::height</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00115">height()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00044">yaze::gfx::TextureAtlas::AtlasRegion::in_use</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00091">LOG_DEBUG</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00140">regions_</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00043">yaze::gfx::TextureAtlas::AtlasRegion::source_id</a>, <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html#l00120">TryPackRect()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00041">yaze::gfx::TextureAtlas::AtlasRegion::width</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00114">width()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00039">yaze::gfx::TextureAtlas::AtlasRegion::x</a>, and <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00040">yaze::gfx::TextureAtlas::AtlasRegion::y</a>.</p>
+<p class="reference">References <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00042">yaze::gfx::TextureAtlas::AtlasRegion::height</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00115">height()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00044">yaze::gfx::TextureAtlas::AtlasRegion::in_use</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00140">regions_</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00043">yaze::gfx::TextureAtlas::AtlasRegion::source_id</a>, <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html#l00120">TryPackRect()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00041">yaze::gfx::TextureAtlas::AtlasRegion::width</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00114">width()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00039">yaze::gfx::TextureAtlas::AtlasRegion::x</a>, and <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00040">yaze::gfx::TextureAtlas::AtlasRegion::y</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -372,11 +372,11 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Status of packing operation</dd></dl>
 <p>Copies pixel data from source bitmap into atlas at region coordinates. </p>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000087">Todo:</a></b></dt><dd>Implement pixel copying from src to atlas_bitmap_ at region coordinates </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000086">Todo:</a></b></dt><dd>Implement pixel copying from src to atlas_bitmap_ at region coordinates </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html#l00043">43</a> of file <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html">texture_atlas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00254">yaze::gfx::Bitmap::height()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00042">yaze::gfx::TextureAtlas::AtlasRegion::height</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00044">yaze::gfx::TextureAtlas::AtlasRegion::in_use</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00264">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00091">LOG_DEBUG</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00043">yaze::gfx::TextureAtlas::AtlasRegion::source_id</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00253">yaze::gfx::Bitmap::width()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00041">yaze::gfx::TextureAtlas::AtlasRegion::width</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00039">yaze::gfx::TextureAtlas::AtlasRegion::x</a>, and <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00040">yaze::gfx::TextureAtlas::AtlasRegion::y</a>.</p>
+<p class="reference">References <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00254">yaze::gfx::Bitmap::height()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00042">yaze::gfx::TextureAtlas::AtlasRegion::height</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00044">yaze::gfx::TextureAtlas::AtlasRegion::in_use</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00264">yaze::gfx::Bitmap::is_active()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00043">yaze::gfx::TextureAtlas::AtlasRegion::source_id</a>, <a class="el" href="../../da/dcb/bitmap_8h_source.html#l00253">yaze::gfx::Bitmap::width()</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00041">yaze::gfx::TextureAtlas::AtlasRegion::width</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00039">yaze::gfx::TextureAtlas::AtlasRegion::x</a>, and <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00040">yaze::gfx::TextureAtlas::AtlasRegion::y</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -437,7 +437,7 @@ Here is the call graph for this function:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Status of drawing operation</dd></dl>
 <p>Future: Integrate with renderer to draw atlas regions. </p>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000088">Todo:</a></b></dt><dd>Integrate with renderer to draw atlas region at (dest_x, dest_y) </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000087">Todo:</a></b></dt><dd>Integrate with renderer to draw atlas region at (dest_x, dest_y) </dd></dl>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html#l00065">65</a> of file <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html">texture_atlas.cc</a>.</p>
 
@@ -471,7 +471,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html#l00077">77</a> of file <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html">texture_atlas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00091">LOG_DEBUG</a>, and <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00140">regions_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, and <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00140">regions_</a>.</p>
 
 </div>
 </div>
@@ -494,7 +494,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html#l00085">85</a> of file <a class="el" href="../../d3/d1b/texture__atlas_8cc_source.html">texture_atlas.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00091">LOG_DEBUG</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00135">next_x_</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00136">next_y_</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00140">regions_</a>, and <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00137">row_height_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00135">next_x_</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00136">next_y_</a>, <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00140">regions_</a>, and <a class="el" href="../../db/dd3/texture__atlas_8h_source.html#l00137">row_height_</a>.</p>
 
 </div>
 </div>

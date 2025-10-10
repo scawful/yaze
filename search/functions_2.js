@@ -239,7 +239,7 @@ var searchData=
   ['countknownproposals_236',['CountKnownProposals',['../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#a913e30bf827eacec57a0cb7c63ff9dbd',1,'yaze::editor::AgentChatWidget']]],
   ['countusedcolors_237',['countusedcolors',['../d0/d5c/classyaze_1_1gfx_1_1BppFormatManager.html#a7d2a9cdb1efaba7a6da25a91d0d7d852',1,'yaze::gfx::BppFormatManager::CountUsedColors()'],['../d3/d19/classyaze_1_1gfx_1_1GraphicsOptimizer.html#a498319a2447d5d2c7136bc1861204503',1,'yaze::gfx::GraphicsOptimizer::CountUsedColors()']]],
   ['cplusplus_238',['CPlusPlus',['../dd/dd2/structTextEditor_1_1LanguageDefinition.html#aba26ce5704845dd024521fed8c19a9c9',1,'TextEditor::LanguageDefinition']]],
-  ['cpu_239',['cpu',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a1e7fd1758cd1fc6c73ef84fda616b578',1,'yaze::emu::Cpu::Cpu()'],['../d3/d15/classyaze_1_1emu_1_1Snes.html#a8dd716e4ae561f358d40be65f9cc9847',1,'yaze::emu::Snes::cpu() -&gt; Cpu &amp;']]],
+  ['cpu_239',['cpu',['../d3/d15/classyaze_1_1emu_1_1Snes.html#a8dd716e4ae561f358d40be65f9cc9847',1,'yaze::emu::Snes::cpu()'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a1e7fd1758cd1fc6c73ef84fda616b578',1,'yaze::emu::Cpu::Cpu()']]],
   ['cpuidle_240',['CpuIdle',['../d3/d15/classyaze_1_1emu_1_1Snes.html#a65cdf334d1b7337ef9cf3bddfe69eec9',1,'yaze::emu::Snes']]],
   ['cpuread_241',['CpuRead',['../d3/d15/classyaze_1_1emu_1_1Snes.html#a2f0d6370c2861976fcc309ed59148a06',1,'yaze::emu::Snes']]],
   ['cpuwrite_242',['CpuWrite',['../d3/d15/classyaze_1_1emu_1_1Snes.html#a6866919db87735bbf59c21c1afa09429',1,'yaze::emu::Snes']]],

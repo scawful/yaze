@@ -125,6 +125,18 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae326c7c3034a3127513198774bb75c07" id="r_ae326c7c3034a3127513198774bb75c07"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d42/classyaze_1_1util_1_1LogManager.html#ae326c7c3034a3127513198774bb75c07">log</a> (<a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3">LogLevel</a> level, absl::string_view category, absl::string_view message)</td></tr>
 <tr class="memdesc:ae326c7c3034a3127513198774bb75c07"><td class="mdescLeft">&#160;</td><td class="mdescRight">The primary logging function.  <br /></td></tr>
 <tr class="separator:ae326c7c3034a3127513198774bb75c07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad76e0b9ea26cea238959e6137e64d090" id="r_ad76e0b9ea26cea238959e6137e64d090"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d42/classyaze_1_1util_1_1LogManager.html#ad76e0b9ea26cea238959e6137e64d090">SetLogLevel</a> (<a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3">LogLevel</a> level)</td></tr>
+<tr class="memdesc:ad76e0b9ea26cea238959e6137e64d090"><td class="mdescLeft">&#160;</td><td class="mdescRight">Runtime log level control (for debug card)  <br /></td></tr>
+<tr class="separator:ad76e0b9ea26cea238959e6137e64d090"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b42d4e5c00db30145b06a4b237d7b69" id="r_a8b42d4e5c00db30145b06a4b237d7b69"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3">LogLevel</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d42/classyaze_1_1util_1_1LogManager.html#a8b42d4e5c00db30145b06a4b237d7b69">GetLogLevel</a> () const</td></tr>
+<tr class="separator:a8b42d4e5c00db30145b06a4b237d7b69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7cc139bb7085c67f7a156d52a254ad0e" id="r_a7cc139bb7085c67f7a156d52a254ad0e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d42/classyaze_1_1util_1_1LogManager.html#a7cc139bb7085c67f7a156d52a254ad0e">EnableDebugLogging</a> ()</td></tr>
+<tr class="memdesc:a7cc139bb7085c67f7a156d52a254ad0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Toggle debug logging on/off at runtime.  <br /></td></tr>
+<tr class="separator:a7cc139bb7085c67f7a156d52a254ad0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c7ba8230c35092c8dc22a22d10909ec" id="r_a1c7ba8230c35092c8dc22a22d10909ec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d42/classyaze_1_1util_1_1LogManager.html#a1c7ba8230c35092c8dc22a22d10909ec">DisableDebugLogging</a> ()</td></tr>
+<tr class="separator:a1c7ba8230c35092c8dc22a22d10909ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aff540d14f6df52da162178e2a7f3be9d" id="r_aff540d14f6df52da162178e2a7f3be9d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d42/classyaze_1_1util_1_1LogManager.html#aff540d14f6df52da162178e2a7f3be9d">IsDebugEnabled</a> () const</td></tr>
+<tr class="separator:aff540d14f6df52da162178e2a7f3be9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -235,7 +247,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d4/dc1/log_8cc_source.html#l00037">37</a> of file <a class="el" href="../../d4/dc1/log_8cc_source.html">log.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00075">log_stream_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00088">log_stream_</a>.</p>
 
 </div>
 </div>
@@ -267,7 +279,7 @@ Private Attributes</h2></td></tr>
 
 <p class="reference">References <a class="el" href="../../d4/dc1/log_8cc_source.html#l00029">instance()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/dbd/settings__editor_8cc_source.html#l00247">yaze::editor::SettingsEditor::DrawAIAgentSettings()</a>, <a class="el" href="../../d4/dc1/log_8cc_source.html#l00029">instance()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00108">yaze::util::logf()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00103">yaze::util::logf()</a>, <a class="el" href="../../d2/d06/spc700_8cc_source.html#l01381">yaze::emu::Spc700::LogInstruction()</a>, and <a class="el" href="../../d9/d0f/main_8cc_source.html#l00047">main()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/dbd/settings__editor_8cc_source.html#l00247">yaze::editor::SettingsEditor::DrawAIAgentSettings()</a>, <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00952">yaze::editor::DungeonEditorV2::DrawDebugControlsCard()</a>, <a class="el" href="../../d4/dc1/log_8cc_source.html#l00029">instance()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00121">yaze::util::logf()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00116">yaze::util::logf()</a>, <a class="el" href="../../d2/d06/spc700_8cc_source.html#l01381">yaze::emu::Spc700::LogInstruction()</a>, and <a class="el" href="../../d9/d0f/main_8cc_source.html#l00047">main()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -350,7 +362,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d4/dc1/log_8cc_source.html#l00043">43</a> of file <a class="el" href="../../d4/dc1/log_8cc_source.html">log.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00072">all_categories_enabled_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00071">enabled_categories_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00076">log_file_path_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00075">log_stream_</a>, and <a class="el" href="../../d7/d7f/log_8h_source.html#l00070">min_level_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00085">all_categories_enabled_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00084">enabled_categories_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00089">log_file_path_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00088">log_stream_</a>, and <a class="el" href="../../d7/d7f/log_8h_source.html#l00083">min_level_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d6/dbd/settings__editor_8cc_source.html#l00247">yaze::editor::SettingsEditor::DrawAIAgentSettings()</a>, and <a class="el" href="../../d9/d0f/main_8cc_source.html#l00047">main()</a>.</p>
 
@@ -400,9 +412,169 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../d4/dc1/log_8cc_source.html#l00066">66</a> of file <a class="el" href="../../d4/dc1/log_8cc_source.html">log.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00072">all_categories_enabled_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00071">enabled_categories_</a>, <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a19da7170bea36556dde582519795f3fc">yaze::util::FATAL</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00075">log_stream_</a>, and <a class="el" href="../../d7/d7f/log_8h_source.html#l00070">min_level_</a>.</p>
+<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00085">all_categories_enabled_</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00084">enabled_categories_</a>, <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a19da7170bea36556dde582519795f3fc">yaze::util::FATAL</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00088">log_stream_</a>, and <a class="el" href="../../d7/d7f/log_8h_source.html#l00083">min_level_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d7f/log_8h_source.html#l00108">yaze::util::logf()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00103">yaze::util::logf()</a>, and <a class="el" href="../../d2/d06/spc700_8cc_source.html#l01381">yaze::emu::Spc700::LogInstruction()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d7f/log_8h_source.html#l00121">yaze::util::logf()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00116">yaze::util::logf()</a>, and <a class="el" href="../../d2/d06/spc700_8cc_source.html#l01381">yaze::emu::Spc700::LogInstruction()</a>.</p>
+
+</div>
+</div>
+<a id="ad76e0b9ea26cea238959e6137e64d090" name="ad76e0b9ea26cea238959e6137e64d090"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad76e0b9ea26cea238959e6137e64d090">&#9670;&#160;</a></span>SetLogLevel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::util::LogManager::SetLogLevel </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3">LogLevel</a>&#160;</td>
+          <td class="paramname"><em>level</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Runtime log level control (for debug card) </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00068">68</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00083">min_level_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00952">yaze::editor::DungeonEditorV2::DrawDebugControlsCard()</a>.</p>
+
+</div>
+</div>
+<a id="a8b42d4e5c00db30145b06a4b237d7b69" name="a8b42d4e5c00db30145b06a4b237d7b69"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b42d4e5c00db30145b06a4b237d7b69">&#9670;&#160;</a></span>GetLogLevel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3">LogLevel</a> yaze::util::LogManager::GetLogLevel </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00069">69</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00083">min_level_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00952">yaze::editor::DungeonEditorV2::DrawDebugControlsCard()</a>.</p>
+
+</div>
+</div>
+<a id="a7cc139bb7085c67f7a156d52a254ad0e" name="a7cc139bb7085c67f7a156d52a254ad0e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7cc139bb7085c67f7a156d52a254ad0e">&#9670;&#160;</a></span>EnableDebugLogging()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::util::LogManager::EnableDebugLogging </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Toggle debug logging on/off at runtime. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00074">74</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00083">min_level_</a>, and <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a66927c1a962aefd4e6239111b8a9cf41">yaze::util::YAZE_DEBUG</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00952">yaze::editor::DungeonEditorV2::DrawDebugControlsCard()</a>.</p>
+
+</div>
+</div>
+<a id="a1c7ba8230c35092c8dc22a22d10909ec" name="a1c7ba8230c35092c8dc22a22d10909ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1c7ba8230c35092c8dc22a22d10909ec">&#9670;&#160;</a></span>DisableDebugLogging()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::util::LogManager::DisableDebugLogging </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00075">75</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a551b723eafd6a31d444fcb2f5920fbd3">yaze::util::INFO</a>, and <a class="el" href="../../d7/d7f/log_8h_source.html#l00083">min_level_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00952">yaze::editor::DungeonEditorV2::DrawDebugControlsCard()</a>.</p>
+
+</div>
+</div>
+<a id="aff540d14f6df52da162178e2a7f3be9d" name="aff540d14f6df52da162178e2a7f3be9d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff540d14f6df52da162178e2a7f3be9d">&#9670;&#160;</a></span>IsDebugEnabled()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::util::LogManager::IsDebugEnabled </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00076">76</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d7/d7f/log_8h_source.html#l00083">min_level_</a>, and <a class="el" href="../../d4/de1/namespaceyaze_1_1util.html#ac889c033203bc2d55163d23e252285b3a66927c1a962aefd4e6239111b8a9cf41">yaze::util::YAZE_DEBUG</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00952">yaze::editor::DungeonEditorV2::DrawDebugControlsCard()</a>.</p>
 
 </div>
 </div>
@@ -427,9 +599,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00070">70</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00083">83</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d4/dc1/log_8cc_source.html#l00043">configure()</a>, and <a class="el" href="../../d4/dc1/log_8cc_source.html#l00066">log()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d4/dc1/log_8cc_source.html#l00043">configure()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00075">DisableDebugLogging()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00074">EnableDebugLogging()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00069">GetLogLevel()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00076">IsDebugEnabled()</a>, <a class="el" href="../../d4/dc1/log_8cc_source.html#l00066">log()</a>, and <a class="el" href="../../d7/d7f/log_8h_source.html#l00068">SetLogLevel()</a>.</p>
 
 </div>
 </div>
@@ -453,7 +625,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00071">71</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00084">84</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d4/dc1/log_8cc_source.html#l00043">configure()</a>, and <a class="el" href="../../d4/dc1/log_8cc_source.html#l00066">log()</a>.</p>
 
@@ -479,7 +651,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00072">72</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00085">85</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d4/dc1/log_8cc_source.html#l00043">configure()</a>, and <a class="el" href="../../d4/dc1/log_8cc_source.html#l00066">log()</a>.</p>
 
@@ -505,7 +677,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00075">75</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00088">88</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d4/dc1/log_8cc_source.html#l00043">configure()</a>, <a class="el" href="../../d4/dc1/log_8cc_source.html#l00066">log()</a>, and <a class="el" href="../../d4/dc1/log_8cc_source.html#l00037">~LogManager()</a>.</p>
 
@@ -531,7 +703,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00076">76</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d7f/log_8h_source.html#l00089">89</a> of file <a class="el" href="../../d7/d7f/log_8h_source.html">log.h</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d4/dc1/log_8cc_source.html#l00043">configure()</a>.</p>
 

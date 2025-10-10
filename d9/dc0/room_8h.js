@@ -94,8 +94,6 @@ var room_8h =
     [ "dungeons_palettes", "d9/dc0/room_8h.html#a3c7ded4f8e963ea566b82fe2929bef25", null ],
     [ "room_items_pointers", "d9/dc0/room_8h.html#a71e298fe1abeb93fe9972856c1f80889", null ],
     [ "rooms_sprite_pointer", "d9/dc0/room_8h.html#a5de81bc04b33ac9b922d17605aca2422", null ],
-    [ "kRoomHeaderPointer", "d9/dc0/room_8h.html#acbd549e1691fc9f4bcef8d4b2970507a", null ],
-    [ "kRoomHeaderPointerBank", "d9/dc0/room_8h.html#ad1ac0e51c4d6f33af2978a75e3a7e9fe", null ],
     [ "gfx_groups_pointer", "d9/dc0/room_8h.html#aa2fc6ec9ffffbab2934b1a3d84f0aa4e", null ],
     [ "chests_length_pointer", "d9/dc0/room_8h.html#a1b347402c4cfb96482405ec34ef38689", null ],
     [ "chests_data_pointer1", "d9/dc0/room_8h.html#a2c48b5f7c8613c139179ad025d624e16", null ],
@@ -124,9 +122,9 @@ var room_8h =
     [ "door_pos_left", "d9/dc0/room_8h.html#a485277067cbabf79b3d52d91992a8d2c", null ],
     [ "door_pos_right", "d9/dc0/room_8h.html#aeb8fe4646067b83eb7f89a09d15e5fc1", null ],
     [ "dungeon_spr_ptrs", "d9/dc0/room_8h.html#afbc9fe85069227dcd4ca9c153940cdb1", null ],
-    [ "NumberOfRooms", "d9/dc0/room_8h.html#a4b6a864121df7d5c8aeeb4b142efe90d", null ],
-    [ "stairsObjects", "d9/dc0/room_8h.html#aa0cc664b6550160edcb41dba09eac552", null ],
     [ "tile_address", "d9/dc0/room_8h.html#aed68d4661d50e76f2427c17e991216ea", null ],
     [ "tile_address_floor", "d9/dc0/room_8h.html#a8bb0f15e19cfc5177bb206f10f44eba7", null ],
+    [ "NumberOfRooms", "d9/dc0/room_8h.html#a4b6a864121df7d5c8aeeb4b142efe90d", null ],
+    [ "stairsObjects", "d9/dc0/room_8h.html#aa0cc664b6550160edcb41dba09eac552", null ],
     [ "kRoomNames", "d9/dc0/room_8h.html#a6b3f5be6f1403c5b4c4d4f04b74858ba", null ]
 ];
