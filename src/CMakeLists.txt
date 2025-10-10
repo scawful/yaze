@@ -985,8 +985,8 @@ source_group("Application\\Graphics" FILES
 
 # GUI System
 source_group("Application\\GUI" FILES
-  app/gui/canvas_utils.cc
-  app/gui/canvas_utils.h
+  app/gui/canvas/canvas_utils.cc
+  app/gui/canvas/canvas_utils.h
   app/gui/canvas.cc
   app/gui/canvas.h
   app/gui/color.cc

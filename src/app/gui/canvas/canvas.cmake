@@ -3,19 +3,23 @@
 
 # Canvas core components
 set(CANVAS_SOURCES
+  bpp_format_ui.cc
   canvas_modals.cc
   canvas_context_menu.cc
   canvas_usage_tracker.cc
   canvas_performance_integration.cc
   canvas_interaction_handler.cc
+  canvas_utils.cc
 )
 
 set(CANVAS_HEADERS
+  bpp_format_ui.h
   canvas_modals.h
   canvas_context_menu.h
   canvas_usage_tracker.h
   canvas_performance_integration.h
   canvas_interaction_handler.h
+  canvas_utils.h
 )
 
 # Create canvas library
@@ -43,6 +47,9 @@ target_include_directories(yaze_canvas PUBLIC
 target_link_libraries(yaze_canvas PUBLIC
   yaze_gfx
   yaze_gui_common
+  absl::status
+  absl::statusor
+  absl::strings
   imgui
   SDL2::SDL2
 )
