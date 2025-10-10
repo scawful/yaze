@@ -818,42 +818,69 @@ bool ObjectDrawer::IsValidTilePosition(int tile_x, int tile_y) const {
          tile_y >= 0 && tile_y < kMaxTilesY;
 }
 
-void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& tile_info, 
+void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap, const gfx::TileInfo& tile_info,
                                    int pixel_x, int pixel_y, const uint8_t* tiledata) {
   // Draw an 8x8 tile directly to bitmap at pixel coordinates
   if (!tiledata) return;
-  
+
   // DEBUG: Check if bitmap is valid
   if (!bitmap.is_active() || bitmap.width() == 0 || bitmap.height() == 0) {
-    LOG_DEBUG("ObjectDrawer", "ERROR: Invalid bitmap - active=%d, size=%dx%d", 
+    LOG_DEBUG("ObjectDrawer", "ERROR: Invalid bitmap - active=%d, size=%dx%d",
            bitmap.is_active(), bitmap.width(), bitmap.height());
     return;
   }
-  
-  // Calculate tile position in graphics sheet (128 pixels wide, 16 tiles per row)
-  int tile_sheet_x = (tile_info.id_ % 16) * 8;  // 16 tiles per row
-  int tile_sheet_y = (tile_info.id_ / 16) * 8;  // Each row is 16 tiles
-  
+
+  // CRITICAL FIX: current_gfx16_ is organized as 16 sheets of 128x128 pixels
+  // Each sheet is 0x800 bytes (2048 bytes = 128*128/8 = 16384 pixels)
+  // Total buffer size: 16 * 0x800 = 0x8000 bytes (32768 bytes)
+  // Tile IDs are 0-511, distributed across sheets:
+  //   Sheet 0: tiles 0-127
+  //   Sheet 1: tiles 128-255
+  //   ...
+  //   Sheet 15: tiles 480-511 (but only uses first 32 tiles)
+  //
+  // Within each sheet, tiles are arranged in a 16x8 grid (128 tiles total):
+  //   Row 0: tiles 0-15
+  //   Row 1: tiles 16-31
+  //   ...
+  //   Row 7: tiles 112-127
+
+  int sheet_index = tile_info.id_ / 128;  // Which 128-tile sheet (0-15)?
+  int tile_in_sheet = tile_info.id_ % 128;  // Which tile within that sheet (0-127)?
+  int tile_x_in_sheet = (tile_in_sheet % 16) * 8;  // 16 tiles per row, 8 pixels each
+  int tile_y_in_sheet = (tile_in_sheet / 16) * 8;  // 8 rows, 8 pixels each
+
   // Palettes are 3bpp (8 colors). Convert palette index to base color offset.
   uint8_t palette_offset = (tile_info.palette_ & 0x0F) * 8;
-  
+
   // Draw 8x8 pixels
   for (int py = 0; py < 8; py++) {
     for (int px = 0; px < 8; px++) {
       // Apply mirroring
       int src_x = tile_info.horizontal_mirror_ ? (7 - px) : px;
       int src_y = tile_info.vertical_mirror_ ? (7 - py) : py;
-      
-      // Read pixel from graphics sheet
-      int src_index = (tile_sheet_y + src_y) * 128 + (tile_sheet_x + src_x);
+
+      // Calculate source pixel index in current_gfx16_ buffer
+      // Buffer layout: [Sheet 0: 0x800 bytes][Sheet 1: 0x800 bytes]...[Sheet 15: 0x800 bytes]
+      // Within each sheet: row-major order, 128 pixels per row
+      int src_index = (sheet_index * 0x800) +  // Sheet offset (2048 bytes per sheet)
+                      (tile_y_in_sheet + src_y) * 128 +  // Row within sheet (128 pixels/row)
+                      (tile_x_in_sheet + src_x);  // Column within row
+
+      // Bounds check for graphics buffer
+      if (src_index < 0 || src_index >= 0x4000) {
+        continue;  // Out of bounds, skip pixel
+      }
+
       uint8_t pixel_index = tiledata[src_index];
       if (pixel_index == 0) {
-        continue;
+        continue;  // Transparent pixel
       }
+
       uint8_t final_color = pixel_index + palette_offset;
       int dest_x = pixel_x + px;
       int dest_y = pixel_y + py;
-      
+
       if (dest_x >= 0 && dest_x < bitmap.width() && dest_y >= 0 && dest_y < bitmap.height()) {
         int dest_index = dest_y * bitmap.width() + dest_x;
         if (dest_index >= 0 && dest_index < static_cast<int>(bitmap.mutable_data().size())) {

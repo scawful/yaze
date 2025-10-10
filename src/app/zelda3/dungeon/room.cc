@@ -335,27 +335,30 @@ void Room::RenderRoomGraphics() {
   // ObjectDrawer will write indexed pixel data that uses the palette we just set
   RenderObjectsToBackground();
   
-  // Update textures with all the data (floor + background + objects + palette)
+  // PERFORMANCE OPTIMIZATION: Queue texture commands but DON'T process immediately
+  // This allows multiple rooms to batch their texture updates together
+  // The dungeon_canvas_viewer.cc:552 will process all queued textures once per frame
   if (bg1_bmp.texture()) {
     // Texture exists - UPDATE it with new object data
-    LOG_DEBUG("[RenderRoomGraphics]", "Queueing UPDATE for existing textures");
+    LOG_DEBUG("[RenderRoomGraphics]", "Queueing UPDATE for existing textures (deferred)");
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::UPDATE, &bg1_bmp);
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::UPDATE, &bg2_bmp);
   } else {
     // No texture yet - CREATE it
-    LOG_DEBUG("[RenderRoomGraphics]", "Queueing CREATE for new textures");
+    LOG_DEBUG("[RenderRoomGraphics]", "Queueing CREATE for new textures (deferred)");
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &bg1_bmp);
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &bg2_bmp);
   }
-  
-  // CRITICAL: Process texture queue immediately so objects appear!
-  // Don't wait for next frame - update NOW!
-  gfx::Arena::Get().ProcessTextureQueue(nullptr);
-  LOG_DEBUG("[RenderRoomGraphics]", "Processed texture queue immediately");
+
+  // REMOVED: Don't process texture queue here - let it be batched!
+  // Processing happens once per frame in DrawDungeonCanvas()
+  // This dramatically improves performance when multiple rooms are open
+  // gfx::Arena::Get().ProcessTextureQueue(nullptr);  // OLD: Caused slowdown!
+  LOG_DEBUG("[RenderRoomGraphics]", "Texture commands queued for batch processing");
 }
 
 void Room::LoadLayoutTilesToBuffer() {
