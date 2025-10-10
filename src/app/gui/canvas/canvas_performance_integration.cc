@@ -5,8 +5,8 @@
 #include <iomanip>
 #include <chrono>
 
-#include "app/gfx/performance_profiler.h"
-#include "app/gfx/performance_dashboard.h"
+#include "app/gfx/performance/performance_profiler.h"
+#include "app/gfx/performance/performance_dashboard.h"
 #include "util/log.h"
 #include "imgui/imgui.h"
 

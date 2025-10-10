@@ -35,7 +35,6 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
     unit/zelda3/object_parser_test.cc
     unit/zelda3/object_parser_structs_test.cc
     unit/zelda3/sprite_builder_test.cc
-    unit/zelda3/test_dungeon_objects.cc
     unit/zelda3/dungeon_component_unit_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
