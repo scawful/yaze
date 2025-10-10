@@ -69,10 +69,7 @@ TEST_F(ObjectParserTest, ParseSubtype1Object) {
 
   // Verify tile data was parsed correctly
   for (const auto& tile : tiles) {
-    EXPECT_NE(tile.tile0_.id_, 0);
-    EXPECT_NE(tile.tile1_.id_, 0);
-    EXPECT_NE(tile.tile2_.id_, 0);
-    EXPECT_NE(tile.tile3_.id_, 0);
+    EXPECT_NE(tile.id_, 0);
   }
 }
 

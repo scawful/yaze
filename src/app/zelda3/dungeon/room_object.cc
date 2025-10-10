@@ -96,8 +96,10 @@ void RoomObject::EnsureTilesLoaded() {
   uint16_t w3 = (uint16_t)(rom_data[pos + 6] | (rom_data[pos + 7] << 8));
 
   tiles_.clear();
-  tiles_.push_back(gfx::Tile16(gfx::WordToTileInfo(w0), gfx::WordToTileInfo(w1),
-                               gfx::WordToTileInfo(w2), gfx::WordToTileInfo(w3)));
+  tiles_.push_back(gfx::WordToTileInfo(w0));
+  tiles_.push_back(gfx::WordToTileInfo(w1));
+  tiles_.push_back(gfx::WordToTileInfo(w2));
+  tiles_.push_back(gfx::WordToTileInfo(w3));
   tile_count_ = 1;
   tiles_loaded_ = true;
 }
@@ -118,7 +120,7 @@ absl::Status RoomObject::LoadTilesWithParser() {
   return absl::OkStatus();
 }
 
-absl::StatusOr<std::span<const gfx::Tile16>> RoomObject::GetTiles() const {
+absl::StatusOr<std::span<const gfx::TileInfo>> RoomObject::GetTiles() const {
   if (!tiles_loaded_) {
     const_cast<RoomObject*>(this)->EnsureTilesLoaded();
   }
@@ -127,10 +129,10 @@ absl::StatusOr<std::span<const gfx::Tile16>> RoomObject::GetTiles() const {
     return absl::FailedPreconditionError("No tiles loaded for object");
   }
   
-  return std::span<const gfx::Tile16>(tiles_.data(), tiles_.size());
+  return std::span<const gfx::TileInfo>(tiles_.data(), tiles_.size());
 }
 
-absl::StatusOr<const gfx::Tile16*> RoomObject::GetTile(int index) const {
+absl::StatusOr<const gfx::TileInfo*> RoomObject::GetTile(int index) const {
   if (!tiles_loaded_) {
     const_cast<RoomObject*>(this)->EnsureTilesLoaded();
   }

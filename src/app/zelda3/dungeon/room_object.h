@@ -84,14 +84,14 @@ class RoomObject {
   absl::Status LoadTilesWithParser();
 
   // Getter for tiles
-  const std::vector<gfx::Tile16>& tiles() const { return tiles_; }
-  std::vector<gfx::Tile16>& mutable_tiles() { return tiles_; }
+  const std::vector<gfx::TileInfo>& tiles() const { return tiles_; }
+  std::vector<gfx::TileInfo>& mutable_tiles() { return tiles_; }
 
   // Get tile data through Arena system - returns references, not copies
-  absl::StatusOr<std::span<const gfx::Tile16>> GetTiles() const;
+  absl::StatusOr<std::span<const gfx::TileInfo>> GetTiles() const;
   
   // Get individual tile by index - uses Arena lookup
-  absl::StatusOr<const gfx::Tile16*> GetTile(int index) const;
+  absl::StatusOr<const gfx::TileInfo*> GetTile(int index) const;
   
   // Get tile count without loading all tiles
   int GetTileCount() const;
@@ -161,7 +161,7 @@ class RoomObject {
   
   // Tile data storage - using Arena system for efficient memory management
   // Instead of copying Tile16 vectors, we store references to Arena-managed data
-  mutable std::vector<gfx::Tile16> tiles_; // Fallback for compatibility
+  mutable std::vector<gfx::TileInfo> tiles_; // Individual tiles like ZScream
   mutable bool tiles_loaded_ = false;
   mutable int tile_count_ = 0;
   mutable int tile_data_ptr_ = -1; // Pointer to tile data in ROM

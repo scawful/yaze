@@ -226,6 +226,7 @@ class Room {
   void ClearTileObjects() { tile_objects_.clear(); }
   void AddTileObject(const RoomObject& object) {
     tile_objects_.push_back(object);
+    MarkObjectsDirty();
   }
   
   // Enhanced object manipulation (Phase 3)
@@ -234,9 +235,15 @@ class Room {
   absl::Status UpdateObject(size_t index, const RoomObject& object);
   absl::StatusOr<size_t> FindObjectAt(int x, int y, int layer) const;
   bool ValidateObject(const RoomObject& object) const;
+
+  // Performance optimization: Mark objects as dirty when modified
+  void MarkObjectsDirty() { objects_dirty_ = true; textures_dirty_ = true; }
+  void MarkGraphicsDirty() { graphics_dirty_ = true; textures_dirty_ = true; }
+  void MarkLayoutDirty() { layout_dirty_ = true; textures_dirty_ = true; }
   void RemoveTileObject(size_t index) {
     if (index < tile_objects_.size()) {
       tile_objects_.erase(tile_objects_.begin() + index);
+      MarkObjectsDirty();
     }
   }
   size_t GetTileObjectCount() const { return tile_objects_.size(); }
@@ -248,18 +255,49 @@ class Room {
   // For undo/redo functionality
   void SetTileObjects(const std::vector<RoomObject>& objects) {
     tile_objects_ = objects;
+    MarkObjectsDirty();
   }
 
   // Public setters for LoadRoomFromRom function
   void SetBg2(background2 bg2) { bg2_ = bg2; }
   void SetCollision(CollisionKey collision) { collision_ = collision; }
   void SetIsLight(bool is_light) { is_light_ = is_light; }
-  void SetPalette(uint8_t palette) { this->palette = palette; }
-  void SetBlockset(uint8_t blockset) { this->blockset = blockset; }
-  void SetSpriteset(uint8_t spriteset) { this->spriteset = spriteset; }
-  void SetEffect(EffectKey effect) { effect_ = effect; }
-  void SetTag1(TagKey tag1) { tag1_ = tag1; }
-  void SetTag2(TagKey tag2) { tag2_ = tag2; }
+  void SetPalette(uint8_t palette) {
+    if (this->palette != palette) {
+      this->palette = palette;
+      MarkGraphicsDirty();
+    }
+  }
+  void SetBlockset(uint8_t blockset) {
+    if (this->blockset != blockset) {
+      this->blockset = blockset;
+      MarkGraphicsDirty();
+    }
+  }
+  void SetSpriteset(uint8_t spriteset) {
+    if (this->spriteset != spriteset) {
+      this->spriteset = spriteset;
+      MarkGraphicsDirty();
+    }
+  }
+  void SetEffect(EffectKey effect) {
+    if (effect_ != effect) {
+      effect_ = effect;
+      MarkObjectsDirty();
+    }
+  }
+  void SetTag1(TagKey tag1) {
+    if (tag1_ != tag1) {
+      tag1_ = tag1;
+      MarkObjectsDirty();
+    }
+  }
+  void SetTag2(TagKey tag2) {
+    if (tag2_ != tag2) {
+      tag2_ = tag2;
+      MarkObjectsDirty();
+    }
+  }
   void SetStaircasePlane(int index, uint8_t plane) {
     if (index >= 0 && index < 4) staircase_plane_[index] = plane;
   }
@@ -320,13 +358,17 @@ class Room {
   // Floor graphics accessors (use these instead of direct members!)
   uint8_t floor1() const { return floor1_graphics_; }
   uint8_t floor2() const { return floor2_graphics_; }
-  void set_floor1(uint8_t value) { 
-    floor1_graphics_ = value;
-    // TODO: Trigger re-render if needed
+  void set_floor1(uint8_t value) {
+    if (floor1_graphics_ != value) {
+      floor1_graphics_ = value;
+      MarkGraphicsDirty();
+    }
   }
-  void set_floor2(uint8_t value) { 
-    floor2_graphics_ = value;
-    // TODO: Trigger re-render if needed
+  void set_floor2(uint8_t value) {
+    if (floor2_graphics_ != value) {
+      floor2_graphics_ = value;
+      MarkGraphicsDirty();
+    }
   }
   // Enhanced object parsing methods
   void ParseObjectsFromLocation(int objects_location);
@@ -362,6 +404,23 @@ class Room {
   bool is_loaded_ = false;
   bool is_dark_;
   bool is_floor_ = true;
+
+  // Performance optimization: Cache room properties to avoid unnecessary re-renders
+  uint8_t cached_blockset_ = 0xFF;
+  uint8_t cached_spriteset_ = 0xFF;
+  uint8_t cached_palette_ = 0xFF;
+  uint8_t cached_layout_ = 0xFF;
+  uint8_t cached_floor1_graphics_ = 0xFF;
+  uint8_t cached_floor2_graphics_ = 0xFF;
+  uint8_t cached_effect_ = 0xFF;
+  TagKey cached_tag1_ = TagKey::Nothing;
+  TagKey cached_tag2_ = TagKey::Nothing;
+
+  // Dirty flags for selective rendering
+  bool graphics_dirty_ = true;
+  bool objects_dirty_ = true;
+  bool layout_dirty_ = true;
+  bool textures_dirty_ = true;
 
   int room_id_;
   int animated_frame_;

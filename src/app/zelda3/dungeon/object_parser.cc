@@ -5,6 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/zelda3/dungeon/room_object.h"
+#include "util/log.h"
 
 // ROM addresses for object data (PC addresses, not SNES)
 static constexpr int kRoomObjectSubtype1 = 0x0A8000;
@@ -15,7 +16,7 @@ static constexpr int kRoomObjectTileAddress = 0x0AB000;
 namespace yaze {
 namespace zelda3 {
 
-absl::StatusOr<std::vector<gfx::Tile16>> ObjectParser::ParseObject(int16_t object_id) {
+absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseObject(int16_t object_id) {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM is null");
   }
@@ -116,7 +117,7 @@ absl::StatusOr<ObjectSizeInfo> ObjectParser::ParseObjectSize(int16_t object_id, 
   return info;
 }
 
-absl::StatusOr<std::vector<gfx::Tile16>> ObjectParser::ParseSubtype1(int16_t object_id) {
+absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(int16_t object_id) {
   int index = object_id & 0xFF;
   int tile_ptr = kRoomObjectSubtype1 + (index * 2);
   
@@ -134,7 +135,7 @@ absl::StatusOr<std::vector<gfx::Tile16>> ObjectParser::ParseSubtype1(int16_t obj
   return ReadTileData(tile_data_ptr, 8);
 }
 
-absl::StatusOr<std::vector<gfx::Tile16>> ObjectParser::ParseSubtype2(int16_t object_id) {
+absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(int16_t object_id) {
   int index = object_id & 0x7F;
   int tile_ptr = kRoomObjectSubtype2 + (index * 2);
   
@@ -152,7 +153,7 @@ absl::StatusOr<std::vector<gfx::Tile16>> ObjectParser::ParseSubtype2(int16_t obj
   return ReadTileData(tile_data_ptr, 8);
 }
 
-absl::StatusOr<std::vector<gfx::Tile16>> ObjectParser::ParseSubtype3(int16_t object_id) {
+absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(int16_t object_id) {
   int index = object_id & 0xFF;
   int tile_ptr = kRoomObjectSubtype3 + (index * 2);
   
@@ -170,30 +171,42 @@ absl::StatusOr<std::vector<gfx::Tile16>> ObjectParser::ParseSubtype3(int16_t obj
   return ReadTileData(tile_data_ptr, 8);
 }
 
-absl::StatusOr<std::vector<gfx::Tile16>> ObjectParser::ReadTileData(int address, int tile_count) {
-  if (address < 0 || address + (tile_count * 8) >= (int)rom_->size()) {
+absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(int address, int tile_count) {
+  // Each tile is stored as a 16-bit word (2 bytes), not 8 bytes!
+  // ZScream: tiles.Add(new Tile(ROM.DATA[pos + ((i * 2))], ROM.DATA[pos + ((i * 2)) + 1]));
+  if (address < 0 || address + (tile_count * 2) >= (int)rom_->size()) {
     return absl::OutOfRangeError(
         absl::StrFormat("Tile data address out of range: %#06x", address));
   }
   
-  std::vector<gfx::Tile16> tiles;
+  std::vector<gfx::TileInfo> tiles;
   tiles.reserve(tile_count);
   
+  // DEBUG: Log first tile read
+  static int debug_read_count = 0;
+  bool should_log = (debug_read_count < 3);
+  
   for (int i = 0; i < tile_count; i++) {
-    int tile_offset = address + (i * 8);
+    int tile_offset = address + (i * 2);  // 2 bytes per tile word
     
-    // Read 4 words (8 bytes) per tile
-    uint16_t w0 = rom_->data()[tile_offset] | (rom_->data()[tile_offset + 1] << 8);
-    uint16_t w1 = rom_->data()[tile_offset + 2] | (rom_->data()[tile_offset + 3] << 8);
-    uint16_t w2 = rom_->data()[tile_offset + 4] | (rom_->data()[tile_offset + 5] << 8);
-    uint16_t w3 = rom_->data()[tile_offset + 6] | (rom_->data()[tile_offset + 7] << 8);
+    // Read 1 word (2 bytes) per tile - this is the SNES tile format
+    uint16_t tile_word = rom_->data()[tile_offset] | (rom_->data()[tile_offset + 1] << 8);
     
-    tiles.emplace_back(
-        gfx::WordToTileInfo(w0),
-        gfx::WordToTileInfo(w1),
-        gfx::WordToTileInfo(w2),
-        gfx::WordToTileInfo(w3)
-    );
+    auto tile_info = gfx::WordToTileInfo(tile_word);
+    tiles.push_back(tile_info);
+    
+    // DEBUG: Log first few tiles
+    if (should_log && i < 4) {
+      printf("[ObjectParser] ReadTile[%d]: addr=0x%06X word=0x%04X → id=0x%03X pal=%d mirror=(h:%d,v:%d)\n",
+               i, tile_offset, tile_word, tile_info.id_, tile_info.palette_,
+               tile_info.horizontal_mirror_, tile_info.vertical_mirror_);
+    }
+  }
+  
+  if (should_log) {
+    printf("[ObjectParser] ReadTileData: addr=0x%06X count=%d → loaded %zu tiles\n", 
+             address, tile_count, tiles.size());
+    debug_read_count++;
   }
   
   return tiles;
