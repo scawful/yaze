@@ -158,7 +158,7 @@ message GetTestStatusRequest {
 }
 
 message GetTestStatusResponse {
-  enum Status {
+  enum TestStatus {
     STATUS_UNSPECIFIED = 0;  // Test ID not found or unspecified
     STATUS_QUEUED = 1;       // Waiting to execute
     STATUS_RUNNING = 2;      // Currently executing
@@ -167,7 +167,7 @@ message GetTestStatusResponse {
     STATUS_TIMEOUT = 5;      // Exceeded timeout
   }
 
-  Status status = 1;
+  TestStatus status = 1;
   int64 queued_at_ms = 2;      // When test was queued
   int64 started_at_ms = 3;     // When test started (0 if not started)
   int64 completed_at_ms = 4;   // When test completed (0 if not complete)
