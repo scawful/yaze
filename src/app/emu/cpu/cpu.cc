@@ -160,20 +160,34 @@ void Cpu::RunOpcode() {
       }
       
       // LoadSongBank routine ($8888-$88FF) - This is where handshake happens!
+      // LOGIC: Track CPU's journey through audio initialization to identify where it gets stuck.
+      // We log key waypoints to understand if CPU reaches handshake write instructions.
       if (cur_pc >= 0x8888 && cur_pc <= 0x88FF) {
         // Log entry
         if (cur_pc == 0x8888) {
-          LOG_INFO("CPU_AUDIO", ">>> LoadSongBank ENTRY at $8888! A=$%02X X=$%04X", 
+          LOG_INFO("CPU_AUDIO", ">>> LoadSongBank ENTRY at $8888! A=$%02X X=$%04X",
                    A & 0xFF, X);
         }
-        
-        // Log handshake initiation ($88A0-$88B0 area writes $CC to F4)
-        if (cur_pc >= 0x88A0 && cur_pc <= 0x88B0 && !logged_routines[cur_pc]) {
-          LOG_INFO("CPU_AUDIO", "Handshake setup: PC=$%04X A=$%02X", cur_pc, A & 0xFF);
+
+        // DISCOVERY: Log every unique PC in this range to see the execution path
+        // This helps identify if CPU is looping, stuck, or simply not reaching write instructions
+        static int exec_count_8888 = 0;
+        if (exec_count_8888++ < 100 && !logged_routines[cur_pc]) {
+          LOG_INFO("CPU_AUDIO", "  LoadSongBank: PC=$%04X A=$%02X X=$%04X Y=$%04X SP=$%04X [exec #%d]",
+                   cur_pc, A & 0xFF, X, Y, SP(), exec_count_8888);
           logged_routines[cur_pc] = true;
         }
-        
+
+        // Log handshake initiation ($88A0-$88B0 area writes $CC to F4)
+        if (cur_pc >= 0x88A0 && cur_pc <= 0x88B0) {
+          static int setup_count = 0;
+          if (setup_count++ < 20) {
+            LOG_INFO("CPU_AUDIO", "Handshake setup area: PC=$%04X A=$%02X", cur_pc, A & 0xFF);
+          }
+        }
+
         // Log handshake wait loop
+        // LOGIC: If we see these addresses, CPU is waiting for APU response
         static int handshake_log_count = 0;
         if (cur_pc == 0x88B3 || cur_pc == 0x88B6) {
           if (handshake_log_count++ < 20 || handshake_log_count % 500 == 0) {

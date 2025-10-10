@@ -101,6 +101,7 @@ void Apu::RunCycles(uint64_t master_cycles) {
   
   while (cycles_ < target_apu_cycles) {
     // Execute one SPC700 opcode (variable cycles) then advance APU cycles accordingly.
+    uint16_t old_pc = spc700_.PC;
     uint16_t current_pc = spc700_.PC;
     
     // IPL ROM protocol analysis - let it run to see what happens
@@ -144,6 +145,10 @@ void Apu::RunCycles(uint64_t master_cycles) {
     // Execute one complete SPC700 instruction and get exact cycle count
     // Step() returns the precise number of cycles consumed by the instruction
     int spc_cycles = spc700_.Step();
+
+    if (handshake_tracker_) {
+      handshake_tracker_->OnSpcPCChange(old_pc, spc700_.PC);
+    }
 
     // Advance APU cycles based on actual SPC700 instruction timing
     // Each Cycle() call: ticks DSP every 32 cycles, updates timers, increments cycles_

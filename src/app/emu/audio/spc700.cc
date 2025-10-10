@@ -8,14 +8,15 @@
 #include "app/core/features.h"
 
 #include "app/emu/audio/internal/opcodes.h"
-#include "app/emu/audio/internal/spc700_cycles.h"
+#include "app/emu/audio/internal/spc700_accurate_cycles.h"
 
 namespace yaze {
 namespace emu {
 
 void Spc700::Reset(bool hard) {
   if (hard) {
-    PC = 0;
+    // DON'T set PC = 0 here! The reset sequence in Step() will load PC from the reset vector.
+    // Setting PC = 0 here would overwrite the correct value loaded from $FFFE-$FFFF.
     A = 0;
     X = 0;
     Y = 0;
@@ -38,30 +39,36 @@ int Spc700::Step() {
     read(0x100 | SP--);
     callbacks_.idle(false);
     PSW.I = false;
-    PC = read_word(0xfffe);
-    last_opcode_cycles_ = 8;
+
+    // Load PC from reset vector ($FFFE-$FFFF)
+    uint8_t lo = read(0xfffe);
+    uint8_t hi = read(0xffff);
+    PC = lo | (hi << 8);
+
     return 8;
   }
 
   // Handle stopped state (SLEEP/STOP instructions)
   if (stopped_) {
     callbacks_.idle(true);
-    last_opcode_cycles_ = 2;
     return 2;
   }
+
+  // Reset extra cycle counter for new instruction
+  extra_cycles_ = 0;
 
   // Fetch and execute one complete instruction
   uint8_t opcode = ReadOpcode();
 
-  // Set base cycle count from lookup table
-  // This will be the return value; callbacks during execution will advance APU cycles
-  last_opcode_cycles_ = spc700_cycles[opcode];
+  // Get base cycle count from the new accurate lookup table
+  int cycles = spc700_accurate_cycles[opcode];
 
   // Execute the instruction completely (atomic execution)
+  // This will set extra_cycles_ if a branch is taken
   ExecuteInstructions(opcode);
 
-  // Return the number of cycles this instruction consumed
-  return last_opcode_cycles_;
+  // Return the base cycles plus any extra cycles from branching
+  return cycles + extra_cycles_;
 }
 
 void Spc700::RunOpcode() {
@@ -114,7 +121,7 @@ void Spc700::RunOpcode() {
     if (bstep == 0) {
       opcode = ReadOpcode();
       // Set base cycle count from lookup table
-      last_opcode_cycles_ = spc700_cycles[opcode];
+      last_opcode_cycles_ = spc700_accurate_cycles[opcode];
     } else {
       if (spc_exec_count < 5) {
         LOG_DEBUG("SPC", "Continuing multi-step: PC=$%04X bstep=%d opcode=$%02X", PC, bstep, opcode);
@@ -733,10 +740,16 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       CMP(idy());
       break;
     }
-    case 0x78: {  // cmpm dp, imm
-      uint8_t src = 0;
-      uint16_t dst = dp_imm(&src);
-      CMPM(dst, src);
+    case 0x78: {  // cmp d, #i
+      uint8_t imm = ReadOpcode();
+      uint16_t adr = (PSW.P << 8) | ReadOpcode();
+      uint8_t val = read(adr);
+      callbacks_.idle(false); // Add missing cycle
+      callbacks_.idle(false); // Add missing cycle
+      int result = val - imm;
+      PSW.C = (val >= imm);
+      PSW.Z = (result == 0);
+      PSW.N = (result & 0x80);
       break;
     }
     case 0x79: {  // cmpm ind, ind
@@ -1140,15 +1153,11 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       write(adr, result);
       break;
     }
-    case 0xcb: {  // movsy dp
-      // CRITICAL: Only call dp() once in bstep=0, reuse saved address in bstep=1
-      if (bstep == 0) {
-        adr = dp();  // Save address for bstep=1
-      }
-      if (adr == 0x00F4 && bstep == 1) {
-        LOG_DEBUG("SPC", "MOVSY writing Y=$%02X to F4 at PC=$%04X", Y, PC);
-      }
-      MOVSY(adr);  // Use saved address
+    case 0xcb: {  // mov d, Y
+      uint16_t adr = (PSW.P << 8) | ReadOpcode();
+      read(adr);
+      callbacks_.idle(false); // Add one extra cycle delay
+      write(adr, Y);
       break;
     }
     case 0xcc: {  // movsy abs
@@ -1176,21 +1185,7 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       break;
     }
     case 0xd0: {  // bne rel
-      switch (step++) {
-        case 1:
-          dat = ReadOpcode();
-          if (PSW.Z) step = 0;
-          break;
-        case 2:
-          callbacks_.idle(false);
-          break;
-        case 3:
-          callbacks_.idle(false);
-          PC += (int8_t)dat;
-          step = 0;
-          break;
-      }
-      // DoBranch(ReadOpcode(), !PSW.Z);
+      DoBranch(ReadOpcode(), !PSW.Z);
       break;
     }
     case 0xd4: {  // movs dpx
@@ -1274,43 +1269,62 @@ void Spc700::ExecuteInstructions(uint8_t opcode) {
       PSW.H = false;
       break;
     }
-    case 0xe4: {  // mov dp
-      MOV(dp());
+    case 0xe4: {  // mov A, dp
+      uint16_t adr = (PSW.P << 8) | ReadOpcode();
+      A = read(adr);
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
       break;
     }
-    case 0xe5: {  // mov abs
-      MOV(abs());
+    case 0xe5: {  // mov A, abs
+      uint16_t adr = ReadOpcodeWord();
+      A = read(adr);
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
       break;
     }
-    case 0xe6: {  // mov ind
-      MOV(ind());
+    case 0xe6: {  // mov A, (X)
+      uint16_t adr = X;
+      A = read(adr);
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
       break;
     }
-    case 0xe7: {  // mov idx
-      MOV(idx());
+    case 0xe7: {  // mov A, [dp+X]
+      uint16_t dp_adr = (PSW.P << 8) | ReadOpcode();
+      callbacks_.idle(false);
+      uint16_t adr = read_word(dp_adr + X);
+      A = read(adr);
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
       break;
     }
-    case 0xe8: {  // mov imm
-      MOV(imm());
+    case 0xe8: {  // mov A, #imm
+      A = ReadOpcode();
+      PSW.Z = (A == 0);
+      PSW.N = (A & 0x80);
       break;
     }
     case 0xe9: {  // movx abs
-      MOVX(abs());
-      break;
-    }
-    case 0xea: {  // not1 abs.bit
-      uint16_t adr = 0;
-      uint8_t bit = abs_bit(&adr);
-      uint8_t result = read(adr) ^ (1 << bit);
-      write(adr, result);
+      uint16_t adr = ReadOpcodeWord();
+      X = read(adr);
+      PSW.Z = (X == 0);
+      PSW.N = (X & 0x80);
       break;
     }
     case 0xeb: {  // movy dp
-      MOVY(dp());
+      uint16_t adr = (PSW.P << 8) | ReadOpcode();
+      callbacks_.idle(false); // Add missing cycle
+      Y = read(adr);
+      PSW.Z = (Y == 0);
+      PSW.N = (Y & 0x80);
       break;
     }
     case 0xec: {  // movy abs
-      MOVY(abs());
+      uint16_t adr = ReadOpcodeWord();
+      Y = read(adr);
+      PSW.Z = (Y == 0);
+      PSW.N = (Y & 0x80);
       break;
     }
     case 0xed: {  // notc imp
