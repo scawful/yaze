@@ -17,6 +17,15 @@
 #include <vector>
 
 #ifdef YAZE_WITH_GRPC
+// Undefine Windows macros that conflict with protobuf generated code
+#ifdef _WIN32
+#ifdef DWORD
+#undef DWORD
+#endif
+#ifdef ERROR
+#undef ERROR
+#endif
+#endif  // _WIN32
 #include <grpcpp/grpcpp.h>
 #include "protos/imgui_test_harness.grpc.pb.h"
 #endif
