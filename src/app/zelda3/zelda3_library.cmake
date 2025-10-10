@@ -16,8 +16,6 @@ set(
   app/zelda3/dungeon/object_renderer.cc
   app/zelda3/dungeon/object_drawer.cc
   app/zelda3/dungeon/room_layout.cc
-  app/zelda3/dungeon/room_diagnostic.cc
-  app/zelda3/dungeon/room_visual_diagnostic.cc
   app/zelda3/dungeon/dungeon_editor_system.cc
   app/zelda3/dungeon/dungeon_object_editor.cc
 )
