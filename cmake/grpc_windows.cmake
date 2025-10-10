@@ -24,6 +24,14 @@ if(WIN32 AND YAZE_USE_VCPKG_GRPC)
   
   if(gRPC_FOUND AND Protobuf_FOUND)
     message(STATUS "✓ Using vcpkg gRPC packages (fast build path)")
+
+    # Prevent Windows macro pollution in protobuf-generated headers
+    add_compile_definitions(
+        WIN32_LEAN_AND_MEAN  # Exclude rarely-used Windows headers
+        NOMINMAX             # Don't define min/max macros
+        NOGDI                # Exclude GDI (prevents DWORD and other macro conflicts)
+    )
+
     
     # Verify required targets exist
     if(NOT TARGET grpc++)
