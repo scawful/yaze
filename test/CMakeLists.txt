@@ -39,7 +39,7 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
     unit/zelda3/dungeon_component_unit_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
-    unit/zelda3/dungeon_object_renderer_mock_test.cc
+    # dungeon_object_renderer_mock_test.cc - REMOVED (ObjectRenderer obsolete)
     
     # CLI Services (for catalog serialization tests)
     ../src/cli/service/resources/resource_catalog.cc
@@ -65,7 +65,7 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
     # Integration Tests (Zelda3)
     integration/zelda3/overworld_integration_test.cc
     integration/zelda3/dungeon_editor_system_integration_test.cc
-    integration/zelda3/dungeon_object_renderer_integration_test.cc
+    # dungeon_object_renderer_integration_test.cc - REMOVED (ObjectRenderer obsolete)
     integration/zelda3/room_integration_test.cc
     integration/zelda3/dungeon_object_rendering_tests.cc
     integration/zelda3/dungeon_room_test.cc

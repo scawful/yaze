@@ -50,11 +50,22 @@ struct TestConfig {
   bool skip_rom_tests = false;
   bool enable_ui_tests = false;
   bool show_gui = false;
+  ImGuiTestRunSpeed test_speed = ImGuiTestRunSpeed_Fast;
 };
 
 // Parse command line arguments for better AI agent testing support
 TestConfig ParseArguments(int argc, char* argv[]) {
   TestConfig config;
+  
+  std::cout << "Available options:\n"
+            << "  --ui            : Enable UI tests\n"
+            << "  --show-gui      : Show GUI during tests\n"
+            << "  --fast          : Run tests at max speed (default)\n"
+            << "  --normal        : Run tests at watchable speed\n"
+            << "  --cinematic     : Run tests in slow-motion with pauses\n"
+            << "  --rom=<path>    : Specify ROM file path\n"
+            << "  --pattern=<pat> : Run tests matching pattern\n"
+            << std::endl;
   
   for (int i = 1; i < argc; i++) {
     std::string arg = argv[i];
@@ -114,6 +125,14 @@ TestConfig ParseArguments(int argc, char* argv[]) {
       config.verbose = true;
     } else if (arg == "--show-gui") {
       config.show_gui = true;
+    } else if (arg == "--fast") {
+      config.test_speed = ImGuiTestRunSpeed_Fast;
+    } else if (arg == "--normal") {
+      config.test_speed = ImGuiTestRunSpeed_Normal;
+    } else if (arg == "--cinematic") {
+      config.test_speed = ImGuiTestRunSpeed_Cinematic;
+    } else if (arg == "--ui") {
+      config.enable_ui_tests = true;
     } else if (arg.find("--") != 0) {
       // Test pattern (not a flag)
       config.mode = TestMode::kSpecific;
@@ -275,9 +294,15 @@ int main(int argc, char* argv[]) {
     // Setup test engine
     ImGuiTestEngine* engine = ImGuiTestEngine_CreateContext();
     ImGuiTestEngineIO& test_io = ImGuiTestEngine_GetIO(engine);
-    test_io.ConfigRunSpeed = ImGuiTestRunSpeed_Fast;
+    test_io.ConfigRunSpeed = config.test_speed;  // Use configured speed
     test_io.ConfigVerboseLevel = ImGuiTestVerboseLevel_Info;
     test_io.ConfigVerboseLevelOnError = ImGuiTestVerboseLevel_Debug;
+    
+    // Log test speed mode
+    const char* speed_name = "Fast";
+    if (config.test_speed == ImGuiTestRunSpeed_Normal) speed_name = "Normal";
+    else if (config.test_speed == ImGuiTestRunSpeed_Cinematic) speed_name = "Cinematic";
+    std::cout << "Running tests in " << speed_name << " mode" << std::endl;
 
     yaze::core::Controller controller;
 
