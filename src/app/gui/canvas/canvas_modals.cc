@@ -7,7 +7,7 @@
 #include "app/gfx/performance/performance_profiler.h"
 #include "app/gfx/performance/performance_dashboard.h"
 #include "app/gui/widgets/palette_widget.h"
-#include "app/gui/bpp_format_ui.h"
+#include "app/gui/canvas/bpp_format_ui.h"
 #include "app/gui/icons.h"
 #include "imgui/imgui.h"
 
