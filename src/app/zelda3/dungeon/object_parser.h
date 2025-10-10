@@ -97,7 +97,7 @@ class ObjectParser {
    * @param object_id The object ID to parse
    * @return StatusOr containing the parsed tile data
    */
-  absl::StatusOr<std::vector<gfx::Tile16>> ParseObject(int16_t object_id);
+  absl::StatusOr<std::vector<gfx::TileInfo>> ParseObject(int16_t object_id);
 
   /**
    * @brief Parse object routine data
@@ -141,17 +141,17 @@ class ObjectParser {
   /**
    * @brief Parse subtype 1 objects (0x00-0xFF)
    */
-  absl::StatusOr<std::vector<gfx::Tile16>> ParseSubtype1(int16_t object_id);
+  absl::StatusOr<std::vector<gfx::TileInfo>> ParseSubtype1(int16_t object_id);
 
   /**
    * @brief Parse subtype 2 objects (0x100-0x1FF)
    */
-  absl::StatusOr<std::vector<gfx::Tile16>> ParseSubtype2(int16_t object_id);
+  absl::StatusOr<std::vector<gfx::TileInfo>> ParseSubtype2(int16_t object_id);
 
   /**
    * @brief Parse subtype 3 objects (0x200+)
    */
-  absl::StatusOr<std::vector<gfx::Tile16>> ParseSubtype3(int16_t object_id);
+  absl::StatusOr<std::vector<gfx::TileInfo>> ParseSubtype3(int16_t object_id);
 
   /**
    * @brief Read tile data from ROM
@@ -160,7 +160,7 @@ class ObjectParser {
    * @param tile_count Number of tiles to read
    * @return StatusOr containing tile data
    */
-  absl::StatusOr<std::vector<gfx::Tile16>> ReadTileData(int address,
+  absl::StatusOr<std::vector<gfx::TileInfo>> ReadTileData(int address,
                                                         int tile_count);
 
   Rom* rom_;

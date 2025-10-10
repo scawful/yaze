@@ -511,6 +511,12 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       room.LoadObjects();
     }
     
+    // CRITICAL: Process texture queue BEFORE drawing to ensure textures are ready
+    // This must happen before DrawRoomBackgroundLayers() attempts to draw bitmaps
+    if (rom_ && rom_->is_loaded()) {
+      gfx::Arena::Get().ProcessTextureQueue(nullptr);
+    }
+    
     // Draw the room's background layers to canvas
     // This already includes objects rendered by ObjectDrawer in Room::RenderObjectsToBackground()
     DrawRoomBackgroundLayers(room_id);
@@ -544,13 +550,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   
   canvas_.DrawGrid();
   canvas_.DrawOverlay();
-  
-  // Process queued texture commands
-  if (rom_ && rom_->is_loaded()) {
-    // Process texture queue using Arena's stored renderer
-    // The renderer was initialized in EditorManager::LoadAssets()
-    gfx::Arena::Get().ProcessTextureQueue(nullptr);
-  }
   
   // Draw layer information overlay
   if (rooms_ && rom_->is_loaded()) {
@@ -842,11 +841,12 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
   if (layer_settings.bg1_visible && bg1_bitmap.is_active() && bg1_bitmap.width() > 0 && bg1_bitmap.height() > 0) {
     if (!bg1_bitmap.texture()) {
       // Queue texture creation for background layer 1 via Arena's deferred system
+      // BATCHING FIX: Don't process immediately - let the main loop handle batching
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::CREATE, &bg1_bitmap);
-      
-      // CRITICAL FIX: Process texture queue immediately to ensure texture is created before drawing
-      gfx::Arena::Get().ProcessTextureQueue(nullptr);
+
+      // Queue will be processed at the end of the frame in DrawDungeonCanvas()
+      // This allows multiple rooms to batch their texture operations together
     }
 
     // Only draw if texture was successfully created
@@ -864,11 +864,12 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
   if (layer_settings.bg2_visible && bg2_bitmap.is_active() && bg2_bitmap.width() > 0 && bg2_bitmap.height() > 0) {
     if (!bg2_bitmap.texture()) {
       // Queue texture creation for background layer 2 via Arena's deferred system
+      // BATCHING FIX: Don't process immediately - let the main loop handle batching
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::CREATE, &bg2_bitmap);
-      
-      // CRITICAL FIX: Process texture queue immediately to ensure texture is created before drawing
-      gfx::Arena::Get().ProcessTextureQueue(nullptr);
+
+      // Queue will be processed at the end of the frame in DrawDungeonCanvas()
+      // This allows multiple rooms to batch their texture operations together
     }
     
     // Only draw if texture was successfully created

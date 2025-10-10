@@ -196,6 +196,7 @@ class Rom {
 
   bool is_loaded() const { return !rom_data_.empty(); }
   bool dirty() const { return dirty_; }
+  void set_dirty(bool dirty) { dirty_ = dirty; }
   void ClearDirty() { dirty_ = false; }
   auto title() const { return title_; }
   auto size() const { return size_; }

@@ -2,6 +2,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/snes.h"
+#include "app/zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze::zelda3 {
 

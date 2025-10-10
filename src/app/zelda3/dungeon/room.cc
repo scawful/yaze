@@ -227,16 +227,21 @@ constexpr int kGfxBufferRoomSpriteLastLineOffset = 0x88;
 
 void Room::CopyRoomGraphicsToBuffer() {
   if (!rom_ || !rom_->is_loaded()) {
+    printf("[CopyRoomGraphicsToBuffer] ROM not loaded\n");
     return;
   }
   
   auto gfx_buffer_data = rom()->mutable_graphics_buffer();
   if (!gfx_buffer_data || gfx_buffer_data->empty()) {
+    printf("[CopyRoomGraphicsToBuffer] Graphics buffer is null or empty\n");
     return;
   }
 
+  printf("[CopyRoomGraphicsToBuffer] Room %d: Copying graphics from blocks\n", room_id_);
+  
   // Copy room graphics to buffer
   int sheet_pos = 0;
+  int bytes_copied = 0;
   for (int i = 0; i < 16; i++) {
     // Validate block index
     if (blocks_[i] < 0 || blocks_[i] > 255) {
@@ -268,6 +273,7 @@ void Room::CopyRoomGraphicsToBuffer() {
         int gfx_index = data + sheet_pos;
         if (gfx_index >= 0 && gfx_index < static_cast<int>(sizeof(current_gfx16_))) {
           current_gfx16_[gfx_index] = map_byte;
+          if (map_byte != 0) bytes_copied++;
         }
       }
       data++;
@@ -276,33 +282,95 @@ void Room::CopyRoomGraphicsToBuffer() {
     sheet_pos += kGfxBufferRoomOffset;
   }
 
+  printf("[CopyRoomGraphicsToBuffer] Room %d: Copied %d non-zero bytes to current_gfx16_\n", room_id_, bytes_copied);
   LoadAnimatedGraphics();
 }
 
 void Room::RenderRoomGraphics() {
-  CopyRoomGraphicsToBuffer();
-  LoadLayoutTilesToBuffer();
-  
+  // PERFORMANCE OPTIMIZATION: Check if room properties have changed
+  bool properties_changed = false;
+
+  // Check if graphics properties changed
+  if (cached_blockset_ != blockset || cached_spriteset_ != spriteset ||
+      cached_palette_ != palette || cached_layout_ != layout ||
+      cached_floor1_graphics_ != floor1_graphics_ || cached_floor2_graphics_ != floor2_graphics_) {
+    cached_blockset_ = blockset;
+    cached_spriteset_ = spriteset;
+    cached_palette_ = palette;
+    cached_layout_ = layout;
+    cached_floor1_graphics_ = floor1_graphics_;
+    cached_floor2_graphics_ = floor2_graphics_;
+    graphics_dirty_ = true;
+    properties_changed = true;
+  }
+
+  // Check if effect/tags changed
+  if (cached_effect_ != static_cast<uint8_t>(effect_) ||
+      cached_tag1_ != tag1_ || cached_tag2_ != tag2_) {
+    cached_effect_ = static_cast<uint8_t>(effect_);
+    cached_tag1_ = tag1_;
+    cached_tag2_ = tag2_;
+    objects_dirty_ = true;
+    properties_changed = true;
+  }
+
+  // If nothing changed and textures exist, skip rendering
+  if (!properties_changed && !graphics_dirty_ && !objects_dirty_ && !layout_dirty_ && !textures_dirty_) {
+    auto& bg1_bmp = bg1_buffer_.bitmap();
+    auto& bg2_bmp = bg2_buffer_.bitmap();
+    if (bg1_bmp.texture() && bg2_bmp.texture()) {
+      LOG_DEBUG("[RenderRoomGraphics]", "Room %d: No changes detected, skipping render", room_id_);
+      return;
+    }
+  }
+
+  LOG_DEBUG("[RenderRoomGraphics]", "Room %d: Rendering graphics (dirty_flags: g=%d o=%d l=%d t=%d)",
+           room_id_, graphics_dirty_, objects_dirty_, layout_dirty_, textures_dirty_);
+
+  // STEP 0: Load graphics if needed
+  if (graphics_dirty_) {
+    CopyRoomGraphicsToBuffer();
+    graphics_dirty_ = false;
+  }
+
+  // STEP 1: Load layout tiles if needed
+  if (layout_dirty_) {
+    LoadLayoutTilesToBuffer();
+    layout_dirty_ = false;
+  }
+
   // Debug: Log floor graphics values
-  LOG_DEBUG("[RenderRoomGraphics]", "Room %d: floor1=%d, floor2=%d, blocks_size=%zu", 
+  LOG_DEBUG("[RenderRoomGraphics]", "Room %d: floor1=%d, floor2=%d, blocks_size=%zu",
            room_id_, floor1_graphics_, floor2_graphics_, blocks_.size());
-  
+
   // LoadGraphicsSheetsIntoArena() removed - using per-room graphics instead
   // Arena sheets are optional and not needed for room rendering
 
-  // STEP 1: Draw floor tiles to bitmaps (base layer)
-  bg1_buffer_.DrawFloor(rom()->vector(), tile_address,
-                        tile_address_floor, floor1_graphics_);
-  bg2_buffer_.DrawFloor(rom()->vector(), tile_address,
-                        tile_address_floor, floor2_graphics_);
-
-  // STEP 2: Draw background tiles (walls/structure) to buffers
-  bg1_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
-  bg2_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
-
+  // STEP 2: Draw floor tiles to bitmaps (base layer) - if graphics changed OR bitmaps not created yet
+  bool need_floor_draw = graphics_dirty_;
   auto& bg1_bmp = bg1_buffer_.bitmap();
   auto& bg2_bmp = bg2_buffer_.bitmap();
-  
+
+  // Always draw floor if bitmaps don't exist yet (first time rendering)
+  if (!bg1_bmp.is_active() || bg1_bmp.width() == 0 || !bg2_bmp.is_active() || bg2_bmp.width() == 0) {
+    need_floor_draw = true;
+    LOG_DEBUG("[RenderRoomGraphics]", "Room %d: Bitmaps not created yet, forcing floor draw", room_id_);
+  }
+
+  if (need_floor_draw) {
+    bg1_buffer_.DrawFloor(rom()->vector(), tile_address,
+                          tile_address_floor, floor1_graphics_);
+    bg2_buffer_.DrawFloor(rom()->vector(), tile_address,
+                          tile_address_floor, floor2_graphics_);
+  }
+
+  // STEP 3: Draw background tiles (walls/structure) to buffers - if graphics changed OR bitmaps just created
+  bool need_bg_draw = graphics_dirty_ || need_floor_draw;
+  if (need_bg_draw) {
+    bg1_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
+    bg2_buffer_.DrawBackground(std::span<uint8_t>(current_gfx16_));
+  }
+
   // Get and apply palette BEFORE rendering objects (so objects use correct colors)
   auto& dungeon_pal_group = rom()->mutable_palette_group()->dungeon_main;
   int num_palettes = dungeon_pal_group.size();
@@ -354,6 +422,9 @@ void Room::RenderRoomGraphics() {
         gfx::Arena::TextureCommandType::CREATE, &bg2_bmp);
   }
 
+  // Mark textures as clean after successful queuing
+  textures_dirty_ = false;
+
   // REMOVED: Don't process texture queue here - let it be batched!
   // Processing happens once per frame in DrawDungeonCanvas()
   // This dramatically improves performance when multiple rooms are open
@@ -388,8 +459,8 @@ void Room::LoadLayoutTilesToBuffer() {
       tiles_skipped++;
       continue;
     }
-    const auto* tile16 = tile_result.value();
-    uint16_t tile_word = gfx::TileInfoToWord(tile16->tile0_);
+    const auto* tile_info = tile_result.value();
+    uint16_t tile_word = gfx::TileInfoToWord(*tile_info);
 
     if (layout_obj.GetLayerValue() == 1) {
       bg2_buffer_.SetTileAt(x, y, tile_word);
@@ -404,10 +475,21 @@ void Room::LoadLayoutTilesToBuffer() {
 }
 
 void Room::RenderObjectsToBackground() {
-  LOG_DEBUG("[RenderObjectsToBackground]", "Starting object rendering");
-  
+  LOG_DEBUG("[RenderObjectsToBackground]", "Starting object rendering for room %d", room_id_);
+
   if (!rom_ || !rom_->is_loaded()) {
     LOG_DEBUG("[RenderObjectsToBackground]", "ROM not loaded, aborting");
+    return;
+  }
+
+  // PERFORMANCE OPTIMIZATION: Only render objects if they have changed or if graphics changed
+  // Also render if bitmaps were just created (need_floor_draw was true in RenderRoomGraphics)
+  auto& bg1_bmp = bg1_buffer_.bitmap();
+  auto& bg2_bmp = bg2_buffer_.bitmap();
+  bool bitmaps_exist = bg1_bmp.is_active() && bg1_bmp.width() > 0 && bg2_bmp.is_active() && bg2_bmp.width() > 0;
+
+  if (!objects_dirty_ && !graphics_dirty_ && bitmaps_exist) {
+    LOG_DEBUG("[RenderObjectsToBackground]", "Room %d: Objects not dirty, skipping render", room_id_);
     return;
   }
   
@@ -446,10 +528,14 @@ void Room::RenderObjectsToBackground() {
   // Pass the room-specific graphics buffer (current_gfx16_) so objects use correct tiles
   ObjectDrawer drawer(rom_, current_gfx16_.data());
   auto status = drawer.DrawObjectList(tile_objects_, bg1_buffer_, bg2_buffer_, palette_group);
-  
+
   // Log only failures, not successes
   if (!status.ok()) {
     LOG_DEBUG("[RenderObjectsToBackground]", "ObjectDrawer failed: %s", std::string(status.message()).c_str());
+  } else {
+    // Mark objects as clean after successful render
+    objects_dirty_ = false;
+    LOG_DEBUG("[RenderObjectsToBackground]", "Room %d: Objects rendered successfully", room_id_);
   }
 }
 
