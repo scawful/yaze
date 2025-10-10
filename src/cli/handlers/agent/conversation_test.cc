@@ -1,6 +1,7 @@
 #include "cli/handlers/agent/commands.h"
 #include "app/rom.h"
 #include "app/core/project.h"
+#include "cli/handlers/mock_rom.h"
 
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
@@ -16,6 +17,7 @@
 #include "nlohmann/json.hpp"
 
 ABSL_DECLARE_FLAG(std::string, rom);
+ABSL_DECLARE_FLAG(bool, mock_rom);
 
 namespace yaze {
 namespace cli {
@@ -28,10 +30,23 @@ absl::Status LoadRomForAgent(Rom& rom) {
     return ::absl::OkStatus();
   }
 
+  // Check if mock ROM mode is enabled
+  bool use_mock = ::absl::GetFlag(FLAGS_mock_rom);
+  if (use_mock) {
+    // Initialize mock ROM with embedded labels
+    auto status = InitializeMockRom(rom);
+    if (!status.ok()) {
+      return status;
+    }
+    std::cout << "✅ Mock ROM initialized with embedded Zelda3 labels\n";
+    return ::absl::OkStatus();
+  }
+
+  // Otherwise load from file
   std::string rom_path = ::absl::GetFlag(FLAGS_rom);
   if (rom_path.empty()) {
     return ::absl::InvalidArgumentError(
-        "No ROM loaded. Pass --rom=<path> to z3ed agent test-conversation.");
+        "No ROM loaded. Pass --rom=<path> or use --mock-rom for testing.");
   }
 
   auto status = rom.LoadFromFile(rom_path);
