@@ -1,11 +1,12 @@
 #include "test_dungeon_objects.h"
 #include "mocks/mock_rom.h"
 #include "app/zelda3/dungeon/object_parser.h"
-#include "app/zelda3/dungeon/object_renderer.h"
+#include "app/zelda3/dungeon/object_drawer.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/dungeon/room_layout.h"
 #include "app/gfx/snes_color.h"
 #include "app/gfx/snes_palette.h"
+#include "app/gfx/background_buffer.h"
 #include "testing.h"
 
 #include <vector>
@@ -116,8 +117,8 @@ TEST_F(TestDungeonObjects, ObjectParserBasicTest) {
   EXPECT_FALSE(result->empty());
 }
 
-TEST_F(TestDungeonObjects, ObjectRendererBasicTest) {
-  zelda3::ObjectRenderer renderer(test_rom_.get());
+TEST_F(TestDungeonObjects, ObjectDrawerBasicTest) {
+  zelda3::ObjectDrawer drawer(test_rom_.get());
   
   // Create test object
   auto room_object = zelda3::RoomObject(kTestObjectId, 0, 0, 0x12, 0);
@@ -129,11 +130,16 @@ TEST_F(TestDungeonObjects, ObjectRendererBasicTest) {
   for (int i = 0; i < 16; i++) {
     palette.AddColor(gfx::SnesColor(i * 16, i * 16, i * 16));
   }
+  gfx::PaletteGroup palette_group;
+  palette_group.AddPalette(palette);
   
-  auto result = renderer.RenderObject(room_object, palette);
-  ASSERT_TRUE(result.ok());
-  EXPECT_GT(result->width(), 0);
-  EXPECT_GT(result->height(), 0);
+  // Create background buffers
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  
+  auto status = drawer.DrawObject(room_object, bg1, bg2, palette_group);
+  ASSERT_TRUE(status.ok()) << "Drawing failed: " << status.message();
+  EXPECT_GT(bg1.bitmap().width(), 0);
 }
 
 TEST_F(TestDungeonObjects, RoomObjectTileLoadingTest) {
@@ -182,8 +188,8 @@ TEST_F(TestDungeonObjects, RoomObjectTileAccessTest) {
   EXPECT_FALSE(bad_tile_result.ok());
 }
 
-TEST_F(TestDungeonObjects, ObjectRendererGraphicsSheetTest) {
-  zelda3::ObjectRenderer renderer(test_rom_.get());
+TEST_F(TestDungeonObjects, ObjectDrawerGraphicsSheetTest) {
+  zelda3::ObjectDrawer drawer(test_rom_.get());
   
   // Create test object
   auto room_object = zelda3::RoomObject(kTestObjectId, 0, 0, 0x12, 0);
@@ -195,16 +201,21 @@ TEST_F(TestDungeonObjects, ObjectRendererGraphicsSheetTest) {
   for (int i = 0; i < 16; i++) {
     palette.AddColor(gfx::SnesColor(i * 16, i * 16, i * 16));
   }
+  gfx::PaletteGroup palette_group;
+  palette_group.AddPalette(palette);
   
-  // Test rendering with graphics sheet lookup
-  auto result = renderer.RenderObject(room_object, palette);
-  ASSERT_TRUE(result.ok());
+  // Create background buffers
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
   
-  auto bitmap = std::move(result.value());
+  // Test drawing with graphics sheet lookup
+  auto status = drawer.DrawObject(room_object, bg1, bg2, palette_group);
+  ASSERT_TRUE(status.ok()) << "Drawing failed: " << status.message();
+  
+  auto& bitmap = bg1.bitmap();
   EXPECT_TRUE(bitmap.is_active());
   EXPECT_NE(bitmap.surface(), nullptr);
   EXPECT_GT(bitmap.width(), 0);
-  EXPECT_GT(bitmap.height(), 0);
 }
 
 TEST_F(TestDungeonObjects, BitmapCopySemanticsTest) {

@@ -135,6 +135,60 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   ImGui::EndGroup();
 
   canvas_.DrawBackground();
+  
+  // Add dungeon-specific context menu items
+  canvas_.ClearContextMenuItems();
+  
+  if (rooms_ && rom_->is_loaded()) {
+    auto& room = (*rooms_)[room_id];
+    
+    // Add object placement option
+    canvas_.AddContextMenuItem({
+      ICON_MD_ADD " Place Object",
+      []() {
+        // TODO: Show object palette/selector
+      },
+      "Ctrl+P"
+    });
+    
+    // Add object deletion for selected objects
+    canvas_.AddContextMenuItem({
+      ICON_MD_DELETE " Delete Selected",
+      [this]() {
+        object_interaction_.HandleDeleteSelected();
+      },
+      "Del"
+    });
+    
+    // Add room property quick toggles
+    canvas_.AddContextMenuItem({
+      ICON_MD_LAYERS " Toggle BG1",
+      [this, room_id]() {
+        auto& settings = GetRoomLayerSettings(room_id);
+        settings.bg1_visible = !settings.bg1_visible;
+      },
+      "1"
+    });
+    
+    canvas_.AddContextMenuItem({
+      ICON_MD_LAYERS " Toggle BG2",
+      [this, room_id]() {
+        auto& settings = GetRoomLayerSettings(room_id);
+        settings.bg2_visible = !settings.bg2_visible;
+      },
+      "2"
+    });
+    
+    // Add re-render option
+    canvas_.AddContextMenuItem({
+      ICON_MD_REFRESH " Re-render Room",
+      [&room]() {
+        room.RenderRoomGraphics();
+      },
+      "Ctrl+R"
+    });
+  }
+  
   canvas_.DrawContextMenu();
   
   if (rooms_ && rom_->is_loaded()) {
