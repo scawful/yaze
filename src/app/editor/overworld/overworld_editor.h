@@ -287,6 +287,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool overworld_canvas_fullscreen_ = false;
   bool middle_mouse_dragging_ = false;
   bool is_dragging_entity_ = false;
+  bool dragged_entity_free_movement_ = false;
   bool current_map_lock_ = false;
   bool show_custom_bg_color_editor_ = false;
   bool show_overlay_editor_ = false;

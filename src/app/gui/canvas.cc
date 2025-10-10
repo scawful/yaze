@@ -1000,10 +1000,11 @@ void Canvas::DrawSelectRect(int current_map, int tile_size, float scale) {
   // Calculate the rectangle's top-left and bottom-right corners
   ImVec2 drag_end_pos = AlignPosToGrid(mouse_pos, scaled_size);
   if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
-    auto start = ImVec2(canvas_p0_.x + drag_start_pos.x,
-                        canvas_p0_.y + drag_start_pos.y);
-    auto end = ImVec2(canvas_p0_.x + drag_end_pos.x + tile_size,
-                      canvas_p0_.y + drag_end_pos.y + tile_size);
+    // FIX: Origin used to be canvas_p0_, revert if there is regression.
+    auto start = ImVec2(origin.x + drag_start_pos.x,
+                        origin.y + drag_start_pos.y);
+    auto end = ImVec2(origin.x + drag_end_pos.x + tile_size,
+                      origin.y + drag_end_pos.y + tile_size);
     draw_list_->AddRect(start, end, kWhiteColor);
     dragging = true;
   }
