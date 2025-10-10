@@ -22,8 +22,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   // Don't initialize emulator preview yet - ROM might not be loaded
   // Will be initialized in Load() instead
   
-  // Setup docking class for room windows
-  room_window_class_.ClassId = ImGui::GetID("DungeonRoomClass");
+  // Setup docking class for room windows (ImGui::GetID will be called in Update when ImGui is ready)
   room_window_class_.DockingAllowUnclassed = true;  // Room windows can dock with anything
   room_window_class_.DockingAlwaysTabBar = true;    // Always show tabs when multiple rooms
   
@@ -158,6 +157,11 @@ absl::Status DungeonEditorV2::Load() {
 }
 
 absl::Status DungeonEditorV2::Update() {
+  // Initialize docking class ID on first Update (when ImGui is ready)
+  if (room_window_class_.ClassId == 0) {
+    room_window_class_.ClassId = ImGui::GetID("DungeonRoomClass");
+  }
+  
   if (!is_loaded_) {
     // CARD-BASED EDITOR: Create a minimal loading card
     gui::EditorCard loading_card("Dungeon Editor Loading", ICON_MD_CASTLE);

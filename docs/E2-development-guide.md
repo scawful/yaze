@@ -168,3 +168,9 @@ Default palettes are applied during ROM loading based on sheet index:
 - Sheets 0-112: Dungeon main palettes
 - Sheets 113-127: Sprite palettes
 - Sheets 128-222: HUD/menu palettes
+
+### Naming Conventions
+- Load: Reading data from ROM into memory
+- Render: Processing graphics data into bitmaps/textures (CPU pixel operations)
+- Draw: Displaying textures/shapes on canvas via ImGui (GPU rendering)
+- Update: UI state changes, property updates, input handling
