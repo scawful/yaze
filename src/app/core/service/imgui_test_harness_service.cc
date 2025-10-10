@@ -109,7 +109,7 @@ struct RPCState {
 
 namespace {
 
-::yaze::test::GetTestStatusResponse_Status ConvertHarnessStatus(
+::yaze::test::GetTestStatusResponse_TestStatus ConvertHarnessStatus(
     ::yaze::test::HarnessTestStatus status) {
   switch (status) {
     case ::yaze::test::HarnessTestStatus::kQueued:
