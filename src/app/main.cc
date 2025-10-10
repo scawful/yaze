@@ -25,6 +25,10 @@ using namespace yaze;
 DEFINE_FLAG(std::string, rom_file, "", "The ROM file to load.");
 DEFINE_FLAG(std::string, log_file, "", "Output log file path for debugging.");
 DEFINE_FLAG(bool, debug, false, "Enable debug logging and verbose output.");
+DEFINE_FLAG(std::string, log_categories, "", 
+            "Comma-separated list of log categories to enable. "
+            "If empty, all categories are logged. "
+            "Example: --log_categories=\"Room,DungeonEditor\" to filter noisy logs.");
 DEFINE_FLAG(std::string, editor, "", 
             "The editor to open on startup. "
             "Available editors: Assembly, Dungeon, Graphics, Music, Overworld, "
@@ -68,8 +72,23 @@ int main(int argc, char **argv) {
   yaze::util::LogLevel log_level = FLAGS_debug->Get()
                                      ? yaze::util::LogLevel::YAZE_DEBUG
                                      : yaze::util::LogLevel::INFO;
+  
+  // Parse log categories from comma-separated string
+  std::set<std::string> log_categories;
+  std::string categories_str = FLAGS_log_categories->Get();
+  if (!categories_str.empty()) {
+    size_t start = 0;
+    size_t end = categories_str.find(',');
+    while (end != std::string::npos) {
+      log_categories.insert(categories_str.substr(start, end - start));
+      start = end + 1;
+      end = categories_str.find(',', start);
+    }
+    log_categories.insert(categories_str.substr(start));
+  }
+  
   yaze::util::LogManager::instance().configure(log_level, FLAGS_log_file->Get(),
-                                             {});
+                                             log_categories);
 
   // Enable console logging via feature flag if debug is enabled.
   if (FLAGS_debug->Get()) {
