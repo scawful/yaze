@@ -433,24 +433,30 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     }
   }
 
-  // Initialize room graphics and objects if not already done
-  // This ensures objects are drawn to background buffers before canvas displays them
+  // Initialize room graphics and objects in CORRECT ORDER
+  // Critical sequence: 1. Load data from ROM, 2. Load objects (sets floor graphics), 3. Render
   if (room.IsLoaded()) {
-    // Load room graphics (populates blocks, gfx sheets)
+    bool needs_render = false;
+    
+    // Step 1: Load room data from ROM (blocks, blockset info)
     if (room.blocks().empty()) {
-      room.RenderRoomGraphics();
+      room.LoadRoomGraphics(room.blockset);
+      needs_render = true;
+      LOG_DEBUG("[DungeonEditorV2]", "Loaded room %d graphics from ROM", room_id);
     }
     
-    // Load room objects (populates tile_objects_)
+    // Step 2: Load objects from ROM (CRITICAL: sets floor1_graphics_, floor2_graphics_!)
     if (room.GetTileObjects().empty()) {
       room.LoadObjects();
+      needs_render = true;
+      LOG_DEBUG("[DungeonEditorV2]", "Loaded room %d objects from ROM", room_id);
     }
     
-    // Render objects to background buffers (CRITICAL: this must happen before canvas drawing)
-    // This uses ObjectDrawer to draw all objects into bg1_buffer_ and bg2_buffer_
+    // Step 3: Render to bitmaps (now floor graphics are set correctly!)
     auto& bg1_bitmap = room.bg1_buffer().bitmap();
-    if (!bg1_bitmap.is_active() || bg1_bitmap.width() == 0) {
-      room.RenderObjectsToBackground();
+    if (needs_render || !bg1_bitmap.is_active() || bg1_bitmap.width() == 0) {
+      room.RenderRoomGraphics();  // Includes RenderObjectsToBackground() internally
+      LOG_DEBUG("[DungeonEditorV2]", "Rendered room %d to bitmaps", room_id);
     }
   }
 

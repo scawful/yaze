@@ -14,42 +14,7 @@ namespace yaze::editor {
 
 using ImGui::Separator;
 
-void DungeonCanvasViewer::DrawDungeonTabView() {
-  static int next_tab_id = 0;
-
-  if (ImGui::BeginTabBar("MyTabBar", ImGuiTabBarFlags_AutoSelectNewTabs | ImGuiTabBarFlags_Reorderable | ImGuiTabBarFlags_FittingPolicyResizeDown | ImGuiTabBarFlags_TabListPopupButton)) {
-    if (ImGui::TabItemButton("+", ImGuiTabItemFlags_Trailing | ImGuiTabItemFlags_NoTooltip)) {
-      if (std::find(active_rooms_.begin(), active_rooms_.end(), current_active_room_tab_) != active_rooms_.end()) {
-        next_tab_id++;
-      }
-      active_rooms_.push_back(next_tab_id++);
-    }
-
-    // Submit our regular tabs
-    for (int n = 0; n < active_rooms_.Size;) {
-      bool open = true;
-
-      if (active_rooms_[n] > sizeof(zelda3::kRoomNames) / 4) {
-        active_rooms_.erase(active_rooms_.Data + n);
-        continue;
-      }
-
-      if (ImGui::BeginTabItem(zelda3::kRoomNames[active_rooms_[n]].data(), &open, ImGuiTabItemFlags_None)) {
-        current_active_room_tab_ = n;
-        DrawDungeonCanvas(active_rooms_[n]);
-        ImGui::EndTabItem();
-      }
-
-      if (!open)
-        active_rooms_.erase(active_rooms_.Data + n);
-      else
-        n++;
-    }
-
-    ImGui::EndTabBar();
-  }
-  Separator();
-}
+// DrawDungeonTabView() removed - DungeonEditorV2 uses EditorCard system for flexible docking
 
 void DungeonCanvasViewer::Draw(int room_id) {
   DrawDungeonCanvas(room_id);
@@ -86,9 +51,24 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     ImGui::SameLine();
     gui::InputHexByte("Palette", &room.palette);
 
-    gui::InputHexByte("Floor1", &room.floor1);
+    // Floor graphics - use temp variables and setters (floor1/floor2 are now accessors)
+    uint8_t floor1_val = room.floor1();
+    uint8_t floor2_val = room.floor2();
+    if (gui::InputHexByte("Floor1", &floor1_val) && ImGui::IsItemDeactivatedAfterEdit()) {
+      room.set_floor1(floor1_val);
+      // Trigger re-render since floor graphics changed
+      if (room.rom() && room.rom()->is_loaded()) {
+        room.RenderRoomGraphics();
+      }
+    }
     ImGui::SameLine();
-    gui::InputHexByte("Floor2", &room.floor2);
+    if (gui::InputHexByte("Floor2", &floor2_val) && ImGui::IsItemDeactivatedAfterEdit()) {
+      room.set_floor2(floor2_val);
+      // Trigger re-render since floor graphics changed
+      if (room.rom() && room.rom()->is_loaded()) {
+        room.RenderRoomGraphics();
+      }
+    }
     ImGui::SameLine();
     gui::InputHexWord("Message ID", &room.message_id_);
     
@@ -118,11 +98,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       // Only reload if ROM is properly loaded
       if (room.rom() && room.rom()->is_loaded()) {
         // Force reload of room graphics
+        // Room buffers are now self-contained - no need for separate palette operations
         room.LoadRoomGraphics(room.blockset);
-        room.RenderRoomGraphics();
-        
-        // Render palettes to graphics sheets
-        RenderGraphicsSheetPalettes(room_id);
+        room.RenderRoomGraphics();  // Applies palettes internally
       }
       
       prev_blockset = room.blockset;
@@ -219,6 +197,10 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // Draw the room's background layers to canvas
     // This already includes objects rendered by ObjectDrawer in Room::RenderObjectsToBackground()
     DrawRoomBackgroundLayers(room_id);
+    
+    // VISUALIZATION: Draw object position rectangles (for debugging)
+    // This shows where objects are placed regardless of whether graphics render
+    DrawObjectPositionOutlines(room);
     
     // Render sprites as simple 16x16 squares with labels
     // (Sprites are not part of the background buffers)
@@ -389,6 +371,58 @@ void DungeonCanvasViewer::CalculateWallDimensions(const zelda3::RoomObject& obje
   height = std::min(height, 256);
 }
 
+// Object visualization methods
+void DungeonCanvasViewer::DrawObjectPositionOutlines(const zelda3::Room& room) {
+  // Draw colored rectangles showing object positions
+  // This helps visualize object placement even if graphics don't render correctly
+  
+  const auto& objects = room.GetTileObjects();
+  
+  for (const auto& obj : objects) {
+    // Convert object position (tile coordinates) to canvas pixel coordinates
+    auto [canvas_x, canvas_y] = RoomToCanvasCoordinates(obj.x(), obj.y());
+    
+    // Calculate object dimensions based on type and size
+    int width = 8;  // Default 8x8 pixels
+    int height = 8;
+    
+    // Use ZScream pattern: size field determines dimensions
+    // Lower nibble = horizontal size, upper nibble = vertical size
+    int size_h = (obj.size() & 0x0F);
+    int size_v = (obj.size() >> 4) & 0x0F;
+    
+    // Objects are typically (size+1) tiles wide/tall
+    width = (size_h + 1) * 8;
+    height = (size_v + 1) * 8;
+    
+    // Clamp to reasonable sizes
+    width = std::min(width, 512);
+    height = std::min(height, 512);
+    
+    // Color-code by layer
+    ImVec4 outline_color;
+    if (obj.GetLayerValue() == 0) {
+      outline_color = ImVec4(1.0f, 0.0f, 0.0f, 0.7f);  // Red for layer 0
+    } else if (obj.GetLayerValue() == 1) {
+      outline_color = ImVec4(0.0f, 1.0f, 0.0f, 0.7f);  // Green for layer 1
+    } else {
+      outline_color = ImVec4(0.0f, 0.0f, 1.0f, 0.7f);  // Blue for layer 2
+    }
+    
+    // Draw outline rectangle
+    canvas_.DrawRect(canvas_x, canvas_y, width, height, outline_color);
+    
+    // Draw object ID label
+    std::string label = absl::StrFormat("0x%02X", obj.id_);
+    canvas_.DrawText(label, canvas_x + 2, canvas_y + 2);
+  }
+  
+  // Log object count
+  if (!objects.empty()) {
+    LOG_DEBUG("[DrawObjectPositionOutlines]", "Drew %zu object outlines", objects.size());
+  }
+}
+
 // Room graphics management methods
 absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
   LOG_DEBUG("[LoadAndRender]", "START room_id=%d", room_id);
@@ -432,78 +466,12 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
     }
   }
   
-  // Render the room graphics to the graphics arena
+  // Render the room graphics (self-contained - handles all palette application)
   LOG_DEBUG("[LoadAndRender]", "Calling room.RenderRoomGraphics()...");
   room.RenderRoomGraphics();
-  LOG_DEBUG("[LoadAndRender]", "RenderRoomGraphics() complete");
-  
-  // Update the background layers with proper palette
-  LOG_DEBUG("[LoadAndRender]", "Rendering palettes to graphics sheets...");
-  RETURN_IF_ERROR(RenderGraphicsSheetPalettes(room_id));
-  LOG_DEBUG("[LoadAndRender]", "RenderGraphicsSheetPalettes() complete");
+  LOG_DEBUG("[LoadAndRender]", "RenderRoomGraphics() complete - room buffers self-contained");
   
   LOG_DEBUG("[LoadAndRender]", "SUCCESS");
-  return absl::OkStatus();
-}
-
-absl::Status DungeonCanvasViewer::RenderGraphicsSheetPalettes(int room_id) {
-  if (room_id < 0 || room_id >= 128) {
-    return absl::InvalidArgumentError("Invalid room ID");
-  }
-  
-  if (!rom_ || !rom_->is_loaded()) {
-    return absl::FailedPreconditionError("ROM not loaded");
-  }
-  
-  if (!rooms_) {
-    return absl::FailedPreconditionError("Room data not available");
-  }
-  
-  auto& room = (*rooms_)[room_id];
-  
-  // Validate palette group access
-  if (current_palette_group_id_ >= rom_->palette_group().dungeon_main.size()) {
-    return absl::FailedPreconditionError("Invalid palette group ID");
-  }
-  
-  // Get the current room's palette
-  auto current_palette = rom_->palette_group().dungeon_main[current_palette_group_id_];
-  
-  // Update BG1 (background layer 1) with proper palette
-  if (room.blocks().size() >= 8) {
-    for (int i = 0; i < 8; i++) {
-      int block = room.blocks()[i];
-      if (block >= 0 && block < gfx::Arena::Get().gfx_sheets().size()) {
-        if (current_palette_id_ < current_palette_group_.size()) {
-          gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
-              current_palette_group_[current_palette_id_], 0);
-          // Queue texture update via Arena's deferred system
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::UPDATE, 
-              &gfx::Arena::Get().gfx_sheets()[block]);
-        }
-      }
-    }
-  }
-  
-  // Update BG2 (background layer 2) with sprite auxiliary palette
-  if (room.blocks().size() >= 16) {
-    auto sprites_aux1_pal_group = rom_->palette_group().sprites_aux1;
-    if (current_palette_id_ < sprites_aux1_pal_group.size()) {
-      for (int i = 8; i < 16; i++) {
-        int block = room.blocks()[i];
-        if (block >= 0 && block < gfx::Arena::Get().gfx_sheets().size()) {
-          gfx::Arena::Get().gfx_sheets()[block].SetPaletteWithTransparent(
-              sprites_aux1_pal_group[current_palette_id_], 0);
-          // Queue texture update via Arena's deferred system
-          gfx::Arena::Get().QueueTextureCommand(
-              gfx::Arena::TextureCommandType::UPDATE, 
-              &gfx::Arena::Get().gfx_sheets()[block]);
-        }
-      }
-    }
-  }
-  
   return absl::OkStatus();
 }
 

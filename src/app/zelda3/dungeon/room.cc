@@ -286,6 +286,10 @@ void Room::CopyRoomGraphicsToBuffer() {
 void Room::RenderRoomGraphics() {
   CopyRoomGraphicsToBuffer();
   
+  // Debug: Log floor graphics values
+  LOG_DEBUG("[RenderRoomGraphics]", "Room %d: floor1=%d, floor2=%d, blocks_size=%zu", 
+           room_id_, floor1_graphics_, floor2_graphics_, blocks_.size());
+  
   // CRITICAL: Load graphics sheets into Arena with actual ROM data
   LoadGraphicsSheetsIntoArena();
 

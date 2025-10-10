@@ -551,7 +551,7 @@ absl::Status HandleDungeonDescribeRoomCommand(
         room.blockset, room.spriteset, room.palette);
     std::cout << absl::StrFormat(
         "  \"floors\": {\"primary\": %u, \"secondary\": %u},\n",
-        room.floor1, room.floor2);
+        room.floor1(), room.floor2());
     std::cout << absl::StrFormat(
         "  \"message_id\": \"0x%03X\",\n", room.message_id_);
     std::cout << absl::StrFormat(
@@ -625,7 +625,7 @@ absl::Status HandleDungeonDescribeRoomCommand(
         room.blockset, room.spriteset, room.palette);
     std::cout << absl::StrFormat(
         "  Floors → Main:%u Alt:%u  Message ID:0x%03X  Hole warp:0x%02X\n",
-        room.floor1, room.floor2, room.message_id_, room.holewarp);
+        room.floor1(), room.floor2(), room.message_id_, room.holewarp);
     if (!stairs.empty()) {
       std::cout << "  Staircases:\n";
       for (const auto& stair : stairs) {
