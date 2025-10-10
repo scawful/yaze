@@ -248,6 +248,7 @@ jobs:
           -DCMAKE_C_COMPILER=${{ matrix.cc }} \
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
           -DYAZE_BUILD_TESTS=ON \
+          -DYAZE_BUILD_EMU=OFF \
           -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
         echo "::endgroup::"
     
