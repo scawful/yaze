@@ -17,11 +17,7 @@ bool IsMouseHoveringOverEntity(const zelda3::GameEntity &entity,
 void MoveEntityOnGrid(zelda3::GameEntity *entity, ImVec2 canvas_p0,
                       ImVec2 scrolling, bool free_movement = false);
 
-void HandleEntityDragging(zelda3::GameEntity *entity, ImVec2 canvas_p0,
-                          ImVec2 scrolling, bool &is_dragging_entity,
-                          zelda3::GameEntity *&dragged_entity,
-                          zelda3::GameEntity *&current_entity,
-                          bool free_movement = false);
+
 
 bool DrawEntranceInserterPopup();
 bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance &entrance);

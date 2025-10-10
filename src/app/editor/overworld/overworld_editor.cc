@@ -16,6 +16,7 @@
 #include "app/core/asar_wrapper.h"
 #include "app/core/features.h"
 #include "app/editor/overworld/map_properties.h"
+#include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/bitmap.h"
@@ -341,6 +342,84 @@ absl::Status OverworldEditor::Update() {
     }
     ImGui::End();
   }
+
+  // --- BEGIN CENTRALIZED INTERACTION LOGIC ---
+  auto* hovered_entity = entity_renderer_->hovered_entity();
+
+  // Handle all MOUSE mode interactions here
+  if (current_mode == EditingMode::MOUSE) {
+    // --- CONTEXT MENUS & POPOVERS ---
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+      if (hovered_entity) {
+        current_entity_ = hovered_entity;
+        switch (hovered_entity->entity_type_) {
+          case zelda3::GameEntity::EntityType::kExit:
+            current_exit_ = *static_cast<zelda3::OverworldExit*>(hovered_entity);
+            ImGui::OpenPopup("Exit editor");
+            break;
+          case zelda3::GameEntity::EntityType::kEntrance:
+            current_entrance_ =
+                *static_cast<zelda3::OverworldEntrance*>(hovered_entity);
+            ImGui::OpenPopup("Entrance Editor");
+            break;
+          case zelda3::GameEntity::EntityType::kItem:
+            current_item_ = *static_cast<zelda3::OverworldItem*>(hovered_entity);
+            ImGui::OpenPopup("Item editor");
+            break;
+          case zelda3::GameEntity::EntityType::kSprite:
+            current_sprite_ = *static_cast<zelda3::Sprite*>(hovered_entity);
+            ImGui::OpenPopup("Sprite editor");
+            break;
+          default:
+            break;
+        }
+      }
+    }
+
+    // --- DOUBLE-CLICK ACTIONS ---
+    if (hovered_entity && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+      if (hovered_entity->entity_type_ == zelda3::GameEntity::EntityType::kExit) {
+        jump_to_tab_ =
+            static_cast<zelda3::OverworldExit*>(hovered_entity)->room_id_;
+      } else if (hovered_entity->entity_type_ ==
+                 zelda3::GameEntity::EntityType::kEntrance) {
+        jump_to_tab_ =
+            static_cast<zelda3::OverworldEntrance*>(hovered_entity)->entrance_id_;
+      }
+    }
+  }
+
+  // --- DRAW POPUPS ---
+  if (DrawExitEditorPopup(current_exit_)) {
+    if (current_entity_ &&
+        current_entity_->entity_type_ == zelda3::GameEntity::EntityType::kExit) {
+      *static_cast<zelda3::OverworldExit*>(current_entity_) = current_exit_;
+      rom_->set_dirty(true);
+    }
+  }
+  if (DrawOverworldEntrancePopup(current_entrance_)) {
+    if (current_entity_ && current_entity_->entity_type_ ==
+                               zelda3::GameEntity::EntityType::kEntrance) {
+      *static_cast<zelda3::OverworldEntrance*>(current_entity_) =
+          current_entrance_;
+      rom_->set_dirty(true);
+    }
+  }
+  if (DrawItemEditorPopup(current_item_)) {
+    if (current_entity_ &&
+        current_entity_->entity_type_ == zelda3::GameEntity::EntityType::kItem) {
+      *static_cast<zelda3::OverworldItem*>(current_entity_) = current_item_;
+      rom_->set_dirty(true);
+    }
+  }
+  if (DrawSpriteEditorPopup(current_sprite_)) {
+    if (current_entity_ &&
+        current_entity_->entity_type_ == zelda3::GameEntity::EntityType::kSprite) {
+      *static_cast<zelda3::Sprite*>(current_entity_) = current_sprite_;
+      rom_->set_dirty(true);
+    }
+  }
+  // --- END CENTRALIZED LOGIC ---
 
   return status_;
 }
@@ -1260,23 +1339,7 @@ void OverworldEditor::HandleOverworldPan() {
     middle_mouse_dragging_ = false;
   }
   
-  // In MOUSE mode, left-click drag also pans
-  if (current_mode == EditingMode::MOUSE &&
-      ImGui::IsMouseDragging(ImGuiMouseButton_Left) && ImGui::IsItemHovered()) {
-    ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
-    ImVec2 current_scroll = ow_map_canvas_.scrolling();
-    ImVec2 new_scroll = ImVec2(
-        current_scroll.x + mouse_delta.x,
-        current_scroll.y + mouse_delta.y
-    );
-    
-    // Clamp scroll to boundaries
-    ImVec2 content_size = CalculateOverworldContentSize(ow_map_canvas_.global_scale());
-    ImVec2 visible_size = ow_map_canvas_.canvas_size();
-    new_scroll = ClampScrollPosition(new_scroll, content_size, visible_size);
-    
-    ow_map_canvas_.set_scrolling(new_scroll);
-  }
+
 }
 
 void OverworldEditor::HandleOverworldZoom() {
@@ -1380,7 +1443,9 @@ void OverworldEditor::DrawOverworldCanvas() {
   
   // Context menu only in MOUSE mode
   if (current_mode == EditingMode::MOUSE) {
-    ow_map_canvas_.DrawContextMenu();
+    if (entity_renderer_->hovered_entity() == nullptr) {
+      ow_map_canvas_.DrawContextMenu();
+    }
   } else if (current_mode == EditingMode::DRAW_TILE) {
     // Tile painting mode - handle tile edits and right-click tile picking
     HandleMapInteraction();
@@ -1388,9 +1453,6 @@ void OverworldEditor::DrawOverworldCanvas() {
 
   if (overworld_.is_loaded()) {
     DrawOverworldMaps();
-    
-    // Update entity renderer state
-    entity_renderer_->set_current_map(current_map_);
     
     // Draw all entities using the entity renderer
     // Convert entity_edit_mode_ to legacy mode int for entity renderer
@@ -1402,12 +1464,6 @@ void OverworldEditor::DrawOverworldCanvas() {
     entity_renderer_->DrawItems(current_world_, entity_mode_int);
     entity_renderer_->DrawSprites(current_world_, game_state_, entity_mode_int);
     
-    // Check if entity renderer wants to jump to a tab (e.g., double-clicked entrance/exit)
-    if (entity_renderer_->jump_to_tab() != -1) {
-      jump_to_tab_ = entity_renderer_->jump_to_tab();
-      entity_renderer_->reset_jump_to_tab();
-    }
-
     // Draw overlay preview if enabled
     if (show_overlay_preview_) {
       map_properties_system_->DrawOverlayPreviewOnMap(
@@ -1423,6 +1479,49 @@ void OverworldEditor::DrawOverworldCanvas() {
     // tracks whether mouse is over the canvas area.
     if (ow_map_canvas_.IsMouseHovering())
       status_ = CheckForCurrentMap();
+
+    // --- BEGIN NEW DRAG/DROP LOGIC ---
+    if (current_mode == EditingMode::MOUSE) {
+      auto hovered_entity = entity_renderer_->hovered_entity();
+
+      // 1. Initiate drag
+      if (!is_dragging_entity_ && hovered_entity &&
+          ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        dragged_entity_ = hovered_entity;
+        is_dragging_entity_ = true;
+        if (dragged_entity_->entity_type_ ==
+            zelda3::GameEntity::EntityType::kExit) {
+          dragged_entity_free_movement_ = true;
+        }
+      }
+
+      // 2. Update drag
+      if (is_dragging_entity_ && dragged_entity_ &&
+          ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+        ImVec2 mouse_delta = ImGui::GetIO().MouseDelta;
+        float scale = ow_map_canvas_.global_scale();
+        if (scale > 0.0f) {
+          dragged_entity_->x_ += mouse_delta.x / scale;
+          dragged_entity_->y_ += mouse_delta.y / scale;
+        }
+      }
+
+      // 3. End drag
+      if (is_dragging_entity_ && ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+        if (dragged_entity_) {
+          MoveEntityOnGrid(dragged_entity_, ow_map_canvas_.zero_point(),
+                           ow_map_canvas_.scrolling(),
+                           dragged_entity_free_movement_);
+          dragged_entity_->UpdateMapProperties(dragged_entity_->map_id_);
+          rom_->set_dirty(true);
+        }
+        is_dragging_entity_ = false;
+        dragged_entity_ = nullptr;
+        dragged_entity_free_movement_ = false;
+      }
+    }
+    // --- END NEW DRAG/DROP LOGIC ---
   }
 
   ow_map_canvas_.DrawGrid();
