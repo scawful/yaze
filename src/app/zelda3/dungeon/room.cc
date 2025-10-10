@@ -11,7 +11,6 @@
 #include "app/rom.h"
 #include "app/snes.h"
 #include "app/zelda3/dungeon/object_drawer.h"
-#include "app/zelda3/dungeon/room_diagnostic.h"
 #include "app/zelda3/dungeon/room_object.h"
 #include "app/zelda3/sprite/sprite.h"
 #include "util/log.h"
