@@ -372,10 +372,10 @@ void DungeonEditorV2::DrawLayout() {
     int room_id = active_rooms_[i];
     bool open = true;
 
-    // Create session-aware card title
+    // Create session-aware card title with room ID prominent
     std::string base_name;
     if (room_id >= 0 && static_cast<size_t>(room_id) < std::size(zelda3::kRoomNames)) {
-      base_name = absl::StrFormat("%s", zelda3::kRoomNames[room_id].data());
+      base_name = absl::StrFormat("[%03X] %s", room_id, zelda3::kRoomNames[room_id].data());
     } else {
       base_name = absl::StrFormat("Room %03X", room_id);
     }
@@ -460,14 +460,14 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     }
   }
 
-  // Room info header
-  ImGui::Text("Room %03X", room_id);
-  ImGui::SameLine();
+  // Room ID moved to card title - just show load status now
   if (room.IsLoaded()) {
     ImGui::TextColored(ImVec4(0.4f, 0.8f, 0.4f, 1.0f), ICON_MD_CHECK " Loaded");
   } else {
     ImGui::TextColored(ImVec4(0.8f, 0.4f, 0.4f, 1.0f), ICON_MD_PENDING " Not Loaded");
   }
+  ImGui::SameLine();
+  ImGui::TextDisabled("Objects: %zu", room.GetTileObjects().size());
 
   ImGui::Separator();
 
@@ -547,7 +547,7 @@ void DungeonEditorV2::DrawRoomsListCard() {
       std::string filter_str = room_filter;
       std::transform(filter_str.begin(), filter_str.end(), filter_str.begin(), ::tolower);
       
-      for (int i = 0; i < 0x128; i++) {
+      for (int i = 0; i < zelda3::NumberOfRooms; i++) {
         // Get room name
         std::string room_name;
         if (i < static_cast<int>(std::size(zelda3::kRoomNames))) {
@@ -853,8 +853,9 @@ void DungeonEditorV2::DrawRoomGraphicsCard() {
       ImGui::Text("Blockset: %02X", room.blockset);
       ImGui::Separator();
       
-      // Create a canvas for displaying room graphics
-      static gui::Canvas room_gfx_canvas("##RoomGfxCanvas", ImVec2(0x100 + 1, 0x10 * 0x40 + 1));
+      // Create a canvas for displaying room graphics (16 blocks, 2 columns, 8 rows)
+      // Each block is 128x32, so 2 cols = 256 wide, 8 rows = 256 tall
+      static gui::Canvas room_gfx_canvas("##RoomGfxCanvas", ImVec2(256 + 1, 256 + 1));
       
       room_gfx_canvas.DrawBackground();
       room_gfx_canvas.DrawContextMenu();
