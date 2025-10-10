@@ -8,8 +8,18 @@
 #include "absl/status/statusor.h"
 
 #ifdef YAZE_WITH_GRPC
+#ifdef _WIN32
+#pragma push_macro("DWORD")
+#pragma push_macro("ERROR")
+#undef DWORD
+#undef ERROR
+#endif  // _WIN32
 #include <grpcpp/grpcpp.h>
 #include "protos/rom_service.grpc.pb.h"
+#ifdef _WIN32
+#pragma pop_macro("DWORD")
+#pragma pop_macro("ERROR")
+#endif  // _WIN32
 // Note: Proto files will be generated to build directory
 #endif
 
