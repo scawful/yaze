@@ -55,17 +55,17 @@ TestRunStatus ConvertStatusProto(
     yaze::test::GetTestStatusResponse::TestStatus status) {
   using ProtoStatus = yaze::test::GetTestStatusResponse::TestStatus;
   switch (status) {
-    case ProtoStatus::GetTestStatusResponse_TestStatus_STATUS_QUEUED:
+    case ProtoStatus::GetTestStatusResponse_TestStatus_TEST_STATUS_QUEUED:
       return TestRunStatus::kQueued;
-    case ProtoStatus::GetTestStatusResponse_TestStatus_STATUS_RUNNING:
+    case ProtoStatus::GetTestStatusResponse_TestStatus_TEST_STATUS_RUNNING:
       return TestRunStatus::kRunning;
-    case ProtoStatus::GetTestStatusResponse_TestStatus_STATUS_PASSED:
+    case ProtoStatus::GetTestStatusResponse_TestStatus_TEST_STATUS_PASSED:
       return TestRunStatus::kPassed;
-    case ProtoStatus::GetTestStatusResponse_TestStatus_STATUS_FAILED:
+    case ProtoStatus::GetTestStatusResponse_TestStatus_TEST_STATUS_FAILED:
       return TestRunStatus::kFailed;
-    case ProtoStatus::GetTestStatusResponse_TestStatus_STATUS_TIMEOUT:
+    case ProtoStatus::GetTestStatusResponse_TestStatus_TEST_STATUS_TIMEOUT:
       return TestRunStatus::kTimeout;
-    case ProtoStatus::GetTestStatusResponse_TestStatus_STATUS_UNSPECIFIED:
+    case ProtoStatus::GetTestStatusResponse_TestStatus_TEST_STATUS_UNSPECIFIED:
     default:
       return TestRunStatus::kUnknown;
   }

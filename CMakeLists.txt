@@ -280,6 +280,7 @@ endif()
 # Compiler-specific settings
 if(MSVC)
     target_compile_options(yaze_common INTERFACE 
+        /EHsc
         /W4 /permissive-
         /bigobj  # Support large object files
         /utf-8   # Use UTF-8 encoding

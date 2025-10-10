@@ -159,12 +159,12 @@ message GetTestStatusRequest {
 
 message GetTestStatusResponse {
   enum TestStatus {
-    STATUS_UNSPECIFIED = 0;  // Test ID not found or unspecified
-    STATUS_QUEUED = 1;       // Waiting to execute
-    STATUS_RUNNING = 2;      // Currently executing
-    STATUS_PASSED = 3;       // Completed successfully
-    STATUS_FAILED = 4;       // Assertion failed or error
-    STATUS_TIMEOUT = 5;      // Exceeded timeout
+    TEST_STATUS_UNSPECIFIED = 0;  // Test ID not found or unspecified
+    TEST_STATUS_QUEUED = 1;       // Waiting to execute
+    TEST_STATUS_RUNNING = 2;      // Currently executing
+    TEST_STATUS_PASSED = 3;       // Completed successfully
+    TEST_STATUS_FAILED = 4;       // Assertion failed or error
+    TEST_STATUS_TIMEOUT = 5;      // Exceeded timeout
   }
 
   TestStatus status = 1;
