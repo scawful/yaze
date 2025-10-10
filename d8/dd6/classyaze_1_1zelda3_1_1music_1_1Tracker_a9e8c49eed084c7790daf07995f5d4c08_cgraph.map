@@ -1,9 +1,9 @@
 <map id="yaze::zelda3::music::Tracker::SaveSpcCommand" name="yaze::zelda3::music::Tracker::SaveSpcCommand">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,51,195,91"/>
+<area shape="rect" id="Node000001" title="Saves a block of edited SpcCommands back into a binary format. This is the serializer,..." alt="" coords="5,51,195,91"/>
 <area shape="poly" id="edge4_Node000001_Node000001" title=" " alt="" coords="58,51,56,41,63,32,78,26,100,24,124,26,139,33,136,38,123,32,100,29,79,31,66,36,61,42,63,49"/>
-<area shape="rect" id="Node000002" href="$d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a28311b92f0aa840f6745cc4a16c95450" title=" " alt="" coords="243,5,405,46"/>
+<area shape="rect" id="Node000002" href="$d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a28311b92f0aa840f6745cc4a16c95450" title="Allocates a new SongSpcBlock for holding generated SPC data. These blocks are the building blocks for..." alt="" coords="243,5,405,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="195,49,227,43,228,48,196,54"/>
-<area shape="rect" id="Node000003" href="$d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a50fb8184fcc4ea30383988f55e39b9aa" title=" " alt="" coords="244,95,404,135"/>
+<area shape="rect" id="Node000003" href="$d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a50fb8184fcc4ea30383988f55e39b9aa" title="Calculates the total time (duration) of a block of SpcCommands. This is essential for synchronization..." alt="" coords="244,95,404,135"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="196,87,229,94,228,99,195,92"/>
 <area shape="poly" id="edge3_Node000003_Node000003" title=" " alt="" coords="282,95,279,85,286,76,301,70,324,68,348,70,362,77,360,82,347,76,324,73,303,75,290,80,285,86,287,93"/>
 </map>

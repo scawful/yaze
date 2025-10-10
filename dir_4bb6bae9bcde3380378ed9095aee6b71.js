@@ -1,8 +1,8 @@
 var dir_4bb6bae9bcde3380378ed9095aee6b71 =
 [
     [ "dungeon_editor_system_integration_test.cc", "d4/d38/dungeon__editor__system__integration__test_8cc.html", "d4/d38/dungeon__editor__system__integration__test_8cc" ],
-    [ "dungeon_object_renderer_integration_test.cc", "d1/d36/dungeon__object__renderer__integration__test_8cc.html", "d1/d36/dungeon__object__renderer__integration__test_8cc" ],
     [ "dungeon_object_rendering_tests.cc", "d5/d0b/dungeon__object__rendering__tests_8cc.html", "d5/d0b/dungeon__object__rendering__tests_8cc" ],
+    [ "dungeon_object_rendering_tests_new.cc", "d7/de7/dungeon__object__rendering__tests__new_8cc.html", "d7/de7/dungeon__object__rendering__tests__new_8cc" ],
     [ "dungeon_rendering_test.cc", "d9/d12/dungeon__rendering__test_8cc.html", "d9/d12/dungeon__rendering__test_8cc" ],
     [ "dungeon_room_test.cc", "da/d92/dungeon__room__test_8cc.html", "da/d92/dungeon__room__test_8cc" ],
     [ "message_test.cc", "d2/d5c/message__test_8cc.html", "d2/d5c/message__test_8cc" ],

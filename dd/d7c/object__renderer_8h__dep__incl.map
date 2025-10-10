@@ -1,0 +1,12 @@
+<map id="src/app/zelda3/dungeon/object_renderer.h" name="src/app/zelda3/dungeon/object_renderer.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="202,5,360,46"/>
+<area shape="rect" id="Node000002" href="$d3/d38/dungeon__canvas__viewer_8h.html" title=" " alt="" coords="5,94,184,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,55,138,96,136,91,224,50"/>
+<area shape="rect" id="Node000029" href="$dc/dcc/dungeon__object__selector_8cc.html" title=" " alt="" coords="188,183,374,223"/>
+<area shape="poly" id="edge2_Node000001_Node000029" title=" " alt="" coords="263,61,249,95,246,114,249,134,258,159,270,181,266,183,253,161,244,135,241,114,244,93,258,59"/>
+<area shape="rect" id="Node000030" href="$d1/d71/dungeon__object__editor_8h.html" title=" " alt="" coords="259,94,424,135"/>
+<area shape="poly" id="edge3_Node000001_Node000030" title=" " alt="" coords="306,57,330,92,325,95,301,60"/>
+<area shape="rect" id="Node000037" href="$d5/dc5/object__renderer_8cc.html" title=" " alt="" coords="447,94,606,135"/>
+<area shape="poly" id="edge5_Node000001_Node000037" title=" " alt="" coords="352,49,472,91,470,96,350,54"/>
+<area shape="poly" id="edge4_Node000030_Node000029" title=" " alt="" coords="321,149,297,184,293,181,317,146"/>
+</map>

@@ -112,26 +112,37 @@ $(document).ready(function(){initNavTree('d8/dd6/classyaze_1_1zelda3_1_1music_1_
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a28311b92f0aa840f6745cc4a16c95450" id="r_a28311b92f0aa840f6745cc4a16c95450"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d3/d90/structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html">SongSpcBlock</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a28311b92f0aa840f6745cc4a16c95450">AllocSpcBlock</a> (int len, int bank)</td></tr>
+<tr class="memdesc:a28311b92f0aa840f6745cc4a16c95450"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a new <a class="el" href="../../d3/d90/structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html" title="Represents a block of binary data destined for the APU (SPC700) RAM. This is the intermediate format ...">SongSpcBlock</a> for holding generated SPC data. These blocks are the building blocks for the final binary output that will be written to the ROM and eventually loaded into the APU.  <br /></td></tr>
 <tr class="separator:a28311b92f0aa840f6745cc4a16c95450"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a082dd97860256d819319dd3d0c59b1db" id="r_a082dd97860256d819319dd3d0c59b1db"><td class="memItemLeft" align="right" valign="top">unsigned char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a082dd97860256d819319dd3d0c59b1db">GetSpcAddr</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom, unsigned short addr, short bank)</td></tr>
+<tr class="memdesc:a082dd97860256d819319dd3d0c59b1db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets a direct pointer to music data within the ROM. This function is critical for parsing. It correctly resolves a virtual SPC address and bank into a physical offset within the loaded ROM file, handling the game's specific sound bank mapping.  <br /></td></tr>
 <tr class="separator:a082dd97860256d819319dd3d0c59b1db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a169d9ecb5a18433f6f757eebdd0df0ec" id="r_a169d9ecb5a18433f6f757eebdd0df0ec"><td class="memItemLeft" align="right" valign="top">short&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a169d9ecb5a18433f6f757eebdd0df0ec">AllocSpcCommand</a> ()</td></tr>
+<tr class="memdesc:a169d9ecb5a18433f6f757eebdd0df0ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a new <a class="el" href="../../d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html" title="The core data structure representing a single command in a music track. A song track is a doubly-link...">SpcCommand</a> from a pre-allocated pool. This uses a classic free-list implementation for efficient memory management without repeated malloc/free calls.  <br /></td></tr>
 <tr class="separator:a169d9ecb5a18433f6f757eebdd0df0ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a50fb8184fcc4ea30383988f55e39b9aa" id="r_a50fb8184fcc4ea30383988f55e39b9aa"><td class="memItemLeft" align="right" valign="top">short&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a50fb8184fcc4ea30383988f55e39b9aa">GetBlockTime</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom, short num, short prevtime)</td></tr>
+<tr class="memdesc:a50fb8184fcc4ea30383988f55e39b9aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculates the total time (duration) of a block of SpcCommands. This is essential for synchronization and editor display. It works backwards from the end of a command list, calculating and caching the duration.  <br /></td></tr>
 <tr class="separator:a50fb8184fcc4ea30383988f55e39b9aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9e8c49eed084c7790daf07995f5d4c08" id="r_a9e8c49eed084c7790daf07995f5d4c08"><td class="memItemLeft" align="right" valign="top">short&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a9e8c49eed084c7790daf07995f5d4c08">SaveSpcCommand</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom, short num, short songtime, short endtr)</td></tr>
+<tr class="memdesc:a9e8c49eed084c7790daf07995f5d4c08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves a block of edited SpcCommands back into a binary format. This is the serializer, the inverse of LoadSpcCommand. It walks the linked list of commands and writes the corresponding bytes into a new <a class="el" href="../../d3/d90/structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html" title="Represents a block of binary data destined for the APU (SPC700) RAM. This is the intermediate format ...">SongSpcBlock</a>.  <br /></td></tr>
 <tr class="separator:a9e8c49eed084c7790daf07995f5d4c08"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3442ece4250afed8f2818d275c7d0f6b" id="r_a3442ece4250afed8f2818d275c7d0f6b"><td class="memItemLeft" align="right" valign="top">short&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a3442ece4250afed8f2818d275c7d0f6b">LoadSpcCommand</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom, unsigned short addr, short bank, int t)</td></tr>
+<tr class="memdesc:a3442ece4250afed8f2818d275c7d0f6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loads a block of music data from a given ROM address. This is the main parser. It reads the raw byte stream from the ROM and converts it into a doubly-linked list of <a class="el" href="../../d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html" title="The core data structure representing a single command in a music track. A song track is a doubly-link...">SpcCommand</a> structs.  <br /></td></tr>
 <tr class="separator:a3442ece4250afed8f2818d275c7d0f6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2e584b9fa722ea23a2b31d5ee213b73d" id="r_a2e584b9fa722ea23a2b31d5ee213b73d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a2e584b9fa722ea23a2b31d5ee213b73d">SaveSongs</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
+<tr class="memdesc:a2e584b9fa722ea23a2b31d5ee213b73d"><td class="mdescLeft">&#160;</td><td class="mdescRight">High-level function to save all modified song data back to the ROM. (Currently commented out, but this would orchestrate the entire save process.) This function would be responsible for taking all the edited, in-memory SongSpcBlocks, arranging them into a final binary layout, patching all the relocated pointers, and writing the result back into the ROM file using WriteSpcData.  <br /></td></tr>
 <tr class="separator:a2e584b9fa722ea23a2b31d5ee213b73d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3c91c8f49743af9f6df4b148aa17609" id="r_ac3c91c8f49743af9f6df4b148aa17609"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#ac3c91c8f49743af9f6df4b148aa17609">LoadSongs</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom)</td></tr>
+<tr class="memdesc:ac3c91c8f49743af9f6df4b148aa17609"><td class="mdescLeft">&#160;</td><td class="mdescRight">High-level function to load all song data from the ROM. (Currently commented out, but this would be the main entry point for parsing.) It would iterate through the main song table in the ROM, and for each song, recursively load all its parts and commands using LoadSpcCommand. It would also load instrument and sample data.  <br /></td></tr>
 <tr class="separator:ac3c91c8f49743af9f6df4b148aa17609"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6e425cf578c8769ae95e3b8e85f808a1" id="r_a6e425cf578c8769ae95e3b8e85f808a1"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a6e425cf578c8769ae95e3b8e85f808a1">WriteSpcData</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom, void *buf, int len, int addr, int spc, int limit)</td></tr>
+<tr class="memdesc:a6e425cf578c8769ae95e3b8e85f808a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a prepared data block into the ROM file. This is a utility for SaveSongs, formatting the data with a header containing the length and target SPC address.  <br /></td></tr>
 <tr class="separator:a6e425cf578c8769ae95e3b8e85f808a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00fe0dca9c2b5ecc54054fa4ff03f48c" id="r_a00fe0dca9c2b5ecc54054fa4ff03f48c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a00fe0dca9c2b5ecc54054fa4ff03f48c">EditTrack</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom, short i)</td></tr>
+<tr class="memdesc:a00fe0dca9c2b5ecc54054fa4ff03f48c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens an editor window for a specific track. (Legacy UI-related function)  <br /></td></tr>
 <tr class="separator:a00fe0dca9c2b5ecc54054fa4ff03f48c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe403497078acd2c084a4c506a850c9d" id="r_abe403497078acd2c084a4c506a850c9d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#abe403497078acd2c084a4c506a850c9d">NewSR</a> (<a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> &amp;rom, int bank)</td></tr>
+<tr class="memdesc:abe403497078acd2c084a4c506a850c9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new, empty song range (<a class="el" href="../../d5/d60/structyaze_1_1zelda3_1_1music_1_1SongRange.html" title="A metadata structure to keep track of parsed sections of the song data. Used to avoid re-parsing the ...">SongRange</a>) and opens it for editing. (Legacy UI-related function)  <br /></td></tr>
 <tr class="separator:abe403497078acd2c084a4c506a850c9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-methods" name="pri-methods"></a>
@@ -232,7 +243,7 @@ Private Attributes</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock">
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00146">146</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00188">188</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="a28311b92f0aa840f6745cc4a16c95450" name="a28311b92f0aa840f6745cc4a16c95450"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a28311b92f0aa840f6745cc4a16c95450">&#9670;&#160;</a></span>AllocSpcBlock()</h2>
@@ -260,11 +271,21 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00034">34</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+<p>Allocates a new <a class="el" href="../../d3/d90/structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html" title="Represents a block of binary data destined for the APU (SPC700) RAM. This is the intermediate format ...">SongSpcBlock</a> for holding generated SPC data. These blocks are the building blocks for the final binary output that will be written to the ROM and eventually loaded into the APU. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">len</td><td>The size of the data buffer to allocate for this block. </td></tr>
+    <tr><td class="paramname">bank</td><td>The target sound bank for this block. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A pointer to the newly allocated <a class="el" href="../../d3/d90/structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html" title="Represents a block of binary data destined for the APU (SPC700) RAM. This is the intermediate format ...">SongSpcBlock</a>. </dd></dl>
 
-<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00043">yaze::zelda3::music::SongSpcBlock::bank</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00045">yaze::zelda3::music::SongSpcBlock::buf</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00046">yaze::zelda3::music::SongSpcBlock::flag</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00039">yaze::zelda3::music::SongSpcBlock::len</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00040">yaze::zelda3::music::SongSpcBlock::relnum</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00042">yaze::zelda3::music::SongSpcBlock::relocs</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00041">yaze::zelda3::music::SongSpcBlock::relsz</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00199">ss_next</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00191">ss_num</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00192">ss_size</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00229">ssblt</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00038">yaze::zelda3::music::SongSpcBlock::start</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00042">42</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00651">SaveSpcCommand()</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00051">yaze::zelda3::music::SongSpcBlock::bank</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00053">yaze::zelda3::music::SongSpcBlock::buf</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00054">yaze::zelda3::music::SongSpcBlock::flag</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00047">yaze::zelda3::music::SongSpcBlock::len</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00048">yaze::zelda3::music::SongSpcBlock::relnum</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00050">yaze::zelda3::music::SongSpcBlock::relocs</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00049">yaze::zelda3::music::SongSpcBlock::relsz</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00242">ss_next</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00234">ss_num</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00235">ss_size</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00272">ssblt</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00046">yaze::zelda3::music::SongSpcBlock::start</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00711">SaveSpcCommand()</a>.</p>
 
 </div>
 </div>
@@ -300,17 +321,28 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00057">57</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+<p>Gets a direct pointer to music data within the ROM. This function is critical for parsing. It correctly resolves a virtual SPC address and bank into a physical offset within the loaded ROM file, handling the game's specific sound bank mapping. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rom</td><td>The ROM object. </td></tr>
+    <tr><td class="paramname">addr</td><td>The 16-bit virtual address of the data. </td></tr>
+    <tr><td class="paramname">bank</td><td>The sound bank where the data resides. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A pointer to the data within the ROM buffer, or nullptr if not found. </dd></dl>
 
-<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00203">yaze::Rom::mutable_data()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00203">spcbank</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00200">spclen</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00075">75</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>.</p>
+<p class="reference">References <a class="el" href="../../da/de5/rom_8h_source.html#l00203">yaze::Rom::mutable_data()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00246">spcbank</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00243">spclen</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a082dd97860256d819319dd3d0c59b1db_cgraph.png" border="0" usemap="#ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a082dd97860256d819319dd3d0c59b1db_cgraph" alt=""/></div>
 <map name="ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a082dd97860256d819319dd3d0c59b1db_cgraph" id="ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a082dd97860256d819319dd3d0c59b1db_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,154,46"/>
+<area shape="rect" title="Gets a direct pointer to music data within the ROM. This function is critical for parsing...." alt="" coords="5,5,154,46"/>
 <area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6" title=" " alt="" coords="202,13,366,39"/>
 <area shape="poly" title=" " alt="" coords="154,23,186,23,186,28,154,28"/>
 </map>
@@ -333,11 +365,14 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00091">91</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+<p>Allocates a new <a class="el" href="../../d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html" title="The core data structure representing a single command in a music track. A song track is a doubly-link...">SpcCommand</a> from a pre-allocated pool. This uses a classic free-list implementation for efficient memory management without repeated malloc/free calls. </p>
+<dl class="section return"><dt>Returns</dt><dd>The index of the newly allocated command. </dd></dl>
 
-<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00223">current_spc_command_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00210">m_free</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00209">m_size</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00133">yaze::zelda3::music::SpcCommand::next</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00134">yaze::zelda3::music::SpcCommand::prev</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">115</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01298">NewSR()</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00266">current_spc_command_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00253">m_free</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00252">m_size</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00175">yaze::zelda3::music::SpcCommand::next</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00176">yaze::zelda3::music::SpcCommand::prev</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01390">NewSR()</a>.</p>
 
 </div>
 </div>
@@ -373,17 +408,28 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">115</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+<p>Calculates the total time (duration) of a block of SpcCommands. This is essential for synchronization and editor display. It works backwards from the end of a command list, calculating and caching the duration. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rom</td><td>The ROM object. </td></tr>
+    <tr><td class="paramname">num</td><td>The starting command index. </td></tr>
+    <tr><td class="paramname">prevtime</td><td>The duration of the subsequent block. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The total duration in ticks. </dd></dl>
 
-<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00140">yaze::zelda3::music::SpcCommand::b1</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00136">yaze::zelda3::music::SpcCommand::cmd</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00223">current_spc_command_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00135">yaze::zelda3::music::SpcCommand::flag</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">GetBlockTime()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00211">m_modf</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00209">m_size</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00133">yaze::zelda3::music::SpcCommand::next</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00137">yaze::zelda3::music::SpcCommand::p1</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00139">yaze::zelda3::music::SpcCommand::p3</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00134">yaze::zelda3::music::SpcCommand::prev</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00205">ss_lasttime</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00143">yaze::zelda3::music::SpcCommand::tim</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00142">yaze::zelda3::music::SpcCommand::tim2</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00148">148</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">GetBlockTime()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00651">SaveSpcCommand()</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00182">yaze::zelda3::music::SpcCommand::b1</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00178">yaze::zelda3::music::SpcCommand::cmd</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00266">current_spc_command_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00177">yaze::zelda3::music::SpcCommand::flag</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00148">GetBlockTime()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00254">m_modf</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00252">m_size</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00175">yaze::zelda3::music::SpcCommand::next</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00179">yaze::zelda3::music::SpcCommand::p1</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00181">yaze::zelda3::music::SpcCommand::p3</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00176">yaze::zelda3::music::SpcCommand::prev</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00248">ss_lasttime</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00185">yaze::zelda3::music::SpcCommand::tim</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00184">yaze::zelda3::music::SpcCommand::tim2</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00148">GetBlockTime()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00711">SaveSpcCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a50fb8184fcc4ea30383988f55e39b9aa_cgraph.png" border="0" usemap="#ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a50fb8184fcc4ea30383988f55e39b9aa_cgraph" alt=""/></div>
 <map name="ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a50fb8184fcc4ea30383988f55e39b9aa_cgraph" id="ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a50fb8184fcc4ea30383988f55e39b9aa_cgraph">
-<area shape="rect" title=" " alt="" coords="5,29,166,70"/>
+<area shape="rect" title="Calculates the total time (duration) of a block of SpcCommands. This is essential for synchronization..." alt="" coords="5,29,166,70"/>
 <area shape="poly" title=" " alt="" coords="54,29,53,19,58,11,69,5,86,3,103,5,114,11,111,16,101,10,85,8,71,10,62,14,58,20,60,28"/>
 </map>
 </div>
@@ -428,21 +474,33 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00651">651</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+<p>Saves a block of edited SpcCommands back into a binary format. This is the serializer, the inverse of LoadSpcCommand. It walks the linked list of commands and writes the corresponding bytes into a new <a class="el" href="../../d3/d90/structyaze_1_1zelda3_1_1music_1_1SongSpcBlock.html" title="Represents a block of binary data destined for the APU (SPC700) RAM. This is the intermediate format ...">SongSpcBlock</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rom</td><td>The ROM object. </td></tr>
+    <tr><td class="paramname">num</td><td>The index of the first command to save. </td></tr>
+    <tr><td class="paramname">songtime</td><td>The total duration of the song, used for padding. </td></tr>
+    <tr><td class="paramname">endtr</td><td>Flag indicating if this is the end of a track. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The new virtual address of the saved block. </dd></dl>
 
-<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00132">yaze::zelda3::music::SpcCommand::addr</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00034">AllocSpcBlock()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00140">yaze::zelda3::music::SpcCommand::b1</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00141">yaze::zelda3::music::SpcCommand::b2</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00045">yaze::zelda3::music::SongSpcBlock::buf</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00136">yaze::zelda3::music::SpcCommand::cmd</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00223">current_spc_command_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00135">yaze::zelda3::music::SpcCommand::flag</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">GetBlockTime()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00211">m_modf</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00209">m_size</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00133">yaze::zelda3::music::SpcCommand::next</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00194">op_len</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00137">yaze::zelda3::music::SpcCommand::p1</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00138">yaze::zelda3::music::SpcCommand::p2</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00139">yaze::zelda3::music::SpcCommand::p3</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00134">yaze::zelda3::music::SpcCommand::prev</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00651">SaveSpcCommand()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00222">song_range_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00206">srnum</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00038">yaze::zelda3::music::SongSpcBlock::start</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00711">711</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00651">SaveSpcCommand()</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00174">yaze::zelda3::music::SpcCommand::addr</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00042">AllocSpcBlock()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00182">yaze::zelda3::music::SpcCommand::b1</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00183">yaze::zelda3::music::SpcCommand::b2</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00053">yaze::zelda3::music::SongSpcBlock::buf</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00178">yaze::zelda3::music::SpcCommand::cmd</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00266">current_spc_command_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00177">yaze::zelda3::music::SpcCommand::flag</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00148">GetBlockTime()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00254">m_modf</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00252">m_size</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00175">yaze::zelda3::music::SpcCommand::next</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00237">op_len</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00179">yaze::zelda3::music::SpcCommand::p1</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00180">yaze::zelda3::music::SpcCommand::p2</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00181">yaze::zelda3::music::SpcCommand::p3</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00176">yaze::zelda3::music::SpcCommand::prev</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00711">SaveSpcCommand()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00265">song_range_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00249">srnum</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00046">yaze::zelda3::music::SongSpcBlock::start</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00711">SaveSpcCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a9e8c49eed084c7790daf07995f5d4c08_cgraph.png" border="0" usemap="#ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a9e8c49eed084c7790daf07995f5d4c08_cgraph" alt=""/></div>
 <map name="ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a9e8c49eed084c7790daf07995f5d4c08_cgraph" id="ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a9e8c49eed084c7790daf07995f5d4c08_cgraph">
-<area shape="rect" title=" " alt="" coords="5,51,195,91"/>
+<area shape="rect" title="Saves a block of edited SpcCommands back into a binary format. This is the serializer,..." alt="" coords="5,51,195,91"/>
 <area shape="poly" title=" " alt="" coords="58,51,56,41,63,32,78,26,100,24,124,26,139,33,136,38,123,32,100,29,79,31,66,36,61,42,63,49"/>
-<area shape="rect" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a28311b92f0aa840f6745cc4a16c95450" title=" " alt="" coords="243,5,405,46"/>
+<area shape="rect" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a28311b92f0aa840f6745cc4a16c95450" title="Allocates a new SongSpcBlock for holding generated SPC data. These blocks are the building blocks for..." alt="" coords="243,5,405,46"/>
 <area shape="poly" title=" " alt="" coords="195,49,227,43,228,48,196,54"/>
-<area shape="rect" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a50fb8184fcc4ea30383988f55e39b9aa" title=" " alt="" coords="244,95,404,135"/>
+<area shape="rect" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a50fb8184fcc4ea30383988f55e39b9aa" title="Calculates the total time (duration) of a block of SpcCommands. This is essential for synchronization..." alt="" coords="244,95,404,135"/>
 <area shape="poly" title=" " alt="" coords="196,87,229,94,228,99,195,92"/>
 <area shape="poly" title=" " alt="" coords="282,95,279,85,286,76,301,70,324,68,348,70,362,77,360,82,347,76,324,73,303,75,290,80,285,86,287,93"/>
 </map>
@@ -488,21 +546,33 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">207</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+<p>Loads a block of music data from a given ROM address. This is the main parser. It reads the raw byte stream from the ROM and converts it into a doubly-linked list of <a class="el" href="../../d9/d46/structyaze_1_1zelda3_1_1music_1_1SpcCommand.html" title="The core data structure representing a single command in a music track. A song track is a doubly-link...">SpcCommand</a> structs. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rom</td><td>The ROM object. </td></tr>
+    <tr><td class="paramname">addr</td><td>The starting address in the ROM. </td></tr>
+    <tr><td class="paramname">bank</td><td>The sound bank. </td></tr>
+    <tr><td class="paramname">t</td><td>A time limit for parsing, to handle potentially infinite loops. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The index of the first command in the newly loaded block. </dd></dl>
 
-<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00132">yaze::zelda3::music::SpcCommand::addr</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00140">yaze::zelda3::music::SpcCommand::b1</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00141">yaze::zelda3::music::SpcCommand::b2</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00055">yaze::zelda3::music::SongRange::bank</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00136">yaze::zelda3::music::SpcCommand::cmd</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00223">current_spc_command_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00060">yaze::zelda3::music::SongRange::editor</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00051">yaze::zelda3::music::SongRange::end</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00057">yaze::zelda3::music::SongRange::endtime</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00053">yaze::zelda3::music::SongRange::first</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00135">yaze::zelda3::music::SpcCommand::flag</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">GetBlockTime()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00057">GetSpcAddr()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00054">yaze::zelda3::music::SongRange::inst</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00204">lastsr</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00210">m_free</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00209">m_size</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00133">yaze::zelda3::music::SpcCommand::next</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00194">op_len</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00137">yaze::zelda3::music::SpcCommand::p1</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00138">yaze::zelda3::music::SpcCommand::p2</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00139">yaze::zelda3::music::SpcCommand::p3</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00134">yaze::zelda3::music::SpcCommand::prev</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00222">song_range_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00203">spcbank</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00206">srnum</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00207">srsize</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00050">yaze::zelda3::music::SongRange::start</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00143">yaze::zelda3::music::SpcCommand::tim</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00142">yaze::zelda3::music::SpcCommand::tim2</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">250</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00174">yaze::zelda3::music::SpcCommand::addr</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00182">yaze::zelda3::music::SpcCommand::b1</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00183">yaze::zelda3::music::SpcCommand::b2</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00068">yaze::zelda3::music::SongRange::bank</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00178">yaze::zelda3::music::SpcCommand::cmd</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00266">current_spc_command_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00073">yaze::zelda3::music::SongRange::editor</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00064">yaze::zelda3::music::SongRange::end</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00070">yaze::zelda3::music::SongRange::endtime</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00066">yaze::zelda3::music::SongRange::first</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00177">yaze::zelda3::music::SpcCommand::flag</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00148">GetBlockTime()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00075">GetSpcAddr()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00067">yaze::zelda3::music::SongRange::inst</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00247">lastsr</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00253">m_free</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00252">m_size</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00175">yaze::zelda3::music::SpcCommand::next</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00237">op_len</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00179">yaze::zelda3::music::SpcCommand::p1</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00180">yaze::zelda3::music::SpcCommand::p2</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00181">yaze::zelda3::music::SpcCommand::p3</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00176">yaze::zelda3::music::SpcCommand::prev</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00265">song_range_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00246">spcbank</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00249">srnum</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00250">srsize</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00063">yaze::zelda3::music::SongRange::start</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00185">yaze::zelda3::music::SpcCommand::tim</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00184">yaze::zelda3::music::SpcCommand::tim2</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a3442ece4250afed8f2818d275c7d0f6b_cgraph.png" border="0" usemap="#ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a3442ece4250afed8f2818d275c7d0f6b_cgraph" alt=""/></div>
 <map name="ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a3442ece4250afed8f2818d275c7d0f6b_cgraph" id="ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a3442ece4250afed8f2818d275c7d0f6b_cgraph">
-<area shape="rect" title=" " alt="" coords="5,63,194,103"/>
+<area shape="rect" title="Loads a block of music data from a given ROM address. This is the main parser. It reads the raw byte ..." alt="" coords="5,63,194,103"/>
 <area shape="poly" title=" " alt="" coords="58,63,55,53,62,44,77,38,100,36,124,38,138,45,136,50,122,44,99,41,78,43,65,48,61,54,63,61"/>
-<area shape="rect" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a50fb8184fcc4ea30383988f55e39b9aa" title=" " alt="" coords="242,29,402,70"/>
+<area shape="rect" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a50fb8184fcc4ea30383988f55e39b9aa" title="Calculates the total time (duration) of a block of SpcCommands. This is essential for synchronization..." alt="" coords="242,29,402,70"/>
 <area shape="poly" title=" " alt="" coords="194,66,226,61,227,67,194,72"/>
-<area shape="rect" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a082dd97860256d819319dd3d0c59b1db" title=" " alt="" coords="248,95,396,135"/>
+<area shape="rect" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a082dd97860256d819319dd3d0c59b1db" title="Gets a direct pointer to music data within the ROM. This function is critical for parsing...." alt="" coords="248,95,396,135"/>
 <area shape="poly" title=" " alt="" coords="194,94,232,99,232,105,194,99"/>
 <area shape="poly" title=" " alt="" coords="282,29,280,19,287,10,301,5,322,3,345,5,358,11,356,16,343,10,322,8,302,10,290,15,285,20,287,28"/>
 <area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6" title=" " alt="" coords="450,102,614,128"/>
@@ -528,7 +598,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00800">800</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+<p>High-level function to save all modified song data back to the ROM. (Currently commented out, but this would orchestrate the entire save process.) This function would be responsible for taking all the edited, in-memory SongSpcBlocks, arranging them into a final binary layout, patching all the relocated pointers, and writing the result back into the ROM file using WriteSpcData. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00880">880</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
 
 </div>
 </div>
@@ -548,7 +620,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00381">381</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+<p>High-level function to load all song data from the ROM. (Currently commented out, but this would be the main entry point for parsing.) It would iterate through the main song table in the ROM, and for each song, recursively load all its parts and commands using LoadSpcCommand. It would also load instrument and sample data. </p>
+
+<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00431">431</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../dc/d9f/music__editor_8cc_source.html#l00149">yaze::editor::MusicEditor::DrawToolset()</a>.</p>
 
@@ -604,15 +678,29 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00772">772</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+<p>Writes a prepared data block into the ROM file. This is a utility for SaveSongs, formatting the data with a header containing the length and target SPC address. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rom</td><td>The ROM object. </td></tr>
+    <tr><td class="paramname">buf</td><td>The data to write. </td></tr>
+    <tr><td class="paramname">len</td><td>The length of the data. </td></tr>
+    <tr><td class="paramname">addr</td><td>The ROM address to write to. </td></tr>
+    <tr><td class="paramname">spc</td><td>The target SPC address for this data. </td></tr>
+    <tr><td class="paramname">limit</td><td>The upper bound for writing in the ROM. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The next available ROM address after writing. </dd></dl>
 
-<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00211">m_modf</a>, and <a class="el" href="../../da/de5/rom_8h_source.html#l00203">yaze::Rom::mutable_data()</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00844">844</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00254">m_modf</a>, and <a class="el" href="../../da/de5/rom_8h_source.html#l00203">yaze::Rom::mutable_data()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a6e425cf578c8769ae95e3b8e85f808a1_cgraph.png" border="0" usemap="#ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a6e425cf578c8769ae95e3b8e85f808a1_cgraph" alt=""/></div>
 <map name="ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a6e425cf578c8769ae95e3b8e85f808a1_cgraph" id="ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_a6e425cf578c8769ae95e3b8e85f808a1_cgraph">
-<area shape="rect" title=" " alt="" coords="5,5,163,46"/>
+<area shape="rect" title="Writes a prepared data block into the ROM file. This is a utility for SaveSongs, formatting the data ..." alt="" coords="5,5,163,46"/>
 <area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html#a4b8d9753f385d6cb23821df4bcc689c6" title=" " alt="" coords="211,13,375,39"/>
 <area shape="poly" title=" " alt="" coords="163,23,195,23,195,28,163,28"/>
 </map>
@@ -646,11 +734,20 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01248">1248</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+<p>Opens an editor window for a specific track. (Legacy UI-related function) </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rom</td><td>The ROM object. </td></tr>
+    <tr><td class="paramname">i</td><td>The index of the first command of the track to edit. </td></tr>
+  </table>
+  </dd>
+</dl>
 
-<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00223">current_spc_command_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00053">yaze::zelda3::music::SongRange::first</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00209">m_size</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00222">song_range_</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00206">srnum</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01334">1334</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01298">NewSR()</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00266">current_spc_command_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00066">yaze::zelda3::music::SongRange::first</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00252">m_size</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00265">song_range_</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00249">srnum</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01390">NewSR()</a>.</p>
 
 </div>
 </div>
@@ -680,18 +777,27 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01298">1298</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+<p>Creates a new, empty song range (<a class="el" href="../../d5/d60/structyaze_1_1zelda3_1_1music_1_1SongRange.html" title="A metadata structure to keep track of parsed sections of the song data. Used to avoid re-parsing the ...">SongRange</a>) and opens it for editing. (Legacy UI-related function) </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rom</td><td>The ROM object. </td></tr>
+    <tr><td class="paramname">bank</td><td>The target bank for the new song. </td></tr>
+  </table>
+  </dd>
+</dl>
 
-<p class="reference">References <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00091">AllocSpcCommand()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00055">yaze::zelda3::music::SongRange::bank</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00136">yaze::zelda3::music::SpcCommand::cmd</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00223">current_spc_command_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00060">yaze::zelda3::music::SongRange::editor</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01248">EditTrack()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00053">yaze::zelda3::music::SongRange::first</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00135">yaze::zelda3::music::SpcCommand::flag</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00133">yaze::zelda3::music::SpcCommand::next</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00134">yaze::zelda3::music::SpcCommand::prev</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00222">song_range_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00206">srnum</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00207">srsize</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01390">1390</a> of file <a class="el" href="../../d7/d41/tracker_8cc_source.html">tracker.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">AllocSpcCommand()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00068">yaze::zelda3::music::SongRange::bank</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00178">yaze::zelda3::music::SpcCommand::cmd</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00266">current_spc_command_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00073">yaze::zelda3::music::SongRange::editor</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01334">EditTrack()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00066">yaze::zelda3::music::SongRange::first</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00177">yaze::zelda3::music::SpcCommand::flag</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00175">yaze::zelda3::music::SpcCommand::next</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00176">yaze::zelda3::music::SpcCommand::prev</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00265">song_range_</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00249">srnum</a>, and <a class="el" href="../../dc/ded/tracker_8h_source.html#l00250">srsize</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_abe403497078acd2c084a4c506a850c9d_cgraph.png" border="0" usemap="#ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_abe403497078acd2c084a4c506a850c9d_cgraph" alt=""/></div>
 <map name="ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_abe403497078acd2c084a4c506a850c9d_cgraph" id="ad8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker_abe403497078acd2c084a4c506a850c9d_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,137,79"/>
-<area shape="rect" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a169d9ecb5a18433f6f757eebdd0df0ec" title=" " alt="" coords="185,5,373,46"/>
+<area shape="rect" title="Creates a new, empty song range (SongRange) and opens it for editing. (Legacy UI&#45;related function)" alt="" coords="5,39,137,79"/>
+<area shape="rect" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a169d9ecb5a18433f6f757eebdd0df0ec" title="Allocates a new SpcCommand from a pre&#45;allocated pool. This uses a classic free&#45;list implementation fo..." alt="" coords="185,5,373,46"/>
 <area shape="poly" title=" " alt="" coords="137,46,169,41,170,46,138,51"/>
-<area shape="rect" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a00fe0dca9c2b5ecc54054fa4ff03f48c" title=" " alt="" coords="213,71,345,111"/>
+<area shape="rect" href="../../d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a00fe0dca9c2b5ecc54054fa4ff03f48c" title="Opens an editor window for a specific track. (Legacy UI&#45;related function)" alt="" coords="213,71,345,111"/>
 <area shape="poly" title=" " alt="" coords="138,66,198,76,197,81,137,72"/>
 </map>
 </div>
@@ -722,9 +828,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00225">225</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00268">268</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00223">current_spc_command_</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/ded/tracker_8h_source.html#l00266">current_spc_command_</a>.</p>
 
 </div>
 </div>
@@ -749,7 +855,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00171">171</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00214">214</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -773,7 +879,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00173">173</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00216">216</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -797,7 +903,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00175">175</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00218">218</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -821,7 +927,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00176">176</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00219">219</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -845,7 +951,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00177">177</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00220">220</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -869,7 +975,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00178">178</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00221">221</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -893,7 +999,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00180">180</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00223">223</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -917,7 +1023,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00181">181</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00224">224</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -941,7 +1047,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00182">182</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00225">225</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -965,7 +1071,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00184">184</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00227">227</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -989,7 +1095,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00186">186</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00229">229</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1013,7 +1119,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00187">187</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00230">230</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1037,7 +1143,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00188">188</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00231">231</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1061,7 +1167,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00189">189</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00232">232</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1085,9 +1191,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00191">191</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00234">234</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00034">AllocSpcBlock()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00042">AllocSpcBlock()</a>.</p>
 
 </div>
 </div>
@@ -1111,9 +1217,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00192">192</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00235">235</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00034">AllocSpcBlock()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00042">AllocSpcBlock()</a>.</p>
 
 </div>
 </div>
@@ -1137,9 +1243,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00194">194</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00237">237</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00651">SaveSpcCommand()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00711">SaveSpcCommand()</a>.</p>
 
 </div>
 </div>
@@ -1163,7 +1269,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00196">196</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00239">239</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1187,7 +1293,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00197">197</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00240">240</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1211,9 +1317,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00199">199</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00242">242</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00034">AllocSpcBlock()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00042">AllocSpcBlock()</a>.</p>
 
 </div>
 </div>
@@ -1237,9 +1343,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00200">200</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00243">243</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00057">GetSpcAddr()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00075">GetSpcAddr()</a>.</p>
 
 </div>
 </div>
@@ -1263,7 +1369,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00201">201</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00244">244</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1287,9 +1393,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00203">203</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00246">246</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00057">GetSpcAddr()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00075">GetSpcAddr()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>.</p>
 
 </div>
 </div>
@@ -1313,9 +1419,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00204">204</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00247">247</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>.</p>
 
 </div>
 </div>
@@ -1339,9 +1445,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00205">205</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00248">248</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">GetBlockTime()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00148">GetBlockTime()</a>.</p>
 
 </div>
 </div>
@@ -1365,9 +1471,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00206">206</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00249">249</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01248">EditTrack()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01298">NewSR()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00651">SaveSpcCommand()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01334">EditTrack()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01390">NewSR()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00711">SaveSpcCommand()</a>.</p>
 
 </div>
 </div>
@@ -1391,9 +1497,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00207">207</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00250">250</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01298">NewSR()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01390">NewSR()</a>.</p>
 
 </div>
 </div>
@@ -1417,7 +1523,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00208">208</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00251">251</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1441,9 +1547,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00209">209</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00252">252</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00091">AllocSpcCommand()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01248">EditTrack()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">GetBlockTime()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00651">SaveSpcCommand()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">AllocSpcCommand()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01334">EditTrack()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00148">GetBlockTime()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00711">SaveSpcCommand()</a>.</p>
 
 </div>
 </div>
@@ -1467,9 +1573,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00210">210</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00253">253</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00091">AllocSpcCommand()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">AllocSpcCommand()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>.</p>
 
 </div>
 </div>
@@ -1493,9 +1599,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00211">211</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00254">254</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">GetBlockTime()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00651">SaveSpcCommand()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00772">WriteSpcData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00148">GetBlockTime()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00711">SaveSpcCommand()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00844">WriteSpcData()</a>.</p>
 
 </div>
 </div>
@@ -1519,7 +1625,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00212">212</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00255">255</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1543,7 +1649,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00214">214</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00257">257</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1567,7 +1673,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00215">215</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00258">258</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1591,7 +1697,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00216">216</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00259">259</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1615,7 +1721,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00218">218</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00261">261</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1639,7 +1745,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00220">220</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00263">263</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1663,7 +1769,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00221">221</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00264">264</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1687,9 +1793,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00222">222</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00265">265</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01248">EditTrack()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01298">NewSR()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00651">SaveSpcCommand()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01334">EditTrack()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01390">NewSR()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00711">SaveSpcCommand()</a>.</p>
 
 </div>
 </div>
@@ -1713,9 +1819,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00223">223</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00266">266</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00091">AllocSpcCommand()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01248">EditTrack()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">GetBlockTime()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00225">GetSpcCommand()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00207">LoadSpcCommand()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01298">NewSR()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00651">SaveSpcCommand()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00115">AllocSpcCommand()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01334">EditTrack()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00148">GetBlockTime()</a>, <a class="el" href="../../dc/ded/tracker_8h_source.html#l00268">GetSpcCommand()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00250">LoadSpcCommand()</a>, <a class="el" href="../../d7/d41/tracker_8cc_source.html#l01390">NewSR()</a>, and <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00711">SaveSpcCommand()</a>.</p>
 
 </div>
 </div>
@@ -1739,9 +1845,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00229">229</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00272">272</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00034">AllocSpcBlock()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d7/d41/tracker_8cc_source.html#l00042">AllocSpcBlock()</a>.</p>
 
 </div>
 </div>
@@ -1765,7 +1871,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00231">231</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00274">274</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1789,7 +1895,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00232">232</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00275">275</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>
@@ -1813,7 +1919,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00233">233</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../dc/ded/tracker_8h_source.html#l00276">276</a> of file <a class="el" href="../../dc/ded/tracker_8h_source.html">tracker.h</a>.</p>
 
 </div>
 </div>

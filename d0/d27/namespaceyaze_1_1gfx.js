@@ -57,6 +57,7 @@ var namespaceyaze_1_1gfx =
     [ "SheetOptimizationData", "d8/d7c/structyaze_1_1gfx_1_1SheetOptimizationData.html", "d8/d7c/structyaze_1_1gfx_1_1SheetOptimizationData" ],
     [ "SnesColor", "d5/d31/classyaze_1_1gfx_1_1SnesColor.html", "d5/d31/classyaze_1_1gfx_1_1SnesColor" ],
     [ "SnesPalette", "da/d68/classyaze_1_1gfx_1_1SnesPalette.html", "da/d68/classyaze_1_1gfx_1_1SnesPalette" ],
+    [ "TextureAtlas", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas" ],
     [ "Tile16", "d1/dae/classyaze_1_1gfx_1_1Tile16.html", "d1/dae/classyaze_1_1gfx_1_1Tile16" ],
     [ "Tile32", "d7/d83/classyaze_1_1gfx_1_1Tile32.html", "d7/d83/classyaze_1_1gfx_1_1Tile32" ],
     [ "TileCache", "d6/db0/structyaze_1_1gfx_1_1TileCache.html", "d6/db0/structyaze_1_1gfx_1_1TileCache" ],

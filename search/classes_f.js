@@ -20,7 +20,7 @@ var searchData=
   ['particle_17',['Particle',['../d8/de3/structyaze_1_1editor_1_1WelcomeScreen_1_1Particle.html',1,'yaze::editor::WelcomeScreen']]],
   ['pctosnescommand_18',['PcToSnesCommand',['../dd/d06/classyaze_1_1cli_1_1PcToSnesCommand.html',1,'yaze::cli']]],
   ['performancedashboard_19',['PerformanceDashboard',['../d4/d6f/classyaze_1_1gfx_1_1PerformanceDashboard.html',1,'yaze::gfx']]],
-  ['performancemetrics_20',['performancemetrics',['../d6/dc5/structyaze_1_1gfx_1_1PerformanceDashboard_1_1PerformanceMetrics.html',1,'yaze::gfx::PerformanceDashboard::PerformanceMetrics'],['../d4/d97/structyaze_1_1zelda3_1_1DungeonObjectRendererIntegrationTest_1_1PerformanceMetrics.html',1,'yaze::zelda3::DungeonObjectRendererIntegrationTest::PerformanceMetrics']]],
+  ['performancemetrics_20',['PerformanceMetrics',['../d6/dc5/structyaze_1_1gfx_1_1PerformanceDashboard_1_1PerformanceMetrics.html',1,'yaze::gfx::PerformanceDashboard']]],
   ['performancemonitor_21',['PerformanceMonitor',['../dc/daa/classyaze_1_1zelda3_1_1ObjectRenderer_1_1PerformanceMonitor.html',1,'yaze::zelda3::ObjectRenderer']]],
   ['performanceoptions_22',['PerformanceOptions',['../d0/d59/structyaze_1_1gui_1_1canvas_1_1PerformanceOptions.html',1,'yaze::gui::canvas']]],
   ['performanceprofiler_23',['PerformanceProfiler',['../d4/d0a/classyaze_1_1gfx_1_1PerformanceProfiler.html',1,'yaze::gfx']]],

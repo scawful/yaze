@@ -1,7 +1,5 @@
 <map id="yaze::Rom" name="yaze::Rom">
-<area shape="rect" id="Node000001" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="121,5,201,31"/>
+<area shape="rect" id="Node000001" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="35,5,116,31"/>
 <area shape="rect" id="Node000002" href="$df/df5/classyaze_1_1test_1_1MockRom.html" title="Enhanced ROM for testing that behaves like a real ROM but with test data." alt="" coords="5,79,146,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,43,91,81,88,77,133,39"/>
-<area shape="rect" id="Node000003" href="$d4/df3/classyaze_1_1zelda3_1_1MockRom.html" title="Mock ROM class for testing without real ROM files." alt="" coords="170,79,325,105"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="189,39,235,77,231,81,186,43"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,46,78,79,73,79,73,46"/>
 </map>

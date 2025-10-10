@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['january_202024_0',['0.0.7 (January 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md1013',1,'']]],
+  ['january_202024_0',['0.0.7 (January 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md1066',1,'']]],
   ['jml_1',['JML',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a0d7557981c654477aa034e1e44344974',1,'yaze::emu::Cpu']]],
   ['jmp_2',['jmp',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#ae6fa6c1c9b120d33deb5d3d027a43fbc',1,'yaze::emu::Cpu::JMP()'],['../d2/d07/classyaze_1_1emu_1_1Spc700.html#a0f9709ced56bfe1de31e62d2580f2fce',1,'yaze::emu::Spc700::JMP()']]],
   ['join_5fcode_5fbuffer_5f_3',['join_code_buffer_',['../d9/d2b/classyaze_1_1editor_1_1AgentChatWidget.html#acbb92cc63fc2bd3a9f9cf075472f3fef',1,'yaze::editor::AgentChatWidget']]],
@@ -8,22 +8,22 @@ var searchData=
   ['joinlogs_5',['JoinLogs',['../d2/d06/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__reporter_8cc_03.html#ac155686362623ac3289716380a134680',1,'yaze::cli::anonymous_namespace{test_suite_reporter.cc}']]],
   ['joinquotedlist_6',['JoinQuotedList',['../db/d29/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__writer_8cc_03.html#a5b82b32512688509ce17f30191bcaf42',1,'yaze::cli::anonymous_namespace{test_suite_writer.cc}']]],
   ['joinsession_7',['joinsession',['../d3/d4f/classyaze_1_1editor_1_1AgentCollaborationCoordinator.html#a17ee6d5798bd8dba231cfce40495a518',1,'yaze::editor::AgentCollaborationCoordinator::JoinSession()'],['../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a206b12848d450877b19f57aafa13f5db',1,'yaze::editor::AgentEditor::JoinSession()'],['../d6/dfb/classyaze_1_1net_1_1CollaborationService.html#ae053ab3a4d7238a26f0ba7ca4a630833',1,'yaze::net::CollaborationService::JoinSession()'],['../da/dae/classyaze_1_1net_1_1WebSocketClient.html#acabdd8b9754a9ab4dd32ff4a11b00dd2',1,'yaze::net::WebSocketClient::JoinSession()'],['../d6/d5d/classyaze_1_1cli_1_1net_1_1Z3edNetworkClient_1_1Impl.html#aa1cc6cddf0a358c03aaefd377f1636fd',1,'yaze::cli::net::Z3edNetworkClient::Impl::JoinSession()'],['../da/dfb/classyaze_1_1cli_1_1net_1_1Z3edNetworkClient.html#a2da8f61ef39cee39131121ee1db52192',1,'yaze::cli::net::Z3edNetworkClient::JoinSession()']]],
-  ['journey_3a_20critical_20fixes_8',['4. The Debugging Journey: Critical Fixes',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md498',1,'']]],
+  ['journey_3a_20critical_20fixes_8',['4. The Debugging Journey: Critical Fixes',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md562',1,'']]],
   ['joypaddata_9',['joypadData',['../d3/d00/structyaze_1_1emu_1_1JoypadRegisters.html#a11184805d9757bc1d776d5d56302b03f',1,'yaze::emu::JoypadRegisters']]],
   ['joypadregisters_10',['JoypadRegisters',['../d3/d00/structyaze_1_1emu_1_1JoypadRegisters.html',1,'yaze::emu']]],
   ['jp_11',['JP',['../d2/d94/group__rom__types.html#gga9b154d4f0904082e537a24b5ae25575daf35882285f7bde3e58305178a023f561',1,'zelda.h']]],
   ['jp_5fconf_5fconfig_12',['jp_conf_config',['../db/d0d/structyaze_1_1FontConfig.html#a5ce66a02b0bde6fdecd3e9cf139e61fe',1,'yaze::FontConfig']]],
   ['jsl_13',['JSL',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#aeb2f8f2dbdca99dc8e45058571cabdb8',1,'yaze::emu::Cpu']]],
-  ['json_14',['json',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md119',1,'clangd can&apos;t find nlohmann/json'],['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md115',1,'Updating compile_commands.json']]],
-  ['json_20hpp_3a_20no_20such_20file_20or_20directory_15',['&quot;nlohmann/json.hpp: No such file or directory&quot;',['../dc/d42/md_docs_2B1-build-instructions.html#autotoc_md54',1,'']]],
+  ['json_14',['json',['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md133',1,'clangd can&apos;t find nlohmann/json'],['../d7/d51/md_docs_2B3-build-presets.html#autotoc_md129',1,'Updating compile_commands.json']]],
+  ['json_20hpp_3a_20no_20such_20file_20or_20directory_15',['&quot;nlohmann/json.hpp: No such file or directory&quot;',['../dc/d42/md_docs_2B1-build-instructions.html#autotoc_md68',1,'']]],
   ['json_5fpretty_16',['json_pretty',['../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#aa16f125bb3d03778e8e8deb5504284ab',1,'yaze::cli::agent::ChatMessage']]],
   ['json_5ftext_5fcolor_17',['json_text_color',['../db/d3d/structyaze_1_1editor_1_1AgentUITheme.html#a320edf244a15576e42e85d9832f79656',1,'yaze::editor::AgentUITheme']]],
   ['jsonescape_18',['JsonEscape',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa9e3ca343f9a5ffeab7bc30f20aff921',1,'yaze::cli::agent']]],
   ['jsontoprofile_19',['JsonToProfile',['../d6/d0d/classyaze_1_1editor_1_1AgentEditor.html#a3611fc5f7367b5346be7dda28c89a08d',1,'yaze::editor::AgentEditor']]],
   ['jsonvaluetostring_20',['JsonValueToString',['../d4/dd8/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02conversational__agent__service_8cc_03.html#ab0548a61f882b63d453ea1dd303186a2',1,'yaze::cli::agent::anonymous_namespace{conversational_agent_service.cc}']]],
   ['jsr_21',['JSR',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a16fe87970c5888a2a21a04ec83784701',1,'yaze::emu::Cpu']]],
-  ['july_202024_22',['0.2.0 (July 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md1009',1,'']]],
-  ['jump_20straight_20to_20overworld_20editing_23',['Jump straight to overworld editing',['../de/dc5/md_docs_2E5-debugging-guide.html#autotoc_md601',1,'']]],
+  ['july_202024_22',['0.2.0 (July 2024)',['../d6/da7/md_docs_2H1-changelog.html#autotoc_md1062',1,'']]],
+  ['jump_20straight_20to_20overworld_20editing_23',['Jump straight to overworld editing',['../de/dc5/md_docs_2E5-debugging-guide.html#autotoc_md665',1,'']]],
   ['jump_5faddress_5f_24',['jump_address_',['../d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html#adbca3194c58841cf7de3f6439739733a',1,'yaze::editor::MemoryEditorWithDiffChecker']]],
   ['jump_5fto_5ftab_25',['jump_to_tab',['../d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer.html#a09dd2423d5f66936f975dcc26fbb647a',1,'yaze::editor::OverworldEntityRenderer::jump_to_tab()'],['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#afe55b1130672c6448209d7562b7628f9',1,'yaze::editor::OverworldEditor::jump_to_tab()']]],
   ['jump_5fto_5ftab_5f_26',['jump_to_tab_',['../d8/d43/classyaze_1_1editor_1_1OverworldEntityRenderer.html#aa525334b9408c63fa9225eb2bf87abbf',1,'yaze::editor::OverworldEntityRenderer::jump_to_tab_'],['../d3/d44/classyaze_1_1editor_1_1OverworldEditor.html#af958a08b4ab56f24797e4258d2a49e4e',1,'yaze::editor::OverworldEditor::jump_to_tab_']]],
@@ -31,5 +31,5 @@ var searchData=
   ['jumptodungeonroom_28',['JumpToDungeonRoom',['../dd/d12/classyaze_1_1editor_1_1EditorManager.html#a245ff7b7fa3cb0ffe586c74a6955a525',1,'yaze::editor::EditorManager']]],
   ['jumptofunction_29',['JumpToFunction',['../d3/d60/classyaze_1_1zelda3_1_1SpriteInstruction.html#a2435f9ddc0c2c05006e60f9a7408ecf4',1,'yaze::zelda3::SpriteInstruction']]],
   ['jumptooverworldmap_30',['JumpToOverworldMap',['../dd/d12/classyaze_1_1editor_1_1EditorManager.html#a9bf700aa2b7d6a2053f8e9535375f8cb',1,'yaze::editor::EditorManager']]],
-  ['just_20needs_20to_20validate_20the_20state_31',['Then your test script just needs to validate the state',['../de/dc5/md_docs_2E5-debugging-guide.html#autotoc_md615',1,'']]]
+  ['just_20needs_20to_20validate_20the_20state_31',['Then your test script just needs to validate the state',['../de/dc5/md_docs_2E5-debugging-guide.html#autotoc_md679',1,'']]]
 ];

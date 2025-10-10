@@ -1,7 +1,0 @@
-<map id="yaze::test::DungeonObjectRenderingTests::CreateComplexRoomScenario" name="yaze::test::DungeonObjectRenderingTests::CreateComplexRoomScenario">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,246,61"/>
-<area shape="rect" id="Node000002" href="$de/dd6/classyaze_1_1test_1_1TestRomManager_1_1BoundRomTest.html#ad905613a57e42c91a7aad828dd5b2111" title=" " alt="" coords="294,13,478,54"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="246,31,278,31,278,36,246,36"/>
-<area shape="rect" id="Node000003" href="$de/dd6/classyaze_1_1test_1_1TestRomManager_1_1BoundRomTest.html#abd7ba33a0f0e1a78efe5f416c189c0db" title=" " alt="" coords="526,13,759,54"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="479,31,510,31,510,36,479,36"/>
-</map>

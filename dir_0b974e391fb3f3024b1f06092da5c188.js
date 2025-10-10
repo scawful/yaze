@@ -29,6 +29,8 @@ var dir_0b974e391fb3f3024b1f06092da5c188 =
     [ "snes_palette.h", "d8/ddb/snes__palette_8h.html", "d8/ddb/snes__palette_8h" ],
     [ "snes_tile.cc", "d3/d73/snes__tile_8cc.html", "d3/d73/snes__tile_8cc" ],
     [ "snes_tile.h", "d0/d8d/snes__tile_8h.html", "d0/d8d/snes__tile_8h" ],
+    [ "texture_atlas.cc", "d3/d1b/texture__atlas_8cc.html", null ],
+    [ "texture_atlas.h", "db/dd3/texture__atlas_8h.html", "db/dd3/texture__atlas_8h" ],
     [ "tilemap.cc", "d6/de2/tilemap_8cc.html", "d6/de2/tilemap_8cc" ],
     [ "tilemap.h", "dc/d0c/tilemap_8h.html", "dc/d0c/tilemap_8h" ]
 ];

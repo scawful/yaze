@@ -432,7 +432,7 @@ Here is the call graph for this function:</div>
   </tr>
 </table>
 </div><div class="memdoc">
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000026">Todo:</a></b></dt><dd>Load roomset gfx based on dungeon ID </dd></dl>
+<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000028">Todo:</a></b></dt><dd>Load roomset gfx based on dungeon ID </dd></dl>
 <p>int current_tile8 = 0; int tile_data_offset = 0; for (int i = 0; i &lt; 4; ++i) { for (int j = 0; j &lt; 32; j++) { std::vector&lt;uint8_t&gt; tile_data(64, 0); // 8x8 tile (64 bytes int tile_index = current_tile8 + j; int x = (j % 8) * 8; int y = (j / 8) * 8; sheets_[i].Get8x8Tile(tile_index, x, y, tile_data, tile_data_offset); tile8_individual_.emplace_back(gfx::Bitmap(8, 8, 4, tile_data)); tile8_individual_.back().SetPalette(*rom()-&gt;mutable_dungeon_palette(3)); Queue texture creation via Arena's deferred system <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55">gfx::Arena::Get()</a>.QueueTextureCommand( <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a7c65b9804f35c3b9c2848da846088c8ca294ce20cdefa29be3be0735cb62e715d">gfx::Arena::TextureCommandType::CREATE</a>, &amp;tile8_individual_.back()); } tile_data_offset = 0; }</p>
 
 <p>Implements <a class="el" href="../../d3/d9f/classyaze_1_1editor_1_1Editor.html#aec4a1012c0639bb4b60183a735418b32">yaze::editor::Editor</a>.</p>

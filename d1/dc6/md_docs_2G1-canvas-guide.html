@@ -101,10 +101,10 @@ $(document).ready(function(){initNavTree('d1/dc6/md_docs_2G1-canvas-guide.html',
   <div class="headertitle"><div class="title">G1 - Canvas System and Automation</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md800"></a> This document provides a comprehensive guide to the Canvas system in yaze, including its architecture, features, and the powerful automation API that enables programmatic control for the <code>z3ed</code> CLI, AI agents, and GUI testing.</p>
-<h1><a class="anchor" id="autotoc_md801"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md853"></a> This document provides a comprehensive guide to the Canvas system in yaze, including its architecture, features, and the powerful automation API that enables programmatic control for the <code>z3ed</code> CLI, AI agents, and GUI testing.</p>
+<h1><a class="anchor" id="autotoc_md854"></a>
 1. Core Concepts</h1>
-<h2><a class="anchor" id="autotoc_md802"></a>
+<h2><a class="anchor" id="autotoc_md855"></a>
 Canvas Structure</h2>
 <ul>
 <li><b>Background</b>: Drawing surface with border and optional scrolling</li>
@@ -112,7 +112,7 @@ Canvas Structure</h2>
 <li><b>Grid Overlay</b>: Optional grid with hex labels</li>
 <li><b>Interaction Layer</b>: Hover previews, selection rectangles</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md803"></a>
+<h2><a class="anchor" id="autotoc_md856"></a>
 Coordinate Systems</h2>
 <ul>
 <li><b>Screen Space</b>: <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> window coordinates</li>
@@ -120,22 +120,22 @@ Coordinate Systems</h2>
 <li><b>Tile Space</b>: Grid-aligned tile indices</li>
 <li><b>World Space</b>: Overworld 4096x4096 large map coordinates</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md804"></a>
+<h1><a class="anchor" id="autotoc_md857"></a>
 2. Canvas API and Usage</h1>
-<h2><a class="anchor" id="autotoc_md805"></a>
+<h2><a class="anchor" id="autotoc_md858"></a>
 Modern Begin/End Pattern</h2>
 <p>The recommended way to use the canvas is with the <code>Begin()</code>/<code>End()</code> pattern, which handles setup and teardown automatically.</p>
 <div class="fragment"><div class="line">canvas.Begin(ImVec2(512, 512));</div>
 <div class="line">canvas.DrawBitmap(bitmap, 0, 0, 2.0f);</div>
 <div class="line">canvas.End();  <span class="comment">// Automatic grid + overlay</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md806"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md859"></a>
 Feature: Tile Painting</h2>
 <p>The canvas provides methods for painting single tiles, painting from a tilemap, and painting with solid colors.</p>
 <div class="fragment"><div class="line"><span class="keywordflow">if</span> (canvas.DrawTilePainter(current_tile_bitmap, 16, 2.0f)) {</div>
 <div class="line">  ImVec2 paint_pos = canvas.drawn_tile_position();</div>
 <div class="line">  ApplyTileToMap(paint_pos, current_tile_id);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md807"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md860"></a>
 Feature: Tile Selection</h2>
 <p>The canvas supports both single-tile and multi-tile rectangle selection.</p>
 <div class="fragment"><div class="line">canvas.DrawSelectRect(current_map_id, 16, 1.0f);</div>
@@ -144,24 +144,24 @@ Feature: Tile Selection</h2>
 <div class="line">  <span class="keyword">const</span> <span class="keyword">auto</span>&amp; selected_tiles = canvas.selected_tiles();</div>
 <div class="line">  <span class="comment">// Process selection...</span></div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md808"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md861"></a>
 Feature: Large Map Support</h2>
 <p>The canvas can handle large maps with multiple local maps, including boundary clamping to prevent selection wrapping.</p>
 <div class="fragment"><div class="line">canvas.SetClampRectToLocalMaps(<span class="keyword">true</span>);  <span class="comment">// Default - prevents wrapping</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md809"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md862"></a>
 Feature: Context Menu</h2>
 <p>The canvas has a customizable context menu.</p>
 <div class="fragment"><div class="line">canvas.AddContextMenuItem({</div>
 <div class="line">  <span class="stringliteral">&quot;My Action&quot;</span>,</div>
 <div class="line">  [<span class="keyword">this</span>]() { DoAction(); }</div>
 <div class="line">});</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md810"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md863"></a>
 3. Canvas Automation API</h1>
 <p>The <code>CanvasAutomationAPI</code> provides a programmatic interface for controlling canvas operations, enabling scripted editing, AI agent integration, and automated testing.</p>
-<h2><a class="anchor" id="autotoc_md811"></a>
+<h2><a class="anchor" id="autotoc_md864"></a>
 Accessing the API</h2>
 <div class="fragment"><div class="line"><span class="keyword">auto</span>* api = canvas.GetAutomationAPI();</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md812"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md865"></a>
 Tile Operations</h2>
 <div class="fragment"><div class="line"><span class="comment">// Paint a single tile</span></div>
 <div class="line"><span class="keywordtype">bool</span> SetTileAt(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, <span class="keywordtype">int</span> tile_id);</div>
@@ -171,7 +171,7 @@ Tile Operations</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Paint multiple tiles in a batch</span></div>
 <div class="line"><span class="keywordtype">bool</span> SetTiles(<span class="keyword">const</span> std::vector&lt;std::tuple&lt;int,int,int&gt;&gt;&amp; tiles);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md813"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md866"></a>
 Selection Operations</h2>
 <div class="fragment"><div class="line"><span class="comment">// Select a single tile</span></div>
 <div class="line"><span class="keywordtype">void</span> SelectTile(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y);</div>
@@ -184,7 +184,7 @@ Selection Operations</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Clear the current selection</span></div>
 <div class="line"><span class="keywordtype">void</span> ClearSelection();</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md814"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md867"></a>
 View Operations</h2>
 <div class="fragment"><div class="line"><span class="comment">// Scroll the canvas to make a tile visible</span></div>
 <div class="line"><span class="keywordtype">void</span> ScrollToTile(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y);</div>
@@ -197,7 +197,7 @@ View Operations</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Center the canvas view on a specific coordinate</span></div>
 <div class="line"><span class="keywordtype">void</span> CenterOn(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md815"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md868"></a>
 Query Operations</h2>
 <div class="fragment"><div class="line"><span class="comment">// Get the dimensions of the canvas in tiles</span></div>
 <div class="line">CanvasDimensions GetDimensions() <span class="keyword">const</span>;</div>
@@ -210,7 +210,7 @@ Query Operations</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Get the cursor position in logical tile coordinates</span></div>
 <div class="line">ImVec2 GetCursorPosition() <span class="keyword">const</span>;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md816"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md869"></a>
 Simulation Operations (for GUI Automation)</h2>
 <div class="fragment"><div class="line"><span class="comment">// Simulate a mouse click at a specific tile</span></div>
 <div class="line"><span class="keywordtype">void</span> SimulateClick(<span class="keywordtype">int</span> x, <span class="keywordtype">int</span> y, ImGuiMouseButton button = ImGuiMouseButton_Left);</div>
@@ -220,7 +220,7 @@ Simulation Operations (for GUI Automation)</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Wait for the canvas to finish processing</span></div>
 <div class="line"><span class="keywordtype">void</span> WaitForIdle();</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md817"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md870"></a>
 4. &lt;tt&gt;z3ed&lt;/tt&gt; CLI Integration</h1>
 <p>The Canvas Automation API is exposed through the <code>z3ed</code> CLI, allowing for scripted overworld editing.</p>
 <div class="fragment"><div class="line"># Set a tile</div>
@@ -234,7 +234,7 @@ Simulation Operations (for GUI Automation)</h2>
 <div class="line"> </div>
 <div class="line"># Scroll to a tile</div>
 <div class="line">z3ed overworld scroll-to --map 0 --x 20 --y 20 --center --rom zelda3.sfc</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md818"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md871"></a>
 5. gRPC Service</h1>
 <p>The Canvas Automation API is also exposed via a gRPC service, allowing for remote control of the canvas.</p>
 <p>**Proto Definition (<code>protos/canvas_automation.proto</code>):** </p><div class="fragment"><div class="line">service CanvasAutomation {</div>

@@ -6,12 +6,13 @@ var searchData=
   ['e5_20debugging_20and_20testing_20guide_3',['E5 - Debugging and Testing Guide',['../de/dc5/md_docs_2E5-debugging-guide.html',1,'']]],
   ['editing_4',['Overworld Agent Guide - AI-Powered Overworld Editing',['../de/d00/md_docs_2F4-overworld-agent-guide.html',1,'']]],
   ['editor_5',['yaze - Yet Another Zelda3 Editor',['../d0/d30/md_README.html',1,'']]],
-  ['editor_20complete_20guide_6',['Dungeon Editor Complete Guide',['../de/d8c/md_docs_2D1-dungeon-editor-guide.html',1,'']]],
+  ['editor_20complete_20technical_20guide_6',['YAZE Dungeon Editor - Complete Technical Guide',['../d6/d84/md_docs_2DUNGEON__EDITOR__COMPLETE__GUIDE.html',1,'']]],
   ['editor_20module_7',['Agent Editor Module',['../d6/df7/md_src_2app_2editor_2agent_2README.html',1,'']]],
   ['editor_20palette_20system_8',['Tile16 Editor Palette System',['../d2/dde/md_docs_2F2-tile16-editor-palette-system.html',1,'']]],
-  ['editor_3a_20master_20guide_9',['Yaze Dungeon Editor: Master Guide',['../d5/d83/md_docs_2F1-dungeon-editor-guide.html',1,'']]],
-  ['emulator_20development_20guide_10',['E4 - Emulator Development Guide',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html',1,'']]],
-  ['emulator_20enhancement_20roadmap_11',['YAZE Emulator Enhancement Roadmap',['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html',1,'']]],
-  ['end_20to_20end_20e2e_20tests_12',['End-to-End (E2E) Tests',['../d9/db0/md_test_2e2e_2README.html',1,'']]],
-  ['enhancement_20roadmap_13',['YAZE Emulator Enhancement Roadmap',['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html',1,'']]]
+  ['editor_3a_20complete_20guide_9',['YAZE Dungeon Editor: Complete Guide',['../d6/d2c/md_docs_2DUNGEON__EDITOR__GUIDE.html',1,'']]],
+  ['emulator_20core_20improvements_20optimization_20roadmap_10',['Emulator Core Improvements &amp; Optimization Roadmap',['../d0/d63/md_docs_2Emulator__Improvements__Roadmap.html',1,'']]],
+  ['emulator_20development_20guide_11',['E4 - Emulator Development Guide',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html',1,'']]],
+  ['emulator_20enhancement_20roadmap_12',['YAZE Emulator Enhancement Roadmap',['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html',1,'']]],
+  ['end_20to_20end_20e2e_20tests_13',['End-to-End (E2E) Tests',['../d9/db0/md_test_2e2e_2README.html',1,'']]],
+  ['enhancement_20roadmap_14',['YAZE Emulator Enhancement Roadmap',['../de/d77/md_docs_2E1-emulator-enhancement-roadmap.html',1,'']]]
 ];

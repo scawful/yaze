@@ -1,0 +1,11 @@
+<map id="yaze::gfx::TextureAtlas::AllocateRegion" name="yaze::gfx::TextureAtlas::AllocateRegion">
+<area shape="rect" id="Node000001" title="Allocate a region in the atlas for a source texture." alt="" coords="5,49,155,90"/>
+<area shape="rect" id="Node000002" href="$de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a1dd6e1d4970a99d4525925c4cff84bca" title=" " alt="" coords="400,5,549,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="150,46,202,35,296,25,384,22,384,28,296,31,203,40,151,51"/>
+<area shape="rect" id="Node000003" href="$de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#ac93c37d5766f6500fdab13e5032c0a02" title=" " alt="" coords="203,49,352,90"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="155,67,187,67,187,72,155,72"/>
+<area shape="rect" id="Node000004" href="$de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a629d277ba0881cee64d872b70aef0da7" title="Get atlas dimensions." alt="" coords="400,83,549,123"/>
+<area shape="poly" id="edge5_Node000001_Node000004" title=" " alt="" coords="149,88,203,99,296,106,384,106,384,111,296,111,202,104,148,93"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="352,50,384,43,385,48,353,56"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="353,80,385,85,384,90,352,85"/>
+</map>

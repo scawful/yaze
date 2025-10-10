@@ -1,7 +1,10 @@
 <map id="yaze::test::DungeonObjectRenderingTests" name="yaze::test::DungeonObjectRenderingTests">
-<area shape="rect" id="Node000001" title="Advanced tests for actual dungeon object rendering scenarios." alt="" coords="12,168,183,208"/>
-<area shape="rect" id="Node000002" href="$de/dd6/classyaze_1_1test_1_1TestRomManager_1_1BoundRomTest.html" title=" " alt="" coords="5,79,190,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="100,135,100,167,95,167,95,135"/>
+<area shape="rect" id="Node000001" title="Tests for ObjectDrawer with realistic dungeon scenarios." alt="" coords="12,184,183,225"/>
+<area shape="rect" id="Node000002" href="$de/dd6/classyaze_1_1test_1_1TestRomManager_1_1BoundRomTest.html" title=" " alt="" coords="5,80,190,121"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,137,93,184,88,184,86,137"/>
+<area shape="poly" id="edge3_Node000001_Node000002" title=" " alt="" coords="109,137,107,184,102,184,103,137"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="51,5,144,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="100,46,100,79,95,79,95,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="100,47,100,80,95,80,95,47"/>
+<area shape="rect" id="Node000004" href="$d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="213,88,366,114"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="255,123,136,186,133,181,252,119"/>
 </map>

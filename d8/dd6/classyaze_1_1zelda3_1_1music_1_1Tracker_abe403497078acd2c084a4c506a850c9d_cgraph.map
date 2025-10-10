@@ -1,7 +1,7 @@
 <map id="yaze::zelda3::music::Tracker::NewSR" name="yaze::zelda3::music::Tracker::NewSR">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,137,79"/>
-<area shape="rect" id="Node000002" href="$d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a169d9ecb5a18433f6f757eebdd0df0ec" title=" " alt="" coords="185,5,373,46"/>
+<area shape="rect" id="Node000001" title="Creates a new, empty song range (SongRange) and opens it for editing. (Legacy UI&#45;related function)" alt="" coords="5,39,137,79"/>
+<area shape="rect" id="Node000002" href="$d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a169d9ecb5a18433f6f757eebdd0df0ec" title="Allocates a new SpcCommand from a pre&#45;allocated pool. This uses a classic free&#45;list implementation fo..." alt="" coords="185,5,373,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="137,46,169,41,170,46,138,51"/>
-<area shape="rect" id="Node000003" href="$d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a00fe0dca9c2b5ecc54054fa4ff03f48c" title=" " alt="" coords="213,71,345,111"/>
+<area shape="rect" id="Node000003" href="$d8/dd6/classyaze_1_1zelda3_1_1music_1_1Tracker.html#a00fe0dca9c2b5ecc54054fa4ff03f48c" title="Opens an editor window for a specific track. (Legacy UI&#45;related function)" alt="" coords="213,71,345,111"/>
 <area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="138,66,198,76,197,81,137,72"/>
 </map>

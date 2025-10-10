@@ -1,0 +1,25 @@
+var classyaze_1_1gfx_1_1TextureAtlas =
+[
+    [ "AtlasRegion", "dd/d53/structyaze_1_1gfx_1_1TextureAtlas_1_1AtlasRegion.html", "dd/d53/structyaze_1_1gfx_1_1TextureAtlas_1_1AtlasRegion" ],
+    [ "AtlasStats", "d5/d31/structyaze_1_1gfx_1_1TextureAtlas_1_1AtlasStats.html", "d5/d31/structyaze_1_1gfx_1_1TextureAtlas_1_1AtlasStats" ],
+    [ "TextureAtlas", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a7d994668c9146444b6dcd97632fbec08", null ],
+    [ "AllocateRegion", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#ac5fa3cb1c3de71617041b8ccdd6189ef", null ],
+    [ "PackBitmap", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a2dc4a8bd9a800b70bbcd01a21ee08905", null ],
+    [ "DrawRegion", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#aab6d5566589b4a9d839fdb3d5e33a6c1", null ],
+    [ "FreeRegion", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a5ef15112620d6a38fdf7da98e0f86c6e", null ],
+    [ "Clear", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a8a8717ea960692f85f0067e413661ebf", null ],
+    [ "GetAtlasBitmap", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a3a213ad738c8034d6fdb13a447dd1780", null ],
+    [ "GetAtlasBitmap", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a8633b05d1c31e7c94f81fa68dc52f69a", null ],
+    [ "GetRegion", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a1af0751892123c25cb3937c350d69126", null ],
+    [ "width", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a629d277ba0881cee64d872b70aef0da7", null ],
+    [ "height", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a1dd6e1d4970a99d4525925c4cff84bca", null ],
+    [ "GetStats", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a0cdd728f754e3124589fef1662557de7", null ],
+    [ "TryPackRect", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#ac93c37d5766f6500fdab13e5032c0a02", null ],
+    [ "width_", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#ac752f1779d28bc0cb5a97586dbb29c0b", null ],
+    [ "height_", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a41c296c32ce579d1dbfc9a9e5e1a17b0", null ],
+    [ "atlas_bitmap_", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a834b45ce4cf7ac7994f4312427aa215c", null ],
+    [ "next_x_", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a6e6eb12efe0fb18afea8fb62284cffe9", null ],
+    [ "next_y_", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#abc1a28001a16ed2f13b6e1dab05d1d32", null ],
+    [ "row_height_", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#a6149127fb6c488976313de2f2b7fba40", null ],
+    [ "regions_", "de/d9a/classyaze_1_1gfx_1_1TextureAtlas.html#afdd5235ab631cb775016fdaa5a562fb5", null ]
+];

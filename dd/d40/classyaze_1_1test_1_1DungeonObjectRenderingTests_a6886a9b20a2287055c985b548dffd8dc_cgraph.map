@@ -1,0 +1,7 @@
+<map id="yaze::test::DungeonObjectRenderingTests::CreateTestPaletteGroup" name="yaze::test::DungeonObjectRenderingTests::CreateTestPaletteGroup">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,264,79"/>
+<area shape="rect" id="Node000002" href="$da/d68/classyaze_1_1gfx_1_1SnesPalette.html#a6854313e2b0f605315523b2185efdea2" title=" " alt="" coords="314,5,462,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="264,39,299,35,299,40,264,45"/>
+<area shape="rect" id="Node000003" href="$d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html#af4f545e507e3c3e793e871f04051e7eb" title=" " alt="" coords="312,71,464,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="264,73,297,77,296,82,264,78"/>
+</map>

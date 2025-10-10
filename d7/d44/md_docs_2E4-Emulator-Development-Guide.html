@@ -101,11 +101,11 @@ $(document).ready(function(){initNavTree('d7/d44/md_docs_2E4-Emulator-Developmen
   <div class="headertitle"><div class="title">E4 - Emulator Development Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md478"></a> <b>Last Updated</b>: October 7, 2025 <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md542"></a> <b>Last Updated</b>: October 7, 2025 <br  />
  <b>Status</b>: 🎉 <b>PRODUCTION READY</b> 🎉</p>
 <p>This document provides a comprehensive overview of the YAZE SNES emulator subsystem, consolidating all development notes, bug fixes, architectural decisions, and usage guides. It serves as the single source of truth for understanding and developing the emulator.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md480"></a>
+<h1><a class="anchor" id="autotoc_md544"></a>
 Table of Contents</h1>
 <ul>
 <li>Current Status</li>
@@ -123,12 +123,12 @@ Table of Contents</h1>
 <li>Build Instructions</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md482"></a>
+<h1><a class="anchor" id="autotoc_md546"></a>
 1. Current Status</h1>
-<h2><a class="anchor" id="autotoc_md483"></a>
+<h2><a class="anchor" id="autotoc_md547"></a>
 🎉 Major Breakthrough: Game is Running!</h2>
 <p>The YAZE SNES emulator has achieved a <b>MAJOR BREAKTHROUGH</b>! After solving a critical PC advancement bug in the SPC700 multi-step instruction handling, "The Legend of Zelda: A Link to the Past" is <b>NOW RUNNING</b>!</p>
-<h2><a class="anchor" id="autotoc_md484"></a>
+<h2><a class="anchor" id="autotoc_md548"></a>
 ✅ Confirmed Working</h2>
 <p><b>Core Emulation</b>:</p><ul>
 <li>✅ <b>Accurate SNES CPU (65816)</b> - Full instruction set</li>
@@ -170,7 +170,7 @@ Table of Contents</h1>
 <li>✅ <b>Linux</b></li>
 <li>✅ <b>vcpkg Integration</b></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md485"></a>
+<h2><a class="anchor" id="autotoc_md549"></a>
 🔧 Known Issues (Non-Critical)</h2>
 <ul>
 <li>⚠️ Transfer termination: Currently overshoots expected byte count (244 vs 112 bytes)</li>
@@ -181,9 +181,9 @@ Table of Contents</h1>
 </ul>
 <p>These remaining issues are <b>straightforward to fix</b> compared to the timing/instruction bugs that have been resolved. The core emulation is solid and production-ready!</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md487"></a>
+<h1><a class="anchor" id="autotoc_md551"></a>
 2. How to Use the Emulator</h1>
-<h2><a class="anchor" id="autotoc_md488"></a>
+<h2><a class="anchor" id="autotoc_md552"></a>
 Method 1: Main Yaze Application (GUI)</h2>
 <ol type="1">
 <li><b>Build YAZE</b>: <div class="fragment"><div class="line">cmake --build build --target yaze -j12</div>
@@ -197,7 +197,7 @@ Method 1: Main Yaze Application (GUI)</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md489"></a>
+<h2><a class="anchor" id="autotoc_md553"></a>
 Method 2: Standalone Emulator (&lt;tt&gt;yaze_emu&lt;/tt&gt;)</h2>
 <p>For headless testing and debugging:</p>
 <div class="fragment"><div class="line"># Run for a specific number of frames</div>
@@ -208,7 +208,7 @@ Method 2: Standalone Emulator (&lt;tt&gt;yaze_emu&lt;/tt&gt;)</h2>
 <div class="line"> </div>
 <div class="line"># Enable APU and CPU debug logging</div>
 <div class="line">./build/bin/yaze_emu.app/Contents/MacOS/yaze_emu --emu_debug_apu=true --emu_debug_cpu=true</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md490"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md554"></a>
 Method 3: Dungeon Object Emulator Preview</h2>
 <p>Research tool for understanding dungeon object drawing patterns:</p>
 <ol type="1">
@@ -224,9 +224,9 @@ Method 3: Dungeon Object Emulator Preview</h2>
 <li>Observe result in preview texture</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md492"></a>
+<h1><a class="anchor" id="autotoc_md556"></a>
 3. Architecture</h1>
-<h2><a class="anchor" id="autotoc_md493"></a>
+<h2><a class="anchor" id="autotoc_md557"></a>
 Memory System</h2>
 <p>The emulator's memory architecture was consolidated to resolve critical bugs and improve clarity.</p>
 <ul>
@@ -235,7 +235,7 @@ Memory System</h2>
 <li>**<code>memory_</code>**: A 16MB flat address space used <em>only</em> by the editor interface for direct memory inspection, not by the emulator core during execution.</li>
 </ul>
 <p>This separation fixed a critical bug where the editor and emulator were reading from different, inconsistent memory sources.</p>
-<h3><a class="anchor" id="autotoc_md494"></a>
+<h3><a class="anchor" id="autotoc_md558"></a>
 SNES Memory Map</h3>
 <div class="fragment"><div class="line">Banks   Range         Purpose</div>
 <div class="line">------  ------------  ---------------------------------</div>
@@ -248,7 +248,7 @@ SNES Memory Map</h3>
 <div class="line">00-3F   8000-FFFF     ROM banks (LoROM mapping)</div>
 <div class="line">7E      0000-FFFF     Work RAM (64KB)</div>
 <div class="line">7F      0000-FFFF     Extended Work RAM (64KB)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md495"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md559"></a>
 CPU-APU-SPC700 Interaction</h2>
 <p>The SNES audio subsystem is complex and requires precise timing:</p>
 <ol type="1">
@@ -258,7 +258,7 @@ CPU-APU-SPC700 Interaction</h2>
 <li><b>Data Transfer</b>: The CPU uploads the audio driver and data to the SPC700's RAM in blocks. This involves a counter-based acknowledgment protocol.</li>
 <li><b>Execution</b>: Once the audio driver is uploaded, the SPC700 jumps to the new code and begins handling audio processing independently.</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md496"></a>
+<h2><a class="anchor" id="autotoc_md560"></a>
 Component Architecture</h2>
 <div class="fragment"><div class="line">SNES System</div>
 <div class="line">├── CPU (65816)</div>
@@ -282,10 +282,10 @@ Component Architecture</h2>
 <div class="line">└── Input</div>
 <div class="line">    └── Controller ports</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md498"></a>
+<h1><a class="anchor" id="autotoc_md562"></a>
 4. The Debugging Journey: Critical Fixes</h1>
 <p>The path to a functional emulator involved fixing a cascade of <b>10 critical, interconnected bugs</b>. The final breakthrough came from discovering that multi-step instructions were advancing the program counter incorrectly, causing instructions to be skipped entirely.</p>
-<h2><a class="anchor" id="autotoc_md499"></a>
+<h2><a class="anchor" id="autotoc_md563"></a>
 SPC700 &amp; APU Fixes</h2>
 <ol type="1">
 <li><b>APU Cycle Synchronization</b>: The APU was not advancing its cycles in sync with the master clock, causing an immediate deadlock.<ul>
@@ -334,7 +334,7 @@ SPC700 &amp; APU Fixes</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md500"></a>
+<h2><a class="anchor" id="autotoc_md564"></a>
 The Critical Pattern for Multi-Step Instructions</h2>
 <p><b>ALL multi-step instructions with addressing modes MUST follow this pattern:</b></p>
 <div class="fragment"><div class="line"><span class="keywordflow">case</span> 0xXX: {  <span class="comment">// instruction with addressing mode</span></div>
@@ -346,9 +346,9 @@ The Critical Pattern for Multi-Step Instructions</h2>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Why</b>: Addressing mode functions call <code>ReadOpcode()</code> which increments PC. Calling them multiple times causes PC to advance incorrectly, skipping instructions!</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md502"></a>
+<h1><a class="anchor" id="autotoc_md566"></a>
 5. Display &amp; Performance Improvements</h1>
-<h2><a class="anchor" id="autotoc_md503"></a>
+<h2><a class="anchor" id="autotoc_md567"></a>
 PPU Color Display Fix</h2>
 <p><b>Problem</b>: Colors appeared tinted green and red due to incorrect channel ordering.</p>
 <p><b>Solution</b>: Fixed pixel buffer writing in <code><a class="el" href="../../dc/db3/ppu_8cc.html">src/app/emu/video/ppu.cc</a></code>:</p>
@@ -366,7 +366,7 @@ PPU Color Display Fix</h2>
 <div class="line">pixels[offset + 2] = r;</div>
 <div class="line">pixels[offset + 3] = 0xFF;  <span class="comment">// Alpha</span></div>
 </div><!-- fragment --><p><b>Files Modified</b>: <code><a class="el" href="../../dc/db3/ppu_8cc.html">src/app/emu/video/ppu.cc</a></code> (lines 209-232)</p>
-<h2><a class="anchor" id="autotoc_md504"></a>
+<h2><a class="anchor" id="autotoc_md568"></a>
 Frame Timing &amp; Speed Control</h2>
 <p><b>Problem</b>: Game could run too fast or too slow with potential timing spiral of death.</p>
 <p><b>Solution</b>: Enhanced timing system with double precision and frame capping:</p>
@@ -389,9 +389,9 @@ Frame Timing &amp; Speed Control</h2>
 <li><code><a class="el" href="../../db/dc0/emulator_8h.html">src/app/emu/emulator.h</a></code> - Changed timing types</li>
 <li><code><a class="el" href="../../d3/d87/emulator_8cc.html">src/app/emu/emulator.cc</a></code> - Enhanced timing loop</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md505"></a>
+<h2><a class="anchor" id="autotoc_md569"></a>
 Performance Optimizations</h2>
-<h3><a class="anchor" id="autotoc_md506"></a>
+<h3><a class="anchor" id="autotoc_md570"></a>
 Frame Skipping</h3>
 <ul>
 <li>Process up to 4 frames per iteration</li>
@@ -399,7 +399,7 @@ Frame Skipping</h3>
 <li>Texture updates only on rendered frames</li>
 <li>Prevents spiral of death when CPU can't keep up</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md507"></a>
+<h3><a class="anchor" id="autotoc_md571"></a>
 Audio Buffer Management</h3>
 <div class="fragment"><div class="line"><span class="comment">// Target buffer: 2 frames (low latency)</span></div>
 <div class="line"><span class="comment">// Maximum buffer: 6 frames (prevents overflow)</span></div>
@@ -411,7 +411,7 @@ Audio Buffer Management</h3>
 <div class="line">  SDL_ClearQueuedAudio();  <span class="comment">// Buffer full, clear and requeue</span></div>
 <div class="line">  QueueAudio();</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md508"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md572"></a>
 Performance Gains</h3>
 <ul>
 <li>30-50% reduction in texture locking overhead</li>
@@ -420,7 +420,7 @@ Performance Gains</h3>
 <li>More stable FPS</li>
 </ul>
 <p><b>Files Modified</b>: <code><a class="el" href="../../d3/d87/emulator_8cc.html">src/app/emu/emulator.cc</a></code> (lines 85-159)</p>
-<h2><a class="anchor" id="autotoc_md509"></a>
+<h2><a class="anchor" id="autotoc_md573"></a>
 ROM Loading Improvements</h2>
 <p><b>Problem</b>: ROM loading could crash with corrupted files or ROM hacks.</p>
 <p><b>Solution</b>: Comprehensive error handling with validation:</p>
@@ -454,13 +454,13 @@ ROM Loading Improvements</h2>
 <li>Graceful failure instead of segfaults</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md511"></a>
+<h1><a class="anchor" id="autotoc_md575"></a>
 6. Advanced Features</h1>
-<h2><a class="anchor" id="autotoc_md512"></a>
+<h2><a class="anchor" id="autotoc_md576"></a>
 Professional Disassembly Viewer</h2>
 <p><b>Problem</b>: Old linear vector log was slow, not interactive, and memory inefficient.</p>
 <p><b>Solution</b>: Modern disassembly viewer with advanced features.</p>
-<h3><a class="anchor" id="autotoc_md513"></a>
+<h3><a class="anchor" id="autotoc_md577"></a>
 Architecture</h3>
 <div class="fragment"><div class="line"><span class="keyword">class </span>DisassemblyViewer {</div>
 <div class="line">  <span class="comment">// Sparse address-based storage</span></div>
@@ -478,7 +478,7 @@ Architecture</h3>
 <div class="line">  uint32_t execution_count;</div>
 <div class="line">  <span class="keywordtype">bool</span> is_breakpoint;</div>
 <div class="line">};</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md514"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md578"></a>
 Visual Features</h3>
 <ul>
 <li><b>Color-coded by instruction type</b>:<ul>
@@ -493,7 +493,7 @@ Visual Features</h3>
 <li><b>Hot path highlighting</b> (execution count-based)</li>
 <li><b>Material Design icons</b> (ICON_MD_*)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md515"></a>
+<h3><a class="anchor" id="autotoc_md579"></a>
 Interactive Elements</h3>
 <ul>
 <li>Clickable addresses, opcodes, and operands</li>
@@ -505,7 +505,7 @@ Interactive Elements</h3>
 </ul>
 </li>
 </ul>
-<h3><a class="anchor" id="autotoc_md516"></a>
+<h3><a class="anchor" id="autotoc_md580"></a>
 UI Features</h3>
 <ul>
 <li>Search/filter capabilities</li>
@@ -514,7 +514,7 @@ UI Features</h3>
 <li>Export to assembly file</li>
 <li>Addresses shown as $BB:OOOO (bank:offset)</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md517"></a>
+<h3><a class="anchor" id="autotoc_md581"></a>
 Performance</h3>
 <ul>
 <li><b>Sparse storage</b> (only executed code)</li>
@@ -537,7 +537,7 @@ Performance</h3>
 <li><code><a class="el" href="../../d0/d97/cpu_8cc.html">src/app/emu/cpu/cpu.cc</a></code> - Record instructions</li>
 <li><code><a class="el" href="../../d3/d87/emulator_8cc.html">src/app/emu/emulator.cc</a></code> - Integrated viewer UI</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md518"></a>
+<h2><a class="anchor" id="autotoc_md582"></a>
 Breakpoint System</h2>
 <p><b>Features</b>:</p><ul>
 <li>Click to toggle breakpoints</li>
@@ -551,7 +551,7 @@ Breakpoint System</h2>
 <div class="line">    cpu.ToggleBreakpoint(address);</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md519"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md583"></a>
 UI/UX Enhancements</h2>
 <p><b>Real-time Monitoring</b>: </p><div class="fragment"><div class="line">ImGui::Text(<span class="stringliteral">&quot;FPS: %.1f&quot;</span>, current_fps_);</div>
 <div class="line">ImGui::Text(<span class="stringliteral">&quot;| Audio: %u frames&quot;</span>, audio_frames);</div>
@@ -567,9 +567,9 @@ UI/UX Enhancements</h2>
 <li>Material Design icons throughout</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md521"></a>
+<h1><a class="anchor" id="autotoc_md585"></a>
 7. Emulator Preview Tool</h1>
-<h2><a class="anchor" id="autotoc_md522"></a>
+<h2><a class="anchor" id="autotoc_md586"></a>
 Purpose</h2>
 <p>The <b>Dungeon Object Emulator Preview</b> is a research and development tool for understanding dungeon object drawing patterns.</p>
 <p><b>Use Cases</b>:</p><ol type="1">
@@ -579,9 +579,9 @@ Purpose</h2>
 <li>Validate custom renderers against authoritative game code</li>
 </ol>
 <p><b>Important</b>: This is NOT the primary rendering system - it's a tool to help understand and replicate the game's behavior.</p>
-<h2><a class="anchor" id="autotoc_md523"></a>
+<h2><a class="anchor" id="autotoc_md587"></a>
 Critical Fixes Applied</h2>
-<h3><a class="anchor" id="autotoc_md524"></a>
+<h3><a class="anchor" id="autotoc_md588"></a>
 1. Memory Access Fix (SIGSEGV Crash)</h3>
 <p><b>Problem</b>: <code>WriteByte()</code> caused segmentation fault when writing to WRAM.</p>
 <p><b>Solution</b>: Use <code>Snes::Write()</code> instead of <code>Memory::WriteByte()</code>:</p>
@@ -596,7 +596,7 @@ Critical Fixes Applied</h2>
 <li>PPU register writes (0x2100-0x21FF range)</li>
 <li>Proper bounds checking</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md525"></a>
+<h3><a class="anchor" id="autotoc_md589"></a>
 2. RTL vs RTS Fix (Timeout)</h3>
 <p><b>Problem</b>: Emulator executed 100,000 cycles and never returned.</p>
 <p><b>Cause</b>: Using RTS (0x60) instead of RTL (0x6B).</p>
@@ -616,7 +616,7 @@ Critical Fixes Applied</h2>
 <li><b>RTL (0x6B)</b>: Pops 3 bytes (bank + address), used with JSL</li>
 <li>Bank $01 dungeon routines use JSL/RTL for cross-bank calls</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md526"></a>
+<h3><a class="anchor" id="autotoc_md590"></a>
 3. Palette Validation</h3>
 <p><b>Problem</b>: <code>Index out of bounds</code> when room palette ID exceeded available palettes.</p>
 <p><b>Solution</b>: </p><div class="fragment"><div class="line"><span class="comment">// Validate and clamp palette ID</span></div>
@@ -625,7 +625,7 @@ Critical Fixes Applied</h2>
 <div class="line">  printf(<span class="stringliteral">&quot;[EMU] Warning: Room palette %d out of bounds, using palette 0\n&quot;</span>, palette_id);</div>
 <div class="line">  palette_id = 0;</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md527"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md591"></a>
 4. PPU Configuration</h3>
 <p><b>Problem</b>: Wrong tilemap addresses prevented rendering.</p>
 <p><b>Solution</b>: Corrected PPU register values: </p><div class="fragment"><div class="line">snes_instance_-&gt;Write(0x002105, 0x09);  <span class="comment">// BG Mode 1</span></div>
@@ -634,7 +634,7 @@ Critical Fixes Applied</h2>
 <div class="line">snes_instance_-&gt;Write(0x002109, 0x00);  <span class="comment">// BG1 chr at $0000</span></div>
 <div class="line">snes_instance_-&gt;Write(0x00210A, 0x00);  <span class="comment">// BG2 chr at $0000</span></div>
 <div class="line">snes_instance_-&gt;Write(0x002100, 0x0F);  <span class="comment">// Screen ON, full brightness</span></div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md528"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md592"></a>
 How to Use</h2>
 <ol type="1">
 <li>Open Dungeon Editor in yaze</li>
@@ -648,7 +648,7 @@ How to Use</h2>
 <li>Click "Render Object"</li>
 <li>Observe result in preview texture</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md529"></a>
+<h2><a class="anchor" id="autotoc_md593"></a>
 What You'll Learn</h2>
 <p>By testing different objects:</p><ul>
 <li><b>Drawing patterns</b>: Rightward? Downward? Diagonal?</li>
@@ -656,7 +656,7 @@ What You'll Learn</h2>
 <li><b>Layer usage</b>: BG1, BG2, or both?</li>
 <li><b>Special behaviors</b>: Animation, conditional rendering</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md530"></a>
+<h2><a class="anchor" id="autotoc_md594"></a>
 Reverse Engineering Workflow</h2>
 <p><b>Step 1: Document Patterns</b> </p><div class="fragment"><div class="line"><span class="comment">// Observations:</span></div>
 <div class="line"><span class="comment">// Object 0x00: Draws 2x2 tiles rightward for (size+1) times</span></div>
@@ -674,7 +674,7 @@ Reverse Engineering Workflow</h2>
 <div class="line"><span class="keywordflow">if</span> (!BitmapsMatch(emu_result, fast_result)) {</div>
 <div class="line">  printf(<span class="stringliteral">&quot;Mismatch! Fix needed\n&quot;</span>);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md531"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md595"></a>
 UI Enhancements</h2>
 <p><b>Status Indicators</b>: </p><div class="fragment"><div class="line"><span class="comment">// ROM status (green checkmark when loaded)</span></div>
 <div class="line"><span class="keywordflow">if</span> (rom_ &amp;&amp; rom_-&gt;is_loaded()) {</div>
@@ -699,7 +699,7 @@ UI Enhancements</h2>
  ✓ Returned in &lt; 1000 cycles (not timeout) <br  />
  ✓ PC reached return address</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md533"></a>
+<h1><a class="anchor" id="autotoc_md597"></a>
 8. Logging System</h1>
 <p>A structured logging system (<code><a class="el" href="../../d7/d7f/log_8h.html">util/log.h</a></code>) was integrated to replace all <code>printf</code> statements.</p>
 <ul>
@@ -707,7 +707,7 @@ UI Enhancements</h2>
 <li><b>Levels</b>: <code>DEBUG</code>, <code>INFO</code>, <code>WARN</code>, <code>ERROR</code></li>
 <li><b>Usage</b>: <code>LOG_INFO("APU", "Reset complete");</code></li>
 </ul>
-<h2><a class="anchor" id="autotoc_md534"></a>
+<h2><a class="anchor" id="autotoc_md598"></a>
 How to Enable</h2>
 <div class="fragment"><div class="line"># Run with debug logging for specific categories</div>
 <div class="line">./build/bin/yaze --log-level=DEBUG --log-categories=APU,SNES</div>
@@ -718,10 +718,10 @@ How to Enable</h2>
 <div class="line"># Standalone emulator with debugging</div>
 <div class="line">./build/bin/yaze_emu --emu_debug_apu=true --emu_debug_cpu=true</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md536"></a>
+<h1><a class="anchor" id="autotoc_md600"></a>
 9. Testing</h1>
 <p>The emulator subsystem has a comprehensive suite of tests.</p>
-<h2><a class="anchor" id="autotoc_md537"></a>
+<h2><a class="anchor" id="autotoc_md601"></a>
 Unit Tests</h2>
 <p>Located in <code>test/unit/emu/</code>, these verify specific components:</p><ul>
 <li>APU handshake (<code><a class="el" href="../../d4/dbb/apu__ipl__handshake__test_8cc.html">apu_ipl_handshake_test.cc</a></code>)</li>
@@ -729,10 +729,10 @@ Unit Tests</h2>
 <li>Memory operations</li>
 <li>CPU execution</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md538"></a>
+<h2><a class="anchor" id="autotoc_md602"></a>
 Standalone Emulator</h2>
 <p><code>yaze_emu</code> provides a headless way to run the emulator for a fixed number of frames, perfect for regression testing.</p>
-<h2><a class="anchor" id="autotoc_md539"></a>
+<h2><a class="anchor" id="autotoc_md603"></a>
 Running Tests</h2>
 <div class="fragment"><div class="line"># Build the test runner</div>
 <div class="line">cmake --build build --target yaze_test</div>
@@ -742,7 +742,7 @@ Running Tests</h2>
 <div class="line"> </div>
 <div class="line"># Run specific test</div>
 <div class="line">./build/bin/yaze_test --gtest_filter=&quot;AapuTest.IplHandshake&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md540"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md604"></a>
 Testing Checklist</h2>
 <p><b>Basic Functionality</b>:</p><ul>
 <li>[ ] ROM loads without errors</li>
@@ -773,9 +773,9 @@ Testing Checklist</h2>
 <li>[ ] All features work on each platform</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md542"></a>
+<h1><a class="anchor" id="autotoc_md606"></a>
 10. Technical Reference</h1>
-<h2><a class="anchor" id="autotoc_md543"></a>
+<h2><a class="anchor" id="autotoc_md607"></a>
 PPU Registers</h2>
 <div class="fragment"><div class="line">$2105 - BGMODE    - BG Mode (0x09 = Mode 1, 4bpp BG1/2)</div>
 <div class="line">$2107 - BG1SC     - BG1 Tilemap addr/size (0x40 = $4000, 32x32)</div>
@@ -784,7 +784,7 @@ PPU Registers</h2>
 <div class="line">$210A - BG34NBA   - BG2 character data address</div>
 <div class="line">$212C - TM        - Main screen designation (0x03 = BG1+BG2)</div>
 <div class="line">$2100 - INIDISP   - Screen display (0x0F = on, max brightness)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md544"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md608"></a>
 CPU Instructions</h2>
 <p><b>RTS vs RTL</b>:</p>
 <ol type="1">
@@ -808,7 +808,7 @@ CPU Instructions</h2>
 <div class="line">SP → [points here]</div>
 <div class="line"> </div>
 <div class="line">RTL pops all 3 bytes and increments PC by 1</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md545"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md609"></a>
 Color Format</h2>
 <p><b>SNES BGR555</b>: </p><div class="fragment"><div class="line">Bits: 0BBB BBGG GGGR RRRR</div>
 <div class="line">       ││││ ││││ ││││ ││││</div>
@@ -821,7 +821,7 @@ Color Format</h2>
 </div><!-- fragment --><p><b>Conversion to RGB</b>: </p><div class="fragment"><div class="line">uint8_t r_rgb = (snes &amp; 0x1F) * 255 / 31;  <span class="comment">// 0-31 → 0-255</span></div>
 <div class="line">uint8_t g_rgb = ((snes &gt;&gt; 5) &amp; 0x1F) * 255 / 31;</div>
 <div class="line">uint8_t b_rgb = ((snes &gt;&gt; 10) &amp; 0x1F) * 255 / 31;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md546"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md610"></a>
 Performance Metrics</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -840,9 +840,9 @@ Performance Metrics</h2>
 <td class="markdownTableBodyNone"><b>Game Boot</b>   </td><td class="markdownTableBodyNone">❌ Failed   </td><td class="markdownTableBodyNone">✅ ALTTP Running   </td></tr>
 </table>
 <hr  />
-<h1><a class="anchor" id="autotoc_md548"></a>
+<h1><a class="anchor" id="autotoc_md612"></a>
 11. Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md549"></a>
+<h2><a class="anchor" id="autotoc_md613"></a>
 Emulator Preview Issues</h2>
 <p><b>Objects don't render</b>:</p><ol type="1">
 <li>Check object_id is valid (use F1 guide tables)</li>
@@ -866,7 +866,7 @@ Emulator Preview Issues</h2>
 <li>Clamp to available palettes (0-19)</li>
 <li>Check palette loading code</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md550"></a>
+<h2><a class="anchor" id="autotoc_md614"></a>
 Color Display Issues</h2>
 <p><b>Green/red tint</b>:</p><ul>
 <li>Verify pixel format: <code>SDL_PIXELFORMAT_RGBX8888</code></li>
@@ -878,7 +878,7 @@ Color Display Issues</h2>
 <li>Verify forced blank is disabled</li>
 <li>Check PPU register $2100: should be 0x0F</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md551"></a>
+<h2><a class="anchor" id="autotoc_md615"></a>
 Performance Issues</h2>
 <p><b>Low FPS</b>:</p><ul>
 <li>Enable frame skipping</li>
@@ -891,7 +891,7 @@ Performance Issues</h2>
 <li>Check sample rate (48000 Hz)</li>
 <li>Verify SDL audio device is unpaused</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md552"></a>
+<h2><a class="anchor" id="autotoc_md616"></a>
 Build Issues</h2>
 <p><b>Windows</b>: </p><div class="fragment"><div class="line"># Ensure MSVC toolchain is configured</div>
 <div class="line">cmake --preset win-dbg</div>
@@ -903,12 +903,12 @@ Build Issues</h2>
 <div class="line">cmake --preset lin-dbg</div>
 <div class="line">cmake --build build --target yaze -j12</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md554"></a>
+<h1><a class="anchor" id="autotoc_md618"></a>
 11.5 Audio System Architecture (October 2025)</h1>
-<h2><a class="anchor" id="autotoc_md555"></a>
+<h2><a class="anchor" id="autotoc_md619"></a>
 Overview</h2>
 <p>The emulator now features a <b>production-quality audio abstraction layer</b> that decouples the audio implementation from the emulation core. This architecture enables easy migration between SDL2, SDL3, and custom platform-native backends.</p>
-<h2><a class="anchor" id="autotoc_md556"></a>
+<h2><a class="anchor" id="autotoc_md620"></a>
 Audio Backend Abstraction</h2>
 <p><b>Architecture:</b> </p><div class="fragment"><div class="line">┌─────────────────────────────────────┐</div>
 <div class="line">│    Emulator / Music Editor          │</div>
@@ -962,7 +962,7 @@ Audio Backend Abstraction</h2>
 <div class="line">  }</div>
 <div class="line">  audio_backend_-&gt;QueueSamples(audio_buffer_, wanted_samples_ * 2);</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md557"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md621"></a>
 APU Handshake Debugging System</h2>
 <p>The <b>ApuHandshakeTracker</b> provides comprehensive monitoring of CPU-SPC700 communication during the IPL ROM boot sequence.</p>
 <p><b>Features:</b></p><ul>
@@ -1007,7 +1007,7 @@ APU Handshake Debugging System</h2>
 <div class="line">    handshake_tracker_-&gt;OnSpcPortWrite(adr - 0xF4, val, spc700_.PC);</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md558"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md622"></a>
 IPL ROM Handshake Protocol</h2>
 <p>The SNES audio system uses a carefully orchestrated handshake between CPU and SPC700:</p>
 <p><b>Phase 1: IPL ROM Boot (SPC700 Side)</b></p><ol type="1">
@@ -1039,7 +1039,7 @@ IPL ROM Handshake Protocol</h2>
 <li>Check reset vector points to bank $00</li>
 </ul>
 <p><b>Force Handshake Testing:</b> Use "Force Handshake ($CC)" button in APU Debugger to manually test SPC response without CPU code.</p>
-<h2><a class="anchor" id="autotoc_md559"></a>
+<h2><a class="anchor" id="autotoc_md623"></a>
 Music Editor Integration</h2>
 <p>The music editor is now integrated with the audio backend for live music playback.</p>
 <p><b>Features:</b> </p><div class="fragment"><div class="line"><span class="keyword">class </span>MusicEditor {</div>
@@ -1072,7 +1072,7 @@ Music Editor Integration</h2>
 <li>DSP outputs samples to audio backend</li>
 <li>User hears music through system audio</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md560"></a>
+<h2><a class="anchor" id="autotoc_md624"></a>
 Audio Testing &amp; Diagnostics</h2>
 <p><b>Quick Test:</b> </p><div class="fragment"><div class="line">./build/bin/yaze.app/Contents/MacOS/yaze \</div>
 <div class="line">  --log-level=DEBUG \</div>
@@ -1098,7 +1098,7 @@ Audio Testing &amp; Diagnostics</h2>
 <li>Audio samples are non-zero</li>
 <li>Music plays from speakers</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md561"></a>
+<h2><a class="anchor" id="autotoc_md625"></a>
 Future Enhancements</h2>
 <ol type="1">
 <li><b>SDL3 Backend</b> - When SDL3 is stable, add <code>SDL3AudioBackend</code> implementation</li>
@@ -1114,9 +1114,9 @@ Future Enhancements</h2>
 <li><b>Spectrum Analyzer</b> - Visualize audio frequencies in real-time</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md563"></a>
+<h1><a class="anchor" id="autotoc_md627"></a>
 12. Next Steps &amp; Roadmap</h1>
-<h2><a class="anchor" id="autotoc_md564"></a>
+<h2><a class="anchor" id="autotoc_md628"></a>
 🎯 Immediate Priorities (Critical Path to Full Functionality)</h2>
 <ol type="1">
 <li><b>Fix Transfer Termination Logic</b> ⚠️ MEDIUM PRIORITY<ul>
@@ -1134,7 +1134,7 @@ Future Enhancements</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md565"></a>
+<h2><a class="anchor" id="autotoc_md629"></a>
 🚀 Enhancement Priorities (After Core is Stable)</h2>
 <ol type="1">
 <li><b>Modern UI Architecture</b><ul>
@@ -1222,7 +1222,7 @@ Future Enhancements</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md566"></a>
+<h2><a class="anchor" id="autotoc_md630"></a>
 📝 Technical Debt</h2>
 <ul>
 <li>Fix pre-existing bug in SBCM (line 117 in <code>instructions.cc</code> - both sides of operator are equivalent)</li>
@@ -1230,7 +1230,7 @@ Future Enhancements</h2>
 <li>Refactor bstep state machine for clarity</li>
 <li>Add unit tests for all SPC700 addressing modes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md567"></a>
+<h2><a class="anchor" id="autotoc_md631"></a>
 Long-Term Enhancements</h2>
 <ul>
 <li><b>JIT Compilation</b>: Implement a JIT compiler for CPU instructions to improve performance</li>
@@ -1240,14 +1240,14 @@ Long-Term Enhancements</h2>
 <li><b>Cycle-Perfect Accuracy</b>: Fine-tune timing to match hardware cycle-for-cycle</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md569"></a>
+<h1><a class="anchor" id="autotoc_md633"></a>
 13. Build Instructions</h1>
-<h2><a class="anchor" id="autotoc_md570"></a>
+<h2><a class="anchor" id="autotoc_md634"></a>
 Quick Build</h2>
 <div class="fragment"><div class="line">cd /Users/scawful/Code/yaze</div>
 <div class="line">cmake --build build_ai --target yaze -j12</div>
 <div class="line">./build_ai/bin/yaze.app/Contents/MacOS/yaze</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md571"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md635"></a>
 Platform-Specific</h2>
 <p><b>macOS</b>: </p><div class="fragment"><div class="line">cmake --preset mac-dbg</div>
 <div class="line">cmake --build build --target yaze -j12</div>
@@ -1258,7 +1258,7 @@ Platform-Specific</h2>
 </div><!-- fragment --><p><b>Linux</b>: </p><div class="fragment"><div class="line">cmake --preset lin-dbg</div>
 <div class="line">cmake --build build --target yaze -j12</div>
 <div class="line">./build/bin/yaze</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md572"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md636"></a>
 Build Optimizations</h2>
 <ul>
 <li>Use <code>-DYAZE_UNITY_BUILD=ON</code> for faster compilation</li>
@@ -1267,9 +1267,9 @@ Build Optimizations</h2>
 <li>Parallel builds: <code>-j12</code> (or number of CPU cores)</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md574"></a>
+<h1><a class="anchor" id="autotoc_md638"></a>
 File Reference</h1>
-<h2><a class="anchor" id="autotoc_md575"></a>
+<h2><a class="anchor" id="autotoc_md639"></a>
 Core Emulation</h2>
 <ul>
 <li><code>src/app/emu/snes.{h,cc}</code> - Main SNES system</li>
@@ -1279,34 +1279,34 @@ Core Emulation</h2>
 <li><code>src/app/emu/audio/spc700.{h,cc}</code> - SPC700 CPU</li>
 <li><code>src/app/emu/audio/dsp.{h,cc}</code> - Audio DSP</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md576"></a>
+<h2><a class="anchor" id="autotoc_md640"></a>
 Debugging</h2>
 <ul>
 <li><code>src/app/emu/debug/disassembly_viewer.{h,cc}</code> - Disassembly UI</li>
 <li><code>src/app/emu/memory/memory.{h,cc}</code> - Memory system</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md577"></a>
+<h2><a class="anchor" id="autotoc_md641"></a>
 UI</h2>
 <ul>
 <li><code>src/app/emu/emulator.{h,cc}</code> - Main emulator UI</li>
 <li><code>src/app/gui/widgets/dungeon_object_emulator_preview.{h,cc}</code> - Object preview</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md578"></a>
+<h2><a class="anchor" id="autotoc_md642"></a>
 Core</h2>
 <ul>
 <li><code><a class="el" href="../../d4/d79/app_2rom_8cc.html">src/app/rom.cc</a></code> - ROM loading</li>
 <li><code><a class="el" href="../../d7/d60/window_8cc.html">src/app/core/window.cc</a></code> - SDL window/audio setup</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md579"></a>
+<h2><a class="anchor" id="autotoc_md643"></a>
 Testing</h2>
 <ul>
 <li><code><a class="el" href="../../d4/dbb/apu__ipl__handshake__test_8cc.html">test/unit/emu/apu_ipl_handshake_test.cc</a></code> - APU tests</li>
 <li><code>tools/emu.cc</code> - Standalone emulator</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md581"></a>
+<h1><a class="anchor" id="autotoc_md645"></a>
 Status Summary</h1>
-<h2><a class="anchor" id="autotoc_md582"></a>
+<h2><a class="anchor" id="autotoc_md646"></a>
 ✅ Production Ready</h2>
 <p>The emulator is now ready for:</p><ul>
 <li>✅ ROM hacking and testing</li>

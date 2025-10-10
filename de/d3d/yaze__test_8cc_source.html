@@ -156,329 +156,354 @@ $(document).ready(function(){initNavTree('de/d3d/yaze__test_8cc_source.html','..
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno"><a class="line" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac629679d808c904c1b3b4ec14cef1935">   50</a></span>  <span class="keywordtype">bool</span> <a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac629679d808c904c1b3b4ec14cef1935">skip_rom_tests</a> = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno"><a class="line" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a9dea4e9d815f88f0398b634b0f6b2e4e">   51</a></span>  <span class="keywordtype">bool</span> <a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a9dea4e9d815f88f0398b634b0f6b2e4e">enable_ui_tests</a> = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno"><a class="line" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#af2513a605358446526779b3249c54229">   52</a></span>  <span class="keywordtype">bool</span> <a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#af2513a605358446526779b3249c54229">show_gui</a> = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>};</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno"><a class="line" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac72c74b4414a53f2ee0c11407954cf0e">   53</a></span>  ImGuiTestRunSpeed <a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac72c74b4414a53f2ee0c11407954cf0e">test_speed</a> = ImGuiTestRunSpeed_Fast;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>};</div>
 </div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="comment">// Parse command line arguments for better AI agent testing support</span></div>
-<div class="foldopen" id="foldopen00056" data-start="{" data-end="}">
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno"><a class="line" href="../../d4/d0a/namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951">   56</a></span><a class="code hl_struct" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html">TestConfig</a> <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951">ParseArguments</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>* argv[]) {</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  <a class="code hl_struct" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html">TestConfig</a> config;</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  </div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 1; i &lt; argc; i++) {</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>    std::string arg = argv[i];</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    </div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--help&quot;</span> || arg == <span class="stringliteral">&quot;-h&quot;</span>) {</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;YAZE Test Runner - Enhanced for AI Agent Testing\n\n&quot;</span>;</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;Usage: yaze_test [options] [test_pattern]\n\n&quot;</span>;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;Test Modes:\n&quot;</span>;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --unit              Run unit tests only\n&quot;</span>;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --integration       Run integration tests only\n&quot;</span>;</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --e2e               Run end-to-end tests only\n&quot;</span>;</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --rom-dependent     Run ROM-dependent tests only\n&quot;</span>;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --zscustomoverworld Run ZSCustomOverworld tests only\n&quot;</span>;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --core              Run core functionality tests\n&quot;</span>;</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --graphics          Run graphics tests\n&quot;</span>;</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --editor            Run editor tests\n&quot;</span>;</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --deprecated        Run deprecated tests\n\n&quot;</span>;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;Options:\n&quot;</span>;</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --rom-path PATH     Specify ROM path for testing\n&quot;</span>;</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --skip-rom-tests    Skip tests requiring ROM files\n&quot;</span>;</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --enable-ui-tests   Enable UI tests (requires display)\n&quot;</span>;</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --verbose           Enable verbose output\n&quot;</span>;</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --help              Show this help message\n\n&quot;</span>;</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;Examples:\n&quot;</span>;</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  yaze_test --unit --verbose\n&quot;</span>;</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  yaze_test --e2e --rom-path my_rom.sfc\n&quot;</span>;</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  yaze_test --zscustomoverworld --verbose\n&quot;</span>;</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  yaze_test RomTest.*\n&quot;</span>;</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>      exit(0);</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--unit&quot;</span>) {</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a4383f9f429063405fc69bdc8ff4b7ee8">TestMode::kUnit</a>;</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--integration&quot;</span>) {</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a5fd47ec26e3287ea852c40bdb687b01d">TestMode::kIntegration</a>;</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--e2e&quot;</span>) {</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3613c598b00bb1746fa91f6365c4653a">TestMode::kE2E</a>;</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--rom-dependent&quot;</span>) {</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ac2df65ec0e2a97c5419517b7e4ef2717">TestMode::kRomDependent</a>;</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--zscustomoverworld&quot;</span>) {</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a1380dbb4ecfcd48e89208415584470b7">TestMode::kZSCustomOverworld</a>;</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--core&quot;</span>) {</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ade8900e4c323b0c667bfd5ca5ecf9e5c">TestMode::kCore</a>;</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--graphics&quot;</span>) {</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3e1c9b3724e1f17fea630f35337bc792">TestMode::kGraphics</a>;</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--editor&quot;</span>) {</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3c2601c340c7c05be7f863cddf388436">TestMode::kEditor</a>;</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--deprecated&quot;</span>) {</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ae9162756281c259180411c1041b39a1f">TestMode::kDeprecated</a>;</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--rom-path&quot;</span>) {</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>      <span class="keywordflow">if</span> (i + 1 &lt; argc) {</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>        config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a1a2890edece5ad055b057bb17bfd5188">rom_path</a> = argv[++i];</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>      }</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--skip-rom-tests&quot;</span>) {</div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac629679d808c904c1b3b4ec14cef1935">skip_rom_tests</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--enable-ui-tests&quot;</span>) {</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a9dea4e9d815f88f0398b634b0f6b2e4e">enable_ui_tests</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--verbose&quot;</span>) {</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a4db796fe882684b61fcd7f8c650f0356">verbose</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--show-gui&quot;</span>) {</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#af2513a605358446526779b3249c54229">show_gui</a> = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg.find(<span class="stringliteral">&quot;--&quot;</span>) != 0) {</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>      <span class="comment">// Test pattern (not a flag)</span></div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a9f2d923af819cb4370597b632b0b153a">TestMode::kSpecific</a>;</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ad6f48ed054072db30e4b6cc76713fcb1">test_pattern</a> = arg;</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    }</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  }</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  </div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  <span class="keywordflow">return</span> config;</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>}</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span> </div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span><span class="comment">// Parse command line arguments for better AI agent testing support</span></div>
+<div class="foldopen" id="foldopen00057" data-start="{" data-end="}">
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno"><a class="line" href="../../d4/d0a/namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951">   57</a></span><a class="code hl_struct" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html">TestConfig</a> <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951">ParseArguments</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>* argv[]) {</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  <a class="code hl_struct" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html">TestConfig</a> config;</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>  </div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  std::cout &lt;&lt; <span class="stringliteral">&quot;Available options:\n&quot;</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>            &lt;&lt; <span class="stringliteral">&quot;  --ui            : Enable UI tests\n&quot;</span></div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>            &lt;&lt; <span class="stringliteral">&quot;  --show-gui      : Show GUI during tests\n&quot;</span></div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>            &lt;&lt; <span class="stringliteral">&quot;  --fast          : Run tests at max speed (default)\n&quot;</span></div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>            &lt;&lt; <span class="stringliteral">&quot;  --normal        : Run tests at watchable speed\n&quot;</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>            &lt;&lt; <span class="stringliteral">&quot;  --cinematic     : Run tests in slow-motion with pauses\n&quot;</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>            &lt;&lt; <span class="stringliteral">&quot;  --rom=&lt;path&gt;    : Specify ROM file path\n&quot;</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>            &lt;&lt; <span class="stringliteral">&quot;  --pattern=&lt;pat&gt; : Run tests matching pattern\n&quot;</span></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>            &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>  </div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>  <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 1; i &lt; argc; i++) {</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    std::string arg = argv[i];</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>    </div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>    <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--help&quot;</span> || arg == <span class="stringliteral">&quot;-h&quot;</span>) {</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;YAZE Test Runner - Enhanced for AI Agent Testing\n\n&quot;</span>;</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;Usage: yaze_test [options] [test_pattern]\n\n&quot;</span>;</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;Test Modes:\n&quot;</span>;</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --unit              Run unit tests only\n&quot;</span>;</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --integration       Run integration tests only\n&quot;</span>;</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --e2e               Run end-to-end tests only\n&quot;</span>;</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --rom-dependent     Run ROM-dependent tests only\n&quot;</span>;</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --zscustomoverworld Run ZSCustomOverworld tests only\n&quot;</span>;</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --core              Run core functionality tests\n&quot;</span>;</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --graphics          Run graphics tests\n&quot;</span>;</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --editor            Run editor tests\n&quot;</span>;</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --deprecated        Run deprecated tests\n\n&quot;</span>;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;Options:\n&quot;</span>;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --rom-path PATH     Specify ROM path for testing\n&quot;</span>;</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --skip-rom-tests    Skip tests requiring ROM files\n&quot;</span>;</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --enable-ui-tests   Enable UI tests (requires display)\n&quot;</span>;</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --verbose           Enable verbose output\n&quot;</span>;</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  --help              Show this help message\n\n&quot;</span>;</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;Examples:\n&quot;</span>;</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  yaze_test --unit --verbose\n&quot;</span>;</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  yaze_test --e2e --rom-path my_rom.sfc\n&quot;</span>;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  yaze_test --zscustomoverworld --verbose\n&quot;</span>;</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;  yaze_test RomTest.*\n&quot;</span>;</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>      exit(0);</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--unit&quot;</span>) {</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a4383f9f429063405fc69bdc8ff4b7ee8">TestMode::kUnit</a>;</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--integration&quot;</span>) {</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a5fd47ec26e3287ea852c40bdb687b01d">TestMode::kIntegration</a>;</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--e2e&quot;</span>) {</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3613c598b00bb1746fa91f6365c4653a">TestMode::kE2E</a>;</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--rom-dependent&quot;</span>) {</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ac2df65ec0e2a97c5419517b7e4ef2717">TestMode::kRomDependent</a>;</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--zscustomoverworld&quot;</span>) {</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a1380dbb4ecfcd48e89208415584470b7">TestMode::kZSCustomOverworld</a>;</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--core&quot;</span>) {</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ade8900e4c323b0c667bfd5ca5ecf9e5c">TestMode::kCore</a>;</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--graphics&quot;</span>) {</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3e1c9b3724e1f17fea630f35337bc792">TestMode::kGraphics</a>;</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--editor&quot;</span>) {</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3c2601c340c7c05be7f863cddf388436">TestMode::kEditor</a>;</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--deprecated&quot;</span>) {</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ae9162756281c259180411c1041b39a1f">TestMode::kDeprecated</a>;</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--rom-path&quot;</span>) {</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>      <span class="keywordflow">if</span> (i + 1 &lt; argc) {</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>        config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a1a2890edece5ad055b057bb17bfd5188">rom_path</a> = argv[++i];</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>      }</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--skip-rom-tests&quot;</span>) {</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac629679d808c904c1b3b4ec14cef1935">skip_rom_tests</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--enable-ui-tests&quot;</span>) {</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a9dea4e9d815f88f0398b634b0f6b2e4e">enable_ui_tests</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--verbose&quot;</span>) {</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a4db796fe882684b61fcd7f8c650f0356">verbose</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--show-gui&quot;</span>) {</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#af2513a605358446526779b3249c54229">show_gui</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--fast&quot;</span>) {</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac72c74b4414a53f2ee0c11407954cf0e">test_speed</a> = ImGuiTestRunSpeed_Fast;</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--normal&quot;</span>) {</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac72c74b4414a53f2ee0c11407954cf0e">test_speed</a> = ImGuiTestRunSpeed_Normal;</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--cinematic&quot;</span>) {</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac72c74b4414a53f2ee0c11407954cf0e">test_speed</a> = ImGuiTestRunSpeed_Cinematic;</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg == <span class="stringliteral">&quot;--ui&quot;</span>) {</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a9dea4e9d815f88f0398b634b0f6b2e4e">enable_ui_tests</a> = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>    } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (arg.find(<span class="stringliteral">&quot;--&quot;</span>) != 0) {</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>      <span class="comment">// Test pattern (not a flag)</span></div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a> = <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a9f2d923af819cb4370597b632b0b153a">TestMode::kSpecific</a>;</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>      config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ad6f48ed054072db30e4b6cc76713fcb1">test_pattern</a> = arg;</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>    }</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>  }</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>  </div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>  <span class="keywordflow">return</span> config;</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>}</div>
 </div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span> </div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span><span class="comment">// Set up test environment based on configuration</span></div>
-<div class="foldopen" id="foldopen00128" data-start="{" data-end="}">
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno"><a class="line" href="../../d4/d0a/namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2">  128</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2">SetupTestEnvironment</a>(<span class="keyword">const</span> <a class="code hl_struct" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html">TestConfig</a>&amp; config) {</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>  <span class="comment">// Set environment variables for tests using SDL&#39;s cross-platform function</span></div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>  <span class="keywordflow">if</span> (!config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a1a2890edece5ad055b057bb17bfd5188">rom_path</a>.empty()) {</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>    SDL_setenv(<span class="stringliteral">&quot;YAZE_TEST_ROM_PATH&quot;</span>, config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a1a2890edece5ad055b057bb17bfd5188">rom_path</a>.c_str(), 1);</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>  }</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>  </div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>  <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac629679d808c904c1b3b4ec14cef1935">skip_rom_tests</a>) {</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>    SDL_setenv(<span class="stringliteral">&quot;YAZE_SKIP_ROM_TESTS&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, 1);</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  }</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>  </div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>  <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a9dea4e9d815f88f0398b634b0f6b2e4e">enable_ui_tests</a>) {</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    SDL_setenv(<span class="stringliteral">&quot;YAZE_ENABLE_UI_TESTS&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, 1);</div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>  }</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>  </div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>  <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a4db796fe882684b61fcd7f8c650f0356">verbose</a>) {</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>    SDL_setenv(<span class="stringliteral">&quot;YAZE_VERBOSE_TESTS&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, 1);</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>  }</div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>}</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span> </div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span><span class="comment">// Set up test environment based on configuration</span></div>
+<div class="foldopen" id="foldopen00147" data-start="{" data-end="}">
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno"><a class="line" href="../../d4/d0a/namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2">  147</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2">SetupTestEnvironment</a>(<span class="keyword">const</span> <a class="code hl_struct" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html">TestConfig</a>&amp; config) {</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>  <span class="comment">// Set environment variables for tests using SDL&#39;s cross-platform function</span></div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  <span class="keywordflow">if</span> (!config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a1a2890edece5ad055b057bb17bfd5188">rom_path</a>.empty()) {</div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>    SDL_setenv(<span class="stringliteral">&quot;YAZE_TEST_ROM_PATH&quot;</span>, config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a1a2890edece5ad055b057bb17bfd5188">rom_path</a>.c_str(), 1);</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  }</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>  </div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>  <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac629679d808c904c1b3b4ec14cef1935">skip_rom_tests</a>) {</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>    SDL_setenv(<span class="stringliteral">&quot;YAZE_SKIP_ROM_TESTS&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, 1);</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>  }</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>  </div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>  <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a9dea4e9d815f88f0398b634b0f6b2e4e">enable_ui_tests</a>) {</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    SDL_setenv(<span class="stringliteral">&quot;YAZE_ENABLE_UI_TESTS&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, 1);</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>  }</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>  </div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>  <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a4db796fe882684b61fcd7f8c650f0356">verbose</a>) {</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>    SDL_setenv(<span class="stringliteral">&quot;YAZE_VERBOSE_TESTS&quot;</span>, <span class="stringliteral">&quot;1&quot;</span>, 1);</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  }</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>}</div>
 </div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span> </div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span><span class="comment">// Configure Google Test filters based on test mode</span></div>
-<div class="foldopen" id="foldopen00148" data-start="{" data-end="}">
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno"><a class="line" href="../../d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8">  148</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8">ConfigureTestFilters</a>(<span class="keyword">const</span> <a class="code hl_struct" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html">TestConfig</a>&amp; config) {</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span>  std::vector&lt;std::string&gt; filters;</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  </div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>  <span class="keywordflow">switch</span> (config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a>) {</div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a4383f9f429063405fc69bdc8ff4b7ee8">TestMode::kUnit</a>:</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>      filters.push_back(<span class="stringliteral">&quot;UnitTest.*&quot;</span>);</div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a5fd47ec26e3287ea852c40bdb687b01d">TestMode::kIntegration</a>:</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>      filters.push_back(<span class="stringliteral">&quot;IntegrationTest.*&quot;</span>);</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3613c598b00bb1746fa91f6365c4653a">TestMode::kE2E</a>:</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>      filters.push_back(<span class="stringliteral">&quot;E2ETest.*&quot;</span>);</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ac2df65ec0e2a97c5419517b7e4ef2717">TestMode::kRomDependent</a>:</div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>      filters.push_back(<span class="stringliteral">&quot;*RomDependent*&quot;</span>);</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a1380dbb4ecfcd48e89208415584470b7">TestMode::kZSCustomOverworld</a>:</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>      filters.push_back(<span class="stringliteral">&quot;*ZSCustomOverworld*&quot;</span>);</div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ade8900e4c323b0c667bfd5ca5ecf9e5c">TestMode::kCore</a>:</div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>      filters.push_back(<span class="stringliteral">&quot;*Core*&quot;</span>);</div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>      filters.push_back(<span class="stringliteral">&quot;*Asar*&quot;</span>);</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>      filters.push_back(<span class="stringliteral">&quot;*Rom*&quot;</span>);</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3e1c9b3724e1f17fea630f35337bc792">TestMode::kGraphics</a>:</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>      filters.push_back(<span class="stringliteral">&quot;*Graphics*&quot;</span>);</div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>      filters.push_back(<span class="stringliteral">&quot;*Gfx*&quot;</span>);</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>      filters.push_back(<span class="stringliteral">&quot;*Palette*&quot;</span>);</div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>      filters.push_back(<span class="stringliteral">&quot;*Tile*&quot;</span>);</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3c2601c340c7c05be7f863cddf388436">TestMode::kEditor</a>:</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>      filters.push_back(<span class="stringliteral">&quot;*Editor*&quot;</span>);</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ae9162756281c259180411c1041b39a1f">TestMode::kDeprecated</a>:</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>      filters.push_back(<span class="stringliteral">&quot;*Deprecated*&quot;</span>);</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a9f2d923af819cb4370597b632b0b153a">TestMode::kSpecific</a>:</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>      <span class="keywordflow">if</span> (!config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ad6f48ed054072db30e4b6cc76713fcb1">test_pattern</a>.empty()) {</div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>        filters.push_back(config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ad6f48ed054072db30e4b6cc76713fcb1">test_pattern</a>);</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>      }</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a34bdbffdb1c0e1b603f58fc0d49548b6">TestMode::kAll</a>:</div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>    <span class="keywordflow">default</span>:</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>      <span class="comment">// No filters - run all tests</span></div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>      <span class="keywordflow">break</span>;</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  }</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>  </div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>  <span class="keywordflow">if</span> (!filters.empty()) {</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    std::string filter_string;</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; filters.size(); i++) {</div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>      <span class="keywordflow">if</span> (i &gt; 0) filter_string += <span class="stringliteral">&quot;:&quot;</span>;</div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>      filter_string += filters[i];</div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    }</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    </div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>    ::testing::GTEST_FLAG(filter) = filter_string;</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    </div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a4db796fe882684b61fcd7f8c650f0356">verbose</a>) {</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;Test filter: &quot;</span> &lt;&lt; filter_string &lt;&lt; std::endl;</div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>    }</div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  }</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>}</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span> </div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span><span class="comment">// Configure Google Test filters based on test mode</span></div>
+<div class="foldopen" id="foldopen00167" data-start="{" data-end="}">
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno"><a class="line" href="../../d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8">  167</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8">ConfigureTestFilters</a>(<span class="keyword">const</span> <a class="code hl_struct" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html">TestConfig</a>&amp; config) {</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>  std::vector&lt;std::string&gt; filters;</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>  </div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  <span class="keywordflow">switch</span> (config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a0b51ac9ed8aa9cf2e1ef8b12bb9576cf">mode</a>) {</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a4383f9f429063405fc69bdc8ff4b7ee8">TestMode::kUnit</a>:</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>      filters.push_back(<span class="stringliteral">&quot;UnitTest.*&quot;</span>);</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a5fd47ec26e3287ea852c40bdb687b01d">TestMode::kIntegration</a>:</div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>      filters.push_back(<span class="stringliteral">&quot;IntegrationTest.*&quot;</span>);</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3613c598b00bb1746fa91f6365c4653a">TestMode::kE2E</a>:</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>      filters.push_back(<span class="stringliteral">&quot;E2ETest.*&quot;</span>);</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ac2df65ec0e2a97c5419517b7e4ef2717">TestMode::kRomDependent</a>:</div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>      filters.push_back(<span class="stringliteral">&quot;*RomDependent*&quot;</span>);</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a1380dbb4ecfcd48e89208415584470b7">TestMode::kZSCustomOverworld</a>:</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>      filters.push_back(<span class="stringliteral">&quot;*ZSCustomOverworld*&quot;</span>);</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ade8900e4c323b0c667bfd5ca5ecf9e5c">TestMode::kCore</a>:</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>      filters.push_back(<span class="stringliteral">&quot;*Core*&quot;</span>);</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>      filters.push_back(<span class="stringliteral">&quot;*Asar*&quot;</span>);</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>      filters.push_back(<span class="stringliteral">&quot;*Rom*&quot;</span>);</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3e1c9b3724e1f17fea630f35337bc792">TestMode::kGraphics</a>:</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>      filters.push_back(<span class="stringliteral">&quot;*Graphics*&quot;</span>);</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>      filters.push_back(<span class="stringliteral">&quot;*Gfx*&quot;</span>);</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>      filters.push_back(<span class="stringliteral">&quot;*Palette*&quot;</span>);</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>      filters.push_back(<span class="stringliteral">&quot;*Tile*&quot;</span>);</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a3c2601c340c7c05be7f863cddf388436">TestMode::kEditor</a>:</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>      filters.push_back(<span class="stringliteral">&quot;*Editor*&quot;</span>);</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ae9162756281c259180411c1041b39a1f">TestMode::kDeprecated</a>:</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>      filters.push_back(<span class="stringliteral">&quot;*Deprecated*&quot;</span>);</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a9f2d923af819cb4370597b632b0b153a">TestMode::kSpecific</a>:</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>      <span class="keywordflow">if</span> (!config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ad6f48ed054072db30e4b6cc76713fcb1">test_pattern</a>.empty()) {</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>        filters.push_back(config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ad6f48ed054072db30e4b6cc76713fcb1">test_pattern</a>);</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>      }</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817a34bdbffdb1c0e1b603f58fc0d49548b6">TestMode::kAll</a>:</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>    <span class="keywordflow">default</span>:</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>      <span class="comment">// No filters - run all tests</span></div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>      <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  }</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  </div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  <span class="keywordflow">if</span> (!filters.empty()) {</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>    std::string filter_string;</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>    <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; filters.size(); i++) {</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>      <span class="keywordflow">if</span> (i &gt; 0) filter_string += <span class="stringliteral">&quot;:&quot;</span>;</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>      filter_string += filters[i];</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>    }</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>    </div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>    ::testing::GTEST_FLAG(filter) = filter_string;</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>    </div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>    <span class="keywordflow">if</span> (config.<a class="code hl_variable" href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a4db796fe882684b61fcd7f8c650f0356">verbose</a>) {</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>      std::cout &lt;&lt; <span class="stringliteral">&quot;Test filter: &quot;</span> &lt;&lt; filter_string &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>    }</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  }</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>}</div>
 </div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span> </div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>}  <span class="comment">// namespace test</span></div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>}  <span class="comment">// namespace yaze</span></div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span> </div>
-<div class="foldopen" id="foldopen00213" data-start="{" data-end="}">
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno"><a class="line" href="../../de/d3d/yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">  213</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="../../d1/dd0/test__conversation__minimal_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>* argv[]) {</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  absl::InitializeSymbolizer(argv[0]);</div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span> </div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>  <span class="comment">// Configure failure signal handler to be less aggressive for testing</span></div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>  absl::FailureSignalHandlerOptions options;</div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  options.symbolize_stacktrace = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>  options.use_alternate_stack = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>  options.alarm_on_failure_secs = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>  options.call_previous_handler = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>  options.writerfn = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>  absl::InstallFailureSignalHandler(options);</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span> </div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  <span class="comment">// Initialize SDL to prevent crashes in graphics components</span></div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>  <span class="keywordflow">if</span> (SDL_Init(SDL_INIT_VIDEO) != 0) {</div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>    SDL_Log(<span class="stringliteral">&quot;Failed to initialize SDL: %s&quot;</span>, SDL_GetError());</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>    <span class="comment">// Continue anyway for tests that don&#39;t need graphics</span></div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>  }</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span> </div>
-<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span>  <span class="comment">// Parse command line arguments</span></div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  <span class="keyword">auto</span> config = <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951">yaze::test::ParseArguments</a>(argc, argv);</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>  </div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  <span class="comment">// Set up test environment</span></div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>  <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2">yaze::test::SetupTestEnvironment</a>(config);</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>  </div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>  <span class="comment">// Configure test filters</span></div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8">yaze::test::ConfigureTestFilters</a>(config);</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span> </div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>  <span class="comment">// Initialize Google Test</span></div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  ::testing::InitGoogleTest(&amp;argc, argv);</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>  </div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>  <span class="keywordflow">if</span> (config.enable_ui_tests) {</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>    <span class="comment">// Create a window</span></div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>    <a class="code hl_struct" href="../../de/d86/structyaze_1_1core_1_1Window.html">yaze::core::Window</a> window;</div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>    <span class="comment">// Create renderer for test</span></div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    <span class="keyword">auto</span> test_renderer = std::make_unique&lt;yaze::gfx::SDL2Renderer&gt;();</div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>    <a class="code hl_function" href="../../db/d33/namespaceyaze_1_1core.html#ad9ef5ea7c217135fe0d8756429f83839">yaze::core::CreateWindow</a>(window, test_renderer.get(), SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span> </div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>}  <span class="comment">// namespace test</span></div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span> </div>
+<div class="foldopen" id="foldopen00232" data-start="{" data-end="}">
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno"><a class="line" href="../../de/d3d/yaze__test_8cc.html#a0ddf1224851353fc92bfbff6f499fa97">  232</a></span><span class="keywordtype">int</span> <a class="code hl_function" href="../../d1/dd0/test__conversation__minimal_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a>(<span class="keywordtype">int</span> argc, <span class="keywordtype">char</span>* argv[]) {</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>  absl::InitializeSymbolizer(argv[0]);</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span> </div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>  <span class="comment">// Configure failure signal handler to be less aggressive for testing</span></div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>  absl::FailureSignalHandlerOptions options;</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>  options.symbolize_stacktrace = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  options.use_alternate_stack = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>  options.alarm_on_failure_secs = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>  options.call_previous_handler = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  options.writerfn = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>  absl::InstallFailureSignalHandler(options);</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span> </div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>  <span class="comment">// Initialize SDL to prevent crashes in graphics components</span></div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>  <span class="keywordflow">if</span> (SDL_Init(SDL_INIT_VIDEO) != 0) {</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>    SDL_Log(<span class="stringliteral">&quot;Failed to initialize SDL: %s&quot;</span>, SDL_GetError());</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span>    <span class="comment">// Continue anyway for tests that don&#39;t need graphics</span></div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>  }</div>
 <div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span> </div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>    <span class="comment">// Renderer is now owned by test</span></div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span> </div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>    <span class="comment">// Setup Dear ImGui context</span></div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>    IMGUI_CHECKVERSION();</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    ImGui::CreateContext();</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>    ImGuiIO&amp; io = ImGui::GetIO(); (void)io;</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; <span class="comment">// Enable Keyboard Controls</span></div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     <span class="comment">// Enable Docking</span></div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   <span class="comment">// Enable Multi-Viewport / Platform Windows</span></div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span> </div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>    <span class="comment">// Setup Dear ImGui style</span></div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>    ImGui::StyleColorsDark();</div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span> </div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>    <span class="comment">// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.</span></div>
-<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    ImGuiStyle&amp; style = ImGui::GetStyle();</div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    <span class="keywordflow">if</span> (io.ConfigFlags &amp; ImGuiConfigFlags_ViewportsEnable) {</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>        style.WindowRounding = 0.0f;</div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>        style.Colors[ImGuiCol_WindowBg].w = 1.0f;</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>    }</div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span> </div>
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>    <span class="comment">// Setup Platform/Renderer backends</span></div>
-<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>    SDL_Renderer* sdl_renderer = <span class="keyword">static_cast&lt;</span>SDL_Renderer*<span class="keyword">&gt;</span>(test_renderer-&gt;GetBackendRenderer());</div>
-<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>    ImGui_ImplSDL2_InitForSDLRenderer(window.<a class="code hl_variable" href="../../de/d86/structyaze_1_1core_1_1Window.html#a10f471fcb56fd4388fb62b37fc7a3c1d">window_</a>.get(), sdl_renderer);</div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>    ImGui_ImplSDLRenderer2_Init(sdl_renderer);</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span> </div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>    <span class="comment">// Setup test engine</span></div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>    ImGuiTestEngine* engine = ImGuiTestEngine_CreateContext();</div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    ImGuiTestEngineIO&amp; test_io = ImGuiTestEngine_GetIO(engine);</div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>    test_io.ConfigRunSpeed = ImGuiTestRunSpeed_Fast;</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>    test_io.ConfigVerboseLevel = ImGuiTestVerboseLevel_Info;</div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>    test_io.ConfigVerboseLevelOnError = ImGuiTestVerboseLevel_Debug;</div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>  <span class="comment">// Parse command line arguments</span></div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>  <span class="keyword">auto</span> config = <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951">yaze::test::ParseArguments</a>(argc, argv);</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>  </div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>  <span class="comment">// Set up test environment</span></div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>  <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2">yaze::test::SetupTestEnvironment</a>(config);</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>  </div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  <span class="comment">// Configure test filters</span></div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>  <a class="code hl_function" href="../../d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8">yaze::test::ConfigureTestFilters</a>(config);</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span> </div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>  <span class="comment">// Initialize Google Test</span></div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>  ::testing::InitGoogleTest(&amp;argc, argv);</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>  </div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>  <span class="keywordflow">if</span> (config.enable_ui_tests) {</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>    <span class="comment">// Create a window</span></div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    <a class="code hl_struct" href="../../de/d86/structyaze_1_1core_1_1Window.html">yaze::core::Window</a> window;</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>    <span class="comment">// Create renderer for test</span></div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>    <span class="keyword">auto</span> test_renderer = std::make_unique&lt;yaze::gfx::SDL2Renderer&gt;();</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>    <a class="code hl_function" href="../../db/d33/namespaceyaze_1_1core.html#ad9ef5ea7c217135fe0d8756429f83839">yaze::core::CreateWindow</a>(window, test_renderer.get(), SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span> </div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>    <span class="comment">// Renderer is now owned by test</span></div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span> </div>
+<div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>    <span class="comment">// Setup Dear ImGui context</span></div>
+<div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span>    IMGUI_CHECKVERSION();</div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span>    ImGui::CreateContext();</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>    ImGuiIO&amp; io = ImGui::GetIO(); (void)io;</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; <span class="comment">// Enable Keyboard Controls</span></div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     <span class="comment">// Enable Docking</span></div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;   <span class="comment">// Enable Multi-Viewport / Platform Windows</span></div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span> </div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>    <span class="comment">// Setup Dear ImGui style</span></div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>    ImGui::StyleColorsDark();</div>
 <div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span> </div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>    <a class="code hl_class" href="../../d4/d84/classyaze_1_1core_1_1Controller.html">yaze::core::Controller</a> controller;</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span> </div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>    <span class="comment">// Register smoke test</span></div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>    ImGuiTest* smoke_test = IM_REGISTER_TEST(engine, <span class="stringliteral">&quot;E2ETest&quot;</span>, <span class="stringliteral">&quot;FrameworkSmokeTest&quot;</span>);</div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>    smoke_test-&gt;TestFunc = <a class="code hl_function" href="../../da/d8d/framework__smoke__test_8cc.html#a3fec8d91d39b80ef223dc1f6c83f0569">E2ETest_FrameworkSmokeTest</a>;</div>
-<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span> </div>
-<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span>    <span class="comment">// Register canvas selection test</span></div>
-<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>    ImGuiTest* canvas_test = IM_REGISTER_TEST(engine, <span class="stringliteral">&quot;E2ETest&quot;</span>, <span class="stringliteral">&quot;CanvasSelectionTest&quot;</span>);</div>
-<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>    canvas_test-&gt;TestFunc = <a class="code hl_function" href="../../d2/d5c/canvas__selection__test_8cc.html#a0f16ccabf5b1e883855a2e25cdc66195">E2ETest_CanvasSelectionTest</a>;</div>
-<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>    canvas_test-&gt;UserData = &amp;controller;</div>
-<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>    </div>
-<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>    <span class="comment">// Register dungeon editor smoke test</span></div>
-<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>    ImGuiTest* dungeon_test = IM_REGISTER_TEST(engine, <span class="stringliteral">&quot;E2ETest&quot;</span>, <span class="stringliteral">&quot;DungeonEditorSmokeTest&quot;</span>);</div>
-<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>    dungeon_test-&gt;TestFunc = <a class="code hl_function" href="../../d4/dd0/dungeon__editor__smoke__test_8cc.html#a3dcbe20459b0ab18e4a16934216f974f">E2ETest_DungeonEditorV2SmokeTest</a>;</div>
-<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>    dungeon_test-&gt;UserData = &amp;controller;</div>
-<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span> </div>
-<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>    <span class="comment">// Main loop</span></div>
-<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    <span class="keywordtype">bool</span> done = <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>    <span class="keywordflow">while</span> (!done) {</div>
-<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>        SDL_Event event;</div>
-<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>        <span class="keywordflow">while</span> (SDL_PollEvent(&amp;event)) {</div>
-<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>            ImGui_ImplSDL2_ProcessEvent(&amp;event);</div>
-<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>            <span class="keywordflow">if</span> (event.type == SDL_QUIT) {</div>
-<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>                done = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span>            }</div>
-<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>            <span class="keywordflow">if</span> (event.type == SDL_WINDOWEVENT &amp;&amp; event.window.event == SDL_WINDOWEVENT_CLOSE &amp;&amp; event.window.windowID == SDL_GetWindowID(window.<a class="code hl_variable" href="../../de/d86/structyaze_1_1core_1_1Window.html#a10f471fcb56fd4388fb62b37fc7a3c1d">window_</a>.get())) {</div>
-<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>                done = <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>            }</div>
-<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>        }</div>
-<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span> </div>
-<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span>        <span class="comment">// Start the Dear ImGui frame</span></div>
-<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>        ImGui_ImplSDLRenderer2_NewFrame();</div>
-<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>        ImGui_ImplSDL2_NewFrame();</div>
-<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>        ImGui::NewFrame();</div>
-<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span> </div>
-<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>        <span class="comment">// Render the UI</span></div>
-<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>        <span class="keywordflow">if</span> (config.show_gui) {</div>
-<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>            ImGuiTestEngine_ShowTestEngineWindows(engine, &amp;config.show_gui);</div>
-<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>        }</div>
-<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>        controller.<a class="code hl_function" href="../../d4/d84/classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af">DoRender</a>();</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>    <span class="comment">// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.</span></div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>    ImGuiStyle&amp; style = ImGui::GetStyle();</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>    <span class="keywordflow">if</span> (io.ConfigFlags &amp; ImGuiConfigFlags_ViewportsEnable) {</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>        style.WindowRounding = 0.0f;</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>        style.Colors[ImGuiCol_WindowBg].w = 1.0f;</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span>    }</div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span> </div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>    <span class="comment">// Setup Platform/Renderer backends</span></div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>    SDL_Renderer* sdl_renderer = <span class="keyword">static_cast&lt;</span>SDL_Renderer*<span class="keyword">&gt;</span>(test_renderer-&gt;GetBackendRenderer());</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>    ImGui_ImplSDL2_InitForSDLRenderer(window.<a class="code hl_variable" href="../../de/d86/structyaze_1_1core_1_1Window.html#a10f471fcb56fd4388fb62b37fc7a3c1d">window_</a>.get(), sdl_renderer);</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>    ImGui_ImplSDLRenderer2_Init(sdl_renderer);</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span> </div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span>    <span class="comment">// Setup test engine</span></div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span>    ImGuiTestEngine* engine = ImGuiTestEngine_CreateContext();</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>    ImGuiTestEngineIO&amp; test_io = ImGuiTestEngine_GetIO(engine);</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>    test_io.ConfigRunSpeed = config.test_speed;  <span class="comment">// Use configured speed</span></div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>    test_io.ConfigVerboseLevel = ImGuiTestVerboseLevel_Info;</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    test_io.ConfigVerboseLevelOnError = ImGuiTestVerboseLevel_Debug;</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>    </div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>    <span class="comment">// Log test speed mode</span></div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>    <span class="keyword">const</span> <span class="keywordtype">char</span>* speed_name = <span class="stringliteral">&quot;Fast&quot;</span>;</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>    <span class="keywordflow">if</span> (config.test_speed == ImGuiTestRunSpeed_Normal) speed_name = <span class="stringliteral">&quot;Normal&quot;</span>;</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>    <span class="keywordflow">else</span> <span class="keywordflow">if</span> (config.test_speed == ImGuiTestRunSpeed_Cinematic) speed_name = <span class="stringliteral">&quot;Cinematic&quot;</span>;</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>    std::cout &lt;&lt; <span class="stringliteral">&quot;Running tests in &quot;</span> &lt;&lt; speed_name &lt;&lt; <span class="stringliteral">&quot; mode&quot;</span> &lt;&lt; std::endl;</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span> </div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span>    <a class="code hl_class" href="../../d4/d84/classyaze_1_1core_1_1Controller.html">yaze::core::Controller</a> controller;</div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span> </div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span>    <span class="comment">// Register smoke test</span></div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span>    ImGuiTest* smoke_test = IM_REGISTER_TEST(engine, <span class="stringliteral">&quot;E2ETest&quot;</span>, <span class="stringliteral">&quot;FrameworkSmokeTest&quot;</span>);</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span>    smoke_test-&gt;TestFunc = <a class="code hl_function" href="../../da/d8d/framework__smoke__test_8cc.html#a3fec8d91d39b80ef223dc1f6c83f0569">E2ETest_FrameworkSmokeTest</a>;</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span> </div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span>    <span class="comment">// Register canvas selection test</span></div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    ImGuiTest* canvas_test = IM_REGISTER_TEST(engine, <span class="stringliteral">&quot;E2ETest&quot;</span>, <span class="stringliteral">&quot;CanvasSelectionTest&quot;</span>);</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>    canvas_test-&gt;TestFunc = <a class="code hl_function" href="../../d2/d5c/canvas__selection__test_8cc.html#a0f16ccabf5b1e883855a2e25cdc66195">E2ETest_CanvasSelectionTest</a>;</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>    canvas_test-&gt;UserData = &amp;controller;</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>    </div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>    <span class="comment">// Register dungeon editor smoke test</span></div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>    ImGuiTest* dungeon_test = IM_REGISTER_TEST(engine, <span class="stringliteral">&quot;E2ETest&quot;</span>, <span class="stringliteral">&quot;DungeonEditorSmokeTest&quot;</span>);</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>    dungeon_test-&gt;TestFunc = <a class="code hl_function" href="../../d4/dd0/dungeon__editor__smoke__test_8cc.html#a3dcbe20459b0ab18e4a16934216f974f">E2ETest_DungeonEditorV2SmokeTest</a>;</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span>    dungeon_test-&gt;UserData = &amp;controller;</div>
 <div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span> </div>
-<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>        <span class="comment">// End the Dear ImGui frame</span></div>
-<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>        ImGui::Render();</div>
-<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>        test_renderer-&gt;Clear();</div>
-<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), sdl_renderer);</div>
-<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>        test_renderer-&gt;Present();</div>
-<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span> </div>
-<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>        <span class="comment">// Update and Render additional Platform Windows</span></div>
-<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>        <span class="keywordflow">if</span> (io.ConfigFlags &amp; ImGuiConfigFlags_ViewportsEnable) {</div>
-<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>            SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();</div>
-<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>            SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();</div>
-<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>            ImGui::UpdatePlatformWindows();</div>
-<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>            ImGui::RenderPlatformWindowsDefault();</div>
-<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>            SDL_GL_MakeCurrent(backup_current_window, backup_current_context);</div>
-<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>        }</div>
-<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span> </div>
-<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>        <span class="comment">// Run test engine</span></div>
-<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>        ImGuiTestEngine_PostSwap(engine);</div>
-<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>    }</div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span>    <span class="comment">// Main loop</span></div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>    <span class="keywordtype">bool</span> done = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>    <span class="keywordflow">while</span> (!done) {</div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>        SDL_Event event;</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span>        <span class="keywordflow">while</span> (SDL_PollEvent(&amp;event)) {</div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>            ImGui_ImplSDL2_ProcessEvent(&amp;event);</div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>            <span class="keywordflow">if</span> (event.type == SDL_QUIT) {</div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>                done = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>            }</div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>            <span class="keywordflow">if</span> (event.type == SDL_WINDOWEVENT &amp;&amp; event.window.event == SDL_WINDOWEVENT_CLOSE &amp;&amp; event.window.windowID == SDL_GetWindowID(window.<a class="code hl_variable" href="../../de/d86/structyaze_1_1core_1_1Window.html#a10f471fcb56fd4388fb62b37fc7a3c1d">window_</a>.get())) {</div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>                done = <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>            }</div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>        }</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span> </div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>        <span class="comment">// Start the Dear ImGui frame</span></div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>        ImGui_ImplSDLRenderer2_NewFrame();</div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>        ImGui_ImplSDL2_NewFrame();</div>
+<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>        ImGui::NewFrame();</div>
 <div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span> </div>
-<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>    <span class="comment">// Get test result</span></div>
-<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>    ImGuiTestEngineResultSummary summary;</div>
-<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>    ImGuiTestEngine_GetResultSummary(engine, &amp;summary);</div>
-<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>    <span class="keywordtype">int</span> result = (summary.CountSuccess == summary.CountTested) ? 0 : 1;</div>
-<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span> </div>
-<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>    <span class="comment">// Cleanup</span></div>
-<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>    controller.<a class="code hl_function" href="../../d4/d84/classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07">OnExit</a>();</div>
-<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>    ImGuiTestEngine_DestroyContext(engine);</div>
-<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>    ImGui_ImplSDLRenderer2_Shutdown();</div>
-<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>    ImGui_ImplSDL2_Shutdown();</div>
-<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>    ImGui::DestroyContext();</div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>        <span class="comment">// Render the UI</span></div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>        <span class="keywordflow">if</span> (config.show_gui) {</div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>            ImGuiTestEngine_ShowTestEngineWindows(engine, &amp;config.show_gui);</div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>        }</div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>        controller.<a class="code hl_function" href="../../d4/d84/classyaze_1_1core_1_1Controller.html#a9669e4a71e33f0010248c2ff5dbd37af">DoRender</a>();</div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span> </div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>        <span class="comment">// End the Dear ImGui frame</span></div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>        ImGui::Render();</div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>        test_renderer-&gt;Clear();</div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), sdl_renderer);</div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>        test_renderer-&gt;Present();</div>
 <div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span> </div>
-<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>    <a class="code hl_function" href="../../db/d33/namespaceyaze_1_1core.html#a0f3dc6283ebf6a0957247ec1ca09c657">yaze::core::ShutdownWindow</a>(window);</div>
-<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>    SDL_Quit();</div>
-<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span> </div>
-<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>    <span class="keywordflow">return</span> result;</div>
-<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>  } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>    <span class="comment">// Run tests</span></div>
-<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>    <span class="keywordtype">int</span> result = RUN_ALL_TESTS();</div>
-<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>    </div>
-<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>    <span class="comment">// Cleanup SDL</span></div>
-<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>    SDL_Quit();</div>
-<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>    </div>
-<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>    <span class="keywordflow">return</span> result;</div>
-<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>  }</div>
-<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>}</div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>        <span class="comment">// Update and Render additional Platform Windows</span></div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>        <span class="keywordflow">if</span> (io.ConfigFlags &amp; ImGuiConfigFlags_ViewportsEnable) {</div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span>            SDL_Window* backup_current_window = SDL_GL_GetCurrentWindow();</div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span>            SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();</div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>            ImGui::UpdatePlatformWindows();</div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>            ImGui::RenderPlatformWindowsDefault();</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>            SDL_GL_MakeCurrent(backup_current_window, backup_current_context);</div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>        }</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span> </div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>        <span class="comment">// Run test engine</span></div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>        ImGuiTestEngine_PostSwap(engine);</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>    }</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span> </div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span>    <span class="comment">// Get test result</span></div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>    ImGuiTestEngineResultSummary summary;</div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>    ImGuiTestEngine_GetResultSummary(engine, &amp;summary);</div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>    <span class="keywordtype">int</span> result = (summary.CountSuccess == summary.CountTested) ? 0 : 1;</div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span> </div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>    <span class="comment">// Cleanup</span></div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span>    controller.<a class="code hl_function" href="../../d4/d84/classyaze_1_1core_1_1Controller.html#a024bd35620ff4d5e2fd5dd899e23fc07">OnExit</a>();</div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>    ImGuiTestEngine_DestroyContext(engine);</div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>    ImGui_ImplSDLRenderer2_Shutdown();</div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>    ImGui_ImplSDL2_Shutdown();</div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>    ImGui::DestroyContext();</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span> </div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>    <a class="code hl_function" href="../../db/d33/namespaceyaze_1_1core.html#a0f3dc6283ebf6a0957247ec1ca09c657">yaze::core::ShutdownWindow</a>(window);</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>    SDL_Quit();</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span> </div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>    <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>  } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>    <span class="comment">// Run tests</span></div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>    <span class="keywordtype">int</span> result = RUN_ALL_TESTS();</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>    </div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>    <span class="comment">// Cleanup SDL</span></div>
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>    SDL_Quit();</div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>    </div>
+<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>    <span class="keywordflow">return</span> result;</div>
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>  }</div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>}</div>
 </div>
 <div class="ttc" id="acanvas__selection__test_8cc_html_a0f16ccabf5b1e883855a2e25cdc66195"><div class="ttname"><a href="../../d2/d5c/canvas__selection__test_8cc.html#a0f16ccabf5b1e883855a2e25cdc66195">E2ETest_CanvasSelectionTest</a></div><div class="ttdeci">void E2ETest_CanvasSelectionTest(ImGuiTestContext *ctx)</div><div class="ttdef"><b>Definition</b> <a href="../../d2/d5c/canvas__selection__test_8cc_source.html#l00006">canvas_selection_test.cc:6</a></div></div>
 <div class="ttc" id="acanvas__selection__test_8h_html"><div class="ttname"><a href="../../d1/d88/canvas__selection__test_8h.html">canvas_selection_test.h</a></div></div>
@@ -506,9 +531,9 @@ $(document).ready(function(){initNavTree('de/d3d/yaze__test_8cc_source.html','..
 <div class="ttc" id="anamespaceyaze_1_1test_html_a48974bc37811e72ae810e23d0f38b817ac2df65ec0e2a97c5419517b7e4ef2717"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ac2df65ec0e2a97c5419517b7e4ef2717">yaze::test::TestMode::kRomDependent</a></div><div class="ttdeci">@ kRomDependent</div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_html_a48974bc37811e72ae810e23d0f38b817ade8900e4c323b0c667bfd5ca5ecf9e5c"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ade8900e4c323b0c667bfd5ca5ecf9e5c">yaze::test::TestMode::kCore</a></div><div class="ttdeci">@ kCore</div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_html_a48974bc37811e72ae810e23d0f38b817ae9162756281c259180411c1041b39a1f"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817ae9162756281c259180411c1041b39a1f">yaze::test::TestMode::kDeprecated</a></div><div class="ttdeci">@ kDeprecated</div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_html_a76748b4fd1d8105313f78a75a8e321a8"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8">yaze::test::ConfigureTestFilters</a></div><div class="ttdeci">void ConfigureTestFilters(const TestConfig &amp;config)</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3d/yaze__test_8cc_source.html#l00148">yaze_test.cc:148</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_html_a89f3ce180b0caab4565cd5b2c8315951"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951">yaze::test::ParseArguments</a></div><div class="ttdeci">TestConfig ParseArguments(int argc, char *argv[])</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3d/yaze__test_8cc_source.html#l00056">yaze_test.cc:56</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_html_adfd638eba01ac6c99c48c3aae7d8a7a2"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2">yaze::test::SetupTestEnvironment</a></div><div class="ttdeci">void SetupTestEnvironment(const TestConfig &amp;config)</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3d/yaze__test_8cc_source.html#l00128">yaze_test.cc:128</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1test_html_a76748b4fd1d8105313f78a75a8e321a8"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8">yaze::test::ConfigureTestFilters</a></div><div class="ttdeci">void ConfigureTestFilters(const TestConfig &amp;config)</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3d/yaze__test_8cc_source.html#l00167">yaze_test.cc:167</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1test_html_a89f3ce180b0caab4565cd5b2c8315951"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951">yaze::test::ParseArguments</a></div><div class="ttdeci">TestConfig ParseArguments(int argc, char *argv[])</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3d/yaze__test_8cc_source.html#l00057">yaze_test.cc:57</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1test_html_adfd638eba01ac6c99c48c3aae7d8a7a2"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2">yaze::test::SetupTestEnvironment</a></div><div class="ttdeci">void SetupTestEnvironment(const TestConfig &amp;config)</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3d/yaze__test_8cc_source.html#l00147">yaze_test.cc:147</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="asdl2__renderer_8h_html"><div class="ttname"><a href="../../da/d74/sdl2__renderer_8h.html">sdl2_renderer.h</a></div></div>
 <div class="ttc" id="astructyaze_1_1core_1_1Window_html"><div class="ttname"><a href="../../de/d86/structyaze_1_1core_1_1Window.html">yaze::core::Window</a></div><div class="ttdef"><b>Definition</b> <a href="../../d3/df1/window_8h_source.html#l00017">window.h:17</a></div></div>
@@ -519,6 +544,7 @@ $(document).ready(function(){initNavTree('de/d3d/yaze__test_8cc_source.html','..
 <div class="ttc" id="astructyaze_1_1test_1_1TestConfig_html_a4db796fe882684b61fcd7f8c650f0356"><div class="ttname"><a href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a4db796fe882684b61fcd7f8c650f0356">yaze::test::TestConfig::verbose</a></div><div class="ttdeci">bool verbose</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3d/yaze__test_8cc_source.html#l00049">yaze_test.cc:49</a></div></div>
 <div class="ttc" id="astructyaze_1_1test_1_1TestConfig_html_a9dea4e9d815f88f0398b634b0f6b2e4e"><div class="ttname"><a href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#a9dea4e9d815f88f0398b634b0f6b2e4e">yaze::test::TestConfig::enable_ui_tests</a></div><div class="ttdeci">bool enable_ui_tests</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3d/yaze__test_8cc_source.html#l00051">yaze_test.cc:51</a></div></div>
 <div class="ttc" id="astructyaze_1_1test_1_1TestConfig_html_ac629679d808c904c1b3b4ec14cef1935"><div class="ttname"><a href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac629679d808c904c1b3b4ec14cef1935">yaze::test::TestConfig::skip_rom_tests</a></div><div class="ttdeci">bool skip_rom_tests</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3d/yaze__test_8cc_source.html#l00050">yaze_test.cc:50</a></div></div>
+<div class="ttc" id="astructyaze_1_1test_1_1TestConfig_html_ac72c74b4414a53f2ee0c11407954cf0e"><div class="ttname"><a href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ac72c74b4414a53f2ee0c11407954cf0e">yaze::test::TestConfig::test_speed</a></div><div class="ttdeci">ImGuiTestRunSpeed test_speed</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3d/yaze__test_8cc_source.html#l00053">yaze_test.cc:53</a></div></div>
 <div class="ttc" id="astructyaze_1_1test_1_1TestConfig_html_ad6f48ed054072db30e4b6cc76713fcb1"><div class="ttname"><a href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#ad6f48ed054072db30e4b6cc76713fcb1">yaze::test::TestConfig::test_pattern</a></div><div class="ttdeci">std::string test_pattern</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3d/yaze__test_8cc_source.html#l00047">yaze_test.cc:47</a></div></div>
 <div class="ttc" id="astructyaze_1_1test_1_1TestConfig_html_af2513a605358446526779b3249c54229"><div class="ttname"><a href="../../d6/d92/structyaze_1_1test_1_1TestConfig.html#af2513a605358446526779b3249c54229">yaze::test::TestConfig::show_gui</a></div><div class="ttdeci">bool show_gui</div><div class="ttdef"><b>Definition</b> <a href="../../de/d3d/yaze__test_8cc_source.html#l00052">yaze_test.cc:52</a></div></div>
 <div class="ttc" id="atest__conversation__minimal_8cc_html_ae66f6b31b5ad750f1fe042a706a4e3d4"><div class="ttname"><a href="../../d1/dd0/test__conversation__minimal_8cc.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a></div><div class="ttdeci">int main()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/dd0/test__conversation__minimal_8cc_source.html#l00010">test_conversation_minimal.cc:10</a></div></div>
