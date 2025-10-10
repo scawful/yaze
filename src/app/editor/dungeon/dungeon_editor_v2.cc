@@ -98,6 +98,16 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       .visibility_flag = &show_palette_editor_,
       .priority = 70
   });
+  
+  card_manager.RegisterCard({
+      .card_id = "dungeon.debug_controls",
+      .display_name = "Debug Controls",
+      .icon = ICON_MD_BUG_REPORT,
+      .category = "Dungeon",
+      .shortcut_hint = "Ctrl+Shift+B",
+      .visibility_flag = &show_debug_controls_,
+      .priority = 80
+  });
 }
 
 void DungeonEditorV2::Initialize() {}
@@ -304,6 +314,10 @@ void DungeonEditorV2::DrawControlPanel() {
       ImGui::TableNextColumn();
       ImGui::Checkbox("Palette", &show_palette_editor_);
       
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Checkbox("Debug", &show_debug_controls_);
+      
       ImGui::EndTable();
     }
     
@@ -367,7 +381,12 @@ void DungeonEditorV2::DrawLayout() {
     // Card handles its own closing via &show_palette_editor_ in constructor
   }
 
-  // 6. Active Room Cards (independent, dockable, tracked for jump-to)
+  // 7. Debug Controls Card (independent, dockable)
+  if (show_debug_controls_) {
+    DrawDebugControlsCard();
+  }
+
+  // 8. Active Room Cards (independent, dockable, tracked for jump-to)
   for (int i = 0; i < active_rooms_.Size; i++) {
     int room_id = active_rooms_[i];
     bool open = true;
@@ -928,6 +947,144 @@ void DungeonEditorV2::DrawRoomGraphicsCard() {
     }
   }
   graphics_card.End();
+}
+
+void DungeonEditorV2::DrawDebugControlsCard() {
+  gui::EditorCard debug_card(
+      MakeCardTitle("Debug Controls").c_str(),
+      ICON_MD_BUG_REPORT, &show_debug_controls_);
+  
+  debug_card.SetDefaultSize(350, 500);
+  
+  if (debug_card.Begin()) {
+    ImGui::TextWrapped("Runtime debug controls for development");
+    ImGui::Separator();
+    
+    // ===== LOGGING CONTROLS =====
+    ImGui::SeparatorText(ICON_MD_TERMINAL " Logging");
+    
+    bool debug_enabled = util::LogManager::instance().IsDebugEnabled();
+    if (ImGui::Checkbox("Enable DEBUG Logs", &debug_enabled)) {
+      if (debug_enabled) {
+        util::LogManager::instance().EnableDebugLogging();
+        LOG_INFO("DebugControls", "DEBUG logging ENABLED");
+      } else {
+        util::LogManager::instance().DisableDebugLogging();
+        LOG_INFO("DebugControls", "DEBUG logging DISABLED");
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Toggle LOG_DEBUG visibility\nShortcut: Ctrl+Shift+D");
+    }
+    
+    // Log level selector
+    const char* log_levels[] = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL"};
+    int current_level = static_cast<int>(util::LogManager::instance().GetLogLevel());
+    if (ImGui::Combo("Log Level", &current_level, log_levels, 5)) {
+      util::LogManager::instance().SetLogLevel(static_cast<util::LogLevel>(current_level));
+      LOG_INFO("DebugControls", "Log level set to %s", log_levels[current_level]);
+    }
+    
+    ImGui::Separator();
+    
+    // ===== ROOM RENDERING CONTROLS =====
+    ImGui::SeparatorText(ICON_MD_IMAGE " Rendering");
+    
+    if (current_room_id_ >= 0 && current_room_id_ < static_cast<int>(rooms_.size())) {
+      auto& room = rooms_[current_room_id_];
+      
+      ImGui::Text("Current Room: %03X", current_room_id_);
+      ImGui::Text("Objects: %zu", room.GetTileObjects().size());
+      ImGui::Text("Sprites: %zu", room.GetSprites().size());
+      
+      if (ImGui::Button(ICON_MD_REFRESH " Force Re-render", ImVec2(-FLT_MIN, 0))) {
+        room.LoadRoomGraphics(room.blockset);
+        room.LoadObjects();
+        room.RenderRoomGraphics();
+        LOG_INFO("DebugControls", "Forced re-render of room %03X", current_room_id_);
+      }
+      
+      if (ImGui::Button(ICON_MD_CLEANING_SERVICES " Clear Room Buffers", ImVec2(-FLT_MIN, 0))) {
+        room.ClearTileObjects();
+        LOG_INFO("DebugControls", "Cleared room %03X buffers", current_room_id_);
+      }
+      
+      ImGui::Separator();
+      
+      // Floor graphics override
+      ImGui::Text("Floor Graphics Override:");
+      uint8_t floor1 = room.floor1();
+      uint8_t floor2 = room.floor2();
+      static uint8_t floor_min = 0;
+      static uint8_t floor_max = 15;
+      if (ImGui::SliderScalar("Floor1", ImGuiDataType_U8, &floor1, &floor_min, &floor_max)) {
+        room.set_floor1(floor1);
+        if (room.rom() && room.rom()->is_loaded()) {
+          room.RenderRoomGraphics();
+        }
+      }
+      if (ImGui::SliderScalar("Floor2", ImGuiDataType_U8, &floor2, &floor_min, &floor_max)) {
+        room.set_floor2(floor2);
+        if (room.rom() && room.rom()->is_loaded()) {
+          room.RenderRoomGraphics();
+        }
+      }
+    } else {
+      ImGui::TextDisabled("No room selected");
+    }
+    
+    ImGui::Separator();
+    
+    // ===== TEXTURE CONTROLS =====
+    ImGui::SeparatorText(ICON_MD_TEXTURE " Textures");
+    
+    if (ImGui::Button(ICON_MD_DELETE_SWEEP " Process Texture Queue", ImVec2(-FLT_MIN, 0))) {
+      gfx::Arena::Get().ProcessTextureQueue(renderer_);
+      LOG_INFO("DebugControls", "Manually processed texture queue");
+    }
+    
+    // Texture stats
+    ImGui::Text("Arena Graphics Sheets: %zu", gfx::Arena::Get().gfx_sheets().size());
+    
+    ImGui::Separator();
+    
+    // ===== MEMORY CONTROLS =====
+    ImGui::SeparatorText(ICON_MD_MEMORY " Memory");
+    
+    size_t active_rooms_count = active_rooms_.Size;
+    ImGui::Text("Active Rooms: %zu", active_rooms_count);
+    ImGui::Text("Estimated Memory: ~%zu MB", active_rooms_count * 2);  // 2MB per room
+    
+    if (ImGui::Button(ICON_MD_CLOSE " Close All Rooms", ImVec2(-FLT_MIN, 0))) {
+      active_rooms_.clear();
+      room_cards_.clear();
+      LOG_INFO("DebugControls", "Closed all room cards");
+    }
+    
+    ImGui::Separator();
+    
+    // ===== QUICK ACTIONS =====
+    ImGui::SeparatorText(ICON_MD_FLASH_ON " Quick Actions");
+    
+    if (ImGui::Button(ICON_MD_SAVE " Save All Rooms", ImVec2(-FLT_MIN, 0))) {
+      auto status = Save();
+      if (status.ok()) {
+        LOG_INFO("DebugControls", "Saved all rooms");
+      } else {
+        LOG_ERROR("DebugControls", "Save failed: %s", status.message().data());
+      }
+    }
+    
+    if (ImGui::Button(ICON_MD_REPLAY " Reload Current Room", ImVec2(-FLT_MIN, 0))) {
+      if (current_room_id_ >= 0 && current_room_id_ < static_cast<int>(rooms_.size())) {
+        auto status = room_loader_.LoadRoom(current_room_id_, rooms_[current_room_id_]);
+        if (status.ok()) {
+          LOG_INFO("DebugControls", "Reloaded room %03X", current_room_id_);
+        }
+      }
+    }
+  }
+  debug_card.End();
 }
 
 void DungeonEditorV2::ProcessDeferredTextures() {

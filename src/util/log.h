@@ -62,6 +62,19 @@ class LogManager {
   void log(LogLevel level, absl::string_view category,
            absl::string_view message);
 
+  /**
+   * @brief Runtime log level control (for debug card)
+   */
+  void SetLogLevel(LogLevel level) { min_level_.store(level); }
+  LogLevel GetLogLevel() const { return min_level_.load(); }
+  
+  /**
+   * @brief Toggle debug logging on/off at runtime
+   */
+  void EnableDebugLogging() { min_level_.store(LogLevel::YAZE_DEBUG); }
+  void DisableDebugLogging() { min_level_.store(LogLevel::INFO); }
+  bool IsDebugEnabled() const { return min_level_.load() == LogLevel::YAZE_DEBUG; }
+
  private:
   LogManager();
   ~LogManager();
