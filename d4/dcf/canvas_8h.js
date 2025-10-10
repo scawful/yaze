@@ -2,6 +2,7 @@ var canvas_8h =
 [
     [ "yaze::gui::Canvas", "da/d2c/classyaze_1_1gui_1_1Canvas.html", "da/d2c/classyaze_1_1gui_1_1Canvas" ],
     [ "yaze::gui::Canvas::ContextMenuItem", "d3/df3/structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem.html", "d3/df3/structyaze_1_1gui_1_1Canvas_1_1ContextMenuItem" ],
+    [ "yaze::gui::Canvas::PopupState", "d9/d9e/structyaze_1_1gui_1_1Canvas_1_1PopupState.html", "d9/d9e/structyaze_1_1gui_1_1Canvas_1_1PopupState" ],
     [ "yaze::gui::ScopedCanvas", "da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html", "da/dbd/classyaze_1_1gui_1_1ScopedCanvas" ],
     [ "IMGUI_DEFINE_MATH_OPERATORS", "d4/dcf/canvas_8h.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "CanvasType", "d4/dcf/canvas_8h.html#a5a4fbc61ba7c366dab30da60463ee4f6", [

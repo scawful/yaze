@@ -1,9 +1,12 @@
 <map id="yaze::gui::ScopedCanvas::~ScopedCanvas" name="yaze::gui::ScopedCanvas::~ScopedCanvas">
-<area shape="rect" id="Node000001" title="Destructor automatically calls End()" alt="" coords="5,39,170,79"/>
-<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#aab73d91d9c1aef0f332a88f18d34ffbc" title="End canvas rendering (ImGui&#45;style)" alt="" coords="218,46,366,72"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,56,202,56,202,62,170,62"/>
+<area shape="rect" id="Node000001" title="Destructor automatically calls End()" alt="" coords="5,71,170,111"/>
+<area shape="rect" id="Node000002" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#aab73d91d9c1aef0f332a88f18d34ffbc" title="End canvas rendering (ImGui&#45;style)" alt="" coords="218,78,366,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="170,88,202,88,202,94,170,94"/>
 <area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="414,5,540,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="366,43,398,37,399,42,367,48"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="330,75,402,49,404,54,331,80"/>
 <area shape="rect" id="Node000009" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9" title=" " alt="" coords="414,71,540,111"/>
-<area shape="poly" id="edge3_Node000002_Node000009" title=" " alt="" coords="367,69,399,75,398,80,366,74"/>
+<area shape="poly" id="edge3_Node000002_Node000009" title=" " alt="" coords="366,88,398,88,398,94,366,94"/>
+<area shape="rect" id="Node000011" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#aa0607daca2e02a3e0fdcb7fb2c2564f9" title=" " alt="" coords="588,100,754,141"/>
+<area shape="poly" id="edge5_Node000002_Node000011" title=" " alt="" coords="334,102,414,120,495,126,573,125,573,130,495,131,414,126,333,107"/>
+<area shape="poly" id="edge4_Node000009_Node000011" title=" " alt="" coords="541,98,573,103,572,108,540,103"/>
 </map>

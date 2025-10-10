@@ -182,7 +182,7 @@ Private Attributes</h2></td></tr>
 <div class="line">    HandlePaint(canvas-&gt;drawn_tile_position());</div>
 <div class="line">  }</div>
 <div class="line">} <span class="comment">// Automatic End() and cleanup</span></div>
-<div class="ttc" id="aclassyaze_1_1gui_1_1ScopedCanvas_html"><div class="ttname"><a href="../../da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html">yaze::gui::ScopedCanvas</a></div><div class="ttdoc">RAII wrapper for Canvas (ImGui-style)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/dcf/canvas_8h_source.html#l00508">canvas.h:508</a></div></div>
+<div class="ttc" id="aclassyaze_1_1gui_1_1ScopedCanvas_html"><div class="ttname"><a href="../../da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html">yaze::gui::ScopedCanvas</a></div><div class="ttdoc">RAII wrapper for Canvas (ImGui-style)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/dcf/canvas_8h_source.html#l00521">canvas.h:521</a></div></div>
 </div><!-- fragment --><p>Or wrap existing canvas: </p><div class="fragment"><div class="line"><a class="code hl_class" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html">Canvas</a> my_canvas(<span class="stringliteral">&quot;Editor&quot;</span>);</div>
 <div class="line">{</div>
 <div class="line">  <a class="code hl_class" href="../../da/dbd/classyaze_1_1gui_1_1ScopedCanvas.html">ScopedCanvas</a> scoped(my_canvas);</div>
@@ -190,7 +190,7 @@ Private Attributes</h2></td></tr>
 <div class="line">} <span class="comment">// Automatic End()</span></div>
 <div class="ttc" id="aclassyaze_1_1gui_1_1Canvas_html"><div class="ttname"><a href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html">yaze::gui::Canvas</a></div><div class="ttdoc">Modern, robust canvas for drawing and manipulating graphics.</div><div class="ttdef"><b>Definition</b> <a href="../../d4/dcf/canvas_8h_source.html#l00054">canvas.h:54</a></div></div>
 </div><!-- fragment --> 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00508">508</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00521">521</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a0157402b619ded25e1cd77b96f6d30b9" name="a0157402b619ded25e1cd77b96f6d30b9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0157402b619ded25e1cd77b96f6d30b9">&#9670;&#160;</a></span>ScopedCanvas() <span class="overload">[1/5]</span></h2>
@@ -228,9 +228,9 @@ Private Attributes</h2></td></tr>
 
 <p>Construct and begin a new canvas (legacy constructor without renderer) </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00513">513</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00526">526</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00344">yaze::gui::Canvas::Begin()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00575">canvas_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00338">yaze::gui::Canvas::Begin()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00588">canvas_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -293,9 +293,9 @@ Here is the call graph for this function:</div>
 
 <p>Construct and begin a new canvas (with optional renderer) </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00521">521</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00534">534</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00344">yaze::gui::Canvas::Begin()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00575">canvas_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00338">yaze::gui::Canvas::Begin()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00588">canvas_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -342,9 +342,9 @@ Here is the call graph for this function:</div>
 
 <p>Wrap existing canvas with RAII. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00529">529</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00542">542</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00344">yaze::gui::Canvas::Begin()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00575">canvas_</a>.</p>
+<p class="reference">References <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00338">yaze::gui::Canvas::Begin()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00588">canvas_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -390,21 +390,24 @@ Here is the call graph for this function:</div>
 
 <p>Destructor automatically calls End() </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00537">537</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00550">550</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00577">active_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00575">canvas_</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00350">yaze::gui::Canvas::End()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00576">owned_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00590">active_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00588">canvas_</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00344">yaze::gui::Canvas::End()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00589">owned_</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../da/dbd/classyaze_1_1gui_1_1ScopedCanvas_a0b0f71755ce4acadbcb04e7b4d7272ca_cgraph.png" border="0" usemap="#ada/dbd/classyaze_1_1gui_1_1ScopedCanvas_a0b0f71755ce4acadbcb04e7b4d7272ca_cgraph" alt=""/></div>
 <map name="ada/dbd/classyaze_1_1gui_1_1ScopedCanvas_a0b0f71755ce4acadbcb04e7b4d7272ca_cgraph" id="ada/dbd/classyaze_1_1gui_1_1ScopedCanvas_a0b0f71755ce4acadbcb04e7b4d7272ca_cgraph">
-<area shape="rect" title="Destructor automatically calls End()" alt="" coords="5,39,170,79"/>
-<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#aab73d91d9c1aef0f332a88f18d34ffbc" title="End canvas rendering (ImGui&#45;style)" alt="" coords="218,46,366,72"/>
-<area shape="poly" title=" " alt="" coords="170,56,202,56,202,62,170,62"/>
+<area shape="rect" title="Destructor automatically calls End()" alt="" coords="5,71,170,111"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#aab73d91d9c1aef0f332a88f18d34ffbc" title="End canvas rendering (ImGui&#45;style)" alt="" coords="218,78,366,104"/>
+<area shape="poly" title=" " alt="" coords="170,88,202,88,202,94,170,94"/>
 <area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#aecc92f45938fcabafd8f9ef09ab8de93" title=" " alt="" coords="414,5,540,46"/>
-<area shape="poly" title=" " alt="" coords="366,43,398,37,399,42,367,48"/>
+<area shape="poly" title=" " alt="" coords="330,75,402,49,404,54,331,80"/>
 <area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a3849de72628476b91c0ee7d2711aacb9" title=" " alt="" coords="414,71,540,111"/>
-<area shape="poly" title=" " alt="" coords="367,69,399,75,398,80,366,74"/>
+<area shape="poly" title=" " alt="" coords="366,88,398,88,398,94,366,94"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#aa0607daca2e02a3e0fdcb7fb2c2564f9" title=" " alt="" coords="588,100,754,141"/>
+<area shape="poly" title=" " alt="" coords="334,102,414,120,495,126,573,125,573,130,495,131,414,126,333,107"/>
+<area shape="poly" title=" " alt="" coords="541,98,573,103,572,108,540,103"/>
 </map>
 </div>
 
@@ -460,7 +463,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00550">550</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00563">563</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
 </div>
 </div>
@@ -516,9 +519,9 @@ Here is the call graph for this function:</div>
 
 <p>Arrow operator for clean syntax: scoped-&gt;DrawBitmap(...) </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00559">559</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00572">572</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00575">canvas_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00588">canvas_</a>.</p>
 
 </div>
 </div>
@@ -545,9 +548,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00560">560</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00573">573</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00575">canvas_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00588">canvas_</a>.</p>
 
 </div>
 </div>
@@ -576,9 +579,9 @@ Here is the call graph for this function:</div>
 
 <p>Dereference operator for direct access: (*scoped).DrawBitmap(...) </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00565">565</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00578">578</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00575">canvas_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00588">canvas_</a>.</p>
 
 </div>
 </div>
@@ -605,9 +608,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00566">566</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00579">579</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00575">canvas_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00588">canvas_</a>.</p>
 
 </div>
 </div>
@@ -636,9 +639,9 @@ Here is the call graph for this function:</div>
 
 <p>Get underlying canvas. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00571">571</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00584">584</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00575">canvas_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00588">canvas_</a>.</p>
 
 </div>
 </div>
@@ -665,9 +668,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00572">572</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00585">585</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00575">canvas_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00588">canvas_</a>.</p>
 
 </div>
 </div>
@@ -692,9 +695,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00575">575</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00588">588</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00571">get()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00572">get()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00565">operator*()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00566">operator*()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00559">operator-&gt;()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00560">operator-&gt;()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00529">ScopedCanvas()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00513">ScopedCanvas()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00521">ScopedCanvas()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00537">~ScopedCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00584">get()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00585">get()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00578">operator*()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00579">operator*()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00572">operator-&gt;()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00573">operator-&gt;()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00542">ScopedCanvas()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00526">ScopedCanvas()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00534">ScopedCanvas()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00550">~ScopedCanvas()</a>.</p>
 
 </div>
 </div>
@@ -718,9 +721,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00576">576</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00589">589</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00537">~ScopedCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00550">~ScopedCanvas()</a>.</p>
 
 </div>
 </div>
@@ -744,9 +747,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00577">577</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00590">590</a> of file <a class="el" href="../../d4/dcf/canvas_8h_source.html">canvas.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00537">~ScopedCanvas()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00550">~ScopedCanvas()</a>.</p>
 
 </div>
 </div>

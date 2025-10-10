@@ -1,5 +1,7 @@
 <map id="yaze::gui::Canvas::DrawOverlay" name="yaze::gui::Canvas::DrawOverlay">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,132,46"/>
-<area shape="rect" id="Node000002" href="$d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a3179a79f843f6076dbf595c97da7342c" title=" " alt="" coords="180,5,327,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,23,164,23,164,28,132,28"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,132,79"/>
+<area shape="rect" id="Node000002" href="$d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#a3179a79f843f6076dbf595c97da7342c" title=" " alt="" coords="189,5,336,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,46,173,38,174,44,132,51"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#aa0607daca2e02a3e0fdcb7fb2c2564f9" title=" " alt="" coords="180,71,345,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="132,67,165,72,164,77,131,72"/>
 </map>

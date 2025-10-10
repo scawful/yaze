@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,72,181,113"/>
 <area shape="rect" id="Node000002" href="$d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#ad5e66e0318966b1e82f9199ebe21c56b" title=" " alt="" coords="229,39,421,79"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="181,77,213,72,214,78,181,82"/>
-<area shape="rect" id="Node000097" href="$d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a3a9af7d66f11092b7ab6b47389444868" title=" " alt="" coords="237,104,413,145"/>
-<area shape="poly" id="edge4_Node000001_Node000097" title=" " alt="" coords="181,102,222,107,221,113,181,107"/>
-<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#af6e63266dd0eadae56bb7de3cd09972a" title=" " alt="" coords="514,5,660,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="421,44,498,34,499,40,422,49"/>
-<area shape="rect" id="Node000004" href="$d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#aeaea9f1de30e0936b6e73524e4746bd9" title=" " alt="" coords="469,71,705,111"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="422,68,454,72,453,77,421,73"/>
+<area shape="rect" id="Node000093" href="$d6/d60/classyaze_1_1editor_1_1DungeonRoomLoader.html#a3a9af7d66f11092b7ab6b47389444868" title=" " alt="" coords="237,104,413,145"/>
+<area shape="poly" id="edge4_Node000001_Node000093" title=" " alt="" coords="181,102,222,107,221,113,181,107"/>
+<area shape="rect" id="Node000003" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#af6e63266dd0eadae56bb7de3cd09972a" title=" " alt="" coords="469,5,615,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="421,42,454,37,454,42,422,47"/>
+<area shape="rect" id="Node000004" href="$da/d2c/classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="479,71,605,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="422,71,464,77,463,82,421,76"/>
 </map>

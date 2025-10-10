@@ -112,27 +112,11 @@ $(document).ready(function(){initNavTree('d2/de7/classyaze_1_1editor_1_1DungeonC
  <a href="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>&gt;</code></p>
-<div class="dynheader">
-Collaboration diagram for yaze::editor::DungeonCanvasViewer:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d2/d8a/classyaze_1_1editor_1_1DungeonCanvasViewer__coll__graph.png" border="0" usemap="#ayaze_1_1editor_1_1DungeonCanvasViewer_coll__map" alt="Collaboration graph"/></div>
-<map name="ayaze_1_1editor_1_1DungeonCanvasViewer_coll__map" id="ayaze_1_1editor_1_1DungeonCanvasViewer_coll__map">
-<area shape="rect" title="Handles the main dungeon canvas rendering and interaction." alt="" coords="749,49,936,90"/>
-<area shape="rect" href="../../d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="5,12,86,37"/>
-<area shape="poly" title=" " alt="" coords="101,16,110,15,142,15,434,18,562,25,726,43,749,47,749,52,725,48,562,30,434,24,142,20,110,20,101,21"/>
-<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html" title="Modern, robust canvas for drawing and manipulating graphics." alt="" coords="166,38,286,64"/>
-<area shape="poly" title=" " alt="" coords="102,30,166,39,165,45,101,35"/>
-<area shape="poly" title=" " alt="" coords="302,51,749,64,749,70,302,56"/>
-<area shape="rect" href="../../d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html" title="Handles object selection, placement, and interaction within the dungeon canvas." alt="" coords="386,99,566,139"/>
-<area shape="poly" title=" " alt="" coords="272,68,311,82,386,101,385,106,309,87,270,73"/>
-<area shape="poly" title=" " alt="" coords="581,102,749,80,749,85,582,107"/>
-<area shape="rect" href="../../d1/dec/structyaze_1_1gfx_1_1PaletteGroup.html" title="Represents a group of palettes." alt="" coords="400,164,552,189"/>
-<area shape="poly" title=" " alt="" coords="567,160,644,144,724,122,802,88,804,93,726,127,646,150,568,165"/>
-</map>
-<center><span class="legend">[<a target="top" href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/d7c/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1ObjectOutlineToggles.html">ObjectOutlineToggles</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dbd/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1ObjectRenderCache.html">ObjectRenderCache</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d1/d23/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1RoomLayerSettings.html">RoomLayerSettings</a></td></tr>
@@ -242,12 +226,22 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ade7f5eb28c9ac068128a0f80c3920518"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a76b740cd8b59ef14cc26cda74030cbfc" id="r_a76b740cd8b59ef14cc26cda74030cbfc"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a76b740cd8b59ef14cc26cda74030cbfc">last_palette_hash_</a> = 0</td></tr>
 <tr class="separator:a76b740cd8b59ef14cc26cda74030cbfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f73be7c844ffd21baaa8b4cec30d91f" id="r_a2f73be7c844ffd21baaa8b4cec30d91f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a2f73be7c844ffd21baaa8b4cec30d91f">show_room_debug_info_</a> = false</td></tr>
+<tr class="separator:a2f73be7c844ffd21baaa8b4cec30d91f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7c364a2ec56be1cbd315c53eab74836" id="r_ae7c364a2ec56be1cbd315c53eab74836"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#ae7c364a2ec56be1cbd315c53eab74836">show_texture_debug_</a> = false</td></tr>
+<tr class="separator:ae7c364a2ec56be1cbd315c53eab74836"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a197c4d3153fed6821d1877c72c439156" id="r_a197c4d3153fed6821d1877c72c439156"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a197c4d3153fed6821d1877c72c439156">show_object_bounds_</a> = false</td></tr>
+<tr class="separator:a197c4d3153fed6821d1877c72c439156"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a162e256a278b58501b577deaad3a0143" id="r_a162e256a278b58501b577deaad3a0143"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a162e256a278b58501b577deaad3a0143">show_layer_info_</a> = false</td></tr>
+<tr class="separator:a162e256a278b58501b577deaad3a0143"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2484c6fdee2efc280549dec64002204c" id="r_a2484c6fdee2efc280549dec64002204c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d8/d7c/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1ObjectOutlineToggles.html">ObjectOutlineToggles</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a2484c6fdee2efc280549dec64002204c">object_outline_toggles_</a></td></tr>
+<tr class="separator:a2484c6fdee2efc280549dec64002204c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Handles the main dungeon canvas rendering and interaction. </p>
 <p>In Link to the Past, dungeon "layers" are not separate visual layers but a game concept where objects exist on different logical levels. Players move between these levels using stair objects that act as transitions between the different object planes. </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00025">25</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00024">24</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a7542b525ceda3c877c9f190b1a829ca1" name="a7542b525ceda3c877c9f190b1a829ca1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7542b525ceda3c877c9f190b1a829ca1">&#9670;&#160;</a></span>DungeonCanvasViewer()</h2>
@@ -273,7 +267,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00027">27</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00026">26</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
 </div>
 </div>
@@ -297,7 +291,7 @@ Private Attributes</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">21</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00597">yaze::gui::Canvas::AddContextMenuItem()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00117">canvas_</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00103">yaze::editor::DungeonObjectInteraction::CheckForObjectSelection()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00601">yaze::gui::Canvas::ClearContextMenuItems()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00384">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00435">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01312">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00498">DrawObjectPositionOutlines()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01339">yaze::gui::Canvas::DrawOverlay()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00608">DrawRoomBackgroundLayers()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00440">DrawRoomLayout()</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00263">yaze::editor::DungeonObjectInteraction::DrawSelectBox()</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00183">yaze::editor::DungeonObjectInteraction::DrawSelectionHighlights()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01260">yaze::gui::Canvas::DrawText()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00139">GetRoomLayerSettings()</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00009">yaze::editor::DungeonObjectInteraction::HandleCanvasMouseInput()</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00433">yaze::editor::DungeonObjectInteraction::HandleDeleteSelected()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00344">yaze::gui::Canvas::height()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00528">ICON_MD_DELETE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00189">yaze::gui::InputHexByte()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00175">yaze::gui::InputHexWord()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00557">LoadAndRenderRoomGraphics()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00119">object_interaction_</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00128">object_interaction_enabled_</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00036">yaze::gfx::Arena::ProcessTextureQueue()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00318">RenderSprites()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">rom_</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00122">rooms_</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00375">yaze::editor::DungeonObjectInteraction::SetCurrentRoom()</a>, and <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00392">yaze::editor::DungeonObjectInteraction::ShowContextMenu()</a>.</p>
+<p class="reference">References <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00603">yaze::gui::Canvas::AddContextMenuItem()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00155">yaze::gui::Canvas::ContextMenuItem::callback</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">canvas_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00314">yaze::gui::Canvas::canvas_size()</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00103">yaze::editor::DungeonObjectInteraction::CheckForObjectSelection()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00607">yaze::gui::Canvas::ClearContextMenuItems()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00347">yaze::gui::Canvas::custom_step()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00381">yaze::gui::Canvas::DrawBackground()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00432">yaze::gui::Canvas::DrawContextMenu()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01376">yaze::gui::Canvas::DrawGrid()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00752">DrawObjectPositionOutlines()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01403">yaze::gui::Canvas::DrawOverlay()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00878">DrawRoomBackgroundLayers()</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00263">yaze::editor::DungeonObjectInteraction::DrawSelectBox()</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00183">yaze::editor::DungeonObjectInteraction::DrawSelectionHighlights()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01324">yaze::gui::Canvas::DrawText()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00156">yaze::gui::Canvas::ContextMenuItem::enabled_condition</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00138">GetRoomLayerSettings()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00345">yaze::gui::Canvas::global_scale()</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00009">yaze::editor::DungeonObjectInteraction::HandleCanvasMouseInput()</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00433">yaze::editor::DungeonObjectInteraction::HandleDeleteSelected()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00349">yaze::gui::Canvas::height()</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00084">ICON_MD_ADD</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00325">ICON_MD_BUG_REPORT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00498">ICON_MD_CROP_SQUARE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00528">ICON_MD_DELETE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00980">ICON_MD_IMAGE</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l00991">ICON_MD_INFO</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01066">ICON_MD_LAYERS</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01513">ICON_MD_PRINT</a>, <a class="el" href="../../de/dbf/icons_8h_source.html#l01570">ICON_MD_REFRESH</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00189">yaze::gui::InputHexByte()</a>, <a class="el" href="../../de/d4c/input_8cc_source.html#l00175">yaze::gui::InputHexWord()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d3/dbf/namespaceyaze_1_1gui.html#aa7b9cc1741455bb4ffc5ba758912a465a11a498cf7cb38eb25f54cb73197524f9">yaze::gui::k8x8</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00153">yaze::gui::Canvas::ContextMenuItem::label</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00827">LoadAndRenderRoomGraphics()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00118">object_interaction_</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00127">object_interaction_enabled_</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00173">object_outline_toggles_</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00036">yaze::gfx::Arena::ProcessTextureQueue()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00573">RenderSprites()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00115">rom_</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00121">rooms_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00325">yaze::gui::Canvas::SetCanvasSize()</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00375">yaze::editor::DungeonObjectInteraction::SetCurrentRoom()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00077">yaze::gui::Canvas::SetGridSize()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00169">yaze::editor::DungeonCanvasViewer::ObjectOutlineToggles::show_layer0_objects</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00170">yaze::editor::DungeonCanvasViewer::ObjectOutlineToggles::show_layer1_objects</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00171">yaze::editor::DungeonCanvasViewer::ObjectOutlineToggles::show_layer2_objects</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00162">show_layer_info_</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00161">show_object_bounds_</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00159">show_room_debug_info_</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00160">show_texture_debug_</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00166">yaze::editor::DungeonCanvasViewer::ObjectOutlineToggles::show_type1_objects</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00167">yaze::editor::DungeonCanvasViewer::ObjectOutlineToggles::show_type2_objects</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00168">yaze::editor::DungeonCanvasViewer::ObjectOutlineToggles::show_type3_objects</a>, <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00392">yaze::editor::DungeonObjectInteraction::ShowContextMenu()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00157">yaze::gui::Canvas::ContextMenuItem::subitems</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00348">yaze::gui::Canvas::width()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00310">yaze::gui::Canvas::zero_point()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00017">Draw()</a>, and <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00437">yaze::editor::DungeonEditorV2::DrawRoomTab()</a>.</p>
 
@@ -332,10 +326,10 @@ Here is the call graph for this function:</div>
 <area shape="poly" title=" " alt="" coords="192,88,224,88,224,94,192,94"/>
 <area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#af6e63266dd0eadae56bb7de3cd09972a" title=" " alt="" coords="525,5,671,46"/>
 <area shape="poly" title=" " alt="" coords="420,67,509,45,510,50,421,73"/>
-<area shape="rect" href="../../d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#aeaea9f1de30e0936b6e73524e4746bd9" title=" " alt="" coords="480,71,716,111"/>
-<area shape="poly" title=" " alt="" coords="432,88,464,88,464,94,432,94"/>
-<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a74827d7e0b23e8ac44c3d491c2ae17ac" title=" " alt="" coords="518,136,678,177"/>
-<area shape="poly" title=" " alt="" coords="421,109,504,130,502,135,420,115"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a96755cc4cc8e256b44751c6ab4c50c36" title=" " alt="" coords="535,71,661,111"/>
+<area shape="poly" title=" " alt="" coords="432,88,519,88,519,94,432,94"/>
+<area shape="rect" href="../../d1/d22/classyaze_1_1editor_1_1DungeonObjectInteraction.html#aeaea9f1de30e0936b6e73524e4746bd9" title=" " alt="" coords="480,136,716,177"/>
+<area shape="poly" title=" " alt="" coords="421,109,500,129,498,134,420,115"/>
 </map>
 </div>
 
@@ -365,9 +359,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00034">34</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00033">33</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00037">rom()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">rom_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00036">rom()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00115">rom_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d7/d77/dungeon__editor__v2_8h_source.html#l00068">yaze::editor::DungeonEditorV2::set_rom()</a>.</p>
 <div class="dynheader">
@@ -406,11 +400,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00037">37</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00036">36</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">rom_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00115">rom_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00034">SetRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00033">SetRom()</a>.</p>
 
 </div>
 </div>
@@ -438,9 +432,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00040">40</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00039">39</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00122">rooms_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00121">rooms_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00115">yaze::editor::DungeonEditorV2::Load()</a>.</p>
 
@@ -470,9 +464,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00042">42</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00041">41</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00124">active_rooms_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00123">active_rooms_</a>.</p>
 
 </div>
 </div>
@@ -500,9 +494,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00043">43</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00042">42</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00125">current_active_room_tab_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00124">current_active_room_tab_</a>.</p>
 
 </div>
 </div>
@@ -530,9 +524,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00046">46</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00045">45</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00144">current_palette_group_id_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00143">current_palette_group_id_</a>.</p>
 
 </div>
 </div>
@@ -560,9 +554,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00047">47</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00046">46</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00145">current_palette_id_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00144">current_palette_id_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00115">yaze::editor::DungeonEditorV2::Load()</a>.</p>
 
@@ -592,9 +586,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00048">48</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00047">47</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00146">current_palette_group_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00145">current_palette_group_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc_source.html#l00115">yaze::editor::DungeonEditorV2::Load()</a>.</p>
 
@@ -623,9 +617,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00051">51</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00050">50</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00117">canvas_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">canvas_</a>.</p>
 
 </div>
 </div>
@@ -652,9 +646,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00052">52</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00051">51</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00117">canvas_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">canvas_</a>.</p>
 
 </div>
 </div>
@@ -681,9 +675,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00055">55</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00054">54</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00119">object_interaction_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00118">object_interaction_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00270">yaze::editor::ObjectEditorCard::DrawSelectedObjectInfo()</a>.</p>
 
@@ -713,9 +707,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00058">58</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00057">57</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00128">object_interaction_enabled_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00127">object_interaction_enabled_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00016">yaze::editor::ObjectEditorCard::Draw()</a>, and <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00081">yaze::editor::ObjectEditorCard::DrawObjectSelector()</a>.</p>
 
@@ -744,9 +738,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00059">59</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00058">58</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00128">object_interaction_enabled_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00127">object_interaction_enabled_</a>.</p>
 
 </div>
 </div>
@@ -784,9 +778,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00062">62</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00061">61</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00132">yaze::editor::DungeonCanvasViewer::RoomLayerSettings::bg1_visible</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00139">GetRoomLayerSettings()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00131">yaze::editor::DungeonCanvasViewer::RoomLayerSettings::bg1_visible</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00138">GetRoomLayerSettings()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -834,9 +828,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00065">65</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00064">64</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00133">yaze::editor::DungeonCanvasViewer::RoomLayerSettings::bg2_visible</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00139">GetRoomLayerSettings()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00132">yaze::editor::DungeonCanvasViewer::RoomLayerSettings::bg2_visible</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00138">GetRoomLayerSettings()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -874,9 +868,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00068">68</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00067">67</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00136">room_layer_settings_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00135">room_layer_settings_</a>.</p>
 
 </div>
 </div>
@@ -904,9 +898,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00072">72</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00071">71</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00136">room_layer_settings_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00135">room_layer_settings_</a>.</p>
 
 </div>
 </div>
@@ -944,9 +938,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00078">78</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00077">77</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00134">yaze::editor::DungeonCanvasViewer::RoomLayerSettings::bg2_layer_type</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00139">GetRoomLayerSettings()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00133">yaze::editor::DungeonCanvasViewer::RoomLayerSettings::bg2_layer_type</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00138">GetRoomLayerSettings()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -984,9 +978,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00081">81</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00080">80</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00136">room_layer_settings_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00135">room_layer_settings_</a>.</p>
 
 </div>
 </div>
@@ -1014,9 +1008,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00087">87</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00086">86</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00119">object_interaction_</a>, and <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00380">yaze::editor::DungeonObjectInteraction::SetPreviewObject()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00118">object_interaction_</a>, and <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00380">yaze::editor::DungeonObjectInteraction::SetPreviewObject()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00016">yaze::editor::ObjectEditorCard::Draw()</a>, and <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00081">yaze::editor::ObjectEditorCard::DrawObjectSelector()</a>.</p>
 <div class="dynheader">
@@ -1055,9 +1049,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00090">90</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00089">89</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00119">object_interaction_</a>, and <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00380">yaze::editor::DungeonObjectInteraction::SetPreviewObject()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00118">object_interaction_</a>, and <a class="el" href="../../d8/d1f/dungeon__object__interaction_8cc_source.html#l00380">yaze::editor::DungeonObjectInteraction::SetPreviewObject()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00016">yaze::editor::ObjectEditorCard::Draw()</a>, and <a class="el" href="../../d3/d91/object__editor__card_8cc_source.html#l00081">yaze::editor::ObjectEditorCard::DrawObjectSelector()</a>.</p>
 <div class="dynheader">
@@ -1113,16 +1107,16 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00308">308</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00563">563</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00117">canvas_</a>, and <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01260">yaze::gui::Canvas::DrawText()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">canvas_</a>, and <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01324">yaze::gui::Canvas::DrawText()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_afdc313f9d759216613f5674e21860a9a_cgraph.png" border="0" usemap="#ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_afdc313f9d759216613f5674e21860a9a_cgraph" alt=""/></div>
 <map name="ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_afdc313f9d759216613f5674e21860a9a_cgraph" id="ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_afdc313f9d759216613f5674e21860a9a_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,192,46"/>
-<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#aa00df536b73c6142cdf6d25b4310490d" title=" " alt="" coords="240,5,366,46"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#aefabe74d546f971367a04b171e660645" title=" " alt="" coords="240,5,366,46"/>
 <area shape="poly" title=" " alt="" coords="192,23,224,23,224,28,192,28"/>
 <area shape="rect" href="../../d5/d08/namespaceyaze_1_1gui_1_1CanvasUtils.html#ac0910f171a77137f82396c45cb1b02cc" title=" " alt="" coords="414,5,561,46"/>
 <area shape="poly" title=" " alt="" coords="366,23,399,23,399,28,366,28"/>
@@ -1155,9 +1149,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00318">318</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00573">573</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00117">canvas_</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01255">yaze::gui::Canvas::DrawRect()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01260">yaze::gui::Canvas::DrawText()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00207">yaze::zelda3::Room::GetSprites()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00393">IsWithinCanvasBounds()</a>, and <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00365">RoomToCanvasCoordinates()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">canvas_</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01319">yaze::gui::Canvas::DrawRect()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01324">yaze::gui::Canvas::DrawText()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00207">yaze::zelda3::Room::GetSprites()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00649">IsWithinCanvasBounds()</a>, and <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00620">RoomToCanvasCoordinates()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>.</p>
 
@@ -1197,23 +1191,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00365">365</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00620">620</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00117">canvas_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00308">yaze::gui::Canvas::drawn_tile_position()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00340">yaze::gui::Canvas::global_scale()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00498">DrawObjectPositionOutlines()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00440">DrawRoomLayout()</a>, and <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00318">RenderSprites()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_a13fe086070d63616d7338f29fee19ecb_cgraph.png" border="0" usemap="#ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_a13fe086070d63616d7338f29fee19ecb_cgraph" alt=""/></div>
-<map name="ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_a13fe086070d63616d7338f29fee19ecb_cgraph" id="ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_a13fe086070d63616d7338f29fee19ecb_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,235,79"/>
-<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a49545e3d19ee62eaa59f0bdd7495d719" title=" " alt="" coords="283,5,415,46"/>
-<area shape="poly" title=" " alt="" coords="235,40,267,35,268,40,235,45"/>
-<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e" title=" " alt="" coords="286,71,412,111"/>
-<area shape="poly" title=" " alt="" coords="235,72,271,77,270,83,235,78"/>
-</map>
-</div>
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00752">DrawObjectPositionOutlines()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00696">DrawRoomLayout()</a>, and <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00573">RenderSprites()</a>.</p>
 
 </div>
 </div>
@@ -1251,19 +1231,17 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00378">378</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00631">631</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00117">canvas_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00308">yaze::gui::Canvas::drawn_tile_position()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00340">yaze::gui::Canvas::global_scale()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">canvas_</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00345">yaze::gui::Canvas::global_scale()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_a07a1bd1cbd790be6b8babf9cbeaeee44_cgraph.png" border="0" usemap="#ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_a07a1bd1cbd790be6b8babf9cbeaeee44_cgraph" alt=""/></div>
 <map name="ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_a07a1bd1cbd790be6b8babf9cbeaeee44_cgraph" id="ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_a07a1bd1cbd790be6b8babf9cbeaeee44_cgraph">
-<area shape="rect" title=" " alt="" coords="5,39,235,79"/>
-<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a49545e3d19ee62eaa59f0bdd7495d719" title=" " alt="" coords="283,5,415,46"/>
-<area shape="poly" title=" " alt="" coords="235,40,267,35,268,40,235,45"/>
-<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e" title=" " alt="" coords="286,71,412,111"/>
-<area shape="poly" title=" " alt="" coords="235,72,271,77,270,83,235,78"/>
+<area shape="rect" title=" " alt="" coords="5,5,235,46"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e" title=" " alt="" coords="283,5,409,46"/>
+<area shape="poly" title=" " alt="" coords="235,23,267,23,267,28,235,28"/>
 </map>
 </div>
 
@@ -1309,23 +1287,21 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00393">393</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00649">649</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00117">canvas_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00340">yaze::gui::Canvas::global_scale()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00344">yaze::gui::Canvas::height()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00343">yaze::gui::Canvas::width()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">canvas_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00349">yaze::gui::Canvas::height()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00348">yaze::gui::Canvas::width()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00318">RenderSprites()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00573">RenderSprites()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_acee2e7d7b4e75a7009c33e6d4c0775b7_cgraph.png" border="0" usemap="#ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_acee2e7d7b4e75a7009c33e6d4c0775b7_cgraph" alt=""/></div>
 <map name="ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_acee2e7d7b4e75a7009c33e6d4c0775b7_cgraph" id="ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_acee2e7d7b4e75a7009c33e6d4c0775b7_cgraph">
-<area shape="rect" title=" " alt="" coords="5,71,208,111"/>
-<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a26794e293b9d996abc70409d6aebfd8e" title=" " alt="" coords="256,5,382,46"/>
-<area shape="poly" title=" " alt="" coords="174,68,240,47,241,52,176,73"/>
-<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd" title=" " alt="" coords="256,71,382,111"/>
-<area shape="poly" title=" " alt="" coords="208,88,240,88,240,94,208,94"/>
-<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a5b4af30b100372bf2f0e388b1c878d7b" title=" " alt="" coords="256,136,382,177"/>
-<area shape="poly" title=" " alt="" coords="176,109,241,130,240,135,174,114"/>
+<area shape="rect" title=" " alt="" coords="5,39,208,79"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a138ae62c6eb5f771385aa7e6b2f8ebbd" title=" " alt="" coords="256,5,382,46"/>
+<area shape="poly" title=" " alt="" coords="207,40,240,35,241,41,208,46"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a5b4af30b100372bf2f0e388b1c878d7b" title=" " alt="" coords="256,71,382,111"/>
+<area shape="poly" title=" " alt="" coords="208,72,241,77,240,82,207,77"/>
 </map>
 </div>
 
@@ -1371,7 +1347,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00403">403</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00659">659</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
 
 </div>
 </div>
@@ -1399,11 +1375,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00440">440</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00696">696</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00117">canvas_</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01255">yaze::gui::Canvas::DrawRect()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01260">yaze::gui::Canvas::DrawText()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00203">yaze::zelda3::Room::GetLayout()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00340">yaze::gui::Canvas::global_scale()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00309">yaze::zelda3::Room::id()</a>, <a class="el" href="../../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6a526a337af6afefe6cf6d05621e210b7a">yaze::zelda3::RoomLayoutObject::kDoor</a>, <a class="el" href="../../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6a219dd653185709793daafbe7cb7ca474">yaze::zelda3::RoomLayoutObject::kFloor</a>, <a class="el" href="../../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6a8fc60d0a38021aee81f0091e49b4f235">yaze::zelda3::RoomLayoutObject::kPit</a>, <a class="el" href="../../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6a2665c41e731bd4e0df09ee63e7b2d6b7">yaze::zelda3::RoomLayoutObject::kWall</a>, <a class="el" href="../../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6ac62fe38170fa243eb438cdf6fbd1a752">yaze::zelda3::RoomLayoutObject::kWater</a>, <a class="el" href="../../da/d12/room__layout_8cc_source.html#l00077">yaze::zelda3::RoomLayout::LoadLayout()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, and <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00365">RoomToCanvasCoordinates()</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">canvas_</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01319">yaze::gui::Canvas::DrawRect()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01324">yaze::gui::Canvas::DrawText()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00203">yaze::zelda3::Room::GetLayout()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00309">yaze::zelda3::Room::id()</a>, <a class="el" href="../../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6a526a337af6afefe6cf6d05621e210b7a">yaze::zelda3::RoomLayoutObject::kDoor</a>, <a class="el" href="../../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6a219dd653185709793daafbe7cb7ca474">yaze::zelda3::RoomLayoutObject::kFloor</a>, <a class="el" href="../../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6a8fc60d0a38021aee81f0091e49b4f235">yaze::zelda3::RoomLayoutObject::kPit</a>, <a class="el" href="../../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6a2665c41e731bd4e0df09ee63e7b2d6b7">yaze::zelda3::RoomLayoutObject::kWall</a>, <a class="el" href="../../d0/d52/classyaze_1_1zelda3_1_1RoomLayoutObject.html#a0d7a500a04a7fa85cdd5630173d349b6ac62fe38170fa243eb438cdf6fbd1a752">yaze::zelda3::RoomLayoutObject::kWater</a>, <a class="el" href="../../da/d12/room__layout_8cc_source.html#l00077">yaze::zelda3::RoomLayout::LoadLayout()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, and <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00620">RoomToCanvasCoordinates()</a>.</p>
 
 </div>
 </div>
@@ -1431,11 +1405,27 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00498">498</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00752">752</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00117">canvas_</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01255">yaze::gui::Canvas::DrawRect()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01260">yaze::gui::Canvas::DrawText()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00220">yaze::zelda3::Room::GetTileObjects()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00340">yaze::gui::Canvas::global_scale()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, and <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00365">RoomToCanvasCoordinates()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">canvas_</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01319">yaze::gui::Canvas::DrawRect()</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01324">yaze::gui::Canvas::DrawText()</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00220">yaze::zelda3::Room::GetTileObjects()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00173">object_outline_toggles_</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00620">RoomToCanvasCoordinates()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00169">yaze::editor::DungeonCanvasViewer::ObjectOutlineToggles::show_layer0_objects</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00170">yaze::editor::DungeonCanvasViewer::ObjectOutlineToggles::show_layer1_objects</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00171">yaze::editor::DungeonCanvasViewer::ObjectOutlineToggles::show_layer2_objects</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00166">yaze::editor::DungeonCanvasViewer::ObjectOutlineToggles::show_type1_objects</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00167">yaze::editor::DungeonCanvasViewer::ObjectOutlineToggles::show_type2_objects</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00168">yaze::editor::DungeonCanvasViewer::ObjectOutlineToggles::show_type3_objects</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_a751e66013cf1eace0a0241ebca80e3cd_cgraph.png" border="0" usemap="#ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_a751e66013cf1eace0a0241ebca80e3cd_cgraph" alt=""/></div>
+<map name="ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_a751e66013cf1eace0a0241ebca80e3cd_cgraph" id="ad2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer_a751e66013cf1eace0a0241ebca80e3cd_cgraph">
+<area shape="rect" title=" " alt="" coords="5,104,236,145"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#a790f3ebecc655c19929d6ede556e1fc1" title=" " alt="" coords="335,5,462,46"/>
+<area shape="poly" title=" " alt="" coords="169,101,283,56,320,45,321,50,285,62,171,106"/>
+<area shape="rect" href="../../da/d2c/classyaze_1_1gui_1_1Canvas.html#aefabe74d546f971367a04b171e660645" title=" " alt="" coords="335,71,462,111"/>
+<area shape="poly" title=" " alt="" coords="236,108,319,98,320,103,236,113"/>
+<area shape="rect" href="../../d7/df6/classyaze_1_1zelda3_1_1Room.html#ab7b4c76096de98200c784a447d2051e6" title=" " alt="" coords="333,136,464,177"/>
+<area shape="poly" title=" " alt="" coords="236,135,318,144,317,150,236,140"/>
+<area shape="rect" href="../../d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a13fe086070d63616d7338f29fee19ecb" title=" " alt="" coords="284,201,513,242"/>
+<area shape="poly" title=" " alt="" coords="172,143,285,186,309,194,307,199,283,191,170,148"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -1463,9 +1453,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00557">557</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00827">827</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../de/d89/snes__palette_8cc_source.html#l00321">yaze::gfx::CreatePaletteGroupFromLargePalette()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00146">current_palette_group_</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00144">current_palette_group_id_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00212">yaze::Rom::palette_group()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00227">yaze::Rom::paletteset_ids</a>, <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00665">yaze::Rom::ReadWord()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">rom_</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00122">rooms_</a>.</p>
+<p class="reference">References <a class="el" href="../../d4/d9e/macro_8h_source.html#l00061">ASSIGN_OR_RETURN</a>, <a class="el" href="../../de/d89/snes__palette_8cc_source.html#l00321">yaze::gfx::CreatePaletteGroupFromLargePalette()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00145">current_palette_group_</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00143">current_palette_group_id_</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00197">yaze::Rom::is_loaded()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00212">yaze::Rom::palette_group()</a>, <a class="el" href="../../da/de5/rom_8h_source.html#l00227">yaze::Rom::paletteset_ids</a>, <a class="el" href="../../d4/d79/app_2rom_8cc_source.html#l00665">yaze::Rom::ReadWord()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00115">rom_</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00121">rooms_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>.</p>
 <div class="dynheader">
@@ -1511,9 +1501,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00608">608</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00878">878</a> of file <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html">dungeon_canvas_viewer.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00117">canvas_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a7c65b9804f35c3b9c2848da846088c8ca294ce20cdefa29be3be0735cb62e715d">yaze::gfx::Arena::CREATE</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l00993">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00139">GetRoomLayerSettings()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00340">yaze::gui::Canvas::global_scale()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00344">yaze::gui::Canvas::height()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00060">yaze::zelda3::NumberOfRooms</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00036">yaze::gfx::Arena::ProcessTextureQueue()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00032">yaze::gfx::Arena::QueueTextureCommand()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00122">rooms_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00343">yaze::gui::Canvas::width()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00305">yaze::gui::Canvas::zero_point()</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">canvas_</a>, <a class="el" href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#a7c65b9804f35c3b9c2848da846088c8ca294ce20cdefa29be3be0735cb62e715d">yaze::gfx::Arena::CREATE</a>, <a class="el" href="../../da/dbb/canvas_8cc_source.html#l01052">yaze::gui::Canvas::DrawBitmap()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00015">yaze::gfx::Arena::Get()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00138">GetRoomLayerSettings()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00345">yaze::gui::Canvas::global_scale()</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00349">yaze::gui::Canvas::height()</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00104">LOG_DEBUG</a>, <a class="el" href="../../d9/dc0/room_8h_source.html#l00060">yaze::zelda3::NumberOfRooms</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00036">yaze::gfx::Arena::ProcessTextureQueue()</a>, <a class="el" href="../../d2/dee/arena_8cc_source.html#l00032">yaze::gfx::Arena::QueueTextureCommand()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00121">rooms_</a>, <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00348">yaze::gui::Canvas::width()</a>, and <a class="el" href="../../d4/dcf/canvas_8h_source.html#l00310">yaze::gui::Canvas::zero_point()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>.</p>
 
@@ -1543,11 +1533,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00139">139</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00138">138</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00136">room_layer_settings_</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00135">room_layer_settings_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00608">DrawRoomBackgroundLayers()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00062">SetBG1Visible()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00078">SetBG2LayerType()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00065">SetBG2Visible()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00878">DrawRoomBackgroundLayers()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00061">SetBG1Visible()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00077">SetBG2LayerType()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00064">SetBG2Visible()</a>.</p>
 
 </div>
 </div>
@@ -1572,9 +1562,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">116</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00115">115</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00557">LoadAndRenderRoomGraphics()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00037">rom()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00034">SetRom()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00827">LoadAndRenderRoomGraphics()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00036">rom()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00033">SetRom()</a>.</p>
 
 </div>
 </div>
@@ -1598,9 +1588,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00117">117</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00116">116</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00051">canvas()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00052">canvas()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00378">CanvasToRoomCoordinates()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00308">DisplayObjectInfo()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00498">DrawObjectPositionOutlines()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00608">DrawRoomBackgroundLayers()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00440">DrawRoomLayout()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00393">IsWithinCanvasBounds()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00318">RenderSprites()</a>, and <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00365">RoomToCanvasCoordinates()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00050">canvas()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00051">canvas()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00631">CanvasToRoomCoordinates()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00563">DisplayObjectInfo()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00752">DrawObjectPositionOutlines()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00878">DrawRoomBackgroundLayers()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00696">DrawRoomLayout()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00649">IsWithinCanvasBounds()</a>, and <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00573">RenderSprites()</a>.</p>
 
 </div>
 </div>
@@ -1624,9 +1614,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00119">119</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00118">118</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00090">ClearPreviewObject()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00055">object_interaction()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00087">SetPreviewObject()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00089">ClearPreviewObject()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00054">object_interaction()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00086">SetPreviewObject()</a>.</p>
 
 </div>
 </div>
@@ -1650,9 +1640,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00122">122</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00121">121</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00608">DrawRoomBackgroundLayers()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00557">LoadAndRenderRoomGraphics()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00040">SetRooms()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00878">DrawRoomBackgroundLayers()</a>, <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00827">LoadAndRenderRoomGraphics()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00039">SetRooms()</a>.</p>
 
 </div>
 </div>
@@ -1676,9 +1666,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00124">124</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00123">123</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00042">set_active_rooms()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00041">set_active_rooms()</a>.</p>
 
 </div>
 </div>
@@ -1702,9 +1692,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00125">125</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00124">124</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00043">set_current_active_room_tab()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00042">set_current_active_room_tab()</a>.</p>
 
 </div>
 </div>
@@ -1728,9 +1718,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00128">128</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00127">127</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00059">IsObjectInteractionEnabled()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00058">SetObjectInteractionEnabled()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00058">IsObjectInteractionEnabled()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00057">SetObjectInteractionEnabled()</a>.</p>
 
 </div>
 </div>
@@ -1754,9 +1744,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00136">136</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00135">135</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00081">GetBG2LayerType()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00139">GetRoomLayerSettings()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00068">IsBG1Visible()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00072">IsBG2Visible()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00080">GetBG2LayerType()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00138">GetRoomLayerSettings()</a>, <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00067">IsBG1Visible()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00071">IsBG2Visible()</a>.</p>
 
 </div>
 </div>
@@ -1780,9 +1770,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00144">144</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00143">143</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00557">LoadAndRenderRoomGraphics()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00046">set_current_palette_group_id()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00827">LoadAndRenderRoomGraphics()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00045">set_current_palette_group_id()</a>.</p>
 
 </div>
 </div>
@@ -1806,9 +1796,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00145">145</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00144">144</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00047">SetCurrentPaletteId()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00046">SetCurrentPaletteId()</a>.</p>
 
 </div>
 </div>
@@ -1832,9 +1822,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00146">146</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00145">145</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00557">LoadAndRenderRoomGraphics()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00048">SetCurrentPaletteGroup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00827">LoadAndRenderRoomGraphics()</a>, and <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00047">SetCurrentPaletteGroup()</a>.</p>
 
 </div>
 </div>
@@ -1858,7 +1848,7 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00156">156</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00155">155</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
 
 </div>
 </div>
@@ -1882,7 +1872,137 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00157">157</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00156">156</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+
+</div>
+</div>
+<a id="a2f73be7c844ffd21baaa8b4cec30d91f" name="a2f73be7c844ffd21baaa8b4cec30d91f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f73be7c844ffd21baaa8b4cec30d91f">&#9670;&#160;</a></span>show_room_debug_info_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::DungeonCanvasViewer::show_room_debug_info_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00159">159</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>.</p>
+
+</div>
+</div>
+<a id="ae7c364a2ec56be1cbd315c53eab74836" name="ae7c364a2ec56be1cbd315c53eab74836"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7c364a2ec56be1cbd315c53eab74836">&#9670;&#160;</a></span>show_texture_debug_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::DungeonCanvasViewer::show_texture_debug_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00160">160</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>.</p>
+
+</div>
+</div>
+<a id="a197c4d3153fed6821d1877c72c439156" name="a197c4d3153fed6821d1877c72c439156"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a197c4d3153fed6821d1877c72c439156">&#9670;&#160;</a></span>show_object_bounds_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::DungeonCanvasViewer::show_object_bounds_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00161">161</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>.</p>
+
+</div>
+</div>
+<a id="a162e256a278b58501b577deaad3a0143" name="a162e256a278b58501b577deaad3a0143"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a162e256a278b58501b577deaad3a0143">&#9670;&#160;</a></span>show_layer_info_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool yaze::editor::DungeonCanvasViewer::show_layer_info_ = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00162">162</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>.</p>
+
+</div>
+</div>
+<a id="a2484c6fdee2efc280549dec64002204c" name="a2484c6fdee2efc280549dec64002204c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2484c6fdee2efc280549dec64002204c">&#9670;&#160;</a></span>object_outline_toggles_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d8/d7c/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1ObjectOutlineToggles.html">ObjectOutlineToggles</a> yaze::editor::DungeonCanvasViewer::object_outline_toggles_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html#l00173">173</a> of file <a class="el" href="../../d3/d38/dungeon__canvas__viewer_8h_source.html">dungeon_canvas_viewer.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00021">DrawDungeonCanvas()</a>, and <a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc_source.html#l00752">DrawObjectPositionOutlines()</a>.</p>
 
 </div>
 </div>

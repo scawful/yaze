@@ -1,5 +1,6 @@
 var classyaze_1_1editor_1_1DungeonCanvasViewer =
 [
+    [ "ObjectOutlineToggles", "d8/d7c/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1ObjectOutlineToggles.html", "d8/d7c/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1ObjectOutlineToggles" ],
     [ "ObjectRenderCache", "d8/dbd/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1ObjectRenderCache.html", "d8/dbd/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1ObjectRenderCache" ],
     [ "RoomLayerSettings", "d1/d23/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1RoomLayerSettings.html", "d1/d23/structyaze_1_1editor_1_1DungeonCanvasViewer_1_1RoomLayerSettings" ],
     [ "DungeonCanvasViewer", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a7542b525ceda3c877c9f190b1a829ca1", null ],
@@ -49,5 +50,10 @@ var classyaze_1_1editor_1_1DungeonCanvasViewer =
     [ "current_palette_id_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#aa30f51934744cded28dfb510380da9cb", null ],
     [ "current_palette_group_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#aa905e700686163328cff8637caa5fa2c", null ],
     [ "object_render_cache_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#ade7f5eb28c9ac068128a0f80c3920518", null ],
-    [ "last_palette_hash_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a76b740cd8b59ef14cc26cda74030cbfc", null ]
+    [ "last_palette_hash_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a76b740cd8b59ef14cc26cda74030cbfc", null ],
+    [ "show_room_debug_info_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a2f73be7c844ffd21baaa8b4cec30d91f", null ],
+    [ "show_texture_debug_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#ae7c364a2ec56be1cbd315c53eab74836", null ],
+    [ "show_object_bounds_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a197c4d3153fed6821d1877c72c439156", null ],
+    [ "show_layer_info_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a162e256a278b58501b577deaad3a0143", null ],
+    [ "object_outline_toggles_", "d2/de7/classyaze_1_1editor_1_1DungeonCanvasViewer.html#a2484c6fdee2efc280549dec64002204c", null ]
 ];
