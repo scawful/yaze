@@ -6,28 +6,65 @@ This document outlines the development roadmap for yaze. The project has achieve
 
 ## Current Focus: AI & Editor Polish
 
-With the core systems stable, the immediate priority is to enhance the `z3ed` AI agent, finalize the Tile16 editor, and improve the user experience.
+With the core systems stable, the immediate priority is to finish the overworld editor features, fix dungeon object rendering, finalize the Tile16 editor, enhance the `z3ed` AI agent, and improve the user experience.
 
 ---
 
-## 0.4.X (Next Major Release) - Advanced Tooling & UX
+## 0.4.0 (Next Major Release) - SDL3 Modernization & Core Improvements
 
-### Priority 1: Editor Features & UX
--   **Tile16 Palette System**: Resolve the remaining color consistency issues in the Tile16 editor's source tile view and implement the palette-switching functionality.
--   **Overworld Sprite Editing**: Complete the workflow for adding, removing, and moving sprites directly on the overworld canvas.
--   **Dungeon Editor UI**: Add human-readable labels for rooms/entrances and implement tab management for a better multi-room workflow.
--   **Performance**: Address the slow initial load time (~2.6 seconds) by implementing lazy loading for rooms.
+**Status:** Planning  
+**Type:** Major Breaking Release  
+**Timeline:** 6-8 weeks
 
-### Priority 2: `z3ed` AI Agent
--   ✅ **Vim Mode**: Implemented vim-style line editing in simple-chat with full modal editing support
--   ✅ **Autocomplete**: Added intelligent command completion with fuzzy matching in FTXUI chat
--   **Live LLM Hardening**: Finalize testing of the native Gemini function-calling loop and the proactive v3 system prompt.
--   **AI-Driven Editing**: Integrate the AI with the GUI test harness to allow for automated, mouse-driven edits based on natural language commands.
--   **Expand Agent Toolset**: Add new read-only tools for inspecting dialogue, music data, and sprite properties.
+### 🎯 Primary Goals
 
-### Priority 3: Testing & Stability
--   **Windows Validation**: Perform a full testing cycle on Windows to validate the `z3ed` CLI, GUI test harness, and collaboration features.
--   **Expand E2E Coverage**: Create comprehensive end-to-end smoke tests for the Dungeon and Overworld editors.
+1. **SDL3 Migration** - Modernize graphics/audio/input backend
+2. **Dependency Reorganization** - Consolidate `src/lib/` + `third_party/` → `external/`
+3. **Backend Abstraction** - Clean separation of graphics/audio/input backends
+4. **Editor Polish** - Complete remaining UX improvements
+
+### Phase 1: Infrastructure (Week 1-2)
+-   **Dependency Consolidation**: Merge `src/lib/` and `third_party/` into unified `external/` directory
+-   **CMake Modernization**: Update all build files, submodules, and CI workflows
+-   **Build Validation**: Ensure all platforms (Windows/macOS/Linux) build cleanly
+
+### Phase 2: SDL3 Core Migration (Week 3-4)
+-   **SDL3 Update**: Migrate from SDL2 to SDL3 with GPU-based rendering
+-   **Graphics Backend**: Create abstraction layer (`GraphicsBackend` interface)
+-   **Basic Rendering**: Get window creation and basic editor rendering working
+-   **ImGui Integration**: Update ImGui SDL3 backend integration
+
+### Phase 3: Complete SDL3 Integration (Week 5-6)
+-   **All Editors**: Port all 6 editors (Overworld, Dungeon, Graphics, Palette, Screen, Music) to new backend
+-   **Audio Backend**: Implement SDL3 audio backend for emulator
+-   **Input Backend**: Implement SDL3 input backend with improved gamepad support
+-   **Performance**: Optimize rendering performance, benchmark against v0.3.x
+
+### Phase 4: Editor Features & UX (Week 7-8)
+-   **Tile16 Palette System**: Resolve color consistency issues in source tile view
+-   **Overworld Sprite Editing**: Complete sprite add/remove/move workflow
+-   **Dungeon Editor UI**: Add human-readable room labels and improved tab management
+-   **Performance**: Implement lazy loading for rooms (~2.6s → <1s load time)
+
+### Phase 5: AI Agent Enhancements (Throughout)
+-   ✅ **Vim Mode**: Implemented vim-style line editing in simple-chat
+-   ✅ **Autocomplete**: Added intelligent command completion with fuzzy matching
+-   **Live LLM Hardening**: Finalize Gemini function-calling and proactive v3 prompts
+-   **AI-Driven Editing**: Integrate AI with GUI test harness for automated edits
+-   **Expand Toolset**: Add tools for dialogue, music data, sprite properties
+
+### Success Criteria
+- [ ] All platforms build and run with SDL3
+- [ ] No performance regression vs v0.3.x
+- [ ] All editors functional with new backend
+- [ ] Emulator audio/input working
+- [ ] Documentation updated
+- [ ] Migration guide complete
+
+**Breaking Changes:**
+- SDL2 → SDL3 (requires recompilation)
+- Directory restructure (requires submodule re-init)
+- API changes in graphics backend (for extensions)
 
 ---
 
