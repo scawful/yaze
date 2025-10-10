@@ -138,7 +138,11 @@ class Spc700 {
   void Reset(bool hard = false);
 
   void RunOpcode();
-  
+
+  // New atomic step function - executes one complete instruction and returns cycles consumed
+  // This is the preferred method for cycle-accurate emulation
+  int Step();
+
   // Get the number of cycles consumed by the last opcode execution
   int GetLastOpcodeCycles() const { return last_opcode_cycles_; }
 

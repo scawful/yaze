@@ -27,6 +27,43 @@ void Spc700::Reset(bool hard) {
   reset_wanted_ = true;
 }
 
+int Spc700::Step() {
+  // Handle reset sequence (based on 6502, brk without writes)
+  if (reset_wanted_) {
+    reset_wanted_ = false;
+    read(PC);
+    read(PC);
+    read(0x100 | SP--);
+    read(0x100 | SP--);
+    read(0x100 | SP--);
+    callbacks_.idle(false);
+    PSW.I = false;
+    PC = read_word(0xfffe);
+    last_opcode_cycles_ = 8;
+    return 8;
+  }
+
+  // Handle stopped state (SLEEP/STOP instructions)
+  if (stopped_) {
+    callbacks_.idle(true);
+    last_opcode_cycles_ = 2;
+    return 2;
+  }
+
+  // Fetch and execute one complete instruction
+  uint8_t opcode = ReadOpcode();
+
+  // Set base cycle count from lookup table
+  // This will be the return value; callbacks during execution will advance APU cycles
+  last_opcode_cycles_ = spc700_cycles[opcode];
+
+  // Execute the instruction completely (atomic execution)
+  ExecuteInstructions(opcode);
+
+  // Return the number of cycles this instruction consumed
+  return last_opcode_cycles_;
+}
+
 void Spc700::RunOpcode() {
   static int entry_log = 0;
   if ((PC >= 0xFFF0 && PC <= 0xFFFF) && entry_log++ < 5) {
