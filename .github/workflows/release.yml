@@ -209,6 +209,7 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE="$vcpkgToolchain" `
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
             -DVCPKG_MANIFEST_MODE=ON `
+            -DCMAKE_CXX_FLAGS="/Dgoogle_protobuf_undef_DWORD=1" `
             -DYAZE_BUILD_TESTS=OFF 2>&1 | Tee-Object -FilePath cmake_config.log
           
           if ($LASTEXITCODE -ne 0) {
