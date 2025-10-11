@@ -7,9 +7,16 @@ cmake_policy(SET CMP0091 NEW)
 cmake_policy(SET CMP0048 NEW)
 cmake_policy(SET CMP0077 NEW)
 
-project(yaze VERSION 0.3.2
-             DESCRIPTION "Yet Another Zelda3 Editor"
-             LANGUAGES CXX C OBJC OBJCXX)
+# Enable Objective-C only on macOS where it's actually used
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+    project(yaze VERSION 0.3.2
+                 DESCRIPTION "Yet Another Zelda3 Editor"
+                 LANGUAGES CXX C OBJC OBJCXX)
+else()
+    project(yaze VERSION 0.3.2
+                 DESCRIPTION "Yet Another Zelda3 Editor"
+                 LANGUAGES CXX C)
+endif()
 
 # Enable ccache for faster rebuilds if available
 find_program(CCACHE_FOUND ccache)
