@@ -5,7 +5,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
-#include "gui/ui_helpers.h"
+#include "app/gui/ui_helpers.h"
 #include "util/file_util.h"
 #include "app/core/window.h"
 #include "app/gfx/arena.h"

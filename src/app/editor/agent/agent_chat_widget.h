@@ -15,7 +15,7 @@
 #include "cli/service/agent/advanced_routing.h"
 #include "cli/service/agent/agent_pretraining.h"
 #include "cli/service/agent/prompt_manager.h"
-#include "core/project.h"
+#include "app/core/project.h"
 
 namespace yaze {
 
