@@ -1,6 +1,10 @@
 #ifndef YAZE_TEST_TEST_UTILS_H
 #define YAZE_TEST_TEST_UTILS_H
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+
 #include <string>
 #include <vector>
 #include <filesystem>

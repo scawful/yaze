@@ -3,6 +3,11 @@
 
 #if defined(YAZE_WITH_GRPC)
 
+// Must define before any ImGui includes (test_manager.h includes ImGui headers)
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+
 #include <string>
 
 #include "absl/synchronization/mutex.h"

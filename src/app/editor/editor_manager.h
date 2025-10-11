@@ -1,9 +1,10 @@
 #ifndef YAZE_APP_EDITOR_EDITOR_MANAGER_H
 #define YAZE_APP_EDITOR_EDITOR_MANAGER_H
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 #include "app/editor/system/user_settings.h"
 #include "app/editor/ui/workspace_manager.h"
-#define IMGUI_DEFINE_MATH_OPERATORS
 
 #include "imgui/imgui.h"
 
@@ -42,6 +43,10 @@
 #include "yaze_config.h"
 
 #ifdef YAZE_WITH_GRPC
+// Forward declarations for gRPC-dependent types
+namespace yaze::agent {
+class AgentControlServer;
+}
 #endif
 
 namespace yaze {
@@ -103,13 +108,9 @@ class EditorSet {
  */
 class EditorManager {
  public:
-  EditorManager() : blank_editor_set_(nullptr, &user_settings_) {
-    std::stringstream ss;
-    ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
-       << YAZE_VERSION_PATCH;
-    ss >> version_;
-    context_.popup_manager = popup_manager_.get();
-  }
+  // Constructor and destructor must be defined in .cc file for std::unique_ptr with forward-declared types
+  EditorManager();
+  ~EditorManager();
 
   void Initialize(gfx::IRenderer* renderer, const std::string& filename = "");
 
@@ -278,7 +279,7 @@ class EditorManager {
 #ifdef YAZE_WITH_GRPC
   // Agent editor - manages chat, collaboration, and network coordination
   AgentEditor agent_editor_;
-  std::unique_ptr<agent::AgentControlServer> agent_control_server_;
+  std::unique_ptr<yaze::agent::AgentControlServer> agent_control_server_;
 #endif
 
   std::string version_ = "";
