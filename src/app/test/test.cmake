@@ -51,11 +51,9 @@ else()
   message(STATUS "○ z3ed test suites disabled (yaze_agent not built)")
 endif()
 
-# Link yaze_editor back to yaze_test_support (for TestManager usage in editor_manager.cc)
-# Use PRIVATE linkage to avoid propagating test dependencies to editor consumers
-if(TARGET yaze_editor)
-  target_link_libraries(yaze_editor PRIVATE yaze_test_support)
-  message(STATUS "✓ yaze_editor linked to yaze_test_support for TestManager access")
-endif()
-
 message(STATUS "✓ yaze_test_support library configured")
+
+# Note: yaze_editor needs yaze_test_support for TestManager, but we can't link it here
+# because this happens BEFORE yaze and yaze_emu are configured.
+# Instead, each executable (yaze, yaze_emu) must explicitly link yaze_test_support
+# in their respective .cmake files (app.cmake, emu.cmake).

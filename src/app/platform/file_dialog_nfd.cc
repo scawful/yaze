@@ -11,7 +11,8 @@ namespace util {
 
 std::string FileDialogWrapper::ShowOpenFileDialog() {
   nfdchar_t* outPath = nullptr;
-  nfdresult_t result = NFD_OpenDialog(nullptr, nullptr, &outPath);
+  nfdfilteritem_t filterItem[2] = {{"ROM Files", "sfc,smc"}, {"All Files", "*"}};
+  nfdresult_t result = NFD_OpenDialog(&outPath, filterItem, 2, nullptr);
   
   if (result == NFD_OKAY) {
     std::string path(outPath);
@@ -24,7 +25,7 @@ std::string FileDialogWrapper::ShowOpenFileDialog() {
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
   nfdchar_t* outPath = nullptr;
-  nfdresult_t result = NFD_PickFolder(nullptr, &outPath);
+  nfdresult_t result = NFD_PickFolder(&outPath, nullptr);
   
   if (result == NFD_OKAY) {
     std::string path(outPath);
@@ -41,11 +42,11 @@ std::string FileDialogWrapper::ShowSaveFileDialog(const std::string& default_nam
   nfdfilteritem_t filterItem[1] = {{default_extension.empty() ? "All Files" : default_extension.c_str(), 
                                     default_extension.empty() ? "*" : default_extension.c_str()}};
   
-  nfdresult_t result = NFD_SaveDialog(default_extension.empty() ? nullptr : filterItem, 
+  nfdresult_t result = NFD_SaveDialog(&outPath,
+                                      default_extension.empty() ? nullptr : filterItem, 
                                       default_extension.empty() ? 0 : 1,
                                       nullptr, 
-                                      default_name.c_str(),
-                                      &outPath);
+                                      default_name.c_str());
   
   if (result == NFD_OKAY) {
     std::string path(outPath);
