@@ -90,6 +90,9 @@ endif()
 option(YAZE_SUPPRESS_WARNINGS "Suppress compiler warnings (use -v preset suffix for verbose)" ON)
 set(YAZE_TEST_ROM_PATH "${CMAKE_BINARY_DIR}/bin/zelda3.sfc" CACHE STRING "Path to test ROM file")
 
+# Export compile commands for clangd/LSP
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Platform detection
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
     set(YAZE_PLATFORM_MACOS ON)
