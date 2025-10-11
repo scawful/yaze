@@ -2,6 +2,7 @@ var yaze__test_8cc =
 [
     [ "yaze::test::TestConfig", "d6/d92/structyaze_1_1test_1_1TestConfig.html", "d6/d92/structyaze_1_1test_1_1TestConfig" ],
     [ "SDL_MAIN_HANDLED", "de/d3d/yaze__test_8cc.html#a51f528deaaeb973f417b46a2ec36f850", null ],
+    [ "IMGUI_DEFINE_MATH_OPERATORS", "de/d3d/yaze__test_8cc.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "TestMode", "de/d3d/yaze__test_8cc.html#a48974bc37811e72ae810e23d0f38b817", [
       [ "kAll", "de/d3d/yaze__test_8cc.html#a48974bc37811e72ae810e23d0f38b817a34bdbffdb1c0e1b603f58fc0d49548b6", null ],
       [ "kUnit", "de/d3d/yaze__test_8cc.html#a48974bc37811e72ae810e23d0f38b817a4383f9f429063405fc69bdc8ff4b7ee8", null ],

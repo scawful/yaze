@@ -480,7 +480,7 @@ var searchData=
   ['tilepaintcallback_477',['TilePaintCallback',['../dd/de4/classyaze_1_1gui_1_1CanvasAutomationAPI.html#a2799f1c820b9d0c92370f56948a0b28e',1,'yaze::gui::CanvasAutomationAPI']]],
   ['tileprioritybit_478',['TilePriorityBit',['../d0/d27/namespaceyaze_1_1gfx.html#a8fb57254803cd278210eca15c3a60ad7',1,'yaze::gfx']]],
   ['tilequerycallback_479',['TileQueryCallback',['../dd/de4/classyaze_1_1gui_1_1CanvasAutomationAPI.html#ab5c715057f7a6a1315169316efbfc9c7',1,'yaze::gui::CanvasAutomationAPI']]],
-  ['tiles_480',['tiles',['../dc/d2c/structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a85c3791a37c6256a2eafca2a16eb470a',1,'yaze::editor::zsprite::AnimationGroup::Tiles'],['../d7/d54/structsnes__tile16.html#ac600abfadbc79e7265b2086c99e322cc',1,'snes_tile16::tiles'],['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a4e40bccd34e993915bc43eb487cd5c20',1,'yaze::zelda3::RoomObject::tiles()']]],
+  ['tiles_480',['tiles',['../d7/d54/structsnes__tile16.html#ac600abfadbc79e7265b2086c99e322cc',1,'snes_tile16::tiles'],['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a4e40bccd34e993915bc43eb487cd5c20',1,'yaze::zelda3::RoomObject::tiles()'],['../dc/d2c/structyaze_1_1editor_1_1zsprite_1_1AnimationGroup.html#a85c3791a37c6256a2eafca2a16eb470a',1,'yaze::editor::zsprite::AnimationGroup::Tiles']]],
   ['tiles_20batch_481',['overworld-set-tiles-batch',['../de/d00/md_docs_2F4-overworld-agent-guide.html#autotoc_md869',1,'']]],
   ['tiles16_482',['tiles16',['../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#a3a15f92a3a718c15b9be75ae134d9b94',1,'yaze::zelda3::Overworld']]],
   ['tiles16_5f_483',['tiles16_',['../d9/dc5/classyaze_1_1zelda3_1_1Overworld.html#abbc481b6b30057bc7fab6e9175e67c43',1,'yaze::zelda3::Overworld']]],

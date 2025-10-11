@@ -1,6 +1,7 @@
 var asar__rom__test_8cc =
 [
     [ "yaze::test::integration::AsarRomIntegrationTest", "db/d76/classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest.html", "db/d76/classyaze_1_1test_1_1integration_1_1AsarRomIntegrationTest" ],
+    [ "IMGUI_DEFINE_MATH_OPERATORS", "d7/dcf/asar__rom__test_8cc.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "TEST_F", "d7/dcf/asar__rom__test_8cc.html#ad8e0c43529c1b920d142fa4820f7355f", null ],
     [ "TEST_F", "d7/dcf/asar__rom__test_8cc.html#a14cf814f49f1d9574a5a544eab4ef52c", null ],
     [ "TEST_F", "d7/dcf/asar__rom__test_8cc.html#acbbff074a59abb39205961dee3756bca", null ],

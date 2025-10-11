@@ -1,6 +1,7 @@
 var dungeon__object__rendering__tests_8cc =
 [
     [ "yaze::test::DungeonObjectRenderingTests", "dd/d40/classyaze_1_1test_1_1DungeonObjectRenderingTests.html", "dd/d40/classyaze_1_1test_1_1DungeonObjectRenderingTests" ],
+    [ "IMGUI_DEFINE_MATH_OPERATORS", "d5/d0b/dungeon__object__rendering__tests_8cc.html#adf4d73301961430d50d7edd96f92ce38", null ],
     [ "TEST_F", "d5/d0b/dungeon__object__rendering__tests_8cc.html#aeebfa64256c15a388d104862cd9b6a10", null ],
     [ "TEST_F", "d5/d0b/dungeon__object__rendering__tests_8cc.html#a7479b257570c6e4baadf92f15eaf648e", null ],
     [ "TEST_F", "d5/d0b/dungeon__object__rendering__tests_8cc.html#a8f855007bfb413565abc69ad17fc5509", null ],

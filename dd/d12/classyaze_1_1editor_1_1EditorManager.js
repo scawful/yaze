@@ -2,6 +2,7 @@ var classyaze_1_1editor_1_1EditorManager =
 [
     [ "RomSession", "df/da6/structyaze_1_1editor_1_1EditorManager_1_1RomSession.html", "df/da6/structyaze_1_1editor_1_1EditorManager_1_1RomSession" ],
     [ "EditorManager", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a5e1bc7f274b01593c207c0cd72cc17c3", null ],
+    [ "~EditorManager", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a74c84a70685e87f71b57221df7e0d2c2", null ],
     [ "Initialize", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a51c9aed6a4bc8ff39a5459db82a2e6c4", null ],
     [ "OpenEditorAndCardsFromFlags", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#a9490488bf03f85560a0e279b4e7f0309", null ],
     [ "Update", "dd/d12/classyaze_1_1editor_1_1EditorManager.html#ab1925444bb0903c0375991ee96692c21", null ],
