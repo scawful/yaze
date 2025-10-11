@@ -21,3 +21,7 @@ ABSL_FLAG(std::string, prompt_version, "default",
           "Prompt version to use: 'default' or 'v2'");
 ABSL_FLAG(bool, use_function_calling, false,
           "Enable native Gemini function calling (incompatible with JSON output mode)");
+
+// --- Agent Control Flags ---
+ABSL_FLAG(bool, agent_control, false,
+          "Enable the gRPC server to allow the agent to control the emulator.");

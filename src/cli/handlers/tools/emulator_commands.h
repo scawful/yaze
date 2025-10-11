@@ -7,9 +7,6 @@ namespace yaze {
 namespace cli {
 namespace handlers {
 
-/**
- * @brief Command handler for emulator step execution
- */
 class EmulatorStepCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "emulator-step"; }
@@ -21,16 +18,13 @@ class EmulatorStepCommandHandler : public resources::CommandHandler {
   }
   
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return absl::OkStatus();  // No required args
+    return absl::OkStatus();
   }
   
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                       resources::OutputFormatter& formatter) override;
 };
 
-/**
- * @brief Command handler for emulator run execution
- */
 class EmulatorRunCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "emulator-run"; }
@@ -42,16 +36,13 @@ class EmulatorRunCommandHandler : public resources::CommandHandler {
   }
   
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return absl::OkStatus();  // No required args
+    return absl::OkStatus();
   }
   
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                       resources::OutputFormatter& formatter) override;
 };
 
-/**
- * @brief Command handler for emulator pause
- */
 class EmulatorPauseCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "emulator-pause"; }
@@ -63,16 +54,13 @@ class EmulatorPauseCommandHandler : public resources::CommandHandler {
   }
   
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return absl::OkStatus();  // No required args
+    return absl::OkStatus();
   }
   
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                       resources::OutputFormatter& formatter) override;
 };
 
-/**
- * @brief Command handler for emulator reset
- */
 class EmulatorResetCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "emulator-reset"; }
@@ -84,16 +72,13 @@ class EmulatorResetCommandHandler : public resources::CommandHandler {
   }
   
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return absl::OkStatus();  // No required args
+    return absl::OkStatus();
   }
   
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                       resources::OutputFormatter& formatter) override;
 };
 
-/**
- * @brief Command handler for getting emulator state
- */
 class EmulatorGetStateCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "emulator-get-state"; }
@@ -105,16 +90,13 @@ class EmulatorGetStateCommandHandler : public resources::CommandHandler {
   }
   
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return absl::OkStatus();  // No required args
+    return absl::OkStatus();
   }
   
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                       resources::OutputFormatter& formatter) override;
 };
 
-/**
- * @brief Command handler for setting breakpoints
- */
 class EmulatorSetBreakpointCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "emulator-set-breakpoint"; }
@@ -133,9 +115,6 @@ class EmulatorSetBreakpointCommandHandler : public resources::CommandHandler {
                       resources::OutputFormatter& formatter) override;
 };
 
-/**
- * @brief Command handler for clearing breakpoints
- */
 class EmulatorClearBreakpointCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "emulator-clear-breakpoint"; }
@@ -154,9 +133,6 @@ class EmulatorClearBreakpointCommandHandler : public resources::CommandHandler {
                       resources::OutputFormatter& formatter) override;
 };
 
-/**
- * @brief Command handler for listing breakpoints
- */
 class EmulatorListBreakpointsCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "emulator-list-breakpoints"; }
@@ -168,16 +144,13 @@ class EmulatorListBreakpointsCommandHandler : public resources::CommandHandler {
   }
   
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return absl::OkStatus();  // No required args
+    return absl::OkStatus();
   }
   
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                       resources::OutputFormatter& formatter) override;
 };
 
-/**
- * @brief Command handler for reading emulator memory
- */
 class EmulatorReadMemoryCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "emulator-read-memory"; }
@@ -196,9 +169,6 @@ class EmulatorReadMemoryCommandHandler : public resources::CommandHandler {
                       resources::OutputFormatter& formatter) override;
 };
 
-/**
- * @brief Command handler for writing emulator memory
- */
 class EmulatorWriteMemoryCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "emulator-write-memory"; }
@@ -217,9 +187,6 @@ class EmulatorWriteMemoryCommandHandler : public resources::CommandHandler {
                       resources::OutputFormatter& formatter) override;
 };
 
-/**
- * @brief Command handler for getting emulator registers
- */
 class EmulatorGetRegistersCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "emulator-get-registers"; }
@@ -231,16 +198,13 @@ class EmulatorGetRegistersCommandHandler : public resources::CommandHandler {
   }
   
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return absl::OkStatus();  // No required args
+    return absl::OkStatus();
   }
   
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                       resources::OutputFormatter& formatter) override;
 };
 
-/**
- * @brief Command handler for getting emulator metrics
- */
 class EmulatorGetMetricsCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const { return "emulator-get-metrics"; }
@@ -252,11 +216,63 @@ class EmulatorGetMetricsCommandHandler : public resources::CommandHandler {
   }
   
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return absl::OkStatus();  // No required args
+    return absl::OkStatus();
   }
   
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                       resources::OutputFormatter& formatter) override;
+};
+
+class EmulatorPressButtonsCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "emulator-press-buttons"; }
+  std::string GetDescription() const {
+    return "Press and release emulator buttons";
+  }
+  std::string GetUsage() const {
+    return "emulator-press-buttons --buttons <button1>,<button2>,...";
+  }
+  absl::Status ValidateArgs(
+      const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"buttons"});
+  }
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+class EmulatorReleaseButtonsCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "emulator-release-buttons"; }
+  std::string GetDescription() const {
+    return "Release currently held emulator buttons";
+  }
+  std::string GetUsage() const {
+    return "emulator-release-buttons --buttons <button1>,<button2>,...";
+  }
+  absl::Status ValidateArgs(
+      const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"buttons"});
+  }
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+class EmulatorHoldButtonsCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "emulator-hold-buttons"; }
+  std::string GetDescription() const {
+    return "Hold emulator buttons for a specified duration";
+  }
+  std::string GetUsage() const {
+    return "emulator-hold-buttons --buttons <button1>,<button2>,... --duration "
+           "<ms>";
+  }
+  absl::Status ValidateArgs(
+      const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"buttons", "duration"});
+  }
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
 };
 
 }  // namespace handlers
