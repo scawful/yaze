@@ -7,11 +7,12 @@
 # Also handles platform-specific and compiler-specific flags.
 # ============================================================================
 function(yaze_add_compiler_flags)
-    set(CMAKE_CXX_STANDARD 23)
-    set(CMAKE_CXX_STANDARD_REQUIRED ON)
-    set(CMAKE_CXX_EXTENSIONS OFF)
-    set(CMAKE_C_STANDARD 99)
-    set(CMAKE_C_STANDARD_REQUIRED ON)
+    # Set C++ and C standards in parent scope
+    set(CMAKE_CXX_STANDARD 23 PARENT_SCOPE)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON PARENT_SCOPE)
+    set(CMAKE_CXX_EXTENSIONS OFF PARENT_SCOPE)
+    set(CMAKE_C_STANDARD 99 PARENT_SCOPE)
+    set(CMAKE_C_STANDARD_REQUIRED ON PARENT_SCOPE)
 
     if(YAZE_SUPPRESS_WARNINGS)
         if(MSVC)
@@ -44,6 +45,7 @@ function(yaze_add_compiler_flags)
             /W4 /permissive-
             /bigobj
             /utf-8
+            /std:c++latest  # Required for C++20/23 features like std::span
         )
         target_compile_definitions(yaze_common INTERFACE
             _CRT_SECURE_NO_WARNINGS
