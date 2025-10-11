@@ -43,13 +43,33 @@ endif()
 
 if(NOT TARGET absl::strings)
   message(FATAL_ERROR "Abseil was not found or failed to configure correctly.")
+else()
+  message(STATUS "✓ Abseil configured successfully (standalone)")
+  # Verify critical targets exist
+  foreach(_check_target IN ITEMS absl::status absl::statusor absl::str_format absl::flags)
+    if(NOT TARGET ${_check_target})
+      message(WARNING "Expected Abseil target ${_check_target} not found")
+    endif()
+  endforeach()
 endif()
 
 # Canonical list of Abseil targets that the rest of the project links against.
+# Note: Order matters for some linkers - put base libraries first
 set(
   ABSL_TARGETS
+  absl::base
+  absl::config
+  absl::core_headers
+  absl::utility
+  absl::memory
+  absl::container_memory
   absl::strings
   absl::str_format
+  absl::cord
+  absl::hash
+  absl::time
+  absl::status
+  absl::statusor
   absl::flags
   absl::flags_parse
   absl::flags_usage
@@ -59,23 +79,12 @@ set(
   absl::flags_program_name
   absl::flags_config
   absl::flags_reflection
-  absl::status
-  absl::statusor
   absl::examine_stack
   absl::stacktrace
-  absl::base
-  absl::config
-  absl::core_headers
   absl::failure_signal_handler
   absl::flat_hash_map
-  absl::cord
-  absl::hash
   absl::synchronization
-  absl::time
   absl::symbolize
-  absl::container_memory
-  absl::memory
-  absl::utility
 )
 
 # Only expose absl::int128 when it's supported without warnings.
@@ -85,6 +94,8 @@ if(NOT WIN32)
 else()
   message(STATUS "Skipping absl::int128 target on Windows")
 endif()
+
+# ABSL_TARGETS is now available to the rest of the project via include()
 
 if(APPLE AND DEFINED CMAKE_OSX_ARCHITECTURES AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
   foreach(_absl_target IN ITEMS absl_random_internal_randen_hwaes absl_random_internal_randen_hwaes_impl)
