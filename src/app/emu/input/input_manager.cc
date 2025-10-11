@@ -15,8 +15,8 @@ bool InputManager::Initialize(InputBackendFactory::BackendType type) {
   }
   
   InputConfig config;
-  config.continuous_polling = true;  // Always use continuous polling for games
-  config.enable_gamepad = false;      // TODO: Enable when gamepad support added
+  config.continuous_polling = true;
+  config.enable_gamepad = false;
   
   if (!backend_->Initialize(config)) {
     LOG_ERROR("InputManager", "Failed to initialize input backend");
@@ -47,13 +47,16 @@ void InputManager::Shutdown() {
 void InputManager::Poll(Snes* snes, int player) {
   if (!snes || !backend_) return;
   
-  // Poll backend for current controller state
-  ControllerState state = backend_->Poll(player);
+  ControllerState physical_state = backend_->Poll(player);
   
-  // Update SNES controller state using the hardware button layout
-  // SNES controller bits: 0=B, 1=Y, 2=Select, 3=Start, 4-7=DPad, 8=A, 9=X, 10=L, 11=R
+  // Combine physical input with agent-controlled input (OR operation)
+  ControllerState final_state;
+  final_state.buttons = physical_state.buttons | agent_controller_state_.buttons;
+
+  // Update ALL button states every frame to ensure proper press/release
+  // This is critical for games that check button state every frame
   for (int i = 0; i < 12; i++) {
-    bool pressed = (state.buttons & (1 << i)) != 0;
+    bool pressed = (final_state.buttons & (1 << i)) != 0;
     snes->SetButtonState(player, i, pressed);
   }
 }
@@ -77,7 +80,14 @@ void InputManager::SetConfig(const InputConfig& config) {
   }
 }
 
+void InputManager::PressButton(SnesButton button) {
+    agent_controller_state_.SetButton(button, true);
+}
+
+void InputManager::ReleaseButton(SnesButton button) {
+    agent_controller_state_.SetButton(button, false);
+}
+
 }  // namespace input
 }  // namespace emu
 }  // namespace yaze
-

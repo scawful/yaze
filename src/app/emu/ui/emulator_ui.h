@@ -32,6 +32,11 @@ void RenderSnesPpu(Emulator* emu);
  */
 void RenderPerformanceMonitor(Emulator* emu);
 
+/**
+ * @brief Keyboard shortcuts help overlay (F1 in modern emulators)
+ */
+void RenderKeyboardShortcuts(bool* show);
+
 }  // namespace ui
 }  // namespace emu
 }  // namespace yaze

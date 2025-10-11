@@ -62,7 +62,7 @@ class Emulator {
   void* ppu_texture() { return ppu_texture_; }
   
   // Turbo mode
-  bool turbo_mode() const { return turbo_mode_; }
+  bool is_turbo_mode() const { return turbo_mode_; }
   void set_turbo_mode(bool turbo) { turbo_mode_ = turbo; }
   
   // Debugger access

@@ -531,6 +531,17 @@ void RenderApuDebugger(Emulator* emu) {
       LOG_INFO("APU_DEBUG", "Port history cleared");
     }
   }
+
+  ImGui::Separator();
+  ImGui::Text("Audio Resampling");
+
+  // Combo box for interpolation type
+  const char* items[] = {"Linear", "Cosine", "Cubic"};
+  int current_item = static_cast<int>(emu->snes().apu().dsp().interpolation_type);
+  if (ImGui::Combo("Interpolation", &current_item, items, IM_ARRAYSIZE(items))) {
+    emu->snes().apu().dsp().interpolation_type =
+        static_cast<InterpolationType>(current_item);
+  }
   
   ImGui::EndChild();
   ImGui::PopStyleColor();

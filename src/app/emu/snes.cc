@@ -18,12 +18,15 @@ namespace emu {
 namespace {
 void input_latch(Input* input, bool value) {
   input->latch_line_ = value;
-  if (input->latch_line_) input->latched_state_ = input->current_state_;
+  if (input->latch_line_) {
+    input->latched_state_ = input->current_state_;
+  }
 }
 
 uint8_t input_read(Input* input) {
   if (input->latch_line_) input->latched_state_ = input->current_state_;
   uint8_t ret = input->latched_state_ & 1;
+  
   input->latched_state_ >>= 1;
   input->latched_state_ |= 0x8000;
   return ret;
@@ -56,6 +59,8 @@ void Snes::Reset(bool hard) {
   ResetDma(&memory_);
   input1.latch_line_ = false;
   input2.latch_line_ = false;
+  input1.current_state_ = 0;   // Clear current button states
+  input2.current_state_ = 0;   // Clear current button states
   input1.latched_state_ = 0;
   input2.latched_state_ = 0;
   if (hard) memset(ram, 0, sizeof(ram));
@@ -392,7 +397,8 @@ uint8_t Snes::Rread(uint32_t adr) {
       return ReadBBus(adr & 0xff);  // B-bus
     }
     if (adr == 0x4016) {
-      return input_read(&input1) | (memory_.open_bus() & 0xfc);
+      uint8_t result = input_read(&input1) | (memory_.open_bus() & 0xfc);
+      return result;
     }
     if (adr == 0x4017) {
       return input_read(&input2) | (memory_.open_bus() & 0xe0) | 0x1c;
@@ -634,7 +640,27 @@ void Snes::SetSamples(int16_t* sample_data, int wanted_samples) {
 
 void Snes::SetPixels(uint8_t* pixel_data) { ppu_.PutPixels(pixel_data); }
 
-void Snes::SetButtonState(int player, int button, bool pressed) {}
+void Snes::SetButtonState(int player, int button, bool pressed) {
+  // Select the appropriate input based on player number
+  Input* input = (player == 1) ? &input1 : &input2;
+  
+  // SNES controller button mapping (standard layout)
+  // Bit 0: B, Bit 1: Y, Bit 2: Select, Bit 3: Start
+  // Bit 4: Up, Bit 5: Down, Bit 6: Left, Bit 7: Right
+  // Bit 8: A, Bit 9: X, Bit 10: L, Bit 11: R
+  
+  if (button < 0 || button > 11) return;  // Validate button range
+  
+  uint16_t old_state = input->current_state_;
+  
+  if (pressed) {
+    // Set the button bit
+    input->current_state_ |= (1 << button);
+  } else {
+    // Clear the button bit
+    input->current_state_ &= ~(1 << button);
+  }
+}
 
 void Snes::loadState(const std::string& path) {
   std::ifstream file(path, std::ios::binary);

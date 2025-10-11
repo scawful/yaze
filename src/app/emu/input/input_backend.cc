@@ -1,6 +1,7 @@
 #include "app/emu/input/input_backend.h"
 
 #include "SDL.h"
+#include "imgui/imgui.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -53,13 +54,29 @@ class SDL2InputBackend : public IInputBackend {
   
   ControllerState Poll(int player) override {
     if (!initialized_) return ControllerState{};
-    
+
     ControllerState state;
-    
+
     if (config_.continuous_polling) {
       // Continuous polling mode (for games)
       const uint8_t* keyboard_state = SDL_GetKeyboardState(nullptr);
+
+      // IMPORTANT: Only block input when actively typing in text fields
+      // Allow game input even when ImGui windows are open/focused
+      ImGuiIO& io = ImGui::GetIO();
       
+      // Only block if user is actively typing in a text input field
+      // WantTextInput is true only when an InputText widget is active
+      if (io.WantTextInput) {
+        // User is typing in a text field
+        // Return empty state to prevent game from processing input
+        static int text_input_log_count = 0;
+        if (text_input_log_count++ < 5) {
+          LOG_DEBUG("InputBackend", "Blocking game input - WantTextInput=true");
+        }
+        return ControllerState{};
+      }
+
       // Map keyboard to SNES buttons
       state.SetButton(SnesButton::B,      keyboard_state[SDL_GetScancodeFromKey(config_.key_b)]);
       state.SetButton(SnesButton::Y,      keyboard_state[SDL_GetScancodeFromKey(config_.key_y)]);
@@ -77,10 +94,10 @@ class SDL2InputBackend : public IInputBackend {
       // Event-based mode (use cached event state)
       state = event_state_;
     }
-    
+
     // TODO: Add gamepad support
     // if (config_.enable_gamepad) { ... }
-    
+
     return state;
   }
   
