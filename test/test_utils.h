@@ -15,8 +15,11 @@
 #include <gmock/gmock.h>
 
 #include "absl/strings/str_format.h"
-#include "imgui_test_engine/imgui_te_context.h"
 #include "app/rom.h"
+
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
+#include "imgui_test_engine/imgui_te_context.h"
+#endif
 
 namespace yaze {
 namespace test {
@@ -193,8 +196,10 @@ class RomDependentTest : public ::testing::Test {
 
 namespace gui {
 
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
 void LoadRomInTest(ImGuiTestContext* ctx, const std::string& rom_path);
 void OpenEditorInTest(ImGuiTestContext* ctx, const std::string& editor_name);
+#endif
 
 } // namespace gui
 
