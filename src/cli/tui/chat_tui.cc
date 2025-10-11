@@ -4,7 +4,6 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "ftxui/component/captured_mouse.hpp"
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/component_base.hpp"
 #include "ftxui/component/event.hpp"
@@ -12,7 +11,7 @@
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/dom/table.hpp"
 #include "app/rom.h"
-#include "autocomplete_ui.h"
+#include "cli/tui/autocomplete_ui.h"
 
 namespace yaze {
 namespace cli {
@@ -41,129 +40,156 @@ void ChatTUI::SetRomContext(Rom* rom_context) {
 }
 
 void ChatTUI::InitializeAutocomplete() {
-    autocomplete_engine_.RegisterCommand("/help", "Show help message.");
-    autocomplete_engine_.RegisterCommand("/exit", "Exit the chat.");
-    autocomplete_engine_.RegisterCommand("/clear", "Clear chat history.");
-    autocomplete_engine_.RegisterCommand("/rom_info", "Display info about the loaded ROM.");
+    autocomplete_engine_.RegisterCommand("/help", "Show help message");
+    autocomplete_engine_.RegisterCommand("/exit", "Exit the chat");
+    autocomplete_engine_.RegisterCommand("/quit", "Exit the chat");
+    autocomplete_engine_.RegisterCommand("/clear", "Clear chat history");
+    autocomplete_engine_.RegisterCommand("/rom_info", "Display ROM information");
+    autocomplete_engine_.RegisterCommand("/status", "Show chat statistics");
+    
+    // Add common prompts
+    autocomplete_engine_.RegisterCommand("What is", "Ask a question about ROM");
+    autocomplete_engine_.RegisterCommand("How do I", "Get help with a task");
+    autocomplete_engine_.RegisterCommand("Show me", "Request information");
+    autocomplete_engine_.RegisterCommand("List all", "List items from ROM");
+    autocomplete_engine_.RegisterCommand("Find", "Search for something");
 }
 
 void ChatTUI::Run() {
-  std::string input_message;
-  auto input_component = CreateAutocompleteInput(&input_message, &autocomplete_engine_);
-  input_component->TakeFocus();
-
-  auto send_button = Button("Send", [&] {
-    if (input_message.empty()) return;
-    OnSubmit(input_message);
-    input_message.clear();
-  });
-
-  // Handle 'Enter' key in the input field.
-  input_component = CatchEvent(input_component, [&](Event event) {
+  auto input_message = std::make_shared<std::string>();
+  
+  // Create autocomplete input component
+  auto input_component = CreateAutocompleteInput(input_message.get(), &autocomplete_engine_);
+  
+  // Handle Enter key BEFORE adding to container
+  input_component = CatchEvent(input_component, [this, input_message](const Event& event) {
     if (event == Event::Return) {
-      if (input_message.empty()) return true;
-      OnSubmit(input_message);
-      input_message.clear();
+      if (input_message->empty()) return true;
+      OnSubmit(*input_message);
+      input_message->clear();
       return true;
     }
     return false;
   });
-
-  int selected_message = 0;
-  auto history_container = Container::Vertical({}, &selected_message);
-
-  auto main_container = Container::Vertical({
-      history_container,
-      input_component,
+  
+  auto send_button = Button("Send", [this, input_message] {
+    if (input_message->empty()) return;
+    OnSubmit(*input_message);
+    input_message->clear();
   });
 
-  auto main_renderer = Renderer(main_container, [&] {
+  // Add both input and button to container
+  auto input_container = Container::Horizontal({
+      input_component,
+      send_button,
+  });
+  
+  input_component->TakeFocus();
+
+  auto main_renderer = Renderer(input_container, [this, input_component, send_button] {
     const auto& history = agent_service_.GetHistory();
-    if (history.size() != history_container->ChildCount()) {
-      history_container->DetachAllChildren();
-      for (const auto& msg : history) {
-        Element header = text(msg.sender == agent::ChatMessage::Sender::kUser
-                                  ? "You"
-                                  : "Agent") |
-                         bold |
-                         color(msg.sender == agent::ChatMessage::Sender::kUser
-                                   ? Color::Yellow
-                                   : Color::Green);
+    
+    // Build history view from current history state
+    std::vector<Element> history_elements;
+    
+    for (const auto& msg : history) {
+      Element header = text(msg.sender == agent::ChatMessage::Sender::kUser ? "You" : "Agent") |
+                       bold |
+                       color(msg.sender == agent::ChatMessage::Sender::kUser ? Color::Yellow : Color::Green);
 
-        Element body;
-        if (msg.table_data.has_value()) {
-          std::vector<std::vector<std::string>> table_rows;
-          table_rows.reserve(msg.table_data->rows.size() + 1);
+      Element body;
+      if (msg.table_data.has_value()) {
+        std::vector<std::vector<std::string>> table_rows;
+        if (!msg.table_data->headers.empty()) {
           table_rows.push_back(msg.table_data->headers);
-          for (const auto& row : msg.table_data->rows) {
-            table_rows.push_back(row);
-          }
-          Table table(table_rows);
-          table.SelectAll().Border(LIGHT);
-          if (!table_rows.empty()) {
-            table.SelectRow(0).Decorate(bold);
-          }
-          body = table.Render();
-        } else if (msg.json_pretty.has_value()) {
-          body = paragraph(msg.json_pretty.value());
-        } else {
-          body = paragraph(msg.message);
         }
-
-        Elements block = {header, hbox({text("  "), body})};
-        if (msg.metrics.has_value()) {
-          const auto& metrics = msg.metrics.value();
-          block.push_back(text(absl::StrFormat(
-              "  📊 Turn %d — users:%d agents:%d tools:%d commands:%d proposals:%d elapsed %.2fs avg %.2fs",
-              metrics.turn_index, metrics.total_user_messages,
-              metrics.total_agent_messages, metrics.total_tool_calls,
-              metrics.total_commands, metrics.total_proposals,
-              metrics.total_elapsed_seconds,
-              metrics.average_latency_seconds)) | color(Color::Cyan));
+        for (const auto& row : msg.table_data->rows) {
+          table_rows.push_back(row);
         }
-        block.push_back(separator());
-        history_container->Add(Renderer([block = vbox(block)] { return block; }));
+        Table table(table_rows);
+        table.SelectAll().Border(LIGHT);
+        if (!msg.table_data->headers.empty()) {
+          table.SelectRow(0).Decorate(bold);
+        }
+        body = table.Render();
+      } else if (msg.json_pretty.has_value()) {
+        // Word wrap for JSON
+        body = paragraphAlignLeft(msg.json_pretty.value());
+      } else {
+        // Word wrap for regular messages
+        body = paragraphAlignLeft(msg.message);
       }
-      selected_message = history.empty() ? 0 : history.size() - 1;
+
+      auto message_block = vbox({
+        header,
+        separator(),
+        body,
+      });
+
+      if (msg.metrics.has_value()) {
+        const auto& metrics = msg.metrics.value();
+        message_block = vbox({
+          message_block,
+          separator(),
+          text(absl::StrFormat(
+              "📊 Turn %d | Elapsed: %.2fs",
+              metrics.turn_index, metrics.total_elapsed_seconds)) | color(Color::Cyan) | dim
+        });
+      }
+      
+      history_elements.push_back(message_block | border);
     }
 
-    auto history_view = history_container->Render() | flex | frame;
+    Element history_view;
     if (history.empty()) {
-        history_view = vbox({text("No messages yet. Start chatting!") | dim}) | flex | center;
+      history_view = vbox({text("No messages yet. Start chatting!") | dim}) | flex | center;
+    } else {
+      history_view = vbox(history_elements) | vscroll_indicator | frame | flex;
     }
 
+    Elements layout_elements = {
+        text(rom_header_) | bold | center,
+        separator(),
+        history_view,
+        separator(),
+    };
+    
+    // Add metrics bar
     const auto metrics = agent_service_.GetMetrics();
-    Element metrics_bar = text(absl::StrFormat(
-        "Turns:%d Users:%d Agents:%d Tools:%d Commands:%d Proposals:%d Elapsed:%.2fs avg %.2fs",
-        metrics.turn_index, metrics.total_user_messages,
-        metrics.total_agent_messages, metrics.total_tool_calls,
-        metrics.total_commands, metrics.total_proposals,
-        metrics.total_elapsed_seconds, metrics.average_latency_seconds)) |
-                            color(Color::Cyan);
-
-    auto input_view = hbox({
-        text("You: ") | bold,
-        input_component->Render() | flex,
-        text(" "),
-        send_button->Render(),
-    });
-
-    Element error_view;
+    layout_elements.push_back(
+        hbox({
+            text(absl::StrFormat("Turns:%d", metrics.turn_index)),
+            separator(),
+            text(absl::StrFormat("User:%d", metrics.total_user_messages)),
+            separator(),
+            text(absl::StrFormat("Agent:%d", metrics.total_agent_messages)),
+            separator(),
+            text(absl::StrFormat("Tools:%d", metrics.total_tool_calls)),
+        }) | color(Color::GrayLight)
+    );
+    
+    // Add error if present
     if (last_error_.has_value()) {
-      error_view = text(absl::StrCat("⚠ ", *last_error_)) | color(Color::Red);
+      layout_elements.push_back(separator());
+      layout_elements.push_back(
+        text(absl::StrCat("⚠ ERROR: ", *last_error_)) | color(Color::Red)
+      );
     }
+    
+    // Add input area
+    layout_elements.push_back(separator());
+    layout_elements.push_back(
+        input_component->Render() | flex
+    );
+    layout_elements.push_back(
+        hbox({
+            text("Press Enter to send | ") | dim,
+            send_button->Render(),
+            text(" | /help for commands") | dim,
+        }) | center
+    );
 
-    return gridbox({
-        {text(rom_header_) | center},
-        {separator()},
-        {history_view},
-        {separator()},
-        {metrics_bar},
-        {error_view ? separator() : filler()},
-        {error_view ? error_view : filler()},
-        {separator()},
-        {input_view},
-    }) | border;
+    return vbox(layout_elements) | border;
   });
 
   screen_.Loop(main_renderer);
@@ -174,16 +200,16 @@ void ChatTUI::OnSubmit(const std::string& message) {
     return;
   }
 
-  if (message == "/exit") {
+  if (message == "/exit" || message == "/quit") {
       screen_.Exit();
       return;
   }
   if (message == "/clear") {
       agent_service_.ResetConversation();
+      // The renderer will see history is empty and detach children
       return;
   }
   if (message == "/rom_info") {
-      // Send ROM info as a user message to get a response
       auto response = agent_service_.SendMessage("Show me information about the loaded ROM");
       if (!response.ok()) {
         last_error_ = response.status().message();
@@ -193,8 +219,38 @@ void ChatTUI::OnSubmit(const std::string& message) {
       return;
   }
   if (message == "/help") {
-      // Send help request as a user message
       auto response = agent_service_.SendMessage("What commands can I use?");
+      if (!response.ok()) {
+        last_error_ = response.status().message();
+      } else {
+        last_error_.reset();
+      }
+      return;
+  }
+  if (message == "/status") {
+      const auto metrics = agent_service_.GetMetrics();
+      std::string status_message = absl::StrFormat(
+          "Chat Statistics:\n"
+          "- Total Turns: %d\n"
+          "- User Messages: %d\n"
+          "- Agent Messages: %d\n"
+          "- Tool Calls: %d\n"
+          "- Commands: %d\n"
+          "- Proposals: %d\n"
+          "- Total Elapsed Time: %.2f seconds\n"
+          "- Average Latency: %.2f seconds",
+          metrics.turn_index,
+          metrics.total_user_messages,
+          metrics.total_agent_messages,
+          metrics.total_tool_calls,
+          metrics.total_commands,
+          metrics.total_proposals,
+          metrics.total_elapsed_seconds,
+          metrics.average_latency_seconds
+      );
+      
+      // Add a system message with status
+      auto response = agent_service_.SendMessage(status_message);
       if (!response.ok()) {
         last_error_ = response.status().message();
       } else {

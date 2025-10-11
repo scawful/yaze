@@ -16,8 +16,13 @@ enum class ToolCallType {
   kUnknown,
   kResourceList,
   kResourceSearch,
+  // Dungeon
   kDungeonListSprites,
   kDungeonDescribeRoom,
+  kDungeonExportRoom,
+  kDungeonListObjects,
+  kDungeonGetRoomTiles,
+  kDungeonSetRoomProperty,
   // Overworld
   kOverworldFindTile,
   kOverworldDescribeMap,
@@ -25,23 +30,39 @@ enum class ToolCallType {
   kOverworldListSprites,
   kOverworldGetEntrance,
   kOverworldTileStats,
-  //
+  // Messages & Dialogue
   kMessageList,
   kMessageRead,
   kMessageSearch,
+  kDialogueList,
+  kDialogueRead,
+  kDialogueSearch,
+  // GUI Automation
   kGuiPlaceTile,
   kGuiClick,
   kGuiDiscover,
   kGuiScreenshot,
-  kDialogueList,
-  kDialogueRead,
-  kDialogueSearch,
+  // Music
   kMusicList,
   kMusicInfo,
   kMusicTracks,
+  // Sprites
   kSpriteList,
   kSpriteProperties,
   kSpritePalette,
+  // Emulator & Debugger
+  kEmulatorStep,
+  kEmulatorRun,
+  kEmulatorPause,
+  kEmulatorReset,
+  kEmulatorGetState,
+  kEmulatorSetBreakpoint,
+  kEmulatorClearBreakpoint,
+  kEmulatorListBreakpoints,
+  kEmulatorReadMemory,
+  kEmulatorWriteMemory,
+  kEmulatorGetRegisters,
+  kEmulatorGetMetrics,
 };
 
 class ToolDispatcher {

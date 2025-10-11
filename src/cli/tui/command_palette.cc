@@ -8,17 +8,44 @@
 #include "cli/tui/tui.h"
 #include "cli/handlers/agent/hex_commands.h"
 #include "cli/handlers/agent/palette_commands.h"
-#include "absl/strings/str_split.h"
 
 namespace yaze {
 namespace cli {
 
 using namespace ftxui;
 
+namespace {
+// A simple fuzzy search implementation
+int fuzzy_match(const std::string& query, const std::string& target) {
+    if (query.empty()) return 1;
+    if (target.empty()) return 0;
+
+    int score = 0;
+    int query_idx = 0;
+    int target_idx = 0;
+    int consecutive_matches = 0;
+
+    while (query_idx < query.length() && target_idx < target.length()) {
+        if (std::tolower(query[query_idx]) == std::tolower(target[target_idx])) {
+            score += 1 + consecutive_matches;
+            consecutive_matches++;
+            query_idx++;
+        } else {
+            consecutive_matches = 0;
+        }
+        target_idx++;
+    }
+
+    return (query_idx == query.length()) ? score : 0;
+}
+}
+
 Component CommandPaletteComponent::Render() {
-  static std::string query;
-  static int selected = 0;
-  static std::string status_msg;
+  struct PaletteState {
+    std::string query;
+    int selected = 0;
+    std::string status_msg;
+  };
   
   struct Cmd {
     std::string name;
@@ -26,7 +53,10 @@ Component CommandPaletteComponent::Render() {
     std::string desc;
     std::string usage;
     std::function<absl::Status()> exec;
+    int score = 0;
   };
+  
+  auto state = std::make_shared<PaletteState>();
   
   static std::vector<Cmd> cmds = {
     {"hex-read", "🔢 Hex", "Read ROM bytes", 
@@ -54,89 +84,144 @@ Component CommandPaletteComponent::Render() {
      []() { return agent::HandlePaletteAnalyze({"--type=palette", "--id=0/0"}, &app_context.rom); }},
   };
   
-  // Fuzzy filter
-  std::vector<int> filtered_idx;
-  std::string q_lower = query;
-  std::transform(q_lower.begin(), q_lower.end(), q_lower.begin(), ::tolower);
+  auto search_input = Input(&state->query, "Search commands...");
   
-  for (size_t i = 0; i < cmds.size(); ++i) {
-    if (query.empty()) {
-      filtered_idx.push_back(i);
+  auto menu = Renderer([state] {
+    std::vector<int> filtered_idx;
+    if (state->query.empty()) {
+        for (size_t i = 0; i < cmds.size(); ++i) {
+            filtered_idx.push_back(i);
+        }
     } else {
-      std::string n = cmds[i].name;
-      std::transform(n.begin(), n.end(), n.begin(), ::tolower);
-      if (n.find(q_lower) != std::string::npos) {
-        filtered_idx.push_back(i);
+        for (size_t i = 0; i < cmds.size(); ++i) {
+            cmds[i].score = fuzzy_match(state->query, cmds[i].name);
+            if (cmds[i].score > 0) {
+                filtered_idx.push_back(i);
+            }
+        }
+        std::sort(filtered_idx.begin(), filtered_idx.end(), [](int a, int b) {
+            return cmds[a].score > cmds[b].score;
+        });
+    }
+    Elements items;
+    for (size_t i = 0; i < filtered_idx.size(); ++i) {
+      int idx = filtered_idx[i];
+      auto item = hbox({
+          text(cmds[idx].cat) | color(Color::GrayLight),
+          text(" "),
+          text(cmds[idx].name) | bold,
+      });
+      if (static_cast<int>(i) == state->selected) {
+        item = item | inverted | focus;
       }
+      items.push_back(item);
     }
-  }
-  
-  auto search_input = Input(&query, "Search...");
-  
-  std::vector<std::string> menu_items;
-  for (int idx : filtered_idx) {
-    menu_items.push_back(cmds[idx].cat + " " + cmds[idx].name);
-  }
-  
-  auto menu = Menu(&menu_items, &selected);
-  
-  auto exec_btn = Button("Execute", [&] {
-    if (selected < static_cast<int>(filtered_idx.size())) {
-      int cmd_idx = filtered_idx[selected];
-      auto status = cmds[cmd_idx].exec();
-      status_msg = status.ok() ? "✓ Success" : "✗ " + std::string(status.message());
-    }
+    return vbox(items) | vscroll_indicator | frame;
   });
   
-  auto back_btn = Button("Back", [&] {
+  auto execute_command = [state] {
+    std::vector<int> filtered_idx;
+    if (state->query.empty()) {
+        for (size_t i = 0; i < cmds.size(); ++i) {
+            filtered_idx.push_back(i);
+        }
+    } else {
+        for (size_t i = 0; i < cmds.size(); ++i) {
+            cmds[i].score = fuzzy_match(state->query, cmds[i].name);
+            if (cmds[i].score > 0) {
+                filtered_idx.push_back(i);
+            }
+        }
+        std::sort(filtered_idx.begin(), filtered_idx.end(), [](int a, int b) {
+            return cmds[a].score > cmds[b].score;
+        });
+    }
+    
+    if (state->selected < static_cast<int>(filtered_idx.size())) {
+      int cmd_idx = filtered_idx[state->selected];
+      auto status = cmds[cmd_idx].exec();
+      state->status_msg = status.ok() ? "✓ Success: Command executed." : "✗ Error: " + std::string(status.message());
+    }
+  };
+
+  auto back_btn = Button("Back", [] {
     app_context.current_layout = LayoutID::kMainMenu;
     ScreenInteractive::Active()->ExitLoopClosure()();
   });
   
-  auto container = Container::Vertical({search_input, menu, exec_btn, back_btn});
+  auto container = Container::Vertical({search_input, menu, back_btn});
   
-  return CatchEvent(Renderer(container, [&] {
-    Elements items;
-    for (size_t i = 0; i < filtered_idx.size(); ++i) {
-      int idx = filtered_idx[i];
-      auto item = text(cmds[idx].cat + " " + cmds[idx].name);
-      if (static_cast<int>(i) == selected) {
-        item = item | bold | inverted | color(Color::Cyan);
-      }
-      items.push_back(item);
+  return Renderer(container, [container, search_input, menu, back_btn, state] {
+    std::vector<int> filtered_idx;
+    if (state->query.empty()) {
+        for (size_t i = 0; i < cmds.size(); ++i) {
+            filtered_idx.push_back(i);
+        }
+    } else {
+        for (size_t i = 0; i < cmds.size(); ++i) {
+            cmds[i].score = fuzzy_match(state->query, cmds[i].name);
+            if (cmds[i].score > 0) {
+                filtered_idx.push_back(i);
+            }
+        }
+        std::sort(filtered_idx.begin(), filtered_idx.end(), [](int a, int b) {
+            return cmds[a].score > cmds[b].score;
+        });
     }
     
-    // Show selected command details
-    Element details = text("");
-    if (selected < static_cast<int>(filtered_idx.size())) {
-      int idx = filtered_idx[selected];
+    Element details = text("Select a command to see details.") | dim;
+    if (state->selected < static_cast<int>(filtered_idx.size())) {
+      int idx = filtered_idx[state->selected];
       details = vbox({
-        text("Description: " + cmds[idx].desc) | color(Color::GreenLight),
-        text("Usage: " + cmds[idx].usage) | color(Color::Yellow) | dim,
+        text(cmds[idx].desc) | bold,
+        separator(),
+        text("Usage: " + cmds[idx].name + " " + cmds[idx].usage) | color(Color::Cyan),
       });
     }
     
     return vbox({
       text("⚡ Command Palette") | bold | center | color(Color::Cyan),
-      text(app_context.rom.is_loaded() ? "ROM: " + app_context.rom.title() : "No ROM") | center | dim,
+      text(app_context.rom.is_loaded() ? "ROM: " + app_context.rom.title() : "No ROM loaded") | center | dim,
       separator(),
       hbox({text("🔍 "), search_input->Render() | flex}),
       separator(),
-      vbox(items) | frame | flex | vscroll_indicator,
+      hbox({
+        menu->Render() | flex,
+        separator(),
+        details | flex,
+      }),
       separator(),
-      details,
+      hbox({ back_btn->Render() }) | center,
       separator(),
-      hbox({exec_btn->Render(), text("  "), back_btn->Render()}) | center,
-      separator(),
-      text(status_msg) | center | (status_msg.find("✓") == 0 ? color(Color::Green) : color(Color::Red)),
-      text("Enter=Execute | ↑↓=Navigate | Esc=Back") | center | dim,
-    }) | border | size(WIDTH, EQUAL, 80) | size(HEIGHT, EQUAL, 30);
-  }), [&](Event e) {
-    if (e == Event::Return && selected < static_cast<int>(filtered_idx.size())) {
-      int idx = filtered_idx[selected];
-      auto status = cmds[idx].exec();
-      status_msg = status.ok() ? "✓ Executed" : "✗ " + std::string(status.message());
+      text(state->status_msg) | center | (state->status_msg.find("✓") != 0 ? color(Color::Green) : color(Color::Red)),
+      text("↑↓: Navigate | Enter: Execute | Esc: Back") | center | dim,
+    }) | border | flex;
+  }) | CatchEvent([state, execute_command](const Event& e) {
+    if (e == Event::Return) {
+      execute_command();
       return true;
+    }
+    if (e == Event::ArrowUp) {
+        if (state->selected > 0) state->selected--;
+        return true;
+    }
+    if (e == Event::ArrowDown) {
+        // Calculate filtered_idx size
+        std::vector<int> filtered_idx;
+        if (state->query.empty()) {
+            for (size_t i = 0; i < cmds.size(); ++i) {
+                filtered_idx.push_back(i);
+            }
+        } else {
+            for (size_t i = 0; i < cmds.size(); ++i) {
+                cmds[i].score = fuzzy_match(state->query, cmds[i].name);
+                if (cmds[i].score > 0) {
+                    filtered_idx.push_back(i);
+                }
+            }
+        }
+        if (state->selected < static_cast<int>(filtered_idx.size()) - 1) state->selected++;
+        return true;
     }
     return false;
   });

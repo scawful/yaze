@@ -87,6 +87,38 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(
     status = HandleSpritePropertiesCommand(args, rom_context_);
   } else if (tool_call.tool_name == "sprite-palette") {
     status = HandleSpritePaletteCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "dungeon-export-room") {
+    status = HandleDungeonExportRoomCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "dungeon-list-objects") {
+    status = HandleDungeonListObjectsCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "dungeon-get-room-tiles") {
+    status = HandleDungeonGetRoomTilesCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "dungeon-set-room-property") {
+    status = HandleDungeonSetRoomPropertyCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "emulator-step") {
+    status = HandleEmulatorStepCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "emulator-run") {
+    status = HandleEmulatorRunCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "emulator-pause") {
+    status = HandleEmulatorPauseCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "emulator-reset") {
+    status = HandleEmulatorResetCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "emulator-get-state") {
+    status = HandleEmulatorGetStateCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "emulator-set-breakpoint") {
+    status = HandleEmulatorSetBreakpointCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "emulator-clear-breakpoint") {
+    status = HandleEmulatorClearBreakpointCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "emulator-list-breakpoints") {
+    status = HandleEmulatorListBreakpointsCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "emulator-read-memory") {
+    status = HandleEmulatorReadMemoryCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "emulator-write-memory") {
+    status = HandleEmulatorWriteMemoryCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "emulator-get-registers") {
+    status = HandleEmulatorGetRegistersCommand(args, rom_context_);
+  } else if (tool_call.tool_name == "emulator-get-metrics") {
+    status = HandleEmulatorGetMetricsCommand(args, rom_context_);
   } else {
     status = absl::UnimplementedError(
         absl::StrFormat("Unknown tool: %s", tool_call.tool_name));

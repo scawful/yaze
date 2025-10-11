@@ -6,7 +6,6 @@
 #include <iomanip>
 #include <sstream>
 
-#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 
 namespace yaze {
@@ -29,7 +28,7 @@ EnhancedStatusPanel::EnhancedStatusPanel(Rom* rom_context)
   status_container_ = CreateStatusContainer();
   
   // Set up event handlers
-  status_event_handler_ = [this](Event event) {
+  status_event_handler_ = [this](const Event& event) {
     return HandleStatusEvents(event);
   };
 }

@@ -288,6 +288,16 @@ int main(int argc, char* argv[]) {
 
   // Handle TUI mode
   if (absl::GetFlag(FLAGS_tui)) {
+    // Load ROM if specified before launching TUI
+    std::string rom_path = absl::GetFlag(FLAGS_rom);
+    if (!rom_path.empty()) {
+      auto status = yaze::cli::app_context.rom.LoadFromFile(rom_path);
+      if (!status.ok()) {
+        std::cerr << "\n\033[1;31mError:\033[0m Failed to load ROM: " 
+                  << status.message() << "\n";
+        // Continue to TUI anyway, user can load ROM from there
+      }
+    }
     yaze::cli::ShowMain();
     return EXIT_SUCCESS;
   }

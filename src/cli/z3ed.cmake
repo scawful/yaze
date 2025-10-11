@@ -51,6 +51,7 @@ add_executable(
   cli/tui/unified_layout.cc
   cli/tui/enhanced_chat_component.cc
   cli/tui/enhanced_status_panel.cc
+  cli/tui/hex_viewer.cc
   cli/handlers/compress.cc
   cli/handlers/patch.cc
   cli/handlers/tile16_transfer.cc
@@ -76,6 +77,7 @@ add_executable(
   cli/handlers/agent/dialogue_tool_commands.cc
   cli/handlers/agent/music_tool_commands.cc
   cli/handlers/agent/sprite_tool_commands.cc
+  cli/handlers/agent/dungeon_emulator_tool_commands.cc
   cli/flags.cc
   cli/tui/asar_patch.cc
   cli/tui/palette_editor.cc
