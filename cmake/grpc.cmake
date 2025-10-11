@@ -151,10 +151,22 @@ list(GET _PROTOBUF_INCLUDE_DIRS 0 _gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR)
 
 # Export Abseil targets from gRPC's bundled abseil for use by the rest of the project
 # This ensures version compatibility between gRPC and our project
+# Note: Order matters for some linkers - put base libraries first
 set(
   ABSL_TARGETS
+  absl::base
+  absl::config
+  absl::core_headers
+  absl::utility
+  absl::memory
+  absl::container_memory
   absl::strings
   absl::str_format
+  absl::cord
+  absl::hash
+  absl::time
+  absl::status
+  absl::statusor
   absl::flags
   absl::flags_parse
   absl::flags_usage
@@ -164,31 +176,20 @@ set(
   absl::flags_program_name
   absl::flags_config
   absl::flags_reflection
-  absl::status
-  absl::statusor
   absl::examine_stack
   absl::stacktrace
-  absl::base
-  absl::config
-  absl::core_headers
   absl::failure_signal_handler
   absl::flat_hash_map
-  absl::cord
-  absl::hash
   absl::synchronization
-  absl::time
   absl::symbolize
-  absl::container_memory
-  absl::memory
-  absl::utility
-  PARENT_SCOPE
 )
 
 # Only expose absl::int128 when it's supported without warnings
 if(NOT WIN32)
   list(APPEND ABSL_TARGETS absl::int128)
-  set(ABSL_TARGETS ${ABSL_TARGETS} PARENT_SCOPE)
 endif()
+
+# ABSL_TARGETS is now available to the rest of the project via include()
 
 # Fix Abseil ARM64 macOS compile flags (remove x86-specific flags)
 if(APPLE AND DEFINED CMAKE_OSX_ARCHITECTURES AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")

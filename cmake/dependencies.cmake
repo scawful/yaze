@@ -64,11 +64,25 @@ endfunction()
 # gRPC (must come before Abseil - provides its own compatible Abseil)
 if(YAZE_WITH_GRPC)
   include(cmake/grpc.cmake)
+  # Verify ABSL_TARGETS was populated by gRPC
+  list(LENGTH ABSL_TARGETS _absl_count)
+  if(_absl_count EQUAL 0)
+    message(FATAL_ERROR "ABSL_TARGETS is empty after including grpc.cmake!")
+  else()
+    message(STATUS "gRPC provides ${_absl_count} Abseil targets for linking")
+  endif()
 endif()
 
 # Abseil (only if gRPC didn't provide it)
 if(NOT YAZE_WITH_GRPC)
   include(cmake/absl.cmake)
+  # Verify ABSL_TARGETS was populated
+  list(LENGTH ABSL_TARGETS _absl_count)
+  if(_absl_count EQUAL 0)
+    message(FATAL_ERROR "ABSL_TARGETS is empty after including absl.cmake!")
+  else()
+    message(STATUS "Abseil provides ${_absl_count} targets for linking")
+  endif()
 endif()
 
 # SDL2
@@ -107,6 +121,11 @@ FetchContent_Declare(yaml-cpp
     GIT_TAG 0.8.0
 )
 FetchContent_MakeAvailable(yaml-cpp)
+
+# Fix MSVC exception handling warning for yaml-cpp
+if(MSVC AND TARGET yaml-cpp)
+  target_compile_options(yaml-cpp PRIVATE /EHsc)
+endif()
 
 # nlohmann_json (header only)
 if(YAZE_WITH_JSON)
