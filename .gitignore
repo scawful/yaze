@@ -86,8 +86,10 @@ src/app/emu/cpu/internal/old_cpu.cc
 .favorites.json
 checks.json
 assets/etc/
-*.sfc
 imgui.ini
 .gitignore
 recent_files.txt
 .vs/*
+.gitignore
+.genkit
+.claude
