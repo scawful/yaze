@@ -4,9 +4,12 @@
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/terminal.hpp>
+#include <numeric>
+#include <utility>
 
 #include "absl/strings/str_format.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/z3ed_ascii_logo.h"
 
 namespace yaze {
 namespace cli {
@@ -27,7 +30,45 @@ UnifiedLayout::UnifiedLayout(Rom* rom_context)
   if (rom_context_) {
     state_.current_rom_file = rom_context_->title();
   }
+
+  state_.active_workflows = {
+      "ROM Audit",
+      "Dungeon QA",
+      "Palette Polish"
+  };
   
+  InitializeTheme();
+
+  status_provider_ = [this] {
+    auto rom_loaded = rom_context_ && rom_context_->is_loaded();
+    return vbox({
+        text(rom_loaded ? "✅ Ready" : "⚠ Awaiting ROM") |
+            color(rom_loaded ? Color::GreenLight : Color::YellowLight),
+        text(absl::StrFormat("Focus: %s",
+                             state_.command_palette_hint.empty() ?
+                                 "Main Menu" : state_.command_palette_hint)) |
+            dim
+    });
+  };
+
+  command_summary_provider_ = [] {
+    return std::vector<std::string>{
+        "agent::chat — conversational ROM inspector",
+        "rom::info — metadata & validation",
+        "dungeon::list — dungeon manifest",
+        "gfx::export — sprite/palette dump",
+        "project::build — apply patches"
+    };
+  };
+
+  todo_provider_ = [] {
+    return std::vector<std::string>{
+        "[pending] Implement dungeon diff visualizer",
+        "[pending] Integrate Claude-style context panes",
+        "[todo] Hook TODO manager into project manifests"
+    };
+  };
+
   // Create components
   main_menu_panel_ = CreateMainMenuPanel();
   chat_panel_ = CreateChatPanel();
@@ -94,8 +135,59 @@ void UnifiedLayout::ToggleStatus() {
   screen_.PostEvent(Event::Custom);  // Force screen refresh
 }
 
+void UnifiedLayout::ToggleTodoOverlay() {
+  todo_overlay_visible_ = !todo_overlay_visible_;
+  if (todo_overlay_visible_) {
+    if (!todo_overlay_component_ && todo_provider_) {
+      todo_overlay_component_ = Renderer([this] {
+        Elements rows;
+        if (todo_provider_) {
+          auto items = todo_provider_();
+          if (items.empty()) {
+            rows.push_back(text("No TODOs available") | dim | center);
+          } else {
+            for (const auto& line : items) {
+              rows.push_back(text(line));
+            }
+          }
+        }
+        return dbox({window(text("📝 TODO Overlay") | bold,
+                            vbox({
+                                separatorLight(),
+                                vbox(rows) | frame | size(HEIGHT, LESS_THAN, 15) | size(WIDTH, LESS_THAN, 80),
+                                separatorLight(),
+                                text("Ctrl+T to close • Enter to jump via command palette") | dim | center
+                            })) | center});
+      });
+    }
+    screen_.PostEvent(Event::Custom);
+  } else {
+    screen_.PostEvent(Event::Custom);
+  }
+}
+
 void UnifiedLayout::SetLayoutConfig(const LayoutConfig& config) {
   config_ = config;
+}
+
+void UnifiedLayout::SetStatusProvider(std::function<Element()> provider) {
+  status_provider_ = std::move(provider);
+}
+
+void UnifiedLayout::SetCommandSummaryProvider(std::function<std::vector<std::string>()> provider) {
+  command_summary_provider_ = std::move(provider);
+}
+
+void UnifiedLayout::SetTodoProvider(std::function<std::vector<std::string>()> provider) {
+  todo_provider_ = std::move(provider);
+}
+
+void UnifiedLayout::InitializeTheme() {
+  auto terminal = Terminal::Size();
+  if (terminal.dimx < 120) {
+    config_.right_panel_width = 30;
+    config_.bottom_panel_height = 12;
+  }
 }
 
 Component UnifiedLayout::CreateMainMenuPanel() {
@@ -133,13 +225,18 @@ Component UnifiedLayout::CreateMainMenuPanel() {
   auto menu = Menu(&state->items, &state->selected, option);
   
   return Renderer(menu, [this, menu, state] {
+    auto banner = RenderAnimatedBanner();
     return vbox({
-      text("🎮 Z3ED Main Menu") | bold | center,
+      banner,
       separator(),
       menu->Render(),
       separator(),
+      RenderCommandHints(),
+      separator(),
+      RenderWorkflowLane(),
+      separator(),
       text("↑/↓: Navigate | Enter: Select | q: Quit") | dim | center
-    });
+    }) | borderRounded | bgcolor(Color::Black);
   });
 }
 
@@ -147,26 +244,40 @@ Component UnifiedLayout::CreateChatPanel() {
   // Use the full-featured ChatTUI if available
   if (chat_tui_) {
     return Renderer([this] {
+      std::vector<Element> cards;
+      cards.push_back(vbox({
+          text("🤖 Overview") | bold,
+          text("Claude-style assistant for ROM editing"),
+          text("Press 'f' for fullscreen chat") | dim
+      }) | borderRounded);
+
+      if (rom_context_) {
+        cards.push_back(vbox({
+            text("📦 ROM Context") | bold,
+            text(rom_context_->title()),
+            text(absl::StrFormat("Size: %d bytes", rom_context_->size())) | dim
+        }) | borderRounded | color(Color::GreenLight));
+      } else {
+        cards.push_back(vbox({
+            text("⚠ No ROM loaded") | color(Color::Yellow),
+            text("Use Load ROM from main menu") | dim
+        }) | borderRounded);
+      }
+
+      cards.push_back(vbox({
+          text("🛠 Integrations") | bold,
+          text("• TODO manager status") | dim,
+          text("• Command palette shortcuts") | dim,
+          text("• Tool dispatcher metrics") | dim
+      }) | borderRounded);
+
       return vbox({
-        text("🤖 AI Chat Assistant") | bold | center | color(Color::Cyan),
+        RenderPanelHeader(PanelType::kChat),
         separator(),
-        text("Press 'f' for full chat | 'c' to toggle") | center | dim,
+        RenderResponsiveGrid(cards),
         separator(),
-        hbox({
-          text("Status: ") | bold,
-          text(rom_context_ ? "ROM Loaded ✓" : "No ROM") | 
-            color(rom_context_ ? Color::Green : Color::Red)
-        }) | center,
-        separator(),
-        text("Features:") | bold | center,
-        text("  • Natural language ROM queries") | dim,
-        text("  • Dungeon & overworld inspection") | dim,
-        text("  • Sprite & palette analysis") | dim,
-        text("  • Message & dialogue search") | dim,
-        text("  • Emulator control (when running)") | dim,
-        separator(),
-        text("Type '/help' for commands") | center | dim
-      });
+        text("Shortcuts: f fullscreen | c toggle chat | /help commands") | dim | center
+      }) | borderRounded | bgcolor(Color::Black);
     });
   }
   
@@ -227,40 +338,32 @@ Component UnifiedLayout::CreateChatPanel() {
 
 Component UnifiedLayout::CreateStatusPanel() {
   return Renderer([this] {
-    std::string rom_info = rom_context_ ? 
-      absl::StrFormat("ROM: %s | Size: %d bytes", 
-                     rom_context_->title(), rom_context_->size()) :
-      "No ROM loaded";
-    
-    std::string panel_name;
-    switch (state_.active_main_panel) {
-      case PanelType::kMainMenu: panel_name = "Main Menu"; break;
-      case PanelType::kChat: panel_name = "Chat"; break;
-      case PanelType::kHexViewer: panel_name = "Hex Viewer"; break;
-      case PanelType::kPaletteEditor: panel_name = "Palette Editor"; break;
-      case PanelType::kTodoManager: panel_name = "TODO Manager"; break;
-      case PanelType::kRomTools: panel_name = "ROM Tools"; break;
-      case PanelType::kGraphicsTools: panel_name = "Graphics Tools"; break;
-      case PanelType::kSettings: panel_name = "Settings"; break;
-      case PanelType::kHelp: panel_name = "Help"; break;
-      default: panel_name = "Other"; break;
+    Element rom_info = rom_context_ ?
+        text(absl::StrFormat("ROM: %s", rom_context_->title())) | color(Color::GreenLight) :
+        text("ROM: none") | color(Color::RedLight);
+
+    Element provider_status = status_provider_ ? status_provider_() : text("Ready") | color(Color::GrayLight);
+    auto command_tiles = RenderCommandHints();
+    auto todo_tiles = RenderTodoStack();
+
+    std::vector<Element> sections = {
+        RenderAnimatedBanner(),
+        separatorLight(),
+        rom_info,
+        separatorLight(),
+        provider_status,
+        separatorLight(),
+        command_tiles,
+        separatorLight(),
+        todo_tiles
+    };
+
+    if (!state_.current_error.empty()) {
+      sections.push_back(separatorLight());
+      sections.push_back(text(state_.current_error) | color(Color::Red) | bold);
     }
-    
-    return vbox({
-      text("📊 Status") | bold | center,
-      separator(),
-      text(rom_info) | color(rom_context_ ? Color::Green : Color::Red),
-      separator(),
-      text("Panel: ") | bold,
-      text(panel_name),
-      separator(),
-      text("Layout: ") | bold,
-      text(absl::StrFormat("Chat: %s | Status: %s", 
-        config_.show_chat ? "ON" : "OFF",
-        config_.show_status ? "ON" : "OFF")),
-      separator(),
-      text("Press 'h' for help, 'q' to quit") | dim | center
-    });
+
+    return vbox(sections) | borderRounded | bgcolor(Color::Black);
   });
 }
 
@@ -268,25 +371,35 @@ Component UnifiedLayout::CreateToolsPanel() {
   struct ToolsState {
     int selected = 0;
     std::vector<std::string> items = {
-      "🔧 ROM Tools",
-      "🎨 Graphics Tools", 
-      "📝 TODO Manager",
+      "🔧 ROM Tools (press t)",
+      "🎨 Graphics Tools (ref gfx::export)", 
+      "📝 TODO Manager (ref todo::list)",
       "⚙️ Settings",
       "❓ Help"
     };
   };
   
   auto state = std::make_shared<ToolsState>();
-  auto menu = Menu(&state->items, &state->selected);
+  MenuOption option;
+  option.on_change = [this, state] {
+    if (!state->items.empty()) {
+      state_.command_palette_hint = state->items[state->selected];
+    }
+  };
+  auto menu = Menu(&state->items, &state->selected, option);
   
   return Renderer(menu, [this, menu, state] {
     return vbox({
-      text("🛠️ Tools") | bold | center,
+      RenderPanelHeader(PanelType::kTools),
       separator(),
       menu->Render(),
       separator(),
-      text("Select a tool category") | dim | center
-    }) | border;
+      text("Select a tool category") | dim | center,
+      separator(),
+      RenderCommandHints(),
+      separator(),
+      RenderWorkflowLane()
+    }) | borderRounded | bgcolor(Color::Black);
   });
 }
 
@@ -337,47 +450,77 @@ Component UnifiedLayout::CreateHexViewerPanel() {
       rows.push_back(hbox(row));
     }
     
+    auto workflow = RenderWorkflowLane();
+
     return vbox({
       text("🔍 Hex Viewer") | bold | center,
+      separator(),
+      workflow,
       separator(),
       vbox(rows) | frame | flex,
       separator(),
       text(absl::StrFormat("Offset: 0x%08X", *offset)) | color(Color::Cyan),
       separator(),
       text("↑/↓: Scroll | q: Back") | dim | center
-    }) | border;
+    }) | borderRounded | bgcolor(Color::Black);
   });
 }
 
 Component UnifiedLayout::CreatePaletteEditorPanel() {
   return Renderer([this] {
     return vbox({
-      text("🎨 Palette Editor") | bold | center,
+      RenderPanelHeader(PanelType::kPaletteEditor),
       separator(),
-      text("Palette editing functionality") | center,
-      text("coming soon...") | center | dim,
+      RenderResponsiveGrid({
+          vbox({
+              text("🌈 Overview") | bold,
+              text("Preview palette indices and colors"),
+              text("Highlight sprite-specific palettes") | dim
+          }) | borderRounded | bgcolor(Color::Black),
+          vbox({
+              text("🧪 Roadmap") | bold,
+              text("• Live recolor with undo stack"),
+              text("• Sprite preview viewport"),
+              text("• Export to .pal/.act")
+          }) | borderRounded | bgcolor(Color::Black),
+          vbox({
+              text("🗒 TODO") | bold,
+              text("Link to command palette"),
+              text("Use animation timeline"),
+              text("Add palette history panel") | dim
+          }) | borderRounded | bgcolor(Color::Black)
+      }),
       separator(),
-      text("This panel will allow editing") | center,
-      text("color palettes from the ROM") | center,
+      RenderWorkflowLane(),
       separator(),
       text("Press 'q' to go back") | dim | center
-    }) | border;
+    }) | borderRounded;
   });
 }
 
 Component UnifiedLayout::CreateTodoManagerPanel() {
   return Renderer([this] {
+    std::vector<Element> todo_cards;
+    if (todo_provider_) {
+      for (const auto& item : todo_provider_()) {
+        todo_cards.push_back(text("• " + item));
+      }
+    }
+    if (todo_cards.empty()) {
+      todo_cards.push_back(text("No TODOs yet") | dim);
+    }
+
     return vbox({
-      text("📝 TODO Manager") | bold | center,
+      RenderPanelHeader(PanelType::kTodoManager),
       separator(),
-      text("TODO management functionality") | center,
-      text("coming soon...") | center | dim,
+      vbox(todo_cards) | borderRounded | bgcolor(Color::Black),
       separator(),
-      text("This panel will integrate with") | center,
-      text("the existing TODO manager") | center,
+      text("Press Ctrl+T anywhere to toggle the popup todo overlay.") | dim,
+      separator(),
+      RenderWorkflowLane(),
       separator(),
       text("Press 'q' to go back") | dim | center
-    }) | border;
+    }) | borderRounded;
   });
 }
 
@@ -385,11 +528,11 @@ Component UnifiedLayout::CreateRomToolsPanel() {
   struct ToolsState {
     int selected = 0;
     std::vector<std::string> items = {
-      "Apply Asar Patch",
-      "Apply BPS Patch", 
-      "Extract Symbols",
-      "Validate Assembly",
-      "Generate Save File",
+      "Apply Asar Patch — todo#123",
+      "Apply BPS Patch — todo#124", 
+      "Extract Symbols — todo#098",
+      "Validate Assembly — todo#087",
+      "Generate Save File — todo#142",
       "Back"
     };
   };
@@ -412,8 +555,8 @@ Component UnifiedLayout::CreateGraphicsToolsPanel() {
   struct ToolsState {
     int selected = 0;
     std::vector<std::string> items = {
-      "Palette Editor",
-      "Hex Viewer",
+      "Palette Editor — ref gfx::export",
+      "Hex Viewer — ref rom::hex",
       "Back"
     };
   };
@@ -478,7 +621,7 @@ Component UnifiedLayout::CreateSettingsPanel() {
   return Renderer(controls, [this, controls, state, left_width_control, right_width_control, 
                               bottom_height_control, apply_button, reset_button] {
     return vbox({
-      text("⚙️ Layout Configuration") | bold | center | color(Color::Cyan),
+      RenderPanelHeader(PanelType::kSettings) | color(Color::Cyan),
       separator(),
       text("Customize the TUI layout") | center | dim,
       separator(),
@@ -530,7 +673,7 @@ Component UnifiedLayout::CreateSettingsPanel() {
 Component UnifiedLayout::CreateHelpPanel() {
   return Renderer([this] {
     return vbox({
-      text("❓ Z3ED Help") | bold | center | color(Color::Cyan),
+      RenderPanelHeader(PanelType::kHelp) | color(Color::Cyan),
       separator(),
       text("Unified TUI Layout - ROM Editor & AI Agent") | center | dim,
       separator(),
@@ -620,25 +763,39 @@ Component UnifiedLayout::CreateUnifiedLayout() {
     }
     
     // Dynamically select right panel
-    Component right_panel = config_.show_status ? status_panel_ : tools_panel_;
+    Component right_panel;
+    if (config_.show_status) {
+      right_panel = status_panel_;
+    } else {
+      right_panel = tools_panel_;
+    }
     
     // Create horizontal layout
     auto top_section = hbox({
       left_panel->Render() | flex,
-      separator(),
-      right_panel->Render() | size(WIDTH, EQUAL, config_.right_panel_width)
+      separatorLight(),
+      right_panel->Render() | size(WIDTH, LESS_THAN, config_.right_panel_width)
     });
     
     // Add chat panel if enabled
     if (config_.show_chat) {
-      return vbox({
-        top_section | flex,
-        separator(),
-        chat_panel_->Render() | size(HEIGHT, EQUAL, config_.bottom_panel_height)
-      });
+      Element stacked = vbox({
+          top_section | flex,
+          separatorLight(),
+          chat_panel_->Render() | size(HEIGHT, EQUAL, config_.bottom_panel_height)
+        }) | bgcolor(Color::Black);
+
+      if (todo_overlay_visible_ && todo_overlay_component_) {
+        stacked = dbox({stacked, todo_overlay_component_->Render()});
+      }
+      return stacked;
     }
-    
-    return top_section;
+
+    Element content = top_section | bgcolor(Color::Black);
+    if (todo_overlay_visible_ && todo_overlay_component_) {
+      content = dbox({content, todo_overlay_component_->Render()});
+    }
+    return content;
   });
 }
 
@@ -653,6 +810,11 @@ bool UnifiedLayout::HandleGlobalEvents(const Event& event) {
   }
   
   // Global shortcuts
+  if (event == Event::Special({20})) {  // Ctrl+T
+    ToggleTodoOverlay();
+    return true;
+  }
+
   if (event == Event::Character('q') || 
       (event == Event::Character('q') && state_.active_main_panel == PanelType::kMainMenu)) {
     screen_.Exit();
@@ -751,8 +913,36 @@ Element UnifiedLayout::RenderStatusBar() {
     text(absl::StrFormat("ROM: %s", 
       state_.current_rom_file.empty() ? "None" : state_.current_rom_file)) | color(Color::Green),
     filler(),
-    text("q: Quit | h: Help | c: Chat | s: Status") | dim
+    text("Shortcuts: Ctrl+T TODO Overlay | f Full Chat | m Main Menu") | dim
   });
+}
+
+Element UnifiedLayout::RenderAnimatedBanner() {
+  return text("🎮 Z3ED CLI") | bold | center;
+}
+
+Element UnifiedLayout::RenderWorkflowLane() {
+  return text("Workflow: Active") | color(Color::Green);
+}
+
+Element UnifiedLayout::RenderCommandHints() {
+  return vbox({
+    text("Command Hints:") | bold,
+    text("  Ctrl+T - Toggle TODO overlay"),
+    text("  f - Full chat mode"),
+    text("  m - Main menu")
+  });
+}
+
+Element UnifiedLayout::RenderTodoStack() {
+  return text("TODO Stack: Empty") | dim;
+}
+
+Element UnifiedLayout::RenderResponsiveGrid(const std::vector<Element>& tiles) {
+  if (tiles.empty()) {
+    return text("No items") | center | dim;
+  }
+  return vbox(tiles);
 }
 
 }  // namespace cli

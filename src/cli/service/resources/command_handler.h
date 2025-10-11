@@ -44,6 +44,19 @@ class CommandHandler {
  public:
   virtual ~CommandHandler() = default;
 
+  struct DescriptorEntry {
+    std::string name;
+    std::string description;
+    std::string todo_reference;
+  };
+
+  struct Descriptor {
+    std::string display_name;
+    std::string summary;
+    std::string todo_reference;
+    std::vector<DescriptorEntry> entries;
+  };
+
   /**
    * @brief Execute the command
    * 
@@ -55,6 +68,19 @@ class CommandHandler {
    * 5. Output formatting
    */
   absl::Status Run(const std::vector<std::string>& args, Rom* rom_context);
+
+  /**
+   * @brief Get the command name
+   * 
+   * Override this to provide a unique identifier for the command.
+   * This is used for command registration and lookup.
+   */
+  virtual std::string GetName() const = 0;
+
+  /**
+   * @brief Provide metadata for TUI/help summaries.
+   */
+  virtual Descriptor Describe() const;
 
  protected:
   /**

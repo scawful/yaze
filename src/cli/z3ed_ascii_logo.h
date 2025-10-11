@@ -59,6 +59,7 @@ inline std::string GetColoredLogo() {
          "      ▲ ▲     " + "\033[0;37m" + "AI-Powered CLI\n" +  // Gray
          "\033[1;33m" +
          "     ▲▲▲▲▲    \n" +
+         "\033[1;32m" + "  FTXUI ✦ Animations ✦ Command TODOs" + "\n" +
          "\033[0m";  // Reset
 }
 

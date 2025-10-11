@@ -17,7 +17,8 @@ namespace {
 constexpr absl::Duration kTestCompletionTimeout = absl::Seconds(10);
 constexpr absl::Duration kPollInterval = absl::Milliseconds(50);
 
-const char* HarnessStatusToString(HarnessTestStatus status) {
+#if defined(YAZE_WITH_GRPC)
+const char* HarnessStatusToString(test::HarnessTestStatus status) {
   switch (status) {
     case HarnessTestStatus::kQueued:
       return "queued";
@@ -31,9 +32,10 @@ const char* HarnessStatusToString(HarnessTestStatus status) {
       return "timeout";
     case HarnessTestStatus::kUnspecified:
     default:
-      return "unknown";
+      return "unspecified";
   }
 }
+#endif  // defined(YAZE_WITH_GRPC)
 
 }  // namespace
 
@@ -152,7 +154,11 @@ absl::StatusOr<TestRecorder::StopRecordingSummary> TestRecorder::StopLocked(
       script_step.region = step.region;
       script_step.format = step.format;
       script_step.expect_success = step.success;
+#if defined(YAZE_WITH_GRPC)
       script_step.expect_status = ::yaze::test::HarnessStatusToString(step.final_status);
+#else
+      script_step.expect_status.clear();
+#endif
       if (!step.final_error_message.empty()) {
         script_step.expect_message = step.final_error_message;
       } else {
@@ -194,6 +200,9 @@ absl::Status TestRecorder::PopulateFinalStatusLocked() {
     return absl::FailedPreconditionError("TestManager unavailable");
   }
 
+#if !defined(YAZE_WITH_GRPC)
+  return absl::OkStatus();
+#else
   for (auto& step : steps_) {
     if (step.test_id.empty()) {
       continue;
@@ -201,7 +210,7 @@ absl::Status TestRecorder::PopulateFinalStatusLocked() {
 
     const absl::Time deadline = absl::Now() + kTestCompletionTimeout;
     while (absl::Now() < deadline) {
-      absl::StatusOr<HarnessTestExecution> execution =
+      absl::StatusOr<test::HarnessTestExecution> execution =
           test_manager_->GetHarnessTestExecution(step.test_id);
       if (!execution.ok()) {
         absl::SleepFor(kPollInterval);
@@ -213,8 +222,8 @@ absl::Status TestRecorder::PopulateFinalStatusLocked() {
       step.assertion_failures = execution->assertion_failures;
       step.metrics = execution->metrics;
 
-      if (execution->status == HarnessTestStatus::kQueued ||
-          execution->status == HarnessTestStatus::kRunning) {
+      if (execution->status == test::HarnessTestStatus::kQueued ||
+          execution->status == test::HarnessTestStatus::kRunning) {
         absl::SleepFor(kPollInterval);
         continue;
       }
@@ -223,6 +232,7 @@ absl::Status TestRecorder::PopulateFinalStatusLocked() {
   }
 
   return absl::OkStatus();
+#endif  // defined(YAZE_WITH_GRPC)
 }
 
 std::string TestRecorder::GenerateRecordingId() {

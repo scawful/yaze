@@ -52,7 +52,9 @@ class TestRecorder {
     std::vector<std::string> assertion_failures;
     std::string expected_value;
     std::string actual_value;
+#if defined(YAZE_WITH_GRPC)
     HarnessTestStatus final_status = HarnessTestStatus::kUnspecified;
+#endif
     std::string final_error_message;
     std::map<std::string, int32_t> metrics;
     absl::Time captured_at = absl::InfinitePast();

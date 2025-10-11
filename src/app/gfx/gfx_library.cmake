@@ -36,9 +36,7 @@ set(
 add_library(yaze_gfx STATIC ${YAZE_APP_GFX_SRC})
 
 target_precompile_headers(yaze_gfx PRIVATE
-  <vector>
-  <string>
-  <memory>
+  "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/yaze_pch.h>"
 )
 
 target_include_directories(yaze_gfx PUBLIC

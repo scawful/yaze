@@ -4,6 +4,10 @@
 #import "util/file_util.h"
 #import "app/editor/editor.h"
 #import "app/rom.h"
+#include <span>
+#include <vector>
+
+using std::span;
 
 #if defined(__APPLE__) && defined(__MACH__)
 /* Apple OSX and iOS (Darwin). */

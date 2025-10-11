@@ -38,9 +38,9 @@ AgentUITheme AgentUITheme::FromCurrentTheme() {
   );
   
   // Content colors
-  theme.json_text_color = ImVec4(0.78f, 0.83f, 0.90f, 1.0f);
-  theme.command_text_color = ImVec4(1.0f, 0.647f, 0.0f, 1.0f);
-  theme.code_bg_color = ImVec4(0.08f, 0.08f, 0.10f, 0.95f);
+  theme.json_text_color = ConvertColorToImVec4(current.text_secondary);
+  theme.command_text_color = ConvertColorToImVec4(current.accent);
+  theme.code_bg_color = ConvertColorToImVec4(current.code_background);
 
   theme.text_secondary_color = ConvertColorToImVec4(current.text_secondary);
   

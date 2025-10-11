@@ -1,10 +1,9 @@
 set(
   YAZE_APP_CORE_SRC
+  app/core/asar_wrapper.cc
   app/core/controller.cc
-  app/emu/emulator.cc
   app/core/project.cc
   app/core/window.cc
-  app/core/asar_wrapper.cc
 )
 
 if (WIN32 OR MINGW OR (UNIX AND NOT APPLE))
@@ -16,12 +15,36 @@ endif()
 
 if(APPLE)
     list(APPEND YAZE_APP_CORE_SRC
-      app/platform/file_dialog.mm
-      app/platform/app_delegate.mm
       app/platform/font_loader.cc
-      app/platform/font_loader.mm
       app/platform/asset_loader.cc
     )
+
+    set(YAZE_APPLE_OBJCXX_SRC
+      app/platform/file_dialog.mm
+      app/platform/app_delegate.mm
+      app/platform/font_loader.mm
+    )
+
+    add_library(yaze_core_objcxx OBJECT ${YAZE_APPLE_OBJCXX_SRC})
+    set_target_properties(yaze_core_objcxx PROPERTIES
+      OBJCXX_STANDARD 20
+      OBJCXX_STANDARD_REQUIRED ON
+    )
+
+    target_include_directories(yaze_core_objcxx PUBLIC
+      ${CMAKE_SOURCE_DIR}/src
+      ${CMAKE_SOURCE_DIR}/src/app
+      ${CMAKE_SOURCE_DIR}/src/lib
+      ${CMAKE_SOURCE_DIR}/src/lib/imgui
+      ${CMAKE_SOURCE_DIR}/src/lib/asar/src
+      ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
+      ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
+      ${CMAKE_SOURCE_DIR}/incl
+      ${SDL2_INCLUDE_DIR}
+      ${PROJECT_BINARY_DIR}
+    )
+    target_link_libraries(yaze_core_objcxx PUBLIC ${ABSL_TARGETS} yaze_util)
+    target_compile_definitions(yaze_core_objcxx PUBLIC MACOS)
 
     find_library(COCOA_LIBRARY Cocoa)
     if(NOT COCOA_LIBRARY)
@@ -48,6 +71,11 @@ endif()
 add_library(yaze_core_lib STATIC 
   app/rom.cc
   ${YAZE_APP_CORE_SRC}
+  $<$<BOOL:${APPLE}>:$<TARGET_OBJECTS:yaze_core_objcxx>>
+)
+
+target_precompile_headers(yaze_core_lib PRIVATE
+  "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/yaze_pch.h>"
 )
 
 target_include_directories(yaze_core_lib PUBLIC

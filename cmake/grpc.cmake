@@ -98,15 +98,22 @@ set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
 set(ABSL_ENABLE_INSTALL ON CACHE BOOL "" FORCE)
 set(ABSL_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
-# Declare gRPC - use v1.67.1 which fixes MSVC template issues and is compatible with modern compilers
-# v1.67.1 includes:
-# - MSVC/Visual Studio compatibility fixes (template instantiation errors)
+# Disable x86-specific optimizations for ARM64 macOS builds
+if(APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+  set(ABSL_USE_EXTERNAL_GOOGLETEST OFF CACHE BOOL "" FORCE)
+  set(ABSL_BUILD_TEST_HELPERS OFF CACHE BOOL "" FORCE)
+endif()
+
+# Declare gRPC - use v1.75.1 which includes ARM64 macOS fixes and is compatible with modern compilers
+# v1.75.1 includes:
+# - ARM64 macOS compilation fixes (Abseil randen_hwaes)
+# - MSVC/Visual Studio compatibility fixes
 # - Clang 18+ compatibility
-# - Abseil compatibility updates
+# - Updated Abseil and Protobuf dependencies
 FetchContent_Declare(
   grpc
   GIT_REPOSITORY https://github.com/grpc/grpc.git
-  GIT_TAG        v1.67.1
+  GIT_TAG        v1.75.1
   GIT_PROGRESS   TRUE
   GIT_SHALLOW    TRUE
   USES_TERMINAL_DOWNLOAD TRUE
@@ -142,7 +149,76 @@ file(MAKE_DIRECTORY ${_gRPC_PROTO_GENS_DIR})
 get_target_property(_PROTOBUF_INCLUDE_DIRS libprotobuf INTERFACE_INCLUDE_DIRECTORIES)
 list(GET _PROTOBUF_INCLUDE_DIRS 0 _gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR)
 
-message(STATUS "gRPC setup complete")
+# Export Abseil targets from gRPC's bundled abseil for use by the rest of the project
+# This ensures version compatibility between gRPC and our project
+set(
+  ABSL_TARGETS
+  absl::strings
+  absl::str_format
+  absl::flags
+  absl::flags_parse
+  absl::flags_usage
+  absl::flags_commandlineflag
+  absl::flags_marshalling
+  absl::flags_private_handle_accessor
+  absl::flags_program_name
+  absl::flags_config
+  absl::flags_reflection
+  absl::status
+  absl::statusor
+  absl::examine_stack
+  absl::stacktrace
+  absl::base
+  absl::config
+  absl::core_headers
+  absl::failure_signal_handler
+  absl::flat_hash_map
+  absl::cord
+  absl::hash
+  absl::synchronization
+  absl::time
+  absl::symbolize
+  absl::container_memory
+  absl::memory
+  absl::utility
+  PARENT_SCOPE
+)
+
+# Only expose absl::int128 when it's supported without warnings
+if(NOT WIN32)
+  list(APPEND ABSL_TARGETS absl::int128)
+  set(ABSL_TARGETS ${ABSL_TARGETS} PARENT_SCOPE)
+endif()
+
+# Fix Abseil ARM64 macOS compile flags (remove x86-specific flags)
+if(APPLE AND DEFINED CMAKE_OSX_ARCHITECTURES AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+  foreach(_absl_target IN ITEMS absl_random_internal_randen_hwaes absl_random_internal_randen_hwaes_impl)
+    if(TARGET ${_absl_target})
+      get_target_property(_absl_opts ${_absl_target} COMPILE_OPTIONS)
+      if(_absl_opts AND NOT _absl_opts STREQUAL "NOTFOUND")
+        set(_absl_filtered_opts)
+        set(_absl_skip_next FALSE)
+        foreach(_absl_opt IN LISTS _absl_opts)
+          if(_absl_skip_next)
+            set(_absl_skip_next FALSE)
+            continue()
+          endif()
+          if(_absl_opt STREQUAL "-Xarch_x86_64")
+            set(_absl_skip_next TRUE)
+            continue()
+          endif()
+          if(_absl_opt STREQUAL "-maes" OR _absl_opt STREQUAL "-msse4.1")
+            continue()
+          endif()
+          list(APPEND _absl_filtered_opts ${_absl_opt})
+        endforeach()
+        set_property(TARGET ${_absl_target} PROPERTY COMPILE_OPTIONS ${_absl_filtered_opts})
+      endif()
+    endif()
+  endforeach()
+endif()
+
+message(STATUS "gRPC setup complete (includes bundled Abseil)")
 
 function(target_add_protobuf target)
     if(NOT TARGET ${target})

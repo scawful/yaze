@@ -1337,9 +1337,71 @@ void EditorManager::BuildModernMenu() {
   menu_builder_.Draw();
 }
 
+void EditorManager::DrawMenuBarExtras() {
+  auto* current_rom = GetCurrentRom();
+  std::string version_text = absl::StrFormat("v%s", version_.c_str());
+  float version_width = ImGui::CalcTextSize(version_text.c_str()).x;
+  float session_rom_area_width = 280.0f;
+
+  SameLine(ImGui::GetWindowWidth() - version_width - 10 - session_rom_area_width);
+
+  if (GetActiveSessionCount() > 1) {
+    if (ImGui::SmallButton(absl::StrFormat("%s%zu", ICON_MD_TAB, GetActiveSessionCount()).c_str())) {
+      ShowSessionSwitcher();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Sessions: %zu active\nClick to switch", GetActiveSessionCount());
+    }
+    ImGui::SameLine();
+  }
+
+  if (current_rom && current_rom->is_loaded()) {
+    if (ImGui::SmallButton(ICON_MD_APPS)) {
+      ShowEditorSelection();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(ICON_MD_DASHBOARD " Editor Selection (Ctrl+E)");
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_DISPLAY_SETTINGS)) {
+      ShowDisplaySettings();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(ICON_MD_TUNE " Display Settings");
+    }
+    ImGui::SameLine();
+    ImGui::Separator();
+    ImGui::SameLine();
+  }
+
+  if (current_rom && current_rom->is_loaded()) {
+    std::string rom_display = current_rom->title();
+    if (rom_display.length() > 22) {
+      rom_display = rom_display.substr(0, 19) + "...";
+    }
+    if (ImGui::SmallButton(absl::StrFormat("%s%s", rom_display.c_str(), current_rom->dirty() ? "*" : "").c_str())) {
+      ImGui::OpenPopup("ROM Details");
+    }
+  } else {
+    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "No ROM");
+    ImGui::SameLine();
+  }
+
+  SameLine(ImGui::GetWindowWidth() - version_width - 10);
+  ImGui::Text("%s", version_text.c_str());
+}
+
+void EditorManager::ShowSessionSwitcher() { show_session_switcher_ = true; }
+
+void EditorManager::ShowEditorSelection() { show_editor_selection_ = true; }
+
+void EditorManager::ShowDisplaySettings() { if (popup_manager_) popup_manager_->Show("Display Settings"); }
+
 void EditorManager::DrawMenuBar() {
   static bool show_display_settings = false;
   static bool save_as_menu = false;
+  std::string version_text = absl::StrFormat("v%s", version_.c_str());
+  float version_width = ImGui::CalcTextSize(version_text.c_str()).x;
 
   if (BeginMenuBar()) {
     BuildModernMenu();
@@ -1347,173 +1409,7 @@ void EditorManager::DrawMenuBar() {
     // Inline ROM selector and status
     status_ = DrawRomSelector();
 
-    // Calculate proper right-side positioning
-    std::string version_text = absl::StrFormat("v%s", version_.c_str());
-    float version_width = CalcTextSize(version_text.c_str()).x;
-
-    // Allocate space for ROM status and sessions (wider for better ROM title display)
-    float session_rom_area_width = 280.0f;  // Increased for wider ROM title
-    SameLine(GetWindowWidth() - version_width - 10 - session_rom_area_width);
-
-    // Multi-session indicator
-    if (sessions_.size() > 1) {
-      if (SmallButton(absl::StrFormat("%s%zu", ICON_MD_TAB, sessions_.size())
-                          .c_str())) {
-        show_session_switcher_ = true;
-      }
-      if (IsItemHovered()) {
-        SetTooltip("Sessions: %zu active\nClick to switch", sessions_.size());
-      }
-      SameLine();
-    }
-    
-    // Editor selection and display settings quick buttons (when ROM loaded)
-    if (current_rom_ && current_rom_->is_loaded()) {
-      // Editor selection button
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.4f, 0.8f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.5f, 1.0f));
-      if (SmallButton(ICON_MD_APPS)) {
-        show_editor_selection_ = true;
-      }
-      ImGui::PopStyleColor(2);
-      if (IsItemHovered()) {
-        SetTooltip(ICON_MD_DASHBOARD " Editor Selection (Ctrl+E)");
-      }
-      SameLine();
-      
-      // Display settings button
-      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.4f, 0.8f));
-      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.5f, 1.0f));
-      if (SmallButton(ICON_MD_DISPLAY_SETTINGS)) {
-        show_display_settings = !show_display_settings;
-      }
-      ImGui::PopStyleColor(2);
-      if (IsItemHovered()) {
-        SetTooltip(ICON_MD_TUNE " Display Settings");
-      }
-      SameLine();
-      
-      ImGui::Separator();
-      SameLine();
-    }
-
-    // Compact ROM status with metadata popup
-    if (current_rom_ && current_rom_->is_loaded()) {
-      // Truncate long ROM titles for wider display
-      std::string rom_display = current_rom_->title();
-      if (rom_display.length() > 22) {
-        rom_display = rom_display.substr(0, 19) + "...";
-      }
-
-      ImVec4 status_color =
-          current_rom_->dirty() ? ImVec4(1.0f, 0.5f, 0.0f, 1.0f)
-                                :              // Orange for modified
-              ImVec4(0.0f, 0.8f, 0.0f, 1.0f);  // Green for clean
-
-      // Compact ROM status button
-      if (SmallButton(absl::StrFormat("%s%s", rom_display.c_str(),
-                                      current_rom_->dirty() ? "*" : "")
-                          .c_str())) {
-        ImGui::OpenPopup("ROM Details");
-      }
-
-      // Enhanced tooltip on hover
-      if (IsItemHovered()) {
-        ImGui::BeginTooltip();
-        ImGui::Text("%s ROM Information", ICON_MD_INFO);
-        ImGui::Separator();
-        ImGui::Text("%s Title: %s", ICON_MD_TITLE,
-                    current_rom_->title().c_str());
-        ImGui::Text("%s File: %s", ICON_MD_FOLDER_OPEN,
-                    current_rom_->filename().c_str());
-        ImGui::Text("%s Size: %.1f MB (%zu bytes)", ICON_MD_STORAGE,
-                    current_rom_->size() / 1048576.0f, current_rom_->size());
-        ImGui::Text("%s Status: %s",
-                    current_rom_->dirty() ? ICON_MD_EDIT : ICON_MD_CHECK_CIRCLE,
-                    current_rom_->dirty() ? "Modified" : "Clean");
-        ImGui::Text("%s Click for detailed view", ICON_MD_LAUNCH);
-        ImGui::EndTooltip();
-      }
-
-      // Detailed ROM popup
-      if (ImGui::BeginPopup("ROM Details")) {
-        ImGui::Text("%s ROM Detailed Information", ICON_MD_INFO);
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        // Basic info with icons
-        if (ImGui::BeginTable("ROMDetailsTable", 2,
-                              ImGuiTableFlags_SizingFixedFit)) {
-          ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed,
-                                  120);
-          ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::Text("%s Title", ICON_MD_TITLE);
-          ImGui::TableNextColumn();
-          ImGui::Text("%s", current_rom_->title().c_str());
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::Text("%s File", ICON_MD_FOLDER_OPEN);
-          ImGui::TableNextColumn();
-          ImGui::Text("%s", current_rom_->filename().c_str());
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::Text("%s Size", ICON_MD_STORAGE);
-          ImGui::TableNextColumn();
-          ImGui::Text("%.1f MB (%zu bytes)", current_rom_->size() / 1048576.0f,
-                      current_rom_->size());
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::Text("%s Status", current_rom_->dirty()
-                                       ? ICON_MD_EDIT
-                                       : ICON_MD_CHECK_CIRCLE);
-          ImGui::TableNextColumn();
-          ImGui::TextColored(status_color, "%s",
-                             current_rom_->dirty() ? "Modified" : "Clean");
-
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-          ImGui::Text("%s Session", ICON_MD_TAB);
-          ImGui::TableNextColumn();
-          size_t current_session_idx = GetCurrentSessionIndex();
-          ImGui::Text("Session %zu of %zu", current_session_idx + 1,
-                      sessions_.size());
-
-          ImGui::EndTable();
-        }
-
-        ImGui::Spacing();
-        ImGui::Separator();
-
-        // Quick actions
-        ImGui::Text("%s Quick Actions", ICON_MD_FLASH_ON);
-        if (ImGui::Button(absl::StrFormat("%s Save ROM", ICON_MD_SAVE).c_str(),
-                          ImVec2(120, 0))) {
-          status_ = SaveRom();
-          ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(
-                absl::StrFormat("%s Switch Session", ICON_MD_SWITCH_ACCOUNT)
-                    .c_str(),
-                ImVec2(120, 0))) {
-          show_session_switcher_ = true;
-          ImGui::CloseCurrentPopup();
-        }
-
-        ImGui::EndPopup();
-      }
-
-      SameLine();
-    } else {
-      TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "No ROM");
-      SameLine();
-    }
+    DrawMenuBarExtras();
 
     // Version display on far right
     SameLine(GetWindowWidth() - version_width - 10);

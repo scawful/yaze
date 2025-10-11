@@ -108,6 +108,8 @@ struct EnhancedTheme {
   Color tree_lines;
   
   // Additional ImGui colors for complete coverage
+  Color tab_unfocused;
+  Color tab_unfocused_active;
   Color tab_dimmed;
   Color tab_dimmed_selected;
   Color tab_dimmed_selected_overline;
