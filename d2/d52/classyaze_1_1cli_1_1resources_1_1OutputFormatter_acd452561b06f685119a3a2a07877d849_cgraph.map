@@ -1,0 +1,9 @@
+<map id="yaze::cli::resources::OutputFormatter::AddHexField" name="yaze::cli::resources::OutputFormatter::AddHexField">
+<area shape="rect" id="Node000001" title="Add a hex&#45;formatted field." alt="" coords="5,71,208,111"/>
+<area shape="rect" id="Node000002" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a0de0425b664e90579c1e8fa34052690f" title=" " alt="" coords="262,5,449,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="186,67,260,48,261,53,187,73"/>
+<area shape="rect" id="Node000003" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a9034203ccd0b950495c1598e9bee77da" title=" " alt="" coords="256,71,455,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,88,240,88,240,94,208,94"/>
+<area shape="rect" id="Node000004" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#aca56a0010d6fb59b2c0f9a4efe51a700" title="Check if using JSON format." alt="" coords="272,136,439,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="187,109,261,129,260,134,186,115"/>
+</map>

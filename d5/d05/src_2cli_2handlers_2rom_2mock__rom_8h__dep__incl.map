@@ -1,0 +1,9 @@
+<map id="src/cli/handlers/rom/mock_rom.h" name="src/cli/handlers/rom/mock_rom.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="174,5,310,46"/>
+<area shape="rect" id="Node000002" href="$de/d20/conversation__test_8cc.html" title=" " alt="" coords="5,94,151,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,56,116,96,114,91,190,51"/>
+<area shape="rect" id="Node000003" href="$dc/d5b/mock__rom_8cc.html" title=" " alt="" coords="174,94,310,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="245,62,245,94,239,94,239,62"/>
+<area shape="rect" id="Node000004" href="$d8/dcf/command__context_8cc.html" title=" " alt="" coords="334,94,497,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="296,51,377,91,375,96,294,56"/>
+</map>

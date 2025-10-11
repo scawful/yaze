@@ -1,0 +1,12 @@
+<map id="yaze::cli::HandleGfxExportLegacy" name="yaze::cli::HandleGfxExportLegacy">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,85,175,125"/>
+<area shape="rect" id="Node000002" href="$d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55" title=" " alt="" coords="237,5,375,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,82,222,40,239,34,240,39,224,45,132,86"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="235,55,377,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="175,88,219,80,220,85,175,93"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="223,128,389,154"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="175,116,210,122,209,127,175,122"/>
+<area shape="rect" id="Node000009" href="$d0/d27/namespaceyaze_1_1gfx.html#a464001df38cc9e68bd80e777cf4ccf91" title="Save Cgx file (graphical content)" alt="" coords="242,177,370,203"/>
+<area shape="poly" id="edge5_Node000001_Node000009" title=" " alt="" coords="133,123,224,164,241,170,239,175,222,169,131,128"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="270,129,263,119,267,110,282,103,306,101,332,104,346,111,343,116,331,109,306,107,283,109,271,113,268,119,274,126"/>
+</map>

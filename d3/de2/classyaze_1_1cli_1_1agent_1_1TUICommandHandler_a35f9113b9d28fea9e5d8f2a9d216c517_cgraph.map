@@ -1,0 +1,9 @@
+<map id="yaze::cli::agent::TUICommandHandler::DisplayRichOutput" name="yaze::cli::agent::TUICommandHandler::DisplayRichOutput">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,197,79"/>
+<area shape="rect" id="Node000002" href="$df/d28/classyaze_1_1cli_1_1agent_1_1EnhancedTUI.html#a41434e3da1b1f1e1351c5b6c24339dd8" title=" " alt="" coords="257,5,424,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,43,241,37,242,42,198,48"/>
+<area shape="rect" id="Node000004" href="$d3/de2/classyaze_1_1cli_1_1agent_1_1TUICommandHandler.html#a7e5fe09495ad273b9e18d7e49cfb66ec" title=" " alt="" coords="245,71,436,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="198,69,229,74,229,79,197,74"/>
+<area shape="rect" id="Node000003" href="$df/d28/classyaze_1_1cli_1_1agent_1_1EnhancedTUI.html#ab1860ec1e8ad69d255a11e68755decf8" title=" " alt="" coords="484,5,651,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,23,468,23,468,28,424,28"/>
+</map>

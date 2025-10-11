@@ -1,0 +1,11 @@
+<map id="src/cli/handlers/game/overworld_commands.cc" name="src/cli/handlers/game/overworld_commands.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="204,5,374,46"/>
+<area shape="rect" id="Node000002" href="$dd/dc7/overworld__commands_8h.html" title=" " alt="" coords="5,94,189,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="247,49,155,90,153,85,244,44"/>
+<area shape="rect" id="Node000042" title=" " alt="" coords="213,102,365,127"/>
+<area shape="poly" id="edge3_Node000001_Node000042" title=" " alt="" coords="292,47,292,86,286,86,286,47"/>
+<area shape="rect" id="Node000019" title=" " alt="" coords="390,102,551,127"/>
+<area shape="poly" id="edge4_Node000001_Node000019" title=" " alt="" coords="331,44,433,92,430,97,329,49"/>
+<area shape="rect" id="Node000003" href="$d9/d72/command__handler_8h.html" title=" " alt="" coords="26,183,168,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="100,135,100,167,94,167,94,135"/>
+</map>

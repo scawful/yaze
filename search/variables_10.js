@@ -5,5 +5,6 @@ var searchData=
   ['queued_5fat_2',['queued_at',['../dd/d5e/structyaze_1_1cli_1_1TestStatusDetails.html#afbfb69d94c0287f41beb01319e948821',1,'yaze::cli::TestStatusDetails']]],
   ['queued_5fbytes_3',['queued_bytes',['../d5/dd6/structyaze_1_1emu_1_1audio_1_1AudioStatus.html#a1557a2bc756ac2d3a690a97b2fbb2a39',1,'yaze::emu::audio::AudioStatus']]],
   ['queued_5fframes_4',['queued_frames',['../d5/dd6/structyaze_1_1emu_1_1audio_1_1AudioStatus.html#a45cc731389c06a05be9862dbb47b2989',1,'yaze::emu::audio::AudioStatus']]],
-  ['quit_5f_5',['quit_',['../dd/d12/classyaze_1_1editor_1_1EditorManager.html#a36209b8a5b17d613060c3d06f0359ad8',1,'yaze::editor::EditorManager']]]
+  ['quick_5factions_5f_5',['quick_actions_',['../d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#acafafd13958c256b25e4817a3620b0ff',1,'yaze::cli::tui::ChatTUI']]],
+  ['quit_5f_6',['quit_',['../dd/d12/classyaze_1_1editor_1_1EditorManager.html#a36209b8a5b17d613060c3d06f0359ad8',1,'yaze::editor::EditorManager']]]
 ];

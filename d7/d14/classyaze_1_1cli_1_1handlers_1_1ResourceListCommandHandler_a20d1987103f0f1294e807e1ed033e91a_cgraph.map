@@ -1,0 +1,7 @@
+<map id="yaze::cli::handlers::ResourceListCommandHandler::ValidateArgs" name="yaze::cli::handlers::ResourceListCommandHandler::ValidateArgs">
+<area shape="rect" id="Node000001" title="Validate command arguments." alt="" coords="5,5,214,61"/>
+<area shape="rect" id="Node000002" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a74c38b994ca4ebd34ecdf75e6898f676" title="Validate that required arguments are present." alt="" coords="262,13,460,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,31,246,31,246,36,214,36"/>
+<area shape="rect" id="Node000003" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a095e664ff2500d73cca6c91a1e4f5f83" title=" " alt="" coords="508,13,713,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="461,31,493,31,493,36,461,36"/>
+</map>

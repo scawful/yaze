@@ -1,7 +1,7 @@
-<map id="src/cli/handlers/agent/palette_commands.h" name="src/cli/handlers/agent/palette_commands.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="93,5,238,46"/>
-<area shape="rect" id="Node000002" href="$d3/dba/palette__commands_8cc.html" title=" " alt="" coords="5,94,158,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="138,59,102,95,99,92,134,56"/>
-<area shape="rect" id="Node000003" href="$d1/d72/cli_2tui_2command__palette_8cc.html" title=" " alt="" coords="182,94,317,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,56,232,92,229,95,193,59"/>
+<map id="src/cli/handlers/graphics/palette_commands.h" name="src/cli/handlers/graphics/palette_commands.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="104,5,266,46"/>
+<area shape="rect" id="Node000002" href="$db/dae/command__handlers_8cc.html" title=" " alt="" coords="5,94,176,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,59,114,96,110,92,151,55"/>
+<area shape="rect" id="Node000003" href="$d3/dba/palette__commands_8cc.html" title=" " alt="" coords="200,94,362,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="220,55,261,92,258,96,217,59"/>
 </map>

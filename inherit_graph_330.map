@@ -1,3 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$d5/d84/structyaze_1_1emu_1_1M7C.html" title=" " alt="" coords="5,5,117,31"/>
+<area shape="rect" id="Node000000" href="$d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html" title="Abstract input backend interface." alt="" coords="5,39,157,79"/>
+<area shape="rect" id="Node000001" href="$d2/d2c/classyaze_1_1emu_1_1input_1_1NullInputBackend.html" title="Null input backend for testing/replay." alt="" coords="210,5,380,46"/>
+<area shape="poly" id="edge126_Node000000_Node000001" title=" " alt="" coords="171,42,209,36,210,42,172,48"/>
+<area shape="rect" id="Node000002" href="$df/dd3/classyaze_1_1emu_1_1input_1_1SDL2InputBackend.html" title="SDL2 input backend implementation." alt="" coords="205,71,385,111"/>
+<area shape="poly" id="edge127_Node000000_Node000002" title=" " alt="" coords="172,70,205,75,204,80,171,75"/>
 </map>

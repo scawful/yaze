@@ -1,0 +1,5 @@
+<map id="yaze::cli::handlers::EmulatorGetRegistersCommandHandler" name="yaze::cli::handlers::EmulatorGetRegistersCommandHandler">
+<area shape="rect" id="Node000001" title="Command handler for getting emulator registers." alt="" coords="5,94,219,150"/>
+<area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="46,5,178,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,61,115,93,109,93,109,61"/>
+</map>

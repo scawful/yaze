@@ -1,0 +1,9 @@
+<map id="yaze::cli::UnifiedLayout::CreatePaletteEditorPanel" name="yaze::cli::UnifiedLayout::CreatePaletteEditorPanel">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,178,111"/>
+<area shape="rect" id="Node000002" href="$db/d23/classyaze_1_1cli_1_1UnifiedLayout.html#a9ce42b356d75079c7552aa2024a3a656" title=" " alt="" coords="230,5,382,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,68,221,49,223,54,161,73"/>
+<area shape="rect" id="Node000003" href="$db/d23/classyaze_1_1cli_1_1UnifiedLayout.html#aa977ff970f3890fa6ddef9e361a1a0b6" title=" " alt="" coords="226,71,386,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,88,210,88,210,94,178,94"/>
+<area shape="rect" id="Node000004" href="$db/d23/classyaze_1_1cli_1_1UnifiedLayout.html#ae7afbcdacaba61ebc4bc4a3f8f214e40" title=" " alt="" coords="230,136,382,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="161,109,223,128,221,133,160,114"/>
+</map>

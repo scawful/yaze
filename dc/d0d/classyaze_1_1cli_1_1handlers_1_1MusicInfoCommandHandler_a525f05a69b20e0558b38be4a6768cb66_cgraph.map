@@ -1,0 +1,7 @@
+<map id="yaze::cli::handlers::MusicInfoCommandHandler::ValidateArgs" name="yaze::cli::handlers::MusicInfoCommandHandler::ValidateArgs">
+<area shape="rect" id="Node000001" title="Validate command arguments." alt="" coords="5,5,194,61"/>
+<area shape="rect" id="Node000002" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a74c38b994ca4ebd34ecdf75e6898f676" title="Validate that required arguments are present." alt="" coords="242,13,440,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,31,226,31,226,36,194,36"/>
+<area shape="rect" id="Node000003" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a095e664ff2500d73cca6c91a1e4f5f83" title=" " alt="" coords="488,13,693,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="441,31,473,31,473,36,441,36"/>
+</map>

@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/cli/handlers/agent/gui_commands.cc File Reference</title>
+<title>yaze: src/cli/handlers/tools/gui_commands.cc File Reference</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -99,26 +99,29 @@ $(document).ready(function(){initNavTree('d5/d03/gui__commands_8cc.html','../../
 
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle"><div class="title">gui_commands.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="../../d5/d90/commands_8h_source.html">cli/handlers/agent/commands.h</a>&quot;</code><br />
-<code>#include &lt;limits&gt;</code><br />
-<code>#include &lt;optional&gt;</code><br />
-<code>#include &lt;string&gt;</code><br />
-<code>#include &lt;vector&gt;</code><br />
-<code>#include &quot;absl/status/status.h&quot;</code><br />
-<code>#include &quot;absl/status/statusor.h&quot;</code><br />
-<code>#include &quot;absl/strings/ascii.h&quot;</code><br />
-<code>#include &quot;absl/strings/match.h&quot;</code><br />
-<code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="../../d9/de0/gui__commands_8h_source.html">cli/handlers/tools/gui_commands.h</a>&quot;</code><br />
+<code>#include &quot;absl/strings/numbers.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
-<code>#include &quot;absl/time/time.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d6/dbc/cli_2handlers_2agent_2common_8h_source.html">cli/handlers/agent/common.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d1/d51/gui__automation__client_8h_source.html">cli/service/gui/gui_automation_client.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d4/d9e/macro_8h_source.html">util/macro.h</a>&quot;</code><br />
+</div><div class="textblock"><div class="dynheader">
+Include dependency graph for gui_commands.cc:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d9/d59/gui__commands_8cc__incl.png" border="0" usemap="#asrc_2cli_2handlers_2tools_2gui__commands_8cc" alt=""/></div>
+<map name="asrc_2cli_2handlers_2tools_2gui__commands_8cc" id="asrc_2cli_2handlers_2tools_2gui__commands_8cc">
+<area shape="rect" title=" " alt="" coords="167,5,308,46"/>
+<area shape="rect" href="../../d9/de0/gui__commands_8h.html" title=" " alt="" coords="14,94,138,135"/>
+<area shape="poly" title=" " alt="" coords="202,49,127,89,125,84,199,44"/>
+<area shape="rect" title=" " alt="" coords="161,102,314,127"/>
+<area shape="poly" title=" " alt="" coords="240,47,240,86,235,86,235,47"/>
+<area shape="rect" title=" " alt="" coords="338,102,499,127"/>
+<area shape="poly" title=" " alt="" coords="280,44,381,92,379,97,277,49"/>
+<area shape="rect" href="../../d9/d72/command__handler_8h.html" title=" " alt="" coords="5,183,147,223"/>
+<area shape="poly" title=" " alt="" coords="79,135,79,167,73,167,73,135"/>
+</map>
+</div>
 </div>
 <p><a href="../../d5/d03/gui__commands_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -130,24 +133,15 @@ Namespaces</h2></td></tr>
 <tr class="memitem:dd/d63/namespaceyaze_1_1cli" id="r_dd/d63/namespaceyaze_1_1cli"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html">yaze::cli</a></td></tr>
 <tr class="memdesc:dd/d63/namespaceyaze_1_1cli"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for the command line interface. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:d8/dd3/namespaceyaze_1_1cli_1_1agent" id="r_d8/dd3/namespaceyaze_1_1cli_1_1agent"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html">yaze::cli::agent</a></td></tr>
+<tr class="memitem:d0/db7/namespaceyaze_1_1cli_1_1handlers" id="r_d0/db7/namespaceyaze_1_1cli_1_1handlers"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/db7/namespaceyaze_1_1cli_1_1handlers.html">yaze::cli::handlers</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:d3/d47/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02gui__commands_8cc_03" id="r_d3/d47/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02gui__commands_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d47/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02gui__commands_8cc_03.html">yaze::cli::agent::anonymous_namespace{gui_commands.cc}</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:a7241457d6dd22a00fd53178092478187" id="r_a7241457d6dd22a00fd53178092478187"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d3/d47/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02gui__commands_8cc_03.html#a7241457d6dd22a00fd53178092478187">yaze::cli::agent::anonymous_namespace{gui_commands.cc}::HandleGuiDiscoverCommand</a> (const std::vector&lt; std::string &gt; &amp;arg_vec)</td></tr>
-<tr class="separator:a7241457d6dd22a00fd53178092478187"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1aa4bfa94e362a7dcfbe69e0fae9af1c" id="r_a1aa4bfa94e362a7dcfbe69e0fae9af1c"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a1aa4bfa94e362a7dcfbe69e0fae9af1c">yaze::cli::agent::HandleGuiCommand</a> (const std::vector&lt; std::string &gt; &amp;args)</td></tr>
-<tr class="separator:a1aa4bfa94e362a7dcfbe69e0fae9af1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_b78fdfbbb632ce54d070469d6a721373.html">cli</a></li><li class="navelem"><a class="el" href="../../dir_1803ec2ac2120f8427544b062f2515ae.html">handlers</a></li><li class="navelem"><a class="el" href="../../dir_58c5d7f17207e6ffb752b92952ac37bb.html">agent</a></li><li class="navelem"><a class="el" href="../../d5/d03/gui__commands_8cc.html">gui_commands.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_b78fdfbbb632ce54d070469d6a721373.html">cli</a></li><li class="navelem"><a class="el" href="../../dir_1803ec2ac2120f8427544b062f2515ae.html">handlers</a></li><li class="navelem"><a class="el" href="../../dir_6bf00c75e7e626c8534e09d867d003be.html">tools</a></li><li class="navelem"><a class="el" href="../../d5/d03/gui__commands_8cc.html">gui_commands.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

@@ -1,0 +1,5 @@
+<map id="yaze::cli::handlers::SpriteListCommandHandler" name="yaze::cli::handlers::SpriteListCommandHandler">
+<area shape="rect" id="Node000001" title="Command handler for listing sprites." alt="" coords="5,94,193,135"/>
+<area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="33,5,165,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,62,102,94,96,94,96,62"/>
+</map>

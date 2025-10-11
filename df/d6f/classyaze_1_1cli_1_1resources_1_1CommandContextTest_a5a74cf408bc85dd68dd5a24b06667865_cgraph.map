@@ -1,0 +1,11 @@
+<map id="yaze::cli::resources::CommandContextTest::SetUp" name="yaze::cli::resources::CommandContextTest::SetUp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,162,61"/>
+<area shape="rect" id="Node000002" href="$df/df5/classyaze_1_1test_1_1MockRom.html#a2dd724ce06862a92147d29e8df40bdfa" title="Load test data into the ROM." alt="" coords="210,13,350,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,31,194,31,194,36,162,36"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="618,20,730,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="350,22,398,19,484,15,570,19,603,21,603,27,570,24,484,21,398,24,350,28"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a3aacb1ac78a97db45382a8ad580ec4db" title=" " alt="" coords="398,58,570,83"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="351,43,396,52,395,57,350,49"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="553,54,603,44,604,50,554,60"/>
+<area shape="poly" id="edge5_Node000004_Node000004" title=" " alt="" coords="452,59,446,49,450,39,463,33,484,31,507,34,519,40,517,45,505,39,484,36,464,38,454,43,451,48,457,56"/>
+</map>

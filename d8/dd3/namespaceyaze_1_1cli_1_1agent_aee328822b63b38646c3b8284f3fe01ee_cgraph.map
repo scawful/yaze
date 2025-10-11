@@ -1,8 +1,0 @@
-<map id="yaze::cli::agent::HandleMessageListCommand" name="yaze::cli::agent::HandleMessageListCommand">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,161,70"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="40,29,38,19,45,10,60,5,83,3,108,5,122,11,120,16,106,10,83,8,61,10,48,15,43,21,45,28"/>
-<area shape="rect" id="Node000002" href="$db/d13/namespaceyaze_1_1cli_1_1message.html#aa22d2cb532a1a8df975ca57f70b2505c" title="List all messages in the ROM." alt="" coords="209,29,411,70"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="161,47,193,47,193,52,161,52"/>
-<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="459,37,600,63"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="411,47,444,47,444,52,411,52"/>
-</map>

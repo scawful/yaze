@@ -1,6 +1,6 @@
 var hex__commands_8h =
 [
-    [ "HandleHexRead", "d1/de4/hex__commands_8h.html#ab03077c3d8792b56e8f084e3a5fff8c5", null ],
-    [ "HandleHexWrite", "d1/de4/hex__commands_8h.html#a3574743b33452471230ffdefeeafe391", null ],
-    [ "HandleHexSearch", "d1/de4/hex__commands_8h.html#ab406d62299b4cb03d8d3550b1b7079ac", null ]
+    [ "yaze::cli::handlers::HexReadCommandHandler", "d9/da9/classyaze_1_1cli_1_1handlers_1_1HexReadCommandHandler.html", "d9/da9/classyaze_1_1cli_1_1handlers_1_1HexReadCommandHandler" ],
+    [ "yaze::cli::handlers::HexWriteCommandHandler", "d7/dc4/classyaze_1_1cli_1_1handlers_1_1HexWriteCommandHandler.html", "d7/dc4/classyaze_1_1cli_1_1handlers_1_1HexWriteCommandHandler" ],
+    [ "yaze::cli::handlers::HexSearchCommandHandler", "d0/dee/classyaze_1_1cli_1_1handlers_1_1HexSearchCommandHandler.html", "d0/dee/classyaze_1_1cli_1_1handlers_1_1HexSearchCommandHandler" ]
 ];

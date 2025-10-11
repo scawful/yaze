@@ -1,0 +1,11 @@
+<map id="yaze::cli::agent::TUICommandHandler" name="yaze::cli::agent::TUICommandHandler">
+<area shape="rect" id="Node000001" title="Base class for TUI&#45;integrated command handlers." alt="" coords="31,198,223,238"/>
+<area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="5,94,137,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="91,147,119,196,114,199,87,150"/>
+<area shape="rect" id="Node000003" href="$df/d28/classyaze_1_1cli_1_1agent_1_1EnhancedTUI.html" title="Enhanced Terminal User Interface for z3ed CLI." alt="" coords="160,102,350,127"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="229,139,153,199,150,195,226,135"/>
+<area shape="rect" id="Node000004" href="$de/dc3/structyaze_1_1cli_1_1agent_1_1TUIConfig.html" title="Configuration for the enhanced TUI." alt="" coords="96,5,265,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="201,41,247,99,243,103,197,45"/>
+<area shape="rect" id="Node000005" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="288,5,369,31"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="312,45,267,103,262,99,307,42"/>
+</map>

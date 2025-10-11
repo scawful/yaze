@@ -1,0 +1,12 @@
+<map id="yaze::cli::resources::CommandContext::Initialize" name="yaze::cli::resources::CommandContext::Initialize">
+<area shape="rect" id="Node000001" title="Initialize the context and load ROM if needed." alt="" coords="5,55,189,95"/>
+<area shape="rect" id="Node000002" href="$dd/d63/namespaceyaze_1_1cli.html#a2c164e6cd26b8d8f65ff130d80f0f737" title="Initialize a mock ROM for testing without requiring an actual ROM file." alt="" coords="237,13,415,39"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="188,53,248,40,249,45,190,58"/>
+<area shape="rect" id="Node000022" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="255,62,397,88"/>
+<area shape="poly" id="edge3_Node000001_Node000022" title=" " alt="" coords="189,72,240,72,240,78,189,78"/>
+<area shape="rect" id="Node000023" href="$d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="243,136,409,161"/>
+<area shape="poly" id="edge4_Node000001_Node000023" title=" " alt="" coords="163,93,269,128,268,133,162,98"/>
+<area shape="rect" id="Node000003" href="$da/d5e/structyaze_1_1core_1_1YazeProject.html#a92a9dfec8ba27e3ccae53fcb267b8d16" title=" " alt="" coords="463,5,637,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="415,23,447,23,447,28,415,28"/>
+<area shape="poly" id="edge5_Node000023_Node000023" title=" " alt="" coords="289,137,281,127,286,117,301,111,326,109,353,112,367,118,365,123,352,117,326,114,302,116,289,121,287,126,293,133"/>
+</map>

@@ -1,6 +1,7 @@
 var dir_13e138d54eb8818da29c3992edef070a =
 [
     [ "benchmarks", "dir_c7eea8722673ed81bfd14ddd8ecf636e.html", "dir_c7eea8722673ed81bfd14ddd8ecf636e" ],
+    [ "cli", "dir_4ac79bf773de5e7ba963c05f40616d70.html", "dir_4ac79bf773de5e7ba963c05f40616d70" ],
     [ "e2e", "dir_cf6dd3d856136905faaf5b7bba187d4d.html", "dir_cf6dd3d856136905faaf5b7bba187d4d" ],
     [ "integration", "dir_bbf9f1b56ba6c621651be8934a24eced.html", "dir_bbf9f1b56ba6c621651be8934a24eced" ],
     [ "mocks", "dir_cdf6d930f2dcd230c29757233293cb63.html", "dir_cdf6d930f2dcd230c29757233293cb63" ],

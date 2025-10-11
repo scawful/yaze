@@ -1,0 +1,7 @@
+<map id="yaze::cli::resources::OutputFormatter::EndObject" name="yaze::cli::resources::OutputFormatter::EndObject">
+<area shape="rect" id="Node000001" title="End a JSON object or text section." alt="" coords="5,39,194,79"/>
+<area shape="rect" id="Node000002" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a0de0425b664e90579c1e8fa34052690f" title=" " alt="" coords="242,5,429,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="194,43,226,38,227,44,195,48"/>
+<area shape="rect" id="Node000003" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#aca56a0010d6fb59b2c0f9a4efe51a700" title="Check if using JSON format." alt="" coords="252,71,419,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,69,237,75,236,80,194,74"/>
+</map>

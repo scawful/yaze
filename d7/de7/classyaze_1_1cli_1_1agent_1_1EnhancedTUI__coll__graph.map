@@ -1,0 +1,11 @@
+<map id="yaze::cli::agent::EnhancedTUI" name="yaze::cli::agent::EnhancedTUI">
+<area shape="rect" id="Node000001" title="Enhanced Terminal User Interface for z3ed CLI." alt="" coords="143,213,332,238"/>
+<area shape="rect" id="Node000002" href="$de/dc3/structyaze_1_1cli_1_1agent_1_1TUIConfig.html" title="Configuration for the enhanced TUI." alt="" coords="5,117,174,142"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,148,220,210,217,214,120,153"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="197,117,278,142"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="240,158,240,212,235,212,235,158"/>
+<area shape="rect" id="Node000004" href="$d8/d4d/structyaze_1_1core_1_1ResourceLabelManager.html" title=" " alt="" coords="152,5,323,46"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="240,61,240,116,235,116,235,61"/>
+<area shape="rect" id="Node000007" href="$d5/d65/structyaze_1_1cli_1_1agent_1_1EnhancedTUI_1_1Layout.html" title=" " alt="" coords="302,109,469,150"/>
+<area shape="poly" id="edge4_Node000001_Node000007" title=" " alt="" coords="360,162,326,191,276,215,274,210,323,186,357,158"/>
+</map>

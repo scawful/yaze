@@ -1,0 +1,11 @@
+<map id="yaze::editor::MenuManager::BuildAndDraw" name="yaze::editor::MenuManager::BuildAndDraw">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,72,179,113"/>
+<area shape="rect" id="Node000002" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#aeabe1639563bf97b396b704b29cd3345" title=" " alt="" coords="227,39,401,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="179,77,211,72,212,77,180,82"/>
+<area shape="rect" id="Node000295" href="$dd/d12/classyaze_1_1editor_1_1EditorManager.html#a64150fc942c00d7d73f148837b5395d8" title=" " alt="" coords="227,104,401,145"/>
+<area shape="poly" id="edge4_Node000001_Node000295" title=" " alt="" coords="180,102,212,107,211,112,179,108"/>
+<area shape="rect" id="Node000003" href="$d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#a747085b90465476cbedacc65bcfc858d" title="Begin a top&#45;level menu." alt="" coords="449,5,612,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="401,43,433,38,434,43,402,48"/>
+<area shape="rect" id="Node000004" href="$d7/d73/classyaze_1_1editor_1_1MenuBuilder.html#aa9cb5223ce80da958db99df457f60b1c" title="Begin a submenu." alt="" coords="449,71,612,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="402,69,434,74,433,79,401,75"/>
+</map>

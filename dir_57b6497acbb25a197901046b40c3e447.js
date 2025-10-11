@@ -6,6 +6,8 @@ var dir_57b6497acbb25a197901046b40c3e447 =
     [ "agent_pretraining.h", "df/dfb/agent__pretraining_8h.html", "df/dfb/agent__pretraining_8h" ],
     [ "conversational_agent_service.cc", "d3/d5c/conversational__agent__service_8cc.html", "d3/d5c/conversational__agent__service_8cc" ],
     [ "conversational_agent_service.h", "d1/dad/conversational__agent__service_8h.html", "d1/dad/conversational__agent__service_8h" ],
+    [ "enhanced_tui.cc", "d2/d48/enhanced__tui_8cc.html", "d2/d48/enhanced__tui_8cc" ],
+    [ "enhanced_tui.h", "d4/d92/enhanced__tui_8h.html", "d4/d92/enhanced__tui_8h" ],
     [ "learned_knowledge_service.cc", "de/dd1/learned__knowledge__service_8cc.html", "de/dd1/learned__knowledge__service_8cc" ],
     [ "learned_knowledge_service.h", "de/dc1/learned__knowledge__service_8h.html", "de/dc1/learned__knowledge__service_8h" ],
     [ "prompt_manager.cc", "d8/d29/prompt__manager_8cc.html", null ],
@@ -16,7 +18,7 @@ var dir_57b6497acbb25a197901046b40c3e447 =
     [ "simple_chat_session.h", "d5/dee/simple__chat__session_8h.html", "d5/dee/simple__chat__session_8h" ],
     [ "todo_manager.cc", "d9/dde/todo__manager_8cc.html", "d9/dde/todo__manager_8cc" ],
     [ "todo_manager.h", "d5/de7/todo__manager_8h.html", "d5/de7/todo__manager_8h" ],
-    [ "tool_dispatcher.cc", "d3/d79/tool__dispatcher_8cc.html", null ],
+    [ "tool_dispatcher.cc", "d3/d79/tool__dispatcher_8cc.html", "d3/d79/tool__dispatcher_8cc" ],
     [ "tool_dispatcher.h", "d3/d12/tool__dispatcher_8h.html", "d3/d12/tool__dispatcher_8h" ],
     [ "vim_mode.cc", "d3/dd5/vim__mode_8cc.html", "d3/dd5/vim__mode_8cc" ],
     [ "vim_mode.h", "dc/d0f/vim__mode_8h.html", "dc/d0f/vim__mode_8h" ]

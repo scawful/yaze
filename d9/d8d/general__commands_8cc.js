@@ -6,15 +6,15 @@ var general__commands_8cc =
     [ "TryLoadProjectAndLabels", "d9/d8d/general__commands_8cc.html#aeb5fefba0cefdd05641dff4b22716e6e", null ],
     [ "EnsureRomLoaded", "d9/d8d/general__commands_8cc.html#a4ee29d0836cb9056ee4f2f0d2550bdd4", null ],
     [ "ParseDescribeArgs", "d9/d8d/general__commands_8cc.html#ad45792c6e00bfd5e60f63ecf17dc70e4", null ],
-    [ "HandleRunCommand", "d9/d8d/general__commands_8cc.html#a4c88dbe6c96f20bba8fd432738e1a528", null ],
+    [ "HandleRunCommand", "d9/d8d/general__commands_8cc.html#a7f4e497bb28123e1057f1f5425a7f4e3", null ],
     [ "HandlePlanCommand", "d9/d8d/general__commands_8cc.html#af164e32341de8c5ac58d6836bb3bc483", null ],
     [ "HandleDiffCommand", "d9/d8d/general__commands_8cc.html#ab7fbe1f4946d07411f70942eed73a58e", null ],
-    [ "HandleLearnCommand", "d9/d8d/general__commands_8cc.html#a57e8a6339d35643f00f52be1db745557", null ],
+    [ "HandleLearnCommand", "d9/d8d/general__commands_8cc.html#a2349aeb2f86a5b68bcdd3d1455818ef7", null ],
     [ "HandleListCommand", "d9/d8d/general__commands_8cc.html#aedb92c4f15ff24a3558fab3df8252ddb", null ],
     [ "HandleCommitCommand", "d9/d8d/general__commands_8cc.html#a748d73993407c29f729a58d7d109514b", null ],
     [ "HandleRevertCommand", "d9/d8d/general__commands_8cc.html#ac2a2ccb930ec7a842d23197aa6a43a51", null ],
-    [ "HandleDescribeCommand", "d9/d8d/general__commands_8cc.html#acb618f817422ff44303453fcaadd3478", null ],
+    [ "HandleDescribeCommand", "d9/d8d/general__commands_8cc.html#ab38d737f28d3d64b29b1accf378fa7bc", null ],
     [ "HandleChatCommand", "d9/d8d/general__commands_8cc.html#ab9c0a392ce6c066aca8d36eac12dc2b9", null ],
-    [ "HandleSimpleChatCommand", "d9/d8d/general__commands_8cc.html#aa5dce5122f99bd7671e44280148683fb", null ],
-    [ "HandleAcceptCommand", "d9/d8d/general__commands_8cc.html#a2ff357fa1f94a07051d15276d26264b3", null ]
+    [ "HandleSimpleChatCommand", "d9/d8d/general__commands_8cc.html#a03ae7219e427e6f49ba3e5d642f9e9f5", null ],
+    [ "HandleAcceptCommand", "d9/d8d/general__commands_8cc.html#a589b2fa2a025f7e0ef5901901d7df584", null ]
 ];

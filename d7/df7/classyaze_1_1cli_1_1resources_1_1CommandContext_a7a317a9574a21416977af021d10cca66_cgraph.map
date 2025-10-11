@@ -1,0 +1,9 @@
+<map id="yaze::cli::resources::CommandContext::EnsureLabelsLoaded" name="yaze::cli::resources::CommandContext::EnsureLabelsLoaded">
+<area shape="rect" id="Node000001" title="Ensure resource labels are loaded." alt="" coords="5,31,221,87"/>
+<area shape="rect" id="Node000002" href="$da/d5e/structyaze_1_1core_1_1YazeProject.html#a92a9dfec8ba27e3ccae53fcb267b8d16" title=" " alt="" coords="269,5,443,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="221,42,253,37,254,42,221,47"/>
+<area shape="rect" id="Node000015" href="$d6/d30/classyaze_1_1Rom.html#aaf2600f3334bb925086268e63e225418" title=" " alt="" coords="288,71,424,111"/>
+<area shape="poly" id="edge3_Node000001_Node000015" title=" " alt="" coords="221,71,273,77,272,83,221,76"/>
+<area shape="rect" id="Node000003" href="$d4/d42/structyaze_1_1zelda3_1_1Zelda3Labels.html#a34742ede25e2a3dff22e0165d7220079" title="Convert all labels to a structured map for project embedding." alt="" coords="491,5,665,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="443,23,475,23,475,28,443,28"/>
+</map>

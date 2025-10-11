@@ -1,0 +1,5 @@
+<map id="yaze::cli::handlers::ProjectBuildCommandHandler" name="yaze::cli::handlers::ProjectBuildCommandHandler">
+<area shape="rect" id="Node000001" title="Command handler for building projects." alt="" coords="5,94,207,135"/>
+<area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="40,5,172,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,62,109,94,103,94,103,62"/>
+</map>

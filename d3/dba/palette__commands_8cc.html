@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/cli/handlers/agent/palette_commands.cc File Reference</title>
+<title>yaze: src/cli/handlers/graphics/palette_commands.cc File Reference</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -99,30 +99,32 @@ $(document).ready(function(){initNavTree('d3/dba/palette__commands_8cc.html','..
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Classes</a> &#124;
-<a href="#namespaces">Namespaces</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle"><div class="title">palette_commands.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="../../d0/db0/palette__commands_8h_source.html">cli/handlers/agent/palette_commands.h</a>&quot;</code><br />
-<code>#include &lt;algorithm&gt;</code><br />
-<code>#include &lt;iomanip&gt;</code><br />
-<code>#include &lt;iostream&gt;</code><br />
-<code>#include &lt;map&gt;</code><br />
-<code>#include &lt;sstream&gt;</code><br />
-<code>#include &quot;absl/status/status.h&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="../../d0/db0/palette__commands_8h_source.html">cli/handlers/graphics/palette_commands.h</a>&quot;</code><br />
+<code>#include &quot;absl/strings/numbers.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d8/ddb/snes__palette_8h_source.html">app/gfx/snes_palette.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
+</div><div class="textblock"><div class="dynheader">
+Include dependency graph for palette_commands.cc:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../d8/d0c/palette__commands_8cc__incl.png" border="0" usemap="#asrc_2cli_2handlers_2graphics_2palette__commands_8cc" alt=""/></div>
+<map name="asrc_2cli_2handlers_2graphics_2palette__commands_8cc" id="asrc_2cli_2handlers_2graphics_2palette__commands_8cc">
+<area shape="rect" title=" " alt="" coords="170,5,333,46"/>
+<area shape="rect" href="../../d0/db0/palette__commands_8h.html" title=" " alt="" coords="5,94,151,135"/>
+<area shape="poly" title=" " alt="" coords="213,49,132,89,130,84,211,44"/>
+<area shape="rect" title=" " alt="" coords="175,102,328,127"/>
+<area shape="poly" title=" " alt="" coords="254,47,254,86,249,86,249,47"/>
+<area shape="rect" title=" " alt="" coords="352,102,513,127"/>
+<area shape="poly" title=" " alt="" coords="294,44,395,92,393,97,291,49"/>
+<area shape="rect" href="../../d9/d72/command__handler_8h.html" title=" " alt="" coords="7,183,149,223"/>
+<area shape="poly" title=" " alt="" coords="81,135,81,167,75,167,75,135"/>
+</map>
+</div>
 </div>
 <p><a href="../../d3/dba/palette__commands_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html">yaze::cli::agent::anonymous_namespace{palette_commands.cc}::RGB</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:dc/d46/namespaceyaze" id="r_dc/d46/namespaceyaze"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d46/namespaceyaze.html">yaze</a></td></tr>
@@ -131,37 +133,15 @@ Namespaces</h2></td></tr>
 <tr class="memitem:dd/d63/namespaceyaze_1_1cli" id="r_dd/d63/namespaceyaze_1_1cli"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dd/d63/namespaceyaze_1_1cli.html">yaze::cli</a></td></tr>
 <tr class="memdesc:dd/d63/namespaceyaze_1_1cli"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace for the command line interface. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:d8/dd3/namespaceyaze_1_1cli_1_1agent" id="r_d8/dd3/namespaceyaze_1_1cli_1_1agent"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html">yaze::cli::agent</a></td></tr>
+<tr class="memitem:d0/db7/namespaceyaze_1_1cli_1_1handlers" id="r_d0/db7/namespaceyaze_1_1cli_1_1handlers"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/db7/namespaceyaze_1_1cli_1_1handlers.html">yaze::cli::handlers</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:d0/d09/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03" id="r_d0/d09/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d09/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03.html">yaze::cli::agent::anonymous_namespace{palette_commands.cc}</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:aa9d523763ee1b94345d18968c3ea8360" id="r_aa9d523763ee1b94345d18968c3ea8360"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html">RGB</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d09/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03.html#aa9d523763ee1b94345d18968c3ea8360">yaze::cli::agent::anonymous_namespace{palette_commands.cc}::SnesColorToRGB</a> (uint16_t <a class="el" href="../../df/d71/structsnes__color.html">snes_color</a>)</td></tr>
-<tr class="separator:aa9d523763ee1b94345d18968c3ea8360"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaca254160cac4f10e6af95add9b58359" id="r_aaca254160cac4f10e6af95add9b58359"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d09/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03.html#aaca254160cac4f10e6af95add9b58359">yaze::cli::agent::anonymous_namespace{palette_commands.cc}::RGBToSnesColor</a> (uint8_t r, uint8_t g, uint8_t b)</td></tr>
-<tr class="separator:aaca254160cac4f10e6af95add9b58359"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a22f2176d52c2d0b2f5bdbfe5928c62a1" id="r_a22f2176d52c2d0b2f5bdbfe5928c62a1"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; <a class="el" href="../../d4/d24/structyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03_1_1RGB.html">RGB</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d09/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03.html#a22f2176d52c2d0b2f5bdbfe5928c62a1">yaze::cli::agent::anonymous_namespace{palette_commands.cc}::ParseHexColor</a> (const std::string &amp;str)</td></tr>
-<tr class="separator:a22f2176d52c2d0b2f5bdbfe5928c62a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55fcfc5ece98aa74de2a946b40ce1901" id="r_a55fcfc5ece98aa74de2a946b40ce1901"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/d09/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02palette__commands_8cc_03.html#a55fcfc5ece98aa74de2a946b40ce1901">yaze::cli::agent::anonymous_namespace{palette_commands.cc}::FormatColor</a> (uint16_t <a class="el" href="../../df/d71/structsnes__color.html">snes_color</a>, const std::string &amp;format)</td></tr>
-<tr class="separator:a55fcfc5ece98aa74de2a946b40ce1901"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6fabb87088f131985bfba062ccfa04fc" id="r_a6fabb87088f131985bfba062ccfa04fc"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a6fabb87088f131985bfba062ccfa04fc">yaze::cli::agent::HandlePaletteGetColors</a> (const std::vector&lt; std::string &gt; &amp;args, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom_context=nullptr)</td></tr>
-<tr class="memdesc:a6fabb87088f131985bfba062ccfa04fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all colors from a specific palette.  <br /></td></tr>
-<tr class="separator:a6fabb87088f131985bfba062ccfa04fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa1247e440f881ab8d857d62aa71758e9" id="r_aa1247e440f881ab8d857d62aa71758e9"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#aa1247e440f881ab8d857d62aa71758e9">yaze::cli::agent::HandlePaletteSetColor</a> (const std::vector&lt; std::string &gt; &amp;args, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom_context=nullptr)</td></tr>
-<tr class="memdesc:aa1247e440f881ab8d857d62aa71758e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set a specific color in a palette (creates proposal)  <br /></td></tr>
-<tr class="separator:aa1247e440f881ab8d857d62aa71758e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad056234d6fd54434fd19533c4f76257c" id="r_ad056234d6fd54434fd19533c4f76257c"><td class="memItemLeft" align="right" valign="top">absl::Status&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#ad056234d6fd54434fd19533c4f76257c">yaze::cli::agent::HandlePaletteAnalyze</a> (const std::vector&lt; std::string &gt; &amp;args, <a class="el" href="../../d6/d30/classyaze_1_1Rom.html">Rom</a> *rom_context=nullptr)</td></tr>
-<tr class="memdesc:ad056234d6fd54434fd19533c4f76257c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Analyze color usage and statistics for a palette or bitmap.  <br /></td></tr>
-<tr class="separator:ad056234d6fd54434fd19533c4f76257c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_b78fdfbbb632ce54d070469d6a721373.html">cli</a></li><li class="navelem"><a class="el" href="../../dir_1803ec2ac2120f8427544b062f2515ae.html">handlers</a></li><li class="navelem"><a class="el" href="../../dir_58c5d7f17207e6ffb752b92952ac37bb.html">agent</a></li><li class="navelem"><a class="el" href="../../d3/dba/palette__commands_8cc.html">palette_commands.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_b78fdfbbb632ce54d070469d6a721373.html">cli</a></li><li class="navelem"><a class="el" href="../../dir_1803ec2ac2120f8427544b062f2515ae.html">handlers</a></li><li class="navelem"><a class="el" href="../../dir_18e2fc3dfd344c9d3f983facf3634df0.html">graphics</a></li><li class="navelem"><a class="el" href="../../d3/dba/palette__commands_8cc.html">palette_commands.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

@@ -1,0 +1,5 @@
+<map id="yaze::cli::handlers::DungeonSetRoomPropertyCommandHandler" name="yaze::cli::handlers::DungeonSetRoomPropertyCommandHandler">
+<area shape="rect" id="Node000001" title="Command handler for setting room properties." alt="" coords="5,94,245,150"/>
+<area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="59,5,191,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,61,128,93,122,93,122,61"/>
+</map>

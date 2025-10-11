@@ -16,7 +16,6 @@ var namespaceyaze_1_1test =
       [ "GenerateFailureScreenshotPath", "d8/d93/namespaceyaze_1_1test_1_1anonymous__namespace_02test__manager_8cc_03.html#a9f2a4fa037a04b4add59e985a5df4a37", null ]
     ] ],
     [ "anonymous_namespace{test_recorder.cc}", "d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html", [
-      [ "HarnessStatusToString", "d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html#a548f3448d4583d652e5940e0410ced67", null ],
       [ "kTestCompletionTimeout", "d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html#ac27791eabfd94dbf2b5f3ed829bebe8f", null ],
       [ "kPollInterval", "d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html#a49a20ad191167cf33ea7e86b6ead55c4", null ]
     ] ],
@@ -370,6 +369,5 @@ var namespaceyaze_1_1test =
     [ "TEST_F", "d4/d0a/namespaceyaze_1_1test.html#ae562cd7059ec7571b29261eff9ef82b2", null ],
     [ "ParseArguments", "d4/d0a/namespaceyaze_1_1test.html#a89f3ce180b0caab4565cd5b2c8315951", null ],
     [ "SetupTestEnvironment", "d4/d0a/namespaceyaze_1_1test.html#adfd638eba01ac6c99c48c3aae7d8a7a2", null ],
-    [ "ConfigureTestFilters", "d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8", null ],
-    [ "test_id", "d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3", null ]
+    [ "ConfigureTestFilters", "d4/d0a/namespaceyaze_1_1test.html#a76748b4fd1d8105313f78a75a8e321a8", null ]
 ];

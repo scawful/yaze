@@ -1,0 +1,5 @@
+<map id="yaze::cli::resources::ArgumentParser::GetHex" name="yaze::cli::resources::ArgumentParser::GetHex">
+<area shape="rect" id="Node000001" title="Parse a hex integer argument." alt="" coords="5,5,177,46"/>
+<area shape="rect" id="Node000002" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a095e664ff2500d73cca6c91a1e4f5f83" title=" " alt="" coords="225,5,430,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,23,209,23,209,28,177,28"/>
+</map>

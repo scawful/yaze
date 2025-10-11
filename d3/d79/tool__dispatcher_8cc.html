@@ -99,16 +99,29 @@ $(document).ready(function(){initNavTree('d3/d79/tool__dispatcher_8cc.html','../
 
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">tool_dispatcher.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../d3/d12/tool__dispatcher_8h_source.html">cli/service/agent/tool_dispatcher.h</a>&quot;</code><br />
-<code>#include &lt;iostream&gt;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;memory&gt;</code><br />
+<code>#include &lt;regex&gt;</code><br />
 <code>#include &lt;sstream&gt;</code><br />
-<code>#include &quot;absl/strings/match.h&quot;</code><br />
-<code>#include &quot;absl/strings/str_format.h&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d5/d90/commands_8h_source.html">cli/handlers/agent/commands.h</a>&quot;</code><br />
+<code>#include &lt;string&gt;</code><br />
+<code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d8/dc2/dialogue__commands_8h_source.html">cli/handlers/game/dialogue_commands.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../dc/d91/dungeon__commands_8h_source.html">cli/handlers/game/dungeon_commands.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../de/d89/message__commands_8h_source.html">cli/handlers/game/message_commands.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../dd/d94/music__commands_8h_source.html">cli/handlers/game/music_commands.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../dd/dc7/overworld__commands_8h_source.html">cli/handlers/game/overworld_commands.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d1/d20/sprite__commands_8h_source.html">cli/handlers/graphics/sprite_commands.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d6/da3/emulator__commands_8h_source.html">cli/handlers/tools/emulator_commands.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d9/de0/gui__commands_8h_source.html">cli/handlers/tools/gui_commands.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../da/d76/resource__commands_8h_source.html">cli/handlers/tools/resource_commands.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../dc/d36/command__context_8h_source.html">cli/service/resources/command_context.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../df/ded/terminal__colors_8h_source.html">cli/util/terminal_colors.h</a>&quot;</code><br />
 </div>
 <p><a href="../../d3/d79/tool__dispatcher_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -122,6 +135,17 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:d8/dd3/namespaceyaze_1_1cli_1_1agent" id="r_d8/dd3/namespaceyaze_1_1cli_1_1agent"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html">yaze::cli::agent</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:d7/dbd/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__dispatcher_8cc_03" id="r_d7/dbd/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__dispatcher_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dbd/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__dispatcher_8cc_03.html">yaze::cli::agent::anonymous_namespace{tool_dispatcher.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a8d64b133fbe66c8f6db35e864627f3d9" id="r_a8d64b133fbe66c8f6db35e864627f3d9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a570346e91ec90d0baf95a883ca3665e1">ToolCallType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dbd/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__dispatcher_8cc_03.html#a8d64b133fbe66c8f6db35e864627f3d9">yaze::cli::agent::anonymous_namespace{tool_dispatcher.cc}::GetToolCallType</a> (const std::string &amp;tool_name)</td></tr>
+<tr class="separator:a8d64b133fbe66c8f6db35e864627f3d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a453c176ce671f6fd928949b500b6b5" id="r_a2a453c176ce671f6fd928949b500b6b5"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="../../d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html">resources::CommandHandler</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dbd/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__dispatcher_8cc_03.html#a2a453c176ce671f6fd928949b500b6b5">yaze::cli::agent::anonymous_namespace{tool_dispatcher.cc}::CreateHandler</a> (<a class="el" href="../../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a570346e91ec90d0baf95a883ca3665e1">ToolCallType</a> type)</td></tr>
+<tr class="separator:a2a453c176ce671f6fd928949b500b6b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab20e2fe9a9c29c6c3675036faa8e6b06" id="r_ab20e2fe9a9c29c6c3675036faa8e6b06"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dbd/namespaceyaze_1_1cli_1_1agent_1_1anonymous__namespace_02tool__dispatcher_8cc_03.html#ab20e2fe9a9c29c6c3675036faa8e6b06">yaze::cli::agent::anonymous_namespace{tool_dispatcher.cc}::ConvertArgsToVector</a> (const std::map&lt; std::string, std::string &gt; &amp;args)</td></tr>
+<tr class="separator:ab20e2fe9a9c29c6c3675036faa8e6b06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

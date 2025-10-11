@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('d2/dde/md_docs_2F2-tile16-editor-palet
   <div class="headertitle"><div class="title">Tile16 Editor Palette System</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md755"></a> <b>Status: Work in Progress</b> - Documentation for the ongoing Tile16 Editor palette system redesign, implementation, and refactoring improvements.</p>
-<h1><a class="anchor" id="autotoc_md756"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md767"></a> <b>Status: Work in Progress</b> - Documentation for the ongoing Tile16 Editor palette system redesign, implementation, and refactoring improvements.</p>
+<h1><a class="anchor" id="autotoc_md768"></a>
 Executive Summary</h1>
 <p>The tile16 editor palette system is undergoing a complete redesign to resolve critical crashes and ensure proper color alignment between the tile16 editor and overworld display. Significant progress has been made addressing fundamental architectural issues with palette mapping, implementing crash fixes, and creating an improved three-column layout. However, palette handling for the tile8 source canvas and palette button functionality remain works in progress.</p>
-<h1><a class="anchor" id="autotoc_md757"></a>
+<h1><a class="anchor" id="autotoc_md769"></a>
 Problem Analysis</h1>
-<h2><a class="anchor" id="autotoc_md758"></a>
+<h2><a class="anchor" id="autotoc_md770"></a>
 Critical Issues Identified</h2>
 <ol type="1">
 <li><b>SIGBUS Crash in SnesColor::rgb()</b><ul>
@@ -129,9 +129,9 @@ Critical Issues Identified</h2>
 </ul>
 </li>
 </ol>
-<h1><a class="anchor" id="autotoc_md759"></a>
+<h1><a class="anchor" id="autotoc_md771"></a>
 Solution Architecture</h1>
-<h2><a class="anchor" id="autotoc_md760"></a>
+<h2><a class="anchor" id="autotoc_md772"></a>
 Core Design Principles</h2>
 <ol type="1">
 <li><b>Use Same Palette System as Overworld</b>: Use <code>SetPalette()</code> with complete 256-color palette</li>
@@ -139,7 +139,7 @@ Core Design Principles</h2>
 <li><b>Proper Bounds Checking</b>: Prevent out-of-bounds memory access in palette operations</li>
 <li><b>Consistent Architecture</b>: Match overworld editor's palette handling exactly</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md761"></a>
+<h2><a class="anchor" id="autotoc_md773"></a>
 256-Color Overworld Palette Structure</h2>
 <p>Based on analysis of <code>SetColorsPalette()</code> in <code><a class="el" href="../../d8/d3e/overworld__map_8cc.html">overworld_map.cc</a></code>:</p>
 <div class="fragment"><div class="line">Row 0-1:  HUD palette (32 colors)          - Slots 0-31</div>
@@ -154,13 +154,13 @@ Core Design Principles</h2>
 <div class="line">Right side (cols 9-15):</div>
 <div class="line">Row 2-4:  AUX1 palette (21 colors)        - Slots 136-151</div>
 <div class="line">Row 5-7:  AUX2 palette (21 colors)        - Slots 152-167</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md762"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md774"></a>
 Sheet-to-Palette Mapping</h2>
 <div class="fragment"><div class="line">Sheet 0,3,4:  → AUX1 region (slots 136-151)</div>
 <div class="line">Sheet 5,6:    → AUX2 region (slots 152-167)</div>
 <div class="line">Sheet 1,2:    → MAIN region (slots 32-87)</div>
 <div class="line">Sheet 7:      → ANIMATED region (slots 112-118)</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md763"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md775"></a>
 Palette Button Mapping</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -182,9 +182,9 @@ Palette Button Mapping</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">7   </td><td class="markdownTableBodyNone">150   </td><td class="markdownTableBodyNone">81   </td><td class="markdownTableBodyNone">166   </td><td class="markdownTableBodyNone">119   </td></tr>
 </table>
-<h1><a class="anchor" id="autotoc_md764"></a>
+<h1><a class="anchor" id="autotoc_md776"></a>
 Implementation Details</h1>
-<h2><a class="anchor" id="autotoc_md765"></a>
+<h2><a class="anchor" id="autotoc_md777"></a>
 1. Fixed SetPaletteWithTransparent Method</h2>
 <p><b>File</b>: <code><a class="el" href="../../d4/d13/bitmap_8cc.html">src/app/gfx/bitmap.cc</a></code></p>
 <p><b>Before</b>: </p><div class="fragment"><div class="line"><span class="keyword">auto</span> start_index = index * 7;  <span class="comment">// WRONG: Creates invalid indices for buttons 4-7</span></div>
@@ -196,7 +196,7 @@ Implementation Details</h1>
 <div class="line">    <span class="keyword">auto</span> &amp;pal_color = palette[index + i];</div>
 <div class="line">    colors.push_back(pal_color.rgb());</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md766"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md778"></a>
 2. Corrected Tile16 Editor Palette System</h2>
 <p><b>File</b>: <code><a class="el" href="../../d6/ddd/tile16__editor_8cc.html">src/app/editor/overworld/tile16_editor.cc</a></code></p>
 <p><b>Before</b>: </p><div class="fragment"><div class="line"><span class="comment">// WRONG: Trying to extract 8-color sub-palettes</span></div>
@@ -204,7 +204,7 @@ Implementation Details</h1>
 </div><!-- fragment --><p><b>After</b>: </p><div class="fragment"><div class="line"><span class="comment">// CORRECT: Use complete 256-color palette (same as overworld system)</span></div>
 <div class="line"><span class="comment">// The pixel data already contains correct color indices for the 256-color palette</span></div>
 <div class="line">current_gfx_individual_[i].SetPalette(display_palette);</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md767"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md779"></a>
 3. Palette Coordination Flow</h2>
 <div class="fragment"><div class="line">Overworld System:</div>
 <div class="line">  ProcessGraphicsBuffer() → adds 0x88 offset to sheets 0,3,4,5</div>
@@ -216,9 +216,9 @@ Implementation Details</h1>
 <div class="line">  LoadTile8() → extracts tiles with existing pixel values</div>
 <div class="line">  SetPalette() → applies complete 256-color palette</div>
 <div class="line">  Display → correct colors shown automatically</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md768"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md780"></a>
 UI/UX Refactoring</h1>
-<h2><a class="anchor" id="autotoc_md769"></a>
+<h2><a class="anchor" id="autotoc_md781"></a>
 New Three-Column Layout</h2>
 <p>The tile16 editor layout was completely restructured into a unified 3-column table for better space utilization:</p>
 <p><b>Column 1: Tile16 Blockset</b> (35% width)</p><ul>
@@ -255,7 +255,7 @@ New Three-Column Layout</h2>
 <li>Improved workflow - blockset, source tiles, and editor all in one view</li>
 <li>Resizable columns allow users to adjust layout to preference</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md770"></a>
+<h2><a class="anchor" id="autotoc_md782"></a>
 Canvas Context Menu Fixes</h2>
 <p><b>Problem</b>: The "Advanced Canvas Properties" and "Scaling Controls" popup dialogs were not appearing when selected from the context menu.</p>
 <p><b>Solution</b>:</p><ul>
@@ -274,7 +274,7 @@ Canvas Context Menu Fixes</h2>
 <li><code><a class="el" href="../../da/dbb/canvas_8cc.html">src/app/gui/canvas.cc</a></code> - Updated popup implementation</li>
 <li><code><a class="el" href="../../d4/dcf/canvas_8h.html">src/app/gui/canvas.h</a></code> - Added boolean flags and accessor methods</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md771"></a>
+<h2><a class="anchor" id="autotoc_md783"></a>
 Dynamic Zoom Controls</h2>
 <p>Each canvas now has independent zoom control with real-time feedback:</p>
 <p><b>Tile16 Blockset Zoom</b>:</p><ul>
@@ -301,9 +301,9 @@ Dynamic Zoom Controls</h2>
 <div class="line"> </div>
 <div class="line"><span class="comment">// Canvas display size calculated dynamically</span></div>
 <div class="line"><span class="keywordtype">float</span> canvas_display_size = 16 * tile16_zoom + 4;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md772"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md784"></a>
 Testing Protocol</h1>
-<h2><a class="anchor" id="autotoc_md773"></a>
+<h2><a class="anchor" id="autotoc_md785"></a>
 Crash Prevention Testing</h2>
 <ol type="1">
 <li><b>Load ROM</b> and open tile16 editor</li>
@@ -311,7 +311,7 @@ Crash Prevention Testing</h2>
 <li><b>Verify color display</b> - should match overworld appearance</li>
 <li><b>Test different graphics sheets</b> - should use appropriate palette regions</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md774"></a>
+<h2><a class="anchor" id="autotoc_md786"></a>
 Color Alignment Testing</h2>
 <ol type="1">
 <li><b>Select tile16 in overworld</b> - note colors displayed</li>
@@ -319,7 +319,7 @@ Color Alignment Testing</h2>
 <li><b>Test palette buttons 0-7</b> - colors should match overworld</li>
 <li><b>Verify sheet-specific behavior</b> - different sheets should show different colors</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md775"></a>
+<h2><a class="anchor" id="autotoc_md787"></a>
 UI/UX Testing</h2>
 <ol type="1">
 <li><b>Canvas Popups</b>: Right-click on each canvas → verify "Advanced Properties" and "Scaling Controls" open correctly</li>
@@ -328,23 +328,23 @@ UI/UX Testing</h2>
 <li><b>Layout Responsiveness</b>: Resize window and columns to verify proper behavior</li>
 <li><b>Workflow</b>: Test complete tile editing workflow from selection to save</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md776"></a>
+<h1><a class="anchor" id="autotoc_md788"></a>
 Error Handling</h1>
-<h2><a class="anchor" id="autotoc_md777"></a>
+<h2><a class="anchor" id="autotoc_md789"></a>
 Bounds Checking</h2>
 <ul>
 <li><b>Palette Index Validation</b>: Ensure palette indices don't exceed palette size</li>
 <li><b>Sheet Index Validation</b>: Ensure sheet indices are within valid range (0-7)</li>
 <li><b>Surface Validation</b>: Ensure SDL surface exists before palette operations</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md778"></a>
+<h2><a class="anchor" id="autotoc_md790"></a>
 Fallback Mechanisms</h2>
 <ul>
 <li><b>Default Palette</b>: Use MAIN region if sheet detection fails</li>
 <li><b>Safe Indices</b>: Clamp palette indices to valid ranges</li>
 <li><b>Error Logging</b>: Comprehensive logging for debugging</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md779"></a>
+<h1><a class="anchor" id="autotoc_md791"></a>
 Debug Information Display</h1>
 <p>The debug panel (collapsible by default) shows:</p>
 <ol type="1">
@@ -353,9 +353,9 @@ Debug Information Display</h1>
 <li><b>Reference Table</b>: Complete button-to-slot mapping for all sheets</li>
 <li><b>Color Preview</b>: Visual display of actual colors being used</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md780"></a>
+<h1><a class="anchor" id="autotoc_md792"></a>
 Known Issues and Ongoing Work</h1>
-<h2><a class="anchor" id="autotoc_md781"></a>
+<h2><a class="anchor" id="autotoc_md793"></a>
 Completed Items ✅</h2>
 <ul>
 <li>✅ <b>No Crashes</b>: Fixed SIGBUS errors - palette buttons 0-7 work without crashing</li>
@@ -365,7 +365,7 @@ Completed Items ✅</h2>
 <li>✅ <b>Stable Memory</b>: No memory leaks or corruption</li>
 <li>✅ <b>Code Architecture</b>: Proper bounds checking and error handling</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md782"></a>
+<h2><a class="anchor" id="autotoc_md794"></a>
 Active Issues ⚠️</h2>
 <p><b>1. Tile8 Source Canvas Palette Issues</b></p><ul>
 <li><b>Problem</b>: The tile8 source canvas (displaying current area graphics) does not show correct colors</li>
@@ -386,7 +386,7 @@ Active Issues ⚠️</h2>
 <li><b>Related To</b>: Issues #1 and #2 above</li>
 <li><b>Status</b>: Blocked by palette button functionality</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md783"></a>
+<h2><a class="anchor" id="autotoc_md795"></a>
 Current Status Summary</h2>
 <table class="markdownTable">
 <tr class="markdownTableHead">
@@ -408,7 +408,7 @@ Current Status Summary</h2>
 <tr class="markdownTableRowEven">
 <td class="markdownTableBodyNone">Overall Color System   </td><td class="markdownTableBodyNone">⚠️ In Progress   </td><td class="markdownTableBodyNone">Ongoing development   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md784"></a>
+<h2><a class="anchor" id="autotoc_md796"></a>
 Future Enhancements</h2>
 <ol type="1">
 <li><b>Zoom Presets</b>: Add preset buttons (1x, 2x, 4x) for quick zoom levels</li>
@@ -421,7 +421,7 @@ Future Enhancements</h2>
 <li><b>Palette Preview</b>: Real-time preview of palette changes before applying</li>
 <li><b>Batch Operations</b>: Apply palette changes to multiple tiles simultaneously</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md785"></a>
+<h1><a class="anchor" id="autotoc_md797"></a>
 Maintenance Notes</h1>
 <ol type="1">
 <li><b>Palette Structure Changes</b>: Update <code>GetActualPaletteSlot()</code> if overworld palette structure changes</li>
@@ -430,9 +430,9 @@ Maintenance Notes</h1>
 <li><b>Static Zoom Variables</b>: User preferences preserved across sessions</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md787"></a>
+<h1><a class="anchor" id="autotoc_md799"></a>
 Next Steps</h1>
-<h2><a class="anchor" id="autotoc_md788"></a>
+<h2><a class="anchor" id="autotoc_md800"></a>
 Immediate Priorities</h2>
 <ol type="1">
 <li><b>Fix Tile8 Source Canvas Palette Application</b><ul>
@@ -454,7 +454,7 @@ Immediate Priorities</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md789"></a>
+<h2><a class="anchor" id="autotoc_md801"></a>
 Investigation Areas</h2>
 <ul>
 <li>Review <code>current_gfx_individual_</code> palette application</li>

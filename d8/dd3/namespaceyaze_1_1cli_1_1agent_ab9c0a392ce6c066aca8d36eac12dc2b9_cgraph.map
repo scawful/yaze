@@ -2,10 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,71,157,111"/>
 <area shape="rect" id="Node000002" href="$d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a7329709baf2843979bf12d74eff14cc2" title=" " alt="" coords="205,78,375,104"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="157,88,189,88,189,94,157,94"/>
-<area shape="rect" id="Node000003" href="$dd/d63/namespaceyaze_1_1cli.html#a67e346199df1425ede5e60193333da22" title="Create an input component with autocomplete suggestions." alt="" coords="426,5,616,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="337,75,431,48,433,53,339,80"/>
-<area shape="rect" id="Node000006" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#ab55e86d1ba2febc9f75ead191a3385fc" title=" " alt="" coords="423,71,619,111"/>
-<area shape="poly" id="edge3_Node000002_Node000006" title=" " alt="" coords="376,88,407,88,407,94,376,94"/>
-<area shape="rect" id="Node000007" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a69343a3c2a079c23d8202250d1c8d1e5" title=" " alt="" coords="423,136,619,177"/>
-<area shape="poly" id="edge4_Node000002_Node000007" title=" " alt="" coords="339,102,433,129,431,134,337,107"/>
+<area shape="rect" id="Node000003" href="$d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#afb3956d2d82d2999d1e0a176f87f18a5" title=" " alt="" coords="445,5,591,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="337,75,429,48,431,53,338,80"/>
+<area shape="rect" id="Node000004" href="$dd/d63/namespaceyaze_1_1cli.html#a67e346199df1425ede5e60193333da22" title="Create an input component with autocomplete suggestions." alt="" coords="423,71,613,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="375,88,407,88,407,94,375,94"/>
+<area shape="rect" id="Node000007" href="$d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#a9aba4994631d56616241d158df2c30e0" title=" " alt="" coords="448,136,589,177"/>
+<area shape="poly" id="edge4_Node000002_Node000007" title=" " alt="" coords="338,102,433,129,432,134,337,107"/>
 </map>

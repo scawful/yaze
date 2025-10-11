@@ -148,10 +148,10 @@ $(document).ready(function(){initNavTree('d1/d2e/test__manager_8cc_source.html',
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="../../d8/d93/namespaceyaze_1_1test_1_1anonymous__namespace_02test__manager_8cc_03.html">   44</a></span><span class="keyword">namespace </span>{</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span> </div>
 <div class="foldopen" id="foldopen00046" data-start="{" data-end="}">
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno"><a class="line" href="../../d8/d93/namespaceyaze_1_1test_1_1anonymous__namespace_02test__manager_8cc_03.html#a9f2a4fa037a04b4add59e985a5df4a37">   46</a></span>std::string <a class="code hl_function" href="../../d8/d93/namespaceyaze_1_1test_1_1anonymous__namespace_02test__manager_8cc_03.html#a9f2a4fa037a04b4add59e985a5df4a37">GenerateFailureScreenshotPath</a>(<span class="keyword">const</span> std::string&amp; <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>) {</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno"><a class="line" href="../../d8/d93/namespaceyaze_1_1test_1_1anonymous__namespace_02test__manager_8cc_03.html#a9f2a4fa037a04b4add59e985a5df4a37">   46</a></span>std::string <a class="code hl_function" href="../../d8/d93/namespaceyaze_1_1test_1_1anonymous__namespace_02test__manager_8cc_03.html#a9f2a4fa037a04b4add59e985a5df4a37">GenerateFailureScreenshotPath</a>(<span class="keyword">const</span> std::string&amp; test_id) {</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  std::filesystem::path base_dir =</div>
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>      std::filesystem::temp_directory_path() / <span class="stringliteral">&quot;yaze&quot;</span> / <span class="stringliteral">&quot;test-results&quot;</span> /</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>      <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>;</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>      test_id;</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  std::error_code ec;</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  std::filesystem::create_directories(base_dir, ec);</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span> </div>
@@ -1836,245 +1836,257 @@ $(document).ready(function(){initNavTree('d1/d2e/test__manager_8cc_source.html',
 <div class="line"><a id="l01676" name="l01676"></a><span class="lineno"> 1676</span>}</div>
 </div>
 <div class="line"><a id="l01677" name="l01677"></a><span class="lineno"> 1677</span> </div>
-<div class="line"><a id="l01678" name="l01678"></a><span class="lineno"> 1678</span>std::string TestManager::RegisterHarnessTest(<span class="keyword">const</span> std::string&amp; name,</div>
-<div class="line"><a id="l01679" name="l01679"></a><span class="lineno"> 1679</span>                                             <span class="keyword">const</span> std::string&amp; category) {</div>
-<div class="line"><a id="l01680" name="l01680"></a><span class="lineno"> 1680</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
+<div class="line"><a id="l01678" name="l01678"></a><span class="lineno"> 1678</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
+<div class="line"><a id="l01679" name="l01679"></a><span class="lineno"> 1679</span>std::string <a class="code hl_function" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a73f2f93de2669db8e9c64b98ba82246c">TestManager::RegisterHarnessTest</a>(<span class="keyword">const</span> std::string&amp; name,</div>
+<div class="line"><a id="l01680" name="l01680"></a><span class="lineno"> 1680</span>                                             <span class="keyword">const</span> std::string&amp; category) {</div>
 <div class="line"><a id="l01681" name="l01681"></a><span class="lineno"> 1681</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
-<div class="line"><a id="l01682" name="l01682"></a><span class="lineno"> 1682</span>  std::string <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a> = absl::StrCat(<span class="stringliteral">&quot;harness_&quot;</span>, absl::ToUnixMicros(absl::Now()), <span class="stringliteral">&quot;_&quot;</span>, harness_history_.size());</div>
+<div class="line"><a id="l01682" name="l01682"></a><span class="lineno"> 1682</span>  std::string test_id = absl::StrCat(<span class="stringliteral">&quot;harness_&quot;</span>, absl::ToUnixMicros(absl::Now()), <span class="stringliteral">&quot;_&quot;</span>, harness_history_.size());</div>
 <div class="line"><a id="l01683" name="l01683"></a><span class="lineno"> 1683</span>  HarnessTestExecution execution;</div>
-<div class="line"><a id="l01684" name="l01684"></a><span class="lineno"> 1684</span>  execution.test_id = <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>;</div>
+<div class="line"><a id="l01684" name="l01684"></a><span class="lineno"> 1684</span>  execution.test_id = test_id;</div>
 <div class="line"><a id="l01685" name="l01685"></a><span class="lineno"> 1685</span>  execution.name = name;</div>
 <div class="line"><a id="l01686" name="l01686"></a><span class="lineno"> 1686</span>  execution.category = category;</div>
 <div class="line"><a id="l01687" name="l01687"></a><span class="lineno"> 1687</span>  execution.status = HarnessTestStatus::kQueued;</div>
 <div class="line"><a id="l01688" name="l01688"></a><span class="lineno"> 1688</span>  execution.queued_at = absl::Now();</div>
 <div class="line"><a id="l01689" name="l01689"></a><span class="lineno"> 1689</span>  execution.logs.reserve(32);</div>
-<div class="line"><a id="l01690" name="l01690"></a><span class="lineno"> 1690</span>  harness_history_[<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>] = execution;</div>
+<div class="line"><a id="l01690" name="l01690"></a><span class="lineno"> 1690</span>  harness_history_[test_id] = execution;</div>
 <div class="line"><a id="l01691" name="l01691"></a><span class="lineno"> 1691</span>  TrimHarnessHistoryLocked();</div>
 <div class="line"><a id="l01692" name="l01692"></a><span class="lineno"> 1692</span>  HarnessAggregate&amp; aggregate = harness_aggregates_[name];</div>
 <div class="line"><a id="l01693" name="l01693"></a><span class="lineno"> 1693</span>  aggregate.latest_execution = execution;</div>
-<div class="line"><a id="l01694" name="l01694"></a><span class="lineno"> 1694</span>  harness_history_order_.push_back(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
-<div class="line"><a id="l01695" name="l01695"></a><span class="lineno"> 1695</span>  <span class="keywordflow">return</span> <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>;</div>
-<div class="line"><a id="l01696" name="l01696"></a><span class="lineno"> 1696</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l01697" name="l01697"></a><span class="lineno"> 1697</span>  (void)name;</div>
-<div class="line"><a id="l01698" name="l01698"></a><span class="lineno"> 1698</span>  (void)category;</div>
-<div class="line"><a id="l01699" name="l01699"></a><span class="lineno"> 1699</span>  <span class="keywordflow">return</span> {};</div>
-<div class="line"><a id="l01700" name="l01700"></a><span class="lineno"> 1700</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l01701" name="l01701"></a><span class="lineno"> 1701</span>}</div>
-<div class="line"><a id="l01702" name="l01702"></a><span class="lineno"> 1702</span> </div>
-<div class="line"><a id="l01703" name="l01703"></a><span class="lineno"> 1703</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
-<div class="line"><a id="l01704" name="l01704"></a><span class="lineno"> 1704</span><span class="keywordtype">void</span> TestManager::MarkHarnessTestRunning(<span class="keyword">const</span> std::string&amp; <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>) {</div>
-<div class="line"><a id="l01705" name="l01705"></a><span class="lineno"> 1705</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
-<div class="line"><a id="l01706" name="l01706"></a><span class="lineno"> 1706</span>  <span class="keyword">auto</span> it = harness_history_.find(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
-<div class="line"><a id="l01707" name="l01707"></a><span class="lineno"> 1707</span>  <span class="keywordflow">if</span> (it == harness_history_.end()) {</div>
-<div class="line"><a id="l01708" name="l01708"></a><span class="lineno"> 1708</span>    <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l01709" name="l01709"></a><span class="lineno"> 1709</span>  }</div>
-<div class="line"><a id="l01710" name="l01710"></a><span class="lineno"> 1710</span>  HarnessTestExecution&amp; execution = it-&gt;second;</div>
-<div class="line"><a id="l01711" name="l01711"></a><span class="lineno"> 1711</span>  execution.status = HarnessTestStatus::kRunning;</div>
-<div class="line"><a id="l01712" name="l01712"></a><span class="lineno"> 1712</span>  execution.started_at = absl::Now();</div>
-<div class="line"><a id="l01713" name="l01713"></a><span class="lineno"> 1713</span>}</div>
-<div class="line"><a id="l01714" name="l01714"></a><span class="lineno"> 1714</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l01715" name="l01715"></a><span class="lineno"> 1715</span> </div>
-<div class="line"><a id="l01716" name="l01716"></a><span class="lineno"> 1716</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
-<div class="line"><a id="l01717" name="l01717"></a><span class="lineno"> 1717</span><span class="keywordtype">void</span> TestManager::MarkHarnessTestCompleted(</div>
-<div class="line"><a id="l01718" name="l01718"></a><span class="lineno"> 1718</span>    <span class="keyword">const</span> std::string&amp; <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, HarnessTestStatus status,</div>
-<div class="line"><a id="l01719" name="l01719"></a><span class="lineno"> 1719</span>    <span class="keyword">const</span> std::string&amp; message,</div>
-<div class="line"><a id="l01720" name="l01720"></a><span class="lineno"> 1720</span>    <span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; assertion_failures,</div>
-<div class="line"><a id="l01721" name="l01721"></a><span class="lineno"> 1721</span>    <span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; logs,</div>
-<div class="line"><a id="l01722" name="l01722"></a><span class="lineno"> 1722</span>    <span class="keyword">const</span> std::map&lt;std::string, int32_t&gt;&amp; metrics) {</div>
-<div class="line"><a id="l01723" name="l01723"></a><span class="lineno"> 1723</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
-<div class="line"><a id="l01724" name="l01724"></a><span class="lineno"> 1724</span>  <span class="keyword">auto</span> it = harness_history_.find(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
-<div class="line"><a id="l01725" name="l01725"></a><span class="lineno"> 1725</span>  <span class="keywordflow">if</span> (it == harness_history_.end()) {</div>
-<div class="line"><a id="l01726" name="l01726"></a><span class="lineno"> 1726</span>    <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l01727" name="l01727"></a><span class="lineno"> 1727</span>  }</div>
-<div class="line"><a id="l01728" name="l01728"></a><span class="lineno"> 1728</span>  HarnessTestExecution&amp; execution = it-&gt;second;</div>
-<div class="line"><a id="l01729" name="l01729"></a><span class="lineno"> 1729</span>  execution.status = status;</div>
-<div class="line"><a id="l01730" name="l01730"></a><span class="lineno"> 1730</span>  execution.completed_at = absl::Now();</div>
-<div class="line"><a id="l01731" name="l01731"></a><span class="lineno"> 1731</span>  execution.duration = execution.completed_at - execution.started_at;</div>
-<div class="line"><a id="l01732" name="l01732"></a><span class="lineno"> 1732</span>  execution.error_message = message;</div>
-<div class="line"><a id="l01733" name="l01733"></a><span class="lineno"> 1733</span>  execution.metrics = metrics;</div>
-<div class="line"><a id="l01734" name="l01734"></a><span class="lineno"> 1734</span>  execution.assertion_failures = assertion_failures;</div>
-<div class="line"><a id="l01735" name="l01735"></a><span class="lineno"> 1735</span>  execution.logs.insert(execution.logs.end(), logs.begin(), logs.end());</div>
-<div class="line"><a id="l01736" name="l01736"></a><span class="lineno"> 1736</span> </div>
-<div class="line"><a id="l01737" name="l01737"></a><span class="lineno"> 1737</span>  <span class="keywordtype">bool</span> capture_failure_context =</div>
-<div class="line"><a id="l01738" name="l01738"></a><span class="lineno"> 1738</span>      status == HarnessTestStatus::kFailed ||</div>
-<div class="line"><a id="l01739" name="l01739"></a><span class="lineno"> 1739</span>      status == HarnessTestStatus::kTimeout;</div>
-<div class="line"><a id="l01740" name="l01740"></a><span class="lineno"> 1740</span> </div>
-<div class="line"><a id="l01741" name="l01741"></a><span class="lineno"> 1741</span>  harness_aggregates_[execution.name].latest_execution = execution;</div>
-<div class="line"><a id="l01742" name="l01742"></a><span class="lineno"> 1742</span>  harness_aggregates_[execution.name].total_runs += 1;</div>
-<div class="line"><a id="l01743" name="l01743"></a><span class="lineno"> 1743</span>  <span class="keywordflow">if</span> (status == HarnessTestStatus::kPassed) {</div>
-<div class="line"><a id="l01744" name="l01744"></a><span class="lineno"> 1744</span>    harness_aggregates_[execution.name].pass_count += 1;</div>
-<div class="line"><a id="l01745" name="l01745"></a><span class="lineno"> 1745</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (status == HarnessTestStatus::kFailed ||</div>
-<div class="line"><a id="l01746" name="l01746"></a><span class="lineno"> 1746</span>             status == HarnessTestStatus::kTimeout) {</div>
-<div class="line"><a id="l01747" name="l01747"></a><span class="lineno"> 1747</span>    harness_aggregates_[execution.name].fail_count += 1;</div>
-<div class="line"><a id="l01748" name="l01748"></a><span class="lineno"> 1748</span>  }</div>
-<div class="line"><a id="l01749" name="l01749"></a><span class="lineno"> 1749</span>  harness_aggregates_[execution.name].total_duration += execution.duration;</div>
-<div class="line"><a id="l01750" name="l01750"></a><span class="lineno"> 1750</span>  harness_aggregates_[execution.name].last_run = execution.completed_at;</div>
-<div class="line"><a id="l01751" name="l01751"></a><span class="lineno"> 1751</span> </div>
-<div class="line"><a id="l01752" name="l01752"></a><span class="lineno"> 1752</span>  <span class="keywordflow">if</span> (capture_failure_context) {</div>
-<div class="line"><a id="l01753" name="l01753"></a><span class="lineno"> 1753</span>    CaptureFailureContext(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
-<div class="line"><a id="l01754" name="l01754"></a><span class="lineno"> 1754</span>  }</div>
-<div class="line"><a id="l01755" name="l01755"></a><span class="lineno"> 1755</span> </div>
-<div class="line"><a id="l01756" name="l01756"></a><span class="lineno"> 1756</span>  <span class="keywordflow">if</span> (harness_listener_) {</div>
-<div class="line"><a id="l01757" name="l01757"></a><span class="lineno"> 1757</span>    harness_listener_-&gt;OnHarnessTestUpdated(execution);</div>
-<div class="line"><a id="l01758" name="l01758"></a><span class="lineno"> 1758</span>  }</div>
-<div class="line"><a id="l01759" name="l01759"></a><span class="lineno"> 1759</span>}</div>
-<div class="line"><a id="l01760" name="l01760"></a><span class="lineno"> 1760</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l01761" name="l01761"></a><span class="lineno"> 1761</span> </div>
-<div class="line"><a id="l01762" name="l01762"></a><span class="lineno"> 1762</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
-<div class="line"><a id="l01763" name="l01763"></a><span class="lineno"> 1763</span><span class="keywordtype">void</span> TestManager::AppendHarnessTestLog(<span class="keyword">const</span> std::string&amp; <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>,</div>
-<div class="line"><a id="l01764" name="l01764"></a><span class="lineno"> 1764</span>                                       <span class="keyword">const</span> std::string&amp; log_entry) {</div>
-<div class="line"><a id="l01765" name="l01765"></a><span class="lineno"> 1765</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
-<div class="line"><a id="l01766" name="l01766"></a><span class="lineno"> 1766</span>  <span class="keyword">auto</span> it = harness_history_.find(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
-<div class="line"><a id="l01767" name="l01767"></a><span class="lineno"> 1767</span>  <span class="keywordflow">if</span> (it == harness_history_.end()) {</div>
-<div class="line"><a id="l01768" name="l01768"></a><span class="lineno"> 1768</span>    <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l01769" name="l01769"></a><span class="lineno"> 1769</span>  }</div>
-<div class="line"><a id="l01770" name="l01770"></a><span class="lineno"> 1770</span>  HarnessTestExecution&amp; execution = it-&gt;second;</div>
-<div class="line"><a id="l01771" name="l01771"></a><span class="lineno"> 1771</span>  execution.logs.push_back(log_entry);</div>
-<div class="line"><a id="l01772" name="l01772"></a><span class="lineno"> 1772</span>  harness_aggregates_[execution.name].latest_execution.logs = execution.logs;</div>
-<div class="line"><a id="l01773" name="l01773"></a><span class="lineno"> 1773</span>}</div>
-<div class="line"><a id="l01774" name="l01774"></a><span class="lineno"> 1774</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l01775" name="l01775"></a><span class="lineno"> 1775</span> </div>
-<div class="line"><a id="l01776" name="l01776"></a><span class="lineno"> 1776</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
-<div class="line"><a id="l01777" name="l01777"></a><span class="lineno"> 1777</span>absl::StatusOr&lt;HarnessTestExecution&gt; TestManager::GetHarnessTestExecution(</div>
-<div class="line"><a id="l01778" name="l01778"></a><span class="lineno"> 1778</span>    <span class="keyword">const</span> std::string&amp; <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l01779" name="l01779"></a><span class="lineno"> 1779</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
-<div class="line"><a id="l01780" name="l01780"></a><span class="lineno"> 1780</span>  <span class="keyword">auto</span> it = harness_history_.find(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
-<div class="line"><a id="l01781" name="l01781"></a><span class="lineno"> 1781</span>  <span class="keywordflow">if</span> (it == harness_history_.end()) {</div>
-<div class="line"><a id="l01782" name="l01782"></a><span class="lineno"> 1782</span>    <span class="keywordflow">return</span> absl::NotFoundError(</div>
-<div class="line"><a id="l01783" name="l01783"></a><span class="lineno"> 1783</span>        absl::StrFormat(<span class="stringliteral">&quot;Test ID &#39;%s&#39; not found&quot;</span>, <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>));</div>
-<div class="line"><a id="l01784" name="l01784"></a><span class="lineno"> 1784</span>  }</div>
-<div class="line"><a id="l01785" name="l01785"></a><span class="lineno"> 1785</span>  <span class="keywordflow">return</span> it-&gt;second;</div>
-<div class="line"><a id="l01786" name="l01786"></a><span class="lineno"> 1786</span>}</div>
-<div class="line"><a id="l01787" name="l01787"></a><span class="lineno"> 1787</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l01788" name="l01788"></a><span class="lineno"> 1788</span> </div>
-<div class="line"><a id="l01789" name="l01789"></a><span class="lineno"> 1789</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
-<div class="line"><a id="l01790" name="l01790"></a><span class="lineno"> 1790</span>std::vector&lt;HarnessTestSummary&gt; TestManager::ListHarnessTestSummaries(</div>
-<div class="line"><a id="l01791" name="l01791"></a><span class="lineno"> 1791</span>    <span class="keyword">const</span> std::string&amp; category_filter)<span class="keyword"> const </span>{</div>
-<div class="line"><a id="l01792" name="l01792"></a><span class="lineno"> 1792</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
-<div class="line"><a id="l01793" name="l01793"></a><span class="lineno"> 1793</span>  std::vector&lt;HarnessTestSummary&gt; summaries;</div>
-<div class="line"><a id="l01794" name="l01794"></a><span class="lineno"> 1794</span>  summaries.reserve(harness_aggregates_.size());</div>
-<div class="line"><a id="l01795" name="l01795"></a><span class="lineno"> 1795</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [name, aggregate] : harness_aggregates_) {</div>
-<div class="line"><a id="l01796" name="l01796"></a><span class="lineno"> 1796</span>    <span class="keywordflow">if</span> (!category_filter.empty() &amp;&amp; aggregate.category != category_filter) {</div>
-<div class="line"><a id="l01797" name="l01797"></a><span class="lineno"> 1797</span>      <span class="keywordflow">continue</span>;</div>
-<div class="line"><a id="l01798" name="l01798"></a><span class="lineno"> 1798</span>    }</div>
-<div class="line"><a id="l01799" name="l01799"></a><span class="lineno"> 1799</span>    HarnessTestSummary summary;</div>
-<div class="line"><a id="l01800" name="l01800"></a><span class="lineno"> 1800</span>    summary.latest_execution = aggregate.latest_execution;</div>
-<div class="line"><a id="l01801" name="l01801"></a><span class="lineno"> 1801</span>    summary.total_runs = aggregate.total_runs;</div>
-<div class="line"><a id="l01802" name="l01802"></a><span class="lineno"> 1802</span>    summary.pass_count = aggregate.pass_count;</div>
-<div class="line"><a id="l01803" name="l01803"></a><span class="lineno"> 1803</span>    summary.fail_count = aggregate.fail_count;</div>
-<div class="line"><a id="l01804" name="l01804"></a><span class="lineno"> 1804</span>    summary.total_duration = aggregate.total_duration;</div>
-<div class="line"><a id="l01805" name="l01805"></a><span class="lineno"> 1805</span>    summaries.push_back(summary);</div>
-<div class="line"><a id="l01806" name="l01806"></a><span class="lineno"> 1806</span>  }</div>
-<div class="line"><a id="l01807" name="l01807"></a><span class="lineno"> 1807</span>  std::sort(summaries.begin(), summaries.end(),</div>
-<div class="line"><a id="l01808" name="l01808"></a><span class="lineno"> 1808</span>            [](<span class="keyword">const</span> HarnessTestSummary&amp; a, <span class="keyword">const</span> HarnessTestSummary&amp; b) {</div>
-<div class="line"><a id="l01809" name="l01809"></a><span class="lineno"> 1809</span>              absl::Time time_a = a.latest_execution.completed_at;</div>
-<div class="line"><a id="l01810" name="l01810"></a><span class="lineno"> 1810</span>              if (time_a == absl::InfinitePast()) {</div>
-<div class="line"><a id="l01811" name="l01811"></a><span class="lineno"> 1811</span>                time_a = a.latest_execution.queued_at;</div>
-<div class="line"><a id="l01812" name="l01812"></a><span class="lineno"> 1812</span>              }</div>
-<div class="line"><a id="l01813" name="l01813"></a><span class="lineno"> 1813</span>              absl::Time time_b = b.latest_execution.completed_at;</div>
-<div class="line"><a id="l01814" name="l01814"></a><span class="lineno"> 1814</span>              <span class="keywordflow">if</span> (time_b == absl::InfinitePast()) {</div>
-<div class="line"><a id="l01815" name="l01815"></a><span class="lineno"> 1815</span>                time_b = b.latest_execution.queued_at;</div>
-<div class="line"><a id="l01816" name="l01816"></a><span class="lineno"> 1816</span>              }</div>
-<div class="line"><a id="l01817" name="l01817"></a><span class="lineno"> 1817</span>              <span class="keywordflow">return</span> time_a &gt; time_b;</div>
-<div class="line"><a id="l01818" name="l01818"></a><span class="lineno"> 1818</span>            });</div>
-<div class="line"><a id="l01819" name="l01819"></a><span class="lineno"> 1819</span>  <span class="keywordflow">return</span> summaries;</div>
-<div class="line"><a id="l01820" name="l01820"></a><span class="lineno"> 1820</span>}</div>
-<div class="line"><a id="l01821" name="l01821"></a><span class="lineno"> 1821</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l01822" name="l01822"></a><span class="lineno"> 1822</span> </div>
-<div class="line"><a id="l01823" name="l01823"></a><span class="lineno"> 1823</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
-<div class="line"><a id="l01824" name="l01824"></a><span class="lineno"> 1824</span><span class="keywordtype">void</span> TestManager::CaptureFailureContext(<span class="keyword">const</span> std::string&amp; test_id) {</div>
-<div class="line"><a id="l01825" name="l01825"></a><span class="lineno"> 1825</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
-<div class="line"><a id="l01826" name="l01826"></a><span class="lineno"> 1826</span>  <span class="keyword">auto</span> it = harness_history_.find(test_id);</div>
-<div class="line"><a id="l01827" name="l01827"></a><span class="lineno"> 1827</span>  <span class="keywordflow">if</span> (it == harness_history_.end()) {</div>
-<div class="line"><a id="l01828" name="l01828"></a><span class="lineno"> 1828</span>    <span class="keywordflow">return</span>;</div>
-<div class="line"><a id="l01829" name="l01829"></a><span class="lineno"> 1829</span>  }</div>
-<div class="line"><a id="l01830" name="l01830"></a><span class="lineno"> 1830</span>  HarnessTestExecution&amp; execution = it-&gt;second;</div>
-<div class="line"><a id="l01831" name="l01831"></a><span class="lineno"> 1831</span>  <span class="comment">// absl::MutexLock does not support Unlock/Lock; scope the lock instead</span></div>
-<div class="line"><a id="l01832" name="l01832"></a><span class="lineno"> 1832</span>  {</div>
-<div class="line"><a id="l01833" name="l01833"></a><span class="lineno"> 1833</span>    absl::MutexLock unlock_guard(&amp;harness_history_mutex_);</div>
-<div class="line"><a id="l01834" name="l01834"></a><span class="lineno"> 1834</span>    <span class="comment">// This block is just to clarify lock scope, but the lock is already held</span></div>
-<div class="line"><a id="l01835" name="l01835"></a><span class="lineno"> 1835</span>    <span class="comment">// so we do nothing here.</span></div>
-<div class="line"><a id="l01836" name="l01836"></a><span class="lineno"> 1836</span>  }</div>
-<div class="line"><a id="l01837" name="l01837"></a><span class="lineno"> 1837</span> </div>
-<div class="line"><a id="l01838" name="l01838"></a><span class="lineno"> 1838</span>  <span class="keyword">auto</span> screenshot_artifact = test::CaptureHarnessScreenshot(<span class="stringliteral">&quot;harness_failures&quot;</span>);</div>
-<div class="line"><a id="l01839" name="l01839"></a><span class="lineno"> 1839</span>  std::string failure_context;</div>
-<div class="line"><a id="l01840" name="l01840"></a><span class="lineno"> 1840</span>  <span class="keywordflow">if</span> (screenshot_artifact.ok()) {</div>
-<div class="line"><a id="l01841" name="l01841"></a><span class="lineno"> 1841</span>    failure_context = <span class="stringliteral">&quot;Harness failure context captured successfully&quot;</span>;</div>
-<div class="line"><a id="l01842" name="l01842"></a><span class="lineno"> 1842</span>  } <span class="keywordflow">else</span> {</div>
-<div class="line"><a id="l01843" name="l01843"></a><span class="lineno"> 1843</span>    failure_context = <span class="stringliteral">&quot;Harness failure context capture unavailable&quot;</span>;</div>
-<div class="line"><a id="l01844" name="l01844"></a><span class="lineno"> 1844</span>  }</div>
-<div class="line"><a id="l01845" name="l01845"></a><span class="lineno"> 1845</span> </div>
-<div class="line"><a id="l01846" name="l01846"></a><span class="lineno"> 1846</span>  execution.failure_context = failure_context;</div>
-<div class="line"><a id="l01847" name="l01847"></a><span class="lineno"> 1847</span>  <span class="keywordflow">if</span> (screenshot_artifact.ok()) {</div>
-<div class="line"><a id="l01848" name="l01848"></a><span class="lineno"> 1848</span>    execution.screenshot_path = screenshot_artifact-&gt;file_path;</div>
-<div class="line"><a id="l01849" name="l01849"></a><span class="lineno"> 1849</span>    execution.screenshot_size_bytes = screenshot_artifact-&gt;file_size_bytes;</div>
-<div class="line"><a id="l01850" name="l01850"></a><span class="lineno"> 1850</span>  }</div>
-<div class="line"><a id="l01851" name="l01851"></a><span class="lineno"> 1851</span> </div>
-<div class="line"><a id="l01852" name="l01852"></a><span class="lineno"> 1852</span>  <span class="keywordflow">if</span> (harness_listener_) {</div>
-<div class="line"><a id="l01853" name="l01853"></a><span class="lineno"> 1853</span>    harness_listener_-&gt;OnHarnessTestUpdated(execution);</div>
-<div class="line"><a id="l01854" name="l01854"></a><span class="lineno"> 1854</span>  }</div>
-<div class="line"><a id="l01855" name="l01855"></a><span class="lineno"> 1855</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l01856" name="l01856"></a><span class="lineno"><a class="line" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3"> 1856</a></span>  (void)test_id;</div>
-<div class="line"><a id="l01857" name="l01857"></a><span class="lineno"> 1857</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01694" name="l01694"></a><span class="lineno"> 1694</span>  harness_history_order_.push_back(test_id);</div>
+<div class="line"><a id="l01695" name="l01695"></a><span class="lineno"> 1695</span>  <span class="keywordflow">return</span> test_id;</div>
+<div class="line"><a id="l01696" name="l01696"></a><span class="lineno"> 1696</span>}</div>
+<div class="line"><a id="l01697" name="l01697"></a><span class="lineno"> 1697</span><span class="preprocessor">#else</span></div>
+<div class="foldopen" id="foldopen01698" data-start="{" data-end="}">
+<div class="line"><a id="l01698" name="l01698"></a><span class="lineno"><a class="line" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a73f2f93de2669db8e9c64b98ba82246c"> 1698</a></span>std::string <a class="code hl_function" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a73f2f93de2669db8e9c64b98ba82246c">TestManager::RegisterHarnessTest</a>(<span class="keyword">const</span> std::string&amp; name,</div>
+<div class="line"><a id="l01699" name="l01699"></a><span class="lineno"> 1699</span>                                             <span class="keyword">const</span> std::string&amp; category) {</div>
+<div class="line"><a id="l01700" name="l01700"></a><span class="lineno"> 1700</span>  (void)name;</div>
+<div class="line"><a id="l01701" name="l01701"></a><span class="lineno"> 1701</span>  (void)category;</div>
+<div class="line"><a id="l01702" name="l01702"></a><span class="lineno"> 1702</span>  <span class="keywordflow">return</span> {};</div>
+<div class="line"><a id="l01703" name="l01703"></a><span class="lineno"> 1703</span>}</div>
+</div>
+<div class="line"><a id="l01704" name="l01704"></a><span class="lineno"> 1704</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01705" name="l01705"></a><span class="lineno"> 1705</span> </div>
+<div class="line"><a id="l01706" name="l01706"></a><span class="lineno"> 1706</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
+<div class="line"><a id="l01707" name="l01707"></a><span class="lineno"> 1707</span><span class="keywordtype">void</span> TestManager::MarkHarnessTestRunning(<span class="keyword">const</span> std::string&amp; test_id) {</div>
+<div class="line"><a id="l01708" name="l01708"></a><span class="lineno"> 1708</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
+<div class="line"><a id="l01709" name="l01709"></a><span class="lineno"> 1709</span>  <span class="keyword">auto</span> it = harness_history_.find(test_id);</div>
+<div class="line"><a id="l01710" name="l01710"></a><span class="lineno"> 1710</span>  <span class="keywordflow">if</span> (it == harness_history_.end()) {</div>
+<div class="line"><a id="l01711" name="l01711"></a><span class="lineno"> 1711</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l01712" name="l01712"></a><span class="lineno"> 1712</span>  }</div>
+<div class="line"><a id="l01713" name="l01713"></a><span class="lineno"> 1713</span>  HarnessTestExecution&amp; execution = it-&gt;second;</div>
+<div class="line"><a id="l01714" name="l01714"></a><span class="lineno"> 1714</span>  execution.status = HarnessTestStatus::kRunning;</div>
+<div class="line"><a id="l01715" name="l01715"></a><span class="lineno"> 1715</span>  execution.started_at = absl::Now();</div>
+<div class="line"><a id="l01716" name="l01716"></a><span class="lineno"> 1716</span>}</div>
+<div class="line"><a id="l01717" name="l01717"></a><span class="lineno"> 1717</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01718" name="l01718"></a><span class="lineno"> 1718</span> </div>
+<div class="line"><a id="l01719" name="l01719"></a><span class="lineno"> 1719</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
+<div class="line"><a id="l01720" name="l01720"></a><span class="lineno"> 1720</span><span class="keywordtype">void</span> TestManager::MarkHarnessTestCompleted(</div>
+<div class="line"><a id="l01721" name="l01721"></a><span class="lineno"> 1721</span>    <span class="keyword">const</span> std::string&amp; test_id, HarnessTestStatus status,</div>
+<div class="line"><a id="l01722" name="l01722"></a><span class="lineno"> 1722</span>    <span class="keyword">const</span> std::string&amp; message,</div>
+<div class="line"><a id="l01723" name="l01723"></a><span class="lineno"> 1723</span>    <span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; assertion_failures,</div>
+<div class="line"><a id="l01724" name="l01724"></a><span class="lineno"> 1724</span>    <span class="keyword">const</span> std::vector&lt;std::string&gt;&amp; logs,</div>
+<div class="line"><a id="l01725" name="l01725"></a><span class="lineno"> 1725</span>    <span class="keyword">const</span> std::map&lt;std::string, int32_t&gt;&amp; metrics) {</div>
+<div class="line"><a id="l01726" name="l01726"></a><span class="lineno"> 1726</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
+<div class="line"><a id="l01727" name="l01727"></a><span class="lineno"> 1727</span>  <span class="keyword">auto</span> it = harness_history_.find(test_id);</div>
+<div class="line"><a id="l01728" name="l01728"></a><span class="lineno"> 1728</span>  <span class="keywordflow">if</span> (it == harness_history_.end()) {</div>
+<div class="line"><a id="l01729" name="l01729"></a><span class="lineno"> 1729</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l01730" name="l01730"></a><span class="lineno"> 1730</span>  }</div>
+<div class="line"><a id="l01731" name="l01731"></a><span class="lineno"> 1731</span>  HarnessTestExecution&amp; execution = it-&gt;second;</div>
+<div class="line"><a id="l01732" name="l01732"></a><span class="lineno"> 1732</span>  execution.status = status;</div>
+<div class="line"><a id="l01733" name="l01733"></a><span class="lineno"> 1733</span>  execution.completed_at = absl::Now();</div>
+<div class="line"><a id="l01734" name="l01734"></a><span class="lineno"> 1734</span>  execution.duration = execution.completed_at - execution.started_at;</div>
+<div class="line"><a id="l01735" name="l01735"></a><span class="lineno"> 1735</span>  execution.error_message = message;</div>
+<div class="line"><a id="l01736" name="l01736"></a><span class="lineno"> 1736</span>  execution.metrics = metrics;</div>
+<div class="line"><a id="l01737" name="l01737"></a><span class="lineno"> 1737</span>  execution.assertion_failures = assertion_failures;</div>
+<div class="line"><a id="l01738" name="l01738"></a><span class="lineno"> 1738</span>  execution.logs.insert(execution.logs.end(), logs.begin(), logs.end());</div>
+<div class="line"><a id="l01739" name="l01739"></a><span class="lineno"> 1739</span> </div>
+<div class="line"><a id="l01740" name="l01740"></a><span class="lineno"> 1740</span>  <span class="keywordtype">bool</span> capture_failure_context =</div>
+<div class="line"><a id="l01741" name="l01741"></a><span class="lineno"> 1741</span>      status == HarnessTestStatus::kFailed ||</div>
+<div class="line"><a id="l01742" name="l01742"></a><span class="lineno"> 1742</span>      status == HarnessTestStatus::kTimeout;</div>
+<div class="line"><a id="l01743" name="l01743"></a><span class="lineno"> 1743</span> </div>
+<div class="line"><a id="l01744" name="l01744"></a><span class="lineno"> 1744</span>  harness_aggregates_[execution.name].latest_execution = execution;</div>
+<div class="line"><a id="l01745" name="l01745"></a><span class="lineno"> 1745</span>  harness_aggregates_[execution.name].total_runs += 1;</div>
+<div class="line"><a id="l01746" name="l01746"></a><span class="lineno"> 1746</span>  <span class="keywordflow">if</span> (status == HarnessTestStatus::kPassed) {</div>
+<div class="line"><a id="l01747" name="l01747"></a><span class="lineno"> 1747</span>    harness_aggregates_[execution.name].pass_count += 1;</div>
+<div class="line"><a id="l01748" name="l01748"></a><span class="lineno"> 1748</span>  } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (status == HarnessTestStatus::kFailed ||</div>
+<div class="line"><a id="l01749" name="l01749"></a><span class="lineno"> 1749</span>             status == HarnessTestStatus::kTimeout) {</div>
+<div class="line"><a id="l01750" name="l01750"></a><span class="lineno"> 1750</span>    harness_aggregates_[execution.name].fail_count += 1;</div>
+<div class="line"><a id="l01751" name="l01751"></a><span class="lineno"> 1751</span>  }</div>
+<div class="line"><a id="l01752" name="l01752"></a><span class="lineno"> 1752</span>  harness_aggregates_[execution.name].total_duration += execution.duration;</div>
+<div class="line"><a id="l01753" name="l01753"></a><span class="lineno"> 1753</span>  harness_aggregates_[execution.name].last_run = execution.completed_at;</div>
+<div class="line"><a id="l01754" name="l01754"></a><span class="lineno"> 1754</span> </div>
+<div class="line"><a id="l01755" name="l01755"></a><span class="lineno"> 1755</span>  <span class="keywordflow">if</span> (capture_failure_context) {</div>
+<div class="line"><a id="l01756" name="l01756"></a><span class="lineno"> 1756</span>    <a class="code hl_function" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a13e4658cc8fb802bcbf400211861536c">CaptureFailureContext</a>(test_id);</div>
+<div class="line"><a id="l01757" name="l01757"></a><span class="lineno"> 1757</span>  }</div>
+<div class="line"><a id="l01758" name="l01758"></a><span class="lineno"> 1758</span> </div>
+<div class="line"><a id="l01759" name="l01759"></a><span class="lineno"> 1759</span>  <span class="keywordflow">if</span> (harness_listener_) {</div>
+<div class="line"><a id="l01760" name="l01760"></a><span class="lineno"> 1760</span>    harness_listener_-&gt;OnHarnessTestUpdated(execution);</div>
+<div class="line"><a id="l01761" name="l01761"></a><span class="lineno"> 1761</span>  }</div>
+<div class="line"><a id="l01762" name="l01762"></a><span class="lineno"> 1762</span>}</div>
+<div class="line"><a id="l01763" name="l01763"></a><span class="lineno"> 1763</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01764" name="l01764"></a><span class="lineno"> 1764</span> </div>
+<div class="line"><a id="l01765" name="l01765"></a><span class="lineno"> 1765</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
+<div class="line"><a id="l01766" name="l01766"></a><span class="lineno"> 1766</span><span class="keywordtype">void</span> TestManager::AppendHarnessTestLog(<span class="keyword">const</span> std::string&amp; test_id,</div>
+<div class="line"><a id="l01767" name="l01767"></a><span class="lineno"> 1767</span>                                       <span class="keyword">const</span> std::string&amp; log_entry) {</div>
+<div class="line"><a id="l01768" name="l01768"></a><span class="lineno"> 1768</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
+<div class="line"><a id="l01769" name="l01769"></a><span class="lineno"> 1769</span>  <span class="keyword">auto</span> it = harness_history_.find(test_id);</div>
+<div class="line"><a id="l01770" name="l01770"></a><span class="lineno"> 1770</span>  <span class="keywordflow">if</span> (it == harness_history_.end()) {</div>
+<div class="line"><a id="l01771" name="l01771"></a><span class="lineno"> 1771</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l01772" name="l01772"></a><span class="lineno"> 1772</span>  }</div>
+<div class="line"><a id="l01773" name="l01773"></a><span class="lineno"> 1773</span>  HarnessTestExecution&amp; execution = it-&gt;second;</div>
+<div class="line"><a id="l01774" name="l01774"></a><span class="lineno"> 1774</span>  execution.logs.push_back(log_entry);</div>
+<div class="line"><a id="l01775" name="l01775"></a><span class="lineno"> 1775</span>  harness_aggregates_[execution.name].latest_execution.logs = execution.logs;</div>
+<div class="line"><a id="l01776" name="l01776"></a><span class="lineno"> 1776</span>}</div>
+<div class="line"><a id="l01777" name="l01777"></a><span class="lineno"> 1777</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01778" name="l01778"></a><span class="lineno"> 1778</span> </div>
+<div class="line"><a id="l01779" name="l01779"></a><span class="lineno"> 1779</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
+<div class="line"><a id="l01780" name="l01780"></a><span class="lineno"> 1780</span>absl::StatusOr&lt;HarnessTestExecution&gt; TestManager::GetHarnessTestExecution(</div>
+<div class="line"><a id="l01781" name="l01781"></a><span class="lineno"> 1781</span>    <span class="keyword">const</span> std::string&amp; test_id)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l01782" name="l01782"></a><span class="lineno"> 1782</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
+<div class="line"><a id="l01783" name="l01783"></a><span class="lineno"> 1783</span>  <span class="keyword">auto</span> it = harness_history_.find(test_id);</div>
+<div class="line"><a id="l01784" name="l01784"></a><span class="lineno"> 1784</span>  <span class="keywordflow">if</span> (it == harness_history_.end()) {</div>
+<div class="line"><a id="l01785" name="l01785"></a><span class="lineno"> 1785</span>    <span class="keywordflow">return</span> absl::NotFoundError(</div>
+<div class="line"><a id="l01786" name="l01786"></a><span class="lineno"> 1786</span>        absl::StrFormat(<span class="stringliteral">&quot;Test ID &#39;%s&#39; not found&quot;</span>, test_id));</div>
+<div class="line"><a id="l01787" name="l01787"></a><span class="lineno"> 1787</span>  }</div>
+<div class="line"><a id="l01788" name="l01788"></a><span class="lineno"> 1788</span>  <span class="keywordflow">return</span> it-&gt;second;</div>
+<div class="line"><a id="l01789" name="l01789"></a><span class="lineno"> 1789</span>}</div>
+<div class="line"><a id="l01790" name="l01790"></a><span class="lineno"> 1790</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01791" name="l01791"></a><span class="lineno"> 1791</span> </div>
+<div class="line"><a id="l01792" name="l01792"></a><span class="lineno"> 1792</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
+<div class="line"><a id="l01793" name="l01793"></a><span class="lineno"> 1793</span>std::vector&lt;HarnessTestSummary&gt; TestManager::ListHarnessTestSummaries(</div>
+<div class="line"><a id="l01794" name="l01794"></a><span class="lineno"> 1794</span>    <span class="keyword">const</span> std::string&amp; category_filter)<span class="keyword"> const </span>{</div>
+<div class="line"><a id="l01795" name="l01795"></a><span class="lineno"> 1795</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
+<div class="line"><a id="l01796" name="l01796"></a><span class="lineno"> 1796</span>  std::vector&lt;HarnessTestSummary&gt; summaries;</div>
+<div class="line"><a id="l01797" name="l01797"></a><span class="lineno"> 1797</span>  summaries.reserve(harness_aggregates_.size());</div>
+<div class="line"><a id="l01798" name="l01798"></a><span class="lineno"> 1798</span>  <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span>&amp; [name, aggregate] : harness_aggregates_) {</div>
+<div class="line"><a id="l01799" name="l01799"></a><span class="lineno"> 1799</span>    <span class="keywordflow">if</span> (!category_filter.empty() &amp;&amp; aggregate.category != category_filter) {</div>
+<div class="line"><a id="l01800" name="l01800"></a><span class="lineno"> 1800</span>      <span class="keywordflow">continue</span>;</div>
+<div class="line"><a id="l01801" name="l01801"></a><span class="lineno"> 1801</span>    }</div>
+<div class="line"><a id="l01802" name="l01802"></a><span class="lineno"> 1802</span>    HarnessTestSummary summary;</div>
+<div class="line"><a id="l01803" name="l01803"></a><span class="lineno"> 1803</span>    summary.latest_execution = aggregate.latest_execution;</div>
+<div class="line"><a id="l01804" name="l01804"></a><span class="lineno"> 1804</span>    summary.total_runs = aggregate.total_runs;</div>
+<div class="line"><a id="l01805" name="l01805"></a><span class="lineno"> 1805</span>    summary.pass_count = aggregate.pass_count;</div>
+<div class="line"><a id="l01806" name="l01806"></a><span class="lineno"> 1806</span>    summary.fail_count = aggregate.fail_count;</div>
+<div class="line"><a id="l01807" name="l01807"></a><span class="lineno"> 1807</span>    summary.total_duration = aggregate.total_duration;</div>
+<div class="line"><a id="l01808" name="l01808"></a><span class="lineno"> 1808</span>    summaries.push_back(summary);</div>
+<div class="line"><a id="l01809" name="l01809"></a><span class="lineno"> 1809</span>  }</div>
+<div class="line"><a id="l01810" name="l01810"></a><span class="lineno"> 1810</span>  std::sort(summaries.begin(), summaries.end(),</div>
+<div class="line"><a id="l01811" name="l01811"></a><span class="lineno"> 1811</span>            [](<span class="keyword">const</span> HarnessTestSummary&amp; a, <span class="keyword">const</span> HarnessTestSummary&amp; b) {</div>
+<div class="line"><a id="l01812" name="l01812"></a><span class="lineno"> 1812</span>              absl::Time time_a = a.latest_execution.completed_at;</div>
+<div class="line"><a id="l01813" name="l01813"></a><span class="lineno"> 1813</span>              if (time_a == absl::InfinitePast()) {</div>
+<div class="line"><a id="l01814" name="l01814"></a><span class="lineno"> 1814</span>                time_a = a.latest_execution.queued_at;</div>
+<div class="line"><a id="l01815" name="l01815"></a><span class="lineno"> 1815</span>              }</div>
+<div class="line"><a id="l01816" name="l01816"></a><span class="lineno"> 1816</span>              absl::Time time_b = b.latest_execution.completed_at;</div>
+<div class="line"><a id="l01817" name="l01817"></a><span class="lineno"> 1817</span>              <span class="keywordflow">if</span> (time_b == absl::InfinitePast()) {</div>
+<div class="line"><a id="l01818" name="l01818"></a><span class="lineno"> 1818</span>                time_b = b.latest_execution.queued_at;</div>
+<div class="line"><a id="l01819" name="l01819"></a><span class="lineno"> 1819</span>              }</div>
+<div class="line"><a id="l01820" name="l01820"></a><span class="lineno"> 1820</span>              <span class="keywordflow">return</span> time_a &gt; time_b;</div>
+<div class="line"><a id="l01821" name="l01821"></a><span class="lineno"> 1821</span>            });</div>
+<div class="line"><a id="l01822" name="l01822"></a><span class="lineno"> 1822</span>  <span class="keywordflow">return</span> summaries;</div>
+<div class="line"><a id="l01823" name="l01823"></a><span class="lineno"> 1823</span>}</div>
+<div class="line"><a id="l01824" name="l01824"></a><span class="lineno"> 1824</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01825" name="l01825"></a><span class="lineno"> 1825</span> </div>
+<div class="line"><a id="l01826" name="l01826"></a><span class="lineno"> 1826</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
+<div class="line"><a id="l01827" name="l01827"></a><span class="lineno"> 1827</span><span class="keywordtype">void</span> TestManager::CaptureFailureContext(<span class="keyword">const</span> std::string&amp; test_id) {</div>
+<div class="line"><a id="l01828" name="l01828"></a><span class="lineno"> 1828</span>  absl::MutexLock lock(&amp;harness_history_mutex_);</div>
+<div class="line"><a id="l01829" name="l01829"></a><span class="lineno"> 1829</span>  <span class="keyword">auto</span> it = harness_history_.find(test_id);</div>
+<div class="line"><a id="l01830" name="l01830"></a><span class="lineno"> 1830</span>  <span class="keywordflow">if</span> (it == harness_history_.end()) {</div>
+<div class="line"><a id="l01831" name="l01831"></a><span class="lineno"> 1831</span>    <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l01832" name="l01832"></a><span class="lineno"> 1832</span>  }</div>
+<div class="line"><a id="l01833" name="l01833"></a><span class="lineno"> 1833</span>  HarnessTestExecution&amp; execution = it-&gt;second;</div>
+<div class="line"><a id="l01834" name="l01834"></a><span class="lineno"> 1834</span>  <span class="comment">// absl::MutexLock does not support Unlock/Lock; scope the lock instead</span></div>
+<div class="line"><a id="l01835" name="l01835"></a><span class="lineno"> 1835</span>  {</div>
+<div class="line"><a id="l01836" name="l01836"></a><span class="lineno"> 1836</span>    absl::MutexLock unlock_guard(&amp;harness_history_mutex_);</div>
+<div class="line"><a id="l01837" name="l01837"></a><span class="lineno"> 1837</span>    <span class="comment">// This block is just to clarify lock scope, but the lock is already held</span></div>
+<div class="line"><a id="l01838" name="l01838"></a><span class="lineno"> 1838</span>    <span class="comment">// so we do nothing here.</span></div>
+<div class="line"><a id="l01839" name="l01839"></a><span class="lineno"> 1839</span>  }</div>
+<div class="line"><a id="l01840" name="l01840"></a><span class="lineno"> 1840</span> </div>
+<div class="line"><a id="l01841" name="l01841"></a><span class="lineno"> 1841</span>  <span class="keyword">auto</span> screenshot_artifact = test::CaptureHarnessScreenshot(<span class="stringliteral">&quot;harness_failures&quot;</span>);</div>
+<div class="line"><a id="l01842" name="l01842"></a><span class="lineno"> 1842</span>  std::string failure_context;</div>
+<div class="line"><a id="l01843" name="l01843"></a><span class="lineno"> 1843</span>  <span class="keywordflow">if</span> (screenshot_artifact.ok()) {</div>
+<div class="line"><a id="l01844" name="l01844"></a><span class="lineno"> 1844</span>    failure_context = <span class="stringliteral">&quot;Harness failure context captured successfully&quot;</span>;</div>
+<div class="line"><a id="l01845" name="l01845"></a><span class="lineno"> 1845</span>  } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l01846" name="l01846"></a><span class="lineno"> 1846</span>    failure_context = <span class="stringliteral">&quot;Harness failure context capture unavailable&quot;</span>;</div>
+<div class="line"><a id="l01847" name="l01847"></a><span class="lineno"> 1847</span>  }</div>
+<div class="line"><a id="l01848" name="l01848"></a><span class="lineno"> 1848</span> </div>
+<div class="line"><a id="l01849" name="l01849"></a><span class="lineno"> 1849</span>  execution.failure_context = failure_context;</div>
+<div class="line"><a id="l01850" name="l01850"></a><span class="lineno"> 1850</span>  <span class="keywordflow">if</span> (screenshot_artifact.ok()) {</div>
+<div class="line"><a id="l01851" name="l01851"></a><span class="lineno"> 1851</span>    execution.screenshot_path = screenshot_artifact-&gt;file_path;</div>
+<div class="line"><a id="l01852" name="l01852"></a><span class="lineno"> 1852</span>    execution.screenshot_size_bytes = screenshot_artifact-&gt;file_size_bytes;</div>
+<div class="line"><a id="l01853" name="l01853"></a><span class="lineno"> 1853</span>  }</div>
+<div class="line"><a id="l01854" name="l01854"></a><span class="lineno"> 1854</span> </div>
+<div class="line"><a id="l01855" name="l01855"></a><span class="lineno"> 1855</span>  <span class="keywordflow">if</span> (harness_listener_) {</div>
+<div class="line"><a id="l01856" name="l01856"></a><span class="lineno"> 1856</span>    harness_listener_-&gt;OnHarnessTestUpdated(execution);</div>
+<div class="line"><a id="l01857" name="l01857"></a><span class="lineno"> 1857</span>  }</div>
 <div class="line"><a id="l01858" name="l01858"></a><span class="lineno"> 1858</span>}</div>
-<div class="line"><a id="l01859" name="l01859"></a><span class="lineno"> 1859</span> </div>
-<div class="line"><a id="l01860" name="l01860"></a><span class="lineno"> 1860</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
-<div class="line"><a id="l01861" name="l01861"></a><span class="lineno"> 1861</span><span class="keywordtype">void</span> TestManager::TrimHarnessHistoryLocked() {</div>
-<div class="line"><a id="l01862" name="l01862"></a><span class="lineno"> 1862</span>  <span class="keywordflow">while</span> (harness_history_order_.size() &gt; harness_history_limit_) {</div>
-<div class="line"><a id="l01863" name="l01863"></a><span class="lineno"> 1863</span>    <span class="keyword">const</span> std::string&amp; oldest_test = harness_history_order_.front();</div>
-<div class="line"><a id="l01864" name="l01864"></a><span class="lineno"> 1864</span>    harness_history_order_.pop_front();</div>
-<div class="line"><a id="l01865" name="l01865"></a><span class="lineno"> 1865</span>    harness_history_.erase(oldest_test);</div>
-<div class="line"><a id="l01866" name="l01866"></a><span class="lineno"> 1866</span>  }</div>
-<div class="line"><a id="l01867" name="l01867"></a><span class="lineno"> 1867</span>}</div>
-<div class="line"><a id="l01868" name="l01868"></a><span class="lineno"> 1868</span> </div>
-<div class="line"><a id="l01869" name="l01869"></a><span class="lineno"> 1869</span>absl::Status TestManager::ReplayLastPlan() {</div>
-<div class="line"><a id="l01870" name="l01870"></a><span class="lineno"> 1870</span>  <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Harness plan replay not available&quot;</span>);</div>
-<div class="line"><a id="l01871" name="l01871"></a><span class="lineno"> 1871</span>}</div>
-<div class="line"><a id="l01872" name="l01872"></a><span class="lineno"> 1872</span> </div>
-<div class="line"><a id="l01873" name="l01873"></a><span class="lineno"> 1873</span>absl::Status TestManager::ShowHarnessDashboard() {</div>
-<div class="line"><a id="l01874" name="l01874"></a><span class="lineno"> 1874</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l01875" name="l01875"></a><span class="lineno"> 1875</span>}</div>
-<div class="line"><a id="l01876" name="l01876"></a><span class="lineno"> 1876</span> </div>
-<div class="line"><a id="l01877" name="l01877"></a><span class="lineno"> 1877</span>absl::Status TestManager::ShowHarnessActiveTests() {</div>
-<div class="line"><a id="l01878" name="l01878"></a><span class="lineno"> 1878</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
-<div class="line"><a id="l01879" name="l01879"></a><span class="lineno"> 1879</span>}</div>
-<div class="line"><a id="l01880" name="l01880"></a><span class="lineno"> 1880</span> </div>
-<div class="line"><a id="l01881" name="l01881"></a><span class="lineno"> 1881</span><span class="keywordtype">void</span> TestManager::SetHarnessListener(HarnessListener* listener) {</div>
-<div class="line"><a id="l01882" name="l01882"></a><span class="lineno"> 1882</span>  absl::MutexLock lock(&amp;mutex_);</div>
-<div class="line"><a id="l01883" name="l01883"></a><span class="lineno"> 1883</span>  harness_listener_ = listener;</div>
-<div class="line"><a id="l01884" name="l01884"></a><span class="lineno"> 1884</span>}</div>
-<div class="line"><a id="l01885" name="l01885"></a><span class="lineno"> 1885</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l01886" name="l01886"></a><span class="lineno"> 1886</span>absl::Status TestManager::ReplayLastPlan() {</div>
-<div class="line"><a id="l01887" name="l01887"></a><span class="lineno"> 1887</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;Harness features require YAZE_WITH_GRPC&quot;</span>);</div>
-<div class="line"><a id="l01888" name="l01888"></a><span class="lineno"> 1888</span>}</div>
-<div class="line"><a id="l01889" name="l01889"></a><span class="lineno"> 1889</span> </div>
-<div class="foldopen" id="foldopen01890" data-start="{" data-end="}">
-<div class="line"><a id="l01890" name="l01890"></a><span class="lineno"><a class="line" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#af07e68505f68df9800543d3226cf4f98"> 1890</a></span>absl::Status TestManager::ShowHarnessDashboard() {</div>
-<div class="line"><a id="l01891" name="l01891"></a><span class="lineno"> 1891</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;Harness features require YAZE_WITH_GRPC&quot;</span>);</div>
-<div class="line"><a id="l01892" name="l01892"></a><span class="lineno"> 1892</span>}</div>
+<div class="line"><a id="l01859" name="l01859"></a><span class="lineno"> 1859</span><span class="preprocessor">#else</span></div>
+<div class="foldopen" id="foldopen01860" data-start="{" data-end="}">
+<div class="line"><a id="l01860" name="l01860"></a><span class="lineno"><a class="line" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a13e4658cc8fb802bcbf400211861536c"> 1860</a></span><span class="keywordtype">void</span> TestManager::CaptureFailureContext(<span class="keyword">const</span> std::string&amp; test_id) {</div>
+<div class="line"><a id="l01861" name="l01861"></a><span class="lineno"> 1861</span>  (void)test_id;</div>
+<div class="line"><a id="l01862" name="l01862"></a><span class="lineno"> 1862</span>}</div>
 </div>
-<div class="line"><a id="l01893" name="l01893"></a><span class="lineno"> 1893</span> </div>
-<div class="foldopen" id="foldopen01894" data-start="{" data-end="}">
-<div class="line"><a id="l01894" name="l01894"></a><span class="lineno"><a class="line" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a0a30623c25ad3e670f77be0cde5b99e2"> 1894</a></span>absl::Status TestManager::ShowHarnessActiveTests() {</div>
-<div class="line"><a id="l01895" name="l01895"></a><span class="lineno"> 1895</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;Harness features require YAZE_WITH_GRPC&quot;</span>);</div>
-<div class="line"><a id="l01896" name="l01896"></a><span class="lineno"> 1896</span>}</div>
+<div class="line"><a id="l01863" name="l01863"></a><span class="lineno"> 1863</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01864" name="l01864"></a><span class="lineno"> 1864</span> </div>
+<div class="line"><a id="l01865" name="l01865"></a><span class="lineno"> 1865</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
+<div class="line"><a id="l01866" name="l01866"></a><span class="lineno"> 1866</span><span class="keywordtype">void</span> TestManager::TrimHarnessHistoryLocked() {</div>
+<div class="line"><a id="l01867" name="l01867"></a><span class="lineno"> 1867</span>  <span class="keywordflow">while</span> (harness_history_order_.size() &gt; harness_history_limit_) {</div>
+<div class="line"><a id="l01868" name="l01868"></a><span class="lineno"> 1868</span>    <span class="keyword">const</span> std::string&amp; oldest_test = harness_history_order_.front();</div>
+<div class="line"><a id="l01869" name="l01869"></a><span class="lineno"> 1869</span>    harness_history_order_.pop_front();</div>
+<div class="line"><a id="l01870" name="l01870"></a><span class="lineno"> 1870</span>    harness_history_.erase(oldest_test);</div>
+<div class="line"><a id="l01871" name="l01871"></a><span class="lineno"> 1871</span>  }</div>
+<div class="line"><a id="l01872" name="l01872"></a><span class="lineno"> 1872</span>}</div>
+<div class="line"><a id="l01873" name="l01873"></a><span class="lineno"> 1873</span> </div>
+<div class="line"><a id="l01874" name="l01874"></a><span class="lineno"> 1874</span>absl::Status TestManager::ReplayLastPlan() {</div>
+<div class="line"><a id="l01875" name="l01875"></a><span class="lineno"> 1875</span>  <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;Harness plan replay not available&quot;</span>);</div>
+<div class="line"><a id="l01876" name="l01876"></a><span class="lineno"> 1876</span>}</div>
+<div class="line"><a id="l01877" name="l01877"></a><span class="lineno"> 1877</span> </div>
+<div class="line"><a id="l01878" name="l01878"></a><span class="lineno"> 1878</span><span class="keywordtype">void</span> TestManager::SetHarnessListener(HarnessListener* listener) {</div>
+<div class="line"><a id="l01879" name="l01879"></a><span class="lineno"> 1879</span>  absl::MutexLock lock(&amp;mutex_);</div>
+<div class="line"><a id="l01880" name="l01880"></a><span class="lineno"> 1880</span>  harness_listener_ = listener;</div>
+<div class="line"><a id="l01881" name="l01881"></a><span class="lineno"> 1881</span>}</div>
+<div class="line"><a id="l01882" name="l01882"></a><span class="lineno"> 1882</span><span class="preprocessor">#else</span></div>
+<div class="foldopen" id="foldopen01883" data-start="{" data-end="}">
+<div class="line"><a id="l01883" name="l01883"></a><span class="lineno"><a class="line" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#af46fbb2bc39147a976f1d924c1f2eabc"> 1883</a></span>absl::Status TestManager::ReplayLastPlan() {</div>
+<div class="line"><a id="l01884" name="l01884"></a><span class="lineno"> 1884</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;Harness features require YAZE_WITH_GRPC&quot;</span>);</div>
+<div class="line"><a id="l01885" name="l01885"></a><span class="lineno"> 1885</span>}</div>
 </div>
-<div class="line"><a id="l01897" name="l01897"></a><span class="lineno"> 1897</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l01898" name="l01898"></a><span class="lineno"> 1898</span> </div>
-<div class="foldopen" id="foldopen01899" data-start="{" data-end="}">
-<div class="line"><a id="l01899" name="l01899"></a><span class="lineno"><a class="line" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a30446565f6398b79d5194531e25546c2"> 1899</a></span><span class="keywordtype">void</span> TestManager::RecordPlanSummary(<span class="keyword">const</span> std::string&amp; summary) {</div>
-<div class="line"><a id="l01900" name="l01900"></a><span class="lineno"> 1900</span>  (void)summary;</div>
-<div class="line"><a id="l01901" name="l01901"></a><span class="lineno"> 1901</span>}</div>
+<div class="line"><a id="l01886" name="l01886"></a><span class="lineno"> 1886</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01887" name="l01887"></a><span class="lineno"> 1887</span> </div>
+<div class="foldopen" id="foldopen01888" data-start="{" data-end="}">
+<div class="line"><a id="l01888" name="l01888"></a><span class="lineno"><a class="line" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a3b3f5d465b79757b0bc3cc7e66062889"> 1888</a></span>absl::Status TestManager::ShowHarnessDashboard() {</div>
+<div class="line"><a id="l01889" name="l01889"></a><span class="lineno"> 1889</span>  <span class="comment">// These methods are always available, but may return unimplemented without GRPC</span></div>
+<div class="line"><a id="l01890" name="l01890"></a><span class="lineno"> 1890</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
+<div class="line"><a id="l01891" name="l01891"></a><span class="lineno"> 1891</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l01892" name="l01892"></a><span class="lineno"> 1892</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l01893" name="l01893"></a><span class="lineno"> 1893</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;Harness features require YAZE_WITH_GRPC&quot;</span>);</div>
+<div class="line"><a id="l01894" name="l01894"></a><span class="lineno"> 1894</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01895" name="l01895"></a><span class="lineno"> 1895</span>}</div>
 </div>
-<div class="line"><a id="l01902" name="l01902"></a><span class="lineno"> 1902</span> </div>
-<div class="line"><a id="l01903" name="l01903"></a><span class="lineno"> 1903</span>}  <span class="comment">// namespace test</span></div>
-<div class="line"><a id="l01904" name="l01904"></a><span class="lineno"> 1904</span>}  <span class="comment">// namespace yaze</span></div>
+<div class="line"><a id="l01896" name="l01896"></a><span class="lineno"> 1896</span> </div>
+<div class="foldopen" id="foldopen01897" data-start="{" data-end="}">
+<div class="line"><a id="l01897" name="l01897"></a><span class="lineno"><a class="line" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a28c493ae18069164bf0ff3ff67f5268c"> 1897</a></span>absl::Status TestManager::ShowHarnessActiveTests() {</div>
+<div class="line"><a id="l01898" name="l01898"></a><span class="lineno"> 1898</span><span class="preprocessor">#if defined(YAZE_WITH_GRPC)</span></div>
+<div class="line"><a id="l01899" name="l01899"></a><span class="lineno"> 1899</span>  <span class="keywordflow">return</span> absl::OkStatus();</div>
+<div class="line"><a id="l01900" name="l01900"></a><span class="lineno"> 1900</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l01901" name="l01901"></a><span class="lineno"> 1901</span>  <span class="keywordflow">return</span> absl::UnimplementedError(<span class="stringliteral">&quot;Harness features require YAZE_WITH_GRPC&quot;</span>);</div>
+<div class="line"><a id="l01902" name="l01902"></a><span class="lineno"> 1902</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l01903" name="l01903"></a><span class="lineno"> 1903</span>}</div>
+</div>
+<div class="line"><a id="l01904" name="l01904"></a><span class="lineno"> 1904</span> </div>
+<div class="foldopen" id="foldopen01905" data-start="{" data-end="}">
+<div class="line"><a id="l01905" name="l01905"></a><span class="lineno"><a class="line" href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a4ffced6e69301d25e1c68f31ac2ceeef"> 1905</a></span><span class="keywordtype">void</span> TestManager::RecordPlanSummary(<span class="keyword">const</span> std::string&amp; summary) {</div>
+<div class="line"><a id="l01906" name="l01906"></a><span class="lineno"> 1906</span>  (void)summary;</div>
+<div class="line"><a id="l01907" name="l01907"></a><span class="lineno"> 1907</span>}</div>
+</div>
+<div class="line"><a id="l01908" name="l01908"></a><span class="lineno"> 1908</span> </div>
+<div class="line"><a id="l01909" name="l01909"></a><span class="lineno"> 1909</span>}  <span class="comment">// namespace test</span></div>
+<div class="line"><a id="l01910" name="l01910"></a><span class="lineno"> 1910</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aarena_8h_html"><div class="ttname"><a href="../../da/d0c/arena_8h.html">arena.h</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html">yaze::Rom</a></div><div class="ttdoc">The Rom class is used to load, save, and modify Rom data.</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00071">rom.h:71</a></div></div>
-<div class="ttc" id="aclassyaze_1_1Rom_html_a0241f94c39962115e9602cc5c3c46796"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a0241f94c39962115e9602cc5c3c46796">yaze::Rom::ReadByteVector</a></div><div class="ttdeci">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt; ReadByteVector(uint32_t offset, uint32_t length) const</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d79/app_2rom_8cc_source.html#l00682">rom.cc:682</a></div></div>
+<div class="ttc" id="aclassyaze_1_1Rom_html_a0241f94c39962115e9602cc5c3c46796"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a0241f94c39962115e9602cc5c3c46796">yaze::Rom::ReadByteVector</a></div><div class="ttdeci">absl::StatusOr&lt; std::vector&lt; uint8_t &gt; &gt; ReadByteVector(uint32_t offset, uint32_t length) const</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d00/rom_8cc_source.html#l00682">rom.cc:682</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a35886abe051b67913a804e4cbfdc4207"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a35886abe051b67913a804e4cbfdc4207">yaze::Rom::filename</a></div><div class="ttdeci">auto filename() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00208">rom.h:208</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a404da5504886938665284f066a7831ba"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba">yaze::Rom::vector</a></div><div class="ttdeci">auto vector() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00207">rom.h:207</a></div></div>
-<div class="ttc" id="aclassyaze_1_1Rom_html_a85481fc21993edbc298608a66cb70ba9"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a85481fc21993edbc298608a66cb70ba9">yaze::Rom::SaveToFile</a></div><div class="ttdeci">absl::Status SaveToFile(const SaveSettings &amp;settings)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d79/app_2rom_8cc_source.html#l00536">rom.cc:536</a></div></div>
+<div class="ttc" id="aclassyaze_1_1Rom_html_a85481fc21993edbc298608a66cb70ba9"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a85481fc21993edbc298608a66cb70ba9">yaze::Rom::SaveToFile</a></div><div class="ttdeci">absl::Status SaveToFile(const SaveSettings &amp;settings)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d00/rom_8cc_source.html#l00536">rom.cc:536</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a93944ed80bd748997b06d82f9b8b050d"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">yaze::Rom::data</a></div><div class="ttdeci">auto data() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00203">rom.h:203</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a971379ba00f55ab9c367abf20c8a9777"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777">yaze::Rom::size</a></div><div class="ttdeci">auto size() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00202">rom.h:202</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a9e9a54976ee16d9f2690fad05d78d0c9"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a9e9a54976ee16d9f2690fad05d78d0c9">yaze::Rom::dirty</a></div><div class="ttdeci">bool dirty() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00198">rom.h:198</a></div></div>
@@ -2083,34 +2095,36 @@ $(document).ready(function(){initNavTree('d1/d2e/test__manager_8cc_source.html',
 <div class="ttc" id="aclassyaze_1_1core_1_1FeatureFlags_html_ab985b9cb493be9689a8f4baffc09b614"><div class="ttname"><a href="../../d8/d3f/classyaze_1_1core_1_1FeatureFlags.html#ab985b9cb493be9689a8f4baffc09b614">yaze::core::FeatureFlags::get</a></div><div class="ttdeci">static Flags &amp; get()</div><div class="ttdef"><b>Definition</b> <a href="../../de/d47/features_8h_source.html#l00079">features.h:79</a></div></div>
 <div class="ttc" id="aclassyaze_1_1gfx_1_1Arena_html_ae6809b5062da35e7d8f3ff54a79c7b55"><div class="ttname"><a href="../../d4/de6/classyaze_1_1gfx_1_1Arena.html#ae6809b5062da35e7d8f3ff54a79c7b55">yaze::gfx::Arena::Get</a></div><div class="ttdeci">static Arena &amp; Get()</div><div class="ttdef"><b>Definition</b> <a href="../../d2/dee/arena_8cc_source.html#l00015">arena.cc:15</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html">yaze::test::TestManager</a></div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00175">test_manager.h:175</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a03de7389e6b12f25c0dc8eb098eac0a4"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a03de7389e6b12f25c0dc8eb098eac0a4">yaze::test::TestManager::current_rom_</a></div><div class="ttdeci">Rom * current_rom_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00349">test_manager.h:349</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a05b3baefd19aafc3c1fbc59dd803cfa7"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a05b3baefd19aafc3c1fbc59dd803cfa7">yaze::test::TestManager::show_dashboard_</a></div><div class="ttdeci">bool show_dashboard_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00343">test_manager.h:343</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a05c347034978959de9d007a250f2d5ee"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a05c347034978959de9d007a250f2d5ee">yaze::test::TestManager::show_resource_monitor_</a></div><div class="ttdeci">bool show_resource_monitor_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00344">test_manager.h:344</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a03de7389e6b12f25c0dc8eb098eac0a4"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a03de7389e6b12f25c0dc8eb098eac0a4">yaze::test::TestManager::current_rom_</a></div><div class="ttdeci">Rom * current_rom_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00357">test_manager.h:357</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a05b3baefd19aafc3c1fbc59dd803cfa7"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a05b3baefd19aafc3c1fbc59dd803cfa7">yaze::test::TestManager::show_dashboard_</a></div><div class="ttdeci">bool show_dashboard_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00351">test_manager.h:351</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a05c347034978959de9d007a250f2d5ee"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a05c347034978959de9d007a250f2d5ee">yaze::test::TestManager::show_resource_monitor_</a></div><div class="ttdeci">bool show_resource_monitor_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00352">test_manager.h:352</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a1138e7920a64fbfe2962c95c1cfa9d5d"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a1138e7920a64fbfe2962c95c1cfa9d5d">yaze::test::TestManager::GenerateTestRomFilename</a></div><div class="ttdeci">std::string GenerateTestRomFilename(const std::string &amp;base_name)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01518">test_manager.cc:1518</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a19e65394506a5ade2cc706eaeb12f435"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a19e65394506a5ade2cc706eaeb12f435">yaze::test::TestManager::current_test_name_</a></div><div class="ttdeci">std::string current_test_name_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00326">test_manager.h:326</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a1a2f23afc297f032320873c3d0a1d224"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a1a2f23afc297f032320873c3d0a1d224">yaze::test::TestManager::show_test_configuration_</a></div><div class="ttdeci">bool show_test_configuration_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00357">test_manager.h:357</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a282ab3a3ff19d56c65140c596f2ab817"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a282ab3a3ff19d56c65140c596f2ab817">yaze::test::TestManager::show_test_session_dialog_</a></div><div class="ttdeci">bool show_test_session_dialog_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00356">test_manager.h:356</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a13e4658cc8fb802bcbf400211861536c"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a13e4658cc8fb802bcbf400211861536c">yaze::test::TestManager::CaptureFailureContext</a></div><div class="ttdeci">void CaptureFailureContext(const std::string &amp;test_id)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01860">test_manager.cc:1860</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a19e65394506a5ade2cc706eaeb12f435"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a19e65394506a5ade2cc706eaeb12f435">yaze::test::TestManager::current_test_name_</a></div><div class="ttdeci">std::string current_test_name_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00334">test_manager.h:334</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a1a2f23afc297f032320873c3d0a1d224"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a1a2f23afc297f032320873c3d0a1d224">yaze::test::TestManager::show_test_configuration_</a></div><div class="ttdeci">bool show_test_configuration_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00365">test_manager.h:365</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a282ab3a3ff19d56c65140c596f2ab817"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a282ab3a3ff19d56c65140c596f2ab817">yaze::test::TestManager::show_test_session_dialog_</a></div><div class="ttdeci">bool show_test_session_dialog_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00364">test_manager.h:364</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a2c642eb77f5ecd3a3867997f6c78f5e1"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a2c642eb77f5ecd3a3867997f6c78f5e1">yaze::test::TestManager::TestManager</a></div><div class="ttdeci">TestManager()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00157">test_manager.cc:157</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a2cafce8c64ca0935b8a121f2d06c72dd"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a2cafce8c64ca0935b8a121f2d06c72dd">yaze::test::TestManager::category_filter_</a></div><div class="ttdeci">TestCategory category_filter_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00346">test_manager.h:346</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a2cafce8c64ca0935b8a121f2d06c72dd"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a2cafce8c64ca0935b8a121f2d06c72dd">yaze::test::TestManager::category_filter_</a></div><div class="ttdeci">TestCategory category_filter_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00354">test_manager.h:354</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a2efc0d5a0e68afb06d6c5fb82e183263"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a2efc0d5a0e68afb06d6c5fb82e183263">yaze::test::TestManager::RefreshCurrentRom</a></div><div class="ttdeci">void RefreshCurrentRom()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01469">test_manager.cc:1469</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a3aca72c1a57f02a13c336e9a7760effe"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a3aca72c1a57f02a13c336e9a7760effe">yaze::test::TestManager::StopUITesting</a></div><div class="ttdeci">void StopUITesting()</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00216">test_manager.h:216</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a3b76050f09efca6e353863ce2a871f92"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a3b76050f09efca6e353863ce2a871f92">yaze::test::TestManager::resource_history_</a></div><div class="ttdeci">std::vector&lt; ResourceStats &gt; resource_history_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00334">test_manager.h:334</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a3b76050f09efca6e353863ce2a871f92"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a3b76050f09efca6e353863ce2a871f92">yaze::test::TestManager::resource_history_</a></div><div class="ttdeci">std::vector&lt; ResourceStats &gt; resource_history_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00342">test_manager.h:342</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a40982a4e0aca488b83bed24d27877708"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a40982a4e0aca488b83bed24d27877708">yaze::test::TestManager::RegisterTestSuite</a></div><div class="ttdeci">void RegisterTestSuite(std::unique_ptr&lt; TestSuite &gt; suite)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00299">test_manager.cc:299</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a50991a2a766b79b0f1280e918edc4581"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a50991a2a766b79b0f1280e918edc4581">yaze::test::TestManager::TestRomWithCopy</a></div><div class="ttdeci">absl::Status TestRomWithCopy(Rom *source_rom, std::function&lt; absl::Status(Rom *)&gt; test_function)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01551">test_manager.cc:1551</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a52b4ed8f52803190811cb18f47593cc3"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a52b4ed8f52803190811cb18f47593cc3">yaze::test::TestManager::suite_lookup_</a></div><div class="ttdeci">std::unordered_map&lt; std::string, TestSuite * &gt; suite_lookup_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00322">test_manager.h:322</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a52b4ed8f52803190811cb18f47593cc3"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a52b4ed8f52803190811cb18f47593cc3">yaze::test::TestManager::suite_lookup_</a></div><div class="ttdeci">std::unordered_map&lt; std::string, TestSuite * &gt; suite_lookup_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00330">test_manager.h:330</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a6031ed78e3c22d0040029c3279ab74c8"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a6031ed78e3c22d0040029c3279ab74c8">yaze::test::TestManager::CreateTestRomCopy</a></div><div class="ttdeci">absl::Status CreateTestRomCopy(Rom *source_rom, std::unique_ptr&lt; Rom &gt; &amp;test_rom)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01494">test_manager.cc:1494</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a695c24b9d5606fd4dee4d65162014c30"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a695c24b9d5606fd4dee4d65162014c30">yaze::test::TestManager::IsTestEnabled</a></div><div class="ttdeci">bool IsTestEnabled(const std::string &amp;test_name) const</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00266">test_manager.h:266</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a712f033948d7bbe604aeac0e5dfb4e21"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a712f033948d7bbe604aeac0e5dfb4e21">yaze::test::TestManager::progress_</a></div><div class="ttdeci">float progress_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00327">test_manager.h:327</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a712f033948d7bbe604aeac0e5dfb4e21"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a712f033948d7bbe604aeac0e5dfb4e21">yaze::test::TestManager::progress_</a></div><div class="ttdeci">float progress_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00335">test_manager.h:335</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a725a08602cd36e3313e344d0472cf3d6"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a725a08602cd36e3313e344d0472cf3d6">yaze::test::TestManager::RunTestSuite</a></div><div class="ttdeci">absl::Status RunTestSuite(const std::string &amp;suite_name)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00275">test_manager.cc:275</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a73f2f93de2669db8e9c64b98ba82246c"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a73f2f93de2669db8e9c64b98ba82246c">yaze::test::TestManager::RegisterHarnessTest</a></div><div class="ttdeci">std::string RegisterHarnessTest(const std::string &amp;name, const std::string &amp;category)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01698">test_manager.cc:1698</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a78007abafb53216ed047a6f721b006cd"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a78007abafb53216ed047a6f721b006cd">yaze::test::TestManager::ClearResults</a></div><div class="ttdeci">void ClearResults()</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00191">test_manager.h:191</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a7db45a242780d055d1d12cbc23df3d62"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a7db45a242780d055d1d12cbc23df3d62">yaze::test::TestManager::ExecuteTestSuite</a></div><div class="ttdeci">absl::Status ExecuteTestSuite(TestSuite *suite)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00326">test_manager.cc:326</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a803ddfe759abe3deaab0b30e65d81054"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a803ddfe759abe3deaab0b30e65d81054">yaze::test::TestManager::show_rom_test_results_</a></div><div class="ttdeci">bool show_rom_test_results_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00354">test_manager.h:354</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a82e07bdc20bb244feff3c6cfe3b0b3c7"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a82e07bdc20bb244feff3c6cfe3b0b3c7">yaze::test::TestManager::test_filter_</a></div><div class="ttdeci">std::string test_filter_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00345">test_manager.h:345</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a803ddfe759abe3deaab0b30e65d81054"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a803ddfe759abe3deaab0b30e65d81054">yaze::test::TestManager::show_rom_test_results_</a></div><div class="ttdeci">bool show_rom_test_results_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00362">test_manager.h:362</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a82e07bdc20bb244feff3c6cfe3b0b3c7"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a82e07bdc20bb244feff3c6cfe3b0b3c7">yaze::test::TestManager::test_filter_</a></div><div class="ttdeci">std::string test_filter_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00353">test_manager.h:353</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a983fa38d2185127918f70b6ce701bcbe"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a983fa38d2185127918f70b6ce701bcbe">yaze::test::TestManager::DestroyUITestingContext</a></div><div class="ttdeci">void DestroyUITestingContext()</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00217">test_manager.h:217</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a99f8623a9031c8314d18562296591d17"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a99f8623a9031c8314d18562296591d17">yaze::test::TestManager::test_rom_path_for_session_</a></div><div class="ttdeci">std::string test_rom_path_for_session_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00358">test_manager.h:358</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a9c0ad9161418753a77edfb0a5085c0e0"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a9c0ad9161418753a77edfb0a5085c0e0">yaze::test::TestManager::show_rom_file_dialog_</a></div><div class="ttdeci">bool show_rom_file_dialog_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00355">test_manager.h:355</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a99f8623a9031c8314d18562296591d17"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a99f8623a9031c8314d18562296591d17">yaze::test::TestManager::test_rom_path_for_session_</a></div><div class="ttdeci">std::string test_rom_path_for_session_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00366">test_manager.h:366</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_a9c0ad9161418753a77edfb0a5085c0e0"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#a9c0ad9161418753a77edfb0a5085c0e0">yaze::test::TestManager::show_rom_file_dialog_</a></div><div class="ttdeci">bool show_rom_file_dialog_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00363">test_manager.h:363</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_aa4c9c5e2d45402a09e93f4f4830085dd"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#aa4c9c5e2d45402a09e93f4f4830085dd">yaze::test::TestManager::TestRomDataIntegrity</a></div><div class="ttdeci">absl::Status TestRomDataIntegrity(Rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01647">test_manager.cc:1647</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_aa709a17ecf7934b8a1ce82d5dbf5c269"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#aa709a17ecf7934b8a1ce82d5dbf5c269">yaze::test::TestManager::kMaxResourceHistorySize</a></div><div class="ttdeci">static constexpr size_t kMaxResourceHistorySize</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00335">test_manager.h:335</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_aa709a17ecf7934b8a1ce82d5dbf5c269"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#aa709a17ecf7934b8a1ce82d5dbf5c269">yaze::test::TestManager::kMaxResourceHistorySize</a></div><div class="ttdeci">static constexpr size_t kMaxResourceHistorySize</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00343">test_manager.h:343</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_aaadff49f02206c0a11b5543ea7c69e95"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#aaadff49f02206c0a11b5543ea7c69e95">yaze::test::TestManager::~TestManager</a></div><div class="ttdeci">~TestManager()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00162">test_manager.cc:162</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_aac8ba5225045f940a57ed1f7bfa1e774"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#aac8ba5225045f940a57ed1f7bfa1e774">yaze::test::TestManager::TrimResourceHistory</a></div><div class="ttdeci">void TrimResourceHistory()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00378">test_manager.cc:378</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_aaf111c1c6d69869fefd7c079ec5ea98d"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#aaf111c1c6d69869fefd7c079ec5ea98d">yaze::test::TestManager::DrawTestDashboard</a></div><div class="ttdeci">void DrawTestDashboard(bool *show_dashboard=nullptr)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00387">test_manager.cc:387</a></div></div>
@@ -2119,18 +2133,18 @@ $(document).ready(function(){initNavTree('d1/d2e/test__manager_8cc_source.html',
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_ab99bef8efee2fae2db5f1f5c6fcd06d0"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#ab99bef8efee2fae2db5f1f5c6fcd06d0">yaze::test::TestManager::RunAllTests</a></div><div class="ttdeci">absl::Status RunAllTests()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00212">test_manager.cc:212</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_aba8e45afb0fc70d7fe9bd73e61296edf"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#aba8e45afb0fc70d7fe9bd73e61296edf">yaze::test::TestManager::Get</a></div><div class="ttdeci">static TestManager &amp; Get()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00152">test_manager.cc:152</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_ac0e33eba8ade56271b4c15d82fad122f"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#ac0e33eba8ade56271b4c15d82fad122f">yaze::test::TestManager::OfferTestSessionCreation</a></div><div class="ttdeci">void OfferTestSessionCreation(const std::string &amp;test_rom_path)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01545">test_manager.cc:1545</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_ac2683269e10fc0fdfb06f3b61b71eb26"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#ac2683269e10fc0fdfb06f3b61b71eb26">yaze::test::TestManager::last_results_</a></div><div class="ttdeci">TestResults last_results_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00324">test_manager.h:324</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_ac2683269e10fc0fdfb06f3b61b71eb26"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#ac2683269e10fc0fdfb06f3b61b71eb26">yaze::test::TestManager::last_results_</a></div><div class="ttdeci">TestResults last_results_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00332">test_manager.h:332</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_ac660d2fbeaed222a359443b13417492b"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#ac660d2fbeaed222a359443b13417492b">yaze::test::TestManager::EnableTest</a></div><div class="ttdeci">void EnableTest(const std::string &amp;test_name)</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00263">test_manager.h:263</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_accb083bc4e5f9205954fa5c0059e4ba5"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#accb083bc4e5f9205954fa5c0059e4ba5">yaze::test::TestManager::CollectResourceStats</a></div><div class="ttdeci">void CollectResourceStats()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00359">test_manager.cc:359</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_acdefeaf65383cc782c7fa8f8cee95348"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#acdefeaf65383cc782c7fa8f8cee95348">yaze::test::TestManager::DisableTest</a></div><div class="ttdeci">void DisableTest(const std::string &amp;test_name)</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00260">test_manager.h:260</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_ad2bc07d046bb17a276c28ba1f9857f32"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#ad2bc07d046bb17a276c28ba1f9857f32">yaze::test::TestManager::test_suites_</a></div><div class="ttdeci">std::vector&lt; std::unique_ptr&lt; TestSuite &gt; &gt; test_suites_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00321">test_manager.h:321</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_ad2bc07d046bb17a276c28ba1f9857f32"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#ad2bc07d046bb17a276c28ba1f9857f32">yaze::test::TestManager::test_suites_</a></div><div class="ttdeci">std::vector&lt; std::unique_ptr&lt; TestSuite &gt; &gt; test_suites_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00329">test_manager.h:329</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_ad88ae05c7c54bb39c64ba7ae2f048ff5"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#ad88ae05c7c54bb39c64ba7ae2f048ff5">yaze::test::TestManager::TestRomSaveLoad</a></div><div class="ttdeci">absl::Status TestRomSaveLoad(Rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01615">test_manager.cc:1615</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_ae1f27a5e8a780046bb97b82091c183ad"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#ae1f27a5e8a780046bb97b82091c183ad">yaze::test::TestManager::is_running_</a></div><div class="ttdeci">bool is_running_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00325">test_manager.h:325</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_ae1f27a5e8a780046bb97b82091c183ad"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#ae1f27a5e8a780046bb97b82091c183ad">yaze::test::TestManager::is_running_</a></div><div class="ttdeci">bool is_running_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00333">test_manager.h:333</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_ae60b46bc299669533d88023e1a7a418d"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#ae60b46bc299669533d88023e1a7a418d">yaze::test::TestManager::RunTestsByCategory</a></div><div class="ttdeci">absl::Status RunTestsByCategory(TestCategory category)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00241">test_manager.cc:241</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_ae7cbaf88ee1e98b4e2fa8c598fc21442"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#ae7cbaf88ee1e98b4e2fa8c598fc21442">yaze::test::TestManager::UpdateProgress</a></div><div class="ttdeci">void UpdateProgress()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00343">test_manager.cc:343</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_aea0b7238cfc584dac6792c4deda10526"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#aea0b7238cfc584dac6792c4deda10526">yaze::test::TestManager::UpdateResourceStats</a></div><div class="ttdeci">void UpdateResourceStats()</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00321">test_manager.cc:321</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_aea1fd8ef3a4ab247670d862ef50a4fa3"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#aea1fd8ef3a4ab247670d862ef50a4fa3">yaze::test::TestManager::ShowRomComparisonResults</a></div><div class="ttdeci">void ShowRomComparisonResults(const Rom &amp;before, const Rom &amp;after)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01581">test_manager.cc:1581</a></div></div>
-<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_aea6f794c6a6ec46cc7717785214948dc"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#aea6f794c6a6ec46cc7717785214948dc">yaze::test::TestManager::show_google_tests_</a></div><div class="ttdeci">bool show_google_tests_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00353">test_manager.h:353</a></div></div>
+<div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_aea6f794c6a6ec46cc7717785214948dc"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#aea6f794c6a6ec46cc7717785214948dc">yaze::test::TestManager::show_google_tests_</a></div><div class="ttdeci">bool show_google_tests_</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00361">test_manager.h:361</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_af46f3839ce3e1b6b015a8c19a23f16f6"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#af46f3839ce3e1b6b015a8c19a23f16f6">yaze::test::TestManager::InitializeUITesting</a></div><div class="ttdeci">void InitializeUITesting()</div><div class="ttdef"><b>Definition</b> <a href="../../d6/d5c/test__manager_8h_source.html#l00215">test_manager.h:215</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_af6de0876cdc3095edf42d5eaddd51b90"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#af6de0876cdc3095edf42d5eaddd51b90">yaze::test::TestManager::GetTestSuiteNames</a></div><div class="ttdeci">std::vector&lt; std::string &gt; GetTestSuiteNames() const</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00307">test_manager.cc:307</a></div></div>
 <div class="ttc" id="aclassyaze_1_1test_1_1TestManager_html_afbc4989df8eef173a3dfaaf94e57dc73"><div class="ttname"><a href="../../da/d3e/classyaze_1_1test_1_1TestManager.html#afbc4989df8eef173a3dfaaf94e57dc73">yaze::test::TestManager::LoadRomForTesting</a></div><div class="ttdeci">absl::Status LoadRomForTesting(const std::string &amp;filename)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01572">test_manager.cc:1572</a></div></div>
@@ -2197,7 +2211,6 @@ $(document).ready(function(){initNavTree('d1/d2e/test__manager_8cc_source.html',
 <div class="ttc" id="anamespaceyaze_1_1test_html_a24fd08ea41d8314e6fccdb0fdcd9f072af83deabecb881f963501ddab928fb58a"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#a24fd08ea41d8314e6fccdb0fdcd9f072af83deabecb881f963501ddab928fb58a">yaze::test::TestStatus::kSkipped</a></div><div class="ttdeci">@ kSkipped</div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_html_a68a6024d219a6e3927991ad286dd1500"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#a68a6024d219a6e3927991ad286dd1500">yaze::test::TestCategoryToString</a></div><div class="ttdeci">const char * TestCategoryToString(TestCategory category)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00080">test_manager.cc:80</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_html_a78c70b999b0c45c674c6457ef7fb6a3a"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#a78c70b999b0c45c674c6457ef7fb6a3a">yaze::test::GetTestStatusColor</a></div><div class="ttdeci">ImVec4 GetTestStatusColor(TestStatus status)</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l00096">test_manager.cc:96</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_html_aa6ec55282cc2943ead16117c4104bfe3"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">yaze::test::test_id</a></div><div class="ttdeci">void test_id</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01856">test_manager.cc:1856</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="ascreenshot__utils_8h_html"><div class="ttname"><a href="../../d7/d65/screenshot__utils_8h.html">screenshot_utils.h</a></div></div>
 <div class="ttc" id="astructyaze_1_1Rom_1_1SaveSettings_html"><div class="ttname"><a href="../../d9/d36/structyaze_1_1Rom_1_1SaveSettings.html">yaze::Rom::SaveSettings</a></div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00073">rom.h:73</a></div></div>

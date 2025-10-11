@@ -101,9 +101,9 @@ $(document).ready(function(){initNavTree('d7/d43/md_docs_2C2-testing-without-rom
   <div class="headertitle"><div class="title">Testing z3ed Without ROM Files</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md302"></a> <b>Last Updated:</b> October 10, 2025 <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md310"></a> <b>Last Updated:</b> October 10, 2025 <br  />
  <b>Status:</b> Active</p>
-<h1><a class="anchor" id="autotoc_md303"></a>
+<h1><a class="anchor" id="autotoc_md311"></a>
 Overview</h1>
 <p>The <code>z3ed</code> AI agent now supports <b>mock ROM mode</b> for testing without requiring actual ROM files. This is essential for:</p>
 <ul>
@@ -112,7 +112,7 @@ Overview</h1>
 <li><b>Contributors</b> - Test the agent without needing to provide ROMs</li>
 <li><b>Automated testing</b> - Consistent, reproducible test environments</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md304"></a>
+<h1><a class="anchor" id="autotoc_md312"></a>
 How Mock ROM Mode Works</h1>
 <p>Mock ROM mode creates a minimal but valid ROM structure with:</p><ul>
 <li>✅ Proper SNES header (LoROM mapping, 1MB size)</li>
@@ -126,9 +126,9 @@ How Mock ROM Mode Works</h1>
 <li>Test function calling and tool dispatch</li>
 <li>Validate agent logic without game data</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md305"></a>
+<h1><a class="anchor" id="autotoc_md313"></a>
 Usage</h1>
-<h2><a class="anchor" id="autotoc_md306"></a>
+<h2><a class="anchor" id="autotoc_md314"></a>
 Command Line Flag</h2>
 <p>Add <code>--mock-rom</code> to any <code>z3ed agent</code> command:</p>
 <div class="fragment"><div class="line"># Simple chat with mock ROM</div>
@@ -139,7 +139,7 @@ Command Line Flag</h2>
 <div class="line"> </div>
 <div class="line"># AI provider testing</div>
 <div class="line">z3ed agent simple-chat &quot;List all dungeons&quot; --mock-rom --ai_provider=ollama</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md307"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md315"></a>
 Test Suite</h2>
 <p>The <code>agent_test_suite.sh</code> script now defaults to mock ROM mode:</p>
 <div class="fragment"><div class="line"># Run tests with mock ROM (default)</div>
@@ -149,9 +149,9 @@ Test Suite</h2>
 <div class="line">./scripts/agent_test_suite.sh gemini</div>
 </div><!-- fragment --><p>To use a real ROM instead, edit the script:</p>
 <div class="fragment"><div class="line">USE_MOCK_ROM=false  # At the top of agent_test_suite.sh</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md308"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md316"></a>
 What Works with Mock ROM</h1>
-<h2><a class="anchor" id="autotoc_md309"></a>
+<h2><a class="anchor" id="autotoc_md317"></a>
 ✅ Fully Supported</h2>
 <p><b>Label Queries:</b></p><ul>
 <li>"What is room 5?" → "Tower of Hera - Moldorm Boss"</li>
@@ -176,7 +176,7 @@ What Works with Mock ROM</h1>
 <li>Tool output parsing</li>
 <li>Multi-turn conversations</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md310"></a>
+<h2><a class="anchor" id="autotoc_md318"></a>
 ⚠️ Limited Support</h2>
 <p><b>Queries Requiring Data:</b></p><ul>
 <li>"What tiles are used in room 5?" → No tile data in mock ROM</li>
@@ -185,7 +185,7 @@ What Works with Mock ROM</h1>
 <li>"Export graphics from dungeon 1" → No graphics data</li>
 </ul>
 <p>These queries will either return empty results or errors indicating no ROM data is available.</p>
-<h2><a class="anchor" id="autotoc_md311"></a>
+<h2><a class="anchor" id="autotoc_md319"></a>
 ❌ Not Supported</h2>
 <p><b>Operations That Modify ROM:</b></p><ul>
 <li>Editing tiles</li>
@@ -193,9 +193,9 @@ What Works with Mock ROM</h1>
 <li>Modifying sprites</li>
 <li>Patching ROM data</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md312"></a>
+<h1><a class="anchor" id="autotoc_md320"></a>
 Testing Strategy</h1>
-<h2><a class="anchor" id="autotoc_md313"></a>
+<h2><a class="anchor" id="autotoc_md321"></a>
 For Agent Logic</h2>
 <p>Use <b>mock ROM</b> for testing:</p><ul>
 <li>Function calling mechanisms</li>
@@ -205,7 +205,7 @@ For Agent Logic</h2>
 <li>Label resolution</li>
 <li>Resource lookups</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md314"></a>
+<h2><a class="anchor" id="autotoc_md322"></a>
 For ROM Operations</h2>
 <p>Use <b>real ROM</b> for testing:</p><ul>
 <li>Tile editing</li>
@@ -214,9 +214,9 @@ For ROM Operations</h2>
 <li>Data extraction</li>
 <li>ROM patching</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md315"></a>
+<h1><a class="anchor" id="autotoc_md323"></a>
 CI/CD Integration</h1>
-<h2><a class="anchor" id="autotoc_md316"></a>
+<h2><a class="anchor" id="autotoc_md324"></a>
 GitHub Actions Example</h2>
 <div class="fragment"><div class="line">name: Test z3ed Agent</div>
 <div class="line"> </div>
@@ -245,7 +245,7 @@ GitHub Actions Example</h2>
 <div class="line">        env:</div>
 <div class="line">          # Or use Gemini with API key</div>
 <div class="line">          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md317"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md325"></a>
 Embedded Labels Reference</h1>
 <p>Mock ROM includes all these labels from <code>zelda3::Zelda3Labels</code>:</p>
 <table class="markdownTable">
@@ -269,9 +269,9 @@ Embedded Labels Reference</h1>
 <td class="markdownTableBodyNone">Graphics Sheets   </td><td class="markdownTableBodyNone">128+   </td><td class="markdownTableBodyNone">"Link Sprites", "Enemy Pack 1"   </td></tr>
 </table>
 <p>See <code><a class="el" href="../../d3/d0f/zelda3__labels_8h.html">src/app/zelda3/zelda3_labels.h</a></code> for the complete list.</p>
-<h1><a class="anchor" id="autotoc_md318"></a>
+<h1><a class="anchor" id="autotoc_md326"></a>
 Troubleshooting</h1>
-<h2><a class="anchor" id="autotoc_md319"></a>
+<h2><a class="anchor" id="autotoc_md327"></a>
 "No ROM loaded" error</h2>
 <p>Make sure you're using the <code>--mock-rom</code> flag:</p>
 <div class="fragment"><div class="line"># Wrong</div>
@@ -279,21 +279,21 @@ Troubleshooting</h1>
 <div class="line"> </div>
 <div class="line"># Correct</div>
 <div class="line">z3ed agent simple-chat &quot;test&quot; --mock-rom</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md320"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md328"></a>
 Mock ROM fails to initialize</h2>
 <p>Check the error message. Common issues:</p><ul>
 <li>Build system didn't include <code><a class="el" href="../../dc/d5b/mock__rom_8cc.html">mock_rom.cc</a></code></li>
 <li>Missing <code><a class="el" href="../../d3/d1f/zelda3__labels_8cc.html">zelda3_labels.cc</a></code> in build</li>
 <li>Linker errors with resource labels</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md321"></a>
+<h2><a class="anchor" id="autotoc_md329"></a>
 Agent returns empty/wrong results</h2>
 <p>Remember: Mock ROM has <b>labels only</b>, no actual game data.</p>
 <p>Queries like "What tiles are in room 5?" won't work because there's no tile data.</p>
 <p>Use queries about labels and IDs instead: "What is the name of room 5?"</p>
-<h1><a class="anchor" id="autotoc_md322"></a>
+<h1><a class="anchor" id="autotoc_md330"></a>
 Development</h1>
-<h2><a class="anchor" id="autotoc_md323"></a>
+<h2><a class="anchor" id="autotoc_md331"></a>
 Adding New Labels</h2>
 <p>To add new label types to mock ROM:</p>
 <ol type="1">
@@ -312,9 +312,9 @@ Adding New Labels</h2>
 <li><b>Rebuild:</b> <div class="fragment"><div class="line">cmake --build build --parallel</div>
 </div><!-- fragment --></li>
 </ol>
-<h2><a class="anchor" id="autotoc_md324"></a>
+<h2><a class="anchor" id="autotoc_md332"></a>
 Testing Mock ROM Directly</h2>
-<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="../../d7/d40/src_2cli_2handlers_2mock__rom_8h.html">cli/handlers/mock_rom.h</a>&quot;</span></div>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;cli/handlers/mock_rom.h&quot;</span></div>
 <div class="line"> </div>
 <div class="line">Rom rom;</div>
 <div class="line"><span class="keyword">auto</span> status = InitializeMockRom(rom);</div>
@@ -324,10 +324,9 @@ Testing Mock ROM Directly</h2>
 <div class="line">  std::string room_name = label_mgr-&gt;GetLabel(<span class="stringliteral">&quot;room&quot;</span>, <span class="stringliteral">&quot;5&quot;</span>);</div>
 <div class="line">  <span class="comment">// room_name == &quot;Tower of Hera - Moldorm Boss&quot;</span></div>
 <div class="line">}</div>
-<div class="ttc" id="asrc_2cli_2handlers_2mock__rom_8h_html"><div class="ttname"><a href="../../d7/d40/src_2cli_2handlers_2mock__rom_8h.html">mock_rom.h</a></div></div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md325"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md333"></a>
 Best Practices</h1>
-<h2><a class="anchor" id="autotoc_md326"></a>
+<h2><a class="anchor" id="autotoc_md334"></a>
 DO ✅</h2>
 <ul>
 <li>Use mock ROM for CI/CD and automated tests</li>
@@ -336,7 +335,7 @@ DO ✅</h2>
 <li>Test with real ROM before releasing features</li>
 <li>Document which features require real ROM data</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md327"></a>
+<h2><a class="anchor" id="autotoc_md335"></a>
 DON'T ❌</h2>
 <ul>
 <li>Commit ROM files to Git (legal issues)</li>
@@ -344,7 +343,7 @@ DON'T ❌</h2>
 <li>Use mock ROM for testing data extraction</li>
 <li>Skip real ROM testing entirely</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md328"></a>
+<h1><a class="anchor" id="autotoc_md336"></a>
 Related Documentation</h1>
 <ul>
 <li><a class="el" href="../../d2/d4a/md_docs_2C1-z3ed-agent-guide.html">C1: z3ed Agent Guide</a> - Main agent documentation</li>
@@ -355,8 +354,8 @@ Related Documentation</h1>
 <p><b>Implementation Status:</b> ✅ Complete <br  />
  <b>Since Version:</b> v0.3.3 <br  />
  <b>Files:</b></p><ul>
-<li><code><a class="el" href="../../d7/d40/src_2cli_2handlers_2mock__rom_8h.html">src/cli/handlers/mock_rom.h</a></code></li>
-<li><code><a class="el" href="../../dc/d5b/mock__rom_8cc.html">src/cli/handlers/mock_rom.cc</a></code></li>
+<li><code>src/cli/handlers/mock_rom.h</code></li>
+<li><code>src/cli/handlers/mock_rom.cc</code></li>
 <li><code><a class="el" href="../../d5/d54/flags_8cc.html">src/cli/flags.cc</a></code> (&ndash;mock-rom flag)</li>
 <li><code>scripts/agent_test_suite.sh</code> (updated) </li>
 </ul>

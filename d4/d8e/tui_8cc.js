@@ -13,7 +13,6 @@ var tui_8cc =
     [ "LoadRomComponent", "d4/d8e/tui_8cc.html#a2d7b3c2328f2fcab44ddbe20d7df3c32", null ],
     [ "ColorBox", "d4/d8e/tui_8cc.html#a42e2b26b5b0aaf880b0d9c4c4a255d09", null ],
     [ "HelpComponent", "d4/d8e/tui_8cc.html#abb3fbd2c5e9c53690714b06d6d882c52", null ],
-    [ "HexViewerComponent", "d4/d8e/tui_8cc.html#a65c8418432a92530720b305d96f257ec", null ],
     [ "DashboardComponent", "d4/d8e/tui_8cc.html#ac7e0f6477197a03d885a027b64348a30", null ],
     [ "MainMenuComponent", "d4/d8e/tui_8cc.html#a7dfff14a075ea3b86b67ea5eeb640548", null ],
     [ "ShowMain", "d4/d8e/tui_8cc.html#a7cde2d3d2d98674ab1401d816314fdb3", null ]

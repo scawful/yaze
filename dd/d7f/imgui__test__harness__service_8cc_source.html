@@ -308,7 +308,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>  <span class="keywordflow">return</span> HarnessTestStatus::kUnspecified;</div>
 <div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>}</div>
 <div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span> </div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span><span class="keyword">const</span> <span class="keywordtype">char</span>* <a class="code hl_function" href="../../d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html#a548f3448d4583d652e5940e0410ced67">HarnessStatusToString</a>(HarnessTestStatus status) {</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span><span class="keyword">const</span> <span class="keywordtype">char</span>* HarnessStatusToString(HarnessTestStatus status) {</div>
 <div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  <span class="keywordflow">switch</span> (status) {</div>
 <div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>    <span class="keywordflow">case</span> HarnessTestStatus::kPassed:</div>
 <div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>      <span class="keywordflow">return</span> <span class="stringliteral">&quot;passed&quot;</span>;</div>
@@ -351,19 +351,19 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>}</div>
 <div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span> </div>
 <div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>absl::Status WaitForHarnessTestCompletion(TestManager* manager,</div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>                                          <span class="keyword">const</span> std::string&amp; <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>,</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>                                          <span class="keyword">const</span> std::string&amp; test_id,</div>
 <div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>                                          HarnessTestExecution* execution) {</div>
 <div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>  <span class="keywordflow">if</span> (!manager) {</div>
 <div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(<span class="stringliteral">&quot;TestManager unavailable&quot;</span>);</div>
 <div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>  }</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  <span class="keywordflow">if</span> (<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>.empty()) {</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>  <span class="keywordflow">if</span> (test_id.empty()) {</div>
 <div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>    <span class="keywordflow">return</span> absl::InvalidArgumentError(<span class="stringliteral">&quot;Missing harness test identifier&quot;</span>);</div>
 <div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>  }</div>
 <div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span> </div>
 <div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span>  <span class="keyword">const</span> absl::Time deadline = absl::Now() + absl::Seconds(20);</div>
 <div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span>  <span class="keywordflow">while</span> (absl::Now() &lt; deadline) {</div>
 <div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span>    absl::StatusOr&lt;HarnessTestExecution&gt; current =</div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>        manager-&gt;GetHarnessTestExecution(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span>        manager-&gt;GetHarnessTestExecution(test_id);</div>
 <div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span>    <span class="keywordflow">if</span> (!current.ok()) {</div>
 <div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>      absl::SleepFor(absl::Milliseconds(75));</div>
 <div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>      <span class="keywordflow">continue</span>;</div>
@@ -382,7 +382,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>  }</div>
 <div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span> </div>
 <div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>  <span class="keywordflow">return</span> absl::DeadlineExceededError(absl::StrFormat(</div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>      <span class="stringliteral">&quot;Harness test %s did not reach a terminal state&quot;</span>, <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>));</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>      <span class="stringliteral">&quot;Harness test %s did not reach a terminal state&quot;</span>, test_id));</div>
 <div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>}</div>
 <div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span> </div>
 <div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>}  <span class="comment">// namespace</span></div>
@@ -583,12 +583,12 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00480" name="l00480"></a><span class="lineno">  480</span>        absl::FailedPreconditionError(<span class="stringliteral">&quot;TestManager not available&quot;</span>));</div>
 <div class="line"><a id="l00481" name="l00481"></a><span class="lineno">  481</span>  }</div>
 <div class="line"><a id="l00482" name="l00482"></a><span class="lineno">  482</span> </div>
-<div class="line"><a id="l00483" name="l00483"></a><span class="lineno">  483</span>  <span class="keyword">const</span> std::string <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a> = test_manager_-&gt;RegisterHarnessTest(</div>
+<div class="line"><a id="l00483" name="l00483"></a><span class="lineno">  483</span>  <span class="keyword">const</span> std::string test_id = test_manager_-&gt;RegisterHarnessTest(</div>
 <div class="line"><a id="l00484" name="l00484"></a><span class="lineno">  484</span>      absl::StrFormat(<span class="stringliteral">&quot;Click: %s&quot;</span>, request-&gt;target()), <span class="stringliteral">&quot;grpc&quot;</span>);</div>
-<div class="line"><a id="l00485" name="l00485"></a><span class="lineno">  485</span>  response-&gt;set_test_id(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
-<div class="line"><a id="l00486" name="l00486"></a><span class="lineno">  486</span>  recorded_step.test_id = <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>;</div>
+<div class="line"><a id="l00485" name="l00485"></a><span class="lineno">  485</span>  response-&gt;set_test_id(test_id);</div>
+<div class="line"><a id="l00486" name="l00486"></a><span class="lineno">  486</span>  recorded_step.test_id = test_id;</div>
 <div class="line"><a id="l00487" name="l00487"></a><span class="lineno">  487</span>  test_manager_-&gt;AppendHarnessTestLog(</div>
-<div class="line"><a id="l00488" name="l00488"></a><span class="lineno">  488</span>      <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, absl::StrCat(<span class="stringliteral">&quot;Queued click request: &quot;</span>, request-&gt;target()));</div>
+<div class="line"><a id="l00488" name="l00488"></a><span class="lineno">  488</span>      test_id, absl::StrCat(<span class="stringliteral">&quot;Queued click request: &quot;</span>, request-&gt;target()));</div>
 <div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span> </div>
 <div class="line"><a id="l00490" name="l00490"></a><span class="lineno">  490</span><span class="preprocessor">#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) &amp;&amp; YAZE_ENABLE_IMGUI_TEST_ENGINE</span></div>
 <div class="line"><a id="l00491" name="l00491"></a><span class="lineno">  491</span>  ImGuiTestEngine* engine = test_manager_-&gt;GetUITestEngine();</div>
@@ -600,7 +600,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00497" name="l00497"></a><span class="lineno">  497</span>    response-&gt;set_message(message);</div>
 <div class="line"><a id="l00498" name="l00498"></a><span class="lineno">  498</span>    response-&gt;set_execution_time_ms(elapsed.count());</div>
 <div class="line"><a id="l00499" name="l00499"></a><span class="lineno">  499</span>  test_manager_-&gt;MarkHarnessTestCompleted(</div>
-<div class="line"><a id="l00500" name="l00500"></a><span class="lineno">  500</span>    <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, HarnessTestStatus::kFailed, message);</div>
+<div class="line"><a id="l00500" name="l00500"></a><span class="lineno">  500</span>    test_id, HarnessTestStatus::kFailed, message);</div>
 <div class="line"><a id="l00501" name="l00501"></a><span class="lineno">  501</span>    <span class="keywordflow">return</span> finalize(absl::OkStatus());</div>
 <div class="line"><a id="l00502" name="l00502"></a><span class="lineno">  502</span>  }</div>
 <div class="line"><a id="l00503" name="l00503"></a><span class="lineno">  503</span> </div>
@@ -615,8 +615,8 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00512" name="l00512"></a><span class="lineno">  512</span>    response-&gt;set_message(message);</div>
 <div class="line"><a id="l00513" name="l00513"></a><span class="lineno">  513</span>    response-&gt;set_execution_time_ms(elapsed.count());</div>
 <div class="line"><a id="l00514" name="l00514"></a><span class="lineno">  514</span>  test_manager_-&gt;MarkHarnessTestCompleted(</div>
-<div class="line"><a id="l00515" name="l00515"></a><span class="lineno">  515</span>    <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, HarnessTestStatus::kFailed, message);</div>
-<div class="line"><a id="l00516" name="l00516"></a><span class="lineno">  516</span>    test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l00515" name="l00515"></a><span class="lineno">  515</span>    test_id, HarnessTestStatus::kFailed, message);</div>
+<div class="line"><a id="l00516" name="l00516"></a><span class="lineno">  516</span>    test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l00517" name="l00517"></a><span class="lineno">  517</span>    <span class="keywordflow">return</span> finalize(absl::OkStatus());</div>
 <div class="line"><a id="l00518" name="l00518"></a><span class="lineno">  518</span>  }</div>
 <div class="line"><a id="l00519" name="l00519"></a><span class="lineno">  519</span> </div>
@@ -642,7 +642,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00539" name="l00539"></a><span class="lineno">  539</span> </div>
 <div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span>  <span class="keyword">auto</span> test_data = std::make_shared&lt;DynamicTestData&gt;();</div>
 <div class="line"><a id="l00541" name="l00541"></a><span class="lineno">  541</span>  TestManager* manager = test_manager_;</div>
-<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>  test_data-&gt;test_func = [manager, captured_id = <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, widget_type,</div>
+<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>  test_data-&gt;test_func = [manager, captured_id = test_id, widget_type,</div>
 <div class="line"><a id="l00543" name="l00543"></a><span class="lineno">  543</span>                          widget_label, click_type = request-&gt;type(),</div>
 <div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>                          mouse_button](ImGuiTestContext* ctx) {</div>
 <div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>    manager-&gt;MarkHarnessTestRunning(captured_id);</div>
@@ -688,7 +688,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00585" name="l00585"></a><span class="lineno">  585</span>  response-&gt;set_success(<span class="keyword">true</span>);</div>
 <div class="line"><a id="l00586" name="l00586"></a><span class="lineno">  586</span>  response-&gt;set_message(message);</div>
 <div class="line"><a id="l00587" name="l00587"></a><span class="lineno">  587</span>  response-&gt;set_execution_time_ms(elapsed.count());</div>
-<div class="line"><a id="l00588" name="l00588"></a><span class="lineno">  588</span>  test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l00588" name="l00588"></a><span class="lineno">  588</span>  test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l00589" name="l00589"></a><span class="lineno">  589</span> </div>
 <div class="line"><a id="l00590" name="l00590"></a><span class="lineno">  590</span><span class="preprocessor">#else</span></div>
 <div class="line"><a id="l00591" name="l00591"></a><span class="lineno">  591</span>  std::string target = request-&gt;target();</div>
@@ -700,10 +700,10 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00597" name="l00597"></a><span class="lineno">  597</span>    response-&gt;set_success(<span class="keyword">false</span>);</div>
 <div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span>    response-&gt;set_message(message);</div>
 <div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>    response-&gt;set_execution_time_ms(elapsed.count());</div>
-<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>  test_manager_-&gt;MarkHarnessTestCompleted(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>,</div>
+<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>  test_manager_-&gt;MarkHarnessTestCompleted(test_id,</div>
 <div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span>                      HarnessTestStatus::kFailed,</div>
 <div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span>                      message);</div>
-<div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span>    test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span>    test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l00604" name="l00604"></a><span class="lineno">  604</span>    <span class="keywordflow">return</span> finalize(absl::OkStatus());</div>
 <div class="line"><a id="l00605" name="l00605"></a><span class="lineno">  605</span>  }</div>
 <div class="line"><a id="l00606" name="l00606"></a><span class="lineno">  606</span> </div>
@@ -713,11 +713,11 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00610" name="l00610"></a><span class="lineno">  610</span>      <span class="stringliteral">&quot;[STUB] Clicked %s &#39;%s&#39; (ImGuiTestEngine not available)&quot;</span>,</div>
 <div class="line"><a id="l00611" name="l00611"></a><span class="lineno">  611</span>      widget_type, widget_label);</div>
 <div class="line"><a id="l00612" name="l00612"></a><span class="lineno">  612</span> </div>
-<div class="line"><a id="l00613" name="l00613"></a><span class="lineno">  613</span>  test_manager_-&gt;MarkHarnessTestRunning(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
-<div class="line"><a id="l00614" name="l00614"></a><span class="lineno">  614</span>  test_manager_-&gt;MarkHarnessTestCompleted(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>,</div>
+<div class="line"><a id="l00613" name="l00613"></a><span class="lineno">  613</span>  test_manager_-&gt;MarkHarnessTestRunning(test_id);</div>
+<div class="line"><a id="l00614" name="l00614"></a><span class="lineno">  614</span>  test_manager_-&gt;MarkHarnessTestCompleted(test_id,</div>
 <div class="line"><a id="l00615" name="l00615"></a><span class="lineno">  615</span>                                          HarnessTestStatus::kPassed,</div>
 <div class="line"><a id="l00616" name="l00616"></a><span class="lineno">  616</span>                                          message);</div>
-<div class="line"><a id="l00617" name="l00617"></a><span class="lineno">  617</span>  test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l00617" name="l00617"></a><span class="lineno">  617</span>  test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l00618" name="l00618"></a><span class="lineno">  618</span> </div>
 <div class="line"><a id="l00619" name="l00619"></a><span class="lineno">  619</span>  <span class="keyword">auto</span> elapsed = std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(</div>
 <div class="line"><a id="l00620" name="l00620"></a><span class="lineno">  620</span>      std::chrono::steady_clock::now() - start);</div>
@@ -758,12 +758,12 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00655" name="l00655"></a><span class="lineno">  655</span>        absl::FailedPreconditionError(<span class="stringliteral">&quot;TestManager not available&quot;</span>));</div>
 <div class="line"><a id="l00656" name="l00656"></a><span class="lineno">  656</span>  }</div>
 <div class="line"><a id="l00657" name="l00657"></a><span class="lineno">  657</span> </div>
-<div class="line"><a id="l00658" name="l00658"></a><span class="lineno">  658</span>  <span class="keyword">const</span> std::string <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a> = test_manager_-&gt;RegisterHarnessTest(</div>
+<div class="line"><a id="l00658" name="l00658"></a><span class="lineno">  658</span>  <span class="keyword">const</span> std::string test_id = test_manager_-&gt;RegisterHarnessTest(</div>
 <div class="line"><a id="l00659" name="l00659"></a><span class="lineno">  659</span>      absl::StrFormat(<span class="stringliteral">&quot;Type: %s&quot;</span>, request-&gt;target()), <span class="stringliteral">&quot;grpc&quot;</span>);</div>
-<div class="line"><a id="l00660" name="l00660"></a><span class="lineno">  660</span>  response-&gt;set_test_id(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
-<div class="line"><a id="l00661" name="l00661"></a><span class="lineno">  661</span>  recorded_step.test_id = <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>;</div>
+<div class="line"><a id="l00660" name="l00660"></a><span class="lineno">  660</span>  response-&gt;set_test_id(test_id);</div>
+<div class="line"><a id="l00661" name="l00661"></a><span class="lineno">  661</span>  recorded_step.test_id = test_id;</div>
 <div class="line"><a id="l00662" name="l00662"></a><span class="lineno">  662</span>  test_manager_-&gt;AppendHarnessTestLog(</div>
-<div class="line"><a id="l00663" name="l00663"></a><span class="lineno">  663</span>      <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, absl::StrFormat(<span class="stringliteral">&quot;Queued type request: %s&quot;</span>, request-&gt;target()));</div>
+<div class="line"><a id="l00663" name="l00663"></a><span class="lineno">  663</span>      test_id, absl::StrFormat(<span class="stringliteral">&quot;Queued type request: %s&quot;</span>, request-&gt;target()));</div>
 <div class="line"><a id="l00664" name="l00664"></a><span class="lineno">  664</span> </div>
 <div class="line"><a id="l00665" name="l00665"></a><span class="lineno">  665</span><span class="preprocessor">#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) &amp;&amp; YAZE_ENABLE_IMGUI_TEST_ENGINE</span></div>
 <div class="line"><a id="l00666" name="l00666"></a><span class="lineno">  666</span>  ImGuiTestEngine* engine = test_manager_-&gt;GetUITestEngine();</div>
@@ -775,7 +775,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00672" name="l00672"></a><span class="lineno">  672</span>    response-&gt;set_message(message);</div>
 <div class="line"><a id="l00673" name="l00673"></a><span class="lineno">  673</span>    response-&gt;set_execution_time_ms(elapsed.count());</div>
 <div class="line"><a id="l00674" name="l00674"></a><span class="lineno">  674</span>  test_manager_-&gt;MarkHarnessTestCompleted(</div>
-<div class="line"><a id="l00675" name="l00675"></a><span class="lineno">  675</span>    <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, HarnessTestStatus::kFailed, message);</div>
+<div class="line"><a id="l00675" name="l00675"></a><span class="lineno">  675</span>    test_id, HarnessTestStatus::kFailed, message);</div>
 <div class="line"><a id="l00676" name="l00676"></a><span class="lineno">  676</span>    <span class="keywordflow">return</span> finalize(absl::OkStatus());</div>
 <div class="line"><a id="l00677" name="l00677"></a><span class="lineno">  677</span>  }</div>
 <div class="line"><a id="l00678" name="l00678"></a><span class="lineno">  678</span> </div>
@@ -790,8 +790,8 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00687" name="l00687"></a><span class="lineno">  687</span>    response-&gt;set_message(message);</div>
 <div class="line"><a id="l00688" name="l00688"></a><span class="lineno">  688</span>    response-&gt;set_execution_time_ms(elapsed.count());</div>
 <div class="line"><a id="l00689" name="l00689"></a><span class="lineno">  689</span>  test_manager_-&gt;MarkHarnessTestCompleted(</div>
-<div class="line"><a id="l00690" name="l00690"></a><span class="lineno">  690</span>    <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, HarnessTestStatus::kFailed, message);</div>
-<div class="line"><a id="l00691" name="l00691"></a><span class="lineno">  691</span>    test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l00690" name="l00690"></a><span class="lineno">  690</span>    test_id, HarnessTestStatus::kFailed, message);</div>
+<div class="line"><a id="l00691" name="l00691"></a><span class="lineno">  691</span>    test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l00692" name="l00692"></a><span class="lineno">  692</span>    <span class="keywordflow">return</span> finalize(absl::OkStatus());</div>
 <div class="line"><a id="l00693" name="l00693"></a><span class="lineno">  693</span>  }</div>
 <div class="line"><a id="l00694" name="l00694"></a><span class="lineno">  694</span> </div>
@@ -803,7 +803,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00700" name="l00700"></a><span class="lineno">  700</span>  <span class="keyword">auto</span> rpc_state = std::make_shared&lt;RPCState&lt;bool&gt;&gt;();</div>
 <div class="line"><a id="l00701" name="l00701"></a><span class="lineno">  701</span>  <span class="keyword">auto</span> test_data = std::make_shared&lt;DynamicTestData&gt;();</div>
 <div class="line"><a id="l00702" name="l00702"></a><span class="lineno">  702</span>  TestManager* manager = test_manager_;</div>
-<div class="line"><a id="l00703" name="l00703"></a><span class="lineno">  703</span>  test_data-&gt;test_func = [manager, captured_id = <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, widget_type,</div>
+<div class="line"><a id="l00703" name="l00703"></a><span class="lineno">  703</span>  test_data-&gt;test_func = [manager, captured_id = test_id, widget_type,</div>
 <div class="line"><a id="l00704" name="l00704"></a><span class="lineno">  704</span>                          widget_label, clear_first, text, rpc_state](</div>
 <div class="line"><a id="l00705" name="l00705"></a><span class="lineno">  705</span>                             ImGuiTestContext* ctx) {</div>
 <div class="line"><a id="l00706" name="l00706"></a><span class="lineno">  706</span>    manager-&gt;MarkHarnessTestRunning(captured_id);</div>
@@ -865,9 +865,9 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00762" name="l00762"></a><span class="lineno">  762</span>    <span class="keywordflow">if</span> (std::chrono::steady_clock::now() - wait_start &gt; timeout) {</div>
 <div class="line"><a id="l00763" name="l00763"></a><span class="lineno">  763</span>      std::string error_message =</div>
 <div class="line"><a id="l00764" name="l00764"></a><span class="lineno">  764</span>          <span class="stringliteral">&quot;Test timeout - input field not found or unresponsive&quot;</span>;</div>
-<div class="line"><a id="l00765" name="l00765"></a><span class="lineno">  765</span>      manager-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, error_message);</div>
+<div class="line"><a id="l00765" name="l00765"></a><span class="lineno">  765</span>      manager-&gt;AppendHarnessTestLog(test_id, error_message);</div>
 <div class="line"><a id="l00766" name="l00766"></a><span class="lineno">  766</span>    manager-&gt;MarkHarnessTestCompleted(</div>
-<div class="line"><a id="l00767" name="l00767"></a><span class="lineno">  767</span>      <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, HarnessTestStatus::kTimeout, error_message);</div>
+<div class="line"><a id="l00767" name="l00767"></a><span class="lineno">  767</span>      test_id, HarnessTestStatus::kTimeout, error_message);</div>
 <div class="line"><a id="l00768" name="l00768"></a><span class="lineno">  768</span>      rpc_state-&gt;SetResult(<span class="keyword">false</span>, error_message);</div>
 <div class="line"><a id="l00769" name="l00769"></a><span class="lineno">  769</span>      <span class="keywordflow">break</span>;</div>
 <div class="line"><a id="l00770" name="l00770"></a><span class="lineno">  770</span>    }</div>
@@ -884,18 +884,18 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00781" name="l00781"></a><span class="lineno">  781</span>  response-&gt;set_message(message);</div>
 <div class="line"><a id="l00782" name="l00782"></a><span class="lineno">  782</span>  response-&gt;set_execution_time_ms(elapsed.count());</div>
 <div class="line"><a id="l00783" name="l00783"></a><span class="lineno">  783</span>  <span class="keywordflow">if</span> (!message.empty()) {</div>
-<div class="line"><a id="l00784" name="l00784"></a><span class="lineno">  784</span>    test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l00784" name="l00784"></a><span class="lineno">  784</span>    test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l00785" name="l00785"></a><span class="lineno">  785</span>  }</div>
 <div class="line"><a id="l00786" name="l00786"></a><span class="lineno">  786</span> </div>
 <div class="line"><a id="l00787" name="l00787"></a><span class="lineno">  787</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00788" name="l00788"></a><span class="lineno">  788</span>  test_manager_-&gt;MarkHarnessTestRunning(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
+<div class="line"><a id="l00788" name="l00788"></a><span class="lineno">  788</span>  test_manager_-&gt;MarkHarnessTestRunning(test_id);</div>
 <div class="line"><a id="l00789" name="l00789"></a><span class="lineno">  789</span>  std::string message = absl::StrFormat(</div>
 <div class="line"><a id="l00790" name="l00790"></a><span class="lineno">  790</span>      <span class="stringliteral">&quot;[STUB] Typed &#39;%s&#39; into %s (ImGuiTestEngine not available)&quot;</span>,</div>
 <div class="line"><a id="l00791" name="l00791"></a><span class="lineno">  791</span>      request-&gt;text(), request-&gt;target());</div>
-<div class="line"><a id="l00792" name="l00792"></a><span class="lineno">  792</span>  test_manager_-&gt;MarkHarnessTestCompleted(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>,</div>
+<div class="line"><a id="l00792" name="l00792"></a><span class="lineno">  792</span>  test_manager_-&gt;MarkHarnessTestCompleted(test_id,</div>
 <div class="line"><a id="l00793" name="l00793"></a><span class="lineno">  793</span>                                          HarnessTestStatus::kPassed,</div>
 <div class="line"><a id="l00794" name="l00794"></a><span class="lineno">  794</span>                                          message);</div>
-<div class="line"><a id="l00795" name="l00795"></a><span class="lineno">  795</span>  test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l00795" name="l00795"></a><span class="lineno">  795</span>  test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l00796" name="l00796"></a><span class="lineno">  796</span> </div>
 <div class="line"><a id="l00797" name="l00797"></a><span class="lineno">  797</span>  <span class="keyword">auto</span> elapsed = std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(</div>
 <div class="line"><a id="l00798" name="l00798"></a><span class="lineno">  798</span>      std::chrono::steady_clock::now() - start);</div>
@@ -935,12 +935,12 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00832" name="l00832"></a><span class="lineno">  832</span>        absl::FailedPreconditionError(<span class="stringliteral">&quot;TestManager not available&quot;</span>));</div>
 <div class="line"><a id="l00833" name="l00833"></a><span class="lineno">  833</span>  }</div>
 <div class="line"><a id="l00834" name="l00834"></a><span class="lineno">  834</span> </div>
-<div class="line"><a id="l00835" name="l00835"></a><span class="lineno">  835</span>  <span class="keyword">const</span> std::string <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a> = test_manager_-&gt;RegisterHarnessTest(</div>
+<div class="line"><a id="l00835" name="l00835"></a><span class="lineno">  835</span>  <span class="keyword">const</span> std::string test_id = test_manager_-&gt;RegisterHarnessTest(</div>
 <div class="line"><a id="l00836" name="l00836"></a><span class="lineno">  836</span>      absl::StrFormat(<span class="stringliteral">&quot;Wait: %s&quot;</span>, request-&gt;condition()), <span class="stringliteral">&quot;grpc&quot;</span>);</div>
-<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span>  response-&gt;set_test_id(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
-<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span>  recorded_step.test_id = <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>;</div>
+<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span>  response-&gt;set_test_id(test_id);</div>
+<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span>  recorded_step.test_id = test_id;</div>
 <div class="line"><a id="l00839" name="l00839"></a><span class="lineno">  839</span>  test_manager_-&gt;AppendHarnessTestLog(</div>
-<div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>      <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, absl::StrFormat(<span class="stringliteral">&quot;Queued wait condition: %s&quot;</span>,</div>
+<div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>      test_id, absl::StrFormat(<span class="stringliteral">&quot;Queued wait condition: %s&quot;</span>,</div>
 <div class="line"><a id="l00841" name="l00841"></a><span class="lineno">  841</span>                               request-&gt;condition()));</div>
 <div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span> </div>
 <div class="line"><a id="l00843" name="l00843"></a><span class="lineno">  843</span><span class="preprocessor">#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) &amp;&amp; YAZE_ENABLE_IMGUI_TEST_ENGINE</span></div>
@@ -953,7 +953,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00850" name="l00850"></a><span class="lineno">  850</span>    response-&gt;set_message(message);</div>
 <div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span>    response-&gt;set_elapsed_ms(elapsed.count());</div>
 <div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span>  test_manager_-&gt;MarkHarnessTestCompleted(</div>
-<div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span>    <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, HarnessTestStatus::kFailed, message);</div>
+<div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span>    test_id, HarnessTestStatus::kFailed, message);</div>
 <div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span>    <span class="keywordflow">return</span> finalize(absl::OkStatus());</div>
 <div class="line"><a id="l00855" name="l00855"></a><span class="lineno">  855</span>  }</div>
 <div class="line"><a id="l00856" name="l00856"></a><span class="lineno">  856</span> </div>
@@ -968,8 +968,8 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00865" name="l00865"></a><span class="lineno">  865</span>    response-&gt;set_message(message);</div>
 <div class="line"><a id="l00866" name="l00866"></a><span class="lineno">  866</span>    response-&gt;set_elapsed_ms(elapsed.count());</div>
 <div class="line"><a id="l00867" name="l00867"></a><span class="lineno">  867</span>  test_manager_-&gt;MarkHarnessTestCompleted(</div>
-<div class="line"><a id="l00868" name="l00868"></a><span class="lineno">  868</span>    <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, HarnessTestStatus::kFailed, message);</div>
-<div class="line"><a id="l00869" name="l00869"></a><span class="lineno">  869</span>    test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l00868" name="l00868"></a><span class="lineno">  868</span>    test_id, HarnessTestStatus::kFailed, message);</div>
+<div class="line"><a id="l00869" name="l00869"></a><span class="lineno">  869</span>    test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l00870" name="l00870"></a><span class="lineno">  870</span>    <span class="keywordflow">return</span> finalize(absl::OkStatus());</div>
 <div class="line"><a id="l00871" name="l00871"></a><span class="lineno">  871</span>  }</div>
 <div class="line"><a id="l00872" name="l00872"></a><span class="lineno">  872</span> </div>
@@ -982,7 +982,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span> </div>
 <div class="line"><a id="l00880" name="l00880"></a><span class="lineno">  880</span>  <span class="keyword">auto</span> test_data = std::make_shared&lt;DynamicTestData&gt;();</div>
 <div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span>  TestManager* manager = test_manager_;</div>
-<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>  test_data-&gt;test_func = [manager, captured_id = <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, condition_type,</div>
+<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>  test_data-&gt;test_func = [manager, captured_id = test_id, condition_type,</div>
 <div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span>                          condition_target, timeout_ms, poll_interval_ms](</div>
 <div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span>                             ImGuiTestContext* ctx) {</div>
 <div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span>    manager-&gt;MarkHarnessTestRunning(captured_id);</div>
@@ -1075,17 +1075,17 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l00972" name="l00972"></a><span class="lineno">  972</span>  response-&gt;set_success(<span class="keyword">true</span>);</div>
 <div class="line"><a id="l00973" name="l00973"></a><span class="lineno">  973</span>  response-&gt;set_message(message);</div>
 <div class="line"><a id="l00974" name="l00974"></a><span class="lineno">  974</span>  response-&gt;set_elapsed_ms(elapsed.count());</div>
-<div class="line"><a id="l00975" name="l00975"></a><span class="lineno">  975</span>  test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l00975" name="l00975"></a><span class="lineno">  975</span>  test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l00976" name="l00976"></a><span class="lineno">  976</span> </div>
 <div class="line"><a id="l00977" name="l00977"></a><span class="lineno">  977</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00978" name="l00978"></a><span class="lineno">  978</span>  test_manager_-&gt;MarkHarnessTestRunning(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
+<div class="line"><a id="l00978" name="l00978"></a><span class="lineno">  978</span>  test_manager_-&gt;MarkHarnessTestRunning(test_id);</div>
 <div class="line"><a id="l00979" name="l00979"></a><span class="lineno">  979</span>  std::string message = absl::StrFormat(</div>
 <div class="line"><a id="l00980" name="l00980"></a><span class="lineno">  980</span>      <span class="stringliteral">&quot;[STUB] Condition &#39;%s&#39; met (ImGuiTestEngine not available)&quot;</span>,</div>
 <div class="line"><a id="l00981" name="l00981"></a><span class="lineno">  981</span>      request-&gt;condition());</div>
-<div class="line"><a id="l00982" name="l00982"></a><span class="lineno">  982</span>  test_manager_-&gt;MarkHarnessTestCompleted(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>,</div>
+<div class="line"><a id="l00982" name="l00982"></a><span class="lineno">  982</span>  test_manager_-&gt;MarkHarnessTestCompleted(test_id,</div>
 <div class="line"><a id="l00983" name="l00983"></a><span class="lineno">  983</span>                                          HarnessTestStatus::kPassed,</div>
 <div class="line"><a id="l00984" name="l00984"></a><span class="lineno">  984</span>                                          message);</div>
-<div class="line"><a id="l00985" name="l00985"></a><span class="lineno">  985</span>  test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l00985" name="l00985"></a><span class="lineno">  985</span>  test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l00986" name="l00986"></a><span class="lineno">  986</span> </div>
 <div class="line"><a id="l00987" name="l00987"></a><span class="lineno">  987</span>  <span class="keyword">auto</span> elapsed = std::chrono::duration_cast&lt;std::chrono::milliseconds&gt;(</div>
 <div class="line"><a id="l00988" name="l00988"></a><span class="lineno">  988</span>      std::chrono::steady_clock::now() - start);</div>
@@ -1124,12 +1124,12 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l01021" name="l01021"></a><span class="lineno"> 1021</span>        absl::FailedPreconditionError(<span class="stringliteral">&quot;TestManager not available&quot;</span>));</div>
 <div class="line"><a id="l01022" name="l01022"></a><span class="lineno"> 1022</span>  }</div>
 <div class="line"><a id="l01023" name="l01023"></a><span class="lineno"> 1023</span> </div>
-<div class="line"><a id="l01024" name="l01024"></a><span class="lineno"> 1024</span>  <span class="keyword">const</span> std::string <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a> = test_manager_-&gt;RegisterHarnessTest(</div>
+<div class="line"><a id="l01024" name="l01024"></a><span class="lineno"> 1024</span>  <span class="keyword">const</span> std::string test_id = test_manager_-&gt;RegisterHarnessTest(</div>
 <div class="line"><a id="l01025" name="l01025"></a><span class="lineno"> 1025</span>      absl::StrFormat(<span class="stringliteral">&quot;Assert: %s&quot;</span>, request-&gt;condition()), <span class="stringliteral">&quot;grpc&quot;</span>);</div>
-<div class="line"><a id="l01026" name="l01026"></a><span class="lineno"> 1026</span>  response-&gt;set_test_id(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
-<div class="line"><a id="l01027" name="l01027"></a><span class="lineno"> 1027</span>  recorded_step.test_id = <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>;</div>
+<div class="line"><a id="l01026" name="l01026"></a><span class="lineno"> 1026</span>  response-&gt;set_test_id(test_id);</div>
+<div class="line"><a id="l01027" name="l01027"></a><span class="lineno"> 1027</span>  recorded_step.test_id = test_id;</div>
 <div class="line"><a id="l01028" name="l01028"></a><span class="lineno"> 1028</span>  test_manager_-&gt;AppendHarnessTestLog(</div>
-<div class="line"><a id="l01029" name="l01029"></a><span class="lineno"> 1029</span>      <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, absl::StrFormat(<span class="stringliteral">&quot;Queued assertion: %s&quot;</span>, request-&gt;condition()));</div>
+<div class="line"><a id="l01029" name="l01029"></a><span class="lineno"> 1029</span>      test_id, absl::StrFormat(<span class="stringliteral">&quot;Queued assertion: %s&quot;</span>, request-&gt;condition()));</div>
 <div class="line"><a id="l01030" name="l01030"></a><span class="lineno"> 1030</span> </div>
 <div class="line"><a id="l01031" name="l01031"></a><span class="lineno"> 1031</span><span class="preprocessor">#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) &amp;&amp; YAZE_ENABLE_IMGUI_TEST_ENGINE</span></div>
 <div class="line"><a id="l01032" name="l01032"></a><span class="lineno"> 1032</span>  ImGuiTestEngine* engine = test_manager_-&gt;GetUITestEngine();</div>
@@ -1140,7 +1140,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l01037" name="l01037"></a><span class="lineno"> 1037</span>    response-&gt;set_actual_value(<span class="stringliteral">&quot;N/A&quot;</span>);</div>
 <div class="line"><a id="l01038" name="l01038"></a><span class="lineno"> 1038</span>    response-&gt;set_expected_value(<span class="stringliteral">&quot;N/A&quot;</span>);</div>
 <div class="line"><a id="l01039" name="l01039"></a><span class="lineno"> 1039</span>  test_manager_-&gt;MarkHarnessTestCompleted(</div>
-<div class="line"><a id="l01040" name="l01040"></a><span class="lineno"> 1040</span>    <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, HarnessTestStatus::kFailed, message);</div>
+<div class="line"><a id="l01040" name="l01040"></a><span class="lineno"> 1040</span>    test_id, HarnessTestStatus::kFailed, message);</div>
 <div class="line"><a id="l01041" name="l01041"></a><span class="lineno"> 1041</span>    <span class="keywordflow">return</span> finalize(absl::OkStatus());</div>
 <div class="line"><a id="l01042" name="l01042"></a><span class="lineno"> 1042</span>  }</div>
 <div class="line"><a id="l01043" name="l01043"></a><span class="lineno"> 1043</span> </div>
@@ -1154,8 +1154,8 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l01051" name="l01051"></a><span class="lineno"> 1051</span>    response-&gt;set_actual_value(<span class="stringliteral">&quot;N/A&quot;</span>);</div>
 <div class="line"><a id="l01052" name="l01052"></a><span class="lineno"> 1052</span>    response-&gt;set_expected_value(<span class="stringliteral">&quot;N/A&quot;</span>);</div>
 <div class="line"><a id="l01053" name="l01053"></a><span class="lineno"> 1053</span>  test_manager_-&gt;MarkHarnessTestCompleted(</div>
-<div class="line"><a id="l01054" name="l01054"></a><span class="lineno"> 1054</span>    <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, HarnessTestStatus::kFailed, message);</div>
-<div class="line"><a id="l01055" name="l01055"></a><span class="lineno"> 1055</span>    test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l01054" name="l01054"></a><span class="lineno"> 1054</span>    test_id, HarnessTestStatus::kFailed, message);</div>
+<div class="line"><a id="l01055" name="l01055"></a><span class="lineno"> 1055</span>    test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l01056" name="l01056"></a><span class="lineno"> 1056</span>    <span class="keywordflow">return</span> finalize(absl::OkStatus());</div>
 <div class="line"><a id="l01057" name="l01057"></a><span class="lineno"> 1057</span>  }</div>
 <div class="line"><a id="l01058" name="l01058"></a><span class="lineno"> 1058</span> </div>
@@ -1164,7 +1164,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l01061" name="l01061"></a><span class="lineno"> 1061</span> </div>
 <div class="line"><a id="l01062" name="l01062"></a><span class="lineno"> 1062</span>  <span class="keyword">auto</span> test_data = std::make_shared&lt;DynamicTestData&gt;();</div>
 <div class="line"><a id="l01063" name="l01063"></a><span class="lineno"> 1063</span>  TestManager* manager = test_manager_;</div>
-<div class="line"><a id="l01064" name="l01064"></a><span class="lineno"> 1064</span>  test_data-&gt;test_func = [manager, captured_id = <a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, assertion_type,</div>
+<div class="line"><a id="l01064" name="l01064"></a><span class="lineno"> 1064</span>  test_data-&gt;test_func = [manager, captured_id = test_id, assertion_type,</div>
 <div class="line"><a id="l01065" name="l01065"></a><span class="lineno"> 1065</span>                          assertion_target](ImGuiTestContext* ctx) {</div>
 <div class="line"><a id="l01066" name="l01066"></a><span class="lineno"> 1066</span>    manager-&gt;MarkHarnessTestRunning(captured_id);</div>
 <div class="line"><a id="l01067" name="l01067"></a><span class="lineno"> 1067</span> </div>
@@ -1291,17 +1291,17 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="line"><a id="l01188" name="l01188"></a><span class="lineno"> 1188</span>  response-&gt;set_message(message);</div>
 <div class="line"><a id="l01189" name="l01189"></a><span class="lineno"> 1189</span>  response-&gt;set_actual_value(<span class="stringliteral">&quot;(async)&quot;</span>);</div>
 <div class="line"><a id="l01190" name="l01190"></a><span class="lineno"> 1190</span>  response-&gt;set_expected_value(<span class="stringliteral">&quot;(async)&quot;</span>);</div>
-<div class="line"><a id="l01191" name="l01191"></a><span class="lineno"> 1191</span>  test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l01191" name="l01191"></a><span class="lineno"> 1191</span>  test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l01192" name="l01192"></a><span class="lineno"> 1192</span> </div>
 <div class="line"><a id="l01193" name="l01193"></a><span class="lineno"> 1193</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l01194" name="l01194"></a><span class="lineno"> 1194</span>  test_manager_-&gt;MarkHarnessTestRunning(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>);</div>
+<div class="line"><a id="l01194" name="l01194"></a><span class="lineno"> 1194</span>  test_manager_-&gt;MarkHarnessTestRunning(test_id);</div>
 <div class="line"><a id="l01195" name="l01195"></a><span class="lineno"> 1195</span>  std::string message = absl::StrFormat(</div>
 <div class="line"><a id="l01196" name="l01196"></a><span class="lineno"> 1196</span>      <span class="stringliteral">&quot;[STUB] Assertion &#39;%s&#39; passed (ImGuiTestEngine not available)&quot;</span>,</div>
 <div class="line"><a id="l01197" name="l01197"></a><span class="lineno"> 1197</span>      request-&gt;condition());</div>
-<div class="line"><a id="l01198" name="l01198"></a><span class="lineno"> 1198</span>  test_manager_-&gt;MarkHarnessTestCompleted(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>,</div>
+<div class="line"><a id="l01198" name="l01198"></a><span class="lineno"> 1198</span>  test_manager_-&gt;MarkHarnessTestCompleted(test_id,</div>
 <div class="line"><a id="l01199" name="l01199"></a><span class="lineno"> 1199</span>                                          HarnessTestStatus::kPassed,</div>
 <div class="line"><a id="l01200" name="l01200"></a><span class="lineno"> 1200</span>                                          message);</div>
-<div class="line"><a id="l01201" name="l01201"></a><span class="lineno"> 1201</span>  test_manager_-&gt;AppendHarnessTestLog(<a class="code hl_variable" href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">test_id</a>, message);</div>
+<div class="line"><a id="l01201" name="l01201"></a><span class="lineno"> 1201</span>  test_manager_-&gt;AppendHarnessTestLog(test_id, message);</div>
 <div class="line"><a id="l01202" name="l01202"></a><span class="lineno"> 1202</span> </div>
 <div class="line"><a id="l01203" name="l01203"></a><span class="lineno"> 1203</span>  response-&gt;set_success(<span class="keyword">true</span>);</div>
 <div class="line"><a id="l01204" name="l01204"></a><span class="lineno"> 1204</span>  response-&gt;set_message(message);</div>
@@ -1959,9 +1959,7 @@ $(document).ready(function(){initNavTree('dd/d7f/imgui__test__harness__service_8
 <div class="ttc" id="aclassyaze_1_1test_1_1TestScriptParser_html_a4b3b5c540310337d0eafd0f01389c0dd"><div class="ttname"><a href="../../d9/d12/classyaze_1_1test_1_1TestScriptParser.html#a4b3b5c540310337d0eafd0f01389c0dd">yaze::test::TestScriptParser::ParseFromFile</a></div><div class="ttdeci">static absl::StatusOr&lt; TestScript &gt; ParseFromFile(const std::string &amp;path)</div><div class="ttdef"><b>Definition</b> <a href="../../d6/dba/test__script__parser_8cc_source.html#l00196">test_script_parser.cc:196</a></div></div>
 <div class="ttc" id="agroup__version_html_gabc3b93252a656c28dee5ac55e492cc96"><div class="ttname"><a href="../../d1/d4b/group__version.html#gabc3b93252a656c28dee5ac55e492cc96">YAZE_VERSION_STRING</a></div><div class="ttdeci">#define YAZE_VERSION_STRING</div><div class="ttdef"><b>Definition</b> <a href="../../d9/d89/yaze_8h_source.html#l00032">yaze.h:32</a></div></div>
 <div class="ttc" id="aimgui__test__harness__service_8h_html"><div class="ttname"><a href="../../d9/d30/imgui__test__harness__service_8h.html">imgui_test_harness_service.h</a></div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03_html_a548f3448d4583d652e5940e0410ced67"><div class="ttname"><a href="../../d4/d02/namespaceyaze_1_1test_1_1anonymous__namespace_02test__recorder_8cc_03.html#a548f3448d4583d652e5940e0410ced67">yaze::test::anonymous_namespace{test_recorder.cc}::HarnessStatusToString</a></div><div class="ttdeci">const char * HarnessStatusToString(HarnessTestStatus status)</div><div class="ttdef"><b>Definition</b> <a href="../../de/d52/test__recorder_8cc_source.html#l00020">test_recorder.cc:20</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1test_html_a24fd08ea41d8314e6fccdb0fdcd9f072ab62fa3c9492b6dae76c23d6dfa466611"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#a24fd08ea41d8314e6fccdb0fdcd9f072ab62fa3c9492b6dae76c23d6dfa466611">yaze::test::TestStatus::kFailed</a></div><div class="ttdeci">@ kFailed</div></div>
-<div class="ttc" id="anamespaceyaze_1_1test_html_aa6ec55282cc2943ead16117c4104bfe3"><div class="ttname"><a href="../../d4/d0a/namespaceyaze_1_1test.html#aa6ec55282cc2943ead16117c4104bfe3">yaze::test::test_id</a></div><div class="ttdeci">void test_id</div><div class="ttdef"><b>Definition</b> <a href="../../d1/d2e/test__manager_8cc_source.html#l01856">test_manager.cc:1856</a></div></div>
 <div class="ttc" id="anamespaceyaze_html"><div class="ttname"><a href="../../dc/d46/namespaceyaze.html">yaze</a></div><div class="ttdoc">Main namespace for the application.</div><div class="ttdef"><b>Definition</b> <a href="../../db/d17/asar__wrapper_8cc_source.html#l00014">asar_wrapper.cc:14</a></div></div>
 <div class="ttc" id="ascreenshot__utils_8h_html"><div class="ttname"><a href="../../d7/d65/screenshot__utils_8h.html">screenshot_utils.h</a></div></div>
 <div class="ttc" id="atest__manager_8h_html"><div class="ttname"><a href="../../d6/d5c/test__manager_8h.html">test_manager.h</a></div></div>

@@ -1,7 +1,5 @@
 <map id="test/e2e/dungeon_editor_smoke_test.h" name="test/e2e/dungeon_editor_smoke_test.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="87,5,247,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,166,46"/>
 <area shape="rect" id="Node000002" href="$d4/dd0/dungeon__editor__smoke__test_8cc.html" title=" " alt="" coords="5,94,166,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="140,59,106,95,102,92,136,56"/>
-<area shape="rect" id="Node000003" href="$de/d3d/yaze__test_8cc.html" title=" " alt="" coords="190,102,309,127"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="198,56,240,99,236,103,194,59"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="88,62,88,94,83,94,83,62"/>
 </map>

@@ -1,9 +1,0 @@
-<map id="yaze::cli::ModernCLI::HandleExtractSymbolsCommand" name="yaze::cli::ModernCLI::HandleExtractSymbolsCommand">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,223,79"/>
-<area shape="rect" id="Node000002" href="$da/dd2/classyaze_1_1core_1_1AsarWrapper.html#ac875ea1cb847a2a8d274f0217f624460" title="Extract symbols from an assembly file without patching." alt="" coords="271,5,430,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="223,41,255,36,255,42,224,46"/>
-<area shape="rect" id="Node000008" href="$da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a9696c9ed3e363b0a989213d0d0862010" title="Initialize the Asar library." alt="" coords="271,71,430,111"/>
-<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="224,71,255,75,255,81,223,76"/>
-<area shape="rect" id="Node000003" href="$da/dd2/classyaze_1_1core_1_1AsarWrapper.html#a970cffb421b3db4f9697edbfa5027828" title="Apply an assembly patch to a ROM." alt="" coords="478,5,637,46"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="430,23,463,23,463,28,430,28"/>
-</map>

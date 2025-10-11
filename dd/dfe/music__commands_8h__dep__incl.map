@@ -1,0 +1,9 @@
+<map id="src/cli/handlers/game/music_commands.h" name="src/cli/handlers/game/music_commands.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="202,5,347,46"/>
+<area shape="rect" id="Node000002" href="$db/dae/command__handlers_8cc.html" title=" " alt="" coords="5,94,176,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="220,55,133,96,131,91,218,50"/>
+<area shape="rect" id="Node000003" href="$d3/d27/music__commands_8cc.html" title=" " alt="" coords="200,94,349,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="277,62,277,94,272,94,272,62"/>
+<area shape="rect" id="Node000004" href="$d3/d79/tool__dispatcher_8cc.html" title=" " alt="" coords="373,94,512,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="327,51,406,91,403,96,325,56"/>
+</map>

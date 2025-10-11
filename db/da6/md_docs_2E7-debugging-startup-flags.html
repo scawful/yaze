@@ -101,21 +101,21 @@ $(document).ready(function(){initNavTree('db/da6/md_docs_2E7-debugging-startup-f
   <div class="headertitle"><div class="title">YAZE Startup Debugging Flags</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md556"></a> This guide explains how to use command-line flags to quickly open specific editors and cards during development for faster debugging workflows.</p>
-<h1><a class="anchor" id="autotoc_md557"></a>
+<div class="textblock"><p><a class="anchor" id="autotoc_md568"></a> This guide explains how to use command-line flags to quickly open specific editors and cards during development for faster debugging workflows.</p>
+<h1><a class="anchor" id="autotoc_md569"></a>
 Basic Usage</h1>
 <div class="fragment"><div class="line">./yaze [flags]</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md558"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md570"></a>
 Available Flags</h1>
-<h2><a class="anchor" id="autotoc_md559"></a>
+<h2><a class="anchor" id="autotoc_md571"></a>
 &lt;tt&gt;--rom_file&lt;/tt&gt;</h2>
 <p>Load a specific ROM file on startup.</p>
 <div class="fragment"><div class="line">./yaze --rom_file=/path/to/zelda3.sfc</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md560"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md572"></a>
 &lt;tt&gt;--debug&lt;/tt&gt;</h2>
 <p>Enable debug logging with verbose output.</p>
 <div class="fragment"><div class="line">./yaze --debug --log_file=yaze_debug.log</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md561"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md573"></a>
 &lt;tt&gt;--editor&lt;/tt&gt;</h2>
 <p>Open a specific editor on startup. This saves time by skipping manual navigation through the UI.</p>
 <p><b>Available editors:</b></p><ul>
@@ -133,7 +133,7 @@ Available Flags</h1>
 <li><code>Settings</code> - Settings editor</li>
 </ul>
 <p><b>Example:</b> </p><div class="fragment"><div class="line">./yaze --rom_file=zelda3.sfc --editor=Dungeon</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md562"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md574"></a>
 &lt;tt&gt;--cards&lt;/tt&gt;</h2>
 <p>Open specific cards/panels within an editor. Most useful with the Dungeon editor.</p>
 <p><b>Dungeon Editor Cards:</b></p><ul>
@@ -146,36 +146,36 @@ Available Flags</h1>
 <li><code>Room N</code> - Opens a specific room by ID (e.g., <code>Room 0</code>, <code>Room 105</code>)</li>
 </ul>
 <p><b>Example:</b> </p><div class="fragment"><div class="line">./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards=&quot;Rooms List,Room 0&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md563"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md575"></a>
 Common Debugging Scenarios</h1>
-<h2><a class="anchor" id="autotoc_md564"></a>
+<h2><a class="anchor" id="autotoc_md576"></a>
 1. Quick Dungeon Room Testing</h2>
 <p>Open a specific dungeon room for testing:</p>
 <div class="fragment"><div class="line">./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards=&quot;Room 0,Room Graphics&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md565"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md577"></a>
 2. Multiple Room Comparison</h2>
 <p>Compare multiple rooms side-by-side:</p>
 <div class="fragment"><div class="line">./yaze --rom_file=zelda3.sfc --editor=Dungeon --cards=&quot;Room 0,Room 1,Room 105&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md566"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md578"></a>
 3. Full Dungeon Editor Workspace</h2>
 <p>Open all dungeon editor tools:</p>
 <div class="fragment"><div class="line">./yaze --rom_file=zelda3.sfc --editor=Dungeon \</div>
 <div class="line">  --cards=&quot;Rooms List,Room Matrix,Room Graphics,Object Editor,Palette Editor&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md567"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md579"></a>
 4. Debug Mode with Logging</h2>
 <p>Enable full debug output while working:</p>
 <div class="fragment"><div class="line">./yaze --rom_file=zelda3.sfc --debug --log_file=debug.log \</div>
 <div class="line">  --editor=Dungeon --cards=&quot;Room 0&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md568"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md580"></a>
 5. Quick Overworld Editing</h2>
 <p>Jump straight to overworld editing:</p>
 <div class="fragment"><div class="line">./yaze --rom_file=zelda3.sfc --editor=Overworld</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md569"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md581"></a>
 gRPC Test Harness (Developer Feature)</h1>
 <p>If compiled with <code>YAZE_WITH_GRPC=ON</code>, you can enable automated GUI testing:</p>
 <div class="fragment"><div class="line">./yaze --enable_test_harness --test_harness_port=50051</div>
 </div><!-- fragment --><p>This allows remote control via gRPC for automated testing and AI agent interaction.</p>
-<h1><a class="anchor" id="autotoc_md570"></a>
+<h1><a class="anchor" id="autotoc_md582"></a>
 Combining Flags</h1>
 <p>All flags can be combined for powerful debugging setups:</p>
 <div class="fragment"><div class="line"># Full debugging setup for room 105</div>
@@ -185,7 +185,7 @@ Combining Flags</h1>
 <div class="line">  --log_file=room_105_debug.log \</div>
 <div class="line">  --editor=Dungeon \</div>
 <div class="line">  --cards=&quot;Room 105,Room Graphics,Palette Editor,Object Editor&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md571"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md583"></a>
 Notes</h1>
 <ul>
 <li>Card names are case-sensitive and must match exactly</li>
@@ -194,7 +194,7 @@ Notes</h1>
 <li>The <code>--cards</code> flag is currently only implemented for the Dungeon editor</li>
 <li>Room IDs range from 0-319 in the vanilla game</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md572"></a>
+<h1><a class="anchor" id="autotoc_md584"></a>
 Troubleshooting</h1>
 <p><b>Editor doesn't open:</b></p><ul>
 <li>Check spelling (case-sensitive)</li>

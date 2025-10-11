@@ -1,7 +1,9 @@
 <map id="yaze::cli::UnifiedLayout::CreateHexViewerPanel" name="yaze::cli::UnifiedLayout::CreateHexViewerPanel">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,23,167,64"/>
-<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="221,5,331,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,30,206,25,206,30,168,35"/>
-<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="215,55,337,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="168,51,199,55,199,60,167,56"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,63,167,103"/>
+<area shape="rect" id="Node000002" href="$db/d23/classyaze_1_1cli_1_1UnifiedLayout.html#ae7afbcdacaba61ebc4bc4a3f8f214e40" title=" " alt="" coords="215,5,366,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="160,60,200,48,202,53,161,65"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="236,70,345,96"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,80,220,80,220,86,167,86"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a404da5504886938665284f066a7831ba" title=" " alt="" coords="229,120,352,145"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="168,100,220,113,219,118,166,105"/>
 </map>

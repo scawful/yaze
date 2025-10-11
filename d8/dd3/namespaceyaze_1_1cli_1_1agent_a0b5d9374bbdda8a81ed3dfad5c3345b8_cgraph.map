@@ -1,0 +1,11 @@
+<map id="yaze::cli::agent::HandleDungeonListSpritesCommand" name="yaze::cli::agent::HandleDungeonListSpritesCommand">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,71,200,111"/>
+<area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html#a1347ac8eee5cae5c3a8e3b6ed649e52e" title="Execute the command." alt="" coords="248,71,408,111"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="200,88,232,88,232,94,200,94"/>
+<area shape="rect" id="Node000003" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a88e4191a5674b93787d941a42b311017" title="Start a JSON object or text section." alt="" coords="464,5,663,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="403,68,472,48,473,53,404,73"/>
+<area shape="rect" id="Node000006" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a8ec48459ba3fc9e3c24c97acca013fb4" title="End a JSON object or text section." alt="" coords="470,71,658,111"/>
+<area shape="poly" id="edge3_Node000002_Node000006" title=" " alt="" coords="408,88,454,88,454,94,408,94"/>
+<area shape="rect" id="Node000008" href="$d7/df7/classyaze_1_1cli_1_1resources_1_1CommandContext.html#a7a317a9574a21416977af021d10cca66" title="Ensure resource labels are loaded." alt="" coords="456,135,671,191"/>
+<area shape="poly" id="edge4_Node000002_Node000008" title=" " alt="" coords="397,109,457,128,455,133,396,114"/>
+</map>

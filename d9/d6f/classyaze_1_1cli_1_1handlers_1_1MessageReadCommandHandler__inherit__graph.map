@@ -1,0 +1,5 @@
+<map id="yaze::cli::handlers::MessageReadCommandHandler" name="yaze::cli::handlers::MessageReadCommandHandler">
+<area shape="rect" id="Node000001" title="Command handler for reading messages." alt="" coords="5,94,220,135"/>
+<area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="47,5,178,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,62,115,94,110,94,110,62"/>
+</map>

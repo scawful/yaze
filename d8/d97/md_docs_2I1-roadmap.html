@@ -101,18 +101,18 @@ $(document).ready(function(){initNavTree('d8/d97/md_docs_2I1-roadmap.html','../.
   <div class="headertitle"><div class="title">Roadmap</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md1151"></a> <b>Last Updated: October 4, 2025</b></p>
+<div class="textblock"><p><a class="anchor" id="autotoc_md1163"></a> <b>Last Updated: October 4, 2025</b></p>
 <p>This document outlines the development roadmap for yaze. The project has achieved stability in its core editors and testing infrastructure. The focus now shifts to completing advanced AI features, polishing UI/UX, and expanding editor capabilities.</p>
-<h1><a class="anchor" id="autotoc_md1152"></a>
+<h1><a class="anchor" id="autotoc_md1164"></a>
 Current Focus: AI &amp; Editor Polish</h1>
 <p>With the core systems stable, the immediate priority is to finish the overworld editor features, fix dungeon object rendering, finalize the Tile16 editor, enhance the <code>z3ed</code> AI agent, and improve the user experience.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1154"></a>
+<h1><a class="anchor" id="autotoc_md1166"></a>
 0.4.0 (Next Major Release) - SDL3 Modernization &amp; Core Improvements</h1>
 <p><b>Status:</b> Planning <br  />
  <b>Type:</b> Major Breaking Release <br  />
  <b>Timeline:</b> 6-8 weeks</p>
-<h2><a class="anchor" id="autotoc_md1155"></a>
+<h2><a class="anchor" id="autotoc_md1167"></a>
 🎯 Primary Goals</h2>
 <ol type="1">
 <li><b>SDL3 Migration</b> - Modernize graphics/audio/input backend</li>
@@ -120,14 +120,14 @@ Current Focus: AI &amp; Editor Polish</h1>
 <li><b>Backend Abstraction</b> - Clean separation of graphics/audio/input backends</li>
 <li><b>Editor Polish</b> - Complete remaining UX improvements</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md1156"></a>
+<h2><a class="anchor" id="autotoc_md1168"></a>
 Phase 1: Infrastructure (Week 1-2)</h2>
 <ul>
 <li><b>Dependency Consolidation</b>: Merge <code>src/lib/</code> and <code>third_party/</code> into unified <code>external/</code> directory</li>
 <li><b>CMake Modernization</b>: Update all build files, submodules, and CI workflows</li>
 <li><b>Build Validation</b>: Ensure all platforms (Windows/macOS/Linux) build cleanly</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1157"></a>
+<h2><a class="anchor" id="autotoc_md1169"></a>
 Phase 2: SDL3 Core Migration (Week 3-4)</h2>
 <ul>
 <li><b>SDL3 Update</b>: Migrate from SDL2 to SDL3 with GPU-based rendering</li>
@@ -135,7 +135,7 @@ Phase 2: SDL3 Core Migration (Week 3-4)</h2>
 <li><b>Basic Rendering</b>: Get window creation and basic editor rendering working</li>
 <li><b><a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> Integration</b>: Update <a class="el" href="../../df/de4/namespaceImGui.html">ImGui</a> SDL3 backend integration</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1158"></a>
+<h2><a class="anchor" id="autotoc_md1170"></a>
 Phase 3: Complete SDL3 Integration (Week 5-6)</h2>
 <ul>
 <li><b>All Editors</b>: Port all 6 editors (Overworld, Dungeon, Graphics, Palette, Screen, Music) to new backend</li>
@@ -143,7 +143,7 @@ Phase 3: Complete SDL3 Integration (Week 5-6)</h2>
 <li><b>Input Backend</b>: Implement SDL3 input backend with improved gamepad support</li>
 <li><b>Performance</b>: Optimize rendering performance, benchmark against v0.3.x</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1159"></a>
+<h2><a class="anchor" id="autotoc_md1171"></a>
 Phase 4: Editor Features &amp; UX (Week 7-8)</h2>
 <ul>
 <li><b>Tile16 Palette System</b>: Resolve color consistency issues in source tile view</li>
@@ -151,7 +151,7 @@ Phase 4: Editor Features &amp; UX (Week 7-8)</h2>
 <li><b>Dungeon Editor UI</b>: Add human-readable room labels and improved tab management</li>
 <li><b>Performance</b>: Implement lazy loading for rooms (~2.6s → &lt;1s load time)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1160"></a>
+<h2><a class="anchor" id="autotoc_md1172"></a>
 Phase 5: AI Agent Enhancements (Throughout)</h2>
 <ul>
 <li>✅ **Vim Mode**: Implemented vim-style line editing in simple-chat</li>
@@ -160,7 +160,7 @@ Phase 5: AI Agent Enhancements (Throughout)</h2>
 <li>**AI-Driven Editing**: Integrate AI with GUI test harness for automated edits</li>
 <li>**Expand Toolset**: Add tools for dialogue, music data, sprite properties</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md1161"></a>
+<h2><a class="anchor" id="autotoc_md1173"></a>
 Success Criteria</h2>
 <ul>
 <li>[ ] All platforms build and run with SDL3</li>
@@ -176,7 +176,7 @@ Success Criteria</h2>
 <li>API changes in graphics backend (for extensions)</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1163"></a>
+<h1><a class="anchor" id="autotoc_md1175"></a>
 0.5.X - Feature Expansion</h1>
 <ul>
 <li><b>Plugin Architecture</b>: Design and implement the initial framework for community-developed extensions and custom tools.</li>
@@ -188,7 +188,7 @@ Success Criteria</h2>
 </li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1165"></a>
+<h1><a class="anchor" id="autotoc_md1177"></a>
 0.6.X - Content &amp; Integration</h1>
 <ul>
 <li><b>Advanced Content Editors</b>:<ul>
@@ -203,14 +203,14 @@ Success Criteria</h2>
 </li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md1167"></a>
+<h1><a class="anchor" id="autotoc_md1179"></a>
 Recently Completed (v0.3.3 - October 6, 2025)</h1>
 <ul>
 <li>✅ <b>Vim Mode for CLI</b>: Full vim-style modal editing in <code>simple-chat</code> with normal/insert modes, navigation (hjkl, w/b), editing (dd, yy, p), history, and autocomplete</li>
 <li>✅ <b>Autocomplete System</b>: Intelligent command completion engine with fuzzy matching, context-aware suggestions, and real-time dropdown in FTXUI chat</li>
 <li>✅ <b>Enhanced TUI</b>: Integrated autocomplete UI components with proper header files and CMake compilation</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md1168"></a>
+<h1><a class="anchor" id="autotoc_md1180"></a>
 Recently Completed (v0.3.2)</h1>
 <ul>
 <li>✅ <b>Dungeon Editor Stability</b>: Fixed all critical crashes in the test suite by migrating to <code>TestRomManager</code>. The editor's core logic is now stable and production-ready.</li>

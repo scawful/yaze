@@ -1,0 +1,7 @@
+<map id="yaze::cli::resources::TEST_F" name="yaze::cli::resources::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,135,46"/>
+<area shape="rect" id="Node000002" href="$d7/df7/classyaze_1_1cli_1_1resources_1_1CommandContext.html#a6b0d943a21933a76d17905c090d844e7" title="Get the ROM instance (loads if not already loaded)" alt="" coords="183,5,367,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,23,167,23,167,28,135,28"/>
+<area shape="rect" id="Node000003" href="$d7/df7/classyaze_1_1cli_1_1resources_1_1CommandContext.html#ae34ee0184eefbd9ae4711c72d7b9ebb4" title="Initialize the context and load ROM if needed." alt="" coords="415,5,598,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="367,23,399,23,399,28,367,28"/>
+</map>

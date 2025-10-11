@@ -1,0 +1,7 @@
+<map id="yaze::cli::handlers::GuiPlaceTileCommandHandler::ValidateArgs" name="yaze::cli::handlers::GuiPlaceTileCommandHandler::ValidateArgs">
+<area shape="rect" id="Node000001" title="Validate command arguments." alt="" coords="5,5,211,61"/>
+<area shape="rect" id="Node000002" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a74c38b994ca4ebd34ecdf75e6898f676" title="Validate that required arguments are present." alt="" coords="259,13,457,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="211,31,243,31,243,36,211,36"/>
+<area shape="rect" id="Node000003" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a095e664ff2500d73cca6c91a1e4f5f83" title=" " alt="" coords="505,13,710,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="458,31,490,31,490,36,458,36"/>
+</map>

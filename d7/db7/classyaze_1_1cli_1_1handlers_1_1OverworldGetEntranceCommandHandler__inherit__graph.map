@@ -1,0 +1,5 @@
+<map id="yaze::cli::handlers::OverworldGetEntranceCommandHandler" name="yaze::cli::handlers::OverworldGetEntranceCommandHandler">
+<area shape="rect" id="Node000001" title="Command handler for getting entrance information." alt="" coords="5,94,223,150"/>
+<area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="48,5,180,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="117,61,117,93,111,93,111,61"/>
+</map>

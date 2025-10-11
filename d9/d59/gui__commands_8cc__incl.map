@@ -1,0 +1,11 @@
+<map id="src/cli/handlers/tools/gui_commands.cc" name="src/cli/handlers/tools/gui_commands.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="167,5,308,46"/>
+<area shape="rect" id="Node000002" href="$d9/de0/gui__commands_8h.html" title=" " alt="" coords="14,94,138,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="202,49,127,89,125,84,199,44"/>
+<area shape="rect" id="Node000042" title=" " alt="" coords="161,102,314,127"/>
+<area shape="poly" id="edge3_Node000001_Node000042" title=" " alt="" coords="240,47,240,86,235,86,235,47"/>
+<area shape="rect" id="Node000019" title=" " alt="" coords="338,102,499,127"/>
+<area shape="poly" id="edge4_Node000001_Node000019" title=" " alt="" coords="280,44,381,92,379,97,277,49"/>
+<area shape="rect" id="Node000003" href="$d9/d72/command__handler_8h.html" title=" " alt="" coords="5,183,147,223"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,135,79,167,73,167,73,135"/>
+</map>

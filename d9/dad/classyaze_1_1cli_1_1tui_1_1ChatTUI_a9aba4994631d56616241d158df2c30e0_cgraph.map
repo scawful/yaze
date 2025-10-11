@@ -1,0 +1,5 @@
+<map id="yaze::cli::tui::ChatTUI::CreateTodoPopup" name="yaze::cli::tui::ChatTUI::CreateTodoPopup">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,147,46"/>
+<area shape="rect" id="Node000002" href="$df/dc2/classyaze_1_1cli_1_1agent_1_1TodoManager.html#af767df0886636b476ddaa7e875e7c5a0" title="Get all TODO items." alt="" coords="195,5,384,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,23,179,23,179,28,147,28"/>
+</map>

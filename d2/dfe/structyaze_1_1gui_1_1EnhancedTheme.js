@@ -71,6 +71,8 @@ var structyaze_1_1gui_1_1EnhancedTheme =
     [ "plot_histogram", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#adc1cda9d55fdfe8498ca809143ef1b7c", null ],
     [ "plot_histogram_hovered", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a5bf39a777c85a3cd6718892cadd14342", null ],
     [ "tree_lines", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a5243c06761d1d20a6e54ad54cb40b8e4", null ],
+    [ "tab_unfocused", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a18024328edb579addbb224972ae326da", null ],
+    [ "tab_unfocused_active", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a7de3c1816dc96cb29ffe3e7e96e724d3", null ],
     [ "tab_dimmed", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a653c2c7b77ab9a6394d69f0226fb2de2", null ],
     [ "tab_dimmed_selected", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a10d26a72e65afee21a70e431f10ed396", null ],
     [ "tab_dimmed_selected_overline", "d2/dfe/structyaze_1_1gui_1_1EnhancedTheme.html#a75348f2efe9f1544e9edb202900d6757", null ],

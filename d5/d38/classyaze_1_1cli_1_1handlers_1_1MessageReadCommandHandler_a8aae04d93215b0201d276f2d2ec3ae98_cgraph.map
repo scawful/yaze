@@ -1,0 +1,11 @@
+<map id="yaze::cli::handlers::MessageReadCommandHandler::Execute" name="yaze::cli::handlers::MessageReadCommandHandler::Execute">
+<area shape="rect" id="Node000001" title="Execute the command business logic." alt="" coords="5,97,220,152"/>
+<area shape="rect" id="Node000002" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a9afa5963e854f8dc9647decc470cbba7" title="Add a key&#45;value pair." alt="" coords="278,5,457,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="177,93,267,57,287,49,289,54,269,61,179,98"/>
+<area shape="rect" id="Node000006" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a88e4191a5674b93787d941a42b311017" title="Start a JSON object or text section." alt="" coords="268,71,467,111"/>
+<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="220,108,252,103,252,109,220,113"/>
+<area shape="rect" id="Node000008" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a8ec48459ba3fc9e3c24c97acca013fb4" title="End a JSON object or text section." alt="" coords="273,136,462,177"/>
+<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="220,135,258,140,257,145,220,140"/>
+<area shape="rect" id="Node000009" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a389176fcbabea177b5ed3c27ea7ed6c3" title="Parse a named argument (e.g., –format=json or –format json)" alt="" coords="276,201,459,242"/>
+<area shape="poly" id="edge4_Node000001_Node000009" title=" " alt="" coords="180,150,269,186,289,193,287,198,267,191,178,155"/>
+</map>

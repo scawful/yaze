@@ -1,0 +1,11 @@
+<map id="src/cli/tui/autocomplete_ui.cc" name="src/cli/tui/autocomplete_ui.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="325,5,481,46"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,102,211,127"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="336,49,165,99,163,94,335,44"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="235,94,392,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="384,48,346,85,343,81,381,45"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="416,102,571,127"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="425,45,472,89,468,93,421,48"/>
+<area shape="rect" id="Node000005" href="$d7/d82/autocomplete_8h.html" title=" " alt="" coords="596,102,743,127"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="464,44,618,94,617,99,463,49"/>
+</map>

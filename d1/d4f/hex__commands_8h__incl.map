@@ -1,9 +1,11 @@
-<map id="src/cli/handlers/agent/hex_commands.h" name="src/cli/handlers/agent/hex_commands.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="39,5,185,46"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,94,59,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="94,48,57,85,53,81,90,45"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="83,94,141,120"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="115,46,115,78,109,78,109,46"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="164,94,300,120"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="143,44,203,83,200,88,140,49"/>
+<map id="src/cli/handlers/graphics/hex_commands.h" name="src/cli/handlers/graphics/hex_commands.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="31,5,193,46"/>
+<area shape="rect" id="Node000002" href="$d9/d72/command__handler_8h.html" title=" " alt="" coords="41,94,183,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,47,115,78,109,78,109,47"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,183,59,208"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="94,137,57,173,53,170,90,133"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="83,183,141,208"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="115,135,115,167,109,167,109,135"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="164,183,300,208"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="143,133,203,172,200,176,140,137"/>
 </map>

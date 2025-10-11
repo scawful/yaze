@@ -101,13 +101,13 @@ $(document).ready(function(){initNavTree('d5/d83/md_docs_2F1-dungeon-editor-guid
   <div class="headertitle"><div class="title">F2: Dungeon Editor v2 - Complete Guide</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md722"></a> <b>Last Updated</b>: October 10, 2025 <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md734"></a> <b>Last Updated</b>: October 10, 2025 <br  />
  <b>Related</b>: <a class="el" href="../../d5/d18/md_docs_2E2-development-guide.html">E2-development-guide.md</a>, <a class="el" href="../../de/dc5/md_docs_2E5-debugging-guide.html">E5-debugging-guide.md</a></p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md724"></a>
+<h1><a class="anchor" id="autotoc_md736"></a>
 Overview</h1>
 <p>The Dungeon Editor uses a modern card-based architecture (DungeonEditorV2) with self-contained room rendering. This guide covers the architecture, recent refactoring work, and next development steps.</p>
-<h2><a class="anchor" id="autotoc_md725"></a>
+<h2><a class="anchor" id="autotoc_md737"></a>
 Key Features</h2>
 <ul>
 <li>✅ <b>Visual room editing</b> with 512x512 canvas per room</li>
@@ -118,7 +118,7 @@ Key Features</h2>
 <li>✅ <b>Overworld integration</b> - Double-click entrances to open dungeon rooms</li>
 </ul>
 <hr  />
-<h2><a class="anchor" id="autotoc_md727"></a>
+<h2><a class="anchor" id="autotoc_md739"></a>
 Architecture Improvements ✅</h2>
 <ol type="1">
 <li><b>Room Buffers Decoupled</b> - No dependency on Arena graphics sheets</li>
@@ -128,7 +128,7 @@ Architecture Improvements ✅</h2>
 <li><b>Texture Atlas Infrastructure</b> - Future-proof stub created</li>
 <li><b>Test Suite Cleaned</b> - Deleted 1270 lines of redundant tests</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md728"></a>
+<h2><a class="anchor" id="autotoc_md740"></a>
 UI Improvements ✅</h2>
 <ul>
 <li>Room ID in card title: <code>[003] Room Name</code></li>
@@ -138,9 +138,9 @@ UI Improvements ✅</h2>
 <li>Object count in status bar</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md730"></a>
+<h1><a class="anchor" id="autotoc_md742"></a>
 Architecture</h1>
-<h2><a class="anchor" id="autotoc_md731"></a>
+<h2><a class="anchor" id="autotoc_md743"></a>
 Component Overview</h2>
 <div class="fragment"><div class="line">DungeonEditorV2 (UI Layer)</div>
 <div class="line">├─ Card-based UI system</div>
@@ -159,7 +159,7 @@ Component Overview</h2>
 <div class="line">├─ Object storage (tile_objects_)</div>
 <div class="line">├─ Graphics loading</div>
 <div class="line">└─ Rendering pipeline</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md732"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md744"></a>
 Room Rendering Pipeline</h2>
 <p>TODO: Update this to latest code.</p>
 <div class="fragment"><div class="line">1. LoadRoomGraphics(blockset)</div>
@@ -186,7 +186,7 @@ Room Rendering Pipeline</h2>
 <div class="line">5. DrawObjectPositionOutlines(room)</div>
 <div class="line">   └─&gt; Colored rectangles by layer</div>
 <div class="line">   └─&gt; Object ID labels</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md733"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md745"></a>
 Room Structure (Bottom to Top)</h2>
 <p>Understanding ALTTP dungeon composition is critical:</p>
 <div class="fragment"><div class="line">Room Composition:</div>
@@ -200,11 +200,11 @@ Room Structure (Bottom to Top)</h2>
 <div class="line">Doors: Positioned at room edges to connect rooms</div>
 </div><!-- fragment --><p><b>Key Insight</b>: Layouts are immovable base structure. Objects are placed ON TOP and can be moved/edited. This allows for large rooms, 4-quadrant rooms, tall/wide rooms, etc.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md735"></a>
+<h1><a class="anchor" id="autotoc_md747"></a>
 Next Development Steps</h1>
-<h2><a class="anchor" id="autotoc_md736"></a>
+<h2><a class="anchor" id="autotoc_md748"></a>
 High Priority (Must Do)</h2>
-<h3><a class="anchor" id="autotoc_md737"></a>
+<h3><a class="anchor" id="autotoc_md749"></a>
 1. Door Rendering at Room Edges</h3>
 <p><b>What</b>: Render doors with proper patterns at room connections</p>
 <p><b>Pattern Reference</b>: ZScream's door drawing patterns</p>
@@ -215,7 +215,7 @@ High Priority (Must Do)</h2>
 <div class="line">  </div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h3><a class="anchor" id="autotoc_md739"></a>
+<h3><a class="anchor" id="autotoc_md751"></a>
 2. Object Name Labels from String Array</h3>
 <p><b>File</b>: <code><a class="el" href="../../d1/d35/dungeon__canvas__viewer_8cc.html">dungeon_canvas_viewer.cc</a>:416</code> (DrawObjectPositionOutlines)</p>
 <p><b>What</b>: Show real object names instead of just IDs</p>
@@ -232,7 +232,7 @@ High Priority (Must Do)</h2>
 <div class="line">  <span class="keywordflow">return</span> <span class="stringliteral">&quot;Object&quot;</span>;</div>
 <div class="line">}</div>
 </div><!-- fragment --><hr  />
-<h3><a class="anchor" id="autotoc_md741"></a>
+<h3><a class="anchor" id="autotoc_md753"></a>
 4. Fix Plus Button to Select Any Room</h3>
 <p><b>File</b>: <code><a class="el" href="../../d0/d0d/dungeon__editor__v2_8cc.html">dungeon_editor_v2.cc</a>:228</code> (DrawToolset)</p>
 <p><b>Current Issue</b>: Opens Room 0x00 (Ganon) always</p>
@@ -255,9 +255,9 @@ High Priority (Must Do)</h2>
 <div class="line">}</div>
 <div class="ttc" id="aicons_8h_html_a9db9587cd41970cdc44e0b730c504e6f"><div class="ttname"><a href="../../de/dbf/icons_8h.html#a9db9587cd41970cdc44e0b730c504e6f">ICON_MD_ADD</a></div><div class="ttdeci">#define ICON_MD_ADD</div><div class="ttdef"><b>Definition</b> <a href="../../de/dbf/icons_8h_source.html#l00084">icons.h:84</a></div></div>
 </div><!-- fragment --><hr  />
-<h2><a class="anchor" id="autotoc_md743"></a>
+<h2><a class="anchor" id="autotoc_md755"></a>
 Medium Priority (Should Do)</h2>
-<h3><a class="anchor" id="autotoc_md744"></a>
+<h3><a class="anchor" id="autotoc_md756"></a>
 6. Fix InputHexByte +/- Button Events</h3>
 <p><b>File</b>: <code><a class="el" href="../../de/d4c/input_8cc.html">src/app/gui/input.cc</a></code> (likely)</p>
 <p><b>Issue</b>: Buttons don't respond to clicks</p>
@@ -266,9 +266,9 @@ Medium Priority (Should Do)</h2>
 <li>Verify event logic matches working examples</li>
 <li>Keep existing event style if it works elsewhere</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md745"></a>
+<h2><a class="anchor" id="autotoc_md757"></a>
 Lower Priority (Nice to Have)</h2>
-<h3><a class="anchor" id="autotoc_md746"></a>
+<h3><a class="anchor" id="autotoc_md758"></a>
 9. Move Backend Logic to DungeonEditorSystem</h3>
 <p><b>What</b>: Separate UI (V2) from data operations (System)</p>
 <p><b>Migration</b>:</p><ul>
@@ -279,9 +279,9 @@ Lower Priority (Nice to Have)</h2>
 </ul>
 <p><b>Result</b>: DungeonEditorV2 becomes pure UI coordinator</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md748"></a>
+<h1><a class="anchor" id="autotoc_md760"></a>
 Quick Start</h1>
-<h2><a class="anchor" id="autotoc_md749"></a>
+<h2><a class="anchor" id="autotoc_md761"></a>
 Build &amp; Run</h2>
 <div class="fragment"><div class="line">cd /Users/scawful/Code/yaze</div>
 <div class="line">cmake --preset mac-ai -B build_ai</div>
@@ -293,9 +293,9 @@ Build &amp; Run</h2>
 <div class="line"># Open specific room</div>
 <div class="line">./build_ai/bin/yaze.app/Contents/MacOS/yaze --rom_file=zelda3.sfc --editor=Dungeon --cards=&quot;Room 0x00&quot;</div>
 </div><!-- fragment --><hr  />
-<h1><a class="anchor" id="autotoc_md751"></a>
+<h1><a class="anchor" id="autotoc_md763"></a>
 Testing &amp; Verification</h1>
-<h2><a class="anchor" id="autotoc_md752"></a>
+<h2><a class="anchor" id="autotoc_md764"></a>
 Debug Commands</h2>
 <div class="fragment"><div class="line"># Verify floor values load correctly</div>
 <div class="line">./build_ai/bin/yaze.app/Contents/MacOS/yaze --rom_file=zelda3.sfc --editor=Dungeon 2&gt;&amp;1 | grep &quot;floor1=&quot;</div>
@@ -307,7 +307,7 @@ Debug Commands</h2>
 <div class="line"> </div>
 <div class="line"># Check object drawing details</div>
 <div class="line">./build_ai/bin/yaze.app/Contents/MacOS/yaze --rom_file=zelda3.sfc --editor=Dungeon 2&gt;&amp;1 | grep &quot;Writing Tile16&quot;</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md753"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md765"></a>
 Related Documentation</h1>
 <ul>
 <li><b><a class="el" href="../../de/dfd/E2-development-guide_8md.html">E2-development-guide.md</a></b> - Core architectural patterns</li>

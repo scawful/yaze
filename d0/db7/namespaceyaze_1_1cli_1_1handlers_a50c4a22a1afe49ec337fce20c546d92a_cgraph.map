@@ -1,0 +1,7 @@
+<map id="yaze::cli::handlers::CreateAllCommandHandlers" name="yaze::cli::handlers::CreateAllCommandHandlers">
+<area shape="rect" id="Node000001" title="Factory function to create all command handlers (CLI + agent)" alt="" coords="5,39,197,79"/>
+<area shape="rect" id="Node000002" href="$d0/db7/namespaceyaze_1_1cli_1_1handlers.html#ade230bf1ab4f618a1656f0fe7193cc1a" title="Factory function to create all agent&#45;specific command handlers." alt="" coords="245,5,455,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,44,229,39,230,44,198,49"/>
+<area shape="rect" id="Node000003" href="$d0/db7/namespaceyaze_1_1cli_1_1handlers.html#a6364d0634bf85eccfd1c2d6378a8e0c4" title="Factory function to create all CLI&#45;level command handlers." alt="" coords="254,71,446,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,69,239,74,238,79,197,74"/>
+</map>

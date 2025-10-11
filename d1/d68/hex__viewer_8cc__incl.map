@@ -1,0 +1,11 @@
+<map id="src/cli/tui/hex_viewer.cc" name="src/cli/tui/hex_viewer.cc">
+<area shape="rect" id="Node000001" title=" " alt="" coords="284,5,445,31"/>
+<area shape="rect" id="Node000002" href="$da/d17/hex__viewer_8h.html" title=" " alt="" coords="5,79,137,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="315,34,136,77,135,72,314,29"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="160,79,366,105"/>
+<area shape="poly" id="edge2_Node000001_Node000005" title=" " alt="" coords="349,34,294,72,291,67,346,29"/>
+<area shape="rect" id="Node000042" title=" " alt="" coords="389,79,545,105"/>
+<area shape="poly" id="edge3_Node000001_Node000042" title=" " alt="" coords="383,29,439,68,436,72,380,34"/>
+<area shape="rect" id="Node000021" title=" " alt="" coords="569,79,730,105"/>
+<area shape="poly" id="edge4_Node000001_Node000021" title=" " alt="" coords="413,29,587,72,586,77,412,34"/>
+</map>

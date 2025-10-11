@@ -99,15 +99,20 @@ $(document).ready(function(){initNavTree('d0/d16/chat__tui_8cc.html','../../'); 
 
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">chat_tui.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../db/d67/chat__tui_8h_source.html">cli/tui/chat_tui.h</a>&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;cmath&gt;</code><br />
+<code>#include &lt;utility&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 <code>#include &quot;absl/strings/str_cat.h&quot;</code><br />
 <code>#include &quot;absl/strings/str_format.h&quot;</code><br />
-<code>#include &quot;ftxui/component/captured_mouse.hpp&quot;</code><br />
+<code>#include &quot;absl/time/time.h&quot;</code><br />
 <code>#include &quot;ftxui/component/component.hpp&quot;</code><br />
 <code>#include &quot;ftxui/component/component_base.hpp&quot;</code><br />
 <code>#include &quot;ftxui/component/event.hpp&quot;</code><br />
@@ -115,7 +120,8 @@ $(document).ready(function(){initNavTree('d0/d16/chat__tui_8cc.html','../../'); 
 <code>#include &quot;ftxui/dom/elements.hpp&quot;</code><br />
 <code>#include &quot;ftxui/dom/table.hpp&quot;</code><br />
 <code>#include &quot;<a class="el" href="../../da/de5/rom_8h_source.html">app/rom.h</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="../../d8/d0a/autocomplete__ui_8h_source.html">autocomplete_ui.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../d8/d0a/autocomplete__ui_8h_source.html">cli/tui/autocomplete_ui.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="../../de/dab/tui_8h_source.html">cli/tui/tui.h</a>&quot;</code><br />
 </div>
 <p><a href="../../d0/d16/chat__tui_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -129,6 +135,22 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:da/d0b/namespaceyaze_1_1cli_1_1tui" id="r_da/d0b/namespaceyaze_1_1cli_1_1tui"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/d0b/namespaceyaze_1_1cli_1_1tui.html">yaze::cli::tui</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:db/d86/namespaceyaze_1_1cli_1_1tui_1_1anonymous__namespace_02chat__tui_8cc_03" id="r_db/d86/namespaceyaze_1_1cli_1_1tui_1_1anonymous__namespace_02chat__tui_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d86/namespaceyaze_1_1cli_1_1tui_1_1anonymous__namespace_02chat__tui_8cc_03.html">yaze::cli::tui::anonymous_namespace{chat_tui.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ae841dd34414174244dcc020e0307f1a1" id="r_ae841dd34414174244dcc020e0307f1a1"><td class="memItemLeft" align="right" valign="top">Element&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d86/namespaceyaze_1_1cli_1_1tui_1_1anonymous__namespace_02chat__tui_8cc_03.html#ae841dd34414174244dcc020e0307f1a1">yaze::cli::tui::anonymous_namespace{chat_tui.cc}::RenderPanelCard</a> (const std::string &amp;title, const std::vector&lt; Element &gt; &amp;body, Color border_color, bool highlight=false)</td></tr>
+<tr class="separator:ae841dd34414174244dcc020e0307f1a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa55914f83bd17fff8253eb74c9a5a9ba" id="r_aa55914f83bd17fff8253eb74c9a5a9ba"><td class="memItemLeft" align="right" valign="top">Element&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d86/namespaceyaze_1_1cli_1_1tui_1_1anonymous__namespace_02chat__tui_8cc_03.html#aa55914f83bd17fff8253eb74c9a5a9ba">yaze::cli::tui::anonymous_namespace{chat_tui.cc}::RenderLatencySparkline</a> (const std::vector&lt; double &gt; &amp;data)</td></tr>
+<tr class="separator:aa55914f83bd17fff8253eb74c9a5a9ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a80aa2e92f724a15d13c656966431b8b1" id="r_a80aa2e92f724a15d13c656966431b8b1"><td class="memItemLeft" align="right" valign="top">Element&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d86/namespaceyaze_1_1cli_1_1tui_1_1anonymous__namespace_02chat__tui_8cc_03.html#a80aa2e92f724a15d13c656966431b8b1">yaze::cli::tui::anonymous_namespace{chat_tui.cc}::RenderMetricLabel</a> (const std::string &amp;icon, const std::string &amp;label, const std::string &amp;value, Color color)</td></tr>
+<tr class="separator:a80aa2e92f724a15d13c656966431b8b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:a2b067efbf464cdf5216ef4e668faf550" id="r_a2b067efbf464cdf5216ef4e668faf550"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../db/d86/namespaceyaze_1_1cli_1_1tui_1_1anonymous__namespace_02chat__tui_8cc_03.html#a2b067efbf464cdf5216ef4e668faf550">yaze::cli::tui::anonymous_namespace{chat_tui.cc}::kSpinnerFrames</a></td></tr>
+<tr class="separator:a2b067efbf464cdf5216ef4e668faf550"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

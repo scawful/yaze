@@ -1,0 +1,14 @@
+<map id="yaze::cli::HandlePaletteLegacy" name="yaze::cli::HandlePaletteLegacy">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,160,79"/>
+<area shape="rect" id="Node000002" href="$dd/d63/namespaceyaze_1_1cli.html#a69737ef3af48668f6f46e90a9d3e5719" title=" " alt="" coords="208,5,362,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="159,44,192,38,193,43,160,49"/>
+<area shape="rect" id="Node000011" href="$dd/d63/namespaceyaze_1_1cli.html#aa8549de1bfdc5980c8cd69a0959be36a" title=" " alt="" coords="208,71,362,111"/>
+<area shape="poly" id="edge5_Node000001_Node000011" title=" " alt="" coords="160,69,193,74,192,79,159,74"/>
+<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="423,9,564,35"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="362,22,407,21,407,26,362,27"/>
+<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="410,82,576,108"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="349,44,438,74,436,79,348,49"/>
+<area shape="poly" id="edge4_Node000004_Node000004" title=" " alt="" coords="458,83,452,74,456,64,470,58,493,56,519,58,532,65,529,70,517,63,493,61,471,63,459,68,457,73,463,80"/>
+<area shape="poly" id="edge6_Node000011_Node000003" title=" " alt="" coords="340,68,409,43,429,37,430,42,411,48,342,73"/>
+<area shape="poly" id="edge7_Node000011_Node000004" title=" " alt="" coords="362,90,394,90,394,96,362,95"/>
+</map>

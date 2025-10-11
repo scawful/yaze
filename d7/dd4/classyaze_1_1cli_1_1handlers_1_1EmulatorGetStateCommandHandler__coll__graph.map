@@ -1,0 +1,5 @@
+<map id="yaze::cli::handlers::EmulatorGetStateCommandHandler" name="yaze::cli::handlers::EmulatorGetStateCommandHandler">
+<area shape="rect" id="Node000001" title="Command handler for getting emulator state." alt="" coords="5,94,240,135"/>
+<area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="57,5,188,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,62,125,94,120,94,120,62"/>
+</map>

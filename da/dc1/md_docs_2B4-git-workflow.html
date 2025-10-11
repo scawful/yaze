@@ -128,13 +128,32 @@ $(document).ready(function(){initNavTree('da/dc1/md_docs_2B4-git-workflow.html',
 </ul>
 <hr  />
 <h1><a class="anchor" id="autotoc_md165"></a>
+Pre-1.0 Release Strategy: Best Effort Releases</h1>
+<p>For all versions prior to 1.0.0, yaze follows a **"best effort"** release strategy. This prioritizes getting working builds to users quickly, even if not all platforms build successfully on the first try.</p>
+<h2><a class="anchor" id="autotoc_md166"></a>
+Core Principles</h2>
+<ol type="1">
+<li><b>Release Can Proceed with Failed Platforms</b>: The <code>release</code> CI/CD workflow will create a GitHub Release even if one or more platform-specific build jobs (e.g., Windows, Linux, macOS) fail.</li>
+<li><b>Missing Platforms Can Be Added Later</b>: A failed job for a specific platform can be re-run from the GitHub Actions UI. If it succeeds, the binary artifact will be <b>automatically added to the existing GitHub Release</b>.</li>
+<li><b>Transparency is Key</b>: The release notes will automatically generate a "Platform Availability" report, clearly indicating which platforms succeeded (✅) and which failed (❌), so users know the current status.</li>
+</ol>
+<h2><a class="anchor" id="autotoc_md167"></a>
+How It Works in Practice</h2>
+<ul>
+<li>The <code>build-and-package</code> jobs in the <code>release.yml</code> workflow have <code>continue-on-error: true</code>.</li>
+<li>The final <code>create-github-release</code> job has <code>if: always()</code> and uses <code>softprops/action-gh-release@v2</code>, which intelligently updates an existing release if the tag already exists.</li>
+<li>If a platform build fails, a developer can investigate the issue and simply re-run the failed job. Upon success, the new binary is uploaded and attached to the release that was already created.</li>
+</ul>
+<p>This strategy provides flexibility and avoids blocking a release for all users due to a transient issue on a single platform. Once the project reaches v1.0.0, this policy will be retired in favor of a stricter approach where all platforms must pass for a release to proceed.</p>
+<hr  />
+<h1><a class="anchor" id="autotoc_md169"></a>
 📚 Full Workflow Reference (Future/Formal)</h1>
 <p>The sections below document the <b>formal Git Flow model</b> that yaze will adopt post-1.0 or when the team grows. For now, treat this as aspirational best practices.</p>
-<h1><a class="anchor" id="autotoc_md166"></a>
+<h1><a class="anchor" id="autotoc_md170"></a>
 Branch Structure</h1>
-<h2><a class="anchor" id="autotoc_md167"></a>
+<h2><a class="anchor" id="autotoc_md171"></a>
 Main Branches</h2>
-<h3><a class="anchor" id="autotoc_md168"></a>
+<h3><a class="anchor" id="autotoc_md172"></a>
 &lt;tt&gt;master&lt;/tt&gt;</h3>
 <ul>
 <li><b>Purpose</b>: Production-ready release branch</li>
@@ -142,7 +161,7 @@ Main Branches</h2>
 <li><b>Versioning</b>: Tagged with semantic versions (e.g., <code>v0.3.2</code>, <code>v0.4.0</code>)</li>
 <li><b>Updates</b>: Only via approved PRs from <code>develop</code> or hotfix branches</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md169"></a>
+<h3><a class="anchor" id="autotoc_md173"></a>
 &lt;tt&gt;develop&lt;/tt&gt;</h3>
 <ul>
 <li><b>Purpose</b>: Main development branch, integration point for all features</li>
@@ -150,9 +169,9 @@ Main Branches</h2>
 <li><b>State</b>: Should always build and pass tests</li>
 <li><b>Updates</b>: Merges from feature branches, releases merge back after tagging</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md170"></a>
+<h2><a class="anchor" id="autotoc_md174"></a>
 Supporting Branches</h2>
-<h3><a class="anchor" id="autotoc_md171"></a>
+<h3><a class="anchor" id="autotoc_md175"></a>
 Feature Branches</h3>
 <p><b>Naming Convention:</b> <code>feature/&lt;short-description&gt;</code></p>
 <p><b>Examples:</b></p><ul>
@@ -181,7 +200,7 @@ Feature Branches</h3>
 <div class="line"> </div>
 <div class="line"># Push and create PR</div>
 <div class="line">git push -u origin feature/my-feature</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md172"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md176"></a>
 Bugfix Branches</h3>
 <p><b>Naming Convention:</b> <code>bugfix/&lt;issue-number&gt;-&lt;short-description&gt;</code></p>
 <p><b>Examples:</b></p><ul>
@@ -194,7 +213,7 @@ Bugfix Branches</h3>
 <li>Lifetime: Delete after merge</li>
 <li>Reference issue number when applicable</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md173"></a>
+<h3><a class="anchor" id="autotoc_md177"></a>
 Hotfix Branches</h3>
 <p><b>Naming Convention:</b> <code>hotfix/&lt;version&gt;-&lt;description&gt;</code></p>
 <p><b>Examples:</b></p><ul>
@@ -229,7 +248,7 @@ Hotfix Branches</h3>
 <div class="line"> </div>
 <div class="line"># Delete hotfix branch</div>
 <div class="line">git branch -d hotfix/v0.3.3-critical-fix</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md174"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md178"></a>
 Release Branches</h3>
 <p><b>Naming Convention:</b> <code>release/&lt;version&gt;</code></p>
 <p><b>Examples:</b></p><ul>
@@ -264,7 +283,7 @@ Release Branches</h3>
 <div class="line"> </div>
 <div class="line"># Delete release branch</div>
 <div class="line">git branch -d release/v0.4.0</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md175"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md179"></a>
 Experimental Branches</h3>
 <p><b>Naming Convention:</b> <code>experiment/&lt;description&gt;</code></p>
 <p><b>Examples:</b></p><ul>
@@ -277,17 +296,17 @@ Experimental Branches</h3>
 <li>Document findings in docs/experiments/</li>
 <li>Delete when concluded or merge insights into features</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md176"></a>
+<h1><a class="anchor" id="autotoc_md180"></a>
 Commit Message Conventions</h1>
 <p>Follow <b>Conventional Commits</b> specification:</p>
-<h2><a class="anchor" id="autotoc_md177"></a>
+<h2><a class="anchor" id="autotoc_md181"></a>
 Format</h2>
 <div class="fragment"><div class="line">&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;</div>
 <div class="line"> </div>
 <div class="line">&lt;body&gt;</div>
 <div class="line"> </div>
 <div class="line">&lt;footer&gt;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md178"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md182"></a>
 Types</h2>
 <ul>
 <li><code>feat</code>: New feature</li>
@@ -301,7 +320,7 @@ Types</h2>
 <li><code>ci</code>: CI/CD configuration changes</li>
 <li><code>chore</code>: Maintenance tasks</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md179"></a>
+<h2><a class="anchor" id="autotoc_md183"></a>
 Scopes (optional)</h2>
 <ul>
 <li><code>overworld</code>: Overworld editor</li>
@@ -311,7 +330,7 @@ Scopes (optional)</h2>
 <li><code>canvas</code>: Canvas system</li>
 <li><code>gui</code>: GUI/ImGui components</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md180"></a>
+<h2><a class="anchor" id="autotoc_md184"></a>
 Examples</h2>
 <div class="fragment"><div class="line"># Good commit messages</div>
 <div class="line">feat(overworld): add tile16 quick-select palette</div>
@@ -327,13 +346,13 @@ Examples</h2>
 <div class="line">of tiles in the overworld editor. Supports undo/redo.</div>
 <div class="line"> </div>
 <div class="line">Closes #123</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md181"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md185"></a>
 Pull Request Guidelines</h1>
-<h2><a class="anchor" id="autotoc_md182"></a>
+<h2><a class="anchor" id="autotoc_md186"></a>
 PR Title</h2>
 <p>Follow commit message convention: </p><div class="fragment"><div class="line">feat(overworld): add new feature</div>
 <div class="line">fix(dungeon): resolve crash</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md183"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md187"></a>
 PR Description Template</h2>
 <div class="fragment"><div class="line">## Description</div>
 <div class="line">Brief description of changes</div>
@@ -355,7 +374,7 @@ PR Description Template</h2>
 <div class="line">- [ ] Documentation updated</div>
 <div class="line">- [ ] No new warnings</div>
 <div class="line">- [ ] Dependent changes merged</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md184"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md188"></a>
 PR Review Process</h2>
 <ol type="1">
 <li><b>Author</b>: Create PR, fill out template, request reviewers</li>
@@ -365,40 +384,40 @@ PR Review Process</h2>
 <li><b>Approval</b>: At least 1 approval required for merge</li>
 <li><b>Merge</b>: Squash or merge commit (case-by-case)</li>
 </ol>
-<h1><a class="anchor" id="autotoc_md185"></a>
+<h1><a class="anchor" id="autotoc_md189"></a>
 Version Numbering</h1>
 <p>Follow <b>Semantic Versioning (SemVer)</b>: <code>MAJOR.MINOR.PATCH</code></p>
-<h2><a class="anchor" id="autotoc_md186"></a>
+<h2><a class="anchor" id="autotoc_md190"></a>
 MAJOR (e.g., 1.0.0)</h2>
 <ul>
 <li>Breaking API changes</li>
 <li>Major architectural changes</li>
 <li>First stable release</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md187"></a>
+<h2><a class="anchor" id="autotoc_md191"></a>
 MINOR (e.g., 0.4.0)</h2>
 <ul>
 <li>New features (backward compatible)</li>
 <li>Significant improvements</li>
 <li>Major dependency updates (SDL3)</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md188"></a>
+<h2><a class="anchor" id="autotoc_md192"></a>
 PATCH (e.g., 0.3.2)</h2>
 <ul>
 <li>Bug fixes</li>
 <li>Minor improvements</li>
 <li>Documentation updates</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md189"></a>
+<h2><a class="anchor" id="autotoc_md193"></a>
 Pre-release Tags</h2>
 <ul>
 <li><code>v0.4.0-alpha.1</code> - Early testing</li>
 <li><code>v0.4.0-beta.1</code> - Feature complete</li>
 <li><code>v0.4.0-rc.1</code> - Release candidate</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md190"></a>
+<h1><a class="anchor" id="autotoc_md194"></a>
 Release Process</h1>
-<h2><a class="anchor" id="autotoc_md191"></a>
+<h2><a class="anchor" id="autotoc_md195"></a>
 For Minor/Major Releases (0.x.0, x.0.0)</h2>
 <ol type="1">
 <li><b>Create release branch</b> <div class="fragment"><div class="line">git checkout -b release/v0.4.0</div>
@@ -433,7 +452,7 @@ For Minor/Major Releases (0.x.0, x.0.0)</h2>
 </ul>
 </li>
 </ol>
-<h2><a class="anchor" id="autotoc_md192"></a>
+<h2><a class="anchor" id="autotoc_md196"></a>
 For Patch Releases (0.3.x)</h2>
 <ol type="1">
 <li><b>Collect fixes on develop</b><ul>
@@ -445,7 +464,7 @@ For Patch Releases (0.3.x)</h2>
 </div><!-- fragment --></li>
 <li><b>Follow steps 2-7 above</b></li>
 </ol>
-<h1><a class="anchor" id="autotoc_md193"></a>
+<h1><a class="anchor" id="autotoc_md197"></a>
 Long-Running Feature Branches</h1>
 <p>For large features (e.g., v0.4.0 modernization), use a <b>feature branch with sub-branches</b>:</p>
 <div class="fragment"><div class="line">develop</div>
@@ -459,25 +478,25 @@ Long-Running Feature Branches</h1>
 <li>Long-running branch periodically rebases on <code>develop</code></li>
 <li>Final merge to <code>develop</code> when complete</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md194"></a>
+<h1><a class="anchor" id="autotoc_md198"></a>
 Tagging Strategy</h1>
-<h2><a class="anchor" id="autotoc_md195"></a>
+<h2><a class="anchor" id="autotoc_md199"></a>
 Release Tags</h2>
 <ul>
 <li>Format: <code>v&lt;MAJOR&gt;.&lt;MINOR&gt;.&lt;PATCH&gt;[-prerelease]</code></li>
 <li>Examples: <code>v0.3.2</code>, <code>v0.4.0-rc.1</code>, <code>v1.0.0</code></li>
 <li>Annotated tags with release notes</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md196"></a>
+<h2><a class="anchor" id="autotoc_md200"></a>
 Internal Milestones</h2>
 <ul>
 <li>Format: <code>milestone/&lt;name&gt;</code></li>
 <li>Examples: <code>milestone/canvas-refactor-complete</code></li>
 <li>Used for tracking major internal achievements</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md197"></a>
+<h1><a class="anchor" id="autotoc_md201"></a>
 Best Practices</h1>
-<h2><a class="anchor" id="autotoc_md198"></a>
+<h2><a class="anchor" id="autotoc_md202"></a>
 DO ✅</h2>
 <ul>
 <li>Keep commits atomic and focused</li>
@@ -487,7 +506,7 @@ DO ✅</h2>
 <li>Update documentation with code changes</li>
 <li>Delete branches after merging</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md199"></a>
+<h2><a class="anchor" id="autotoc_md203"></a>
 DON'T ❌</h2>
 <ul>
 <li>Commit directly to master or develop</li>
@@ -496,7 +515,7 @@ DON'T ❌</h2>
 <li>Merge without PR review</li>
 <li>Leave stale branches</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md200"></a>
+<h1><a class="anchor" id="autotoc_md204"></a>
 Quick Reference</h1>
 <div class="fragment"><div class="line"># Start new feature</div>
 <div class="line">git checkout develop</div>
@@ -522,9 +541,9 @@ Quick Reference</h1>
 <div class="line">git pull</div>
 <div class="line">git checkout -b release/v0.4.0</div>
 <div class="line"># ... prepare, merge to master, tag, merge back to develop ...</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md201"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md205"></a>
 Emergency Procedures</h1>
-<h2><a class="anchor" id="autotoc_md202"></a>
+<h2><a class="anchor" id="autotoc_md206"></a>
 If master is broken</h2>
 <ol type="1">
 <li>Create hotfix branch immediately</li>
@@ -532,7 +551,7 @@ If master is broken</h2>
 <li>Fast-track PR review</li>
 <li>Hotfix deploy ASAP</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md203"></a>
+<h2><a class="anchor" id="autotoc_md207"></a>
 If develop is broken</h2>
 <ol type="1">
 <li>Identify breaking commit</li>
@@ -540,7 +559,7 @@ If develop is broken</h2>
 <li>Fix in new branch</li>
 <li>Merge fix with priority</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md204"></a>
+<h2><a class="anchor" id="autotoc_md208"></a>
 If release needs to be rolled back</h2>
 <ol type="1">
 <li>Tag current state as <code>v0.x.y-broken</code></li>
@@ -549,9 +568,9 @@ If release needs to be rolled back</h2>
 <li>Fix and release as patch version</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md206"></a>
+<h1><a class="anchor" id="autotoc_md210"></a>
 🚀 Current Simplified Workflow (Pre-1.0)</h1>
-<h2><a class="anchor" id="autotoc_md207"></a>
+<h2><a class="anchor" id="autotoc_md211"></a>
 Daily Development Pattern</h2>
 <div class="fragment"><div class="line"># For documentation or small changes</div>
 <div class="line">git checkout master  # or develop, your choice</div>
@@ -567,7 +586,7 @@ Daily Development Pattern</h2>
 <div class="line">git push -u origin feature/my-experiment</div>
 <div class="line"># If it works: merge to develop</div>
 <div class="line"># If it doesn&#39;t: delete branch, no harm done</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md208"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md212"></a>
 When to Use Branches (Pre-1.0)</h2>
 <p><b>Use a branch for:</b></p><ul>
 <li>Large refactors that might break things</li>
@@ -582,14 +601,14 @@ When to Use Branches (Pre-1.0)</h2>
 <li>README updates</li>
 <li>Adding comments or tests</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md209"></a>
+<h2><a class="anchor" id="autotoc_md213"></a>
 Current Branch Usage</h2>
 <p>For now, treat <code>master</code> and <code>develop</code> interchangeably:</p><ul>
 <li><code>master</code>: Latest stable-ish code + docs</li>
 <li><code>develop</code>: Optional staging area for integration</li>
 </ul>
 <p>When you want docs public, just push to <code>master</code>. The GitHub Pages / docs site will update automatically.</p>
-<h2><a class="anchor" id="autotoc_md210"></a>
+<h2><a class="anchor" id="autotoc_md214"></a>
 Commit Message (Simplified)</h2>
 <p>Still try to follow the convention, but don't stress:</p>
 <div class="fragment"><div class="line"># Good enough</div>
@@ -600,7 +619,7 @@ Commit Message (Simplified)</h2>
 <div class="line"># Also fine for now</div>
 <div class="line">git commit -m &quot;update docs&quot;</div>
 <div class="line">git commit -m &quot;fix crash&quot;</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md211"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md215"></a>
 Releases (Pre-1.0)</h2>
 <p>Just tag and push:</p>
 <div class="fragment"><div class="line"># When you&#39;re ready for v0.3.2</div>

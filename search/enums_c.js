@@ -1,15 +1,15 @@
 var searchData=
 [
-  ['tagkey_0',['TagKey',['../d5/d1f/namespaceyaze_1_1zelda3.html#a693df677b1b2754452c8b8b4c4a98468',1,'yaze::zelda3']]],
-  ['testcaseoutcome_1',['TestCaseOutcome',['../dd/d63/namespaceyaze_1_1cli.html#af8e72af06684da4456850f7f3690e96a',1,'yaze::cli']]],
-  ['testcategory_2',['TestCategory',['../d4/d0a/namespaceyaze_1_1test.html#a0cda2abf7030eef1095ab53508a246ae',1,'yaze::test']]],
-  ['testmode_3',['TestMode',['../d4/d0a/namespaceyaze_1_1test.html#a48974bc37811e72ae810e23d0f38b817',1,'yaze::test']]],
-  ['testrunstatus_4',['TestRunStatus',['../dd/d63/namespaceyaze_1_1cli.html#ac2dd1cd8208462d16360cd77b564e536',1,'yaze::cli']]],
-  ['teststatus_5',['TestStatus',['../d4/d0a/namespaceyaze_1_1test.html#a24fd08ea41d8314e6fccdb0fdcd9f072',1,'yaze::test']]],
-  ['teststeptype_6',['TestStepType',['../dd/d63/namespaceyaze_1_1cli.html#a0be616999fa8e675f482f53ca1830fce',1,'yaze::cli']]],
-  ['texturecommandtype_7',['TextureCommandType',['../d4/de6/classyaze_1_1gfx_1_1Arena.html#a7c65b9804f35c3b9c2848da846088c8c',1,'yaze::gfx::Arena']]],
-  ['tileinteractionmode_8',['TileInteractionMode',['../db/dc3/namespaceyaze_1_1gui_1_1canvas.html#a7cd25682920de9e3b6559931b14f461e',1,'yaze::gui::canvas']]],
-  ['toasttype_9',['ToastType',['../d1/d3e/namespaceyaze_1_1editor.html#a6b8cab865089eface70ba97013bc8bc7',1,'yaze::editor']]],
-  ['toolcalltype_10',['ToolCallType',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a570346e91ec90d0baf95a883ca3665e1',1,'yaze::cli::agent']]],
-  ['type_11',['type',['../d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html#ae91591afd3dd8e2fd315b75a3ab2d2d0',1,'yaze::editor::MenuBuilder::MenuItem::Type'],['../d9/ded/classyaze_1_1emu_1_1BreakpointManager.html#ab89cacd2103b2dbebc7632199f14d9b8',1,'yaze::emu::BreakpointManager::Type']]]
+  ['sampleformat_0',['SampleFormat',['../d2/dc8/namespaceyaze_1_1emu_1_1audio.html#a870fe4320e8f6ce85c55f7a2aa695898',1,'yaze::emu::audio']]],
+  ['selectionmode_1',['SelectionMode',['../d0/d28/classTextEditor.html#aed0b92add3785d71e009dbf66b78490d',1,'TextEditor']]],
+  ['sender_2',['Sender',['../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2',1,'yaze::cli::agent::ChatMessage']]],
+  ['size_3',['Size',['../d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822',1,'yaze::emu::BackgroundLayer']]],
+  ['snesbutton_4',['SnesButton',['../d5/df0/namespaceyaze_1_1emu_1_1input.html#adba5be4e20df51e4ba9273c1d018cbbb',1,'yaze::emu::input']]],
+  ['sorting_5',['Sorting',['../d5/d1f/namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747',1,'yaze::zelda3']]],
+  ['specialobjecttype_6',['SpecialObjectType',['../d5/d1f/namespaceyaze_1_1zelda3.html#a479da514040cddc99b5da1235244c421',1,'yaze::zelda3']]],
+  ['spriteitemcolumnid_7',['SpriteItemColumnID',['../d1/d3e/namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80',1,'yaze::editor']]],
+  ['spritesize_8',['SpriteSize',['../d6/d20/namespaceyaze_1_1emu.html#ab2d8079bb5330aedfb062604d2a0168a',1,'yaze::emu']]],
+  ['spritetype_9',['SpriteType',['../d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ae1cdb8859922d1caa4a46f01d83c7c7e',1,'yaze::zelda3::DungeonEditorSystem']]],
+  ['status_10',['status',['../d0/d0e/structyaze_1_1cli_1_1agent_1_1TodoItem.html#a7c9e705458aea27fbd6bd9b619f8bb07',1,'yaze::cli::agent::TodoItem::Status'],['../d8/d1c/structyaze_1_1cli_1_1Tile16Proposal.html#a86717cf96ce8a4fe63906f2a47760983',1,'yaze::cli::Tile16Proposal::Status']]],
+  ['statusfilter_11',['StatusFilter',['../dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a6ff771686a21c2dc51538fbc25c59b8a',1,'yaze::editor::ProposalDrawer']]]
 ];

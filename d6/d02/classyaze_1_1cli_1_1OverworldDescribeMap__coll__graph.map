@@ -1,7 +1,0 @@
-<map id="yaze::cli::OverworldDescribeMap" name="yaze::cli::OverworldDescribeMap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,169,213,195"/>
-<area shape="rect" id="Node000002" href="$dd/d80/classyaze_1_1cli_1_1CommandHandler.html" title=" " alt="" coords="21,94,197,120"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,135,112,169,106,169,106,135"/>
-<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html" title="The Rom class is used to load, save, and modify Rom data." alt="" coords="69,5,149,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="112,47,112,94,106,94,106,47"/>
-</map>

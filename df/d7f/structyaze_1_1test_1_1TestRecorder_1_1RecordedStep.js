@@ -16,7 +16,6 @@ var structyaze_1_1test_1_1TestRecorder_1_1RecordedStep =
     [ "assertion_failures", "df/d7f/structyaze_1_1test_1_1TestRecorder_1_1RecordedStep.html#aae1fd6dc3d45087a7bd8ce4a425b8cfb", null ],
     [ "expected_value", "df/d7f/structyaze_1_1test_1_1TestRecorder_1_1RecordedStep.html#a6d5f4d0652423791b3095e5068c71cfc", null ],
     [ "actual_value", "df/d7f/structyaze_1_1test_1_1TestRecorder_1_1RecordedStep.html#aa30ce607790190562881903c8f9da563", null ],
-    [ "final_status", "df/d7f/structyaze_1_1test_1_1TestRecorder_1_1RecordedStep.html#ad76a42ca784dbdc87e43ae7e6ba58eeb", null ],
     [ "final_error_message", "df/d7f/structyaze_1_1test_1_1TestRecorder_1_1RecordedStep.html#ae2f37b733f112dd3643cc8323177741f", null ],
     [ "metrics", "df/d7f/structyaze_1_1test_1_1TestRecorder_1_1RecordedStep.html#ab15472ad39117e05ccddbc4dbb77717b", null ],
     [ "captured_at", "df/d7f/structyaze_1_1test_1_1TestRecorder_1_1RecordedStep.html#a3519dda5e2cc6381d17b1ea48cb6310f", null ]

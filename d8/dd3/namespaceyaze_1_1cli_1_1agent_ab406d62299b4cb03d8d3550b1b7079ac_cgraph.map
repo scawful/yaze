@@ -1,9 +1,0 @@
-<map id="yaze::cli::agent::HandleHexSearch" name="yaze::cli::agent::HandleHexSearch">
-<area shape="rect" id="Node000001" title="Search for a byte pattern in ROM." alt="" coords="5,47,157,88"/>
-<area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d" title=" " alt="" coords="220,5,331,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="156,46,207,33,208,38,158,51"/>
-<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="205,55,346,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="157,65,189,65,189,70,157,70"/>
-<area shape="rect" id="Node000004" href="$d6/d30/classyaze_1_1Rom.html#a971379ba00f55ab9c367abf20c8a9777" title=" " alt="" coords="221,104,330,130"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="158,84,208,97,207,102,156,89"/>
-</map>

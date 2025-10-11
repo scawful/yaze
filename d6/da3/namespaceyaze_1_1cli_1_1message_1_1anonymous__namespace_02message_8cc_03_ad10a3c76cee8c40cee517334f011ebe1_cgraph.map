@@ -1,5 +1,6 @@
 <map id="yaze::cli::message::anonymous_namespace{message::cc}::LoadRomFromFlag" name="yaze::cli::message::anonymous_namespace{message::cc}::LoadRomFromFlag">
 <area shape="rect" id="Node000001" title=" " alt="" coords="5,55,225,111"/>
+<area shape="poly" id="edge6_Node000001_Node000001" title=" " alt="" coords="68,55,69,45,77,36,93,30,115,29,140,31,156,38,154,43,139,36,115,34,94,36,80,40,73,47,73,55"/>
 <area shape="rect" id="Node000002" href="$d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="273,70,439,96"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="225,80,257,80,257,86,225,86"/>
 <area shape="poly" id="edge4_Node000002_Node000002" title=" " alt="" coords="321,71,314,62,318,52,333,46,356,44,381,46,394,53,392,58,380,51,356,49,334,51,322,56,320,61,325,68"/>

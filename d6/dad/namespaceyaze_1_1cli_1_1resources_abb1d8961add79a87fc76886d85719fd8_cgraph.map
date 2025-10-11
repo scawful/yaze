@@ -1,0 +1,10 @@
+<map id="yaze::cli::resources::TEST_F" name="yaze::cli::resources::TEST_F">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,135,79"/>
+<area shape="rect" id="Node000002" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a9965dc30db2f16f570326edc2c3a1ae7" title="Parse an integer argument (supports hex with 0x prefix)" alt="" coords="192,5,356,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,46,176,39,177,44,135,51"/>
+<area shape="rect" id="Node000004" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a389176fcbabea177b5ed3c27ea7ed6c3" title="Parse a named argument (e.g., –format=json or –format json)" alt="" coords="183,71,365,111"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="135,66,168,72,167,77,135,72"/>
+<area shape="rect" id="Node000003" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a095e664ff2500d73cca6c91a1e4f5f83" title=" " alt="" coords="413,39,618,79"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="357,34,398,40,397,45,356,40"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="365,76,397,72,398,77,366,82"/>
+</map>

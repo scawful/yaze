@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.9.8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>yaze: src/cli/handlers/message.cc Source File</title>
+<title>yaze: src/cli/handlers/game/message.cc Source File</title>
 <link href="../../tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">var page_layout=1;</script>
 <script type="text/javascript" src="../../jquery.js"></script>
@@ -101,7 +101,7 @@ $(document).ready(function(){initNavTree('d4/d7a/message_8cc_source.html','../..
   <div class="headertitle"><div class="title">message.cc</div></div>
 </div><!--header-->
 <div class="contents">
-<a href="../../d4/d7a/message_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d2/d0d/message_8h.html">cli/handlers/message.h</a>&quot;</span></div>
+<a href="../../d4/d7a/message_8cc.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="preprocessor">#include &quot;<a class="code" href="../../d2/d0d/message_8h.html">cli/handlers/game/message.h</a>&quot;</span></div>
 <div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span> </div>
 <div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
 <div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span><span class="preprocessor">#include &lt;iostream&gt;</span></div>
@@ -131,7 +131,7 @@ $(document).ready(function(){initNavTree('d4/d7a/message_8cc_source.html','../..
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno"><a class="line" href="../../d6/da3/namespaceyaze_1_1cli_1_1message_1_1anonymous__namespace_02message_8cc_03.html">   26</a></span><span class="keyword">namespace </span>{</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span> </div>
 <div class="foldopen" id="foldopen00028" data-start="{" data-end="}">
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="../../d6/da3/namespaceyaze_1_1cli_1_1message_1_1anonymous__namespace_02message_8cc_03.html#ad10a3c76cee8c40cee517334f011ebe1">   28</a></span>absl::StatusOr&lt;Rom&gt; LoadRomFromFlag() {</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno"><a class="line" href="../../d6/da3/namespaceyaze_1_1cli_1_1message_1_1anonymous__namespace_02message_8cc_03.html#ad10a3c76cee8c40cee517334f011ebe1">   28</a></span>absl::StatusOr&lt;Rom&gt; <a class="code hl_function" href="../../d6/da3/namespaceyaze_1_1cli_1_1message_1_1anonymous__namespace_02message_8cc_03.html#ad10a3c76cee8c40cee517334f011ebe1">LoadRomFromFlag</a>() {</div>
 <div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>  std::string rom_path = absl::GetFlag(FLAGS_rom);</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>  <span class="keywordflow">if</span> (rom_path.empty()) {</div>
 <div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <span class="keywordflow">return</span> absl::FailedPreconditionError(</div>
@@ -535,7 +535,7 @@ $(document).ready(function(){initNavTree('d4/d7a/message_8cc_source.html','../..
 <div class="line"><a id="l00416" name="l00416"></a><span class="lineno">  416</span>}  <span class="comment">// namespace cli</span></div>
 <div class="line"><a id="l00417" name="l00417"></a><span class="lineno">  417</span>}  <span class="comment">// namespace yaze</span></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html">yaze::Rom</a></div><div class="ttdoc">The Rom class is used to load, save, and modify Rom data.</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00071">rom.h:71</a></div></div>
-<div class="ttc" id="aclassyaze_1_1Rom_html_a109e86fd24dca5861a67f22f78d53d3f"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f">yaze::Rom::LoadFromFile</a></div><div class="ttdeci">absl::Status LoadFromFile(const std::string &amp;filename, bool z3_load=true)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d79/app_2rom_8cc_source.html#l00289">rom.cc:289</a></div></div>
+<div class="ttc" id="aclassyaze_1_1Rom_html_a109e86fd24dca5861a67f22f78d53d3f"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f">yaze::Rom::LoadFromFile</a></div><div class="ttdeci">absl::Status LoadFromFile(const std::string &amp;filename, bool z3_load=true)</div><div class="ttdef"><b>Definition</b> <a href="../../d5/d00/rom_8cc_source.html#l00289">rom.cc:289</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_a93944ed80bd748997b06d82f9b8b050d"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#a93944ed80bd748997b06d82f9b8b050d">yaze::Rom::data</a></div><div class="ttdeci">auto data() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00203">rom.h:203</a></div></div>
 <div class="ttc" id="aclassyaze_1_1Rom_html_ae35b7dfe4f08ce24c7ee566ed5d3100d"><div class="ttname"><a href="../../d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d">yaze::Rom::is_loaded</a></div><div class="ttdeci">bool is_loaded() const</div><div class="ttdef"><b>Definition</b> <a href="../../da/de5/rom_8h_source.html#l00197">rom.h:197</a></div></div>
 <div class="ttc" id="amacro_8h_html"><div class="ttname"><a href="../../d4/d9e/macro_8h.html">macro.h</a></div></div>
@@ -543,6 +543,7 @@ $(document).ready(function(){initNavTree('d4/d7a/message_8cc_source.html','../..
 <div class="ttc" id="amessage_8h_html"><div class="ttname"><a href="../../d2/d0d/message_8h.html">message.h</a></div></div>
 <div class="ttc" id="amessage__data_8h_html"><div class="ttname"><a href="../../db/d9c/message__data_8h.html">message_data.h</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1message_1_1anonymous__namespace_02message_8cc_03_html_ac05fe0dce3e213130eda5a0e68032ad5"><div class="ttname"><a href="../../d6/da3/namespaceyaze_1_1cli_1_1message_1_1anonymous__namespace_02message_8cc_03.html#ac05fe0dce3e213130eda5a0e68032ad5">yaze::cli::message::anonymous_namespace{message.cc}::LoadMessages</a></div><div class="ttdeci">std::vector&lt; editor::MessageData &gt; LoadMessages(Rom *rom)</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d7a/message_8cc_source.html#l00045">message.cc:45</a></div></div>
+<div class="ttc" id="anamespaceyaze_1_1cli_1_1message_1_1anonymous__namespace_02message_8cc_03_html_ad10a3c76cee8c40cee517334f011ebe1"><div class="ttname"><a href="../../d6/da3/namespaceyaze_1_1cli_1_1message_1_1anonymous__namespace_02message_8cc_03.html#ad10a3c76cee8c40cee517334f011ebe1">yaze::cli::message::anonymous_namespace{message.cc}::LoadRomFromFlag</a></div><div class="ttdeci">absl::StatusOr&lt; Rom &gt; LoadRomFromFlag()</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d7a/message_8cc_source.html#l00028">message.cc:28</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1message_html_a7924b36f1267d892038172828894eb01"><div class="ttname"><a href="../../db/d13/namespaceyaze_1_1cli_1_1message.html#a7924b36f1267d892038172828894eb01">yaze::cli::message::HandleMessageSearchCommand</a></div><div class="ttdeci">absl::Status HandleMessageSearchCommand(const std::vector&lt; std::string &gt; &amp;arg_vec, Rom *rom_context)</div><div class="ttdoc">Search for messages containing specific text.</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d7a/message_8cc_source.html#l00247">message.cc:247</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1message_html_a903be95b49aa0210501c6bed2c89c25f"><div class="ttname"><a href="../../db/d13/namespaceyaze_1_1cli_1_1message.html#a903be95b49aa0210501c6bed2c89c25f">yaze::cli::message::HandleMessageReadCommand</a></div><div class="ttdeci">absl::Status HandleMessageReadCommand(const std::vector&lt; std::string &gt; &amp;arg_vec, Rom *rom_context)</div><div class="ttdoc">Read a specific message by ID.</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d7a/message_8cc_source.html#l00161">message.cc:161</a></div></div>
 <div class="ttc" id="anamespaceyaze_1_1cli_1_1message_html_aa22d2cb532a1a8df975ca57f70b2505c"><div class="ttname"><a href="../../db/d13/namespaceyaze_1_1cli_1_1message.html#aa22d2cb532a1a8df975ca57f70b2505c">yaze::cli::message::HandleMessageListCommand</a></div><div class="ttdeci">absl::Status HandleMessageListCommand(const std::vector&lt; std::string &gt; &amp;arg_vec, Rom *rom_context)</div><div class="ttdoc">List all messages in the ROM.</div><div class="ttdef"><b>Definition</b> <a href="../../d4/d7a/message_8cc_source.html#l00052">message.cc:52</a></div></div>
@@ -556,7 +557,7 @@ $(document).ready(function(){initNavTree('d4/d7a/message_8cc_source.html','../..
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_b78fdfbbb632ce54d070469d6a721373.html">cli</a></li><li class="navelem"><a class="el" href="../../dir_1803ec2ac2120f8427544b062f2515ae.html">handlers</a></li><li class="navelem"><a class="el" href="../../d4/d7a/message_8cc.html">message.cc</a></li>
+    <li class="navelem"><a class="el" href="../../dir_68267d1309a1af8e8297ef4c3efbcdba.html">src</a></li><li class="navelem"><a class="el" href="../../dir_b78fdfbbb632ce54d070469d6a721373.html">cli</a></li><li class="navelem"><a class="el" href="../../dir_1803ec2ac2120f8427544b062f2515ae.html">handlers</a></li><li class="navelem"><a class="el" href="../../dir_92a1de7d63c94f8628db952317f9f7b9.html">game</a></li><li class="navelem"><a class="el" href="../../d4/d7a/message_8cc.html">message.cc</a></li>
     <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="../../doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.8 </li>
   </ul>
 </div>

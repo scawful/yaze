@@ -1,0 +1,7 @@
+<map id="yaze::cli::handlers::DungeonSetRoomPropertyCommandHandler::ValidateArgs" name="yaze::cli::handlers::DungeonSetRoomPropertyCommandHandler::ValidateArgs">
+<area shape="rect" id="Node000001" title="Validate command arguments." alt="" coords="5,5,245,61"/>
+<area shape="rect" id="Node000002" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a74c38b994ca4ebd34ecdf75e6898f676" title="Validate that required arguments are present." alt="" coords="293,13,491,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="245,31,277,31,277,36,245,36"/>
+<area shape="rect" id="Node000003" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a095e664ff2500d73cca6c91a1e4f5f83" title=" " alt="" coords="539,13,744,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="492,31,524,31,524,36,492,36"/>
+</map>

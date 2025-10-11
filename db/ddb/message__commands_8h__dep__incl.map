@@ -1,0 +1,9 @@
+<map id="src/cli/handlers/game/message_commands.h" name="src/cli/handlers/game/message_commands.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="203,5,362,46"/>
+<area shape="rect" id="Node000002" href="$db/dae/command__handlers_8cc.html" title=" " alt="" coords="5,94,176,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,55,135,96,133,91,224,50"/>
+<area shape="rect" id="Node000003" href="$df/d36/message__commands_8cc.html" title=" " alt="" coords="199,94,366,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="285,62,285,94,280,94,280,62"/>
+<area shape="rect" id="Node000004" href="$d3/d79/tool__dispatcher_8cc.html" title=" " alt="" coords="389,94,528,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="337,51,420,91,418,96,335,56"/>
+</map>

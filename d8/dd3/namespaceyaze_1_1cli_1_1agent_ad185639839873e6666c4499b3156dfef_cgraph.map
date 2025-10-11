@@ -1,8 +1,0 @@
-<map id="yaze::cli::agent::HandleMessageSearchCommand" name="yaze::cli::agent::HandleMessageSearchCommand">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,29,180,70"/>
-<area shape="poly" id="edge1_Node000001_Node000001" title=" " alt="" coords="46,29,44,19,52,10,68,5,93,3,119,5,135,11,133,16,118,10,92,8,69,10,55,15,49,21,52,28"/>
-<area shape="rect" id="Node000002" href="$db/d13/namespaceyaze_1_1cli_1_1message.html#a7924b36f1267d892038172828894eb01" title="Search for messages containing specific text." alt="" coords="228,29,449,70"/>
-<area shape="poly" id="edge2_Node000001_Node000002" title=" " alt="" coords="180,47,212,47,212,52,180,52"/>
-<area shape="rect" id="Node000003" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="497,37,638,63"/>
-<area shape="poly" id="edge3_Node000002_Node000003" title=" " alt="" coords="449,47,482,47,482,52,449,52"/>
-</map>

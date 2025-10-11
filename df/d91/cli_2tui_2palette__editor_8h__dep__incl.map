@@ -1,7 +1,7 @@
 <map id="src/cli/tui/palette_editor.h" name="src/cli/tui/palette_editor.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="115,5,233,46"/>
-<area shape="rect" id="Node000002" href="$de/d6a/palette_8cc.html" title=" " alt="" coords="5,102,175,127"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="147,59,103,103,100,99,143,55"/>
-<area shape="rect" id="Node000003" href="$d1/d8f/cli_2tui_2palette__editor_8cc.html" title=" " alt="" coords="199,94,317,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="206,56,241,92,237,95,202,59"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="109,5,227,46"/>
+<area shape="rect" id="Node000002" href="$de/d6a/palette_8cc.html" title=" " alt="" coords="5,94,168,135"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="141,59,107,95,103,92,137,56"/>
+<area shape="rect" id="Node000003" href="$d1/d8f/cli_2tui_2palette__editor_8cc.html" title=" " alt="" coords="192,94,309,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="199,56,234,92,230,95,195,59"/>
 </map>

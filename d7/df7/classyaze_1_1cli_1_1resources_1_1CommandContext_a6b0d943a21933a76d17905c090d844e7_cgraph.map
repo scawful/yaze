@@ -1,0 +1,12 @@
+<map id="yaze::cli::resources::CommandContext::GetRom" name="yaze::cli::resources::CommandContext::GetRom">
+<area shape="rect" id="Node000001" title="Get the ROM instance (loads if not already loaded)" alt="" coords="5,47,190,88"/>
+<area shape="rect" id="Node000002" href="$d7/df7/classyaze_1_1cli_1_1resources_1_1CommandContext.html#ae34ee0184eefbd9ae4711c72d7b9ebb4" title="Initialize the context and load ROM if needed." alt="" coords="238,47,421,88"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="190,65,222,65,222,70,190,70"/>
+<area shape="rect" id="Node000003" href="$dd/d63/namespaceyaze_1_1cli.html#a2c164e6cd26b8d8f65ff130d80f0f737" title="Initialize a mock ROM for testing without requiring an actual ROM file." alt="" coords="469,5,647,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="421,45,480,32,481,37,422,50"/>
+<area shape="rect" id="Node000023" href="$d6/d30/classyaze_1_1Rom.html#ae35b7dfe4f08ce24c7ee566ed5d3100d" title=" " alt="" coords="488,55,629,80"/>
+<area shape="poly" id="edge3_Node000002_Node000023" title=" " alt="" coords="421,65,472,65,472,70,421,70"/>
+<area shape="rect" id="Node000024" href="$d6/d30/classyaze_1_1Rom.html#a109e86fd24dca5861a67f22f78d53d3f" title=" " alt="" coords="475,128,641,154"/>
+<area shape="poly" id="edge4_Node000002_Node000024" title=" " alt="" coords="396,86,502,120,500,125,394,91"/>
+<area shape="poly" id="edge5_Node000024_Node000024" title=" " alt="" coords="520,129,513,119,517,110,533,103,558,101,586,104,600,111,598,116,585,109,558,107,534,109,521,113,518,119,524,126"/>
+</map>

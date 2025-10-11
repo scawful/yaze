@@ -1,0 +1,9 @@
+<map id="yaze::cli::resources::OutputFormatter::BeginArray" name="yaze::cli::resources::OutputFormatter::BeginArray">
+<area shape="rect" id="Node000001" title="Begin an array." alt="" coords="5,71,197,111"/>
+<area shape="rect" id="Node000002" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a0de0425b664e90579c1e8fa34052690f" title=" " alt="" coords="251,5,438,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="178,68,250,48,252,53,180,73"/>
+<area shape="rect" id="Node000003" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a9034203ccd0b950495c1598e9bee77da" title=" " alt="" coords="245,71,444,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="197,88,229,88,229,94,197,94"/>
+<area shape="rect" id="Node000004" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#aca56a0010d6fb59b2c0f9a4efe51a700" title="Check if using JSON format." alt="" coords="261,136,428,177"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="180,109,252,129,250,134,178,114"/>
+</map>

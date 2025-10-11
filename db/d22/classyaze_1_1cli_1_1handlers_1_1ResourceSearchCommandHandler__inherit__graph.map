@@ -1,0 +1,5 @@
+<map id="yaze::cli::handlers::ResourceSearchCommandHandler" name="yaze::cli::handlers::ResourceSearchCommandHandler">
+<area shape="rect" id="Node000001" title="Command handler for searching resource labels." alt="" coords="5,94,233,135"/>
+<area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="53,5,185,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,62,122,94,116,94,116,62"/>
+</map>

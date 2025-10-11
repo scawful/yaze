@@ -101,22 +101,22 @@ $(document).ready(function(){initNavTree('d3/d49/md_docs_2E6-emulator-improvemen
   <div class="headertitle"><div class="title">Emulator Core Improvements Roadmap</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><a class="anchor" id="autotoc_md516"></a> <b>Last Updated:</b> October 10, 2025 <br  />
+<div class="textblock"><p><a class="anchor" id="autotoc_md528"></a> <b>Last Updated:</b> October 10, 2025 <br  />
  <b>Status:</b> Active Planning</p>
-<h1><a class="anchor" id="autotoc_md517"></a>
+<h1><a class="anchor" id="autotoc_md529"></a>
 Overview</h1>
 <p>This document outlines improvements, refactors, and optimizations for the yaze emulator core. These changes aim to enhance accuracy, performance, and code maintainability.</p>
 <p>Items are presented in order of descending priority, from critical accuracy fixes to quality-of-life improvements.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md519"></a>
+<h1><a class="anchor" id="autotoc_md531"></a>
 Critical Priority: APU Timing Fix</h1>
-<h2><a class="anchor" id="autotoc_md520"></a>
+<h2><a class="anchor" id="autotoc_md532"></a>
 Problem Statement</h2>
 <p>The emulator's Audio Processing Unit (APU) currently fails to load and play music. Analysis shows that the SPC700 processor gets "stuck" during the initial handshake sequence with the main CPU. This handshake is responsible for uploading the sound driver from ROM to APU RAM. The failure of this timing-sensitive process prevents the sound driver from running.</p>
-<h2><a class="anchor" id="autotoc_md521"></a>
+<h2><a class="anchor" id="autotoc_md533"></a>
 Root Cause: CPU-APU Handshake Timing</h2>
 <p>The process of starting the APU and loading a sound bank requires tightly synchronized communication between the main CPU (65816) and the APU's CPU (SPC700).</p>
-<h3><a class="anchor" id="autotoc_md522"></a>
+<h3><a class="anchor" id="autotoc_md534"></a>
 The Handshake Protocol</h3>
 <ol type="1">
 <li><b>APU Ready</b>: SPC700 boots, initializes, signals ready by writing <code>$AA</code> to port <code>$F4</code> and <code>$BB</code> to port <code>$F5</code></li>
@@ -130,17 +130,17 @@ The Handshake Protocol</h3>
 </ul>
 </li>
 </ol>
-<h3><a class="anchor" id="autotoc_md523"></a>
+<h3><a class="anchor" id="autotoc_md535"></a>
 Point of Failure</h3>
 <p>The "stuck" behavior occurs because one side fails to meet the other's expectation. Due to timing desynchronization:</p><ul>
 <li>The SPC700 is waiting for a byte that the CPU has not yet sent (or sent too early), OR</li>
 <li>The CPU is waiting for an acknowledgment that the SPC700 has already sent (or has not yet sent)</li>
 </ul>
 <p>The result is an infinite loop on the SPC700, detected by the watchdog timer in <code>Apu::RunCycles</code>.</p>
-<h2><a class="anchor" id="autotoc_md524"></a>
+<h2><a class="anchor" id="autotoc_md536"></a>
 Technical Analysis</h2>
 <p>The handshake's reliance on precise timing exposes inaccuracies in the current SPC700 emulation model.</p>
-<h3><a class="anchor" id="autotoc_md525"></a>
+<h3><a class="anchor" id="autotoc_md537"></a>
 Issue 1: Incomplete Opcode Timing</h3>
 <p>The emulator uses a static lookup table (<code><a class="el" href="../../d8/d16/spc700__cycles_8h.html">spc700_cycles.h</a></code>) for instruction cycle counts. This provides a <em>base</em> value but fails to account for:</p><ul>
 <li><b>Addressing Modes</b>: Different addressing modes have different cycle costs</li>
@@ -148,22 +148,22 @@ Issue 1: Incomplete Opcode Timing</h3>
 <li><b>Branching</b>: Conditional branches take different cycle counts depending on whether branch is taken</li>
 </ul>
 <p>While some of this is handled (e.g., <code>DoBranch</code>), it is not applied universally, leading to small, cumulative errors.</p>
-<h3><a class="anchor" id="autotoc_md526"></a>
+<h3><a class="anchor" id="autotoc_md538"></a>
 Issue 2: Fragile Multi-Step Execution Model</h3>
 <p>The <code>step</code>/<code>bstep</code> mechanism in <code>Spc700::RunOpcode</code> is a significant source of fragility. It attempts to model complex instructions by spreading execution across multiple calls. This means the full cycle cost of an instruction is not consumed atomically. An off-by-one error in any step corrupts the timing of the entire APU.</p>
-<h3><a class="anchor" id="autotoc_md527"></a>
+<h3><a class="anchor" id="autotoc_md539"></a>
 Issue 3: Floating-Point Precision</h3>
 <p>The use of <code>double</code> for the <code>apuCyclesPerMaster</code> ratio can introduce minute floating-point precision errors. Over thousands of cycles required for the handshake, these small errors accumulate and contribute to timing drift between CPU and APU.</p>
-<h2><a class="anchor" id="autotoc_md528"></a>
+<h2><a class="anchor" id="autotoc_md540"></a>
 Proposed Solution: Cycle-Accurate Refactoring</h2>
-<h3><a class="anchor" id="autotoc_md529"></a>
+<h3><a class="anchor" id="autotoc_md541"></a>
 Step 1: Implement Cycle-Accurate Instruction Execution</h3>
 <p>The <code>Spc700::RunOpcode</code> function must be refactored to calculate and consume the <em>exact</em> cycle count for each instruction <em>before</em> execution.</p>
 <ul>
 <li><b>Calculate Exact Cost</b>: Before running an opcode, determine its precise cycle cost by analyzing opcode, addressing mode, and potential page-boundary penalties</li>
 <li><b>Atomic Execution</b>: Remove the <code>bstep</code> mechanism. An instruction, no matter how complex, should be fully executed within a single call to a new <code>Spc700::Step()</code> function</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md530"></a>
+<h3><a class="anchor" id="autotoc_md542"></a>
 Step 2: Centralize the APU Execution Loop</h3>
 <p>The main <code>Apu::RunCycles</code> loop should be the sole driver of APU time.</p>
 <ul>
@@ -185,28 +185,28 @@ Step 2: Centralize the APU Execution Loop</h3>
 <div class="line">    }</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md531"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md543"></a>
 Step 3: Use Integer-Based Cycle Ratios</h3>
 <p>To eliminate floating-point errors, convert the <code>apuCyclesPerMaster</code> ratio to a fixed-point integer ratio. This provides perfect, drift-free conversion between main CPU and APU cycles over long periods.</p>
 <hr  />
-<h1><a class="anchor" id="autotoc_md533"></a>
+<h1><a class="anchor" id="autotoc_md545"></a>
 High Priority: Core Architecture &amp; Timing Model</h1>
-<h2><a class="anchor" id="autotoc_md534"></a>
+<h2><a class="anchor" id="autotoc_md546"></a>
 CPU Cycle Counting</h2>
 <ul>
 <li><b>Issue:</b> The main CPU loop in <code>Snes::RunCycle()</code> advances the master cycle counter by a fixed amount (<code>+= 2</code>). Real 65816 instructions have variable cycle counts. The current workaround of scattering <code>callbacks_.idle()</code> calls is error-prone and difficult to maintain.</li>
 <li><b>Recommendation:</b> Refactor <code>Cpu::ExecuteInstruction</code> to calculate and return the <em>precise</em> cycle cost of each instruction, including penalties for addressing modes and memory access speeds. The main <code>Snes</code> loop should then consume this exact value, centralizing timing logic and dramatically improving accuracy.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md535"></a>
+<h2><a class="anchor" id="autotoc_md547"></a>
 Main Synchronization Loop</h2>
 <ul>
 <li><b>Issue:</b> The main loop in <code>Snes::RunFrame()</code> is state-driven based on the <code>in_vblank_</code> flag. This can be fragile and makes it difficult to reason about component state at any given cycle.</li>
 <li><b>Recommendation:</b> Transition to a unified main loop driven by a single master cycle counter. In this model, each component (CPU, PPU, APU, DMA) is "ticked" forward based on the master clock. This is a more robust and modular architecture that simplifies component synchronization.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md537"></a>
+<h1><a class="anchor" id="autotoc_md549"></a>
 Medium Priority: PPU Performance</h1>
-<h2><a class="anchor" id="autotoc_md538"></a>
+<h2><a class="anchor" id="autotoc_md550"></a>
 Rendering Approach Optimization</h2>
 <ul>
 <li><b>Issue:</b> The PPU currently uses a "pixel-based" renderer (<code>Ppu::RunLine</code> calls <code>HandlePixel</code> for every pixel). This is highly accurate but can be slow due to high function call overhead and poor cache locality.</li>
@@ -219,9 +219,9 @@ Rendering Approach Optimization</h2>
 <li>Standard approach in accurate SNES emulators</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md540"></a>
+<h1><a class="anchor" id="autotoc_md552"></a>
 Low Priority: Code Quality &amp; Refinements</h1>
-<h2><a class="anchor" id="autotoc_md541"></a>
+<h2><a class="anchor" id="autotoc_md553"></a>
 APU Code Modernization</h2>
 <ul>
 <li><b>Issue:</b> The code in <code><a class="el" href="../../d6/d00/dsp_8cc.html">dsp.cc</a></code> and <code><a class="el" href="../../d2/d06/spc700_8cc.html">spc700.cc</a></code>, inherited from other projects, is written in a very C-like style, using raw pointers, <code>memset</code>, and numerous "magic numbers."</li>
@@ -233,28 +233,28 @@ APU Code Modernization</h2>
 </ul>
 </li>
 </ul>
-<h2><a class="anchor" id="autotoc_md542"></a>
+<h2><a class="anchor" id="autotoc_md554"></a>
 Audio Subsystem &amp; Buffering</h2>
 <ul>
 <li><b>Issue:</b> The current implementation in <code>Emulator::Run</code> queues audio samples directly to the SDL audio device. If the emulator lags for even a few frames, the audio buffer can underrun, causing audible pops and stutters.</li>
 <li><b>Improvement:</b> Implement a <b>lock-free ring buffer (or circular buffer)</b> to act as an intermediary. The emulator thread would continuously write generated samples into this buffer, while the audio device (in its own thread) would continuously read from it. This decouples the emulation speed from the audio hardware, smoothing out performance fluctuations and preventing stutter.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md543"></a>
+<h2><a class="anchor" id="autotoc_md555"></a>
 Debugger &amp; Tooling Optimizations</h2>
-<h3><a class="anchor" id="autotoc_md544"></a>
+<h3><a class="anchor" id="autotoc_md556"></a>
 DisassemblyViewer Data Structure</h3>
 <ul>
 <li><b>Issue:</b> <code>DisassemblyViewer</code> uses a <code>std::map</code> to store instruction traces. For a tool that handles frequent insertions and lookups, this can be suboptimal.</li>
 <li><b>Optimization:</b> Replace <code>std::map</code> with <code>std::unordered_map</code> for faster average-case performance.</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md545"></a>
+<h3><a class="anchor" id="autotoc_md557"></a>
 BreakpointManager Lookups</h3>
 <ul>
 <li><b>Issue:</b> The <code>ShouldBreakOn...</code> functions perform a linear scan over a <code>std::vector</code> of all breakpoints. This is O(n) and could become a minor bottleneck if a very large number of breakpoints are set.</li>
 <li><b>Optimization:</b> For execution breakpoints, use a <code>std::unordered_set&lt;uint32_t&gt;</code> for O(1) average lookup time. This would make breakpoint checking near-instantaneous, regardless of how many are active.</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md547"></a>
+<h1><a class="anchor" id="autotoc_md559"></a>
 Implementation Priority</h1>
 <ol type="1">
 <li><b>Critical (v0.4.0):</b> APU timing fix - Required for music playback</li>
@@ -264,9 +264,9 @@ Implementation Priority</h1>
 <li><b>Low (ongoing):</b> Code quality improvements - Technical debt reduction</li>
 </ol>
 <hr  />
-<h1><a class="anchor" id="autotoc_md549"></a>
+<h1><a class="anchor" id="autotoc_md561"></a>
 Success Metrics</h1>
-<h2><a class="anchor" id="autotoc_md550"></a>
+<h2><a class="anchor" id="autotoc_md562"></a>
 APU Timing Fix Success</h2>
 <ul>
 <li>[ ] Music plays in all tested games</li>
@@ -274,7 +274,7 @@ APU Timing Fix Success</h2>
 <li>[ ] No audio glitches or stuttering</li>
 <li>[ ] Handshake completes within expected cycle count</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md551"></a>
+<h2><a class="anchor" id="autotoc_md563"></a>
 Overall Emulation Accuracy</h2>
 <ul>
 <li>[ ] CPU cycle accuracy within ±1 cycle per instruction</li>
@@ -282,7 +282,7 @@ Overall Emulation Accuracy</h2>
 <li>[ ] PPU timing accurate to scanline level</li>
 <li>[ ] All test ROMs pass</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md552"></a>
+<h2><a class="anchor" id="autotoc_md564"></a>
 Performance Targets</h2>
 <ul>
 <li>[ ] 60 FPS on modest hardware (2015+ laptops)</li>
@@ -290,7 +290,7 @@ Performance Targets</h2>
 <li>[ ] Audio buffer never underruns in normal operation</li>
 </ul>
 <hr  />
-<h1><a class="anchor" id="autotoc_md554"></a>
+<h1><a class="anchor" id="autotoc_md566"></a>
 Related Documentation</h1>
 <ul>
 <li><code><a class="el" href="../../d5/d6c/E4-Emulator-Development-Guide_8md.html">docs/E4-Emulator-Development-Guide.md</a></code> - Implementation details</li>

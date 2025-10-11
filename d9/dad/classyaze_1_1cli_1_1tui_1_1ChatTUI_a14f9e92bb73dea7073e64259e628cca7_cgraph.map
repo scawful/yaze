@@ -1,0 +1,11 @@
+<map id="yaze::cli::tui::ChatTUI::LaunchAgentPrompt" name="yaze::cli::tui::ChatTUI::LaunchAgentPrompt">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,72,152,113"/>
+<area shape="rect" id="Node000002" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a10565bd80a2d2d479e8f10af89380bd6" title=" " alt="" coords="200,39,396,79"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,79,184,74,185,79,152,84"/>
+<area shape="rect" id="Node000074" href="$d9/dad/classyaze_1_1cli_1_1tui_1_1ChatTUI.html#aeacad3858907040289e9296bcc3e63da" title=" " alt="" coords="227,104,369,145"/>
+<area shape="poly" id="edge4_Node000001_Node000074" title=" " alt="" coords="152,100,212,109,211,114,152,106"/>
+<area shape="rect" id="Node000003" href="$d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#a0b3c44eb2c0b4d44703871aeefded5fd" title=" " alt="" coords="444,5,676,46"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="396,44,428,40,429,45,397,49"/>
+<area shape="rect" id="Node000004" href="$d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a2c1a6be10a542c3294d358a1108be09f" title=" " alt="" coords="463,71,657,111"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="397,68,448,75,447,80,396,74"/>
+</map>

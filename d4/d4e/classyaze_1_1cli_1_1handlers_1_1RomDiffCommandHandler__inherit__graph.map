@@ -1,0 +1,5 @@
+<map id="yaze::cli::handlers::RomDiffCommandHandler" name="yaze::cli::handlers::RomDiffCommandHandler">
+<area shape="rect" id="Node000001" title="Command handler for comparing ROM files." alt="" coords="5,94,183,135"/>
+<area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="28,5,160,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,62,97,94,91,94,91,62"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="yaze::cli::handlers::OverworldDescribeMapCommandHandler::ValidateArgs" name="yaze::cli::handlers::OverworldDescribeMapCommandHandler::ValidateArgs">
+<area shape="rect" id="Node000001" title="Validate command arguments." alt="" coords="5,5,227,61"/>
+<area shape="rect" id="Node000002" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a74c38b994ca4ebd34ecdf75e6898f676" title="Validate that required arguments are present." alt="" coords="275,13,473,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="227,31,259,31,259,36,227,36"/>
+<area shape="rect" id="Node000003" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a095e664ff2500d73cca6c91a1e4f5f83" title=" " alt="" coords="521,13,726,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="474,31,506,31,506,36,474,36"/>
+</map>

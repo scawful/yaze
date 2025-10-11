@@ -1,15 +1,15 @@
 var searchData=
 [
-  ['sampleformat_0',['SampleFormat',['../d2/dc8/namespaceyaze_1_1emu_1_1audio.html#a870fe4320e8f6ce85c55f7a2aa695898',1,'yaze::emu::audio']]],
-  ['selectionmode_1',['SelectionMode',['../d0/d28/classTextEditor.html#aed0b92add3785d71e009dbf66b78490d',1,'TextEditor']]],
-  ['sender_2',['Sender',['../d4/dd2/structyaze_1_1cli_1_1agent_1_1ChatMessage.html#a3bda0e845561536cac666a0e6c4767a2',1,'yaze::cli::agent::ChatMessage']]],
-  ['size_3',['Size',['../d1/dc4/structyaze_1_1emu_1_1BackgroundLayer.html#a86b69290e0396632ceec0a0f6e295822',1,'yaze::emu::BackgroundLayer']]],
-  ['snesbutton_4',['SnesButton',['../d5/df0/namespaceyaze_1_1emu_1_1input.html#adba5be4e20df51e4ba9273c1d018cbbb',1,'yaze::emu::input']]],
-  ['sorting_5',['Sorting',['../d5/d1f/namespaceyaze_1_1zelda3.html#a9490ecf2dca104bfd1d4d40b44f5e747',1,'yaze::zelda3']]],
-  ['specialobjecttype_6',['SpecialObjectType',['../d5/d1f/namespaceyaze_1_1zelda3.html#a479da514040cddc99b5da1235244c421',1,'yaze::zelda3']]],
-  ['spriteitemcolumnid_7',['SpriteItemColumnID',['../d1/d3e/namespaceyaze_1_1editor.html#acb21af02024b9c4c16e86718699c6d80',1,'yaze::editor']]],
-  ['spritesize_8',['SpriteSize',['../d6/d20/namespaceyaze_1_1emu.html#ab2d8079bb5330aedfb062604d2a0168a',1,'yaze::emu']]],
-  ['spritetype_9',['SpriteType',['../d7/d61/classyaze_1_1zelda3_1_1DungeonEditorSystem.html#ae1cdb8859922d1caa4a46f01d83c7c7e',1,'yaze::zelda3::DungeonEditorSystem']]],
-  ['status_10',['status',['../d0/d0e/structyaze_1_1cli_1_1agent_1_1TodoItem.html#a7c9e705458aea27fbd6bd9b619f8bb07',1,'yaze::cli::agent::TodoItem::Status'],['../d8/d1c/structyaze_1_1cli_1_1Tile16Proposal.html#a86717cf96ce8a4fe63906f2a47760983',1,'yaze::cli::Tile16Proposal::Status']]],
-  ['statusfilter_11',['StatusFilter',['../dd/dcc/classyaze_1_1editor_1_1ProposalDrawer.html#a6ff771686a21c2dc51538fbc25c59b8a',1,'yaze::editor::ProposalDrawer']]]
+  ['palettecategory_0',['PaletteCategory',['../d0/d27/namespaceyaze_1_1gfx.html#a82a8956476ffc04750bcfc4120c8b8db',1,'yaze::gfx']]],
+  ['paletteindex_1',['PaletteIndex',['../d0/d28/classTextEditor.html#acb9bdc8f59e2fd152f423db095672fd9',1,'TextEditor']]],
+  ['paneltype_2',['PanelType',['../dd/d63/namespaceyaze_1_1cli.html#ae32db88762bb326629936fc2ed204666',1,'yaze::cli']]],
+  ['phase_3',['Phase',['../db/dbe/classyaze_1_1emu_1_1debug_1_1ApuHandshakeTracker.html#a841d9f5808af79c20e140d8d8f1e2171',1,'yaze::emu::debug::ApuHandshakeTracker']]],
+  ['placementtype_4',['PlacementType',['../db/d00/classyaze_1_1editor_1_1DungeonToolset.html#ac9170fbc1d88691828b594c519f8ad40',1,'yaze::editor::DungeonToolset']]],
+  ['platform_5',['Platform',['../d4/de1/namespaceyaze_1_1util.html#a31a3bd17d34979da958912e00b13cc56',1,'yaze::util']]],
+  ['policyseverity_6',['PolicySeverity',['../dd/d63/namespaceyaze_1_1cli.html#a0c9d838871edcd8b94461f8013be2b16',1,'yaze::cli']]],
+  ['position_7',['Position',['../d4/d96/classyaze_1_1gui_1_1EditorCard.html#a6d7f9e282571c88aaf0e1d66c981af8b',1,'yaze::gui::EditorCard']]],
+  ['prefix_8',['Prefix',['../da/df6/structyaze_1_1util_1_1HexStringParams.html#aacc8ccc62374df2c51bded29cc20589d',1,'yaze::util::HexStringParams']]],
+  ['projectformat_9',['ProjectFormat',['../db/d33/namespaceyaze_1_1core.html#a1142e14777c50b720b0e9e102bff707e',1,'yaze::core']]],
+  ['promptmode_10',['PromptMode',['../d8/dd3/namespaceyaze_1_1cli_1_1agent.html#a35cbc4e2a28bdee3fd04f391c3ed8001',1,'yaze::cli::agent']]],
+  ['proposalstatus_11',['ProposalStatus',['../de/dd4/classyaze_1_1cli_1_1ProposalRegistry.html#a35ea789ed0667b0a69a01f80a36331ff',1,'yaze::cli::ProposalRegistry']]]
 ];

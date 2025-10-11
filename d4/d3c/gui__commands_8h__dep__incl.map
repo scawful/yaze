@@ -1,0 +1,11 @@
+<map id="src/cli/handlers/tools/gui_commands.h" name="src/cli/handlers/tools/gui_commands.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="296,5,437,46"/>
+<area shape="rect" id="Node000002" href="$d2/d0e/agent_8cc.html" title=" " alt="" coords="5,102,168,127"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="289,54,127,103,125,98,287,49"/>
+<area shape="rect" id="Node000003" href="$db/dae/command__handlers_8cc.html" title=" " alt="" coords="192,94,362,135"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="337,59,299,95,296,92,333,55"/>
+<area shape="rect" id="Node000004" href="$d5/d03/gui__commands_8cc.html" title=" " alt="" coords="387,94,528,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="400,55,439,92,435,95,396,59"/>
+<area shape="rect" id="Node000005" href="$d3/d79/tool__dispatcher_8cc.html" title=" " alt="" coords="552,94,690,135"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="439,49,564,91,562,96,438,54"/>
+</map>
