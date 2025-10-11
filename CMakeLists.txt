@@ -2,6 +2,10 @@
 # by scawful
 cmake_minimum_required(VERSION 3.16)
 
+# Set minimum policy version for subdirectories to allow older dependencies like yaml-cpp
+# This allows cmake_minimum_required in subdirectories to use versions < 3.5
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Minimum policy version for subdirectories")
+
 # Set policies for compatibility
 cmake_policy(SET CMP0091 NEW)
 cmake_policy(SET CMP0048 NEW)
