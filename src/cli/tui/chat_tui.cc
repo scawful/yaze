@@ -76,7 +76,7 @@ ChatTUI::ChatTUI(Rom* rom_context) : rom_context_(rom_context) {
       "List dungeon entrances", "Show sprite palette summary",
       "Summarize overworld map", "Find unused rooms",
       "Explain ROM header", "Search dialogue for 'Master Sword'",
-      "Suggest QA checklist", "Show TODO status",
+      "Suggest QA checklist", "Show TODO status", "Show ROM info"
   };
 }
 
@@ -218,7 +218,12 @@ void ChatTUI::Run() {
 
     Element history_view;
     if (history.empty()) {
-      history_view = vbox({text("No messages yet. Start chatting!") | dim}) | flex | center;
+      history_view = vbox({
+        text("yaze TUI") | bold | center,
+        text("A conversational agent for ROM hacking") | center,
+        separator(),
+        text("No messages yet. Start chatting!") | dim
+      }) | flex | center;
     } else {
       history_view = vbox(history_elements) | vscroll_indicator | frame | flex;
     }
