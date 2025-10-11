@@ -1,7 +1,7 @@
-#include "cli/handlers/agent/commands.h"
+#include "cli/handlers/commands.h"
 #include "app/rom.h"
 #include "app/core/project.h"
-#include "cli/handlers/mock_rom.h"
+#include "cli/handlers/rom/mock_rom.h"
 
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"

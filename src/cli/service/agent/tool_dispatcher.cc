@@ -5,7 +5,7 @@
 
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
-#include "cli/handlers/agent/commands.h"
+#include "cli/handlers/commands.h"
 
 namespace yaze {
 namespace cli {
@@ -13,6 +13,8 @@ namespace agent {
 
 absl::StatusOr<std::string> ToolDispatcher::Dispatch(
     const ToolCall& tool_call) {
+  using namespace yaze::cli::handlers;
+  
   std::vector<std::string> args;
   bool has_format = false;
   for (const auto& [key, value] : tool_call.args) {

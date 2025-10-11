@@ -52,32 +52,36 @@ add_executable(
   cli/tui/enhanced_chat_component.cc
   cli/tui/enhanced_status_panel.cc
   cli/tui/hex_viewer.cc
-  cli/handlers/compress.cc
-  cli/handlers/patch.cc
-  cli/handlers/tile16_transfer.cc
-  cli/handlers/dungeon.cc
-  cli/handlers/gfx.cc
-  cli/handlers/palette.cc
-  cli/handlers/rom.cc
-  cli/handlers/overworld.cc
-  cli/handlers/overworld_inspect.cc
-  cli/handlers/sprite.cc
-  cli/handlers/project.cc
-  cli/handlers/command_palette.cc
-  cli/handlers/message.cc
+  # Removed old-style handlers: compress.cc, patch.cc, tile16_transfer.cc
+  cli/handlers/game/dungeon.cc
+  cli/handlers/graphics/gfx.cc
+  cli/handlers/graphics/palette.cc
+  cli/handlers/rom/rom_commands.cc
+  cli/handlers/game/overworld.cc
+  cli/handlers/game/overworld_inspect.cc
+  # Removed old-style handlers: sprite.cc, command_palette.cc
+  cli/handlers/rom/project_commands.cc
+  cli/handlers/game/message.cc
   cli/handlers/agent.cc
   cli/handlers/agent/common.cc
   cli/handlers/agent/general_commands.cc
   cli/handlers/agent/conversation_test.cc
   cli/handlers/agent/test_common.cc
   cli/handlers/agent/test_commands.cc
-  cli/handlers/agent/gui_commands.cc
-  cli/handlers/agent/tool_commands.cc
-  cli/handlers/agent/gui_tool_commands.cc
-  cli/handlers/agent/dialogue_tool_commands.cc
-  cli/handlers/agent/music_tool_commands.cc
-  cli/handlers/agent/sprite_tool_commands.cc
-  cli/handlers/agent/dungeon_emulator_tool_commands.cc
+  cli/handlers/agent/todo_commands.cc
+  # New CommandHandler-based implementations
+  cli/handlers/tools/resource_commands.cc
+  cli/handlers/game/dungeon_commands.cc
+  cli/handlers/game/overworld_commands.cc
+  cli/handlers/tools/gui_commands.cc
+  cli/handlers/graphics/hex_commands.cc
+  cli/handlers/game/dialogue_commands.cc
+  cli/handlers/game/music_commands.cc
+  cli/handlers/graphics/palette_commands.cc
+  # cli/handlers/graphics/sprite_commands.cc  # File doesn't exist
+  cli/handlers/tools/emulator_commands.cc
+  cli/handlers/game/message_commands.cc
+  cli/handlers/command_wrappers.cc
   cli/flags.cc
   cli/tui/asar_patch.cc
   cli/tui/palette_editor.cc

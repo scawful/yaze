@@ -1,4 +1,4 @@
-#include "cli/handlers/agent/commands.h"
+#include "cli/handlers/commands.h"
 
 #include <filesystem>
 #include <fstream>

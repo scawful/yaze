@@ -1,4 +1,4 @@
-#include "cli/handlers/agent/commands.h"
+#include "cli/handlers/commands.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -387,9 +387,9 @@ absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args) {
           "No pending proposals found and no active sandbox. Run 'z3ed agent "
           "run' first.");
     }
-    RomDiff diff_handler;
-    auto status =
-        diff_handler.Run({rom.filename(), sandbox_or->rom_path.string()});
+    // TODO: Use new CommandHandler system for RomDiff
+    // Reference: src/app/rom.cc (Rom comparison methods)
+    auto status = absl::UnimplementedError("RomDiff not yet implemented in new CommandHandler system");
     if (!status.ok()) {
       return status;
     }
