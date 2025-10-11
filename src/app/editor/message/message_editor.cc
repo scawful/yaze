@@ -15,7 +15,7 @@
 #include "app/gui/canvas.h"
 #include "app/gui/style.h"
 #include "app/rom.h"
-#include "gui/input.h"
+#include "app/gui/input.h"
 #include "imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/hex.h"
