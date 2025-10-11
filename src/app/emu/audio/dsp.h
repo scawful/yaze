@@ -7,6 +7,12 @@
 namespace yaze {
 namespace emu {
 
+enum class InterpolationType {
+  Linear,
+  Cosine,
+  Cubic,
+};
+
 typedef struct DspChannel {
   // pitch
   uint16_t pitch;
@@ -103,6 +109,8 @@ class Dsp {
   int16_t GetSample(int ch);
 
   void GetSamples(int16_t* sample_data, int samples_per_frame, bool pal_timing);
+
+  InterpolationType interpolation_type = InterpolationType::Linear;
 
  private:
   // sample ring buffer (1024 samples, *2 for stereo)

@@ -25,6 +25,10 @@ struct Input {
 class Snes {
  public:
   Snes() {
+    // Initialize input controllers to clean state
+    input1 = {};
+    input2 = {};
+    
     cpu_.callbacks().read_byte = [this](uint32_t adr) { return CpuRead(adr); };
     cpu_.callbacks().write_byte = [this](uint32_t adr, uint8_t val) { CpuWrite(adr, val); };
     cpu_.callbacks().idle = [this](bool waiting) { CpuIdle(waiting); };

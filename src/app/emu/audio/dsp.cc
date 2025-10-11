@@ -1,5 +1,6 @@
 #include "app/emu/audio/dsp.h"
 
+#include <cmath>
 #include <cstring>
 
 namespace yaze {
@@ -616,6 +617,37 @@ void Dsp::Write(uint8_t adr, uint8_t val) {
   ram[adr] = val;
 }
 
+// Helper for 4-point cubic interpolation (Catmull-Rom)
+// Provides higher quality resampling compared to linear interpolation.
+inline int16_t InterpolateCubic(int16_t p0, int16_t p1, int16_t p2, int16_t p3,
+                                double t) {
+  double t2 = t * t;
+  double t3 = t2 * t;
+
+  double c0 = p1;
+  double c1 = 0.5 * (p2 - p0);
+  double c2 = (p0 - 2.5 * p1 + 2.0 * p2 - 0.5 * p3);
+  double c3 = 0.5 * (-p0 + 3.0 * p1 - 3.0 * p2 + p3);
+
+  double result = c0 + c1 * t + c2 * t2 + c3 * t3;
+
+  // Clamp to 16-bit range
+  return result > 32767.0
+             ? 32767
+             : (result < -32768.0 ? -32768 : static_cast<int16_t>(result));
+}
+
+// Helper for cosine interpolation
+inline int16_t InterpolateCosine(int16_t s0, int16_t s1, double mu) {
+  const double mu2 = (1.0 - cos(mu * 3.14159265358979323846)) / 2.0;
+  return static_cast<int16_t>(s0 * (1.0 - mu2) + s1 * mu2);
+}
+
+// Helper for linear interpolation
+inline int16_t InterpolateLinear(int16_t s0, int16_t s1, double frac) {
+  return static_cast<int16_t>(s0 + frac * (s1 - s0));
+}
+
 void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
                      bool pal_timing) {
   // Resample from native samples-per-frame (NTSC: ~534, PAL: ~641)
@@ -625,27 +657,75 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
   double location = static_cast<double>((lastFrameBoundary + 0x400) & 0x3ff);
   location -= native_per_frame;
 
-  // Use linear interpolation for smoother resampling
   for (int i = 0; i < samples_per_frame; i++) {
-    const int idx = static_cast<int>(location) & 0x3ff;
-    const int next_idx = (idx + 1) & 0x3ff;
-    
-    // Calculate interpolation factor (0.0 to 1.0)
-    const double frac = location - static_cast<int>(location);
-    
-    // Linear interpolation for left channel
-    const int16_t s0_l = sampleBuffer[(idx * 2) + 0];
-    const int16_t s1_l = sampleBuffer[(next_idx * 2) + 0];
-    sample_data[(i * 2) + 0] = static_cast<int16_t>(
-        s0_l + frac * (s1_l - s0_l));
-    
-    // Linear interpolation for right channel
-    const int16_t s0_r = sampleBuffer[(idx * 2) + 1];
-    const int16_t s1_r = sampleBuffer[(next_idx * 2) + 1];
-    sample_data[(i * 2) + 1] = static_cast<int16_t>(
-        s0_r + frac * (s1_r - s0_r));
-    
+    const int idx = static_cast<int>(location);
+    const double frac = location - idx;
+
+    switch (interpolation_type) {
+      case InterpolationType::Linear: {
+        // const int next_idx = (idx + 1) & 0x3ff;
+        // const int16_t s0_l = sampleBuffer[(idx * 2) + 0];
+        // const int16_t s1_l = sampleBuffer[(next_idx * 2) + 0];
+        // sample_data[(i * 2) + 0] = InterpolateLinear(s0_l, s1_l, frac);
+        // const int16_t s0_r = sampleBuffer[(idx * 2) + 1];
+        // const int16_t s1_r = sampleBuffer[(next_idx * 2) + 1];
+        // sample_data[(i * 2) + 1] = InterpolateLinear(s0_r, s1_r, frac);
+        const int idx = static_cast<int>(location) & 0x3ff;
+        const int next_idx = (idx + 1) & 0x3ff;
+        
+        // Calculate interpolation factor (0.0 to 1.0)
+        const double frac = location - static_cast<int>(location);
+        
+        // Linear interpolation for left channel
+        const int16_t s0_l = sampleBuffer[(idx * 2) + 0];
+        const int16_t s1_l = sampleBuffer[(next_idx * 2) + 0];
+        sample_data[(i * 2) + 0] = static_cast<int16_t>(
+            s0_l + frac * (s1_l - s0_l));
+        
+        // Linear interpolation for right channel
+        const int16_t s0_r = sampleBuffer[(idx * 2) + 1];
+        const int16_t s1_r = sampleBuffer[(next_idx * 2) + 1];
+        sample_data[(i * 2) + 1] = static_cast<int16_t>(
+            s0_r + frac * (s1_r - s0_r));
+        
+        // location += step;
+
+        break;
+      }
+      case InterpolationType::Cosine: {
+        const int next_idx = (idx + 1) & 0x3ff;
+        const int16_t s0_l = sampleBuffer[(idx * 2) + 0];
+        const int16_t s1_l = sampleBuffer[(next_idx * 2) + 0];
+        sample_data[(i * 2) + 0] = InterpolateCosine(s0_l, s1_l, frac);
+        const int16_t s0_r = sampleBuffer[(idx * 2) + 1];
+        const int16_t s1_r = sampleBuffer[(next_idx * 2) + 1];
+        sample_data[(i * 2) + 1] = InterpolateCosine(s0_r, s1_r, frac);
+        break;
+      }
+      case InterpolationType::Cubic: {
+        const int idx0 = (idx - 1 + 0x400) & 0x3ff;
+        const int idx1 = idx & 0x3ff;
+        const int idx2 = (idx + 1) & 0x3ff;
+        const int idx3 = (idx + 2) & 0x3ff;
+        // Left channel
+        const int16_t p0_l = sampleBuffer[(idx0 * 2) + 0];
+        const int16_t p1_l = sampleBuffer[(idx1 * 2) + 0];
+        const int16_t p2_l = sampleBuffer[(idx2 * 2) + 0];
+        const int16_t p3_l = sampleBuffer[(idx3 * 2) + 0];
+        sample_data[(i * 2) + 0] =
+            InterpolateCubic(p0_l, p1_l, p2_l, p3_l, frac);
+        // Right channel
+        const int16_t p0_r = sampleBuffer[(idx0 * 2) + 1];
+        const int16_t p1_r = sampleBuffer[(idx1 * 2) + 1];
+        const int16_t p2_r = sampleBuffer[(idx2 * 2) + 1];
+        const int16_t p3_r = sampleBuffer[(idx3 * 2) + 1];
+        sample_data[(i * 2) + 1] =
+            InterpolateCubic(p0_r, p1_r, p2_r, p3_r, frac);
+        break;
+      }
+    }
     location += step;
+
   }
 }
 
