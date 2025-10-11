@@ -26,9 +26,12 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
     absl::failure_signal_handler
   )
 
-  # Link test support if tests are enabled (yaze_editor needs TestManager)
-  if(YAZE_BUILD_TESTS AND TARGET yaze_test_support)
+  # Link test support library (yaze_editor needs TestManager)
+  if(TARGET yaze_test_support)
     target_link_libraries(yaze_emu PRIVATE yaze_test_support)
+    message(STATUS "✓ yaze_emu executable linked to yaze_test_support")
+  else()
+    message(WARNING "yaze_emu needs yaze_test_support but TARGET not found")
   endif()
 
   if(YAZE_ENABLE_UI_TESTS)

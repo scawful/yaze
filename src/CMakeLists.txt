@@ -71,7 +71,10 @@ if(YAZE_BUILD_APP OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS)
   include(cli/agent.cmake)
 endif()
 
-if(YAZE_BUILD_TESTS AND NOT YAZE_MINIMAL_BUILD)
+# Include test support library when tests are enabled OR in non-minimal builds
+# (yaze_editor needs TestManager for editor features)
+# Test executables are only built when YAZE_BUILD_TESTS=ON (handled in test/CMakeLists.txt)
+if(YAZE_BUILD_TESTS OR NOT YAZE_MINIMAL_BUILD)
   include(app/test/test.cmake)
 endif()
 
