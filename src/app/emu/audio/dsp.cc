@@ -625,10 +625,26 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
   double location = static_cast<double>((lastFrameBoundary + 0x400) & 0x3ff);
   location -= native_per_frame;
 
+  // Use linear interpolation for smoother resampling
   for (int i = 0; i < samples_per_frame; i++) {
     const int idx = static_cast<int>(location) & 0x3ff;
-    sample_data[(i * 2) + 0] = sampleBuffer[(idx * 2) + 0];
-    sample_data[(i * 2) + 1] = sampleBuffer[(idx * 2) + 1];
+    const int next_idx = (idx + 1) & 0x3ff;
+    
+    // Calculate interpolation factor (0.0 to 1.0)
+    const double frac = location - static_cast<int>(location);
+    
+    // Linear interpolation for left channel
+    const int16_t s0_l = sampleBuffer[(idx * 2) + 0];
+    const int16_t s1_l = sampleBuffer[(next_idx * 2) + 0];
+    sample_data[(i * 2) + 0] = static_cast<int16_t>(
+        s0_l + frac * (s1_l - s0_l));
+    
+    // Linear interpolation for right channel
+    const int16_t s0_r = sampleBuffer[(idx * 2) + 1];
+    const int16_t s1_r = sampleBuffer[(next_idx * 2) + 1];
+    sample_data[(i * 2) + 1] = static_cast<int16_t>(
+        s0_r + frac * (s1_r - s0_r));
+    
     location += step;
   }
 }

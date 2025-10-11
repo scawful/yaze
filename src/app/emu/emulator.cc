@@ -98,17 +98,19 @@ void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& 
   if (!audio_backend_) {
     audio_backend_ = audio::AudioBackendFactory::Create(
         audio::AudioBackendFactory::BackendType::SDL2);
-    
+
     audio::AudioConfig config;
     config.sample_rate = 48000;
     config.channels = 2;
+    // Use moderate buffer size - 1024 samples = ~21ms latency
+    // This is a good balance between latency and stability
     config.buffer_frames = 1024;
     config.format = audio::SampleFormat::INT16;
-    
+
     if (!audio_backend_->Initialize(config)) {
       LOG_ERROR("Emulator", "Failed to initialize audio backend");
     } else {
-      LOG_INFO("Emulator", "Audio backend initialized: %s", 
+      LOG_INFO("Emulator", "Audio backend initialized: %s",
                audio_backend_->GetBackendName().c_str());
     }
   }
@@ -141,17 +143,19 @@ void Emulator::Run(Rom* rom) {
   if (!audio_backend_) {
     audio_backend_ = audio::AudioBackendFactory::Create(
         audio::AudioBackendFactory::BackendType::SDL2);
-    
+
     audio::AudioConfig config;
     config.sample_rate = 48000;
     config.channels = 2;
+    // Use moderate buffer size - 1024 samples = ~21ms latency
+    // This is a good balance between latency and stability
     config.buffer_frames = 1024;
     config.format = audio::SampleFormat::INT16;
-    
+
     if (!audio_backend_->Initialize(config)) {
       LOG_ERROR("Emulator", "Failed to initialize audio backend");
     } else {
-      LOG_INFO("Emulator", "Audio backend initialized (lazy): %s", 
+      LOG_INFO("Emulator", "Audio backend initialized (lazy): %s",
                audio_backend_->GetBackendName().c_str());
     }
   }
@@ -201,32 +205,31 @@ void Emulator::Run(Rom* rom) {
     frame_count_ = 0;
     fps_timer_ = 0.0;
     current_fps_ = 0.0;
+    
+    // Start emulator in running state by default
+    // User can press Space to pause if needed
+    running_ = true;
   }
 
   RenderNavBar();
 
-  // Auto-pause emulator during window operations to prevent macOS crashes
-  static bool was_running_before_pause = false;
-  bool window_has_focus = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootWindow);
-  
+  // Auto-pause emulator during window resize to prevent crashes
+  // MODERN APPROACH: Only pause on actual window resize, not focus loss
+  static bool was_running_before_resize = false;
+
   // Check if window is being resized (set in HandleEvents)
   if (yaze::core::g_window_is_resizing && running_) {
-    was_running_before_pause = true;
+    was_running_before_resize = true;
     running_ = false;
-  } else if (!yaze::core::g_window_is_resizing && !running_ && was_running_before_pause) {
+  } else if (!yaze::core::g_window_is_resizing && !running_ && was_running_before_resize) {
     // Auto-resume after resize completes
     running_ = true;
-    was_running_before_pause = false;
+    was_running_before_resize = false;
   }
-  
-  // Also pause when window loses focus to save CPU/battery
-  if (!window_has_focus && running_ && !was_running_before_pause) {
-    was_running_before_pause = true;
-    running_ = false;
-  } else if (window_has_focus && !running_ && was_running_before_pause && !yaze::core::g_window_is_resizing) {
-    // Don't auto-resume - let user manually resume
-    was_running_before_pause = false;
-  }
+
+  // REMOVED: Aggressive focus-based pausing
+  // Modern emulators (RetroArch, bsnes, etc.) continue running in background
+  // Users can manually pause with Space if they want to save CPU/battery
 
   if (running_) {
     // Poll input and update SNES controller state
@@ -259,7 +262,7 @@ void Emulator::Run(Rom* rom) {
       // Process frames (skip rendering for all but last frame if falling behind)
       for (int i = 0; i < frames_to_process; i++) {
         bool should_render = (i == frames_to_process - 1);
-        
+
         // Run frame
         if (turbo_mode_) {
           snes_.RunFrame();
@@ -277,92 +280,61 @@ void Emulator::Run(Rom* rom) {
 
         // Only render and handle audio on the last frame
         if (should_render) {
-          // Generate and queue audio samples using audio backend
-          snes_.SetSamples(audio_buffer_, wanted_samples_);
+          // ADAPTIVE AUDIO BUFFERING
+          // Target: Keep 2-3 frames worth of audio queued for smooth playback
+          // This prevents both underruns (crackling) and excessive latency
           
-          // AUDIO DEBUG: Comprehensive diagnostics at regular intervals
-          static int audio_debug_counter = 0;
-          audio_debug_counter++;
-          
-          // Log at frames 60 (1sec), 300 (5sec), 600 (10sec), then every 600 frames
-          bool should_debug = (audio_debug_counter == 60 || audio_debug_counter == 300 || 
-                              audio_debug_counter == 600 || (audio_debug_counter % 600 == 0));
-          
-          if (should_debug) {
-            // Check if buffer exists
-            if (!audio_buffer_) {
-              printf("[AUDIO ERROR] audio_buffer_ is NULL!\n");
-            } else {
-              // Check for audio samples
-              bool has_audio = false;
-              int16_t max_sample = 0;
-              int non_zero_count = 0;
-              for (int i = 0; i < wanted_samples_ * 2 && i < 100; i++) {
-                if (audio_buffer_[i] != 0) {
-                  has_audio = true;
-                  non_zero_count++;
-                  if (std::abs(audio_buffer_[i]) > std::abs(max_sample)) {
-                    max_sample = audio_buffer_[i];
-                  }
-                }
-              }
-              
-              // Backend status
-              auto audio_status = audio_backend_ ? audio_backend_->GetStatus() : audio::AudioStatus{};
-              bool backend_playing = audio_status.is_playing;
-              
-              printf("\n[AUDIO DEBUG] Frame=%d (~%.1f sec)\n", audio_debug_counter, audio_debug_counter / 60.0f);
-              printf("  Backend: %s (Playing: %s)\n",
-                     audio_backend_ ? audio_backend_->GetBackendName().c_str() : "NULL",
-                     backend_playing ? "YES" : "NO");
-              printf("  Queued: %u frames\n", audio_status.queued_frames);
-              printf("  Buffer: wanted_samples=%d, non_zero=%d/%d, max=%d\n",
-                     wanted_samples_, non_zero_count, std::min(wanted_samples_ * 2, 100), max_sample);
-              printf("  Samples: %s\n", has_audio ? "YES" : "SILENCE");
-              
-              // APU state
-              if (snes_.running()) {
-                uint64_t apu_cycles = snes_.apu().GetCycles();
-                uint16_t spc_pc = snes_.apu().spc700().PC;
-                bool ipl_rom_active = (spc_pc >= 0xFFC0 && spc_pc <= 0xFFFF);
-                
-                printf("  APU: %llu cycles, PC=$%04X %s\n", 
-                       apu_cycles, spc_pc, ipl_rom_active ? "(IPL ROM)" : "(Game Code)");
-                
-                // Handshake status
-                auto& tracker = snes_.apu_handshake_tracker();
-                printf("  Handshake: %s\n", tracker.GetPhaseString().c_str());
-                
-                if (ipl_rom_active && audio_debug_counter > 300) {
-                  printf("  ⚠️  SPC700 STUCK IN IPL ROM - Handshake not completing!\n");
-                }
-              } else {
-                printf("  ⚠️  SNES not running!\n");
-              }
-              
-              printf("\n");
-            }
-          }
-          
-          // Smart buffer management using audio backend
           if (audio_backend_) {
-            auto status = audio_backend_->GetStatus();
-            int num_samples = wanted_samples_ * 2;  // Stereo
+            auto audio_status = audio_backend_->GetStatus();
+            uint32_t queued_frames = audio_status.queued_frames;
             
-            if (status.queued_frames < 2) {
-              // Buffer is low, queue more audio
-              if (!audio_backend_->QueueSamples(audio_buffer_, num_samples)) {
-                if (frame_count_ % 300 == 0) {
-                  LOG_WARN("Emulator", "Failed to queue audio samples");
+            // Target buffer: 2.5 frames (2000 samples at 48kHz/60fps)
+            // Min: 1.5 frames (1200 samples) - below this we need to queue
+            // Max: 4.0 frames (3200 samples) - above this we skip queueing
+            const uint32_t target_buffer = wanted_samples_ * 2.5;
+            const uint32_t min_buffer = wanted_samples_ * 1.5;
+            const uint32_t max_buffer = wanted_samples_ * 4.0;
+            
+            bool should_queue = (queued_frames < max_buffer);
+            
+            if (should_queue) {
+              // Generate samples from SNES APU/DSP
+              snes_.SetSamples(audio_buffer_, wanted_samples_);
+              
+              int num_samples = wanted_samples_ * 2;  // Stereo (L+R channels)
+              
+              // Adaptive sample adjustment to prevent drift
+              // Note: We can only queue up to what we generated
+              if (queued_frames < min_buffer) {
+                // Buffer running low - queue all samples we have
+                // In future frames this helps catch up
+                num_samples = wanted_samples_ * 2;
+              } else if (queued_frames > target_buffer) {
+                // Buffer too high - queue fewer samples to drain faster
+                // Drop some samples to reduce latency
+                num_samples = static_cast<int>(wanted_samples_ * 2 * 0.8);
+                if (num_samples < wanted_samples_ * 2 * 0.5) {
+                  num_samples = wanted_samples_ * 2 * 0.5;  // Minimum 50%
                 }
               }
-            } else if (status.queued_frames > 6) {
-              // Buffer is too full, clear it to prevent lag
-              audio_backend_->Clear();
-              audio_backend_->QueueSamples(audio_buffer_, num_samples);
-            } else {
-              // Normal operation - queue samples
-              audio_backend_->QueueSamples(audio_buffer_, num_samples);
+              
+              if (!audio_backend_->QueueSamples(audio_buffer_, num_samples)) {
+                static int error_count = 0;
+                if (++error_count % 300 == 0) {
+                  LOG_WARN("Emulator", "Failed to queue audio (count: %d)", error_count);
+                }
+              }
+            }
+            
+            // AUDIO DEBUG: Compact per-frame monitoring
+            static int audio_debug_counter = 0;
+            audio_debug_counter++;
+            
+            // Log first 10 frames, then every 60 frames for ongoing monitoring
+            if (audio_debug_counter < 10 || audio_debug_counter % 60 == 0) {
+              printf("[AUDIO] Frame %d: Queued=%u Target=%u Status=%s\n",
+                     audio_debug_counter, queued_frames, target_buffer,
+                     should_queue ? "QUEUE" : "SKIP");
             }
           }
 

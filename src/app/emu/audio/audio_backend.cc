@@ -100,26 +100,40 @@ void SDL2AudioBackend::Clear() {
 bool SDL2AudioBackend::QueueSamples(const int16_t* samples, int num_samples) {
   if (!initialized_ || !samples) return false;
 
-  // Apply volume scaling
-  if (volume_ != 1.0f) {
-    std::vector<int16_t> scaled_samples(num_samples);
-    for (int i = 0; i < num_samples; ++i) {
-      int32_t scaled = static_cast<int32_t>(samples[i] * volume_);
-      scaled_samples[i] = static_cast<int16_t>(std::clamp(scaled, -32768, 32767));
-    }
-    
-    int result = SDL_QueueAudio(device_id_, scaled_samples.data(), 
-                                 num_samples * sizeof(int16_t));
-    if (result < 0) {
-      LOG_ERROR("AudioBackend", "SDL_QueueAudio failed: %s", SDL_GetError());
-      return false;
-    }
-  } else {
+  // OPTIMIZATION: Skip volume scaling if volume is 100% (common case)
+  if (volume_ == 1.0f) {
+    // Fast path: No volume adjustment needed
     int result = SDL_QueueAudio(device_id_, samples, num_samples * sizeof(int16_t));
     if (result < 0) {
       LOG_ERROR("AudioBackend", "SDL_QueueAudio failed: %s", SDL_GetError());
       return false;
     }
+    return true;
+  }
+
+  // Slow path: Volume scaling required
+  // Use thread-local buffer to avoid repeated allocations
+  thread_local std::vector<int16_t> scaled_samples;
+
+  // Resize only if needed (avoid reallocation on every call)
+  if (scaled_samples.size() < static_cast<size_t>(num_samples)) {
+    scaled_samples.resize(num_samples);
+  }
+
+  // Apply volume scaling with SIMD-friendly loop
+  for (int i = 0; i < num_samples; ++i) {
+    int32_t scaled = static_cast<int32_t>(samples[i] * volume_);
+    // Clamp to prevent overflow
+    if (scaled > 32767) scaled = 32767;
+    else if (scaled < -32768) scaled = -32768;
+    scaled_samples[i] = static_cast<int16_t>(scaled);
+  }
+
+  int result = SDL_QueueAudio(device_id_, scaled_samples.data(),
+                               num_samples * sizeof(int16_t));
+  if (result < 0) {
+    LOG_ERROR("AudioBackend", "SDL_QueueAudio failed: %s", SDL_GetError());
+    return false;
   }
 
   return true;
