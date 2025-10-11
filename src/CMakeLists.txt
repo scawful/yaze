@@ -14,7 +14,6 @@ set(
   app/emu/cpu/cpu.cc
   app/emu/cpu/internal/addressing.cc
   app/emu/cpu/internal/instructions.cc
-  app/emu/cpu/internal/old_cpu.cc
   app/emu/debug/apu_debugger.cc
   app/emu/debug/breakpoint_manager.cc
   app/emu/debug/disassembly_viewer.cc
