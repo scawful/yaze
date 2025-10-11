@@ -58,7 +58,9 @@ struct TestConfig {
   bool skip_rom_tests = false;
   bool enable_ui_tests = false;
   bool show_gui = false;
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestRunSpeed test_speed = ImGuiTestRunSpeed_Fast;
+#endif
 };
 
 // Parse command line arguments for better AI agent testing support
@@ -134,11 +136,15 @@ TestConfig ParseArguments(int argc, char* argv[]) {
     } else if (arg == "--show-gui") {
       config.show_gui = true;
     } else if (arg == "--fast") {
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
       config.test_speed = ImGuiTestRunSpeed_Fast;
     } else if (arg == "--normal") {
       config.test_speed = ImGuiTestRunSpeed_Normal;
+#endif
     } else if (arg == "--cinematic") {
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
       config.test_speed = ImGuiTestRunSpeed_Cinematic;
+#endif
     } else if (arg == "--ui") {
       config.enable_ui_tests = true;
     } else if (arg.find("--") != 0) {
