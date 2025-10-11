@@ -2,7 +2,6 @@
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
 #include "cli/util/autocomplete.h"
-#include "cli/tui/tui.h"
 
 namespace yaze {
 namespace cli {
@@ -13,7 +12,7 @@ Component CreateAutocompleteInput(std::string* input_str,
                                    AutocompleteEngine* engine) {
   auto input = Input(input_str, "Type command...");
   
-  return Renderer(input, [=] {
+  return Renderer(input, [input, input_str, engine] {
     auto suggestions = engine->GetSuggestions(*input_str);
     
     Elements suggestion_list;
@@ -49,16 +48,19 @@ Component CreateAutocompleteInput(std::string* input_str,
 Component CreateQuickActionMenu(ScreenInteractive& screen) {
   // Note: This function is a placeholder for future quick action menu integration.
   // Currently not used in the TUI, but kept for API compatibility.
-  static int selected = 0;
-  static const std::vector<std::string> actions = {
-    "Quick Actions Menu - Not Yet Implemented",
-    "⬅️  Back",
+  struct MenuState {
+    int selected = 0;
+    std::vector<std::string> actions = {
+      "Quick Actions Menu - Not Yet Implemented",
+      "⬅️  Back",
+    };
   };
   
-  auto menu = Menu(&actions, &selected);
+  auto state = std::make_shared<MenuState>();
+  auto menu = Menu(&state->actions, &state->selected);
   
-  return CatchEvent(menu, [&](Event e) {
-    if (e == Event::Return && selected == 1) {
+  return CatchEvent(menu, [&screen, state](const Event& e) {
+    if (e == Event::Return && state->selected == 1) {
       screen.ExitLoopClosure()();
       return true;
     }

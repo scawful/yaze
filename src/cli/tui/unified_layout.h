@@ -10,6 +10,7 @@
 
 #include "app/rom.h"
 #include "cli/tui/chat_tui.h"
+#include "cli/tui/hex_viewer.h"
 
 namespace yaze {
 namespace cli {
@@ -91,8 +92,6 @@ class UnifiedLayout {
   
   // Layout assembly
   ftxui::Component CreateUnifiedLayout();
-  ftxui::Component CreateTopLayout();
-  ftxui::Component CreateBottomLayout();
   
   // Event handling
   bool HandleGlobalEvents(const ftxui::Event& event);
@@ -110,6 +109,7 @@ class UnifiedLayout {
   
   // Components
   std::unique_ptr<tui::ChatTUI> chat_tui_;
+  std::unique_ptr<HexViewerComponent> hex_viewer_component_;
   
   // Panel components (cached for performance)
   ftxui::Component main_menu_panel_;
@@ -126,8 +126,6 @@ class UnifiedLayout {
   
   // Layout components
   ftxui::Component unified_layout_;
-  ftxui::Component top_layout_;
-  ftxui::Component bottom_layout_;
   
   // Event handlers
   std::function<bool(const ftxui::Event&)> global_event_handler_;

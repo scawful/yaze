@@ -132,6 +132,58 @@ absl::Status HandlePaletteSetColor(const std::vector<std::string>& arg_vec,
 absl::Status HandlePaletteAnalyze(const std::vector<std::string>& arg_vec,
 	Rom* rom_context = nullptr);
 
+// Dungeon editing commands
+absl::Status HandleDungeonExportRoomCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleDungeonListObjectsCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleDungeonGetRoomTilesCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleDungeonSetRoomPropertyCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+
+// Emulator & Debugger commands
+absl::Status HandleEmulatorStepCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleEmulatorRunCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleEmulatorPauseCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleEmulatorResetCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleEmulatorGetStateCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleEmulatorSetBreakpointCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleEmulatorClearBreakpointCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleEmulatorListBreakpointsCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleEmulatorReadMemoryCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleEmulatorWriteMemoryCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleEmulatorGetRegistersCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+absl::Status HandleEmulatorGetMetricsCommand(
+	const std::vector<std::string>& arg_vec,
+	Rom* rom_context = nullptr);
+
 }  // namespace agent
 }  // namespace cli
 }  // namespace yaze

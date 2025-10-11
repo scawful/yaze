@@ -73,6 +73,7 @@ set(YAZE_AGENT_SOURCES
   cli/handlers/agent/sprite_tool_commands.cc
   cli/handlers/agent/todo_commands.cc
   cli/handlers/agent/hex_commands.cc
+  cli/handlers/agent/dungeon_emulator_tool_commands.cc
   cli/handlers/agent/palette_commands.cc
   cli/service/agent/conversational_agent_service.cc
   cli/service/agent/simple_chat_session.cc
