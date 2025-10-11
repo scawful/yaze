@@ -41,7 +41,6 @@ set(YAZE_AGENT_SOURCES
   cli/handlers/game/dialogue_commands.cc
   cli/handlers/game/music_commands.cc
   cli/handlers/graphics/palette_commands.cc
-  cli/handlers/tools/emulator_commands.cc
   cli/handlers/game/message_commands.cc
   cli/handlers/graphics/sprite_commands.cc
   # ROM commands
@@ -56,6 +55,7 @@ if(YAZE_WITH_GRPC)
   list(APPEND YAZE_AGENT_SOURCES
     cli/service/agent/agent_control_server.cc
     cli/service/agent/emulator_service_impl.cc
+    cli/handlers/tools/emulator_commands.cc
   )
 endif()
 

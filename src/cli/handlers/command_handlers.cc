@@ -2,7 +2,9 @@
 
 #include "cli/handlers/tools/resource_commands.h"
 #include "cli/handlers/tools/gui_commands.h"
+#ifdef YAZE_WITH_GRPC
 #include "cli/handlers/tools/emulator_commands.h"
+#endif
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/message_commands.h"
@@ -95,6 +97,7 @@ std::vector<std::unique_ptr<resources::CommandHandler>> CreateAgentCommandHandle
   handlers.push_back(std::make_unique<GuiScreenshotCommandHandler>());
   
   // Emulator & debugger commands
+#ifdef YAZE_WITH_GRPC
   handlers.push_back(std::make_unique<EmulatorStepCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorRunCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorPauseCommandHandler>());
@@ -107,6 +110,7 @@ std::vector<std::unique_ptr<resources::CommandHandler>> CreateAgentCommandHandle
   handlers.push_back(std::make_unique<EmulatorWriteMemoryCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorGetRegistersCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorGetMetricsCommandHandler>());
+#endif
   
   return handlers;
 }

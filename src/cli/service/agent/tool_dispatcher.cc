@@ -13,7 +13,9 @@
 #include "cli/handlers/game/music_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
+#ifdef YAZE_WITH_GRPC
 #include "cli/handlers/tools/emulator_commands.h"
+#endif
 #include "cli/handlers/tools/gui_commands.h"
 #include "cli/handlers/tools/resource_commands.h"
 #include "cli/service/resources/command_context.h"
@@ -168,6 +170,7 @@ std::unique_ptr<resources::CommandHandler> CreateHandler(ToolCallType type) {
       return std::make_unique<SpritePaletteCommandHandler>();
     
     // Emulator & Debugger commands
+#ifdef YAZE_WITH_GRPC
     case ToolCallType::kEmulatorStep:
       return std::make_unique<EmulatorStepCommandHandler>();
     case ToolCallType::kEmulatorRun:
@@ -192,6 +195,7 @@ std::unique_ptr<resources::CommandHandler> CreateHandler(ToolCallType type) {
       return std::make_unique<EmulatorGetRegistersCommandHandler>();
     case ToolCallType::kEmulatorGetMetrics:
       return std::make_unique<EmulatorGetMetricsCommandHandler>();
+#endif
     
     default:
       return nullptr;
