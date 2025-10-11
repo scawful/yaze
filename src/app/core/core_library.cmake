@@ -10,6 +10,7 @@ if (WIN32 OR MINGW OR (UNIX AND NOT APPLE))
   list(APPEND YAZE_APP_CORE_SRC
     app/platform/font_loader.cc
     app/platform/asset_loader.cc
+    app/platform/file_dialog_nfd.cc  # NFD file dialog for Windows/Linux
   )
 endif()
 
@@ -101,6 +102,13 @@ target_link_libraries(yaze_core_lib PUBLIC
   ${SDL_TARGETS}
   ${CMAKE_DL_LIBS}
 )
+
+# Link nativefiledialog-extended for Windows/Linux file dialogs
+if(WIN32 OR (UNIX AND NOT APPLE))
+  add_subdirectory(${CMAKE_SOURCE_DIR}/src/lib/nativefiledialog-extended ${CMAKE_BINARY_DIR}/nfd EXCLUDE_FROM_ALL)
+  target_link_libraries(yaze_core_lib PUBLIC nfd)
+  target_include_directories(yaze_core_lib PUBLIC ${CMAKE_SOURCE_DIR}/src/lib/nativefiledialog-extended/src/include)
+endif()
 
 target_sources(yaze_core_lib PRIVATE
   ${CMAKE_SOURCE_DIR}/src/cli/service/testing/test_workflow_generator.cc

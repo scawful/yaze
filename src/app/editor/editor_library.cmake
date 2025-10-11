@@ -108,6 +108,11 @@ target_link_libraries(yaze_editor PUBLIC
   ImGui
 )
 
+# Link test support library if testing is enabled (for TestManager)
+if(YAZE_BUILD_TESTS AND TARGET yaze_test_support)
+  target_link_libraries(yaze_editor PUBLIC yaze_test_support)
+endif()
+
 if(YAZE_WITH_JSON)
   target_include_directories(yaze_editor PUBLIC
     ${CMAKE_SOURCE_DIR}/third_party/json/include)
