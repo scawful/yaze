@@ -5,6 +5,7 @@
 #include "absl/strings/str_cat.h"
 #include "ftxui/dom/elements.hpp"
 #include "ftxui/dom/table.hpp"
+#include "cli/tui/chat_tui.h"
 
 namespace yaze {
 namespace cli {
@@ -29,6 +30,21 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
   std::vector<std::string> args;
   for (int i = 1; i < argc; ++i) {
     args.push_back(argv[i]);
+  }
+
+  // Handle --tui flag
+  if (args[0] == "--tui") {
+    Rom rom;
+    // Attempt to load a ROM from the current directory or a well-known path
+    auto rom_status = rom.LoadFromFile("zelda3.sfc");
+    if (!rom_status.ok()) {
+        // Try assets directory as a fallback
+        rom_status = rom.LoadFromFile("assets/zelda3.sfc");
+    }
+    
+    tui::ChatTUI chat_tui(rom.is_loaded() ? &rom : nullptr);
+    chat_tui.Run();
+    return absl::OkStatus();
   }
 
   if (args[0] == "help") {

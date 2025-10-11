@@ -365,22 +365,22 @@ jobs:
         if-no-files-found: warn
         retention-days: 3
 
-    - name: Test (Core)
-      id: test_core
+    - name: Test (Stable)
+      id: test_stable
       working-directory: build
       run: |
         ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure -j1 \
-          -R "AsarWrapperTest|SnesTileTest|CompressionTest|SnesPaletteTest|HexTest|MessageTest" \
-          --output-junit core_test_results.xml 2>&1 | tee ../core_test.log
-    
-    - name: Test (Additional - Informational)
-      id: test_additional
+          -L "stable" \
+          --output-junit stable_test_results.xml 2>&1 | tee ../stable_test.log
+
+    - name: Test (Experimental - Informational)
+      id: test_experimental
       working-directory: build
       continue-on-error: true
       run: |
         ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure --parallel \
-          -R ".*Test" -E ".*RomTest.*|.*E2E.*|.*ZSCustomOverworld.*|.*IntegrationTest.*|CpuTest|Spc700Test|ApuTest" \
-          --output-junit additional_test_results.xml 2>&1 | tee ../additional_test.log
+          -L "experimental" \
+          --output-junit experimental_test_results.xml 2>&1 | tee ../experimental_test.log
     
     - name: Upload Test Results
       if: always()

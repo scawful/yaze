@@ -64,7 +64,7 @@ UnifiedLayout::UnifiedLayout(Rom* rom_context)
   todo_provider_ = [] {
     return std::vector<std::string>{
         "[pending] Implement dungeon diff visualizer",
-        "[pending] Integrate Claude-style context panes",
+        "[pending] Integrate context panes",
         "[todo] Hook TODO manager into project manifests"
     };
   };
@@ -247,7 +247,7 @@ Component UnifiedLayout::CreateChatPanel() {
       std::vector<Element> cards;
       cards.push_back(vbox({
           text("🤖 Overview") | bold,
-          text("Claude-style assistant for ROM editing"),
+          text("AI assistant for ROM editing"),
           text("Press 'f' for fullscreen chat") | dim
       }) | borderRounded);
 
