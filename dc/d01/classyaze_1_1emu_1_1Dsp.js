@@ -14,6 +14,7 @@ var classyaze_1_1emu_1_1Dsp =
     [ "Write", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a88603a2b4c723792d04194cb3eb23de5", null ],
     [ "GetSample", "dc/d01/classyaze_1_1emu_1_1Dsp.html#ade2538ea1915876ae7cf58d8722cd93c", null ],
     [ "GetSamples", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a16725893e384a6cffb91f4ba9617c868", null ],
+    [ "interpolation_type", "dc/d01/classyaze_1_1emu_1_1Dsp.html#aa2e62ad57bb5da8ad33328e231fdcc9b", null ],
     [ "sampleBuffer", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a31f461399324fc65795d33ea5dd93100", null ],
     [ "sampleOffset", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a58b2fae78556513327e417da7dd94d49", null ],
     [ "aram_", "dc/d01/classyaze_1_1emu_1_1Dsp.html#a415a067bc45a0e1ddc7ebc094f9d93a0", null ],

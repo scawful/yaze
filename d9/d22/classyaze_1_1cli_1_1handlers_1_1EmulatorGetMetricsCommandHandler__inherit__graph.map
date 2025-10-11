@@ -1,5 +1,5 @@
 <map id="yaze::cli::handlers::EmulatorGetMetricsCommandHandler" name="yaze::cli::handlers::EmulatorGetMetricsCommandHandler">
-<area shape="rect" id="Node000001" title="Command handler for getting emulator metrics." alt="" coords="5,94,207,150"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,94,207,150"/>
 <area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="40,5,172,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,61,109,93,103,93,103,61"/>
 </map>

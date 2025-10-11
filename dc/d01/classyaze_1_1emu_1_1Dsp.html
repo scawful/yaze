@@ -100,6 +100,7 @@ $(document).ready(function(){initNavTree('dc/d01/classyaze_1_1emu_1_1Dsp.html','
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="../../d9/d1c/classyaze_1_1emu_1_1Dsp-members.html">List of all members</a>  </div>
   <div class="headertitle"><div class="title">yaze::emu::Dsp Class Reference</div></div>
@@ -148,6 +149,11 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ade2538ea1915876ae7cf58d8722cd93c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16725893e384a6cffb91f4ba9617c868" id="r_a16725893e384a6cffb91f4ba9617c868"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d01/classyaze_1_1emu_1_1Dsp.html#a16725893e384a6cffb91f4ba9617c868">GetSamples</a> (int16_t *sample_data, int samples_per_frame, bool pal_timing)</td></tr>
 <tr class="separator:a16725893e384a6cffb91f4ba9617c868"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:aa2e62ad57bb5da8ad33328e231fdcc9b" id="r_aa2e62ad57bb5da8ad33328e231fdcc9b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90">InterpolationType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d01/classyaze_1_1emu_1_1Dsp.html#aa2e62ad57bb5da8ad33328e231fdcc9b">interpolation_type</a> = <a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90a32a843da6ea40ab3b17a3421ccdf671b">InterpolationType::Linear</a></td></tr>
+<tr class="separator:aa2e62ad57bb5da8ad33328e231fdcc9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -222,7 +228,7 @@ Private Attributes</h2></td></tr>
 <p>Voices There are 8 voices, numbered 0 to 7. Each voice X has 10 registers in the range $X0-$X9.</p>
 <p>| Name | Address | Bits | Notes | |------&mdash;|------&mdash;|--------&mdash;|-----------------------------------------------------&mdash;| | VOL (L) | $X0 | SVVV VVVV | Left channel volume, signed. | | VOL (R) | $X1 | SVVV VVVV | Right channel volume, signed. | | P (L) | $X2 | LLLL LLLL | Low 8 bits of sample pitch. | | P (H) | $X3 | &ndash;HH HHHH | High 6 bits of sample pitch. | | SCRN | $X4 | SSSS SSSS | Selects a sample source entry from the directory. | | ADSR (1)| $X5 | EDDD AAAA | ADSR enable (E), decay rate (D), attack rate (A). | | ADSR (2)| $X6 | SSSR RRRR | Sustain level (S), release rate (R). | | GAIN | $X7 | 0VVV VVVV 1MMV VVVV | Mode (M), value (V). | | ENVX | $X8 | 0VVV VVVV | Reads current 7-bit value of ADSR/GAIN envelope. | | OUTX | $X9 | SVVV VVVV | Reads signed 8-bit value of current sample wave | | | | | multiplied by ENVX, before applying VOL. | </p>
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00080">80</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00086">86</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="acf9d5b3f122a8e054c1d77dff0a65f47" name="acf9d5b3f122a8e054c1d77dff0a65f47"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#acf9d5b3f122a8e054c1d77dff0a65f47">&#9670;&#160;</a></span>Dsp()</h2>
@@ -248,7 +254,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00082">82</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00088">88</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
 </div>
 </div>
@@ -268,9 +274,9 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00129">129</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00130">130</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00147">lastFrameBoundary</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00110">sampleOffset</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00155">lastFrameBoundary</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00118">sampleOffset</a>.</p>
 
 </div>
 </div>
@@ -289,9 +295,9 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">67</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">68</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00026">yaze::emu::DspChannel::adsrState</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00020">yaze::emu::DspChannel::blockOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00021">yaze::emu::DspChannel::brrHeader</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00017">yaze::emu::DspChannel::bufferOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00117">channel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00119">counter</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00019">yaze::emu::DspChannel::decodeOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00031">yaze::emu::DspChannel::directGain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00120">dirPage</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00139">echoBufferAdr</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00142">echoBufferIndex</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00140">echoDelay</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00042">yaze::emu::DspChannel::echoEnable</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00141">echoLength</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00129">echoOutL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00130">echoOutR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00136">echoVolumeL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00137">echoVolumeR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00135">echoWrites</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00121">evenCycle</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00138">feedbackVolume</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00143">firBufferIndex</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00145">firBufferL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00146">firBufferR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00144">firValues</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00034">yaze::emu::DspChannel::gain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00030">yaze::emu::DspChannel::gainMode</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00028">yaze::emu::DspChannel::gainSustainLevel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00032">yaze::emu::DspChannel::gainValue</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00037">yaze::emu::DspChannel::keyOff</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00036">yaze::emu::DspChannel::keyOn</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00147">lastFrameBoundary</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00124">masterVolumeL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00125">masterVolumeR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00122">mute</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00133">noiseRate</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00132">noiseSample</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00012">yaze::emu::DspChannel::pitch</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00013">yaze::emu::DspChannel::pitchCounter</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00014">yaze::emu::DspChannel::pitchModulation</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00033">yaze::emu::DspChannel::preclampGain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00115">ram</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00123">reset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00109">sampleBuffer</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00110">sampleOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00039">yaze::emu::DspChannel::sampleOut</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00127">sampleOutL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00128">sampleOutR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00018">yaze::emu::DspChannel::srcn</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00023">yaze::emu::DspChannel::startDelay</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00027">yaze::emu::DspChannel::sustainLevel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00029">yaze::emu::DspChannel::useGain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00022">yaze::emu::DspChannel::useNoise</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00040">yaze::emu::DspChannel::volumeL</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00041">yaze::emu::DspChannel::volumeR</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00032">yaze::emu::DspChannel::adsrState</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00026">yaze::emu::DspChannel::blockOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00027">yaze::emu::DspChannel::brrHeader</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00023">yaze::emu::DspChannel::bufferOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00125">channel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00127">counter</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00025">yaze::emu::DspChannel::decodeOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00037">yaze::emu::DspChannel::directGain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00128">dirPage</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00147">echoBufferAdr</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00150">echoBufferIndex</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00148">echoDelay</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00048">yaze::emu::DspChannel::echoEnable</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00149">echoLength</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00137">echoOutL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00138">echoOutR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00144">echoVolumeL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00145">echoVolumeR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00143">echoWrites</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00129">evenCycle</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00146">feedbackVolume</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00151">firBufferIndex</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00153">firBufferL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00154">firBufferR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00152">firValues</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00040">yaze::emu::DspChannel::gain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00036">yaze::emu::DspChannel::gainMode</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00034">yaze::emu::DspChannel::gainSustainLevel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00038">yaze::emu::DspChannel::gainValue</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00043">yaze::emu::DspChannel::keyOff</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00042">yaze::emu::DspChannel::keyOn</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00155">lastFrameBoundary</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00132">masterVolumeL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00133">masterVolumeR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00130">mute</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00141">noiseRate</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00140">noiseSample</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00018">yaze::emu::DspChannel::pitch</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00019">yaze::emu::DspChannel::pitchCounter</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00020">yaze::emu::DspChannel::pitchModulation</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00039">yaze::emu::DspChannel::preclampGain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00123">ram</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00131">reset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00117">sampleBuffer</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00118">sampleOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00045">yaze::emu::DspChannel::sampleOut</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00135">sampleOutL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00136">sampleOutR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00024">yaze::emu::DspChannel::srcn</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00029">yaze::emu::DspChannel::startDelay</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00033">yaze::emu::DspChannel::sustainLevel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00035">yaze::emu::DspChannel::useGain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00028">yaze::emu::DspChannel::useNoise</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00046">yaze::emu::DspChannel::volumeL</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00047">yaze::emu::DspChannel::volumeR</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../da/ddf/apu_8cc_source.html#l00052">yaze::emu::Apu::Reset()</a>.</p>
 
@@ -312,9 +318,9 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">133</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">134</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00119">counter</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00129">echoOutL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00130">echoOutR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00121">evenCycle</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00423">HandleNoise()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00122">mute</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00109">sampleBuffer</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00110">sampleOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00127">sampleOutL</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00128">sampleOutR</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00127">counter</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00137">echoOutL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00138">echoOutR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00129">evenCycle</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00424">HandleNoise()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00130">mute</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00117">sampleBuffer</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00118">sampleOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00135">sampleOutL</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00136">sampleOutR</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../da/ddf/apu_8cc_source.html#l00161">yaze::emu::Apu::Cycle()</a>.</p>
 <div class="dynheader">
@@ -351,11 +357,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">167</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">168</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00112">aram_</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00139">echoBufferAdr</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00142">echoBufferIndex</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00140">echoDelay</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00141">echoLength</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00129">echoOutL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00130">echoOutR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00136">echoVolumeL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00137">echoVolumeR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00135">echoWrites</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00138">feedbackVolume</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00143">firBufferIndex</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00145">firBufferL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00146">firBufferR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00144">firValues</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00124">masterVolumeL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00125">masterVolumeR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00127">sampleOutL</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00128">sampleOutR</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00120">aram_</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00147">echoBufferAdr</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00150">echoBufferIndex</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00148">echoDelay</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00149">echoLength</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00137">echoOutL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00138">echoOutR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00144">echoVolumeL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00145">echoVolumeR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00143">echoWrites</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00146">feedbackVolume</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00151">firBufferIndex</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00153">firBufferL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00154">firBufferR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00152">firValues</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00132">masterVolumeL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00133">masterVolumeR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00135">sampleOutL</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00136">sampleOutR</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">Cycle()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">Cycle()</a>.</p>
 
 </div>
 </div>
@@ -375,11 +381,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">215</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">216</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00026">yaze::emu::DspChannel::adsrState</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00112">aram_</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00020">yaze::emu::DspChannel::blockOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00021">yaze::emu::DspChannel::brrHeader</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00017">yaze::emu::DspChannel::bufferOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00117">channel</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00381">DecodeBrr()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00019">yaze::emu::DspChannel::decodeOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00120">dirPage</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00129">echoOutL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00130">echoOutR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00121">evenCycle</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00034">yaze::emu::DspChannel::gain</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00367">GetSample()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00304">HandleGain()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00036">yaze::emu::DspChannel::keyOn</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00132">noiseSample</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00012">yaze::emu::DspChannel::pitch</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00013">yaze::emu::DspChannel::pitchCounter</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00115">ram</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00123">reset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00039">yaze::emu::DspChannel::sampleOut</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00127">sampleOutL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00128">sampleOutR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00018">yaze::emu::DspChannel::srcn</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00023">yaze::emu::DspChannel::startDelay</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00032">yaze::emu::DspChannel::adsrState</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00120">aram_</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00026">yaze::emu::DspChannel::blockOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00027">yaze::emu::DspChannel::brrHeader</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00023">yaze::emu::DspChannel::bufferOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00125">channel</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00382">DecodeBrr()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00025">yaze::emu::DspChannel::decodeOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00128">dirPage</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00137">echoOutL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00138">echoOutR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00129">evenCycle</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00040">yaze::emu::DspChannel::gain</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00368">GetSample()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00305">HandleGain()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00042">yaze::emu::DspChannel::keyOn</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00140">noiseSample</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00018">yaze::emu::DspChannel::pitch</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00019">yaze::emu::DspChannel::pitchCounter</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00123">ram</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00131">reset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00045">yaze::emu::DspChannel::sampleOut</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00135">sampleOutL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00136">sampleOutR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00024">yaze::emu::DspChannel::srcn</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00029">yaze::emu::DspChannel::startDelay</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">Cycle()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">Cycle()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -414,11 +420,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00423">423</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00424">424</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00162">CheckCounter()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00133">noiseRate</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00132">noiseSample</a>.</p>
+<p class="reference">References <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00163">CheckCounter()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00141">noiseRate</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00140">noiseSample</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">Cycle()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">Cycle()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -448,11 +454,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00304">304</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00305">305</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00025">yaze::emu::DspChannel::adsrRates</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00026">yaze::emu::DspChannel::adsrState</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00117">channel</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00162">CheckCounter()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00034">yaze::emu::DspChannel::gain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00028">yaze::emu::DspChannel::gainSustainLevel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00032">yaze::emu::DspChannel::gainValue</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00033">yaze::emu::DspChannel::preclampGain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00027">yaze::emu::DspChannel::sustainLevel</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00029">yaze::emu::DspChannel::useGain</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00031">yaze::emu::DspChannel::adsrRates</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00032">yaze::emu::DspChannel::adsrState</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00125">channel</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00163">CheckCounter()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00040">yaze::emu::DspChannel::gain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00034">yaze::emu::DspChannel::gainSustainLevel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00038">yaze::emu::DspChannel::gainValue</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00039">yaze::emu::DspChannel::preclampGain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00033">yaze::emu::DspChannel::sustainLevel</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00035">yaze::emu::DspChannel::useGain</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -482,11 +488,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00162">162</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00163">163</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00119">counter</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00127">counter</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00304">HandleGain()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00423">HandleNoise()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00305">HandleGain()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00424">HandleNoise()</a>.</p>
 
 </div>
 </div>
@@ -506,11 +512,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00381">381</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00382">382</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00112">aram_</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00020">yaze::emu::DspChannel::blockOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00021">yaze::emu::DspChannel::brrHeader</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00017">yaze::emu::DspChannel::bufferOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00117">channel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00016">yaze::emu::DspChannel::decodeBuffer</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00019">yaze::emu::DspChannel::decodeOffset</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00120">aram_</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00026">yaze::emu::DspChannel::blockOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00027">yaze::emu::DspChannel::brrHeader</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00023">yaze::emu::DspChannel::bufferOffset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00125">channel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00022">yaze::emu::DspChannel::decodeBuffer</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00025">yaze::emu::DspChannel::decodeOffset</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>.</p>
 
 </div>
 </div>
@@ -530,9 +536,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00430">430</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00431">431</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00115">ram</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00123">ram</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../da/ddf/apu_8cc_source.html#l00186">yaze::emu::Apu::Read()</a>.</p>
 
@@ -564,9 +570,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">432</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">433</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00025">yaze::emu::DspChannel::adsrRates</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00117">channel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00031">yaze::emu::DspChannel::directGain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00120">dirPage</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00139">echoBufferAdr</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00140">echoDelay</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00042">yaze::emu::DspChannel::echoEnable</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00136">echoVolumeL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00137">echoVolumeR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00135">echoWrites</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00138">feedbackVolume</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00144">firValues</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00030">yaze::emu::DspChannel::gainMode</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00028">yaze::emu::DspChannel::gainSustainLevel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00032">yaze::emu::DspChannel::gainValue</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00037">yaze::emu::DspChannel::keyOff</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00036">yaze::emu::DspChannel::keyOn</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00124">masterVolumeL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00125">masterVolumeR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00122">mute</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00133">noiseRate</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00012">yaze::emu::DspChannel::pitch</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00014">yaze::emu::DspChannel::pitchModulation</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00115">ram</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00123">reset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00018">yaze::emu::DspChannel::srcn</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00027">yaze::emu::DspChannel::sustainLevel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00029">yaze::emu::DspChannel::useGain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00022">yaze::emu::DspChannel::useNoise</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00040">yaze::emu::DspChannel::volumeL</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00041">yaze::emu::DspChannel::volumeR</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00031">yaze::emu::DspChannel::adsrRates</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00125">channel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00037">yaze::emu::DspChannel::directGain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00128">dirPage</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00147">echoBufferAdr</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00148">echoDelay</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00048">yaze::emu::DspChannel::echoEnable</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00144">echoVolumeL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00145">echoVolumeR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00143">echoWrites</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00146">feedbackVolume</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00152">firValues</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00036">yaze::emu::DspChannel::gainMode</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00034">yaze::emu::DspChannel::gainSustainLevel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00038">yaze::emu::DspChannel::gainValue</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00043">yaze::emu::DspChannel::keyOff</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00042">yaze::emu::DspChannel::keyOn</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00132">masterVolumeL</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00133">masterVolumeR</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00130">mute</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00141">noiseRate</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00018">yaze::emu::DspChannel::pitch</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00020">yaze::emu::DspChannel::pitchModulation</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00123">ram</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00131">reset</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00024">yaze::emu::DspChannel::srcn</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00033">yaze::emu::DspChannel::sustainLevel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00035">yaze::emu::DspChannel::useGain</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00028">yaze::emu::DspChannel::useNoise</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00046">yaze::emu::DspChannel::volumeL</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00047">yaze::emu::DspChannel::volumeR</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../da/ddf/apu_8cc_source.html#l00233">yaze::emu::Apu::Write()</a>.</p>
 
@@ -588,11 +594,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00367">367</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00368">368</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00117">channel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00016">yaze::emu::DspChannel::decodeBuffer</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00013">yaze::emu::DspChannel::pitchCounter</a>.</p>
+<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00125">channel</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00022">yaze::emu::DspChannel::decodeBuffer</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00019">yaze::emu::DspChannel::pitchCounter</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>.</p>
 
 </div>
 </div>
@@ -628,15 +634,45 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00619">619</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00651">651</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d3/d08/dsp_8h_source.html#l00147">lastFrameBoundary</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00109">sampleBuffer</a>.</p>
+<p class="reference">References <a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90a46ff06ae696616afdf3a695efd3db84c">yaze::emu::Cosine</a>, <a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90aec6b5414eb175379ff9efc9b3eef5814">yaze::emu::Cubic</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00641">yaze::emu::InterpolateCosine()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00622">yaze::emu::InterpolateCubic()</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00113">interpolation_type</a>, <a class="el" href="../../d3/d08/dsp_8h_source.html#l00155">lastFrameBoundary</a>, <a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90a32a843da6ea40ab3b17a3421ccdf671b">yaze::emu::Linear</a>, and <a class="el" href="../../d3/d08/dsp_8h_source.html#l00117">sampleBuffer</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d5/d1b/apu_8h_source.html#l00081">yaze::emu::Apu::GetSamples()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../dc/d01/classyaze_1_1emu_1_1Dsp_a16725893e384a6cffb91f4ba9617c868_cgraph.png" border="0" usemap="#adc/d01/classyaze_1_1emu_1_1Dsp_a16725893e384a6cffb91f4ba9617c868_cgraph" alt=""/></div>
+<map name="adc/d01/classyaze_1_1emu_1_1Dsp_a16725893e384a6cffb91f4ba9617c868_cgraph" id="adc/d01/classyaze_1_1emu_1_1Dsp_a16725893e384a6cffb91f4ba9617c868_cgraph">
+<area shape="rect" title=" " alt="" coords="5,31,191,56"/>
+<area shape="rect" href="../../d6/d20/namespaceyaze_1_1emu.html#ac712e233c07228e907911722a07f9a8a" title=" " alt="" coords="239,5,424,31"/>
+<area shape="poly" title=" " alt="" coords="191,31,223,27,223,33,191,36"/>
+<area shape="rect" href="../../d6/d20/namespaceyaze_1_1emu.html#a54b21394fb3bd68b382eb66cb7a572f0" title=" " alt="" coords="242,55,421,80"/>
+<area shape="poly" title=" " alt="" coords="191,50,227,54,227,59,191,56"/>
+</map>
+</div>
 
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="aa2e62ad57bb5da8ad33328e231fdcc9b" name="aa2e62ad57bb5da8ad33328e231fdcc9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa2e62ad57bb5da8ad33328e231fdcc9b">&#9670;&#160;</a></span>interpolation_type</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90">InterpolationType</a> yaze::emu::Dsp::interpolation_type = <a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90a32a843da6ea40ab3b17a3421ccdf671b">InterpolationType::Linear</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00113">113</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00651">GetSamples()</a>.</p>
+
+</div>
+</div>
 <a id="a31f461399324fc65795d33ea5dd93100" name="a31f461399324fc65795d33ea5dd93100"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a31f461399324fc65795d33ea5dd93100">&#9670;&#160;</a></span>sampleBuffer</h2>
 
@@ -657,9 +693,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00109">109</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00117">117</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00619">GetSamples()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00651">GetSamples()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -683,9 +719,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00110">110</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00118">118</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00129">NewFrame()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00130">NewFrame()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -709,9 +745,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00112">112</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00120">120</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00381">DecodeBrr()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00382">DecodeBrr()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>.</p>
 
 </div>
 </div>
@@ -735,9 +771,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00115">115</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00123">123</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00430">Read()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00431">Read()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -761,9 +797,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00117">117</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00125">125</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00381">DecodeBrr()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00367">GetSample()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00304">HandleGain()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00382">DecodeBrr()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00368">GetSample()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00305">HandleGain()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -787,9 +823,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00119">119</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00127">127</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00162">CheckCounter()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">Cycle()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00163">CheckCounter()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">Cycle()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -813,9 +849,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00120">120</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00128">128</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -839,9 +875,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00121">121</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00129">129</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -865,9 +901,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00122">122</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00130">130</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -891,9 +927,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00123">123</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00131">131</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -917,9 +953,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00124">124</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00132">132</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -943,9 +979,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00125">125</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00133">133</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -969,9 +1005,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00127">127</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00135">135</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -995,9 +1031,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00128">128</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00136">136</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -1021,9 +1057,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00129">129</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00137">137</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -1047,9 +1083,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00130">130</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00138">138</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00133">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00134">Cycle()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -1073,9 +1109,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00132">132</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00140">140</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00215">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00423">HandleNoise()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00216">CycleChannel()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00424">HandleNoise()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -1099,9 +1135,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00133">133</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00141">141</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00423">HandleNoise()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00424">HandleNoise()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -1125,9 +1161,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00135">135</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00143">143</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -1151,9 +1187,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00136">136</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00144">144</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -1177,9 +1213,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00137">137</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00145">145</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -1203,9 +1239,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00138">138</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00146">146</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -1229,9 +1265,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00139">139</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00147">147</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -1255,9 +1291,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00140">140</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00148">148</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -1281,9 +1317,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00141">141</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00149">149</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -1307,9 +1343,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00142">142</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00150">150</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -1333,9 +1369,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00143">143</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00151">151</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -1359,9 +1395,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00144">144</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00152">152</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00432">Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00433">Write()</a>.</p>
 
 </div>
 </div>
@@ -1385,9 +1421,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00145">145</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00153">153</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -1411,9 +1447,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00146">146</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00154">154</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00167">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00168">HandleEcho()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>
@@ -1437,9 +1473,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00147">147</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00155">155</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00619">GetSamples()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00129">NewFrame()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00067">Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00651">GetSamples()</a>, <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00130">NewFrame()</a>, and <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00068">Reset()</a>.</p>
 
 </div>
 </div>

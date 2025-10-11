@@ -1,0 +1,7 @@
+<map id="yaze::cli::handlers::EmulatorPressButtonsCommandHandler::ValidateArgs" name="yaze::cli::handlers::EmulatorPressButtonsCommandHandler::ValidateArgs">
+<area shape="rect" id="Node000001" title="Validate command arguments." alt="" coords="5,5,222,61"/>
+<area shape="rect" id="Node000002" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a74c38b994ca4ebd34ecdf75e6898f676" title="Validate that required arguments are present." alt="" coords="270,13,468,54"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="222,31,254,31,254,36,222,36"/>
+<area shape="rect" id="Node000003" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a095e664ff2500d73cca6c91a1e4f5f83" title=" " alt="" coords="516,13,721,54"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="469,31,501,31,501,36,469,36"/>
+</map>

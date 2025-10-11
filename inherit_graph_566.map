@@ -1,21 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" href="$d1/de0/classyaze_1_1test_1_1TestSuite.html" title=" " alt="" coords="5,243,143,268"/>
-<area shape="rect" id="Node000001" href="$dc/de0/classyaze_1_1test_1_1ArenaTestSuite.html" title=" " alt="" coords="206,5,378,31"/>
-<area shape="poly" id="edge136_Node000000_Node000001" title=" " alt="" coords="80,227,94,185,116,135,147,83,167,60,189,40,207,29,210,34,192,44,171,64,151,87,120,137,99,187,85,229"/>
-<area shape="rect" id="Node000002" href="$d0/d20/classyaze_1_1test_1_1E2ETestSuite.html" title="End&#45;to&#45;End test suite for comprehensive ROM testing." alt="" coords="212,55,372,80"/>
-<area shape="poly" id="edge137_Node000000_Node000002" title=" " alt="" coords="85,227,124,158,154,122,189,91,213,79,215,83,192,95,158,125,129,161,89,230"/>
-<area shape="rect" id="Node000003" href="$de/d0a/classyaze_1_1test_1_1EmulatorTestSuite.html" title="Test suite for core emulator components." alt="" coords="213,105,371,145"/>
-<area shape="poly" id="edge138_Node000000_Node000003" title=" " alt="" coords="96,230,137,192,189,156,216,143,218,148,192,160,141,197,100,234"/>
-<area shape="rect" id="Node000004" href="$d4/d70/classyaze_1_1test_1_1IntegratedTestSuite.html" title=" " alt="" coords="209,170,375,211"/>
-<area shape="poly" id="edge139_Node000000_Node000004" title=" " alt="" coords="133,235,221,209,222,214,135,240"/>
-<area shape="rect" id="Node000005" href="$dd/de3/classyaze_1_1test_1_1PerformanceTestSuite.html" title=" " alt="" coords="201,235,383,276"/>
-<area shape="poly" id="edge140_Node000000_Node000005" title=" " alt="" coords="158,253,201,253,201,258,158,258"/>
-<area shape="rect" id="Node000006" href="$d5/dd0/classyaze_1_1test_1_1RomDependentTestSuite.html" title=" " alt="" coords="207,301,377,341"/>
-<area shape="poly" id="edge141_Node000000_Node000006" title=" " alt="" coords="135,271,222,297,221,302,133,276"/>
-<area shape="rect" id="Node000007" href="$df/d1d/classyaze_1_1test_1_1UITestSuite.html" title=" " alt="" coords="216,365,368,391"/>
-<area shape="poly" id="edge142_Node000000_Node000007" title=" " alt="" coords="99,277,140,315,192,350,222,362,220,367,189,355,137,319,95,281"/>
-<area shape="rect" id="Node000008" href="$d0/d9d/classyaze_1_1test_1_1UnitTestSuite.html" title=" " alt="" coords="211,415,373,440"/>
-<area shape="poly" id="edge143_Node000000_Node000008" title=" " alt="" coords="91,280,131,342,159,374,192,401,213,412,211,417,189,406,155,378,126,345,86,283"/>
-<area shape="rect" id="Node000009" href="$dc/dae/classyaze_1_1test_1_1ZSCustomOverworldTestSuite.html" title="ZSCustomOverworld upgrade testing suite." alt="" coords="191,465,393,505"/>
-<area shape="poly" id="edge144_Node000000_Node000009" title=" " alt="" coords="87,282,102,320,124,365,154,411,192,451,209,462,206,466,189,455,150,415,119,368,97,322,82,284"/>
+<area shape="rect" id="Node000000" href="$dc/d21/structyaze_1_1test_1_1TestScript.html" title=" " alt="" coords="5,5,147,31"/>
 </map>

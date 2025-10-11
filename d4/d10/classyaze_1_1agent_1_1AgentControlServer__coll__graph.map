@@ -1,0 +1,11 @@
+<map id="yaze::agent::AgentControlServer" name="yaze::agent::AgentControlServer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="127,183,294,223"/>
+<area shape="rect" id="Node000002" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html" title="A class for emulating and debugging SNES games." alt="" coords="143,94,278,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="213,135,213,182,208,182,208,135"/>
+<area shape="rect" id="Node000003" href="$d3/d15/classyaze_1_1emu_1_1Snes.html" title=" " alt="" coords="5,5,120,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="97,37,191,91,188,96,95,41"/>
+<area shape="rect" id="Node000026" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html" title="Defines an abstract interface for all rendering operations." alt="" coords="144,5,277,31"/>
+<area shape="poly" id="edge3_Node000002_Node000026" title=" " alt="" coords="213,47,213,94,208,94,208,47"/>
+<area shape="rect" id="Node000027" href="$d9/ded/classyaze_1_1emu_1_1BreakpointManager.html" title="Manages CPU and SPC700 breakpoints for debugging." alt="" coords="300,5,497,31"/>
+<area shape="poly" id="edge4_Node000002_Node000027" title=" " alt="" coords="359,40,238,96,236,91,357,35"/>
+</map>

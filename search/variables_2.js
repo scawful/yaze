@@ -244,7 +244,7 @@ var searchData=
   ['copied_5fdata_5frooms_241',['copied_data_rooms',['../d6/d2e/classyaze_1_1zelda3_1_1TitleScreen.html#a00c11a329ff43505331079b74a68caf0',1,'yaze::zelda3::TitleScreen']]],
   ['copy_242',['copy',['../df/d2f/structyaze_1_1zelda3_1_1music_1_1ZeldaWave.html#a9ad182a0c2d0af79ff188e6dcc2b0a65',1,'yaze::zelda3::music::ZeldaWave']]],
   ['copy_5fbutton_5fpressed_243',['copy_button_pressed',['../db/dcc/classyaze_1_1editor_1_1ScreenEditor.html#a9722d0ac9dcd957234c365610b0d7bcc',1,'yaze::editor::ScreenEditor']]],
-  ['count_244',['count',['../de/d83/structyaze_1_1cli_1_1overworld_1_1TileStatistics.html#a91d1c2996bf26378ca3b0c5991958a1c',1,'yaze::cli::overworld::TileStatistics::count'],['../da/d81/structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a0e443d00b35140a1e186f0cd30329fbe',1,'yaze::editor::zsprite::UserRoutine::Count']]],
+  ['count_244',['count',['../da/d81/structyaze_1_1editor_1_1zsprite_1_1UserRoutine.html#a0e443d00b35140a1e186f0cd30329fbe',1,'yaze::editor::zsprite::UserRoutine::Count'],['../de/d83/structyaze_1_1cli_1_1overworld_1_1TileStatistics.html#a91d1c2996bf26378ca3b0c5991958a1c',1,'yaze::cli::overworld::TileStatistics::count']]],
   ['count_5ffrequency_245',['count_frequency',['../d0/dbd/classyaze_1_1emu_1_1Emulator.html#a6cee758a73f6ac05ab400fa58093426a',1,'yaze::emu::Emulator']]],
   ['counter_246',['counter',['../dc/d01/classyaze_1_1emu_1_1Dsp.html#a4cd9f96ded2c8284605b24ab1bfa9fc9',1,'yaze::emu::Dsp::counter'],['../d0/d1e/structyaze_1_1emu_1_1Timer.html#a3ccd05259a5c54b8c025ec759479f9d7',1,'yaze::emu::Timer::counter']]],
   ['counter_5flatch_5fvalue_247',['counter_latch_value',['../d1/d5e/structyaze_1_1emu_1_1STAT78.html#a534d279e987c461ec4da2904317d775b',1,'yaze::emu::STAT78']]],

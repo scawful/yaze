@@ -21,7 +21,7 @@ var classyaze_1_1emu_1_1Emulator =
     [ "set_renderer", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a688f3036a951ac710a0716b042e13953", null ],
     [ "renderer", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a04cb41b2da2d64959d2ef97cc33981a7", null ],
     [ "ppu_texture", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a3753c067e38b6c80dda17bc51c25f6c4", null ],
-    [ "turbo_mode", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#aa519c0c8514607d60d4dda99fc945980", null ],
+    [ "is_turbo_mode", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a9200a6b81d985866a0c0f565ced153a3", null ],
     [ "set_turbo_mode", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a181d0ce259b73db282597b0d44ea259e", null ],
     [ "breakpoint_manager", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a05c552712bf33cbe32deddfa6d2878ba", null ],
     [ "disassembly_viewer", "d0/dbd/classyaze_1_1emu_1_1Emulator.html#a92a4f0fa746976be9aeaa58be38a1299", null ],

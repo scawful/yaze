@@ -11,5 +11,8 @@ var emulator__commands_8h =
     [ "yaze::cli::handlers::EmulatorReadMemoryCommandHandler", "df/d94/classyaze_1_1cli_1_1handlers_1_1EmulatorReadMemoryCommandHandler.html", "df/d94/classyaze_1_1cli_1_1handlers_1_1EmulatorReadMemoryCommandHandler" ],
     [ "yaze::cli::handlers::EmulatorWriteMemoryCommandHandler", "dc/df6/classyaze_1_1cli_1_1handlers_1_1EmulatorWriteMemoryCommandHandler.html", "dc/df6/classyaze_1_1cli_1_1handlers_1_1EmulatorWriteMemoryCommandHandler" ],
     [ "yaze::cli::handlers::EmulatorGetRegistersCommandHandler", "dc/dfd/classyaze_1_1cli_1_1handlers_1_1EmulatorGetRegistersCommandHandler.html", "dc/dfd/classyaze_1_1cli_1_1handlers_1_1EmulatorGetRegistersCommandHandler" ],
-    [ "yaze::cli::handlers::EmulatorGetMetricsCommandHandler", "d1/d5e/classyaze_1_1cli_1_1handlers_1_1EmulatorGetMetricsCommandHandler.html", "d1/d5e/classyaze_1_1cli_1_1handlers_1_1EmulatorGetMetricsCommandHandler" ]
+    [ "yaze::cli::handlers::EmulatorGetMetricsCommandHandler", "d1/d5e/classyaze_1_1cli_1_1handlers_1_1EmulatorGetMetricsCommandHandler.html", "d1/d5e/classyaze_1_1cli_1_1handlers_1_1EmulatorGetMetricsCommandHandler" ],
+    [ "yaze::cli::handlers::EmulatorPressButtonsCommandHandler", "df/d24/classyaze_1_1cli_1_1handlers_1_1EmulatorPressButtonsCommandHandler.html", "df/d24/classyaze_1_1cli_1_1handlers_1_1EmulatorPressButtonsCommandHandler" ],
+    [ "yaze::cli::handlers::EmulatorReleaseButtonsCommandHandler", "d1/dae/classyaze_1_1cli_1_1handlers_1_1EmulatorReleaseButtonsCommandHandler.html", "d1/dae/classyaze_1_1cli_1_1handlers_1_1EmulatorReleaseButtonsCommandHandler" ],
+    [ "yaze::cli::handlers::EmulatorHoldButtonsCommandHandler", "d4/d55/classyaze_1_1cli_1_1handlers_1_1EmulatorHoldButtonsCommandHandler.html", "d4/d55/classyaze_1_1cli_1_1handlers_1_1EmulatorHoldButtonsCommandHandler" ]
 ];

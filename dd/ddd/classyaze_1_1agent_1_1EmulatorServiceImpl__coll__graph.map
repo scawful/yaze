@@ -1,0 +1,11 @@
+<map id="yaze::agent::EmulatorServiceImpl" name="yaze::agent::EmulatorServiceImpl">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,183,217,208"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="7,94,173,120"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="99,134,111,182,105,183,94,136"/>
+<area shape="rect" id="Node000003" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html" title="A class for emulating and debugging SNES games." alt="" coords="197,94,332,120"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="231,130,134,184,131,180,229,125"/>
+<area shape="rect" id="Node000004" href="$d3/d15/classyaze_1_1emu_1_1Snes.html" title=" " alt="" coords="134,5,248,31"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="213,41,256,92,252,95,209,45"/>
+<area shape="rect" id="Node000027" href="$d0/dca/classyaze_1_1gfx_1_1IRenderer.html" title="Defines an abstract interface for all rendering operations." alt="" coords="273,5,405,31"/>
+<area shape="poly" id="edge4_Node000003_Node000027" title=" " alt="" coords="321,45,277,95,273,92,317,41"/>
+</map>

@@ -1,5 +1,5 @@
 <map id="yaze::cli::handlers::EmulatorResetCommandHandler" name="yaze::cli::handlers::EmulatorResetCommandHandler">
-<area shape="rect" id="Node000001" title="Command handler for emulator reset." alt="" coords="5,94,222,135"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,94,222,135"/>
 <area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="48,5,179,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="116,62,116,94,111,94,111,62"/>
 </map>

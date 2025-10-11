@@ -1,5 +1,5 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,13,194,39"/>
-<area shape="rect" id="Node000001" href="$d4/d4b/structyaze_1_1gui_1_1ExampleSelectionWithDeletion.html" title=" " alt="" coords="242,5,421,46"/>
-<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="209,23,241,23,241,28,209,28"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,172,31"/>
+<area shape="rect" id="Node000001" href="$d1/d8c/classyaze_1_1agent_1_1EmulatorServiceImpl.html" title=" " alt="" coords="220,5,431,31"/>
+<area shape="poly" id="edge1_Node000000_Node000001" title=" " alt="" coords="187,16,219,16,219,21,187,21"/>
 </map>

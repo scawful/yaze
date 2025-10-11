@@ -1,0 +1,5 @@
+<map id="yaze::emu::input::InputManager" name="yaze::emu::input::InputManager">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,109,203,135"/>
+<area shape="rect" id="Node000002" href="$df/d22/structyaze_1_1emu_1_1input_1_1ControllerState.html" title="Controller state (16&#45;bit SNES controller format)" alt="" coords="17,5,191,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="107,61,107,109,101,109,101,61"/>
+</map>

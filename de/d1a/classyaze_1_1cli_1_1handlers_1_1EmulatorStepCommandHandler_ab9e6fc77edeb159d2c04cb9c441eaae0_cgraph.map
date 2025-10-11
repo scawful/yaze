@@ -1,11 +1,12 @@
 <map id="yaze::cli::handlers::EmulatorStepCommandHandler::Execute" name="yaze::cli::handlers::EmulatorStepCommandHandler::Execute">
-<area shape="rect" id="Node000001" title="Execute the command business logic." alt="" coords="5,97,215,152"/>
+<area shape="rect" id="Node000001" title="Execute the command business logic." alt="" coords="5,63,215,119"/>
 <area shape="rect" id="Node000002" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a9afa5963e854f8dc9647decc470cbba7" title="Add a key&#45;value pair." alt="" coords="273,5,452,46"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="173,93,262,57,282,49,284,54,264,61,175,98"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="214,61,266,48,267,53,216,66"/>
 <area shape="rect" id="Node000006" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a88e4191a5674b93787d941a42b311017" title="Start a JSON object or text section." alt="" coords="263,71,462,111"/>
-<area shape="poly" id="edge2_Node000001_Node000006" title=" " alt="" coords="215,108,247,104,247,109,215,113"/>
+<area shape="poly" id="edge3_Node000001_Node000006" title=" " alt="" coords="215,88,247,88,247,94,215,94"/>
 <area shape="rect" id="Node000008" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a8ec48459ba3fc9e3c24c97acca013fb4" title="End a JSON object or text section." alt="" coords="268,136,457,177"/>
-<area shape="poly" id="edge3_Node000001_Node000008" title=" " alt="" coords="215,135,253,140,252,145,215,140"/>
-<area shape="rect" id="Node000009" href="$d5/dfa/classyaze_1_1cli_1_1resources_1_1ArgumentParser.html#a9965dc30db2f16f570326edc2c3a1ae7" title="Parse an integer argument (supports hex with 0x prefix)" alt="" coords="281,201,444,242"/>
-<area shape="poly" id="edge4_Node000001_Node000009" title=" " alt="" coords="177,150,264,186,284,193,282,198,262,191,175,155"/>
+<area shape="poly" id="edge4_Node000001_Node000008" title=" " alt="" coords="216,116,267,129,266,134,214,121"/>
+<area shape="rect" id="Node000003" href="$d2/d52/classyaze_1_1cli_1_1resources_1_1OutputFormatter.html#a0de0425b664e90579c1e8fa34052690f" title=" " alt="" coords="510,71,697,111"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="441,44,512,63,510,69,439,49"/>
+<area shape="poly" id="edge5_Node000008_Node000003" title=" " alt="" coords="439,133,510,113,512,119,441,138"/>
 </map>

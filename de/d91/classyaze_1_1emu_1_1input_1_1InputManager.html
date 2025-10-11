@@ -106,10 +106,17 @@ $(document).ready(function(){initNavTree('de/d91/classyaze_1_1emu_1_1input_1_1In
 </div><!--header-->
 <div class="contents">
 
-<p>High-level input manager that bridges backend and SNES.  
- <a href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#details">More...</a></p>
-
 <p><code>#include &lt;<a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>&gt;</code></p>
+<div class="dynheader">
+Collaboration diagram for yaze::emu::input::InputManager:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../db/d81/classyaze_1_1emu_1_1input_1_1InputManager__coll__graph.png" border="0" usemap="#ayaze_1_1emu_1_1input_1_1InputManager_coll__map" alt="Collaboration graph"/></div>
+<map name="ayaze_1_1emu_1_1input_1_1InputManager_coll__map" id="ayaze_1_1emu_1_1input_1_1InputManager_coll__map">
+<area shape="rect" title=" " alt="" coords="5,109,203,135"/>
+<area shape="rect" href="../../df/d22/structyaze_1_1emu_1_1input_1_1ControllerState.html" title="Controller state (16&#45;bit SNES controller format)" alt="" coords="17,5,191,46"/>
+<area shape="poly" title=" " alt="" coords="107,61,107,109,101,109,101,61"/>
+</map>
+<center><span class="legend">[<a target="top" href="../../graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -118,49 +125,40 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a9aa53036fefeb2777e443f70fd4c68b1" id="r_a9aa53036fefeb2777e443f70fd4c68b1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a9aa53036fefeb2777e443f70fd4c68b1">~InputManager</a> ()</td></tr>
 <tr class="separator:a9aa53036fefeb2777e443f70fd4c68b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afceba572ccc804b2082356f66729bc0a" id="r_afceba572ccc804b2082356f66729bc0a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#afceba572ccc804b2082356f66729bc0a">Initialize</a> (<a class="el" href="../../d1/de9/classyaze_1_1emu_1_1input_1_1InputBackendFactory.html#a4646ca1a12ebf8e628c5ba7da551b2d2">InputBackendFactory::BackendType</a> type=<a class="el" href="../../d1/de9/classyaze_1_1emu_1_1input_1_1InputBackendFactory.html#a4646ca1a12ebf8e628c5ba7da551b2d2a2320cc88dc435ddbb381c8b30b85e8a9">InputBackendFactory::BackendType::SDL2</a>)</td></tr>
-<tr class="memdesc:afceba572ccc804b2082356f66729bc0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize with specific backend.  <br /></td></tr>
 <tr class="separator:afceba572ccc804b2082356f66729bc0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aebfa746102675aa07b976c6eac4a9701" id="r_aebfa746102675aa07b976c6eac4a9701"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#aebfa746102675aa07b976c6eac4a9701">Initialize</a> (std::unique_ptr&lt; <a class="el" href="../../d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html">IInputBackend</a> &gt; <a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#afd26a3fd294fd7d5168ee1bb76112f2f">backend</a>)</td></tr>
-<tr class="memdesc:aebfa746102675aa07b976c6eac4a9701"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize with custom backend.  <br /></td></tr>
 <tr class="separator:aebfa746102675aa07b976c6eac4a9701"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a883a391efa9e2d2cc1da621e07f2ff19" id="r_a883a391efa9e2d2cc1da621e07f2ff19"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a883a391efa9e2d2cc1da621e07f2ff19">Shutdown</a> ()</td></tr>
-<tr class="memdesc:a883a391efa9e2d2cc1da621e07f2ff19"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shutdown input system.  <br /></td></tr>
 <tr class="separator:a883a391efa9e2d2cc1da621e07f2ff19"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a192efc80c9792c0cccf4e11a2505b287" id="r_a192efc80c9792c0cccf4e11a2505b287"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a192efc80c9792c0cccf4e11a2505b287">Poll</a> (<a class="el" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html">Snes</a> *snes, int player=1)</td></tr>
-<tr class="memdesc:a192efc80c9792c0cccf4e11a2505b287"><td class="mdescLeft">&#160;</td><td class="mdescRight">Poll input and update SNES controller state.  <br /></td></tr>
 <tr class="separator:a192efc80c9792c0cccf4e11a2505b287"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2740ebc8cc00b8708b1665772acc40c3" id="r_a2740ebc8cc00b8708b1665772acc40c3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a2740ebc8cc00b8708b1665772acc40c3">ProcessEvent</a> (void *event)</td></tr>
-<tr class="memdesc:a2740ebc8cc00b8708b1665772acc40c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process platform-specific event (optional)  <br /></td></tr>
 <tr class="separator:a2740ebc8cc00b8708b1665772acc40c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd26a3fd294fd7d5168ee1bb76112f2f" id="r_afd26a3fd294fd7d5168ee1bb76112f2f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html">IInputBackend</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#afd26a3fd294fd7d5168ee1bb76112f2f">backend</a> ()</td></tr>
-<tr class="memdesc:afd26a3fd294fd7d5168ee1bb76112f2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get backend for configuration.  <br /></td></tr>
 <tr class="separator:afd26a3fd294fd7d5168ee1bb76112f2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad974972c998c2b0026bb8d9ba4f7d19f" id="r_ad974972c998c2b0026bb8d9ba4f7d19f"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="../../d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html">IInputBackend</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#ad974972c998c2b0026bb8d9ba4f7d19f">backend</a> () const</td></tr>
 <tr class="separator:ad974972c998c2b0026bb8d9ba4f7d19f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aace111d1e0f7719fba396aa0f22e535d" id="r_aace111d1e0f7719fba396aa0f22e535d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#aace111d1e0f7719fba396aa0f22e535d">IsInitialized</a> () const</td></tr>
-<tr class="memdesc:aace111d1e0f7719fba396aa0f22e535d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if initialized.  <br /></td></tr>
 <tr class="separator:aace111d1e0f7719fba396aa0f22e535d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbd4a31c930a8dc1f186249f5a1b4ba8" id="r_acbd4a31c930a8dc1f186249f5a1b4ba8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../de/d9a/structyaze_1_1emu_1_1input_1_1InputConfig.html">InputConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#acbd4a31c930a8dc1f186249f5a1b4ba8">GetConfig</a> () const</td></tr>
-<tr class="memdesc:acbd4a31c930a8dc1f186249f5a1b4ba8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get/set configuration.  <br /></td></tr>
 <tr class="separator:acbd4a31c930a8dc1f186249f5a1b4ba8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d1236a8d3472374ab426c699a85c9b9" id="r_a7d1236a8d3472374ab426c699a85c9b9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a7d1236a8d3472374ab426c699a85c9b9">SetConfig</a> (const <a class="el" href="../../de/d9a/structyaze_1_1emu_1_1input_1_1InputConfig.html">InputConfig</a> &amp;config)</td></tr>
 <tr class="separator:a7d1236a8d3472374ab426c699a85c9b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a249286b7abf91205122af1f2311e5343" id="r_a249286b7abf91205122af1f2311e5343"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a249286b7abf91205122af1f2311e5343">PressButton</a> (<a class="el" href="../../d5/df0/namespaceyaze_1_1emu_1_1input.html#adba5be4e20df51e4ba9273c1d018cbbb">SnesButton</a> button)</td></tr>
+<tr class="separator:a249286b7abf91205122af1f2311e5343"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a986589ae068e4f38044722fb4d7d9f93" id="r_a986589ae068e4f38044722fb4d7d9f93"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a986589ae068e4f38044722fb4d7d9f93">ReleaseButton</a> (<a class="el" href="../../d5/df0/namespaceyaze_1_1emu_1_1input.html#adba5be4e20df51e4ba9273c1d018cbbb">SnesButton</a> button)</td></tr>
+<tr class="separator:a986589ae068e4f38044722fb4d7d9f93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pri-attribs" name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
 <tr class="memitem:a43b419442f36dcf5d2f2108f21773693" id="r_a43b419442f36dcf5d2f2108f21773693"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="../../d9/d6f/classyaze_1_1emu_1_1input_1_1IInputBackend.html">IInputBackend</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a43b419442f36dcf5d2f2108f21773693">backend_</a></td></tr>
 <tr class="separator:a43b419442f36dcf5d2f2108f21773693"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a794a7f2e75d775660d831573f11da9ef" id="r_a794a7f2e75d775660d831573f11da9ef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="../../df/d22/structyaze_1_1emu_1_1input_1_1ControllerState.html">ControllerState</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a794a7f2e75d775660d831573f11da9ef">agent_controller_state_</a></td></tr>
+<tr class="separator:a794a7f2e75d775660d831573f11da9ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>High-level input manager that bridges backend and SNES. </p>
-<p>This class provides a simple interface for both GUI and headless modes:</p><ul>
-<li>Manages input backend lifecycle</li>
-<li>Polls input and updates SNES controller state</li>
-<li>Handles multiple players</li>
-<li>Supports hot-swapping input configurations </li>
-</ul>
-
-<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00024">24</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
+<div class="textblock">
+<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00015">15</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a8f35dd20a7686686e4b878ed43200d44" name="a8f35dd20a7686686e4b878ed43200d44"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8f35dd20a7686686e4b878ed43200d44">&#9670;&#160;</a></span>InputManager()</h2>
@@ -210,7 +208,7 @@ Private Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00027">27</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00018">18</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
 
 <p class="reference">References <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00040">Shutdown()</a>.</p>
 <div class="dynheader">
@@ -219,7 +217,7 @@ Here is the call graph for this function:</div>
 <div class="center"><img src="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager_a9aa53036fefeb2777e443f70fd4c68b1_cgraph.png" border="0" usemap="#ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_a9aa53036fefeb2777e443f70fd4c68b1_cgraph" alt=""/></div>
 <map name="ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_a9aa53036fefeb2777e443f70fd4c68b1_cgraph" id="ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_a9aa53036fefeb2777e443f70fd4c68b1_cgraph">
 <area shape="rect" title=" " alt="" coords="5,5,203,46"/>
-<area shape="rect" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a883a391efa9e2d2cc1da621e07f2ff19" title="Shutdown input system." alt="" coords="251,5,448,46"/>
+<area shape="rect" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a883a391efa9e2d2cc1da621e07f2ff19" title=" " alt="" coords="251,5,448,46"/>
 <area shape="poly" title=" " alt="" coords="203,23,235,23,235,28,203,28"/>
 </map>
 </div>
@@ -243,20 +241,17 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Initialize with specific backend. </p>
-<dl class="todo"><dt><b><a class="el" href="../../dd/da0/todo.html#_todo000069">Todo:</a></b></dt><dd>Enable when gamepad support added </dd></dl>
-
 <p class="definition">Definition at line <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00010">10</a> of file <a class="el" href="../../db/dea/input__manager_8cc_source.html">input_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00075">backend_</a>, <a class="el" href="../../d9/d2a/input__backend_8h_source.html#l00071">yaze::emu::input::InputConfig::continuous_polling</a>, <a class="el" href="../../dd/dd2/input__backend_8cc_source.html#l00160">yaze::emu::input::InputBackendFactory::Create()</a>, <a class="el" href="../../d9/d2a/input__backend_8h_source.html#l00074">yaze::emu::input::InputConfig::enable_gamepad</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00110">LOG_ERROR</a>, and <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00039">backend_</a>, <a class="el" href="../../d9/d2a/input__backend_8h_source.html#l00071">yaze::emu::input::InputConfig::continuous_polling</a>, <a class="el" href="../../dd/dd2/input__backend_8cc_source.html#l00177">yaze::emu::input::InputBackendFactory::Create()</a>, <a class="el" href="../../d9/d2a/input__backend_8h_source.html#l00074">yaze::emu::input::InputConfig::enable_gamepad</a>, <a class="el" href="../../d7/d7f/log_8h_source.html#l00110">LOG_ERROR</a>, and <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00132">yaze::emu::Emulator::Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00134">yaze::emu::Emulator::Run()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager_afceba572ccc804b2082356f66729bc0a_cgraph.png" border="0" usemap="#ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_afceba572ccc804b2082356f66729bc0a_cgraph" alt=""/></div>
 <map name="ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_afceba572ccc804b2082356f66729bc0a_cgraph" id="ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_afceba572ccc804b2082356f66729bc0a_cgraph">
-<area shape="rect" title="Initialize with specific backend." alt="" coords="5,5,203,46"/>
+<area shape="rect" title=" " alt="" coords="5,5,203,46"/>
 <area shape="rect" href="../../d1/de9/classyaze_1_1emu_1_1input_1_1InputBackendFactory.html#aea51eb4be06082aad728b90ab6b7a8b3" title=" " alt="" coords="251,5,449,46"/>
 <area shape="poly" title=" " alt="" coords="203,23,235,23,235,28,203,28"/>
 </map>
@@ -280,18 +275,16 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Initialize with custom backend. </p>
-
 <p class="definition">Definition at line <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00031">31</a> of file <a class="el" href="../../db/dea/input__manager_8cc_source.html">input_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00060">backend()</a>, <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00075">backend_</a>, and <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00026">backend()</a>, <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00039">backend_</a>, and <a class="el" href="../../d7/d7f/log_8h_source.html#l00106">LOG_INFO</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager_aebfa746102675aa07b976c6eac4a9701_cgraph.png" border="0" usemap="#ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_aebfa746102675aa07b976c6eac4a9701_cgraph" alt=""/></div>
 <map name="ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_aebfa746102675aa07b976c6eac4a9701_cgraph" id="ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_aebfa746102675aa07b976c6eac4a9701_cgraph">
-<area shape="rect" title="Initialize with custom backend." alt="" coords="5,5,203,46"/>
-<area shape="rect" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#afd26a3fd294fd7d5168ee1bb76112f2f" title="Get backend for configuration." alt="" coords="251,5,448,46"/>
+<area shape="rect" title=" " alt="" coords="5,5,203,46"/>
+<area shape="rect" href="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#afd26a3fd294fd7d5168ee1bb76112f2f" title=" " alt="" coords="251,5,448,46"/>
 <area shape="poly" title=" " alt="" coords="203,23,235,23,235,28,203,28"/>
 </map>
 </div>
@@ -313,13 +306,11 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Shutdown input system. </p>
-
 <p class="definition">Definition at line <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00040">40</a> of file <a class="el" href="../../db/dea/input__manager_8cc_source.html">input_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00075">backend_</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00039">backend_</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00027">~InputManager()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00018">~InputManager()</a>.</p>
 
 </div>
 </div>
@@ -349,26 +340,17 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Poll input and update SNES controller state. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">snes</td><td>SNES instance to update </td></tr>
-    <tr><td class="paramname">player</td><td>Player number (1-4) </td></tr>
-  </table>
-  </dd>
-</dl>
-
 <p class="definition">Definition at line <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00047">47</a> of file <a class="el" href="../../db/dea/input__manager_8cc_source.html">input_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00075">backend_</a>, <a class="el" href="../../d9/d2a/input__backend_8h_source.html#l00034">yaze::emu::input::ControllerState::buttons</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00637">yaze::emu::Snes::SetButtonState()</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00040">agent_controller_state_</a>, <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00039">backend_</a>, <a class="el" href="../../d9/d2a/input__backend_8h_source.html#l00034">yaze::emu::input::ControllerState::buttons</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00643">yaze::emu::Snes::SetButtonState()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00132">yaze::emu::Emulator::Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00134">yaze::emu::Emulator::Run()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><img src="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager_a192efc80c9792c0cccf4e11a2505b287_cgraph.png" border="0" usemap="#ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_a192efc80c9792c0cccf4e11a2505b287_cgraph" alt=""/></div>
 <map name="ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_a192efc80c9792c0cccf4e11a2505b287_cgraph" id="ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_a192efc80c9792c0cccf4e11a2505b287_cgraph">
-<area shape="rect" title="Poll input and update SNES controller state." alt="" coords="5,5,203,46"/>
+<area shape="rect" title=" " alt="" coords="5,5,203,46"/>
 <area shape="rect" href="../../d3/d15/classyaze_1_1emu_1_1Snes.html#a36610fdc93a127c79dc5ffc5e772dee4" title=" " alt="" coords="251,5,429,46"/>
 <area shape="poly" title=" " alt="" coords="203,23,235,23,235,28,203,28"/>
 </map>
@@ -392,17 +374,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Process platform-specific event (optional) </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">event</td><td>Platform event (e.g., SDL_Event*) </td></tr>
-  </table>
-  </dd>
-</dl>
+<p class="definition">Definition at line <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00064">64</a> of file <a class="el" href="../../db/dea/input__manager_8cc_source.html">input_manager.cc</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00061">61</a> of file <a class="el" href="../../db/dea/input__manager_8cc_source.html">input_manager.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00075">backend_</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00039">backend_</a>.</p>
 
 </div>
 </div>
@@ -429,13 +403,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Get backend for configuration. </p>
+<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00026">26</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00060">60</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00039">backend_</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00075">backend_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00031">Initialize()</a>, <a class="el" href="../../d8/d34/input__handler_8cc_source.html#l00011">yaze::emu::ui::RenderKeyboardConfig()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00132">yaze::emu::Emulator::Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00031">Initialize()</a>, <a class="el" href="../../d8/d34/input__handler_8cc_source.html#l00011">yaze::emu::ui::RenderKeyboardConfig()</a>, and <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00134">yaze::emu::Emulator::Run()</a>.</p>
 
 </div>
 </div>
@@ -462,9 +434,9 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00061">61</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00027">27</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00075">backend_</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00039">backend_</a>.</p>
 
 </div>
 </div>
@@ -491,13 +463,11 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Check if initialized. </p>
+<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00029">29</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00066">66</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00039">backend_</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00075">backend_</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00132">yaze::emu::Emulator::Run()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d3/d87/emulator_8cc_source.html#l00134">yaze::emu::Emulator::Run()</a>.</p>
 
 </div>
 </div>
@@ -516,11 +486,9 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Get/set configuration. </p>
+<p class="definition">Definition at line <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00070">70</a> of file <a class="el" href="../../db/dea/input__manager_8cc_source.html">input_manager.cc</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00067">67</a> of file <a class="el" href="../../db/dea/input__manager_8cc_source.html">input_manager.cc</a>.</p>
-
-<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00075">backend_</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00039">backend_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d8/d34/input__handler_8cc_source.html#l00011">yaze::emu::ui::RenderKeyboardConfig()</a>.</p>
 
@@ -542,11 +510,79 @@ Here is the call graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00074">74</a> of file <a class="el" href="../../db/dea/input__manager_8cc_source.html">input_manager.cc</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00077">77</a> of file <a class="el" href="../../db/dea/input__manager_8cc_source.html">input_manager.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00075">backend_</a>.</p>
+<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00039">backend_</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../d8/d34/input__handler_8cc_source.html#l00011">yaze::emu::ui::RenderKeyboardConfig()</a>.</p>
+
+</div>
+</div>
+<a id="a249286b7abf91205122af1f2311e5343" name="a249286b7abf91205122af1f2311e5343"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a249286b7abf91205122af1f2311e5343">&#9670;&#160;</a></span>PressButton()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::input::InputManager::PressButton </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d5/df0/namespaceyaze_1_1emu_1_1input.html#adba5be4e20df51e4ba9273c1d018cbbb">SnesButton</a>&#160;</td>
+          <td class="paramname"><em>button</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00083">83</a> of file <a class="el" href="../../db/dea/input__manager_8cc_source.html">input_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00040">agent_controller_state_</a>, and <a class="el" href="../../d9/d2a/input__backend_8h_source.html#l00040">yaze::emu::input::ControllerState::SetButton()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/dcb/emulator__service__impl_8cc_source.html#l00106">yaze::agent::EmulatorServiceImpl::HoldButtons()</a>, and <a class="el" href="../../df/dcb/emulator__service__impl_8cc_source.html#l00082">yaze::agent::EmulatorServiceImpl::PressButtons()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager_a249286b7abf91205122af1f2311e5343_cgraph.png" border="0" usemap="#ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_a249286b7abf91205122af1f2311e5343_cgraph" alt=""/></div>
+<map name="ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_a249286b7abf91205122af1f2311e5343_cgraph" id="ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_a249286b7abf91205122af1f2311e5343_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,203,46"/>
+<area shape="rect" href="../../df/d22/structyaze_1_1emu_1_1input_1_1ControllerState.html#ab3c75d8d12cdf56bee86b9d7a33e055d" title=" " alt="" coords="251,5,424,46"/>
+<area shape="poly" title=" " alt="" coords="203,23,235,23,235,28,203,28"/>
+</map>
+</div>
+
+</div>
+</div>
+<a id="a986589ae068e4f38044722fb4d7d9f93" name="a986589ae068e4f38044722fb4d7d9f93"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a986589ae068e4f38044722fb4d7d9f93">&#9670;&#160;</a></span>ReleaseButton()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void yaze::emu::input::InputManager::ReleaseButton </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="../../d5/df0/namespaceyaze_1_1emu_1_1input.html#adba5be4e20df51e4ba9273c1d018cbbb">SnesButton</a>&#160;</td>
+          <td class="paramname"><em>button</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00087">87</a> of file <a class="el" href="../../db/dea/input__manager_8cc_source.html">input_manager.cc</a>.</p>
+
+<p class="reference">References <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00040">agent_controller_state_</a>, and <a class="el" href="../../d9/d2a/input__backend_8h_source.html#l00040">yaze::emu::input::ControllerState::SetButton()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../df/dcb/emulator__service__impl_8cc_source.html#l00096">yaze::agent::EmulatorServiceImpl::ReleaseButtons()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><img src="../../de/d91/classyaze_1_1emu_1_1input_1_1InputManager_a986589ae068e4f38044722fb4d7d9f93_cgraph.png" border="0" usemap="#ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_a986589ae068e4f38044722fb4d7d9f93_cgraph" alt=""/></div>
+<map name="ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_a986589ae068e4f38044722fb4d7d9f93_cgraph" id="ade/d91/classyaze_1_1emu_1_1input_1_1InputManager_a986589ae068e4f38044722fb4d7d9f93_cgraph">
+<area shape="rect" title=" " alt="" coords="5,5,203,46"/>
+<area shape="rect" href="../../df/d22/structyaze_1_1emu_1_1input_1_1ControllerState.html#ab3c75d8d12cdf56bee86b9d7a33e055d" title=" " alt="" coords="251,5,424,46"/>
+<area shape="poly" title=" " alt="" coords="203,23,235,23,235,28,203,28"/>
+</map>
+</div>
 
 </div>
 </div>
@@ -571,9 +607,35 @@ Here is the call graph for this function:</div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00075">75</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00039">39</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00060">backend()</a>, <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00061">backend()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00067">GetConfig()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00010">Initialize()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00031">Initialize()</a>, <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00066">IsInitialized()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00047">Poll()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00061">ProcessEvent()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00074">SetConfig()</a>, and <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00040">Shutdown()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00026">backend()</a>, <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00027">backend()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00070">GetConfig()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00010">Initialize()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00031">Initialize()</a>, <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00029">IsInitialized()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00047">Poll()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00064">ProcessEvent()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00077">SetConfig()</a>, and <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00040">Shutdown()</a>.</p>
+
+</div>
+</div>
+<a id="a794a7f2e75d775660d831573f11da9ef" name="a794a7f2e75d775660d831573f11da9ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a794a7f2e75d775660d831573f11da9ef">&#9670;&#160;</a></span>agent_controller_state_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="../../df/d22/structyaze_1_1emu_1_1input_1_1ControllerState.html">ControllerState</a> yaze::emu::input::InputManager::agent_controller_state_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d8/dd2/input__manager_8h_source.html#l00040">40</a> of file <a class="el" href="../../d8/dd2/input__manager_8h_source.html">input_manager.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00047">Poll()</a>, <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00083">PressButton()</a>, and <a class="el" href="../../db/dea/input__manager_8cc_source.html#l00087">ReleaseButton()</a>.</p>
 
 </div>
 </div>

@@ -1,5 +1,6 @@
 var namespaceyaze =
 [
+    [ "agent", "d8/da9/namespaceyaze_1_1agent.html", "d8/da9/namespaceyaze_1_1agent" ],
     [ "anonymous_namespace{font_loader.cc}", "d0/dc8/namespaceyaze_1_1anonymous__namespace_02font__loader_8cc_03.html", [
       [ "SetFontPath", "d0/dc8/namespaceyaze_1_1anonymous__namespace_02font__loader_8cc_03.html#aabbfd06e7656b995e098610e30e8c87f", null ],
       [ "LoadFont", "d0/dc8/namespaceyaze_1_1anonymous__namespace_02font__loader_8cc_03.html#ac0e59e963fcaca57b28b8650f0b6aa80", null ],

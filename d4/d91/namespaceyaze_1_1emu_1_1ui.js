@@ -24,6 +24,7 @@ var namespaceyaze_1_1emu_1_1ui =
     [ "RenderNavBar", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#a7ff0f5b545fdc2433d8068b2093fa060", null ],
     [ "RenderSnesPpu", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#a7908ff246814344b3cf00ae8f3c9c862", null ],
     [ "RenderPerformanceMonitor", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#a2f797b87d98d859524af5b42988ee39d", null ],
+    [ "RenderKeyboardShortcuts", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#a50aa610dfa087b66b255f331352db4ba", null ],
     [ "RenderEmulatorInterface", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#ada7a67b7ac3f428c8de3b9722831584c", null ],
     [ "RenderKeyboardConfig", "d4/d91/namespaceyaze_1_1emu_1_1ui.html#a099d929bda42195211396c79bf4d6e9e", null ]
 ];

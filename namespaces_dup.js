@@ -15,6 +15,7 @@ var namespaces_dup =
       [ "main", "df/d6c/namespaceextract__changelog.html#acda8a6283bdc25c5bae76b6a726601dd", null ]
     ] ],
     [ "ftxui", "dc/d1b/namespaceftxui.html", null ],
+    [ "grpc", "d4/d4f/namespacegrpc.html", null ],
     [ "ImGui", "df/de4/namespaceImGui.html", [
       [ "InputScalarLeft", "df/de4/namespaceImGui.html#aa81ca8a6c22cc91f5a079a92cdbefc3d", null ]
     ] ],

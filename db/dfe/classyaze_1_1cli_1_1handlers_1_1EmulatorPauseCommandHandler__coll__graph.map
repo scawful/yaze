@@ -1,5 +1,5 @@
 <map id="yaze::cli::handlers::EmulatorPauseCommandHandler" name="yaze::cli::handlers::EmulatorPauseCommandHandler">
-<area shape="rect" id="Node000001" title="Command handler for emulator pause." alt="" coords="5,94,225,135"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,94,225,135"/>
 <area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="49,5,181,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="118,62,118,94,112,94,112,62"/>
 </map>

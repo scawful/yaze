@@ -123,6 +123,11 @@ var namespaceyaze_1_1emu =
     [ "Layer", "d6/d20/namespaceyaze_1_1emu.html#aa137d3787515b802157d6b1af1c83ef7", null ],
     [ "BgLayer", "d6/d20/namespaceyaze_1_1emu.html#a24a01fe899efeaf09ae0ddbeae88a218", null ],
     [ "WindowLayer", "d6/d20/namespaceyaze_1_1emu.html#a93ee05b57af8d2b02256b9467d725bce", null ],
+    [ "InterpolationType", "d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90", [
+      [ "Linear", "d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90a32a843da6ea40ab3b17a3421ccdf671b", null ],
+      [ "Cosine", "d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90a46ff06ae696616afdf3a695efd3db84c", null ],
+      [ "Cubic", "d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90aec6b5414eb175379ff9efc9b3eef5814", null ]
+    ] ],
     [ "AddressingMode", "d6/d20/namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836", [
       [ "kAbsolute", "d6/d20/namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836abab0767e88027de9944aa55c24c8387a", null ],
       [ "kAbsoluteLong", "d6/d20/namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a9571d99922a257fa1a743541848f52be", null ],
@@ -169,6 +174,9 @@ var namespaceyaze_1_1emu =
       [ "Size32x32", "d6/d20/namespaceyaze_1_1emu.html#ab2d8079bb5330aedfb062604d2a0168aaec579cbe3d24a02a93dad1682c20330d", null ],
       [ "Size64x64", "d6/d20/namespaceyaze_1_1emu.html#ab2d8079bb5330aedfb062604d2a0168aa8816d701dd08fb573f43ab49d6fc32e3", null ]
     ] ],
+    [ "InterpolateCubic", "d6/d20/namespaceyaze_1_1emu.html#a54b21394fb3bd68b382eb66cb7a572f0", null ],
+    [ "InterpolateCosine", "d6/d20/namespaceyaze_1_1emu.html#ac712e233c07228e907911722a07f9a8a", null ],
+    [ "InterpolateLinear", "d6/d20/namespaceyaze_1_1emu.html#a75f15bdbf4d7e5a1f249f51cbfd69cbb", null ],
     [ "ResetDma", "d6/d20/namespaceyaze_1_1emu.html#a2f5e5518d3fd67ea11625388d6d6c60c", null ],
     [ "ReadDma", "d6/d20/namespaceyaze_1_1emu.html#a8e66944bc240cdef6f415f891a3e493b", null ],
     [ "WriteDma", "d6/d20/namespaceyaze_1_1emu.html#a63ff537a831d4834396d48f42f259865", null ],

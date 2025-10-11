@@ -12,5 +12,8 @@ var classyaze_1_1emu_1_1input_1_1InputManager =
     [ "IsInitialized", "de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#aace111d1e0f7719fba396aa0f22e535d", null ],
     [ "GetConfig", "de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#acbd4a31c930a8dc1f186249f5a1b4ba8", null ],
     [ "SetConfig", "de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a7d1236a8d3472374ab426c699a85c9b9", null ],
-    [ "backend_", "de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a43b419442f36dcf5d2f2108f21773693", null ]
+    [ "PressButton", "de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a249286b7abf91205122af1f2311e5343", null ],
+    [ "ReleaseButton", "de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a986589ae068e4f38044722fb4d7d9f93", null ],
+    [ "backend_", "de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a43b419442f36dcf5d2f2108f21773693", null ],
+    [ "agent_controller_state_", "de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a794a7f2e75d775660d831573f11da9ef", null ]
 ];

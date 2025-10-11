@@ -1,11 +1,12 @@
 <map id="src/app/emu/input/input_backend.h" name="src/app/emu/input/input_backend.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="96,5,253,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="187,5,344,46"/>
 <area shape="rect" id="Node000002" href="$dd/dd2/input__backend_8cc.html" title=" " alt="" coords="5,94,163,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,59,106,95,103,92,142,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="212,55,126,96,124,91,209,51"/>
 <area shape="rect" id="Node000003" href="$d8/dd2/input__manager_8h.html" title=" " alt="" coords="187,94,344,135"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="208,55,247,92,243,95,204,59"/>
-<area shape="rect" id="Node000004" href="$db/dc0/emulator_8h.html" title=" " alt="" coords="96,190,253,216"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="235,148,189,192,185,188,232,144"/>
-<area shape="rect" id="Node000026" href="$db/dea/input__manager_8cc.html" title=" " alt="" coords="277,183,435,223"/>
-<area shape="poly" id="edge4_Node000003_Node000026" title=" " alt="" coords="298,143,337,180,334,184,295,147"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="268,62,268,94,263,94,263,62"/>
+<area shape="rect" id="Node000026" href="$df/dcb/emulator__service__impl_8cc.html" title=" " alt="" coords="237,256,409,297"/>
+<area shape="poly" id="edge5_Node000001_Node000026" title=" " alt="" coords="321,53,342,70,358,93,370,123,372,150,359,209,350,235,338,257,333,254,345,232,353,208,366,149,365,125,354,95,338,74,318,57"/>
+<area shape="rect" id="Node000004" href="$db/dc0/emulator_8h.html" title=" " alt="" coords="187,183,344,208"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="268,150,268,182,263,182,263,150"/>
+<area shape="poly" id="edge4_Node000004_Node000026" title=" " alt="" coords="285,219,311,254,306,258,281,222"/>
 </map>

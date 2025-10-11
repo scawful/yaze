@@ -1,5 +1,5 @@
 <map id="yaze::cli::handlers::EmulatorStepCommandHandler" name="yaze::cli::handlers::EmulatorStepCommandHandler">
-<area shape="rect" id="Node000001" title="Command handler for emulator step execution." alt="" coords="5,94,215,135"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,94,215,135"/>
 <area shape="rect" id="Node000002" href="$d0/d22/classyaze_1_1cli_1_1resources_1_1CommandHandler.html" title="Base class for CLI command handlers." alt="" coords="44,5,176,46"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="113,62,113,94,107,94,107,62"/>
 </map>

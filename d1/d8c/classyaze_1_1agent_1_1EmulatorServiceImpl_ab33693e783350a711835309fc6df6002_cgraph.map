@@ -1,0 +1,7 @@
+<map id="yaze::agent::EmulatorServiceImpl::ReadMemory" name="yaze::agent::EmulatorServiceImpl::ReadMemory">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,192,79"/>
+<area shape="rect" id="Node000002" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html#ac15aee65e9daf50206b5378dc312dde1" title=" " alt="" coords="240,5,375,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,41,224,36,224,42,192,47"/>
+<area shape="rect" id="Node000003" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html#ae7676db1e19dc323e578195bc5699297" title=" " alt="" coords="240,71,375,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="192,71,224,76,224,81,192,76"/>
+</map>

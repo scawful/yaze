@@ -1,5 +1,9 @@
 <map id="yaze::emu::Apu::GetSamples" name="yaze::emu::Apu::GetSamples">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,191,31"/>
-<area shape="rect" id="Node000002" href="$dc/d01/classyaze_1_1emu_1_1Dsp.html#a16725893e384a6cffb91f4ba9617c868" title=" " alt="" coords="239,5,424,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,16,223,16,223,21,191,21"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,191,56"/>
+<area shape="rect" id="Node000002" href="$dc/d01/classyaze_1_1emu_1_1Dsp.html#a16725893e384a6cffb91f4ba9617c868" title=" " alt="" coords="239,31,424,56"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="191,41,223,41,223,46,191,46"/>
+<area shape="rect" id="Node000003" href="$d6/d20/namespaceyaze_1_1emu.html#ac712e233c07228e907911722a07f9a8a" title=" " alt="" coords="472,5,657,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="424,31,456,27,457,33,425,36"/>
+<area shape="rect" id="Node000004" href="$d6/d20/namespaceyaze_1_1emu.html#a54b21394fb3bd68b382eb66cb7a572f0" title=" " alt="" coords="476,55,654,80"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="425,50,461,54,460,59,424,56"/>
 </map>

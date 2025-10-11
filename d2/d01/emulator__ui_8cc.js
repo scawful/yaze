@@ -5,6 +5,7 @@ var emulator__ui_8cc =
     [ "RenderNavBar", "d2/d01/emulator__ui_8cc.html#a7ff0f5b545fdc2433d8068b2093fa060", null ],
     [ "RenderSnesPpu", "d2/d01/emulator__ui_8cc.html#a7908ff246814344b3cf00ae8f3c9c862", null ],
     [ "RenderPerformanceMonitor", "d2/d01/emulator__ui_8cc.html#a2f797b87d98d859524af5b42988ee39d", null ],
+    [ "RenderKeyboardShortcuts", "d2/d01/emulator__ui_8cc.html#a50aa610dfa087b66b255f331352db4ba", null ],
     [ "RenderEmulatorInterface", "d2/d01/emulator__ui_8cc.html#ada7a67b7ac3f428c8de3b9722831584c", null ],
     [ "kStandardSpacing", "d2/d01/emulator__ui_8cc.html#a1b59c5f403691f55db5ba90c500d63e0", null ],
     [ "kSectionSpacing", "d2/d01/emulator__ui_8cc.html#a585d4b9456467f860c95bfcb72690414", null ],

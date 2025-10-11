@@ -99,32 +99,28 @@ $(document).ready(function(){initNavTree('d3/d03/emulator__commands_8cc.html','.
 
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">emulator_commands.cc File Reference</div></div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="../../d6/da3/emulator__commands_8h_source.html">cli/handlers/tools/emulator_commands.h</a>&quot;</code><br />
-<code>#include &quot;absl/strings/numbers.h&quot;</code><br />
-<code>#include &quot;absl/strings/str_format.h&quot;</code><br />
-</div><div class="textblock"><div class="dynheader">
-Include dependency graph for emulator_commands.cc:</div>
-<div class="dyncontent">
-<div class="center"><img src="../../dd/d35/emulator__commands_8cc__incl.png" border="0" usemap="#asrc_2cli_2handlers_2tools_2emulator__commands_8cc" alt=""/></div>
-<map name="asrc_2cli_2handlers_2tools_2emulator__commands_8cc" id="asrc_2cli_2handlers_2tools_2emulator__commands_8cc">
-<area shape="rect" title=" " alt="" coords="181,5,344,46"/>
-<area shape="rect" href="../../d6/da3/emulator__commands_8h.html" title=" " alt="" coords="5,94,162,135"/>
-<area shape="poly" title=" " alt="" coords="223,49,139,89,136,85,220,44"/>
-<area shape="rect" title=" " alt="" coords="186,102,338,127"/>
-<area shape="poly" title=" " alt="" coords="265,47,265,86,260,86,260,47"/>
-<area shape="rect" title=" " alt="" coords="363,102,524,127"/>
-<area shape="poly" title=" " alt="" coords="304,44,406,92,403,97,302,49"/>
-<area shape="rect" href="../../d9/d72/command__handler_8h.html" title=" " alt="" coords="13,183,154,223"/>
-<area shape="poly" title=" " alt="" coords="86,135,86,167,81,167,81,135"/>
-</map>
-</div>
+<code>#include &lt;grpcpp/grpcpp.h&gt;</code><br />
+<code>#include &quot;protos/emulator_service.grpc.pb.h&quot;</code><br />
+<code>#include &quot;absl/strings/str_split.h&quot;</code><br />
+<code>#include &quot;absl/strings/string_view.h&quot;</code><br />
+<code>#include &quot;absl/time/time.h&quot;</code><br />
+<code>#include &quot;absl/status/statusor.h&quot;</code><br />
+<code>#include &quot;absl/strings/escaping.h&quot;</code><br />
 </div>
 <p><a href="../../d3/d03/emulator__commands_8cc_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../da/df5/classyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02emulator__commands_8cc_03_1_1EmulatorClient.html">yaze::cli::handlers::anonymous_namespace{emulator_commands.cc}::EmulatorClient</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:dc/d46/namespaceyaze" id="r_dc/d46/namespaceyaze"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../dc/d46/namespaceyaze.html">yaze</a></td></tr>
@@ -135,6 +131,13 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:d0/db7/namespaceyaze_1_1cli_1_1handlers" id="r_d0/db7/namespaceyaze_1_1cli_1_1handlers"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d0/db7/namespaceyaze_1_1cli_1_1handlers.html">yaze::cli::handlers</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:d7/dfd/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02emulator__commands_8cc_03" id="r_d7/dfd/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02emulator__commands_8cc_03"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dfd/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02emulator__commands_8cc_03.html">yaze::cli::handlers::anonymous_namespace{emulator_commands.cc}</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a9a8a8282bac36a3c8bd7ebea35c1ca4f" id="r_a9a8a8282bac36a3c8bd7ebea35c1ca4f"><td class="memItemLeft" align="right" valign="top">absl::StatusOr&lt; agent::Button &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d7/dfd/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02emulator__commands_8cc_03.html#a9a8a8282bac36a3c8bd7ebea35c1ca4f">yaze::cli::handlers::anonymous_namespace{emulator_commands.cc}::StringToButton</a> (absl::string_view s)</td></tr>
+<tr class="separator:a9a8a8282bac36a3c8bd7ebea35c1ca4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

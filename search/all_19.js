@@ -118,7 +118,7 @@ var searchData=
   ['of_20undefined_20type_20promiselike_115',['Windows: &quot;use of undefined type &apos;PromiseLike&apos;&quot;',['../d1/d30/md_docs_2B2-platform-compatibility.html#autotoc_md115',1,'']]],
   ['off_116',['Off',['../d3/d81/group__dungeon.html#gadcf43c7a0c40bed25771dcd055a2e565',1,'zelda.h']]],
   ['offertestsessioncreation_117',['OfferTestSessionCreation',['../da/d3e/classyaze_1_1test_1_1TestManager.html#ac0e33eba8ade56271b4c15d82fad122f',1,'yaze::test::TestManager']]],
-  ['offset_118',['offset',['../d2/d09/structyaze_1_1emu_1_1ScrollRegister.html#a7719138fdd82cc7affd62ebbfbe376de',1,'yaze::emu::ScrollRegister::offset'],['../d5/db2/structyaze_1_1editor_1_1ExampleMemberInfo.html#a290a3cd08e27d9b2072c059b91482f96',1,'yaze::editor::ExampleMemberInfo::Offset']]],
+  ['offset_118',['offset',['../d5/db2/structyaze_1_1editor_1_1ExampleMemberInfo.html#a290a3cd08e27d9b2072c059b91482f96',1,'yaze::editor::ExampleMemberInfo::Offset'],['../d2/d09/structyaze_1_1emu_1_1ScrollRegister.html#a7719138fdd82cc7affd62ebbfbe376de',1,'yaze::emu::ScrollRegister::offset']]],
   ['offset_20line_201132_201136_119',['Issue 5: Vanilla Large Map World Offset (Line 1132-1136)',['../d5/db9/md_docs_2G4-canvas-coordinate-fix.html#autotoc_md1116',1,'']]],
   ['offset_5f_120',['offset_',['../de/dce/classyaze_1_1cli_1_1HexViewerComponent.html#ab63b95f642766dbf6ae78e9689fbb114',1,'yaze::cli::HexViewerComponent']]],
   ['offset_5fx_5f_121',['offset_x_',['../d3/d6a/classyaze_1_1zelda3_1_1RoomObject.html#a7af011bcb00c9cbbe365526b13cf19ac',1,'yaze::zelda3::RoomObject']]],

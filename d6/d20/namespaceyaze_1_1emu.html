@@ -373,6 +373,11 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
 Enumerations</h2></td></tr>
+<tr class="memitem:a6b4feb4fa56285e2b308d6a26b189e90" id="r_a6b4feb4fa56285e2b308d6a26b189e90"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90">InterpolationType</a> { <a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90a32a843da6ea40ab3b17a3421ccdf671b">Linear</a>
+, <a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90a46ff06ae696616afdf3a695efd3db84c">Cosine</a>
+, <a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90aec6b5414eb175379ff9efc9b3eef5814">Cubic</a>
+ }</td></tr>
+<tr class="separator:a6b4feb4fa56285e2b308d6a26b189e90"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a22bf51ed91189695bf4e76bf6b85f836" id="r_a22bf51ed91189695bf4e76bf6b85f836"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836">AddressingMode</a> { <br />
 &#160;&#160;<a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836abab0767e88027de9944aa55c24c8387a">kAbsolute</a>
 , <a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a22bf51ed91189695bf4e76bf6b85f836a9571d99922a257fa1a743541848f52be">kAbsoluteLong</a>
@@ -433,6 +438,12 @@ Enumerations</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a54b21394fb3bd68b382eb66cb7a572f0" id="r_a54b21394fb3bd68b382eb66cb7a572f0"><td class="memItemLeft" align="right" valign="top">int16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a54b21394fb3bd68b382eb66cb7a572f0">InterpolateCubic</a> (int16_t p0, int16_t p1, int16_t p2, int16_t p3, double t)</td></tr>
+<tr class="separator:a54b21394fb3bd68b382eb66cb7a572f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac712e233c07228e907911722a07f9a8a" id="r_ac712e233c07228e907911722a07f9a8a"><td class="memItemLeft" align="right" valign="top">int16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#ac712e233c07228e907911722a07f9a8a">InterpolateCosine</a> (int16_t s0, int16_t s1, double mu)</td></tr>
+<tr class="separator:ac712e233c07228e907911722a07f9a8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75f15bdbf4d7e5a1f249f51cbfd69cbb" id="r_a75f15bdbf4d7e5a1f249f51cbfd69cbb"><td class="memItemLeft" align="right" valign="top">int16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a75f15bdbf4d7e5a1f249f51cbfd69cbb">InterpolateLinear</a> (int16_t s0, int16_t s1, double frac)</td></tr>
+<tr class="separator:a75f15bdbf4d7e5a1f249f51cbfd69cbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f5e5518d3fd67ea11625388d6d6c60c" id="r_a2f5e5518d3fd67ea11625388d6d6c60c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a2f5e5518d3fd67ea11625388d6d6c60c">ResetDma</a> (<a class="el" href="../../de/d0f/classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a> *memory)</td></tr>
 <tr class="separator:a2f5e5518d3fd67ea11625388d6d6c60c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e66944bc240cdef6f415f891a3e493b" id="r_a8e66944bc240cdef6f415f891a3e493b"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a8e66944bc240cdef6f415f891a3e493b">ReadDma</a> (<a class="el" href="../../de/d0f/classyaze_1_1emu_1_1MemoryImpl.html">MemoryImpl</a> *memory, uint16_t adr)</td></tr>
@@ -735,6 +746,35 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
+<a id="a6b4feb4fa56285e2b308d6a26b189e90" name="a6b4feb4fa56285e2b308d6a26b189e90"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b4feb4fa56285e2b308d6a26b189e90">&#9670;&#160;</a></span>InterpolationType</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum class <a class="el" href="../../d6/d20/namespaceyaze_1_1emu.html#a6b4feb4fa56285e2b308d6a26b189e90">yaze::emu::InterpolationType</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6b4feb4fa56285e2b308d6a26b189e90a32a843da6ea40ab3b17a3421ccdf671b" name="a6b4feb4fa56285e2b308d6a26b189e90a32a843da6ea40ab3b17a3421ccdf671b"></a>Linear&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a6b4feb4fa56285e2b308d6a26b189e90a46ff06ae696616afdf3a695efd3db84c" name="a6b4feb4fa56285e2b308d6a26b189e90a46ff06ae696616afdf3a695efd3db84c"></a>Cosine&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a6b4feb4fa56285e2b308d6a26b189e90aec6b5414eb175379ff9efc9b3eef5814" name="a6b4feb4fa56285e2b308d6a26b189e90aec6b5414eb175379ff9efc9b3eef5814"></a>Cubic&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+<p class="definition">Definition at line <a class="el" href="../../d3/d08/dsp_8h_source.html#l00010">10</a> of file <a class="el" href="../../d3/d08/dsp_8h_source.html">dsp.h</a>.</p>
+
+</div>
+</div>
 <a id="a22bf51ed91189695bf4e76bf6b85f836" name="a22bf51ed91189695bf4e76bf6b85f836"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a22bf51ed91189695bf4e76bf6b85f836">&#9670;&#160;</a></span>AddressingMode</h2>
 
@@ -854,6 +894,154 @@ Variables</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="a54b21394fb3bd68b382eb66cb7a572f0" name="a54b21394fb3bd68b382eb66cb7a572f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a54b21394fb3bd68b382eb66cb7a572f0">&#9670;&#160;</a></span>InterpolateCubic()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int16_t yaze::emu::InterpolateCubic </td>
+          <td>(</td>
+          <td class="paramtype">int16_t&#160;</td>
+          <td class="paramname"><em>p0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int16_t&#160;</td>
+          <td class="paramname"><em>p1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int16_t&#160;</td>
+          <td class="paramname"><em>p2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int16_t&#160;</td>
+          <td class="paramname"><em>p3</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>t</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00622">622</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00651">yaze::emu::Dsp::GetSamples()</a>.</p>
+
+</div>
+</div>
+<a id="ac712e233c07228e907911722a07f9a8a" name="ac712e233c07228e907911722a07f9a8a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac712e233c07228e907911722a07f9a8a">&#9670;&#160;</a></span>InterpolateCosine()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int16_t yaze::emu::InterpolateCosine </td>
+          <td>(</td>
+          <td class="paramtype">int16_t&#160;</td>
+          <td class="paramname"><em>s0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int16_t&#160;</td>
+          <td class="paramname"><em>s1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>mu</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00641">641</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00651">yaze::emu::Dsp::GetSamples()</a>.</p>
+
+</div>
+</div>
+<a id="a75f15bdbf4d7e5a1f249f51cbfd69cbb" name="a75f15bdbf4d7e5a1f249f51cbfd69cbb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a75f15bdbf4d7e5a1f249f51cbfd69cbb">&#9670;&#160;</a></span>InterpolateLinear()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int16_t yaze::emu::InterpolateLinear </td>
+          <td>(</td>
+          <td class="paramtype">int16_t&#160;</td>
+          <td class="paramname"><em>s0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int16_t&#160;</td>
+          <td class="paramname"><em>s1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>frac</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="../../d6/d00/dsp_8cc_source.html#l00647">647</a> of file <a class="el" href="../../d6/d00/dsp_8cc_source.html">dsp.cc</a>.</p>
+
+</div>
+</div>
 <a id="a2f5e5518d3fd67ea11625388d6d6c60c" name="a2f5e5518d3fd67ea11625388d6d6c60c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2f5e5518d3fd67ea11625388d6d6c60c">&#9670;&#160;</a></span>ResetDma()</h2>
 
@@ -874,7 +1062,7 @@ Variables</h2></td></tr>
 
 <p class="reference">References <a class="el" href="../../dc/d18/memory_8h_source.html#l00282">yaze::emu::MemoryImpl::dma_channels()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00281">yaze::emu::MemoryImpl::set_dma_state()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00270">yaze::emu::MemoryImpl::set_hdma_init_requested()</a>, and <a class="el" href="../../dc/d18/memory_8h_source.html#l00267">yaze::emu::MemoryImpl::set_hdma_run_requested()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00051">yaze::emu::Snes::Reset()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00054">yaze::emu::Snes::Reset()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -924,7 +1112,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="../../dc/d18/memory_8h_source.html#l00282">yaze::emu::MemoryImpl::dma_channels()</a>, and <a class="el" href="../../dc/d18/memory_8h_source.html#l00258">yaze::emu::MemoryImpl::open_bus()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00381">yaze::emu::Snes::Rread()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00386">yaze::emu::Snes::Rread()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -976,7 +1164,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="../../dc/d18/memory_8h_source.html#l00282">yaze::emu::MemoryImpl::dma_channels()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00562">yaze::emu::Snes::Write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00568">yaze::emu::Snes::Write()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -1024,7 +1212,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../df/d7d/dma_8cc_source.html#l00156">156</a> of file <a class="el" href="../../df/d7d/dma_8cc_source.html">dma.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00282">yaze::emu::MemoryImpl::dma_channels()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00290">yaze::emu::Snes::SyncCycles()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">TransferByte()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00208">WaitCycle()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00071">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00282">yaze::emu::MemoryImpl::dma_channels()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00295">yaze::emu::Snes::SyncCycles()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">TransferByte()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00208">WaitCycle()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../df/d7d/dma_8cc_source.html#l00190">HandleDma()</a>.</p>
 
@@ -1066,7 +1254,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="../../dc/d18/memory_8h_source.html#l00280">yaze::emu::MemoryImpl::dma_state()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00156">DoDma()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00257">DoHdma()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00259">yaze::emu::MemoryImpl::hdma_init_requested()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00262">yaze::emu::MemoryImpl::hdma_run_requested()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00216">InitHdma()</a>, and <a class="el" href="../../dc/d18/memory_8h_source.html#l00281">yaze::emu::MemoryImpl::set_dma_state()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00625">yaze::emu::Snes::CpuIdle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00606">yaze::emu::Snes::CpuRead()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00617">yaze::emu::Snes::CpuWrite()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00631">yaze::emu::Snes::CpuIdle()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00612">yaze::emu::Snes::CpuRead()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00623">yaze::emu::Snes::CpuWrite()</a>.</p>
 
 </div>
 </div>
@@ -1098,7 +1286,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../df/d7d/dma_8cc_source.html#l00208">208</a> of file <a class="el" href="../../df/d7d/dma_8cc_source.html">dma.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../df/d7d/dma_8cc_source.html#l00257">DoHdma()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00259">yaze::emu::MemoryImpl::hdma_init_requested()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00262">yaze::emu::MemoryImpl::hdma_run_requested()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00216">InitHdma()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00280">yaze::emu::Snes::RunCycles()</a>.</p>
+<p class="reference">References <a class="el" href="../../df/d7d/dma_8cc_source.html#l00257">DoHdma()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00259">yaze::emu::MemoryImpl::hdma_init_requested()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00262">yaze::emu::MemoryImpl::hdma_run_requested()</a>, <a class="el" href="../../df/d7d/dma_8cc_source.html#l00216">InitHdma()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00285">yaze::emu::Snes::RunCycles()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../df/d7d/dma_8cc_source.html#l00156">DoDma()</a>.</p>
 
@@ -1144,7 +1332,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../df/d7d/dma_8cc_source.html#l00216">216</a> of file <a class="el" href="../../df/d7d/dma_8cc_source.html">dma.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00282">yaze::emu::MemoryImpl::dma_channels()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00411">yaze::emu::Snes::Read()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00280">yaze::emu::Snes::RunCycles()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00270">yaze::emu::MemoryImpl::set_hdma_init_requested()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00290">yaze::emu::Snes::SyncCycles()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00071">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00282">yaze::emu::MemoryImpl::dma_channels()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00417">yaze::emu::Snes::Read()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00285">yaze::emu::Snes::RunCycles()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00270">yaze::emu::MemoryImpl::set_hdma_init_requested()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00295">yaze::emu::Snes::SyncCycles()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../df/d7d/dma_8cc_source.html#l00190">HandleDma()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00208">WaitCycle()</a>.</p>
 
@@ -1190,7 +1378,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../df/d7d/dma_8cc_source.html#l00257">257</a> of file <a class="el" href="../../df/d7d/dma_8cc_source.html">dma.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00067">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00282">yaze::emu::MemoryImpl::dma_channels()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00411">yaze::emu::Snes::Read()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00280">yaze::emu::Snes::RunCycles()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00267">yaze::emu::MemoryImpl::set_hdma_run_requested()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00290">yaze::emu::Snes::SyncCycles()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">TransferByte()</a>.</p>
+<p class="reference">References <a class="el" href="../../d2/de3/emu_2snes_8h_source.html#l00071">yaze::emu::Snes::cpu()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00282">yaze::emu::MemoryImpl::dma_channels()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00417">yaze::emu::Snes::Read()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00285">yaze::emu::Snes::RunCycles()</a>, <a class="el" href="../../dc/d18/memory_8h_source.html#l00267">yaze::emu::MemoryImpl::set_hdma_run_requested()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00295">yaze::emu::Snes::SyncCycles()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">TransferByte()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../df/d7d/dma_8cc_source.html#l00190">HandleDma()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00208">WaitCycle()</a>.</p>
 
@@ -1248,7 +1436,7 @@ Here is the call graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="../../df/d7d/dma_8cc_source.html#l00334">334</a> of file <a class="el" href="../../df/d7d/dma_8cc_source.html">dma.cc</a>.</p>
 
-<p class="reference">References <a class="el" href="../../dc/d18/memory_8h_source.html#l00258">yaze::emu::MemoryImpl::open_bus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00411">yaze::emu::Snes::Read()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00301">yaze::emu::Snes::ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00562">yaze::emu::Snes::Write()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00417">yaze::emu::Snes::WriteBBus()</a>.</p>
+<p class="reference">References <a class="el" href="../../dc/d18/memory_8h_source.html#l00258">yaze::emu::MemoryImpl::open_bus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00417">yaze::emu::Snes::Read()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00306">yaze::emu::Snes::ReadBBus()</a>, <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00568">yaze::emu::Snes::Write()</a>, and <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00423">yaze::emu::Snes::WriteBBus()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="../../df/d7d/dma_8cc_source.html#l00156">DoDma()</a>, and <a class="el" href="../../df/d7d/dma_8cc_source.html#l00257">DoHdma()</a>.</p>
 
@@ -1290,7 +1478,7 @@ Here is the call graph for this function:</div>
 
 <p class="reference">References <a class="el" href="../../dc/d18/memory_8h_source.html#l00282">yaze::emu::MemoryImpl::dma_channels()</a>, and <a class="el" href="../../dc/d18/memory_8h_source.html#l00281">yaze::emu::MemoryImpl::set_dma_state()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00462">yaze::emu::Snes::WriteReg()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="../../dc/dbe/snes_8cc_source.html#l00468">yaze::emu::Snes::WriteReg()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">

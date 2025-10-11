@@ -1,0 +1,9 @@
+<map id="yaze::agent::EmulatorServiceImpl::ReleaseButtons" name="yaze::agent::EmulatorServiceImpl::ReleaseButtons">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,39,192,79"/>
+<area shape="rect" id="Node000002" href="$d0/dbd/classyaze_1_1emu_1_1Emulator.html#a89d4926afde8e3635ed1e27d3dae6fdd" title=" " alt="" coords="271,5,406,46"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="192,43,255,35,255,40,193,49"/>
+<area shape="rect" id="Node000003" href="$de/d91/classyaze_1_1emu_1_1input_1_1InputManager.html#a986589ae068e4f38044722fb4d7d9f93" title=" " alt="" coords="240,71,437,111"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="193,69,225,73,224,78,192,74"/>
+<area shape="rect" id="Node000004" href="$df/d22/structyaze_1_1emu_1_1input_1_1ControllerState.html#ab3c75d8d12cdf56bee86b9d7a33e055d" title=" " alt="" coords="485,71,658,111"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="437,88,469,88,469,94,437,94"/>
+</map>

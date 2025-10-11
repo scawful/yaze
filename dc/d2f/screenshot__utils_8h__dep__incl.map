@@ -1,7 +1,9 @@
 <map id="src/app/core/service/screenshot_utils.h" name="src/app/core/service/screenshot_utils.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="100,5,239,46"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="195,5,334,46"/>
 <area shape="rect" id="Node000002" href="$d7/d7f/screenshot__utils_8cc.html" title=" " alt="" coords="5,94,145,135"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="139,59,98,96,95,92,135,55"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="209,55,119,96,117,91,207,50"/>
 <area shape="rect" id="Node000003" href="$d1/d2e/test__manager_8cc.html" title=" " alt="" coords="169,102,360,127"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="204,55,253,99,250,103,200,59"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="267,62,267,101,262,101,262,62"/>
+<area shape="rect" id="Node000004" href="$df/dcb/emulator__service__impl_8cc.html" title=" " alt="" coords="384,94,556,135"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="326,50,424,91,422,96,324,55"/>
 </map>

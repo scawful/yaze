@@ -3,6 +3,7 @@ var namespaceyaze_1_1cli_1_1handlers =
     [ "anonymous_namespace{command_handlers.cc}", "d4/d4c/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02command__handlers_8cc_03.html", [
       [ "g_command_registry", "d4/d4c/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02command__handlers_8cc_03.html#a98b15c78276079ebb96b5e02b0a8c9ea", null ]
     ] ],
+    [ "anonymous_namespace{emulator_commands.cc}", "d7/dfd/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02emulator__commands_8cc_03.html", "d7/dfd/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02emulator__commands_8cc_03" ],
     [ "anonymous_namespace{todo_commands.cc}", "d6/d5b/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02todo__commands_8cc_03.html", [
       [ "GetTodoManager", "d6/d5b/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02todo__commands_8cc_03.html#adab7a6c5147a257c4f83f754bec2f025", null ],
       [ "PrintTodo", "d6/d5b/namespaceyaze_1_1cli_1_1handlers_1_1anonymous__namespace_02todo__commands_8cc_03.html#a4d665e45d6fa8d8fb60d2c9f2df68067", null ],
@@ -28,9 +29,12 @@ var namespaceyaze_1_1cli_1_1handlers =
     [ "EmulatorGetMetricsCommandHandler", "d1/d5e/classyaze_1_1cli_1_1handlers_1_1EmulatorGetMetricsCommandHandler.html", "d1/d5e/classyaze_1_1cli_1_1handlers_1_1EmulatorGetMetricsCommandHandler" ],
     [ "EmulatorGetRegistersCommandHandler", "dc/dfd/classyaze_1_1cli_1_1handlers_1_1EmulatorGetRegistersCommandHandler.html", "dc/dfd/classyaze_1_1cli_1_1handlers_1_1EmulatorGetRegistersCommandHandler" ],
     [ "EmulatorGetStateCommandHandler", "d3/d1c/classyaze_1_1cli_1_1handlers_1_1EmulatorGetStateCommandHandler.html", "d3/d1c/classyaze_1_1cli_1_1handlers_1_1EmulatorGetStateCommandHandler" ],
+    [ "EmulatorHoldButtonsCommandHandler", "d4/d55/classyaze_1_1cli_1_1handlers_1_1EmulatorHoldButtonsCommandHandler.html", "d4/d55/classyaze_1_1cli_1_1handlers_1_1EmulatorHoldButtonsCommandHandler" ],
     [ "EmulatorListBreakpointsCommandHandler", "da/d9a/classyaze_1_1cli_1_1handlers_1_1EmulatorListBreakpointsCommandHandler.html", "da/d9a/classyaze_1_1cli_1_1handlers_1_1EmulatorListBreakpointsCommandHandler" ],
     [ "EmulatorPauseCommandHandler", "df/dc8/classyaze_1_1cli_1_1handlers_1_1EmulatorPauseCommandHandler.html", "df/dc8/classyaze_1_1cli_1_1handlers_1_1EmulatorPauseCommandHandler" ],
+    [ "EmulatorPressButtonsCommandHandler", "df/d24/classyaze_1_1cli_1_1handlers_1_1EmulatorPressButtonsCommandHandler.html", "df/d24/classyaze_1_1cli_1_1handlers_1_1EmulatorPressButtonsCommandHandler" ],
     [ "EmulatorReadMemoryCommandHandler", "df/d94/classyaze_1_1cli_1_1handlers_1_1EmulatorReadMemoryCommandHandler.html", "df/d94/classyaze_1_1cli_1_1handlers_1_1EmulatorReadMemoryCommandHandler" ],
+    [ "EmulatorReleaseButtonsCommandHandler", "d1/dae/classyaze_1_1cli_1_1handlers_1_1EmulatorReleaseButtonsCommandHandler.html", "d1/dae/classyaze_1_1cli_1_1handlers_1_1EmulatorReleaseButtonsCommandHandler" ],
     [ "EmulatorResetCommandHandler", "de/d6e/classyaze_1_1cli_1_1handlers_1_1EmulatorResetCommandHandler.html", "de/d6e/classyaze_1_1cli_1_1handlers_1_1EmulatorResetCommandHandler" ],
     [ "EmulatorRunCommandHandler", "d5/d35/classyaze_1_1cli_1_1handlers_1_1EmulatorRunCommandHandler.html", "d5/d35/classyaze_1_1cli_1_1handlers_1_1EmulatorRunCommandHandler" ],
     [ "EmulatorSetBreakpointCommandHandler", "dd/d81/classyaze_1_1cli_1_1handlers_1_1EmulatorSetBreakpointCommandHandler.html", "dd/d81/classyaze_1_1cli_1_1handlers_1_1EmulatorSetBreakpointCommandHandler" ],
