@@ -13,6 +13,11 @@ if(YAZE_BUILD_TESTS)
       ${CMAKE_SOURCE_DIR}/src
       ${CMAKE_SOURCE_DIR}/incl
       ${CMAKE_SOURCE_DIR}/test
+      ${CMAKE_SOURCE_DIR}/src/lib
+      ${CMAKE_SOURCE_DIR}/src/lib/imgui
+      ${CMAKE_SOURCE_DIR}/src/lib/imgui/backends
+      ${CMAKE_SOURCE_DIR}/src/lib/SDL/include
+      ${CMAKE_BINARY_DIR}/src/lib/SDL/include
       ${PROJECT_BINARY_DIR}
     )
 
@@ -23,6 +28,8 @@ if(YAZE_BUILD_TESTS)
       absl::failure_signal_handler
       absl::flags
       absl::flags_parse
+      ImGui
+      ${SDL_TARGETS}
     )
 
     # Link ImGui Test Engine for GUI tests
