@@ -101,11 +101,27 @@ set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "Disable yaml-cpp tools" FORCE)
 set(YAML_CPP_INSTALL OFF CACHE BOOL "Disable yaml-cpp install" FORCE)
 set(YAML_CPP_FORMAT_SOURCE OFF CACHE BOOL "Disable yaml-cpp format target" FORCE)
 
+# Use yaml-cpp 0.8.0 with inline patch for CMake 3.31+ compatibility
+# yaml-cpp 0.8.0 requires CMake 2.8.12 which is incompatible with CMake 3.31+
 FetchContent_Declare(yaml-cpp
     GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
     GIT_TAG 0.8.0
 )
-FetchContent_MakeAvailable(yaml-cpp)
+
+# Manually populate and patch to avoid cmake_minimum_required compatibility issue
+FetchContent_GetProperties(yaml-cpp)
+if(NOT yaml-cpp_POPULATED)
+  FetchContent_Populate(yaml-cpp)
+  
+  # Patch CMakeLists.txt to use CMake 3.5 minimum (compatible with 3.31+)
+  file(READ "${yaml-cpp_SOURCE_DIR}/CMakeLists.txt" YAML_CMAKE_CONTENT)
+  string(REPLACE "cmake_minimum_required(VERSION 2.8.12)" 
+                 "cmake_minimum_required(VERSION 3.5)" 
+                 YAML_CMAKE_CONTENT "${YAML_CMAKE_CONTENT}")
+  file(WRITE "${yaml-cpp_SOURCE_DIR}/CMakeLists.txt" "${YAML_CMAKE_CONTENT}")
+  
+  add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
+endif()
 
 # nlohmann_json (header only)
 if(YAZE_WITH_JSON)
