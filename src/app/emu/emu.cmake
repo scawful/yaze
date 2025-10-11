@@ -21,7 +21,6 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
     yaze_editor
     yaze_emulator
     yaze_agent
-    yaze_test_support
     absl::flags
     absl::flags_parse
     absl::failure_signal_handler

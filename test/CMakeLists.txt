@@ -16,6 +16,7 @@ if(YAZE_BUILD_TESTS)
       ${CMAKE_SOURCE_DIR}/src/lib
       ${CMAKE_SOURCE_DIR}/src/lib/imgui
       ${CMAKE_SOURCE_DIR}/src/lib/imgui/backends
+      ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
       ${CMAKE_SOURCE_DIR}/src/lib/SDL/include
       ${CMAKE_BINARY_DIR}/src/lib/SDL/include
       ${PROJECT_BINARY_DIR}

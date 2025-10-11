@@ -4,7 +4,7 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/rom.h"
-#include "editor/system/user_settings.h"
+#include "app/editor/system/user_settings.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
