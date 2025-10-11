@@ -136,6 +136,29 @@ See [debugging-startup-flags.md](debugging-startup-flags.md) for complete docume
 For a comprehensive overview of debugging tools and testing strategies, including how to use the logging framework, command-line test runners, and the GUI automation harness for AI agents, please refer to the [Debugging and Testing Guide](E5-debugging-guide.md).
 
 
+## 5. Command-Line Flag Standardization
+
+**Decision**: All binaries in the yaze project (`yaze`, `z3ed`, `yaze_test`, etc.) will standardize on the **Abseil Flags** library for command-line argument parsing.
+
+### Rationale
+- **Consistency**: Provides a single, consistent flag system and user experience across all tools.
+- **Industry Standard**: Abseil is a battle-tested and well-documented library used extensively by Google.
+- **Features**: It provides robust features out-of-the-box, including automatic `--help` generation, type safety, validation, and `--flagfile` support.
+- **Reduced Maintenance**: Eliminates the need to maintain multiple custom flag parsers, reducing the project's technical debt.
+- **Existing Dependency**: Abseil is already included as a dependency via gRPC, so this adds no new third-party code.
+
+### Migration Plan
+The project will migrate away from the legacy `yaze::util::Flag` system and manual parsing in phases. All new flags should be implemented using `ABSL_FLAG`.
+
+- **Phase 1 (Complete)**: `z3ed` and `yaze_emu_test` already use Abseil flags.
+- **Phase 2 (In Progress)**: The main `yaze` application will be migrated from the custom `util::Flag` system to Abseil flags.
+- **Phase 3 (Future)**: The `yaze_test` runner's manual argument parsing will be replaced with Abseil flags.
+- **Phase 4 (Cleanup)**: The legacy `util::flag` source files will be removed from the project.
+
+Developers should refer to the Abseil Flags Guide for documentation on defining, declaring, and accessing flags.
+
+---
+
 When working with bitmaps and textures, understand that two memory locations must stay synchronized:
 
 1. **`data_` vector**: C++ std::vector<uint8_t> holding pixel data

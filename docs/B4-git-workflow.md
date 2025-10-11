@@ -28,6 +28,24 @@
 
 ---
 
+## Pre-1.0 Release Strategy: Best Effort Releases
+
+For all versions prior to 1.0.0, yaze follows a **"best effort"** release strategy. This prioritizes getting working builds to users quickly, even if not all platforms build successfully on the first try.
+
+### Core Principles
+1.  **Release Can Proceed with Failed Platforms**: The `release` CI/CD workflow will create a GitHub Release even if one or more platform-specific build jobs (e.g., Windows, Linux, macOS) fail.
+2.  **Missing Platforms Can Be Added Later**: A failed job for a specific platform can be re-run from the GitHub Actions UI. If it succeeds, the binary artifact will be **automatically added to the existing GitHub Release**.
+3.  **Transparency is Key**: The release notes will automatically generate a "Platform Availability" report, clearly indicating which platforms succeeded (✅) and which failed (❌), so users know the current status.
+
+### How It Works in Practice
+- The `build-and-package` jobs in the `release.yml` workflow have `continue-on-error: true`.
+- The final `create-github-release` job has `if: always()` and uses `softprops/action-gh-release@v2`, which intelligently updates an existing release if the tag already exists.
+- If a platform build fails, a developer can investigate the issue and simply re-run the failed job. Upon success, the new binary is uploaded and attached to the release that was already created.
+
+This strategy provides flexibility and avoids blocking a release for all users due to a transient issue on a single platform. Once the project reaches v1.0.0, this policy will be retired in favor of a stricter approach where all platforms must pass for a release to proceed.
+
+---
+
 ## 📚 Full Workflow Reference (Future/Formal)
 
 The sections below document the **formal Git Flow model** that yaze will adopt post-1.0 or when the team grows. For now, treat this as aspirational best practices.
