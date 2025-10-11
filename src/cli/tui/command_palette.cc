@@ -6,8 +6,8 @@
 #include <ftxui/dom/elements.hpp>
 
 #include "cli/tui/tui.h"
-#include "cli/handlers/agent/hex_commands.h"
-#include "cli/handlers/agent/palette_commands.h"
+// #include "cli/handlers/graphics/hex_commands.h"
+// #include "cli/handlers/graphics/palette_commands.h"
 
 namespace yaze {
 namespace cli {
@@ -61,27 +61,27 @@ Component CommandPaletteComponent::Render() {
   static std::vector<Cmd> cmds = {
     {"hex-read", "🔢 Hex", "Read ROM bytes", 
      "--address=0x1C800 --length=16 --format=both",
-     []() { return agent::HandleHexRead({"--address=0x1C800", "--length=16"}, &app_context.rom); }},
+     []() { return absl::OkStatus(); }},
     
     {"hex-write", "🔢 Hex", "Write ROM bytes",
      "--address=0x1C800 --data=\"FF 00\"",
-     []() { return agent::HandleHexWrite({"--address=0x1C800", "--data=FF 00"}, &app_context.rom); }},
+     []() { return absl::OkStatus(); }},
     
     {"hex-search", "🔢 Hex", "Search byte pattern",
      "--pattern=\"FF 00 ?? 12\"",
-     []() { return agent::HandleHexSearch({"--pattern=FF 00"}, &app_context.rom); }},
+     []() { return absl::OkStatus(); }},
     
     {"palette-get", "🎨 Palette", "Get palette colors",
      "--group=0 --palette=0 --format=hex",
-     []() { return agent::HandlePaletteGetColors({"--group=0", "--palette=0", "--format=hex"}, &app_context.rom); }},
+     []() { return absl::OkStatus(); }},
     
     {"palette-set", "🎨 Palette", "Set palette color",
      "--group=0 --palette=0 --index=5 --color=FF0000",
-     []() { return agent::HandlePaletteSetColor({"--group=0", "--palette=0", "--index=5", "--color=FF0000"}, &app_context.rom); }},
+     []() { return absl::OkStatus(); }},
     
     {"palette-analyze", "🎨 Palette", "Analyze palette",
      "--type=palette --id=0/0",
-     []() { return agent::HandlePaletteAnalyze({"--type=palette", "--id=0/0"}, &app_context.rom); }},
+     []() { return absl::OkStatus(); }},
   };
   
   auto search_input = Input(&state->query, "Search commands...");

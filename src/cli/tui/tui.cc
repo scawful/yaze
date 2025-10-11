@@ -328,16 +328,10 @@ void ApplyAsarPatchComponent(ftxui::ScreenInteractive &screen) {
     }
 
     try {
-      // Use the command handler directly
-      AsarPatch handler;
-      auto status = handler.Run({asm_file});
-      if (status.ok()) {
-        output_message = "✅ Asar patch applied successfully!";
-        output_color = Color::Green;
-      } else {
-        output_message = absl::StrCat("❌ Patch failed:\n", status.message());
-        output_color = Color::Red;
-      }
+      // TODO: Use new CommandHandler system for AsarPatch
+      // Reference: src/app/core/asar_wrapper.cc (AsarWrapper class)
+      output_message = "❌ AsarPatch not yet implemented in new CommandHandler system";
+      output_color = Color::Red;
     } catch (const std::exception& e) {
       output_message = "Exception: " + std::string(e.what());
       output_color = Color::Red;

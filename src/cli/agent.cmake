@@ -66,17 +66,10 @@ _yaze_ensure_yaml_cpp(YAZE_YAML_CPP_TARGET)
 
 set(YAZE_AGENT_SOURCES
   cli/service/agent/proposal_executor.cc
-  cli/handlers/agent/tool_commands.cc
-  cli/handlers/agent/gui_tool_commands.cc
-  cli/handlers/agent/dialogue_tool_commands.cc
-  cli/handlers/agent/music_tool_commands.cc
-  cli/handlers/agent/sprite_tool_commands.cc
   cli/handlers/agent/todo_commands.cc
-  cli/handlers/agent/hex_commands.cc
-  cli/handlers/agent/dungeon_emulator_tool_commands.cc
-  cli/handlers/agent/palette_commands.cc
   cli/service/agent/conversational_agent_service.cc
   cli/service/agent/simple_chat_session.cc
+  cli/service/agent/enhanced_tui.cc
   cli/service/agent/tool_dispatcher.cc
   cli/service/agent/learned_knowledge_service.cc
   cli/service/agent/todo_manager.cc
@@ -96,9 +89,27 @@ set(YAZE_AGENT_SOURCES
   cli/service/planning/tile16_proposal_generator.cc
   cli/service/resources/resource_catalog.cc
   cli/service/resources/resource_context_builder.cc
-  cli/handlers/overworld_inspect.cc
-  cli/handlers/message.cc
-  cli/handlers/mock_rom.cc
+  cli/service/resources/command_context.cc
+  cli/service/resources/command_handler.cc
+  cli/handlers/command_wrappers.cc
+  cli/handlers/agent.cc
+  cli/handlers/game/overworld_inspect.cc
+  cli/handlers/game/message.cc
+  cli/handlers/rom/mock_rom.cc
+  # CommandHandler-based implementations
+  cli/handlers/tools/resource_commands.cc
+  cli/handlers/game/dungeon_commands.cc
+  cli/handlers/game/overworld_commands.cc
+  cli/handlers/tools/gui_commands.cc
+  cli/handlers/graphics/hex_commands.cc
+  cli/handlers/game/dialogue_commands.cc
+  cli/handlers/game/music_commands.cc
+  cli/handlers/graphics/palette_commands.cc
+  cli/handlers/tools/emulator_commands.cc
+  cli/handlers/game/message_commands.cc
+  # ROM commands
+  cli/handlers/rom/rom_commands.cc
+  cli/handlers/rom/project_commands.cc
   cli/flags.cc
   cli/service/rom/rom_sandbox_manager.cc
 )

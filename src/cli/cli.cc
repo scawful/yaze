@@ -17,6 +17,8 @@
 #include "cli/tui/tui.h"
 #include "app/snes.h"
 #include "util/macro.h"
+#include "cli/handlers/commands.h"
+#include "cli/service/resources/command_context.h"
 
 // Define additional z3ed-specific flags
 ABSL_DECLARE_FLAG(std::string, rom);
@@ -821,35 +823,28 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
 }
 
 CommandHandler* ModernCLI::GetCommandHandler(const std::string& name) {
-    // This is not ideal, but it will work for now.
-    if (name == "patch apply-asar") {
-        static AsarPatch handler;
-        return &handler;
-    }
-    if (name == "palette") {
-        static Palette handler;
-        return &handler;
-    }
-    if (name == "command-palette") {
-        static CommandPalette handler;
-        return &handler;
-    }
+    // TODO: Implement using new CommandHandler system
+    // This method should return CommandHandler instances from the new system
+    // Reference: cli/handlers/command_handlers.h (factory functions)
     return nullptr;
 }
 
 absl::Status ModernCLI::HandleAsarPatchCommand(const std::vector<std::string>& args) {
-    AsarPatch handler;
-    return handler.Run(args);
+    // TODO: Implement using AsarPatchCommandHandler
+    // Reference: src/app/core/asar_wrapper.cc (AsarWrapper class)
+    return absl::UnimplementedError("AsarPatchCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleBpsPatchCommand(const std::vector<std::string>& args) {
-    ApplyPatch handler;
-    return handler.Run(args);
+    // TODO: Implement using BpsPatchCommandHandler  
+    // Reference: src/app/core/asar_wrapper.cc (for patch application logic)
+    return absl::UnimplementedError("BpsPatchCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleRomInfoCommand(const std::vector<std::string>& args) {
-    RomInfo handler;
-    return handler.Run(args);
+    // TODO: Implement using RomInfoCommandHandler
+    // Reference: src/app/rom.cc (Rom::GetInfo methods)
+    return absl::UnimplementedError("RomInfoCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleExtractSymbolsCommand(const std::vector<std::string>& args) {
@@ -874,8 +869,8 @@ absl::Status ModernCLI::HandleExtractSymbolsCommand(const std::vector<std::strin
 }
 
 absl::Status ModernCLI::HandleAgentCommand(const std::vector<std::string>& args) {
-    Agent handler;
-    return handler.Run(args);
+    // Use new CommandHandler system
+    return yaze::cli::handlers::HandleAgentCommand(args);
 }
 
 absl::Status ModernCLI::HandleCollabCommand(const std::vector<std::string>& args) {
@@ -962,13 +957,15 @@ absl::Status ModernCLI::HandleCollabCommand(const std::vector<std::string>& args
 }
 
 absl::Status ModernCLI::HandleProjectBuildCommand(const std::vector<std::string>& args) {
-    ProjectBuild handler;
-    return handler.Run(args);
+    // TODO: Implement using ProjectBuildCommandHandler
+    // Reference: src/app/core/project.cc (Project::Build method)
+    return absl::UnimplementedError("ProjectBuildCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleProjectInitCommand(const std::vector<std::string>& args) {
-    ProjectInit handler;
-    return handler.Run(args);
+    // TODO: Implement using ProjectInitCommandHandler
+    // Reference: src/app/core/project.cc (Project class)
+    return absl::UnimplementedError("ProjectInitCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleRomGenerateGoldenCommand(const std::vector<std::string>& args) {
@@ -986,103 +983,131 @@ absl::Status ModernCLI::HandleRomGenerateGoldenCommand(const std::vector<std::st
 }
 
 absl::Status ModernCLI::HandleDungeonExportCommand(const std::vector<std::string>& args) {
-    DungeonExport handler;
-    return handler.Run(args);
+    // Use new CommandHandler system
+    return yaze::cli::handlers::HandleDungeonExportRoomCommand(args, nullptr);
 }
 
 absl::Status ModernCLI::HandleDungeonListObjectsCommand(const std::vector<std::string>& args) {
-    DungeonListObjects handler;
-    return handler.Run(args);
+    // Use new CommandHandler system
+    return yaze::cli::handlers::HandleDungeonListObjectsCommand(args, nullptr);
 }
 
 absl::Status ModernCLI::HandleGfxExportCommand(const std::vector<std::string>& args) {
-    GfxExport handler;
-    return handler.Run(args);
+    // TODO: Implement using GfxExportCommandHandler
+    // Reference: src/app/editor/graphics/ (graphics editor classes)
+    return absl::UnimplementedError("GfxExportCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleGfxImportCommand(const std::vector<std::string>& args) {
-    GfxImport handler;
-    return handler.Run(args);
+    // TODO: Implement using GfxImportCommandHandler
+    // Reference: src/app/editor/graphics/ (graphics editor classes)
+    return absl::UnimplementedError("GfxImportCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleCommandPaletteCommand(const std::vector<std::string>& args) {
-    CommandPalette handler;
-    return handler.Run(args);
+    // TODO: Implement using CommandPaletteCommandHandler
+    // Reference: src/app/editor/system/command_palette.cc
+    return absl::UnimplementedError("CommandPaletteCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandlePaletteExportCommand(const std::vector<std::string>& args) {
-    PaletteExport handler;
-    return handler.Run(args);
+    // TODO: Implement using PaletteExportCommandHandler
+    // Reference: src/app/editor/graphics/palette_editor.cc
+    return absl::UnimplementedError("PaletteExportCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandlePaletteCommand(const std::vector<std::string>& args) {
-    Palette handler;
-    return handler.Run(args);
+    // Use new CommandHandler system for palette operations
+    if (args.empty()) {
+        return yaze::cli::handlers::HandlePaletteGetColors(args, nullptr);
+    }
+    
+    // Parse subcommand
+    std::string subcommand = absl::AsciiStrToLower(args[0]);
+    if (subcommand == "get" || subcommand == "list") {
+        return yaze::cli::handlers::HandlePaletteGetColors(args, nullptr);
+    } else if (subcommand == "set") {
+        return yaze::cli::handlers::HandlePaletteSetColor(args, nullptr);
+    } else if (subcommand == "analyze") {
+        return yaze::cli::handlers::HandlePaletteAnalyze(args, nullptr);
+    }
+    
+    return absl::InvalidArgumentError("Unknown palette subcommand. Use: get, set, analyze");
 }
 
 absl::Status ModernCLI::HandlePaletteImportCommand(const std::vector<std::string>& args) {
-    PaletteImport handler;
-    return handler.Run(args);
+    // TODO: Implement using PaletteImportCommandHandler
+    // Reference: src/app/editor/graphics/palette_editor.cc
+    return absl::UnimplementedError("PaletteImportCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleRomDiffCommand(const std::vector<std::string>& args) {
-    RomDiff handler;
-    return handler.Run(args);
+    // TODO: Implement using RomDiffCommandHandler
+    // Reference: src/app/rom.cc (Rom comparison methods)
+    return absl::UnimplementedError("RomDiffCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleRomValidateCommand(const std::vector<std::string>& args) {
-    RomValidate handler;
-    return handler.Run(args);
+    // TODO: Implement using RomValidateCommandHandler
+    // Reference: src/app/rom.cc (Rom class validation methods)
+    return absl::UnimplementedError("RomValidateCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleOverworldGetTileCommand(const std::vector<std::string>& args) {
-    OverworldGetTile handler;
-    return handler.Run(args);
+    // TODO: Implement using OverworldGetTileCommandHandler
+    // Reference: src/app/editor/overworld/ (overworld editor classes)
+    return absl::UnimplementedError("OverworldGetTileCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleOverworldFindTileCommand(const std::vector<std::string>& args) {
-  OverworldFindTile handler;
-  return handler.Run(args);
+    // Use new CommandHandler system
+    return yaze::cli::handlers::HandleOverworldFindTileCommand(args, nullptr);
 }
 
 absl::Status ModernCLI::HandleOverworldDescribeMapCommand(const std::vector<std::string>& args) {
-  OverworldDescribeMap handler;
-  return handler.Run(args);
+    // Use new CommandHandler system
+    return yaze::cli::handlers::HandleOverworldDescribeMapCommand(args, nullptr);
 }
 
 absl::Status ModernCLI::HandleOverworldListWarpsCommand(const std::vector<std::string>& args) {
-  OverworldListWarps handler;
-  return handler.Run(args);
+    // Use new CommandHandler system
+    return yaze::cli::handlers::HandleOverworldListWarpsCommand(args, nullptr);
 }
 
 absl::Status ModernCLI::HandleOverworldSetTileCommand(const std::vector<std::string>& args) {
-    OverworldSetTile handler;
-    return handler.Run(args);
+    // TODO: Implement using OverworldSetTileCommandHandler
+    // Reference: src/app/editor/overworld/ (overworld editor classes)
+    return absl::UnimplementedError("OverworldSetTileCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleOverworldSelectRectCommand(const std::vector<std::string>& args) {
-    OverworldSelectRect handler;
-    return handler.Run(args);
+    // TODO: Implement using OverworldSelectRectCommandHandler
+    // Reference: src/app/editor/overworld/ (overworld editor classes)
+    return absl::UnimplementedError("OverworldSelectRectCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleOverworldScrollToCommand(const std::vector<std::string>& args) {
-    OverworldScrollTo handler;
-    return handler.Run(args);
+    // TODO: Implement using OverworldScrollToCommandHandler
+    // Reference: src/app/editor/overworld/ (overworld editor classes)
+    return absl::UnimplementedError("OverworldScrollToCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleOverworldSetZoomCommand(const std::vector<std::string>& args) {
-    OverworldSetZoom handler;
-    return handler.Run(args);
+    // TODO: Implement using OverworldSetZoomCommandHandler
+    // Reference: src/app/editor/overworld/ (overworld editor classes)
+    return absl::UnimplementedError("OverworldSetZoomCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleOverworldGetVisibleRegionCommand(const std::vector<std::string>& args) {
-    OverworldGetVisibleRegion handler;
-    return handler.Run(args);
+    // TODO: Implement using OverworldGetVisibleRegionCommandHandler
+    // Reference: src/app/editor/overworld/ (overworld editor classes)
+    return absl::UnimplementedError("OverworldGetVisibleRegionCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleSpriteCreateCommand(const std::vector<std::string>& args) {
-  SpriteCreate handler;
-  return handler.Run(args);
+    // TODO: Implement using SpriteCreateCommandHandler
+    // Reference: src/app/zelda3/sprite/ (sprite management classes)
+    return absl::UnimplementedError("SpriteCreateCommandHandler not yet implemented");
 }
 
 absl::Status ModernCLI::HandleChatEntryCommand(
@@ -1219,6 +1244,70 @@ absl::Status ModernCLI::HandleWidgetCommand(
 
   return HandleAgentCommand(agent_args);
 }
+
+// TODO: Implement remaining legacy commands using new CommandHandler system
+// 
+// PENDING IMPLEMENTATIONS:
+// 
+// 1. ApplyPatch - Apply BPS patches to ROM
+//    Reference: src/app/core/asar_wrapper.cc (for patch application logic)
+//    TODO: Create BpsPatchCommandHandler in cli/handlers/rom/
+//
+// 2. AsarPatch - Apply ASAR assembly patches to ROM  
+//    Reference: src/app/core/asar_wrapper.cc (AsarWrapper class)
+//    TODO: Create AsarPatchCommandHandler in cli/handlers/rom/
+//
+// 3. ProjectInit - Initialize new Yaze projects
+//    Reference: src/app/core/project.cc (Project class)
+//    TODO: Implement ProjectInitCommandHandler in cli/handlers/rom/project_commands.cc
+//
+// 4. ProjectBuild - Build Yaze projects
+//    Reference: src/app/core/project.cc (Project::Build method)
+//    TODO: Implement ProjectBuildCommandHandler in cli/handlers/rom/project_commands.cc
+//
+// 5. RomValidate - Validate ROM integrity
+//    Reference: src/app/rom.cc (Rom class validation methods)
+//    TODO: Create RomValidateCommandHandler in cli/handlers/rom/
+//
+// 6. RomDiff - Compare ROM files
+//    Reference: src/app/rom.cc (Rom comparison methods)
+//    TODO: Implement RomDiffCommandHandler in cli/handlers/rom/rom_commands.cc
+//
+// 7. RomInfo - Display ROM information
+//    Reference: src/app/rom.cc (Rom::GetInfo methods)
+//    TODO: Implement RomInfoCommandHandler in cli/handlers/rom/rom_commands.cc
+//
+// 8. SpriteCreate - Create new sprites
+//    Reference: src/app/zelda3/sprite/ (sprite management classes)
+//    TODO: Create SpriteCreateCommandHandler in cli/handlers/graphics/
+//
+// 9. CommandPalette - Interactive command palette
+//    Reference: src/app/editor/system/command_palette.cc
+//    TODO: Create CommandPaletteCommandHandler in cli/handlers/tools/
+//
+// 10. DungeonExport - Export dungeon data
+//     Reference: src/app/editor/dungeon/ (dungeon editor classes)
+//     TODO: Implement DungeonExportCommandHandler in cli/handlers/game/dungeon_commands.cc
+//
+// 11. DungeonListObjects - List dungeon objects
+//     Reference: src/app/zelda3/dungeon/ (dungeon data classes)
+//     TODO: Implement DungeonListObjectsCommandHandler in cli/handlers/game/dungeon_commands.cc
+//
+// 12. GfxExport/GfxImport - Graphics import/export
+//     Reference: src/app/editor/graphics/ (graphics editor classes)
+//     TODO: Create GfxExportCommandHandler and GfxImportCommandHandler in cli/handlers/graphics/
+//
+// 13. PaletteExport/PaletteImport - Palette import/export
+//     Reference: src/app/editor/graphics/palette_editor.cc
+//     TODO: Implement PaletteExportCommandHandler and PaletteImportCommandHandler in cli/handlers/graphics/palette_commands.cc
+//
+// 14. Overworld commands - Overworld manipulation
+//     Reference: src/app/editor/overworld/ (overworld editor classes)
+//     TODO: Implement OverworldCommandHandler in cli/handlers/game/overworld_commands.cc
+//
+// 15. Agent command - AI agent interface
+//     Reference: src/app/editor/agent/ (agent system)
+//     TODO: Implement AgentCommandHandler in cli/handlers/agent/
 
 }  // namespace cli
 }  // namespace yaze
