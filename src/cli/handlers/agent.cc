@@ -14,7 +14,6 @@
 #include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/tools/gui_commands.h"
-#include "cli/handlers/tools/emulator_commands.h"
 
 ABSL_DECLARE_FLAG(bool, quiet);
 
