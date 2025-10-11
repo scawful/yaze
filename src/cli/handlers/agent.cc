@@ -1,4 +1,3 @@
-#include "cli/handlers/commands.h"
 #include "cli/handlers/agent/todo_commands.h"
 #include "cli/cli.h"
 
@@ -8,18 +7,69 @@
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
+#include "cli/handlers/agent/common.h"
+#include "cli/handlers/agent/todo_commands.h"
+#include "cli/handlers/agent/simple_chat_command.h"
+#include "cli/handlers/tools/resource_commands.h"
+#include "cli/handlers/game/dungeon_commands.h"
+#include "cli/handlers/game/overworld_commands.h"
+#include "cli/handlers/tools/gui_commands.h"
+#include "cli/handlers/tools/emulator_commands.h"
 
 ABSL_DECLARE_FLAG(bool, quiet);
 
 namespace yaze {
 namespace cli {
+
+// Forward declarations from general_commands.cc
+namespace agent {
+absl::Status HandlePlanCommand(const std::vector<std::string>& args);
+absl::Status HandleTestCommand(const std::vector<std::string>& args);
+absl::Status HandleTestConversationCommand(const std::vector<std::string>& args);
+absl::Status HandleGuiCommand(const std::vector<std::string>& args);
+absl::Status HandleLearnCommand(const std::vector<std::string>& args);
+absl::Status HandleListCommand();
+absl::Status HandleDescribeCommand(const std::vector<std::string>& args);
+
+// Wrapper functions to call CommandHandlers
+absl::Status HandleResourceListCommand(const std::vector<std::string>& args, Rom* rom) {
+  handlers::ResourceListCommandHandler handler;
+  return handler.Run(args, rom);
+}
+
+absl::Status HandleResourceSearchCommand(const std::vector<std::string>& args, Rom* rom) {
+  handlers::ResourceSearchCommandHandler handler;
+  return handler.Run(args, rom);
+}
+
+absl::Status HandleDungeonListSpritesCommand(const std::vector<std::string>& args, Rom* rom) {
+  handlers::DungeonListSpritesCommandHandler handler;
+  return handler.Run(args, rom);
+}
+
+absl::Status HandleDungeonDescribeRoomCommand(const std::vector<std::string>& args, Rom* rom) {
+  handlers::DungeonDescribeRoomCommandHandler handler;
+  return handler.Run(args, rom);
+}
+
+absl::Status HandleOverworldFindTileCommand(const std::vector<std::string>& args, Rom* rom) {
+  handlers::OverworldFindTileCommandHandler handler;
+  return handler.Run(args, rom);
+}
+
+absl::Status HandleOverworldDescribeMapCommand(const std::vector<std::string>& args, Rom* rom) {
+  handlers::OverworldDescribeMapCommandHandler handler;
+  return handler.Run(args, rom);
+}
+
+absl::Status HandleOverworldListWarpsCommand(const std::vector<std::string>& args, Rom* rom) {
+  handlers::OverworldListWarpsCommandHandler handler;
+  return handler.Run(args, rom);
+}
+
+}  // namespace agent
+
 namespace {
-
-// Forward declarations for functions implemented in other files
-// Function declarations moved to commands.h
-
-// Use handlers from command_wrappers.cc
-using namespace yaze::cli::handlers;
 
 constexpr absl::string_view kUsage =
   "Usage: agent <subcommand> [options]\n"
@@ -98,13 +148,11 @@ absl::Status HandleAgentCommand(const std::vector<std::string>& arg_vec) {
   const std::string& subcommand = arg_vec[0];
   std::vector<std::string> subcommand_args(arg_vec.begin() + 1, arg_vec.end());
 
-  // TODO: Implement proper ROM context handling
-  // For now, return unimplemented for commands that require ROM context
   if (subcommand == "run") {
     return absl::UnimplementedError("Agent run command requires ROM context - not yet implemented");
   }
   if (subcommand == "plan") {
-    return HandlePlanCommand(subcommand_args);
+    return agent::HandlePlanCommand(subcommand_args);
   }
   if (subcommand == "diff") {
     return absl::UnimplementedError("Agent diff command requires ROM context - not yet implemented");
@@ -113,19 +161,19 @@ absl::Status HandleAgentCommand(const std::vector<std::string>& arg_vec) {
     return absl::UnimplementedError("Agent accept command requires ROM context - not yet implemented");
   }
   if (subcommand == "test") {
-    return HandleTestCommand(subcommand_args);
+    return agent::HandleTestCommand(subcommand_args);
   }
   if (subcommand == "test-conversation") {
-    return HandleTestConversationCommand(subcommand_args);
+    return agent::HandleTestConversationCommand(subcommand_args);
   }
   if (subcommand == "gui") {
-    return HandleGuiCommand(subcommand_args);
+    return agent::HandleGuiCommand(subcommand_args);
   }
   if (subcommand == "learn") {
-    return HandleLearnCommand(subcommand_args);
+    return agent::HandleLearnCommand(subcommand_args);
   }
   if (subcommand == "list") {
-    return HandleListCommand();
+    return agent::HandleListCommand();
   }
   if (subcommand == "commit") {
     return absl::UnimplementedError("Agent commit command requires ROM context - not yet implemented");
@@ -134,60 +182,57 @@ absl::Status HandleAgentCommand(const std::vector<std::string>& arg_vec) {
     return absl::UnimplementedError("Agent revert command requires ROM context - not yet implemented");
   }
   if (subcommand == "describe") {
-    return HandleDescribeCommand(subcommand_args);
+    return agent::HandleDescribeCommand(subcommand_args);
   }
   if (subcommand == "resource-list") {
-    return HandleResourceListCommand(subcommand_args, nullptr);
+    return agent::HandleResourceListCommand(subcommand_args, nullptr);
   }
   if (subcommand == "resource-search") {
-    return HandleResourceSearchCommand(subcommand_args, nullptr);
+    return agent::HandleResourceSearchCommand(subcommand_args, nullptr);
   }
   if (subcommand == "dungeon-list-sprites") {
-    return HandleDungeonListSpritesCommand(subcommand_args, nullptr);
+    return agent::HandleDungeonListSpritesCommand(subcommand_args, nullptr);
   }
   if (subcommand == "dungeon-describe-room") {
-    return HandleDungeonDescribeRoomCommand(subcommand_args, nullptr);
+    return agent::HandleDungeonDescribeRoomCommand(subcommand_args, nullptr);
   }
   if (subcommand == "overworld-find-tile") {
-    return HandleOverworldFindTileCommand(subcommand_args, nullptr);
+    return agent::HandleOverworldFindTileCommand(subcommand_args, nullptr);
   }
   if (subcommand == "overworld-describe-map") {
-    return HandleOverworldDescribeMapCommand(subcommand_args, nullptr);
+    return agent::HandleOverworldDescribeMapCommand(subcommand_args, nullptr);
   }
   if (subcommand == "overworld-list-warps") {
-    return HandleOverworldListWarpsCommand(subcommand_args, nullptr);
+    return agent::HandleOverworldListWarpsCommand(subcommand_args, nullptr);
   }
-  if (subcommand == "chat") {
-    return absl::UnimplementedError("Agent chat command requires ROM context - not yet implemented");
-  }
-  if (subcommand == "simple-chat") {
-    return absl::UnimplementedError("Agent simple-chat command requires ROM context - not yet implemented");
-  }
-  if (subcommand == "todo") {
-    return handlers::HandleTodoCommand(subcommand_args);
-  }
+  // if (subcommand == "chat") {
+  //   return absl::UnimplementedError("Agent chat command requires ROM context - not yet implemented");
+  // }
+  // if (subcommand == "todo") {
+  //   return handlers::HandleTodoCommand(subcommand_args);
+  // }
   
-  // Hex manipulation commands
-  if (subcommand == "hex-read") {
-    return HandleHexRead(subcommand_args, nullptr);
-  }
-  if (subcommand == "hex-write") {
-    return HandleHexWrite(subcommand_args, nullptr);
-  }
-  if (subcommand == "hex-search") {
-    return HandleHexSearch(subcommand_args, nullptr);
-  }
+  // // Hex manipulation commands
+  // if (subcommand == "hex-read") {
+  //   return HandleHexRead(subcommand_args, nullptr);
+  // }
+  // if (subcommand == "hex-write") {
+  //   return HandleHexWrite(subcommand_args, nullptr);
+  // }
+  // if (subcommand == "hex-search") {
+  //   return HandleHexSearch(subcommand_args, nullptr);
+  // }
   
-  // Palette manipulation commands
-  if (subcommand == "palette-get-colors") {
-    return HandlePaletteGetColors(subcommand_args, nullptr);
-  }
-  if (subcommand == "palette-set-color") {
-    return HandlePaletteSetColor(subcommand_args, nullptr);
-  }
-  if (subcommand == "palette-analyze") {
-    return HandlePaletteAnalyze(subcommand_args, nullptr);
-  }
+  // // Palette manipulation commands
+  // if (subcommand == "palette-get-colors") {
+  //   return HandlePaletteGetColors(subcommand_args, nullptr);
+  // }
+  // if (subcommand == "palette-set-color") {
+  //   return HandlePaletteSetColor(subcommand_args, nullptr);
+  // }
+  // if (subcommand == "palette-analyze") {
+  //   return HandlePaletteAnalyze(subcommand_args, nullptr);
+  // }
 
   return absl::InvalidArgumentError(std::string(kUsage));
 }

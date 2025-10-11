@@ -4,6 +4,7 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -56,6 +57,10 @@ struct PanelState {
   bool status_expanded = false;
   std::string current_rom_file;
   std::string current_error;
+  std::string command_palette_hint;
+  std::string todo_summary;
+  std::vector<std::string> active_workflows;
+  double last_tool_latency = 0.0;
 };
 
 class UnifiedLayout {
@@ -71,12 +76,17 @@ class UnifiedLayout {
   void SwitchToolPanel(PanelType panel);
   void ToggleChat();
   void ToggleStatus();
+  void ToggleTodoOverlay();
   
   // Configuration
   void SetLayoutConfig(const LayoutConfig& config);
   LayoutConfig GetLayoutConfig() const { return config_; }
+  void SetStatusProvider(std::function<ftxui::Element()> provider);
+  void SetCommandSummaryProvider(std::function<std::vector<std::string>()> provider);
+  void SetTodoProvider(std::function<std::vector<std::string>()> provider);
 
  private:
+  void InitializeTheme();
   // Component creation
   ftxui::Component CreateMainMenuPanel();
   ftxui::Component CreateChatPanel();
@@ -100,6 +110,11 @@ class UnifiedLayout {
   // Rendering
   ftxui::Element RenderPanelHeader(PanelType panel);
   ftxui::Element RenderStatusBar();
+  ftxui::Element RenderAnimatedBanner();
+  ftxui::Element RenderWorkflowLane();
+  ftxui::Element RenderCommandHints();
+  ftxui::Element RenderTodoStack();
+  ftxui::Element RenderResponsiveGrid(const std::vector<ftxui::Element>& tiles);
   
   // State
   ftxui::ScreenInteractive screen_;
@@ -130,6 +145,14 @@ class UnifiedLayout {
   // Event handlers
   std::function<bool(const ftxui::Event&)> global_event_handler_;
   std::function<bool(const ftxui::Event&)> panel_event_handler_;
+
+  // External providers
+  std::function<ftxui::Element()> status_provider_;
+  std::function<std::vector<std::string>()> command_summary_provider_;
+  std::function<std::vector<std::string>()> todo_provider_;
+
+  bool todo_overlay_visible_ = false;
+  ftxui::Component todo_overlay_component_;
 };
 
 }  // namespace cli

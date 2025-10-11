@@ -1,46 +1,55 @@
 set(
   YAZE_APP_EDITOR_SRC
-  app/editor/editor_manager.cc
-  app/editor/ui/menu_builder.cc
-  app/editor/ui/editor_selection_dialog.cc
-  app/editor/ui/welcome_screen.cc
-  app/editor/ui/workspace_manager.cc
-  app/editor/system/user_settings.cc
-  app/editor/ui/background_renderer.cc
-  app/editor/dungeon/dungeon_editor_v2.cc
-  app/editor/dungeon/dungeon_room_selector.cc
-  app/editor/dungeon/dungeon_canvas_viewer.cc
-  app/editor/dungeon/dungeon_object_selector.cc
-  app/editor/dungeon/dungeon_toolset.cc
-  app/editor/dungeon/dungeon_object_interaction.cc
-  app/editor/dungeon/dungeon_room_loader.cc
-  app/editor/dungeon/dungeon_usage_tracker.cc
-  app/editor/dungeon/object_editor_card.cc
-  app/editor/overworld/overworld_editor.cc
-  app/editor/overworld/scratch_space.cc
-  app/editor/sprite/sprite_editor.cc
-  app/editor/music/music_editor.cc
-  app/editor/message/message_editor.cc
-  app/editor/message/message_data.cc
-  app/editor/message/message_preview.cc
+  app/editor/agent/agent_chat_history_codec.cc
+  app/editor/agent/agent_chat_history_popup.cc
+  app/editor/agent/agent_chat_widget.cc
+  app/editor/agent/agent_collaboration_coordinator.cc
+  app/editor/agent/agent_editor.cc
+  app/editor/agent/agent_ui_theme.cc
+  app/editor/agent/automation_bridge.cc
+  app/editor/agent/network_collaboration_coordinator.cc
   app/editor/code/assembly_editor.cc
   app/editor/code/memory_editor.cc
   app/editor/code/project_file_editor.cc
-  app/editor/graphics/screen_editor.cc
+  app/editor/dungeon/dungeon_canvas_viewer.cc
+  app/editor/dungeon/dungeon_editor_v2.cc
+  app/editor/dungeon/dungeon_object_interaction.cc
+  app/editor/dungeon/dungeon_object_selector.cc
+  app/editor/dungeon/dungeon_room_loader.cc
+  app/editor/dungeon/dungeon_room_selector.cc
+  app/editor/dungeon/dungeon_toolset.cc
+  app/editor/dungeon/dungeon_usage_tracker.cc
+  app/editor/dungeon/object_editor_card.cc
+  app/editor/editor_manager.cc
+  app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
   app/editor/graphics/palette_editor.cc
-  app/editor/overworld/tile16_editor.cc
-  app/editor/overworld/map_properties.cc
-  app/editor/graphics/gfx_group_editor.cc
+  app/editor/graphics/screen_editor.cc
+  app/editor/message/message_data.cc
+  app/editor/message/message_editor.cc
+  app/editor/message/message_preview.cc
+  app/editor/music/music_editor.cc
   app/editor/overworld/entity.cc
+  app/editor/overworld/map_properties.cc
+  app/editor/overworld/overworld_editor.cc
   app/editor/overworld/overworld_entity_renderer.cc
-  app/editor/system/settings_editor.cc
+  app/editor/overworld/scratch_space.cc
+  app/editor/overworld/tile16_editor.cc
+  app/editor/sprite/sprite_editor.cc
   app/editor/system/command_manager.cc
+  app/editor/system/command_palette.cc
   app/editor/system/extension_manager.cc
-  app/editor/system/shortcut_manager.cc
   app/editor/system/popup_manager.cc
   app/editor/system/proposal_drawer.cc
-  app/editor/agent/agent_chat_history_codec.cc
+  app/editor/system/settings_editor.cc
+  app/editor/system/shortcut_manager.cc
+  app/editor/system/user_settings.cc
+  app/editor/ui/background_renderer.cc
+  app/editor/ui/editor_selection_dialog.cc
+  app/editor/ui/menu_builder.cc
+  app/editor/ui/menu_manager.cc
+  app/editor/ui/welcome_screen.cc
+  app/editor/ui/workspace_manager.cc
 )
 
 if(YAZE_WITH_GRPC)
@@ -76,12 +85,7 @@ endif()
 add_library(yaze_editor STATIC ${YAZE_APP_EDITOR_SRC})
 
 target_precompile_headers(yaze_editor PRIVATE
-  <array>
-  <cstdint>
-  <memory>
-  <set>
-  <string>
-  <vector>
+  "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/yaze_pch.h>"
 )
 
 target_include_directories(yaze_editor PUBLIC

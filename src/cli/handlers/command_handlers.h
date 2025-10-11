@@ -7,6 +7,8 @@
 
 #include "cli/service/resources/command_handler.h"
 
+#include "cli/handlers/agent/simple_chat_command.h"
+
 namespace yaze {
 namespace cli {
 namespace handlers {

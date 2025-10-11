@@ -300,7 +300,15 @@ class TestManager {
   void SetHarnessListener(HarnessListener* listener);
 
   absl::Status ReplayLastPlan();
+#else
+  // Stub implementations when GRPC is not available
+  std::string RegisterHarnessTest(const std::string& name,
+                                  const std::string& category);
+  void CaptureFailureContext(const std::string& test_id);
+  absl::Status ReplayLastPlan();
 #endif
+  
+  // These methods are always available
   absl::Status ShowHarnessDashboard();
   absl::Status ShowHarnessActiveTests();
   void RecordPlanSummary(const std::string& summary);

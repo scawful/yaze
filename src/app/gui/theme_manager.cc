@@ -67,6 +67,8 @@ void EnhancedTheme::ApplyToImGui() const {
   colors[ImGuiCol_Tab] = ConvertColorToImVec4(tab);
   colors[ImGuiCol_TabHovered] = ConvertColorToImVec4(tab_hovered);
   colors[ImGuiCol_TabSelected] = ConvertColorToImVec4(tab_active);
+  colors[ImGuiCol_TabUnfocused] = ConvertColorToImVec4(tab_unfocused);
+  colors[ImGuiCol_TabUnfocusedActive] = ConvertColorToImVec4(tab_unfocused_active);
   colors[ImGuiCol_DockingPreview] = ConvertColorToImVec4(docking_preview);
   colors[ImGuiCol_DockingEmptyBg] = ConvertColorToImVec4(docking_empty_bg);
   
@@ -170,6 +172,8 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.tab = RGBA(46, 66, 46);               // alttpDarkGreen
   theme.tab_hovered = RGBA(71, 92, 71);       // alttpMidGreen
   theme.tab_active = RGBA(89, 119, 89);       // TabActive
+  theme.tab_unfocused = RGBA(37, 52, 37);     // Darker version of tab
+  theme.tab_unfocused_active = RGBA(62, 83, 62); // Darker version of tab_active
   
   // Complete all remaining ImGui colors from original ColorsYaze() function
   theme.title_bg = RGBA(71, 92, 71);          // alttpMidGreen
@@ -875,6 +879,8 @@ void ThemeManager::ApplyClassicYazeTheme() {
   classic_theme.tab = RGBA(46, 66, 46);               // alttpDarkGreen
   classic_theme.tab_hovered = RGBA(71, 92, 71);       // alttpMidGreen
   classic_theme.tab_active = RGBA(89, 119, 89);       // TabActive
+  classic_theme.tab_unfocused = RGBA(37, 52, 37);     // Darker version of tab
+  classic_theme.tab_unfocused_active = RGBA(62, 83, 62); // Darker version of tab_active
   
   // Complete all remaining ImGui colors from original ColorsYaze() function
   classic_theme.title_bg = RGBA(71, 92, 71);          // alttpMidGreen
@@ -1432,6 +1438,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
               {"Tab", &edit_theme.tab},
               {"Tab Hovered", &edit_theme.tab_hovered},
               {"Tab Active", &edit_theme.tab_active},
+              {"Tab Unfocused", &edit_theme.tab_unfocused},
+              {"Tab Unfocused Active", &edit_theme.tab_unfocused_active},
               {"Tab Dimmed", &edit_theme.tab_dimmed},
               {"Tab Dimmed Selected", &edit_theme.tab_dimmed_selected},
               {"Title Background", &edit_theme.title_bg},

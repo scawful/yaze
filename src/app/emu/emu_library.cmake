@@ -13,6 +13,10 @@
 
 add_library(yaze_emulator STATIC ${YAZE_APP_EMU_SRC})
 
+target_precompile_headers(yaze_emulator PRIVATE
+  "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/yaze_pch.h>"
+)
+
 target_include_directories(yaze_emulator PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/app

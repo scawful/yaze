@@ -16,7 +16,6 @@ class MenuManager {
 
  private:
   EditorManager* editor_manager_;
-  MenuBuilder menu_builder_;
 };
 
 }  // namespace editor

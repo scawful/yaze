@@ -1,5 +1,23 @@
 #include "cli/service/resources/command_handler.h"
 
+namespace yaze {
+namespace cli {
+namespace resources {
+
+CommandHandler::Descriptor CommandHandler::Describe() const {
+  Descriptor descriptor;
+  descriptor.display_name = GetUsage();
+  descriptor.summary = "Command summary not provided.";
+  descriptor.todo_reference = "todo#unassigned";
+  return descriptor;
+}
+
+}  // namespace resources
+}  // namespace cli
+}  // namespace yaze
+
+#include "cli/service/resources/command_handler.h"
+
 #include <iostream>
 
 #include "absl/strings/str_format.h"

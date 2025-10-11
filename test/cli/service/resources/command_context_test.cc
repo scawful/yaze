@@ -6,7 +6,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/rom.h"
-#include "cli/handlers/mock_rom.h"
+#include "mocks/mock_rom.h"
 
 namespace yaze {
 namespace cli {
@@ -16,11 +16,12 @@ class CommandContextTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // Initialize mock ROM for testing
-    auto status = InitializeMockRom(mock_rom_);
-    ASSERT_OK(status);
+    std::vector<uint8_t> test_data(1024, 0); // 1KB of empty data
+    auto status = mock_rom_.SetTestData(test_data);
+    ASSERT_TRUE(status.ok());
   }
 
-  Rom mock_rom_;
+  yaze::test::MockRom mock_rom_;
 };
 
 TEST_F(CommandContextTest, LoadsRomFromConfig) {
@@ -30,7 +31,7 @@ TEST_F(CommandContextTest, LoadsRomFromConfig) {
   CommandContext context(config);
   
   auto rom_or = context.GetRom();
-  ASSERT_OK(rom_or);
+  ASSERT_TRUE(rom_or.ok());
   EXPECT_TRUE(rom_or.value()->is_loaded());
 }
 
@@ -41,7 +42,7 @@ TEST_F(CommandContextTest, UsesExternalRomContext) {
   CommandContext context(config);
   
   auto rom_or = context.GetRom();
-  ASSERT_OK(rom_or);
+  ASSERT_TRUE(rom_or.ok());
   EXPECT_EQ(rom_or.value(), &mock_rom_);
 }
 
@@ -64,10 +65,10 @@ TEST_F(CommandContextTest, EnsuresLabelsLoaded) {
   CommandContext context(config);
   
   auto rom_or = context.GetRom();
-  ASSERT_OK(rom_or);
+  ASSERT_TRUE(rom_or.ok());
   
   auto status = context.EnsureLabelsLoaded(rom_or.value());
-  EXPECT_OK(status);
+  EXPECT_TRUE(status.ok());
 }
 
 TEST_F(CommandContextTest, GetFormatReturnsConfigFormat) {
@@ -107,11 +108,11 @@ TEST_F(ArgumentParserTest, ParsesIntArguments) {
   ArgumentParser parser(args);
   
   auto room_or = parser.GetInt("room");
-  ASSERT_OK(room_or);
+  ASSERT_TRUE(room_or.ok());
   EXPECT_EQ(room_or.value(), 0x12);
   
   auto count_or = parser.GetInt("count");
-  ASSERT_OK(count_or);
+  ASSERT_TRUE(count_or.ok());
   EXPECT_EQ(count_or.value(), 42);
 }
 
@@ -120,11 +121,11 @@ TEST_F(ArgumentParserTest, ParsesHexArguments) {
   ArgumentParser parser(args);
   
   auto addr_or = parser.GetHex("address");
-  ASSERT_OK(addr_or);
+  ASSERT_TRUE(addr_or.ok());
   EXPECT_EQ(addr_or.value(), 0x1234);
   
   auto value_or = parser.GetHex("value");
-  ASSERT_OK(value_or);
+  ASSERT_TRUE(value_or.ok());
   EXPECT_EQ(value_or.value(), 0xFF);
 }
 
@@ -150,7 +151,7 @@ TEST_F(ArgumentParserTest, ValidatesRequiredArguments) {
   ArgumentParser parser(args);
   
   auto status = parser.RequireArgs({"type"});
-  EXPECT_OK(status);
+  EXPECT_TRUE(status.ok());
   
   status = parser.RequireArgs({"type", "missing"});
   EXPECT_FALSE(status.ok());
@@ -175,11 +176,11 @@ class OutputFormatterTest : public ::testing::Test {
 
 TEST_F(OutputFormatterTest, CreatesFromString) {
   auto json_formatter = OutputFormatter::FromString("json");
-  ASSERT_OK(json_formatter);
+  ASSERT_TRUE(json_formatter.ok());
   EXPECT_TRUE(json_formatter.value().IsJson());
   
   auto text_formatter = OutputFormatter::FromString("text");
-  ASSERT_OK(text_formatter);
+  ASSERT_TRUE(text_formatter.ok());
   EXPECT_TRUE(text_formatter.value().IsText());
   
   auto invalid_formatter = OutputFormatter::FromString("invalid");
@@ -188,7 +189,7 @@ TEST_F(OutputFormatterTest, CreatesFromString) {
 
 TEST_F(OutputFormatterTest, GeneratesValidJson) {
   auto formatter_or = OutputFormatter::FromString("json");
-  ASSERT_OK(formatter_or);
+  ASSERT_TRUE(formatter_or.ok());
   auto formatter = std::move(formatter_or.value());
   
   formatter.BeginObject("Test");
@@ -217,7 +218,7 @@ TEST_F(OutputFormatterTest, GeneratesValidJson) {
 
 TEST_F(OutputFormatterTest, GeneratesValidText) {
   auto formatter_or = OutputFormatter::FromString("text");
-  ASSERT_OK(formatter_or);
+  ASSERT_TRUE(formatter_or.ok());
   auto formatter = std::move(formatter_or.value());
   
   formatter.BeginObject("Test Object");
@@ -247,7 +248,7 @@ TEST_F(OutputFormatterTest, GeneratesValidText) {
 
 TEST_F(OutputFormatterTest, EscapesJsonStrings) {
   auto formatter_or = OutputFormatter::FromString("json");
-  ASSERT_OK(formatter_or);
+  ASSERT_TRUE(formatter_or.ok());
   auto formatter = std::move(formatter_or.value());
   
   formatter.BeginObject("Test");
@@ -265,7 +266,7 @@ TEST_F(OutputFormatterTest, EscapesJsonStrings) {
 
 TEST_F(OutputFormatterTest, HandlesEmptyObjects) {
   auto formatter_or = OutputFormatter::FromString("json");
-  ASSERT_OK(formatter_or);
+  ASSERT_TRUE(formatter_or.ok());
   auto formatter = std::move(formatter_or.value());
   
   formatter.BeginObject("Empty");
@@ -277,7 +278,7 @@ TEST_F(OutputFormatterTest, HandlesEmptyObjects) {
 
 TEST_F(OutputFormatterTest, HandlesEmptyArrays) {
   auto formatter_or = OutputFormatter::FromString("json");
-  ASSERT_OK(formatter_or);
+  ASSERT_TRUE(formatter_or.ok());
   auto formatter = std::move(formatter_or.value());
   
   formatter.BeginObject("Test");

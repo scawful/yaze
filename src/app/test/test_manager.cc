@@ -1675,9 +1675,9 @@ absl::Status TestManager::TestRomDataIntegrity(Rom* rom) {
   });
 }
 
+#if defined(YAZE_WITH_GRPC)
 std::string TestManager::RegisterHarnessTest(const std::string& name,
                                              const std::string& category) {
-#if defined(YAZE_WITH_GRPC)
   absl::MutexLock lock(&harness_history_mutex_);
   std::string test_id = absl::StrCat("harness_", absl::ToUnixMicros(absl::Now()), "_", harness_history_.size());
   HarnessTestExecution execution;
@@ -1693,12 +1693,15 @@ std::string TestManager::RegisterHarnessTest(const std::string& name,
   aggregate.latest_execution = execution;
   harness_history_order_.push_back(test_id);
   return test_id;
+}
 #else
+std::string TestManager::RegisterHarnessTest(const std::string& name,
+                                             const std::string& category) {
   (void)name;
   (void)category;
   return {};
-#endif
 }
+#endif
 
 #if defined(YAZE_WITH_GRPC)
 void TestManager::MarkHarnessTestRunning(const std::string& test_id) {
@@ -1852,10 +1855,12 @@ void TestManager::CaptureFailureContext(const std::string& test_id) {
   if (harness_listener_) {
     harness_listener_->OnHarnessTestUpdated(execution);
   }
-#else
-  (void)test_id;
-#endif
 }
+#else
+void TestManager::CaptureFailureContext(const std::string& test_id) {
+  (void)test_id;
+}
+#endif
 
 #if defined(YAZE_WITH_GRPC)
 void TestManager::TrimHarnessHistoryLocked() {
@@ -1870,14 +1875,6 @@ absl::Status TestManager::ReplayLastPlan() {
   return absl::FailedPreconditionError("Harness plan replay not available");
 }
 
-absl::Status TestManager::ShowHarnessDashboard() {
-  return absl::OkStatus();
-}
-
-absl::Status TestManager::ShowHarnessActiveTests() {
-  return absl::OkStatus();
-}
-
 void TestManager::SetHarnessListener(HarnessListener* listener) {
   absl::MutexLock lock(&mutex_);
   harness_listener_ = listener;
@@ -1886,15 +1883,24 @@ void TestManager::SetHarnessListener(HarnessListener* listener) {
 absl::Status TestManager::ReplayLastPlan() {
   return absl::UnimplementedError("Harness features require YAZE_WITH_GRPC");
 }
+#endif
 
 absl::Status TestManager::ShowHarnessDashboard() {
+  // These methods are always available, but may return unimplemented without GRPC
+#if defined(YAZE_WITH_GRPC)
+  return absl::OkStatus();
+#else
   return absl::UnimplementedError("Harness features require YAZE_WITH_GRPC");
+#endif
 }
 
 absl::Status TestManager::ShowHarnessActiveTests() {
+#if defined(YAZE_WITH_GRPC)
+  return absl::OkStatus();
+#else
   return absl::UnimplementedError("Harness features require YAZE_WITH_GRPC");
-}
 #endif
+}
 
 void TestManager::RecordPlanSummary(const std::string& summary) {
   (void)summary;

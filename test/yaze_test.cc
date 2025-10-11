@@ -18,9 +18,12 @@
 #include "app/core/window.h"
 #include "app/core/controller.h"
 #include "app/gfx/backend/sdl2_renderer.h"
+
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "e2e/canvas_selection_test.h"
 #include "e2e/framework_smoke_test.h"
 #include "e2e/dungeon_editor_smoke_test.h"
+#endif
 
 // #include "test_editor.h"  // Not used in main
 
@@ -306,6 +309,7 @@ int main(int argc, char* argv[]) {
 
     yaze::core::Controller controller;
 
+#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
     // Register smoke test
     ImGuiTest* smoke_test = IM_REGISTER_TEST(engine, "E2ETest", "FrameworkSmokeTest");
     smoke_test->TestFunc = E2ETest_FrameworkSmokeTest;
@@ -319,6 +323,7 @@ int main(int argc, char* argv[]) {
     ImGuiTest* dungeon_test = IM_REGISTER_TEST(engine, "E2ETest", "DungeonEditorSmokeTest");
     dungeon_test->TestFunc = E2ETest_DungeonEditorV2SmokeTest;
     dungeon_test->UserData = &controller;
+#endif
 
     // Main loop
     bool done = false;

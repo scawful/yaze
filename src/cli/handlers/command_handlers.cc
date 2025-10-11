@@ -60,9 +60,14 @@ std::vector<std::unique_ptr<resources::CommandHandler>> CreateCliCommandHandlers
   return handlers;
 }
 
+#include "cli/handlers/agent/simple_chat_command.h"
+
 std::vector<std::unique_ptr<resources::CommandHandler>> CreateAgentCommandHandlers() {
   std::vector<std::unique_ptr<resources::CommandHandler>> handlers;
   
+  // Add simple-chat command handler
+  handlers.push_back(std::make_unique<SimpleChatCommandHandler>());
+
   // Resource inspection tools
   handlers.push_back(std::make_unique<ResourceListCommandHandler>());
   handlers.push_back(std::make_unique<ResourceSearchCommandHandler>());

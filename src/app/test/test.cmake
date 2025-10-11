@@ -18,16 +18,13 @@ set(YAZE_TEST_SOURCES
 add_library(yaze_test_support STATIC ${YAZE_TEST_SOURCES})
 
 target_precompile_headers(yaze_test_support PRIVATE
-  <memory>
-  <set>
-  <string>
-  <string_view>
-  <vector>
+  "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/yaze_pch.h>"
 )
 
 target_include_directories(yaze_test_support PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/incl
+  ${CMAKE_SOURCE_DIR}/src/lib
   ${PROJECT_BINARY_DIR}
 )
 
@@ -41,11 +38,17 @@ target_link_libraries(yaze_test_support PUBLIC
   yaze_common
 )
 
-# Link agent library if gRPC is enabled (for z3ed test suites)
+# Link agent library if available (for z3ed test suites)
 # yaze_agent contains all the CLI service code (tile16_proposal_generator, gui_automation_client, etc.)
-if(YAZE_WITH_GRPC)
+if(TARGET yaze_agent)
   target_link_libraries(yaze_test_support PUBLIC yaze_agent)
-  message(STATUS "✓ z3ed test suites enabled (YAZE_WITH_GRPC=ON)")
+  if(YAZE_WITH_GRPC)
+    message(STATUS "✓ z3ed test suites enabled with gRPC support")
+  else()
+    message(STATUS "✓ z3ed test suites enabled (without gRPC)")
+  endif()
+else()
+  message(STATUS "○ z3ed test suites disabled (yaze_agent not built)")
 endif()
 
 message(STATUS "✓ yaze_test_support library configured")

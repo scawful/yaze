@@ -23,6 +23,10 @@ endif()
 
 add_library(yaze_net STATIC ${YAZE_NET_SRC})
 
+target_precompile_headers(yaze_net PRIVATE
+  "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/yaze_pch.h>"
+)
+
 target_include_directories(yaze_net PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/lib

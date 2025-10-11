@@ -1,26 +1,59 @@
-set(YAZE_SRC_FILES "")
-foreach (file 
-  app/rom.cc
-  ${YAZE_APP_CORE_SRC}
-  ${YAZE_APP_EMU_SRC}
-  ${YAZE_APP_GFX_SRC}
-  ${YAZE_APP_ZELDA3_SRC}
-  ${YAZE_APP_EDITOR_SRC}
-  ${YAZE_UTIL_SRC}
-  ${YAZE_GUI_SRC})
-  list(APPEND YAZE_SRC_FILES ${CMAKE_SOURCE_DIR}/src/${file})
-endforeach()
+# This file defines the yaze test suites and configures test discovery with labels.
 
-# Only build test executable if tests are enabled
-if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
+if(YAZE_BUILD_TESTS)
 
-  # Base list of test sources for all builds
-  set(YAZE_TEST_BASE_SOURCES
+  # Helper function to create and configure a test executable for a suite of tests.
+  # This function adds the executable, links common dependencies, discovers the
+  # tests using gtest_discover_tests, and assigns a label to all discovered tests.
+  function(yaze_add_test_suite suite_name label is_gui_test)
+    set(sources ${ARGN})
+    add_executable(${suite_name} yaze_test.cc ${sources})
+
+    target_include_directories(${suite_name} PUBLIC
+      ${CMAKE_SOURCE_DIR}/src
+      ${CMAKE_SOURCE_DIR}/incl
+      ${CMAKE_SOURCE_DIR}/test
+      ${PROJECT_BINARY_DIR}
+    )
+
+    target_link_libraries(${suite_name} PRIVATE
+      yaze_test_support
+      gmock_main
+      gtest_main
+      absl::failure_signal_handler
+      absl::flags
+      absl::flags_parse
+    )
+
+    # Link ImGui Test Engine for GUI tests
+    if(is_gui_test AND YAZE_ENABLE_UI_TESTS)
+      target_link_libraries(${suite_name} PRIVATE ${IMGUI_TEST_ENGINE_TARGET})
+      target_compile_definitions(${suite_name} PRIVATE ${IMGUI_TEST_ENGINE_DEFINITIONS})
+    endif()
+
+    if(WIN32)
+      message(STATUS "Configuring Windows stack size for ${suite_name} to 16MB")
+      if(MSVC)
+        target_link_options(${suite_name} PRIVATE /STACK:16777216)
+      else()
+        target_link_options(${suite_name} PRIVATE -Wl,--stack,16777216)
+      endif()
+    endif()
+
+    include(GoogleTest)
+    gtest_discover_tests(${suite_name})
+
+    # Get the list of tests discovered for the target and apply the label.
+    get_target_property(suite_tests ${suite_name} TESTS)
+    if(suite_tests)
+      set_tests_properties(${suite_tests} PROPERTIES LABELS "${label}")
+    endif()
+  endfunction()
+
+  # --- Stable Test Suite (Valid Contracts) ---
+  set(STABLE_TEST_SOURCES
     test_editor.cc
-    test_editor.h
-    testing.h
-    test_utils.h
-    
+    test_utils.cc
     # Unit Tests
     unit/core/asar_wrapper_test.cc
     unit/core/hex_test.cc
@@ -38,165 +71,68 @@ if(YAZE_BUILD_TESTS AND NOT YAZE_BUILD_TESTS STREQUAL "OFF")
     unit/zelda3/dungeon_component_unit_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
-    # dungeon_object_renderer_mock_test.cc - REMOVED (ObjectRenderer obsolete)
-    
-    # CLI Services (for catalog serialization tests)
     ../src/cli/service/resources/resource_catalog.cc
-    
+    cli/service/resources/command_context_test.cc
     # Integration Tests
     integration/asar_integration_test.cc
-    integration/asar_rom_test.cc
     integration/dungeon_editor_test.cc
-    integration/dungeon_editor_test.h
     integration/dungeon_editor_v2_test.cc
-    integration/dungeon_editor_v2_test.h
     integration/editor/tile16_editor_test.cc
     integration/editor/editor_integration_test.cc
-    integration/editor/editor_integration_test.h
-    integration/ai/ai_gui_controller_test.cc
-    integration/ai/test_ai_tile_placement.cc
-    integration/ai/test_gemini_vision.cc
-
-    # E2E Tests
-    e2e/rom_dependent/e2e_rom_test.cc
-    e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
-    
-    # Integration Tests (Zelda3)
     integration/zelda3/overworld_integration_test.cc
     integration/zelda3/dungeon_editor_system_integration_test.cc
-    # dungeon_object_renderer_integration_test.cc - REMOVED (ObjectRenderer obsolete)
     integration/zelda3/room_integration_test.cc
     integration/zelda3/dungeon_object_rendering_tests.cc
     integration/zelda3/dungeon_room_test.cc
     integration/zelda3/sprite_position_test.cc
     integration/zelda3/message_test.cc
   )
+  yaze_add_test_suite(yaze_test_stable "stable" OFF ${STABLE_TEST_SOURCES})
 
-  # Sources only for full development builds
-  set(YAZE_TEST_DEV_SOURCES
-    test_utils.cc
-    
-    # E2E Tests (included in development builds)
-    e2e/canvas_selection_test.cc
-    e2e/framework_smoke_test.cc
-    e2e/dungeon_editor_smoke_test.cc
-    
-    # Benchmarks
+  # --- ROM Dependent Test Suite ---
+  if(YAZE_ENABLE_ROM_TESTS)
+    set(ROM_DEPENDENT_TEST_SOURCES
+      integration/asar_rom_test.cc
+      e2e/rom_dependent/e2e_rom_test.cc
+      e2e/zscustomoverworld/zscustomoverworld_upgrade_test.cc
+    )
+    yaze_add_test_suite(yaze_test_rom_dependent "rom_dependent" OFF ${ROM_DEPENDENT_TEST_SOURCES})
+    target_compile_definitions(yaze_test_rom_dependent PRIVATE
+      YAZE_ENABLE_ROM_TESTS=1
+      YAZE_TEST_ROM_PATH="${YAZE_TEST_ROM_PATH}"
+    )
+  endif()
+
+  # --- Experimental & GUI Test Suites ---
+  if(YAZE_ENABLE_UI_TESTS)
+    set(GUI_TEST_SOURCES
+      test_utils.cc
+      e2e/framework_smoke_test.cc
+      e2e/dungeon_editor_smoke_test.cc
+      e2e/canvas_selection_test.cc
+      integration/ai/ai_gui_controller_test.cc
+    )
+    yaze_add_test_suite(yaze_test_gui "gui;experimental" ON ${GUI_TEST_SOURCES})
+
+    # Add a single test entry to run the entire GUI suite headlessly
+    add_test(
+        NAME headless_gui_suite
+        COMMAND $<TARGET_FILE:yaze_test_gui> -nogui
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+    set_tests_properties(headless_gui_suite PROPERTIES LABELS "headless_gui;experimental")
+  endif()
+
+  set(EXPERIMENTAL_TEST_SOURCES
+    integration/ai/test_ai_tile_placement.cc
+    integration/ai/test_gemini_vision.cc
+  )
+  yaze_add_test_suite(yaze_test_experimental "experimental" OFF ${EXPERIMENTAL_TEST_SOURCES})
+
+  # --- Benchmark Test Suite ---
+  set(BENCHMARK_TEST_SOURCES
     benchmarks/gfx_optimization_benchmarks.cc
   )
+  yaze_add_test_suite(yaze_test_benchmark "benchmark" OFF ${BENCHMARK_TEST_SOURCES})
 
-  if(YAZE_MINIMAL_BUILD)
-    # CI/Minimal build: use simplified test executable and base sources
-    add_executable(
-      yaze_test
-      yaze_test_ci.cc
-      ${YAZE_TEST_BASE_SOURCES}
-    )
-  else()
-    # Development build: use full-featured test executable and all sources
-    add_executable(
-      yaze_test
-      yaze_test.cc
-      ${YAZE_TEST_BASE_SOURCES}
-      ${YAZE_TEST_DEV_SOURCES}
-    )
-  endif()
-
-  # Configure test executable only when tests are enabled
-  target_include_directories(
-    yaze_test PUBLIC
-    ${CMAKE_SOURCE_DIR}/src/app/
-    ${CMAKE_SOURCE_DIR}/src/lib/
-    ${CMAKE_SOURCE_DIR}/incl/
-    ${CMAKE_SOURCE_DIR}/src/
-    ${CMAKE_SOURCE_DIR}/test/
-    ${CMAKE_SOURCE_DIR}/src/lib/imgui_test_engine
-    ${CMAKE_SOURCE_DIR}/src/lib/asar/src
-    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar
-    ${CMAKE_SOURCE_DIR}/src/lib/asar/src/asar-dll-bindings/c
-    ${SDL2_INCLUDE_DIR}
-    ${PNG_INCLUDE_DIRS}
-    ${PROJECT_BINARY_DIR}
-  )
-
-  target_link_libraries(
-    yaze_test
-    ${SDL_TARGETS}
-    asar-static
-    ${ABSL_TARGETS}
-    ${PNG_LIBRARIES}
-    ${OPENGL_LIBRARIES}
-    ${CMAKE_DL_LIBS}
-    gmock_main
-    gmock
-    gtest_main
-    gtest
-  )
-
-  # Link core library for essential functionality (BPS, ASAR, etc.)
-  if(YAZE_BUILD_LIB)
-    if(YAZE_USE_MODULAR_BUILD)
-      target_link_libraries(yaze_test
-        yaze_util
-        yaze_gfx
-        yaze_gui
-        yaze_zelda3
-        yaze_core_lib
-        yaze_editor
-      )
-
-      if(TARGET yaze_agent)
-        target_link_libraries(yaze_test yaze_agent)
-      endif()
-
-      if(YAZE_BUILD_EMU AND TARGET yaze_emulator)
-        target_link_libraries(yaze_test yaze_emulator)
-      endif()
-    else()
-      target_link_libraries(yaze_test yaze_core)
-    endif()
-  endif()
-
-  if(TARGET yaze_test_support)
-    target_link_libraries(yaze_test yaze_test_support)
-  endif()
-
-  # Conditionally link ImGuiTestEngine only when UI tests are enabled
-  if(YAZE_ENABLE_UI_TESTS)
-    target_link_libraries(yaze_test ${IMGUI_TEST_ENGINE_TARGET})
-    target_compile_definitions(yaze_test PRIVATE ${IMGUI_TEST_ENGINE_DEFINITIONS})
-  endif()
-
-  # ROM Testing Configuration
-  if(YAZE_ENABLE_ROM_TESTS)
-      target_compile_definitions(yaze_test PRIVATE 
-          YAZE_ENABLE_ROM_TESTS=1
-          YAZE_TEST_ROM_PATH="${YAZE_TEST_ROM_PATH}"
-      )
-  endif()
-
-  # Platform-specific definitions
-  if(UNIX AND NOT APPLE)
-      target_compile_definitions(yaze_test PRIVATE "linux" "stricmp=strcasecmp")
-  elseif(APPLE)
-      target_compile_definitions(yaze_test PRIVATE "MACOS" "stricmp=strcasecmp")
-  elseif(WIN32)
-      target_compile_definitions(yaze_test PRIVATE "WINDOWS")
-      # Increase stack size on Windows to prevent stack overflow during tests
-      # Use 16MB stack to handle deep call stacks in tests and test discovery
-      message(STATUS "Configuring Windows stack size for yaze_test to 16MB")
-      if(MSVC)
-        target_link_options(yaze_test PRIVATE /STACK:16777216)  # 16MB stack
-        message(STATUS "  Using MSVC linker flag: /STACK:16777216")
-      elseif(MINGW OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        target_link_options(yaze_test PRIVATE -Wl,--stack,16777216)  # 16MB stack
-        message(STATUS "  Using MinGW/GNU linker flag: -Wl,--stack,16777216")
-      else()
-        # Fallback for other compilers
-        target_link_options(yaze_test PRIVATE -Wl,--stack,16777216)
-        message(STATUS "  Using fallback linker flag: -Wl,--stack,16777216")
-      endif()
-  endif()
 endif()
-
-include(test.cmake)

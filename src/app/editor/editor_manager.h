@@ -122,6 +122,11 @@ class EditorManager {
   auto emulator() -> emu::Emulator& { return emulator_; }
   auto quit() const { return quit_; }
   auto version() const { return version_; }
+  void DrawMenuBarExtras();
+  MenuBuilder& menu_builder() { return menu_builder_; }
+  void ShowSessionSwitcher();
+  void ShowEditorSelection();
+  void ShowDisplaySettings();
 
   absl::Status SetCurrentRom(Rom* rom);
   auto GetCurrentRom() -> Rom* { return current_rom_; }

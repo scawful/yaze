@@ -183,6 +183,7 @@ ConversationalAgentService::ConversationalAgentService(const AgentConfig& config
 
 void ConversationalAgentService::SetRomContext(Rom* rom) {
   rom_context_ = rom;
+
   tool_dispatcher_.SetRomContext(rom_context_);
   if (ai_service_) {
     ai_service_->SetRomContext(rom_context_);
