@@ -41,9 +41,7 @@ target_link_libraries(yaze PRIVATE
   absl::flags_parse
 )
 
-if(YAZE_BUILD_TESTS AND TARGET yaze_test_support)
-  target_link_libraries(yaze PRIVATE yaze_test_support)
-endif()
+# Note: yaze gets yaze_test_support transitively through yaze_editor when tests are enabled
 
 # Platform-specific settings
 if(WIN32)
