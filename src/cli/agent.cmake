@@ -1,9 +1,7 @@
 set(YAZE_AGENT_SOURCES
   cli/service/agent/proposal_executor.cc
   cli/handlers/agent/todo_commands.cc
-  cli/service/agent/agent_control_server.cc
   cli/service/agent/conversational_agent_service.cc
-  cli/service/agent/emulator_service_impl.cc
   cli/service/agent/simple_chat_session.cc
   cli/service/agent/enhanced_tui.cc
   cli/service/agent/tool_dispatcher.cc
@@ -52,6 +50,14 @@ set(YAZE_AGENT_SOURCES
   cli/flags.cc
   cli/service/rom/rom_sandbox_manager.cc
 )
+
+# gRPC-dependent sources (only added when gRPC is enabled)
+if(YAZE_WITH_GRPC)
+  list(APPEND YAZE_AGENT_SOURCES
+    cli/service/agent/agent_control_server.cc
+    cli/service/agent/emulator_service_impl.cc
+  )
+endif()
 
 if(YAZE_WITH_JSON)
   list(APPEND YAZE_AGENT_SOURCES cli/service/ai/gemini_ai_service.cc)
@@ -121,6 +127,9 @@ if(YAZE_WITH_GRPC)
     grpc++_reflection
     libprotobuf
   )
+  
+  # Note: YAZE_WITH_GRPC is defined globally via add_compile_definitions in root CMakeLists.txt
+  # This ensures #ifdef YAZE_WITH_GRPC works in all translation units
   message(STATUS "✓ gRPC GUI automation enabled for yaze_agent")
 endif()
 
