@@ -1,7 +1,9 @@
 set(YAZE_AGENT_SOURCES
   cli/service/agent/proposal_executor.cc
   cli/handlers/agent/todo_commands.cc
+  cli/service/agent/agent_control_server.cc
   cli/service/agent/conversational_agent_service.cc
+  cli/service/agent/emulator_service_impl.cc
   cli/service/agent/simple_chat_session.cc
   cli/service/agent/enhanced_tui.cc
   cli/service/agent/tool_dispatcher.cc
@@ -111,7 +113,8 @@ if(YAZE_WITH_GRPC)
   # Generate proto files for yaze_agent
   target_add_protobuf(yaze_agent
     ${PROJECT_SOURCE_DIR}/src/protos/imgui_test_harness.proto
-    ${PROJECT_SOURCE_DIR}/src/protos/canvas_automation.proto)
+    ${PROJECT_SOURCE_DIR}/src/protos/canvas_automation.proto
+    ${PROJECT_SOURCE_DIR}/src/protos/emulator_service.proto)
   
   target_link_libraries(yaze_agent PUBLIC
     grpc++

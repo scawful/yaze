@@ -1,0 +1,366 @@
+syntax = "proto3";
+
+package yaze.agent;
+
+// The main service for controlling the yaze emulator
+service EmulatorService {
+  // --- Lifecycle ---
+  rpc Start(Empty) returns (CommandResponse);
+  rpc Stop(Empty) returns (CommandResponse);
+  rpc Pause(Empty) returns (CommandResponse);
+  rpc Resume(Empty) returns (CommandResponse);
+  rpc Reset(Empty) returns (CommandResponse);
+
+  // --- Input Control ---
+  rpc PressButtons(ButtonRequest) returns (CommandResponse);
+  rpc ReleaseButtons(ButtonRequest) returns (CommandResponse);
+  rpc HoldButtons(ButtonHoldRequest) returns (CommandResponse);
+
+  // --- State Inspection (The Feedback Loop) ---
+  rpc GetGameState(GameStateRequest) returns (GameStateResponse);
+  rpc ReadMemory(MemoryRequest) returns (MemoryResponse);
+  rpc WriteMemory(MemoryWriteRequest) returns (CommandResponse);
+
+  // --- Advanced Debugging (NEW) ---
+  // Breakpoints
+  rpc AddBreakpoint(BreakpointRequest) returns (BreakpointResponse);
+  rpc RemoveBreakpoint(BreakpointIdRequest) returns (CommandResponse);
+  rpc ListBreakpoints(Empty) returns (BreakpointListResponse);
+  rpc SetBreakpointEnabled(BreakpointStateRequest) returns (CommandResponse);
+
+  // Watchpoints (memory access tracking)
+  rpc AddWatchpoint(WatchpointRequest) returns (WatchpointResponse);
+  rpc RemoveWatchpoint(WatchpointIdRequest) returns (CommandResponse);
+  rpc ListWatchpoints(Empty) returns (WatchpointListResponse);
+  rpc GetWatchpointHistory(WatchpointHistoryRequest) returns (WatchpointHistoryResponse);
+
+  // Execution Control
+  rpc StepInstruction(Empty) returns (StepResponse);
+  rpc RunToBreakpoint(Empty) returns (BreakpointHitResponse);
+  rpc StepOver(Empty) returns (StepResponse);  // Step over subroutines
+  rpc StepOut(Empty) returns (StepResponse);   // Step out of subroutine
+
+  // Disassembly & Code Analysis
+  rpc GetDisassembly(DisassemblyRequest) returns (DisassemblyResponse);
+  rpc GetExecutionTrace(TraceRequest) returns (TraceResponse);
+
+  // Symbol Management (for Oracle of Secrets labels)
+  rpc LoadSymbols(SymbolFileRequest) returns (CommandResponse);
+  rpc ResolveSymbol(SymbolLookupRequest) returns (SymbolLookupResponse);
+  rpc GetSymbolAt(AddressRequest) returns (SymbolLookupResponse);
+
+  // Debugging Session
+  rpc CreateDebugSession(DebugSessionRequest) returns (DebugSessionResponse);
+  rpc GetDebugStatus(Empty) returns (DebugStatusResponse);
+}
+
+// --- Message Definitions ---
+
+message Empty {}
+
+message CommandResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+enum Button {
+  BUTTON_UNSPECIFIED = 0;
+  A = 1;
+  B = 2;
+  X = 3;
+  Y = 4;
+  L = 5;
+  R = 6;
+  SELECT = 7;
+  START = 8;
+  UP = 9;
+  DOWN = 10;
+  LEFT = 11;
+  RIGHT = 12;
+}
+
+message ButtonRequest {
+  repeated Button buttons = 1;
+}
+
+message ButtonHoldRequest {
+  repeated Button buttons = 1;
+  uint32 duration_ms = 2; // How long to hold the buttons
+}
+
+message GameStateRequest {
+  bool include_screenshot = 1;
+  repeated MemoryRequest memory_reads = 2;
+}
+
+message GameStateResponse {
+  // Key player and game variables
+  uint32 game_mode = 1;
+  uint32 link_state = 2;
+  uint32 link_pos_x = 3;
+  uint32 link_pos_y = 4;
+  uint32 link_health = 5;
+
+  // Screenshot of the current frame
+  bytes screenshot_png = 6; // PNG encoded image data
+
+  // Results of any requested memory reads
+  repeated MemoryResponse memory_responses = 7;
+}
+
+message MemoryRequest {
+  uint32 address = 1;
+  uint32 size = 2;
+}
+
+message MemoryResponse {
+  uint32 address = 1;
+  bytes data = 2;
+}
+
+message MemoryWriteRequest {
+  uint32 address = 1;
+  bytes data = 2;
+}
+
+// --- Advanced Debugging Messages (NEW) ---
+
+// Breakpoint types (matches BreakpointManager::Type)
+enum BreakpointType {
+  BREAKPOINT_TYPE_UNSPECIFIED = 0;
+  EXECUTE = 1;      // Break when PC reaches address
+  READ = 2;         // Break when memory is read
+  WRITE = 3;        // Break when memory is written
+  ACCESS = 4;       // Break on read OR write
+  CONDITIONAL = 5;  // Break when condition is true
+}
+
+// CPU type for breakpoints
+enum CpuType {
+  CPU_TYPE_UNSPECIFIED = 0;
+  CPU_65816 = 1;
+  SPC700 = 2;
+}
+
+// Breakpoint request
+message BreakpointRequest {
+  uint32 address = 1;
+  BreakpointType type = 2;
+  CpuType cpu = 3;
+  string condition = 4;     // Optional condition (e.g., "A > 0x10")
+  string description = 5;   // User-friendly label
+}
+
+message BreakpointResponse {
+  bool success = 1;
+  uint32 breakpoint_id = 2;
+  string message = 3;
+}
+
+message BreakpointIdRequest {
+  uint32 breakpoint_id = 1;
+}
+
+message BreakpointStateRequest {
+  uint32 breakpoint_id = 1;
+  bool enabled = 2;
+}
+
+message BreakpointInfo {
+  uint32 id = 1;
+  uint32 address = 2;
+  BreakpointType type = 3;
+  CpuType cpu = 4;
+  bool enabled = 5;
+  string condition = 6;
+  string description = 7;
+  uint32 hit_count = 8;
+}
+
+message BreakpointListResponse {
+  repeated BreakpointInfo breakpoints = 1;
+}
+
+message BreakpointHitResponse {
+  bool hit = 1;
+  BreakpointInfo breakpoint = 2;
+  CPUState cpu_state = 3;
+  string message = 4;
+}
+
+// Watchpoint messages
+message WatchpointRequest {
+  uint32 start_address = 1;
+  uint32 end_address = 2;    // For range watchpoints
+  bool track_reads = 3;
+  bool track_writes = 4;
+  bool break_on_access = 5;
+  string description = 6;
+}
+
+message WatchpointResponse {
+  bool success = 1;
+  uint32 watchpoint_id = 2;
+  string message = 3;
+}
+
+message WatchpointIdRequest {
+  uint32 watchpoint_id = 1;
+}
+
+message WatchpointInfo {
+  uint32 id = 1;
+  uint32 start_address = 2;
+  uint32 end_address = 3;
+  bool track_reads = 4;
+  bool track_writes = 5;
+  bool break_on_access = 6;
+  bool enabled = 7;
+  string description = 8;
+}
+
+message WatchpointListResponse {
+  repeated WatchpointInfo watchpoints = 1;
+}
+
+message WatchpointHistoryRequest {
+  uint32 watchpoint_id = 1;
+  uint32 max_entries = 2;   // Max history entries to return
+}
+
+message AccessLogEntry {
+  uint32 pc = 1;
+  uint32 address = 2;
+  uint32 old_value = 3;
+  uint32 new_value = 4;
+  bool is_write = 5;
+  uint64 cycle_count = 6;
+  string description = 7;
+}
+
+message WatchpointHistoryResponse {
+  repeated AccessLogEntry history = 1;
+}
+
+// CPU State (for stepping/debugging)
+message CPUState {
+  uint32 a = 1;
+  uint32 x = 2;
+  uint32 y = 3;
+  uint32 sp = 4;
+  uint32 pc = 5;
+  uint32 db = 6;    // Data bank
+  uint32 pb = 7;    // Program bank
+  uint32 d = 8;     // Direct page
+  uint32 status = 9; // Processor status
+  bool flag_n = 10;  // Negative
+  bool flag_v = 11;  // Overflow
+  bool flag_d = 12;  // Decimal
+  bool flag_i = 13;  // Interrupt disable
+  bool flag_z = 14;  // Zero
+  bool flag_c = 15;  // Carry
+  uint64 cycles = 16;
+}
+
+message StepResponse {
+  bool success = 1;
+  CPUState cpu_state = 2;
+  DisassemblyLine instruction = 3;
+  string message = 4;
+}
+
+// Disassembly messages
+message DisassemblyRequest {
+  uint32 start_address = 1;
+  uint32 count = 2;         // Number of instructions
+  bool include_execution_count = 3;
+}
+
+message DisassemblyLine {
+  uint32 address = 1;
+  uint32 opcode = 2;
+  repeated uint32 operands = 3;
+  string mnemonic = 4;
+  string operand_str = 5;
+  uint32 size = 6;
+  uint64 execution_count = 7;
+  bool is_breakpoint = 8;
+}
+
+message DisassemblyResponse {
+  repeated DisassemblyLine lines = 1;
+}
+
+// Execution trace
+message TraceRequest {
+  uint32 max_entries = 1;   // Max trace entries to return
+  uint32 start_address = 2;  // Optional: filter by address range
+  uint32 end_address = 3;
+}
+
+message TraceEntry {
+  uint32 address = 1;
+  string instruction = 2;
+  CPUState cpu_state_before = 3;
+  uint64 cycle_count = 4;
+}
+
+message TraceResponse {
+  repeated TraceEntry entries = 1;
+  uint32 total_count = 2;
+}
+
+// Symbol management
+message SymbolFileRequest {
+  string filepath = 1;      // Path to symbol file (e.g., .sym, .map)
+  SymbolFormat format = 2;
+}
+
+enum SymbolFormat {
+  SYMBOL_FORMAT_UNSPECIFIED = 0;
+  ASAR = 1;         // Asar assembler format
+  WLA_DX = 2;       // WLA-DX assembler format
+  CA65 = 3;         // ca65 assembler format
+  MESEN = 4;        // Mesen debug symbol format
+  CUSTOM_JSON = 5;  // Custom JSON format
+}
+
+message SymbolLookupRequest {
+  string symbol_name = 1;
+}
+
+message AddressRequest {
+  uint32 address = 1;
+}
+
+message SymbolLookupResponse {
+  bool found = 1;
+  string symbol_name = 2;
+  uint32 address = 3;
+  string type = 4;          // "function", "data", "label", etc.
+  string description = 5;
+}
+
+// Debug session
+message DebugSessionRequest {
+  string session_name = 1;
+  string rom_hash = 2;      // For verification
+  bool enable_all_features = 3;
+}
+
+message DebugSessionResponse {
+  bool success = 1;
+  string session_id = 2;
+  string message = 3;
+}
+
+message DebugStatusResponse {
+  bool is_running = 1;
+  bool is_paused = 2;
+  CPUState cpu_state = 3;
+  uint32 active_breakpoints = 4;
+  uint32 active_watchpoints = 5;
+  BreakpointInfo last_breakpoint_hit = 6;
+  double fps = 7;
+  uint64 cycles = 8;
+}
