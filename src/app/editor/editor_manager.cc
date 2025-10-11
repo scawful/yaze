@@ -54,12 +54,14 @@
 #include "app/editor/system/toast_manager.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/performance/performance_dashboard.h"
-#include "editor/editor.h"
+#include "app/editor/editor.h"
 #ifdef YAZE_WITH_GRPC
 #include "app/core/service/screenshot_utils.h"
 #include "app/editor/agent/agent_chat_widget.h"
+#include "cli/service/agent/agent_control_server.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/ai/gemini_ai_service.h"
+#include "absl/flags/flag.h"
 #endif
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/automation_bridge.h"
@@ -539,6 +541,12 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
   context_.shortcut_manager.RegisterShortcut(
       "Proposal Drawer", {ImGuiKey_P, ImGuiMod_Ctrl},
       [this]() { proposal_drawer_.Toggle(); });
+
+  // Start the agent control server if the flag is set
+  if (absl::GetFlag(FLAGS_agent_control)) {
+    agent_control_server_ = std::make_unique<agent::AgentControlServer>(&emulator_);
+    agent_control_server_->Start();
+  }
 #endif
 
   // Testing shortcuts (only when tests are enabled)

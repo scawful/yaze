@@ -1,8 +1,8 @@
 #ifndef YAZE_APP_EDITOR_EDITOR_MANAGER_H
 #define YAZE_APP_EDITOR_EDITOR_MANAGER_H
 
-#include "editor/system/user_settings.h"
-#include "editor/ui/workspace_manager.h"
+#include "app/editor/system/user_settings.h"
+#include "app/editor/ui/workspace_manager.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 
 #include "imgui/imgui.h"
@@ -278,6 +278,7 @@ class EditorManager {
 #ifdef YAZE_WITH_GRPC
   // Agent editor - manages chat, collaboration, and network coordination
   AgentEditor agent_editor_;
+  std::unique_ptr<agent::AgentControlServer> agent_control_server_;
 #endif
 
   std::string version_ = "";
