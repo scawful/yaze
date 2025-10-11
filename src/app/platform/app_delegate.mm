@@ -1,4 +1,10 @@
 // AppDelegate.mm
+
+// Must define before any ImGui includes (needed by imgui_test_engine via editor_manager.h)
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+
 #import "app/platform/app_delegate.h"
 #import "app/core/controller.h"
 #import "util/file_util.h"

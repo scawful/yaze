@@ -47,25 +47,29 @@
 #ifdef YAZE_ENABLE_GTEST
 #include "app/test/unit_test_suite.h"
 #endif
-#ifdef YAZE_WITH_GRPC
-#include "app/test/z3ed_test_suite.h"
-#endif
+
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/performance/performance_dashboard.h"
 #include "app/editor/editor.h"
+
 #ifdef YAZE_WITH_GRPC
 #include "app/core/service/screenshot_utils.h"
 #include "app/editor/agent/agent_chat_widget.h"
 #include "cli/service/agent/agent_control_server.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/ai/gemini_ai_service.h"
+#include "app/test/z3ed_test_suite.h"
+
 #include "absl/flags/flag.h"
-#endif
-#ifdef YAZE_WITH_GRPC
+
+// Declare the agent_control flag (defined in src/cli/flags.cc)
+// ABSL_DECLARE_FLAG(bool, agent_control);
+
 #include "app/editor/agent/automation_bridge.h"
 #endif
+
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/log.h"
@@ -86,7 +90,15 @@ std::string GetEditorName(EditorType type) {
 
 }  // namespace
 
+EditorManager::EditorManager() : blank_editor_set_(nullptr, &user_settings_) {
+  std::stringstream ss;
+  ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
+     << YAZE_VERSION_PATCH;
+  ss >> version_;
+  context_.popup_manager = popup_manager_.get();
+}
 
+EditorManager::~EditorManager() = default;
 
 void EditorManager::InitializeTestSuites() {
   auto& test_manager = test::TestManager::Get();
@@ -543,10 +555,10 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
       [this]() { proposal_drawer_.Toggle(); });
 
   // Start the agent control server if the flag is set
-  if (absl::GetFlag(FLAGS_agent_control)) {
-    agent_control_server_ = std::make_unique<agent::AgentControlServer>(&emulator_);
-    agent_control_server_->Start();
-  }
+  // if (absl::GetFlag(FLAGS_agent_control)) {
+  //   agent_control_server_ = std::make_unique<agent::AgentControlServer>(&emulator_);
+  //   agent_control_server_->Start();
+  // }
 #endif
 
   // Testing shortcuts (only when tests are enabled)

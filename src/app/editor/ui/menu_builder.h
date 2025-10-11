@@ -5,6 +5,11 @@
 #include <string>
 #include <vector>
 
+// Must define before including imgui.h
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+
 #include "app/gui/icons.h"
 #include "imgui/imgui.h"
 

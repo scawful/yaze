@@ -2,6 +2,10 @@
 // Updated for DungeonEditorV2 architecture - uses ObjectDrawer (production system)
 // instead of the obsolete ObjectRenderer
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+
 #include "app/zelda3/dungeon/object_drawer.h"
 #include "app/zelda3/dungeon/room.h"
 #include "app/zelda3/dungeon/room_object.h"

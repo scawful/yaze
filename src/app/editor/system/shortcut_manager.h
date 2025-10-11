@@ -5,6 +5,11 @@
 #include <string>
 #include <unordered_map>
 
+// Must define before including imgui.h
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+
 #include "imgui/imgui.h"
 
 namespace yaze {

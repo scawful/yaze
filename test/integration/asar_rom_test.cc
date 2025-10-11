@@ -1,3 +1,8 @@
+// Must define before any ImGui includes
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+
 #include <gtest/gtest.h>
 #include <filesystem>
 #include <fstream>
