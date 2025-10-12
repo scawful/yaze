@@ -86,6 +86,141 @@ Perfect rendering on modern displays.
 
 ## AI & Automation
 
+### Autonomous Debugging Enhancements
+
+Advanced features for AI-driven emulator debugging (see E9-ai-agent-debugging-guide.md for current capabilities).
+
+#### Pattern 1: Automated Bug Reproduction
+```python
+def reproduce_bug_scenario():
+    """Reproduce a specific bug automatically"""
+    # 1. Load game state
+    stub.LoadState(StateRequest(slot=1))
+
+    # 2. Set breakpoint at suspected bug location
+    stub.AddBreakpoint(BreakpointRequest(
+        address=0x01A5C0,  # Enemy spawn routine
+        type=BreakpointType.EXECUTE,
+        description="Bug: enemy spawns in wall"
+    ))
+
+    # 3. Automate input to trigger bug
+    stub.PressButtons(ButtonRequest(buttons=[Button.UP]))
+    stub.HoldButtons(ButtonHoldRequest(buttons=[Button.A], duration_ms=500))
+
+    # 4. Wait for breakpoint
+    hit = stub.RunToBreakpoint(Empty())
+    if hit.hit:
+        # 5. Capture state for analysis
+        memory = stub.ReadMemory(MemoryRequest(
+            address=0x7E0000,  # WRAM
+            size=0x10000
+        ))
+
+        # 6. Analyze and log
+        analyze_enemy_spawn_state(hit.cpu_state, memory.data)
+
+        return True
+    return False
+```
+
+#### Pattern 2: Automated Code Coverage Analysis
+```python
+def analyze_code_coverage():
+    """Find untested code paths"""
+    # 1. Enable disassembly recording
+    stub.CreateDebugSession(DebugSessionRequest(
+        session_name="coverage_test",
+        enable_all_features=True
+    ))
+
+    # 2. Run gameplay for 10 minutes
+    stub.Start(Empty())
+    time.sleep(600)
+    stub.Pause(Empty())
+
+    # 3. Get execution trace
+    disasm = stub.GetDisassembly(DisassemblyRequest(
+        start_address=0x008000,
+        count=10000,
+        include_execution_count=True
+    ))
+
+    # 4. Find unexecuted code
+    unexecuted = [line for line in disasm.lines if line.execution_count == 0]
+
+    print(f"Code coverage: {len(disasm.lines) - len(unexecuted)}/{len(disasm.lines)}")
+    print(f"Untested code at:")
+    for line in unexecuted[:20]:  # Show first 20
+        print(f"  ${line.address:06X}: {line.mnemonic} {line.operand_str}")
+```
+
+#### Pattern 3: Autonomous Bug Hunting
+```python
+def hunt_for_bugs():
+    """AI-driven bug detection"""
+    # Set watchpoints on critical variables
+    watchpoints = [
+        ("LinkHealth", 0x7EF36D, 0x7EF36D, True, True),
+        ("LinkPos", 0x7E0020, 0x7E0023, False, True),
+        ("RoomID", 0x7E00A0, 0x7E00A1, False, True),
+    ]
+
+    for name, start, end, track_reads, track_writes in watchpoints:
+        stub.AddWatchpoint(WatchpointRequest(
+            start_address=start,
+            end_address=end,
+            track_reads=track_reads,
+            track_writes=track_writes,
+            break_on_access=False,
+            description=name
+        ))
+
+    # Run game with random inputs
+    stub.Start(Empty())
+
+    for _ in range(1000):  # 1000 random actions
+        button = random.choice([Button.UP, Button.DOWN, Button.LEFT,
+                               Button.RIGHT, Button.A, Button.B])
+        stub.PressButtons(ButtonRequest(buttons=[button]))
+        time.sleep(0.1)
+
+        # Check for anomalies every 10 actions
+        if _ % 10 == 0:
+            status = stub.GetDebugStatus(Empty())
+
+            # Check for crashes or freezes
+            if status.fps < 30:
+                print(f"ANOMALY: Low FPS detected ({status.fps:.2f})")
+                save_crash_dump(status)
+
+            # Check for memory corruption
+            health = stub.ReadMemory(MemoryRequest(
+                address=0x7EF36D, size=1
+            ))
+            if health.data[0] > 0xA8:  # Max health
+                print(f"BUG: Health overflow! Value: {health.data[0]:02X}")
+                stub.Pause(Empty())
+                break
+```
+
+#### Future API Extensions
+```protobuf
+// Time-travel debugging
+rpc Rewind(RewindRequest) returns (CommandResponse);
+rpc SetCheckpoint(CheckpointRequest) returns (CheckpointResponse);
+rpc RestoreCheckpoint(CheckpointIdRequest) returns (CommandResponse);
+
+// Lua scripting
+rpc ExecuteLuaScript(LuaScriptRequest) returns (LuaScriptResponse);
+rpc RegisterLuaCallback(LuaCallbackRequest) returns (CommandResponse);
+
+// Performance profiling
+rpc StartProfiling(ProfileRequest) returns (CommandResponse);
+rpc StopProfiling(Empty) returns (ProfileResponse);
+rpc GetHotPaths(HotPathRequest) returns (HotPathResponse);
+```
+
 ### Multi-Modal AI Input
 Enhance `z3ed` with visual understanding.
 

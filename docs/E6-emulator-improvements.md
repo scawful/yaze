@@ -159,6 +159,41 @@ To eliminate floating-point errors, convert the `apuCyclesPerMaster` ratio to a 
 
 ---
 
+## Completed Improvements
+
+### Audio System Fixes (v0.4.0) ✅
+
+#### Problem Statement
+The SNES emulator experienced audio glitchiness and skips, particularly during the ALTTP title screen, with audible pops, crackling, and sample skipping during music playback.
+
+#### Root Causes Fixed
+1. **Aggressive Sample Dropping**: Audio buffering logic was dropping up to 50% of generated samples, creating discontinuities
+2. **Incorrect Resampling**: Duplicate calculations in linear interpolation wasted CPU cycles
+3. **Missing Frame Synchronization**: DSP's `NewFrame()` method was never called, causing timing drift
+4. **Missing Hermite Interpolation**: Only Linear/Cosine/Cubic were available (Hermite is the industry standard)
+
+#### Solutions Implemented
+1. **Never Drop Samples**: Always queue all generated samples unless buffer critically full (>4 frames)
+2. **Fixed Resampling Code**: Removed duplicate calculations and added bounds checking
+3. **Frame Boundary Synchronization**: Added `dsp.NewFrame()` call before sample generation
+4. **Hermite Interpolation**: New interpolation type matching bsnes/Snes9x standard
+
+**Performance Comparison**:
+| Interpolation | Quality | Speed | Use Case |
+|--------------|---------|-------|----------|
+| Linear | ⭐⭐ | ⭐⭐⭐⭐⭐ | Low-end hardware only |
+| **Hermite** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | **Recommended default** |
+| Cosine | ⭐⭐⭐ | ⭐⭐⭐ | Smooth but slow |
+| Cubic | ⭐⭐⭐⭐⭐ | ⭐⭐ | Maximum accuracy |
+
+**Result**: Smooth, glitch-free audio matching real SNES hardware quality.
+
+**Testing**: Validated on ALTTP title screen, overworld theme, dungeon ambience, and menu sounds.
+
+**Status**: ✅ Production Ready
+
+---
+
 ## Implementation Priority
 
 1. **Critical (v0.4.0):** APU timing fix - Required for music playback
