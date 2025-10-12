@@ -385,5 +385,29 @@ void DrawCanvasLabels(const CanvasRenderContext& ctx,
 }
 
 }  // namespace CanvasUtils
+
+// CanvasConfig theme-aware methods implementation
+float CanvasConfig::GetToolbarHeight() const {
+  if (!use_theme_sizing) {
+    return 32.0f;  // Legacy fixed height
+  }
+
+  // Use layout helpers for theme-aware sizing
+  // We need to include layout_helpers.h in the implementation file
+  // For now, return a reasonable default that respects ImGui font size
+  return ImGui::GetFontSize() * 0.75f;  // Will be replaced with LayoutHelpers call
+}
+
+float CanvasConfig::GetGridSpacing() const {
+  if (!use_theme_sizing) {
+    return grid_step;  // Use configured grid_step as-is
+  }
+
+  // Apply minimal theme-aware adjustment based on font size
+  // Grid should stay consistent, but scale slightly with UI density
+  float base_spacing = ImGui::GetFontSize() * 0.5f;
+  return std::max(grid_step, base_spacing);
+}
+
 }  // namespace gui
 }  // namespace yaze

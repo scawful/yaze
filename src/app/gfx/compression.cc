@@ -7,7 +7,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/rom.h"
-#include "app/zelda3/hyrule_magic.h"
+#include "util/hyrule_magic.h"
 #include "util/macro.h"
 
 #define DEBUG_LOG(msg) std::cout << msg << std::endl

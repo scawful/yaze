@@ -1,4 +1,4 @@
-#include "hyrule_magic.h"
+#include "util/hyrule_magic.h"
 
 namespace yaze {
 namespace zelda3 {

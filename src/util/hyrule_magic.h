@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_ZELDA3_HYRULE_MAGIC_H
-#define YAZE_APP_ZELDA3_HYRULE_MAGIC_H
+#ifndef YAZE_UTIL_HYRULE_MAGIC_H
+#define YAZE_UTIL_HYRULE_MAGIC_H
 
 #include <cstdint>
 #include <cstring>
@@ -28,4 +28,4 @@ uint16_t ldle16b(uint8_t const *const p_arr);
 }  // namespace zelda3
 }  // namespace yaze
 
-#endif  // YAZE_APP_ZELDA3_HYRULE_MAGIC_H
+#endif  // YAZE_UTIL_HYRULE_MAGIC_H

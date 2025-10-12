@@ -20,12 +20,18 @@ struct CanvasConfig {
   bool enable_context_menu = true;
   bool is_draggable = false;
   bool auto_resize = false;
-  bool clamp_rect_to_local_maps = true;  // NEW: Prevent rectangle wrap across 512x512 boundaries
+  bool clamp_rect_to_local_maps = true;  // Prevent rectangle wrap across 512x512 boundaries
+  bool use_theme_sizing = true;  // Use theme-aware sizing instead of fixed sizes
   float grid_step = 32.0f;
   float global_scale = 1.0f;
   ImVec2 canvas_size = ImVec2(0, 0);
   ImVec2 content_size = ImVec2(0, 0);  // Size of actual content (bitmap, etc.)
   bool custom_canvas_size = false;
+
+  // Get theme-aware canvas toolbar height (when use_theme_sizing is true)
+  float GetToolbarHeight() const;
+  // Get theme-aware grid spacing (when use_theme_sizing is true)
+  float GetGridSpacing() const;
 };
 
 /**

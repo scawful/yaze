@@ -47,6 +47,16 @@ class WorkspaceManager {
   void MaximizeCurrentWindow();
   void RestoreAllWindows();
   void CloseAllFloatingWindows();
+
+  // Window operations for keyboard navigation
+  void FocusNextWindow();
+  void FocusPreviousWindow();
+  void SplitWindowHorizontal();
+  void SplitWindowVertical();
+  void CloseCurrentWindow();
+
+  // Command execution (for WhichKey integration)
+  void ExecuteWorkspaceCommand(const std::string& command_id);
   
   // Session queries
   size_t GetActiveSessionCount() const;

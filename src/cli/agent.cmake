@@ -1,12 +1,18 @@
 set(YAZE_AGENT_SOURCES
+  # Core infrastructure
+  cli/service/command_registry.cc
   cli/service/agent/proposal_executor.cc
   cli/handlers/agent/todo_commands.cc
   cli/service/agent/conversational_agent_service.cc
   cli/service/agent/simple_chat_session.cc
   cli/service/agent/enhanced_tui.cc
   cli/service/agent/tool_dispatcher.cc
+  
+  # Advanced features
   cli/service/agent/learned_knowledge_service.cc
   cli/service/agent/todo_manager.cc
+  cli/service/agent/advanced_routing.cc
+  cli/service/agent/agent_pretraining.cc
   cli/service/agent/vim_mode.cc
   cli/service/ai/ai_service.cc
   cli/service/ai/ai_action_parser.cc

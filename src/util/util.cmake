@@ -17,7 +17,7 @@ set(YAZE_UTIL_SRC
   util/log.cc
   util/platform_paths.cc
   util/file_util.cc
-  util/platform_paths.cc
+  util/hyrule_magic.cc  # Byte order utilities (moved from zelda3)
 )
 
 add_library(yaze_util STATIC ${YAZE_UTIL_SRC})

@@ -1,9 +1,12 @@
 #include "app/editor/ui/workspace_manager.h"
 #include "app/editor/system/toast_manager.h"
+#include "app/gui/editor_card_manager.h"
 #include "app/rom.h"
 #include "absl/strings/str_format.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 namespace yaze {
 namespace editor {
@@ -122,23 +125,60 @@ void WorkspaceManager::LoadModderLayout() {
 }
 
 void WorkspaceManager::ShowAllWindows() {
-  // TODO: Set all editor windows to visible
+  gui::EditorCardManager::Get().ShowAll();
+  if (toast_manager_) {
+    toast_manager_->Show("All windows shown", ToastType::kInfo);
+  }
 }
 
 void WorkspaceManager::HideAllWindows() {
-  // TODO: Hide all editor windows
+  gui::EditorCardManager::Get().HideAll();
+  if (toast_manager_) {
+    toast_manager_->Show("All windows hidden", ToastType::kInfo);
+  }
 }
 
 void WorkspaceManager::MaximizeCurrentWindow() {
-  // TODO: Maximize focused window
+  // Use ImGui internal API to maximize current window
+  ImGuiWindow* window = ImGui::GetCurrentWindowRead();
+  if (window && window->DockNode) {
+    ImGuiID central_node_id = ImGui::DockBuilderGetCentralNode(
+        ImGui::GetID("MainDockSpace"))->ID;
+    ImGui::DockBuilderDockWindow(window->Name, central_node_id);
+  }
+  if (toast_manager_) {
+    toast_manager_->Show("Window maximized", ToastType::kInfo);
+  }
 }
 
 void WorkspaceManager::RestoreAllWindows() {
-  // TODO: Restore all windows to default size
+  // Reset all window sizes - ImGui will auto-restore based on docking
+  ImGuiContext* ctx = ImGui::GetCurrentContext();
+  if (ctx) {
+    for (ImGuiWindow* window : ctx->Windows) {
+      if (window && !window->Collapsed) {
+        ImGui::SetWindowSize(window->Name, ImVec2(0, 0)); // Auto-size
+      }
+    }
+  }
+  if (toast_manager_) {
+    toast_manager_->Show("All windows restored", ToastType::kInfo);
+  }
 }
 
 void WorkspaceManager::CloseAllFloatingWindows() {
-  // TODO: Close undocked windows
+  // Close all windows that are not docked
+  ImGuiContext* ctx = ImGui::GetCurrentContext();
+  if (ctx) {
+    for (ImGuiWindow* window : ctx->Windows) {
+      if (window && !window->DockNode && !window->Collapsed) {
+        window->Hidden = true;
+      }
+    }
+  }
+  if (toast_manager_) {
+    toast_manager_->Show("Floating windows closed", ToastType::kInfo);
+  }
 }
 
 size_t WorkspaceManager::GetActiveSessionCount() const {
@@ -155,13 +195,82 @@ size_t WorkspaceManager::GetActiveSessionCount() const {
 
 bool WorkspaceManager::HasDuplicateSession(const std::string& filepath) const {
   if (!sessions_) return false;
-  
+
   for (const auto& session : *sessions_) {
     if (session.filepath == filepath && session.rom && session.rom->is_loaded()) {
       return true;
     }
   }
   return false;
+}
+
+// Window navigation operations
+void WorkspaceManager::FocusNextWindow() {
+  ImGuiContext* ctx = ImGui::GetCurrentContext();
+  if (ctx && ctx->NavWindow) {
+    ImGui::FocusWindow(ImGui::FindWindowByName(ctx->NavWindow->Name));
+  }
+  // TODO: Implement proper window cycling
+}
+
+void WorkspaceManager::FocusPreviousWindow() {
+  // TODO: Implement window cycling backward
+}
+
+void WorkspaceManager::SplitWindowHorizontal() {
+  ImGuiWindow* window = ImGui::GetCurrentWindowRead();
+  if (window && window->DockNode) {
+    ImGuiID node_id = window->DockNode->ID;
+    ImGuiID out_id_at_dir = 0;
+    ImGuiID out_id_at_opposite_dir = 0;
+    ImGui::DockBuilderSplitNode(node_id, ImGuiDir_Down, 0.5f,
+                                &out_id_at_dir, &out_id_at_opposite_dir);
+  }
+}
+
+void WorkspaceManager::SplitWindowVertical() {
+  ImGuiWindow* window = ImGui::GetCurrentWindowRead();
+  if (window && window->DockNode) {
+    ImGuiID node_id = window->DockNode->ID;
+    ImGuiID out_id_at_dir = 0;
+    ImGuiID out_id_at_opposite_dir = 0;
+    ImGui::DockBuilderSplitNode(node_id, ImGuiDir_Right, 0.5f,
+                                &out_id_at_dir, &out_id_at_opposite_dir);
+  }
+}
+
+void WorkspaceManager::CloseCurrentWindow() {
+  ImGuiWindow* window = ImGui::GetCurrentWindowRead();
+  if (window) {
+    window->Hidden = true;
+  }
+}
+
+// Command execution for WhichKey integration
+void WorkspaceManager::ExecuteWorkspaceCommand(const std::string& command_id) {
+  // Window commands (Space + w)
+  if (command_id == "w.s") { ShowAllWindows(); }
+  else if (command_id == "w.h") { HideAllWindows(); }
+  else if (command_id == "w.m") { MaximizeCurrentWindow(); }
+  else if (command_id == "w.r") { RestoreAllWindows(); }
+  else if (command_id == "w.c") { CloseCurrentWindow(); }
+  else if (command_id == "w.f") { CloseAllFloatingWindows(); }
+  else if (command_id == "w.v") { SplitWindowVertical(); }
+  else if (command_id == "w.H") { SplitWindowHorizontal(); }
+
+  // Layout commands (Space + l)
+  else if (command_id == "l.s") { SaveWorkspaceLayout(); }
+  else if (command_id == "l.l") { LoadWorkspaceLayout(); }
+  else if (command_id == "l.r") { ResetWorkspaceLayout(); }
+  else if (command_id == "l.d") { LoadDeveloperLayout(); }
+  else if (command_id == "l.g") { LoadDesignerLayout(); }
+  else if (command_id == "l.m") { LoadModderLayout(); }
+
+  // Unknown command
+  else if (toast_manager_) {
+    toast_manager_->Show(absl::StrFormat("Unknown command: %s", command_id),
+                        ToastType::kWarning);
+  }
 }
 
 }  // namespace editor
