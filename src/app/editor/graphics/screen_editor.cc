@@ -164,26 +164,8 @@ absl::Status ScreenEditor::Update() {
 }
 
 void ScreenEditor::DrawToolset() {
-  static gui::Toolset toolbar;
-  toolbar.Begin();
-
-  if (toolbar.AddAction(ICON_MD_MAP, "Dungeon Maps")) {
-    show_dungeon_maps_ = !show_dungeon_maps_;
-  }
-  if (toolbar.AddAction(ICON_MD_INVENTORY, "Inventory Menu")) {
-    show_inventory_menu_ = !show_inventory_menu_;
-  }
-  if (toolbar.AddAction(ICON_MD_PUBLIC, "Overworld Map")) {
-    show_overworld_map_ = !show_overworld_map_;
-  }
-  if (toolbar.AddAction(ICON_MD_TITLE, "Title Screen")) {
-    show_title_screen_ = !show_title_screen_;
-  }
-  if (toolbar.AddAction(ICON_MD_EDIT_ATTRIBUTES, "Naming Screen")) {
-    show_naming_screen_ = !show_naming_screen_;
-  }
-
-  toolbar.End();
+  // Sidebar is now drawn by EditorManager for card-based editors
+  // This method kept for compatibility but sidebar handles card toggles
 }
 
 void ScreenEditor::DrawInventoryMenuEditor() {

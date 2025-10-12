@@ -169,23 +169,8 @@ absl::Status GraphicsEditor::Update() {
 }
 
 void GraphicsEditor::DrawToolset() {
-  static gui::Toolset toolbar;
-  toolbar.Begin();
-
-  if (toolbar.AddAction(ICON_MD_EDIT, "Sheet Editor")) {
-    show_sheet_editor_ = !show_sheet_editor_;
-  }
-  if (toolbar.AddAction(ICON_MD_VIEW_LIST, "Sheet Browser")) {
-    show_sheet_browser_ = !show_sheet_browser_;
-  }
-  if (toolbar.AddAction(ICON_MD_PERSON, "Player Animations")) {
-    show_player_animations_ = !show_player_animations_;
-  }
-  if (toolbar.AddAction(ICON_MD_CONSTRUCTION, "Prototype Viewer")) {
-    show_prototype_viewer_ = !show_prototype_viewer_;
-  }
-
-  toolbar.End();
+  // Sidebar is now drawn by EditorManager for card-based editors
+  // This method kept for compatibility but sidebar handles card toggles
 }
 
 
