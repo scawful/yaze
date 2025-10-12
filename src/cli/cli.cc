@@ -1,5 +1,6 @@
 #include "cli/cli.h"
 #include "cli/service/command_registry.h"
+#include "cli/handlers/command_handlers.h"
 #include "cli/z3ed_ascii_logo.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_cat.h"
@@ -54,6 +55,13 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
     return absl::OkStatus();
   }
 
+  // Special case: "agent" command routes to HandleAgentCommand
+  if (args[0] == "agent") {
+    std::vector<std::string> agent_args(args.begin() + 1, args.end());
+    std::cout << "Agent args: " << absl::StrJoin(agent_args, " ") << std::endl;
+    args = agent_args;
+  }
+
   // Use CommandRegistry for unified command execution
   auto& registry = CommandRegistry::Instance();
   
@@ -69,16 +77,37 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
 
 void ModernCLI::ShowHelp() {
     using namespace ftxui;
-    auto banner = text("🎮 Z3ED - CLI for Zelda 3") | bold | center;
-    auto summary = Table({
-        {"Command", "Description", "TODO/Reference"},
-        {"agent", "AI conversational agent", "ref: agent::chat"},
-        {"rom", "ROM info, diff, validate", "todo#101"},
-        {"dungeon", "Dungeon tooling", "todo#202"},
-        {"gfx", "Graphics export/import", "ref: gfx::export"},
-        {"palette", "Palette operations", "todo#305"},
-        {"project", "Project workflows", "ref: project::build"}
-    });
+    auto& registry = CommandRegistry::Instance();
+    auto categories = registry.GetCategories();
+    
+    auto banner = text("🎮 Z3ED - AI-Powered ROM Editor CLI") | bold | center;
+    
+    std::vector<std::vector<std::string>> rows;
+    rows.push_back({"Category", "Commands", "Description"});
+    
+    // Add special "agent" category first
+    rows.push_back({"agent", "chat, learn, todo, emulator-*", "AI conversational agent + debugging tools"});
+    
+    // Add registry categories
+    for (const auto& category : categories) {
+        auto commands = registry.GetCommandsInCategory(category);
+        std::string cmd_list = commands.size() > 3 
+            ? absl::StrCat(commands.size(), " commands")
+            : absl::StrJoin(commands, ", ");
+        
+        std::string desc;
+        if (category == "resource") desc = "ROM resource inspection";
+        else if (category == "dungeon") desc = "Dungeon editing";
+        else if (category == "overworld") desc = "Overworld editing";
+        else if (category == "emulator") desc = "Emulator debugging";
+        else if (category == "graphics") desc = "Graphics/palette/sprites";
+        else if (category == "game") desc = "Messages/dialogue/music";
+        else desc = category + " commands";
+        
+        rows.push_back({category, cmd_list, desc});
+    }
+    
+    Table summary(rows);
     summary.SelectAll().Border(LIGHT);
     summary.SelectRow(0).Decorate(bold);
 
@@ -88,8 +117,10 @@ void ModernCLI::ShowHelp() {
         separator(),
         summary.Render(),
         separator(),
-        text("Try `z3ed --tui` for the animated FTXUI interface") | center,
-        text("Use `--list-commands` for complete breakdown") | dim | center
+        text(absl::StrFormat("Total: %zu commands across %zu categories", 
+                            registry.Count(), categories.size() + 1)) | center | dim,
+        text("Try `z3ed agent simple-chat` for AI-powered ROM inspection") | center,
+        text("Use `z3ed --list-commands` for complete list") | dim | center
     });
 
     auto screen = Screen::Create(Dimension::Full(), Dimension::Fit(layout));

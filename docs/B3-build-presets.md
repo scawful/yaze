@@ -139,7 +139,6 @@ Common CMake options you can override:
 
 # Build optimization
 -DYAZE_MINIMAL_BUILD=ON/OFF
--DYAZE_USE_MODULAR_BUILD=ON/OFF
 ```
 
 ## Examples
