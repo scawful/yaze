@@ -1,5 +1,5 @@
 #include "cli/cli.h"
-#include "cli/handlers/command_handlers.h"
+#include "cli/service/command_registry.h"
 #include "cli/z3ed_ascii_logo.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/str_cat.h"
@@ -11,14 +11,12 @@ namespace yaze {
 namespace cli {
 
 ModernCLI::ModernCLI() {
-  SetupCommands();
+  // Commands are now managed by CommandRegistry singleton
+  // SetupCommands() is no longer needed
 }
 
 void ModernCLI::SetupCommands() {
-    auto handlers = handlers::CreateAllCommandHandlers();
-    for (auto& handler : handlers) {
-        commands_[handler->GetName()] = std::move(handler);
-    }
+  // No-op: CommandRegistry handles this automatically
 }
 
 absl::Status ModernCLI::Run(int argc, char* argv[]) {
@@ -56,13 +54,17 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
     return absl::OkStatus();
   }
 
-  auto it = commands_.find(args[0]);
-  if (it != commands_.end()) {
-    std::vector<std::string> command_args(args.begin() + 1, args.end());
-    return it->second->Run(command_args, nullptr);
+  // Use CommandRegistry for unified command execution
+  auto& registry = CommandRegistry::Instance();
+  
+  std::string command_name = args[0];
+  std::vector<std::string> command_args(args.begin() + 1, args.end());
+  
+  if (registry.HasCommand(command_name)) {
+    return registry.Execute(command_name, command_args, nullptr);
   }
 
-  return absl::NotFoundError(absl::StrCat("Unknown command: ", args[0]));
+  return absl::NotFoundError(absl::StrCat("Unknown command: ", command_name));
 }
 
 void ModernCLI::ShowHelp() {
@@ -97,19 +99,26 @@ void ModernCLI::ShowHelp() {
 
 void ModernCLI::ShowCategoryHelp(const std::string& category) const {
     using namespace ftxui;
+    auto& registry = CommandRegistry::Instance();
+    
     std::vector<std::vector<std::string>> rows;
-    rows.push_back({"Subcommand", "Summary", "TODO/Reference"});
+    rows.push_back({"Command", "Description", "Requirements"});
 
-    auto it = commands_.find(category);
-    if (it != commands_.end()) {
-        const auto& metadata = it->second->Describe();
-        for (const auto& entry : metadata.entries) {
-            rows.push_back({entry.name, entry.description, entry.todo_reference});
+    auto commands = registry.GetCommandsInCategory(category);
+    for (const auto& cmd_name : commands) {
+        auto* metadata = registry.GetMetadata(cmd_name);
+        if (metadata) {
+            std::string requirements;
+            if (metadata->requires_rom) requirements += "ROM ";
+            if (metadata->requires_grpc) requirements += "gRPC ";
+            if (requirements.empty()) requirements = "—";
+            
+            rows.push_back({cmd_name, metadata->description, requirements});
         }
     }
 
     if (rows.size() == 1) {
-        rows.push_back({"—", "No metadata registered", "—"});
+        rows.push_back({"—", "No commands in this category", "—"});
     }
 
     Table detail(rows);
@@ -121,7 +130,7 @@ void ModernCLI::ShowCategoryHelp(const std::string& category) const {
         separator(),
         detail.Render(),
         separator(),
-        text("Command handlers can expose TODO references via Describe().") | dim | center
+        text("Commands are auto-registered from CommandRegistry") | dim | center
     });
 
     auto screen = Screen::Create(Dimension::Full(), Dimension::Fit(layout));
@@ -131,24 +140,37 @@ void ModernCLI::ShowCategoryHelp(const std::string& category) const {
 
 void ModernCLI::ShowCommandSummary() const {
     using namespace ftxui;
-    std::vector<Element> tiles;
-    for (const auto& [name, handler] : commands_) {
-        const auto summary = handler->Describe();
-        tiles.push_back(
-            vbox({
-                text(summary.display_name.empty() ? name : summary.display_name) | bold,
-                separator(),
-                text(summary.summary),
-                text(absl::StrCat("TODO: ", summary.todo_reference)) | dim
-            }) | borderRounded);
+    auto& registry = CommandRegistry::Instance();
+    
+    std::vector<std::vector<std::string>> rows;
+    rows.push_back({"Command", "Category", "Description"});
+    
+    auto categories = registry.GetCategories();
+    for (const auto& category : categories) {
+        auto commands = registry.GetCommandsInCategory(category);
+        for (const auto& cmd_name : commands) {
+            auto* metadata = registry.GetMetadata(cmd_name);
+            if (metadata) {
+                rows.push_back({cmd_name, metadata->category, metadata->description});
+            }
+        }
     }
+
+    if (rows.size() == 1) {
+        rows.push_back({"—", "—", "No commands registered"});
+    }
+
+    Table command_table(rows);
+    command_table.SelectAll().Border(LIGHT);
+    command_table.SelectRow(0).Decorate(bold);
 
     auto layout = vbox({
         text("Z3ED Command Summary") | bold | center,
         separator(),
-        tiles.empty() ? text("No commands registered.") | dim | center
-                       : vbox(tiles),
+        command_table.Render(),
         separator(),
+        text(absl::StrFormat("Total: %zu commands across %zu categories", 
+                            registry.Count(), categories.size())) | center | dim,
         text("Use `z3ed --tui` for interactive command palette.") | center | dim
     });
 

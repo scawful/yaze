@@ -13,10 +13,6 @@
 #include "app/snes.h"
 #include "util/macro.h"
 
-#include "cli/service/resources/command_handler.h"
-#include <map>
-#include <memory>
-
 // Forward declarations
 namespace ftxui {
 class ScreenInteractive;
@@ -42,7 +38,7 @@ class ModernCLI {
   void ShowCategoryHelp(const std::string& category) const;
   void ShowCommandSummary() const;
 
-  std::map<std::string, std::unique_ptr<resources::CommandHandler>> commands_;
+  // Commands are now managed by CommandRegistry singleton (no member needed)
 };
 
 }  // namespace cli
