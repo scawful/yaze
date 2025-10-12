@@ -181,18 +181,7 @@ void ThemedProgressBar(float fraction, const ImVec2& size = ImVec2(-1, 0),
 // Palette Editor Widgets
 // ============================================================================
 
-/**
- * @brief Palette color button with modified and selection indicators
- * @param label Widget ID
- * @param color SNES color to display
- * @param is_selected Whether this color is currently selected
- * @param is_modified Whether this color has unsaved changes
- * @param size Button size (default 24x24)
- * @return true if clicked
- */
-bool PaletteColorButton(const char* label, const yaze::gfx::SnesColor& color,
-                       bool is_selected, bool is_modified,
-                       const ImVec2& size = ImVec2(24, 24));
+// NOTE: PaletteColorButton moved to color.h for consistency with other color utilities
 
 /**
  * @brief Display color information with copy-to-clipboard functionality

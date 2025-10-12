@@ -211,6 +211,8 @@ struct PaletteGroup {
   PaletteGroup() = default;
   PaletteGroup(const std::string& name) : name_(name) {}
 
+  // ========== Basic Operations ==========
+  
   void AddPalette(SnesPalette pal) { palettes.emplace_back(pal); }
 
   void AddColor(SnesColor color) {
@@ -222,23 +224,74 @@ struct PaletteGroup {
 
   void clear() { palettes.clear(); }
   void resize(size_t new_size) { palettes.resize(new_size); }
+  
+  // ========== Accessors ==========
+  
   auto name() const { return name_; }
   auto size() const { return palettes.size(); }
+  bool empty() const { return palettes.empty(); }
+  
+  // Const access
   auto palette(int i) const { return palettes[i]; }
+  const SnesPalette& palette_ref(int i) const { return palettes[i]; }
+  
+  // Mutable access
   auto mutable_palette(int i) { return &palettes[i]; }
+  SnesPalette& palette_ref(int i) { return palettes[i]; }
+
+  // ========== Color Operations ==========
+  
+  /**
+   * @brief Get a specific color from a palette
+   * @param palette_index The palette index
+   * @param color_index The color index within the palette
+   * @return The color, or SnesColor() if indices are invalid
+   */
+  SnesColor GetColor(int palette_index, int color_index) const {
+    if (palette_index >= 0 && palette_index < palettes.size()) {
+      const auto& pal = palettes[palette_index];
+      if (color_index >= 0 && color_index < pal.size()) {
+        return pal[color_index];
+      }
+    }
+    return SnesColor();
+  }
+  
+  /**
+   * @brief Set a specific color in a palette
+   * @param palette_index The palette index
+   * @param color_index The color index within the palette
+   * @param color The new color value
+   * @return true if color was set successfully
+   */
+  bool SetColor(int palette_index, int color_index, const SnesColor& color) {
+    if (palette_index >= 0 && palette_index < palettes.size()) {
+      auto& pal = palettes[palette_index];
+      if (color_index >= 0 && color_index < pal.size()) {
+        pal[color_index] = color;
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  // ========== Operator Overloads ==========
 
   SnesPalette operator[](int i) {
-    if (i > palettes.size()) {
-      std::cout << "PaletteGroup: Index out of bounds" << std::endl;
-      return palettes[0];
+    if (i >= palettes.size()) {
+      std::cout << "PaletteGroup: Index " << i << " out of bounds (size: " 
+                << palettes.size() << ")" << std::endl;
+      return SnesPalette();
     }
     return palettes[i];
   }
 
   const SnesPalette& operator[](int i) const {
-    if (i > palettes.size()) {
-      std::cout << "PaletteGroup: Index out of bounds" << std::endl;
-      return palettes[0];
+    if (i >= palettes.size()) {
+      std::cout << "PaletteGroup: Index " << i << " out of bounds (size: " 
+                << palettes.size() << ")" << std::endl;
+      static const SnesPalette empty_palette;
+      return empty_palette;
     }
     return palettes[i];
   }

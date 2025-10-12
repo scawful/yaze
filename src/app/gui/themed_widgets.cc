@@ -254,50 +254,7 @@ void ThemedProgressBar(float fraction, const ImVec2& size, const char* overlay) 
 // ============================================================================
 // Palette Editor Widgets
 // ============================================================================
-
-bool PaletteColorButton(const char* label, const yaze::gfx::SnesColor& color,
-                       bool is_selected, bool is_modified,
-                       const ImVec2& size) {
-  const auto& theme = GetTheme();
-
-  int style_count = 0;
-
-  // Draw modified indicator with warning border
-  if (is_modified) {
-    ImGui::PushStyleColor(ImGuiCol_Border, ConvertColorToImVec4(theme.warning));
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
-    style_count++;
-  }
-
-  // Draw selection border (overrides modified if both)
-  if (is_selected) {
-    ImGui::PushStyleColor(ImGuiCol_Border, ConvertColorToImVec4(theme.accent));
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 3.0f);
-    if (is_modified) {
-      ImGui::PopStyleVar();  // Remove modified border style
-      ImGui::PopStyleColor();  // Remove modified border color
-    }
-    style_count = 1;  // Override count
-  }
-
-  // Convert SNES color to ImGui format
-  ImVec4 col = ConvertSnesColorToImVec4(color);
-
-  // Draw color button
-  bool clicked = ImGui::ColorButton(label, col,
-                                    ImGuiColorEditFlags_NoAlpha |
-                                    ImGuiColorEditFlags_NoPicker |
-                                    ImGuiColorEditFlags_NoTooltip,
-                                    size);
-
-  // Cleanup styles
-  if (style_count > 0) {
-    ImGui::PopStyleVar();
-    ImGui::PopStyleColor();
-  }
-
-  return clicked;
-}
+// NOTE: PaletteColorButton moved to color.cc
 
 void ColorInfoPanel(const yaze::gfx::SnesColor& color,
                    bool show_snes_format,

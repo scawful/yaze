@@ -10,7 +10,6 @@
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/palette/palette_group_card.h"
 #include "app/gfx/snes_color.h"
-#include "app/gui/editor_card_manager.h"
 #include "app/gfx/snes_palette.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
@@ -97,23 +96,31 @@ class PaletteEditor : public Editor {
   absl::Status Find() override { return absl::OkStatus(); }
   absl::Status Save() override { return absl::UnimplementedError("Save"); }
 
-  void DrawQuickAccessTab();
+  void set_rom(Rom* rom) { rom_ = rom; }
+  Rom* rom() const { return rom_; }
 
+  /**
+   * @brief Jump to a specific palette by group and index
+   * @param group_name The palette group name (e.g., "ow_main", "dungeon_main")
+   * @param palette_index The palette index within the group
+   */
+  void JumpToPalette(const std::string& group_name, int palette_index);
+
+ private:
+  void DrawToolset();
+  void DrawControlPanel();
+  void DrawQuickAccessCard();
+  void DrawCustomPaletteCard();
+
+  // Legacy methods (for backward compatibility if needed)
+  void DrawQuickAccessTab();
   void DrawCustomPalette();
   absl::Status DrawPaletteGroup(int category, bool right_side = false);
   absl::Status EditColorInPalette(gfx::SnesPalette& palette, int index);
   absl::Status ResetColorToOriginal(gfx::SnesPalette& palette, int index,
                                     const gfx::SnesPalette& originalPalette);
-
   void AddRecentlyUsedColor(const gfx::SnesColor& color);
-
-  void set_rom(Rom* rom) { rom_ = rom; }
-  Rom* rom() const { return rom_; }
-
- private:
   absl::Status HandleColorPopup(gfx::SnesPalette& palette, int i, int j, int n);
-
-  void DrawPaletteCards();
 
   absl::Status status_;
   gfx::SnesColor current_color_;
@@ -131,11 +138,28 @@ class PaletteEditor : public Editor {
 
   Rom* rom_;
 
+  // Card visibility flags (registered with EditorCardManager)
+  bool show_control_panel_ = true;
+  bool show_ow_main_card_ = false;
+  bool show_ow_animated_card_ = false;
+  bool show_dungeon_main_card_ = false;
+  bool show_sprite_card_ = false;
+  bool show_sprites_aux1_card_ = false;
+  bool show_sprites_aux2_card_ = false;
+  bool show_sprites_aux3_card_ = false;
+  bool show_equipment_card_ = false;
+  bool show_quick_access_ = false;
+  bool show_custom_palette_ = false;
+  bool control_panel_minimized_ = false;
+
   // Palette card instances
   std::unique_ptr<OverworldMainPaletteCard> ow_main_card_;
   std::unique_ptr<OverworldAnimatedPaletteCard> ow_animated_card_;
   std::unique_ptr<DungeonMainPaletteCard> dungeon_main_card_;
   std::unique_ptr<SpritePaletteCard> sprite_card_;
+  std::unique_ptr<SpritesAux1PaletteCard> sprites_aux1_card_;
+  std::unique_ptr<SpritesAux2PaletteCard> sprites_aux2_card_;
+  std::unique_ptr<SpritesAux3PaletteCard> sprites_aux3_card_;
   std::unique_ptr<EquipmentPaletteCard> equipment_card_;
 };
 

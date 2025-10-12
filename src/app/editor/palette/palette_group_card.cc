@@ -13,7 +13,7 @@
 namespace yaze {
 namespace editor {
 
-using namespace gui;
+using namespace yaze::gui;
 using gui::ThemedButton;
 using gui::ThemedIconButton;
 using gui::PrimaryButton;
@@ -26,20 +26,24 @@ PaletteGroupCard::PaletteGroupCard(const std::string& group_name,
     : group_name_(group_name),
       display_name_(display_name),
       rom_(rom) {
-  // Load original palettes from ROM for reset/comparison
-  if (rom_ && rom_->is_loaded()) {
+  // Note: We can't call GetPaletteGroup() here because it's a pure virtual function
+  // and the derived class isn't fully constructed yet. Original palettes will be
+  // loaded on first Draw() call instead.
+}
+
+void PaletteGroupCard::Draw() {
+  if (!show_ || !rom_ || !rom_->is_loaded()) {
+    return;
+  }
+
+  // Lazy load original palettes on first draw (after derived class is fully constructed)
+  if (original_palettes_.empty()) {
     auto* palette_group = GetPaletteGroup();
     if (palette_group) {
       for (size_t i = 0; i < palette_group->size(); i++) {
         original_palettes_.push_back(palette_group->palette(i));
       }
     }
-  }
-}
-
-void PaletteGroupCard::Draw() {
-  if (!show_ || !rom_ || !rom_->is_loaded()) {
-    return;
   }
 
   // Main card window
@@ -314,10 +318,26 @@ void PaletteGroupCard::DrawMetadataInfo() {
     ImGui::TextWrapped("%s", pal_meta.description.c_str());
   }
 
+  ImGui::Separator();
+
+  // Palette dimensions and color depth
+  ImGui::Text("Dimensions: %d colors (%dx%d)", 
+              metadata.colors_per_palette,
+              metadata.colors_per_row,
+              (metadata.colors_per_palette + metadata.colors_per_row - 1) / metadata.colors_per_row);
+  
+  ImGui::Text("Color Depth: %d BPP (4-bit SNES)", 4);
+  ImGui::TextDisabled("(16 colors per palette possible)");
+
+  ImGui::Separator();
+
   // ROM Address
   ImGui::Text("ROM Address: $%06X", pal_meta.rom_address);
   if (ImGui::IsItemClicked()) {
     ImGui::SetClipboardText(absl::StrFormat("$%06X", pal_meta.rom_address).c_str());
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Click to copy address");
   }
 
   // VRAM Address (if applicable)
@@ -325,6 +345,9 @@ void PaletteGroupCard::DrawMetadataInfo() {
     ImGui::Text("VRAM Address: $%04X", pal_meta.vram_address);
     if (ImGui::IsItemClicked()) {
       ImGui::SetClipboardText(absl::StrFormat("$%04X", pal_meta.vram_address).c_str());
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Click to copy VRAM address");
     }
   }
 
@@ -580,7 +603,7 @@ std::string PaletteGroupCard::ExportToJson() const {
   return "{}";
 }
 
-absl::Status PaletteGroupCard::ImportFromJson(const std::string& json) {
+absl::Status PaletteGroupCard::ImportFromJson(const std::string& /*json*/) {
   // TODO: Implement JSON import
   return absl::UnimplementedError("Import from JSON not yet implemented");
 }
@@ -690,7 +713,7 @@ void OverworldMainPaletteCard::DrawPaletteGrid() {
 
     ImGui::PushID(i);
 
-    if (PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
                           (*palette)[i], is_selected, is_modified,
                           ImVec2(button_size, button_size))) {
       selected_color_ = i;
@@ -758,7 +781,7 @@ void OverworldAnimatedPaletteCard::DrawPaletteGrid() {
 
     ImGui::PushID(i);
 
-    if (PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
                           (*palette)[i], is_selected, is_modified,
                           ImVec2(button_size, button_size))) {
       selected_color_ = i;
@@ -832,7 +855,7 @@ void DungeonMainPaletteCard::DrawPaletteGrid() {
 
     ImGui::PushID(i);
 
-    if (PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
                           (*palette)[i], is_selected, is_modified,
                           ImVec2(button_size, button_size))) {
       selected_color_ = i;
@@ -853,40 +876,30 @@ const PaletteGroupMetadata SpritePaletteCard::metadata_ =
     SpritePaletteCard::InitializeMetadata();
 
 SpritePaletteCard::SpritePaletteCard(Rom* rom)
-    : PaletteGroupCard("sprites", "Sprite Palettes", rom) {}
+    : PaletteGroupCard("global_sprites", "Sprite Palettes", rom) {}
 
 PaletteGroupMetadata SpritePaletteCard::InitializeMetadata() {
   PaletteGroupMetadata metadata;
-  metadata.group_name = "sprites";
-  metadata.display_name = "Sprite Palettes";
-  metadata.colors_per_palette = 8;
-  metadata.colors_per_row = 8;
+  metadata.group_name = "global_sprites";
+  metadata.display_name = "Global Sprite Palettes";
+  metadata.colors_per_palette = 60;  // 60 colors: 4 rows of 16 colors (with transparent at 0, 16, 32, 48)
+  metadata.colors_per_row = 16;       // Display in 16-color rows
 
-  // Global sprite palettes (0-3)
+  // 2 palette sets: Light World and Dark World
   const char* sprite_names[] = {
-      "Green Mail Sprite", "Blue Mail Sprite", "Red Mail Sprite", "Gold Armor"
+      "Global Sprites (Light World)",
+      "Global Sprites (Dark World)"
   };
 
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 2; i++) {
     PaletteMetadata pal;
     pal.palette_id = i;
     pal.name = sprite_names[i];
-    pal.description = "Global sprite palette";
-    pal.rom_address = 0xDD218 + (i * 16);
-    pal.vram_address = 0x8D00 + (i * 16);  // VRAM sprite palette area
-    pal.usage_notes = "Used by sprites throughout the game";
-    metadata.palettes.push_back(pal);
-  }
-
-  // Auxiliary sprite palettes (4-5)
-  for (int i = 4; i < 6; i++) {
-    PaletteMetadata pal;
-    pal.palette_id = i;
-    pal.name = absl::StrFormat("Auxiliary %d", i - 4);
-    pal.description = "Auxiliary sprite palette";
-    pal.rom_address = 0xDD218 + (i * 16);
-    pal.vram_address = 0x8D00 + (i * 16);
-    pal.usage_notes = "Used by specific sprites";
+    pal.description = "60 colors = 4 sprite sub-palettes (rows) with transparent at 0, 16, 32, 48";
+    pal.rom_address = (i == 0) ? 0xDD218 : 0xDD290;  // LW or DW address
+    pal.vram_address = 0;  // Loaded dynamically
+    pal.usage_notes = "4 sprite sub-palettes of 15 colors + transparent each. "
+                      "Row 0: colors 0-15, Row 1: 16-31, Row 2: 32-47, Row 3: 48-59";
     metadata.palettes.push_back(pal);
   }
 
@@ -894,18 +907,18 @@ PaletteGroupMetadata SpritePaletteCard::InitializeMetadata() {
 }
 
 gfx::PaletteGroup* SpritePaletteCard::GetPaletteGroup() {
-  return rom_->mutable_palette_group()->get_group("sprites");
+  return rom_->mutable_palette_group()->get_group("global_sprites");
 }
 
 const gfx::PaletteGroup* SpritePaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("sprites");
+  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("global_sprites");
 }
 
 void SpritePaletteCard::DrawPaletteGrid() {
   auto* palette = GetMutablePalette(selected_palette_);
   if (!palette) return;
 
-  const float button_size = 32.0f;
+  const float button_size = 28.0f;
   const int colors_per_row = GetColorsPerRow();
 
   for (int i = 0; i < palette->size(); i++) {
@@ -914,11 +927,33 @@ void SpritePaletteCard::DrawPaletteGrid() {
 
     ImGui::PushID(i);
 
-    if (PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                          (*palette)[i], is_selected, is_modified,
-                          ImVec2(button_size, button_size))) {
-      selected_color_ = i;
-      editing_color_ = (*palette)[i];
+    // Draw transparent color indicator at start of each 16-color row (0, 16, 32, 48, ...)
+    bool is_transparent_slot = (i % 16 == 0);
+    if (is_transparent_slot) {
+      ImGui::BeginGroup();
+      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+                            (*palette)[i], is_selected, is_modified,
+                            ImVec2(button_size, button_size))) {
+        selected_color_ = i;
+        editing_color_ = (*palette)[i];
+      }
+      // Draw "T" for transparent
+      ImVec2 pos = ImGui::GetItemRectMin();
+      ImGui::GetWindowDrawList()->AddText(
+          ImVec2(pos.x + button_size / 2 - 4, pos.y + button_size / 2 - 8),
+          IM_COL32(255, 255, 255, 200), "T");
+      ImGui::EndGroup();
+      
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Transparent color slot for sprite sub-palette %d", i / 16);
+      }
+    } else {
+      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+                            (*palette)[i], is_selected, is_modified,
+                            ImVec2(button_size, button_size))) {
+        selected_color_ = i;
+        editing_color_ = (*palette)[i];
+      }
     }
 
     ImGui::PopID();
@@ -949,11 +984,11 @@ const PaletteGroupMetadata EquipmentPaletteCard::metadata_ =
     EquipmentPaletteCard::InitializeMetadata();
 
 EquipmentPaletteCard::EquipmentPaletteCard(Rom* rom)
-    : PaletteGroupCard("armor", "Equipment Palettes", rom) {}
+    : PaletteGroupCard("armors", "Equipment Palettes", rom) {}
 
 PaletteGroupMetadata EquipmentPaletteCard::InitializeMetadata() {
   PaletteGroupMetadata metadata;
-  metadata.group_name = "armor";
+  metadata.group_name = "armors";
   metadata.display_name = "Equipment Palettes";
   metadata.colors_per_palette = 8;
   metadata.colors_per_row = 8;
@@ -975,11 +1010,11 @@ PaletteGroupMetadata EquipmentPaletteCard::InitializeMetadata() {
 }
 
 gfx::PaletteGroup* EquipmentPaletteCard::GetPaletteGroup() {
-  return rom_->mutable_palette_group()->get_group("armor");
+  return rom_->mutable_palette_group()->get_group("armors");
 }
 
 const gfx::PaletteGroup* EquipmentPaletteCard::GetPaletteGroup() const {
-  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("armor");
+  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("armors");
 }
 
 void EquipmentPaletteCard::DrawPaletteGrid() {
@@ -995,11 +1030,257 @@ void EquipmentPaletteCard::DrawPaletteGrid() {
 
     ImGui::PushID(i);
 
-    if (PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+    if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
                           (*palette)[i], is_selected, is_modified,
                           ImVec2(button_size, button_size))) {
       selected_color_ = i;
       editing_color_ = (*palette)[i];
+    }
+
+    ImGui::PopID();
+
+    if ((i + 1) % colors_per_row != 0 && i + 1 < palette->size()) {
+      ImGui::SameLine();
+    }
+  }
+}
+
+// ========== Sprites Aux1 Palette Card ==========
+
+const PaletteGroupMetadata SpritesAux1PaletteCard::metadata_ =
+    SpritesAux1PaletteCard::InitializeMetadata();
+
+SpritesAux1PaletteCard::SpritesAux1PaletteCard(Rom* rom)
+    : PaletteGroupCard("sprites_aux1", "Sprites Aux 1", rom) {}
+
+PaletteGroupMetadata SpritesAux1PaletteCard::InitializeMetadata() {
+  PaletteGroupMetadata metadata;
+  metadata.group_name = "sprites_aux1";
+  metadata.display_name = "Sprites Aux 1";
+  metadata.colors_per_palette = 8;  // 7 colors + transparent
+  metadata.colors_per_row = 8;
+
+  for (int i = 0; i < 12; i++) {
+    PaletteMetadata pal;
+    pal.palette_id = i;
+    pal.name = absl::StrFormat("Sprites Aux1 %02d", i);
+    pal.description = "Auxiliary sprite palette (7 colors + transparent)";
+    pal.rom_address = 0xDD39E + (i * 14);  // 7 colors * 2 bytes
+    pal.vram_address = 0;
+    pal.usage_notes = "Used by specific sprites. Color 0 is transparent.";
+    metadata.palettes.push_back(pal);
+  }
+
+  return metadata;
+}
+
+gfx::PaletteGroup* SpritesAux1PaletteCard::GetPaletteGroup() {
+  return rom_->mutable_palette_group()->get_group("sprites_aux1");
+}
+
+const gfx::PaletteGroup* SpritesAux1PaletteCard::GetPaletteGroup() const {
+  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("sprites_aux1");
+}
+
+void SpritesAux1PaletteCard::DrawPaletteGrid() {
+  auto* palette = GetMutablePalette(selected_palette_);
+  if (!palette) return;
+
+  const float button_size = 32.0f;
+  const int colors_per_row = GetColorsPerRow();
+
+  for (int i = 0; i < palette->size(); i++) {
+    bool is_selected = (i == selected_color_);
+    bool is_modified = IsColorModified(selected_palette_, i);
+
+    ImGui::PushID(i);
+
+    // Draw transparent color indicator for index 0
+    if (i == 0) {
+      ImGui::BeginGroup();
+      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+                            (*palette)[i], is_selected, is_modified,
+                            ImVec2(button_size, button_size))) {
+        selected_color_ = i;
+        editing_color_ = (*palette)[i];
+      }
+      // Draw "T" for transparent
+      ImVec2 pos = ImGui::GetItemRectMin();
+      ImGui::GetWindowDrawList()->AddText(
+          ImVec2(pos.x + button_size / 2 - 4, pos.y + button_size / 2 - 8),
+          IM_COL32(255, 255, 255, 200), "T");
+      ImGui::EndGroup();
+    } else {
+      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+                            (*palette)[i], is_selected, is_modified,
+                            ImVec2(button_size, button_size))) {
+        selected_color_ = i;
+        editing_color_ = (*palette)[i];
+      }
+    }
+
+    ImGui::PopID();
+
+    if ((i + 1) % colors_per_row != 0 && i + 1 < palette->size()) {
+      ImGui::SameLine();
+    }
+  }
+}
+
+// ========== Sprites Aux2 Palette Card ==========
+
+const PaletteGroupMetadata SpritesAux2PaletteCard::metadata_ =
+    SpritesAux2PaletteCard::InitializeMetadata();
+
+SpritesAux2PaletteCard::SpritesAux2PaletteCard(Rom* rom)
+    : PaletteGroupCard("sprites_aux2", "Sprites Aux 2", rom) {}
+
+PaletteGroupMetadata SpritesAux2PaletteCard::InitializeMetadata() {
+  PaletteGroupMetadata metadata;
+  metadata.group_name = "sprites_aux2";
+  metadata.display_name = "Sprites Aux 2";
+  metadata.colors_per_palette = 8;  // 7 colors + transparent
+  metadata.colors_per_row = 8;
+
+  for (int i = 0; i < 11; i++) {
+    PaletteMetadata pal;
+    pal.palette_id = i;
+    pal.name = absl::StrFormat("Sprites Aux2 %02d", i);
+    pal.description = "Auxiliary sprite palette (7 colors + transparent)";
+    pal.rom_address = 0xDD446 + (i * 14);  // 7 colors * 2 bytes
+    pal.vram_address = 0;
+    pal.usage_notes = "Used by specific sprites. Color 0 is transparent.";
+    metadata.palettes.push_back(pal);
+  }
+
+  return metadata;
+}
+
+gfx::PaletteGroup* SpritesAux2PaletteCard::GetPaletteGroup() {
+  return rom_->mutable_palette_group()->get_group("sprites_aux2");
+}
+
+const gfx::PaletteGroup* SpritesAux2PaletteCard::GetPaletteGroup() const {
+  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("sprites_aux2");
+}
+
+void SpritesAux2PaletteCard::DrawPaletteGrid() {
+  auto* palette = GetMutablePalette(selected_palette_);
+  if (!palette) return;
+
+  const float button_size = 32.0f;
+  const int colors_per_row = GetColorsPerRow();
+
+  for (int i = 0; i < palette->size(); i++) {
+    bool is_selected = (i == selected_color_);
+    bool is_modified = IsColorModified(selected_palette_, i);
+
+    ImGui::PushID(i);
+
+    // Draw transparent color indicator for index 0
+    if (i == 0) {
+      ImGui::BeginGroup();
+      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+                            (*palette)[i], is_selected, is_modified,
+                            ImVec2(button_size, button_size))) {
+        selected_color_ = i;
+        editing_color_ = (*palette)[i];
+      }
+      // Draw "T" for transparent
+      ImVec2 pos = ImGui::GetItemRectMin();
+      ImGui::GetWindowDrawList()->AddText(
+          ImVec2(pos.x + button_size / 2 - 4, pos.y + button_size / 2 - 8),
+          IM_COL32(255, 255, 255, 200), "T");
+      ImGui::EndGroup();
+    } else {
+      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+                            (*palette)[i], is_selected, is_modified,
+                            ImVec2(button_size, button_size))) {
+        selected_color_ = i;
+        editing_color_ = (*palette)[i];
+      }
+    }
+
+    ImGui::PopID();
+
+    if ((i + 1) % colors_per_row != 0 && i + 1 < palette->size()) {
+      ImGui::SameLine();
+    }
+  }
+}
+
+// ========== Sprites Aux3 Palette Card ==========
+
+const PaletteGroupMetadata SpritesAux3PaletteCard::metadata_ =
+    SpritesAux3PaletteCard::InitializeMetadata();
+
+SpritesAux3PaletteCard::SpritesAux3PaletteCard(Rom* rom)
+    : PaletteGroupCard("sprites_aux3", "Sprites Aux 3", rom) {}
+
+PaletteGroupMetadata SpritesAux3PaletteCard::InitializeMetadata() {
+  PaletteGroupMetadata metadata;
+  metadata.group_name = "sprites_aux3";
+  metadata.display_name = "Sprites Aux 3";
+  metadata.colors_per_palette = 8;  // 7 colors + transparent
+  metadata.colors_per_row = 8;
+
+  for (int i = 0; i < 24; i++) {
+    PaletteMetadata pal;
+    pal.palette_id = i;
+    pal.name = absl::StrFormat("Sprites Aux3 %02d", i);
+    pal.description = "Auxiliary sprite palette (7 colors + transparent)";
+    pal.rom_address = 0xDD4E0 + (i * 14);  // 7 colors * 2 bytes
+    pal.vram_address = 0;
+    pal.usage_notes = "Used by specific sprites. Color 0 is transparent.";
+    metadata.palettes.push_back(pal);
+  }
+
+  return metadata;
+}
+
+gfx::PaletteGroup* SpritesAux3PaletteCard::GetPaletteGroup() {
+  return rom_->mutable_palette_group()->get_group("sprites_aux3");
+}
+
+const gfx::PaletteGroup* SpritesAux3PaletteCard::GetPaletteGroup() const {
+  return const_cast<Rom*>(rom_)->mutable_palette_group()->get_group("sprites_aux3");
+}
+
+void SpritesAux3PaletteCard::DrawPaletteGrid() {
+  auto* palette = GetMutablePalette(selected_palette_);
+  if (!palette) return;
+
+  const float button_size = 32.0f;
+  const int colors_per_row = GetColorsPerRow();
+
+  for (int i = 0; i < palette->size(); i++) {
+    bool is_selected = (i == selected_color_);
+    bool is_modified = IsColorModified(selected_palette_, i);
+
+    ImGui::PushID(i);
+
+    // Draw transparent color indicator for index 0
+    if (i == 0) {
+      ImGui::BeginGroup();
+      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+                            (*palette)[i], is_selected, is_modified,
+                            ImVec2(button_size, button_size))) {
+        selected_color_ = i;
+        editing_color_ = (*palette)[i];
+      }
+      // Draw "T" for transparent
+      ImVec2 pos = ImGui::GetItemRectMin();
+      ImGui::GetWindowDrawList()->AddText(
+          ImVec2(pos.x + button_size / 2 - 4, pos.y + button_size / 2 - 8),
+          IM_COL32(255, 255, 255, 200), "T");
+      ImGui::EndGroup();
+    } else {
+      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
+                            (*palette)[i], is_selected, is_modified,
+                            ImVec2(button_size, button_size))) {
+        selected_color_ = i;
+        editing_color_ = (*palette)[i];
+      }
     }
 
     ImGui::PopID();

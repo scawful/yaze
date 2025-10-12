@@ -236,42 +236,9 @@ absl::Status DungeonEditorV2::Save() {
 }
 
 void DungeonEditorV2::DrawToolset() {
-  static gui::Toolset toolbar;
-  toolbar.Begin();
-
-  if (toolbar.AddAction(ICON_MD_ADD, "Open Room")) {
-    OnRoomSelected(room_selector_.current_room_id());
-  }
-  
-  toolbar.AddSeparator();
-  
-  if (toolbar.AddToggle(ICON_MD_LIST, &show_room_selector_, "Toggle Room Selector")) {
-    // Toggled
-  }
-  
-  if (toolbar.AddToggle(ICON_MD_GRID_VIEW, &show_room_matrix_, "Toggle Room Matrix")) {
-    // Toggled
-  }
-  
-  if (toolbar.AddToggle(ICON_MD_DOOR_FRONT, &show_entrances_list_, "Toggle Entrances List")) {
-    // Toggled
-  }
-  
-  if (toolbar.AddToggle(ICON_MD_IMAGE, &show_room_graphics_, "Toggle Room Graphics")) {
-    // Toggled
-  }
-  
-  toolbar.AddSeparator();
-  
-  if (toolbar.AddToggle(ICON_MD_CONSTRUCTION, &show_object_editor_, "Toggle Object Editor")) {
-    // Toggled
-  }
-  
-  if (toolbar.AddToggle(ICON_MD_PALETTE, &show_palette_editor_, "Toggle Palette Editor")) {
-    // Toggled
-  }
-
-  toolbar.End();
+  // Draw VSCode-style sidebar using EditorCardManager
+  // auto& card_manager = gui::EditorCardManager::Get();
+  // card_manager.DrawSidebar("Dungeon");
 }
 
 void DungeonEditorV2::DrawControlPanel() {

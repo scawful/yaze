@@ -5,8 +5,8 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gui/icons.h"
+#include "app/gui/theme_manager.h"
 #include "imgui/imgui.h"
-#include "util/file_util.h"
 
 namespace yaze {
 namespace gui {
@@ -34,11 +34,54 @@ void EditorCardManager::RegisterCard(const CardInfo& info) {
          info.card_id.c_str(), info.display_name.c_str());
 }
 
+void EditorCardManager::RegisterCard(const std::string& card_id,
+                                     const std::string& display_name,
+                                     const std::string& icon,
+                                     const std::string& category,
+                                     const std::string& shortcut_hint,
+                                     int priority,
+                                     std::function<void()> on_show,
+                                     std::function<void()> on_hide,
+                                     bool visible_by_default) {
+  if (card_id.empty()) {
+    printf("[EditorCardManager] Warning: Attempted to register card with empty ID\n");
+    return;
+  }
+  
+  // Check if already registered
+  if (cards_.find(card_id) != cards_.end()) {
+    printf("[EditorCardManager] WARNING: Card '%s' already registered, skipping duplicate\n", 
+           card_id.c_str());
+    return;
+  }
+  
+  // Create centralized visibility flag
+  centralized_visibility_[card_id] = visible_by_default;
+  
+  // Register card with pointer to centralized flag
+  CardInfo info;
+  info.card_id = card_id;
+  info.display_name = display_name;
+  info.icon = icon;
+  info.category = category;
+  info.shortcut_hint = shortcut_hint;
+  info.priority = priority;
+  info.visibility_flag = &centralized_visibility_[card_id];
+  info.on_show = on_show;
+  info.on_hide = on_hide;
+  
+  cards_[card_id] = info;
+  printf("[EditorCardManager] Registered card with centralized visibility: %s (%s) [default: %s]\n",
+         card_id.c_str(), display_name.c_str(), visible_by_default ? "visible" : "hidden");
+}
+
 void EditorCardManager::UnregisterCard(const std::string& card_id) {
   auto it = cards_.find(card_id);
   if (it != cards_.end()) {
     printf("[EditorCardManager] Unregistered card: %s\n", card_id.c_str());
     cards_.erase(it);
+    // Also remove centralized visibility if it exists
+    centralized_visibility_.erase(card_id);
   }
 }
 
@@ -55,6 +98,9 @@ bool EditorCardManager::ShowCard(const std::string& card_id) {
   
   if (it->second.visibility_flag) {
     *it->second.visibility_flag = true;
+    
+    // Set active category when showing a card
+    SetActiveCategory(it->second.category);
     
     if (it->second.on_show) {
       it->second.on_show();
@@ -667,6 +713,107 @@ void EditorCardManager::LoadPresetsFromFile() {
   // Load presets from file
   // TODO: Implement file I/O
   printf("[EditorCardManager] Loading presets from file\n");
+}
+
+void EditorCardManager::SetActiveCategory(const std::string& category) {
+  if (active_category_ != category) {
+    active_category_ = category;
+    printf("[EditorCardManager] Active category changed to: %s\n", category.c_str());
+  }
+}
+
+void EditorCardManager::DrawSidebar(const std::string& category) {
+  // Set this category as active when sidebar is drawn
+  SetActiveCategory(category);
+  
+  // Use ThemeManager for consistent theming
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+  
+  const float sidebar_width = GetSidebarWidth();
+  
+  // Fixed sidebar window on the left edge of screen
+  ImGui::SetNextWindowPos(ImVec2(0, ImGui::GetFrameHeight()));  // Below menu bar
+  ImGui::SetNextWindowSize(ImVec2(sidebar_width, -1));  // Full height below menu
+  
+  ImGuiWindowFlags sidebar_flags = 
+      ImGuiWindowFlags_NoTitleBar |
+      ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoMove |
+      ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoScrollbar |
+      ImGuiWindowFlags_NoScrollWithMouse |
+      ImGuiWindowFlags_NoBringToFrontOnFocus;
+  
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, ConvertColorToImVec4(theme.child_bg));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 8.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 6.0f));
+  
+  if (ImGui::Begin(absl::StrFormat("##%s_Sidebar", category).c_str(), nullptr, sidebar_flags)) {
+    // Get cards for this category
+    auto cards = GetCardsInCategory(category);
+    
+    // Close All button at top
+    ImVec4 error_color = ConvertColorToImVec4(theme.error);
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(
+        error_color.x * 0.6f, error_color.y * 0.6f, error_color.z * 0.6f, 0.7f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, error_color);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(
+        error_color.x * 1.2f, error_color.y * 1.2f, error_color.z * 1.2f, 1.0f));
+    
+    if (ImGui::Button(ICON_MD_CLOSE, ImVec2(40.0f, 40.0f))) {
+      HideAllCardsInCategory(category);
+    }
+    
+    ImGui::PopStyleColor(3);
+    
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Close All %s Cards", category.c_str());
+    }
+    
+    ImGui::Dummy(ImVec2(0, 4.0f));
+    
+    // Draw card buttons
+    ImVec4 accent_color = ConvertColorToImVec4(theme.accent);
+    ImVec4 button_bg = ConvertColorToImVec4(theme.button);
+    
+    for (const auto& card : cards) {
+      ImGui::PushID(card.card_id.c_str());
+
+      bool is_active = card.visibility_flag && *card.visibility_flag;
+      
+      if (is_active) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(
+            accent_color.x, accent_color.y, accent_color.z, 0.5f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(
+            accent_color.x, accent_color.y, accent_color.z, 0.7f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, accent_color);
+      } else {
+        ImGui::PushStyleColor(ImGuiCol_Button, button_bg);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ConvertColorToImVec4(theme.button_hovered));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ConvertColorToImVec4(theme.button_active));
+      }
+
+      if (ImGui::Button(card.icon.c_str(), ImVec2(40.0f, 40.0f))) {
+        ToggleCard(card.card_id);
+        SetActiveCategory(category);
+      }
+
+      ImGui::PopStyleColor(3);
+
+      if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
+        SetActiveCategory(category);
+        
+        ImGui::SetTooltip("%s\n%s", card.display_name.c_str(), 
+                         card.shortcut_hint.empty() ? "" : card.shortcut_hint.c_str());
+      }
+
+      ImGui::PopID();
+    }
+  }
+  ImGui::End();
+  
+  ImGui::PopStyleVar(2);
+  ImGui::PopStyleColor();
 }
 
 }  // namespace gui

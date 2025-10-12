@@ -168,6 +168,15 @@ class EditorManager {
   void JumpToOverworldMap(int map_id);
   void SwitchToEditor(EditorType editor_type);
   
+  // Card-based editor registry
+  static bool IsCardBasedEditor(EditorType type);
+  static std::string GetEditorCategory(EditorType type);
+  bool IsSidebarVisible() const { return show_card_sidebar_; }
+  void SetSidebarVisible(bool visible) { show_card_sidebar_ = visible; }
+  
+  // Clean up cards when switching editors
+  void HideCurrentEditorCards();
+  
   // Session management
   void CreateNewSession();
   void DuplicateCurrentSession();
@@ -247,6 +256,7 @@ class EditorManager {
   bool show_welcome_screen_ = false;
   bool welcome_screen_manually_closed_ = false;
   bool show_card_browser_ = false;
+  bool show_card_sidebar_ = true;  // VSCode-style sidebar for editor cards (toggle with Ctrl+B)
   size_t session_to_rename_ = 0;
   char session_rename_buffer_[256] = {};
 

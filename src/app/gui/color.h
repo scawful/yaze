@@ -56,6 +56,12 @@ IMGUI_API absl::Status DisplayEditablePalette(gfx::SnesPalette &palette,
 void SelectablePalettePipeline(uint64_t &palette_id, bool &refresh_graphics,
                                gfx::SnesPalette &palette);
 
+// Palette color button with selection and modification indicators
+IMGUI_API bool PaletteColorButton(const char* id, const gfx::SnesColor& color,
+                                  bool is_selected, bool is_modified,
+                                  const ImVec2& size = ImVec2(28, 28),
+                                  ImGuiColorEditFlags flags = 0);
+
 }  // namespace gui
 }  // namespace yaze
 

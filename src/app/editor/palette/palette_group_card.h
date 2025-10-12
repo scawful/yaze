@@ -351,11 +351,12 @@ class DungeonMainPaletteCard : public PaletteGroupCard {
 };
 
 /**
- * @brief Sprite palette group card
+ * @brief Global Sprite palette group card
  *
- * Manages sprite palettes with VRAM locations
- * - Global sprites (palettes 0-3)
- * - Auxiliary sprites (palettes 4-5)
+ * Manages global sprite palettes for Light World and Dark World
+ * - 2 palettes (LW and DW)
+ * - Each has 60 colors organized as 4 rows of 16 colors
+ * - Transparent colors at indices 0, 16, 32, 48
  */
 class SpritePaletteCard : public PaletteGroupCard {
  public:
@@ -367,8 +368,77 @@ class SpritePaletteCard : public PaletteGroupCard {
   const gfx::PaletteGroup* GetPaletteGroup() const override;
   const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
   void DrawPaletteGrid() override;
-  int GetColorsPerRow() const override { return 8; }
+  int GetColorsPerRow() const override { return 16; }
   void DrawCustomPanels() override;  // Show VRAM info
+
+ private:
+  static PaletteGroupMetadata InitializeMetadata();
+  static const PaletteGroupMetadata metadata_;
+};
+
+/**
+ * @brief Sprites Aux1 palette group card
+ *
+ * Manages auxiliary sprite palettes 1
+ * - 12 palettes of 8 colors (7 colors + transparent)
+ */
+class SpritesAux1PaletteCard : public PaletteGroupCard {
+ public:
+  explicit SpritesAux1PaletteCard(Rom* rom);
+  ~SpritesAux1PaletteCard() override = default;
+
+ protected:
+  gfx::PaletteGroup* GetPaletteGroup() override;
+  const gfx::PaletteGroup* GetPaletteGroup() const override;
+  const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
+  void DrawPaletteGrid() override;
+  int GetColorsPerRow() const override { return 8; }
+
+ private:
+  static PaletteGroupMetadata InitializeMetadata();
+  static const PaletteGroupMetadata metadata_;
+};
+
+/**
+ * @brief Sprites Aux2 palette group card
+ *
+ * Manages auxiliary sprite palettes 2
+ * - 11 palettes of 8 colors (7 colors + transparent)
+ */
+class SpritesAux2PaletteCard : public PaletteGroupCard {
+ public:
+  explicit SpritesAux2PaletteCard(Rom* rom);
+  ~SpritesAux2PaletteCard() override = default;
+
+ protected:
+  gfx::PaletteGroup* GetPaletteGroup() override;
+  const gfx::PaletteGroup* GetPaletteGroup() const override;
+  const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
+  void DrawPaletteGrid() override;
+  int GetColorsPerRow() const override { return 8; }
+
+ private:
+  static PaletteGroupMetadata InitializeMetadata();
+  static const PaletteGroupMetadata metadata_;
+};
+
+/**
+ * @brief Sprites Aux3 palette group card
+ *
+ * Manages auxiliary sprite palettes 3
+ * - 24 palettes of 8 colors (7 colors + transparent)
+ */
+class SpritesAux3PaletteCard : public PaletteGroupCard {
+ public:
+  explicit SpritesAux3PaletteCard(Rom* rom);
+  ~SpritesAux3PaletteCard() override = default;
+
+ protected:
+  gfx::PaletteGroup* GetPaletteGroup() override;
+  const gfx::PaletteGroup* GetPaletteGroup() const override;
+  const PaletteGroupMetadata& GetMetadata() const override { return metadata_; }
+  void DrawPaletteGrid() override;
+  int GetColorsPerRow() const override { return 8; }
 
  private:
   static PaletteGroupMetadata InitializeMetadata();
