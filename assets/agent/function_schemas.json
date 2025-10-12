@@ -116,6 +116,113 @@
       }
     },
     {
+      "name": "emulator-set-breakpoint",
+      "description": "Set a breakpoint in the emulator to pause execution at a specific address or when specific memory is accessed. Essential for debugging game logic, input handling, and timing issues.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "Memory address in hex format (e.g., '0x0083D7' for ALTTP's NMI_ReadJoypads routine)"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["execute", "read", "write", "access"],
+            "description": "Breakpoint type: 'execute' breaks when PC reaches address, 'read'/'write'/'access' break on memory access"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable label for this breakpoint (e.g., 'NMI handler entry')"
+          }
+        },
+        "required": ["address"]
+      }
+    },
+    {
+      "name": "emulator-clear-breakpoint",
+      "description": "Remove a breakpoint by ID",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Breakpoint ID to remove (from list-breakpoints output)"
+          }
+        },
+        "required": ["id"]
+      }
+    },
+    {
+      "name": "emulator-list-breakpoints",
+      "description": "List all active breakpoints with their addresses, types, hit counts, and states",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "emulator-step",
+      "description": "Step the emulator forward by one or more CPU instructions and return the new CPU state",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "description": "Number of instructions to execute (default: 1)"
+          }
+        }
+      }
+    },
+    {
+      "name": "emulator-run",
+      "description": "Run the emulator until a breakpoint is hit or for a specified number of frames",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "until_break": {
+            "type": "boolean",
+            "description": "Run until breakpoint is hit (default: false)"
+          },
+          "frames": {
+            "type": "integer",
+            "description": "Number of frames to run (if not until_break)"
+          }
+        }
+      }
+    },
+    {
+      "name": "emulator-pause",
+      "description": "Pause emulator execution for inspection",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "emulator-reset",
+      "description": "Reset the emulator to initial state (hard reset)",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "emulator-get-registers",
+      "description": "Get current CPU register values (A, X, Y, PC, PB, DB, SP, flags) for debugging",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "emulator-get-metrics",
+      "description": "Get emulator performance metrics including FPS, cycle count, audio queue status",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
       "name": "dungeon-list-sprites",
       "description": "List all sprites in a specific dungeon or room",
       "parameters": {
