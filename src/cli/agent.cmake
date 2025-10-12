@@ -82,6 +82,9 @@ set(_yaze_agent_link_targets
   yaze_emulator
   ${ABSL_TARGETS}
   yaml-cpp
+  ftxui::screen
+  ftxui::dom
+  ftxui::component
 )
 
 target_link_libraries(yaze_agent PUBLIC ${_yaze_agent_link_targets})
