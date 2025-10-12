@@ -7,7 +7,6 @@ set(
   app/zelda3/dungeon/room.cc
   app/zelda3/dungeon/room_layout.cc
   app/zelda3/dungeon/room_object.cc
-  app/zelda3/hyrule_magic.cc
   app/zelda3/music/tracker.cc
   app/zelda3/overworld/overworld.cc
   app/zelda3/overworld/overworld_map.cc

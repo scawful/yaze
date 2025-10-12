@@ -150,11 +150,25 @@ struct EnhancedTheme {
   float tab_rounding = 0.0f;
   float window_border_size = 0.0f;
   float frame_border_size = 0.0f;
-  
+
   // Animation and effects
   bool enable_animations = true;
   float animation_speed = 1.0f;
   bool enable_glow_effects = false;
+
+  // Theme-aware sizing system (relative to font size)
+  // compact_factor: 0.8 = very compact, 1.0 = normal, 1.2 = spacious
+  float compact_factor = 1.0f;
+
+  // Semantic sizing multipliers (applied on top of compact_factor)
+  float widget_height_multiplier = 1.0f;      // Standard widget height
+  float spacing_multiplier = 1.0f;            // Padding/margins between elements
+  float toolbar_height_multiplier = 0.8f;     // Compact toolbars
+  float panel_padding_multiplier = 1.0f;      // Panel interior padding
+  float input_width_multiplier = 1.0f;        // Standard input field width
+  float button_padding_multiplier = 1.0f;     // Button interior padding
+  float table_row_height_multiplier = 1.0f;   // Table row height
+  float canvas_toolbar_multiplier = 0.75f;    // Canvas overlay toolbars
   
   // Helper methods
   void ApplyToImGui() const;

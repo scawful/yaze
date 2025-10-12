@@ -95,6 +95,7 @@ target_include_directories(yaze_core_lib PUBLIC
 target_link_libraries(yaze_core_lib PUBLIC
   yaze_util
   yaze_gfx
+  yaze_zelda3  # Needed for Zelda3Labels in project.cc
   yaze_common
   ImGui
   asar-static

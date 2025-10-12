@@ -30,7 +30,7 @@
 #include "app/emu/emulator.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/performance/performance_profiler.h"
-#include "app/editor/ui/background_renderer.h"
+#include "app/gui/background_renderer.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"

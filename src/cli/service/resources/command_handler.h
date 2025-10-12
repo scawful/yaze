@@ -81,6 +81,11 @@ class CommandHandler {
    * @brief Provide metadata for TUI/help summaries.
    */
   virtual Descriptor Describe() const;
+  
+  /**
+   * @brief Get the command usage string
+   */
+   virtual std::string GetUsage() const = 0;
 
  protected:
   /**
@@ -100,10 +105,6 @@ class CommandHandler {
   virtual absl::Status Execute(Rom* rom, const ArgumentParser& parser,
                               OutputFormatter& formatter) = 0;
 
-  /**
-   * @brief Get the command usage string
-   */
-  virtual std::string GetUsage() const = 0;
 
   /**
    * @brief Check if the command requires ROM labels

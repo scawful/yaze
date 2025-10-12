@@ -13,11 +13,14 @@ set(
   app/gui/editor_card_manager.cc
   app/gui/editor_layout.cc
   app/gui/input.cc
+  app/gui/layout_helpers.cc
+  app/gui/themed_widgets.cc
   app/gui/modules/asset_browser.cc
   app/gui/modules/text_editor.cc
   app/gui/style.cc
   app/gui/theme_manager.cc
   app/gui/ui_helpers.cc
+  app/gui/background_renderer.cc  # Moved from yaze_editor (used by style.cc)
   app/gui/widgets/agent_chat_widget.cc
   app/gui/widgets/collaboration_panel.cc
   app/gui/widgets/dungeon_object_emulator_preview.cc
