@@ -131,6 +131,11 @@ jobs:
           # Note: libabsl-dev removed - gRPC uses bundled Abseil via FetchContent when enabled
         elif [[ "${{ runner.os }}" == "macOS" ]]; then
           brew install ninja pkg-config
+        elif [[ "${{ runner.os }}" == "Windows" ]]; then
+          # Install NASM for BoringSSL (required by gRPC)
+          choco install nasm -y
+          # Add NASM to PATH for this session
+          echo "C:\Program Files\NASM" >> $GITHUB_PATH
         fi
     
     - name: Retry Dependencies (if failed)
@@ -153,6 +158,9 @@ jobs:
         elif [[ "${{ runner.os }}" == "macOS" ]]; then
           brew update
           brew install ninja pkg-config
+        elif [[ "${{ runner.os }}" == "Windows" ]]; then
+          choco install nasm -y --force
+          echo "C:\Program Files\NASM" >> $GITHUB_PATH
         fi
 
     - name: Free Disk Space (Linux)
