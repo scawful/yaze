@@ -23,8 +23,9 @@ set(
   app/editor/editor_manager.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
-  app/editor/graphics/palette_editor.cc
   app/editor/graphics/screen_editor.cc
+  app/editor/palette/palette_editor.cc
+  app/editor/palette/palette_group_card.cc
   app/editor/message/message_data.cc
   app/editor/message/message_editor.cc
   app/editor/message/message_preview.cc
@@ -101,10 +102,19 @@ target_link_libraries(yaze_editor PUBLIC
   yaze_gfx
   yaze_gui
   yaze_zelda3
+  yaze_emulator  # Needed for emulator integration (APU, PPU, SNES)
   yaze_util
   yaze_common
   ImGui
 )
+
+# Link agent library for AI features (always available when not in minimal build)
+if(NOT YAZE_MINIMAL_BUILD)
+  if(TARGET yaze_agent)
+    target_link_libraries(yaze_editor PUBLIC yaze_agent)
+    message(STATUS "✓ yaze_editor linked to yaze_agent")
+  endif()
+endif()
 
 # Note: yaze_test_support linking is deferred to test.cmake to ensure proper ordering
 

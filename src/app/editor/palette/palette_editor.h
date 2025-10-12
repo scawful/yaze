@@ -8,6 +8,7 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
+#include "app/editor/palette/palette_group_card.h"
 #include "app/gfx/snes_color.h"
 #include "app/gui/editor_card_manager.h"
 #include "app/gfx/snes_palette.h"
@@ -112,6 +113,8 @@ class PaletteEditor : public Editor {
  private:
   absl::Status HandleColorPopup(gfx::SnesPalette& palette, int i, int j, int n);
 
+  void DrawPaletteCards();
+
   absl::Status status_;
   gfx::SnesColor current_color_;
 
@@ -127,6 +130,13 @@ class PaletteEditor : public Editor {
   palette_internal::PaletteEditorHistory history_;
 
   Rom* rom_;
+
+  // Palette card instances
+  std::unique_ptr<OverworldMainPaletteCard> ow_main_card_;
+  std::unique_ptr<OverworldAnimatedPaletteCard> ow_animated_card_;
+  std::unique_ptr<DungeonMainPaletteCard> dungeon_main_card_;
+  std::unique_ptr<SpritePaletteCard> sprite_card_;
+  std::unique_ptr<EquipmentPaletteCard> equipment_card_;
 };
 
 }  // namespace editor

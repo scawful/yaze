@@ -5,7 +5,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
-#include "app/editor/graphics/palette_editor.h"
+#include "app/editor/palette/palette_editor.h"
 #include "app/gfx/bitmap.h"
 #include "app/gui/editor_card_manager.h"
 #include "app/gfx/snes_tile.h"
