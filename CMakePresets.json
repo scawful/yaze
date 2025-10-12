@@ -16,9 +16,8 @@
         "YAZE_BUILD_TESTS": "ON",
         "YAZE_BUILD_APP": "ON",
         "YAZE_BUILD_LIB": "ON",
-        "YAZE_BUILD_EMU": "OFF",
-        "YAZE_BUILD_Z3ED": "OFF",
-        "YAZE_USE_MODULAR_BUILD": "ON"
+        "YAZE_BUILD_Z3ED": "ON",
+        "YAZE_BUILD_EMU": "OFF"
       }
     },
     {
@@ -171,6 +170,8 @@
         "YAZE_BUILD_Z3ED": "ON",
         "YAZE_BUILD_EMU": "ON",
         "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_UI_TESTS": "ON",
+        "YAZE_ENABLE_IMGUI_TEST_ENGINE": "ON",
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
