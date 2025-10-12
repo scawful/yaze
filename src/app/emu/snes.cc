@@ -135,7 +135,17 @@ void Snes::CatchUpApu() {
 }
 
 void Snes::HandleInput() {
+  // IMPORTANT: Clear and repopulate auto-read data
+  // This data persists until the next call, allowing NMI to read it
   memset(port_auto_read_, 0, sizeof(port_auto_read_));
+  
+  // Debug: Log input state when A button is active
+  static int debug_count = 0;
+  if ((input1.current_state_ & 0x0100) != 0 && debug_count++ < 30) {
+    LOG_DEBUG("SNES", "HandleInput: current_state=0x%04X auto_joy_read_=%d (A button active)", 
+             input1.current_state_, auto_joy_read_ ? 1 : 0);
+  }
+  
   // latch controllers
   input_latch(&input1, true);
   input_latch(&input2, true);
@@ -143,11 +153,20 @@ void Snes::HandleInput() {
   input_latch(&input2, false);
   for (int i = 0; i < 16; i++) {
     uint8_t val = input_read(&input1);
-    port_auto_read_[0] |= ((val & 1) << (15 - i));
+    port_auto_read_[0] |= ((val & 1) << (15 - i));  // Bits are read LSB first, stored MSB first
     port_auto_read_[2] |= (((val >> 1) & 1) << (15 - i));
     val = input_read(&input2);
     port_auto_read_[1] |= ((val & 1) << (15 - i));
     port_auto_read_[3] |= (((val >> 1) & 1) << (15 - i));
+  }
+  
+  // Debug: Log auto-read result when A button was active
+  static int debug_result_count = 0;
+  if ((input1.current_state_ & 0x0100) != 0) {
+    if (debug_result_count++ < 30) {
+      LOG_DEBUG("SNES", "HandleInput END: current_state=0x%04X, port_auto_read[0]=0x%04X (A button status)", 
+               input1.current_state_, port_auto_read_[0]);
+    }
   }
 }
 
@@ -265,6 +284,13 @@ void Snes::RunCycle() {
             // TODO: this starts a little after start of vblank
             auto_joy_timer_ = 4224;
             HandleInput();
+            
+            // Debug: Log that we populated auto-read data BEFORE NMI
+            static int handle_input_log = 0;
+            if (handle_input_log++ < 50 && port_auto_read_[0] != 0) {
+              LOG_DEBUG("SNES", ">>> VBLANK: HandleInput() done, port_auto_read[0]=0x%04X, about to call Nmi() <<<",
+                       port_auto_read_[0]);
+            }
           }
           static int nmi_log_count = 0;
           if (nmi_log_count++ < 10) {
@@ -369,13 +395,27 @@ uint8_t Snes::ReadReg(uint16_t adr) {
     case 0x421a:
     case 0x421c:
     case 0x421e: {
-      return port_auto_read_[(adr - 0x4218) / 2] & 0xff;
+      uint8_t result = port_auto_read_[(adr - 0x4218) / 2] & 0xff;
+      // Debug: Log reads when port_auto_read has data (non-zero)
+      static int read_count = 0;
+      if (adr == 0x4218 && port_auto_read_[0] != 0 && read_count++ < 200) {
+        LOG_DEBUG("SNES", ">>> Game read $4218 = $%02X (port_auto_read[0]=$%04X, current=$%04X) at PC=$%02X:%04X <<<",
+                 result, port_auto_read_[0], input1.current_state_, cpu_.PB, cpu_.PC);
+      }
+      return result;
     }
     case 0x4219:
     case 0x421b:
     case 0x421d:
     case 0x421f: {
-      return port_auto_read_[(adr - 0x4219) / 2] >> 8;
+      uint8_t result = port_auto_read_[(adr - 0x4219) / 2] >> 8;
+      // Debug: Log reads when port_auto_read has data (non-zero)
+      static int read_count = 0;
+      if (adr == 0x4219 && port_auto_read_[0] != 0 && read_count++ < 200) {
+        LOG_DEBUG("SNES", ">>> Game read $4219 = $%02X (port_auto_read[0]=$%04X, current=$%04X) at PC=$%02X:%04X <<<",
+                 result, port_auto_read_[0], input1.current_state_, cpu_.PB, cpu_.PC);
+      }
+      return result;
     }
     default: {
       return memory_.open_bus();
@@ -404,6 +444,12 @@ uint8_t Snes::Rread(uint32_t adr) {
       return input_read(&input2) | (memory_.open_bus() & 0xe0) | 0x1c;
     }
     if (adr >= 0x4200 && adr < 0x4220) {
+      // Debug: Log ANY reads to $4218/$4219 BEFORE calling ReadReg
+      static int rread_count = 0;
+      if ((adr == 0x4218 || adr == 0x4219) && rread_count++ < 100) {
+        LOG_DEBUG("SNES", ">>> Rread($%04X) from bank=$%02X PC=$%04X - calling ReadReg <<<",
+                 adr, bank, cpu_.PC);
+      }
       return ReadReg(adr);  // internal registers
     }
     if (adr >= 0x4300 && adr < 0x4380) {
@@ -478,6 +524,15 @@ void Snes::WriteReg(uint16_t adr, uint8_t val) {
       
       auto_joy_read_ = val & 0x1;
       if (!auto_joy_read_) auto_joy_timer_ = 0;
+      
+      // Debug: Log when auto-joy-read is enabled/disabled
+      static int auto_joy_log = 0;
+      static bool last_auto_joy = false;
+      if (auto_joy_read_ != last_auto_joy && auto_joy_log++ < 10) {
+        LOG_DEBUG("SNES", ">>> AUTO-JOY-READ %s at PC=$%02X:%04X <<<",
+                 auto_joy_read_ ? "ENABLED" : "DISABLED", cpu_.PB, cpu_.PC);
+        last_auto_joy = auto_joy_read_;
+      }
       h_irq_enabled_ = val & 0x10;
       v_irq_enabled_ = val & 0x20;
       if (!h_irq_enabled_ && !v_irq_enabled_) {

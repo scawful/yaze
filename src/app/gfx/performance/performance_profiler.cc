@@ -43,10 +43,6 @@ void PerformanceProfiler::EndTimer(const std::string& operation_name) {
   auto timer_iter = active_timers_.find(operation_name);
   if (timer_iter == active_timers_.end()) {
     // During shutdown, silently ignore missing timers to avoid log spam
-    if (!is_shutting_down_) {
-      LOG_DEBUG("PerformanceProfiler", "EndTimer called for operation '%s' that was not started", 
-              operation_name.c_str());
-    }
     return;
   }
   
