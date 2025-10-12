@@ -723,9 +723,6 @@ void EditorCardManager::SetActiveCategory(const std::string& category) {
 }
 
 void EditorCardManager::DrawSidebar(const std::string& category) {
-  // Set this category as active when sidebar is drawn
-  SetActiveCategory(category);
-  
   // Use ThemeManager for consistent theming
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
   
@@ -744,76 +741,108 @@ void EditorCardManager::DrawSidebar(const std::string& category) {
       ImGuiWindowFlags_NoScrollWithMouse |
       ImGuiWindowFlags_NoBringToFrontOnFocus;
   
-  ImGui::PushStyleColor(ImGuiCol_WindowBg, ConvertColorToImVec4(theme.child_bg));
+  // Make sidebar more opaque and visible
+  ImVec4 sidebar_bg = ConvertColorToImVec4(theme.child_bg);
+  sidebar_bg.w = 1.0f;  // Full opacity
+  
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, sidebar_bg);
+  ImGui::PushStyleColor(ImGuiCol_Border, ConvertColorToImVec4(theme.border));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 8.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 6.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
   
-  if (ImGui::Begin(absl::StrFormat("##%s_Sidebar", category).c_str(), nullptr, sidebar_flags)) {
+  if (ImGui::Begin("##EditorCardSidebar", nullptr, sidebar_flags)) {
     // Get cards for this category
     auto cards = GetCardsInCategory(category);
     
-    // Close All button at top
-    ImVec4 error_color = ConvertColorToImVec4(theme.error);
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(
-        error_color.x * 0.6f, error_color.y * 0.6f, error_color.z * 0.6f, 0.7f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, error_color);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(
-        error_color.x * 1.2f, error_color.y * 1.2f, error_color.z * 1.2f, 1.0f));
-    
-    if (ImGui::Button(ICON_MD_CLOSE, ImVec2(40.0f, 40.0f))) {
-      HideAllCardsInCategory(category);
-    }
-    
-    ImGui::PopStyleColor(3);
-    
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Close All %s Cards", category.c_str());
-    }
-    
-    ImGui::Dummy(ImVec2(0, 4.0f));
-    
-    // Draw card buttons
-    ImVec4 accent_color = ConvertColorToImVec4(theme.accent);
-    ImVec4 button_bg = ConvertColorToImVec4(theme.button);
-    
-    for (const auto& card : cards) {
-      ImGui::PushID(card.card_id.c_str());
-
-      bool is_active = card.visibility_flag && *card.visibility_flag;
+    // If no cards available, show editor selection instead
+    if (cards.empty()) {
+      ImGui::PushStyleColor(ImGuiCol_Text, ConvertColorToImVec4(theme.text_disabled));
+      ImGui::TextWrapped("No cards");
+      ImGui::PopStyleColor();
       
-      if (is_active) {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(
-            accent_color.x, accent_color.y, accent_color.z, 0.5f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(
-            accent_color.x, accent_color.y, accent_color.z, 0.7f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, accent_color);
-      } else {
-        ImGui::PushStyleColor(ImGuiCol_Button, button_bg);
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ConvertColorToImVec4(theme.button_hovered));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ConvertColorToImVec4(theme.button_active));
-      }
-
-      if (ImGui::Button(card.icon.c_str(), ImVec2(40.0f, 40.0f))) {
-        ToggleCard(card.card_id);
-        SetActiveCategory(category);
-      }
-
-      ImGui::PopStyleColor(3);
-
-      if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
-        SetActiveCategory(category);
-        
-        ImGui::SetTooltip("%s\n%s", card.display_name.c_str(), 
-                         card.shortcut_hint.empty() ? "" : card.shortcut_hint.c_str());
-      }
-
-      ImGui::PopID();
+      ImGui::Spacing();
+      ImGui::Separator();
+      ImGui::Spacing();
+      
+      // Show editor selection buttons
+      ImGui::TextWrapped("Select Editor:");
+      ImGui::Dummy(ImVec2(0, 4.0f));
+      
+      // TODO: Add editor selection buttons here
+      // For now, just show message
+      ImGui::PushStyleColor(ImGuiCol_Text, ConvertColorToImVec4(theme.text_secondary));
+      ImGui::TextWrapped("Open an editor to see cards");
+      ImGui::PopStyleColor();
+    } else {
+      // Set this category as active when cards are present
+      SetActiveCategory(category);
     }
+    
+    // Close All button at top (only if cards exist)
+    if (!cards.empty()) {
+      ImVec4 error_color = ConvertColorToImVec4(theme.error);
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(
+          error_color.x * 0.6f, error_color.y * 0.6f, error_color.z * 0.6f, 0.7f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, error_color);
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(
+          error_color.x * 1.2f, error_color.y * 1.2f, error_color.z * 1.2f, 1.0f));
+      
+      if (ImGui::Button(ICON_MD_CLOSE, ImVec2(40.0f, 40.0f))) {
+        HideAllCardsInCategory(category);
+      }
+      
+      ImGui::PopStyleColor(3);
+      
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Close All %s Cards", category.c_str());
+      }
+      
+      ImGui::Dummy(ImVec2(0, 4.0f));
+      
+      // Draw card buttons
+      ImVec4 accent_color = ConvertColorToImVec4(theme.accent);
+      ImVec4 button_bg = ConvertColorToImVec4(theme.button);
+      
+      for (const auto& card : cards) {
+        ImGui::PushID(card.card_id.c_str());
+
+        bool is_active = card.visibility_flag && *card.visibility_flag;
+        
+        if (is_active) {
+          ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(
+              accent_color.x, accent_color.y, accent_color.z, 0.5f));
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(
+              accent_color.x, accent_color.y, accent_color.z, 0.7f));
+          ImGui::PushStyleColor(ImGuiCol_ButtonActive, accent_color);
+        } else {
+          ImGui::PushStyleColor(ImGuiCol_Button, button_bg);
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ConvertColorToImVec4(theme.button_hovered));
+          ImGui::PushStyleColor(ImGuiCol_ButtonActive, ConvertColorToImVec4(theme.button_active));
+        }
+
+        if (ImGui::Button(card.icon.c_str(), ImVec2(40.0f, 40.0f))) {
+          ToggleCard(card.card_id);
+          SetActiveCategory(category);
+        }
+
+        ImGui::PopStyleColor(3);
+
+        if (ImGui::IsItemHovered() || ImGui::IsItemActive()) {
+          SetActiveCategory(category);
+          
+          ImGui::SetTooltip("%s\n%s", card.display_name.c_str(), 
+                           card.shortcut_hint.empty() ? "" : card.shortcut_hint.c_str());
+        }
+
+        ImGui::PopID();
+      }
+    }  // End if (!cards.empty())
   }
   ImGui::End();
   
-  ImGui::PopStyleVar(2);
-  ImGui::PopStyleColor();
+  ImGui::PopStyleVar(3);  // WindowPadding, ItemSpacing, WindowBorderSize
+  ImGui::PopStyleColor(2);  // WindowBg, Border
 }
 
 }  // namespace gui

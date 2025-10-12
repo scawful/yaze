@@ -91,6 +91,7 @@ std::string GetEditorName(EditorType type) {
 }  // namespace
 
 // Static registry of editors that use the card-based layout system
+// These editors register their cards with EditorCardManager
 bool EditorManager::IsCardBasedEditor(EditorType type) {
   switch (type) {
     case EditorType::kDungeon:
@@ -99,8 +100,7 @@ bool EditorManager::IsCardBasedEditor(EditorType type) {
     case EditorType::kScreen:
     case EditorType::kSprite:
     case EditorType::kMessage:
-    case EditorType::kMusic:
-    case EditorType::kEmulator:
+    case EditorType::kOverworld:
       return true;
     default:
       return false;
@@ -912,8 +912,8 @@ absl::Status EditorManager::Update() {
     }
   }
 
-  // Draw sidebar for current category editor 
-  if (current_editor_) {
+  // Draw sidebar for current card-based editor (only if sidebar is visible)
+  if (show_card_sidebar_ && current_editor_ && IsCardBasedEditor(current_editor_->type())) {
     std::string category = GetEditorCategory(current_editor_->type());
     auto& card_manager = gui::EditorCardManager::Get();
     card_manager.DrawSidebar(category);

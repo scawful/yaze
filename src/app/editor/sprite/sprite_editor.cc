@@ -85,17 +85,8 @@ absl::Status SpriteEditor::Update() {
 }
 
 void SpriteEditor::DrawToolset() {
-  static gui::Toolset toolbar;
-  toolbar.Begin();
-
-  if (toolbar.AddAction(ICON_MD_PEST_CONTROL_RODENT, "Vanilla Sprites")) {
-    show_vanilla_editor_ = !show_vanilla_editor_;
-  }
-  if (toolbar.AddAction(ICON_MD_ADD_MODERATOR, "Custom Sprites")) {
-    show_custom_editor_ = !show_custom_editor_;
-  }
-
-  toolbar.End();
+  // Sidebar is now drawn by EditorManager for card-based editors
+  // This method kept for compatibility but sidebar handles card toggles
 }
 
 
