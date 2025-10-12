@@ -35,6 +35,7 @@ set(YAZE_AGENT_SOURCES
   cli/handlers/agent.cc
   cli/handlers/command_handlers.cc
   cli/handlers/agent/simple_chat_command.cc
+  cli/handlers/agent/general_commands.cc
   cli/handlers/game/overworld_inspect.cc
   cli/handlers/game/message.cc
   cli/handlers/rom/mock_rom.cc
