@@ -44,7 +44,6 @@ set(
   app/editor/system/settings_editor.cc
   app/editor/system/shortcut_manager.cc
   app/editor/system/user_settings.cc
-  app/editor/ui/background_renderer.cc
   app/editor/ui/editor_selection_dialog.cc
   app/editor/ui/menu_builder.cc
   app/editor/ui/welcome_screen.cc

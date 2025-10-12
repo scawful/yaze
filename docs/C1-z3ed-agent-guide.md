@@ -1015,9 +1015,27 @@ The AI response appears in your chat history and can reference specific details 
 9.  **Automation API Unification**: Extract a reusable harness automation API consumed by both CLI `agent test` commands and the Agent Chat widget to prevent serialization drift.
 10. **UI Abstraction Cleanup**: Introduce dedicated presenter/controller layers so `editor_manager.cc` delegates to automation and collaboration services, keeping ImGui widgets declarative.
 
-### ✅ Recently Completed (v0.2.1-alpha - October 11, 2025)
+### ✅ Recently Completed (v0.2.2-alpha - October 12, 2025)
 
-#### CLI Architecture Improvements (NEW)
+#### Emulator Debugging Infrastructure (NEW) 🔍
+-   **Advanced Debugging Service**: Complete gRPC EmulatorService implementation with breakpoints, memory inspection, step execution, and CPU state access
+-   **Breakpoint Management**: Set execute/read/write/access breakpoints with conditional support for systematic debugging
+-   **Memory Introspection**: Read/write WRAM, hardware registers ($4xxx), and ROM from running emulator without rebuilds
+-   **Execution Control**: Step instruction-by-instruction, run to breakpoint, pause/resume with full CPU state capture
+-   **AI-Driven Debugging**: Function schemas for 12 new emulator tools enabling natural language debugging sessions
+-   **Reproducible Scripts**: AI can generate bash scripts with breakpoint sequences for regression testing
+-   **Documentation**: Comprehensive [Emulator Debugging Guide](emulator-debugging-guide.md) with real-world examples
+
+#### Benefits for AI Agents
+-   **15min vs 3hr debugging**: Systematic tool-based approach vs manual print-debug cycles
+-   **No rebuilds required**: Set breakpoints and read state without recompiling
+-   **Precise observation**: Pause at exact addresses, read memory at critical moments
+-   **Collaborative debugging**: Share tool call sequences and findings in chat
+-   **Example**: Debugging ALTTP input issue went from 15 rebuild cycles to 6 tool calls (see `docs/examples/ai-debug-input-issue.md`)
+
+### ✅ Previously Completed (v0.2.1-alpha - October 11, 2025)
+
+#### CLI Architecture Improvements
 -   **Command Abstraction Layer**: Three-tier abstraction system (`CommandContext`, `ArgumentParser`, `OutputFormatter`) to eliminate code duplication across CLI commands
 -   **CommandHandler Base Class**: Structured base class for consistent command implementation with automatic context management
 -   **Refactoring Framework**: Complete migration guide and examples showing 50-60% code reduction per command
