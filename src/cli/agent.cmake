@@ -110,20 +110,32 @@ if(YAZE_WITH_JSON)
   target_link_libraries(yaze_agent PUBLIC nlohmann_json::nlohmann_json)
   target_compile_definitions(yaze_agent PUBLIC YAZE_WITH_JSON)
 
-  find_package(OpenSSL)
-  if(OpenSSL_FOUND)
-    target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
-    target_link_libraries(yaze_agent PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+  # Only link OpenSSL if gRPC is NOT enabled (to avoid duplicate symbol errors)
+  # When gRPC is enabled, it brings its own OpenSSL which we'll use instead
+  if(NOT YAZE_WITH_GRPC)
+    find_package(OpenSSL)
+    if(OpenSSL_FOUND)
+      target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+      target_link_libraries(yaze_agent PUBLIC OpenSSL::SSL OpenSSL::Crypto)
 
+      if(APPLE)
+        target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN)
+        target_link_libraries(yaze_agent PUBLIC "-framework CoreFoundation" "-framework Security")
+      endif()
+
+      message(STATUS "✓ SSL/HTTPS support enabled for yaze_agent (Gemini + HTTPS)")
+    else()
+      message(WARNING "OpenSSL not found - Gemini HTTPS features disabled (Ollama still works)")
+      message(STATUS "  Install OpenSSL to enable Gemini: brew install openssl (macOS) or apt-get install libssl-dev (Linux)")
+    endif()
+  else()
+    # When gRPC is enabled, still enable OpenSSL features but use gRPC's OpenSSL
+    target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
     if(APPLE)
       target_compile_definitions(yaze_agent PUBLIC CPPHTTPLIB_USE_CERTS_FROM_MACOSX_KEYCHAIN)
       target_link_libraries(yaze_agent PUBLIC "-framework CoreFoundation" "-framework Security")
     endif()
-
-    message(STATUS "✓ SSL/HTTPS support enabled for yaze_agent (Gemini + HTTPS)")
-  else()
-    message(WARNING "OpenSSL not found - Gemini HTTPS features disabled (Ollama still works)")
-    message(STATUS "  Install OpenSSL to enable Gemini: brew install openssl (macOS) or apt-get install libssl-dev (Linux)")
+    message(STATUS "✓ SSL/HTTPS support enabled via gRPC's OpenSSL (Gemini + HTTPS)")
   endif()
 endif()
 
@@ -140,6 +152,11 @@ if(YAZE_WITH_GRPC)
     grpc++_reflection
     libprotobuf
   )
+  
+  # On Windows, force whole-archive linking for protobuf to ensure all symbols are included
+  if(MSVC)
+    target_link_options(yaze_agent PUBLIC /WHOLEARCHIVE:libprotobuf)
+  endif()
   
   # Note: YAZE_WITH_GRPC is defined globally via add_compile_definitions in root CMakeLists.txt
   # This ensures #ifdef YAZE_WITH_GRPC works in all translation units

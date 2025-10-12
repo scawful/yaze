@@ -52,14 +52,21 @@ if(YAZE_WITH_JSON)
   find_package(Threads REQUIRED)
   target_link_libraries(yaze_net PUBLIC Threads::Threads)
   
-  # Add OpenSSL for HTTPS/WSS support (optional but recommended)
-  find_package(OpenSSL QUIET)
-  if(OpenSSL_FOUND)
-    target_link_libraries(yaze_net PUBLIC OpenSSL::SSL OpenSSL::Crypto)
-    target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
-    message(STATUS "  - WebSocket with SSL/TLS support enabled")
+  # Only link OpenSSL if gRPC is NOT enabled (to avoid duplicate symbol errors)
+  # When gRPC is enabled, it brings its own OpenSSL which we'll use instead
+  if(NOT YAZE_WITH_GRPC)
+    find_package(OpenSSL QUIET)
+    if(OpenSSL_FOUND)
+      target_link_libraries(yaze_net PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+      target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+      message(STATUS "  - WebSocket with SSL/TLS support enabled")
+    else()
+      message(STATUS "  - WebSocket without SSL/TLS (OpenSSL not found)")
+    endif()
   else()
-    message(STATUS "  - WebSocket without SSL/TLS (OpenSSL not found)")
+    # When gRPC is enabled, still enable OpenSSL features but use gRPC's OpenSSL
+    target_compile_definitions(yaze_net PUBLIC CPPHTTPLIB_OPENSSL_SUPPORT)
+    message(STATUS "  - WebSocket with SSL/TLS support enabled via gRPC's OpenSSL")
   endif()
   
   # Windows-specific socket library
@@ -78,6 +85,11 @@ if(YAZE_WITH_GRPC)
     grpc++_reflection
     libprotobuf
   )
+  
+  # On Windows, force whole-archive linking for protobuf to ensure all symbols are included
+  if(MSVC)
+    target_link_options(yaze_net PUBLIC /WHOLEARCHIVE:libprotobuf)
+  endif()
   
   message(STATUS "  - gRPC ROM service enabled")
 endif()
