@@ -39,7 +39,8 @@ if(YAZE_BUILD_TESTS)
       target_link_libraries(${suite_name} PRIVATE ImGuiTestEngine)
       target_compile_definitions(${suite_name} PRIVATE 
         IMGUI_ENABLE_TEST_ENGINE=1 
-        IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1)
+        IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1
+        YAZE_GUI_TEST_TARGET=1)  # Mark this as a GUI test target
     endif()
 
     if(WIN32)

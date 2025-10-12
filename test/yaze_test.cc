@@ -311,19 +311,19 @@ int main(int argc, char* argv[]) {
     else if (config.test_speed == ImGuiTestRunSpeed_Cinematic) speed_name = "Cinematic";
     std::cout << "Running tests in " << speed_name << " mode" << std::endl;
     
-    // Register smoke test
+    // Register E2E tests only for GUI test targets (they have the source files)
+#ifdef YAZE_GUI_TEST_TARGET
     ImGuiTest* smoke_test = IM_REGISTER_TEST(engine, "E2ETest", "FrameworkSmokeTest");
     smoke_test->TestFunc = E2ETest_FrameworkSmokeTest;
 
-    // Register canvas selection test
     ImGuiTest* canvas_test = IM_REGISTER_TEST(engine, "E2ETest", "CanvasSelectionTest");
     canvas_test->TestFunc = E2ETest_CanvasSelectionTest;
     canvas_test->UserData = &controller;
     
-    // Register dungeon editor smoke test
     ImGuiTest* dungeon_test = IM_REGISTER_TEST(engine, "E2ETest", "DungeonEditorSmokeTest");
     dungeon_test->TestFunc = E2ETest_DungeonEditorV2SmokeTest;
     dungeon_test->UserData = &controller;
+#endif
 
     // Main loop
     bool done = false;

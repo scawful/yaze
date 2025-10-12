@@ -54,9 +54,7 @@ set(YAZE_INSTALL_LIB OFF)
 
 # Testing and CI Configuration
 option(YAZE_ENABLE_ROM_TESTS "Enable tests that require ROM files" OFF)
-option(YAZE_ENABLE_EXPERIMENTAL_TESTS "Enable experimental/unstable tests" ON)
 option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
-option(YAZE_USE_MODULAR_BUILD "Use modularized library build system for faster builds" ON)
 option(YAZE_UNITY_BUILD "Enable Unity (Jumbo) builds" OFF)
 
 # Feature Flags - Simplified: Always enabled by default (use wrapper classes to hide complexity)
