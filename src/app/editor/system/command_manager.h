@@ -72,11 +72,24 @@ class CommandManager {
 
   void ShowWhichKey();
 
+  // Enhanced hierarchical WhichKey with submenu support
+  void ShowWhichKeyHierarchical();
+  void HandleWhichKeyInput();
+
   void SaveKeybindings(const std::string &filepath);
   void LoadKeybindings(const std::string &filepath);
 
+  // Navigation state
+  bool IsWhichKeyActive() const { return whichkey_active_; }
+  std::string GetCurrentPrefix() const { return current_prefix_; }
+
  private:
   std::unordered_map<std::string, CommandGroup> commands_;
+
+  // WhichKey state
+  bool whichkey_active_ = false;
+  std::string current_prefix_;  // Current navigation prefix (e.g., "w", "l", "f")
+  float whichkey_timer_ = 0.0f;  // Auto-close timer
 };
 
 }  // namespace editor
