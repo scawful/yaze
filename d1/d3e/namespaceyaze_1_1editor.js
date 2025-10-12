@@ -115,7 +115,6 @@ var namespaceyaze_1_1editor =
     [ "MapPropertiesSystem", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem.html", "d6/d3c/classyaze_1_1editor_1_1MapPropertiesSystem" ],
     [ "MemoryEditorWithDiffChecker", "d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker.html", "d6/d9a/structyaze_1_1editor_1_1MemoryEditorWithDiffChecker" ],
     [ "MenuBuilder", "d7/d73/classyaze_1_1editor_1_1MenuBuilder.html", "d7/d73/classyaze_1_1editor_1_1MenuBuilder" ],
-    [ "MenuManager", "df/d00/classyaze_1_1editor_1_1MenuManager.html", "df/d00/classyaze_1_1editor_1_1MenuManager" ],
     [ "MessageData", "d3/d89/structyaze_1_1editor_1_1MessageData.html", "d3/d89/structyaze_1_1editor_1_1MessageData" ],
     [ "MessageEditor", "d3/d6c/classyaze_1_1editor_1_1MessageEditor.html", "d3/d6c/classyaze_1_1editor_1_1MessageEditor" ],
     [ "MessagePreview", "dc/dd1/structyaze_1_1editor_1_1MessagePreview.html", "dc/dd1/structyaze_1_1editor_1_1MessagePreview" ],

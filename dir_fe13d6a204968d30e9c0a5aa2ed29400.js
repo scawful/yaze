@@ -6,8 +6,6 @@ var dir_fe13d6a204968d30e9c0a5aa2ed29400 =
     [ "editor_selection_dialog.h", "da/d0d/editor__selection__dialog_8h.html", "da/d0d/editor__selection__dialog_8h" ],
     [ "menu_builder.cc", "d1/dda/menu__builder_8cc.html", null ],
     [ "menu_builder.h", "dc/d28/menu__builder_8h.html", "dc/d28/menu__builder_8h" ],
-    [ "menu_manager.cc", "dd/d95/menu__manager_8cc.html", null ],
-    [ "menu_manager.h", "db/db7/menu__manager_8h.html", "db/db7/menu__manager_8h" ],
     [ "welcome_screen.cc", "d0/d62/welcome__screen_8cc.html", "d0/d62/welcome__screen_8cc" ],
     [ "welcome_screen.h", "d2/df1/welcome__screen_8h.html", "d2/df1/welcome__screen_8h" ],
     [ "workspace_manager.cc", "d5/d7e/workspace__manager_8cc.html", null ],

@@ -142,7 +142,7 @@ var searchData=
   ['ldle2_139',['ldle2',['../df/d3e/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#a18ba82482f1821f52179a8deba75e974',1,'yaze::zelda3::anonymous_namespace{hyrule_magic.cc}']]],
   ['ldle3_140',['ldle3',['../df/d3e/namespaceyaze_1_1zelda3_1_1anonymous__namespace_02hyrule__magic_8cc_03.html#a99df28514d1137d065e3d7b6b8e0c4eb',1,'yaze::zelda3::anonymous_namespace{hyrule_magic.cc}']]],
   ['ldx_141',['ldx',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a944511a19819a401e9d376af0d37eb31',1,'yaze::emu::Cpu::Ldx(uint32_t low, uint32_t high)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#aea682e47ae0952d8dfb1de5ad2eb6d3f',1,'yaze::emu::Cpu::LDX(uint16_t address, bool immediate=false)']]],
-  ['ldy_142',['ldy',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a2948577f6b7a7f01d4a3d6003dc95def',1,'yaze::emu::Cpu::Ldy(uint32_t low, uint32_t high)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#afdfd7049fec0692d76ec82575793ebe0',1,'yaze::emu::Cpu::LDY(uint16_t address, bool immediate=false)']]],
+  ['ldy_142',['ldy',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#afdfd7049fec0692d76ec82575793ebe0',1,'yaze::emu::Cpu::LDY(uint16_t address, bool immediate=false)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a2948577f6b7a7f01d4a3d6003dc95def',1,'yaze::emu::Cpu::Ldy(uint32_t low, uint32_t high)']]],
   ['learn_143',['What You&apos;ll Learn',['../d7/d44/md_docs_2E4-Emulator-Development-Guide.html#autotoc_md438',1,'']]],
   ['learn_20command_20knowledge_20management_144',['8. Learn Command - Knowledge Management',['../d2/d4a/md_docs_2C1-z3ed-agent-guide.html#autotoc_md253',1,'']]],
   ['learned_145',['📝 Lessons Learned',['../d5/dc8/md_docs_2G3-renderer-migration-complete.html#autotoc_md1062',1,'']]],

@@ -2,11 +2,11 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="107,5,242,61"/>
 <area shape="rect" id="Node000002" href="$d4/dcf/canvas_8h.html" title=" " alt="" coords="24,124,165,150"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="146,75,106,125,102,122,142,72"/>
-<area shape="rect" id="Node000067" href="$d2/d1f/canvas__interaction__handler_8cc.html" title=" " alt="" coords="189,109,323,165"/>
-<area shape="poly" id="edge5_Node000001_Node000067" title=" " alt="" coords="208,72,236,107,232,110,204,75"/>
+<area shape="rect" id="Node000066" href="$d2/d1f/canvas__interaction__handler_8cc.html" title=" " alt="" coords="189,109,323,165"/>
+<area shape="poly" id="edge5_Node000001_Node000066" title=" " alt="" coords="208,72,236,107,232,110,204,75"/>
 <area shape="rect" id="Node000003" href="$d3/d38/dungeon__canvas__viewer_8h.html" title=" " alt="" coords="5,301,184,342"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="79,164,66,187,56,213,52,233,56,253,67,278,81,300,76,303,62,280,51,254,47,233,51,212,61,185,75,161"/>
-<area shape="rect" id="Node000030" href="$d4/ded/dungeon__object__interaction_8h.html" title=" " alt="" coords="66,213,259,253"/>
-<area shape="poly" id="edge3_Node000002_Node000030" title=" " alt="" coords="114,161,150,211,146,214,110,164"/>
-<area shape="poly" id="edge4_Node000030_Node000003" title=" " alt="" coords="140,267,112,303,108,299,136,264"/>
+<area shape="rect" id="Node000029" href="$d4/ded/dungeon__object__interaction_8h.html" title=" " alt="" coords="66,213,259,253"/>
+<area shape="poly" id="edge3_Node000002_Node000029" title=" " alt="" coords="114,161,150,211,146,214,110,164"/>
+<area shape="poly" id="edge4_Node000029_Node000003" title=" " alt="" coords="140,267,112,303,108,299,136,264"/>
 </map>

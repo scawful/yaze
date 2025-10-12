@@ -87,7 +87,7 @@ var searchData=
   ['totalduration_84',['TotalDuration',['../d2/d06/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__reporter_8cc_03.html#a3195c4a87a98bdc4078ce7dbae8cb3a5',1,'yaze::cli::anonymous_namespace{test_suite_reporter.cc}']]],
   ['transaction_85',['Transaction',['../df/d26/classyaze_1_1Transaction.html#a449b6aa4053a8a2b95b80decd3434e97',1,'yaze::Transaction']]],
   ['transferbyte_86',['TransferByte',['../d6/d20/namespaceyaze_1_1emu.html#a2a0e8761d0bd636441df9347f8e29584',1,'yaze::emu']]],
-  ['trb_87',['trb',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a844c46f0b48e2fc272e0f6d35d6059d5',1,'yaze::emu::Cpu::TRB(uint16_t address)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a73b9396cbbf95cb9791f0e58728832f4',1,'yaze::emu::Cpu::Trb(uint32_t low, uint32_t high)']]],
+  ['trb_87',['trb',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a73b9396cbbf95cb9791f0e58728832f4',1,'yaze::emu::Cpu::Trb(uint32_t low, uint32_t high)'],['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a844c46f0b48e2fc272e0f6d35d6059d5',1,'yaze::emu::Cpu::TRB(uint16_t address)']]],
   ['triggeremulatedrender_88',['TriggerEmulatedRender',['../d9/d71/classyaze_1_1gui_1_1DungeonObjectEmulatorPreview.html#a3c42fc2312f21246ce9d5d7b70a5ca0f',1,'yaze::gui::DungeonObjectEmulatorPreview']]],
   ['trim_89',['Trim',['../de/d3c/namespaceyaze_1_1cli_1_1anonymous__namespace_02test__suite__loader_8cc_03.html#a2c59f64351a007d9e988d7a3e087fca2',1,'yaze::cli::anonymous_namespace{test_suite_loader.cc}']]],
   ['trimhistoryifneeded_90',['TrimHistoryIfNeeded',['../d6/df5/classyaze_1_1cli_1_1agent_1_1ConversationalAgentService.html#aa7e0694502e8ce1ee77085d6882405ea',1,'yaze::cli::agent::ConversationalAgentService']]],
@@ -112,6 +112,6 @@ var searchData=
   ['txs_109',['TXS',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a31aefd28dc0ef3688cb0b5d1ef933dcf',1,'yaze::emu::Cpu']]],
   ['txy_110',['TXY',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a7555540aff8fe7922b0598a8e6c3ad0e',1,'yaze::emu::Cpu']]],
   ['tya_111',['TYA',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#a90b95b87a325167809d7e296d4b64fe0',1,'yaze::emu::Cpu']]],
-  ['type_112',['type',['../d3/d9f/classyaze_1_1editor_1_1Editor.html#a65af614b04a79925a1a4c702597521b0',1,'yaze::editor::Editor::type()'],['../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a40885181ae461c9d94786865acc1d7ad',1,'yaze::cli::GuiAutomationClient::Type()']]],
+  ['type_112',['type',['../d2/d67/classyaze_1_1cli_1_1GuiAutomationClient.html#a40885181ae461c9d94786865acc1d7ad',1,'yaze::cli::GuiAutomationClient::Type()'],['../d3/d9f/classyaze_1_1editor_1_1Editor.html#a65af614b04a79925a1a4c702597521b0',1,'yaze::editor::Editor::type()']]],
   ['tyx_113',['TYX',['../dc/df4/classyaze_1_1emu_1_1Cpu.html#aa1175dca86ecb147b15750c6d0094346',1,'yaze::emu::Cpu']]]
 ];

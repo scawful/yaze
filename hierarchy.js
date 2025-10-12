@@ -400,7 +400,6 @@ var hierarchy =
     [ "yaze::editor::MenuBuilder::Menu", "df/d6f/structyaze_1_1editor_1_1MenuBuilder_1_1Menu.html", null ],
     [ "yaze::editor::MenuBuilder", "d7/d73/classyaze_1_1editor_1_1MenuBuilder.html", null ],
     [ "yaze::editor::MenuBuilder::MenuItem", "d1/ddb/structyaze_1_1editor_1_1MenuBuilder_1_1MenuItem.html", null ],
-    [ "yaze::editor::MenuManager", "df/d00/classyaze_1_1editor_1_1MenuManager.html", null ],
     [ "yaze::editor::MessageData", "d3/d89/structyaze_1_1editor_1_1MessageData.html", null ],
     [ "yaze::editor::MessagePreview", "dc/dd1/structyaze_1_1editor_1_1MessagePreview.html", null ],
     [ "yaze::emu::MnemonicMode", "d6/da6/structyaze_1_1emu_1_1MnemonicMode.html", null ],
