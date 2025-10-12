@@ -12,6 +12,13 @@
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/agent/proposal_executor.h"
 #include "cli/service/agent/tool_dispatcher.h"
+// Advanced features (only available when Z3ED_AI=ON)
+#ifdef Z3ED_AI
+#include "cli/service/agent/learned_knowledge_service.h"
+#include "cli/service/agent/todo_manager.h"
+#include "cli/service/agent/advanced_routing.h"
+#include "cli/service/agent/agent_pretraining.h"
+#endif
 
 namespace yaze {
 
@@ -95,6 +102,16 @@ class ConversationalAgentService {
   ChatMessage::SessionMetrics GetMetrics() const;
 
   void ReplaceHistory(std::vector<ChatMessage> history);
+  
+#ifdef Z3ED_AI
+  // Advanced Features Access (only when Z3ED_AI=ON)
+  LearnedKnowledgeService& learned_knowledge() { return learned_knowledge_; }
+  TodoManager& todo_manager() { return todo_manager_; }
+  
+  // Inject learned context into next message
+  void EnableContextInjection(bool enable) { inject_learned_context_ = enable; }
+  void EnablePretraining(bool enable) { inject_pretraining_ = enable; }
+#endif
 
  private:
   struct InternalMetrics {
@@ -110,6 +127,16 @@ class ConversationalAgentService {
   void TrimHistoryIfNeeded();
   ChatMessage::SessionMetrics BuildMetricsSnapshot() const;
   void RebuildMetricsFromHistory();
+  
+#ifdef Z3ED_AI
+  // Context enhancement (only when Z3ED_AI=ON)
+  std::string BuildEnhancedPrompt(const std::string& user_message);
+  std::string InjectLearnedContext(const std::string& message);
+  std::string InjectPretraining();
+  
+  // Response enhancement
+  ChatMessage EnhanceResponse(const ChatMessage& response, const std::string& user_message);
+#endif
 
   std::vector<ChatMessage> history_;
   std::unique_ptr<AIService> ai_service_;
@@ -117,6 +144,15 @@ class ConversationalAgentService {
   Rom* rom_context_ = nullptr;
   AgentConfig config_;
   InternalMetrics metrics_;
+  
+#ifdef Z3ED_AI
+  // Advanced features (only when Z3ED_AI=ON)
+  LearnedKnowledgeService learned_knowledge_;
+  TodoManager todo_manager_;
+  bool inject_learned_context_ = true;
+  bool inject_pretraining_ = false;  // One-time injection on first message
+  bool pretraining_injected_ = false;
+#endif
 };
 
 }  // namespace agent

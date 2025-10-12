@@ -5,6 +5,7 @@
 #include <iostream>
 #include <optional>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -14,11 +15,14 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
+#include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/rom.h"
 #include "cli/service/agent/proposal_executor.h"
+#include "cli/service/agent/advanced_routing.h"
+#include "cli/service/agent/agent_pretraining.h"
 #include "cli/service/ai/service_factory.h"
 #include "cli/util/terminal_colors.h"
 #include "nlohmann/json.hpp"
@@ -174,11 +178,41 @@ ChatMessage CreateMessage(ChatMessage::Sender sender, const std::string& content
 
 ConversationalAgentService::ConversationalAgentService() {
   ai_service_ = CreateAIService();
+  
+#ifdef Z3ED_AI
+  // Initialize advanced features
+  auto learn_status = learned_knowledge_.Initialize();
+  if (!learn_status.ok() && config_.verbose) {
+    std::cerr << "Warning: Failed to initialize learned knowledge: " 
+              << learn_status.message() << std::endl;
+  }
+  
+  auto todo_status = todo_manager_.Initialize();
+  if (!todo_status.ok() && config_.verbose) {
+    std::cerr << "Warning: Failed to initialize TODO manager: " 
+              << todo_status.message() << std::endl;
+  }
+#endif
 }
 
 ConversationalAgentService::ConversationalAgentService(const AgentConfig& config)
     : config_(config) {
   ai_service_ = CreateAIService();
+  
+#ifdef Z3ED_AI
+  // Initialize advanced features
+  auto learn_status = learned_knowledge_.Initialize();
+  if (!learn_status.ok() && config_.verbose) {
+    std::cerr << "Warning: Failed to initialize learned knowledge: " 
+              << learn_status.message() << std::endl;
+  }
+  
+  auto todo_status = todo_manager_.Initialize();
+  if (!todo_status.ok() && config_.verbose) {
+    std::cerr << "Warning: Failed to initialize TODO manager: " 
+              << todo_status.message() << std::endl;
+  }
+#endif
 }
 
 void ConversationalAgentService::SetRomContext(Rom* rom) {
@@ -516,6 +550,95 @@ void ConversationalAgentService::RebuildMetricsFromHistory() {
     metrics_.total_latency = absl::Seconds(snapshot.total_elapsed_seconds);
   }
 }
+
+#ifdef Z3ED_AI
+// === Advanced Feature Integration ===
+
+std::string ConversationalAgentService::BuildEnhancedPrompt(const std::string& user_message) {
+  std::ostringstream enhanced;
+  
+  // Inject pretraining on first message
+  if (inject_pretraining_ && !pretraining_injected_ && rom_context_) {
+    enhanced << InjectPretraining() << "\n\n";
+    pretraining_injected_ = true;
+  }
+  
+  // Inject learned context
+  if (inject_learned_context_) {
+    enhanced << InjectLearnedContext(user_message) << "\n";
+  }
+  
+  enhanced << user_message;
+  return enhanced.str();
+}
+
+std::string ConversationalAgentService::InjectLearnedContext(const std::string& message) {
+  std::ostringstream context;
+  
+  // Add relevant preferences
+  auto prefs = learned_knowledge_.GetAllPreferences();
+  if (!prefs.empty() && prefs.size() <= 5) {  // Don't overwhelm with too many
+    context << "[User Preferences: ";
+    std::vector<std::string> pref_strings;
+    for (const auto& [key, value] : prefs) {
+      pref_strings.push_back(absl::StrCat(key, "=", value));
+    }
+    context << absl::StrJoin(pref_strings, ", ") << "]\n";
+  }
+  
+  // Add ROM-specific patterns
+  if (rom_context_ && rom_context_->is_loaded()) {
+    // TODO: Get ROM hash
+    // auto patterns = learned_knowledge_.QueryPatterns("", rom_hash);
+  }
+  
+  // Add recent relevant memories
+  std::vector<std::string> keywords;
+  // Extract keywords from message (simple word splitting)
+  for (const auto& word : absl::StrSplit(message, ' ')) {
+    if (word.length() > 4) {  // Only meaningful words
+      keywords.push_back(std::string(word));
+    }
+  }
+  
+  if (!keywords.empty()) {
+    auto memories = learned_knowledge_.SearchMemories(keywords[0]);
+    if (!memories.empty() && memories.size() <= 3) {
+      context << "[Relevant Past Context:\n";
+      for (const auto& mem : memories) {
+        context << "- " << mem.topic << ": " << mem.summary << "\n";
+      }
+      context << "]\n";
+    }
+  }
+  
+  return context.str();
+}
+
+std::string ConversationalAgentService::InjectPretraining() {
+  if (!rom_context_) {
+    return "";
+  }
+  
+  std::ostringstream pretraining;
+  pretraining << "[SYSTEM KNOWLEDGE INJECTION - Read this first]\n\n";
+  pretraining << AgentPretraining::GeneratePretrainingPrompt(rom_context_);
+  pretraining << "\n[END KNOWLEDGE INJECTION]\n";
+  
+  return pretraining.str();
+}
+
+ChatMessage ConversationalAgentService::EnhanceResponse(
+    const ChatMessage& response, 
+    const std::string& user_message) {
+  // Use AdvancedRouter to enhance tool-based responses
+  // This would synthesize multi-tool results into coherent insights
+  
+  // For now, return response as-is
+  // TODO: Integrate AdvancedRouter here
+  return response;
+}
+#endif  // Z3ED_AI
 
 }  // namespace agent
 }  // namespace cli

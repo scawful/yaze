@@ -12,6 +12,8 @@
 #include "absl/time/time.h"
 #include "util/platform_paths.h"
 
+#include "nlohmann/json.hpp"
+
 namespace yaze {
 namespace cli {
 namespace agent {
