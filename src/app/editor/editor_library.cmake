@@ -47,7 +47,6 @@ set(
   app/editor/ui/background_renderer.cc
   app/editor/ui/editor_selection_dialog.cc
   app/editor/ui/menu_builder.cc
-  app/editor/ui/menu_manager.cc
   app/editor/ui/welcome_screen.cc
   app/editor/ui/workspace_manager.cc
 )
