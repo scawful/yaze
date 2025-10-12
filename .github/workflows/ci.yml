@@ -58,10 +58,10 @@ jobs:
             os: macos-14
             cc: clang
             cxx: clang++
-          - name: "Windows 2022 (MSVC)"
+          - name: "Windows 2022 (Clang)"
             os: windows-2022
-            cc: cl
-            cxx: cl
+            cc: clang-cl
+            cxx: clang-cl
 
     steps:
     - name: Checkout
@@ -69,19 +69,6 @@ jobs:
       with:
         submodules: recursive
       
-    - name: Setup vcpkg Cache (Windows)
-      if: runner.os == 'Windows'
-      uses: actions/cache@v4
-      with:
-        path: |
-          ${{ github.workspace }}/vcpkg
-          !${{ github.workspace }}/vcpkg/buildtrees
-          !${{ github.workspace }}/vcpkg/packages
-          !${{ github.workspace }}/vcpkg/downloads
-        key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
-        restore-keys: |
-          vcpkg-${{ runner.os }}-
-    
     - name: Set up vcpkg (Windows)
       if: runner.os == 'Windows'
       uses: lukka/run-vcpkg@v11
@@ -235,8 +222,10 @@ jobs:
         $vcpkgToolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -replace '\\', '/'
         Write-Host "Using vcpkg toolchain: $vcpkgToolchain"
         
-        cmake -B build -G "Visual Studio 17 2022" -A x64 `
+        cmake -B build -G "Ninja" `
           -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} `
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} `
           -DCMAKE_TOOLCHAIN_FILE="$vcpkgToolchain" `
           -DVCPKG_TARGET_TRIPLET=x64-windows-static `
           -DVCPKG_MANIFEST_MODE=ON `
@@ -360,7 +349,7 @@ jobs:
       run: |
         Write-Host "=== Post-Build Diagnostics ===" -ForegroundColor Green
         
-        $binPath = "build/bin/${{ env.BUILD_TYPE }}"
+        $binPath = "build/bin"
         if (Test-Path $binPath) {
           Write-Host "`nBuilt executables and libraries:" -ForegroundColor Cyan
           Get-ChildItem -Path $binPath -Include *.exe,*.dll -Recurse | ForEach-Object {
@@ -389,8 +378,8 @@ jobs:
       with:
         name: yaze-windows-ci-${{ github.run_number }}
         path: |
-          build/bin/${{ env.BUILD_TYPE }}/*.exe
-          build/bin/${{ env.BUILD_TYPE }}/*.dll
+          build/bin/*.exe
+          build/bin/*.dll
         if-no-files-found: warn
         retention-days: 3
 
