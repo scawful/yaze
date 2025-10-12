@@ -102,7 +102,7 @@ std::string AgentPretraining::GetMapEditingKnowledge() {
 # Map Editing Workflow with Test Harness
 
 ## Tile Placement Flow
-1. Parse natural language: "Place water tile at (5, 7)"
+1. Parse natural language: "Place water tile at (5, 7)\"
 2. Tool chain:
    a. overworld-find-tile to get water tile ID
    b. Calculate screen coordinates from game coords
@@ -175,7 +175,7 @@ std::string AgentPretraining::GeneratePretrainingPrompt(Rom* rom) {
   if (rom && rom->is_loaded()) {
     prompt += absl::StrFormat("## Current ROM: %s\n", rom->title());
     prompt += absl::StrFormat("Size: %zu bytes\n", rom->size());
-    prompt += absl::StrFormat("Type: %s\n\n", rom->is_expanded() ? "Expanded" : "Vanilla");
+    // prompt += absl::StrFormat("Type: %s\n\n", rom->is_expanded() ? "Expanded" : "Vanilla");
   }
   
   for (const auto& module : GetModules()) {

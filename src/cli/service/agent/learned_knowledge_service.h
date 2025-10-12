@@ -10,9 +10,8 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 
-#ifdef YAZE_WITH_JSON
-#include "nlohmann/json.hpp"
-#endif
+// Note: This header is JSON-independent for broader compatibility
+// JSON is only used in the .cc implementation file
 
 namespace yaze {
 namespace cli {
