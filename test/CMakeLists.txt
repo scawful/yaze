@@ -34,10 +34,12 @@ if(YAZE_BUILD_TESTS)
       ${SDL_TARGETS}
     )
 
-    # Link ImGui Test Engine for GUI tests
-    if(is_gui_test AND YAZE_ENABLE_UI_TESTS)
-      target_link_libraries(${suite_name} PRIVATE ${IMGUI_TEST_ENGINE_TARGET})
-      target_compile_definitions(${suite_name} PRIVATE ${IMGUI_TEST_ENGINE_DEFINITIONS})
+    # Link ImGui Test Engine for GUI tests (always available when tests are built)
+    if(is_gui_test AND TARGET ImGuiTestEngine)
+      target_link_libraries(${suite_name} PRIVATE ImGuiTestEngine)
+      target_compile_definitions(${suite_name} PRIVATE 
+        IMGUI_ENABLE_TEST_ENGINE=1 
+        IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1)
     endif()
 
     if(WIN32)
