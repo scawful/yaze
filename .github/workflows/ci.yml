@@ -302,7 +302,7 @@ jobs:
           CORES=2
         fi
         echo "Using $CORES parallel jobs"
-        cmake --build build --config ${{ env.BUILD_TYPE }} --parallel $CORES 2>&1 | tee build.log
+        cmake --build build --parallel $CORES 2>&1 | tee build.log
     
     - name: Report Build Failure
       if: failure() && steps.build.outcome == 'failure'
@@ -396,7 +396,7 @@ jobs:
       working-directory: build
       run: |
         echo "Running stable test suite..."
-        ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure -j1 \
+        ctest --output-on-failure -j1 \
           -L "stable" \
           --output-junit stable_test_results.xml 2>&1 | tee ../stable_test.log || true
 
@@ -406,7 +406,7 @@ jobs:
       continue-on-error: true
       run: |
         echo "Running experimental test suite (informational only)..."
-        ctest --build-config ${{ env.BUILD_TYPE }} --output-on-failure --parallel \
+        ctest --output-on-failure --parallel \
           -L "experimental" \
           --output-junit experimental_test_results.xml 2>&1 | tee ../experimental_test.log
     
