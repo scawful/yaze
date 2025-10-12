@@ -187,6 +187,14 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
 }
 
 void PaletteEditor::Initialize() {
+  // Initialize palette cards
+  if (rom_ && rom_->is_loaded()) {
+    ow_main_card_ = std::make_unique<OverworldMainPaletteCard>(rom_);
+    ow_animated_card_ = std::make_unique<OverworldAnimatedPaletteCard>(rom_);
+    dungeon_main_card_ = std::make_unique<DungeonMainPaletteCard>(rom_);
+    sprite_card_ = std::make_unique<SpritePaletteCard>(rom_);
+    equipment_card_ = std::make_unique<EquipmentPaletteCard>(rom_);
+  }
 }
 
 absl::Status PaletteEditor::Load() {
@@ -206,47 +214,87 @@ absl::Status PaletteEditor::Load() {
 }
 
 absl::Status PaletteEditor::Update() {
-  static int current_palette_group = 0;
-  if (BeginTable("paletteGroupsTable", 3, kPaletteTableFlags)) {
-    TableSetupColumn("Categories", ImGuiTableColumnFlags_WidthFixed, 200);
-    TableSetupColumn("Palette Editor", ImGuiTableColumnFlags_WidthStretch);
-    TableSetupColumn("Quick Access", ImGuiTableColumnFlags_WidthStretch);
-    TableHeadersRow();
+  static bool use_legacy_view = false;
 
-    TableNextRow();
-    TableNextColumn();
-
-    static int selected_category = 0;
-    BeginChild("CategoryList", ImVec2(0, GetContentRegionAvail().y), true);
-
-    for (int i = 0; i < kNumPalettes; i++) {
-      const bool is_selected = (selected_category == i);
-      if (Selectable(std::string(kPaletteCategoryNames[i]).c_str(),
-                     is_selected)) {
-        selected_category = i;
-      }
-    }
-
-    EndChild();
-
-    TableNextColumn();
-    BeginChild("PaletteEditor", ImVec2(0, 0), true);
-
-    Text("%s", std::string(kPaletteCategoryNames[selected_category]).c_str());
-
-    Separator();
-
-    if (rom()->is_loaded()) {
-      status_ = DrawPaletteGroup(selected_category, true);
-    }
-
-    EndChild();
-
-    TableNextColumn();
-    DrawQuickAccessTab();
-
-    EndTable();
+  // Toolbar with view selector
+  if (ImGui::Button(use_legacy_view ? "Switch to Card View" : "Switch to Legacy View")) {
+    use_legacy_view = !use_legacy_view;
   }
+
+  ImGui::SameLine();
+  ImGui::TextDisabled("|");
+  ImGui::SameLine();
+
+  if (use_legacy_view) {
+    // Original table-based view
+    static int current_palette_group = 0;
+    if (BeginTable("paletteGroupsTable", 3, kPaletteTableFlags)) {
+      TableSetupColumn("Categories", ImGuiTableColumnFlags_WidthFixed, 200);
+      TableSetupColumn("Palette Editor", ImGuiTableColumnFlags_WidthStretch);
+      TableSetupColumn("Quick Access", ImGuiTableColumnFlags_WidthStretch);
+      TableHeadersRow();
+
+      TableNextRow();
+      TableNextColumn();
+
+      static int selected_category = 0;
+      BeginChild("CategoryList", ImVec2(0, GetContentRegionAvail().y), true);
+
+      for (int i = 0; i < kNumPalettes; i++) {
+        const bool is_selected = (selected_category == i);
+        if (Selectable(std::string(kPaletteCategoryNames[i]).c_str(),
+                       is_selected)) {
+          selected_category = i;
+        }
+      }
+
+      EndChild();
+
+      TableNextColumn();
+      BeginChild("PaletteEditor", ImVec2(0, 0), true);
+
+      Text("%s", std::string(kPaletteCategoryNames[selected_category]).c_str());
+
+      Separator();
+
+      if (rom()->is_loaded()) {
+        status_ = DrawPaletteGroup(selected_category, true);
+      }
+
+      EndChild();
+
+      TableNextColumn();
+      DrawQuickAccessTab();
+
+      EndTable();
+    }
+  } else {
+    // New card-based view with quick access sidebar
+    if (BeginTable("paletteCardsTable", 2, kPaletteTableFlags)) {
+      TableSetupColumn("Palette Cards", ImGuiTableColumnFlags_WidthStretch);
+      TableSetupColumn("Quick Access", ImGuiTableColumnFlags_WidthFixed, 300);
+      TableHeadersRow();
+
+      TableNextRow();
+      TableNextColumn();
+
+      BeginChild("PaletteCardsView", ImVec2(0, 0), true);
+      DrawPaletteCards();
+      EndChild();
+
+      TableNextColumn();
+      DrawQuickAccessTab();
+
+      EndTable();
+    }
+  }
+
+  // Draw palette card windows (dockable/floating)
+  if (ow_main_card_) ow_main_card_->Draw();
+  if (ow_animated_card_) ow_animated_card_->Draw();
+  if (dungeon_main_card_) dungeon_main_card_->Draw();
+  if (sprite_card_) sprite_card_->Draw();
+  if (equipment_card_) equipment_card_->Draw();
 
   return absl::OkStatus();
 }
@@ -557,6 +605,72 @@ absl::Status PaletteEditor::ResetColorToOriginal(
   auto originalColor = color.rgb();
   palette[index] = gui::ConvertImVec4ToSnesColor(originalColor);
   return absl::OkStatus();
+}
+
+void PaletteEditor::DrawPaletteCards() {
+  ImGui::TextWrapped(
+      "Click a palette card below to open it as a dockable/floating window. "
+      "Each card provides full editing capabilities with undo/redo, "
+      "save/discard workflow, and detailed metadata.");
+
+  ImGui::Separator();
+
+  // Draw card launcher buttons
+  ImGui::Text("Overworld Palettes");
+  if (ImGui::Button("Open Overworld Main", ImVec2(-1, 0))) {
+    if (ow_main_card_) ow_main_card_->Show();
+  }
+  if (ImGui::Button("Open Overworld Animated", ImVec2(-1, 0))) {
+    if (ow_animated_card_) ow_animated_card_->Show();
+  }
+
+  ImGui::Separator();
+
+  ImGui::Text("Dungeon Palettes");
+  if (ImGui::Button("Open Dungeon Main", ImVec2(-1, 0))) {
+    if (dungeon_main_card_) dungeon_main_card_->Show();
+  }
+
+  ImGui::Separator();
+
+  ImGui::Text("Sprite & Equipment Palettes");
+  if (ImGui::Button("Open Sprite Palettes", ImVec2(-1, 0))) {
+    if (sprite_card_) sprite_card_->Show();
+  }
+  if (ImGui::Button("Open Equipment Palettes", ImVec2(-1, 0))) {
+    if (equipment_card_) equipment_card_->Show();
+  }
+
+  ImGui::Separator();
+
+  // Show modified status for each card
+  ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "Modified Cards:");
+  bool any_modified = false;
+
+  if (ow_main_card_ && ow_main_card_->HasUnsavedChanges()) {
+    ImGui::BulletText("Overworld Main");
+    any_modified = true;
+  }
+  if (ow_animated_card_ && ow_animated_card_->HasUnsavedChanges()) {
+    ImGui::BulletText("Overworld Animated");
+    any_modified = true;
+  }
+  if (dungeon_main_card_ && dungeon_main_card_->HasUnsavedChanges()) {
+    ImGui::BulletText("Dungeon Main");
+    any_modified = true;
+  }
+  if (sprite_card_ && sprite_card_->HasUnsavedChanges()) {
+    ImGui::BulletText("Sprite Palettes");
+    any_modified = true;
+  }
+  if (equipment_card_ && equipment_card_->HasUnsavedChanges()) {
+    ImGui::BulletText("Equipment Palettes");
+    any_modified = true;
+  }
+
+  if (!any_modified) {
+    ImGui::TextDisabled("No unsaved changes");
+  }
 }
 
 }  // namespace editor

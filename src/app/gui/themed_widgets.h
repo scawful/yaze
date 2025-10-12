@@ -10,27 +10,26 @@ namespace yaze {
 namespace gui {
 
 /**
- * @brief Opt-in themed widget library for gradual migration
+ * @brief Theme-aware widget library
  *
- * All widgets automatically use the current theme from ThemeManager.
- * Editors can opt-in by using these widgets instead of raw ImGui calls.
+ * All widgets in this file automatically use the current theme from ThemeManager.
+ * These are drop-in replacements for standard ImGui widgets with automatic theming.
  *
  * Usage:
  * ```cpp
- * using namespace yaze::gui::themed;
+ * using namespace yaze::gui;
  *
- * if (Button("Save")) {
+ * if (ThemedButton("Save")) {
  *     // Button uses theme colors automatically
  * }
  *
- * Header("Settings");  // Themed section header
+ * SectionHeader("Settings");  // Themed section header
  *
- * Card("Properties", [&]() {
+ * ThemedCard("Properties", [&]() {
  *     // Content inside themed card
  * });
  * ```
  */
-namespace themed {
 
 // ============================================================================
 // Buttons
@@ -39,12 +38,12 @@ namespace themed {
 /**
  * @brief Themed button with automatic color application
  */
-bool Button(const char* label, const ImVec2& size = ImVec2(0, 0));
+bool ThemedButton(const char* label, const ImVec2& size = ImVec2(0, 0));
 
 /**
  * @brief Themed button with icon (Material Design Icons)
  */
-bool IconButton(const char* icon, const char* tooltip = nullptr);
+bool ThemedIconButton(const char* icon, const char* tooltip = nullptr);
 
 /**
  * @brief Primary action button (uses accent color)
@@ -63,12 +62,12 @@ bool DangerButton(const char* label, const ImVec2& size = ImVec2(0, 0));
 /**
  * @brief Themed section header with accent color
  */
-void Header(const char* label);
+void SectionHeader(const char* label);
 
 /**
  * @brief Collapsible section with themed header
  */
-bool CollapsingHeader(const char* label, ImGuiTreeNodeFlags flags = 0);
+bool ThemedCollapsingHeader(const char* label, ImGuiTreeNodeFlags flags = 0);
 
 // ============================================================================
 // Cards & Panels
@@ -80,18 +79,18 @@ bool CollapsingHeader(const char* label, ImGuiTreeNodeFlags flags = 0);
  * @param content Callback function to render card content
  * @param size Card size (0, 0 for auto-size)
  */
-void Card(const char* label, std::function<void()> content,
-          const ImVec2& size = ImVec2(0, 0));
+void ThemedCard(const char* label, std::function<void()> content,
+                const ImVec2& size = ImVec2(0, 0));
 
 /**
- * @brief Begin themed panel (manual version of Card)
+ * @brief Begin themed panel (manual version of ThemedCard)
  */
-void BeginPanel(const char* label, const ImVec2& size = ImVec2(0, 0));
+void BeginThemedPanel(const char* label, const ImVec2& size = ImVec2(0, 0));
 
 /**
  * @brief End themed panel
  */
-void EndPanel();
+void EndThemedPanel();
 
 // ============================================================================
 // Inputs
@@ -100,32 +99,32 @@ void EndPanel();
 /**
  * @brief Themed text input
  */
-bool InputText(const char* label, char* buf, size_t buf_size,
-               ImGuiInputTextFlags flags = 0);
+bool ThemedInputText(const char* label, char* buf, size_t buf_size,
+                     ImGuiInputTextFlags flags = 0);
 
 /**
  * @brief Themed integer input
  */
-bool InputInt(const char* label, int* v, int step = 1, int step_fast = 100,
-              ImGuiInputTextFlags flags = 0);
+bool ThemedInputInt(const char* label, int* v, int step = 1, int step_fast = 100,
+                    ImGuiInputTextFlags flags = 0);
 
 /**
  * @brief Themed float input
  */
-bool InputFloat(const char* label, float* v, float step = 0.0f,
-                float step_fast = 0.0f, const char* format = "%.3f",
-                ImGuiInputTextFlags flags = 0);
+bool ThemedInputFloat(const char* label, float* v, float step = 0.0f,
+                      float step_fast = 0.0f, const char* format = "%.3f",
+                      ImGuiInputTextFlags flags = 0);
 
 /**
  * @brief Themed checkbox
  */
-bool Checkbox(const char* label, bool* v);
+bool ThemedCheckbox(const char* label, bool* v);
 
 /**
  * @brief Themed combo box
  */
-bool Combo(const char* label, int* current_item, const char* const items[],
-           int items_count, int popup_max_height_in_items = -1);
+bool ThemedCombo(const char* label, int* current_item, const char* const items[],
+                 int items_count, int popup_max_height_in_items = -1);
 
 // ============================================================================
 // Tables
@@ -134,14 +133,14 @@ bool Combo(const char* label, int* current_item, const char* const items[],
 /**
  * @brief Begin themed table with automatic styling
  */
-bool BeginTable(const char* str_id, int columns, ImGuiTableFlags flags = 0,
-                const ImVec2& outer_size = ImVec2(0, 0),
-                float inner_width = 0.0f);
+bool BeginThemedTable(const char* str_id, int columns, ImGuiTableFlags flags = 0,
+                      const ImVec2& outer_size = ImVec2(0, 0),
+                      float inner_width = 0.0f);
 
 /**
  * @brief End themed table
  */
-void EndTable();
+void EndThemedTable();
 
 // ============================================================================
 // Tooltips & Help
@@ -150,17 +149,17 @@ void EndTable();
 /**
  * @brief Themed help marker with tooltip
  */
-void HelpMarker(const char* desc);
+void ThemedHelpMarker(const char* desc);
 
 /**
  * @brief Begin themed tooltip
  */
-void BeginTooltip();
+void BeginThemedTooltip();
 
 /**
  * @brief End themed tooltip
  */
-void EndTooltip();
+void EndThemedTooltip();
 
 // ============================================================================
 // Status & Feedback
@@ -170,13 +169,47 @@ enum class StatusType { kSuccess, kWarning, kError, kInfo };
 /**
  * @brief Themed status text (success, warning, error, info)
  */
-void StatusText(const char* text, StatusType type);
+void ThemedStatusText(const char* text, StatusType type);
 
 /**
  * @brief Themed progress bar
  */
-void ProgressBar(float fraction, const ImVec2& size = ImVec2(-1, 0),
-                 const char* overlay = nullptr);
+void ThemedProgressBar(float fraction, const ImVec2& size = ImVec2(-1, 0),
+                       const char* overlay = nullptr);
+
+// ============================================================================
+// Palette Editor Widgets
+// ============================================================================
+
+/**
+ * @brief Palette color button with modified and selection indicators
+ * @param label Widget ID
+ * @param color SNES color to display
+ * @param is_selected Whether this color is currently selected
+ * @param is_modified Whether this color has unsaved changes
+ * @param size Button size (default 24x24)
+ * @return true if clicked
+ */
+bool PaletteColorButton(const char* label, const yaze::gfx::SnesColor& color,
+                       bool is_selected, bool is_modified,
+                       const ImVec2& size = ImVec2(24, 24));
+
+/**
+ * @brief Display color information with copy-to-clipboard functionality
+ * @param color SNES color to display info for
+ * @param show_snes_format Show SNES $xxxx format
+ * @param show_hex_format Show #xxxxxx hex format
+ */
+void ColorInfoPanel(const yaze::gfx::SnesColor& color,
+                   bool show_snes_format = true,
+                   bool show_hex_format = true);
+
+/**
+ * @brief Modified indicator badge (displayed as text with icon)
+ * @param is_modified Whether to show the badge
+ * @param text Optional text to display after badge
+ */
+void ModifiedBadge(bool is_modified, const char* text = nullptr);
 
 // ============================================================================
 // Utility
@@ -192,14 +225,13 @@ inline const EnhancedTheme& GetTheme() {
 /**
  * @brief Apply theme colors to next widget
  */
-void PushWidgetColors();
+void PushThemedWidgetColors();
 
 /**
  * @brief Restore previous colors
  */
-void PopWidgetColors();
+void PopThemedWidgetColors();
 
-}  // namespace themed
 }  // namespace gui
 }  // namespace yaze
 

@@ -20,7 +20,7 @@
 #include "app/editor/code/project_file_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/graphics/graphics_editor.h"
-#include "app/editor/graphics/palette_editor.h"
+#include "app/editor/palette/palette_editor.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/message/message_editor.h"
 #include "app/editor/music/music_editor.h"
