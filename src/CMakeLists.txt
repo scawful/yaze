@@ -63,20 +63,22 @@ include(app/net/net_library.cmake)
 include(app/gui/gui_library.cmake)
 include(app/zelda3/zelda3_library.cmake)
 include(app/core/core_library.cmake)
-include(app/editor/editor_library.cmake)
-include(app/emu/emu_library.cmake)
 
-# Include agent/CLI components BEFORE tests so test.cmake can link against yaze_agent
-if(YAZE_BUILD_APP OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS)
-  include(cli/agent.cmake)
-endif()
-
-# Include test support library when tests are enabled OR in non-minimal builds
+# Include test support library BEFORE yaze_editor so it can link against it
 # (yaze_editor needs TestManager for editor features)
 # Test executables are only built when YAZE_BUILD_TESTS=ON (handled in test/CMakeLists.txt)
 if(YAZE_BUILD_TESTS OR NOT YAZE_MINIMAL_BUILD)
   include(app/test/test.cmake)
 endif()
+
+# Include agent/CLI components (needed by yaze_editor for agent features)
+if(YAZE_BUILD_APP OR YAZE_BUILD_Z3ED OR YAZE_BUILD_TESTS)
+  include(cli/agent.cmake)
+endif()
+
+# Editor and emulator (depend on test support when tests are enabled)
+include(app/editor/editor_library.cmake)
+include(app/emu/emu_library.cmake)
 
 # Build main application
 if(YAZE_BUILD_APP)
