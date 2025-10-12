@@ -115,26 +115,26 @@ if(YAZE_BUILD_TESTS)
   endif()
 
   # --- Experimental & GUI Test Suites ---
-  if(YAZE_ENABLE_UI_TESTS)
-    set(GUI_TEST_SOURCES
-      test_utils.cc
-      e2e/framework_smoke_test.cc
-      e2e/dungeon_editor_smoke_test.cc
-      e2e/canvas_selection_test.cc
-      integration/ai/ai_gui_controller_test.cc
-    )
-    yaze_add_test_suite(yaze_test_gui "gui;experimental" ON ${GUI_TEST_SOURCES})
+  # GUI tests always available when tests are built (uses ImGui Test Engine)
+  set(GUI_TEST_SOURCES
+    test_utils.cc
+    e2e/framework_smoke_test.cc
+    e2e/dungeon_editor_smoke_test.cc
+    e2e/canvas_selection_test.cc
+    integration/ai/ai_gui_controller_test.cc
+  )
+  yaze_add_test_suite(yaze_test_gui "gui;experimental" ON ${GUI_TEST_SOURCES})
 
-    # Add a single test entry to run the entire GUI suite headlessly
-    add_test(
-        NAME headless_gui_suite
-        COMMAND $<TARGET_FILE:yaze_test_gui> -nogui
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-    )
-    set_tests_properties(headless_gui_suite PROPERTIES LABELS "headless_gui;experimental")
-  endif()
+  # Add a single test entry to run the entire GUI suite headlessly
+  add_test(
+      NAME headless_gui_suite
+      COMMAND $<TARGET_FILE:yaze_test_gui> -nogui
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_tests_properties(headless_gui_suite PROPERTIES LABELS "headless_gui;experimental")
 
   set(EXPERIMENTAL_TEST_SOURCES
+    test_utils.cc
     integration/ai/test_ai_tile_placement.cc
     integration/ai/test_gemini_vision.cc
   )
