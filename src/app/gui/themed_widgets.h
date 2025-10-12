@@ -1,10 +1,10 @@
 #ifndef YAZE_APP_GUI_THEMED_WIDGETS_H
 #define YAZE_APP_GUI_THEMED_WIDGETS_H
 
-#include "imgui/imgui.h"
-#include "app/gui/theme_manager.h"
-#include "app/gui/layout_helpers.h"
 #include "app/gui/color.h"
+#include "app/gui/layout_helpers.h"
+#include "app/gui/theme_manager.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace gui {
@@ -135,7 +135,8 @@ bool Combo(const char* label, int* current_item, const char* const items[],
  * @brief Begin themed table with automatic styling
  */
 bool BeginTable(const char* str_id, int columns, ImGuiTableFlags flags = 0,
-                const ImVec2& outer_size = ImVec2(0, 0), float inner_width = 0.0f);
+                const ImVec2& outer_size = ImVec2(0, 0),
+                float inner_width = 0.0f);
 
 /**
  * @brief End themed table
@@ -165,23 +166,17 @@ void EndTooltip();
 // Status & Feedback
 // ============================================================================
 
+enum class StatusType { kSuccess, kWarning, kError, kInfo };
 /**
  * @brief Themed status text (success, warning, error, info)
  */
 void StatusText(const char* text, StatusType type);
 
-enum class StatusType {
-  kSuccess,
-  kWarning,
-  kError,
-  kInfo
-};
-
 /**
  * @brief Themed progress bar
  */
 void ProgressBar(float fraction, const ImVec2& size = ImVec2(-1, 0),
-                const char* overlay = nullptr);
+                 const char* overlay = nullptr);
 
 // ============================================================================
 // Utility
