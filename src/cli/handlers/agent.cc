@@ -23,7 +23,6 @@ namespace agent {
 absl::Status HandlePlanCommand(const std::vector<std::string>& args);
 absl::Status HandleTestCommand(const std::vector<std::string>& args);
 absl::Status HandleTestConversationCommand(const std::vector<std::string>& args);
-absl::Status HandleGuiCommand(const std::vector<std::string>& args);
 absl::Status HandleLearnCommand(const std::vector<std::string>& args);
 absl::Status HandleListCommand();
 absl::Status HandleDescribeCommand(const std::vector<std::string>& args);
@@ -116,7 +115,10 @@ absl::Status HandleAgentCommand(const std::vector<std::string>& arg_vec) {
   }
   
   if (subcommand == "gui") {
-    return agent::HandleGuiCommand(subcommand_args);
+    // GUI commands are in the registry (gui-place-tile, gui-click, etc.)
+    // Route to registry instead
+    return absl::InvalidArgumentError(
+        "Use 'z3ed gui-<command>' or see 'z3ed --help gui' for available GUI automation commands");
   }
   
   if (subcommand == "learn") {

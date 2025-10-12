@@ -1,4 +1,3 @@
-#include "cli/handlers/commands.h"
 #include "app/rom.h"
 #include "app/core/project.h"
 #include "cli/handlers/rom/mock_rom.h"
