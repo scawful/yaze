@@ -118,8 +118,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Windows x64"
+          - name: "Windows x64 (Clang)"
             os: windows-2022
+            cc: clang-cl
+            cxx: clang-cl
             artifact_name: "yaze-windows-x64"
           - name: "macOS arm64"
             os: macos-14
@@ -227,8 +229,10 @@ jobs:
           $vcpkgToolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -replace '\\', '/'
           Write-Host "Using vcpkg toolchain: $vcpkgToolchain"
 
-          cmake -B build -G "Visual Studio 17 2022" -A x64 `
+          cmake -B build -G "Ninja" `
             -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} `
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} `
             -DCMAKE_TOOLCHAIN_FILE="$vcpkgToolchain" `
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
             -DVCPKG_MANIFEST_MODE=ON `
@@ -354,14 +358,14 @@ jobs:
           mkdir -p stage
 
           if [[ "${{ runner.os }}" == "Windows" ]]; then
-            # Windows uses Visual Studio generator: build/bin/Release/
+            # Windows uses Ninja generator: build/bin/
             echo "Packaging Windows artifacts..."
-            if [[ ! -f build/bin/${{ env.BUILD_TYPE }}/yaze.exe ]]; then
-              echo "::error::Windows binary not found at build/bin/${{ env.BUILD_TYPE }}/yaze.exe"
+            if [[ ! -f build/bin/yaze.exe ]]; then
+              echo "::error::Windows binary not found at build/bin/yaze.exe"
               ls -la build/bin/ || true
               exit 1
             fi
-            cp -r build/bin/${{ env.BUILD_TYPE }}/* stage/
+            cp -r build/bin/* stage/
             cp -r assets/ stage/assets/
             cp LICENSE README.md stage/
             (cd stage && powershell -Command "Compress-Archive -Path * -DestinationPath ../${ARTIFACT_NAME}.zip")
