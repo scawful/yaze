@@ -40,4 +40,9 @@ endif()
 if(YAZE_WITH_GRPC)
   message(STATUS "Adding gRPC support to z3ed CLI")
   target_link_libraries(z3ed PRIVATE grpc++ grpc++_reflection libprotobuf)
+  
+  # On Windows, force whole-archive linking for protobuf to ensure all symbols are included
+  if(MSVC)
+    target_link_options(z3ed PRIVATE /WHOLEARCHIVE:libprotobuf)
+  endif()
 endif()

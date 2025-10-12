@@ -151,6 +151,11 @@ if(YAZE_WITH_GRPC)
     libprotobuf
   )
   
+  # On Windows, force whole-archive linking for protobuf to ensure all symbols are included
+  if(MSVC)
+    target_link_options(yaze_core_lib PUBLIC /WHOLEARCHIVE:libprotobuf)
+  endif()
+  
   message(STATUS "  - gRPC test harness + ROM service enabled")
 endif()
 
