@@ -326,7 +326,7 @@ jobs:
             CORES=2
           fi
           echo "Using $CORES parallel jobs"
-          cmake --build build --config ${{ env.BUILD_TYPE }} --parallel $CORES 2>&1 | tee build.log
+          cmake --build build --parallel $CORES 2>&1 | tee build.log
 
       - name: "Report Build Failure"
         if: failure() && steps.build.outcome == 'failure'
