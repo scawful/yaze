@@ -120,11 +120,18 @@ if(YAZE_WITH_JSON)
   target_compile_definitions(yaze_editor PUBLIC YAZE_WITH_JSON)
 endif()
 
-# Link ImGui Test Engine when tests are enabled
+# Link test infrastructure when tests are enabled
 # The test infrastructure is integrated into the editor for test automation
-if(YAZE_BUILD_TESTS AND TARGET ImGuiTestEngine)
-  target_link_libraries(yaze_editor PUBLIC ImGuiTestEngine)
-  message(STATUS "✓ yaze_editor linked to ImGuiTestEngine")
+if(YAZE_BUILD_TESTS)
+  if(TARGET ImGuiTestEngine)
+    target_link_libraries(yaze_editor PUBLIC ImGuiTestEngine)
+    message(STATUS "✓ yaze_editor linked to ImGuiTestEngine")
+  endif()
+  
+  if(TARGET yaze_test_support)
+    target_link_libraries(yaze_editor PUBLIC yaze_test_support)
+    message(STATUS "✓ yaze_editor linked to yaze_test_support")
+  endif()
 endif()
 
 # Conditionally link gRPC if enabled
