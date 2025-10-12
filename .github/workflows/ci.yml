@@ -293,9 +293,19 @@ jobs:
     
     - name: Build
       id: build
+      shell: bash
       run: |
         echo "Building with ${{ env.BUILD_TYPE }} configuration..."
-        cmake --build build --config ${{ env.BUILD_TYPE }} --parallel $(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2) 2>&1 | tee build.log
+        # Determine number of parallel jobs based on platform
+        if command -v nproc >/dev/null 2>&1; then
+          CORES=$(nproc)
+        elif command -v sysctl >/dev/null 2>&1; then
+          CORES=$(sysctl -n hw.ncpu)
+        else
+          CORES=2
+        fi
+        echo "Using $CORES parallel jobs"
+        cmake --build build --config ${{ env.BUILD_TYPE }} --parallel $CORES 2>&1 | tee build.log
     
     - name: Report Build Failure
       if: failure() && steps.build.outcome == 'failure'

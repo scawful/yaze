@@ -306,7 +306,13 @@ jobs:
         run: |
           echo "Building release with ${{ env.BUILD_TYPE }} configuration..."
           # Use all available cores for faster builds
-          CORES=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
+          if command -v nproc >/dev/null 2>&1; then
+            CORES=$(nproc)
+          elif command -v sysctl >/dev/null 2>&1; then
+            CORES=$(sysctl -n hw.ncpu)
+          else
+            CORES=2
+          fi
           echo "Using $CORES parallel jobs"
           cmake --build build --config ${{ env.BUILD_TYPE }} --parallel $CORES 2>&1 | tee build.log
 
