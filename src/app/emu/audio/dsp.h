@@ -9,6 +9,7 @@ namespace emu {
 
 enum class InterpolationType {
   Linear,
+  Hermite,  // Used by bsnes/Snes9x - better quality than linear
   Cosine,
   Cubic,
 };

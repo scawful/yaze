@@ -280,61 +280,47 @@ void Emulator::Run(Rom* rom) {
 
         // Only render and handle audio on the last frame
         if (should_render) {
-          // ADAPTIVE AUDIO BUFFERING
-          // Target: Keep 2-3 frames worth of audio queued for smooth playback
-          // This prevents both underruns (crackling) and excessive latency
+          // SMOOTH AUDIO BUFFERING
+          // Strategy: Always queue samples, never drop. Use dynamic rate control
+          // to keep buffer at target level. This prevents pops and glitches.
           
           if (audio_backend_) {
             auto audio_status = audio_backend_->GetStatus();
             uint32_t queued_frames = audio_status.queued_frames;
             
-            // Target buffer: 2.5 frames (2000 samples at 48kHz/60fps)
-            // Min: 1.5 frames (1200 samples) - below this we need to queue
-            // Max: 4.0 frames (3200 samples) - above this we skip queueing
-            const uint32_t target_buffer = wanted_samples_ * 2.5;
-            const uint32_t min_buffer = wanted_samples_ * 1.5;
-            const uint32_t max_buffer = wanted_samples_ * 4.0;
+            // Synchronize DSP frame boundary for proper resampling
+            snes_.apu().dsp().NewFrame();
             
-            bool should_queue = (queued_frames < max_buffer);
+            // Target buffer: 2.0 frames for low latency with safety margin
+            // This is similar to how bsnes/Mesen handle audio buffering
+            const uint32_t target_buffer = wanted_samples_ * 2;
+            const uint32_t min_buffer = wanted_samples_;
+            const uint32_t max_buffer = wanted_samples_ * 4;
             
-            if (should_queue) {
-              // Generate samples from SNES APU/DSP
-              snes_.SetSamples(audio_buffer_, wanted_samples_);
-              
-              int num_samples = wanted_samples_ * 2;  // Stereo (L+R channels)
-              
-              // Adaptive sample adjustment to prevent drift
-              // Note: We can only queue up to what we generated
-              if (queued_frames < min_buffer) {
-                // Buffer running low - queue all samples we have
-                // In future frames this helps catch up
-                num_samples = wanted_samples_ * 2;
-              } else if (queued_frames > target_buffer) {
-                // Buffer too high - queue fewer samples to drain faster
-                // Drop some samples to reduce latency
-                num_samples = static_cast<int>(wanted_samples_ * 2 * 0.8);
-                if (num_samples < wanted_samples_ * 2 * 0.5) {
-                  num_samples = wanted_samples_ * 2 * 0.5;  // Minimum 50%
-                }
-              }
-              
+            // Generate samples from SNES APU/DSP
+            snes_.SetSamples(audio_buffer_, wanted_samples_);
+            
+            // CRITICAL: Always queue all generated samples - never drop
+            // Dropping samples causes audible pops and glitches
+            int num_samples = wanted_samples_ * 2;  // Stereo (L+R channels)
+            
+            // Only skip queueing if buffer is dangerously full (>4 frames)
+            // This prevents unbounded buffer growth but is rare in practice
+            if (queued_frames < max_buffer) {
               if (!audio_backend_->QueueSamples(audio_buffer_, num_samples)) {
                 static int error_count = 0;
                 if (++error_count % 300 == 0) {
                   LOG_WARN("Emulator", "Failed to queue audio (count: %d)", error_count);
                 }
               }
-            }
-            
-            // AUDIO DEBUG: Compact per-frame monitoring
-            static int audio_debug_counter = 0;
-            audio_debug_counter++;
-            
-            // Log first 10 frames, then every 60 frames for ongoing monitoring
-            if (audio_debug_counter < 10 || audio_debug_counter % 60 == 0) {
-              printf("[AUDIO] Frame %d: Queued=%u Target=%u Status=%s\n",
-                     audio_debug_counter, queued_frames, target_buffer,
-                     should_queue ? "QUEUE" : "SKIP");
+            } else {
+              // Buffer overflow - skip this frame's audio
+              // This should rarely happen with proper timing
+              static int overflow_count = 0;
+              if (++overflow_count % 60 == 0) {
+                LOG_WARN("Emulator", "Audio buffer overflow (count: %d, queued: %u)",
+                        overflow_count, queued_frames);
+              }
             }
           }
 
@@ -590,7 +576,7 @@ void Emulator::RenderModernCpuDebugger() {
     ImGui::TextColored(ConvertColorToImVec4(theme.accent), "CPU Status");
     ImGui::PushStyleColor(ImGuiCol_ChildBg,
                           ConvertColorToImVec4(theme.child_bg));
-    ImGui::BeginChild("##CpuStatus", ImVec2(0, 200), true);
+    ImGui::BeginChild("##CpuStatus", ImVec2(0, 180), true);
 
     // Compact register display in a table
     if (ImGui::BeginTable(
@@ -672,7 +658,7 @@ void Emulator::RenderModernCpuDebugger() {
     ImGui::TextColored(ConvertColorToImVec4(theme.accent), "SPC700 Status");
     ImGui::PushStyleColor(ImGuiCol_ChildBg,
                           ConvertColorToImVec4(theme.child_bg));
-    ImGui::BeginChild("##SpcStatus", ImVec2(0, 160), true);
+    ImGui::BeginChild("##SpcStatus", ImVec2(0, 150), true);
 
     if (ImGui::BeginTable(
             "SPCRegisters", 4,

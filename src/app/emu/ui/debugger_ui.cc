@@ -536,7 +536,7 @@ void RenderApuDebugger(Emulator* emu) {
   ImGui::Text("Audio Resampling");
 
   // Combo box for interpolation type
-  const char* items[] = {"Linear", "Cosine", "Cubic"};
+  const char* items[] = {"Linear", "Hermite", "Cosine", "Cubic"};
   int current_item = static_cast<int>(emu->snes().apu().dsp().interpolation_type);
   if (ImGui::Combo("Interpolation", &current_item, items, IM_ARRAYSIZE(items))) {
     emu->snes().apu().dsp().interpolation_type =

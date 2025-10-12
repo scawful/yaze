@@ -53,11 +53,18 @@ void InputManager::Poll(Snes* snes, int player) {
   ControllerState final_state;
   final_state.buttons = physical_state.buttons | agent_controller_state_.buttons;
 
-  // Update ALL button states every frame to ensure proper press/release
-  // This is critical for games that check button state every frame
+  // Apply button state directly to SNES
+  // Just send the raw button state on every Poll() call
+  // The button state will be latched by HandleInput() at VBlank
   for (int i = 0; i < 12; i++) {
-    bool pressed = (final_state.buttons & (1 << i)) != 0;
-    snes->SetButtonState(player, i, pressed);
+    bool button_held = (final_state.buttons & (1 << i)) != 0;
+    snes->SetButtonState(player, i, button_held);
+  }
+  
+  // Debug: Log complete button state when any button is pressed
+  static int poll_log_count = 0;
+  if (final_state.buttons != 0 && poll_log_count++ < 30) {
+    LOG_DEBUG("InputManager", "Poll: buttons=0x%04X", final_state.buttons);
   }
 }
 
