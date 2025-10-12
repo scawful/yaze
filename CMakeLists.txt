@@ -55,25 +55,24 @@ set(YAZE_INSTALL_LIB OFF)
 # Testing and CI Configuration
 option(YAZE_ENABLE_ROM_TESTS "Enable tests that require ROM files" OFF)
 option(YAZE_ENABLE_EXPERIMENTAL_TESTS "Enable experimental/unstable tests" ON)
-option(YAZE_ENABLE_UI_TESTS "Enable ImGui Test Engine UI testing" ON)
 option(YAZE_MINIMAL_BUILD "Minimal build for CI (disable optional features)" OFF)
 option(YAZE_USE_MODULAR_BUILD "Use modularized library build system for faster builds" ON)
 option(YAZE_UNITY_BUILD "Enable Unity (Jumbo) builds" OFF)
 
-# Feature Flags
+# Feature Flags - Simplified: Always enabled by default (use wrapper classes to hide complexity)
+# JSON is header-only with minimal overhead
+# gRPC is only used in agent/cli tools, not in core editor runtime
+set(YAZE_WITH_JSON ON)
+set(YAZE_WITH_GRPC ON)
+set(Z3ED_AI ON)
+
+# Minimal build override - disable only the most expensive features
 if(YAZE_MINIMAL_BUILD)
-  # Minimal build for CI: disable features that are slow to build or not essential
-  set(Z3ED_AI OFF)
-  set(YAZE_WITH_JSON ON) # JSON is header-only, low impact
   set(YAZE_WITH_GRPC OFF)
-  set(YAZE_ENABLE_UI_TESTS OFF)
-  message(STATUS "✓ Minimal build enabled for CI")
+  set(Z3ED_AI OFF)
+  message(STATUS "✓ Minimal build: gRPC and AI disabled")
 else()
-  # Full build for development/release
-  set(Z3ED_AI ON)
-  set(YAZE_WITH_JSON ON)
-  set(YAZE_WITH_GRPC ON)
-  message(STATUS "✓ All features enabled: JSON, gRPC, AI Agent")
+  message(STATUS "✓ Full build: All features enabled (JSON, gRPC, AI)")
 endif()
 
 # Define preprocessor macros for feature flags (so #ifdef works in source code)

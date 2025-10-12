@@ -34,9 +34,8 @@ if(YAZE_BUILD_EMU AND NOT YAZE_MINIMAL_BUILD)
     message(WARNING "yaze_emu needs yaze_test_support but TARGET not found")
   endif()
 
-  if(YAZE_ENABLE_UI_TESTS)
-    target_compile_definitions(yaze_emu PRIVATE YAZE_ENABLE_IMGUI_TEST_ENGINE=1)
-  endif()
+  # Test engine is always available when tests are built
+  # No need for conditional definitions
 
   # Headless Emulator Test Harness
   add_executable(yaze_emu_test emu_test.cc)

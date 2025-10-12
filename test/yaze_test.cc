@@ -17,18 +17,15 @@
 #include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
-#include "app/core/window.h"
-#include "app/core/controller.h"
-#include "app/gfx/backend/sdl2_renderer.h"
-
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "imgui_test_engine/imgui_te_ui.h"
+#include "app/core/window.h"
+#include "app/core/controller.h"
+#include "app/gfx/backend/sdl2_renderer.h"
 #include "e2e/canvas_selection_test.h"
 #include "e2e/framework_smoke_test.h"
 #include "e2e/dungeon_editor_smoke_test.h"
-#endif
 
 // #include "test_editor.h"  // Not used in main
 
@@ -58,9 +55,7 @@ struct TestConfig {
   bool skip_rom_tests = false;
   bool enable_ui_tests = false;
   bool show_gui = false;
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestRunSpeed test_speed = ImGuiTestRunSpeed_Fast;
-#endif
 };
 
 // Parse command line arguments for better AI agent testing support
@@ -136,15 +131,11 @@ TestConfig ParseArguments(int argc, char* argv[]) {
     } else if (arg == "--show-gui") {
       config.show_gui = true;
     } else if (arg == "--fast") {
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
       config.test_speed = ImGuiTestRunSpeed_Fast;
     } else if (arg == "--normal") {
       config.test_speed = ImGuiTestRunSpeed_Normal;
-#endif
     } else if (arg == "--cinematic") {
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
       config.test_speed = ImGuiTestRunSpeed_Cinematic;
-#endif
     } else if (arg == "--ui") {
       config.enable_ui_tests = true;
     } else if (arg.find("--") != 0) {
@@ -307,7 +298,6 @@ int main(int argc, char* argv[]) {
 
     yaze::core::Controller controller;
 
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
     // Setup test engine
     ImGuiTestEngine* engine = ImGuiTestEngine_CreateContext();
     ImGuiTestEngineIO& test_io = ImGuiTestEngine_GetIO(engine);
@@ -320,6 +310,7 @@ int main(int argc, char* argv[]) {
     if (config.test_speed == ImGuiTestRunSpeed_Normal) speed_name = "Normal";
     else if (config.test_speed == ImGuiTestRunSpeed_Cinematic) speed_name = "Cinematic";
     std::cout << "Running tests in " << speed_name << " mode" << std::endl;
+    
     // Register smoke test
     ImGuiTest* smoke_test = IM_REGISTER_TEST(engine, "E2ETest", "FrameworkSmokeTest");
     smoke_test->TestFunc = E2ETest_FrameworkSmokeTest;
@@ -333,7 +324,6 @@ int main(int argc, char* argv[]) {
     ImGuiTest* dungeon_test = IM_REGISTER_TEST(engine, "E2ETest", "DungeonEditorSmokeTest");
     dungeon_test->TestFunc = E2ETest_DungeonEditorV2SmokeTest;
     dungeon_test->UserData = &controller;
-#endif
 
     // Main loop
     bool done = false;
@@ -355,11 +345,9 @@ int main(int argc, char* argv[]) {
         ImGui::NewFrame();
 
         // Render the UI
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
         if (config.show_gui) {
             ImGuiTestEngine_ShowTestEngineWindows(engine, &config.show_gui);
         }
-#endif
         controller.DoRender();
 
         // End the Dear ImGui frame
@@ -377,13 +365,10 @@ int main(int argc, char* argv[]) {
             SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
         }
 
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
         // Run test engine
         ImGuiTestEngine_PostSwap(engine);
-#endif
     }
 
-#ifdef YAZE_ENABLE_IMGUI_TEST_ENGINE
     // Get test result
     ImGuiTestEngineResultSummary summary;
     ImGuiTestEngine_GetResultSummary(engine, &summary);
@@ -392,10 +377,6 @@ int main(int argc, char* argv[]) {
     // Cleanup
     controller.OnExit();
     ImGuiTestEngine_DestroyContext(engine);
-#else
-    int result = 0;
-    controller.OnExit();
-#endif
     ImGui_ImplSDLRenderer2_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
