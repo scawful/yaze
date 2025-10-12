@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "app/rom.h"
-#include "app/zelda3/hyrule_magic.h"
+#include "util/hyrule_magic.h"
 #include "util/macro.h"
 
 namespace yaze {

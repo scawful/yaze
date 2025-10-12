@@ -11,6 +11,11 @@
 namespace yaze {
 namespace cli {
 
+// Forward declaration
+namespace handlers {
+absl::Status HandleAgentCommand(const std::vector<std::string>& args);
+}
+
 ModernCLI::ModernCLI() {
   // Commands are now managed by CommandRegistry singleton
   // SetupCommands() is no longer needed
@@ -58,8 +63,7 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
   // Special case: "agent" command routes to HandleAgentCommand
   if (args[0] == "agent") {
     std::vector<std::string> agent_args(args.begin() + 1, args.end());
-    std::cout << "Agent args: " << absl::StrJoin(agent_args, " ") << std::endl;
-    args = agent_args;
+    return handlers::HandleAgentCommand(agent_args);
   }
 
   // Use CommandRegistry for unified command execution
