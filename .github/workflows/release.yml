@@ -211,8 +211,10 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
             -DVCPKG_MANIFEST_MODE=ON `
             -DCMAKE_CXX_FLAGS="/Dgoogle_protobuf_undef_DWORD=1" `
-            -DYAZE_MINIMAL_BUILD=OFF `
-            -DYAZE_BUILD_TESTS=OFF 2>&1 | Tee-Object -FilePath cmake_config.log
+            -DYAZE_BUILD_TESTS=ON `
+            -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | Tee-Object -FilePath cmake_config.log
+          # Note: Tests enabled for pre-1.0 releases to catch issues before publishing
+          # ROM tests disabled (require test ROM file)
 
           if ($LASTEXITCODE -ne 0) {
             Write-Host "::error::CMake configuration failed with exit code $LASTEXITCODE"
@@ -232,11 +234,12 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_OSX_ARCHITECTURES=${{ matrix.mac_arch }} \
             -DYAZE_BUILD_EMU=OFF \
-            -DYAZE_MINIMAL_BUILD=OFF \
-            -DYAZE_BUILD_TESTS=OFF 2>&1 | tee cmake_config.log
+            -DYAZE_BUILD_TESTS=ON \
+            -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
           echo "::endgroup::"
           # Note: YAZE_BUILD_EMU=OFF disables standalone emulator executable
           #       but yaze_emulator library is still built for main app
+          # Note: Tests enabled for pre-1.0 releases to catch issues before publishing
 
       - name: "Configure (Linux)"
         if: runner.os == 'Linux'
@@ -248,11 +251,12 @@ jobs:
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DYAZE_BUILD_EMU=OFF \
-            -DYAZE_MINIMAL_BUILD=OFF \
-            -DYAZE_BUILD_TESTS=OFF 2>&1 | tee cmake_config.log
+            -DYAZE_BUILD_TESTS=ON \
+            -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
           echo "::endgroup::"
           # Note: YAZE_BUILD_EMU=OFF disables standalone emulator executable
           #       but yaze_emulator library is still built for main app
+          # Note: Tests enabled for pre-1.0 releases to catch issues before publishing
 
       - name: "Report Configure Failure"
         if: |
