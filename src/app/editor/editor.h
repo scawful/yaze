@@ -113,6 +113,7 @@ class Editor {
 
   bool* active() { return &active_; }
   void set_active(bool active) { active_ = active; }
+  void toggle_active() { active_ = !active_; }
 
   // ROM loading state helpers (default implementations)
   virtual bool IsRomLoaded() const { return false; }

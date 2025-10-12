@@ -260,5 +260,54 @@ absl::Status DisplayEditablePalette(gfx::SnesPalette& palette,
   return absl::OkStatus();
 }
 
+IMGUI_API bool PaletteColorButton(const char* id, const gfx::SnesColor& color,
+                                  bool is_selected, bool is_modified,
+                                  const ImVec2& size,
+                                  ImGuiColorEditFlags flags) {
+  ImVec4 display_color = ConvertSnesColorToImVec4(color);
+  
+  // Add visual indicators for selection and modification
+  ImGui::PushID(id);
+  
+  // Selection border
+  if (is_selected) {
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(1.0f, 0.8f, 0.0f, 1.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 2.0f);
+  }
+  
+  bool clicked = ImGui::ColorButton(id, display_color, flags, size);
+  
+  if (is_selected) {
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor();
+  }
+  
+  // Modification indicator (small dot in corner)
+  if (is_modified) {
+    ImVec2 pos = ImGui::GetItemRectMin();
+    ImVec2 dot_pos = ImVec2(pos.x + size.x - 6, pos.y + 2);
+    ImGui::GetWindowDrawList()->AddCircleFilled(dot_pos, 3.0f, 
+                                                IM_COL32(255, 128, 0, 255));
+  }
+  
+  // Tooltip with color info
+  if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    ImGui::Text("SNES: $%04X", color.snes());
+    auto rgb = color.rgb();
+    ImGui::Text("RGB: (%d, %d, %d)", 
+                static_cast<int>(rgb.x), 
+                static_cast<int>(rgb.y), 
+                static_cast<int>(rgb.z));
+    if (is_modified) {
+      ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "Modified");
+    }
+    ImGui::EndTooltip();
+  }
+  
+  ImGui::PopID();
+  return clicked;
+}
+
 }  // namespace gui
 }  // namespace yaze

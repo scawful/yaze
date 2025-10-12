@@ -75,6 +75,18 @@ class EditorCardManager {
   
   // Registration
   void RegisterCard(const CardInfo& info);
+  
+  // Register card with centralized visibility management (preferred method)
+  void RegisterCard(const std::string& card_id,
+                   const std::string& display_name,
+                   const std::string& icon,
+                   const std::string& category,
+                   const std::string& shortcut_hint = "",
+                   int priority = 50,
+                   std::function<void()> on_show = nullptr,
+                   std::function<void()> on_hide = nullptr,
+                   bool visible_by_default = false);
+  
   void UnregisterCard(const std::string& card_id);
   void ClearAllCards();
   
@@ -97,6 +109,15 @@ class EditorCardManager {
   // View menu integration
   void DrawViewMenuSection(const std::string& category);
   void DrawViewMenuAll();  // Draw all categories as submenus
+  
+  // VSCode-style sidebar (replaces Toolset)
+  void DrawSidebar(const std::string& category);  // Icon-only sidebar for category
+  static constexpr float GetSidebarWidth() { return 48.0f; }
+  
+  // Active editor tracking (based on most recently interacted card)
+  void SetActiveCategory(const std::string& category);
+  std::string GetActiveCategory() const { return active_category_; }
+  bool IsCategoryActive(const std::string& category) const { return active_category_ == category; }
   
   // Compact inline card control for menu bar
   void DrawCompactCardControl(const std::string& category);  // Shows only active editor's cards
@@ -135,7 +156,9 @@ class EditorCardManager {
   EditorCardManager& operator=(const EditorCardManager&) = delete;
   
   std::unordered_map<std::string, CardInfo> cards_;
+  std::unordered_map<std::string, bool> centralized_visibility_;  // Centralized card visibility flags
   std::unordered_map<std::string, WorkspacePreset> presets_;
+  std::string active_category_;  // Currently active editor category (based on last card interaction)
   
   // Helper methods
   void SavePresetsToFile();

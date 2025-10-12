@@ -90,6 +90,59 @@ std::string GetEditorName(EditorType type) {
 
 }  // namespace
 
+// Static registry of editors that use the card-based layout system
+bool EditorManager::IsCardBasedEditor(EditorType type) {
+  switch (type) {
+    case EditorType::kDungeon:
+    case EditorType::kPalette:
+    case EditorType::kGraphics:
+    case EditorType::kScreen:
+    case EditorType::kSprite:
+    case EditorType::kMessage:
+    case EditorType::kMusic:
+    case EditorType::kEmulator:
+      return true;
+    default:
+      return false;
+  }
+}
+
+std::string EditorManager::GetEditorCategory(EditorType type) {
+  switch (type) {
+    case EditorType::kDungeon:
+      return "Dungeon";
+    case EditorType::kPalette:
+      return "Palette";
+    case EditorType::kGraphics:
+      return "Graphics";
+    case EditorType::kOverworld:
+      return "Overworld";
+    case EditorType::kSprite:
+      return "Sprite";
+    case EditorType::kMessage:
+      return "Message";
+    case EditorType::kMusic:
+      return "Music";
+    case EditorType::kScreen:
+      return "Screen";
+    case EditorType::kEmulator:
+      return "Emulator";
+    default:
+      return "Unknown";
+  }
+}
+
+void EditorManager::HideCurrentEditorCards() {
+  if (!current_editor_) {
+    return;
+  }
+  
+  auto& card_manager = gui::EditorCardManager::Get();
+  std::string category = GetEditorCategory(current_editor_->type());
+  card_manager.HideAllCardsInCategory(category);
+  printf("[EditorManager] Closed all cards for category: %s\n", category.c_str());
+}
+
 EditorManager::EditorManager() : blank_editor_set_(nullptr, &user_settings_) {
   std::stringstream ss;
   ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
@@ -162,6 +215,12 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
 
   // Set the popup manager in the context
   context_.popup_manager = popup_manager_.get();
+
+  // Register global sidebar toggle shortcut (Ctrl+B)
+  context_.shortcut_manager.RegisterShortcut(
+      "global.toggle_sidebar",
+      {ImGuiKey_LeftCtrl, ImGuiKey_B},
+      [this]() { show_card_sidebar_ = !show_card_sidebar_; });
 
   // Initialize project file editor
   project_file_editor_.SetToastManager(&toast_manager_);
@@ -356,7 +415,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
     // Handle agent editor separately (doesn't require ROM)
     if (type == EditorType::kAgent) {
 #ifdef YAZE_WITH_GRPC
-      agent_editor_.set_active(true);
+      agent_editor_.toggle_active();
 #endif
       return;
     }
@@ -365,28 +424,28 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
     
     switch (type) {
       case EditorType::kOverworld:
-        current_editor_set_->overworld_editor_.set_active(true);
+        current_editor_set_->overworld_editor_.toggle_active();
         break;
       case EditorType::kDungeon:
-        current_editor_set_->dungeon_editor_.set_active(true);
+        current_editor_set_->dungeon_editor_.toggle_active();
         break;
       case EditorType::kGraphics:
-        current_editor_set_->graphics_editor_.set_active(true);
+        current_editor_set_->graphics_editor_.toggle_active();
         break;
       case EditorType::kSprite:
-        current_editor_set_->sprite_editor_.set_active(true);
+        current_editor_set_->sprite_editor_.toggle_active();
         break;
       case EditorType::kMessage:
-        current_editor_set_->message_editor_.set_active(true);
+        current_editor_set_->message_editor_.toggle_active();
         break;
       case EditorType::kMusic:
-        current_editor_set_->music_editor_.set_active(true);
+        current_editor_set_->music_editor_.toggle_active();
         break;
       case EditorType::kPalette:
-        current_editor_set_->palette_editor_.set_active(true);
+        current_editor_set_->palette_editor_.toggle_active();
         break;
       case EditorType::kScreen:
-        current_editor_set_->screen_editor_.set_active(true);
+        current_editor_set_->screen_editor_.toggle_active();
         break;
       case EditorType::kAssembly:
         show_asm_editor_ = true;
@@ -395,7 +454,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
         show_emulator_ = true;
         break;
       case EditorType::kSettings:
-        current_editor_set_->settings_editor_.set_active(true);
+        current_editor_set_->settings_editor_.toggle_active();
         break;
       default:
         break;
@@ -481,34 +540,34 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
   // Editor shortcuts (Ctrl+1-9, Ctrl+0)
   context_.shortcut_manager.RegisterShortcut(
       "Overworld Editor", {ImGuiKey_1, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->overworld_editor_.set_active(true); });
+      [this]() { if (current_editor_set_) current_editor_set_->overworld_editor_.toggle_active(); });
   context_.shortcut_manager.RegisterShortcut(
       "Dungeon Editor", {ImGuiKey_2, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->dungeon_editor_.set_active(true); });
+      [this]() { if (current_editor_set_) current_editor_set_->dungeon_editor_.toggle_active(); });
   context_.shortcut_manager.RegisterShortcut(
       "Graphics Editor", {ImGuiKey_3, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->graphics_editor_.set_active(true); });
+      [this]() { if (current_editor_set_) current_editor_set_->graphics_editor_.toggle_active(); });
   context_.shortcut_manager.RegisterShortcut(
       "Sprite Editor", {ImGuiKey_4, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->sprite_editor_.set_active(true); });
+      [this]() { if (current_editor_set_) current_editor_set_->sprite_editor_.toggle_active(); });
   context_.shortcut_manager.RegisterShortcut(
       "Message Editor", {ImGuiKey_5, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->message_editor_.set_active(true); });
+      [this]() { if (current_editor_set_) current_editor_set_->message_editor_.toggle_active(); });
   context_.shortcut_manager.RegisterShortcut(
       "Music Editor", {ImGuiKey_6, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->music_editor_.set_active(true); });
+      [this]() { if (current_editor_set_) current_editor_set_->music_editor_.toggle_active(); });
   context_.shortcut_manager.RegisterShortcut(
       "Palette Editor", {ImGuiKey_7, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->palette_editor_.set_active(true); });
+      [this]() { if (current_editor_set_) current_editor_set_->palette_editor_.toggle_active(); });
   context_.shortcut_manager.RegisterShortcut(
       "Screen Editor", {ImGuiKey_8, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->screen_editor_.set_active(true); });
+      [this]() { if (current_editor_set_) current_editor_set_->screen_editor_.toggle_active(); });
   context_.shortcut_manager.RegisterShortcut(
       "Assembly Editor", {ImGuiKey_9, ImGuiMod_Ctrl},
       [this]() { show_asm_editor_ = true; });
   context_.shortcut_manager.RegisterShortcut(
       "Settings Editor", {ImGuiKey_0, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->settings_editor_.set_active(true); });
+      [this]() { if (current_editor_set_) current_editor_set_->settings_editor_.toggle_active(); });
   
   // Editor Selection Dialog shortcut
   context_.shortcut_manager.RegisterShortcut(
@@ -782,8 +841,7 @@ absl::Status EditorManager::Update() {
         }
 
         // CARD-BASED EDITORS: Don't wrap in Begin/End, they manage own windows
-        bool is_card_based_editor = (editor->type() == EditorType::kDungeon);
-        // TODO: Add EditorType::kGraphics, EditorType::kPalette when converted
+        bool is_card_based_editor = IsCardBasedEditor(editor->type());
         
         if (is_card_based_editor) {
           // Card-based editors create their own top-level windows
@@ -852,6 +910,13 @@ absl::Status EditorManager::Update() {
         }
       }
     }
+  }
+
+  // Draw sidebar for current category editor 
+  if (current_editor_) {
+    std::string category = GetEditorCategory(current_editor_->type());
+    auto& card_manager = gui::EditorCardManager::Get();
+    card_manager.DrawSidebar(category);
   }
 
   if (show_performance_dashboard_) {
@@ -929,8 +994,8 @@ void EditorManager::DrawContextSensitiveCardControl() {
       category = "Message";
       break;
     case EditorType::kPalette:
-      // Palette editor doesn't use cards (uses internal tabs)
-      return;
+      category = "Palette"; 
+      break;
     case EditorType::kAssembly:
       // Assembly editor uses dynamic file tabs
       return;
