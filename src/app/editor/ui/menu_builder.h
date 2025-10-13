@@ -10,7 +10,9 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include "app/gui/icons.h"
+#include "absl/container/flat_hash_map.h"
+#include "absl/strings/string_view.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

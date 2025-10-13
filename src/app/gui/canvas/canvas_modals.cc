@@ -6,9 +6,9 @@
 
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
-#include "app/gui/widgets/palette_widget.h"
+#include "app/gui/widgets/palette_editor_widget.h"
 #include "app/gui/canvas/bpp_format_ui.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -422,8 +422,8 @@ void CanvasModals::RenderPaletteEditorModal(const std::string& canvas_id,
     ImGui::Separator();
     
     // Use the existing PaletteWidget
-    static std::unique_ptr<gui::PaletteWidget> palette_editor = 
-        std::make_unique<gui::PaletteWidget>();
+    static std::unique_ptr<gui::PaletteEditorWidget> palette_editor = 
+        std::make_unique<gui::PaletteEditorWidget>();
     
     if (options.palette) {
       palette_editor->ShowPaletteEditor(*options.palette, modal_title);
@@ -455,8 +455,8 @@ void CanvasModals::RenderColorAnalysisModal(const std::string& canvas_id,
     ImGui::Separator();
     
     // Use the existing PaletteWidget for color analysis
-    static std::unique_ptr<gui::PaletteWidget> palette_editor = 
-        std::make_unique<gui::PaletteWidget>();
+    static std::unique_ptr<gui::PaletteEditorWidget> palette_editor = 
+        std::make_unique<gui::PaletteEditorWidget>();
     
     if (options.bitmap) {
       palette_editor->ShowColorAnalysis(*options.bitmap, modal_title);

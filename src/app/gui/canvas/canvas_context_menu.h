@@ -8,7 +8,7 @@
 
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 #include "app/gui/canvas/canvas_modals.h"
 #include "canvas_usage_tracker.h"
 #include "imgui/imgui.h"
@@ -17,7 +17,7 @@ namespace yaze {
 namespace gui {
 
 // Forward declarations
-class PaletteWidget;
+class PaletteEditorWidget;
 
 namespace canvas {
 
@@ -108,7 +108,7 @@ class CanvasContextMenu {
   bool auto_resize_ = false;
   ImVec2 scrolling_;
 
-  std::unique_ptr<PaletteWidget> palette_editor_;
+  std::unique_ptr<PaletteEditorWidget> palette_editor_;
   uint64_t edit_palette_group_name_index_ = 0;
   uint64_t edit_palette_index_ = 0;
   uint64_t edit_palette_sub_index_ = 0;

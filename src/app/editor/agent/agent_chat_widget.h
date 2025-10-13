@@ -10,7 +10,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
-#include "app/gui/modules/text_editor.h"
+#include "app/gui/widgets/text_editor.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/agent/advanced_routing.h"
 #include "cli/service/agent/agent_pretraining.h"

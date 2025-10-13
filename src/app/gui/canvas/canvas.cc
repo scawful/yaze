@@ -5,9 +5,9 @@
 #include "app/gfx/util/bpp_format_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
-#include "app/gui/style.h"
-#include "canvas/canvas_utils.h"
-#include "canvas/canvas_automation_api.h"
+#include "app/gui/core/style.h"
+#include "app/gui/canvas/canvas_utils.h"
+#include "app/gui/canvas/canvas_automation_api.h"
 #include "imgui/imgui.h"
 
 namespace yaze::gui {
@@ -124,7 +124,7 @@ void Canvas::InitializeDefaults() {
   selection_.Clear();
 
   // Initialize palette editor
-  palette_editor_ = std::make_unique<PaletteWidget>();
+  palette_editor_ = std::make_unique<PaletteEditorWidget>();
 
   // Initialize interaction handler
   interaction_handler_.Initialize(canvas_id_);

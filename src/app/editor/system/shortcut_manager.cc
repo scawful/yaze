@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <string>
 
-#include "app/gui/input.h"
+#include "app/gui/core/input.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

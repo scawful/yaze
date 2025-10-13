@@ -1,10 +1,10 @@
-#include "app/gui/background_renderer.h"
+#include "app/gui/app/background_renderer.h"
 
 #include <algorithm>
 #include <cmath>
 
 #include "app/core/timing.h"
-#include "app/gui/theme_manager.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 
 #ifndef M_PI

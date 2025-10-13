@@ -7,7 +7,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/gui/color.h"
+#include "app/gui/core/color.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

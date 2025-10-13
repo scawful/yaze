@@ -3,7 +3,7 @@
 
 #include <map>
 
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 #include "app/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "app/gfx/types/snes_palette.h"

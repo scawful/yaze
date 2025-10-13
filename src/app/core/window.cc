@@ -8,7 +8,7 @@
 #include "util/sdl_deleter.h"
 #include "util/log.h"
 #include "app/gfx/resource/arena.h"
-#include "app/gui/style.h"
+#include "app/gui/core/style.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"

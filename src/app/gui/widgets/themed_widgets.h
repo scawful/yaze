@@ -1,9 +1,9 @@
 #ifndef YAZE_APP_GUI_THEMED_WIDGETS_H
 #define YAZE_APP_GUI_THEMED_WIDGETS_H
 
-#include "app/gui/color.h"
-#include "app/gui/layout_helpers.h"
-#include "app/gui/theme_manager.h"
+#include "app/gui/core/color.h"
+#include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

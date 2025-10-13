@@ -4,7 +4,7 @@
 #include <string>
 
 #include "app/gfx/snes_color.h"
-#include "app/gui/color.h"
+#include "app/gui/core/color.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

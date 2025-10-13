@@ -5,7 +5,7 @@
 #include "app/core/controller.h"
 #include "app/core/window.h"
 #include "app/gfx/backend/sdl2_renderer.h"
-#include "app/gui/style.h"
+#include "app/gui/core/style.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui.h"

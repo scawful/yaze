@@ -2,11 +2,11 @@
 #include "app/editor/system/settings_editor.h"
 
 #include "absl/status/status.h"
-#include "app/gui/feature_flags_menu.h"
+#include "app/gui/app/feature_flags_menu.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
-#include "app/gui/style.h"
-#include "app/gui/icons.h"
-#include "app/gui/theme_manager.h"
+#include "app/gui/core/style.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 

@@ -7,7 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
 #include "imgui/imgui.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
 
 // Policy evaluation support (optional, only in main yaze build)

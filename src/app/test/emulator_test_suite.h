@@ -13,7 +13,7 @@
 #include "app/emu/debug/breakpoint_manager.h"
 #include "app/emu/debug/watchpoint_manager.h"
 #include "app/emu/debug/apu_debugger.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 #include "util/log.h"
 
 namespace yaze {

@@ -5,10 +5,10 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/gui/color.h"
-#include "app/gui/icons.h"
-#include "app/gui/layout_helpers.h"
-#include "app/gui/themed_widgets.h"
+#include "app/gui/core/color.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/layout_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

@@ -1,8 +1,8 @@
 #include "app/editor/overworld/entity.h"
 
-#include "app/gui/icons.h"
-#include "app/gui/input.h"
-#include "app/gui/style.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/input.h"
+#include "app/gui/core/style.h"
 #include "util/hex.h"
 
 namespace yaze {

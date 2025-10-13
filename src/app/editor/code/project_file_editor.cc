@@ -8,7 +8,7 @@
 #include "absl/strings/str_split.h"
 #include "util/file_util.h"
 #include "app/editor/system/toast_manager.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

@@ -1,9 +1,13 @@
-#include "app/gui/layout_helpers.h"
+#include "app/gui/core/layout_helpers.h"
 
+#include <vector>
+
+#include "absl/strings/str_format.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
-#include "app/gui/theme_manager.h"
-#include "app/gui/color.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/core/color.h"
 
 namespace yaze {
 namespace gui {

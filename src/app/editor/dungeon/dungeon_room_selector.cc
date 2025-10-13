@@ -1,6 +1,6 @@
 #include "dungeon_room_selector.h"
 
-#include "app/gui/input.h"
+#include "app/gui/core/input.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "imgui/imgui.h"

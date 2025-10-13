@@ -8,8 +8,8 @@
 #include "app/gfx/util/palette_manager.h"
 #include "app/gfx/types/snes_palette.h"
 #include "zelda3/dungeon/room.h"
-#include "app/gui/icons.h"
-#include "app/gui/input.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/input.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 

@@ -4,7 +4,7 @@
 #include <string>
 
 #include "app/gfx/core/bitmap.h"
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
 
 namespace yaze::gui {

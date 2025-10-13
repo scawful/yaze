@@ -9,7 +9,7 @@
 #include "app/rom.h"
 #include "zelda3/overworld/overworld.h"
 #include "app/editor/overworld/tile16_editor.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 
 namespace yaze {
 namespace test {

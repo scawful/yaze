@@ -1,4 +1,4 @@
-#include "app/gui/widgets/collaboration_panel.h"
+#include "app/gui/app/collaboration_panel.h"
 
 #include <algorithm>
 #include <ctime>

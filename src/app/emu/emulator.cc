@@ -15,10 +15,10 @@ namespace yaze::core {
 #include "app/emu/ui/debugger_ui.h"
 #include "app/emu/ui/emulator_ui.h"
 #include "app/emu/ui/input_handler.h"
-#include "app/gui/color.h"
-#include "app/gui/editor_layout.h"
-#include "app/gui/icons.h"
-#include "app/gui/theme_manager.h"
+#include "app/gui/core/color.h"
+#include "app/gui/app/editor_layout.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

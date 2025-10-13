@@ -1,4 +1,4 @@
-#include "app/gui/widgets/widget_id_registry.h"
+#include "app/gui/automation/widget_id_registry.h"
 
 #include <algorithm>
 #include <chrono>

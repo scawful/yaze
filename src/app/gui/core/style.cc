@@ -1,13 +1,13 @@
-#include "style.h"
+#include "app/gui/core/style.h"
 
 #include <algorithm>
 
 #include "util/file_util.h"
-#include "app/gui/theme_manager.h"
-#include "app/gui/background_renderer.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/app/background_renderer.h"
 #include "app/platform/font_loader.h"
-#include "app/gui/color.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/color.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/log.h"

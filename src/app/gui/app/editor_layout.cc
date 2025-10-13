@@ -1,13 +1,13 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 
-#include "app/gui/editor_layout.h"
+#include "app/gui/app/editor_layout.h"
 
 #include "absl/strings/str_format.h"
-#include "app/gui/icons.h"
-#include "app/gui/input.h"
-#include "app/gui/ui_helpers.h"
-#include "app/gui/widgets/widget_measurement.h"
-#include "app/gui/widgets/widget_id_registry.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/input.h"
+#include "app/gui/core/ui_helpers.h"
+#include "app/gui/automation/widget_measurement.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 

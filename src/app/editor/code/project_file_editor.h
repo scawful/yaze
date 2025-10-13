@@ -5,7 +5,7 @@
 
 #include "absl/status/status.h"
 #include "app/core/project.h"
-#include "app/gui/modules/text_editor.h"
+#include "app/gui/widgets/text_editor.h"
 
 namespace yaze {
 namespace editor {

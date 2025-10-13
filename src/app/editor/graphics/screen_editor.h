@@ -7,13 +7,13 @@
 #include "app/editor/editor.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/gui/editor_card_manager.h"
+#include "app/gui/app/editor_card_manager.h"
 #include "app/gfx/render/tilemap.h"
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 #include "app/rom.h"
 #include "zelda3/screen/dungeon_map.h"
 #include "zelda3/screen/inventory.h"
-#include "app/gui/editor_layout.h"
+#include "app/gui/app/editor_layout.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

@@ -4,7 +4,7 @@
 #include <sstream>
 
 #include "absl/strings/str_format.h"
-#include "app/gui/style.h"
+#include "app/gui/core/style.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/log.h"

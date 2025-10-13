@@ -1,4 +1,4 @@
-#include "app/gui/widgets/widget_state_capture.h"
+#include "app/gui/automation/widget_state_capture.h"
 
 #include "absl/strings/str_format.h"
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE

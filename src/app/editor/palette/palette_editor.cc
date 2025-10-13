@@ -5,10 +5,10 @@
 #include "app/gfx/util/palette_manager.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/gui/color.h"
-#include "app/gui/editor_card_manager.h"
-#include "app/gui/editor_layout.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/color.h"
+#include "app/gui/app/editor_card_manager.h"
+#include "app/gui/app/editor_layout.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

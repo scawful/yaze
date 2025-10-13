@@ -6,8 +6,8 @@
 
 #include "absl/strings/str_cat.h"
 #include "imgui/imgui.h"
-#include "app/gui/icons.h"
-#include "app/gui/style.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/style.h"
 #include "util/file_util.h"
 
 namespace yaze {

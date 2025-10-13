@@ -16,7 +16,7 @@
 #pragma pop_macro("DWORD")
 #pragma pop_macro("ERROR")
 #endif  // _WIN32
-#include "app/gui/widgets/widget_id_registry.h"
+#include "app/gui/automation/widget_id_registry.h"
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_context.h"

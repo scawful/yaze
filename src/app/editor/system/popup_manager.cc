@@ -2,8 +2,8 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
-#include "app/gui/style.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/style.h"
+#include "app/gui/core/icons.h"
 #include "util/hex.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 

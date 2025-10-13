@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 #include "absl/status/status.h"
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 
 // Forward declarations
 namespace grpc {

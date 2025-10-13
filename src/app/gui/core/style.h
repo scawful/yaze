@@ -7,8 +7,8 @@
 
 #include "absl/strings/string_view.h"
 #include "app/gfx/core/bitmap.h"
-#include "app/gui/color.h"
-#include "app/gui/modules/text_editor.h"
+#include "app/gui/core/color.h"
+#include "app/gui/widgets/text_editor.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

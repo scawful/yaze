@@ -6,9 +6,11 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/emu/cpu/cpu.h"
 #include "app/gfx/core/bitmap.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
+#include "app/rom.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

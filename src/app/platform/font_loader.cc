@@ -10,7 +10,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "util/file_util.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "util/macro.h"
 

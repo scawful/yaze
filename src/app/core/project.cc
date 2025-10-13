@@ -11,7 +11,7 @@
 #include "absl/strings/str_split.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 #include "util/log.h"
 #include "zelda3/zelda3_labels.h"
 #include "imgui/imgui.h"

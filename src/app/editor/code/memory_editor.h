@@ -2,7 +2,9 @@
 #define YAZE_APP_EDITOR_CODE_MEMORY_EDITOR_H
 
 #include "util/file_util.h"
-#include "app/gui/input.h"
+#include "absl/container/flat_hash_map.h"
+#include "app/editor/editor.h"
+#include "app/gui/core/input.h"
 #include "app/rom.h"
 #include "app/snes.h"
 #include "imgui/imgui.h"

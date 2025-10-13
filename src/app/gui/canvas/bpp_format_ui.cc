@@ -5,7 +5,7 @@
 
 #include "app/gfx/util/bpp_format_manager.h"
 #include "app/gfx/core/bitmap.h"
-#include "app/gui/ui_helpers.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

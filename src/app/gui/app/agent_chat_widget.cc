@@ -1,4 +1,4 @@
-#include "app/gui/widgets/agent_chat_widget.h"
+#include "app/gui/app/agent_chat_widget.h"
 
 #include <algorithm>
 #include <iostream>
