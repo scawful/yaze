@@ -1568,15 +1568,19 @@ void EditorManager::DrawMenuBar() {
     ShowMetricsWindow(&show_imgui_metrics_);
   
   auto& card_manager = gui::EditorCardManager::Get();
-  if (card_manager.IsCardVisible("memory.hex_editor") && current_editor_set_) {
-    bool show_memory = true;
-    current_editor_set_->memory_editor_.Update(show_memory);
+  if (current_editor_set_) {
+    // Pass the actual visibility flag pointer so the X button works
+    bool* hex_visibility = card_manager.GetVisibilityFlag("memory.hex_editor");
+    if (hex_visibility && *hex_visibility) {
+      current_editor_set_->memory_editor_.Update(*hex_visibility);
+    }
+   
+    bool* assembly_visibility = card_manager.GetVisibilityFlag("assembly.editor");
+    if (assembly_visibility && *assembly_visibility) {
+      current_editor_set_->assembly_editor_.Update(*card_manager.GetVisibilityFlag("assembly.editor"));
+    }
   }
-  if (card_manager.IsCardVisible("assembly.editor") && current_editor_set_) {
-    bool show_asm = true;
-    current_editor_set_->assembly_editor_.Update(show_asm);
-  }
-  
+
   // Project file editor
   project_file_editor_.Draw();
   if (show_performance_dashboard_) {
