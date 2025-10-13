@@ -748,28 +748,92 @@ void ScreenEditor::DrawTitleScreenEditor() {
     ImGui::EndPopup();
   }
 
-  // Layout: 3-column table for layers
-  if (ImGui::BeginTable("TitleScreenTable", 3,
+  // Layer visibility controls
+  bool prev_bg1 = show_title_bg1_;
+  bool prev_bg2 = show_title_bg2_;
+  ImGui::Checkbox("Show BG1", &show_title_bg1_);
+  ImGui::SameLine();
+  ImGui::Checkbox("Show BG2", &show_title_bg2_);
+  
+  // Re-render composite if visibility changed
+  if (prev_bg1 != show_title_bg1_ || prev_bg2 != show_title_bg2_) {
+    status_ = title_screen_.RenderCompositeLayer(show_title_bg1_, show_title_bg2_);
+    if (status_.ok()) {
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::UPDATE, 
+          &title_screen_.composite_bitmap());
+    }
+  }
+
+  // Layout: 2-column table (composite view + tile selector)
+  if (ImGui::BeginTable("TitleScreenTable", 2,
                         ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders)) {
-    ImGui::TableSetupColumn("BG1 Layer");
-    ImGui::TableSetupColumn("BG2 Layer");
+    ImGui::TableSetupColumn("Title Screen (Composite)");
     ImGui::TableSetupColumn("Tile Selector");
     ImGui::TableHeadersRow();
 
-    // Column 1: BG1 Canvas
+    // Column 1: Composite Canvas (BG1+BG2 stacked)
     ImGui::TableNextColumn();
-    DrawTitleScreenBG1Canvas();
+    DrawTitleScreenCompositeCanvas();
 
-    // Column 2: BG2 Canvas
-    ImGui::TableNextColumn();
-    DrawTitleScreenBG2Canvas();
-
-    // Column 3: Blockset Selector
+    // Column 2: Blockset Selector
     ImGui::TableNextColumn();
     DrawTitleScreenBlocksetSelector();
 
     ImGui::EndTable();
   }
+}
+
+void ScreenEditor::DrawTitleScreenCompositeCanvas() {
+  title_bg1_canvas_.DrawBackground();
+  title_bg1_canvas_.DrawContextMenu();
+
+  // Draw composite tilemap (BG1+BG2 stacked with transparency)
+  auto& composite_bitmap = title_screen_.composite_bitmap();
+  if (composite_bitmap.is_active()) {
+    title_bg1_canvas_.DrawBitmap(composite_bitmap, 0, 0, 2.0f, 255);
+  }
+
+  // Handle tile painting - always paint to BG1 layer
+  if (current_mode_ == EditingMode::DRAW && selected_title_tile16_ >= 0) {
+    if (title_bg1_canvas_.DrawTileSelector(8.0f)) {
+      if (!title_bg1_canvas_.points().empty()) {
+        auto click_pos = title_bg1_canvas_.points().front();
+        int tile_x = static_cast<int>(click_pos.x) / 8;
+        int tile_y = static_cast<int>(click_pos.y) / 8;
+        
+        if (tile_x >= 0 && tile_x < 32 && tile_y >= 0 && tile_y < 32) {
+          int tilemap_index = tile_y * 32 + tile_x;
+          
+          // Create tile word: tile_id | (palette << 10) | h_flip | v_flip
+          uint16_t tile_word = selected_title_tile16_ & 0x3FF;
+          tile_word |= (title_palette_ & 0x07) << 10;
+          if (title_h_flip_) tile_word |= 0x4000;
+          if (title_v_flip_) tile_word |= 0x8000;
+          
+          // Update BG1 buffer and re-render both layers and composite
+          title_screen_.mutable_bg1_buffer()[tilemap_index] = tile_word;
+          status_ = title_screen_.RenderBG1Layer();
+          if (status_.ok()) {
+            // Update BG1 texture
+            gfx::Arena::Get().QueueTextureCommand(
+                gfx::Arena::TextureCommandType::UPDATE, 
+                &title_screen_.bg1_bitmap());
+            
+            // Re-render and update composite
+            status_ = title_screen_.RenderCompositeLayer(show_title_bg1_, show_title_bg2_);
+            if (status_.ok()) {
+              gfx::Arena::Get().QueueTextureCommand(
+                  gfx::Arena::TextureCommandType::UPDATE, &composite_bitmap);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  title_bg1_canvas_.DrawGrid();
+  title_bg1_canvas_.DrawOverlay();
 }
 
 void ScreenEditor::DrawTitleScreenBG1Canvas() {
@@ -942,7 +1006,40 @@ void ScreenEditor::DrawOverworldMapEditor() {
     }
   }
   ImGui::SameLine();
+  
+  // Custom map load/save buttons
+  if (ImGui::Button("Load Custom Map...")) {
+    std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
+    if (!path.empty()) {
+      status_ = ow_map_screen_.LoadCustomMap(path);
+      if (!status_.ok()) {
+        ImGui::OpenPopup("CustomMapLoadError");
+      }
+    }
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Save Custom Map...")) {
+    std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
+    if (!path.empty()) {
+      status_ = ow_map_screen_.SaveCustomMap(path, ow_show_dark_world_);
+      if (status_.ok()) {
+        ImGui::OpenPopup("CustomMapSaveSuccess");
+      }
+    }
+  }
+  
+  ImGui::SameLine();
   ImGui::Text("Selected Tile: %d", selected_ow_tile_);
+  
+  // Custom map error/success popups
+  if (ImGui::BeginPopup("CustomMapLoadError")) {
+    ImGui::Text("Error loading custom map: %s", status_.message().data());
+    ImGui::EndPopup();
+  }
+  if (ImGui::BeginPopup("CustomMapSaveSuccess")) {
+    ImGui::Text("Custom map saved successfully!");
+    ImGui::EndPopup();
+  }
 
   // Save success popup
   if (ImGui::BeginPopup("OWSaveSuccess")) {

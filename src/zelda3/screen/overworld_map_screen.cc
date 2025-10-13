@@ -1,8 +1,11 @@
-#include "overworld_map_screen.h"
+#include "zelda3/screen/overworld_map_screen.h"
+
+#include <fstream>
 
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_color.h"
-#include "util/macro.h"
+#include "app/rom.h"
+#include "app/snes.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -12,44 +15,47 @@ absl::Status OverworldMapScreen::Create(Rom* rom) {
     return absl::InvalidArgumentError("ROM is not loaded");
   }
 
-  // Initialize bitmaps
-  tiles8_bitmap_.Create(128, 128, 8, std::vector<uint8_t>(128 * 128));
-  map_bitmap_.Create(512, 512, 8, std::vector<uint8_t>(512 * 512));
-  
   // Set metadata for overworld map bitmaps
   // Mode 7 graphics use full 128-color palettes
-  tiles8_bitmap_.metadata().source_bpp = 8;
-  tiles8_bitmap_.metadata().palette_format = 0;  // Full palette
-  tiles8_bitmap_.metadata().source_type = "mode7";
-  tiles8_bitmap_.metadata().palette_colors = 128;
-  
-  map_bitmap_.metadata().source_bpp = 8;
-  map_bitmap_.metadata().palette_format = 0;  // Full palette
-  map_bitmap_.metadata().source_type = "mode7";
-  map_bitmap_.metadata().palette_colors = 128;
 
-  // Load mode 7 graphics from 0x0C4000
+  // Load Mode 7 graphics (256 tiles, 8x8 pixels each, 8BPP)
   const int mode7_gfx_addr = 0x0C4000;
-  auto& tiles8_data = tiles8_bitmap_.mutable_data();
+  std::vector<uint8_t> mode7_gfx_raw(0x4000);  // Raw tileset data from ROM
   
-  // Mode 7 graphics are stored as 8x8 tiles, 16 tiles per row
+  for (int i = 0; i < 0x4000; i++) {
+    ASSIGN_OR_RETURN(mode7_gfx_raw[i], rom->ReadByte(mode7_gfx_addr + i));
+  }
+
+  // Mode 7 tiles are stored in tiled format (each tile's rows are consecutive)
+  // but we need linear bitmap format (all tiles' first rows, then all second rows)
+  // Convert from tiled to linear bitmap layout
+  std::vector<uint8_t> mode7_gfx(0x4000);
   int pos = 0;
-  for (int sy = 0; sy < 16; sy++) {
-    for (int sx = 0; sx < 16; sx++) {
-      for (int y = 0; y < 8; y++) {
-        for (int x = 0; x < 8; x++) {
-          int dest_index = x + (sx * 8) + (y * 128) + (sy * 1024);
-          if (dest_index < tiles8_data.size() && mode7_gfx_addr + pos < rom->size()) {
-            ASSIGN_OR_RETURN(uint8_t pixel, rom->ReadByte(mode7_gfx_addr + pos));
-            tiles8_data[dest_index] = pixel;
-          }
+  for (int sy = 0; sy < 16 * 1024; sy += 1024) {      // 16 rows of tiles
+    for (int sx = 0; sx < 16 * 8; sx += 8) {          // 16 columns of tiles  
+      for (int y = 0; y < 8 * 128; y += 128) {        // 8 pixel rows within tile
+        for (int x = 0; x < 8; x++) {                 // 8 pixels per row
+          mode7_gfx[x + sx + y + sy] = mode7_gfx_raw[pos];
           pos++;
         }
       }
     }
   }
 
-  // Load palettes (128 colors each for mode 7 graphics)
+  // Create tiles8 bitmap: 128×128 pixels (16×16 tiles = 256 tiles)
+  tiles8_bitmap_.Create(128, 128, 8, mode7_gfx);
+  tiles8_bitmap_.metadata().source_bpp = 8;
+  tiles8_bitmap_.metadata().palette_format = 0;
+  tiles8_bitmap_.metadata().source_type = "mode7_tileset";
+  tiles8_bitmap_.metadata().palette_colors = 128;
+  
+  // Create map bitmap (512x512 for 64x64 tiles at 8x8 each)
+  map_bitmap_.Create(512, 512, 8, std::vector<uint8_t>(512 * 512));
+  map_bitmap_.metadata().source_bpp = 8;
+  map_bitmap_.metadata().palette_format = 0;
+  map_bitmap_.metadata().source_type = "mode7_map";
+  map_bitmap_.metadata().palette_colors = 128;
+
   // Light World palette at 0x055B27
   const int lw_pal_addr = 0x055B27;
   for (int i = 0; i < 128; i++) {
@@ -90,31 +96,31 @@ absl::Status OverworldMapScreen::Create(Rom* rom) {
 }
 
 absl::Status OverworldMapScreen::LoadMapData(Rom* rom) {
-  // Map data is stored in 4 sections with interleaved left/right format
-  // Based on ZScream's implementation in ScreenEditor.cs lines 221-322
+  // Map data is stored in interleaved format across 4 sections + 1 DW section
+  // Based on ZScream's Constants.IDKZarby = 0x054727
+  // The data alternates between left (32 columns) and right (32 columns)
+  // for the first 2048 tiles, then continues for bottom half
   
-  const int p1_addr = 0x0564F8;  // First section (left)
-  const int p2_addr = 0x05634C;  // First section (right)
-  const int p3_addr = 0x056BF8;  // Second section (left)
-  const int p4_addr = 0x056A4C;  // Second section (right)
-  const int p5_addr = 0x057404;  // Dark World additional section
-
-  int count = 0;
-  int cSide = 0;
-  bool rSide = false;
-
-  // Load Light World and Dark World base data
-  while (count < 0x1000) {
-    int p1 = p1_addr + (count - (rSide ? 1 : 0));
-    int p2 = p2_addr + (count - (rSide ? 1 : 0));
-    int p3 = p3_addr + (count - (rSide ? 1 : 0) - 0x800);
-    int p4 = p4_addr + (count - (rSide ? 1 : 0) - 0x800);
-
-    if (count < 0x800) {
+  const int base_addr = 0x054727;  // IDKZarby constant from ZScream
+  int p1 = base_addr + 0x0000;     // Top-left quadrant data
+  int p2 = base_addr + 0x0400;     // Top-right quadrant data  
+  int p3 = base_addr + 0x0800;     // Bottom-left quadrant data
+  int p4 = base_addr + 0x0C00;     // Bottom-right quadrant data
+  int p5 = base_addr + 0x1000;     // Dark World additional section
+  
+  bool rSide = false;  // false = left side, true = right side
+  int cSide = 0;       // Column counter within side (0-31)
+  int count = 0;       // Output tile index
+  
+  // Load 64x64 map with interleaved left/right format
+  while (count < 64 * 64) {
+    if (count < 0x800) {  // Top half (first 2048 tiles)
       if (!rSide) {
+        // Read from left side (p1)
         ASSIGN_OR_RETURN(uint8_t tile, rom->ReadByte(p1));
         lw_map_tiles_[count] = tile;
         dw_map_tiles_[count] = tile;
+        p1++;
         
         if (cSide >= 31) {
           cSide = 0;
@@ -123,9 +129,11 @@ absl::Status OverworldMapScreen::LoadMapData(Rom* rom) {
           continue;
         }
       } else {
+        // Read from right side (p2)
         ASSIGN_OR_RETURN(uint8_t tile, rom->ReadByte(p2));
         lw_map_tiles_[count] = tile;
         dw_map_tiles_[count] = tile;
+        p2++;
         
         if (cSide >= 31) {
           cSide = 0;
@@ -134,11 +142,13 @@ absl::Status OverworldMapScreen::LoadMapData(Rom* rom) {
           continue;
         }
       }
-    } else {
+    } else {  // Bottom half (remaining 2048 tiles)
       if (!rSide) {
+        // Read from left side (p3)
         ASSIGN_OR_RETURN(uint8_t tile, rom->ReadByte(p3));
         lw_map_tiles_[count] = tile;
         dw_map_tiles_[count] = tile;
+        p3++;
         
         if (cSide >= 31) {
           cSide = 0;
@@ -147,9 +157,11 @@ absl::Status OverworldMapScreen::LoadMapData(Rom* rom) {
           continue;
         }
       } else {
+        // Read from right side (p4)
         ASSIGN_OR_RETURN(uint8_t tile, rom->ReadByte(p4));
         lw_map_tiles_[count] = tile;
         dw_map_tiles_[count] = tile;
+        p4++;
         
         if (cSide >= 31) {
           cSide = 0;
@@ -159,24 +171,18 @@ absl::Status OverworldMapScreen::LoadMapData(Rom* rom) {
         }
       }
     }
-
+    
     cSide++;
     count++;
   }
-
-  // Load Dark World specific section (bottom-right 32x32 area)
+  
+  // Load Dark World specific data (bottom-right 32x32 section)
   count = 0;
   int line = 0;
   while (true) {
-    int addr = p5_addr + count + (line * 32);
-    if (addr < rom->size()) {
-      ASSIGN_OR_RETURN(uint8_t tile, rom->ReadByte(addr));
-      int dest_index = 1040 + count + (line * 64);
-      if (dest_index < dw_map_tiles_.size()) {
-        dw_map_tiles_[dest_index] = tile;
-      }
-    }
-    
+    ASSIGN_OR_RETURN(uint8_t tile, rom->ReadByte(p5));
+    dw_map_tiles_[1040 + count + (line * 64)] = tile;
+    p5++;
     count++;
     if (count >= 32) {
       count = 0;
@@ -217,42 +223,32 @@ absl::Status OverworldMapScreen::RenderMapLayer(bool use_dark_world) {
       }
     }
   }
-
-  // Update surface with rendered pixel data
-  map_bitmap_.UpdateSurfacePixels();
   
-  // Apply appropriate palette
-  map_bitmap_.SetPalette(use_dark_world ? dw_palette_ : lw_palette_);
+  // Copy pixel data to SDL surface
+  map_bitmap_.UpdateSurfacePixels();
 
   return absl::OkStatus();
 }
 
 absl::Status OverworldMapScreen::Save(Rom* rom) {
-  if (!rom || !rom->is_loaded()) {
-    return absl::InvalidArgumentError("ROM is not loaded");
-  }
-
-  // Save data back in the same interleaved format
-  const int p1_addr = 0x0564F8;
-  const int p2_addr = 0x05634C;
-  const int p3_addr = 0x056BF8;
-  const int p4_addr = 0x056A4C;
-  const int p5_addr = 0x057404;
-
-  int count = 0;
-  int cSide = 0;
+  // Write data back in the same interleaved format
+  const int base_addr = 0x054727;
+  int p1 = base_addr + 0x0000;
+  int p2 = base_addr + 0x0400;
+  int p3 = base_addr + 0x0800;
+  int p4 = base_addr + 0x0C00;
+  int p5 = base_addr + 0x1000;
+  
   bool rSide = false;
-
-  // Save Light World data (same pattern as loading)
-  while (count < 0x1000) {
-    int p1 = p1_addr + (count - (rSide ? 1 : 0));
-    int p2 = p2_addr + (count - (rSide ? 1 : 0));
-    int p3 = p3_addr + (count - (rSide ? 1 : 0) - 0x800);
-    int p4 = p4_addr + (count - (rSide ? 1 : 0) - 0x800);
-
+  int cSide = 0;
+  int count = 0;
+  
+  // Write 64x64 map with interleaved left/right format
+  while (count < 64 * 64) {
     if (count < 0x800) {
       if (!rSide) {
         RETURN_IF_ERROR(rom->WriteByte(p1, lw_map_tiles_[count]));
+        p1++;
         
         if (cSide >= 31) {
           cSide = 0;
@@ -262,6 +258,7 @@ absl::Status OverworldMapScreen::Save(Rom* rom) {
         }
       } else {
         RETURN_IF_ERROR(rom->WriteByte(p2, lw_map_tiles_[count]));
+        p2++;
         
         if (cSide >= 31) {
           cSide = 0;
@@ -273,6 +270,7 @@ absl::Status OverworldMapScreen::Save(Rom* rom) {
     } else {
       if (!rSide) {
         RETURN_IF_ERROR(rom->WriteByte(p3, lw_map_tiles_[count]));
+        p3++;
         
         if (cSide >= 31) {
           cSide = 0;
@@ -282,6 +280,7 @@ absl::Status OverworldMapScreen::Save(Rom* rom) {
         }
       } else {
         RETURN_IF_ERROR(rom->WriteByte(p4, lw_map_tiles_[count]));
+        p4++;
         
         if (cSide >= 31) {
           cSide = 0;
@@ -291,22 +290,17 @@ absl::Status OverworldMapScreen::Save(Rom* rom) {
         }
       }
     }
-
+    
     cSide++;
     count++;
   }
-
-  // Save Dark World specific section
+  
+  // Write Dark World specific data
   count = 0;
   int line = 0;
   while (true) {
-    int addr = p5_addr + count + (line * 32);
-    int src_index = 1040 + count + (line * 64);
-    
-    if (src_index < dw_map_tiles_.size()) {
-      RETURN_IF_ERROR(rom->WriteByte(addr, dw_map_tiles_[src_index]));
-    }
-    
+    RETURN_IF_ERROR(rom->WriteByte(p5, dw_map_tiles_[1040 + count + (line * 64)]));
+    p5++;
     count++;
     if (count >= 32) {
       count = 0;
@@ -320,6 +314,52 @@ absl::Status OverworldMapScreen::Save(Rom* rom) {
   return absl::OkStatus();
 }
 
+absl::Status OverworldMapScreen::LoadCustomMap(const std::string& file_path) {
+  // Load custom map from external binary file
+  std::ifstream file(file_path, std::ios::binary | std::ios::ate);
+  if (!file.is_open()) {
+    return absl::NotFoundError("Could not open custom map file: " + file_path);
+  }
+  
+  std::streamsize size = file.tellg();
+  if (size != 4096) {
+    return absl::InvalidArgumentError(
+        "Custom map file must be exactly 4096 bytes (64×64 tiles)");
+  }
+  
+  file.seekg(0, std::ios::beg);
+  
+  // Read into Light World map buffer (could add option for Dark World later)
+  file.read(reinterpret_cast<char*>(lw_map_tiles_.data()), 4096);
+  
+  if (!file) {
+    return absl::InternalError("Failed to read custom map data");
+  }
+  
+  // Re-render with new data
+  RETURN_IF_ERROR(RenderMapLayer(false));
+  gfx::Arena::Get().QueueTextureCommand(
+      gfx::Arena::TextureCommandType::UPDATE, &map_bitmap_);
+  
+  return absl::OkStatus();
+}
+
+absl::Status OverworldMapScreen::SaveCustomMap(const std::string& file_path, 
+                                                bool use_dark_world) {
+  std::ofstream file(file_path, std::ios::binary);
+  if (!file.is_open()) {
+    return absl::InternalError("Could not create custom map file: " + file_path);
+  }
+  
+  const auto& tiles = use_dark_world ? dw_map_tiles_ : lw_map_tiles_;
+  file.write(reinterpret_cast<const char*>(tiles.data()), tiles.size());
+  
+  if (!file) {
+    return absl::InternalError("Failed to write custom map data");
+  }
+  
+  return absl::OkStatus();
+}
+
 }  // namespace zelda3
 }  // namespace yaze
-

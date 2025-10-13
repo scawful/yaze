@@ -67,6 +67,7 @@ class ScreenEditor : public Editor {
   void DrawInventoryToolset();
 
   // Title screen layer editing
+  void DrawTitleScreenCompositeCanvas();
   void DrawTitleScreenBG1Canvas();
   void DrawTitleScreenBG2Canvas();
   void DrawTitleScreenBlocksetSelector();
@@ -134,6 +135,8 @@ class ScreenEditor : public Editor {
   bool title_h_flip_ = false;
   bool title_v_flip_ = false;
   int title_palette_ = 0;
+  bool show_title_bg1_ = true;
+  bool show_title_bg2_ = true;
 
   // Overworld map screen state
   int selected_ow_tile_ = 0;
