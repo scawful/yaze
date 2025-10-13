@@ -35,16 +35,21 @@ IMGUI_API bool SnesColorButton(absl::string_view id, gfx::SnesColor& color,
 
 IMGUI_API bool SnesColorEdit4(absl::string_view label, gfx::SnesColor* color,
                               ImGuiColorEditFlags flags) {
+  // Convert from internal 0-255 storage to 0-1 for ImGui
   ImVec4 displayColor = ConvertSnesColorToImVec4(*color);
 
   // Call the original ImGui::ColorEdit4 with the converted color
-  bool pressed =
+  bool changed =
       ImGui::ColorEdit4(label.data(), (float*)&displayColor.x, flags);
 
-  color->set_rgb(displayColor);
-  color->set_snes(gfx::ConvertRgbToSnes(displayColor));
+  // Only update if the user actually changed the color
+  if (changed) {
+    // set_rgb() handles conversion from 0-1 (ImGui) to 0-255 (internal)
+    // and automatically calculates snes_ value - no need to call set_snes separately
+    color->set_rgb(displayColor);
+  }
 
-  return pressed;
+  return changed;
 }
 
 IMGUI_API bool DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
@@ -222,17 +227,17 @@ absl::Status DisplayEditablePalette(gfx::SnesPalette& palette,
 
       if (ImGui::MenuItem("Copy as RGB")) {
         auto rgb = palette[n].rgb();
+        // rgb is already in 0-255 range, no need to multiply
         std::string clipboard =
-            absl::StrFormat("(%d,%d,%d)", (int)(rgb.x * 255),
-                            (int)(rgb.y * 255), (int)(rgb.z * 255));
+            absl::StrFormat("(%d,%d,%d)", (int)rgb.x, (int)rgb.y, (int)rgb.z);
         ImGui::SetClipboardText(clipboard.c_str());
       }
 
       if (ImGui::MenuItem("Copy as Hex")) {
         auto rgb = palette[n].rgb();
+        // rgb is already in 0-255 range, no need to multiply
         std::string clipboard =
-            absl::StrFormat("#%02X%02X%02X", (int)(rgb.x * 255),
-                            (int)(rgb.y * 255), (int)(rgb.z * 255));
+            absl::StrFormat("#%02X%02X%02X", (int)rgb.x, (int)rgb.y, (int)rgb.z);
         ImGui::SetClipboardText(clipboard.c_str());
       }
 

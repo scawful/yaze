@@ -308,6 +308,9 @@ void AgentEditor::DrawDashboard() {
   }
 
   ImGui::End();
+  
+  // Pop the TitleBgActive color pushed at the beginning of DrawDashboard
+  ImGui::PopStyleColor();
 }
 
 void AgentEditor::DrawConfigurationPanel() {

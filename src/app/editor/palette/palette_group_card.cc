@@ -3,6 +3,7 @@
 #include <chrono>
 
 #include "absl/strings/str_format.h"
+#include "app/gfx/palette_manager.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/color.h"
 #include "app/gui/icons.h"
@@ -36,15 +37,8 @@ void PaletteGroupCard::Draw() {
     return;
   }
 
-  // Lazy load original palettes on first draw (after derived class is fully constructed)
-  if (original_palettes_.empty()) {
-    auto* palette_group = GetPaletteGroup();
-    if (palette_group) {
-      for (size_t i = 0; i < palette_group->size(); i++) {
-        original_palettes_.push_back(palette_group->palette(i));
-      }
-    }
-  }
+  // PaletteManager handles initialization of original palettes
+  // No need for local snapshot management anymore
 
   // Main card window
   if (ImGui::Begin(display_name_.c_str(), &show_)) {
@@ -93,7 +87,8 @@ void PaletteGroupCard::Draw() {
 }
 
 void PaletteGroupCard::DrawToolbar() {
-  bool has_changes = HasUnsavedChanges();
+  // Query PaletteManager for group-specific modification status
+  bool has_changes = gfx::PaletteManager::Get().IsGroupModified(group_name_);
 
   // Save button (primary action)
   ImGui::BeginDisabled(!has_changes);
@@ -116,27 +111,34 @@ void PaletteGroupCard::DrawToolbar() {
 
   ImGui::SameLine();
 
-  // Modified indicator badge
+  // Modified indicator badge (show modified color count for this group)
   if (has_changes) {
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f),
-                      "%s %zu modified",
-                      ICON_MD_EDIT,
-                      modified_palettes_.size());
+    size_t modified_count = 0;
+    auto* group = GetPaletteGroup();
+    if (group) {
+      for (int p = 0; p < group->size(); p++) {
+        if (gfx::PaletteManager::Get().IsPaletteModified(group_name_, p)) {
+          modified_count++;
+        }
+      }
+    }
+    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "%s %zu modified",
+                      ICON_MD_EDIT, modified_count);
   }
 
   ImGui::SameLine();
   ImGui::Dummy(ImVec2(20, 0));  // Spacer
   ImGui::SameLine();
 
-  // Undo/Redo
-  ImGui::BeginDisabled(!CanUndo());
+  // Undo/Redo (global operations via PaletteManager)
+  ImGui::BeginDisabled(!gfx::PaletteManager::Get().CanUndo());
   if (ThemedIconButton(ICON_MD_UNDO, "Undo")) {
     Undo();
   }
   ImGui::EndDisabled();
 
   ImGui::SameLine();
-  ImGui::BeginDisabled(!CanRedo());
+  ImGui::BeginDisabled(!gfx::PaletteManager::Get().CanRedo());
   if (ThemedIconButton(ICON_MD_REDO, "Redo")) {
     Redo();
   }
@@ -388,178 +390,89 @@ void PaletteGroupCard::DrawBatchOperationsPopup() {
 
 void PaletteGroupCard::SetColor(int palette_index, int color_index,
                                  const gfx::SnesColor& new_color) {
-  auto* palette = GetMutablePalette(palette_index);
-  if (!palette) return;
-
-  auto original_color = (*palette)[color_index];
-
-  // Update in-memory palette
-  (*palette)[color_index] = new_color;
-
-  // Track modification
-  MarkModified(palette_index, color_index);
-
-  // Record for undo
-  auto now = std::chrono::system_clock::now();
-  auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                       now.time_since_epoch())
-                       .count();
-
-  undo_stack_.push_back(
-      {palette_index, color_index, original_color, new_color, static_cast<uint64_t>(timestamp)});
-
-  // Limit undo history
-  if (undo_stack_.size() > kMaxUndoHistory) {
-    undo_stack_.erase(undo_stack_.begin());
+  // Delegate to PaletteManager for centralized tracking and undo/redo
+  auto status = gfx::PaletteManager::Get().SetColor(group_name_, palette_index,
+                                                     color_index, new_color);
+  if (!status.ok()) {
+    // TODO: Show error notification
+    return;
   }
 
-  redo_stack_.clear();
-
-  // Auto-save if enabled
+  // Auto-save if enabled (PaletteManager doesn't handle this)
   if (auto_save_enabled_) {
     WriteColorToRom(palette_index, color_index, new_color);
   }
 }
 
 absl::Status PaletteGroupCard::SaveToRom() {
-  auto* palette_group = GetPaletteGroup();
-  if (!palette_group) {
-    return absl::NotFoundError("Palette group not found");
-  }
-
-  // Save each modified palette
-  for (int palette_idx : modified_palettes_) {
-    auto* palette = palette_group->mutable_palette(palette_idx);
-
-    // Write each modified color in this palette
-    for (int color_idx : modified_colors_[palette_idx]) {
-      RETURN_IF_ERROR(WriteColorToRom(palette_idx, color_idx, (*palette)[color_idx]));
-    }
-  }
-
-  // Clear modified flags after successful save
-  modified_palettes_.clear();
-  modified_colors_.clear();
-
-  // Update original palettes
-  original_palettes_.clear();
-  for (size_t i = 0; i < palette_group->size(); i++) {
-    original_palettes_.push_back(palette_group->palette(i));
-  }
-
-  rom_->set_dirty(true);
-  return absl::OkStatus();
+  // Delegate to PaletteManager for centralized save operation
+  return gfx::PaletteManager::Get().SaveGroup(group_name_);
 }
 
 void PaletteGroupCard::DiscardChanges() {
-  auto* palette_group = GetPaletteGroup();
-  if (!palette_group) return;
-
-  // Restore all palettes from original
-  for (int palette_idx : modified_palettes_) {
-    if (palette_idx < original_palettes_.size()) {
-      *palette_group->mutable_palette(palette_idx) = original_palettes_[palette_idx];
-    }
-  }
-
-  // Clear modified tracking
-  modified_palettes_.clear();
-  modified_colors_.clear();
-
-  // Clear undo/redo
-  ClearHistory();
+  // Delegate to PaletteManager for centralized discard operation
+  gfx::PaletteManager::Get().DiscardGroup(group_name_);
 
   // Reset selection
   selected_color_ = -1;
 }
 
 void PaletteGroupCard::ResetPalette(int palette_index) {
-  auto* palette_group = GetPaletteGroup();
-  if (!palette_group || palette_index >= original_palettes_.size()) {
-    return;
-  }
-
-  // Restore from original
-  *palette_group->mutable_palette(palette_index) = original_palettes_[palette_index];
-
-  // Clear modified flags for this palette
-  ClearModified(palette_index);
+  // Delegate to PaletteManager for centralized reset operation
+  gfx::PaletteManager::Get().ResetPalette(group_name_, palette_index);
 }
 
 void PaletteGroupCard::ResetColor(int palette_index, int color_index) {
-  auto original = GetOriginalColor(palette_index, color_index);
-  SetColor(palette_index, color_index, original);
-
-  // Remove from modified tracking
-  if (modified_colors_.contains(palette_index)) {
-    modified_colors_[palette_index].erase(color_index);
-    if (modified_colors_[palette_index].empty()) {
-      modified_palettes_.erase(palette_index);
-    }
-  }
+  // Delegate to PaletteManager for centralized reset operation
+  gfx::PaletteManager::Get().ResetColor(group_name_, palette_index,
+                                         color_index);
 }
 
 // ========== History Management ==========
 
 void PaletteGroupCard::Undo() {
-  if (!CanUndo()) return;
-
-  auto change = undo_stack_.back();
-  undo_stack_.pop_back();
-
-  // Restore original color
-  auto* palette = GetMutablePalette(change.palette_index);
-  if (palette) {
-    (*palette)[change.color_index] = change.original_color;
-  }
-
-  // Update ROM if auto-save enabled
-  if (auto_save_enabled_) {
-    WriteColorToRom(change.palette_index, change.color_index, change.original_color);
-  }
-
-  // Move to redo stack
-  redo_stack_.push_back(change);
+  // Delegate to PaletteManager's global undo system
+  gfx::PaletteManager::Get().Undo();
 }
 
 void PaletteGroupCard::Redo() {
-  if (!CanRedo()) return;
-
-  auto change = redo_stack_.back();
-  redo_stack_.pop_back();
-
-  // Reapply new color
-  auto* palette = GetMutablePalette(change.palette_index);
-  if (palette) {
-    (*palette)[change.color_index] = change.new_color;
-  }
-
-  // Update ROM if auto-save enabled
-  if (auto_save_enabled_) {
-    WriteColorToRom(change.palette_index, change.color_index, change.new_color);
-  }
-
-  // Move back to undo stack
-  undo_stack_.push_back(change);
+  // Delegate to PaletteManager's global redo system
+  gfx::PaletteManager::Get().Redo();
 }
 
 void PaletteGroupCard::ClearHistory() {
-  undo_stack_.clear();
-  redo_stack_.clear();
+  // Delegate to PaletteManager's global history
+  gfx::PaletteManager::Get().ClearHistory();
 }
 
 // ========== State Queries ==========
 
 bool PaletteGroupCard::IsPaletteModified(int palette_index) const {
-  return modified_palettes_.contains(palette_index);
+  // Query PaletteManager for modification status
+  return gfx::PaletteManager::Get().IsPaletteModified(group_name_,
+                                                       palette_index);
 }
 
-bool PaletteGroupCard::IsColorModified(int palette_index, int color_index) const {
-  auto it = modified_colors_.find(palette_index);
-  if (it == modified_colors_.end()) {
-    return false;
-  }
-  return it->second.contains(color_index);
+bool PaletteGroupCard::IsColorModified(int palette_index,
+                                        int color_index) const {
+  // Query PaletteManager for modification status
+  return gfx::PaletteManager::Get().IsColorModified(group_name_, palette_index,
+                                                     color_index);
+}
+
+bool PaletteGroupCard::HasUnsavedChanges() const {
+  // Query PaletteManager for group-specific modification status
+  return gfx::PaletteManager::Get().IsGroupModified(group_name_);
+}
+
+bool PaletteGroupCard::CanUndo() const {
+  // Query PaletteManager for global undo availability
+  return gfx::PaletteManager::Get().CanUndo();
+}
+
+bool PaletteGroupCard::CanRedo() const {
+  // Query PaletteManager for global redo availability
+  return gfx::PaletteManager::Get().CanRedo();
 }
 
 // ========== Helper Methods ==========
@@ -574,10 +487,9 @@ gfx::SnesPalette* PaletteGroupCard::GetMutablePalette(int index) {
 
 gfx::SnesColor PaletteGroupCard::GetOriginalColor(int palette_index,
                                                    int color_index) const {
-  if (palette_index >= original_palettes_.size()) {
-    return gfx::SnesColor();
-  }
-  return original_palettes_[palette_index][color_index];
+  // Get original color from PaletteManager's snapshots
+  return gfx::PaletteManager::Get().GetColor(group_name_, palette_index,
+                                              color_index);
 }
 
 absl::Status PaletteGroupCard::WriteColorToRom(int palette_index, int color_index,
@@ -586,15 +498,7 @@ absl::Status PaletteGroupCard::WriteColorToRom(int palette_index, int color_inde
   return rom_->WriteColor(address, color);
 }
 
-void PaletteGroupCard::MarkModified(int palette_index, int color_index) {
-  modified_palettes_.insert(palette_index);
-  modified_colors_[palette_index].insert(color_index);
-}
-
-void PaletteGroupCard::ClearModified(int palette_index) {
-  modified_palettes_.erase(palette_index);
-  modified_colors_.erase(palette_index);
-}
+// MarkModified and ClearModified removed - PaletteManager handles tracking now
 
 // ========== Export/Import ==========
 

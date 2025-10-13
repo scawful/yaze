@@ -74,6 +74,7 @@ if(YAZE_BUILD_TESTS)
     unit/gfx/snes_tile_test.cc
     unit/gfx/compression_test.cc
     unit/gfx/snes_palette_test.cc
+    unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
     unit/gui/canvas_automation_api_test.cc
     unit/zelda3/overworld_test.cc
@@ -98,6 +99,7 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/dungeon_room_test.cc
     integration/zelda3/sprite_position_test.cc
     integration/zelda3/message_test.cc
+    integration/palette_manager_test.cc
   )
   yaze_add_test_suite(yaze_test_stable "stable" OFF ${STABLE_TEST_SOURCES})
 

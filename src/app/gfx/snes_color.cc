@@ -99,13 +99,19 @@ std::vector<SnesColor> GetColFileData(uint8_t* data) {
 }
 
 void SnesColor::set_rgb(const ImVec4 val) {
-  rgb_.x = val.x / kColorByteMax;
-  rgb_.y = val.y / kColorByteMax;
-  rgb_.z = val.z / kColorByteMax;
+  // ImGui ColorPicker returns colors in 0-1 range, but internally we store 0-255
+  // Convert from 0-1 normalized to 0-255 range
+  rgb_.x = val.x * kColorByteMax;
+  rgb_.y = val.y * kColorByteMax;
+  rgb_.z = val.z * kColorByteMax;
+  rgb_.w = kColorByteMaxF;  // Alpha always 255
+
+  // Create snes_color struct for ROM/SNES conversion (expects 0-255 range)
   snes_color color;
-  color.red = val.x;
-  color.green = val.y;
-  color.blue = val.z;
+  color.red = static_cast<uint16_t>(rgb_.x);
+  color.green = static_cast<uint16_t>(rgb_.y);
+  color.blue = static_cast<uint16_t>(rgb_.z);
+
   rom_color_ = color;
   snes_ = ConvertRgbToSnes(color);
   modified = true;
@@ -114,7 +120,9 @@ void SnesColor::set_rgb(const ImVec4 val) {
 void SnesColor::set_snes(uint16_t val) {
   snes_ = val;
   snes_color col = ConvertSnesToRgb(val);
+  // ConvertSnesToRgb returns 0-255 range, store directly (not normalized 0-1)
   rgb_ = ImVec4(col.red, col.green, col.blue, kColorByteMaxF);
+  rom_color_ = col;
   modified = true;
 }
 

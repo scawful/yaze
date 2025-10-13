@@ -124,13 +124,13 @@ class PaletteGroupCard {
 
   void Undo();
   void Redo();
-  bool CanUndo() const { return !undo_stack_.empty(); }
-  bool CanRedo() const { return !redo_stack_.empty(); }
+  bool CanUndo() const;
+  bool CanRedo() const;
   void ClearHistory();
 
   // ========== State Queries ==========
 
-  bool HasUnsavedChanges() const { return !modified_palettes_.empty(); }
+  bool HasUnsavedChanges() const;
   bool IsPaletteModified(int palette_index) const;
   bool IsColorModified(int palette_index, int color_index) const;
 
@@ -256,22 +256,10 @@ class PaletteGroupCard {
   int selected_color_ = -1;      // Currently selected color (-1 = none)
   gfx::SnesColor editing_color_; // Color being edited in picker
 
-  // Modified tracking
-  std::unordered_set<int> modified_palettes_;
-  std::unordered_map<int, std::unordered_set<int>> modified_colors_;
-
-  // Undo/Redo
-  std::vector<ColorChange> undo_stack_;
-  std::vector<ColorChange> redo_stack_;
-  static constexpr size_t kMaxUndoHistory = 100;
-
   // Settings
   bool auto_save_enabled_ = false;  // Auto-save to ROM on every change
   bool show_snes_format_ = true;    // Show SNES $xxxx format in info
   bool show_hex_format_ = true;     // Show #xxxxxx hex in info
-
-  // Original palettes (loaded from ROM for reset/comparison)
-  std::vector<gfx::SnesPalette> original_palettes_;
 
   // Card registration
   gui::CardRegistration card_registration_;
