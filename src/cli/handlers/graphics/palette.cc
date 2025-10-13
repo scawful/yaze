@@ -1,8 +1,8 @@
 #include "cli/cli.h"
 #include "cli/tui/palette_editor.h"
 
-#include "app/gfx/scad_format.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/util/scad_format.h"
+#include "app/gfx/types/snes_palette.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/declare.h"
 

@@ -3,9 +3,10 @@
 
 #include <string>
 
-#include "app/gfx/snes_color.h"
+#include "app/gfx/types/snes_color.h"
 #include "app/gui/core/color.h"
 #include "imgui/imgui.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace editor {
