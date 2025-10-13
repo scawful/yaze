@@ -5,6 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/arena.h"
+#include "app/gfx/palette_manager.h"
 #include "app/gfx/snes_palette.h"
 #include "zelda3/dungeon/room.h"
 #include "app/gui/icons.h"
@@ -149,13 +150,18 @@ absl::Status DungeonEditorV2::Load() {
   // NOW initialize emulator preview with loaded ROM
   object_emulator_preview_.Initialize(renderer_, rom_);
   
+  // Initialize centralized PaletteManager with ROM data
+  // This MUST be done before initializing palette_editor_
+  gfx::PaletteManager::Get().Initialize(rom_);
+
   // Initialize palette editor with loaded ROM
   palette_editor_.Initialize(rom_);
-  
+
   // Initialize unified object editor card
   object_editor_card_ = std::make_unique<ObjectEditorCard>(renderer_, rom_, &canvas_viewer_);
-  
+
   // Wire palette changes to trigger room re-renders
+  // PaletteManager now tracks all modifications globally
   palette_editor_.SetOnPaletteChanged([this](int /*palette_id*/) {
     // Re-render all active rooms when palette changes
     for (int i = 0; i < active_rooms_.Size; i++) {
@@ -201,12 +207,25 @@ absl::Status DungeonEditorV2::Save() {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
+  // Save palette changes first (if any)
+  if (gfx::PaletteManager::Get().HasUnsavedChanges()) {
+    auto status = gfx::PaletteManager::Get().SaveAllToRom();
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
+                status.message().data());
+      return status;
+    }
+    LOG_INFO("DungeonEditorV2", "Saved %zu modified colors to ROM",
+             gfx::PaletteManager::Get().GetModifiedColorCount());
+  }
+
   // Save all rooms (SaveObjects will handle which ones need saving)
   for (auto& room : rooms_) {
     auto status = room.SaveObjects();
     if (!status.ok()) {
       // Log error but continue with other rooms
-      LOG_ERROR("DungeonEditorV2", "Failed to save room: %s", status.message().data());
+      LOG_ERROR("DungeonEditorV2", "Failed to save room: %s",
+                status.message().data());
     }
   }
 
