@@ -18,10 +18,6 @@
     {
       "name": "zlib",
       "platform": "windows"
-    },
-    {
-      "name": "openssl",
-      "platform": "windows"
     }
   ],
   "overrides": [

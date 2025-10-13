@@ -261,17 +261,31 @@ jobs:
       run: |
         set -e
         echo "::group::CMake Configuration"
-        cmake -B build -G Ninja \
-          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
-          -DCMAKE_C_COMPILER=${{ matrix.cc }} \
-          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
-          -DYAZE_BUILD_TESTS=ON \
-          -DYAZE_BUILD_EMU=OFF \
-          -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
+        if [[ "${{ runner.os }}" == "Linux" ]]; then
+          # Linux: Use portal backend for file dialogs (more reliable in CI)
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+            -DYAZE_BUILD_TESTS=ON \
+            -DYAZE_BUILD_EMU=OFF \
+            -DYAZE_ENABLE_ROM_TESTS=OFF \
+            -DNFD_PORTAL=ON 2>&1 | tee cmake_config.log
+        else
+          # macOS: Use default GTK backend
+          cmake -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+            -DYAZE_BUILD_TESTS=ON \
+            -DYAZE_BUILD_EMU=OFF \
+            -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
+        fi
         echo "::endgroup::"
         # Note: Full-featured build to match release configuration
         # Note: YAZE_BUILD_EMU=OFF disables standalone emulator executable
         #       but yaze_emulator library is still built for main app/tests
+        # Note: NFD_PORTAL=ON uses D-Bus portal instead of GTK on Linux (more reliable in CI)
     
     - name: Report Configure Failure
       if: failure() && (steps.configure_windows.outcome == 'failure' || steps.configure_unix.outcome == 'failure')
