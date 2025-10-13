@@ -10,6 +10,7 @@ set(
   zelda3/music/tracker.cc
   zelda3/overworld/overworld.cc
   zelda3/overworld/overworld_map.cc
+  zelda3/palette_constants.cc
   zelda3/screen/dungeon_map.cc
   zelda3/screen/inventory.cc
   zelda3/screen/title_screen.cc

@@ -8,7 +8,7 @@
 #include "app/core/timing.h"
 #include "app/core/window.h"
 #include "app/editor/editor_manager.h"
-#include "app/gui/app/background_renderer.h"
+#include "app/gui/core/background_renderer.h"
 #include "app/gfx/resource/arena.h"                  // Add include for Arena
 #include "app/gfx/backend/sdl2_renderer.h"  // Add include for new renderer
 #include "app/gui/core/theme_manager.h"

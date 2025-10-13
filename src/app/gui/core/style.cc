@@ -4,7 +4,7 @@
 
 #include "util/file_util.h"
 #include "app/gui/core/theme_manager.h"
-#include "app/gui/app/background_renderer.h"
+#include "app/gui/core/background_renderer.h"
 #include "app/platform/font_loader.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"

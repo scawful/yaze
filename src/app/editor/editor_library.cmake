@@ -1,13 +1,6 @@
 set(
   YAZE_APP_EDITOR_SRC
   app/editor/agent/agent_chat_history_codec.cc
-  app/editor/agent/agent_chat_history_popup.cc
-  app/editor/agent/agent_chat_widget.cc
-  app/editor/agent/agent_collaboration_coordinator.cc
-  app/editor/agent/agent_editor.cc
-  app/editor/agent/agent_ui_theme.cc
-  app/editor/agent/automation_bridge.cc
-  app/editor/agent/network_collaboration_coordinator.cc
   app/editor/code/assembly_editor.cc
   app/editor/code/memory_editor.cc
   app/editor/code/project_file_editor.cc
@@ -24,8 +17,6 @@ set(
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
   app/editor/graphics/screen_editor.cc
-  app/editor/palette/palette_editor.cc
-  app/editor/palette/palette_group_card.cc
   app/editor/message/message_data.cc
   app/editor/message/message_editor.cc
   app/editor/message/message_preview.cc
@@ -36,6 +27,9 @@ set(
   app/editor/overworld/overworld_entity_renderer.cc
   app/editor/overworld/scratch_space.cc
   app/editor/overworld/tile16_editor.cc
+  app/editor/palette/palette_editor.cc
+  app/editor/palette/palette_group_card.cc
+  app/editor/palette/palette_utility.cc
   app/editor/sprite/sprite_editor.cc
   app/editor/system/command_manager.cc
   app/editor/system/command_palette.cc

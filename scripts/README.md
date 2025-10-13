@@ -1,134 +1,117 @@
-# yaze Build Scripts
+# YAZE Build Scripts
 
-This directory contains build and setup scripts for YAZE development on different platforms.
+This directory contains build automation and maintenance scripts for the YAZE project.
 
-## Windows Scripts
+## build_cleaner.py
 
-### vcpkg Setup (Optional)
-- **`setup-vcpkg-windows.ps1`** - Setup vcpkg for SDL2 dependency (PowerShell)
-- **`setup-vcpkg-windows.bat`** - Setup vcpkg for SDL2 dependency (Batch)
+Automates CMake source list maintenance and header include management with IWYU-style analysis.
 
-**Note**: vcpkg is optional. YAZE uses bundled dependencies by default.
+### Features
 
-## Windows Build Workflow
-
-### Recommended: Visual Studio CMake Mode
-
-**YAZE uses Visual Studio's native CMake support - no project generation needed.**
-
-1. **Install Visual Studio 2022** with "Desktop development with C++" workload
-2. **Open Visual Studio 2022**
-3. **File → Open → Folder**
-4. **Navigate to yaze directory**
-5. **Select configuration** (Debug/Release) from toolbar
-6. **Press F5** to build and run
-
-### Command Line Build
-
-```powershell
-# Standard CMake workflow
-cmake -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build --config Debug
-
-# Run the application
-.\build\bin\Debug\yaze.exe
-```
-
-### Compiler Notes
-
-The CMake configuration is designed to work with **MSVC** (Visual Studio's compiler). The build system includes automatic workarounds for C++23 compatibility:
-- Abseil int128 is automatically excluded on Windows
-- C++23 deprecation warnings are properly silenced
-- Platform-specific definitions are handled automatically
-
-## Quick Start (Windows)
-
-### Option 1: Visual Studio (Recommended)
-1. Open Visual Studio 2022
-2. File → Open → Folder
-3. Navigate to yaze directory
-4. Select configuration (Debug/Release)
-5. Press F5 to build and run
-
-### Option 2: Command Line
-```powershell
-# Standard CMake build
-cmake -B build -DCMAKE_BUILD_TYPE=Debug
-cmake --build build --config Debug
-```
-
-### Option 3: With vcpkg (Optional)
-```powershell
-# Setup vcpkg for SDL2
-.\scripts\setup-vcpkg-windows.ps1
-
-# Then build normally in Visual Studio or command line
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **PowerShell Execution Policy**
-   ```powershell
-   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-   ```
-
-2. **Visual Studio Not Detecting CMakeLists.txt**
-   - Ensure you opened the folder (not a solution file)
-   - Check that CMakeLists.txt exists in the root directory
-   - Try: File → Close Folder, then File → Open → Folder
-
-3. **vcpkg Issues (if using vcpkg)**
-   - Run `.\scripts\setup-vcpkg-windows.ps1` to reinstall
-   - Check internet connection for dependency downloads
-   - Note: vcpkg is optional; bundled dependencies work by default
-
-4. **CMake Configuration Errors**
-   - Delete the `build/` directory
-   - Close and reopen the folder in Visual Studio
-   - Or run: `cmake -B build -DCMAKE_BUILD_TYPE=Debug`
-
-5. **Missing Git Submodules**
-   ```powershell
-   git submodule update --init --recursive
-   ```
-
-### Getting Help
-
-1. Check the [Build Instructions](../docs/02-build-instructions.md)
-2. Review CMake output for specific error messages
-3. Ensure all prerequisites are installed (Visual Studio 2022 with C++ workload)
-
-## Other Scripts
-
-- **`create_release.sh`** - Create GitHub releases (Linux/macOS)
-- **`extract_changelog.py`** - Extract changelog for releases
-- **`quality_check.sh`** - Code quality checks (Linux/macOS)
-- **`create-macos-bundle.sh`** - Create macOS application bundle for releases
-
-## Build Environment Verification
-
-This directory also contains build environment verification scripts.
-
-### `verify-build-environment.ps1` / `.sh`
-
-A comprehensive script that checks:
-
-- ✅ **CMake Installation** - Version 3.16+ required
-- ✅ **Git Installation** - With submodule support
-- ✅ **C++ Compiler** - GCC 13+, Clang 16+, or MSVC 2019+
-- ✅ **Platform Tools** - Xcode (macOS), Visual Studio (Windows), build-essential (Linux)
-- ✅ **Git Submodules** - All dependencies synchronized
+1. **CMake Source List Maintenance**: Automatically updates source file lists in CMake files
+2. **Self-Header Includes**: Ensures source files include their corresponding headers
+3. **IWYU-Style Analysis**: Suggests missing headers based on symbol usage
+4. **.gitignore Support**: Respects .gitignore patterns when scanning files
+5. **Auto-Discovery**: Can discover CMake libraries that opt-in to auto-maintenance
 
 ### Usage
 
-**Windows (PowerShell):**
-```powershell
-.\scripts\verify-build-environment.ps1
+```bash
+# Dry-run to see what would change (recommended first step)
+python3 scripts/build_cleaner.py --dry-run
+
+# Update CMake source lists and header includes
+python3 scripts/build_cleaner.py
+
+# Run IWYU-style header analysis
+python3 scripts/build_cleaner.py --iwyu
+
+# Auto-discover CMake libraries marked for auto-maintenance
+python3 scripts/build_cleaner.py --auto-discover
+
+# Update only CMake source lists
+python3 scripts/build_cleaner.py --cmake-only
+
+# Update only header includes
+python3 scripts/build_cleaner.py --includes-only
 ```
 
-**macOS/Linux:**
-```bash
-./scripts/verify-build-environment.sh
+### Opting-In to Auto-Maintenance
+
+By default, the script only auto-maintains source lists that are explicitly marked. To mark a CMake variable for auto-maintenance, add a comment above the `set()` statement:
+
+```cmake
+# This list is auto-maintained by scripts/build_cleaner.py
+set(
+  YAZE_APP_EMU_SRC
+  app/emu/audio/apu.cc
+  app/emu/cpu/cpu.cc
+  # ... more files
+)
 ```
+
+The script looks for comments containing "auto-maintain" (case-insensitive) within 3 lines above the `set()` statement.
+
+### Excluding Files from Processing
+
+To exclude a specific file from all processing (CMake lists, header includes, IWYU), add this token near the top of the file:
+
+```cpp
+// build_cleaner:ignore
+```
+
+### .gitignore Support
+
+The script automatically respects `.gitignore` patterns. To enable this feature, install the `pathspec` dependency:
+
+```bash
+pip3 install -r scripts/requirements.txt
+# or
+pip3 install pathspec
+```
+
+### IWYU Configuration
+
+The script includes basic IWYU-style analysis that suggests headers based on symbol prefixes. To customize which headers are suggested, edit the `COMMON_HEADERS` dictionary in the script:
+
+```python
+COMMON_HEADERS = {
+    'std::': ['<memory>', '<string>', '<vector>', ...],
+    'absl::': ['<absl/status/status.h>', ...],
+    'ImGui::': ['<imgui.h>'],
+    'SDL_': ['<SDL.h>'],
+}
+```
+
+**Note**: The IWYU analysis is conservative and may suggest headers that are already transitively included. Use with care and review suggestions before applying.
+
+### Integration with CMake
+
+The script is integrated into the CMake build system:
+
+```bash
+# Run as a CMake target
+cmake --build build --target build_cleaner
+```
+
+### Dependencies
+
+- Python 3.7+
+- `pathspec` (optional, for .gitignore support): `pip3 install pathspec`
+
+### How It Works
+
+1. **CMake Maintenance**: Scans directories specified in the configuration and updates `set(VAR_NAME ...)` blocks with the current list of source files
+2. **Self-Headers**: For each `.cc`/`.cpp` file, ensures it includes its corresponding `.h` file
+3. **IWYU Analysis**: Scans source files for symbols and suggests appropriate headers based on prefix matching
+
+### Current Auto-Maintained Variables
+
+**All 20 library source lists are now auto-maintained by default:**
+
+- Core: `YAZE_APP_EMU_SRC`, `YAZE_APP_CORE_SRC`, `YAZE_APP_EDITOR_SRC`, `YAZE_APP_ZELDA3_SRC`, `YAZE_NET_SRC`, `YAZE_UTIL_SRC`
+- GFX: `GFX_TYPES_SRC`, `GFX_BACKEND_SRC`, `GFX_RESOURCE_SRC`, `GFX_CORE_SRC`, `GFX_UTIL_SRC`, `GFX_RENDER_SRC`, `GFX_DEBUG_SRC`
+- GUI: `GUI_CORE_SRC`, `CANVAS_SRC`, `GUI_WIDGETS_SRC`, `GUI_AUTOMATION_SRC`, `GUI_APP_SRC`
+- Other: `YAZE_AGENT_SOURCES`, `YAZE_TEST_SOURCES`
+
+The script intelligently preserves conditional blocks (if/endif) and excludes conditional files from the main source list.
