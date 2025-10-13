@@ -279,6 +279,9 @@ absl::Status TitleScreen::RenderBG1Layer() {
       }
     }
   }
+  
+  // Update surface with rendered pixel data
+  tiles_bg1_bitmap_.UpdateSurfacePixels();
 
   return absl::OkStatus();
 }
@@ -332,6 +335,9 @@ absl::Status TitleScreen::RenderBG2Layer() {
       }
     }
   }
+  
+  // Update surface with rendered pixel data
+  tiles_bg2_bitmap_.UpdateSurfacePixels();
 
   return absl::OkStatus();
 }

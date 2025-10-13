@@ -23,7 +23,7 @@ constexpr int kGfxFont = 0x70000;  // 2bpp format
 constexpr int kCharactersWidth = 0x74ADF;
 constexpr int kNumMessages = 396;
 constexpr int kFontGfxMessageSize = 128;
-constexpr int kFontGfxMessageDepth = 64;
+constexpr int kFontGfxMessageDepth = 8;  // Fixed: Must be 8 for indexed palette mode
 constexpr int kFontGfx16Size = 172 * 4096;
 
 constexpr uint8_t kBlockTerminator = 0x80;

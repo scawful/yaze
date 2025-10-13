@@ -177,6 +177,12 @@ class Bitmap {
    * @brief Apply the stored palette to the surface (internal helper)
    */
   void ApplyStoredPalette();
+  
+  /**
+   * @brief Update SDL surface with current pixel data from data_ vector
+   * Call this after modifying pixel data via mutable_data()
+   */
+  void UpdateSurfacePixels();
 
   /**
    * @brief Set the palette using SDL colors
