@@ -33,6 +33,10 @@ class TitleScreen {
   auto& bg1_buffer() { return tiles_bg1_buffer_; }
   auto& bg2_buffer() { return tiles_bg2_buffer_; }
   auto& oam_buffer() { return oam_data_; }
+  
+  // Mutable accessors for editing
+  auto& mutable_bg1_buffer() { return tiles_bg1_buffer_; }
+  auto& mutable_bg2_buffer() { return tiles_bg2_buffer_; }
 
   // Accessors for bitmaps
   auto& bg1_bitmap() { return tiles_bg1_bitmap_; }
@@ -47,6 +51,18 @@ class TitleScreen {
   // Save changes back to ROM
   absl::Status Save(Rom* rom);
 
+  /**
+   * @brief Render BG1 tilemap into bitmap pixels
+   * Converts tile IDs from tiles_bg1_buffer_ into pixel data
+   */
+  absl::Status RenderBG1Layer();
+
+  /**
+   * @brief Render BG2 tilemap into bitmap pixels
+   * Converts tile IDs from tiles_bg2_buffer_ into pixel data
+   */
+  absl::Status RenderBG2Layer();
+
  private:
   /**
    * @brief Build the tile16 blockset from ROM graphics
@@ -59,18 +75,6 @@ class TitleScreen {
    * @param rom ROM instance to read tilemap from
    */
   absl::Status LoadTitleScreen(Rom* rom);
-
-  /**
-   * @brief Render BG1 tilemap into bitmap pixels
-   * Converts tile IDs from tiles_bg1_buffer_ into pixel data
-   */
-  absl::Status RenderBG1Layer();
-
-  /**
-   * @brief Render BG2 tilemap into bitmap pixels
-   * Converts tile IDs from tiles_bg2_buffer_ into pixel data
-   */
-  absl::Status RenderBG2Layer();
 
   int pal_selected_ = 2;
 
