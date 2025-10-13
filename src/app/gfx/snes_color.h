@@ -40,17 +40,26 @@ class SnesColor {
   constexpr SnesColor()
       : rgb_({0.f, 0.f, 0.f, 0.f}), snes_(0), rom_color_({0, 0, 0}) {}
 
-  explicit SnesColor(const ImVec4 val) : rgb_(val) {
+  explicit SnesColor(const ImVec4 val) {
+    // ImVec4 from ImGui is in 0-1 range, convert to 0-255 for internal storage
+    rgb_.x = val.x * kColorByteMax;
+    rgb_.y = val.y * kColorByteMax;
+    rgb_.z = val.z * kColorByteMax;
+    rgb_.w = kColorByteMaxF;  // Alpha always 255
+
     snes_color color;
-    color.red = static_cast<uint16_t>(val.x * kColorByteMax);
-    color.green = static_cast<uint16_t>(val.y * kColorByteMax);
-    color.blue = static_cast<uint16_t>(val.z * kColorByteMax);
+    color.red = static_cast<uint16_t>(rgb_.x);
+    color.green = static_cast<uint16_t>(rgb_.y);
+    color.blue = static_cast<uint16_t>(rgb_.z);
+    rom_color_ = color;
     snes_ = ConvertRgbToSnes(color);
   }
 
   explicit SnesColor(const uint16_t val) : snes_(val) {
     snes_color color = ConvertSnesToRgb(val);
-    rgb_ = ImVec4(color.red, color.green, color.blue, 0.f);
+    // ConvertSnesToRgb returns 0-255 range, store directly
+    rgb_ = ImVec4(color.red, color.green, color.blue, kColorByteMaxF);
+    rom_color_ = color;
   }
 
   explicit SnesColor(const snes_color val)

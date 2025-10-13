@@ -2,6 +2,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
+#include "app/gfx/palette_manager.h"
 #include "app/gfx/performance/performance_profiler.h"
 #include "app/gfx/snes_palette.h"
 #include "app/gui/color.h"
@@ -313,6 +314,10 @@ absl::Status PaletteEditor::Load() {
         "Palette Group Name", std::to_string(i),
         std::string(kPaletteGroupNames[i]));
   }
+
+  // Initialize the centralized PaletteManager with ROM data
+  // This must be done before creating any palette cards
+  gfx::PaletteManager::Get().Initialize(rom_);
 
   // Initialize palette card instances NOW (after ROM is loaded)
   ow_main_card_ = std::make_unique<OverworldMainPaletteCard>(rom_);
@@ -847,42 +852,74 @@ void PaletteEditor::DrawControlPanel() {
 
     // Quick actions
     ImGui::Text("Quick Actions:");
-    if (ImGui::Button("Save All Modified", ImVec2(-1, 0))) {
-      if (ow_main_card_ && ow_main_card_->HasUnsavedChanges()) {
-        ow_main_card_->SaveToRom();
+
+    // Use centralized PaletteManager for global operations
+    bool has_unsaved = gfx::PaletteManager::Get().HasUnsavedChanges();
+    size_t modified_count = gfx::PaletteManager::Get().GetModifiedColorCount();
+
+    ImGui::BeginDisabled(!has_unsaved);
+    if (ImGui::Button(absl::StrFormat("Save All (%zu colors)", modified_count).c_str(),
+                     ImVec2(-1, 0))) {
+      auto status = gfx::PaletteManager::Get().SaveAllToRom();
+      if (!status.ok()) {
+        // TODO: Show error toast/notification
+        ImGui::OpenPopup("SaveError");
       }
-      if (ow_animated_card_ && ow_animated_card_->HasUnsavedChanges()) {
-        ow_animated_card_->SaveToRom();
-      }
-      if (dungeon_main_card_ && dungeon_main_card_->HasUnsavedChanges()) {
-        dungeon_main_card_->SaveToRom();
-      }
-      if (sprite_card_ && sprite_card_->HasUnsavedChanges()) {
-        sprite_card_->SaveToRom();
-      }
-      if (sprites_aux1_card_ && sprites_aux1_card_->HasUnsavedChanges()) {
-        sprites_aux1_card_->SaveToRom();
-      }
-      if (sprites_aux2_card_ && sprites_aux2_card_->HasUnsavedChanges()) {
-        sprites_aux2_card_->SaveToRom();
-      }
-      if (sprites_aux3_card_ && sprites_aux3_card_->HasUnsavedChanges()) {
-        sprites_aux3_card_->SaveToRom();
-      }
-      if (equipment_card_ && equipment_card_->HasUnsavedChanges()) {
-        equipment_card_->SaveToRom();
+    }
+    ImGui::EndDisabled();
+
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      if (has_unsaved) {
+        ImGui::SetTooltip("Save all modified colors to ROM");
+      } else {
+        ImGui::SetTooltip("No unsaved changes");
       }
     }
 
+    ImGui::BeginDisabled(!has_unsaved);
     if (ImGui::Button("Discard All Changes", ImVec2(-1, 0))) {
-      if (ow_main_card_) ow_main_card_->DiscardChanges();
-      if (ow_animated_card_) ow_animated_card_->DiscardChanges();
-      if (dungeon_main_card_) dungeon_main_card_->DiscardChanges();
-      if (sprite_card_) sprite_card_->DiscardChanges();
-      if (sprites_aux1_card_) sprites_aux1_card_->DiscardChanges();
-      if (sprites_aux2_card_) sprites_aux2_card_->DiscardChanges();
-      if (sprites_aux3_card_) sprites_aux3_card_->DiscardChanges();
-      if (equipment_card_) equipment_card_->DiscardChanges();
+      ImGui::OpenPopup("ConfirmDiscardAll");
+    }
+    ImGui::EndDisabled();
+
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      if (has_unsaved) {
+        ImGui::SetTooltip("Discard all unsaved changes");
+      } else {
+        ImGui::SetTooltip("No changes to discard");
+      }
+    }
+
+    // Confirmation popup for discard
+    if (ImGui::BeginPopupModal("ConfirmDiscardAll", nullptr,
+                               ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::Text("Discard all unsaved changes?");
+      ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f),
+                        "This will revert %zu modified colors.", modified_count);
+      ImGui::Separator();
+
+      if (ImGui::Button("Discard", ImVec2(120, 0))) {
+        gfx::PaletteManager::Get().DiscardAllChanges();
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+
+    // Error popup for save failures
+    if (ImGui::BeginPopupModal("SaveError", nullptr,
+                               ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Failed to save changes");
+      ImGui::Text("An error occurred while saving to ROM.");
+      ImGui::Separator();
+
+      if (ImGui::Button("OK", ImVec2(120, 0))) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
     }
 
     ImGui::Separator();
