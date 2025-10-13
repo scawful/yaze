@@ -218,6 +218,9 @@ absl::Status OverworldMapScreen::RenderMapLayer(bool use_dark_world) {
     }
   }
 
+  // Update surface with rendered pixel data
+  map_bitmap_.UpdateSurfacePixels();
+  
   // Apply appropriate palette
   map_bitmap_.SetPalette(use_dark_world ? dw_palette_ : lw_palette_);
 

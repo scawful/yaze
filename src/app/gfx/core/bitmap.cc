@@ -269,8 +269,8 @@ void Bitmap::ApplyStoredPalette() {
   if (surface_ == nullptr) {
     return;  // Can't apply without surface
   }
-  if (surface_->format == nullptr || surface_->format->palette == nullptr) {
-    return;  // Can't apply palette to this surface format
+  if (surface_->format == nullptr) {
+    return;  // Invalid surface format
   }
   if (palette_.empty()) {
     return;  // No palette to apply
@@ -279,34 +279,56 @@ void Bitmap::ApplyStoredPalette() {
   // Invalidate palette cache when palette changes
   InvalidatePaletteCache();
 
+  // For indexed surfaces, ensure palette exists
   SDL_Palette *sdl_palette = surface_->format->palette;
   if (sdl_palette == nullptr) {
+    // Non-indexed surface or palette not created - can't apply palette
+    SDL_Log("Warning: Bitmap surface has no palette (non-indexed format?)\n");
     return;
   }
 
   SDL_UnlockSurface(surface_);
   
-  // Apply all palette colors from the SnesPalette
-  for (size_t i = 0; i < palette_.size() && i < 256; ++i) {
+  // Build SDL color array from SnesPalette
+  // Only set the colors that exist in the palette - don't fill unused entries
+  std::vector<SDL_Color> colors(palette_.size());
+  for (size_t i = 0; i < palette_.size(); ++i) {
     const auto& pal_color = palette_[i];
     
     // Get RGB values - stored as 0-255 in ImVec4 (unconventional!)
     ImVec4 rgb_255 = pal_color.rgb();
     
-    sdl_palette->colors[i].r = static_cast<Uint8>(rgb_255.x);
-    sdl_palette->colors[i].g = static_cast<Uint8>(rgb_255.y);
-    sdl_palette->colors[i].b = static_cast<Uint8>(rgb_255.z);
+    colors[i].r = static_cast<Uint8>(rgb_255.x);
+    colors[i].g = static_cast<Uint8>(rgb_255.y);
+    colors[i].b = static_cast<Uint8>(rgb_255.z);
     
     // Only apply transparency if explicitly set
-    // (ROM data won't have this set; transparency is added during rendering)
     if (pal_color.is_transparent()) {
-      sdl_palette->colors[i].a = 0;  // Fully transparent
+      colors[i].a = 0;  // Fully transparent
     } else {
-      sdl_palette->colors[i].a = 255;  // Fully opaque
+      colors[i].a = 255;  // Fully opaque
     }
   }
   
+  // Apply palette to surface using SDL_SetPaletteColors
+  // Only set the colors we have - leave rest of palette unchanged
+  // This prevents breaking systems that use small palettes (8-16 colors)
+  SDL_SetPaletteColors(sdl_palette, colors.data(), 0, static_cast<int>(palette_.size()));
+  
   SDL_LockSurface(surface_);
+}
+
+void Bitmap::UpdateSurfacePixels() {
+  if (!surface_ || data_.empty()) {
+    return;
+  }
+  
+  // Copy pixel data from data_ vector to SDL surface
+  SDL_LockSurface(surface_);
+  if (surface_->pixels && data_.size() > 0) {
+    memcpy(surface_->pixels, data_.data(), std::min(data_.size(), static_cast<size_t>(surface_->pitch * surface_->h)));
+  }
+  SDL_UnlockSurface(surface_);
 }
 
 void Bitmap::SetPalette(const SnesPalette &palette) {

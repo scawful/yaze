@@ -419,14 +419,14 @@ void MessageEditor::DrawMessagePreview() {
     LOG_DEBUG("MessageEditor", "Updated message preview bitmap (size: %zu) and queued texture update",
               message_preview_.current_preview_data_.size());
   } else {
-    // Create bitmap and queue texture creation
+    // Create bitmap and queue texture creation with 8-bit indexed depth
     current_font_gfx16_bitmap_.Create(kCurrentMessageWidth, kCurrentMessageHeight, 
-                                     64, message_preview_.current_preview_data_);
+                                     8, message_preview_.current_preview_data_);
     current_font_gfx16_bitmap_.SetPalette(font_preview_colors_);
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &current_font_gfx16_bitmap_);
     
-    LOG_INFO("MessageEditor", "Created message preview bitmap (%dx%d) and queued texture creation",
+    LOG_INFO("MessageEditor", "Created message preview bitmap (%dx%d) with 8-bit depth and queued texture creation",
              kCurrentMessageWidth, kCurrentMessageHeight);
   }
 }
