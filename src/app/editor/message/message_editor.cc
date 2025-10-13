@@ -151,8 +151,8 @@ absl::Status MessageEditor::Update() {
     list_card.SetDefaultSize(400, 600);
     if (list_card.Begin()) {
       DrawMessageList();
-      list_card.End();
     }
+    list_card.End();
   }
   
   // Message Editor Card
@@ -161,8 +161,8 @@ absl::Status MessageEditor::Update() {
     editor_card.SetDefaultSize(500, 600);
     if (editor_card.Begin()) {
       DrawCurrentMessage();
-      editor_card.End();
     }
+    editor_card.End();
   }
   
   // Font Atlas Card
@@ -172,8 +172,8 @@ absl::Status MessageEditor::Update() {
     if (font_card.Begin()) {
       DrawFontAtlas();
       DrawExpandedMessageSettings();
-      font_card.End();
     }
+    font_card.End();
   }
   
   // Dictionary Card
@@ -184,8 +184,8 @@ absl::Status MessageEditor::Update() {
       DrawTextCommands();
       DrawSpecialCharacters();
       DrawDictionary();
-      dict_card.End();
     }
+    dict_card.End();
   }
   
   return absl::OkStatus();

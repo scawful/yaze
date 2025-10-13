@@ -250,12 +250,14 @@ void EditorCard::SetPosition(Position pos) {
 bool EditorCard::Begin(bool* p_open) {
   // Check visibility flag first - if provided and false, don't show the card
   if (p_open && !*p_open) {
+    imgui_begun_ = false;
     return false;
   }
   
   // Handle icon-collapsed state
   if (icon_collapsible_ && collapsed_to_icon_) {
     DrawFloatingIconButton();
+    imgui_begun_ = false;
     return false;
   }
   
@@ -320,6 +322,9 @@ bool EditorCard::Begin(bool* p_open) {
                              closable_ ? actual_p_open : nullptr, 
                              flags);
   
+  // Mark that ImGui::Begin() was called - End() must always be called now
+  imgui_begun_ = true;
+  
   // Register card window for test automation
   if (ImGui::GetCurrentWindow() && ImGui::GetCurrentWindow()->ID != 0) {
     std::string card_path = absl::StrFormat("EditorCard:%s", title_.c_str());
@@ -332,12 +337,16 @@ bool EditorCard::Begin(bool* p_open) {
 }
 
 void EditorCard::End() {
-  // Check if window was focused this frame
-  focused_ = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
-  
-  ImGui::End();
-  ImGui::PopStyleColor(2);
-  ImGui::PopStyleVar(2);
+  // Only call ImGui::End() and pop styles if ImGui::Begin() was called
+  if (imgui_begun_) {
+    // Check if window was focused this frame
+    focused_ = ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows);
+    
+    ImGui::End();
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar(2);
+    imgui_begun_ = false;
+  }
 }
 
 void EditorCard::Focus() {
