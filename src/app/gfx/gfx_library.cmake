@@ -75,7 +75,6 @@ message(STATUS "  - GFX Tier: gfx_backend configured")
 set(GFX_RESOURCE_SRC
   app/gfx/resource/arena.cc
   app/gfx/resource/memory_pool.cc
-  app/gfx/render/background_buffer.cc
 )
 add_library(yaze_gfx_resource STATIC ${GFX_RESOURCE_SRC})
 configure_gfx_library(yaze_gfx_resource)
@@ -121,6 +120,7 @@ message(STATUS "  - GFX Tier: gfx_util configured")
 # ==============================================================================
 set(GFX_RENDER_SRC
   app/gfx/render/atlas_renderer.cc
+  app/gfx/render/background_buffer.cc
   app/gfx/render/texture_atlas.cc
   app/gfx/render/tilemap.cc
 )

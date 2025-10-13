@@ -1,63 +1,73 @@
 set(YAZE_AGENT_SOURCES
   # Core infrastructure
-  cli/service/command_registry.cc
-  cli/service/agent/proposal_executor.cc
+  cli/flags.cc
+  cli/handlers/agent.cc
+  cli/handlers/agent/common.cc
+  cli/handlers/agent/conversation_test.cc
+  cli/handlers/agent/general_commands.cc
+  cli/handlers/agent/simple_chat_command.cc
+  cli/handlers/agent/test_commands.cc
+  cli/handlers/agent/test_common.cc
   cli/handlers/agent/todo_commands.cc
-  cli/service/agent/conversational_agent_service.cc
-  cli/service/agent/simple_chat_session.cc
-  cli/service/agent/enhanced_tui.cc
-  cli/service/agent/tool_dispatcher.cc
-  
-  # Advanced features
-  cli/service/agent/learned_knowledge_service.cc
-  cli/service/agent/todo_manager.cc
+  cli/handlers/command_handlers.cc
+  cli/handlers/game/dialogue_commands.cc
+  cli/handlers/game/dungeon.cc
+  cli/handlers/game/dungeon_commands.cc
+  cli/handlers/game/message.cc
+  cli/handlers/game/message_commands.cc
+  cli/handlers/game/music_commands.cc
+  cli/handlers/game/overworld.cc
+  cli/handlers/game/overworld_commands.cc
+  cli/handlers/game/overworld_inspect.cc
+  cli/handlers/graphics/gfx.cc
+  cli/handlers/graphics/hex_commands.cc
+  cli/handlers/graphics/palette.cc
+  cli/handlers/graphics/palette_commands.cc
+  cli/handlers/graphics/sprite_commands.cc
+  cli/handlers/net/net_commands.cc
+  cli/handlers/rom/mock_rom.cc
+  cli/handlers/rom/project_commands.cc
+  cli/handlers/rom/rom_commands.cc
+  cli/handlers/tools/gui_commands.cc
+  cli/handlers/tools/resource_commands.cc
   cli/service/agent/advanced_routing.cc
   cli/service/agent/agent_pretraining.cc
+  cli/service/agent/conversational_agent_service.cc
+  cli/service/agent/enhanced_tui.cc
+  cli/service/agent/learned_knowledge_service.cc
+  cli/service/agent/prompt_manager.cc
+  cli/service/agent/proposal_executor.cc
+  cli/service/agent/simple_chat_session.cc
+  cli/service/agent/todo_manager.cc
+  cli/service/agent/tool_dispatcher.cc
   cli/service/agent/vim_mode.cc
-  cli/service/ai/ai_service.cc
   cli/service/ai/ai_action_parser.cc
-  cli/service/ai/vision_action_refiner.cc
   cli/service/ai/ai_gui_controller.cc
+  cli/service/ai/ai_service.cc
   cli/service/ai/ollama_ai_service.cc
   cli/service/ai/prompt_builder.cc
   cli/service/ai/service_factory.cc
+  cli/service/ai/vision_action_refiner.cc
+  cli/service/command_registry.cc
   cli/service/gui/gui_action_generator.cc
   cli/service/gui/gui_automation_client.cc
   cli/service/net/z3ed_network_client.cc
-  cli/handlers/net/net_commands.cc
   cli/service/planning/policy_evaluator.cc
   cli/service/planning/proposal_registry.cc
   cli/service/planning/tile16_proposal_generator.cc
-  cli/service/resources/resource_catalog.cc
-  cli/service/resources/resource_context_builder.cc
   cli/service/resources/command_context.cc
   cli/service/resources/command_handler.cc
-  cli/handlers/agent.cc
-  cli/handlers/command_handlers.cc
-  cli/handlers/agent/simple_chat_command.cc
-  cli/handlers/agent/general_commands.cc
-  cli/handlers/agent/test_commands.cc
-  cli/handlers/agent/conversation_test.cc
-  cli/handlers/agent/common.cc
-  cli/handlers/game/overworld_inspect.cc
-  cli/handlers/game/message.cc
-  cli/handlers/rom/mock_rom.cc
-  # CommandHandler-based implementations
-  cli/handlers/tools/resource_commands.cc
-  cli/handlers/game/dungeon_commands.cc
-  cli/handlers/game/overworld_commands.cc
-  cli/handlers/tools/gui_commands.cc
-  cli/handlers/graphics/hex_commands.cc
-  cli/handlers/game/dialogue_commands.cc
-  cli/handlers/game/music_commands.cc
-  cli/handlers/graphics/palette_commands.cc
-  cli/handlers/game/message_commands.cc
-  cli/handlers/graphics/sprite_commands.cc
-  # ROM commands
-  cli/handlers/rom/rom_commands.cc
-  cli/handlers/rom/project_commands.cc
-  cli/flags.cc
+  cli/service/resources/resource_catalog.cc
+  cli/service/resources/resource_context_builder.cc
   cli/service/rom/rom_sandbox_manager.cc
+  cli/service/testing/test_suite_loader.cc
+  cli/service/testing/test_suite_reporter.cc
+  cli/service/testing/test_suite_writer.cc
+  cli/service/testing/test_workflow_generator.cc
+  
+  # Advanced features
+  # CommandHandler-based implementations
+  # ROM commands
 )
 
 # gRPC-dependent sources (only added when gRPC is enabled)

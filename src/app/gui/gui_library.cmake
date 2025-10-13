@@ -9,6 +9,7 @@
 
 # 1. Define Source Groups for each sub-library
 set(GUI_CORE_SRC
+  app/gui/core/background_renderer.cc
   app/gui/core/color.cc
   app/gui/core/input.cc
   app/gui/core/layout_helpers.cc
@@ -47,7 +48,6 @@ set(GUI_AUTOMATION_SRC
 
 set(GUI_APP_SRC
   app/gui/app/agent_chat_widget.cc
-  app/gui/app/background_renderer.cc
   app/gui/app/collaboration_panel.cc
   app/gui/app/editor_card_manager.cc
   app/gui/app/editor_layout.cc

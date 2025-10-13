@@ -111,10 +111,6 @@ if(WIN32 OR (UNIX AND NOT APPLE))
   target_include_directories(yaze_core_lib PUBLIC ${CMAKE_SOURCE_DIR}/src/lib/nativefiledialog-extended/src/include)
 endif()
 
-target_sources(yaze_core_lib PRIVATE
-  ${CMAKE_SOURCE_DIR}/src/cli/service/testing/test_workflow_generator.cc
-)
-
 if(YAZE_WITH_GRPC)
   target_include_directories(yaze_core_lib PRIVATE
     ${CMAKE_SOURCE_DIR}/third_party/json/include)
