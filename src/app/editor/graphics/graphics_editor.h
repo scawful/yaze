@@ -13,7 +13,7 @@
 #include "app/gui/editor_layout.h"
 #include "app/gui/modules/asset_browser.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 #include "imgui_memory_editor.h"
 

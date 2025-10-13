@@ -9,7 +9,7 @@
 
 #include "app/editor/message/message_data.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld.h"
 #include "yaze_config.h"
 
 // Static variables for library state

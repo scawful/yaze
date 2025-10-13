@@ -1,6 +1,6 @@
 #include "cli/cli.h"
-#include "app/zelda3/dungeon/dungeon_editor_system.h"
-#include "app/zelda3/dungeon/room.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/room.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/declare.h"
 

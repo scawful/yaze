@@ -1,4 +1,4 @@
-#include "app/zelda3/dungeon/object_parser.h"
+#include "zelda3/dungeon/object_parser.h"
 
 #include "gtest/gtest.h"
 

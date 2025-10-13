@@ -61,7 +61,7 @@ include(util/util.cmake)
 include(app/gfx/gfx_library.cmake)
 include(app/net/net_library.cmake)
 include(app/gui/gui_library.cmake)
-include(app/zelda3/zelda3_library.cmake)
+include(zelda3/zelda3_library.cmake)
 include(app/core/core_library.cmake)
 
 # Include test support library BEFORE yaze_editor so it can link against it

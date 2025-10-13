@@ -1,8 +1,8 @@
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
 #include "app/gfx/backend/irenderer.h"
 
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 #include "app/gui/widgets/widget_auto_register.h"
 #include "app/core/window.h"
 #include <cstdio>

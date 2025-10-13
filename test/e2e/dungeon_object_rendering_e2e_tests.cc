@@ -60,8 +60,8 @@
 #include "app/core/window.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 #include "test_utils.h"
 
 namespace yaze {

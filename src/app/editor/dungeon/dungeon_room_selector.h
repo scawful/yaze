@@ -4,8 +4,8 @@
 #include <functional>
 #include "imgui/imgui.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/room_entrance.h"
-#include "app/zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/dungeon/room.h"
 
 namespace yaze {
 namespace editor {

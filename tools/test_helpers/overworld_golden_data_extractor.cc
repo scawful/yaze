@@ -7,8 +7,8 @@
 #include <filesystem>
 
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
-#include "app/zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_map.h"
 
 using namespace yaze::zelda3;
 using namespace yaze;
@@ -95,7 +95,7 @@ class OverworldGoldenDataExtractor {
     out << "#include <cstdint>" << std::endl;
     out << "#include <array>" << std::endl;
     out << "#include <vector>" << std::endl;
-    out << "#include \"app/zelda3/overworld/overworld_map.h\"" << std::endl;
+    out << "#include \"zelda3/overworld/overworld_map.h\"" << std::endl;
     out << std::endl;
     out << "namespace yaze {" << std::endl;
     out << "namespace test {" << std::endl;

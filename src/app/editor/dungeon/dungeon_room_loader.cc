@@ -8,7 +8,7 @@
 
 #include "app/gfx/performance/performance_profiler.h"
 #include "app/gfx/snes_palette.h"
-#include "app/zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room.h"
 #include "util/log.h"
 
 namespace yaze::editor {

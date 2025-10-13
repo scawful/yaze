@@ -5,9 +5,9 @@
 #include <chrono>
 
 #include "app/rom.h"
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/dungeon/dungeon_editor_system.h"
-#include "app/zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/dungeon_object_editor.h"
 
 namespace yaze {
 namespace zelda3 {

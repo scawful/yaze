@@ -1,7 +1,7 @@
 #include "room_object.h"
 
 #include "absl/status/status.h"
-#include "app/zelda3/dungeon/object_parser.h"
+#include "zelda3/dungeon/object_parser.h"
 #include "util/log.h"
 
 namespace yaze {

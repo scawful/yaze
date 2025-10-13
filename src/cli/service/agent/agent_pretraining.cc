@@ -2,7 +2,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld.h"
 
 namespace yaze {
 namespace cli {

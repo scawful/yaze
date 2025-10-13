@@ -4,8 +4,8 @@
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 // object_renderer.h removed - using ObjectDrawer for production rendering
-#include "app/zelda3/dungeon/dungeon_object_editor.h"
-#include "app/zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
 #include "app/gfx/snes_palette.h"
 #include "imgui/imgui.h"
 

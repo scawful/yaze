@@ -4,7 +4,7 @@
 #include "app/core/features.h"
 #include "app/editor/overworld/entity.h"
 #include "app/gui/canvas.h"
-#include "app/zelda3/common.h"
+#include "zelda3/common.h"
 #include "util/hex.h"
 #include "imgui/imgui.h"
 

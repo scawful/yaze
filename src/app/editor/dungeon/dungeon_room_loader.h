@@ -6,8 +6,8 @@
 
 #include "absl/status/status.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/dungeon/room_entrance.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_entrance.h"
 
 namespace yaze {
 namespace editor {

@@ -11,8 +11,8 @@
 #include "app/gfx/tilemap.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
-#include "app/zelda3/screen/dungeon_map.h"
-#include "app/zelda3/screen/inventory.h"
+#include "zelda3/screen/dungeon_map.h"
+#include "zelda3/screen/inventory.h"
 #include "app/gui/editor_layout.h"
 #include "imgui/imgui.h"
 

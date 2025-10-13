@@ -6,7 +6,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze::zelda3 {
 

@@ -2,7 +2,7 @@
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
-#include "app/zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
 
 namespace yaze {
 namespace cli {

@@ -10,9 +10,9 @@
 #include "app/gfx/snes_palette.h"
 #include "app/rom.h"
 #include "app/snes.h"
-#include "app/zelda3/dungeon/object_drawer.h"
-#include "app/zelda3/dungeon/room_object.h"
-#include "app/zelda3/sprite/sprite.h"
+#include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/room_object.h"
+#include "zelda3/sprite/sprite.h"
 #include "util/log.h"
 
 namespace yaze {

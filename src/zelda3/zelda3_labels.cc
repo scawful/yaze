@@ -1,9 +1,9 @@
-#include "app/zelda3/zelda3_labels.h"
+#include "zelda3/zelda3_labels.h"
 
-#include "app/zelda3/common.h"
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/sprite/sprite.h"
-#include "app/zelda3/sprite/overlord.h"
+#include "zelda3/common.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/sprite/sprite.h"
+#include "zelda3/sprite/overlord.h"
 
 namespace yaze {
 namespace zelda3 {

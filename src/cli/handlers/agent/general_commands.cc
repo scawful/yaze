@@ -20,7 +20,7 @@
 #include "absl/time/time.h"
 #include "absl/strings/string_view.h"
 #include "app/core/project.h"
-#include "app/zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room.h"
 #include "cli/handlers/agent/common.h"
 #include "cli/cli.h"
 #include "cli/service/ai/ai_service.h"

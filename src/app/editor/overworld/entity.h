@@ -1,11 +1,11 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_ENTITY_H
 #define YAZE_APP_EDITOR_OVERWORLD_ENTITY_H
 
-#include "app/zelda3/common.h"
-#include "app/zelda3/overworld/overworld_entrance.h"
-#include "app/zelda3/overworld/overworld_exit.h"
-#include "app/zelda3/overworld/overworld_item.h"
-#include "app/zelda3/sprite/sprite.h"
+#include "zelda3/common.h"
+#include "zelda3/overworld/overworld_entrance.h"
+#include "zelda3/overworld/overworld_exit.h"
+#include "zelda3/overworld/overworld_item.h"
+#include "zelda3/sprite/sprite.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

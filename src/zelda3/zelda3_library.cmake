@@ -1,21 +1,21 @@
 set(
   YAZE_APP_ZELDA3_SRC
-  app/zelda3/dungeon/dungeon_editor_system.cc
-  app/zelda3/dungeon/dungeon_object_editor.cc
-  app/zelda3/dungeon/object_drawer.cc
-  app/zelda3/dungeon/object_parser.cc
-  app/zelda3/dungeon/room.cc
-  app/zelda3/dungeon/room_layout.cc
-  app/zelda3/dungeon/room_object.cc
-  app/zelda3/music/tracker.cc
-  app/zelda3/overworld/overworld.cc
-  app/zelda3/overworld/overworld_map.cc
-  app/zelda3/screen/dungeon_map.cc
-  app/zelda3/screen/inventory.cc
-  app/zelda3/screen/title_screen.cc
-  app/zelda3/sprite/sprite.cc
-  app/zelda3/sprite/sprite_builder.cc
-  app/zelda3/zelda3_labels.cc
+  zelda3/dungeon/dungeon_editor_system.cc
+  zelda3/dungeon/dungeon_object_editor.cc
+  zelda3/dungeon/object_drawer.cc
+  zelda3/dungeon/object_parser.cc
+  zelda3/dungeon/room.cc
+  zelda3/dungeon/room_layout.cc
+  zelda3/dungeon/room_object.cc
+  zelda3/music/tracker.cc
+  zelda3/overworld/overworld.cc
+  zelda3/overworld/overworld_map.cc
+  zelda3/screen/dungeon_map.cc
+  zelda3/screen/inventory.cc
+  zelda3/screen/title_screen.cc
+  zelda3/sprite/sprite.cc
+  zelda3/sprite/sprite_builder.cc
+  zelda3/zelda3_labels.cc
 )
 
 # ==============================================================================

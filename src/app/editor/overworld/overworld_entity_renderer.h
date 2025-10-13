@@ -5,8 +5,8 @@
 
 #include "app/gfx/bitmap.h"
 #include "app/gui/canvas.h"
-#include "app/zelda3/common.h"
-#include "app/zelda3/overworld/overworld.h"
+#include "zelda3/common.h"
+#include "zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
