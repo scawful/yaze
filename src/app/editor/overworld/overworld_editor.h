@@ -296,6 +296,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool show_overlay_preview_ = false;
   
   // Card visibility states - Start hidden to prevent crash
+  bool show_overworld_canvas_ = true;
   bool show_tile16_selector_ = false;
   bool show_tile8_selector_ = false;
   bool show_area_gfx_ = false;

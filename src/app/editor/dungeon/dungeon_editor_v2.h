@@ -102,13 +102,11 @@ class DungeonEditorV2 : public Editor {
   // Simple UI layout
   void DrawLayout();
   void DrawRoomTab(int room_id);
-  void DrawToolset();
   void DrawRoomMatrixCard();
   void DrawRoomsListCard();
   void DrawEntrancesListCard();
   void DrawRoomGraphicsCard();
   void DrawDebugControlsCard();
-  void DrawControlPanel();
   
   // Texture processing (critical for rendering)
   void ProcessDeferredTextures();

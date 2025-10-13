@@ -174,6 +174,17 @@ FolderItem LoadFolder(const std::string& folder) {
 
 void AssemblyEditor::Initialize() {
   text_editor_.SetLanguageDefinition(GetAssemblyLanguageDef());
+  
+  // Register cards with EditorCardManager
+  auto& card_manager = gui::EditorCardManager::Get();
+  card_manager.RegisterCard({.card_id = "assembly.editor", .display_name = "Assembly Editor",
+                            .icon = ICON_MD_CODE, .category = "Assembly",
+                            .shortcut_hint = "", .priority = 10});
+  card_manager.RegisterCard({.card_id = "assembly.file_browser", .display_name = "File Browser",
+                            .icon = ICON_MD_FOLDER_OPEN, .category = "Assembly",
+                            .shortcut_hint = "", .priority = 20});
+  
+  // Don't show by default - only show when user explicitly opens Assembly Editor
 }
 
 absl::Status AssemblyEditor::Load() {

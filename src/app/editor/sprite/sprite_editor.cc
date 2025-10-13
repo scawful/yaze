@@ -25,28 +25,17 @@ using ImGui::TableSetupColumn;
 using ImGui::Text;
 
 void SpriteEditor::Initialize() {
-  // Register cards with EditorCardManager during initialization (once)
   auto& card_manager = gui::EditorCardManager::Get();
   
-  card_manager.RegisterCard({
-      .card_id = "sprite.vanilla_editor",
-      .display_name = "Vanilla Sprites",
-      .icon = ICON_MD_SMART_TOY,
-      .category = "Sprite",
-      .shortcut_hint = "Alt+Shift+1",
-      .visibility_flag = &show_vanilla_editor_,
-      .priority = 10
-  });
+  card_manager.RegisterCard({.card_id = "sprite.vanilla_editor", .display_name = "Vanilla Sprites",
+                            .icon = ICON_MD_SMART_TOY, .category = "Sprite",
+                            .shortcut_hint = "Alt+Shift+1", .priority = 10});
+  card_manager.RegisterCard({.card_id = "sprite.custom_editor", .display_name = "Custom Sprites",
+                            .icon = ICON_MD_ADD_CIRCLE, .category = "Sprite",
+                            .shortcut_hint = "Alt+Shift+2", .priority = 20});
   
-  card_manager.RegisterCard({
-      .card_id = "sprite.custom_editor",
-      .display_name = "Custom Sprites",
-      .icon = ICON_MD_ADD_CIRCLE,
-      .category = "Sprite",
-      .shortcut_hint = "Alt+Shift+2",
-      .visibility_flag = &show_custom_editor_,
-      .priority = 20
-  });
+  // Show vanilla editor by default
+  card_manager.ShowCard("sprite.vanilla_editor");
 }
 
 absl::Status SpriteEditor::Load() { 
@@ -56,29 +45,26 @@ absl::Status SpriteEditor::Load() {
 
 absl::Status SpriteEditor::Update() {
   if (rom()->is_loaded() && !sheets_loaded_) {
-    // Load the values for current_sheets_ array
     sheets_loaded_ = true;
   }
 
-  DrawToolset();
-  gui::VerticalSpacing(2.0f);
+  auto& card_manager = gui::EditorCardManager::Get();
 
-  // Create session-aware cards (non-static for multi-session support)
-  gui::EditorCard vanilla_card(MakeCardTitle("Vanilla Sprites").c_str(), ICON_MD_PEST_CONTROL_RODENT);
-  gui::EditorCard custom_card(MakeCardTitle("Custom Sprites").c_str(), ICON_MD_ADD_MODERATOR);
+  static gui::EditorCard vanilla_card("Vanilla Sprites", ICON_MD_SMART_TOY);
+  static gui::EditorCard custom_card("Custom Sprites", ICON_MD_ADD_CIRCLE);
 
-  if (show_vanilla_editor_) {
-    if (vanilla_card.Begin(&show_vanilla_editor_)) {
-      DrawVanillaSpriteEditor();
-    }
-    vanilla_card.End();  // ALWAYS call End after Begin
+  vanilla_card.SetDefaultSize(900, 700);
+  custom_card.SetDefaultSize(800, 600);
+
+  // Get visibility flags from card manager and pass to Begin()
+  if (vanilla_card.Begin(card_manager.GetVisibilityFlag("sprite.vanilla_editor"))) {
+    DrawVanillaSpriteEditor();
+    vanilla_card.End();
   }
 
-  if (show_custom_editor_) {
-    if (custom_card.Begin(&show_custom_editor_)) {
-      DrawCustomSprites();
-    }
-    custom_card.End();  // ALWAYS call End after Begin
+  if (custom_card.Begin(card_manager.GetVisibilityFlag("sprite.custom_editor"))) {
+    DrawCustomSprites();
+    custom_card.End();
   }
 
   return status_.ok() ? absl::OkStatus() : status_;

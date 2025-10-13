@@ -91,17 +91,22 @@ std::string GetEditorName(EditorType type) {
 }  // namespace
 
 // Static registry of editors that use the card-based layout system
-// These editors register their cards with EditorCardManager
+// These editors register their cards with EditorCardManager and manage their own windows
+// They do NOT need the traditional ImGui::Begin/End wrapper - they create cards internally
 bool EditorManager::IsCardBasedEditor(EditorType type) {
   switch (type) {
-    case EditorType::kDungeon:
-    case EditorType::kPalette:
-    case EditorType::kGraphics:
-    case EditorType::kScreen:
-    case EditorType::kSprite:
-    case EditorType::kMessage:
-    case EditorType::kOverworld:
+    case EditorType::kDungeon:      // ✅ Full card system
+    case EditorType::kPalette:      // ✅ Full card system
+    case EditorType::kGraphics:     // ✅ EditorCard wrappers + Toolset
+    case EditorType::kScreen:       // ✅ EditorCard wrappers + Toolset
+    case EditorType::kSprite:       // ✅ EditorCard wrappers + Toolset
+    case EditorType::kOverworld:    // ✅ Inline EditorCard + Toolset
+    case EditorType::kEmulator:     // ✅ Emulator UI panels as cards
+    case EditorType::kMessage:      // ✅ Message editor cards
+    case EditorType::kHex:          // ✅ Memory/Hex editor
+    case EditorType::kAssembly:     // ✅ Assembly editor
       return true;
+    // Music: Traditional UI - needs wrapper
     default:
       return false;
   }
@@ -127,9 +132,28 @@ std::string EditorManager::GetEditorCategory(EditorType type) {
       return "Screen";
     case EditorType::kEmulator:
       return "Emulator";
+    case EditorType::kHex:
+      return "Memory";
+    case EditorType::kAssembly:
+      return "Assembly";
     default:
       return "Unknown";
   }
+}
+
+EditorType EditorManager::GetEditorTypeFromCategory(const std::string& category) {
+  if (category == "Dungeon") return EditorType::kDungeon;
+  if (category == "Palette") return EditorType::kPalette;
+  if (category == "Graphics") return EditorType::kGraphics;
+  if (category == "Overworld") return EditorType::kOverworld;
+  if (category == "Sprite") return EditorType::kSprite;
+  if (category == "Message") return EditorType::kMessage;
+  if (category == "Music") return EditorType::kMusic;
+  if (category == "Screen") return EditorType::kScreen;
+  if (category == "Emulator") return EditorType::kEmulator;
+  if (category == "Memory") return EditorType::kHex;
+  if (category == "Assembly") return EditorType::kAssembly;
+  return EditorType::kUnknown;
 }
 
 void EditorManager::HideCurrentEditorCards() {
@@ -221,6 +245,37 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
       "global.toggle_sidebar",
       {ImGuiKey_LeftCtrl, ImGuiKey_B},
       [this]() { show_card_sidebar_ = !show_card_sidebar_; });
+  
+  // Register emulator cards early (emulator Initialize might not be called)
+  auto& card_manager = gui::EditorCardManager::Get();
+  card_manager.RegisterCard({.card_id = "emulator.cpu_debugger", .display_name = "CPU Debugger", 
+                            .icon = ICON_MD_BUG_REPORT, .category = "Emulator", .priority = 10});
+  card_manager.RegisterCard({.card_id = "emulator.ppu_viewer", .display_name = "PPU Viewer",
+                            .icon = ICON_MD_VIDEOGAME_ASSET, .category = "Emulator", .priority = 20});
+  card_manager.RegisterCard({.card_id = "emulator.memory_viewer", .display_name = "Memory Viewer",
+                            .icon = ICON_MD_MEMORY, .category = "Emulator", .priority = 30});
+  card_manager.RegisterCard({.card_id = "emulator.breakpoints", .display_name = "Breakpoints",
+                            .icon = ICON_MD_STOP, .category = "Emulator", .priority = 40});
+  card_manager.RegisterCard({.card_id = "emulator.performance", .display_name = "Performance",
+                            .icon = ICON_MD_SPEED, .category = "Emulator", .priority = 50});
+  card_manager.RegisterCard({.card_id = "emulator.ai_agent", .display_name = "AI Agent",
+                            .icon = ICON_MD_SMART_TOY, .category = "Emulator", .priority = 60});
+  card_manager.RegisterCard({.card_id = "emulator.save_states", .display_name = "Save States",
+                            .icon = ICON_MD_SAVE, .category = "Emulator", .priority = 70});
+  card_manager.RegisterCard({.card_id = "emulator.keyboard_config", .display_name = "Keyboard Config",
+                            .icon = ICON_MD_KEYBOARD, .category = "Emulator", .priority = 80});
+  card_manager.RegisterCard({.card_id = "emulator.apu_debugger", .display_name = "APU Debugger",
+                            .icon = ICON_MD_AUDIOTRACK, .category = "Emulator", .priority = 90});
+  card_manager.RegisterCard({.card_id = "emulator.audio_mixer", .display_name = "Audio Mixer",
+                            .icon = ICON_MD_AUDIO_FILE, .category = "Emulator", .priority = 100});
+  
+  // Show CPU debugger and PPU viewer by default for emulator
+  card_manager.ShowCard("emulator.cpu_debugger");
+  card_manager.ShowCard("emulator.ppu_viewer");
+  
+  // Register memory/hex editor card
+  card_manager.RegisterCard({.card_id = "memory.hex_editor", .display_name = "Hex Editor",
+                            .icon = ICON_MD_MEMORY, .category = "Memory", .priority = 10});
 
   // Initialize project file editor
   project_file_editor_.SetToastManager(&toast_manager_);
@@ -411,54 +466,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
   // Initialize editor selection dialog callback
   editor_selection_dialog_.SetSelectionCallback([this](EditorType type) {
     editor_selection_dialog_.MarkRecentlyUsed(type);
-    
-    // Handle agent editor separately (doesn't require ROM)
-    if (type == EditorType::kAgent) {
-#ifdef YAZE_WITH_GRPC
-      agent_editor_.toggle_active();
-#endif
-      return;
-    }
-    
-    if (!current_editor_set_) return;
-    
-    switch (type) {
-      case EditorType::kOverworld:
-        current_editor_set_->overworld_editor_.toggle_active();
-        break;
-      case EditorType::kDungeon:
-        current_editor_set_->dungeon_editor_.toggle_active();
-        break;
-      case EditorType::kGraphics:
-        current_editor_set_->graphics_editor_.toggle_active();
-        break;
-      case EditorType::kSprite:
-        current_editor_set_->sprite_editor_.toggle_active();
-        break;
-      case EditorType::kMessage:
-        current_editor_set_->message_editor_.toggle_active();
-        break;
-      case EditorType::kMusic:
-        current_editor_set_->music_editor_.toggle_active();
-        break;
-      case EditorType::kPalette:
-        current_editor_set_->palette_editor_.toggle_active();
-        break;
-      case EditorType::kScreen:
-        current_editor_set_->screen_editor_.toggle_active();
-        break;
-      case EditorType::kAssembly:
-        show_asm_editor_ = true;
-        break;
-      case EditorType::kEmulator:
-        show_emulator_ = true;
-        break;
-      case EditorType::kSettings:
-        current_editor_set_->settings_editor_.toggle_active();
-        break;
-      default:
-        break;
-    }
+    SwitchToEditor(type);  // Use centralized method
   });
 
   // Load user settings - this must happen after context is initialized
@@ -537,37 +545,37 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
   context_.shortcut_manager.RegisterShortcut(
       "F1", ImGuiKey_F1, [this]() { popup_manager_->Show("About"); });
 
-  // Editor shortcuts (Ctrl+1-9, Ctrl+0)
+  // Editor shortcuts (Ctrl+1-9, Ctrl+0) - all use SwitchToEditor for consistency
   context_.shortcut_manager.RegisterShortcut(
-      "Overworld Editor", {ImGuiKey_1, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->overworld_editor_.toggle_active(); });
+      "Overworld Editor", {ImGuiKey_LeftCtrl, ImGuiKey_1},
+      [this]() { SwitchToEditor(EditorType::kOverworld); });
   context_.shortcut_manager.RegisterShortcut(
-      "Dungeon Editor", {ImGuiKey_2, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->dungeon_editor_.toggle_active(); });
+      "Dungeon Editor", {ImGuiKey_LeftCtrl, ImGuiKey_2},
+      [this]() { SwitchToEditor(EditorType::kDungeon); });
   context_.shortcut_manager.RegisterShortcut(
-      "Graphics Editor", {ImGuiKey_3, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->graphics_editor_.toggle_active(); });
+      "Graphics Editor", {ImGuiKey_LeftCtrl, ImGuiKey_3},
+      [this]() { SwitchToEditor(EditorType::kGraphics); });
   context_.shortcut_manager.RegisterShortcut(
-      "Sprite Editor", {ImGuiKey_4, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->sprite_editor_.toggle_active(); });
+      "Sprite Editor", {ImGuiKey_LeftCtrl, ImGuiKey_4},
+      [this]() { SwitchToEditor(EditorType::kSprite); });
   context_.shortcut_manager.RegisterShortcut(
-      "Message Editor", {ImGuiKey_5, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->message_editor_.toggle_active(); });
+      "Message Editor", {ImGuiKey_LeftCtrl, ImGuiKey_5},
+      [this]() { SwitchToEditor(EditorType::kMessage); });
   context_.shortcut_manager.RegisterShortcut(
-      "Music Editor", {ImGuiKey_6, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->music_editor_.toggle_active(); });
+      "Music Editor", {ImGuiKey_LeftCtrl, ImGuiKey_6},
+      [this]() { SwitchToEditor(EditorType::kMusic); });
   context_.shortcut_manager.RegisterShortcut(
-      "Palette Editor", {ImGuiKey_7, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->palette_editor_.toggle_active(); });
+      "Palette Editor", {ImGuiKey_LeftCtrl, ImGuiKey_7},
+      [this]() { SwitchToEditor(EditorType::kPalette); });
   context_.shortcut_manager.RegisterShortcut(
-      "Screen Editor", {ImGuiKey_8, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->screen_editor_.toggle_active(); });
+      "Screen Editor", {ImGuiKey_LeftCtrl, ImGuiKey_8},
+      [this]() { SwitchToEditor(EditorType::kScreen); });
   context_.shortcut_manager.RegisterShortcut(
-      "Assembly Editor", {ImGuiKey_9, ImGuiMod_Ctrl},
-      [this]() { show_asm_editor_ = true; });
+      "Assembly Editor", {ImGuiKey_LeftCtrl, ImGuiKey_9},
+      [this]() { SwitchToEditor(EditorType::kAssembly); });
   context_.shortcut_manager.RegisterShortcut(
-      "Settings Editor", {ImGuiKey_0, ImGuiMod_Ctrl},
-      [this]() { if (current_editor_set_) current_editor_set_->settings_editor_.toggle_active(); });
+      "Settings Editor", {ImGuiKey_LeftCtrl, ImGuiKey_0},
+      [this]() { SwitchToEditor(EditorType::kSettings); });
   
   // Editor Selection Dialog shortcut
   context_.shortcut_manager.RegisterShortcut(
@@ -912,13 +920,6 @@ absl::Status EditorManager::Update() {
     }
   }
 
-  // Draw sidebar for current card-based editor (only if sidebar is visible)
-  if (show_card_sidebar_ && current_editor_ && IsCardBasedEditor(current_editor_->type())) {
-    std::string category = GetEditorCategory(current_editor_->type());
-    auto& card_manager = gui::EditorCardManager::Get();
-    card_manager.DrawSidebar(category);
-  }
-
   if (show_performance_dashboard_) {
     gfx::PerformanceDashboard::Get().Render();
   }
@@ -932,6 +933,59 @@ absl::Status EditorManager::Update() {
     agent_editor_.SetRomContext(current_rom_);
   }
 #endif
+
+  // Draw unified sidebar LAST so it appears on top of all other windows
+  if (show_card_sidebar_ && current_editor_set_) {
+    auto& card_manager = gui::EditorCardManager::Get();
+    
+    // Collect all active card-based editors
+    std::vector<std::string> active_categories;
+    for (size_t session_idx = 0; session_idx < sessions_.size(); ++session_idx) {
+      auto& session = sessions_[session_idx];
+      if (!session.rom.is_loaded()) continue;
+      
+      for (auto editor : session.editors.active_editors_) {
+        if (*editor->active() && IsCardBasedEditor(editor->type())) {
+          std::string category = GetEditorCategory(editor->type());
+          if (std::find(active_categories.begin(), active_categories.end(), category) == active_categories.end()) {
+            active_categories.push_back(category);
+          }
+        }
+      }
+    }
+    
+    // Determine which category to show in sidebar
+    std::string sidebar_category;
+    
+    // Priority 1: Use active_category from card manager (user's last interaction)
+    if (!card_manager.GetActiveCategory().empty() &&
+        std::find(active_categories.begin(), active_categories.end(), 
+                  card_manager.GetActiveCategory()) != active_categories.end()) {
+      sidebar_category = card_manager.GetActiveCategory();
+    }
+    // Priority 2: Use first active category
+    else if (!active_categories.empty()) {
+      sidebar_category = active_categories[0];
+      card_manager.SetActiveCategory(sidebar_category);
+    }
+    
+    // Draw sidebar if we have a category
+    if (!sidebar_category.empty()) {
+      // Callback to switch editors when category button is clicked
+      auto category_switch_callback = [this](const std::string& new_category) {
+        EditorType editor_type = GetEditorTypeFromCategory(new_category);
+        if (editor_type != EditorType::kUnknown) {
+          SwitchToEditor(editor_type);
+        }
+      };
+      
+      auto collapse_callback = [this]() {
+        show_card_sidebar_ = false;
+      };
+      
+      card_manager.DrawSidebar(sidebar_category, active_categories, category_switch_callback, collapse_callback);
+    }
+  }
 
   return absl::OkStatus();
 }
@@ -1112,23 +1166,23 @@ void EditorManager::BuildModernMenu() {
           [this]() { show_editor_selection_ = true; }, "Ctrl+E")
     .Separator()
     .Item("Overworld", ICON_MD_MAP,
-          [this]() { current_editor_set_->overworld_editor_.set_active(true); }, "Ctrl+1")
+          [this]() { SwitchToEditor(EditorType::kOverworld); }, "Ctrl+1")
     .Item("Dungeon", ICON_MD_CASTLE,
-          [this]() { current_editor_set_->dungeon_editor_.set_active(true); }, "Ctrl+2")
+          [this]() { SwitchToEditor(EditorType::kDungeon); }, "Ctrl+2")
     .Item("Graphics", ICON_MD_IMAGE,
-          [this]() { current_editor_set_->graphics_editor_.set_active(true); }, "Ctrl+3")
+          [this]() { SwitchToEditor(EditorType::kGraphics); }, "Ctrl+3")
     .Item("Sprites", ICON_MD_TOYS,
-          [this]() { current_editor_set_->sprite_editor_.set_active(true); }, "Ctrl+4")
+          [this]() { SwitchToEditor(EditorType::kSprite); }, "Ctrl+4")
     .Item("Messages", ICON_MD_CHAT_BUBBLE,
-          [this]() { current_editor_set_->message_editor_.set_active(true); }, "Ctrl+5")
+          [this]() { SwitchToEditor(EditorType::kMessage); }, "Ctrl+5")
     .Item("Music", ICON_MD_MUSIC_NOTE,
-          [this]() { current_editor_set_->music_editor_.set_active(true); }, "Ctrl+6")
+          [this]() { SwitchToEditor(EditorType::kMusic); }, "Ctrl+6")
     .Item("Palettes", ICON_MD_PALETTE,
-          [this]() { current_editor_set_->palette_editor_.set_active(true); }, "Ctrl+7")
+          [this]() { SwitchToEditor(EditorType::kPalette); }, "Ctrl+7")
     .Item("Screens", ICON_MD_TV,
-          [this]() { current_editor_set_->screen_editor_.set_active(true); }, "Ctrl+8")
+          [this]() { SwitchToEditor(EditorType::kScreen); }, "Ctrl+8")
     .Item("Hex Editor", ICON_MD_DATA_ARRAY,
-          [this]() { show_memory_editor_ = true; }, "Ctrl+0")
+          [this]() { gui::EditorCardManager::Get().ShowCard("memory.hex_editor"); }, "Ctrl+0")
 #ifdef YAZE_WITH_GRPC
     .Item("AI Agent", ICON_MD_SMART_TOY,
           [this]() { agent_editor_.set_active(true); }, "Ctrl+Shift+A")
@@ -1388,9 +1442,9 @@ void EditorManager::BuildModernMenu() {
     .Separator()
     // Development Tools
     .Item("Memory Editor", ICON_MD_MEMORY,
-          [this]() { show_memory_editor_ = true; })
+          [this]() { gui::EditorCardManager::Get().ShowCard("memory.hex_editor"); })
     .Item("Assembly Editor", ICON_MD_CODE,
-          [this]() { show_asm_editor_ = true; })
+          [this]() { gui::EditorCardManager::Get().ShowCard("assembly.editor"); })
     .Item("Feature Flags", ICON_MD_FLAG,
           [this]() { popup_manager_->Show("Feature Flags"); })
     .Separator()
@@ -1512,11 +1566,15 @@ void EditorManager::DrawMenuBar() {
     ShowDemoWindow(&show_imgui_demo_);
   if (show_imgui_metrics_)
     ShowMetricsWindow(&show_imgui_metrics_);
-  if (show_memory_editor_ && current_editor_set_) {
-    current_editor_set_->memory_editor_.Update(show_memory_editor_);
+  
+  auto& card_manager = gui::EditorCardManager::Get();
+  if (card_manager.IsCardVisible("memory.hex_editor") && current_editor_set_) {
+    bool show_memory = true;
+    current_editor_set_->memory_editor_.Update(show_memory);
   }
-  if (show_asm_editor_ && current_editor_set_) {
-    current_editor_set_->assembly_editor_.Update(show_asm_editor_);
+  if (card_manager.IsCardVisible("assembly.editor") && current_editor_set_) {
+    bool show_asm = true;
+    current_editor_set_->assembly_editor_.Update(show_asm);
   }
   
   // Project file editor
@@ -1551,10 +1609,9 @@ void EditorManager::DrawMenuBar() {
     DrawWelcomeScreen();
   }
 
+  // Emulator is now card-based - it creates its own windows
   if (show_emulator_) {
-    Begin("Emulator", &show_emulator_, ImGuiWindowFlags_MenuBar);
     emulator_.Run(current_rom_);
-    End();
   }
 
   // Enhanced Command Palette UI with Fuzzy Search
@@ -2172,6 +2229,11 @@ absl::Status EditorManager::LoadAssets() {
 
   current_editor_set_->overworld_editor_.Initialize();
   current_editor_set_->message_editor_.Initialize();
+  current_editor_set_->graphics_editor_.Initialize();
+  current_editor_set_->screen_editor_.Initialize();
+  current_editor_set_->sprite_editor_.Initialize();
+  current_editor_set_->palette_editor_.Initialize();
+  current_editor_set_->assembly_editor_.Initialize();
   // Initialize the dungeon editor with the renderer
   current_editor_set_->dungeon_editor_.Initialize(renderer_, current_rom_);
   ASSIGN_OR_RETURN(*gfx::Arena::Get().mutable_gfx_sheets(),
@@ -3352,14 +3414,40 @@ void EditorManager::JumpToOverworldMap(int map_id) {
 }
 
 void EditorManager::SwitchToEditor(EditorType editor_type) {
-  // Find the editor tab and activate it
-  for (size_t i = 0; i < current_editor_set_->active_editors_.size(); ++i) {
-    if (current_editor_set_->active_editors_[i]->type() == editor_type) {
-      current_editor_set_->active_editors_[i]->set_active(true);
+  if (!current_editor_set_) return;
+  
+  // Toggle the editor
+  for (auto* editor : current_editor_set_->active_editors_) {
+    if (editor->type() == editor_type) {
+      editor->toggle_active();
       
-      // Set editor as the current/focused one
-      // This will make it visible when tabs are rendered
-      break;
+      if (IsCardBasedEditor(editor_type)) {
+        auto& card_manager = gui::EditorCardManager::Get();
+        
+        if (*editor->active()) {
+          // Editor activated - set its category
+          card_manager.SetActiveCategory(GetEditorCategory(editor_type));
+        } else {
+          // Editor deactivated - switch to another active card-based editor
+          for (auto* other : current_editor_set_->active_editors_) {
+            if (*other->active() && IsCardBasedEditor(other->type()) && other != editor) {
+              card_manager.SetActiveCategory(GetEditorCategory(other->type()));
+              break;
+            }
+          }
+        }
+      }
+      return;
+    }
+  }
+  
+  // Handle non-editor-class cases
+  if (editor_type == EditorType::kAssembly) {
+    show_asm_editor_ = !show_asm_editor_;
+  } else if (editor_type == EditorType::kEmulator) {
+    show_emulator_ = !show_emulator_;
+    if (show_emulator_) {
+      gui::EditorCardManager::Get().SetActiveCategory("Emulator");
     }
   }
 }

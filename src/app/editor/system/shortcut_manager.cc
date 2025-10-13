@@ -140,25 +140,37 @@ std::vector<ImGuiKey> ParseShortcut(const std::string& shortcut) {
 void ExecuteShortcuts(const ShortcutManager& shortcut_manager) {
   // Check for keyboard shortcuts using the shortcut manager
   for (const auto& shortcut : shortcut_manager.GetShortcuts()) {
-    bool keys_pressed = true;
-    // Check for all the keys in the shortcut
+    bool modifiers_held = true;
+    bool key_pressed = false;
+    ImGuiKey main_key = ImGuiKey_None;
+    
+    // Separate modifiers from main key
     for (const auto& key : shortcut.second.keys) {
-      if (key == ImGuiMod_Ctrl) {
-        keys_pressed &= ImGui::GetIO().KeyCtrl;
-      } else if (key == ImGuiMod_Alt) {
-        keys_pressed &= ImGui::GetIO().KeyAlt;
-      } else if (key == ImGuiMod_Shift) {
-        keys_pressed &= ImGui::GetIO().KeyShift;
-      } else if (key == ImGuiMod_Super) {
-        keys_pressed &= ImGui::GetIO().KeySuper;
+      if (key == ImGuiMod_Ctrl || key == ImGuiMod_Alt || 
+          key == ImGuiMod_Shift || key == ImGuiMod_Super) {
+        // Check if modifier is held
+        if (key == ImGuiMod_Ctrl) {
+          modifiers_held &= ImGui::GetIO().KeyCtrl;
+        } else if (key == ImGuiMod_Alt) {
+          modifiers_held &= ImGui::GetIO().KeyAlt;
+        } else if (key == ImGuiMod_Shift) {
+          modifiers_held &= ImGui::GetIO().KeyShift;
+        } else if (key == ImGuiMod_Super) {
+          modifiers_held &= ImGui::GetIO().KeySuper;
+        }
       } else {
-        keys_pressed &= ImGui::IsKeyDown(key);
-      }
-      if (!keys_pressed) {
-        break;
+        // This is the main key - use IsKeyPressed for single trigger
+        main_key = key;
       }
     }
-    if (keys_pressed) {
+    
+    // Check if main key was pressed (not just held)
+    if (main_key != ImGuiKey_None) {
+      key_pressed = ImGui::IsKeyPressed(main_key, false);  // false = no repeat
+    }
+    
+    // Execute if modifiers held and key pressed
+    if (modifiers_held && key_pressed && shortcut.second.callback) {
       shortcut.second.callback();
     }
   }

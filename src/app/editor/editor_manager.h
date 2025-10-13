@@ -171,6 +171,7 @@ class EditorManager {
   // Card-based editor registry
   static bool IsCardBasedEditor(EditorType type);
   static std::string GetEditorCategory(EditorType type);
+  static EditorType GetEditorTypeFromCategory(const std::string& category);
   bool IsSidebarVisible() const { return show_card_sidebar_; }
   void SetSidebarVisible(bool visible) { show_card_sidebar_ = visible; }
   
