@@ -4,6 +4,8 @@
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/editor.h"
 #include "app/emu/audio/apu.h"
+#include "app/gui/editor_card_manager.h"
+#include "app/gui/editor_layout.h"
 #include "app/rom.h"
 #include "app/zelda3/music/tracker.h"
 #include "imgui/imgui.h"

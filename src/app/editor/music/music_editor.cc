@@ -12,7 +12,22 @@
 namespace yaze {
 namespace editor {
 
-void MusicEditor::Initialize() {}
+void MusicEditor::Initialize() {
+  auto& card_manager = gui::EditorCardManager::Get();
+  
+  card_manager.RegisterCard({.card_id = "music.tracker", .display_name = "Music Tracker",
+                            .icon = ICON_MD_MUSIC_NOTE, .category = "Music",
+                            .shortcut_hint = "Ctrl+Shift+M", .priority = 10});
+  card_manager.RegisterCard({.card_id = "music.instrument_editor", .display_name = "Instrument Editor",
+                            .icon = ICON_MD_PIANO, .category = "Music",
+                            .shortcut_hint = "Ctrl+Shift+I", .priority = 20});
+  card_manager.RegisterCard({.card_id = "music.assembly", .display_name = "Assembly View",
+                            .icon = ICON_MD_CODE, .category = "Music",
+                            .shortcut_hint = "Ctrl+Shift+A", .priority = 30});
+  
+  // Show tracker by default
+  card_manager.ShowCard("music.tracker");
+}
 
 absl::Status MusicEditor::Load() {
   gfx::ScopedTimer timer("MusicEditor::Load");
@@ -20,22 +35,32 @@ absl::Status MusicEditor::Load() {
 }
 
 absl::Status MusicEditor::Update() {
-  if (ImGui::BeginTable("MusicEditorColumns", 2, music_editor_flags_,
-                        ImVec2(0, 0))) {
-    ImGui::TableSetupColumn("Assembly");
-    ImGui::TableSetupColumn("Composition");
-    ImGui::TableHeadersRow();
-    ImGui::TableNextRow();
-
-    ImGui::TableNextColumn();
+  auto& card_manager = gui::EditorCardManager::Get();
+  
+  static gui::EditorCard tracker_card("Music Tracker", ICON_MD_MUSIC_NOTE);
+  static gui::EditorCard instrument_card("Instrument Editor", ICON_MD_PIANO);
+  static gui::EditorCard assembly_card("Assembly View", ICON_MD_CODE);
+  
+  tracker_card.SetDefaultSize(900, 700);
+  instrument_card.SetDefaultSize(600, 500);
+  assembly_card.SetDefaultSize(700, 600);
+  
+  // Music Tracker Card
+  if (tracker_card.Begin(card_manager.GetVisibilityFlag("music.tracker"))) {
+    DrawTrackerView();
+    tracker_card.End();
+  }
+  
+  // Instrument Editor Card
+  if (instrument_card.Begin(card_manager.GetVisibilityFlag("music.instrument_editor"))) {
+    DrawInstrumentEditor();
+    instrument_card.End();
+  }
+  
+  // Assembly View Card
+  if (assembly_card.Begin(card_manager.GetVisibilityFlag("music.assembly"))) {
     assembly_editor_.InlineUpdate();
-
-    ImGui::TableNextColumn();
-    DrawToolset();
-    // TODO: Add music channel view
-    ImGui::Text("Music channels coming soon...");
-
-    ImGui::EndTable();
+    assembly_card.End();
   }
 
   return absl::OkStatus();
@@ -144,6 +169,21 @@ static void DrawPianoRoll() {
   }
   ImGui::PopStyleVar();
   ImGui::PopStyleVar();
+}
+
+void MusicEditor::DrawTrackerView() {
+  DrawToolset();
+  DrawPianoRoll();
+  DrawPianoStaff();
+  // TODO: Add music channel view
+  ImGui::Text("Music channels coming soon...");
+}
+
+void MusicEditor::DrawInstrumentEditor() {
+  ImGui::Text("Instrument Editor");
+  ImGui::Separator();
+  // TODO: Implement instrument editor UI
+  ImGui::Text("Coming soon...");
 }
 
 void MusicEditor::DrawToolset() {

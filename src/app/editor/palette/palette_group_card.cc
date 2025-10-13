@@ -1095,29 +1095,12 @@ void SpritesAux1PaletteCard::DrawPaletteGrid() {
 
     ImGui::PushID(i);
 
-    // Draw transparent color indicator for index 0
-    if (i == 0) {
-      ImGui::BeginGroup();
       if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
                             (*palette)[i], is_selected, is_modified,
                             ImVec2(button_size, button_size))) {
         selected_color_ = i;
         editing_color_ = (*palette)[i];
       }
-      // Draw "T" for transparent
-      ImVec2 pos = ImGui::GetItemRectMin();
-      ImGui::GetWindowDrawList()->AddText(
-          ImVec2(pos.x + button_size / 2 - 4, pos.y + button_size / 2 - 8),
-          IM_COL32(255, 255, 255, 200), "T");
-      ImGui::EndGroup();
-    } else {
-      if (yaze::gui::PaletteColorButton(absl::StrFormat("##color%d", i).c_str(),
-                            (*palette)[i], is_selected, is_modified,
-                            ImVec2(button_size, button_size))) {
-        selected_color_ = i;
-        editing_color_ = (*palette)[i];
-      }
-    }
 
     ImGui::PopID();
 

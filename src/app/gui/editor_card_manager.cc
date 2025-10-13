@@ -727,7 +727,19 @@ void EditorCardManager::LoadPresetsFromFile() {
 }
 
 void EditorCardManager::SetActiveCategory(const std::string& category) {
+  if (category.empty()) return;
+  
   active_category_ = category;
+  
+  // Update recent categories stack
+  auto it = std::find(recent_categories_.begin(), recent_categories_.end(), category);
+  if (it != recent_categories_.end()) {
+    recent_categories_.erase(it);
+  }
+  recent_categories_.insert(recent_categories_.begin(), category);
+  if (recent_categories_.size() > kMaxRecentCategories) {
+    recent_categories_.resize(kMaxRecentCategories);
+  }
 }
 
 void EditorCardManager::DrawSidebar(const std::string& category,
@@ -890,12 +902,37 @@ void EditorCardManager::DrawSidebar(const std::string& category,
       }
     }  // End if (!cards.empty())
     
-    // Collapse sidebar button at bottom
+    // Card Browser and Collapse sidebar buttons at bottom
     if (on_collapse) {
       ImGui::Dummy(ImVec2(0, 10.0f));  // Add some space
       ImGui::Separator();
       ImGui::Spacing();
       
+      // Card Browser button
+      ImVec4 browser_color = ConvertColorToImVec4(theme.accent);
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(browser_color.x * 0.7f, browser_color.y * 0.7f, browser_color.z * 0.7f, 0.6f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(browser_color.x, browser_color.y, browser_color.z, 0.8f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, browser_color);
+      
+      static bool show_card_browser = false;
+      if (ImGui::Button(ICON_MD_DASHBOARD, ImVec2(40.0f, 36.0f))) {
+        show_card_browser = true;
+      }
+      
+      ImGui::PopStyleColor(3);
+      
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Card Browser\nCtrl+Shift+B");
+      }
+      
+      // Draw card browser if requested
+      if (show_card_browser) {
+        DrawCardBrowser(&show_card_browser);
+      }
+      
+      ImGui::Spacing();
+      
+      // Collapse button
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.22f, 0.9f));
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.32f, 1.0f));
       ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.25f, 0.25f, 0.27f, 1.0f));
