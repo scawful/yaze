@@ -165,7 +165,7 @@ if(YAZE_WITH_GRPC)
   
   # On Windows, force whole-archive linking for protobuf to ensure all symbols are included
   if(MSVC)
-    target_link_options(yaze_agent PUBLIC /WHOLEARCHIVE:libprotobuf)
+    target_link_options(yaze_agent PUBLIC /WHOLEARCHIVE:$<TARGET_FILE:libprotobuf>)
   endif()
   
   # Note: YAZE_WITH_GRPC is defined globally via add_compile_definitions in root CMakeLists.txt

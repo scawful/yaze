@@ -49,7 +49,7 @@ if(YAZE_BUILD_TESTS)
         target_link_options(${suite_name} PRIVATE /STACK:16777216)
         # Force whole-archive linking for protobuf to ensure all symbols are included
         if(YAZE_WITH_GRPC)
-          target_link_options(${suite_name} PRIVATE /WHOLEARCHIVE:libprotobuf)
+          target_link_options(${suite_name} PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:libprotobuf>)
         endif()
       else()
         target_link_options(${suite_name} PRIVATE -Wl,--stack,16777216)
