@@ -168,6 +168,12 @@ class Bitmap {
                                  int length = 7);
 
   /**
+   * @brief Apply palette using metadata-driven strategy
+   * Chooses between SetPalette and SetPaletteWithTransparent based on metadata
+   */
+  void ApplyPaletteByMetadata(const SnesPalette& palette, int sub_palette_index = 0);
+
+  /**
    * @brief Apply the stored palette to the surface (internal helper)
    */
   void ApplyStoredPalette();
@@ -248,8 +254,25 @@ class Bitmap {
   void Get16x16Tile(int tile_x, int tile_y, std::vector<uint8_t> &tile_data,
                     int &tile_data_offset);
 
+  /**
+   * @brief Metadata for tracking bitmap source format and palette requirements
+   */
+  struct BitmapMetadata {
+    int source_bpp = 8;  // Original bits per pixel (3, 4, 8)
+    int palette_format = 0;  // 0=full palette, 1=sub-palette with transparent
+    std::string source_type;  // "graphics_sheet", "tilemap", "screen_buffer", "mode7"
+    int palette_colors = 256;  // Expected palette size
+    
+    BitmapMetadata() = default;
+    BitmapMetadata(int bpp, int format, const std::string& type, int colors = 256)
+        : source_bpp(bpp), palette_format(format), source_type(type), palette_colors(colors) {}
+  };
+
   const SnesPalette &palette() const { return palette_; }
   SnesPalette *mutable_palette() { return &palette_; }
+  BitmapMetadata& metadata() { return metadata_; }
+  const BitmapMetadata& metadata() const { return metadata_; }
+  
   int width() const { return width_; }
   int height() const { return height_; }
   int depth() const { return depth_; }
@@ -284,6 +307,9 @@ class Bitmap {
 
   // Palette for the bitmap
   gfx::SnesPalette palette_;
+
+  // Metadata for tracking source format and palette requirements
+  BitmapMetadata metadata_;
 
   // Data for the bitmap
   std::vector<uint8_t> data_;

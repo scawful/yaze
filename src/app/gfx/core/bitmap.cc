@@ -249,6 +249,22 @@ void Bitmap::UpdateTexture() {
 
 
 
+/**
+ * @brief Apply the stored palette to the SDL surface
+ * 
+ * This method applies the palette_ member to the SDL surface's palette.
+ * 
+ * IMPORTANT: Transparency handling
+ * - ROM palette data does NOT have transparency flags set
+ * - Transparency is only applied if explicitly marked (via set_transparent)
+ * - For SNES rendering, use SetPaletteWithTransparent which creates 
+ *   transparent color 0 automatically
+ * - This method preserves the transparency state of each color
+ * 
+ * Color format notes:
+ * - SnesColor.rgb() returns 0-255 values stored in ImVec4 (unconventional!)
+ * - We cast these directly to Uint8 for SDL
+ */
 void Bitmap::ApplyStoredPalette() {
   if (surface_ == nullptr) {
     return;  // Can't apply without surface
@@ -273,12 +289,16 @@ void Bitmap::ApplyStoredPalette() {
   // Apply all palette colors from the SnesPalette
   for (size_t i = 0; i < palette_.size() && i < 256; ++i) {
     const auto& pal_color = palette_[i];
-    // NOTE: rgb() stores 0-255 values directly in ImVec4 (unconventional but intentional)
-    sdl_palette->colors[i].r = static_cast<Uint8>(pal_color.rgb().x);
-    sdl_palette->colors[i].g = static_cast<Uint8>(pal_color.rgb().y);
-    sdl_palette->colors[i].b = static_cast<Uint8>(pal_color.rgb().z);
     
-    // CRITICAL: Transparency for color 0 of each sub-palette
+    // Get RGB values - stored as 0-255 in ImVec4 (unconventional!)
+    ImVec4 rgb_255 = pal_color.rgb();
+    
+    sdl_palette->colors[i].r = static_cast<Uint8>(rgb_255.x);
+    sdl_palette->colors[i].g = static_cast<Uint8>(rgb_255.y);
+    sdl_palette->colors[i].b = static_cast<Uint8>(rgb_255.z);
+    
+    // Only apply transparency if explicitly set
+    // (ROM data won't have this set; transparency is added during rendering)
     if (pal_color.is_transparent()) {
       sdl_palette->colors[i].a = 0;  // Fully transparent
     } else {
@@ -300,9 +320,67 @@ void Bitmap::SetPalette(const SnesPalette &palette) {
   modified_ = true;
 }
 
+/**
+ * @brief Apply palette using metadata-driven strategy
+ * 
+ * Uses bitmap metadata to determine the appropriate palette application method:
+ * - palette_format == 0: Full palette (SetPalette)
+ * - palette_format == 1: Sub-palette with transparent color 0 (SetPaletteWithTransparent)
+ * 
+ * This ensures correct rendering for different bitmap types:
+ * - 3BPP graphics sheets → sub-palette with transparent
+ * - 4BPP full palettes → full palette
+ * - Mode 7 graphics → full palette
+ * 
+ * @param palette Source palette to apply
+ * @param sub_palette_index Index within palette for sub-palette extraction (default 0)
+ */
+void Bitmap::ApplyPaletteByMetadata(const SnesPalette& palette, int sub_palette_index) {
+  if (metadata_.palette_format == 1) {
+    // Sub-palette: need transparent black + 7 colors from palette
+    // Common for 3BPP graphics sheets (title screen, etc.)
+    SetPaletteWithTransparent(palette, sub_palette_index, 7);
+  } else {
+    // Full palette application
+    // Used for 4BPP, Mode 7, and other full-color formats
+    SetPalette(palette);
+  }
+}
+
+/**
+ * @brief Apply a sub-palette with automatic transparency for SNES rendering
+ * 
+ * This method extracts a sub-palette from a larger palette and applies it
+ * to the SDL surface with proper SNES transparency handling.
+ * 
+ * SNES Transparency Model:
+ * - The SNES hardware automatically treats palette index 0 as transparent
+ * - This is a hardware feature, not stored in ROM data
+ * - This method creates a transparent color 0 for proper SNES emulation
+ * 
+ * Usage:
+ * - Extract 8-color sub-palette from position 'index' in source palette
+ * - Color 0: Always set to transparent black (0,0,0,0)
+ * - Colors 1-7: Taken from palette[index] through palette[index+6]
+ * - If palette has fewer than 7 colors, fills with opaque black
+ * 
+ * Example:
+ *   palette has colors [c0, c1, c2, c3, c4, c5, c6, c7, c8, ...]
+ *   SetPaletteWithTransparent(palette, 0, 7) creates:
+ *     [transparent_black, c0, c1, c2, c3, c4, c5, c6]
+ * 
+ * IMPORTANT: Source palette data is NOT modified
+ * - The full palette is stored in palette_ member for reference
+ * - Only the SDL surface palette is updated with the 8-color subset
+ * - This allows proper palette editing while maintaining SNES rendering
+ * 
+ * @param palette Source palette (can be 7, 8, 64, 128, or 256 colors)
+ * @param index Start index in source palette (0-based)
+ * @param length Number of colors to extract (default 7, max 7)
+ */
 void Bitmap::SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
                                        int length) {
-  // Store palette even if surface isn't ready yet
+  // Store the full palette for reference (not modified)
   palette_ = palette;
   
   // If surface isn't created yet, just store the palette for later
@@ -310,54 +388,52 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette &palette, size_t index,
     return;  // Palette will be applied when surface is created
   }
 
-  // CRITICAL FIX: Use index directly as palette slot, not index * 7
-  // For 8-color palettes, index should be 0-7, not 0-49
+  // Validate parameters
   if (index >= palette.size()) {
     throw std::invalid_argument("Invalid palette index");
   }
 
-  if (length < 0 || length > 8) {
-    throw std::invalid_argument("Invalid palette length (must be 0-8 for 8-color palettes)");
+  if (length < 0 || length > 7) {
+    throw std::invalid_argument("Invalid palette length (must be 0-7 for SNES palettes)");
   }
 
   if (index + length > palette.size()) {
     throw std::invalid_argument("Palette index + length exceeds size");
   }
 
-  // Extract 8-color sub-palette starting at the specified index
-  // This correctly handles both 256-color overworld palettes and smaller palettes
+  // Build 8-color SNES sub-palette
   std::vector<ImVec4> colors;
   
-  // Always start with transparent color (index 0)
-  colors.push_back(ImVec4(0, 0, 0, 0));
+  // Color 0: Transparent (SNES hardware requirement)
+  colors.push_back(ImVec4(0, 0, 0, 0));  // Transparent black
   
-  // Extract up to 7 colors from the palette starting at index
+  // Colors 1-7: Extract from source palette
+  // NOTE: palette[i].rgb() returns 0-255 values in ImVec4 (unconventional!)
   for (size_t i = 0; i < 7 && (index + i) < palette.size(); ++i) {
-    auto &pal_color = palette[index + i];
-    colors.push_back(pal_color.rgb());
+    const auto &pal_color = palette[index + i];
+    ImVec4 rgb_255 = pal_color.rgb();  // 0-255 range (unconventional storage)
+    
+    // Convert to standard ImVec4 0-1 range for SDL
+    colors.push_back(ImVec4(rgb_255.x / 255.0f, rgb_255.y / 255.0f, 
+                           rgb_255.z / 255.0f, 1.0f));  // Always opaque
   }
   
-  // Ensure we have exactly 8 colors (transparent + 7 data colors)
+  // Ensure we have exactly 8 colors
   while (colors.size() < 8) {
-    colors.push_back(ImVec4(0, 0, 0, 1.0f)); // Fill with black if needed
+    colors.push_back(ImVec4(0, 0, 0, 1.0f)); // Fill with opaque black
   }
   
-  // CRITICAL FIX: Keep the original complete palette in palette_ member
-  // Only update the SDL surface palette for display purposes
-  // This prevents breaking other editors that expect the complete palette
-  if (palette_.size() != palette.size()) {
-    palette_ = palette;  // Store complete palette
-    InvalidatePaletteCache();  // Update cache with complete palette
-  }
+  // Update palette cache with full palette (for color lookup)
+  InvalidatePaletteCache();
 
-  // Apply the 8-color sub-palette to SDL surface for display
+  // Apply the 8-color SNES sub-palette to SDL surface
   SDL_UnlockSurface(surface_);
   for (int color_index = 0; color_index < 8 && color_index < static_cast<int>(colors.size()); ++color_index) {
     if (color_index < surface_->format->palette->ncolors) {
-      surface_->format->palette->colors[color_index].r = static_cast<Uint8>(colors[color_index].x * 255);
-      surface_->format->palette->colors[color_index].g = static_cast<Uint8>(colors[color_index].y * 255);
-      surface_->format->palette->colors[color_index].b = static_cast<Uint8>(colors[color_index].z * 255);
-      surface_->format->palette->colors[color_index].a = static_cast<Uint8>(colors[color_index].w * 255);
+      surface_->format->palette->colors[color_index].r = static_cast<Uint8>(colors[color_index].x * 255.0f);
+      surface_->format->palette->colors[color_index].g = static_cast<Uint8>(colors[color_index].y * 255.0f);
+      surface_->format->palette->colors[color_index].b = static_cast<Uint8>(colors[color_index].z * 255.0f);
+      surface_->format->palette->colors[color_index].a = static_cast<Uint8>(colors[color_index].w * 255.0f);
     }
   }
   SDL_LockSurface(surface_);
