@@ -29,13 +29,11 @@
 #include "cli/service/ai/service_factory.h"
 #include "cli/service/agent/learned_knowledge_service.h"
 #include "cli/service/agent/proposal_executor.h"
-#include "cli/service/agent/simple_chat_session.h"
 #include "cli/service/planning/proposal_registry.h"
 #include "cli/service/planning/tile16_proposal_generator.h"
 #include "cli/service/resources/resource_catalog.h"
 #include "cli/service/resources/resource_context_builder.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
-#include "cli/tui/chat_tui.h"
 #include "cli/cli.h"
 #include "util/macro.h"
 
@@ -683,124 +681,6 @@ absl::Status HandleDescribeCommand(const std::vector<std::string>& arg_vec) {
 
   std::cout << payload << std::endl;
   return absl::OkStatus();
-}
-
-absl::Status HandleChatCommand(Rom& rom) {
-  RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent chat"));
-  
-  // Try to load project and labels automatically
-  auto _ = TryLoadProjectAndLabels(rom);  // Ignore errors - we'll use defaults
-
-  tui::ChatTUI chat_tui(&rom);
-  chat_tui.Run();
-  return absl::OkStatus();
-}
-
-absl::Status HandleSimpleChatCommand(const std::vector<std::string>& arg_vec,
-                                     Rom* rom, bool quiet) {
-  RETURN_IF_ERROR(EnsureRomLoaded(*rom, "agent simple-chat"));
-  
-  auto _ = TryLoadProjectAndLabels(*rom);
-  
-  std::optional<std::string> batch_file;
-  std::optional<std::string> single_message;
-  bool verbose = false;
-  bool vim_mode = false;
-  std::optional<std::string> format_option;
-  
-  for (size_t i = 0; i < arg_vec.size(); ++i) {
-    const std::string& arg = arg_vec[i];
-    if (absl::StartsWith(arg, "--file=")) {
-      batch_file = arg.substr(7);
-    } else if (arg == "--file" && i + 1 < arg_vec.size()) {
-      batch_file = arg_vec[++i];
-    } else if (absl::StartsWith(arg, "--format=")) {
-      format_option = arg.substr(9);
-    } else if (arg == "--format" && i + 1 < arg_vec.size()) {
-      format_option = arg_vec[++i];
-    } else if (arg == "--json") {
-      format_option = "json";
-    } else if (arg == "--markdown" || arg == "--md") {
-      format_option = "markdown";
-    } else if (arg == "--compact" || arg == "--raw") {
-      format_option = "compact";
-    } else if (arg == "--verbose" || arg == "-v") {
-      verbose = true;
-    } else if (arg == "--vim") {
-      vim_mode = true;
-    } else if (!absl::StartsWith(arg, "--") && !single_message.has_value()) {
-      single_message = arg;
-    }
-  }
-  
-  agent::AgentConfig config;
-  config.verbose = verbose;
-  config.enable_vim_mode = vim_mode;
-  if (format_option.has_value()) {
-    std::string normalized = absl::AsciiStrToLower(*format_option);
-    if (normalized == "json") {
-      config.output_format = AgentOutputFormat::kJson;
-    } else if (normalized == "markdown" || normalized == "md") {
-      config.output_format = AgentOutputFormat::kMarkdown;
-    } else if (normalized == "compact" || normalized == "raw") {
-      config.output_format = AgentOutputFormat::kCompact;
-    } else if (normalized == "text" || normalized == "friendly" ||
-               normalized == "pretty") {
-      config.output_format = AgentOutputFormat::kFriendly;
-    } else {
-      return absl::InvalidArgumentError(
-          absl::StrCat("Unsupported chat format: ", *format_option,
-                        ". Supported formats: text, markdown, json, compact"));
-    }
-  }
-  
-  SimpleChatSession session;
-  session.SetConfig(config);
-  session.SetRomContext(rom);
-
-  if (batch_file.has_value()) {
-    std::ifstream file(*batch_file);
-    if (!file.is_open()) {
-      return absl::NotFoundError(absl::StrCat("Failed to open file: ", *batch_file));
-    }
-    if (!quiet) {
-        std::cout << "Running batch session from: " << *batch_file << std::endl;
-        std::cout << "----------------------------------------\n\n";
-    }
-    std::string line;
-    int line_num = 0;
-    while (std::getline(file, line)) {
-      line_num++;
-      std::string trimmed_line = std::string(absl::StripAsciiWhitespace(line));
-      if (trimmed_line.empty() || absl::StartsWith(trimmed_line, "#")) {
-        continue;
-      }
-      if (!quiet) {
-        std::cout << "Input [" << line_num << "]: " << trimmed_line << std::endl;
-      }
-      std::string response;
-      auto status = session.SendAndWaitForResponse(trimmed_line, &response);
-      if (!status.ok()) {
-        std::cerr << "Error processing line " << line_num << ": " << status.message() << std::endl;
-        continue;
-      }
-      std::cout << response << "\n";
-      if (!quiet) {
-          std::cout << "\n";
-      }
-    }
-    return absl::OkStatus();
-  } else if (single_message.has_value()) {
-    std::string response;
-    auto status = session.SendAndWaitForResponse(*single_message, &response);
-    if (!status.ok()) {
-      return status;
-    }
-    std::cout << response << "\n";
-    return absl::OkStatus();
-  } else {
-    return session.RunInteractive();
-  }
 }
 
 absl::Status HandleAcceptCommand(const std::vector<std::string>& arg_vec,

@@ -33,7 +33,6 @@ class ModernCLI {
   void PrintCommandSummary() const;
 
  private:
-  void SetupCommands();
   void ShowHelp();
   void ShowCategoryHelp(const std::string& category) const;
   void ShowCommandSummary() const;

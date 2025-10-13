@@ -15,16 +15,10 @@
 #include "cli/handlers/graphics/sprite_commands.h"
 
 #include <memory>
-#include <unordered_map>
 
 namespace yaze {
 namespace cli {
 namespace handlers {
-
-// Static command registry
-namespace {
-std::unordered_map<std::string, resources::CommandHandler*> g_command_registry;
-}
 
 std::vector<std::unique_ptr<resources::CommandHandler>> CreateCliCommandHandlers() {
   std::vector<std::unique_ptr<resources::CommandHandler>> handlers;
@@ -133,15 +127,6 @@ std::vector<std::unique_ptr<resources::CommandHandler>> CreateAllCommandHandlers
   return handlers;
 }
 
-resources::CommandHandler* GetCommandHandler(const std::string& name) {
-  auto it = g_command_registry.find(name);
-  if (it != g_command_registry.end()) {
-    return it->second;
-  }
-  return nullptr;
-}
-
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze
-
