@@ -1,6 +1,6 @@
 #include "cli/cli.h"
-#include "app/gfx/scad_format.h"
-#include "app/gfx/arena.h"
+#include "app/gfx/util/scad_format.h"
+#include "app/gfx/resource/arena.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/declare.h"
 

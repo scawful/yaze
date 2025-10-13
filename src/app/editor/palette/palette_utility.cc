@@ -2,7 +2,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/palette/palette_editor.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/icons.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
