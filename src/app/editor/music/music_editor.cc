@@ -48,20 +48,20 @@ absl::Status MusicEditor::Update() {
   // Music Tracker Card
   if (tracker_card.Begin(card_manager.GetVisibilityFlag("music.tracker"))) {
     DrawTrackerView();
-    tracker_card.End();
   }
+  tracker_card.End();
   
   // Instrument Editor Card
   if (instrument_card.Begin(card_manager.GetVisibilityFlag("music.instrument_editor"))) {
     DrawInstrumentEditor();
-    instrument_card.End();
   }
+  instrument_card.End();
   
   // Assembly View Card
   if (assembly_card.Begin(card_manager.GetVisibilityFlag("music.assembly"))) {
     assembly_editor_.InlineUpdate();
-    assembly_card.End();
   }
+  assembly_card.End();
 
   return absl::OkStatus();
 }

@@ -98,9 +98,9 @@ class Toolset {
  * tile_card.SetPosition(CardPosition::Right);
  * 
  * if (tile_card.Begin()) {
- *   // Draw tile selector content
- *   tile_card.End();
+ *   // Draw tile selector content when visible
  * }
+ * tile_card.End();  // Always call End() after Begin()
  * ```
  */
 class EditorCard {
@@ -154,6 +154,7 @@ class EditorCard {
   bool first_draw_ = true;
   bool focused_ = false;
   bool* p_open_ = nullptr;
+  bool imgui_begun_ = false;  // Track if ImGui::Begin() was called
   
   // UX enhancements
   bool headless_ = false;  // Minimal chrome, no title bar

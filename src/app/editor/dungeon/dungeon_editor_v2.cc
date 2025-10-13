@@ -443,58 +443,56 @@ void DungeonEditorV2::DrawRoomsListCard() {
   if (selector_card.Begin()) {
     if (!rom_ || !rom_->is_loaded()) {
       ImGui::Text("ROM not loaded");
-      selector_card.End();
-      return;
-    }
-    
-    // Add text filter
-    static char room_filter[256] = "";
-    ImGui::SetNextItemWidth(-1);
-    if (ImGui::InputTextWithHint("##RoomFilter", ICON_MD_SEARCH " Filter rooms...", 
-                                 room_filter, sizeof(room_filter))) {
-      // Filter updated
-    }
-    
-    ImGui::Separator();
-    
-    // Scrollable room list - simple and reliable
-    if (ImGui::BeginChild("##RoomsList", ImVec2(0, 0), true,
-                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-      std::string filter_str = room_filter;
-      std::transform(filter_str.begin(), filter_str.end(), filter_str.begin(), ::tolower);
+    } else {
+      // Add text filter
+      static char room_filter[256] = "";
+      ImGui::SetNextItemWidth(-1);
+      if (ImGui::InputTextWithHint("##RoomFilter", ICON_MD_SEARCH " Filter rooms...", 
+                                   room_filter, sizeof(room_filter))) {
+        // Filter updated
+      }
       
-      for (int i = 0; i < zelda3::NumberOfRooms; i++) {
-        // Get room name
-        std::string room_name;
-        if (i < static_cast<int>(std::size(zelda3::kRoomNames))) {
-          room_name = std::string(zelda3::kRoomNames[i]);
-        } else {
-          room_name = absl::StrFormat("Room %03X", i);
-        }
+      ImGui::Separator();
+      
+      // Scrollable room list - simple and reliable
+      if (ImGui::BeginChild("##RoomsList", ImVec2(0, 0), true,
+                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+        std::string filter_str = room_filter;
+        std::transform(filter_str.begin(), filter_str.end(), filter_str.begin(), ::tolower);
         
-        // Apply filter
-        if (!filter_str.empty()) {
-          std::string name_lower = room_name;
-          std::transform(name_lower.begin(), name_lower.end(), 
-                        name_lower.begin(), ::tolower);
-          if (name_lower.find(filter_str) == std::string::npos) {
-            continue;
+        for (int i = 0; i < zelda3::NumberOfRooms; i++) {
+          // Get room name
+          std::string room_name;
+          if (i < static_cast<int>(std::size(zelda3::kRoomNames))) {
+            room_name = std::string(zelda3::kRoomNames[i]);
+          } else {
+            room_name = absl::StrFormat("Room %03X", i);
+          }
+          
+          // Apply filter
+          if (!filter_str.empty()) {
+            std::string name_lower = room_name;
+            std::transform(name_lower.begin(), name_lower.end(), 
+                          name_lower.begin(), ::tolower);
+            if (name_lower.find(filter_str) == std::string::npos) {
+              continue;
+            }
+          }
+          
+          // Simple selectable with room ID and name
+          std::string label = absl::StrFormat("[%03X] %s", i, room_name.c_str());
+          bool is_selected = (current_room_id_ == i);
+          
+          if (ImGui::Selectable(label.c_str(), is_selected)) {
+            OnRoomSelected(i);
+          }
+          
+          if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+            OnRoomSelected(i);
           }
         }
-        
-        // Simple selectable with room ID and name
-        std::string label = absl::StrFormat("[%03X] %s", i, room_name.c_str());
-        bool is_selected = (current_room_id_ == i);
-        
-        if (ImGui::Selectable(label.c_str(), is_selected)) {
-          OnRoomSelected(i);
-        }
-        
-        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
-          OnRoomSelected(i);
-        }
+        ImGui::EndChild();
       }
-      ImGui::EndChild();
     }
   }
   selector_card.End();
@@ -510,92 +508,90 @@ void DungeonEditorV2::DrawEntrancesListCard() {
   if (entrances_card.Begin()) {
     if (!rom_ || !rom_->is_loaded()) {
       ImGui::Text("ROM not loaded");
-      entrances_card.End();
-      return;
-    }
-    
-    // Full entrance configuration UI (matching dungeon_room_selector layout)
-    auto& current_entrance = entrances_[current_entrance_id_];
-    
-    gui::InputHexWord("Entrance ID", &current_entrance.entrance_id_);
-    gui::InputHexWord("Room ID", reinterpret_cast<uint16_t*>(&current_entrance.room_));
-    ImGui::SameLine();
-    gui::InputHexByte("Dungeon ID", &current_entrance.dungeon_id_, 50.f, true);
-    
-    gui::InputHexByte("Blockset", &current_entrance.blockset_, 50.f, true);
-    ImGui::SameLine();
-    gui::InputHexByte("Music", &current_entrance.music_, 50.f, true);
-    ImGui::SameLine();
-    gui::InputHexByte("Floor", &current_entrance.floor_);
-    
-    ImGui::Separator();
-    
-    gui::InputHexWord("Player X   ", &current_entrance.x_position_);
-    ImGui::SameLine();
-    gui::InputHexWord("Player Y   ", &current_entrance.y_position_);
-    
-    gui::InputHexWord("Camera X", &current_entrance.camera_trigger_x_);
-    ImGui::SameLine();
-    gui::InputHexWord("Camera Y", &current_entrance.camera_trigger_y_);
-    
-    gui::InputHexWord("Scroll X    ", &current_entrance.camera_x_);
-    ImGui::SameLine();
-    gui::InputHexWord("Scroll Y    ", &current_entrance.camera_y_);
-    
-    gui::InputHexWord("Exit", reinterpret_cast<uint16_t*>(&current_entrance.exit_), 50.f, true);
-    
-    ImGui::Separator();
-    ImGui::Text("Camera Boundaries");
-    ImGui::Separator();
-    ImGui::Text("\t\t\t\t\tNorth         East         South         West");
-    
-    gui::InputHexByte("Quadrant", &current_entrance.camera_boundary_qn_, 50.f, true);
-    ImGui::SameLine();
-    gui::InputHexByte("##QE", &current_entrance.camera_boundary_qe_, 50.f, true);
-    ImGui::SameLine();
-    gui::InputHexByte("##QS", &current_entrance.camera_boundary_qs_, 50.f, true);
-    ImGui::SameLine();
-    gui::InputHexByte("##QW", &current_entrance.camera_boundary_qw_, 50.f, true);
-    
-    gui::InputHexByte("Full room", &current_entrance.camera_boundary_fn_, 50.f, true);
-    ImGui::SameLine();
-    gui::InputHexByte("##FE", &current_entrance.camera_boundary_fe_, 50.f, true);
-    ImGui::SameLine();
-    gui::InputHexByte("##FS", &current_entrance.camera_boundary_fs_, 50.f, true);
-    ImGui::SameLine();
-    gui::InputHexByte("##FW", &current_entrance.camera_boundary_fw_, 50.f, true);
-    
-    ImGui::Separator();
-    
-    // Entrance list - simple and reliable
-    if (ImGui::BeginChild("##EntrancesList", ImVec2(0, 0), true, 
-                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-      for (int i = 0; i < 0x8C; i++) {
-        // The last seven are spawn points
-        std::string entrance_name;
-        if (i < 0x85) {
-          entrance_name = std::string(zelda3::kEntranceNames[i]);
-        } else {
-          entrance_name = absl::StrFormat("Spawn Point %d", i - 0x85);
+    } else {
+      // Full entrance configuration UI (matching dungeon_room_selector layout)
+      auto& current_entrance = entrances_[current_entrance_id_];
+      
+      gui::InputHexWord("Entrance ID", &current_entrance.entrance_id_);
+      gui::InputHexWord("Room ID", reinterpret_cast<uint16_t*>(&current_entrance.room_));
+      ImGui::SameLine();
+      gui::InputHexByte("Dungeon ID", &current_entrance.dungeon_id_, 50.f, true);
+      
+      gui::InputHexByte("Blockset", &current_entrance.blockset_, 50.f, true);
+      ImGui::SameLine();
+      gui::InputHexByte("Music", &current_entrance.music_, 50.f, true);
+      ImGui::SameLine();
+      gui::InputHexByte("Floor", &current_entrance.floor_);
+      
+      ImGui::Separator();
+      
+      gui::InputHexWord("Player X   ", &current_entrance.x_position_);
+      ImGui::SameLine();
+      gui::InputHexWord("Player Y   ", &current_entrance.y_position_);
+      
+      gui::InputHexWord("Camera X", &current_entrance.camera_trigger_x_);
+      ImGui::SameLine();
+      gui::InputHexWord("Camera Y", &current_entrance.camera_trigger_y_);
+      
+      gui::InputHexWord("Scroll X    ", &current_entrance.camera_x_);
+      ImGui::SameLine();
+      gui::InputHexWord("Scroll Y    ", &current_entrance.camera_y_);
+      
+      gui::InputHexWord("Exit", reinterpret_cast<uint16_t*>(&current_entrance.exit_), 50.f, true);
+      
+      ImGui::Separator();
+      ImGui::Text("Camera Boundaries");
+      ImGui::Separator();
+      ImGui::Text("\t\t\t\t\tNorth         East         South         West");
+      
+      gui::InputHexByte("Quadrant", &current_entrance.camera_boundary_qn_, 50.f, true);
+      ImGui::SameLine();
+      gui::InputHexByte("##QE", &current_entrance.camera_boundary_qe_, 50.f, true);
+      ImGui::SameLine();
+      gui::InputHexByte("##QS", &current_entrance.camera_boundary_qs_, 50.f, true);
+      ImGui::SameLine();
+      gui::InputHexByte("##QW", &current_entrance.camera_boundary_qw_, 50.f, true);
+      
+      gui::InputHexByte("Full room", &current_entrance.camera_boundary_fn_, 50.f, true);
+      ImGui::SameLine();
+      gui::InputHexByte("##FE", &current_entrance.camera_boundary_fe_, 50.f, true);
+      ImGui::SameLine();
+      gui::InputHexByte("##FS", &current_entrance.camera_boundary_fs_, 50.f, true);
+      ImGui::SameLine();
+      gui::InputHexByte("##FW", &current_entrance.camera_boundary_fw_, 50.f, true);
+      
+      ImGui::Separator();
+      
+      // Entrance list - simple and reliable
+      if (ImGui::BeginChild("##EntrancesList", ImVec2(0, 0), true, 
+                            ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+        for (int i = 0; i < 0x8C; i++) {
+          // The last seven are spawn points
+          std::string entrance_name;
+          if (i < 0x85) {
+            entrance_name = std::string(zelda3::kEntranceNames[i]);
+          } else {
+            entrance_name = absl::StrFormat("Spawn Point %d", i - 0x85);
+          }
+          
+          // Get associated room name
+          int room_id = entrances_[i].room_;
+          std::string room_name = "Unknown";
+          if (room_id >= 0 && room_id < static_cast<int>(std::size(zelda3::kRoomNames))) {
+            room_name = std::string(zelda3::kRoomNames[room_id]);
+          }
+          
+          std::string label = absl::StrFormat("[%02X] %s -> %s", 
+                                              i, entrance_name.c_str(), room_name.c_str());
+          
+          bool is_selected = (current_entrance_id_ == i);
+          if (ImGui::Selectable(label.c_str(), is_selected)) {
+            current_entrance_id_ = i;
+            OnEntranceSelected(i);
+          }
         }
-        
-        // Get associated room name
-        int room_id = entrances_[i].room_;
-        std::string room_name = "Unknown";
-        if (room_id >= 0 && room_id < static_cast<int>(std::size(zelda3::kRoomNames))) {
-          room_name = std::string(zelda3::kRoomNames[room_id]);
-        }
-        
-        std::string label = absl::StrFormat("[%02X] %s -> %s", 
-                                            i, entrance_name.c_str(), room_name.c_str());
-        
-        bool is_selected = (current_entrance_id_ == i);
-        if (ImGui::Selectable(label.c_str(), is_selected)) {
-          current_entrance_id_ = i;
-          OnEntranceSelected(i);
-        }
+        ImGui::EndChild();
       }
-      ImGui::EndChild();
     }
   }
   entrances_card.End();
@@ -757,12 +753,8 @@ void DungeonEditorV2::DrawRoomGraphicsCard() {
   if (graphics_card.Begin()) {
     if (!rom_ || !rom_->is_loaded()) {
       ImGui::Text("ROM not loaded");
-      graphics_card.End();
-      return;
-    }
-    
-    // Show graphics for current room
-    if (current_room_id_ >= 0 && current_room_id_ < static_cast<int>(rooms_.size())) {
+    } else if (current_room_id_ >= 0 && current_room_id_ < static_cast<int>(rooms_.size())) {
+      // Show graphics for current room
       auto& room = rooms_[current_room_id_];
       
       ImGui::Text("Room %03X Graphics", current_room_id_);

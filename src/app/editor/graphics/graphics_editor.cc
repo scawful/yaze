@@ -112,28 +112,29 @@ absl::Status GraphicsEditor::Update() {
   prototype_card.SetDefaultSize(600, 500);
 
   // Get visibility flags from card manager and pass to Begin()
+  // Always call End() after Begin() - End() handles ImGui state safely
   if (sheet_editor_card.Begin(card_manager.GetVisibilityFlag("graphics.sheet_editor"))) {
     status_ = UpdateGfxEdit();
-    sheet_editor_card.End();
   }
+  sheet_editor_card.End();
 
   if (sheet_browser_card.Begin(card_manager.GetVisibilityFlag("graphics.sheet_browser"))) {
     if (asset_browser_.Initialized == false) {
       asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
     }
     asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
-    sheet_browser_card.End();
   }
+  sheet_browser_card.End();
 
   if (player_anims_card.Begin(card_manager.GetVisibilityFlag("graphics.player_animations"))) {
     status_ = UpdateLinkGfxView();
-    player_anims_card.End();
   }
+  player_anims_card.End();
 
   if (prototype_card.Begin(card_manager.GetVisibilityFlag("graphics.prototype_viewer"))) {
     status_ = UpdateScadView();
-    prototype_card.End();
   }
+  prototype_card.End();
 
   CLEAR_AND_RETURN_STATUS(status_)
   return absl::OkStatus();

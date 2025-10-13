@@ -109,30 +109,29 @@ absl::Status ScreenEditor::Update() {
   naming_screen_card.SetDefaultSize(500, 400);
 
   // Get visibility flags from card manager and pass to Begin()
+  // Always call End() after Begin() - End() handles ImGui state safely
   if (dungeon_maps_card.Begin(card_manager.GetVisibilityFlag("screen.dungeon_maps"))) {
     DrawDungeonMapsEditor();
   }
   dungeon_maps_card.End();
-
+  
   if (inventory_menu_card.Begin(card_manager.GetVisibilityFlag("screen.inventory_menu"))) {
     DrawInventoryMenuEditor();
-  
   }
   inventory_menu_card.End();
-
+  
   if (overworld_map_card.Begin(card_manager.GetVisibilityFlag("screen.overworld_map"))) {
     DrawOverworldMapEditor();
   }
   overworld_map_card.End();
-
+  
   if (title_screen_card.Begin(card_manager.GetVisibilityFlag("screen.title_screen"))) {
     DrawTitleScreenEditor();
-  
   }
   title_screen_card.End();
-
+  
   if (naming_screen_card.Begin(card_manager.GetVisibilityFlag("screen.naming_screen"))) {
-    DrawNamingScreenEditor();  
+    DrawNamingScreenEditor();
   }
   naming_screen_card.End();
 
