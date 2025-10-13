@@ -165,6 +165,8 @@ class EditorCardManager {
   std::unordered_map<std::string, bool> centralized_visibility_;  // Centralized card visibility flags
   std::unordered_map<std::string, WorkspacePreset> presets_;
   std::string active_category_;  // Currently active editor category (based on last card interaction)
+  std::vector<std::string> recent_categories_;  // Stack of recently used categories (max 5)
+  static constexpr size_t kMaxRecentCategories = 5;
   
   // Helper methods
   void SavePresetsToFile();

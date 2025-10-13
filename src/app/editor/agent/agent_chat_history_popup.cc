@@ -258,13 +258,14 @@ void AgentChatHistoryPopup::DrawHeader() {
   ImGui::SameLine(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - 75.0f);
   
   // Compact mode toggle with pulse
-  if (blink_counter_ == 0 && compact_mode_) {
+  bool should_highlight = (blink_counter_ == 0 && compact_mode_);
+  if (should_highlight) {
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.4f, 0.6f, 0.7f));
   }
   if (ImGui::SmallButton(compact_mode_ ? ICON_MD_UNFOLD_MORE : ICON_MD_UNFOLD_LESS)) {
     compact_mode_ = !compact_mode_;
   }
-  if (blink_counter_ == 0 && compact_mode_) {
+  if (should_highlight) {
     ImGui::PopStyleColor();
   }
   if (ImGui::IsItemHovered()) {

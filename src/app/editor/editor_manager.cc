@@ -105,8 +105,9 @@ bool EditorManager::IsCardBasedEditor(EditorType type) {
     case EditorType::kMessage:      // ✅ Message editor cards
     case EditorType::kHex:          // ✅ Memory/Hex editor
     case EditorType::kAssembly:     // ✅ Assembly editor
+    case EditorType::kMusic:        // ✅ Music tracker + instrument editor
       return true;
-    // Music: Traditional UI - needs wrapper
+    // Settings, Agent: Traditional UI - needs wrapper
     default:
       return false;
   }
