@@ -1,5 +1,6 @@
 #include "app/emu/emulator.h"
 
+#include <cstdlib>
 #include <cstdint>
 #include <fstream>
 #include <vector>
@@ -24,6 +25,10 @@ namespace yaze::core {
 namespace yaze {
 namespace emu {
 
+namespace {
+constexpr int kNativeSampleRate = 32000;
+}
+
 Emulator::~Emulator() {
   // Don't call Cleanup() in destructor - renderer is already destroyed
   // Just stop emulation
@@ -42,12 +47,28 @@ void Emulator::Cleanup() {
   
   // Reset state
   snes_initialized_ = false;
+  audio_stream_active_ = false;
+}
+
+void Emulator::set_use_sdl_audio_stream(bool enabled) {
+  if (use_sdl_audio_stream_ != enabled) {
+    use_sdl_audio_stream_ = enabled;
+    audio_stream_config_dirty_ = true;
+  }
 }
 
 void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& rom_data) {
   // This method is now optional - emulator can be initialized lazily in Run()
   renderer_ = renderer;
   rom_data_ = rom_data;
+
+  if (!audio_stream_env_checked_) {
+    const char* env_value = std::getenv("YAZE_USE_SDL_AUDIO_STREAM");
+    if (env_value && std::atoi(env_value) != 0) {
+      set_use_sdl_audio_stream(true);
+    }
+    audio_stream_env_checked_ = true;
+  }
   
   // Cards are registered in EditorManager::Initialize() to avoid duplication
   
@@ -73,6 +94,7 @@ void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& 
     } else {
       LOG_INFO("Emulator", "Audio backend initialized: %s",
                audio_backend_->GetBackendName().c_str());
+      audio_stream_config_dirty_ = true;
     }
   }
   
@@ -93,6 +115,14 @@ void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& 
 }
 
 void Emulator::Run(Rom* rom) {
+  if (!audio_stream_env_checked_) {
+    const char* env_value = std::getenv("YAZE_USE_SDL_AUDIO_STREAM");
+    if (env_value && std::atoi(env_value) != 0) {
+      set_use_sdl_audio_stream(true);
+    }
+    audio_stream_env_checked_ = true;
+  }
+
   // Lazy initialization: set renderer from Controller if not set yet
   if (!renderer_) {
     ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), 
@@ -118,6 +148,7 @@ void Emulator::Run(Rom* rom) {
     } else {
       LOG_INFO("Emulator", "Audio backend initialized (lazy): %s",
                audio_backend_->GetBackendName().c_str());
+      audio_stream_config_dirty_ = true;
     }
   }
   
@@ -245,41 +276,65 @@ void Emulator::Run(Rom* rom) {
           // to keep buffer at target level. This prevents pops and glitches.
           
           if (audio_backend_) {
+            if (audio_stream_config_dirty_) {
+              if (use_sdl_audio_stream_ && audio_backend_->SupportsAudioStream()) {
+                audio_backend_->SetAudioStreamResampling(true, kNativeSampleRate, 2);
+                audio_stream_active_ = true;
+              } else {
+                audio_backend_->SetAudioStreamResampling(false, kNativeSampleRate, 2);
+                audio_stream_active_ = false;
+              }
+              audio_stream_config_dirty_ = false;
+            }
+
+            const bool use_native_stream =
+                use_sdl_audio_stream_ && audio_stream_active_ &&
+                audio_backend_->SupportsAudioStream();
+
             auto audio_status = audio_backend_->GetStatus();
             uint32_t queued_frames = audio_status.queued_frames;
-            
-            // Synchronize DSP frame boundary for proper resampling
+
+            // Synchronize DSP frame boundary for resampling
             snes_.apu().dsp().NewFrame();
-            
+
             // Target buffer: 2.0 frames for low latency with safety margin
-            // This is similar to how bsnes/Mesen handle audio buffering
-            const uint32_t target_buffer = wanted_samples_ * 2;
-            const uint32_t min_buffer = wanted_samples_;
             const uint32_t max_buffer = wanted_samples_ * 4;
-            
-            // Generate samples from SNES APU/DSP
-            snes_.SetSamples(audio_buffer_, wanted_samples_);
-            
-            // CRITICAL: Always queue all generated samples - never drop
-            // Dropping samples causes audible pops and glitches
-            int num_samples = wanted_samples_ * 2;  // Stereo (L+R channels)
-            
-            // Only skip queueing if buffer is dangerously full (>4 frames)
-            // This prevents unbounded buffer growth but is rare in practice
+
             if (queued_frames < max_buffer) {
-              if (!audio_backend_->QueueSamples(audio_buffer_, num_samples)) {
+              bool queue_ok = true;
+
+              if (use_native_stream) {
+                const int frames_native = snes_.apu().dsp().CopyNativeFrame(
+                    audio_buffer_, snes_.memory().pal_timing());
+                queue_ok = audio_backend_->QueueSamplesNative(
+                    audio_buffer_, frames_native, 2, kNativeSampleRate);
+              } else {
+                snes_.SetSamples(audio_buffer_, wanted_samples_);
+                const int num_samples = wanted_samples_ * 2;  // Stereo
+                queue_ok = audio_backend_->QueueSamples(audio_buffer_, num_samples);
+              }
+
+              if (!queue_ok && use_native_stream) {
+                snes_.SetSamples(audio_buffer_, wanted_samples_);
+                const int num_samples = wanted_samples_ * 2;
+                queue_ok = audio_backend_->QueueSamples(audio_buffer_, num_samples);
+              }
+
+              if (!queue_ok) {
                 static int error_count = 0;
                 if (++error_count % 300 == 0) {
-                  LOG_WARN("Emulator", "Failed to queue audio (count: %d)", error_count);
+                  LOG_WARN("Emulator",
+                           "Failed to queue audio (count: %d, stream=%s)",
+                           error_count, use_native_stream ? "SDL" : "manual");
                 }
               }
             } else {
               // Buffer overflow - skip this frame's audio
-              // This should rarely happen with proper timing
               static int overflow_count = 0;
               if (++overflow_count % 60 == 0) {
-                LOG_WARN("Emulator", "Audio buffer overflow (count: %d, queued: %u)",
-                        overflow_count, queued_frames);
+                LOG_WARN("Emulator",
+                         "Audio buffer overflow (count: %d, queued: %u)",
+                         overflow_count, queued_frames);
               }
             }
           }

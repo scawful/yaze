@@ -50,6 +50,8 @@ class Emulator {
   auto set_audio_device_id(SDL_AudioDeviceID audio_device) {
     audio_device_ = audio_device;
   }
+  void set_use_sdl_audio_stream(bool enabled);
+  bool use_sdl_audio_stream() const { return use_sdl_audio_stream_; }
   auto wanted_samples() const -> int { return wanted_samples_; }
   void set_renderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
   
@@ -158,6 +160,10 @@ class Emulator {
   bool debugging_ = false;
   gfx::IRenderer* renderer_ = nullptr;
   void* ppu_texture_ = nullptr;
+  bool use_sdl_audio_stream_ = false;
+  bool audio_stream_config_dirty_ = false;
+  bool audio_stream_active_ = false;
+  bool audio_stream_env_checked_ = false;
   
   // Card visibility managed by EditorCardManager - no member variables needed!
   

@@ -66,14 +66,14 @@ void RenderNavBar(Emulator* emu) {
   // Play/Pause button with icon
   bool is_running = emu->running();
   if (is_running) {
-    if (ImGui::Button(ICON_MD_PAUSE " Pause", ImVec2(100, kButtonHeight))) {
+    if (ImGui::Button(ICON_MD_PAUSE, ImVec2(50, kButtonHeight))) {
       emu->set_running(false);
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Pause emulation (Space)");
     }
   } else {
-    if (ImGui::Button(ICON_MD_PLAY_ARROW " Play", ImVec2(100, kButtonHeight))) {
+    if (ImGui::Button(ICON_MD_PLAY_ARROW, ImVec2(50, kButtonHeight))) {
       emu->set_running(true);
     }
     if (ImGui::IsItemHovered()) {
@@ -84,7 +84,7 @@ void RenderNavBar(Emulator* emu) {
   ImGui::SameLine();
   
   // Step button
-  if (ImGui::Button(ICON_MD_SKIP_NEXT " Step", ImVec2(80, kButtonHeight))) {
+  if (ImGui::Button(ICON_MD_SKIP_NEXT, ImVec2(50, kButtonHeight))) {
     if (!is_running) {
       emu->snes().RunFrame();
     }
@@ -96,7 +96,7 @@ void RenderNavBar(Emulator* emu) {
   ImGui::SameLine();
   
   // Reset button
-  if (ImGui::Button(ICON_MD_RESTART_ALT " Reset", ImVec2(80, kButtonHeight))) {
+  if (ImGui::Button(ICON_MD_RESTART_ALT, ImVec2(50, kButtonHeight))) {
     emu->snes().Reset();
     LOG_INFO("Emulator", "System reset");
   }
@@ -218,6 +218,16 @@ void RenderNavBar(Emulator* emu) {
                        emu->audio_backend()->GetBackendName().c_str(),
                        audio_status.queued_frames,
                        audio_status.is_playing ? "YES" : "NO");
+    }
+
+
+    ImGui::SameLine();
+    static bool use_sdl_audio_stream = emu->use_sdl_audio_stream();
+    if (ImGui::Checkbox(ICON_MD_SETTINGS " SDL Audio Stream", &use_sdl_audio_stream)) {
+      emu->set_use_sdl_audio_stream(use_sdl_audio_stream);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Use SDL audio stream for audio");
     }
   } else {
     ImGui::TextColored(ConvertColorToImVec4(theme.error),
