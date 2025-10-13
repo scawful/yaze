@@ -93,7 +93,7 @@ bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager) {
   }
 }
 
-bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap, const CanvasPaletteManager& palette_manager, 
+bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap, CanvasPaletteManager& palette_manager, 
                        int group_index, int palette_index) {
   if (!bitmap) return false;
 
@@ -110,11 +110,13 @@ bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap, const Canv
     bitmap->SetPaletteWithTransparent(palette, palette_index);
   }
   bitmap->set_modified(true);
+  palette_manager.palette_dirty = true;
   
-  // Queue texture update via Arena's deferred system
-  if (renderer) {
+  // Queue texture update only if live_update is enabled
+  if (palette_manager.live_update_enabled && renderer) {
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::UPDATE, bitmap);
+    palette_manager.palette_dirty = false;  // Clear dirty flag after update
   }
   return true;
 }

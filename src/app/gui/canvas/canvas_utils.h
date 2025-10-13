@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
@@ -62,6 +63,10 @@ struct CanvasPaletteManager {
   int current_group_index = 0;
   int current_palette_index = 0;
   
+  // Live update control
+  bool live_update_enabled = true;  // Enable/disable live texture updates
+  bool palette_dirty = false;  // Track if palette has changed
+  
   void Clear() {
     rom_palette_groups.clear();
     palette_group_names.clear();
@@ -69,6 +74,8 @@ struct CanvasPaletteManager {
     palettes_loaded = false;
     current_group_index = 0;
     current_palette_index = 0;
+    live_update_enabled = true;
+    palette_dirty = false;
   }
 };
 
@@ -95,8 +102,19 @@ int GetTileIdFromPosition(ImVec2 mouse_pos, float tile_size, float scale, int ti
 
 // Palette management utilities
 bool LoadROMPaletteGroups(Rom* rom, CanvasPaletteManager& palette_manager);
-bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap, const CanvasPaletteManager& palette_manager, 
+bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap, CanvasPaletteManager& palette_manager, 
                        int group_index, int palette_index);
+
+/**
+ * @brief Apply pending palette updates (when live_update is disabled)
+ */
+inline void ApplyPendingPaletteUpdates(gfx::IRenderer* renderer, gfx::Bitmap* bitmap, CanvasPaletteManager& palette_manager) {
+  if (palette_manager.palette_dirty && bitmap && renderer) {
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, bitmap);
+    palette_manager.palette_dirty = false;
+  }
+}
 
 // Drawing utility functions (moved from Canvas class)
 void DrawCanvasRect(ImDrawList* draw_list, ImVec2 canvas_p0, ImVec2 scrolling, 

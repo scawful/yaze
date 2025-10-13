@@ -45,6 +45,44 @@ IMGUI_API bool SnesColorButton(absl::string_view id, gfx::SnesColor &color,
 IMGUI_API bool SnesColorEdit4(absl::string_view label, gfx::SnesColor *color,
                               ImGuiColorEditFlags flags = 0);
 
+// ============================================================================
+// Palette Widget Functions
+// ============================================================================
+
+/**
+ * @brief Small inline palette selector - just color buttons for selection
+ * @param palette Palette to display
+ * @param num_colors Number of colors to show (default 8)
+ * @param selected_index Pointer to store selected color index (optional)
+ * @return True if a color was selected
+ */
+IMGUI_API bool InlinePaletteSelector(gfx::SnesPalette &palette, 
+                                     int num_colors = 8,
+                                     int* selected_index = nullptr);
+
+/**
+ * @brief Full inline palette editor with color picker and copy options
+ * @param palette Palette to edit
+ * @param title Display title
+ * @param flags ImGui color edit flags
+ * @return Status of the operation
+ */
+IMGUI_API absl::Status InlinePaletteEditor(gfx::SnesPalette &palette,
+                                           const std::string &title = "",
+                                           ImGuiColorEditFlags flags = 0);
+
+/**
+ * @brief Popup palette editor - same as inline but in a popup
+ * @param popup_id ID for the popup window
+ * @param palette Palette to edit
+ * @param flags ImGui color edit flags
+ * @return True if palette was modified
+ */
+IMGUI_API bool PopupPaletteEditor(const char* popup_id,
+                                  gfx::SnesPalette &palette,
+                                  ImGuiColorEditFlags flags = 0);
+
+// Legacy functions (kept for compatibility, will be deprecated)
 IMGUI_API bool DisplayPalette(gfx::SnesPalette &palette, bool loaded);
 
 IMGUI_API absl::Status DisplayEditablePalette(gfx::SnesPalette &palette,

@@ -351,6 +351,43 @@ void CanvasContextMenu::RenderPaletteOperationsMenu(Rom* rom, gfx::Bitmap* bitma
       DisplayEditablePalette(*bitmap->mutable_palette(), "Palette", true, 8);
       ImGui::EndMenu();
     }
+    
+    ImGui::Separator();
+    
+    // Palette Help submenu
+    if (ImGui::BeginMenu(ICON_MD_HELP " Palette Help")) {
+      ImGui::TextColored(ImVec4(0.7F, 0.9F, 1.0F, 1.0F), "Bitmap Metadata");
+      ImGui::Separator();
+      
+      const auto& meta = bitmap->metadata();
+      ImGui::Text("Source BPP: %d", meta.source_bpp);
+      ImGui::Text("Palette Format: %s", meta.palette_format == 0 ? "Full" : "Sub-palette");
+      ImGui::Text("Source Type: %s", meta.source_type.c_str());
+      ImGui::Text("Expected Colors: %d", meta.palette_colors);
+      ImGui::Text("Actual Palette Size: %zu", bitmap->palette().size());
+      
+      ImGui::Separator();
+      ImGui::TextColored(ImVec4(1.0F, 0.9F, 0.6F, 1.0F), "Palette Application Method");
+      if (meta.palette_format == 0) {
+        ImGui::TextWrapped("Full palette (SetPalette) - all colors applied directly");
+      } else {
+        ImGui::TextWrapped("Sub-palette (SetPaletteWithTransparent) - color 0 is transparent, 1-7 from palette");
+      }
+      
+      ImGui::Separator();
+      ImGui::TextColored(ImVec4(0.6F, 1.0F, 0.6F, 1.0F), "Documentation");
+      if (ImGui::MenuItem("Palette System Architecture")) {
+        ImGui::SetClipboardText("yaze/docs/palette-system-architecture.md");
+        // TODO: Open file in system viewer
+      }
+      if (ImGui::MenuItem("User Palette Guide")) {
+        ImGui::SetClipboardText("yaze/docs/user-palette-guide.md");
+        // TODO: Open file in system viewer
+      }
+      
+      ImGui::EndMenu();
+    }
+    
     ImGui::EndMenu();
   }
 }
