@@ -14,6 +14,7 @@ set(
   zelda3/screen/dungeon_map.cc
   zelda3/screen/inventory.cc
   zelda3/screen/title_screen.cc
+  zelda3/screen/overworld_map_screen.cc
   zelda3/sprite/sprite.cc
   zelda3/sprite/sprite_builder.cc
   zelda3/zelda3_labels.cc

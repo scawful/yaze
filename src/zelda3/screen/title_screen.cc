@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "app/gfx/core/bitmap.h"
-#include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/rom.h"
 #include "app/snes.h"
@@ -21,14 +20,45 @@ absl::Status TitleScreen::Create(Rom* rom) {
   tiles_bg1_bitmap_.Create(256, 256, 8, std::vector<uint8_t>(0x80000));
   tiles_bg2_bitmap_.Create(256, 256, 8, std::vector<uint8_t>(0x80000));
   oam_bg_bitmap_.Create(256, 256, 8, std::vector<uint8_t>(0x80000));
+  
+  // Set metadata for title screen bitmaps
+  // Title screen uses 3BPP graphics with 8 palettes of 8 colors (64 total)
+  tiles8_bitmap_.metadata().source_bpp = 3;
+  tiles8_bitmap_.metadata().palette_format = 0;  // Full 64-color palette
+  tiles8_bitmap_.metadata().source_type = "graphics_sheet";
+  tiles8_bitmap_.metadata().palette_colors = 64;
+  
+  tiles_bg1_bitmap_.metadata().source_bpp = 3;
+  tiles_bg1_bitmap_.metadata().palette_format = 0;  // Uses full palette with sub-palette indexing
+  tiles_bg1_bitmap_.metadata().source_type = "screen_buffer";
+  tiles_bg1_bitmap_.metadata().palette_colors = 64;
+  
+  tiles_bg2_bitmap_.metadata().source_bpp = 3;
+  tiles_bg2_bitmap_.metadata().palette_format = 0;
+  tiles_bg2_bitmap_.metadata().source_type = "screen_buffer";
+  tiles_bg2_bitmap_.metadata().palette_colors = 64;
+  
+  oam_bg_bitmap_.metadata().source_bpp = 3;
+  oam_bg_bitmap_.metadata().palette_format = 0;
+  oam_bg_bitmap_.metadata().source_type = "screen_buffer";
+  oam_bg_bitmap_.metadata().palette_colors = 64;
 
   // Initialize tilemap buffers
   tiles_bg1_buffer_.fill(0x492);  // Default empty tile
   tiles_bg2_buffer_.fill(0x492);
 
-  // Load palette (title screen uses sprite graphics)
+  // Load palette (title screen uses 3BPP graphics with 8 palettes of 8 colors each)
+  // Build a full 64-color palette from sprite palettes
   auto sprite_pal_group = rom->palette_group().sprites_aux1;
-  palette_ = sprite_pal_group[0];
+  
+  // Title screen needs 8 palettes (64 colors total for 3BPP mode)
+  // Each palette in sprites_aux1 has 8 colors (7 actual + 1 transparent)
+  for (int pal = 0; pal < 8 && pal < sprite_pal_group.size(); pal++) {
+    auto sub_palette = sprite_pal_group[pal];
+    for (int col = 0; col < sub_palette.size(); col++) {
+      palette_.AddColor(sub_palette[col]);
+    }
+  }
 
   // Build tile16 blockset from graphics
   RETURN_IF_ERROR(BuildTileset(rom));
@@ -179,10 +209,15 @@ absl::Status TitleScreen::LoadTitleScreen(Rom* rom) {
   RETURN_IF_ERROR(RenderBG1Layer());
   RETURN_IF_ERROR(RenderBG2Layer());
 
-  // Apply palettes to layer bitmaps
+  // Apply palettes to layer bitmaps AFTER rendering
   tiles_bg1_bitmap_.SetPalette(palette_);
   tiles_bg2_bitmap_.SetPalette(palette_);
   oam_bg_bitmap_.SetPalette(palette_);
+  
+  // Ensure bitmaps are marked as active
+  tiles_bg1_bitmap_.set_active(true);
+  tiles_bg2_bitmap_.set_active(true);
+  oam_bg_bitmap_.set_active(true);
 
   // Queue texture creation for all layer bitmaps
   gfx::Arena::Get().QueueTextureCommand(
@@ -302,9 +337,93 @@ absl::Status TitleScreen::RenderBG2Layer() {
 }
 
 absl::Status TitleScreen::Save(Rom* rom) {
-  // TODO: Implement saving title screen tilemap back to ROM
-  // This would involve compressing the tilemap data and writing it back
-  return absl::UnimplementedError("Title screen saving not yet implemented");
+  if (!rom || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM is not loaded");
+  }
+
+  // Title screen uses compressed tilemap format
+  // We'll write the data back in the same compressed format
+  std::vector<uint8_t> compressed_data;
+  
+  // Helper to write word (little endian)
+  auto WriteWord = [&compressed_data](uint16_t value) {
+    compressed_data.push_back(value & 0xFF);
+    compressed_data.push_back((value >> 8) & 0xFF);
+  };
+  
+  // Compress BG2 layer (dest < 0x1000)
+  uint16_t bg2_dest = 0x0000;
+  for (int i = 0; i < 1024; i++) {
+    if (i == 0 || tiles_bg2_buffer_[i] != tiles_bg2_buffer_[i - 1]) {
+      // Start a new run
+      WriteWord(bg2_dest + i);  // Destination address
+      
+      // Count consecutive identical tiles
+      int run_length = 1;
+      uint16_t tile_value = tiles_bg2_buffer_[i];
+      while (i + run_length < 1024 && tiles_bg2_buffer_[i + run_length] == tile_value) {
+        run_length++;
+      }
+      
+      // Write length/flags (bit 14 = fixsource if run > 1)
+      uint16_t length_flags = (run_length - 1) * 2;  // Length in bytes
+      if (run_length > 1) {
+        length_flags |= 0x4000;  // fixsource flag
+      }
+      WriteWord(length_flags);
+      
+      // Write tile data
+      WriteWord(tile_value);
+      
+      i += run_length - 1;  // Skip already processed tiles
+    }
+  }
+  
+  // Compress BG1 layer (dest >= 0x1000)
+  uint16_t bg1_dest = 0x1000;
+  for (int i = 0; i < 1024; i++) {
+    if (i == 0 || tiles_bg1_buffer_[i] != tiles_bg1_buffer_[i - 1]) {
+      // Start a new run
+      WriteWord(bg1_dest + i);  // Destination address
+      
+      // Count consecutive identical tiles
+      int run_length = 1;
+      uint16_t tile_value = tiles_bg1_buffer_[i];
+      while (i + run_length < 1024 && tiles_bg1_buffer_[i + run_length] == tile_value) {
+        run_length++;
+      }
+      
+      // Write length/flags (bit 14 = fixsource if run > 1)
+      uint16_t length_flags = (run_length - 1) * 2;  // Length in bytes
+      if (run_length > 1) {
+        length_flags |= 0x4000;  // fixsource flag
+      }
+      WriteWord(length_flags);
+      
+      // Write tile data
+      WriteWord(tile_value);
+      
+      i += run_length - 1;  // Skip already processed tiles
+    }
+  }
+  
+  // Write terminator byte
+  compressed_data.push_back(0x80);
+  
+  // Calculate ROM address to write to
+  ASSIGN_OR_RETURN(uint8_t byte0, rom->ReadByte(0x137A + 3));
+  ASSIGN_OR_RETURN(uint8_t byte1, rom->ReadByte(0x1383 + 3));
+  ASSIGN_OR_RETURN(uint8_t byte2, rom->ReadByte(0x138C + 3));
+  
+  int pos = (byte2 << 16) + (byte1 << 8) + byte0;
+  int write_pos = SnesToPc(pos);
+  
+  // Write compressed data to ROM
+  for (size_t i = 0; i < compressed_data.size(); i++) {
+    RETURN_IF_ERROR(rom->WriteByte(write_pos + i, compressed_data[i]));
+  }
+  
+  return absl::OkStatus();
 }
 
 }  // namespace zelda3

@@ -14,6 +14,7 @@
 #include "zelda3/screen/dungeon_map.h"
 #include "zelda3/screen/inventory.h"
 #include "zelda3/screen/title_screen.h"
+#include "zelda3/screen/overworld_map_screen.h"
 #include "app/gui/app/editor_layout.h"
 #include "imgui/imgui.h"
 
@@ -125,10 +126,25 @@ class ScreenEditor : public Editor {
 
   zelda3::Inventory inventory_;
   zelda3::TitleScreen title_screen_;
+  zelda3::OverworldMapScreen ow_map_screen_;
 
   // Title screen state
   int selected_title_tile16_ = 0;
   bool title_screen_loaded_ = false;
+  bool title_h_flip_ = false;
+  bool title_v_flip_ = false;
+  int title_palette_ = 0;
+
+  // Overworld map screen state
+  int selected_ow_tile_ = 0;
+  bool ow_map_loaded_ = false;
+  bool ow_show_dark_world_ = false;
+
+  // Overworld map canvases
+  gui::Canvas ow_map_canvas_{"##OWMapCanvas", ImVec2(512, 512),
+                             gui::CanvasGridSize::k8x8, 1.0f};
+  gui::Canvas ow_tileset_canvas_{"##OWTilesetCanvas", ImVec2(128, 128),
+                                 gui::CanvasGridSize::k8x8, 2.0f};
 
   Rom* rom_;
   absl::Status status_;

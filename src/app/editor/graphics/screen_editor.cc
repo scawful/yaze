@@ -7,17 +7,13 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "util/file_util.h"
-#include "app/core/window.h"
 #include "app/gfx/resource/arena.h"
-#include "app/gfx/render/atlas_renderer.h"
 #include "app/gfx/core/bitmap.h"
-#include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
-#include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
 #include "util/macro.h"
@@ -788,11 +784,34 @@ void ScreenEditor::DrawTitleScreenBG1Canvas() {
 
   // Handle tile painting
   if (current_mode_ == EditingMode::DRAW && selected_title_tile16_ >= 0) {
-    // TODO: Implement tile painting when user clicks on canvas
-    // This would modify the BG1 buffer and re-render the bitmap
+    if (title_bg1_canvas_.DrawTileSelector(8.0f)) {
+      if (!title_bg1_canvas_.points().empty()) {
+        auto click_pos = title_bg1_canvas_.points().front();
+        int tile_x = static_cast<int>(click_pos.x) / 8;
+        int tile_y = static_cast<int>(click_pos.y) / 8;
+        
+        if (tile_x >= 0 && tile_x < 32 && tile_y >= 0 && tile_y < 32) {
+          int tilemap_index = tile_y * 32 + tile_x;
+          
+          // Create tile word: tile_id | (palette << 10) | h_flip | v_flip
+          uint16_t tile_word = selected_title_tile16_ & 0x3FF;
+          tile_word |= (title_palette_ & 0x07) << 10;
+          if (title_h_flip_) tile_word |= 0x4000;
+          if (title_v_flip_) tile_word |= 0x8000;
+          
+          // Update buffer and re-render
+          title_screen_.mutable_bg1_buffer()[tilemap_index] = tile_word;
+          status_ = title_screen_.RenderBG1Layer();
+          if (status_.ok()) {
+            gfx::Arena::Get().QueueTextureCommand(
+                gfx::Arena::TextureCommandType::UPDATE, &bg1_bitmap);
+          }
+        }
+      }
+    }
   }
 
-  title_bg1_canvas_.DrawGrid(16.0f);
+  title_bg1_canvas_.DrawGrid(8.0f);
   title_bg1_canvas_.DrawOverlay();
 }
 
@@ -808,11 +827,34 @@ void ScreenEditor::DrawTitleScreenBG2Canvas() {
 
   // Handle tile painting
   if (current_mode_ == EditingMode::DRAW && selected_title_tile16_ >= 0) {
-    // TODO: Implement tile painting when user clicks on canvas
-    // This would modify the BG2 buffer and re-render the bitmap
+    if (title_bg2_canvas_.DrawTileSelector(8.0f)) {
+      if (!title_bg2_canvas_.points().empty()) {
+        auto click_pos = title_bg2_canvas_.points().front();
+        int tile_x = static_cast<int>(click_pos.x) / 8;
+        int tile_y = static_cast<int>(click_pos.y) / 8;
+        
+        if (tile_x >= 0 && tile_x < 32 && tile_y >= 0 && tile_y < 32) {
+          int tilemap_index = tile_y * 32 + tile_x;
+          
+          // Create tile word: tile_id | (palette << 10) | h_flip | v_flip
+          uint16_t tile_word = selected_title_tile16_ & 0x3FF;
+          tile_word |= (title_palette_ & 0x07) << 10;
+          if (title_h_flip_) tile_word |= 0x4000;
+          if (title_v_flip_) tile_word |= 0x8000;
+          
+          // Update buffer and re-render
+          title_screen_.mutable_bg2_buffer()[tilemap_index] = tile_word;
+          status_ = title_screen_.RenderBG2Layer();
+          if (status_.ok()) {
+            gfx::Arena::Get().QueueTextureCommand(
+                gfx::Arena::TextureCommandType::UPDATE, &bg2_bitmap);
+          }
+        }
+      }
+    }
   }
 
-  title_bg2_canvas_.DrawGrid(16.0f);
+  title_bg2_canvas_.DrawGrid(8.0f);
   title_bg2_canvas_.DrawOverlay();
 }
 
@@ -826,24 +868,33 @@ void ScreenEditor::DrawTitleScreenBlocksetSelector() {
     title_blockset_canvas_.DrawBitmap(tiles8_bitmap, 0, 0, 2.0f, 255);
   }
 
-  // Handle tile selection
-  if (title_blockset_canvas_.DrawTileSelector(16.0f)) {
+  // Handle tile selection (8x8 tiles)
+  if (title_blockset_canvas_.DrawTileSelector(8.0f)) {
     // Calculate selected tile ID from click position
     if (!title_blockset_canvas_.points().empty()) {
       auto click_pos = title_blockset_canvas_.points().front();
-      int tile_x = static_cast<int>(click_pos.x) / 16;
-      int tile_y = static_cast<int>(click_pos.y) / 16;
-      int tiles_per_row = 128 / 16;  // 8 tiles per row
+      int tile_x = static_cast<int>(click_pos.x) / 8;
+      int tile_y = static_cast<int>(click_pos.y) / 8;
+      int tiles_per_row = 128 / 8;  // 16 tiles per row for 8x8 tiles
       selected_title_tile16_ = tile_x + (tile_y * tiles_per_row);
     }
   }
 
-  title_blockset_canvas_.DrawGrid(16.0f);
+  title_blockset_canvas_.DrawGrid(8.0f);
   title_blockset_canvas_.DrawOverlay();
 
-  // Show selected tile preview
+  // Show selected tile preview and controls
   if (selected_title_tile16_ >= 0) {
     ImGui::Text("Selected Tile: %d", selected_title_tile16_);
+    
+    // Flip controls
+    ImGui::Checkbox("H Flip", &title_h_flip_);
+    ImGui::SameLine();
+    ImGui::Checkbox("V Flip", &title_v_flip_);
+    
+    // Palette selector (0-7 for 3BPP graphics)
+    ImGui::SetNextItemWidth(100);
+    ImGui::SliderInt("Palette", &title_palette_, 0, 7);
   }
 }
 
@@ -851,6 +902,136 @@ void ScreenEditor::DrawNamingScreenEditor() {
 }
 
 void ScreenEditor::DrawOverworldMapEditor() {
+  // Initialize overworld map on first draw
+  if (!ow_map_loaded_ && rom()->is_loaded()) {
+    status_ = ow_map_screen_.Create(rom());
+    if (!status_.ok()) {
+      ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error loading overworld map: %s",
+                         status_.message().data());
+      return;
+    }
+    ow_map_loaded_ = true;
+  }
+
+  if (!ow_map_loaded_) {
+    ImGui::Text("Overworld map not loaded. Ensure ROM is loaded.");
+    return;
+  }
+
+  // Toolbar with mode controls
+  if (ImGui::Button(ICON_MD_DRAW)) {
+    current_mode_ = EditingMode::DRAW;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_SAVE)) {
+    status_ = ow_map_screen_.Save(rom());
+    if (status_.ok()) {
+      ImGui::OpenPopup("OWSaveSuccess");
+    }
+  }
+  ImGui::SameLine();
+  
+  // World toggle
+  if (ImGui::Button(ow_show_dark_world_ ? "Dark World" : "Light World")) {
+    ow_show_dark_world_ = !ow_show_dark_world_;
+    // Re-render map with new world
+    status_ = ow_map_screen_.RenderMapLayer(ow_show_dark_world_);
+    if (status_.ok()) {
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::UPDATE, &ow_map_screen_.map_bitmap());
+    }
+  }
+  ImGui::SameLine();
+  ImGui::Text("Selected Tile: %d", selected_ow_tile_);
+
+  // Save success popup
+  if (ImGui::BeginPopup("OWSaveSuccess")) {
+    ImGui::Text("Overworld map saved successfully!");
+    ImGui::EndPopup();
+  }
+
+  // Layout: 3-column table
+  if (ImGui::BeginTable("OWMapTable", 3,
+                        ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders)) {
+    ImGui::TableSetupColumn("Map Canvas");
+    ImGui::TableSetupColumn("Tileset");
+    ImGui::TableSetupColumn("Palette");
+    ImGui::TableHeadersRow();
+
+    // Column 1: Map Canvas
+    ImGui::TableNextColumn();
+    ow_map_canvas_.DrawBackground();
+    ow_map_canvas_.DrawContextMenu();
+
+    auto& map_bitmap = ow_map_screen_.map_bitmap();
+    if (map_bitmap.is_active()) {
+      ow_map_canvas_.DrawBitmap(map_bitmap, 0, 0, 1.0f, 255);
+    }
+
+    // Handle tile painting
+    if (current_mode_ == EditingMode::DRAW && selected_ow_tile_ >= 0) {
+      if (ow_map_canvas_.DrawTileSelector(8.0f)) {
+        if (!ow_map_canvas_.points().empty()) {
+          auto click_pos = ow_map_canvas_.points().front();
+          int tile_x = static_cast<int>(click_pos.x) / 8;
+          int tile_y = static_cast<int>(click_pos.y) / 8;
+          
+          if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
+            int tile_index = tile_x + (tile_y * 64);
+            
+            // Update appropriate world's tile data
+            if (ow_show_dark_world_) {
+              ow_map_screen_.mutable_dw_tiles()[tile_index] = selected_ow_tile_;
+            } else {
+              ow_map_screen_.mutable_lw_tiles()[tile_index] = selected_ow_tile_;
+            }
+            
+            // Re-render map
+            status_ = ow_map_screen_.RenderMapLayer(ow_show_dark_world_);
+            if (status_.ok()) {
+              gfx::Arena::Get().QueueTextureCommand(
+                  gfx::Arena::TextureCommandType::UPDATE, &map_bitmap);
+            }
+          }
+        }
+      }
+    }
+
+    ow_map_canvas_.DrawGrid(8.0f);
+    ow_map_canvas_.DrawOverlay();
+
+    // Column 2: Tileset Selector
+    ImGui::TableNextColumn();
+    ow_tileset_canvas_.DrawBackground();
+    ow_tileset_canvas_.DrawContextMenu();
+
+    auto& tiles8_bitmap = ow_map_screen_.tiles8_bitmap();
+    if (tiles8_bitmap.is_active()) {
+      ow_tileset_canvas_.DrawBitmap(tiles8_bitmap, 0, 0, 2.0f, 255);
+    }
+
+    // Handle tile selection
+    if (ow_tileset_canvas_.DrawTileSelector(8.0f)) {
+      if (!ow_tileset_canvas_.points().empty()) {
+        auto click_pos = ow_tileset_canvas_.points().front();
+        int tile_x = static_cast<int>(click_pos.x) / 8;
+        int tile_y = static_cast<int>(click_pos.y) / 8;
+        selected_ow_tile_ = tile_x + (tile_y * 16);  // 16 tiles per row
+      }
+    }
+
+    ow_tileset_canvas_.DrawGrid(8.0f);
+    ow_tileset_canvas_.DrawOverlay();
+
+    // Column 3: Palette Display
+    ImGui::TableNextColumn();
+    auto& palette = ow_show_dark_world_ ? ow_map_screen_.dw_palette() 
+                                        : ow_map_screen_.lw_palette();
+    // Use inline palette editor for full 128-color palette
+    gui::InlinePaletteEditor(palette, "Overworld Map Palette");
+
+    ImGui::EndTable();
+  }
 }
 
 void ScreenEditor::DrawDungeonMapToolset() {
