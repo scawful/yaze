@@ -238,7 +238,7 @@ jobs:
           Write-Host "Using vcpkg toolchain: $vcpkgToolchain"
 
           cmake -B build -G "Ninja" `
-            -DCMAKE_BUILD_TYPE=$env:BUILD_TYPE `
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
             -DCMAKE_C_COMPILER=${{ matrix.cc }} `
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} `
             -DCMAKE_TOOLCHAIN_FILE="$vcpkgToolchain" `
