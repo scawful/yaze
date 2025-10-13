@@ -238,6 +238,7 @@ jobs:
           -DVCPKG_TARGET_TRIPLET=x64-windows-static `
           -DVCPKG_MANIFEST_MODE=ON `
           -DVCPKG_INSTALL_OPTIONS="--debug" `
+          -DOPENSSL_NO_ASM=ON `
           -DCMAKE_CXX_FLAGS="/Dgoogle_protobuf_undef_DWORD=1" `
           -DYAZE_BUILD_TESTS=ON `
           -DYAZE_BUILD_EMU=OFF `
