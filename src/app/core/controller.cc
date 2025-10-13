@@ -8,11 +8,11 @@
 #include "app/core/timing.h"
 #include "app/core/window.h"
 #include "app/editor/editor_manager.h"
-#include "app/gui/background_renderer.h"
+#include "app/gui/app/background_renderer.h"
 #include "app/gfx/resource/arena.h"                  // Add include for Arena
 #include "app/gfx/backend/sdl2_renderer.h"  // Add include for new renderer
-#include "app/gui/theme_manager.h"
-#include "app/gui/widgets/widget_id_registry.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"
 #include "imgui/imgui.h"

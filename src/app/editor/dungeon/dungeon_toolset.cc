@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <array>
 
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {

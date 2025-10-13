@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "app/gfx/core/bitmap.h"
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 #include "testing.h"
 
 namespace yaze {

@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "app/gfx/core/bitmap.h"
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 #include "zelda3/common.h"
 #include "zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"

@@ -3,7 +3,7 @@
 
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
-#include "app/gui/widgets/widget_auto_register.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/core/window.h"
 #include <cstdio>
 

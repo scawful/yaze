@@ -14,11 +14,11 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/core/service/screenshot_utils.h"
-#include "app/gui/widgets/widget_state_capture.h"
+#include "app/gui/automation/widget_state_capture.h"
 #include "app/core/features.h"
 #include "util/file_util.h"
 #include "app/gfx/resource/arena.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui.h"
 #include "imgui_internal.h"

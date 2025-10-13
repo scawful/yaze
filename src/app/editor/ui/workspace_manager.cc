@@ -1,6 +1,6 @@
 #include "app/editor/ui/workspace_manager.h"
 #include "app/editor/system/toast_manager.h"
-#include "app/gui/editor_card_manager.h"
+#include "app/gui/app/editor_card_manager.h"
 #include "app/rom.h"
 #include "absl/strings/str_format.h"
 #include "util/file_util.h"

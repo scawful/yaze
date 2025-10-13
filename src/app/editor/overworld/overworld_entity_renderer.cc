@@ -3,7 +3,7 @@
 #include "absl/strings/str_format.h"
 #include "app/core/features.h"
 #include "app/editor/overworld/entity.h"
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 #include "zelda3/common.h"
 #include "util/hex.h"
 #include "imgui/imgui.h"

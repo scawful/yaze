@@ -2,12 +2,14 @@
 #define YAZE_APP_EDITOR_ASSEMBLY_EDITOR_H
 
 #include <string>
+#include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "app/editor/editor.h"
-#include "app/gui/modules/text_editor.h"
-#include "app/gui/editor_layout.h"
-#include "app/gui/editor_card_manager.h"
-#include "app/gui/style.h"
+#include "app/gui/widgets/text_editor.h"
+#include "app/gui/app/editor_layout.h"
+#include "app/gui/app/editor_card_manager.h"
+#include "app/gui/core/style.h"
 #include "app/rom.h"
 
 namespace yaze {

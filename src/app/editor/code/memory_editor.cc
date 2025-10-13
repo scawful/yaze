@@ -1,8 +1,8 @@
 #include "app/editor/code/memory_editor.h"
 
 #include "absl/strings/str_format.h"
-#include "app/gui/icons.h"
-#include "app/gui/style.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/style.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

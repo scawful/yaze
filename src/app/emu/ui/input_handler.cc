@@ -1,7 +1,8 @@
 #include "app/emu/ui/input_handler.h"
 
-#include "SDL.h"
-#include "app/gui/icons.h"
+#include <SDL.h>
+
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

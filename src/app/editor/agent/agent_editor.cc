@@ -12,7 +12,7 @@
 #include "app/editor/agent/agent_collaboration_coordinator.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/toast_manager.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 #include "app/rom.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"

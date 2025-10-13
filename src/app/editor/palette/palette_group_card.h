@@ -11,7 +11,7 @@
 #include "absl/status/status.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/gui/editor_card_manager.h"
+#include "app/gui/app/editor_card_manager.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 

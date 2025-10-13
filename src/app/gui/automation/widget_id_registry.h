@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_GUI_WIDGETS_WIDGET_ID_REGISTRY_H_
-#define YAZE_APP_GUI_WIDGETS_WIDGET_ID_REGISTRY_H_
+#ifndef YAZE_APP_GUI_AUTOMATION_WIDGET_ID_REGISTRY_H_
+#define YAZE_APP_GUI_AUTOMATION_WIDGET_ID_REGISTRY_H_
 
 #include <cstdint>
 #include <optional>
@@ -173,4 +173,4 @@ class WidgetIdRegistry {
 }  // namespace gui
 }  // namespace yaze
 
-#endif  // YAZE_APP_GUI_WIDGETS_WIDGET_ID_REGISTRY_H_
+#endif  // YAZE_APP_GUI_AUTOMATION_WIDGET_ID_REGISTRY_H_

@@ -7,9 +7,9 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/match.h"
 #include "util/file_util.h"
-#include "app/gui/icons.h"
-#include "app/gui/ui_helpers.h"
-#include "app/gui/modules/text_editor.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/text_editor.h"
 
 namespace yaze::editor {
 

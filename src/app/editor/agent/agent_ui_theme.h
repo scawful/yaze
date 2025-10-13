@@ -2,8 +2,8 @@
 #define YAZE_APP_EDITOR_AGENT_AGENT_UI_THEME_H
 
 #include "imgui/imgui.h"
-#include "app/gui/theme_manager.h"
-#include "app/gui/color.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/core/color.h"
 
 namespace yaze {
 namespace editor {

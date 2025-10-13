@@ -1,10 +1,11 @@
 #ifndef YAZE_APP_ZELDA3_INVENTORY_H
 #define YAZE_APP_ZELDA3_INVENTORY_H
 
+#include "absl/status/status.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 #include "app/rom.h"
 
 namespace yaze {

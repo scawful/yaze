@@ -1,10 +1,10 @@
-#ifndef YAZE_APP_GUI_WIDGETS_WIDGET_AUTO_REGISTER_H_
-#define YAZE_APP_GUI_WIDGETS_WIDGET_AUTO_REGISTER_H_
+#ifndef YAZE_APP_GUI_AUTOMATION_WIDGET_AUTO_REGISTER_H_
+#define YAZE_APP_GUI_AUTOMATION_WIDGET_AUTO_REGISTER_H_
 
 #include <string>
 
 #include "imgui/imgui.h"
-#include "app/gui/widgets/widget_id_registry.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "absl/strings/str_cat.h"
 
 /**
@@ -260,5 +260,5 @@ inline void RegisterTable(const char* table_name, const std::string& description
 }  // namespace gui
 }  // namespace yaze
 
-#endif  // YAZE_APP_GUI_WIDGETS_WIDGET_AUTO_REGISTER_H_
+#endif  // YAZE_APP_GUI_AUTOMATION_WIDGET_AUTO_REGISTER_H_
 

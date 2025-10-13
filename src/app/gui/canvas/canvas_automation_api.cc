@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 
 namespace yaze {
 namespace gui {

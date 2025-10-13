@@ -3,7 +3,7 @@
 #import <CoreText/CoreText.h>
 #include <TargetConditionals.h>
 
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 
 #if TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1

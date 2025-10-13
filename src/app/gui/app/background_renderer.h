@@ -2,7 +2,11 @@
 #define YAZE_APP_EDITOR_UI_BACKGROUND_RENDERER_H
 
 #include "imgui/imgui.h"
-#include "app/gui/color.h"
+#include <memory>
+#include <vector>
+
+#include "app/gui/core/color.h"
+#include "app/rom.h"
 
 namespace yaze {
 namespace gui {

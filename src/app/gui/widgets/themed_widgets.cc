@@ -1,6 +1,6 @@
-#include "app/gui/themed_widgets.h"
+#include "app/gui/widgets/themed_widgets.h"
 
-#include "app/gui/color.h"
+#include "app/gui/core/color.h"
 #include "app/gfx/types/snes_color.h"
 
 namespace yaze {

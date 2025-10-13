@@ -1,4 +1,4 @@
-#include "app/gui/widgets/widget_measurement.h"
+#include "app/gui/automation/widget_measurement.h"
 
 #include "absl/strings/str_format.h"
 #include "imgui/imgui.h"

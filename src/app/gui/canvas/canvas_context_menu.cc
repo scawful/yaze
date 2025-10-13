@@ -3,10 +3,11 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
-#include "app/gui/widgets/palette_widget.h"
-#include "app/gui/icons.h"
-#include "app/gui/color.h"
+#include "app/gui/widgets/palette_editor_widget.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/color.h"
 #include "app/gui/canvas/canvas_modals.h"
+#include "app/gui/widgets/palette_editor_widget.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -27,7 +28,7 @@ void CanvasContextMenu::Initialize(const std::string& canvas_id) {
   canvas_id_ = canvas_id;
   enabled_ = true;
   current_usage_ = CanvasUsage::kTilePainting;
-  palette_editor_ = std::make_unique<PaletteWidget>();
+  palette_editor_ = std::make_unique<PaletteEditorWidget>();
   
   // Initialize canvas state
   canvas_size_ = ImVec2(0, 0);

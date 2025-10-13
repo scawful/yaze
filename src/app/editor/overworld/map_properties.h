@@ -5,7 +5,7 @@
 
 #include "zelda3/overworld/overworld.h"
 #include "app/rom.h"
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 
 // Forward declaration
 namespace yaze {

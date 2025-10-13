@@ -11,10 +11,10 @@
 
 #include "app/gfx/core/bitmap.h"
 #include "app/rom.h"
-#include "canvas/canvas_utils.h"
-#include "app/gui/widgets/palette_widget.h"
+#include "app/gui/canvas/canvas_utils.h"
+#include "app/gui/widgets/palette_editor_widget.h"
 #include "app/gfx/util/bpp_format_manager.h"
-#include "canvas/bpp_format_ui.h"
+#include "app/gui/canvas/bpp_format_ui.h"
 #include "app/gui/canvas/canvas_modals.h"
 #include "app/gui/canvas/canvas_context_menu.h"
 #include "app/gui/canvas/canvas_usage_tracker.h"
@@ -411,7 +411,7 @@ class Canvas {
   gfx::IRenderer* renderer_ = nullptr;
   CanvasConfig config_;
   CanvasSelection selection_;
-  std::unique_ptr<PaletteWidget> palette_editor_;
+  std::unique_ptr<PaletteEditorWidget> palette_editor_;
   
   // Automation API (lazy-initialized on first access)
   std::unique_ptr<CanvasAutomationAPI> automation_api_;

@@ -11,10 +11,11 @@
 #include "absl/strings/str_split.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
-#include "app/gui/icons.h"
-#include "app/gui/style.h"  // For ColorsYaze function
+#include "app/gui/core/icons.h"
+#include "app/gui/core/style.h"  // For ColorsYaze function
 #include "imgui/imgui.h"
 #include "util/log.h"
+#include "nlohmann/json.hpp"
 
 namespace yaze {
 namespace gui {

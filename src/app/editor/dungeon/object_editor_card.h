@@ -6,9 +6,9 @@
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/gfx/backend/irenderer.h"
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 #include "app/editor/dungeon/dungeon_object_selector.h"
-#include "app/gui/editor_layout.h"
+#include "app/gui/app/editor_layout.h"
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
 #include "app/rom.h"
 #include "zelda3/dungeon/room_object.h"

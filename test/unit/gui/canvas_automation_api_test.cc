@@ -3,7 +3,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 #include "testing.h"
 
 namespace yaze {

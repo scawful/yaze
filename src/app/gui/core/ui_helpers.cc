@@ -1,8 +1,9 @@
-#include "app/gui/ui_helpers.h"
+#include "app/gui/core/ui_helpers.h"
 
-#include "app/gui/color.h"
-#include "app/gui/icons.h"
-#include "app/gui/theme_manager.h"
+#include "absl/strings/str_format.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/color.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 

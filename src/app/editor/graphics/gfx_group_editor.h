@@ -3,7 +3,7 @@
 
 #include "absl/status/status.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 #include "app/rom.h"
 
 namespace yaze {

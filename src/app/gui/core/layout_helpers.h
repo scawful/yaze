@@ -1,8 +1,11 @@
 #ifndef YAZE_APP_GUI_LAYOUT_HELPERS_H
 #define YAZE_APP_GUI_LAYOUT_HELPERS_H
 
+#include <vector>
+
+#include "absl/strings/str_format.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
-#include "app/gui/theme_manager.h"
 
 namespace yaze {
 namespace gui {

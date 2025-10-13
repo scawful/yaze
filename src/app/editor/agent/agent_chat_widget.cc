@@ -24,7 +24,7 @@
 #include "app/editor/agent/agent_chat_history_popup.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/toast_manager.h"
-#include "app/gui/icons.h"
+#include "app/gui/core/icons.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"

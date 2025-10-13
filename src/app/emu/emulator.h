@@ -7,7 +7,7 @@
 #include "app/emu/snes.h"
 #include "app/emu/audio/audio_backend.h"
 #include "app/emu/debug/breakpoint_manager.h"
-#include "app/gui/editor_card_manager.h"
+#include "app/gui/app/editor_card_manager.h"
 #include "app/emu/debug/disassembly_viewer.h"
 #include "app/emu/input/input_manager.h"
 #include "app/rom.h"

@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_DUNGEON_OBJECT_SELECTOR_H
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_OBJECT_SELECTOR_H
 
-#include "app/gui/canvas.h"
+#include "app/gui/canvas/canvas.h"
 #include "app/rom.h"
 // object_renderer.h removed - using ObjectDrawer for production rendering
 #include "zelda3/dungeon/dungeon_object_editor.h"
