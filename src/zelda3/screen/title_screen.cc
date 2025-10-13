@@ -98,8 +98,17 @@ absl::Status TitleScreen::BuildTileset(Rom* rom) {
 }
 
 absl::Status TitleScreen::LoadTitleScreen(Rom* rom) {
-  // Title screen tilemap is stored in compressed format
-  // The tilemap data pointer is stored at ROM address 0x0137A (3 bytes)
+  // Title screen tilemap data addresses (PC format)
+  // These point to tilemap data for different screen sections
+  constexpr int kTilemapAddresses[7] = {
+      0x53de4, 0x53e2c, 0x53e08, 0x53e50, 0x53e74, 0x53e98, 0x53ebc};
+  constexpr int kTilemapGfxAddresses[7] = {
+      0x53ee0, 0x53f04, 0x53ef2, 0x53f16, 0x53f28, 0x53f3a, 0x53f4c};
+
+  // Note: The title screen uses a simpler tilemap format than dungeons
+  // For now, we'll use the compressed format loader which should work
+  // TODO: Implement proper title screen tilemap loading using the addresses above
+
   ASSIGN_OR_RETURN(uint8_t byte0, rom->ReadByte(0x137A + 3));
   ASSIGN_OR_RETURN(uint8_t byte1, rom->ReadByte(0x1383 + 3));
   ASSIGN_OR_RETURN(uint8_t byte2, rom->ReadByte(0x138C + 3));
@@ -224,10 +233,12 @@ absl::Status TitleScreen::RenderBG1Layer() {
           int dest_pos = dest_y * 256 + dest_x;  // BG1 is 256 pixels wide
 
           // Copy pixel with palette application
+          // Title screen uses 3BPP graphics (8 colors per palette)
           if (src_pos < tile8_bitmap_data.size() && dest_pos < bg1_data.size()) {
             uint8_t pixel_value = tile8_bitmap_data[src_pos];
-            // Apply palette index (each palette has 8 colors, pixel uses lower 3 bits)
-            bg1_data[dest_pos] = (pixel_value & 0x07) | (palette << 3);
+            // Apply palette index (title screen uses 8-color palettes)
+            // Mask to 3 bits for 8 colors, then apply palette offset
+            bg1_data[dest_pos] = (pixel_value & 0x07) | ((palette & 0x07) << 3);
           }
         }
       }
@@ -275,10 +286,12 @@ absl::Status TitleScreen::RenderBG2Layer() {
           int dest_pos = dest_y * 256 + dest_x;  // BG2 is 256 pixels wide
 
           // Copy pixel with palette application
+          // Title screen uses 3BPP graphics (8 colors per palette)
           if (src_pos < tile8_bitmap_data.size() && dest_pos < bg2_data.size()) {
             uint8_t pixel_value = tile8_bitmap_data[src_pos];
-            // Apply palette index (each palette has 8 colors, pixel uses lower 3 bits)
-            bg2_data[dest_pos] = (pixel_value & 0x07) | (palette << 3);
+            // Apply palette index (title screen uses 8-color palettes)
+            // Mask to 3 bits for 8 colors, then apply palette offset
+            bg2_data[dest_pos] = (pixel_value & 0x07) | ((palette & 0x07) << 3);
           }
         }
       }

@@ -71,25 +71,40 @@ absl::Status ScreenEditor::Load() {
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, &sheets_[i]);
   }
-  /**
-  int current_tile8 = 0;
-  int tile_data_offset = 0;
-  for (int i = 0; i < 4; ++i) {
-    for (int j = 0; j < 32; j++) {
-      std::vector<uint8_t> tile_data(64, 0);  // 8x8 tile (64 bytes
-      int tile_index = current_tile8 + j;
-      int x = (j % 8) * 8;
-      int y = (j / 8) * 8;
-      sheets_[i].Get8x8Tile(tile_index, x, y, tile_data, tile_data_offset);
-      tile8_individual_.emplace_back(gfx::Bitmap(8, 8, 4, tile_data));
-      tile8_individual_.back().SetPalette(*rom()->mutable_dungeon_palette(3));
-      // Queue texture creation via Arena's deferred system
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, &tile8_individual_.back());
+
+  // Create a single tilemap for tile8 graphics with on-demand texture creation
+  // Combine all 4 sheets (128x32 each) into one bitmap (128x128)
+  // This gives us 16 tiles per row × 16 rows = 256 tiles total
+  const int tile8_width = 128;
+  const int tile8_height = 128;  // 4 sheets × 32 pixels each
+  std::vector<uint8_t> tile8_data(tile8_width * tile8_height);
+  
+  // Copy data from all 4 sheets into the combined bitmap
+  for (int sheet_idx = 0; sheet_idx < 4; sheet_idx++) {
+    const auto& sheet = sheets_[sheet_idx];
+    int dest_y_offset = sheet_idx * 32;  // Each sheet is 32 pixels tall
+    
+    for (int y = 0; y < 32; y++) {
+      for (int x = 0; x < 128; x++) {
+        int src_index = y * 128 + x;
+        int dest_index = (dest_y_offset + y) * 128 + x;
+        
+        if (src_index < sheet.size() && dest_index < tile8_data.size()) {
+          tile8_data[dest_index] = sheet.data()[src_index];
+        }
+      }
     }
-    tile_data_offset = 0;
   }
-  */
+  
+  // Create tilemap with 8x8 tile size
+  tile8_tilemap_.tile_size = {8, 8};
+  tile8_tilemap_.map_size = {256, 256};  // Logical size for tile count
+  tile8_tilemap_.atlas.Create(tile8_width, tile8_height, 8, tile8_data);
+  tile8_tilemap_.atlas.SetPalette(*rom()->mutable_dungeon_palette(3));
+  
+  // Queue single texture creation for the atlas (not individual tiles)
+  gfx::Arena::Get().QueueTextureCommand(
+      gfx::Arena::TextureCommandType::CREATE, &tile8_tilemap_.atlas);
   return absl::OkStatus();
 }
 
@@ -330,9 +345,28 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
     int tile16_id = tile_ids_to_render[idx];
     ImVec2 pos = tile_positions[idx];
 
-    gfx::RenderTile16(nullptr, tile16_blockset_, tile16_id);
-    // Get tile from cache after rendering
+    // Extract tile data from the atlas directly
+    const int tiles_per_row = tile16_blockset_.atlas.width() / 16;
+    const int tile_x = (tile16_id % tiles_per_row) * 16;
+    const int tile_y = (tile16_id / tiles_per_row) * 16;
+    
+    std::vector<uint8_t> tile_data(16 * 16);
+    int tile_data_offset = 0;
+    tile16_blockset_.atlas.Get16x16Tile(tile_x, tile_y, tile_data, tile_data_offset);
+    
+    // Create or update cached tile
     auto* cached_tile = tile16_blockset_.tile_cache.GetTile(tile16_id);
+    if (!cached_tile) {
+      // Create new cached tile
+      gfx::Bitmap new_tile(16, 16, 8, tile_data);
+      new_tile.SetPalette(tile16_blockset_.atlas.palette());
+      tile16_blockset_.tile_cache.CacheTile(tile16_id, std::move(new_tile));
+      cached_tile = tile16_blockset_.tile_cache.GetTile(tile16_id);
+    } else {
+      // Update existing cached tile data
+      cached_tile->set_data(tile_data);
+    }
+    
     if (cached_tile && cached_tile->is_active()) {
       // Ensure the cached tile has a valid texture
       if (!cached_tile->texture()) {
@@ -484,14 +518,54 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
     ImGui::Separator();
     current_tile_canvas_.DrawBackground();  // ImVec2(64 * 2 + 2, 64 * 2 + 4));
     current_tile_canvas_.DrawContextMenu();
-    if (current_tile_canvas_.DrawTilePainter(tile8_individual_[selected_tile8_],
-                                             16)) {
-      // Modify the tile16 based on the selected tile and current_tile16_info
-      gfx::ModifyTile16(tile16_blockset_, rom()->graphics_buffer(),
-                        current_tile16_info[0], current_tile16_info[1],
-                        current_tile16_info[2], current_tile16_info[3], 212,
-                        selected_tile16_);
-      gfx::UpdateTile16(nullptr, tile16_blockset_, selected_tile16_);
+    
+    // Get tile8 from cache on-demand (only create texture when needed)
+    if (selected_tile8_ >= 0 && selected_tile8_ < 256) {
+      auto* cached_tile8 = tile8_tilemap_.tile_cache.GetTile(selected_tile8_);
+      
+      if (!cached_tile8) {
+        // Extract tile from atlas and cache it
+        const int tiles_per_row = tile8_tilemap_.atlas.width() / 8;  // 128 / 8 = 16
+        const int tile_x = (selected_tile8_ % tiles_per_row) * 8;
+        const int tile_y = (selected_tile8_ / tiles_per_row) * 8;
+        
+        // Extract 8x8 tile data from atlas
+        std::vector<uint8_t> tile_data(64);
+        for (int py = 0; py < 8; py++) {
+          for (int px = 0; px < 8; px++) {
+            int src_x = tile_x + px;
+            int src_y = tile_y + py;
+            int src_index = src_y * tile8_tilemap_.atlas.width() + src_x;
+            int dst_index = py * 8 + px;
+            
+            if (src_index < tile8_tilemap_.atlas.size() && dst_index < 64) {
+              tile_data[dst_index] = tile8_tilemap_.atlas.data()[src_index];
+            }
+          }
+        }
+        
+        gfx::Bitmap new_tile8(8, 8, 8, tile_data);
+        new_tile8.SetPalette(tile8_tilemap_.atlas.palette());
+        tile8_tilemap_.tile_cache.CacheTile(selected_tile8_, std::move(new_tile8));
+        cached_tile8 = tile8_tilemap_.tile_cache.GetTile(selected_tile8_);
+      }
+      
+      if (cached_tile8 && cached_tile8->is_active()) {
+        // Create texture on-demand only when needed
+        if (!cached_tile8->texture()) {
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::CREATE, cached_tile8);
+        }
+        
+        if (current_tile_canvas_.DrawTilePainter(*cached_tile8, 16)) {
+          // Modify the tile16 based on the selected tile and current_tile16_info
+          gfx::ModifyTile16(tile16_blockset_, rom()->graphics_buffer(),
+                            current_tile16_info[0], current_tile16_info[1],
+                            current_tile16_info[2], current_tile16_info[3], 212,
+                            selected_tile16_);
+          gfx::UpdateTile16(nullptr, tile16_blockset_, selected_tile16_);
+        }
+      }
     }
     // Get selected tile from cache
     auto* selected_tile = tile16_blockset_.tile_cache.GetTile(selected_tile16_);

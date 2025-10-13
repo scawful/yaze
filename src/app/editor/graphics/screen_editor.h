@@ -97,12 +97,12 @@ class ScreenEditor : public Editor {
   bool copy_button_pressed = false;
   bool paste_button_pressed = false;
 
-  std::vector<gfx::Bitmap> tile8_individual_;
   zelda3::DungeonMapLabels dungeon_map_labels_;
 
   gfx::SnesPalette palette_;
   gfx::BitmapTable sheets_;
   gfx::Tilemap tile16_blockset_;
+  gfx::Tilemap tile8_tilemap_;  // Tilemap for 8x8 tiles with on-demand caching
   std::array<gfx::TileInfo, 4> current_tile16_info;
 
   gui::Canvas current_tile_canvas_{"##CurrentTileCanvas", ImVec2(32, 32),
