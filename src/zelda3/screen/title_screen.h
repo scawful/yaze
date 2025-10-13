@@ -1,73 +1,91 @@
 #ifndef YAZE_APP_ZELDA3_SCREEN_H
 #define YAZE_APP_ZELDA3_SCREEN_H
 
+#include "absl/status/status.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gfx/render/tilemap.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/rom.h"
 
 namespace yaze {
 namespace zelda3 {
 
+/**
+ * @brief TitleScreen manages the title screen graphics and tilemap data.
+ *
+ * The title screen consists of three layers:
+ * - BG1: Main logo and graphics
+ * - BG2: Background elements
+ * - OAM: Sprite layer (sword, etc.)
+ *
+ * Each layer is stored as a 32x32 tilemap (0x400 tiles = 0x1000 bytes as words)
+ */
 class TitleScreen {
  public:
-  void Create();
+  /**
+   * @brief Initialize and load title screen data from ROM
+   * @param rom ROM instance to read data from
+   */
+  absl::Status Create(Rom* rom);
+
+  // Accessors for layer data
+  auto& bg1_buffer() { return tiles_bg1_buffer_; }
+  auto& bg2_buffer() { return tiles_bg2_buffer_; }
+  auto& oam_buffer() { return oam_data_; }
+
+  // Accessors for bitmaps
+  auto& bg1_bitmap() { return tiles_bg1_bitmap_; }
+  auto& bg2_bitmap() { return tiles_bg2_bitmap_; }
+  auto& oam_bitmap() { return oam_bg_bitmap_; }
+  auto& tiles8_bitmap() { return tiles8_bitmap_; }
+  auto& blockset() { return tile16_blockset_; }
+
+  // Palette access
+  auto& palette() { return palette_; }
+
+  // Save changes back to ROM
+  absl::Status Save(Rom* rom);
 
  private:
-  void BuildTileset();
-  void LoadTitleScreen();
+  /**
+   * @brief Build the tile16 blockset from ROM graphics
+   * @param rom ROM instance to read graphics from
+   */
+  absl::Status BuildTileset(Rom* rom);
 
-  int sword_x_ = 0;
-  int mx_click_ = 0;
-  int my_click_ = 0;
-  int mx_dist_ = 0;
-  int my_dist_ = 0;
-  int last_x_ = 0;
-  int last_y_ = 0;
-  int x_in_ = 0;
-  int y_in_ = 0;
-  int dungmap_selected_tile_ = 0;
-  int dungmap_selected_ = 0;
-  int selected_palette_ = 0;
-  int total_floors_ = 0;
-  int current_floor_ = 0;
-  int num_basement_ = 0;
-  int num_floor_ = 0;
-  int selected_map_tile = 0;
-  int current_floor_rooms;  // [1][];
-  int current_floor_gfx;    // [1][];
-  int copied_data_rooms;    // 25
-  int copied_data_gfx;      // 25
-  int pal_selected_;
-  int addresses[7] = {0x53de4, 0x53e2c, 0x53e08, 0x53e50,
-                      0x53e74, 0x53e98, 0x53ebc};
-  int addressesgfx[7] = {0x53ee0, 0x53f04, 0x53ef2, 0x53f16,
-                         0x53f28, 0x53f3a, 0x53f4c};
+  /**
+   * @brief Load title screen tilemap data from ROM
+   * @param rom ROM instance to read tilemap from
+   */
+  absl::Status LoadTitleScreen(Rom* rom);
 
-  uint16_t bossRoom = 0x000F;
-  uint16_t selected_tile = 0;
-  uint16_t tilesBG1Buffer[0x1000];  // 0x1000
-  uint16_t tilesBG2Buffer[0x1000];  // 0x1000
-  uint8_t mapdata;                  // 64 * 64
-  uint8_t dwmapdata;                // 64 * 64
+  /**
+   * @brief Render BG1 tilemap into bitmap pixels
+   * Converts tile IDs from tiles_bg1_buffer_ into pixel data
+   */
+  absl::Status RenderBG1Layer();
 
-  bool mDown = false;
-  bool swordSelected = false;
-  bool darkWorld = false;
-  bool currentDungeonChanged = false;
-  bool editedFromEditor = false;
-  bool mouseDown = false;
-  bool mdown = false;
+  /**
+   * @brief Render BG2 tilemap into bitmap pixels
+   * Converts tile IDs from tiles_bg2_buffer_ into pixel data
+   */
+  absl::Status RenderBG2Layer();
 
-  Rom rom_;
+  int pal_selected_ = 2;
 
-  gfx::OamTile oam_data[10];
-  gfx::OamTile selected_oam_tile;
-  gfx::OamTile last_selected_oam_tile;
+  std::array<uint16_t, 0x1000> tiles_bg1_buffer_;  // BG1 tilemap (32x32 tiles)
+  std::array<uint16_t, 0x1000> tiles_bg2_buffer_;  // BG2 tilemap (32x32 tiles)
 
-  gfx::Bitmap tilesBG1Bitmap;  // 0x80000
-  gfx::Bitmap tilesBG2Bitmap;  // 0x80000
-  gfx::Bitmap oamBGBitmap;     // 0x80000
-  gfx::Bitmap tiles8Bitmap;    // 0x20000
+  gfx::OamTile oam_data_[10];
+
+  gfx::Bitmap tiles_bg1_bitmap_;  // Rendered BG1 layer
+  gfx::Bitmap tiles_bg2_bitmap_;  // Rendered BG2 layer
+  gfx::Bitmap oam_bg_bitmap_;     // Rendered OAM layer
+  gfx::Bitmap tiles8_bitmap_;     // 8x8 tile graphics
+
+  gfx::Tilemap tile16_blockset_;  // 16x16 tile blockset
+  gfx::SnesPalette palette_;      // Title screen palette
 };
 
 }  // namespace zelda3

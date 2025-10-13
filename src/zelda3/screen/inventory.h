@@ -12,21 +12,51 @@ namespace yaze {
 namespace zelda3 {
 
 constexpr int kInventoryStart = 0x6564A;
-constexpr int kBowItemPos = 0x6F631;
+// ItemIcons base address in SNES format (0x0DF629)
+constexpr int kItemIconsPtr = 0x0DF629;
 
+/**
+ * @brief Represents a single item icon (2x2 tiles = 4 tile words)
+ */
+struct ItemIcon {
+  uint16_t tile_tl;  // Top-left tile word (vhopppcc cccccccc format)
+  uint16_t tile_tr;  // Top-right tile word
+  uint16_t tile_bl;  // Bottom-left tile word
+  uint16_t tile_br;  // Bottom-right tile word
+  std::string name;  // Human-readable name for debugging
+};
+
+/**
+ * @brief Inventory manages the inventory screen graphics and layout.
+ *
+ * The inventory screen consists of a 256x256 bitmap displaying equipment,
+ * items, and UI elements using 2BPP graphics and HUD palette.
+ */
 class Inventory {
  public:
-  absl::Status Create();
+  /**
+   * @brief Initialize and load inventory screen data from ROM
+   * @param rom ROM instance to read data from
+   */
+  absl::Status Create(Rom* rom);
 
   auto &bitmap() { return bitmap_; }
   auto &tilesheet() { return tilesheets_bmp_; }
   auto &palette() { return palette_; }
-
-  void LoadRom(Rom *rom) { rom_ = rom; }
-  auto rom() { return rom_; }
+  auto &item_icons() { return item_icons_; }
 
  private:
-  absl::Status BuildTileset();
+  /**
+   * @brief Build the tileset from 2BPP graphics
+   * @param rom ROM instance to read graphics from
+   */
+  absl::Status BuildTileset(Rom* rom);
+
+  /**
+   * @brief Load individual item icons from ROM
+   * @param rom ROM instance to read icon data from
+   */
+  absl::Status LoadItemIcons(Rom* rom);
 
   std::vector<uint8_t> data_;
   gfx::Bitmap bitmap_;
@@ -36,9 +66,9 @@ class Inventory {
   gfx::Bitmap tilesheets_bmp_;
   gfx::SnesPalette palette_;
 
-  Rom *rom_;
   gui::Canvas canvas_;
   std::vector<gfx::TileInfo> tiles_;
+  std::vector<ItemIcon> item_icons_;
 };
 
 }  // namespace zelda3

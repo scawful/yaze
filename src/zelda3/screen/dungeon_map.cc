@@ -6,6 +6,7 @@
 #include "util/file_util.h"
 #include "app/core/window.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/backend/irenderer.h"
@@ -131,8 +132,11 @@ absl::Status LoadDungeonMapTile16(gfx::Tilemap &tile16_blockset, Rom &rom,
   }
 
   tile16_blockset.atlas.SetPalette(*rom.mutable_dungeon_palette(3));
-  // TODO: Queue texture for later rendering.
-  // core::Renderer::Get().RenderBitmap(&tile16_blockset.atlas);
+
+  // Queue texture creation via Arena's deferred system
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &tile16_blockset.atlas);
+
   return absl::OkStatus();
 }
 
@@ -189,8 +193,10 @@ absl::Status LoadDungeonMapGfxFromBinary(Rom &rom,
                               converted_bin.begin() + ((i + 1) * 0x1000));
       sheets[i] = gfx::Bitmap(128, 32, 8, gfx_sheets[i]);
       sheets[i].SetPalette(*rom.mutable_dungeon_palette(3));
-      // TODO: Queue texture for later rendering.
-      // core::Renderer::Get().RenderBitmap(&sheets[i]);
+
+      // Queue texture creation via Arena's deferred system
+      gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                            &sheets[i]);
     }
   }
   file.close();

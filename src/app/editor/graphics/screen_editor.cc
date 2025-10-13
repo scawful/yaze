@@ -58,11 +58,19 @@ absl::Status ScreenEditor::Load() {
                    zelda3::LoadDungeonMaps(*rom(), dungeon_map_labels_));
   RETURN_IF_ERROR(zelda3::LoadDungeonMapTile16(
       tile16_blockset_, *rom(), rom()->graphics_buffer(), false));
-  // TODO: Load roomset gfx based on dungeon ID
+
+  // Load graphics sheets and apply dungeon palette
   sheets_.try_emplace(0, gfx::Arena::Get().gfx_sheets()[212]);
   sheets_.try_emplace(1, gfx::Arena::Get().gfx_sheets()[213]);
   sheets_.try_emplace(2, gfx::Arena::Get().gfx_sheets()[214]);
   sheets_.try_emplace(3, gfx::Arena::Get().gfx_sheets()[215]);
+
+  // Apply dungeon palette to all sheets
+  for (int i = 0; i < 4; i++) {
+    sheets_[i].SetPalette(*rom()->mutable_dungeon_palette(3));
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &sheets_[i]);
+  }
   /**
   int current_tile8 = 0;
   int tile_data_offset = 0;
@@ -103,24 +111,30 @@ absl::Status ScreenEditor::Update() {
   // Get visibility flags from card manager and pass to Begin()
   if (dungeon_maps_card.Begin(card_manager.GetVisibilityFlag("screen.dungeon_maps"))) {
     DrawDungeonMapsEditor();
-    dungeon_maps_card.End();
   }
+  dungeon_maps_card.End();
+
   if (inventory_menu_card.Begin(card_manager.GetVisibilityFlag("screen.inventory_menu"))) {
     DrawInventoryMenuEditor();
-    inventory_menu_card.End();
+  
   }
+  inventory_menu_card.End();
+
   if (overworld_map_card.Begin(card_manager.GetVisibilityFlag("screen.overworld_map"))) {
     DrawOverworldMapEditor();
-    overworld_map_card.End();
   }
+  overworld_map_card.End();
+
   if (title_screen_card.Begin(card_manager.GetVisibilityFlag("screen.title_screen"))) {
     DrawTitleScreenEditor();
-    title_screen_card.End();
+  
   }
+  title_screen_card.End();
+
   if (naming_screen_card.Begin(card_manager.GetVisibilityFlag("screen.naming_screen"))) {
-    DrawNamingScreenEditor();
-    naming_screen_card.End();
+    DrawNamingScreenEditor();  
   }
+  naming_screen_card.End();
 
   return status_;
 }
@@ -133,16 +147,23 @@ void ScreenEditor::DrawToolset() {
 void ScreenEditor::DrawInventoryMenuEditor() {
     static bool create = false;
     if (!create && rom()->is_loaded()) {
-      status_ = inventory_.Create();
-      palette_ = inventory_.palette();
-      create = true;
+      status_ = inventory_.Create(rom());
+      if (status_.ok()) {
+        palette_ = inventory_.palette();
+        create = true;
+      } else {
+        ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error loading inventory: %s",
+                          status_.message().data());
+        return;
+      }
     }
 
     DrawInventoryToolset();
 
-    if (ImGui::BeginTable("InventoryScreen", 3, ImGuiTableFlags_Resizable)) {
+    if (ImGui::BeginTable("InventoryScreen", 4, ImGuiTableFlags_Resizable)) {
       ImGui::TableSetupColumn("Canvas");
       ImGui::TableSetupColumn("Tilesheet");
+      ImGui::TableSetupColumn("Item Icons");
       ImGui::TableSetupColumn("Palette");
       ImGui::TableHeadersRow();
 
@@ -161,11 +182,21 @@ void ScreenEditor::DrawInventoryMenuEditor() {
       tilesheet_canvas_.DrawOverlay();
 
       ImGui::TableNextColumn();
+      DrawInventoryItemIcons();
+
+      ImGui::TableNextColumn();
       gui::DisplayPalette(palette_, create);
 
       ImGui::EndTable();
     }
     ImGui::Separator();
+
+    // TODO(scawful): Future Oracle of Secrets menu editor integration
+    // - Full inventory screen layout editor
+    // - Item slot assignment and positioning
+    // - Heart container and magic meter editor
+    // - Equipment display customization
+    // - A/B button equipment quick-select editor
 }
 
 void ScreenEditor::DrawInventoryToolset() {
@@ -211,6 +242,59 @@ void ScreenEditor::DrawInventoryToolset() {
 
     ImGui::EndTable();
   }
+}
+
+void ScreenEditor::DrawInventoryItemIcons() {
+  if (ImGui::BeginChild("##ItemIconsList", ImVec2(0, 0), true,
+                        ImGuiWindowFlags_HorizontalScrollbar)) {
+    ImGui::Text("Item Icons (2x2 tiles each)");
+    ImGui::Separator();
+
+    auto& icons = inventory_.item_icons();
+    if (icons.empty()) {
+      ImGui::TextWrapped("No item icons loaded. Icons will be loaded when the "
+                        "inventory is initialized.");
+      ImGui::EndChild();
+      return;
+    }
+
+    // Display icons in a table format
+    if (ImGui::BeginTable("##IconsTable", 2,
+                          ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+      ImGui::TableSetupColumn("Icon Name");
+      ImGui::TableSetupColumn("Tile Data");
+      ImGui::TableHeadersRow();
+
+      for (size_t i = 0; i < icons.size(); i++) {
+        const auto& icon = icons[i];
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+
+        // Display icon name with selectable row
+        if (ImGui::Selectable(icon.name.c_str(), false,
+                              ImGuiSelectableFlags_SpanAllColumns)) {
+          // TODO: Select this icon for editing
+        }
+
+        ImGui::TableNextColumn();
+        // Display tile word data in hex format
+        ImGui::Text("TL:%04X TR:%04X", icon.tile_tl, icon.tile_tr);
+        ImGui::SameLine();
+        ImGui::Text("BL:%04X BR:%04X", icon.tile_bl, icon.tile_br);
+      }
+
+      ImGui::EndTable();
+    }
+
+    ImGui::Separator();
+    ImGui::TextWrapped(
+        "NOTE: Individual icon editing will be implemented in the future "
+        "Oracle of Secrets menu editor. Each icon is composed of 4 tile words "
+        "representing a 2x2 arrangement of 8x8 tiles in SNES tile format "
+        "(vhopppcc cccccccc).");
+  }
+  ImGui::EndChild();
 }
 
 void ScreenEditor::DrawDungeonMapScreen(int i) {
@@ -559,6 +643,135 @@ void ScreenEditor::LoadBinaryGfx() {
 }
 
 void ScreenEditor::DrawTitleScreenEditor() {
+  // Initialize title screen on first draw
+  if (!title_screen_loaded_ && rom()->is_loaded()) {
+    status_ = title_screen_.Create(rom());
+    if (!status_.ok()) {
+      ImGui::TextColored(ImVec4(1, 0, 0, 1), "Error loading title screen: %s",
+                         status_.message().data());
+      return;
+    }
+    title_screen_loaded_ = true;
+  }
+
+  if (!title_screen_loaded_) {
+    ImGui::Text("Title screen not loaded. Ensure ROM is loaded.");
+    return;
+  }
+
+  // Toolbar with mode controls
+  if (ImGui::Button(ICON_MD_DRAW)) {
+    current_mode_ = EditingMode::DRAW;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_SAVE)) {
+    status_ = title_screen_.Save(rom());
+    if (status_.ok()) {
+      ImGui::OpenPopup("SaveSuccess");
+    }
+  }
+  ImGui::SameLine();
+  ImGui::Text("Selected Tile: %d", selected_title_tile16_);
+
+  // Save success popup
+  if (ImGui::BeginPopup("SaveSuccess")) {
+    ImGui::Text("Title screen saved successfully!");
+    ImGui::EndPopup();
+  }
+
+  // Layout: 3-column table for layers
+  if (ImGui::BeginTable("TitleScreenTable", 3,
+                        ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders)) {
+    ImGui::TableSetupColumn("BG1 Layer");
+    ImGui::TableSetupColumn("BG2 Layer");
+    ImGui::TableSetupColumn("Tile Selector");
+    ImGui::TableHeadersRow();
+
+    // Column 1: BG1 Canvas
+    ImGui::TableNextColumn();
+    DrawTitleScreenBG1Canvas();
+
+    // Column 2: BG2 Canvas
+    ImGui::TableNextColumn();
+    DrawTitleScreenBG2Canvas();
+
+    // Column 3: Blockset Selector
+    ImGui::TableNextColumn();
+    DrawTitleScreenBlocksetSelector();
+
+    ImGui::EndTable();
+  }
+}
+
+void ScreenEditor::DrawTitleScreenBG1Canvas() {
+  title_bg1_canvas_.DrawBackground();
+  title_bg1_canvas_.DrawContextMenu();
+
+  // Draw BG1 tilemap
+  auto& bg1_bitmap = title_screen_.bg1_bitmap();
+  if (bg1_bitmap.is_active()) {
+    title_bg1_canvas_.DrawBitmap(bg1_bitmap, 0, 0, 2.0f, 255);
+  }
+
+  // Handle tile painting
+  if (current_mode_ == EditingMode::DRAW && selected_title_tile16_ >= 0) {
+    // TODO: Implement tile painting when user clicks on canvas
+    // This would modify the BG1 buffer and re-render the bitmap
+  }
+
+  title_bg1_canvas_.DrawGrid(16.0f);
+  title_bg1_canvas_.DrawOverlay();
+}
+
+void ScreenEditor::DrawTitleScreenBG2Canvas() {
+  title_bg2_canvas_.DrawBackground();
+  title_bg2_canvas_.DrawContextMenu();
+
+  // Draw BG2 tilemap
+  auto& bg2_bitmap = title_screen_.bg2_bitmap();
+  if (bg2_bitmap.is_active()) {
+    title_bg2_canvas_.DrawBitmap(bg2_bitmap, 0, 0, 2.0f, 255);
+  }
+
+  // Handle tile painting
+  if (current_mode_ == EditingMode::DRAW && selected_title_tile16_ >= 0) {
+    // TODO: Implement tile painting when user clicks on canvas
+    // This would modify the BG2 buffer and re-render the bitmap
+  }
+
+  title_bg2_canvas_.DrawGrid(16.0f);
+  title_bg2_canvas_.DrawOverlay();
+}
+
+void ScreenEditor::DrawTitleScreenBlocksetSelector() {
+  title_blockset_canvas_.DrawBackground();
+  title_blockset_canvas_.DrawContextMenu();
+
+  // Draw tile8 bitmap (8x8 tiles used to compose tile16)
+  auto& tiles8_bitmap = title_screen_.tiles8_bitmap();
+  if (tiles8_bitmap.is_active()) {
+    title_blockset_canvas_.DrawBitmap(tiles8_bitmap, 0, 0, 2.0f, 255);
+  }
+
+  // Handle tile selection
+  if (title_blockset_canvas_.DrawTileSelector(16.0f)) {
+    // Calculate selected tile ID from click position
+    if (!title_blockset_canvas_.points().empty()) {
+      auto click_pos = title_blockset_canvas_.points().front();
+      int tile_x = static_cast<int>(click_pos.x) / 16;
+      int tile_y = static_cast<int>(click_pos.y) / 16;
+      int tiles_per_row = 128 / 16;  // 8 tiles per row
+      selected_title_tile16_ = tile_x + (tile_y * tiles_per_row);
+    }
+  }
+
+  title_blockset_canvas_.DrawGrid(16.0f);
+  title_blockset_canvas_.DrawOverlay();
+
+  // Show selected tile preview
+  if (selected_title_tile16_ >= 0) {
+    ImGui::Text("Selected Tile: %d", selected_title_tile16_);
+  }
 }
 
 void ScreenEditor::DrawNamingScreenEditor() {
