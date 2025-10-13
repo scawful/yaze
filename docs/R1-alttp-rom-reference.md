@@ -25,29 +25,88 @@ SNES uses 15-bit BGR555 color format:
 - Each channel: 0-31 (5 bits)
 - Total possible colors: 32,768
 
+**Conversion Formulas:**
+```cpp
+// From BGR555 to RGB888 (0-255 range)
+uint8_t red   = (snes_color & 0x1F) * 8;
+uint8_t green = ((snes_color >> 5) & 0x1F) * 8;
+uint8_t blue  = ((snes_color >> 10) & 0x1F) * 8;
+
+// From RGB888 to BGR555
+uint16_t snes_color = ((r / 8) & 0x1F) |
+                      (((g / 8) & 0x1F) << 5) |
+                      (((b / 8) & 0x1F) << 10);
+```
+
+#### 16-Color Row Structure
+
+The SNES organizes palettes in **rows of 16 colors**:
+- Each row starts with a **transparent color** at indices 0, 16, 32, 48, 64, etc.
+- Palettes must respect these boundaries for proper display
+- Multiple sub-palettes can share a row if they're 8 colors or less
+
 #### Palette Groups
 
 **Dungeon Palettes** (0xDD734):
 - 20 palettes × 90 colors each
+- Structure: 5 full rows (0-79) + 10 colors (80-89)
+- Transparent at: indices 0, 16, 32, 48, 64
 - Distributed as: BG1 colors, BG2 colors, sprite colors
 - Applied per-room via palette ID
 
 **Overworld Palettes**:
 - Main: 35 colors per palette (0xDE6C8)
+  - Structure: 2 full rows (0-15, 16-31) + 3 colors (32-34)
+  - Transparent at: 0, 16
 - Auxiliary: 21 colors per palette (0xDE86C)
+  - Structure: 1 full row (0-15) + 5 colors (16-20)
+  - Transparent at: 0
 - Animated: 7 colors per palette (0xDE604)
+  - Overlay palette (no transparent)
 
 **Sprite Palettes**:
-- Global sprites: 60 colors (0xDD308)
-- Auxiliary 1: 7 colors per palette (0xDD39E)
-- Auxiliary 2: 7 colors per palette (0xDD446)  
-- Auxiliary 3: 7 colors per palette (0xDD4E0)
+- Global sprites: 2 palettes of 60 colors each
+  - Light World: 0xDD218
+  - Dark World: 0xDD290
+  - Structure: 4 rows per set (0-15, 16-31, 32-47, 48-59)
+  - Transparent at: 0, 16, 32, 48
+- Auxiliary 1: 12 palettes × 7 colors (0xDD39E)
+- Auxiliary 2: 11 palettes × 7 colors (0xDD446)
+- Auxiliary 3: 24 palettes × 7 colors (0xDD4E0)
+- Note: Aux palettes store 7 colors; transparent added at runtime
 
 **Other Palettes**:
-- HUD: 32 colors per palette (0xDD218)
-- Armors: 15 colors per palette (0xDD630)
-- Swords: 3 colors per palette  
-- Shields: 4 colors per palette
+- HUD: 2 palettes × 32 colors (0xDD218)
+  - Structure: 2 full rows (0-15, 16-31)
+  - Transparent at: 0, 16
+- Armors: 5 palettes × 15 colors (0xDD630)
+  - 15 colors + transparent at runtime = full 16-color row
+- Swords: 4 palettes × 3 colors (overlay, no transparent)
+- Shields: 3 palettes × 4 colors (overlay, no transparent)
+- Grass: 3 individual hardcoded colors (LW, DW, Special)
+- 3D Objects: 2 palettes × 8 colors (Triforce, Crystal)
+- Overworld Mini Map: 2 palettes × 128 colors
+  - Structure: 8 full rows (0-127)
+  - Transparent at: 0, 16, 32, 48, 64, 80, 96, 112
+
+#### Palette Application to Graphics
+
+**8-Color Sub-Palettes:**
+- Index 0: Transparent (not rendered)
+- Indices 1-7: Visible colors
+- Each tile/sprite references a specific 8-color sub-palette
+
+**Graphics Format:**
+- 2BPP: 4 colors per tile (uses indices 0-3)
+- 3BPP: 8 colors per tile (uses indices 0-7)
+- 4BPP: 16 colors per tile (uses indices 0-15)
+
+**Rendering Process:**
+1. Load compressed graphics sheet from ROM
+2. Decompress and convert to indexed pixels (values 0-7 for 3BPP)
+3. Select appropriate palette group for room/area
+4. Map pixel indices to actual colors from palette
+5. Upload to GPU texture
 
 ## Dungeon System
 
@@ -198,5 +257,5 @@ Tile Data:
 
 ---
 
-**Last Updated**: October 9, 2025
+**Last Updated**: October 13, 2025
 

@@ -2,13 +2,13 @@
 
 **Branch:** `feature/apu-timing-fix`
 **Date:** October 10, 2025
-**Status:** ✅ Implemented - Core Timing Fixed (Minor Audio Glitches Remain)
+**Status:** Implemented - Core Timing Fixed (Minor Audio Glitches Remain)
 
 ---
 
 ## Implementation Status
 
-**✅ Completed:**
+**Completed:**
 - Atomic `Step()` function for SPC700
 - Fixed-point cycle ratio (no floating-point drift)
 - Cycle budget model in APU
@@ -17,7 +17,7 @@
 - Proper branch timing (+2 cycles when taken)
 - Dummy read/write cycles for MOV and RMW instructions
 
-**⚠️ Known Issues:**
+**Known Issues:**
 - Some audio glitches/distortion during playback
 - Minor timing inconsistencies under investigation
 - Can be improved in future iterations
@@ -243,16 +243,16 @@ while (cycles_ < target_apu_cycles) {
 
 ### What We're Adopting from LakeSnes
 
-✅ **Atomic instruction execution** - No `bstep` mechanism
-✅ **Simple addressing mode functions** - Return address, advance cycles via callbacks
-✅ **Cycle advancement per memory access** - Every read/write/idle advances cycles
+**Atomic instruction execution** - No `bstep` mechanism
+**Simple addressing mode functions** - Return address, advance cycles via callbacks
+**Cycle advancement per memory access** - Every read/write/idle advances cycles
 
 ### What We're Improving Over LakeSnes
 
-✅ **Explicit cycle counting** - `Step()` returns exact cycles consumed
-✅ **Cycle budget model** - Clear loop with explicit cycle advancement
-✅ **Fixed-point ratio** - Integer arithmetic for perfect precision
-✅ **Testability** - Easy to verify cycle counts per instruction
+**Explicit cycle counting** - `Step()` returns exact cycles consumed
+**Cycle budget model** - Clear loop with explicit cycle advancement
+**Fixed-point ratio** - Integer arithmetic for perfect precision
+**Testability** - Easy to verify cycle counts per instruction
 
 ---
 
@@ -442,16 +442,16 @@ apu_cycles = (master_cycles * kApuCyclesNumerator) / kApuCyclesDenominator;
 
 ## Implementation Completed
 
-1. ✅ Create feature branch
-2. ✅ Analyze current implementation
-3. ✅ Implement `Spc700::Step()` function
-4. ✅ Add precise cycle calculation
-5. ✅ Refactor `Apu::RunCycles`
-6. ✅ Convert to fixed-point ratio
-7. ✅ Refactor instructions.cc to be atomic and cycle-accurate
-8. ✅ Test with Zelda3 ROM
-9. ⏳ Write unit tests (future work)
-10. ⏳ Fine-tune audio quality (future work)
+1. Create feature branch
+2. Analyze current implementation
+3. Implement `Spc700::Step()` function
+4. Add precise cycle calculation
+5. Refactor `Apu::RunCycles`
+6. Convert to fixed-point ratio
+7. Refactor instructions.cc to be atomic and cycle-accurate
+8. Test with Zelda3 ROM
+9. Write unit tests (future work)
+10. Fine-tune audio quality (future work)
 
 ---
 

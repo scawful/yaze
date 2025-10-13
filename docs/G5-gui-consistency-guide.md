@@ -1,19 +1,23 @@
-# E6 - GUI Consistency and Card-Based Architecture Guide
+# G5 - GUI Consistency and Card-Based Architecture Guide
 
-This guide establishes standards for GUI consistency across all yaze editors, focusing on the modern card-based architecture, theming system, and layout patterns introduced in the Dungeon Editor v2 and Palette Editor refactorings.
+This guide establishes standards for GUI consistency across all yaze editors, focusing on the modern card-based architecture, theming system, and layout patterns.
 
 ## Table of Contents
 
 1. [Introduction](#1-introduction)
 2. [Card-Based Architecture](#2-card-based-architecture)
-3. [Toolset System](#3-toolset-system)
-4. [Themed Widget System](#4-themed-widget-system)
-5. [Begin/End Patterns](#5-beginend-patterns)
-6. [Layout Helpers](#6-layout-helpers)
-7. [Future Editor Improvements](#7-future-editor-improvements)
-8. [Migration Checklist](#8-migration-checklist)
-9. [Code Examples](#9-code-examples)
-10. [Common Pitfalls](#10-common-pitfalls)
+3. [VSCode-Style Sidebar System](#3-vscode-style-sidebar-system)
+4. [Toolset System](#4-toolset-system)
+5. [GUI Library Architecture](#5-gui-library-architecture)
+6. [Themed Widget System](#6-themed-widget-system)
+7. [Begin/End Patterns](#7-beginend-patterns)
+8. [Currently Integrated Editors](#8-currently-integrated-editors)
+9. [Layout Helpers](#9-layout-helpers)
+10. [Workspace Management](#10-workspace-management)
+11. [Future Editor Improvements](#11-future-editor-improvements)
+12. [Migration Checklist](#12-migration-checklist)
+13. [Code Examples](#13-code-examples)
+14. [Common Pitfalls](#14-common-pitfalls)
 
 ## 1. Introduction
 
@@ -107,30 +111,33 @@ void MyEditor::DrawMyCard() {
 }
 ```
 
-### Visibility Flag Synchronization
+### Centralized Visibility Pattern
 
-Critical pattern for proper card behavior:
+All editors now use the centralized visibility system where EditorCardManager owns and manages all visibility bools:
 
 ```cpp
-absl::Status MyEditor::Update() {
-  // For each card, sync visibility flags
-  if (show_my_card_ && my_card_instance_) {
-    // Ensure internal show_ flag is set
-    if (!my_card_instance_->IsVisible()) {
-      my_card_instance_->Show();
-    }
+// Registration (in Initialize()):
+card_manager.RegisterCard({
+    .card_id = "music.tracker",
+    .display_name = "Music Tracker",
+    .icon = ICON_MD_MUSIC_NOTE,
+    .category = "Music"
+});
 
-    my_card_instance_->Draw();
-
-    // Sync back if user closed with X button
-    if (!my_card_instance_->IsVisible()) {
-      show_my_card_ = false;
-    }
-  }
-
-  return absl::OkStatus();
+// Usage (in Update()):
+static gui::EditorCard card("Music Tracker", ICON_MD_MUSIC_NOTE);
+if (card.Begin(card_manager.GetVisibilityFlag("music.tracker"))) {
+    DrawContent();
+    card.End();
 }
 ```
+
+**Benefits:**
+- Single source of truth for all card visibility
+- No scattered bool members in editor classes
+- Automatic X button close functionality
+- Consistent behavior across all cards
+- Easy to query/modify from anywhere
 
 ### Reference Implementations
 
@@ -145,7 +152,45 @@ absl::Status MyEditor::Update() {
 - Proper card registration with shortcuts
 - Room cards in separate docking class
 
-## 3. Toolset System
+## 3. VSCode-Style Sidebar System
+
+### Overview
+
+The VSCode-style sidebar provides a unified interface for managing editor cards. It's a fixed 48px sidebar on the left edge with icon-based card toggles.
+
+**Key Features:**
+- Fixed position on left edge (48px width)
+- Icon-based card toggles
+- Category switcher for multi-editor sessions
+- Card browser button (Ctrl+Shift+B)
+- Collapse button (Ctrl+B)
+- Theme-aware styling
+- Recent categories stack (last 5 used)
+
+### Usage
+
+Each card-based editor simply calls:
+
+```cpp
+void MyEditor::DrawToolset() {
+  auto& card_manager = gui::EditorCardManager::Get();
+  card_manager.DrawSidebar("MyEditor");
+}
+```
+
+The sidebar automatically reads from the existing card registry - no per-editor configuration needed.
+
+### Card Browser
+
+Press `Ctrl+Shift+B` to open the card browser:
+- Search/filter cards by name
+- Category tabs
+- Visibility toggle for all cards
+- Statistics (total/visible cards)
+- Preset management
+- Batch operations (Show All, Hide All per category)
+
+## 4. Toolset System
 
 ### Overview
 
@@ -234,7 +279,69 @@ toolbar.AddV3StatusBadge(rom_->asm_version(), []() {
 4. **Provide shortcuts**: Include keyboard shortcuts in tooltips
 5. **Consistent ordering**: Toggles first, properties second, actions third
 
-## 4. Themed Widget System
+## 5. GUI Library Architecture
+
+### Modular Library Structure
+
+The yaze GUI is organized into focused, layered libraries for improved build times and maintainability:
+
+**gui_core (Foundation)**
+- Theme management, colors, styling
+- Icons, input handling, layout helpers
+- Dependencies: yaze_util, ImGui, SDL2
+
+**canvas (Core Widget)**
+- Canvas widget system
+- Canvas utilities, modals, context menus
+- Dependencies: gui_core, yaze_gfx
+
+**gui_widgets (Reusable Components)**
+- Themed widgets, palette widgets
+- Asset browser, text editor, tile selector
+- Dependencies: gui_core, yaze_gfx
+
+**gui_automation (Testing & AI)**
+- Widget ID registry, auto-registration
+- Widget state capture and measurement
+- Dependencies: gui_core
+
+**gui_app (Application-Specific UI)**
+- EditorCardManager, EditorLayout
+- Background renderer, collaboration panel
+- Dependencies: gui_core, gui_widgets, gui_automation
+
+**yaze_gui (Interface Library)**
+- Aggregates all sub-libraries
+- Single link target for executables
+
+### Theme-Aware Sizing System
+
+All UI sizing respects the theme's `compact_factor` (0.8-1.2) for global density control:
+
+```cpp
+#include "app/gui/layout_helpers.h"
+
+using gui::LayoutHelpers;
+
+// Standard widget sizing
+float widget_height = LayoutHelpers::GetStandardWidgetHeight();
+float spacing = LayoutHelpers::GetStandardSpacing();
+float toolbar_height = LayoutHelpers::GetToolbarHeight();
+
+// All sizing respects: theme.compact_factor * multiplier * ImGui::GetFontSize()
+```
+
+**Layout Helpers API:**
+- `BeginTableWithTheming()` - Tables with automatic theme colors
+- `BeginCanvasPanel() / EndCanvasPanel()` - Canvas containers
+- `BeginPaddedPanel() / EndPaddedPanel()` - Consistent padding
+- `InputHexRow()` - Labeled hex inputs
+- `BeginPropertyGrid() / EndPropertyGrid()` - 2-column property tables
+- `PropertyRow()` - Label + widget in table row
+- `SectionHeader()` - Colored section headers
+- `HelpMarker()` - Tooltip help icons
+
+## 6. Themed Widget System
 
 ### Philosophy
 
@@ -254,7 +361,7 @@ All theme-aware widgets are prefixed with `Themed*`:
 ### Usage Examples
 
 ```cpp
-#include "app/gui/themed_widgets.h"
+#include "app/gui/core/themed_widgets.h"
 
 using gui::ThemedButton;
 using gui::ThemedIconButton;
@@ -336,7 +443,31 @@ ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_color);
 ImGui::TextColored(theme.status_error, "Error!");
 ```
 
-## 5. Begin/End Patterns
+### WhichKey Command System
+
+Spacemacs-style hierarchical command navigation:
+
+```cpp
+// Press Space → Shows root menu with colored categories
+// Press category key (e.g., w) → Shows window submenu
+// Press command key → Executes command and closes
+// Press ESC → Go back or close
+```
+
+**Features:**
+- Fixed bottom bar (150px height)
+- Color-coded categories
+- Breadcrumb navigation ("Space > w")
+- Auto-close after 5 seconds of inactivity
+
+**Integration:**
+```cpp
+command_manager_.RegisterPrefix("w", 'w', "Window", "Window management");
+command_manager_.RegisterSubcommand("w", "w.s", 's', "Show All", "Show all windows",
+    [this]() { workspace_manager_.ShowAllWindows(); });
+```
+
+## 7. Begin/End Patterns
 
 ### Philosophy
 
@@ -451,7 +582,29 @@ struct ScopedCard {
 };
 ```
 
-## 6. Layout Helpers
+## 8. Currently Integrated Editors
+
+The card system is integrated across 11 of 13 editors:
+
+| Editor | Cards | Status |
+|--------|-------|--------|
+| **DungeonEditorV2** | Room selector, canvas, object selector, object editor, entrance editor, tile painter, sprite placer | Complete |
+| **PaletteEditor** | Group editor, animation editor, color picker | Complete |
+| **GraphicsEditor** | Sheet editor, browser, player animations, prototype viewer | Complete |
+| **ScreenEditor** | Dungeon maps, inventory, overworld map, title screen, naming screen | Complete |
+| **SpriteEditor** | Vanilla sprites, custom sprites | Complete |
+| **OverworldEditor** | Canvas, tile16/tile8 selectors, area graphics, scratch workspace, GFX groups, usage stats, properties, exits, items, sprites, settings | Complete |
+| **MessageEditor** | Message list, editor, font atlas, dictionary | Complete |
+| **HexEditor** | Hex editor with comparison | Complete |
+| **AssemblyEditor** | Assembly editor, file browser | Complete |
+| **MusicEditor** | Music tracker, instrument editor, assembly view | Complete |
+| **Emulator** | CPU debugger, PPU viewer, memory viewer, breakpoints, performance, AI agent, save states, keyboard config, APU debugger, audio mixer | Complete |
+
+**Not Yet Ported:**
+- **SettingsEditor** - Monolithic settings window, low usage frequency
+- **AgentEditor** - Complex AI agent UI, under active development
+
+## 9. Layout Helpers
 
 ### Overview
 
@@ -460,7 +613,7 @@ struct ScopedCard {
 ### Standard Input Widths
 
 ```cpp
-#include "app/gui/layout_helpers.h"
+#include "app/gui/core/layout_helpers.h"
 
 using gui::LayoutHelpers;
 
@@ -538,149 +691,50 @@ if (ImGui::BeginTable("##Grid", 2, ImGuiTableFlags_SizingStretchSame)) {
 }
 ```
 
-## 7. Future Editor Improvements
+## 10. Workspace Management
 
-This section outlines specific improvements needed for each editor to achieve GUI consistency.
+The workspace manager provides comprehensive window and layout operations:
 
-### Graphics Editor
+**Window Management:**
+- `ShowAllWindows() / HideAllWindows()` - via EditorCardManager
+- `MaximizeCurrentWindow()` - Dock to central node
+- `RestoreAllWindows()` - Reset window sizes
+- `CloseAllFloatingWindows()` - Close undocked windows
 
-**Current State:** Tab-based UI with multiple editing modes mixed together
+**Window Navigation:**
+- `FocusNextWindow() / FocusPreviousWindow()` - Window cycling
+- `SplitWindowHorizontal() / SplitWindowVertical()` - Split current window
+- `CloseCurrentWindow()` - Close focused window
 
-**Needed Improvements:**
-1. Remove tab-based UI
-2. Create independent cards:
-   - `GraphicsSheetCard` - Sheet selection and editing
-   - `TitleScreenCard` - Title screen graphics editor
-   - `PaletteEditCard` - Integrated palette editing
-   - `SheetPropertiesCard` - Sheet metadata and properties
-3. Register all cards with `EditorCardManager`
-4. Add `Toolset` for mode switching (Draw/Erase/Select)
-5. Implement keyboard shortcuts:
-   - `Ctrl+Shift+G` - Graphics Control Panel
-   - `Ctrl+Alt+1` - Graphics Sheets
-   - `Ctrl+Alt+2` - Title Screen
-   - `Ctrl+Alt+3` - Palette Editor
-   - `Ctrl+Alt+4` - Sheet Properties
-
-**Migration Steps:**
+**Command Integration:**
 ```cpp
-// 1. Add visibility flags
-bool show_control_panel_ = true;
-bool show_graphics_sheets_ = false;
-bool show_title_screen_ = false;
-bool show_palette_editor_ = false;
-
-// 2. Register in Initialize()
-void GraphicsEditor::Initialize() {
-  auto& card_manager = gui::EditorCardManager::Get();
-
-  card_manager.RegisterCard({
-      .card_id = "graphics.control_panel",
-      .display_name = "Graphics Controls",
-      .icon = ICON_MD_IMAGE,
-      .category = "Graphics",
-      .shortcut_hint = "Ctrl+Shift+G",
-      .visibility_flag = &show_control_panel_,
-      .priority = 10
-  });
-  // Register other cards...
-}
-
-// 3. Create card classes
-class GraphicsSheetCard {
-public:
-  void Draw();
-  // ...
-};
-
-// 4. Update Update() method to draw cards
-absl::Status GraphicsEditor::Update() {
-  if (show_control_panel_) {
-    DrawControlPanel();
-  }
-
-  if (show_graphics_sheets_) {
-    DrawGraphicsSheetsCard();
-  }
-  // Draw other cards...
-
-  return absl::OkStatus();
-}
+workspace_manager_.ExecuteWorkspaceCommand(command_id);
+// Supports: w.s (show all), w.h (hide all), l.s (save layout), etc.
 ```
 
-### Sprite Editor
+## 11. Future Editor Improvements
 
-**Current State:** Mixed UI with embedded viewers
+This section outlines remaining improvements for editors not yet fully integrated.
 
-**Needed Improvements:**
-1. Convert to card-based architecture
-2. Create independent cards:
-   - `SpriteListCard` - Searchable sprite list
-   - `SpritePropertiesCard` - Sprite properties editor
-   - `SpritePreviewCard` - Visual sprite preview
-   - `SpriteAnimationCard` - Animation frame editor
-3. Add `Toolset` with sprite type filters
-4. Implement keyboard shortcuts:
-   - `Ctrl+Shift+S` - Sprite Control Panel
-   - `Ctrl+Alt+1` - Sprite List
-   - `Ctrl+Alt+2` - Sprite Properties
-   - `Ctrl+Alt+3` - Preview Window
-   - `Ctrl+Alt+4` - Animation Editor
+### SettingsEditor
 
-### Message Editor
+**Current State:** Monolithic settings window
 
-**Current State:** Partially card-based, needs consistency
+**Potential Improvements:**
+1. Split into categorized cards
+2. Register with EditorCardManager
+3. Add search/filter functionality
 
-**Needed Improvements:**
-1. Unify existing cards with `EditorCardManager`
-2. Ensure all cards follow Begin/End pattern
-3. Add keyboard shortcuts:
-   - `Ctrl+Shift+M` - Message Control Panel
-   - `Ctrl+Alt+1` - Message List
-   - `Ctrl+Alt+2` - Message Editor
-   - `Ctrl+Alt+3` - Font Preview
-4. Replace any hardcoded colors with `Themed*` widgets
-5. Add `Toolset` for quick message navigation
+### AgentEditor
 
-### Music Editor
+**Current State:** Complex AI agent UI, under active development
 
-**Current State:** Tracker-based UI, needs modernization
+**Potential Improvements:**
+1. Consider card-based refactoring when stable
+2. Integrate with EditorCardManager
+3. Add keyboard shortcuts for common operations
 
-**Needed Improvements:**
-1. Extract tracker into `TrackerCard`
-2. Create additional cards:
-   - `InstrumentCard` - Instrument editor
-   - `SequenceCard` - Sequence/pattern editor
-   - `PlaybackCard` - Playback controls and mixer
-3. Add `Toolset` for playback controls
-4. Implement keyboard shortcuts:
-   - `Ctrl+Shift+U` - Music Control Panel (U for mUsic)
-   - `Ctrl+Alt+1` - Tracker
-   - `Ctrl+Alt+2` - Instruments
-   - `Ctrl+Alt+3` - Sequences
-   - `Ctrl+Alt+4` - Playback
-
-### Overworld Editor
-
-**Current State:** Good modular structure, minor improvements needed
-
-**Needed Improvements:**
-1. Verify all property panels use `Themed*` widgets
-2. Ensure `Toolset` consistency (already has good implementation)
-3. Document existing keyboard shortcuts in EditorCardManager
-4. Add minimize-to-icon for control panel
-5. Consider extracting large panels into separate cards:
-   - `MapPropertiesCard` - Currently inline, could be card
-   - `TileEditCard` - Tile16 editor as independent card
-
-**Verification Checklist:**
-- [x] Uses `Toolset` - Yes
-- [ ] All cards registered with `EditorCardManager` - Needs verification
-- [ ] No hardcoded colors - Needs audit
-- [x] Modular entity renderer - Yes
-- [x] Callback-based communication - Yes
-
-## 8. Migration Checklist
+## 12. Migration Checklist
 
 Use this checklist when converting an editor to the card-based architecture:
 
@@ -757,7 +811,7 @@ Use this checklist when converting an editor to the card-based architecture:
 - [ ] Add example to this guide if pattern is novel
 - [ ] Update CLAUDE.md if editor behavior changed significantly
 
-## 9. Code Examples
+## 13. Code Examples
 
 ### Complete Editor Implementation
 
@@ -815,10 +869,10 @@ class MyEditor : public Editor {
 // my_editor.cc
 #include "my_editor.h"
 
-#include "app/gui/editor_card_manager.h"
-#include "app/gui/editor_layout.h"
-#include "app/gui/icons.h"
-#include "app/gui/themed_widgets.h"
+#include "app/gui/app/editor_card_manager.h"
+#include "app/gui/app/editor_layout.h"
+#include "app/gui/core/icons.h"
+#include "app/gui/core/themed_widgets.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -1039,7 +1093,7 @@ void MyEditor::DrawPropertiesCard() {
 }  // namespace yaze
 ```
 
-## 10. Common Pitfalls
+## 14. Common Pitfalls
 
 ### 1. Forgetting Bidirectional Visibility Sync
 
@@ -1272,3 +1326,7 @@ When adding new editors or refactoring existing ones, refer to:
 3. **This Guide** - Comprehensive reference for all patterns
 
 For questions or suggestions about GUI consistency, please open an issue on GitHub or discuss in the development chat.
+
+---
+
+**Last Updated**: October 13, 2025
