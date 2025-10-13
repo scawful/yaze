@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <sstream>
 
-#include "app/gfx/bpp_format_manager.h"
-#include "app/gfx/bitmap.h"
+#include "app/gfx/util/bpp_format_manager.h"
+#include "app/gfx/core/bitmap.h"
 #include "app/gui/ui_helpers.h"
 #include "imgui/imgui.h"
 

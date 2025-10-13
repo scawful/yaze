@@ -2,9 +2,9 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "app/gfx/palette_manager.h"
-#include "app/gfx/performance/performance_profiler.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/util/palette_manager.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/color.h"
 #include "app/gui/editor_card_manager.h"
 #include "app/gui/editor_layout.h"

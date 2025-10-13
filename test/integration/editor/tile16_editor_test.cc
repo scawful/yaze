@@ -6,10 +6,10 @@
 
 #include <gtest/gtest.h>
 #include "app/rom.h"
-#include "app/gfx/arena.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/backend/sdl2_renderer.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/tilemap.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/render/tilemap.h"
 #include "zelda3/overworld/overworld.h"
 #include "app/core/window.h"
 

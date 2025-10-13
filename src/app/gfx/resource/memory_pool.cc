@@ -1,4 +1,4 @@
-#include "app/gfx/memory_pool.h"
+#include "app/gfx/resource/memory_pool.h"
 
 #include <algorithm>
 #include <cstdlib>

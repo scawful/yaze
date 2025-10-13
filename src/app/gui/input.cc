@@ -5,7 +5,7 @@
 #include <variant>
 
 #include "absl/strings/string_view.h"
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/types/snes_tile.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "imgui_memory_editor.h"

@@ -16,8 +16,8 @@
 #include <chrono>
 
 #include "app/rom.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gfx/background_buffer.h"
+#include "app/gfx/types/snes_palette.h"
+#include "app/gfx/render/background_buffer.h"
 #include "testing.h"
 #include "test_utils.h"
 

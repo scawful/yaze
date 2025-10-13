@@ -2,7 +2,7 @@
 #define YAZE_APP_EDITOR_GFX_GROUP_EDITOR_H
 
 #include "absl/status/status.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 

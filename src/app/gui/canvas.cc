@@ -2,9 +2,9 @@
 
 #include <cmath>
 #include <string>
-#include "app/gfx/bpp_format_manager.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/performance/performance_profiler.h"
+#include "app/gfx/util/bpp_format_manager.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gui/style.h"
 #include "canvas/canvas_utils.h"
 #include "canvas/canvas_automation_api.h"

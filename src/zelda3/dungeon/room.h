@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "app/rom.h"
-#include "app/gfx/background_buffer.h"
+#include "app/gfx/render/background_buffer.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/room_layout.h"

@@ -5,7 +5,7 @@
 #include <string>
 
 #include "absl/status/status.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/types/snes_palette.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

@@ -8,7 +8,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "util/sdl_deleter.h"
-#include "app/gfx/bitmap.h"
+#include "app/gfx/core/bitmap.h"
 #include "app/gfx/backend/irenderer.h"
 
 namespace yaze {

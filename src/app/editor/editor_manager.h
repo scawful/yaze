@@ -38,7 +38,7 @@
 #include "app/editor/ui/editor_selection_dialog.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/emu/emulator.h"
-#include "app/gfx/performance/performance_dashboard.h"
+#include "app/gfx/debug/performance/performance_dashboard.h"
 #include "app/rom.h"
 #include "yaze_config.h"
 

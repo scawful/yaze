@@ -2,8 +2,8 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "app/gfx/arena.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/color.h"
 #include "app/gui/input.h"

@@ -4,9 +4,9 @@
 #include <string>
 #include <functional>
 #include <utility>
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
-#include "app/gfx/bpp_format_manager.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_palette.h"
+#include "app/gfx/util/bpp_format_manager.h"
 #include "app/gui/canvas/canvas_utils.h"
 #include "imgui/imgui.h"
 

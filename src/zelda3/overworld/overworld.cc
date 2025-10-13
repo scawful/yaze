@@ -10,9 +10,9 @@
 
 #include "absl/status/status.h"
 #include "app/core/features.h"
-#include "app/gfx/performance/performance_profiler.h"
-#include "app/gfx/compression.h"
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/util/compression.h"
+#include "app/gfx/types/snes_tile.h"
 #include "app/rom.h"
 #include "app/snes.h"
 #include "zelda3/overworld/overworld_entrance.h"

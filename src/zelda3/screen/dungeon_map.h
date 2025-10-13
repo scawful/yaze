@@ -5,8 +5,8 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/tilemap.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/render/tilemap.h"
 #include "app/rom.h"
 
 namespace yaze::zelda3 {

@@ -7,7 +7,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/rom.h"
 #include "dungeon_room_selector.h"
 #include "dungeon_canvas_viewer.h"

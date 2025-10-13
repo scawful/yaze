@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "util/sdl_deleter.h"
-#include "app/gfx/background_buffer.h"
-#include "app/gfx/bitmap.h"
+#include "app/gfx/render/background_buffer.h"
+#include "app/gfx/core/bitmap.h"
 
 namespace yaze {
 namespace gfx {

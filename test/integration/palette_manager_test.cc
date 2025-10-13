@@ -1,9 +1,9 @@
-#include "app/gfx/palette_manager.h"
+#include "app/gfx/util/palette_manager.h"
 
 #include <gtest/gtest.h>
 
-#include "app/gfx/snes_color.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/types/snes_color.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/rom.h"
 
 namespace yaze {

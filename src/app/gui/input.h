@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "absl/strings/string_view.h"
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/types/snes_tile.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

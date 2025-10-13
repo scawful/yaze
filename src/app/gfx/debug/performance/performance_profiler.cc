@@ -1,4 +1,4 @@
-#include "app/gfx/performance/performance_profiler.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
 
 #include <algorithm>
 #include <iomanip>
@@ -6,7 +6,7 @@
 #include <numeric>
 #include <sstream>
 
-#include "app/gfx/memory_pool.h"
+#include "app/gfx/resource/memory_pool.h"
 #include "util/log.h"
 
 namespace yaze {

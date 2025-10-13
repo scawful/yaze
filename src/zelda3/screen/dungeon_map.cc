@@ -5,9 +5,9 @@
 
 #include "util/file_util.h"
 #include "app/core/window.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_tile.h"
-#include "app/gfx/tilemap.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_tile.h"
+#include "app/gfx/render/tilemap.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/snes.h"
 #include "util/hex.h"

@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "absl/strings/str_cat.h"
-#include "app/gfx/arena.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/rom.h"
 #include "app/snes.h"
 #include "zelda3/dungeon/object_drawer.h"

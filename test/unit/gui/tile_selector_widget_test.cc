@@ -3,7 +3,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "app/gfx/bitmap.h"
+#include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas.h"
 #include "testing.h"
 

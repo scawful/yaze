@@ -6,9 +6,9 @@
 #include <memory>
 #include <chrono>
 
-#include "app/gfx/performance/performance_profiler.h"
-#include "app/gfx/memory_pool.h"
-#include "app/gfx/atlas_renderer.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/resource/memory_pool.h"
+#include "app/gfx/render/atlas_renderer.h"
 
 namespace yaze {
 namespace gfx {

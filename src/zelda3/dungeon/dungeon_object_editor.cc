@@ -6,8 +6,8 @@
 
 #include "absl/strings/str_format.h"
 #include "app/core/window.h"
-#include "app/gfx/arena.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_palette.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

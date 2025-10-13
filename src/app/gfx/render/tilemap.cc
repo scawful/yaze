@@ -1,12 +1,12 @@
-#include "app/gfx/tilemap.h"
+#include "app/gfx/render/tilemap.h"
 
 #include <vector>
 
-#include "app/gfx/arena.h"
-#include "app/gfx/atlas_renderer.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/performance/performance_profiler.h"
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/render/atlas_renderer.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/types/snes_tile.h"
 
 namespace yaze {
 namespace gfx {

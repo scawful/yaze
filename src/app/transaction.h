@@ -13,7 +13,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/gfx/snes_color.h"
+#include "app/gfx/types/snes_color.h"
 #include "app/rom.h"
 
 namespace yaze {

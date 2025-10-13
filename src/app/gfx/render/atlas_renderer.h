@@ -6,9 +6,9 @@
 #include <unordered_map>
 #include <memory>
 
-#include "app/gfx/bitmap.h"
-#include "app/gfx/performance/performance_profiler.h"
-#include "app/gfx/bpp_format_manager.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/util/bpp_format_manager.h"
 
 namespace yaze {
 namespace gfx {

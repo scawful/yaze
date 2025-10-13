@@ -4,7 +4,7 @@
 #include <functional>
 #include <vector>
 
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 

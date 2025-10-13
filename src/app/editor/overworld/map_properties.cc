@@ -1,6 +1,6 @@
 #include "app/editor/overworld/map_properties.h"
 
-#include "app/gfx/performance/performance_profiler.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/gui/canvas.h"

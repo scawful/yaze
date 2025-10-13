@@ -1,10 +1,10 @@
 #include "sprite_editor.h"
 
-#include "app/gfx/performance/performance_profiler.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gui/ui_helpers.h"
 #include "util/file_util.h"
 #include "app/editor/sprite/zsprite.h"
-#include "app/gfx/arena.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "zelda3/sprite/sprite.h"

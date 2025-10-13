@@ -6,9 +6,9 @@
 #include <functional>
 
 #include "absl/status/status.h"
-#include "app/gfx/background_buffer.h"
-#include "app/gfx/snes_tile.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/render/background_buffer.h"
+#include "app/gfx/types/snes_tile.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/rom.h"
 #include "zelda3/dungeon/room_object.h"
 

@@ -40,6 +40,9 @@ class FeatureFlags {
     // Enable performance monitoring and timing.
     bool kEnablePerformanceMonitoring = true;
 
+    // Enable the new tiered graphics architecture.
+    bool kEnableTieredGfxArchitecture = true;
+
     // Use NFD (Native File Dialog) instead of bespoke file dialog implementation.
 #if defined(YAZE_ENABLE_NFD) && YAZE_ENABLE_NFD
     bool kUseNativeFileDialog = true;
@@ -111,6 +114,8 @@ class FeatureFlags {
               std::to_string(get().overworld.kApplyZSCustomOverworldASM) + "\n";
     result += "kUseNativeFileDialog: " +
               std::to_string(get().kUseNativeFileDialog) + "\n";
+    result += "kEnableTieredGfxArchitecture: " +
+              std::to_string(get().kEnableTieredGfxArchitecture) + "\n";
     return result;
   }
 };

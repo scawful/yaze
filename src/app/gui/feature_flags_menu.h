@@ -59,6 +59,8 @@ struct FlagsMenu {
     Checkbox("Enable Console Logging", &core::FeatureFlags::get().kLogToConsole);
     Checkbox("Enable Performance Monitoring",
              &core::FeatureFlags::get().kEnablePerformanceMonitoring);
+    Checkbox("Enable Tiered GFX Architecture",
+             &core::FeatureFlags::get().kEnableTieredGfxArchitecture);
     // REMOVED: "Log Instructions" - DisassemblyViewer is always active
     // Use the viewer's UI controls to enable/disable recording if needed
     Checkbox("Use Native File Dialog (NFD)",

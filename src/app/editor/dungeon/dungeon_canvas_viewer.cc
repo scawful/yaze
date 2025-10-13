@@ -1,8 +1,8 @@
 #include "dungeon_canvas_viewer.h"
 
 #include "absl/strings/str_format.h"
-#include "app/gfx/arena.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
 #include "zelda3/dungeon/room.h"

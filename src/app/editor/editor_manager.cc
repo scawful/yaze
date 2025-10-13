@@ -28,8 +28,8 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/ui/editor_selection_dialog.h"
 #include "app/emu/emulator.h"
-#include "app/gfx/arena.h"
-#include "app/gfx/performance/performance_profiler.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gui/background_renderer.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
@@ -51,7 +51,7 @@
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/emu/emulator.h"
-#include "app/gfx/performance/performance_dashboard.h"
+#include "app/gfx/debug/performance/performance_dashboard.h"
 #include "app/editor/editor.h"
 
 #ifdef YAZE_WITH_GRPC

@@ -4,8 +4,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_tile.h"
 
 namespace yaze {
 namespace gfx {
