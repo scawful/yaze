@@ -14,6 +14,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gui/canvas.h"
 #include "app/gui/style.h"
+#include "app/gui/icons.h"
 #include "app/rom.h"
 #include "app/gui/input.h"
 #include "imgui.h"
@@ -61,7 +62,7 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
                                                ImGuiTableFlags_Resizable;
 
 void MessageEditor::Initialize() {
-  // Register cards with EditorCardManager
+  // Register cards with EditorCardManager (using centralized visibility)
   auto& card_manager = gui::EditorCardManager::Get();
   
   card_manager.RegisterCard({
@@ -69,7 +70,6 @@ void MessageEditor::Initialize() {
       .display_name = "Message List",
       .icon = ICON_MD_LIST,
       .category = "Message",
-      .visibility_flag = &show_message_list_,
       .priority = 10
   });
   
@@ -78,7 +78,6 @@ void MessageEditor::Initialize() {
       .display_name = "Message Editor",
       .icon = ICON_MD_EDIT,
       .category = "Message",
-      .visibility_flag = &show_message_editor_,
       .priority = 20
   });
   
@@ -87,7 +86,6 @@ void MessageEditor::Initialize() {
       .display_name = "Font Atlas",
       .icon = ICON_MD_FONT_DOWNLOAD,
       .category = "Message",
-      .visibility_flag = &show_font_atlas_,
       .priority = 30
   });
   
@@ -96,9 +94,11 @@ void MessageEditor::Initialize() {
       .display_name = "Dictionary",
       .icon = ICON_MD_BOOK,
       .category = "Message",
-      .visibility_flag = &show_dictionary_,
       .priority = 40
   });
+  
+  // Show message list by default
+  card_manager.ShowCard("message.message_list");
   
   for (int i = 0; i < kWidthArraySize; i++) {
     message_preview_.width_array[i] = rom()->data()[kCharactersWidth + i];
@@ -143,30 +143,51 @@ absl::Status MessageEditor::Load() {
 }
 
 absl::Status MessageEditor::Update() {
-  if (BeginTable("##MessageEditor", 4, kMessageTableFlags)) {
-    TableSetupColumn("List");
-    TableSetupColumn("Contents");
-    TableSetupColumn("Font Atlas");
-    TableSetupColumn("Commands");
-    TableHeadersRow();
-
-    TableNextColumn();
-    DrawMessageList();
-
-    TableNextColumn();
-    DrawCurrentMessage();
-
-    TableNextColumn();
-    DrawFontAtlas();
-    DrawExpandedMessageSettings();
-
-    TableNextColumn();
-    DrawTextCommands();
-    DrawSpecialCharacters();
-    DrawDictionary();
-
-    EndTable();
+  auto& card_manager = gui::EditorCardManager::Get();
+  
+  // Message List Card
+  if (card_manager.IsCardVisible("message.message_list")) {
+    static gui::EditorCard list_card("Message List", ICON_MD_LIST);
+    list_card.SetDefaultSize(400, 600);
+    if (list_card.Begin()) {
+      DrawMessageList();
+      list_card.End();
+    }
   }
+  
+  // Message Editor Card
+  if (card_manager.IsCardVisible("message.message_editor")) {
+    static gui::EditorCard editor_card("Message Editor", ICON_MD_EDIT);
+    editor_card.SetDefaultSize(500, 600);
+    if (editor_card.Begin()) {
+      DrawCurrentMessage();
+      editor_card.End();
+    }
+  }
+  
+  // Font Atlas Card
+  if (card_manager.IsCardVisible("message.font_atlas")) {
+    static gui::EditorCard font_card("Font Atlas", ICON_MD_FONT_DOWNLOAD);
+    font_card.SetDefaultSize(400, 500);
+    if (font_card.Begin()) {
+      DrawFontAtlas();
+      DrawExpandedMessageSettings();
+      font_card.End();
+    }
+  }
+  
+  // Dictionary Card
+  if (card_manager.IsCardVisible("message.dictionary")) {
+    static gui::EditorCard dict_card("Dictionary", ICON_MD_BOOK);
+    dict_card.SetDefaultSize(400, 500);
+    if (dict_card.Begin()) {
+      DrawTextCommands();
+      DrawSpecialCharacters();
+      DrawDictionary();
+      dict_card.End();
+    }
+  }
+  
   return absl::OkStatus();
 }
 

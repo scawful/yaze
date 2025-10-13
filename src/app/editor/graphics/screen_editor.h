@@ -78,14 +78,6 @@ class ScreenEditor : public Editor {
 
   EditingMode current_mode_ = EditingMode::DRAW;
 
-  // Card visibility - ALL FALSE by default to prevent crash on ROM load
-  // Cards only shown when user explicitly opens them via View menu or shortcuts
-  bool show_dungeon_maps_ = false;
-  bool show_inventory_menu_ = false;
-  bool show_overworld_map_ = false;
-  bool show_title_screen_ = false;
-  bool show_naming_screen_ = false;
-
   bool binary_gfx_loaded_ = false;
 
   uint8_t selected_room = 0;

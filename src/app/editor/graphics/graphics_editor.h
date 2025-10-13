@@ -107,7 +107,6 @@ class GraphicsEditor : public Editor {
   absl::Status DrawTilemapImport();
 
   // Other Functions
-  void DrawToolset();
   absl::Status DrawPaletteControls();
   absl::Status DrawClipboardImport();
   absl::Status DrawExperimentalFeatures();
@@ -117,12 +116,7 @@ class GraphicsEditor : public Editor {
   absl::Status DecompressSuperDonkey();
 
   // Member Variables
-  // Card visibility - ALL FALSE by default to prevent crash on ROM load
-  // Cards only shown when user explicitly opens them via View menu or shortcuts
-  bool show_sheet_editor_ = false;
-  bool show_sheet_browser_ = false;
-  bool show_player_animations_ = false;
-  bool show_prototype_viewer_ = false;
+  // Card visibility managed by EditorCardManager
 
   ImVec4 current_color_;
   uint16_t current_sheet_ = 0;

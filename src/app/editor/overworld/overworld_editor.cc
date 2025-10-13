@@ -51,6 +51,17 @@ void OverworldEditor::Initialize() {
   // Register cards with EditorCardManager
   auto& card_manager = gui::EditorCardManager::Get();
   
+  // Register Overworld Canvas (main canvas card with toolset)
+  card_manager.RegisterCard({
+      .card_id = "overworld.canvas",
+      .display_name = "Overworld Canvas",
+      .icon = ICON_MD_MAP,
+      .category = "Overworld",
+      .shortcut_hint = "Ctrl+Shift+O",
+      .visibility_flag = &show_overworld_canvas_,
+      .priority = 5  // Show first, most important
+  });
+  
   card_manager.RegisterCard({
       .card_id = "overworld.tile16_selector",
       .display_name = "Tile16 Selector",
@@ -193,11 +204,8 @@ absl::Status OverworldEditor::Update() {
     return status_;
   }
 
-  // Modern layout - no tabs, just toolbar + canvas + floating cards
-  DrawToolset();
-  gui::VerticalSpacing(2.0f);
-
   // Create session-aware cards (non-static for multi-session support)
+  gui::EditorCard overworld_canvas_card(MakeCardTitle("Overworld Canvas").c_str(), ICON_MD_PUBLIC);
   gui::EditorCard tile16_card(MakeCardTitle("Tile16 Selector").c_str(), ICON_MD_GRID_3X3);
   gui::EditorCard tile8_card(MakeCardTitle("Tile8 Selector").c_str(), ICON_MD_GRID_4X4);
   gui::EditorCard area_gfx_card(MakeCardTitle("Area Graphics").c_str(), ICON_MD_IMAGE);
@@ -211,6 +219,9 @@ absl::Status OverworldEditor::Update() {
   static bool cards_configured = false;
   if (!cards_configured) {
     // Position cards for optimal workflow
+    overworld_canvas_card.SetDefaultSize(1000, 700);
+    overworld_canvas_card.SetPosition(gui::EditorCard::Position::Floating);
+    
     tile16_card.SetDefaultSize(300, 600);
     tile16_card.SetPosition(gui::EditorCard::Position::Right);
     
@@ -239,7 +250,13 @@ absl::Status OverworldEditor::Update() {
   }
   
   // Main canvas (full width when cards are docked)
-  DrawOverworldCanvas();
+  if (show_overworld_canvas_) {
+    if (overworld_canvas_card.Begin(&show_overworld_canvas_)) {
+      DrawToolset();
+      DrawOverworldCanvas();
+    }
+    overworld_canvas_card.End();  // ALWAYS call End after Begin
+  }
   
   // Floating tile selector cards (4 tabs converted to separate cards)
   if (show_tile16_selector_) {

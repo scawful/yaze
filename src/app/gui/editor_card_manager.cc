@@ -18,20 +18,23 @@ EditorCardManager& EditorCardManager::Get() {
 
 void EditorCardManager::RegisterCard(const CardInfo& info) {
   if (info.card_id.empty()) {
-    printf("[EditorCardManager] Warning: Attempted to register card with empty ID\n");
     return;
   }
   
   // Check if already registered to avoid duplicates
   if (cards_.find(info.card_id) != cards_.end()) {
-    printf("[EditorCardManager] WARNING: Card '%s' already registered, skipping duplicate\n", 
-           info.card_id.c_str());
     return;
   }
   
-  cards_[info.card_id] = info;
-  printf("[EditorCardManager] Registered card: %s (%s)\n", 
-         info.card_id.c_str(), info.display_name.c_str());
+  CardInfo new_info = info;
+  
+  // If no visibility_flag provided, create centralized one
+  if (!new_info.visibility_flag) {
+    centralized_visibility_[info.card_id] = false;  // Hidden by default
+    new_info.visibility_flag = &centralized_visibility_[info.card_id];
+  }
+  
+  cards_[info.card_id] = new_info;
 }
 
 void EditorCardManager::RegisterCard(const std::string& card_id,
@@ -159,6 +162,14 @@ bool EditorCardManager::IsCardVisible(const std::string& card_id) const {
     return *it->second.visibility_flag;
   }
   return false;
+}
+
+bool* EditorCardManager::GetVisibilityFlag(const std::string& card_id) {
+  auto it = cards_.find(card_id);
+  if (it != cards_.end()) {
+    return it->second.visibility_flag;
+  }
+  return nullptr;
 }
 
 void EditorCardManager::ShowAllCardsInCategory(const std::string& category) {
@@ -716,13 +727,13 @@ void EditorCardManager::LoadPresetsFromFile() {
 }
 
 void EditorCardManager::SetActiveCategory(const std::string& category) {
-  if (active_category_ != category) {
-    active_category_ = category;
-    printf("[EditorCardManager] Active category changed to: %s\n", category.c_str());
-  }
+  active_category_ = category;
 }
 
-void EditorCardManager::DrawSidebar(const std::string& category) {
+void EditorCardManager::DrawSidebar(const std::string& category,
+                                    const std::vector<std::string>& active_categories,
+                                    std::function<void(const std::string&)> on_category_switch,
+                                    std::function<void()> on_collapse) {
   // Use ThemeManager for consistent theming
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
   
@@ -737,58 +748,80 @@ void EditorCardManager::DrawSidebar(const std::string& category) {
       ImGuiWindowFlags_NoResize |
       ImGuiWindowFlags_NoMove |
       ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoDocking |  // Don't allow docking over sidebar
       ImGuiWindowFlags_NoScrollbar |
       ImGuiWindowFlags_NoScrollWithMouse |
-      ImGuiWindowFlags_NoBringToFrontOnFocus;
+      ImGuiWindowFlags_NoFocusOnAppearing |  // Don't steal focus
+      ImGuiWindowFlags_NoNavFocus;  // Don't participate in nav
   
-  // Make sidebar more opaque and visible
-  ImVec4 sidebar_bg = ConvertColorToImVec4(theme.child_bg);
-  sidebar_bg.w = 1.0f;  // Full opacity
+  // Make sidebar VERY visible - fully opaque dark background
+  ImVec4 sidebar_bg = ImVec4(0.18f, 0.18f, 0.20f, 1.0f);  // Dark opaque gray
+  ImVec4 sidebar_border = ImVec4(0.4f, 0.4f, 0.45f, 1.0f);  // Visible border
   
   ImGui::PushStyleColor(ImGuiCol_WindowBg, sidebar_bg);
-  ImGui::PushStyleColor(ImGuiCol_Border, ConvertColorToImVec4(theme.border));
+  ImGui::PushStyleColor(ImGuiCol_Border, sidebar_border);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4.0f, 8.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 6.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 2.0f);  // Thicker border
   
   if (ImGui::Begin("##EditorCardSidebar", nullptr, sidebar_flags)) {
+    // Category switcher buttons at top (if multiple editors active)
+    if (active_categories.size() > 1) {
+      ImVec4 accent = ConvertColorToImVec4(theme.accent);
+      ImVec4 inactive = ConvertColorToImVec4(theme.button);
+      
+      for (const auto& cat : active_categories) {
+        bool is_current = (cat == category);
+        
+        if (is_current) {
+          ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(accent.x, accent.y, accent.z, 0.8f));
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(accent.x, accent.y, accent.z, 1.0f));
+        } else {
+          ImGui::PushStyleColor(ImGuiCol_Button, inactive);
+          ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ConvertColorToImVec4(theme.button_hovered));
+        }
+        
+        // Show first letter of category
+        std::string btn_label = cat.empty() ? "?" : std::string(1, cat[0]);
+        if (ImGui::Button(btn_label.c_str(), ImVec2(40.0f, 32.0f))) {
+          // Call callback to switch editor, not just set category
+          if (on_category_switch) {
+            on_category_switch(cat);
+          } else {
+            SetActiveCategory(cat);
+          }
+        }
+        
+        ImGui::PopStyleColor(2);
+        
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s Editor\nClick to switch", cat.c_str());
+        }
+      }
+      
+      ImGui::Dummy(ImVec2(0, 2.0f));
+      ImGui::Separator();
+      ImGui::Spacing();
+    }
+    
     // Get cards for this category
     auto cards = GetCardsInCategory(category);
     
-    // If no cards available, show editor selection instead
-    if (cards.empty()) {
-      ImGui::PushStyleColor(ImGuiCol_Text, ConvertColorToImVec4(theme.text_disabled));
-      ImGui::TextWrapped("No cards");
-      ImGui::PopStyleColor();
-      
-      ImGui::Spacing();
-      ImGui::Separator();
-      ImGui::Spacing();
-      
-      // Show editor selection buttons
-      ImGui::TextWrapped("Select Editor:");
-      ImGui::Dummy(ImVec2(0, 4.0f));
-      
-      // TODO: Add editor selection buttons here
-      // For now, just show message
-      ImGui::PushStyleColor(ImGuiCol_Text, ConvertColorToImVec4(theme.text_secondary));
-      ImGui::TextWrapped("Open an editor to see cards");
-      ImGui::PopStyleColor();
-    } else {
-      // Set this category as active when cards are present
+    // Set this category as active when showing cards
+    if (!cards.empty()) {
       SetActiveCategory(category);
     }
     
-    // Close All button at top (only if cards exist)
+    // Close All button (only if cards exist)
     if (!cards.empty()) {
       ImVec4 error_color = ConvertColorToImVec4(theme.error);
       ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(
-          error_color.x * 0.6f, error_color.y * 0.6f, error_color.z * 0.6f, 0.7f));
+          error_color.x * 0.6f, error_color.y * 0.6f, error_color.z * 0.6f, 0.9f));
       ImGui::PushStyleColor(ImGuiCol_ButtonHovered, error_color);
       ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(
           error_color.x * 1.2f, error_color.y * 1.2f, error_color.z * 1.2f, 1.0f));
       
-      if (ImGui::Button(ICON_MD_CLOSE, ImVec2(40.0f, 40.0f))) {
+      if (ImGui::Button(ICON_MD_CLOSE, ImVec2(40.0f, 36.0f))) {
         HideAllCardsInCategory(category);
       }
       
@@ -798,7 +831,25 @@ void EditorCardManager::DrawSidebar(const std::string& category) {
         ImGui::SetTooltip("Close All %s Cards", category.c_str());
       }
       
-      ImGui::Dummy(ImVec2(0, 4.0f));
+      // Show All button
+      ImVec4 success_color = ConvertColorToImVec4(theme.success);
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(
+          success_color.x * 0.6f, success_color.y * 0.6f, success_color.z * 0.6f, 0.7f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, success_color);
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(
+          success_color.x * 1.2f, success_color.y * 1.2f, success_color.z * 1.2f, 1.0f));
+      
+      if (ImGui::Button(ICON_MD_DONE_ALL, ImVec2(40.0f, 36.0f))) {
+        ShowAllCardsInCategory(category);
+      }
+      
+      ImGui::PopStyleColor(3);
+      
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Show All %s Cards", category.c_str());
+      }
+      
+      ImGui::Dummy(ImVec2(0, 2.0f));
       
       // Draw card buttons
       ImVec4 accent_color = ConvertColorToImVec4(theme.accent);
@@ -838,6 +889,27 @@ void EditorCardManager::DrawSidebar(const std::string& category) {
         ImGui::PopID();
       }
     }  // End if (!cards.empty())
+    
+    // Collapse sidebar button at bottom
+    if (on_collapse) {
+      ImGui::Dummy(ImVec2(0, 10.0f));  // Add some space
+      ImGui::Separator();
+      ImGui::Spacing();
+      
+      ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.22f, 0.9f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.32f, 1.0f));
+      ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.25f, 0.25f, 0.27f, 1.0f));
+      
+      if (ImGui::Button(ICON_MD_KEYBOARD_ARROW_LEFT, ImVec2(40.0f, 36.0f))) {
+        on_collapse();
+      }
+      
+      ImGui::PopStyleColor(3);
+      
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Hide Sidebar\nCtrl+B");
+      }
+    }
   }
   ImGui::End();
   

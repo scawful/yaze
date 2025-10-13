@@ -38,11 +38,7 @@ class Emulator {
   void Run(Rom* rom);
   void Cleanup();
   
-  // Card visibility for emulator UI panels
-  bool& show_cpu_debugger() { return show_cpu_debugger_; }
-  bool& show_memory_viewer() { return show_memory_viewer_; }
-  bool& show_ppu_viewer() { return show_ppu_viewer_; }
-  bool& show_audio_mixer() { return show_audio_mixer_; }
+  // Card visibility managed by EditorCardManager
 
   auto snes() -> Snes& { return snes_; }
   auto running() const -> bool { return running_; }
@@ -163,11 +159,7 @@ class Emulator {
   gfx::IRenderer* renderer_ = nullptr;
   void* ppu_texture_ = nullptr;
   
-  // Card visibility states
-  bool show_cpu_debugger_ = false;
-  bool show_memory_viewer_ = false;
-  bool show_ppu_viewer_ = false;
-  bool show_audio_mixer_ = false;
+  // Card visibility managed by EditorCardManager - no member variables needed!
   
   // Debugger infrastructure
   BreakpointManager breakpoint_manager_;

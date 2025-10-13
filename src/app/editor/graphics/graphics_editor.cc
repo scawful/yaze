@@ -43,48 +43,23 @@ constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_SizingFixedFit;
 
 void GraphicsEditor::Initialize() {
-  // Register cards with EditorCardManager during initialization (once)
   auto& card_manager = gui::EditorCardManager::Get();
   
-  card_manager.RegisterCard({
-      .card_id = "graphics.sheet_editor",
-      .display_name = "Sheet Editor",
-      .icon = ICON_MD_EDIT,
-      .category = "Graphics",
-      .shortcut_hint = "Ctrl+Shift+1",
-      .visibility_flag = &show_sheet_editor_,
-      .priority = 10
-  });
+  card_manager.RegisterCard({.card_id = "graphics.sheet_editor", .display_name = "Sheet Editor",
+                            .icon = ICON_MD_EDIT, .category = "Graphics", 
+                            .shortcut_hint = "Ctrl+Shift+1", .priority = 10});
+  card_manager.RegisterCard({.card_id = "graphics.sheet_browser", .display_name = "Sheet Browser",
+                            .icon = ICON_MD_VIEW_LIST, .category = "Graphics",
+                            .shortcut_hint = "Ctrl+Shift+2", .priority = 20});
+  card_manager.RegisterCard({.card_id = "graphics.player_animations", .display_name = "Player Animations",
+                            .icon = ICON_MD_PERSON, .category = "Graphics",
+                            .shortcut_hint = "Ctrl+Shift+3", .priority = 30});
+  card_manager.RegisterCard({.card_id = "graphics.prototype_viewer", .display_name = "Prototype Viewer",
+                            .icon = ICON_MD_CONSTRUCTION, .category = "Graphics",
+                            .shortcut_hint = "Ctrl+Shift+4", .priority = 40});
   
-  card_manager.RegisterCard({
-      .card_id = "graphics.sheet_browser",
-      .display_name = "Sheet Browser",
-      .icon = ICON_MD_VIEW_LIST,
-      .category = "Graphics",
-      .shortcut_hint = "Ctrl+Shift+2",
-      .visibility_flag = &show_sheet_browser_,
-      .priority = 20
-  });
-  
-  card_manager.RegisterCard({
-      .card_id = "graphics.player_animations",
-      .display_name = "Player Animations",
-      .icon = ICON_MD_PERSON,
-      .category = "Graphics",
-      .shortcut_hint = "Ctrl+Shift+3",
-      .visibility_flag = &show_player_animations_,
-      .priority = 30
-  });
-  
-  card_manager.RegisterCard({
-      .card_id = "graphics.prototype_viewer",
-      .display_name = "Prototype Viewer",
-      .icon = ICON_MD_CONSTRUCTION,
-      .category = "Graphics",
-      .shortcut_hint = "Ctrl+Shift+4",
-      .visibility_flag = &show_prototype_viewer_,
-      .priority = 40
-  });
+  // Show sheet editor by default when Graphics Editor is activated
+  card_manager.ShowCard("graphics.sheet_editor");
 }
 
 absl::Status GraphicsEditor::Load() { 
@@ -124,55 +99,45 @@ absl::Status GraphicsEditor::Load() {
 }
 
 absl::Status GraphicsEditor::Update() {
-  DrawToolset();
-  gui::VerticalSpacing(2.0f);
+  auto& card_manager = gui::EditorCardManager::Get();
+  
+  static gui::EditorCard sheet_editor_card("Sheet Editor", ICON_MD_EDIT);
+  static gui::EditorCard sheet_browser_card("Sheet Browser", ICON_MD_VIEW_LIST);
+  static gui::EditorCard player_anims_card("Player Animations", ICON_MD_PERSON);
+  static gui::EditorCard prototype_card("Prototype Viewer", ICON_MD_CONSTRUCTION);
 
-  // Create session-aware cards (non-static for multi-session support)
-  gui::EditorCard sheet_editor_card(MakeCardTitle("Sheet Editor").c_str(), ICON_MD_EDIT);
-  gui::EditorCard sheet_browser_card(MakeCardTitle("Sheet Browser").c_str(), ICON_MD_VIEW_LIST);
-  gui::EditorCard player_anims_card(MakeCardTitle("Player Animations").c_str(), ICON_MD_PERSON);
-  gui::EditorCard prototype_card(MakeCardTitle("Prototype Viewer").c_str(), ICON_MD_CONSTRUCTION);
+  sheet_editor_card.SetDefaultSize(900, 700);
+  sheet_browser_card.SetDefaultSize(400, 600);
+  player_anims_card.SetDefaultSize(500, 600);
+  prototype_card.SetDefaultSize(600, 500);
 
-  if (show_sheet_editor_) {
-    if (sheet_editor_card.Begin(&show_sheet_editor_)) {
-      status_ = UpdateGfxEdit();
-    }
-    sheet_editor_card.End();  // ALWAYS call End after Begin
+  // Get visibility flags from card manager and pass to Begin()
+  if (sheet_editor_card.Begin(card_manager.GetVisibilityFlag("graphics.sheet_editor"))) {
+    status_ = UpdateGfxEdit();
+    sheet_editor_card.End();
   }
 
-  if (show_sheet_browser_) {
-    if (sheet_browser_card.Begin(&show_sheet_browser_)) {
-      if (asset_browser_.Initialized == false) {
-        asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
-      }
-      asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
+  if (sheet_browser_card.Begin(card_manager.GetVisibilityFlag("graphics.sheet_browser"))) {
+    if (asset_browser_.Initialized == false) {
+      asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
     }
-    sheet_browser_card.End();  // ALWAYS call End after Begin
+    asset_browser_.Draw(gfx::Arena::Get().gfx_sheets());
+    sheet_browser_card.End();
   }
 
-  if (show_player_animations_) {
-    if (player_anims_card.Begin(&show_player_animations_)) {
-      status_ = UpdateLinkGfxView();
-    }
-    player_anims_card.End();  // ALWAYS call End after Begin
+  if (player_anims_card.Begin(card_manager.GetVisibilityFlag("graphics.player_animations"))) {
+    status_ = UpdateLinkGfxView();
+    player_anims_card.End();
   }
 
-  if (show_prototype_viewer_) {
-    if (prototype_card.Begin(&show_prototype_viewer_)) {
-      status_ = UpdateScadView();
-    }
-    prototype_card.End();  // ALWAYS call End after Begin
+  if (prototype_card.Begin(card_manager.GetVisibilityFlag("graphics.prototype_viewer"))) {
+    status_ = UpdateScadView();
+    prototype_card.End();
   }
 
   CLEAR_AND_RETURN_STATUS(status_)
   return absl::OkStatus();
 }
-
-void GraphicsEditor::DrawToolset() {
-  // Sidebar is now drawn by EditorManager for card-based editors
-  // This method kept for compatibility but sidebar handles card toggles
-}
-
 
 absl::Status GraphicsEditor::UpdateGfxEdit() {
     if (ImGui::BeginTable("##GfxEditTable", 3, kGfxEditTableFlags,
@@ -606,8 +571,6 @@ absl::Status GraphicsEditor::UpdateLinkGfxView() {
 }
 
 absl::Status GraphicsEditor::UpdateScadView() {
-  DrawToolset();
-
   if (open_memory_editor_) {
     ImGui::Begin("Memory Editor", &open_memory_editor_);
     RETURN_IF_ERROR(DrawMemoryEditor())

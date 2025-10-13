@@ -96,6 +96,9 @@ class EditorCardManager {
   bool ToggleCard(const std::string& card_id);
   bool IsCardVisible(const std::string& card_id) const;
   
+  // Get visibility flag pointer (for passing to EditorCard::Begin)
+  bool* GetVisibilityFlag(const std::string& card_id);
+  
   // Batch operations
   void ShowAllCardsInCategory(const std::string& category);
   void HideAllCardsInCategory(const std::string& category);
@@ -111,7 +114,10 @@ class EditorCardManager {
   void DrawViewMenuAll();  // Draw all categories as submenus
   
   // VSCode-style sidebar (replaces Toolset)
-  void DrawSidebar(const std::string& category);  // Icon-only sidebar for category
+  void DrawSidebar(const std::string& category,
+                  const std::vector<std::string>& active_categories = {},
+                  std::function<void(const std::string&)> on_category_switch = nullptr,
+                  std::function<void()> on_collapse = nullptr);
   static constexpr float GetSidebarWidth() { return 48.0f; }
   
   // Active editor tracking (based on most recently interacted card)

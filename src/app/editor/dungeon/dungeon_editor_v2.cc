@@ -108,6 +108,10 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       .visibility_flag = &show_debug_controls_,
       .priority = 80
   });
+  
+  // Show control panel and room selector by default when Dungeon Editor is activated
+  show_control_panel_ = true;
+  show_room_selector_ = true;
 }
 
 void DungeonEditorV2::Initialize() {}
@@ -187,32 +191,6 @@ absl::Status DungeonEditorV2::Update() {
   // CARD-BASED EDITOR: All windows are independent top-level cards
   // No parent wrapper - this allows closing control panel without affecting rooms
   
-  // Optional control panel (can be hidden/minimized)
-  if (show_control_panel_) {
-    DrawControlPanel();
-  } else if (control_panel_minimized_) {
-    // Draw floating icon button to reopen
-    ImGui::SetNextWindowPos(ImVec2(10, 100));
-    ImGui::SetNextWindowSize(ImVec2(50, 50));
-    ImGuiWindowFlags icon_flags = ImGuiWindowFlags_NoTitleBar | 
-                                  ImGuiWindowFlags_NoResize |
-                                  ImGuiWindowFlags_NoScrollbar |
-                                  ImGuiWindowFlags_NoCollapse |
-                                  ImGuiWindowFlags_NoDocking;
-    
-    if (ImGui::Begin("##DungeonControlIcon", nullptr, icon_flags)) {
-      if (ImGui::Button(ICON_MD_CASTLE, ImVec2(40, 40))) {
-        show_control_panel_ = true;
-        control_panel_minimized_ = false;
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Open Dungeon Controls");
-      }
-    }
-    ImGui::End();
-  }
-
-  // Render all independent cards (these are ALL top-level windows now)
   DrawLayout();
   
   return absl::OkStatus();
@@ -233,73 +211,6 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   return absl::OkStatus();
-}
-
-void DungeonEditorV2::DrawToolset() {
-  // Draw VSCode-style sidebar using EditorCardManager
-  // auto& card_manager = gui::EditorCardManager::Get();
-  // card_manager.DrawSidebar("Dungeon");
-}
-
-void DungeonEditorV2::DrawControlPanel() {
-  // Small, collapsible control panel for dungeon editor
-  ImGui::SetNextWindowSize(ImVec2(280, 280), ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowPos(ImVec2(10, 100), ImGuiCond_FirstUseEver);
-  
-  ImGuiWindowFlags flags = ImGuiWindowFlags_None;
-  
-  if (ImGui::Begin(ICON_MD_CASTLE " Dungeon Controls", &show_control_panel_, flags)) {
-    ImGui::TextWrapped("Welcome to Dungeon Editor V2!");
-    ImGui::TextDisabled("Use checkboxes below to open cards");
-    ImGui::Separator();
-    
-    DrawToolset();
-    
-    ImGui::Separator();
-    ImGui::Text("Quick Toggles:");
-    
-    // Checkbox grid for quick toggles
-    if (ImGui::BeginTable("##QuickToggles", 2, ImGuiTableFlags_SizingStretchSame)) {
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("Rooms", &show_room_selector_);
-      
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("Matrix", &show_room_matrix_);
-      
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("Entrances", &show_entrances_list_);
-      
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("Graphics", &show_room_graphics_);
-      
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("Objects", &show_object_editor_);
-      
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("Palette", &show_palette_editor_);
-      
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Checkbox("Debug", &show_debug_controls_);
-      
-      ImGui::EndTable();
-    }
-    
-    ImGui::Separator();
-    
-    // Minimize button
-    if (ImGui::SmallButton(ICON_MD_MINIMIZE " Minimize to Icon")) {
-      control_panel_minimized_ = true;
-      show_control_panel_ = false;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Collapse to floating icon. Rooms stay open.");
-    }
-  }
-  ImGui::End();
 }
 
 void DungeonEditorV2::DrawLayout() {

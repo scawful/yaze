@@ -30,58 +30,26 @@ namespace editor {
 constexpr uint32_t kRedPen = 0xFF0000FF;
 
 void ScreenEditor::Initialize() {
-  // Register cards with EditorCardManager during initialization (once)
   auto& card_manager = gui::EditorCardManager::Get();
   
-  card_manager.RegisterCard({
-      .card_id = "screen.dungeon_maps",
-      .display_name = "Dungeon Maps",
-      .icon = ICON_MD_MAP,
-      .category = "Screen",
-      .shortcut_hint = "Alt+1",
-      .visibility_flag = &show_dungeon_maps_,
-      .priority = 10
-  });
+  card_manager.RegisterCard({.card_id = "screen.dungeon_maps", .display_name = "Dungeon Maps",
+                            .icon = ICON_MD_MAP, .category = "Screen",
+                            .shortcut_hint = "Alt+1", .priority = 10});
+  card_manager.RegisterCard({.card_id = "screen.inventory_menu", .display_name = "Inventory Menu",
+                            .icon = ICON_MD_INVENTORY, .category = "Screen",
+                            .shortcut_hint = "Alt+2", .priority = 20});
+  card_manager.RegisterCard({.card_id = "screen.overworld_map", .display_name = "Overworld Map",
+                            .icon = ICON_MD_PUBLIC, .category = "Screen",
+                            .shortcut_hint = "Alt+3", .priority = 30});
+  card_manager.RegisterCard({.card_id = "screen.title_screen", .display_name = "Title Screen",
+                            .icon = ICON_MD_TITLE, .category = "Screen",
+                            .shortcut_hint = "Alt+4", .priority = 40});
+  card_manager.RegisterCard({.card_id = "screen.naming_screen", .display_name = "Naming Screen",
+                            .icon = ICON_MD_EDIT, .category = "Screen",
+                            .shortcut_hint = "Alt+5", .priority = 50});
   
-  card_manager.RegisterCard({
-      .card_id = "screen.inventory_menu",
-      .display_name = "Inventory Menu",
-      .icon = ICON_MD_INVENTORY,
-      .category = "Screen",
-      .shortcut_hint = "Alt+2",
-      .visibility_flag = &show_inventory_menu_,
-      .priority = 20
-  });
-  
-  card_manager.RegisterCard({
-      .card_id = "screen.overworld_map",
-      .display_name = "Overworld Map",
-      .icon = ICON_MD_PUBLIC,
-      .category = "Screen",
-      .shortcut_hint = "Alt+3",
-      .visibility_flag = &show_overworld_map_,
-      .priority = 30
-  });
-  
-  card_manager.RegisterCard({
-      .card_id = "screen.title_screen",
-      .display_name = "Title Screen",
-      .icon = ICON_MD_TITLE,
-      .category = "Screen",
-      .shortcut_hint = "Alt+4",
-      .visibility_flag = &show_title_screen_,
-      .priority = 40
-  });
-  
-  card_manager.RegisterCard({
-      .card_id = "screen.naming_screen",
-      .display_name = "Naming Screen",
-      .icon = ICON_MD_EDIT,
-      .category = "Screen",
-      .shortcut_hint = "Alt+5",
-      .visibility_flag = &show_naming_screen_,
-      .priority = 50
-  });
+  // Show title screen by default
+  card_manager.ShowCard("screen.title_screen");
 }
 
 absl::Status ScreenEditor::Load() {
@@ -119,45 +87,40 @@ absl::Status ScreenEditor::Load() {
 }
 
 absl::Status ScreenEditor::Update() {
-  DrawToolset();
-  gui::VerticalSpacing(2.0f);
+  auto& card_manager = gui::EditorCardManager::Get();
 
-  // Create session-aware cards (non-static for multi-session support)
-  gui::EditorCard dungeon_maps_card(MakeCardTitle("Dungeon Maps").c_str(), ICON_MD_MAP);
-  gui::EditorCard inventory_menu_card(MakeCardTitle("Inventory Menu").c_str(), ICON_MD_INVENTORY);
-  gui::EditorCard overworld_map_card(MakeCardTitle("Overworld Map").c_str(), ICON_MD_PUBLIC);
-  gui::EditorCard title_screen_card(MakeCardTitle("Title Screen").c_str(), ICON_MD_TITLE);
-  gui::EditorCard naming_screen_card(MakeCardTitle("Naming Screen").c_str(), ICON_MD_EDIT_ATTRIBUTES);
+  static gui::EditorCard dungeon_maps_card("Dungeon Maps", ICON_MD_MAP);
+  static gui::EditorCard inventory_menu_card("Inventory Menu", ICON_MD_INVENTORY);
+  static gui::EditorCard overworld_map_card("Overworld Map", ICON_MD_PUBLIC);
+  static gui::EditorCard title_screen_card("Title Screen", ICON_MD_TITLE);
+  static gui::EditorCard naming_screen_card("Naming Screen", ICON_MD_EDIT_ATTRIBUTES);
 
-  if (show_dungeon_maps_) {
-    if (dungeon_maps_card.Begin(&show_dungeon_maps_)) {
-      DrawDungeonMapsEditor();
-    }
-    dungeon_maps_card.End();  // ALWAYS call End after Begin
+  dungeon_maps_card.SetDefaultSize(800, 600);
+  inventory_menu_card.SetDefaultSize(800, 600);
+  overworld_map_card.SetDefaultSize(600, 500);
+  title_screen_card.SetDefaultSize(600, 500);
+  naming_screen_card.SetDefaultSize(500, 400);
+
+  // Get visibility flags from card manager and pass to Begin()
+  if (dungeon_maps_card.Begin(card_manager.GetVisibilityFlag("screen.dungeon_maps"))) {
+    DrawDungeonMapsEditor();
+    dungeon_maps_card.End();
   }
-  if (show_inventory_menu_) {
-    if (inventory_menu_card.Begin(&show_inventory_menu_)) {
-      DrawInventoryMenuEditor();
-    }
-    inventory_menu_card.End();  // ALWAYS call End after Begin
+  if (inventory_menu_card.Begin(card_manager.GetVisibilityFlag("screen.inventory_menu"))) {
+    DrawInventoryMenuEditor();
+    inventory_menu_card.End();
   }
-  if (show_overworld_map_) {
-    if (overworld_map_card.Begin(&show_overworld_map_)) {
-      DrawOverworldMapEditor();
-    }
-    overworld_map_card.End();  // ALWAYS call End after Begin
+  if (overworld_map_card.Begin(card_manager.GetVisibilityFlag("screen.overworld_map"))) {
+    DrawOverworldMapEditor();
+    overworld_map_card.End();
   }
-  if (show_title_screen_) {
-    if (title_screen_card.Begin(&show_title_screen_)) {
-      DrawTitleScreenEditor();
-    }
-    title_screen_card.End();  // ALWAYS call End after Begin
+  if (title_screen_card.Begin(card_manager.GetVisibilityFlag("screen.title_screen"))) {
+    DrawTitleScreenEditor();
+    title_screen_card.End();
   }
-  if (show_naming_screen_) {
-    if (naming_screen_card.Begin(&show_naming_screen_)) {
-      DrawNamingScreenEditor();
-    }
-    naming_screen_card.End();  // ALWAYS call End after Begin
+  if (naming_screen_card.Begin(card_manager.GetVisibilityFlag("screen.naming_screen"))) {
+    DrawNamingScreenEditor();
+    naming_screen_card.End();
   }
 
   return status_;

@@ -49,46 +49,7 @@ void Emulator::Initialize(gfx::IRenderer* renderer, const std::vector<uint8_t>& 
   renderer_ = renderer;
   rom_data_ = rom_data;
   
-  // Register emulator cards with EditorCardManager
-  auto& card_manager = gui::EditorCardManager::Get();
-  
-  card_manager.RegisterCard({
-      .card_id = "emulator.cpu_debugger",
-      .display_name = "CPU Debugger",
-      .icon = ICON_MD_BUG_REPORT,
-      .category = "Emulator",
-      .visibility_flag = &show_cpu_debugger_,
-      .priority = 10
-  });
-  
-  card_manager.RegisterCard({
-      .card_id = "emulator.memory_viewer",
-      .display_name = "Memory Viewer",
-      .icon = ICON_MD_MEMORY,
-      .category = "Emulator",
-      .visibility_flag = &show_memory_viewer_,
-      .priority = 20
-  });
-  
-  card_manager.RegisterCard({
-      .card_id = "emulator.ppu_viewer",
-      .display_name = "PPU Viewer",
-      .icon = ICON_MD_GRID_VIEW,
-      .category = "Emulator",
-      .visibility_flag = &show_ppu_viewer_,
-      .priority = 30
-  });
-  
-  card_manager.RegisterCard({
-      .card_id = "emulator.audio_mixer",
-      .display_name = "Audio Mixer",
-      .icon = ICON_MD_AUDIO_FILE,
-      .category = "Emulator",
-      .visibility_flag = &show_audio_mixer_,
-      .priority = 40
-  });
-  
-  printf("[Emulator] Registered 4 cards with EditorCardManager\n");
+  // Cards are registered in EditorManager::Initialize() to avoid duplication
   
   // Reset state for new ROM
   running_ = false;
@@ -211,7 +172,6 @@ void Emulator::Run(Rom* rom) {
     running_ = true;
   }
 
-  RenderNavBar();
 
   // Auto-pause emulator during window resize to prevent crashes
   // MODERN APPROACH: Only pause on actual window resize, not focus loss
@@ -345,142 +305,75 @@ void Emulator::Run(Rom* rom) {
 }
 
 void Emulator::RenderEmulatorInterface() {
-  // Apply modern theming with safety checks
   try {
-    auto& theme_manager = gui::ThemeManager::Get();
-    const auto& theme = theme_manager.GetCurrentTheme();
+    auto& card_manager = gui::EditorCardManager::Get();
 
-    // Modern EditorCard-based layout - modular and flexible
-    static bool show_cpu_debugger_ = true;
-    static bool show_ppu_display_ = true;
-    static bool show_memory_viewer_ = false;
-    static bool show_breakpoints_ = false;
-    static bool show_performance_ = true;
-    static bool show_ai_agent_ = false;
-    static bool show_save_states_ = false;
-    static bool show_keyboard_config_ = false;
-    static bool show_apu_debugger_ = true;
+    static gui::EditorCard cpu_card("CPU Debugger", ICON_MD_MEMORY);
+    static gui::EditorCard ppu_card("PPU Viewer", ICON_MD_VIDEOGAME_ASSET);
+    static gui::EditorCard memory_card("Memory Viewer", ICON_MD_MEMORY);
+    static gui::EditorCard breakpoints_card("Breakpoints", ICON_MD_STOP);
+    static gui::EditorCard performance_card("Performance", ICON_MD_SPEED);
+    static gui::EditorCard ai_card("AI Agent", ICON_MD_SMART_TOY);
+    static gui::EditorCard save_states_card("Save States", ICON_MD_SAVE);
+    static gui::EditorCard keyboard_card("Keyboard Config", ICON_MD_KEYBOARD);
+    static gui::EditorCard apu_card("APU Debugger", ICON_MD_MUSIC_NOTE);
+    static gui::EditorCard audio_card("Audio Mixer", ICON_MD_AUDIO_FILE);
 
-    // Create session-aware cards
-    static gui::EditorCard cpu_card(ICON_MD_MEMORY " CPU Debugger", ICON_MD_MEMORY);
-    static gui::EditorCard ppu_card(ICON_MD_VIDEOGAME_ASSET " PPU Display",
-                             ICON_MD_VIDEOGAME_ASSET);
-    static gui::EditorCard memory_card(ICON_MD_DATA_ARRAY " Memory Viewer",
-                                ICON_MD_DATA_ARRAY);
-    static gui::EditorCard breakpoints_card(ICON_MD_BUG_REPORT " Breakpoints",
-                                     ICON_MD_BUG_REPORT);
-    static gui::EditorCard performance_card(ICON_MD_SPEED " Performance",
-                                     ICON_MD_SPEED);
-    static gui::EditorCard ai_card(ICON_MD_SMART_TOY " AI Agent", ICON_MD_SMART_TOY);
-    static gui::EditorCard save_states_card(ICON_MD_SAVE " Save States", ICON_MD_SAVE);
-    static gui::EditorCard keyboard_card(ICON_MD_KEYBOARD " Keyboard Config",
-                                  ICON_MD_KEYBOARD);
-    static gui::EditorCard apu_debug_card(ICON_MD_MUSIC_NOTE " APU Debugger",
-                                   ICON_MD_MUSIC_NOTE);
+    cpu_card.SetDefaultSize(400, 500);
+    ppu_card.SetDefaultSize(550, 520);
+    memory_card.SetDefaultSize(800, 600);
+    breakpoints_card.SetDefaultSize(400, 350);
+    performance_card.SetDefaultSize(350, 300);
 
-    // Configure default positions
-    static bool cards_configured = false;
-    if (!cards_configured) {
-      cpu_card.SetDefaultSize(400, 500);
-      cpu_card.SetPosition(gui::EditorCard::Position::Right);
-
-      ppu_card.SetDefaultSize(550, 520);
-      ppu_card.SetPosition(gui::EditorCard::Position::Floating);
-
-      memory_card.SetDefaultSize(800, 600);
-      memory_card.SetPosition(gui::EditorCard::Position::Floating);
-
-      breakpoints_card.SetDefaultSize(400, 350);
-      breakpoints_card.SetPosition(gui::EditorCard::Position::Right);
-
-      performance_card.SetDefaultSize(350, 300);
-      performance_card.SetPosition(gui::EditorCard::Position::Bottom);
-
-      ai_card.SetDefaultSize(500, 450);
-      ai_card.SetPosition(gui::EditorCard::Position::Floating);
-
-      save_states_card.SetDefaultSize(400, 300);
-      save_states_card.SetPosition(gui::EditorCard::Position::Floating);
-
-      keyboard_card.SetDefaultSize(450, 400);
-      keyboard_card.SetPosition(gui::EditorCard::Position::Floating);
-
-      apu_debug_card.SetDefaultSize(500, 400);
-      apu_debug_card.SetPosition(gui::EditorCard::Position::Floating);
-
-      cards_configured = true;
-    }
-
-    // CPU Debugger Card
-    if (show_cpu_debugger_) {
-      if (cpu_card.Begin(&show_cpu_debugger_)) {
-        RenderModernCpuDebugger();
-      }
+    if (card_manager.IsCardVisible("emulator.cpu_debugger") && cpu_card.Begin()) {
+      RenderModernCpuDebugger();
       cpu_card.End();
     }
 
-    // PPU Display Card
-    if (show_ppu_display_) {
-      if (ppu_card.Begin(&show_ppu_display_)) {
-        RenderSnesPpu();
-      }
+    if (card_manager.IsCardVisible("emulator.ppu_viewer") && ppu_card.Begin()) {
+      RenderNavBar();
+      RenderSnesPpu();
       ppu_card.End();
     }
 
-    // Memory Viewer Card
-    if (show_memory_viewer_) {
-      if (memory_card.Begin(&show_memory_viewer_)) {
-        RenderMemoryViewer();
-      }
+    if (card_manager.IsCardVisible("emulator.memory_viewer") && memory_card.Begin()) {
+      RenderMemoryViewer();
       memory_card.End();
     }
 
-    // Breakpoints Card
-    if (show_breakpoints_) {
-      if (breakpoints_card.Begin(&show_breakpoints_)) {
-        RenderBreakpointList();
-      }
+    if (card_manager.IsCardVisible("emulator.breakpoints") && breakpoints_card.Begin()) {
+      RenderBreakpointList();
       breakpoints_card.End();
     }
 
-    // Performance Monitor Card
-    if (show_performance_) {
-      if (performance_card.Begin(&show_performance_)) {
-        RenderPerformanceMonitor();
-      }
+    if (card_manager.IsCardVisible("emulator.performance") && performance_card.Begin()) {
+      RenderPerformanceMonitor();
       performance_card.End();
     }
 
-    // AI Agent Card
-    if (show_ai_agent_) {
-      if (ai_card.Begin(&show_ai_agent_)) {
-        RenderAIAgentPanel();
-      }
+    if (card_manager.IsCardVisible("emulator.ai_agent") && ai_card.Begin()) {
+      RenderAIAgentPanel();
       ai_card.End();
     }
 
-    // Save States Card
-    if (show_save_states_) {
-      if (save_states_card.Begin(&show_save_states_)) {
-        RenderSaveStates();
-      }
+    if (card_manager.IsCardVisible("emulator.save_states") && save_states_card.Begin()) {
+      RenderSaveStates();
       save_states_card.End();
     }
 
-    // Keyboard Configuration Card
-    if (show_keyboard_config_) {
-      if (keyboard_card.Begin(&show_keyboard_config_)) {
-        RenderKeyboardConfig();
-      }
+    if (card_manager.IsCardVisible("emulator.keyboard_config") && keyboard_card.Begin()) {
+      RenderKeyboardConfig();
       keyboard_card.End();
     }
 
-    // APU Debugger Card
-    if (show_apu_debugger_) {
-      if (apu_debug_card.Begin(&show_apu_debugger_)) {
-        RenderApuDebugger();
-      }
-      apu_debug_card.End();
+    if (card_manager.IsCardVisible("emulator.apu_debugger") && apu_card.Begin()) {
+      RenderApuDebugger();
+      apu_card.End();
+    }
+
+    if (card_manager.IsCardVisible("emulator.audio_mixer") && audio_card.Begin()) {
+      // RenderAudioMixer();
+      audio_card.End();
     }
 
   } catch (const std::exception& e) {

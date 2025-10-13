@@ -248,6 +248,11 @@ void EditorCard::SetPosition(Position pos) {
 }
 
 bool EditorCard::Begin(bool* p_open) {
+  // Check visibility flag first - if provided and false, don't show the card
+  if (p_open && !*p_open) {
+    return false;
+  }
+  
   // Handle icon-collapsed state
   if (icon_collapsible_ && collapsed_to_icon_) {
     DrawFloatingIconButton();

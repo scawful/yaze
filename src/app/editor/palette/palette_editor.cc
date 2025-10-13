@@ -295,6 +295,9 @@ void PaletteEditor::Initialize() {
       .visibility_flag = &show_custom_palette_,
       .priority = 80
   });
+  
+  // Show control panel by default when Palette Editor is activated
+  show_control_panel_ = true;
 }
 
 absl::Status PaletteEditor::Load() {
