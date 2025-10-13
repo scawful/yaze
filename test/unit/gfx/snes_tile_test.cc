@@ -1,4 +1,4 @@
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/types/snes_tile.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

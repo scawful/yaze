@@ -4,7 +4,7 @@
 #include <array>
 #include <string>
 
-#include "app/gfx/bitmap.h"
+#include "app/gfx/core/bitmap.h"
 #include "app/rom.h"
 #include "imgui/imgui.h"
 

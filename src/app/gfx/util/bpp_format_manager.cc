@@ -1,11 +1,11 @@
-#include "app/gfx/bpp_format_manager.h"
+#include "app/gfx/util/bpp_format_manager.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <sstream>
 
-#include "app/gfx/memory_pool.h"
+#include "app/gfx/resource/memory_pool.h"
 #include "util/log.h"
 
 namespace yaze {

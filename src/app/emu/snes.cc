@@ -151,13 +151,24 @@ void Snes::HandleInput() {
   input_latch(&input2, true);
   input_latch(&input1, false);
   input_latch(&input2, false);
+  // Read 16 bits serially for both controllers, LSB-first, packing bits as BYSTudlr
+  port_auto_read_[0] = 0; // input1 low 8 bits (B, Y, Select, Start, Up, Down, Left, Right)
+  port_auto_read_[2] = 0; // input1 high 8 bits (A, X, L, R, unused, unused, unused, unused)
+  port_auto_read_[1] = 0; // input2 low 8 bits
+  port_auto_read_[3] = 0; // input2 high 8 bits
+
   for (int i = 0; i < 16; i++) {
-    uint8_t val = input_read(&input1);
-    port_auto_read_[0] |= ((val & 1) << (15 - i));  // Bits are read LSB first, stored MSB first
-    port_auto_read_[2] |= (((val >> 1) & 1) << (15 - i));
-    val = input_read(&input2);
-    port_auto_read_[1] |= ((val & 1) << (15 - i));
-    port_auto_read_[3] |= (((val >> 1) & 1) << (15 - i));
+    uint8_t val1 = input_read(&input1);
+    uint8_t val2 = input_read(&input2);
+
+    if (i < 8) {
+      port_auto_read_[0] |= ((val1 & 1) << i);           // input1 low (BYSTudlr pattern)
+      port_auto_read_[1] |= ((val2 & 1) << i);           // input2 low
+      port_auto_read_[2] |= (((val1 >> 1) & 1) << i);    // input1 high (A, X, L, R...)
+      port_auto_read_[3] |= (((val2 >> 1) & 1) << i);    // input2 high
+    }
+    // Optional: for i >= 8, you can skip; 16-bits are clocked out, but SNES only expects the first 16
+    // If needed for other pads or 4 player, adapt here
   }
   
   // Debug: Log auto-read result when A button was active

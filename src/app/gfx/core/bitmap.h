@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "app/gfx/backend/irenderer.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/types/snes_palette.h"
 
 namespace yaze {
 

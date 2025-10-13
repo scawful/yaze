@@ -1,6 +1,6 @@
 #include "app/gfx/backend/sdl2_renderer.h"
 #include "absl/strings/str_format.h"
-#include "app/gfx/bitmap.h"
+#include "app/gfx/core/bitmap.h"
 
 namespace yaze {
 namespace gfx {

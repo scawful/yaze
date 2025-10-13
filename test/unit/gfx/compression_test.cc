@@ -1,4 +1,4 @@
-#include "app/gfx/compression.h"
+#include "app/gfx/util/compression.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

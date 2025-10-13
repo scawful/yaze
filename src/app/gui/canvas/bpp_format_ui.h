@@ -5,9 +5,9 @@
 #include <vector>
 #include <functional>
 
-#include "app/gfx/bpp_format_manager.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/util/bpp_format_manager.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_palette.h"
 
 namespace yaze {
 namespace gui {

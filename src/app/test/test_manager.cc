@@ -17,7 +17,7 @@
 #include "app/gui/widgets/widget_state_capture.h"
 #include "app/core/features.h"
 #include "util/file_util.h"
-#include "app/gfx/arena.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/icons.h"
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui.h"

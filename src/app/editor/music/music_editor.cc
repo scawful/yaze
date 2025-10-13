@@ -1,7 +1,7 @@
 #include "music_editor.h"
 
 #include "absl/strings/str_format.h"
-#include "app/gfx/performance/performance_profiler.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/emu/emulator.h"
 #include "app/gui/icons.h"

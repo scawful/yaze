@@ -3,11 +3,11 @@
 #include <array>
 
 #include "absl/status/status.h"
-#include "app/gfx/arena.h"
-#include "app/gfx/bitmap.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/core/bitmap.h"
 #include "app/gfx/backend/irenderer.h"
-#include "app/gfx/performance/performance_profiler.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/input.h"
 #include "app/gui/style.h"

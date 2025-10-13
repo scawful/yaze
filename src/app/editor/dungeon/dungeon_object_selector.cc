@@ -5,8 +5,8 @@
 #include <cstring>
 
 #include "app/core/window.h"
-#include "app/gfx/arena.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas.h"
 #include "app/gui/modules/asset_browser.h"
 #include "app/rom.h"

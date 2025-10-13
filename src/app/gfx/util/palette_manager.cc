@@ -3,7 +3,7 @@
 #include <chrono>
 
 #include "absl/strings/str_format.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/types/snes_palette.h"
 #include "util/macro.h"
 
 namespace yaze {

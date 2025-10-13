@@ -7,9 +7,9 @@
 #include <span>
 #include <stdexcept>
 
-#include "app/gfx/arena.h"
-#include "app/gfx/performance/performance_profiler.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/types/snes_palette.h"
 #include "util/log.h"
 
 namespace yaze {

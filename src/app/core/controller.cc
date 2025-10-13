@@ -9,7 +9,7 @@
 #include "app/core/window.h"
 #include "app/editor/editor_manager.h"
 #include "app/gui/background_renderer.h"
-#include "app/gfx/arena.h"                  // Add include for Arena
+#include "app/gfx/resource/arena.h"                  // Add include for Arena
 #include "app/gfx/backend/sdl2_renderer.h"  // Add include for new renderer
 #include "app/gui/theme_manager.h"
 #include "app/gui/widgets/widget_id_registry.h"

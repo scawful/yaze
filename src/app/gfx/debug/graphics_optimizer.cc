@@ -1,11 +1,11 @@
-#include "app/gfx/graphics_optimizer.h"
+#include "app/gfx/debug/graphics_optimizer.h"
 
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 
-#include "app/gfx/bpp_format_manager.h"
+#include "app/gfx/util/bpp_format_manager.h"
 
 namespace yaze {
 namespace gfx {

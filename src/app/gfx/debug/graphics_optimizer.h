@@ -5,8 +5,8 @@
 #include <unordered_map>
 #include <string>
 
-#include "app/gfx/bpp_format_manager.h"
-#include "app/gfx/performance/performance_profiler.h"
+#include "app/gfx/util/bpp_format_manager.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
 
 namespace yaze {
 namespace gfx {

@@ -1,4 +1,4 @@
-#include "app/gfx/arena.h"
+#include "app/gfx/resource/arena.h"
 
 #include <SDL.h>
 #include <algorithm>

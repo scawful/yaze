@@ -6,8 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/icons.h"
 #include "app/gui/canvas/canvas_modals.h"
 #include "canvas_usage_tracker.h"

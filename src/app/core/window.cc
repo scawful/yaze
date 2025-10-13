@@ -7,7 +7,7 @@
 #include "app/platform/font_loader.h"
 #include "util/sdl_deleter.h"
 #include "util/log.h"
-#include "app/gfx/arena.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/style.h"
 #include "imgui/backends/imgui_impl_sdl2.h"
 #include "imgui/backends/imgui_impl_sdlrenderer2.h"

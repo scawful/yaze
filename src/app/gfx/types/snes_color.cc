@@ -1,5 +1,5 @@
 
-#include "app/gfx/snes_color.h"
+#include "app/gfx/types/snes_color.h"
 
 #include <cstdint>
 #include <vector>

@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/types/snes_tile.h"
 #include "util/macro.h"
 
 namespace yaze {

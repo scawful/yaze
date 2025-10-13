@@ -5,10 +5,10 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/editor_card_manager.h"
-#include "app/gfx/tilemap.h"
+#include "app/gfx/render/tilemap.h"
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 #include "zelda3/screen/dungeon_map.h"

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <map>
-#include "app/gfx/arena.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/color.h"
 #include "util/log.h"
 

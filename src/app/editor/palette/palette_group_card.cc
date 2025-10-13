@@ -3,8 +3,8 @@
 #include <chrono>
 
 #include "absl/strings/str_format.h"
-#include "app/gfx/palette_manager.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/util/palette_manager.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gui/color.h"
 #include "app/gui/icons.h"
 #include "app/gui/layout_helpers.h"

@@ -1,8 +1,8 @@
-#include "app/gfx/atlas_renderer.h"
+#include "app/gfx/render/atlas_renderer.h"
 
 #include <algorithm>
 #include <cmath>
-#include "app/gfx/bpp_format_manager.h"
+#include "app/gfx/util/bpp_format_manager.h"
 
 namespace yaze {
 namespace gfx {

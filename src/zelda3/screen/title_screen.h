@@ -1,8 +1,8 @@
 #ifndef YAZE_APP_ZELDA3_SCREEN_H
 #define YAZE_APP_ZELDA3_SCREEN_H
 
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_tile.h"
 #include "app/rom.h"
 
 namespace yaze {

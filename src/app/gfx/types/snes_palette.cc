@@ -1,4 +1,4 @@
-#include "snes_palette.h"
+#include "app/gfx/types/snes_palette.h"
 
 #include <SDL.h>
 
@@ -10,7 +10,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/gfx/snes_color.h"
+#include "app/gfx/types/snes_color.h"
 #include "imgui/imgui.h"
 #include "util/macro.h"
 

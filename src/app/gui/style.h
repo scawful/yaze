@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "absl/strings/string_view.h"
-#include "app/gfx/bitmap.h"
+#include "app/gfx/core/bitmap.h"
 #include "app/gui/color.h"
 #include "app/gui/modules/text_editor.h"
 #include "imgui/imgui.h"

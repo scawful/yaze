@@ -5,7 +5,7 @@
 #include <memory>
 #include <vector>
 
-#include "app/gfx/bitmap.h"
+#include "app/gfx/core/bitmap.h"
 #include "absl/status/status.h"
 
 namespace yaze {

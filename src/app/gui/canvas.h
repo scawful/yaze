@@ -1,7 +1,7 @@
 #ifndef YAZE_GUI_CANVAS_H
 #define YAZE_GUI_CANVAS_H
 
-#include "app/gfx/tilemap.h"
+#include "app/gfx/render/tilemap.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
 
 #include <cstdint>
@@ -9,11 +9,11 @@
 #include <functional>
 #include <memory>
 
-#include "app/gfx/bitmap.h"
+#include "app/gfx/core/bitmap.h"
 #include "app/rom.h"
 #include "canvas/canvas_utils.h"
 #include "app/gui/widgets/palette_widget.h"
-#include "app/gfx/bpp_format_manager.h"
+#include "app/gfx/util/bpp_format_manager.h"
 #include "canvas/bpp_format_ui.h"
 #include "app/gui/canvas/canvas_modals.h"
 #include "app/gui/canvas/canvas_context_menu.h"

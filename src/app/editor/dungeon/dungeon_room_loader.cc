@@ -6,8 +6,8 @@
 #include <thread>
 #include <mutex>
 
-#include "app/gfx/performance/performance_profiler.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/types/snes_palette.h"
 #include "zelda3/dungeon/room.h"
 #include "util/log.h"
 

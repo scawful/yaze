@@ -1,7 +1,7 @@
 #include "app/gui/themed_widgets.h"
 
 #include "app/gui/color.h"
-#include "app/gfx/snes_color.h"
+#include "app/gfx/types/snes_color.h"
 
 namespace yaze {
 namespace gui {

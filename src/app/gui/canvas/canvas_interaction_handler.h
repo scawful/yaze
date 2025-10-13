@@ -2,8 +2,8 @@
 #define YAZE_APP_GUI_CANVAS_CANVAS_INTERACTION_HANDLER_H
 
 #include <vector>
-#include "app/gfx/bitmap.h"
-#include "app/gfx/tilemap.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/render/tilemap.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

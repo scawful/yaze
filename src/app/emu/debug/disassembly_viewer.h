@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "app/emu/cpu/cpu.h"
-#include "app/gfx/bitmap.h"
+#include "app/gfx/core/bitmap.h"
 #include "app/gui/icons.h"
 #include "imgui/imgui.h"
 

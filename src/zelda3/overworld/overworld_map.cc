@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "app/core/features.h"
-#include "app/gfx/snes_color.h"
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/types/snes_color.h"
+#include "app/gfx/types/snes_tile.h"
 #include "app/rom.h"
 #include "zelda3/overworld/overworld.h"
 

@@ -6,7 +6,7 @@
 #include "app/gui/canvas.h"
 #include "app/rom.h"
 #include "zelda3/dungeon/room.h"
-#include "app/gfx/snes_palette.h"
+#include "app/gfx/types/snes_palette.h"
 #include "dungeon_object_interaction.h"
 #include "imgui/imgui.h"
 

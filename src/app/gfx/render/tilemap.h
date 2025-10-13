@@ -3,8 +3,8 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "app/gfx/backend/irenderer.h"
-#include "app/gfx/bitmap.h"
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_tile.h"
 
 #include <list>
 #include <unordered_map>

@@ -6,8 +6,8 @@
 #include <unordered_map>
 #include <memory>
 #include <functional>
-#include "app/gfx/performance/performance_profiler.h"
-#include "app/gfx/performance/performance_dashboard.h"
+#include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/debug/performance/performance_dashboard.h"
 #include "canvas_usage_tracker.h"
 #include "imgui/imgui.h"
 

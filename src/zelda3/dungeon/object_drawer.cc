@@ -3,7 +3,7 @@
 #include <cstdio>
 
 #include "absl/strings/str_format.h"
-#include "app/gfx/snes_tile.h"
+#include "app/gfx/types/snes_tile.h"
 #include "util/log.h"
 
 namespace yaze {
