@@ -18,11 +18,6 @@ absl::Status HandleAgentCommand(const std::vector<std::string>& args);
 
 ModernCLI::ModernCLI() {
   // Commands are now managed by CommandRegistry singleton
-  // SetupCommands() is no longer needed
-}
-
-void ModernCLI::SetupCommands() {
-  // No-op: CommandRegistry handles this automatically
 }
 
 absl::Status ModernCLI::Run(int argc, char* argv[]) {

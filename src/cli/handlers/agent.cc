@@ -1,6 +1,8 @@
 #include "cli/handlers/agent/todo_commands.h"
 #include "cli/cli.h"
 
+#include <algorithm>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -8,10 +10,11 @@
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "cli/service/command_registry.h"
+#include "app/rom.h"
 #include "cli/handlers/agent/common.h"
-#include "cli/handlers/agent/todo_commands.h"
 #include "cli/handlers/agent/simple_chat_command.h"
+#include "cli/handlers/agent/todo_commands.h"
+#include "cli/service/command_registry.h"
 
 ABSL_DECLARE_FLAG(bool, quiet);
 
@@ -20,15 +23,25 @@ namespace cli {
 
 // Forward declarations for special agent commands (not in registry)
 namespace agent {
+absl::Status HandleRunCommand(const std::vector<std::string>& args, Rom& rom);
 absl::Status HandlePlanCommand(const std::vector<std::string>& args);
 absl::Status HandleTestCommand(const std::vector<std::string>& args);
 absl::Status HandleTestConversationCommand(const std::vector<std::string>& args);
 absl::Status HandleLearnCommand(const std::vector<std::string>& args);
 absl::Status HandleListCommand();
+absl::Status HandleDiffCommand(Rom& rom, const std::vector<std::string>& args);
+absl::Status HandleCommitCommand(Rom& rom);
+absl::Status HandleRevertCommand(Rom& rom);
+absl::Status HandleAcceptCommand(const std::vector<std::string>& args, Rom& rom);
 absl::Status HandleDescribeCommand(const std::vector<std::string>& args);
 }  // namespace agent
 
 namespace {
+
+Rom& AgentRom() {
+  static Rom rom;
+  return rom;
+}
 
 std::string GenerateAgentHelp() {
   auto& registry = CommandRegistry::Instance();
@@ -40,6 +53,11 @@ std::string GenerateAgentHelp() {
   help << "  simple-chat              Interactive AI chat\n";
   help << "  test-conversation        Automated test conversation\n";
   help << "  plan                     Generate execution plan\n";
+  help << "  run                      Execute plan in sandbox\n";
+  help << "  diff                     Review the latest proposal diff\n";
+  help << "  accept                   Apply proposal changes to ROM\n";
+  help << "  commit                   Save current ROM changes\n";
+  help << "  revert                   Reload ROM from disk\n";
   help << "  learn                    Manage learned knowledge\n";
   help << "  todo                     Task management\n";
   help << "  test                     Run tests\n";
@@ -48,18 +66,20 @@ std::string GenerateAgentHelp() {
   // Auto-list available tool commands from registry
   help << "Tool Commands (AI can call these):\n";
   auto agent_commands = registry.GetAgentCommands();
-  int count = 0;
-  for (const auto& cmd : agent_commands) {
-    if (count++ < 10) {  // Show first 10
-      auto* meta = registry.GetMetadata(cmd);
-      if (meta) {
-        help << "  " << cmd;
-        for (size_t i = cmd.length(); i < 24; i++) help << " ";
-        help << meta->description << "\n";
-      }
+  const size_t preview_count = std::min<size_t>(10, agent_commands.size());
+  for (size_t i = 0; i < preview_count; ++i) {
+    const auto& cmd = agent_commands[i];
+    if (auto* meta = registry.GetMetadata(cmd); meta != nullptr) {
+      help << "  " << cmd;
+      for (size_t pad = cmd.length(); pad < 24; ++pad) help << " ";
+      help << meta->description << "\n";
     }
   }
-  help << "  ... and " << (agent_commands.size() - 10) << " more (see z3ed --list-commands)\n\n";
+  if (agent_commands.size() > preview_count) {
+    help << "  ... and " << (agent_commands.size() - preview_count)
+         << " more (see z3ed --list-commands)\n";
+  }
+  help << "\n";
   
   help << "Global Options:\n";
   help << "  --rom=<path>            Path to ROM file\n";
@@ -102,8 +122,30 @@ absl::Status HandleAgentCommand(const std::vector<std::string>& arg_vec) {
     return registry.Execute("simple-chat", subcommand_args, nullptr);
   }
   
+  auto& agent_rom = AgentRom();
+
+  if (subcommand == "run") {
+    return agent::HandleRunCommand(subcommand_args, agent_rom);
+  }
+  
   if (subcommand == "plan") {
     return agent::HandlePlanCommand(subcommand_args);
+  }
+  
+  if (subcommand == "diff") {
+    return agent::HandleDiffCommand(agent_rom, subcommand_args);
+  }
+  
+  if (subcommand == "accept") {
+    return agent::HandleAcceptCommand(subcommand_args, agent_rom);
+  }
+  
+  if (subcommand == "commit") {
+    return agent::HandleCommitCommand(agent_rom);
+  }
+  
+  if (subcommand == "revert") {
+    return agent::HandleRevertCommand(agent_rom);
   }
   
   if (subcommand == "test") {
@@ -137,13 +179,6 @@ absl::Status HandleAgentCommand(const std::vector<std::string>& arg_vec) {
     return agent::HandleDescribeCommand(subcommand_args);
   }
   
-  // Placeholder for unimplemented workflow commands
-  if (subcommand == "run" || subcommand == "diff" || subcommand == "accept" ||
-      subcommand == "commit" || subcommand == "revert") {
-    return absl::UnimplementedError(
-        absl::StrCat("Agent ", subcommand, " command requires ROM context - not yet implemented"));
-  }
-  
   // === Registry Commands (resource, dungeon, overworld, emulator, etc.) ===
   
   auto& registry = CommandRegistry::Instance();
@@ -159,7 +194,7 @@ absl::Status HandleAgentCommand(const std::vector<std::string>& arg_vec) {
       absl::StrCat("Unknown agent command: ", subcommand));
 }
 
-// Handler functions are now implemented in command_wrappers.cc
+// Handler implementations live in general_commands.cc
 
 }  // namespace handlers
 }  // namespace cli

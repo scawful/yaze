@@ -94,14 +94,6 @@ std::vector<std::unique_ptr<resources::CommandHandler>> CreateAgentCommandHandle
  */
 std::vector<std::unique_ptr<resources::CommandHandler>> CreateAllCommandHandlers();
 
-/**
- * @brief Get a command handler by name
- * 
- * @param name Command name (e.g., "resource-list", "hex-read")
- * @return Pointer to command handler or nullptr if not found
- */
-resources::CommandHandler* GetCommandHandler(const std::string& name);
-
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze
