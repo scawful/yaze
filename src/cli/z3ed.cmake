@@ -43,6 +43,6 @@ if(YAZE_WITH_GRPC)
   
   # On Windows, force whole-archive linking for protobuf to ensure all symbols are included
   if(MSVC)
-    target_link_options(z3ed PRIVATE /WHOLEARCHIVE:libprotobuf)
+    target_link_options(z3ed PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:libprotobuf>)
   endif()
 endif()
