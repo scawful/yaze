@@ -29,6 +29,7 @@ target_include_directories(yaze_emulator PUBLIC
 target_link_libraries(yaze_emulator PUBLIC
   yaze_util
   yaze_common
+  yaze_core_lib
   ${ABSL_TARGETS}
   ${SDL_TARGETS}
 )

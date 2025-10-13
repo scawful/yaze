@@ -17,7 +17,7 @@ Arena& Arena::Get() {
   return instance;
 }
 
-Arena::Arena() {
+Arena::Arena() : bg1_(512, 512), bg2_(512, 512) {
   layer1_buffer_.fill(0);
   layer2_buffer_.fill(0);
 }
