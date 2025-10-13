@@ -13,7 +13,7 @@
 #include "util/platform_paths.h"
 #include "app/gui/icons.h"
 #include "util/log.h"
-#include "app/zelda3/zelda3_labels.h"
+#include "zelda3/zelda3_labels.h"
 #include "imgui/imgui.h"
 #include "yaze_config.h"
 

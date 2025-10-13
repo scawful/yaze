@@ -5,8 +5,8 @@
 #include <gmock/gmock.h>
 
 #include "app/rom.h"
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 
 // Helper function for SNES to PC address conversion
 inline int SnesToPc(int addr) {

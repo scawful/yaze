@@ -9,10 +9,10 @@
 
 #include "app/rom.h"
 #include "app/gfx/background_buffer.h"
-#include "app/zelda3/dungeon/dungeon_rom_addresses.h"
-#include "app/zelda3/dungeon/room_object.h"
-#include "app/zelda3/dungeon/room_layout.h"
-#include "app/zelda3/sprite/sprite.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/room_layout.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace zelda3 {

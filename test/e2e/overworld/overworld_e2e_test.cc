@@ -5,8 +5,8 @@
 #include <string>
 
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
-#include "app/zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_map.h"
 #include "testing.h"
 
 namespace yaze {

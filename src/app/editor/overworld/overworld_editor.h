@@ -16,7 +16,7 @@
 #include "app/gui/widgets/tile_selector_widget.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld.h"
 #include "imgui/imgui.h"
 #include <mutex>
 

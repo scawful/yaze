@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #include "app/rom.h"
-#include "app/zelda3/common.h"
+#include "zelda3/common.h"
 #include "util/macro.h"
 
 namespace yaze {

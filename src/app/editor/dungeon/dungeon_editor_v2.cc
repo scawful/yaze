@@ -6,7 +6,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/arena.h"
 #include "app/gfx/snes_palette.h"
-#include "app/zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
 #include "imgui/imgui.h"

@@ -1,7 +1,7 @@
 #include "integration/dungeon_editor_test.h"
 
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace test {

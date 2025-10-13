@@ -10,7 +10,7 @@
 #include "app/gfx/snes_tile.h"
 #include "app/gfx/snes_palette.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace zelda3 {

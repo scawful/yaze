@@ -6,8 +6,8 @@
 
 #include "imgui/imgui.h"
 #include "app/gui/canvas.h"
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace editor {

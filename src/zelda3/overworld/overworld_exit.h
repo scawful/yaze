@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <iostream>
 
-#include "app/zelda3/common.h"
+#include "zelda3/common.h"
 
 namespace yaze {
 namespace zelda3 {

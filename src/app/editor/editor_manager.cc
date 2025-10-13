@@ -37,7 +37,7 @@
 #include "app/gui/theme_manager.h"
 #include "app/rom.h"
 #include "app/test/test_manager.h"
-#include "app/zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_map.h"
 #ifdef YAZE_ENABLE_TESTING
 #include "app/test/e2e_test_suite.h"
 #include "app/test/integrated_test_suite.h"

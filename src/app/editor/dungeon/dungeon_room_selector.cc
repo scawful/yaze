@@ -1,8 +1,8 @@
 #include "dungeon_room_selector.h"
 
 #include "app/gui/input.h"
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/dungeon/room_entrance.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_entrance.h"
 #include "imgui/imgui.h"
 #include "util/hex.h"
 

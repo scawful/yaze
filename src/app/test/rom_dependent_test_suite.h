@@ -7,7 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "app/test/test_manager.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gui/icons.h"
 

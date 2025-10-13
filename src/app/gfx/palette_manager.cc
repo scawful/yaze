@@ -252,12 +252,11 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
     auto color_it = modified_colors_[group_name].find(palette_idx);
     if (color_it != modified_colors_[group_name].end()) {
       for (int color_idx : color_it->second) {
-        // Calculate ROM address
-        uint32_t address =
-            GetPaletteAddress(group_name, palette_idx, color_idx);
+        // Calculate ROM address using the helper function
+        uint32_t address = GetPaletteAddress(group_name, palette_idx, color_idx);
 
-        // Write color to ROM
-        RETURN_IF_ERROR(rom_->WriteColor(address, (*palette)[color_idx]));
+        // Write color to ROM - write the 16-bit SNES color value
+        rom_->WriteShort(address, (*palette)[color_idx].snes());
       }
     }
   }

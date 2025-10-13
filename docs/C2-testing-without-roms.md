@@ -174,7 +174,7 @@ Mock ROM includes all these labels from `zelda3::Zelda3Labels`:
 | Music Tracks | 64+ | "Title Theme", "Overworld", "Dark World" |
 | Graphics Sheets | 128+ | "Link Sprites", "Enemy Pack 1" |
 
-See `src/app/zelda3/zelda3_labels.h` for the complete list.
+See `src/zelda3/zelda3_labels.h` for the complete list.
 
 ## Troubleshooting
 

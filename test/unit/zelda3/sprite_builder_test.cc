@@ -1,4 +1,4 @@
-#include "app/zelda3/sprite/sprite_builder.h"
+#include "zelda3/sprite/sprite_builder.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>

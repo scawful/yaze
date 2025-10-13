@@ -10,11 +10,11 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "app/zelda3/common.h"
-#include "app/zelda3/overworld/overworld.h"
-#include "app/zelda3/overworld/overworld_entrance.h"
-#include "app/zelda3/overworld/overworld_exit.h"
-#include "app/zelda3/overworld/overworld_map.h"
+#include "zelda3/common.h"
+#include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_entrance.h"
+#include "zelda3/overworld/overworld_exit.h"
+#include "zelda3/overworld/overworld_map.h"
 #include "util/macro.h"
 
 namespace yaze {

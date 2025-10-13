@@ -2,7 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_USAGE_TRACKER_H
 
 #include "absl/container/flat_hash_map.h"
-#include "app/zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room.h"
 
 namespace yaze {
 namespace editor {

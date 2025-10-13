@@ -277,7 +277,7 @@ formatter.EndObject();
 
 Command handlers are designed to work alongside the public C API defined in `incl/yaze.h` and `incl/zelda.h`. 
 
-- Handlers use internal C++ classes from `app/zelda3/`
+- Handlers use internal C++ classes from `zelda3/`
 - Output structures align with C API data types where possible
 - Future: C API bridge will expose commands to external applications
 

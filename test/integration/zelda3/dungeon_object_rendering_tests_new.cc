@@ -2,9 +2,9 @@
 // Updated for DungeonEditorV2 architecture - uses ObjectDrawer (production system)
 // instead of the obsolete ObjectRenderer
 
-#include "app/zelda3/dungeon/object_drawer.h"
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 
 #include <gtest/gtest.h>
 #include <memory>

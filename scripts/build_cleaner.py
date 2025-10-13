@@ -71,8 +71,8 @@ CONFIG: Sequence[CMakeSourceBlock] = (
     ),
     CMakeSourceBlock(
         variable="YAZE_APP_ZELDA3_SRC",
-        cmake_path=SOURCE_ROOT / "app/zelda3/zelda3_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/zelda3"),),
+        cmake_path=SOURCE_ROOT / "zelda3/zelda3_library.cmake",
+        directories=(DirectorySpec(SOURCE_ROOT / "zelda3"),),
     ),
     CMakeSourceBlock(
         variable="YAZE_NET_SRC",

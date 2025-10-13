@@ -5,8 +5,8 @@
 #include "app/gfx/snes_palette.h"
 #include "app/gui/input.h"
 #include "app/rom.h"
-#include "app/zelda3/dungeon/room.h"
-#include "app/zelda3/sprite/sprite.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/sprite/sprite.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 

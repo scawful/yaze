@@ -6,7 +6,7 @@
 #include "absl/flags/flag.h"
 #include "absl/strings/str_format.h"
 #include "app/core/project.h"
-#include "app/zelda3/zelda3_labels.h"
+#include "zelda3/zelda3_labels.h"
 
 ABSL_DECLARE_FLAG(bool, mock_rom);
 

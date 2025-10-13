@@ -4,7 +4,7 @@
 #include <cstring>
 
 #include "absl/strings/str_format.h"
-#include "app/zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/room_object.h"
 #include "util/log.h"
 
 // ROM addresses for object data (PC addresses, not SNES)

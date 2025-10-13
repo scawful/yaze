@@ -3,7 +3,7 @@
 
 #include <functional>
 
-#include "app/zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld.h"
 #include "app/rom.h"
 #include "app/gui/canvas.h"
 

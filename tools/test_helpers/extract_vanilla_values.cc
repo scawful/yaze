@@ -4,8 +4,8 @@
 #include <vector>
 
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld_map.h"
-#include "app/zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld.h"
 
 using namespace yaze::zelda3;
 using namespace yaze;

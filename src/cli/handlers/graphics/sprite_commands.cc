@@ -2,7 +2,7 @@
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
-#include "app/zelda3/sprite/sprite.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace cli {

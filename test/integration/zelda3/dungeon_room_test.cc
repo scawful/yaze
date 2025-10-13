@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "app/rom.h"
-#include "app/zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room.h"
 
 namespace yaze {
 namespace test {

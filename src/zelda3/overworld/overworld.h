@@ -8,11 +8,11 @@
 #include "absl/status/status.h"
 #include "app/gfx/snes_tile.h"
 #include "app/rom.h"
-#include "app/zelda3/overworld/overworld_entrance.h"
-#include "app/zelda3/overworld/overworld_exit.h"
-#include "app/zelda3/overworld/overworld_item.h"
-#include "app/zelda3/overworld/overworld_map.h"
-#include "app/zelda3/sprite/sprite.h"
+#include "zelda3/overworld/overworld_entrance.h"
+#include "zelda3/overworld/overworld_exit.h"
+#include "zelda3/overworld/overworld_item.h"
+#include "zelda3/overworld/overworld_map.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace zelda3 {

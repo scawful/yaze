@@ -7,7 +7,7 @@
 #include "app/gfx/arena.h"
 #include "app/gui/icons.h"
 #include "app/gui/input.h"
-#include "app/zelda3/sprite/sprite.h"
+#include "zelda3/sprite/sprite.h"
 #include "util/hex.h"
 
 namespace yaze {

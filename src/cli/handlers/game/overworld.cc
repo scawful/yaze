@@ -1,5 +1,5 @@
 #include "cli/cli.h"
-#include "app/zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld.h"
 #include "cli/handlers/game/overworld_inspect.h"
 
 #include <algorithm>

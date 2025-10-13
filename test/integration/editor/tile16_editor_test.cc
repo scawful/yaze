@@ -10,7 +10,7 @@
 #include "app/gfx/backend/sdl2_renderer.h"
 #include "app/gfx/bitmap.h"
 #include "app/gfx/tilemap.h"
-#include "app/zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld.h"
 #include "app/core/window.h"
 
 namespace yaze {
