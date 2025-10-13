@@ -57,6 +57,19 @@ class OverworldMapScreen {
    */
   absl::Status RenderMapLayer(bool use_dark_world);
 
+  /**
+   * @brief Load custom map from external binary file
+   * @param file_path Path to .bin file containing 64×64 tile indices
+   */
+  absl::Status LoadCustomMap(const std::string& file_path);
+
+  /**
+   * @brief Save map data to external binary file
+   * @param file_path Path to output .bin file
+   * @param use_dark_world If true, save DW tiles, otherwise LW tiles
+   */
+  absl::Status SaveCustomMap(const std::string& file_path, bool use_dark_world);
+
  private:
   /**
    * @brief Load map tile data from ROM
