@@ -110,6 +110,7 @@ class Dsp {
   int16_t GetSample(int ch);
 
   void GetSamples(int16_t* sample_data, int samples_per_frame, bool pal_timing);
+  int CopyNativeFrame(int16_t* sample_data, bool pal_timing);
 
   InterpolationType interpolation_type = InterpolationType::Linear;
 

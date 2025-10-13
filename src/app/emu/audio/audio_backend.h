@@ -4,9 +4,12 @@
 #ifndef YAZE_APP_EMU_AUDIO_AUDIO_BACKEND_H
 #define YAZE_APP_EMU_AUDIO_AUDIO_BACKEND_H
 
+#include <SDL.h>
+
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace yaze {
 namespace emu {
@@ -57,6 +60,10 @@ class IAudioBackend {
   // Audio data
   virtual bool QueueSamples(const int16_t* samples, int num_samples) = 0;
   virtual bool QueueSamples(const float* samples, int num_samples) = 0;
+  virtual bool QueueSamplesNative(const int16_t* samples, int frames_per_channel,
+                                  int channels, int native_rate) {
+    return false;
+  }
 
   // Status queries
   virtual AudioStatus GetStatus() const = 0;
@@ -66,6 +73,11 @@ class IAudioBackend {
   // Volume control (0.0 to 1.0)
   virtual void SetVolume(float volume) = 0;
   virtual float GetVolume() const = 0;
+
+  // Optional: enable/disable SDL_AudioStream-based resampling
+  virtual void SetAudioStreamResampling(bool enable, int native_rate,
+                                        int channels) {}
+  virtual bool SupportsAudioStream() const { return false; }
 
   // Get backend name for debugging
   virtual std::string GetBackendName() const = 0;
@@ -89,6 +101,8 @@ class SDL2AudioBackend : public IAudioBackend {
 
   bool QueueSamples(const int16_t* samples, int num_samples) override;
   bool QueueSamples(const float* samples, int num_samples) override;
+  bool QueueSamplesNative(const int16_t* samples, int frames_per_channel,
+                          int channels, int native_rate) override;
 
   AudioStatus GetStatus() const override;
   bool IsInitialized() const override;
@@ -97,6 +111,10 @@ class SDL2AudioBackend : public IAudioBackend {
   void SetVolume(float volume) override;
   float GetVolume() const override;
 
+  void SetAudioStreamResampling(bool enable, int native_rate,
+                                int channels) override;
+  bool SupportsAudioStream() const override { return true; }
+
   std::string GetBackendName() const override { return "SDL2"; }
 
  private:
@@ -104,6 +122,13 @@ class SDL2AudioBackend : public IAudioBackend {
   AudioConfig config_;
   bool initialized_ = false;
   float volume_ = 1.0f;
+  SDL_AudioFormat device_format_ = AUDIO_S16;
+  int device_channels_ = 2;
+  int device_freq_ = 48000;
+  bool audio_stream_enabled_ = false;
+  int stream_native_rate_ = 0;
+  SDL_AudioStream* audio_stream_ = nullptr;
+  std::vector<int16_t> stream_buffer_;
 };
 
 /**
@@ -125,4 +150,3 @@ class AudioBackendFactory {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EMU_AUDIO_AUDIO_BACKEND_H
-

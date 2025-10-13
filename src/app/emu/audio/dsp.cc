@@ -753,5 +753,25 @@ void Dsp::GetSamples(int16_t* sample_data, int samples_per_frame,
   }
 }
 
+int Dsp::CopyNativeFrame(int16_t* sample_data, bool pal_timing) {
+  if (sample_data == nullptr) {
+    return 0;
+  }
+
+  const int native_per_frame = pal_timing ? 641 : 534;
+  const int total_samples = native_per_frame * 2;
+
+  int start_index = static_cast<int>(
+      (lastFrameBoundary + 0x400 - native_per_frame) & 0x3ff);
+
+  for (int i = 0; i < native_per_frame; ++i) {
+    const int idx = (start_index + i) & 0x3ff;
+    sample_data[(i * 2) + 0] = sampleBuffer[(idx * 2) + 0];
+    sample_data[(i * 2) + 1] = sampleBuffer[(idx * 2) + 1];
+  }
+
+  return total_samples / 2;  // return frames per channel
+}
+
 }  // namespace emu
 }  // namespace yaze
