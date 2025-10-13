@@ -13,6 +13,7 @@
 #include "app/rom.h"
 #include "zelda3/screen/dungeon_map.h"
 #include "zelda3/screen/inventory.h"
+#include "zelda3/screen/title_screen.h"
 #include "app/gui/app/editor_layout.h"
 #include "imgui/imgui.h"
 
@@ -59,9 +60,15 @@ class ScreenEditor : public Editor {
   void DrawOverworldMapEditor();
 
   void DrawInventoryMenuEditor();
+  void DrawInventoryItemIcons();
   void DrawToolset();
   void DrawDungeonMapToolset();
   void DrawInventoryToolset();
+
+  // Title screen layer editing
+  void DrawTitleScreenBG1Canvas();
+  void DrawTitleScreenBG2Canvas();
+  void DrawTitleScreenBlocksetSelector();
 
   absl::Status LoadDungeonMapTile16(const std::vector<uint8_t>& gfx_data,
                                     bool bin_mode = false);
@@ -105,7 +112,24 @@ class ScreenEditor : public Editor {
   gui::Canvas tilemap_canvas_{"##TilemapCanvas", ImVec2(128 + 2, (192) + 4),
                               gui::CanvasGridSize::k8x8, 2.f};
 
+  // Title screen canvases
+  // Title screen is 32x32 tiles at 8x8 pixels = 256x256 pixels total
+  gui::Canvas title_bg1_canvas_{"##TitleBG1Canvas", ImVec2(256, 256),
+                                gui::CanvasGridSize::k8x8, 2.0f};
+  gui::Canvas title_bg2_canvas_{"##TitleBG2Canvas", ImVec2(256, 256),
+                                gui::CanvasGridSize::k8x8, 2.0f};
+  // Blockset is 128 pixels wide x 512 pixels tall (16x64 8x8 tiles)
+  gui::Canvas title_blockset_canvas_{"##TitleBlocksetCanvas",
+                                     ImVec2(128, 512),
+                                     gui::CanvasGridSize::k8x8, 2.0f};
+
   zelda3::Inventory inventory_;
+  zelda3::TitleScreen title_screen_;
+
+  // Title screen state
+  int selected_title_tile16_ = 0;
+  bool title_screen_loaded_ = false;
+
   Rom* rom_;
   absl::Status status_;
 };
