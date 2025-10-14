@@ -8,6 +8,11 @@ set(ASAR_GEN_LIB ON CACHE BOOL "Build Asar static library")
 set(ASAR_GEN_EXE_TEST OFF CACHE BOOL "Build Asar executable tests")
 set(ASAR_GEN_DLL_TEST OFF CACHE BOOL "Build Asar DLL tests")
 
+# Force Asar to use static MSVC runtime to match vcpkg static triplets
+if(MSVC)
+    set(MSVC_LIB_TYPE T CACHE STRING "Asar MSVC runtime type" FORCE)
+endif()
+
 # Set Asar source directory
 set(ASAR_SRC_DIR "${CMAKE_SOURCE_DIR}/src/lib/asar/src")
 

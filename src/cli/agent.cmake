@@ -163,14 +163,8 @@ if(YAZE_WITH_GRPC)
   )
   if(YAZE_PROTOBUF_TARGET)
     target_link_libraries(yaze_agent PUBLIC ${YAZE_PROTOBUF_TARGET})
-  endif()
-  
-  # On Windows, force whole-archive linking for protobuf to ensure all symbols are included
-  if(MSVC AND YAZE_PROTOBUF_TARGET)
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    if(MSVC)
       target_link_options(yaze_agent PUBLIC /WHOLEARCHIVE:$<TARGET_FILE:${YAZE_PROTOBUF_TARGET}>)
-    else()
-      message(STATUS "○ Skipping /WHOLEARCHIVE for libprotobuf (clang-cl)")
     endif()
   endif()
   
