@@ -406,6 +406,9 @@ jobs:
             -DOPENSSL_NO_ASM=ON `
             -DCMAKE_CXX_FLAGS="/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H" `
             -DYAZE_BUILD_TESTS=ON `
+            -DYAZE_BUILD_EMU=ON `
+            -DYAZE_BUILD_Z3ED=ON `
+            -DYAZE_BUILD_TOOLS=ON `
             -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | Tee-Object -FilePath cmake_config.log
           # Note: Tests enabled for pre-1.0 releases to catch issues before publishing
           # ROM tests disabled (require test ROM file)
@@ -427,8 +430,10 @@ jobs:
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_OSX_ARCHITECTURES=${{ matrix.mac_arch }} \
-            -DYAZE_BUILD_EMU=OFF \
             -DYAZE_BUILD_TESTS=ON \
+            -DYAZE_BUILD_EMU=ON \
+            -DYAZE_BUILD_Z3ED=ON \
+            -DYAZE_BUILD_TOOLS=ON \
             -DYAZE_ENABLE_ROM_TESTS=OFF 2>&1 | tee cmake_config.log
           echo "::endgroup::"
           # Note: YAZE_BUILD_EMU=OFF disables standalone emulator executable
@@ -444,8 +449,10 @@ jobs:
           echo "::group::CMake Configuration (Linux)"
           cmake -B build -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DYAZE_BUILD_EMU=OFF \
             -DYAZE_BUILD_TESTS=ON \
+            -DYAZE_BUILD_EMU=ON \
+            -DYAZE_BUILD_Z3ED=ON \
+            -DYAZE_BUILD_TOOLS=ON \
             -DYAZE_ENABLE_ROM_TESTS=OFF \
             -DNFD_PORTAL=ON 2>&1 | tee cmake_config.log
           echo "::endgroup::"
