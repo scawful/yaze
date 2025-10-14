@@ -234,6 +234,67 @@ jobs:
           "MSVC_LINK_PATH=$normalized" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           Write-Host "Persisted MSVC_LINK_PATH=$normalized"
 
+      - name: "Initialize MSVC developer environment (Windows)"
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $vsDevCmdPaths = @(
+            "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat",
+            "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Professional\Common7\Tools\VsDevCmd.bat",
+            "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat"
+          )
+
+          $vsDevCmd = $vsDevCmdPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+          if (-not $vsDevCmd) {
+            Write-Host "::warning::VsDevCmd.bat not found; MSVC environment variables may be missing"
+            return
+          }
+
+          Write-Host "Initializing MSVC environment via $vsDevCmd"
+          $cmdOutput = cmd /c "`"$vsDevCmd`" -arch=amd64 -host_arch=amd64 && set" 2>$null
+          if (-not $cmdOutput) {
+            Write-Host "::warning::VsDevCmd invocation produced no output"
+            return
+          }
+
+          $captured = @{}
+          foreach ($line in $cmdOutput) {
+            if ($line -match '^(.*?)=(.*)$') {
+              $name = $matches[1]
+              $value = $matches[2]
+              $captured[$name] = $value
+            }
+          }
+
+          $keysToExport = @(
+            'INCLUDE', 'LIB', 'LIBPATH', 'UCRTVersion',
+            'UniversalCRTSdkDir', 'WindowsSdkDir', 'WindowsLibPath',
+            'VCToolsInstallDir', 'VCINSTALLDIR', 'FrameworkDIR', 'FrameworkDIR64',
+            'FrameworkVersion', 'FrameworkVersion64', 'ExtensionSdkDir',
+            'DevEnvDir', 'VCIDEInstallDir', 'VSINSTALLDIR', 'VisualStudioVersion',
+            'VC_VCTIP_INSTALLDIR', 'VC_TOOLS_INSTALL_DIR', 'Path', 'PATH'
+          )
+
+          foreach ($key in $keysToExport) {
+            if ($captured.ContainsKey($key)) {
+              $value = $captured[$key]
+              if ($key -ieq 'PATH') {
+                $merged = "$value;$env:PATH"
+                "PATH=$merged" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+                Write-Host "Exported PATH from VsDevCmd (merged with existing PATH)"
+              } elseif ($key -ieq 'Path') {
+                $merged = "$value;$env:PATH"
+                "PATH=$merged" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+                Write-Host "Exported Path from VsDevCmd (merged with existing PATH)"
+              } else {
+                "{0}={1}" -f $key, $value | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+                Write-Host "Exported $key from VsDevCmd"
+              }
+            }
+          }
+          Write-Host "MSVC developer environment variables exported (selected set)"
+
       - name: "Free Disk Space (Linux)"
         if: runner.os == 'Linux'
         shell: bash
