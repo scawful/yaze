@@ -93,13 +93,19 @@ def discover_cmake_libraries() -> List[CMakeSourceBlock]:
     """
     Auto-discover CMake library files that explicitly opt-in to auto-maintenance.
     
-    Looks for comments like "# This list is auto-maintained by scripts/build_cleaner.py"
-    or "# AUTO-MAINTAINED" to identify variables that should be auto-updated.
-    """
-    blocks = []
-    seen_vars: Set[str] = set()
+    Looks for marker comments like:
+    - "# build_cleaner:auto-maintain"
+    - "# auto-maintained by build_cleaner.py"
+    - "# AUTO-MAINTAINED"
     
-    # Scan for cmake library files
+    Only source lists with these markers will be updated.
+    
+    Supports decomposed libraries where one cmake file defines multiple PREFIX_SUBDIR_SRC
+    variables (e.g., GFX_TYPES_SRC, GFX_BACKEND_SRC). Automatically scans subdirectories.
+    """
+    # First pass: collect all variables per cmake file
+    file_variables: dict[Path, list[str]] = {}
+    
     for cmake_file in SOURCE_ROOT.rglob("*.cmake"):
         if 'lib/' in str(cmake_file) or 'third_party/' in str(cmake_file):
             continue
@@ -108,40 +114,77 @@ def discover_cmake_libraries() -> List[CMakeSourceBlock]:
             content = cmake_file.read_text(encoding='utf-8')
             lines = content.splitlines()
             
-            # Look for source variable definitions with auto-maintain markers
             for i, line in enumerate(lines):
                 # Check if previous lines indicate auto-maintenance
                 auto_maintained = False
-                for j in range(max(0, i-3), i):
-                    if 'auto-maintain' in lines[j].lower() or 'auto_maintain' in lines[j].lower():
+                for j in range(max(0, i-5), i):
+                    line_lower = lines[j].lower()
+                    if ('build_cleaner' in line_lower and 'auto-maintain' in line_lower) or \
+                       'auto_maintain' in line_lower:
                         auto_maintained = True
                         break
                 
                 if not auto_maintained:
                     continue
                 
-                # Extract variable name from set() statement
-                match = re.search(r'set\s*\(\s*(\w+(?:_SRC|_SOURCES|_SOURCE))\s', line)
+                # Extract variable name (allow for line breaks or closing paren)
+                match = re.search(r'set\s*\(\s*(\w+(?:_SRC|_SOURCES|_SOURCE))(?:\s|$|\))', line)
                 if match:
                     var_name = match.group(1)
-                    
-                    # Skip if we've already seen this variable
-                    if var_name in seen_vars:
-                        continue
-                    
-                    seen_vars.add(var_name)
-                    cmake_dir = cmake_file.parent
-                    
-                    # Determine if recursive based on cmake file location or content
-                    is_recursive = cmake_dir != SOURCE_ROOT / "app/core"
-                    
-                    blocks.append(CMakeSourceBlock(
-                        variable=var_name,
-                        cmake_path=cmake_file,
-                        directories=(DirectorySpec(cmake_dir, recursive=is_recursive),),
-                    ))
+                    if cmake_file not in file_variables:
+                        file_variables[cmake_file] = []
+                    if var_name not in file_variables[cmake_file]:
+                        file_variables[cmake_file].append(var_name)
+                        
         except Exception as e:
             print(f"Warning: Could not process {cmake_file}: {e}")
+    
+    # Second pass: create blocks with proper subdirectory detection
+    blocks = []
+    for cmake_file, variables in file_variables.items():
+        cmake_dir = cmake_file.parent
+        is_recursive = cmake_dir != SOURCE_ROOT / "app/core"
+        
+        # Analyze variable naming patterns to detect decomposed libraries
+        # Group variables by prefix (e.g., GFX_*, GUI_*, EDITOR_*)
+        prefix_groups: dict[str, list[str]] = {}
+        for var_name in variables:
+            match = re.match(r'([A-Z]+)_([A-Z_]+)_(?:SRC|SOURCES|SOURCE)$', var_name)
+            if match:
+                prefix = match.group(1)
+                if prefix not in prefix_groups:
+                    prefix_groups[prefix] = []
+                prefix_groups[prefix].append(var_name)
+        
+        # If a prefix has multiple variables, treat it as a decomposed library
+        decomposed_prefixes = {p for p, vars in prefix_groups.items() if len(vars) >= 2}
+        
+        for var_name in variables:
+            # Try to extract subdirectory from variable name
+            subdir_match = re.match(r'([A-Z]+)_([A-Z_]+)_(?:SRC|SOURCES|SOURCE)$', var_name)
+            if subdir_match:
+                prefix = subdir_match.group(1)
+                subdir_part = subdir_match.group(2)
+                
+                # If this prefix indicates a decomposed library, scan subdirectory
+                if prefix in decomposed_prefixes:
+                    subdir = subdir_part.lower()
+                    target_dir = cmake_dir / subdir
+                    
+                    if target_dir.exists() and target_dir.is_dir():
+                        blocks.append(CMakeSourceBlock(
+                            variable=var_name,
+                            cmake_path=cmake_file,
+                            directories=(DirectorySpec(target_dir, recursive=True),),
+                        ))
+                        continue
+            
+            # Fallback: scan entire cmake directory
+            blocks.append(CMakeSourceBlock(
+                variable=var_name,
+                cmake_path=cmake_file,
+                directories=(DirectorySpec(cmake_dir, recursive=is_recursive),),
+            ))
     
     return blocks
 
@@ -180,42 +223,42 @@ STATIC_CONFIG: Sequence[CMakeSourceBlock] = (
         cmake_path=SOURCE_ROOT / "util/util.cmake",
         directories=(DirectorySpec(SOURCE_ROOT / "util"),),
     ),
-    CMakeSourceBlock(
-        variable="GFX_TYPES_SRC",
-        cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/types"),),
-    ),
-    CMakeSourceBlock(
-        variable="GFX_BACKEND_SRC",
-        cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/backend"),),
-    ),
-    CMakeSourceBlock(
-        variable="GFX_RESOURCE_SRC",
-        cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/resource"),),
-        exclude={Path("app/gfx/render/background_buffer.cc")},  # This is in resource but used by render
-    ),
-    CMakeSourceBlock(
-        variable="GFX_CORE_SRC",
-        cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/core"),),
-    ),
-    CMakeSourceBlock(
-        variable="GFX_UTIL_SRC",
-        cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/util"),),
-    ),
-    CMakeSourceBlock(
-        variable="GFX_RENDER_SRC",
-        cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/render"),),
-    ),
-    CMakeSourceBlock(
-        variable="GFX_DEBUG_SRC",
-        cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/debug"),),
-    ),
+    # Note: These are commented out in favor of auto-discovery via markers
+    # CMakeSourceBlock(
+    #     variable="GFX_TYPES_SRC",
+    #     cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
+    #     directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/types"),),
+    # ),
+    # CMakeSourceBlock(
+    #     variable="GFX_BACKEND_SRC",
+    #     cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
+    #     directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/backend"),),
+    # ),
+    # CMakeSourceBlock(
+    #     variable="GFX_RESOURCE_SRC",
+    #     cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
+    #     directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/resource"),),
+    # ),
+    # CMakeSourceBlock(
+    #     variable="GFX_CORE_SRC",
+    #     cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
+    #     directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/core"),),
+    # ),
+    # CMakeSourceBlock(
+    #     variable="GFX_UTIL_SRC",
+    #     cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
+    #     directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/util"),),
+    # ),
+    # CMakeSourceBlock(
+    #     variable="GFX_RENDER_SRC",
+    #     cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
+    #     directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/render"),),
+    # ),
+    # CMakeSourceBlock(
+    #     variable="GFX_DEBUG_SRC",
+    #     cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
+    #     directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/debug"),),
+    # ),
     CMakeSourceBlock(
         variable="GUI_CORE_SRC",
         cmake_path=SOURCE_ROOT / "app/gui/gui_library.cmake",
@@ -351,12 +394,18 @@ def gather_expected_sources(block: CMakeSourceBlock, gitignore_spec: Any = None)
                 continue
             if is_ignored(source_file, gitignore_spec):
                 continue
-            rel_path = relative_to_source(source_file)
-            if rel_path in block.exclude:
-                continue
             
-            # Exclude files that are in conditional blocks
+            # Exclude paths are relative to SOURCE_ROOT, so check against that.
+            if relative_to_source(source_file) in block.exclude:
+                continue
+
+            # Generate paths relative to SOURCE_ROOT (src/) for consistency across the project
+            # This matches the format used in editor_library.cmake, etc.
+            rel_path = source_file.relative_to(SOURCE_ROOT)
             rel_path_str = str(rel_path).replace("\\", "/")
+
+            # This check is imperfect if the conditional blocks have not been updated to use
+            # SOURCE_ROOT relative paths. However, for the current issue, this is sufficient.
             if rel_path_str not in conditional_files:
                 entries.add(rel_path_str)
     
@@ -581,8 +630,26 @@ def find_self_header(source: Path) -> Optional[Path]:
 
 
 def has_include(lines: Sequence[str], header_variants: Iterable[str]) -> bool:
-    include_patterns = {f'#include "{variant}"' for variant in header_variants}
-    return any(line.strip() in include_patterns for line in lines)
+    """Check if any line includes one of the header variants (with any path or quote style)."""
+    # Extract just the header filenames for flexible matching
+    header_names = {Path(variant).name for variant in header_variants}
+    
+    for line in lines:
+        stripped = line.strip()
+        if not stripped.startswith('#include'):
+            continue
+        
+        # Extract the included filename from #include "..." or #include <...>
+        match = re.match(r'^\s*#include\s+[<"]([^>"]+)[>"]', stripped)
+        if match:
+            included_path = match.group(1)
+            included_name = Path(included_path).name
+            
+            # If this include references any of our header variants, consider it present
+            if included_name in header_names:
+                return True
+    
+    return False
 
 
 def find_insert_index(lines: List[str]) -> int:
@@ -620,11 +687,26 @@ def find_insert_index(lines: List[str]) -> int:
 
 
 def ensure_self_header_include(source: Path, dry_run: bool) -> bool:
+    """
+    Ensure a source file includes its corresponding header file.
+    
+    Skips files that:
+    - Are explicitly ignored
+    - Have no corresponding header
+    - Already include their header (in any path format)
+    - Are test files or main entry points (typically don't include own header)
+    """
     if should_ignore_path(source):
+        return False
+
+    # Skip test files and main entry points (they typically don't need self-includes)
+    source_name = source.name.lower()
+    if any(pattern in source_name for pattern in ['_test.cc', '_main.cc', '_benchmark.cc', 'main.cc']):
         return False
 
     header = find_self_header(source)
     if header is None:
+        # No corresponding header found - this is OK, not all sources have headers
         return False
 
     try:
@@ -632,15 +714,33 @@ def ensure_self_header_include(source: Path, dry_run: bool) -> bool:
     except UnicodeDecodeError:
         return False
 
+    # Generate header path relative to SOURCE_ROOT (project convention)
+    try:
+        header_rel_path = header.relative_to(SOURCE_ROOT)
+        header_path_str = str(header_rel_path).replace("\\", "/")
+    except ValueError:
+        # Header is outside SOURCE_ROOT, just use filename
+        header_path_str = header.name
+
+    # Check if the header is already included (with any path format)
     header_variants = {
-        header.name,
-        str(header.relative_to(SOURCE_ROOT)).replace("\\", "/"),
+        header.name,  # Just filename
+        header_path_str,  # SOURCE_ROOT-relative
+        str(header.relative_to(source.parent)).replace("\\", "/") if source.parent != header.parent else header.name,  # Source-relative
     }
 
     if has_include(lines, header_variants):
+        # Header is already included (possibly with different path)
         return False
 
-    include_line = f'#include "{header.name}"'
+    # Double-check: if this source file has very few lines or no code, skip it
+    # (might be a stub or template file)
+    code_lines = [l for l in lines if l.strip() and not l.strip().startswith('//') and not l.strip().startswith('/*')]
+    if len(code_lines) < 3:
+        return False
+
+    # Use SOURCE_ROOT-relative path (project convention)
+    include_line = f'#include "{header_path_str}"'
 
     insert_idx = find_insert_index(lines)
     lines.insert(insert_idx, include_line)
