@@ -337,81 +337,86 @@ absl::Status TitleScreen::LoadTitleScreen(Rom* rom) {
     
     LOG_INFO("TitleScreen", "Loaded 2048 tilemap entries from ZScream expanded format");
   }
-  // Vanilla format with 7 compressed sections
+  // Vanilla format: Sequential DMA blocks at pointer location
+  // NOTE: This reads from the pointer but may not be the correct format
+  // See docs/screen-editor-status.md for details on this ongoing issue
   else {
-    LOG_INFO("TitleScreen", "Using vanilla compressed format");
+    LOG_INFO("TitleScreen", "Using vanilla DMA format (EXPERIMENTAL)");
     
-    // Title screen tilemap data is stored in 7 sections
-    // Each section contains tile words for a portion of the screen
-    constexpr int kTilemapAddresses[7] = {
-        0x53de4, 0x53e2c, 0x53e08, 0x53e50, 0x53e74, 0x53e98, 0x53ebc};
-    
+    int pos = pc_addr;
     int total_entries = 0;
+    int blocks_read = 0;
     
-    // Load each tilemap section
-    for (int section = 0; section < 7; section++) {
-      int pos = kTilemapAddresses[section];
-      
-      // Read compressed tilemap data for this section
-  // Format: destination address (word), length (word), tile data
-  while (pos < rom->size()) {
-    ASSIGN_OR_RETURN(uint8_t first_byte, rom->ReadByte(pos));
-    if ((first_byte & 0x80) == 0x80) {
-          break;  // End of section marker
-    }
-
-    ASSIGN_OR_RETURN(uint16_t dest_addr, rom->ReadWord(pos));
-    pos += 2;
-
-    ASSIGN_OR_RETURN(uint16_t length_flags, rom->ReadWord(pos));
-    pos += 2;
-
-    bool increment64 = (length_flags & 0x8000) == 0x8000;
-    bool fixsource = (length_flags & 0x4000) == 0x4000;
-    int length = (length_flags & 0x07FF);
-
-    int posB = pos;
-    for (int j = 0; j < (length / 2) + 1; j++) {
-      ASSIGN_OR_RETURN(uint16_t tiledata, rom->ReadWord(pos));
-
-      // Determine which layer this tile belongs to
-      if (dest_addr >= 0x1000 && dest_addr < 0x2000) {
-        // BG1 layer
-            int index = dest_addr - 0x1000;
-            if (index < 1024) {
-              tiles_bg1_buffer_[index] = tiledata;
-              total_entries++;
-            }
-      } else if (dest_addr < 0x1000) {
-        // BG2 layer
-            if (dest_addr < 1024) {
-        tiles_bg2_buffer_[dest_addr] = tiledata;
-              total_entries++;
-            }
-      }
-
-      // Advance destination address
-      if (increment64) {
-        dest_addr += 32;
-      } else {
-        dest_addr++;
-      }
-
-      // Advance source position
-      if (!fixsource) {
-        pos += 2;
-      }
-    }
-
-    if (fixsource) {
+    // Read DMA blocks until we hit terminator or safety limit
+    while (pos < rom->size() && blocks_read < 20) {
+      // Read destination address (word)
+      ASSIGN_OR_RETURN(uint16_t dest_addr, rom->ReadWord(pos));
       pos += 2;
-    } else {
-      pos = posB + ((length / 2) + 1) * 2;
-    }
+      
+      // Check for terminator
+      if (dest_addr == 0xFFFF || (dest_addr & 0xFF) == 0xFF) {
+        LOG_INFO("TitleScreen", "Found DMA terminator at pos=0x%06X", pos - 2);
+        break;
       }
+      
+      // Read length/flags (word)
+      ASSIGN_OR_RETURN(uint16_t length_flags, rom->ReadWord(pos));
+      pos += 2;
+      
+      bool increment64 = (length_flags & 0x8000) == 0x8000;
+      bool fixsource = (length_flags & 0x4000) == 0x4000;
+      int length = (length_flags & 0x0FFF);
+      
+      LOG_INFO("TitleScreen", "Block %d: dest=0x%04X, len=%d, inc64=%d, fix=%d", 
+               blocks_read, dest_addr, length, increment64, fixsource);
+      
+      int tile_count = (length / 2) + 1;
+      int source_start = pos;
+      
+      // Read tiles
+      for (int j = 0; j < tile_count; j++) {
+        ASSIGN_OR_RETURN(uint16_t tiledata, rom->ReadWord(pos));
+        
+        // Determine which layer based on destination address
+        if (dest_addr >= 0x1000 && dest_addr < 0x1400) {
+          // BG1 layer
+          int index = (dest_addr - 0x1000) / 2;
+          if (index < 1024) {
+            tiles_bg1_buffer_[index] = tiledata;
+            total_entries++;
+          }
+        } else if (dest_addr < 0x0800) {
+          // BG2 layer
+          int index = dest_addr / 2;
+          if (index < 1024) {
+            tiles_bg2_buffer_[index] = tiledata;
+            total_entries++;
+          }
+        }
+        
+        // Advance destination address
+        if (increment64) {
+          dest_addr += 64;
+        } else {
+          dest_addr += 2;
+        }
+        
+        // Advance source position
+        if (!fixsource) {
+          pos += 2;
+        }
+      }
+      
+      // If fixsource, only advance by one tile
+      if (fixsource) {
+        pos = source_start + 2;
+      }
+      
+      blocks_read++;
     }
     
-    LOG_INFO("TitleScreen", "Loaded %d tilemap entries from 7 sections", total_entries);
+    LOG_INFO("TitleScreen", "Loaded %d tilemap entries from %d DMA blocks (may be incorrect)", 
+             total_entries, blocks_read);
   }
 
   pal_selected_ = 2;
