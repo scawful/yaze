@@ -1,7 +1,11 @@
 #include "shortcut_manager.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <functional>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"

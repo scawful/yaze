@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 #include <unordered_map>
 
 // Must define before including imgui.h

@@ -9,24 +9,27 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <new>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "app/core/features.h"
-#include "app/core/window.h"
 #include "app/gfx/util/compression.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/snes.h"
+#include "app/gfx/core/bitmap.h"
 #include "util/log.h"
 #include "util/hex.h"
-#include "util/log.h"
 #include "util/macro.h"
+#include "zelda.h"
 
 namespace yaze {
 constexpr int Uncompressed3BPPSize = 0x0600;

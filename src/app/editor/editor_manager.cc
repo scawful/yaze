@@ -3,6 +3,10 @@
 #include <algorithm>
 #include <chrono>
 #include <cstring>
+#include <filesystem>
+#include <memory>
+#include <sstream>
+#include <string>
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
@@ -11,32 +15,32 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "app/core/features.h"
-#include "app/core/timing.h"
-#include "util/file_util.h"
-#include "app/gui/automation/widget_id_registry.h"
-#include "imgui/imgui.h"
-#include "util/log.h"
-#include "util/platform_paths.h"
 #include "app/core/project.h"
+#include "app/core/timing.h"
+#include "absl/strings/str_format.h"
+#include "app/editor/system/popup_manager.h"
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/graphics/graphics_editor.h"
-#include "app/editor/palette/palette_editor.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/palette/palette_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/ui/editor_selection_dialog.h"
 #include "app/emu/emulator.h"
-#include "app/gfx/resource/arena.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gui/app/editor_card_manager.h"
 #include "app/gui/core/background_renderer.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
-#include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/rom.h"
 #include "app/test/test_manager.h"
+#include "imgui/imgui.h"
+#include "util/file_util.h"
+#include "util/log.h"
 #include "zelda3/overworld/overworld_map.h"
 #ifdef YAZE_ENABLE_TESTING
 #include "app/test/e2e_test_suite.h"
@@ -48,19 +52,19 @@
 #include "app/test/unit_test_suite.h"
 #endif
 
+#include "app/editor/editor.h"
 #include "app/editor/system/settings_editor.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
-#include "app/editor/editor.h"
 
 #ifdef YAZE_WITH_GRPC
 #include "app/core/service/screenshot_utils.h"
 #include "app/editor/agent/agent_chat_widget.h"
+#include "app/test/z3ed_test_suite.h"
 #include "cli/service/agent/agent_control_server.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/ai/gemini_ai_service.h"
-#include "app/test/z3ed_test_suite.h"
 
 #include "absl/flags/flag.h"
 
@@ -95,17 +99,17 @@ std::string GetEditorName(EditorType type) {
 // They do NOT need the traditional ImGui::Begin/End wrapper - they create cards internally
 bool EditorManager::IsCardBasedEditor(EditorType type) {
   switch (type) {
-    case EditorType::kDungeon:      // ✅ Full card system
-    case EditorType::kPalette:      // ✅ Full card system
-    case EditorType::kGraphics:     // ✅ EditorCard wrappers + Toolset
-    case EditorType::kScreen:       // ✅ EditorCard wrappers + Toolset
-    case EditorType::kSprite:       // ✅ EditorCard wrappers + Toolset
-    case EditorType::kOverworld:    // ✅ Inline EditorCard + Toolset
-    case EditorType::kEmulator:     // ✅ Emulator UI panels as cards
-    case EditorType::kMessage:      // ✅ Message editor cards
-    case EditorType::kHex:          // ✅ Memory/Hex editor
-    case EditorType::kAssembly:     // ✅ Assembly editor
-    case EditorType::kMusic:        // ✅ Music tracker + instrument editor
+    case EditorType::kDungeon:    // ✅ Full card system
+    case EditorType::kPalette:    // ✅ Full card system
+    case EditorType::kGraphics:   // ✅ EditorCard wrappers + Toolset
+    case EditorType::kScreen:     // ✅ EditorCard wrappers + Toolset
+    case EditorType::kSprite:     // ✅ EditorCard wrappers + Toolset
+    case EditorType::kOverworld:  // ✅ Inline EditorCard + Toolset
+    case EditorType::kEmulator:   // ✅ Emulator UI panels as cards
+    case EditorType::kMessage:    // ✅ Message editor cards
+    case EditorType::kHex:        // ✅ Memory/Hex editor
+    case EditorType::kAssembly:   // ✅ Assembly editor
+    case EditorType::kMusic:      // ✅ Music tracker + instrument editor
       return true;
     // Settings, Agent: Traditional UI - needs wrapper
     default:
@@ -142,18 +146,30 @@ std::string EditorManager::GetEditorCategory(EditorType type) {
   }
 }
 
-EditorType EditorManager::GetEditorTypeFromCategory(const std::string& category) {
-  if (category == "Dungeon") return EditorType::kDungeon;
-  if (category == "Palette") return EditorType::kPalette;
-  if (category == "Graphics") return EditorType::kGraphics;
-  if (category == "Overworld") return EditorType::kOverworld;
-  if (category == "Sprite") return EditorType::kSprite;
-  if (category == "Message") return EditorType::kMessage;
-  if (category == "Music") return EditorType::kMusic;
-  if (category == "Screen") return EditorType::kScreen;
-  if (category == "Emulator") return EditorType::kEmulator;
-  if (category == "Memory") return EditorType::kHex;
-  if (category == "Assembly") return EditorType::kAssembly;
+EditorType EditorManager::GetEditorTypeFromCategory(
+    const std::string& category) {
+  if (category == "Dungeon")
+    return EditorType::kDungeon;
+  if (category == "Palette")
+    return EditorType::kPalette;
+  if (category == "Graphics")
+    return EditorType::kGraphics;
+  if (category == "Overworld")
+    return EditorType::kOverworld;
+  if (category == "Sprite")
+    return EditorType::kSprite;
+  if (category == "Message")
+    return EditorType::kMessage;
+  if (category == "Music")
+    return EditorType::kMusic;
+  if (category == "Screen")
+    return EditorType::kScreen;
+  if (category == "Emulator")
+    return EditorType::kEmulator;
+  if (category == "Memory")
+    return EditorType::kHex;
+  if (category == "Assembly")
+    return EditorType::kAssembly;
   return EditorType::kUnknown;
 }
 
@@ -161,11 +177,10 @@ void EditorManager::HideCurrentEditorCards() {
   if (!current_editor_) {
     return;
   }
-  
+
   auto& card_manager = gui::EditorCardManager::Get();
   std::string category = GetEditorCategory(current_editor_->type());
   card_manager.HideAllCardsInCategory(category);
-  printf("[EditorManager] Closed all cards for category: %s\n", category.c_str());
 }
 
 EditorManager::EditorManager() : blank_editor_set_(nullptr, &user_settings_) {
@@ -221,12 +236,13 @@ constexpr const char* kAssemblyEditorName = ICON_MD_CODE " Assembly Editor";
 constexpr const char* kDungeonEditorName = ICON_MD_CASTLE " Dungeon Editor";
 constexpr const char* kMusicEditorName = ICON_MD_MUSIC_NOTE " Music Editor";
 
-void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& filename) {
+void EditorManager::Initialize(gfx::IRenderer* renderer,
+                               const std::string& filename) {
   renderer_ = renderer;
-  
+
   // NOTE: Emulator will be initialized later when a ROM is loaded
   // We just store the renderer for now
-  
+
   // Point to a blank editor set when no ROM is loaded
   current_editor_set_ = &blank_editor_set_;
 
@@ -243,40 +259,72 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
 
   // Register global sidebar toggle shortcut (Ctrl+B)
   context_.shortcut_manager.RegisterShortcut(
-      "global.toggle_sidebar",
-      {ImGuiKey_LeftCtrl, ImGuiKey_B},
+      "global.toggle_sidebar", {ImGuiKey_LeftCtrl, ImGuiKey_B},
       [this]() { show_card_sidebar_ = !show_card_sidebar_; });
-  
+
   // Register emulator cards early (emulator Initialize might not be called)
   auto& card_manager = gui::EditorCardManager::Get();
-  card_manager.RegisterCard({.card_id = "emulator.cpu_debugger", .display_name = "CPU Debugger", 
-                            .icon = ICON_MD_BUG_REPORT, .category = "Emulator", .priority = 10});
-  card_manager.RegisterCard({.card_id = "emulator.ppu_viewer", .display_name = "PPU Viewer",
-                            .icon = ICON_MD_VIDEOGAME_ASSET, .category = "Emulator", .priority = 20});
-  card_manager.RegisterCard({.card_id = "emulator.memory_viewer", .display_name = "Memory Viewer",
-                            .icon = ICON_MD_MEMORY, .category = "Emulator", .priority = 30});
-  card_manager.RegisterCard({.card_id = "emulator.breakpoints", .display_name = "Breakpoints",
-                            .icon = ICON_MD_STOP, .category = "Emulator", .priority = 40});
-  card_manager.RegisterCard({.card_id = "emulator.performance", .display_name = "Performance",
-                            .icon = ICON_MD_SPEED, .category = "Emulator", .priority = 50});
-  card_manager.RegisterCard({.card_id = "emulator.ai_agent", .display_name = "AI Agent",
-                            .icon = ICON_MD_SMART_TOY, .category = "Emulator", .priority = 60});
-  card_manager.RegisterCard({.card_id = "emulator.save_states", .display_name = "Save States",
-                            .icon = ICON_MD_SAVE, .category = "Emulator", .priority = 70});
-  card_manager.RegisterCard({.card_id = "emulator.keyboard_config", .display_name = "Keyboard Config",
-                            .icon = ICON_MD_KEYBOARD, .category = "Emulator", .priority = 80});
-  card_manager.RegisterCard({.card_id = "emulator.apu_debugger", .display_name = "APU Debugger",
-                            .icon = ICON_MD_AUDIOTRACK, .category = "Emulator", .priority = 90});
-  card_manager.RegisterCard({.card_id = "emulator.audio_mixer", .display_name = "Audio Mixer",
-                            .icon = ICON_MD_AUDIO_FILE, .category = "Emulator", .priority = 100});
-  
+  card_manager.RegisterCard({.card_id = "emulator.cpu_debugger",
+                             .display_name = "CPU Debugger",
+                             .icon = ICON_MD_BUG_REPORT,
+                             .category = "Emulator",
+                             .priority = 10});
+  card_manager.RegisterCard({.card_id = "emulator.ppu_viewer",
+                             .display_name = "PPU Viewer",
+                             .icon = ICON_MD_VIDEOGAME_ASSET,
+                             .category = "Emulator",
+                             .priority = 20});
+  card_manager.RegisterCard({.card_id = "emulator.memory_viewer",
+                             .display_name = "Memory Viewer",
+                             .icon = ICON_MD_MEMORY,
+                             .category = "Emulator",
+                             .priority = 30});
+  card_manager.RegisterCard({.card_id = "emulator.breakpoints",
+                             .display_name = "Breakpoints",
+                             .icon = ICON_MD_STOP,
+                             .category = "Emulator",
+                             .priority = 40});
+  card_manager.RegisterCard({.card_id = "emulator.performance",
+                             .display_name = "Performance",
+                             .icon = ICON_MD_SPEED,
+                             .category = "Emulator",
+                             .priority = 50});
+  card_manager.RegisterCard({.card_id = "emulator.ai_agent",
+                             .display_name = "AI Agent",
+                             .icon = ICON_MD_SMART_TOY,
+                             .category = "Emulator",
+                             .priority = 60});
+  card_manager.RegisterCard({.card_id = "emulator.save_states",
+                             .display_name = "Save States",
+                             .icon = ICON_MD_SAVE,
+                             .category = "Emulator",
+                             .priority = 70});
+  card_manager.RegisterCard({.card_id = "emulator.keyboard_config",
+                             .display_name = "Keyboard Config",
+                             .icon = ICON_MD_KEYBOARD,
+                             .category = "Emulator",
+                             .priority = 80});
+  card_manager.RegisterCard({.card_id = "emulator.apu_debugger",
+                             .display_name = "APU Debugger",
+                             .icon = ICON_MD_AUDIOTRACK,
+                             .category = "Emulator",
+                             .priority = 90});
+  card_manager.RegisterCard({.card_id = "emulator.audio_mixer",
+                             .display_name = "Audio Mixer",
+                             .icon = ICON_MD_AUDIO_FILE,
+                             .category = "Emulator",
+                             .priority = 100});
+
   // Show CPU debugger and PPU viewer by default for emulator
   card_manager.ShowCard("emulator.cpu_debugger");
   card_manager.ShowCard("emulator.ppu_viewer");
-  
+
   // Register memory/hex editor card
-  card_manager.RegisterCard({.card_id = "memory.hex_editor", .display_name = "Hex Editor",
-                            .icon = ICON_MD_MEMORY, .category = "Memory", .priority = 10});
+  card_manager.RegisterCard({.card_id = "memory.hex_editor",
+                             .display_name = "Hex Editor",
+                             .icon = ICON_MD_MEMORY,
+                             .category = "Memory",
+                             .priority = 10});
 
   // Initialize project file editor
   project_file_editor_.SetToastManager(&toast_manager_);
@@ -285,12 +333,14 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
   // Initialize the agent editor as a proper Editor (configuration dashboard)
   agent_editor_.set_context(&context_);
   agent_editor_.Initialize();
-  agent_editor_.InitializeWithDependencies(&toast_manager_, &proposal_drawer_, nullptr);
+  agent_editor_.InitializeWithDependencies(&toast_manager_, &proposal_drawer_,
+                                           nullptr);
 
   // Initialize and connect the chat history popup
   agent_chat_history_popup_.SetToastManager(&toast_manager_);
   if (agent_editor_.GetChatWidget()) {
-    agent_editor_.GetChatWidget()->SetChatHistoryPopup(&agent_chat_history_popup_);
+    agent_editor_.GetChatWidget()->SetChatHistoryPopup(
+        &agent_chat_history_popup_);
   }
 
   // Set up multimodal (vision) callbacks for Gemini
@@ -298,15 +348,15 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
   multimodal_callbacks.capture_snapshot =
       [this](std::filesystem::path* output_path) -> absl::Status {
     using CaptureMode = AgentChatWidget::CaptureMode;
-    
+
     absl::StatusOr<yaze::test::ScreenshotArtifact> result;
-    
+
     // Capture based on selected mode
     switch (agent_editor_.GetChatWidget()->capture_mode()) {
       case CaptureMode::kFullWindow:
         result = yaze::test::CaptureHarnessScreenshot("");
         break;
-        
+
       case CaptureMode::kActiveEditor:
         result = yaze::test::CaptureActiveWindow("");
         if (!result.ok()) {
@@ -314,9 +364,10 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
           result = yaze::test::CaptureHarnessScreenshot("");
         }
         break;
-        
+
       case CaptureMode::kSpecificWindow: {
-        const char* window_name = agent_editor_.GetChatWidget()->specific_window_name();
+        const char* window_name =
+            agent_editor_.GetChatWidget()->specific_window_name();
         if (window_name && std::strlen(window_name) > 0) {
           result = yaze::test::CaptureWindowByName(window_name, "");
           if (!result.ok()) {
@@ -332,7 +383,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
         break;
       }
     }
-    
+
     if (!result.ok()) {
       return result.status();
     }
@@ -354,9 +405,9 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
     config.api_key = api_key;
     config.model = "gemini-2.5-flash";  // Use vision-capable model
     config.verbose = false;
-    
+
     cli::GeminiAIService gemini_service(config);
-    
+
     // Generate multimodal response
     auto response =
         gemini_service.GenerateMultimodalResponse(image_path.string(), prompt);
@@ -374,46 +425,52 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
     return absl::OkStatus();
   };
   agent_editor_.GetChatWidget()->SetMultimodalCallbacks(multimodal_callbacks);
-  
+
   // Set up Z3ED command callbacks for proposal management
   AgentChatWidget::Z3EDCommandCallbacks z3ed_callbacks;
-  
-  z3ed_callbacks.accept_proposal = [this](const std::string& proposal_id) -> absl::Status {
+
+  z3ed_callbacks.accept_proposal =
+      [this](const std::string& proposal_id) -> absl::Status {
     // Use ProposalDrawer's existing logic
     proposal_drawer_.Show();
     proposal_drawer_.FocusProposal(proposal_id);
-    
+
     toast_manager_.Show(
-        absl::StrFormat("%s View proposal %s in drawer to accept", ICON_MD_PREVIEW, proposal_id),
+        absl::StrFormat("%s View proposal %s in drawer to accept",
+                        ICON_MD_PREVIEW, proposal_id),
         ToastType::kInfo, 3.5f);
-    
+
     return absl::OkStatus();
   };
-  
-  z3ed_callbacks.reject_proposal = [this](const std::string& proposal_id) -> absl::Status {
+
+  z3ed_callbacks.reject_proposal =
+      [this](const std::string& proposal_id) -> absl::Status {
     // Use ProposalDrawer's existing logic
     proposal_drawer_.Show();
     proposal_drawer_.FocusProposal(proposal_id);
-    
+
     toast_manager_.Show(
-        absl::StrFormat("%s View proposal %s in drawer to reject", ICON_MD_PREVIEW, proposal_id),
+        absl::StrFormat("%s View proposal %s in drawer to reject",
+                        ICON_MD_PREVIEW, proposal_id),
         ToastType::kInfo, 3.0f);
-    
+
     return absl::OkStatus();
   };
-  
-  z3ed_callbacks.list_proposals = []() -> absl::StatusOr<std::vector<std::string>> {
+
+  z3ed_callbacks.list_proposals =
+      []() -> absl::StatusOr<std::vector<std::string>> {
     // Return empty for now - ProposalDrawer handles the real list
     return std::vector<std::string>{};
   };
-  
-  z3ed_callbacks.diff_proposal = [this](const std::string& proposal_id) -> absl::StatusOr<std::string> {
+
+  z3ed_callbacks.diff_proposal =
+      [this](const std::string& proposal_id) -> absl::StatusOr<std::string> {
     // Open drawer to show diff
     proposal_drawer_.Show();
     proposal_drawer_.FocusProposal(proposal_id);
     return "See diff in proposal drawer";
   };
-  
+
   agent_editor_.GetChatWidget()->SetZ3EDCommandCallbacks(z3ed_callbacks);
 
   AgentChatWidget::AutomationCallbacks automation_callbacks;
@@ -439,7 +496,8 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
   // Load critical user settings first
   status_ = user_settings_.Load();
   if (!status_.ok()) {
-    LOG_WARN("EditorManager", "Failed to load user settings: %s", status_.ToString().c_str());
+    LOG_WARN("EditorManager", "Failed to load user settings: %s",
+             status_.ToString().c_str());
   }
 
   // Initialize welcome screen callbacks
@@ -447,7 +505,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
     status_ = LoadRom();
     // LoadRom() already handles closing welcome screen and showing editor selection
   });
-  
+
   welcome_screen_.SetNewProjectCallback([this]() {
     status_ = CreateNewProject();
     if (status_.ok()) {
@@ -455,7 +513,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
       welcome_screen_manually_closed_ = true;
     }
   });
-  
+
   welcome_screen_.SetOpenProjectCallback([this](const std::string& filepath) {
     status_ = OpenRomOrProject(filepath);
     if (status_.ok()) {
@@ -463,7 +521,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
       welcome_screen_manually_closed_ = true;
     }
   });
-  
+
   // Initialize editor selection dialog callback
   editor_selection_dialog_.SetSelectionCallback([this](EditorType type) {
     editor_selection_dialog_.MarkRecentlyUsed(type);
@@ -577,31 +635,35 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
   context_.shortcut_manager.RegisterShortcut(
       "Settings Editor", {ImGuiKey_LeftCtrl, ImGuiKey_0},
       [this]() { SwitchToEditor(EditorType::kSettings); });
-  
+
   // Editor Selection Dialog shortcut
   context_.shortcut_manager.RegisterShortcut(
       "Editor Selection", {ImGuiKey_E, ImGuiMod_Ctrl},
       [this]() { show_editor_selection_ = true; });
-  
+
   // Card Browser shortcut
   context_.shortcut_manager.RegisterShortcut(
       "Card Browser", {ImGuiKey_B, ImGuiMod_Ctrl, ImGuiMod_Shift},
       [this]() { show_card_browser_ = true; });
-  
+
   // === SIMPLIFIED CARD SHORTCUTS - Use Card Browser instead of individual shortcuts ===
   // Individual card shortcuts removed to prevent hash table overflow
   // Users can:
   // 1. Use Card Browser (Ctrl+Shift+B) to toggle any card
   // 2. Use compact card control button in menu bar
   // 3. Use View menu for category-based toggles
-  
+
   // Only register essential category-level shortcuts
   context_.shortcut_manager.RegisterShortcut(
       "Show All Dungeon Cards", {ImGuiKey_D, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ShowAllCardsInCategory("Dungeon"); });
+      []() {
+        gui::EditorCardManager::Get().ShowAllCardsInCategory("Dungeon");
+      });
   context_.shortcut_manager.RegisterShortcut(
       "Show All Graphics Cards", {ImGuiKey_G, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      []() { gui::EditorCardManager::Get().ShowAllCardsInCategory("Graphics"); });
+      []() {
+        gui::EditorCardManager::Get().ShowAllCardsInCategory("Graphics");
+      });
   context_.shortcut_manager.RegisterShortcut(
       "Show All Screen Cards", {ImGuiKey_S, ImGuiMod_Ctrl, ImGuiMod_Shift},
       []() { gui::EditorCardManager::Get().ShowAllCardsInCategory("Screen"); });
@@ -611,12 +673,12 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
   context_.shortcut_manager.RegisterShortcut(
       "Agent Editor", {ImGuiKey_A, ImGuiMod_Ctrl, ImGuiMod_Shift},
       [this]() { agent_editor_.SetChatActive(true); });
-  
+
   // Agent Chat History Popup shortcut
   context_.shortcut_manager.RegisterShortcut(
       "Chat History Popup", {ImGuiKey_H, ImGuiMod_Ctrl},
       [this]() { agent_chat_history_popup_.Toggle(); });
-  
+
   // Agent Proposal Drawer shortcut
   context_.shortcut_manager.RegisterShortcut(
       "Proposal Drawer", {ImGuiKey_P, ImGuiMod_Ctrl},
@@ -660,8 +722,8 @@ void EditorManager::Initialize(gfx::IRenderer* renderer, const std::string& file
       "Maximize Window", ImGuiKey_F11, [this]() { MaximizeCurrentWindow(); });
 }
 
-void EditorManager::OpenEditorAndCardsFromFlags(
-    const std::string& editor_name, const std::string& cards_str) {
+void EditorManager::OpenEditorAndCardsFromFlags(const std::string& editor_name,
+                                                const std::string& cards_str) {
   if (editor_name.empty()) {
     return;
   }
@@ -685,7 +747,8 @@ void EditorManager::OpenEditorAndCardsFromFlags(
 
   // Activate the main editor window
   if (current_editor_set_) {
-    auto* editor = current_editor_set_->active_editors_[static_cast<int>(editor_type_to_open)];
+    auto* editor = current_editor_set_
+                       ->active_editors_[static_cast<int>(editor_type_to_open)];
     if (editor) {
       editor->set_active(true);
     }
@@ -736,16 +799,16 @@ absl::Status EditorManager::Update() {
   // Update timing manager for accurate delta time across the application
   // This fixes animation timing issues that occur when mouse isn't moving
   core::TimingManager::Get().Update();
-  
+
   popup_manager_->DrawPopups();
   ExecuteShortcuts(context_.shortcut_manager);
   toast_manager_.Draw();
-  
+
   // Draw editor selection dialog
   if (show_editor_selection_) {
     editor_selection_dialog_.Show(&show_editor_selection_);
   }
-  
+
   // Draw card browser
   if (show_card_browser_) {
     gui::EditorCardManager::Get().DrawCardBrowser(&show_card_browser_);
@@ -754,7 +817,7 @@ absl::Status EditorManager::Update() {
 #ifdef YAZE_WITH_GRPC
   // Update agent editor dashboard
   status_ = agent_editor_.Update();
-  
+
   // Draw chat widget separately (always visible when active)
   if (agent_editor_.GetChatWidget()) {
     agent_editor_.GetChatWidget()->Draw();
@@ -780,16 +843,18 @@ absl::Status EditorManager::Update() {
   // Ensure TestManager always has the current ROM
   static Rom* last_test_rom = nullptr;
   if (last_test_rom != current_rom_) {
-    LOG_DEBUG("EditorManager",
-             "EditorManager::Update - ROM changed, updating TestManager: %p -> "
-             "%p",
-             (void*)last_test_rom, (void*)current_rom_);
+    LOG_DEBUG(
+        "EditorManager",
+        "EditorManager::Update - ROM changed, updating TestManager: %p -> "
+        "%p",
+        (void*)last_test_rom, (void*)current_rom_);
     test::TestManager::Get().SetCurrentRom(current_rom_);
     last_test_rom = current_rom_;
   }
 
   // Autosave timer
-  if (user_settings_.prefs().autosave_enabled && current_rom_ && current_rom_->dirty()) {
+  if (user_settings_.prefs().autosave_enabled && current_rom_ &&
+      current_rom_->dirty()) {
     autosave_timer_ += ImGui::GetIO().DeltaTime;
     if (autosave_timer_ >= user_settings_.prefs().autosave_interval) {
       autosave_timer_ = 0.0f;
@@ -851,7 +916,7 @@ absl::Status EditorManager::Update() {
 
         // CARD-BASED EDITORS: Don't wrap in Begin/End, they manage own windows
         bool is_card_based_editor = IsCardBasedEditor(editor->type());
-        
+
         if (is_card_based_editor) {
           // Card-based editors create their own top-level windows
           // No parent wrapper needed - this allows independent docking
@@ -878,18 +943,20 @@ absl::Status EditorManager::Update() {
           current_rom_ = prev_rom;
           current_editor_set_ = prev_editor_set;
           context_.session_id = prev_session_id;
-          
+
         } else {
           // TRADITIONAL EDITORS: Wrap in Begin/End
           std::string window_title =
               GenerateUniqueEditorTitle(editor->type(), session_idx);
 
           // Set window to maximize on first open
-          ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize, ImGuiCond_FirstUseEver);
-          ImGui::SetNextWindowPos(ImGui::GetMainViewport()->WorkPos, ImGuiCond_FirstUseEver);
-          
-          if (ImGui::Begin(window_title.c_str(), editor->active(), 
-                          ImGuiWindowFlags_None)) {  // Allow full docking
+          ImGui::SetNextWindowSize(ImGui::GetMainViewport()->WorkSize,
+                                   ImGuiCond_FirstUseEver);
+          ImGui::SetNextWindowPos(ImGui::GetMainViewport()->WorkPos,
+                                  ImGuiCond_FirstUseEver);
+
+          if (ImGui::Begin(window_title.c_str(), editor->active(),
+                           ImGuiWindowFlags_None)) {  // Allow full docking
             // Temporarily switch context for this editor's update
             Rom* prev_rom = current_rom_;
             EditorSet* prev_editor_set = current_editor_set_;
@@ -905,9 +972,9 @@ absl::Status EditorManager::Update() {
             // Route editor errors to toast manager
             if (!status_.ok()) {
               std::string editor_name = GetEditorName(editor->type());
-              toast_manager_.Show(
-                  absl::StrFormat("%s Error: %s", editor_name, status_.message()),
-                  editor::ToastType::kError, 8.0f);
+              toast_manager_.Show(absl::StrFormat("%s Error: %s", editor_name,
+                                                  status_.message()),
+                                  editor::ToastType::kError, 8.0f);
             }
 
             // Restore context
@@ -924,10 +991,10 @@ absl::Status EditorManager::Update() {
   if (show_performance_dashboard_) {
     gfx::PerformanceDashboard::Get().Render();
   }
-  
+
   // Always draw proposal drawer (it manages its own visibility)
   proposal_drawer_.Draw();
-  
+
 #ifdef YAZE_WITH_GRPC
   // Update ROM context for agent editor
   if (current_rom_ && current_rom_->is_loaded()) {
@@ -938,30 +1005,34 @@ absl::Status EditorManager::Update() {
   // Draw unified sidebar LAST so it appears on top of all other windows
   if (show_card_sidebar_ && current_editor_set_) {
     auto& card_manager = gui::EditorCardManager::Get();
-    
+
     // Collect all active card-based editors
     std::vector<std::string> active_categories;
-    for (size_t session_idx = 0; session_idx < sessions_.size(); ++session_idx) {
+    for (size_t session_idx = 0; session_idx < sessions_.size();
+         ++session_idx) {
       auto& session = sessions_[session_idx];
-      if (!session.rom.is_loaded()) continue;
-      
+      if (!session.rom.is_loaded())
+        continue;
+
       for (auto editor : session.editors.active_editors_) {
         if (*editor->active() && IsCardBasedEditor(editor->type())) {
           std::string category = GetEditorCategory(editor->type());
-          if (std::find(active_categories.begin(), active_categories.end(), category) == active_categories.end()) {
+          if (std::find(active_categories.begin(), active_categories.end(),
+                        category) == active_categories.end()) {
             active_categories.push_back(category);
           }
         }
       }
     }
-    
+
     // Determine which category to show in sidebar
     std::string sidebar_category;
-    
+
     // Priority 1: Use active_category from card manager (user's last interaction)
     if (!card_manager.GetActiveCategory().empty() &&
-        std::find(active_categories.begin(), active_categories.end(), 
-                  card_manager.GetActiveCategory()) != active_categories.end()) {
+        std::find(active_categories.begin(), active_categories.end(),
+                  card_manager.GetActiveCategory()) !=
+            active_categories.end()) {
       sidebar_category = card_manager.GetActiveCategory();
     }
     // Priority 2: Use first active category
@@ -969,7 +1040,7 @@ absl::Status EditorManager::Update() {
       sidebar_category = active_categories[0];
       card_manager.SetActiveCategory(sidebar_category);
     }
-    
+
     // Draw sidebar if we have a category
     if (!sidebar_category.empty()) {
       // Callback to switch editors when category button is clicked
@@ -979,12 +1050,13 @@ absl::Status EditorManager::Update() {
           SwitchToEditor(editor_type);
         }
       };
-      
+
       auto collapse_callback = [this]() {
         show_card_sidebar_ = false;
       };
-      
-      card_manager.DrawSidebar(sidebar_category, active_categories, category_switch_callback, collapse_callback);
+
+      card_manager.DrawSidebar(sidebar_category, active_categories,
+                               category_switch_callback, collapse_callback);
     }
   }
 
@@ -1011,7 +1083,7 @@ absl::Status EditorManager::DrawRomSelector() {
     // Inline status next to ROM selector
     SameLine();
     Text("Size: %.1f MB", current_rom_->size() / 1048576.0f);
-    
+
     // Context-sensitive card control (right after ROM info)
     SameLine();
     DrawContextSensitiveCardControl();
@@ -1025,10 +1097,10 @@ void EditorManager::DrawContextSensitiveCardControl() {
   if (!current_editor_set_ || !current_editor_) {
     return;
   }
-  
+
   // Determine which category to show based on active editor
   std::string category;
-  
+
   switch (current_editor_->type()) {
     case EditorType::kDungeon:
       category = "Dungeon";
@@ -1049,7 +1121,7 @@ void EditorManager::DrawContextSensitiveCardControl() {
       category = "Message";
       break;
     case EditorType::kPalette:
-      category = "Palette"; 
+      category = "Palette";
       break;
     case EditorType::kAssembly:
       // Assembly editor uses dynamic file tabs
@@ -1063,11 +1135,11 @@ void EditorManager::DrawContextSensitiveCardControl() {
     default:
       return;  // No cards for this editor type
   }
-  
+
   // Draw compact card control for the active editor's cards
   auto& card_manager = gui::EditorCardManager::Get();
   card_manager.DrawCompactCardControl(category);
-  
+
   // Show visible/total count
   SameLine();
   card_manager.DrawInlineCardToggles(category);
@@ -1075,405 +1147,520 @@ void EditorManager::DrawContextSensitiveCardControl() {
 
 void EditorManager::BuildModernMenu() {
   menu_builder_.Clear();
-  
+
   // File Menu - enhanced with ROM features
   menu_builder_.BeginMenu("File")
-    .Item("Open ROM", ICON_MD_FILE_OPEN, 
-          [this]() { status_ = LoadRom(); }, "Ctrl+O")
-    .Item("Save ROM", ICON_MD_SAVE,
-          [this]() { status_ = SaveRom(); }, "Ctrl+S",
+      .Item(
+          "Open ROM", ICON_MD_FILE_OPEN, [this]() { status_ = LoadRom(); },
+          "Ctrl+O")
+      .Item(
+          "Save ROM", ICON_MD_SAVE, [this]() { status_ = SaveRom(); }, "Ctrl+S",
           [this]() { return current_rom_ && current_rom_->is_loaded(); })
-    .Item("Save As...", ICON_MD_SAVE_AS,
-          [this]() { popup_manager_->Show("Save As.."); },
-          nullptr,
+      .Item(
+          "Save As...", ICON_MD_SAVE_AS,
+          [this]() { popup_manager_->Show("Save As.."); }, nullptr,
           [this]() { return current_rom_ && current_rom_->is_loaded(); })
-    .Separator()
-    .Item("New Project", ICON_MD_CREATE_NEW_FOLDER,
-          [this]() { status_ = CreateNewProject(); })
-    .Item("Open Project", ICON_MD_FOLDER_OPEN,
-          [this]() { status_ = OpenProject(); })
-    .Item("Save Project", ICON_MD_SAVE,
-          [this]() { status_ = SaveProject(); },
-          nullptr,
+      .Separator()
+      .Item("New Project", ICON_MD_CREATE_NEW_FOLDER,
+            [this]() { status_ = CreateNewProject(); })
+      .Item("Open Project", ICON_MD_FOLDER_OPEN,
+            [this]() { status_ = OpenProject(); })
+      .Item(
+          "Save Project", ICON_MD_SAVE, [this]() { status_ = SaveProject(); },
+          nullptr, [this]() { return !current_project_.filepath.empty(); })
+      .Item(
+          "Save Project As...", ICON_MD_SAVE_AS,
+          [this]() { status_ = SaveProjectAs(); }, nullptr,
           [this]() { return !current_project_.filepath.empty(); })
-    .Item("Save Project As...", ICON_MD_SAVE_AS,
-          [this]() { status_ = SaveProjectAs(); },
-          nullptr,
-          [this]() { return !current_project_.filepath.empty(); })
-    .Separator()
-    .Item("ROM Information", ICON_MD_INFO,
-          [this]() { popup_manager_->Show("ROM Info"); },
-          nullptr,
+      .Separator()
+      .Item(
+          "ROM Information", ICON_MD_INFO,
+          [this]() { popup_manager_->Show("ROM Info"); }, nullptr,
           [this]() { return current_rom_ && current_rom_->is_loaded(); })
-    .Item("Create Backup", ICON_MD_BACKUP,
-          [this]() { 
+      .Item(
+          "Create Backup", ICON_MD_BACKUP,
+          [this]() {
             if (current_rom_ && current_rom_->is_loaded()) {
               Rom::SaveSettings settings;
               settings.backup = true;
               settings.filename = current_rom_->filename();
               status_ = current_rom_->SaveToFile(settings);
               if (status_.ok()) {
-                toast_manager_.Show("Backup created successfully", ToastType::kSuccess);
+                toast_manager_.Show("Backup created successfully",
+                                    ToastType::kSuccess);
               }
             }
           },
           nullptr,
           [this]() { return current_rom_ && current_rom_->is_loaded(); })
-    .Item("Validate ROM", ICON_MD_CHECK_CIRCLE,
+      .Item(
+          "Validate ROM", ICON_MD_CHECK_CIRCLE,
           [this]() {
             if (current_rom_ && current_rom_->is_loaded()) {
               auto result = current_project_.Validate();
               if (result.ok()) {
-                toast_manager_.Show("ROM validation passed", ToastType::kSuccess);
+                toast_manager_.Show("ROM validation passed",
+                                    ToastType::kSuccess);
               } else {
-                toast_manager_.Show("ROM validation failed: " + std::string(result.message()), 
+                toast_manager_.Show(
+                    "ROM validation failed: " + std::string(result.message()),
                     ToastType::kError);
               }
             }
           },
           nullptr,
           [this]() { return current_rom_ && current_rom_->is_loaded(); })
-    .Separator()
-    .Item("Settings", ICON_MD_SETTINGS,
+      .Separator()
+      .Item(
+          "Settings", ICON_MD_SETTINGS,
           [this]() { current_editor_set_->settings_editor_.set_active(true); })
-    .Separator()
-    .Item("Quit", ICON_MD_EXIT_TO_APP,
-          [this]() { quit_ = true; }, "Ctrl+Q")
-    .EndMenu();
-  
-  // Edit Menu  
+      .Separator()
+      .Item(
+          "Quit", ICON_MD_EXIT_TO_APP, [this]() { quit_ = true; }, "Ctrl+Q")
+      .EndMenu();
+
+  // Edit Menu
   menu_builder_.BeginMenu("Edit")
-    .Item("Undo", ICON_MD_UNDO,
-          [this]() { if (current_editor_) status_ = current_editor_->Undo(); }, "Ctrl+Z")
-    .Item("Redo", ICON_MD_REDO,
-          [this]() { if (current_editor_) status_ = current_editor_->Redo(); }, "Ctrl+Y")
-    .Separator()
-    .Item("Cut", ICON_MD_CONTENT_CUT,
-          [this]() { if (current_editor_) status_ = current_editor_->Cut(); }, "Ctrl+X")
-    .Item("Copy", ICON_MD_CONTENT_COPY,
-          [this]() { if (current_editor_) status_ = current_editor_->Copy(); }, "Ctrl+C")
-    .Item("Paste", ICON_MD_CONTENT_PASTE,
-          [this]() { if (current_editor_) status_ = current_editor_->Paste(); }, "Ctrl+V")
-    .Separator()
-    .Item("Find", ICON_MD_SEARCH,
-          [this]() { if (current_editor_) status_ = current_editor_->Find(); }, "Ctrl+F")
-    .Item("Find in Files", ICON_MD_SEARCH,
+      .Item(
+          "Undo", ICON_MD_UNDO,
+          [this]() {
+            if (current_editor_)
+              status_ = current_editor_->Undo();
+          },
+          "Ctrl+Z")
+      .Item(
+          "Redo", ICON_MD_REDO,
+          [this]() {
+            if (current_editor_)
+              status_ = current_editor_->Redo();
+          },
+          "Ctrl+Y")
+      .Separator()
+      .Item(
+          "Cut", ICON_MD_CONTENT_CUT,
+          [this]() {
+            if (current_editor_)
+              status_ = current_editor_->Cut();
+          },
+          "Ctrl+X")
+      .Item(
+          "Copy", ICON_MD_CONTENT_COPY,
+          [this]() {
+            if (current_editor_)
+              status_ = current_editor_->Copy();
+          },
+          "Ctrl+C")
+      .Item(
+          "Paste", ICON_MD_CONTENT_PASTE,
+          [this]() {
+            if (current_editor_)
+              status_ = current_editor_->Paste();
+          },
+          "Ctrl+V")
+      .Separator()
+      .Item(
+          "Find", ICON_MD_SEARCH,
+          [this]() {
+            if (current_editor_)
+              status_ = current_editor_->Find();
+          },
+          "Ctrl+F")
+      .Item(
+          "Find in Files", ICON_MD_SEARCH,
           [this]() { show_global_search_ = true; }, "Ctrl+Shift+F")
-    .EndMenu();
-  
+      .EndMenu();
+
   // View Menu - editors and cards
   menu_builder_.BeginMenu("View")
-    .Item("Editor Selection", ICON_MD_DASHBOARD,
+      .Item(
+          "Editor Selection", ICON_MD_DASHBOARD,
           [this]() { show_editor_selection_ = true; }, "Ctrl+E")
-    .Separator()
-    .Item("Overworld", ICON_MD_MAP,
+      .Separator()
+      .Item(
+          "Overworld", ICON_MD_MAP,
           [this]() { SwitchToEditor(EditorType::kOverworld); }, "Ctrl+1")
-    .Item("Dungeon", ICON_MD_CASTLE,
+      .Item(
+          "Dungeon", ICON_MD_CASTLE,
           [this]() { SwitchToEditor(EditorType::kDungeon); }, "Ctrl+2")
-    .Item("Graphics", ICON_MD_IMAGE,
+      .Item(
+          "Graphics", ICON_MD_IMAGE,
           [this]() { SwitchToEditor(EditorType::kGraphics); }, "Ctrl+3")
-    .Item("Sprites", ICON_MD_TOYS,
+      .Item(
+          "Sprites", ICON_MD_TOYS,
           [this]() { SwitchToEditor(EditorType::kSprite); }, "Ctrl+4")
-    .Item("Messages", ICON_MD_CHAT_BUBBLE,
+      .Item(
+          "Messages", ICON_MD_CHAT_BUBBLE,
           [this]() { SwitchToEditor(EditorType::kMessage); }, "Ctrl+5")
-    .Item("Music", ICON_MD_MUSIC_NOTE,
+      .Item(
+          "Music", ICON_MD_MUSIC_NOTE,
           [this]() { SwitchToEditor(EditorType::kMusic); }, "Ctrl+6")
-    .Item("Palettes", ICON_MD_PALETTE,
+      .Item(
+          "Palettes", ICON_MD_PALETTE,
           [this]() { SwitchToEditor(EditorType::kPalette); }, "Ctrl+7")
-    .Item("Screens", ICON_MD_TV,
+      .Item(
+          "Screens", ICON_MD_TV,
           [this]() { SwitchToEditor(EditorType::kScreen); }, "Ctrl+8")
-    .Item("Hex Editor", ICON_MD_DATA_ARRAY,
-          [this]() { gui::EditorCardManager::Get().ShowCard("memory.hex_editor"); }, "Ctrl+0")
+      .Item(
+          "Hex Editor", ICON_MD_DATA_ARRAY,
+          [this]() {
+            gui::EditorCardManager::Get().ShowCard("memory.hex_editor");
+          },
+          "Ctrl+0")
 #ifdef YAZE_WITH_GRPC
-    .Item("AI Agent", ICON_MD_SMART_TOY,
+      .Item(
+          "AI Agent", ICON_MD_SMART_TOY,
           [this]() { agent_editor_.set_active(true); }, "Ctrl+Shift+A")
-    .Item("Chat History", ICON_MD_CHAT,
+      .Item(
+          "Chat History", ICON_MD_CHAT,
           [this]() { agent_chat_history_popup_.Toggle(); }, "Ctrl+H")
-    .Item("Proposal Drawer", ICON_MD_PREVIEW,
+      .Item(
+          "Proposal Drawer", ICON_MD_PREVIEW,
           [this]() { proposal_drawer_.Toggle(); }, "Ctrl+P")
 #endif
-    .Separator();
-  
-  // // Dynamic card menu sections (from EditorCardManager)
-  // auto& card_manager = gui::EditorCardManager::Get();
-  // card_manager.DrawViewMenuAll();
-  
-  menu_builder_
-    .Separator()
-    .Item("Card Browser", ICON_MD_DASHBOARD,
+
+  menu_builder_.Separator()
+      .Item(
+          "Card Browser", ICON_MD_DASHBOARD,
           [this]() { show_card_browser_ = true; }, "Ctrl+Shift+B")
-    .Separator()
-    .Item("Welcome Screen", ICON_MD_HOME,
-          [this]() { show_welcome_screen_ = true; })
-    .Item("Command Palette", ICON_MD_TERMINAL,
+      .Separator()
+      .Item("Welcome Screen", ICON_MD_HOME,
+            [this]() { show_welcome_screen_ = true; })
+      .Item(
+          "Command Palette", ICON_MD_TERMINAL,
           [this]() { show_command_palette_ = true; }, "Ctrl+Shift+P")
-    .Item("Emulator", ICON_MD_GAMEPAD,
-          [this]() { show_emulator_ = true; },
-          nullptr, nullptr,
-          [this]() { return show_emulator_; })
-    .EndMenu();
-  
+      .Item(
+          "Emulator", ICON_MD_GAMEPAD, [this]() { show_emulator_ = true; },
+          nullptr, nullptr, [this]() { return show_emulator_; })
+      .EndMenu();
+
   // Window Menu - layout and session management
   menu_builder_.BeginMenu("Window")
-    .BeginSubMenu("Sessions", ICON_MD_TAB)
-      .Item("New Session", ICON_MD_ADD,
-            [this]() { CreateNewSession(); }, "Ctrl+Shift+N")
-      .Item("Duplicate Session", ICON_MD_CONTENT_COPY,
-            [this]() { DuplicateCurrentSession(); },
-            nullptr, [this]() { return current_rom_ != nullptr; })
-      .Item("Close Session", ICON_MD_CLOSE,
-            [this]() { CloseCurrentSession(); }, "Ctrl+Shift+W",
-            [this]() { return sessions_.size() > 1; })
+      .BeginSubMenu("Sessions", ICON_MD_TAB)
+      .Item(
+          "New Session", ICON_MD_ADD, [this]() { CreateNewSession(); },
+          "Ctrl+Shift+N")
+      .Item(
+          "Duplicate Session", ICON_MD_CONTENT_COPY,
+          [this]() { DuplicateCurrentSession(); }, nullptr,
+          [this]() { return current_rom_ != nullptr; })
+      .Item(
+          "Close Session", ICON_MD_CLOSE, [this]() { CloseCurrentSession(); },
+          "Ctrl+Shift+W", [this]() { return sessions_.size() > 1; })
       .Separator()
-      .Item("Session Switcher", ICON_MD_SWITCH_ACCOUNT,
-            [this]() { show_session_switcher_ = true; }, "Ctrl+Tab",
-            [this]() { return sessions_.size() > 1; })
+      .Item(
+          "Session Switcher", ICON_MD_SWITCH_ACCOUNT,
+          [this]() { show_session_switcher_ = true; }, "Ctrl+Tab",
+          [this]() { return sessions_.size() > 1; })
       .Item("Session Manager", ICON_MD_VIEW_LIST,
             [this]() { show_session_manager_ = true; })
       .EndMenu()
-    .Separator()
-    .Item("Save Layout", ICON_MD_SAVE,
-          [this]() { SaveWorkspaceLayout(); }, "Ctrl+Shift+S")
-    .Item("Load Layout", ICON_MD_FOLDER_OPEN,
+      .Separator()
+      .Item(
+          "Save Layout", ICON_MD_SAVE, [this]() { SaveWorkspaceLayout(); },
+          "Ctrl+Shift+S")
+      .Item(
+          "Load Layout", ICON_MD_FOLDER_OPEN,
           [this]() { LoadWorkspaceLayout(); }, "Ctrl+Shift+O")
-    .Item("Reset Layout", ICON_MD_RESET_TV,
-          [this]() { ResetWorkspaceLayout(); })
-    .Item("Layout Presets", ICON_MD_BOOKMARK,
-          [this]() { show_layout_presets_ = true; })
-    .Separator()
-    .Item("Show All Windows", ICON_MD_VISIBILITY,
-          [this]() { ShowAllWindows(); })
-    .Item("Hide All Windows", ICON_MD_VISIBILITY_OFF,
-          [this]() { HideAllWindows(); })
-    .Item("Maximize Current", ICON_MD_FULLSCREEN,
+      .Item("Reset Layout", ICON_MD_RESET_TV,
+            [this]() { ResetWorkspaceLayout(); })
+      .Item("Layout Presets", ICON_MD_BOOKMARK,
+            [this]() { show_layout_presets_ = true; })
+      .Separator()
+      .Item("Show All Windows", ICON_MD_VISIBILITY,
+            [this]() { ShowAllWindows(); })
+      .Item("Hide All Windows", ICON_MD_VISIBILITY_OFF,
+            [this]() { HideAllWindows(); })
+      .Item(
+          "Maximize Current", ICON_MD_FULLSCREEN,
           [this]() { MaximizeCurrentWindow(); }, "F11")
-    .Item("Restore All", ICON_MD_FULLSCREEN_EXIT,
-          [this]() { RestoreAllWindows(); })
-    .Item("Close All Floating", ICON_MD_CLOSE_FULLSCREEN,
-          [this]() { CloseAllFloatingWindows(); })
-    .EndMenu();
-  
-  
+      .Item("Restore All", ICON_MD_FULLSCREEN_EXIT,
+            [this]() { RestoreAllWindows(); })
+      .Item("Close All Floating", ICON_MD_CLOSE_FULLSCREEN,
+            [this]() { CloseAllFloatingWindows(); })
+      .EndMenu();
+
 #ifdef YAZE_WITH_GRPC
   // Collaboration Menu - combined Agent + Network features
   menu_builder_.BeginMenu("Collaborate")
-    .Item("AI Agent Chat", ICON_MD_SMART_TOY,
+      .Item(
+          "AI Agent Chat", ICON_MD_SMART_TOY,
           [this]() { agent_editor_.SetChatActive(true); }, "Ctrl+Shift+A",
-          nullptr,
-          [this]() { return agent_editor_.IsChatActive(); })
-    .Item("Proposal Drawer", ICON_MD_RATE_REVIEW,
-          [this]() { show_proposal_drawer_ = !show_proposal_drawer_; },
-          nullptr, nullptr,
-          [this]() { return show_proposal_drawer_; })
-    .Separator()
-    .Item("Host Session", ICON_MD_ADD_CIRCLE,
-          [this]() {
-            auto result = agent_editor_.HostSession("New Session");
-            if (result.ok()) {
-              toast_manager_.Show("Hosted session: " + result->session_name, 
-                  ToastType::kSuccess);
-            } else {
-              toast_manager_.Show("Failed to host session: " + std::string(result.status().message()),
-                  ToastType::kError);
-            }
-          })
-    .Item("Join Session", ICON_MD_LOGIN,
-          [this]() { popup_manager_->Show("Join Collaboration Session"); })
-    .Item("Leave Session", ICON_MD_LOGOUT,
+          nullptr, [this]() { return agent_editor_.IsChatActive(); })
+      .Item(
+          "Proposal Drawer", ICON_MD_RATE_REVIEW,
+          [this]() { show_proposal_drawer_ = !show_proposal_drawer_; }, nullptr,
+          nullptr, [this]() { return show_proposal_drawer_; })
+      .Separator()
+      .Item("Host Session", ICON_MD_ADD_CIRCLE,
+            [this]() {
+              auto result = agent_editor_.HostSession("New Session");
+              if (result.ok()) {
+                toast_manager_.Show("Hosted session: " + result->session_name,
+                                    ToastType::kSuccess);
+              } else {
+                toast_manager_.Show("Failed to host session: " +
+                                        std::string(result.status().message()),
+                                    ToastType::kError);
+              }
+            })
+      .Item("Join Session", ICON_MD_LOGIN,
+            [this]() { popup_manager_->Show("Join Collaboration Session"); })
+      .Item(
+          "Leave Session", ICON_MD_LOGOUT,
           [this]() {
             status_ = agent_editor_.LeaveSession();
             if (status_.ok()) {
-              toast_manager_.Show("Left collaboration session", ToastType::kInfo);
+              toast_manager_.Show("Left collaboration session",
+                                  ToastType::kInfo);
             }
           },
-          nullptr,
-          [this]() { return agent_editor_.IsInSession(); })
-    .Item("Refresh Session", ICON_MD_REFRESH,
+          nullptr, [this]() { return agent_editor_.IsInSession(); })
+      .Item(
+          "Refresh Session", ICON_MD_REFRESH,
           [this]() {
             auto result = agent_editor_.RefreshSession();
             if (result.ok()) {
-              toast_manager_.Show("Session refreshed: " + std::to_string(result->participants.size()) + " participants", 
+              toast_manager_.Show(
+                  "Session refreshed: " +
+                      std::to_string(result->participants.size()) +
+                      " participants",
                   ToastType::kSuccess);
             }
           },
-          nullptr,
-          [this]() { return agent_editor_.IsInSession(); })
-    .Separator()
-    .Item("Connect to Server", ICON_MD_CLOUD_UPLOAD,
-          [this]() { popup_manager_->Show("Connect to Server"); })
-    .Item("Disconnect from Server", ICON_MD_CLOUD_OFF,
+          nullptr, [this]() { return agent_editor_.IsInSession(); })
+      .Separator()
+      .Item("Connect to Server", ICON_MD_CLOUD_UPLOAD,
+            [this]() { popup_manager_->Show("Connect to Server"); })
+      .Item(
+          "Disconnect from Server", ICON_MD_CLOUD_OFF,
           [this]() {
             agent_editor_.DisconnectFromServer();
             toast_manager_.Show("Disconnected from server", ToastType::kInfo);
           },
-          nullptr,
-          [this]() { return agent_editor_.IsConnectedToServer(); })
-    .Separator()
-    .Item("Capture Active Editor", ICON_MD_SCREENSHOT,
-          [this]() { 
-            std::filesystem::path output;
-            AgentEditor::CaptureConfig config;
-            config.mode = AgentEditor::CaptureConfig::CaptureMode::kActiveEditor;
-            status_ = agent_editor_.CaptureSnapshot(&output, config);
-          })
-    .Item("Capture Full Window", ICON_MD_FULLSCREEN,
+          nullptr, [this]() { return agent_editor_.IsConnectedToServer(); })
+      .Separator()
+      .Item("Capture Active Editor", ICON_MD_SCREENSHOT,
+            [this]() {
+              std::filesystem::path output;
+              AgentEditor::CaptureConfig config;
+              config.mode =
+                  AgentEditor::CaptureConfig::CaptureMode::kActiveEditor;
+              status_ = agent_editor_.CaptureSnapshot(&output, config);
+            })
+      .Item("Capture Full Window", ICON_MD_FULLSCREEN,
+            [this]() {
+              std::filesystem::path output;
+              AgentEditor::CaptureConfig config;
+              config.mode =
+                  AgentEditor::CaptureConfig::CaptureMode::kFullWindow;
+              status_ = agent_editor_.CaptureSnapshot(&output, config);
+            })
+      .Separator()
+      .Item(
+          "Local Mode", ICON_MD_FOLDER, [this]() { /* Set local mode */ },
+          nullptr, nullptr,
           [this]() {
-            std::filesystem::path output;
-            AgentEditor::CaptureConfig config;
-            config.mode = AgentEditor::CaptureConfig::CaptureMode::kFullWindow;
-            status_ = agent_editor_.CaptureSnapshot(&output, config);
+            return agent_editor_.GetCurrentMode() ==
+                   AgentEditor::CollaborationMode::kLocal;
           })
-    .Separator()
-    .Item("Local Mode", ICON_MD_FOLDER,
-          [this]() { /* Set local mode */ },
+      .Item(
+          "Network Mode", ICON_MD_WIFI, [this]() { /* Set network mode */ },
           nullptr, nullptr,
-          [this]() { return agent_editor_.GetCurrentMode() == AgentEditor::CollaborationMode::kLocal; })
-    .Item("Network Mode", ICON_MD_WIFI,
-          [this]() { /* Set network mode */ },
-          nullptr, nullptr,
-          [this]() { return agent_editor_.GetCurrentMode() == AgentEditor::CollaborationMode::kNetwork; })
-    .EndMenu();
+          [this]() {
+            return agent_editor_.GetCurrentMode() ==
+                   AgentEditor::CollaborationMode::kNetwork;
+          })
+      .EndMenu();
 #endif
-  
+
   // Debug Menu - comprehensive development tools
   menu_builder_.BeginMenu("Debug");
-  
+
 #ifdef YAZE_ENABLE_TESTING
   // Testing and Validation section
   menu_builder_
-    .Item("Test Dashboard", ICON_MD_SCIENCE,
+      .Item(
+          "Test Dashboard", ICON_MD_SCIENCE,
           [this]() { show_test_dashboard_ = true; }, "Ctrl+T")
-    .Item("Run All Tests", ICON_MD_PLAY_ARROW,
-          [this]() { [[maybe_unused]] auto status = test::TestManager::Get().RunAllTests(); })
-    .Item("Run Unit Tests", ICON_MD_INTEGRATION_INSTRUCTIONS,
-          [this]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kUnit); })
-    .Item("Run Integration Tests", ICON_MD_MEMORY,
-          [this]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kIntegration); })
-    .Item("Run UI Tests", ICON_MD_VISIBILITY,
-          [this]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kUI); })
-    .Item("Run Performance Tests", ICON_MD_SPEED,
-          [this]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kPerformance); })
-    .Item("Run Memory Tests", ICON_MD_STORAGE,
-          [this]() { [[maybe_unused]] auto status = test::TestManager::Get().RunTestsByCategory(test::TestCategory::kMemory); })
-    .Item("Clear Test Results", ICON_MD_CLEAR_ALL,
-          [this]() { test::TestManager::Get().ClearResults(); })
-    .Separator();
+      .Item("Run All Tests", ICON_MD_PLAY_ARROW,
+            [this]() {
+              [[maybe_unused]] auto status =
+                  test::TestManager::Get().RunAllTests();
+            })
+      .Item("Run Unit Tests", ICON_MD_INTEGRATION_INSTRUCTIONS,
+            [this]() {
+              [[maybe_unused]] auto status =
+                  test::TestManager::Get().RunTestsByCategory(
+                      test::TestCategory::kUnit);
+            })
+      .Item("Run Integration Tests", ICON_MD_MEMORY,
+            [this]() {
+              [[maybe_unused]] auto status =
+                  test::TestManager::Get().RunTestsByCategory(
+                      test::TestCategory::kIntegration);
+            })
+      .Item("Run UI Tests", ICON_MD_VISIBILITY,
+            [this]() {
+              [[maybe_unused]] auto status =
+                  test::TestManager::Get().RunTestsByCategory(
+                      test::TestCategory::kUI);
+            })
+      .Item("Run Performance Tests", ICON_MD_SPEED,
+            [this]() {
+              [[maybe_unused]] auto status =
+                  test::TestManager::Get().RunTestsByCategory(
+                      test::TestCategory::kPerformance);
+            })
+      .Item("Run Memory Tests", ICON_MD_STORAGE,
+            [this]() {
+              [[maybe_unused]] auto status =
+                  test::TestManager::Get().RunTestsByCategory(
+                      test::TestCategory::kMemory);
+            })
+      .Item("Clear Test Results", ICON_MD_CLEAR_ALL,
+            [this]() { test::TestManager::Get().ClearResults(); })
+      .Separator();
 #endif
-  
+
   // ROM and ASM Management
-  menu_builder_
-    .BeginSubMenu("ROM Analysis", ICON_MD_STORAGE)
-      .Item("ROM Information", ICON_MD_INFO,
-            [this]() { popup_manager_->Show("ROM Information"); },
-            nullptr,
-            [this]() { return current_rom_ && current_rom_->is_loaded(); })
+  menu_builder_.BeginSubMenu("ROM Analysis", ICON_MD_STORAGE)
+      .Item(
+          "ROM Information", ICON_MD_INFO,
+          [this]() { popup_manager_->Show("ROM Information"); }, nullptr,
+          [this]() { return current_rom_ && current_rom_->is_loaded(); })
 #ifdef YAZE_ENABLE_TESTING
-      .Item("Data Integrity Check", ICON_MD_ANALYTICS,
-            [this]() { 
-              if (current_rom_) {
-                [[maybe_unused]] auto status = test::TestManager::Get().RunTestSuite("RomIntegrity");
-                toast_manager_.Show("Running ROM integrity tests...", ToastType::kInfo);
-              }
-            },
-            nullptr,
-            [this]() { return current_rom_ && current_rom_->is_loaded(); })
-      .Item("Test Save/Load", ICON_MD_SAVE_ALT,
-            [this]() { 
-              if (current_rom_) {
-                [[maybe_unused]] auto status = test::TestManager::Get().RunTestSuite("RomSaveLoad");
-                toast_manager_.Show("Running ROM save/load tests...", ToastType::kInfo);
-              }
-            },
-            nullptr,
-            [this]() { return current_rom_ && current_rom_->is_loaded(); })
+      .Item(
+          "Data Integrity Check", ICON_MD_ANALYTICS,
+          [this]() {
+            if (current_rom_) {
+              [[maybe_unused]] auto status =
+                  test::TestManager::Get().RunTestSuite("RomIntegrity");
+              toast_manager_.Show("Running ROM integrity tests...",
+                                  ToastType::kInfo);
+            }
+          },
+          nullptr,
+          [this]() { return current_rom_ && current_rom_->is_loaded(); })
+      .Item(
+          "Test Save/Load", ICON_MD_SAVE_ALT,
+          [this]() {
+            if (current_rom_) {
+              [[maybe_unused]] auto status =
+                  test::TestManager::Get().RunTestSuite("RomSaveLoad");
+              toast_manager_.Show("Running ROM save/load tests...",
+                                  ToastType::kInfo);
+            }
+          },
+          nullptr,
+          [this]() { return current_rom_ && current_rom_->is_loaded(); })
 #endif
       .EndMenu()
-    .BeginSubMenu("ZSCustomOverworld", ICON_MD_CODE)
-      .Item("Check ROM Version", ICON_MD_INFO,
-            [this]() { 
-              if (current_rom_) {
-                uint8_t version = (*current_rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-                std::string version_str = (version == 0xFF) ? "Vanilla" : absl::StrFormat("v%d", version);
-                toast_manager_.Show(absl::StrFormat("ROM: %s | ZSCustomOverworld: %s", 
-                                                   current_rom_->title().c_str(), version_str.c_str()), 
-                                   ToastType::kInfo, 5.0f);
-              }
-            },
-            nullptr,
-            [this]() { return current_rom_ && current_rom_->is_loaded(); })
-      .Item("Upgrade ROM", ICON_MD_UPGRADE,
-            [this]() { 
-              if (current_rom_) {
-                toast_manager_.Show("Use Overworld Editor to upgrade ROM version", 
-                                   ToastType::kInfo, 4.0f);
-              }
-            },
-            nullptr,
-            [this]() { return current_rom_ && current_rom_->is_loaded(); })
+      .BeginSubMenu("ZSCustomOverworld", ICON_MD_CODE)
+      .Item(
+          "Check ROM Version", ICON_MD_INFO,
+          [this]() {
+            if (current_rom_) {
+              uint8_t version =
+                  (*current_rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+              std::string version_str = (version == 0xFF)
+                                            ? "Vanilla"
+                                            : absl::StrFormat("v%d", version);
+              toast_manager_.Show(
+                  absl::StrFormat("ROM: %s | ZSCustomOverworld: %s",
+                                  current_rom_->title().c_str(),
+                                  version_str.c_str()),
+                  ToastType::kInfo, 5.0f);
+            }
+          },
+          nullptr,
+          [this]() { return current_rom_ && current_rom_->is_loaded(); })
+      .Item(
+          "Upgrade ROM", ICON_MD_UPGRADE,
+          [this]() {
+            if (current_rom_) {
+              toast_manager_.Show("Use Overworld Editor to upgrade ROM version",
+                                  ToastType::kInfo, 4.0f);
+            }
+          },
+          nullptr,
+          [this]() { return current_rom_ && current_rom_->is_loaded(); })
       .Item("Toggle Custom Loading", ICON_MD_SETTINGS,
-            [this]() { 
+            [this]() {
               auto& flags = core::FeatureFlags::get();
-              flags.overworld.kLoadCustomOverworld = !flags.overworld.kLoadCustomOverworld;
-              toast_manager_.Show(absl::StrFormat("Custom Overworld Loading: %s", 
-                                                 flags.overworld.kLoadCustomOverworld ? "Enabled" : "Disabled"), 
-                                 ToastType::kInfo);
+              flags.overworld.kLoadCustomOverworld =
+                  !flags.overworld.kLoadCustomOverworld;
+              toast_manager_.Show(
+                  absl::StrFormat("Custom Overworld Loading: %s",
+                                  flags.overworld.kLoadCustomOverworld
+                                      ? "Enabled"
+                                      : "Disabled"),
+                  ToastType::kInfo);
             })
       .EndMenu()
-    .BeginSubMenu("Asar Integration", ICON_MD_BUILD)
+      .BeginSubMenu("Asar Integration", ICON_MD_BUILD)
       .Item("Asar Status", ICON_MD_INFO,
             [this]() { popup_manager_->Show("Asar Integration"); })
-      .Item("Toggle ASM Patch", ICON_MD_CODE,
-            [this]() { 
-              if (current_rom_) {
-                auto& flags = core::FeatureFlags::get();
-                flags.overworld.kApplyZSCustomOverworldASM = !flags.overworld.kApplyZSCustomOverworldASM;
-                toast_manager_.Show(absl::StrFormat("ZSCustomOverworld ASM Application: %s", 
-                                                   flags.overworld.kApplyZSCustomOverworldASM ? "Enabled" : "Disabled"), 
-                                   ToastType::kInfo);
-              }
-            },
-            nullptr,
-            [this]() { return current_rom_ && current_rom_->is_loaded(); })
+      .Item(
+          "Toggle ASM Patch", ICON_MD_CODE,
+          [this]() {
+            if (current_rom_) {
+              auto& flags = core::FeatureFlags::get();
+              flags.overworld.kApplyZSCustomOverworldASM =
+                  !flags.overworld.kApplyZSCustomOverworldASM;
+              toast_manager_.Show(
+                  absl::StrFormat("ZSCustomOverworld ASM Application: %s",
+                                  flags.overworld.kApplyZSCustomOverworldASM
+                                      ? "Enabled"
+                                      : "Disabled"),
+                  ToastType::kInfo);
+            }
+          },
+          nullptr,
+          [this]() { return current_rom_ && current_rom_->is_loaded(); })
       .Item("Load ASM File", ICON_MD_FOLDER_OPEN,
-            [this]() { 
-              toast_manager_.Show("ASM file loading not yet implemented", 
-                                 ToastType::kWarning);
+            [this]() {
+              toast_manager_.Show("ASM file loading not yet implemented",
+                                  ToastType::kWarning);
             })
       .EndMenu()
-    .Separator()
-    // Development Tools
-    .Item("Memory Editor", ICON_MD_MEMORY,
-          [this]() { gui::EditorCardManager::Get().ShowCard("memory.hex_editor"); })
-    .Item("Assembly Editor", ICON_MD_CODE,
-          [this]() { gui::EditorCardManager::Get().ShowCard("assembly.editor"); })
-    .Item("Feature Flags", ICON_MD_FLAG,
-          [this]() { popup_manager_->Show("Feature Flags"); })
-    .Separator()
-    .Item("Performance Dashboard", ICON_MD_SPEED,
-          [this]() { show_performance_dashboard_ = true; })
+      .Separator()
+      // Development Tools
+      .Item("Memory Editor", ICON_MD_MEMORY,
+            [this]() {
+              gui::EditorCardManager::Get().ShowCard("memory.hex_editor");
+            })
+      .Item("Assembly Editor", ICON_MD_CODE,
+            [this]() {
+              gui::EditorCardManager::Get().ShowCard("assembly.editor");
+            })
+      .Item("Feature Flags", ICON_MD_FLAG,
+            [this]() { popup_manager_->Show("Feature Flags"); })
+      .Separator()
+      .Item("Performance Dashboard", ICON_MD_SPEED,
+            [this]() { show_performance_dashboard_ = true; })
 #ifdef YAZE_WITH_GRPC
-    .Item("Agent Proposals", ICON_MD_PREVIEW,
-          [this]() { proposal_drawer_.Toggle(); })
+      .Item("Agent Proposals", ICON_MD_PREVIEW,
+            [this]() { proposal_drawer_.Toggle(); })
 #endif
-    .Separator()
-    .Item("ImGui Demo", ICON_MD_HELP,
-          [this]() { show_imgui_demo_ = true; },
-          nullptr, nullptr,
-          [this]() { return show_imgui_demo_; })
-    .Item("ImGui Metrics", ICON_MD_ANALYTICS,
-          [this]() { show_imgui_metrics_ = true; },
-          nullptr, nullptr,
+      .Separator()
+      .Item(
+          "ImGui Demo", ICON_MD_HELP, [this]() { show_imgui_demo_ = true; },
+          nullptr, nullptr, [this]() { return show_imgui_demo_; })
+      .Item(
+          "ImGui Metrics", ICON_MD_ANALYTICS,
+          [this]() { show_imgui_metrics_ = true; }, nullptr, nullptr,
           [this]() { return show_imgui_metrics_; })
-    .EndMenu();
-  
+      .EndMenu();
+
   // Help Menu
   menu_builder_.BeginMenu("Help")
-    .Item("Getting Started", ICON_MD_PLAY_ARROW,
-          [this]() { popup_manager_->Show("Getting Started"); })
-    .Item("About", ICON_MD_INFO,
-          [this]() { popup_manager_->Show("About"); }, "F1")
-    .EndMenu();
-  
+      .Item("Getting Started", ICON_MD_PLAY_ARROW,
+            [this]() { popup_manager_->Show("Getting Started"); })
+      .Item(
+          "About", ICON_MD_INFO, [this]() { popup_manager_->Show("About"); },
+          "F1")
+      .EndMenu();
+
   menu_builder_.Draw();
 }
 
@@ -1483,14 +1670,18 @@ void EditorManager::DrawMenuBarExtras() {
   float version_width = ImGui::CalcTextSize(version_text.c_str()).x;
   float session_rom_area_width = 280.0f;
 
-  SameLine(ImGui::GetWindowWidth() - version_width - 10 - session_rom_area_width);
+  SameLine(ImGui::GetWindowWidth() - version_width - 10 -
+           session_rom_area_width);
 
   if (GetActiveSessionCount() > 1) {
-    if (ImGui::SmallButton(absl::StrFormat("%s%zu", ICON_MD_TAB, GetActiveSessionCount()).c_str())) {
+    if (ImGui::SmallButton(
+            absl::StrFormat("%s%zu", ICON_MD_TAB, GetActiveSessionCount())
+                .c_str())) {
       ShowSessionSwitcher();
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Sessions: %zu active\nClick to switch", GetActiveSessionCount());
+      ImGui::SetTooltip("Sessions: %zu active\nClick to switch",
+                        GetActiveSessionCount());
     }
     ImGui::SameLine();
   }
@@ -1519,7 +1710,9 @@ void EditorManager::DrawMenuBarExtras() {
     if (rom_display.length() > 22) {
       rom_display = rom_display.substr(0, 19) + "...";
     }
-    if (ImGui::SmallButton(absl::StrFormat("%s%s", rom_display.c_str(), current_rom->dirty() ? "*" : "").c_str())) {
+    if (ImGui::SmallButton(absl::StrFormat("%s%s", rom_display.c_str(),
+                                           current_rom->dirty() ? "*" : "")
+                               .c_str())) {
       ImGui::OpenPopup("ROM Details");
     }
   } else {
@@ -1531,11 +1724,18 @@ void EditorManager::DrawMenuBarExtras() {
   ImGui::Text("%s", version_text.c_str());
 }
 
-void EditorManager::ShowSessionSwitcher() { show_session_switcher_ = true; }
+void EditorManager::ShowSessionSwitcher() {
+  show_session_switcher_ = true;
+}
 
-void EditorManager::ShowEditorSelection() { show_editor_selection_ = true; }
+void EditorManager::ShowEditorSelection() {
+  show_editor_selection_ = true;
+}
 
-void EditorManager::ShowDisplaySettings() { if (popup_manager_) popup_manager_->Show("Display Settings"); }
+void EditorManager::ShowDisplaySettings() {
+  if (popup_manager_)
+    popup_manager_->Show("Display Settings");
+}
 
 void EditorManager::DrawMenuBar() {
   static bool show_display_settings = false;
@@ -1545,7 +1745,7 @@ void EditorManager::DrawMenuBar() {
 
   if (BeginMenuBar()) {
     BuildModernMenu();
-    
+
     // Inline ROM selector and status
     status_ = DrawRomSelector();
 
@@ -1567,7 +1767,7 @@ void EditorManager::DrawMenuBar() {
     ShowDemoWindow(&show_imgui_demo_);
   if (show_imgui_metrics_)
     ShowMetricsWindow(&show_imgui_metrics_);
-  
+
   auto& card_manager = gui::EditorCardManager::Get();
   if (current_editor_set_) {
     // Pass the actual visibility flag pointer so the X button works
@@ -1575,10 +1775,12 @@ void EditorManager::DrawMenuBar() {
     if (hex_visibility && *hex_visibility) {
       current_editor_set_->memory_editor_.Update(*hex_visibility);
     }
-   
-    bool* assembly_visibility = card_manager.GetVisibilityFlag("assembly.editor");
+
+    bool* assembly_visibility =
+        card_manager.GetVisibilityFlag("assembly.editor");
     if (assembly_visibility && *assembly_visibility) {
-      current_editor_set_->assembly_editor_.Update(*card_manager.GetVisibilityFlag("assembly.editor"));
+      current_editor_set_->assembly_editor_.Update(
+          *card_manager.GetVisibilityFlag("assembly.editor"));
     }
   }
 
@@ -1639,7 +1841,9 @@ void EditorManager::DrawMenuBar() {
 
       bool input_changed = InputTextWithHint(
           "##cmd_query",
-          absl::StrFormat("%s Search commands (fuzzy matching enabled)...", ICON_MD_SEARCH).c_str(),
+          absl::StrFormat("%s Search commands (fuzzy matching enabled)...",
+                          ICON_MD_SEARCH)
+              .c_str(),
           query, IM_ARRAYSIZE(query));
 
       ImGui::SameLine();
@@ -1652,17 +1856,20 @@ void EditorManager::DrawMenuBar() {
       Separator();
 
       // Fuzzy filter commands with scoring
-      std::vector<std::pair<int, std::pair<std::string, std::string>>> scored_commands;
+      std::vector<std::pair<int, std::pair<std::string, std::string>>>
+          scored_commands;
       std::string query_lower = query;
-      std::transform(query_lower.begin(), query_lower.end(), query_lower.begin(), ::tolower);
-      
+      std::transform(query_lower.begin(), query_lower.end(),
+                     query_lower.begin(), ::tolower);
+
       for (const auto& entry : context_.shortcut_manager.GetShortcuts()) {
         const auto& name = entry.first;
         const auto& shortcut = entry.second;
-        
+
         std::string name_lower = name;
-        std::transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
-        
+        std::transform(name_lower.begin(), name_lower.end(), name_lower.begin(),
+                       ::tolower);
+
         int score = 0;
         if (query[0] == '\0') {
           score = 1;  // Show all when no query
@@ -1673,23 +1880,28 @@ void EditorManager::DrawMenuBar() {
         } else {
           // Fuzzy match - characters in order
           size_t text_idx = 0, query_idx = 0;
-          while (text_idx < name_lower.length() && query_idx < query_lower.length()) {
+          while (text_idx < name_lower.length() &&
+                 query_idx < query_lower.length()) {
             if (name_lower[text_idx] == query_lower[query_idx]) {
               score += 10;
               query_idx++;
             }
             text_idx++;
           }
-          if (query_idx != query_lower.length()) score = 0;
+          if (query_idx != query_lower.length())
+            score = 0;
         }
-        
+
         if (score > 0) {
-          std::string shortcut_text = shortcut.keys.empty()
-              ? "" : absl::StrFormat("(%s)", PrintShortcut(shortcut.keys).c_str());
+          std::string shortcut_text =
+              shortcut.keys.empty()
+                  ? ""
+                  : absl::StrFormat("(%s)",
+                                    PrintShortcut(shortcut.keys).c_str());
           scored_commands.push_back({score, {name, shortcut_text}});
         }
       }
-      
+
       std::sort(scored_commands.begin(), scored_commands.end(),
                 [](const auto& a, const auto& b) { return a.first > b.first; });
 
@@ -1697,13 +1909,17 @@ void EditorManager::DrawMenuBar() {
       if (ImGui::BeginTabBar("CommandCategories")) {
         if (ImGui::BeginTabItem(ICON_MD_LIST " All Commands")) {
           if (ImGui::BeginTable("CommandPaletteTable", 3,
-                                ImGuiTableFlags_ScrollY | ImGuiTableFlags_RowBg |
+                                ImGuiTableFlags_ScrollY |
+                                    ImGuiTableFlags_RowBg |
                                     ImGuiTableFlags_SizingStretchProp,
                                 ImVec2(0, -30))) {
 
-            ImGui::TableSetupColumn("Command", ImGuiTableColumnFlags_WidthStretch, 0.5f);
-            ImGui::TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthStretch, 0.3f);
-            ImGui::TableSetupColumn("Score", ImGuiTableColumnFlags_WidthStretch, 0.2f);
+            ImGui::TableSetupColumn("Command",
+                                    ImGuiTableColumnFlags_WidthStretch, 0.5f);
+            ImGui::TableSetupColumn("Shortcut",
+                                    ImGuiTableColumnFlags_WidthStretch, 0.3f);
+            ImGui::TableSetupColumn("Score", ImGuiTableColumnFlags_WidthStretch,
+                                    0.2f);
             ImGui::TableHeadersRow();
 
             for (size_t i = 0; i < scored_commands.size(); ++i) {
@@ -1718,7 +1934,8 @@ void EditorManager::DrawMenuBar() {
               if (Selectable(command_name.c_str(), is_selected,
                              ImGuiSelectableFlags_SpanAllColumns)) {
                 selected_idx = i;
-                const auto& shortcuts = context_.shortcut_manager.GetShortcuts();
+                const auto& shortcuts =
+                    context_.shortcut_manager.GetShortcuts();
                 auto it = shortcuts.find(command_name);
                 if (it != shortcuts.end() && it->second.callback) {
                   it->second.callback();
@@ -1729,32 +1946,34 @@ void EditorManager::DrawMenuBar() {
 
               ImGui::TableNextColumn();
               ImGui::TextDisabled("%s", shortcut_text.c_str());
-              
+
               ImGui::TableNextColumn();
-              if (score > 0) ImGui::TextDisabled("%d", score);
+              if (score > 0)
+                ImGui::TextDisabled("%d", score);
             }
 
             ImGui::EndTable();
           }
           ImGui::EndTabItem();
         }
-        
+
         if (ImGui::BeginTabItem(ICON_MD_HISTORY " Recent")) {
           ImGui::Text("Recent commands coming soon...");
           ImGui::EndTabItem();
         }
-        
+
         if (ImGui::BeginTabItem(ICON_MD_STAR " Frequent")) {
           ImGui::Text("Frequent commands coming soon...");
           ImGui::EndTabItem();
         }
-        
+
         ImGui::EndTabBar();
       }
 
       // Status bar with tips
       ImGui::Separator();
-      ImGui::Text("%s %zu commands | Score: fuzzy match", ICON_MD_INFO, scored_commands.size());
+      ImGui::Text("%s %zu commands | Score: fuzzy match", ICON_MD_INFO,
+                  scored_commands.size());
       ImGui::SameLine();
       ImGui::TextDisabled("| ↑↓=Navigate | Enter=Execute | Esc=Close");
     }
@@ -2172,7 +2391,7 @@ absl::Status EditorManager::LoadRom() {
     if (!session.rom.is_loaded()) {
       target_session = &session;
       LOG_DEBUG("EditorManager", "Found empty session to populate with ROM: %s",
-               file_name.c_str());
+                file_name.c_str());
       break;
     }
   }
@@ -2200,8 +2419,8 @@ absl::Status EditorManager::LoadRom() {
   // Update test manager with current ROM for ROM-dependent tests (only when tests are enabled)
 #ifdef YAZE_ENABLE_TESTING
   LOG_DEBUG("EditorManager", "Setting ROM in TestManager - %p ('%s')",
-           (void*)current_rom_,
-           current_rom_ ? current_rom_->title().c_str() : "null");
+            (void*)current_rom_,
+            current_rom_ ? current_rom_->title().c_str() : "null");
   test::TestManager::Get().SetCurrentRom(current_rom_);
 #endif
 
@@ -2212,7 +2431,7 @@ absl::Status EditorManager::LoadRom() {
 
   // Hide welcome screen when ROM is successfully loaded - don't reset manual close state
   show_welcome_screen_ = false;
-  
+
   // Clear recent editors for fresh start with new ROM and show editor selection dialog
   editor_selection_dialog_.ClearRecentEditors();
   show_editor_selection_ = true;
@@ -2418,8 +2637,8 @@ absl::Status EditorManager::OpenProject() {
     // Update test manager with current ROM for ROM-dependent tests (only when tests are enabled)
 #ifdef YAZE_ENABLE_TESTING
     LOG_DEBUG("EditorManager", "Setting ROM in TestManager - %p ('%s')",
-             (void*)current_rom_,
-             current_rom_ ? current_rom_->title().c_str() : "null");
+              (void*)current_rom_,
+              current_rom_ ? current_rom_->title().c_str() : "null");
     test::TestManager::Get().SetCurrentRom(current_rom_);
 #endif
 
@@ -2429,7 +2648,7 @@ absl::Status EditorManager::OpenProject() {
     }
 
     RETURN_IF_ERROR(LoadAssets());
-    
+
     // Hide welcome screen and show editor selection when project ROM is loaded
     show_welcome_screen_ = false;
     editor_selection_dialog_.ClearRecentEditors();
@@ -2437,8 +2656,10 @@ absl::Status EditorManager::OpenProject() {
   }
 
   // Apply workspace settings
-  user_settings_.prefs().font_global_scale = current_project_.workspace_settings.font_global_scale;
-  user_settings_.prefs().autosave_enabled = current_project_.workspace_settings.autosave_enabled;
+  user_settings_.prefs().font_global_scale =
+      current_project_.workspace_settings.font_global_scale;
+  user_settings_.prefs().autosave_enabled =
+      current_project_.workspace_settings.autosave_enabled;
   user_settings_.prefs().autosave_interval =
       current_project_.workspace_settings.autosave_interval_secs;
   ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
@@ -2467,8 +2688,10 @@ absl::Status EditorManager::SaveProject() {
       current_project_.feature_flags = sessions_[session_idx].feature_flags;
     }
 
-    current_project_.workspace_settings.font_global_scale = user_settings_.prefs().font_global_scale;
-    current_project_.workspace_settings.autosave_enabled = user_settings_.prefs().autosave_enabled;
+    current_project_.workspace_settings.font_global_scale =
+        user_settings_.prefs().font_global_scale;
+    current_project_.workspace_settings.autosave_enabled =
+        user_settings_.prefs().autosave_enabled;
     current_project_.workspace_settings.autosave_interval_secs =
         user_settings_.prefs().autosave_interval;
 
@@ -2588,7 +2811,7 @@ void EditorManager::CreateNewSession() {
   // Create a blank session
   sessions_.emplace_back();
   RomSession& session = sessions_.back();
-  
+
   // Set user settings for the blank session
   session.editors.set_user_settings(&user_settings_);
 
@@ -2685,7 +2908,7 @@ void EditorManager::RemoveSession(size_t index) {
   sessions_[index].filepath = "";
 
   LOG_DEBUG("EditorManager", "Marked session as closed: %s (index %zu)",
-           session_name.c_str(), index);
+            session_name.c_str(), index);
   toast_manager_.Show(
       absl::StrFormat("Session marked as closed: %s", session_name),
       editor::ToastType::kInfo);
@@ -3399,43 +3622,47 @@ void EditorManager::DrawWelcomeScreen() {
 // ============================================================================
 
 void EditorManager::JumpToDungeonRoom(int room_id) {
-  if (!current_editor_set_) return;
-  
+  if (!current_editor_set_)
+    return;
+
   // Switch to dungeon editor
   SwitchToEditor(EditorType::kDungeon);
-  
+
   // Open the room in the dungeon editor
   current_editor_set_->dungeon_editor_.add_room(room_id);
 }
 
 void EditorManager::JumpToOverworldMap(int map_id) {
-  if (!current_editor_set_) return;
-  
+  if (!current_editor_set_)
+    return;
+
   // Switch to overworld editor
   SwitchToEditor(EditorType::kOverworld);
-  
+
   // Set the current map in the overworld editor
   current_editor_set_->overworld_editor_.set_current_map(map_id);
 }
 
 void EditorManager::SwitchToEditor(EditorType editor_type) {
-  if (!current_editor_set_) return;
-  
+  if (!current_editor_set_)
+    return;
+
   // Toggle the editor
   for (auto* editor : current_editor_set_->active_editors_) {
     if (editor->type() == editor_type) {
       editor->toggle_active();
-      
+
       if (IsCardBasedEditor(editor_type)) {
         auto& card_manager = gui::EditorCardManager::Get();
-        
+
         if (*editor->active()) {
           // Editor activated - set its category
           card_manager.SetActiveCategory(GetEditorCategory(editor_type));
         } else {
           // Editor deactivated - switch to another active card-based editor
           for (auto* other : current_editor_set_->active_editors_) {
-            if (*other->active() && IsCardBasedEditor(other->type()) && other != editor) {
+            if (*other->active() && IsCardBasedEditor(other->type()) &&
+                other != editor) {
               card_manager.SetActiveCategory(GetEditorCategory(other->type()));
               break;
             }
@@ -3445,7 +3672,7 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
       return;
     }
   }
-  
+
   // Handle non-editor-class cases
   if (editor_type == EditorType::kAssembly) {
     show_asm_editor_ = !show_asm_editor_;
@@ -3464,7 +3691,7 @@ void EditorManager::SwitchToEditor(EditorType editor_type) {
 void EditorManager::LoadUserSettings() {
   // Apply font scale after loading
   ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
-  
+
   // Apply welcome screen preference
   if (!user_settings_.prefs().show_welcome_on_startup) {
     show_welcome_screen_ = false;
@@ -3475,7 +3702,8 @@ void EditorManager::LoadUserSettings() {
 void EditorManager::SaveUserSettings() {
   auto status = user_settings_.Save();
   if (!status.ok()) {
-    LOG_WARN("EditorManager", "Failed to save user settings: %s", status.ToString().c_str());
+    LOG_WARN("EditorManager", "Failed to save user settings: %s",
+             status.ToString().c_str());
   }
 }
 

@@ -160,14 +160,18 @@ if(YAZE_WITH_GRPC)
   target_link_libraries(yaze_agent PUBLIC
     grpc++
     grpc++_reflection
-    libprotobuf
   )
+  if(YAZE_PROTOBUF_TARGET)
+    target_link_libraries(yaze_agent PUBLIC ${YAZE_PROTOBUF_TARGET})
+  endif()
   
   # On Windows, force whole-archive linking for protobuf to ensure all symbols are included
-  if(MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_link_options(yaze_agent PUBLIC /WHOLEARCHIVE:$<TARGET_FILE:libprotobuf>)
-  elseif(MSVC)
-    message(STATUS "○ Skipping /WHOLEARCHIVE for libprotobuf (clang-cl)")
+  if(MSVC AND YAZE_PROTOBUF_TARGET)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+      target_link_options(yaze_agent PUBLIC /WHOLEARCHIVE:$<TARGET_FILE:${YAZE_PROTOBUF_TARGET}>)
+    else()
+      message(STATUS "○ Skipping /WHOLEARCHIVE for libprotobuf (clang-cl)")
+    endif()
   endif()
   
   # Note: YAZE_WITH_GRPC is defined globally via add_compile_definitions in root CMakeLists.txt

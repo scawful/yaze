@@ -4,11 +4,13 @@
 #include <SDL.h>
 #include <zelda.h>
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
 #include <ctime>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <variant>
 #include <vector>
@@ -19,6 +21,7 @@
 #include "absl/strings/string_view.h"
 #include "app/core/project.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "util/macro.h"
@@ -74,7 +77,7 @@ class Rom {
     bool backup = false;
     bool save_new = false;
     bool z3_save = true;
-    std::string filename = "";
+    std::string filename;
   };
 
   absl::Status LoadFromFile(const std::string& filename, bool z3_load = true);
@@ -235,10 +238,10 @@ class Rom {
   std::string title_ = "ROM not loaded";
 
   // Filename of the ROM
-  std::string filename_ = "";
+  std::string filename_;
 
   // Short name of the ROM
-  std::string short_name_ = "";
+  std::string short_name_;
 
   // Full contiguous rom space
   std::vector<uint8_t> rom_data_;

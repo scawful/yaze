@@ -1,4 +1,6 @@
 #include "zelda3/palette_constants.h"
+#include <string>
+#include <vector>
 
 namespace yaze {
 namespace zelda3 {

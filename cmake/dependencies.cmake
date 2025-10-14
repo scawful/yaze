@@ -85,6 +85,14 @@ if(NOT YAZE_WITH_GRPC)
   endif()
 endif()
 
+if(TARGET protobuf::libprotobuf)
+  set(YAZE_PROTOBUF_TARGET protobuf::libprotobuf)
+elseif(TARGET libprotobuf)
+  set(YAZE_PROTOBUF_TARGET libprotobuf)
+else()
+  set(YAZE_PROTOBUF_TARGET "")
+endif()
+
 # SDL2
 include(cmake/sdl2.cmake)
 
@@ -135,4 +143,3 @@ endif()
 
 # httplib (header only)
 # No action needed here as it's included directly.
-
