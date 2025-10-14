@@ -430,7 +430,10 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
             -DVCPKG_MANIFEST_MODE=ON `
             -DOPENSSL_NO_ASM=ON `
-            -DCMAKE_CXX_FLAGS="/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H" `
+            -DCMAKE_CXX_FLAGS="/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DPROTOBUF_USE_DLLS=0" `
+            -DCMAKE_C_FLAGS="/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DPROTOBUF_USE_DLLS=0" `
+            -DProtobuf_USE_STATIC_LIBS=ON `
+            -DProtobuf_MSVC_STATIC_RUNTIME=ON `
             -DYAZE_BUILD_TESTS=ON `
             -DYAZE_BUILD_EMU=ON `
             -DYAZE_BUILD_Z3ED=ON `
