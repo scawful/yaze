@@ -631,9 +631,10 @@ jobs:
         name: test-results-${{ matrix.name }}
         path: |
           build/*test_results.xml
-          core_test.log
-          additional_test.log
+          stable_test.log
+          experimental_test.log
         retention-days: 7
+        if-no-files-found: ignore
     
     - name: Upload Build Logs on Failure
       if: failure()
@@ -695,18 +696,18 @@ jobs:
           echo "- ❌ Build: Failed" >> $GITHUB_STEP_SUMMARY
         fi
         
-        if [[ "${{ steps.test_core.outcome }}" == "success" ]]; then
-          echo "- ✅ Core Tests: Passed" >> $GITHUB_STEP_SUMMARY
+        if [[ "${{ steps.test_stable.outcome }}" == "success" ]]; then
+          echo "- ✅ Stable Tests: Passed" >> $GITHUB_STEP_SUMMARY
         else
-          echo "- ❌ Core Tests: Failed" >> $GITHUB_STEP_SUMMARY
+          echo "- ❌ Stable Tests: Failed" >> $GITHUB_STEP_SUMMARY
         fi
         
-        if [[ "${{ steps.test_additional.outcome }}" == "success" ]]; then
-          echo "- ✅ Additional Tests: Passed" >> $GITHUB_STEP_SUMMARY
-        elif [[ "${{ steps.test_additional.outcome }}" == "failure" ]]; then
-          echo "- ⚠️ Additional Tests: Failed (informational)" >> $GITHUB_STEP_SUMMARY
+        if [[ "${{ steps.test_experimental.outcome }}" == "success" ]]; then
+          echo "- ✅ Experimental Tests: Passed" >> $GITHUB_STEP_SUMMARY
+        elif [[ "${{ steps.test_experimental.outcome }}" == "failure" ]]; then
+          echo "- ⚠️ Experimental Tests: Failed (informational)" >> $GITHUB_STEP_SUMMARY
         else
-          echo "- ⏭️ Additional Tests: Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "- ⏭️ Experimental Tests: Skipped" >> $GITHUB_STEP_SUMMARY
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
         
@@ -720,10 +721,10 @@ jobs:
         fi
         
         # Test results
-        if [ -f build/core_test_results.xml ]; then
+        if [ -f build/stable_test_results.xml ]; then
           echo "### Test Results" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          grep -E "tests=|failures=|errors=" build/core_test_results.xml | head -1 || echo "Test summary not available"
+          grep -E "tests=|failures=|errors=" build/stable_test_results.xml | head -1 || echo "Test summary not available"
           echo '```' >> $GITHUB_STEP_SUMMARY
         fi
 
