@@ -51,27 +51,45 @@ start_ollama_server() {
     # Check if ollama command exists
     if ! command -v ollama &> /dev/null; then
         echo -e "${YELLOW}⚠ Ollama command not found. Skipping Ollama tests.${NC}"
+        echo "PATH: $PATH"
+        echo "Which ollama: $(which ollama 2>&1 || echo 'not found')"
         return 1
     fi
     
     echo "Starting Ollama server..."
+    echo "Ollama path: $(which ollama)"
     ollama serve > /tmp/ollama_server.log 2>&1 &
     OLLAMA_PID=$!
+    echo "Ollama PID: $OLLAMA_PID"
     
-    # Wait for server to be ready (max 30 seconds)
-    local max_wait=30
+    # Wait for server to be ready (max 60 seconds for CI)
+    local max_wait=60
     local waited=0
+    echo -n "Waiting for Ollama server to start"
     while [ $waited -lt $max_wait ]; do
         if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
-            echo -e "${GREEN}✓ Ollama server started (PID: $OLLAMA_PID)${NC}"
+            echo ""
+            echo -e "${GREEN}✓ Ollama server started (PID: $OLLAMA_PID) after ${waited}s${NC}"
             return 0
         fi
+        echo -n "."
         sleep 1
         waited=$((waited + 1))
+        
+        # Check if process is still alive
+        if ! kill -0 "$OLLAMA_PID" 2>/dev/null; then
+            echo ""
+            echo -e "${RED}✗ Ollama server process died${NC}"
+            echo "Last 20 lines of server log:"
+            tail -20 /tmp/ollama_server.log || echo "No log available"
+            return 1
+        fi
     done
     
+    echo ""
     echo -e "${RED}✗ Ollama server failed to start within ${max_wait}s${NC}"
-    echo "Check logs at: /tmp/ollama_server.log"
+    echo "Last 20 lines of server log:"
+    tail -20 /tmp/ollama_server.log || echo "No log available"
     return 1
 }
 
@@ -80,12 +98,16 @@ setup_ollama_model() {
     local model="$1"
     echo "Checking for Ollama model: $model"
     
+    echo "Current models:"
+    ollama list || echo "Failed to list models"
+    
     if ollama list | grep -q "${model%:*}"; then
         echo -e "${GREEN}✓ Model $model already available${NC}"
         return 0
     fi
     
     echo "Pulling Ollama model: $model (this may take a while)..."
+    echo "This is required for first-time setup in CI"
     if ollama pull "$model"; then
         echo -e "${GREEN}✓ Model $model pulled successfully${NC}"
         return 0
@@ -113,6 +135,15 @@ if [ -z "$1" ]; then
 fi
 PROVIDER=$1
 echo "✅ Provider: $PROVIDER"
+
+# Check for curl (needed for Ollama health checks)
+if [ "$PROVIDER" == "ollama" ]; then
+    if ! command -v curl &> /dev/null; then
+        echo -e "${RED}✗ curl command not found (required for Ollama)${NC}"
+        exit 1
+    fi
+    echo "✅ curl available"
+fi
 
 # Check binary exists
 if [ ! -f "$Z3ED" ]; then
@@ -308,9 +339,9 @@ if [ -f "$RESULTS_FILE" ]; then
     cat "$RESULTS_FILE"
     echo ""
     
-    local total=$(wc -l < "$RESULTS_FILE" | tr -d ' ')
-    local passed=$(grep -c "PASSED" "$RESULTS_FILE" || echo "0")
-    local failed=$(grep -c "FAILED" "$RESULTS_FILE" || echo "0")
+    total=$(wc -l < "$RESULTS_FILE" | tr -d ' ')
+    passed=$(grep -c "PASSED" "$RESULTS_FILE" || echo "0")
+    failed=$(grep -c "FAILED" "$RESULTS_FILE" || echo "0")
     
     echo "Total Tests: $total"
     echo -e "${GREEN}Passed: $passed${NC}"
