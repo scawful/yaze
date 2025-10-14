@@ -248,6 +248,24 @@ jobs:
         Write-Host "VCPKG_ROOT: $env:VCPKG_ROOT"
         Write-Host "Workspace: ${{ github.workspace }}"
 
+    - name: Restore ccache
+      uses: actions/cache@v4
+      with:
+        path: ~/.ccache
+        key: ccache-${{ runner.os }}-${{ matrix.cc }}-${{ hashFiles('CMakeLists.txt', 'src/**', 'test/**', 'cmake/**') }}
+        restore-keys: |
+          ccache-${{ runner.os }}-${{ matrix.cc }}-
+
+    - name: Restore CMake dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          build/_deps
+          build/vcpkg_installed
+        key: cmake-deps-${{ runner.os }}-${{ matrix.cc }}-${{ hashFiles('CMakeLists.txt', 'cmake/**', 'src/**/CMakeLists.txt', 'test/CMakeLists.txt') }}
+        restore-keys: |
+          cmake-deps-${{ runner.os }}-${{ matrix.cc }}-
+
     - name: Install Dependencies
       id: deps
       shell: bash
@@ -256,7 +274,7 @@ jobs:
         if [[ "${{ runner.os }}" == "Linux" ]]; then
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential ninja-build pkg-config \
+            build-essential ninja-build pkg-config ccache \
             libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
             libpng-dev python3-dev libpython3-dev \
             libasound2-dev libpulse-dev libaudio-dev \
@@ -266,10 +284,10 @@ jobs:
             ${{ matrix.cc }} ${{ matrix.cxx }}
           # Note: libabsl-dev removed - gRPC uses bundled Abseil via FetchContent when enabled
         elif [[ "${{ runner.os }}" == "macOS" ]]; then
-          brew install ninja pkg-config
+          brew install ninja pkg-config ccache
         elif [[ "${{ runner.os }}" == "Windows" ]]; then
           # Install NASM for BoringSSL (required by gRPC)
-          choco install nasm -y
+          choco install nasm ccache -y
           # Add NASM to PATH for this session
           echo "C:\Program Files\NASM" >> $GITHUB_PATH
         fi
@@ -283,7 +301,7 @@ jobs:
           sudo apt-get clean
           sudo apt-get update --fix-missing
           sudo apt-get install -y \
-            build-essential ninja-build pkg-config \
+            build-essential ninja-build pkg-config ccache \
             libglew-dev libxext-dev libwavpack-dev libboost-all-dev \
             libpng-dev python3-dev libpython3-dev \
             libasound2-dev libpulse-dev libaudio-dev \
@@ -293,9 +311,9 @@ jobs:
             ${{ matrix.cc }} ${{ matrix.cxx }}
         elif [[ "${{ runner.os }}" == "macOS" ]]; then
           brew update
-          brew install ninja pkg-config
+          brew install ninja pkg-config ccache
         elif [[ "${{ runner.os }}" == "Windows" ]]; then
-          choco install nasm -y --force
+          choco install nasm ccache -y --force
           echo "C:\Program Files\NASM" >> $GITHUB_PATH
         fi
 
@@ -360,8 +378,13 @@ jobs:
       shell: pwsh
       env:
         VCPKG_DEFAULT_TRIPLET: x64-windows-static
+        CCACHE_BASEDIR: ${{ github.workspace }}
+        CCACHE_DIR: $HOME/.ccache
       run: |
         Write-Host "::group::CMake Configuration (Windows)" -ForegroundColor Cyan
+        if (Get-Command ccache -ErrorAction SilentlyContinue) {
+          ccache --zero-stats
+        }
         if (-not $env:CMAKE_TOOLCHAIN_FILE -or -not (Test-Path $env:CMAKE_TOOLCHAIN_FILE)) {
           Write-Host "::error::CMAKE_TOOLCHAIN_FILE environment variable missing or invalid: '$env:CMAKE_TOOLCHAIN_FILE'"
           exit 1
@@ -384,7 +407,7 @@ jobs:
           $linker = $env:MSVC_LINK_PATH
         }
         Write-Host "Using linker: $linker"
-
+        
         cmake -B build -G "Ninja" `
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
           -DCMAKE_C_COMPILER=${{ matrix.cc }} `
@@ -411,6 +434,9 @@ jobs:
         }
         
         Write-Host "::endgroup::"
+        if (Get-Command ccache -ErrorAction SilentlyContinue) {
+          ccache --show-stats
+        }
     
     - name: Configure (Unix)
       if: runner.os != 'Windows'
@@ -419,6 +445,11 @@ jobs:
       run: |
         set -e
         echo "::group::CMake Configuration"
+        if command -v ccache >/dev/null 2>&1; then
+          export CCACHE_BASEDIR=${GITHUB_WORKSPACE}
+          export CCACHE_DIR=${HOME}/.ccache
+          ccache --zero-stats
+        fi
         if [[ "${{ runner.os }}" == "Linux" ]]; then
           # Linux: Use portal backend for file dialogs (more reliable in CI)
           cmake -B build -G Ninja \
@@ -444,6 +475,9 @@ jobs:
             -DYAZE_BUILD_TOOLS=ON 2>&1 | tee cmake_config.log
         fi
         echo "::endgroup::"
+        if command -v ccache >/dev/null 2>&1; then
+          ccache --show-stats
+        fi
         # Note: Full-featured build to match release configuration
         # Note: YAZE_BUILD_EMU=OFF disables standalone emulator executable
         #       but yaze_emulator library is still built for main app/tests
@@ -480,6 +514,9 @@ jobs:
         fi
         echo "Using $CORES parallel jobs"
         cmake --build build --parallel $CORES 2>&1 | tee build.log
+        if command -v ccache >/dev/null 2>&1; then
+          ccache --show-stats
+        fi
     
     - name: Report Build Failure
       if: failure() && steps.build.outcome == 'failure'
