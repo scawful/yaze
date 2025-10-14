@@ -430,12 +430,19 @@ jobs:
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
             -DVCPKG_MANIFEST_MODE=ON `
             -DOPENSSL_NO_ASM=ON `
-            -DCMAKE_CXX_FLAGS="/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DPROTOBUF_USE_DLLS=0 /DPROTOBUF_STATIC_DEFINE" `
-            -DCMAKE_C_FLAGS="/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H /DPROTOBUF_USE_DLLS=0 /DPROTOBUF_STATIC_DEFINE" `
+            -DCMAKE_CXX_FLAGS="/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H" `
+            -DCMAKE_C_FLAGS="/Dgoogle_protobuf_undef_DWORD=1 /D__PRFCHWINTRIN_H" `
             -DProtobuf_USE_STATIC_LIBS=ON `
             -DProtobuf_MSVC_STATIC_RUNTIME=ON `
-            -DProtobuf_IMPORT_PREFIX="" `
-            -DProtobuf_IMPORT_SUFFIX="" `
+            -DgRPC_BUILD_GRPC_CPP_PLUGIN=OFF `
+            -DgRPC_BUILD_GRPC_CSHARP_PLUGIN=OFF `
+            -DgRPC_BUILD_GRPC_NODE_PLUGIN=OFF `
+            -DgRPC_BUILD_GRPC_OBJECTIVE_C_PLUGIN=OFF `
+            -DgRPC_BUILD_GRPC_PHP_PLUGIN=OFF `
+            -DgRPC_BUILD_GRPC_PYTHON_PLUGIN=OFF `
+            -DgRPC_BUILD_GRPC_RUBY_PLUGIN=OFF `
+            -DgRPC_USE_PROTO_LITE=ON `
+            -DgRPC_USE_ABSL=ON `
             -DYAZE_BUILD_TESTS=ON `
             -DYAZE_BUILD_EMU=ON `
             -DYAZE_BUILD_Z3ED=ON `
