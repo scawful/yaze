@@ -159,6 +159,10 @@ def discover_cmake_libraries() -> List[CMakeSourceBlock]:
         # If a prefix has multiple variables, treat it as a decomposed library
         decomposed_prefixes = {p for p, vars in prefix_groups.items() if len(vars) >= 2}
         
+        # Check if this looks like a decomposed library (multiple *_SRC vars)
+        # even if some don't follow the PREFIX_SUBDIR_SRC pattern
+        is_likely_decomposed = len(variables) >= 2 and any(p in decomposed_prefixes for p in prefix_groups)
+        
         for var_name in variables:
             # Try to extract subdirectory from variable name
             subdir_match = re.match(r'([A-Z]+)_([A-Z_]+)_(?:SRC|SOURCES|SOURCE)$', var_name)
@@ -178,6 +182,22 @@ def discover_cmake_libraries() -> List[CMakeSourceBlock]:
                             directories=(DirectorySpec(target_dir, recursive=True),),
                         ))
                         continue
+            
+            # Handle special cases: CANVAS_SRC, etc. (no prefix, just subdirectory name)
+            # Pattern: SUBDIR_SRC where SUBDIR is a lowercase directory name
+            simple_match = re.match(r'([A-Z]+)_(?:SRC|SOURCES|SOURCE)$', var_name)
+            if simple_match and is_likely_decomposed:
+                subdir_part = simple_match.group(1)
+                subdir = subdir_part.lower()
+                target_dir = cmake_dir / subdir
+                
+                if target_dir.exists() and target_dir.is_dir():
+                    blocks.append(CMakeSourceBlock(
+                        variable=var_name,
+                        cmake_path=cmake_file,
+                        directories=(DirectorySpec(target_dir, recursive=True),),
+                    ))
+                    continue
             
             # Fallback: scan entire cmake directory
             blocks.append(CMakeSourceBlock(
@@ -259,31 +279,32 @@ STATIC_CONFIG: Sequence[CMakeSourceBlock] = (
     #     cmake_path=SOURCE_ROOT / "app/gfx/gfx_library.cmake",
     #     directories=(DirectorySpec(SOURCE_ROOT / "app/gfx/debug"),),
     # ),
-    CMakeSourceBlock(
-        variable="GUI_CORE_SRC",
-        cmake_path=SOURCE_ROOT / "app/gui/gui_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/gui/core"),),
-    ),
-    CMakeSourceBlock(
-        variable="CANVAS_SRC",
-        cmake_path=SOURCE_ROOT / "app/gui/gui_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/gui/canvas"),),
-    ),
-    CMakeSourceBlock(
-        variable="GUI_WIDGETS_SRC",
-        cmake_path=SOURCE_ROOT / "app/gui/gui_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/gui/widgets"),),
-    ),
-    CMakeSourceBlock(
-        variable="GUI_AUTOMATION_SRC",
-        cmake_path=SOURCE_ROOT / "app/gui/gui_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/gui/automation"),),
-    ),
-    CMakeSourceBlock(
-        variable="GUI_APP_SRC",
-        cmake_path=SOURCE_ROOT / "app/gui/gui_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/gui/app"),),
-    ),
+    # Note: GUI library variables commented out - now auto-discovered via markers
+    # CMakeSourceBlock(
+    #     variable="GUI_CORE_SRC",
+    #     cmake_path=SOURCE_ROOT / "app/gui/gui_library.cmake",
+    #     directories=(DirectorySpec(SOURCE_ROOT / "app/gui/core"),),
+    # ),
+    # CMakeSourceBlock(
+    #     variable="CANVAS_SRC",
+    #     cmake_path=SOURCE_ROOT / "app/gui/gui_library.cmake",
+    #     directories=(DirectorySpec(SOURCE_ROOT / "app/gui/canvas"),),
+    # ),
+    # CMakeSourceBlock(
+    #     variable="GUI_WIDGETS_SRC",
+    #     cmake_path=SOURCE_ROOT / "app/gui/gui_library.cmake",
+    #     directories=(DirectorySpec(SOURCE_ROOT / "app/gui/widgets"),),
+    # ),
+    # CMakeSourceBlock(
+    #     variable="GUI_AUTOMATION_SRC",
+    #     cmake_path=SOURCE_ROOT / "app/gui/gui_library.cmake",
+    #     directories=(DirectorySpec(SOURCE_ROOT / "app/gui/automation"),),
+    # ),
+    # CMakeSourceBlock(
+    #     variable="GUI_APP_SRC",
+    #     cmake_path=SOURCE_ROOT / "app/gui/gui_library.cmake",
+    #     directories=(DirectorySpec(SOURCE_ROOT / "app/gui/app"),),
+    # ),
     CMakeSourceBlock(
         variable="YAZE_AGENT_SOURCES",
         cmake_path=SOURCE_ROOT / "cli/agent.cmake",

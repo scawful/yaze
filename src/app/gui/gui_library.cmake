@@ -7,7 +7,12 @@
 # compatibility.
 # ==============================================================================
 
-# 1. Define Source Groups for each sub-library
+# ==============================================================================
+# SOURCE LISTS (auto-maintained by build_cleaner.py)
+# Paths are relative to src/ directory
+# ==============================================================================
+
+# build_cleaner:auto-maintain
 set(GUI_CORE_SRC
   app/gui/core/background_renderer.cc
   app/gui/core/color.cc
@@ -18,6 +23,7 @@ set(GUI_CORE_SRC
   app/gui/core/ui_helpers.cc
 )
 
+# build_cleaner:auto-maintain
 set(CANVAS_SRC
   app/gui/canvas/bpp_format_ui.cc
   app/gui/canvas/canvas.cc
@@ -30,6 +36,7 @@ set(CANVAS_SRC
   app/gui/canvas/canvas_utils.cc
 )
 
+# build_cleaner:auto-maintain
 set(GUI_WIDGETS_SRC
   app/gui/widgets/asset_browser.cc
   app/gui/widgets/dungeon_object_emulator_preview.cc
@@ -39,6 +46,7 @@ set(GUI_WIDGETS_SRC
   app/gui/widgets/tile_selector_widget.cc
 )
 
+# build_cleaner:auto-maintain
 set(GUI_AUTOMATION_SRC
   app/gui/automation/widget_auto_register.cc
   app/gui/automation/widget_id_registry.cc
@@ -46,12 +54,18 @@ set(GUI_AUTOMATION_SRC
   app/gui/automation/widget_state_capture.cc
 )
 
+# build_cleaner:auto-maintain
 set(GUI_APP_SRC
   app/gui/app/agent_chat_widget.cc
   app/gui/app/collaboration_panel.cc
   app/gui/app/editor_card_manager.cc
   app/gui/app/editor_layout.cc
 )
+
+# ==============================================================================
+# LIBRARY DEFINITIONS AND LINK STRUCTURE (manually configured)
+# DO NOT AUTO-MAINTAIN
+# ==============================================================================
 
 # 2. Create Static Libraries and Establish Link Dependencies
 add_library(yaze_gui_core STATIC ${GUI_CORE_SRC})
