@@ -537,11 +537,11 @@ jobs:
           else
             CORES=2
           fi
-        echo "Using $CORES parallel jobs"
-        cmake --build build --parallel $CORES 2>&1 | tee build.log
-        if command -v ccache >/dev/null 2>&1; then
-          ccache --show-stats
-        fi
+          echo "Using $CORES parallel jobs"
+          cmake --build build --parallel $CORES 2>&1 | tee build.log
+          if command -v ccache >/dev/null 2>&1; then
+            ccache --show-stats
+          fi
 
       - name: "Report Build Failure"
         if: failure() && steps.build.outcome == 'failure'
