@@ -27,6 +27,10 @@
 #include "cli/util/terminal_colors.h"
 #include "nlohmann/json.hpp"
 
+#ifdef SendMessage
+#undef SendMessage
+#endif
+
 ABSL_DECLARE_FLAG(std::string, ai_provider);
 
 namespace yaze {

@@ -22,6 +22,11 @@ else()
                  LANGUAGES CXX C)
 endif()
 
+# Align Windows static builds (MSVC, clang-cl) with vcpkg's /MT runtime
+if(MSVC OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND WIN32))
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 # Enable ccache for faster rebuilds if available
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
@@ -163,4 +168,3 @@ add_custom_target(build_cleaner
   COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} ${Python3_EXECUTABLE} scripts/build_cleaner.py --dry-run
   COMMENT "Validate CMake source lists and includes"
 )
-
