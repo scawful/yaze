@@ -571,7 +571,34 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: "Package Artifacts"
+      - name: "Package Artifacts (Windows)"
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $ARTIFACT_NAME = "${{ matrix.artifact_name }}"
+
+          # Create staging directory
+          New-Item -ItemType Directory -Force -Path stage | Out-Null
+
+          # Windows uses Ninja generator: build/bin/
+          Write-Host "Packaging Windows artifacts..."
+          if (-not (Test-Path "build/bin/yaze.exe")) {
+            Write-Host "::error::Windows binary not found at build/bin/yaze.exe"
+            Get-ChildItem -Path "build/bin/" -ErrorAction SilentlyContinue
+            exit 1
+          }
+          Copy-Item -Path "build/bin/*" -Destination "stage/" -Recurse -Force
+          Copy-Item -Path "assets/" -Destination "stage/assets/" -Recurse -Force
+          Copy-Item -Path "LICENSE", "README.md" -Destination "stage/" -Force
+          
+          Push-Location stage
+          Compress-Archive -Path * -DestinationPath "../${ARTIFACT_NAME}.zip" -Force
+          Pop-Location
+          Write-Host "Created ${ARTIFACT_NAME}.zip"
+
+      - name: "Package Artifacts (macOS)"
+        if: runner.os == 'macOS'
         shell: bash
         run: |
           set -euo pipefail
@@ -580,55 +607,48 @@ jobs:
           # Create staging directory
           mkdir -p stage
 
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            # Windows uses Ninja generator: build/bin/
-            echo "Packaging Windows artifacts..."
-            if [[ ! -f build/bin/yaze.exe ]]; then
-              echo "::error::Windows binary not found at build/bin/yaze.exe"
-              ls -la build/bin/ || true
-              exit 1
-            fi
-            cp -r build/bin/* stage/
-            cp -r assets/ stage/assets/
-            cp LICENSE README.md stage/
-            (cd stage && powershell -Command "Compress-Archive -Path * -DestinationPath ../${ARTIFACT_NAME}.zip")
-            echo "Created ${ARTIFACT_NAME}.zip"
-
-          elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            # macOS creates app bundle: build/bin/yaze.app
-            echo "Packaging macOS artifacts..."
-            if [[ ! -d build/bin/yaze.app ]]; then
-              echo "::error::macOS app bundle not found at build/bin/yaze.app"
-              ls -la build/bin/ || true
-              exit 1
-            fi
-            cp -R build/bin/yaze.app stage/yaze.app
-            echo "Staged yaze.app slice for ${ARTIFACT_NAME}"
-
-          else # Linux
-            # Linux uses Ninja generator: build/bin/yaze (no subdirectory)
-            echo "Packaging Linux artifacts..."
-            if [[ -f build/bin/yaze ]]; then
-              echo "Found binary at build/bin/yaze"
-              cp build/bin/yaze stage/
-            else
-              echo "::error::Linux binary not found at build/bin/yaze"
-              ls -la build/bin/ || true
-              exit 1
-            fi
-
-            # Copy assets from source tree
-            if [[ -d assets ]]; then
-              cp -r assets/ stage/assets/
-            else
-              echo "::error::Assets directory not found"
-              exit 1
-            fi
-
-            cp LICENSE README.md stage/
-            tar -czf "${ARTIFACT_NAME}.tar.gz" -C stage .
-            echo "Created ${ARTIFACT_NAME}.tar.gz"
+          # macOS creates app bundle: build/bin/yaze.app
+          echo "Packaging macOS artifacts..."
+          if [[ ! -d build/bin/yaze.app ]]; then
+            echo "::error::macOS app bundle not found at build/bin/yaze.app"
+            ls -la build/bin/ || true
+            exit 1
           fi
+          cp -R build/bin/yaze.app stage/yaze.app
+          echo "Staged yaze.app slice for ${ARTIFACT_NAME}"
+
+      - name: "Package Artifacts (Linux)"
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARTIFACT_NAME="${{ matrix.artifact_name }}"
+
+          # Create staging directory
+          mkdir -p stage
+
+          # Linux uses Ninja generator: build/bin/yaze (no subdirectory)
+          echo "Packaging Linux artifacts..."
+          if [[ -f build/bin/yaze ]]; then
+            echo "Found binary at build/bin/yaze"
+            cp build/bin/yaze stage/
+          else
+            echo "::error::Linux binary not found at build/bin/yaze"
+            ls -la build/bin/ || true
+            exit 1
+          fi
+
+          # Copy assets from source tree
+          if [[ -d assets ]]; then
+            cp -r assets/ stage/assets/
+          else
+            echo "::error::Assets directory not found"
+            exit 1
+          fi
+
+          cp LICENSE README.md stage/
+          tar -czf "${ARTIFACT_NAME}.tar.gz" -C stage .
+          echo "Created ${ARTIFACT_NAME}.tar.gz"
 
       - name: "Upload Artifact (Windows)"
         if: runner.os == 'Windows'
@@ -729,8 +749,17 @@ jobs:
         run: |
           set -euo pipefail
 
-          ARM_AVAILABLE=${{ steps.download_arm64.outcome == 'success' }}
-          X64_AVAILABLE=${{ steps.download_x64.outcome == 'success' }}
+          # Check which slices are available
+          ARM_AVAILABLE="false"
+          X64_AVAILABLE="false"
+
+          if [[ "${{ steps.download_arm64.outcome }}" == "success" ]]; then
+            ARM_AVAILABLE="true"
+          fi
+
+          if [[ "${{ steps.download_x64.outcome }}" == "success" ]]; then
+            X64_AVAILABLE="true"
+          fi
 
           echo "ARM64 slice available: $ARM_AVAILABLE"
           echo "x86_64 slice available: $X64_AVAILABLE"
@@ -743,6 +772,7 @@ jobs:
           # The artifacts are downloaded as yaze.app directly
           ARM_APP="arm64-slice/yaze.app"
           X64_APP="x86_64-slice/yaze.app"
+          TAG_NAME="${{ needs.prepare-release.outputs.tag_name }}"
 
           if [[ "$ARM_AVAILABLE" == "true" && "$X64_AVAILABLE" == "true" ]]; then
             echo "Creating universal binary from both architectures..."
@@ -760,18 +790,18 @@ jobs:
             lipo -info "./yaze.app/Contents/MacOS/yaze"
 
             echo "Creating DMG..."
-            hdiutil create -fs HFS+ -srcfolder ./yaze.app -volname "yaze ${{ needs.prepare-release.outputs.tag_name }} (Universal)" yaze-macos-universal.dmg
+            hdiutil create -fs HFS+ -srcfolder ./yaze.app -volname "yaze ${TAG_NAME} (Universal)" yaze-macos-universal.dmg
 
           elif [[ "$ARM_AVAILABLE" == "true" ]]; then
             echo "::warning::Only ARM64 slice available - creating ARM64-only DMG"
             cp -R "${ARM_APP}" ./yaze.app
-            hdiutil create -fs HFS+ -srcfolder ./yaze.app -volname "yaze ${{ needs.prepare-release.outputs.tag_name }} (ARM64)" yaze-macos-arm64.dmg
+            hdiutil create -fs HFS+ -srcfolder ./yaze.app -volname "yaze ${TAG_NAME} (ARM64)" yaze-macos-arm64.dmg
             mv yaze-macos-arm64.dmg yaze-macos-universal.dmg  # Use same name for upload
 
           else
             echo "::warning::Only x86_64 slice available - creating x86_64-only DMG"
             cp -R "${X64_APP}" ./yaze.app
-            hdiutil create -fs HFS+ -srcfolder ./yaze.app -volname "yaze ${{ needs.prepare-release.outputs.tag_name }} (Intel)" yaze-macos-x86_64.dmg
+            hdiutil create -fs HFS+ -srcfolder ./yaze.app -volname "yaze ${TAG_NAME} (Intel)" yaze-macos-x86_64.dmg
             mv yaze-macos-x86_64.dmg yaze-macos-universal.dmg  # Use same name for upload
           fi
 
@@ -825,9 +855,22 @@ jobs:
         run: |
           echo "Checking which platforms succeeded..."
 
-          WINDOWS_OK=${{ steps.download_windows.outcome == 'success' }}
-          LINUX_OK=${{ steps.download_linux.outcome == 'success' }}
-          MACOS_OK=${{ steps.download_macos.outcome == 'success' }}
+          # Check which platforms are available
+          WINDOWS_OK="false"
+          LINUX_OK="false"
+          MACOS_OK="false"
+
+          if [[ "${{ steps.download_windows.outcome }}" == "success" ]]; then
+            WINDOWS_OK="true"
+          fi
+
+          if [[ "${{ steps.download_linux.outcome }}" == "success" ]]; then
+            LINUX_OK="true"
+          fi
+
+          if [[ "${{ steps.download_macos.outcome }}" == "success" ]]; then
+            MACOS_OK="true"
+          fi
 
           # Build availability message
           AVAILABILITY="## Platform Availability\n\n"
