@@ -62,13 +62,14 @@ set(GFX_BACKEND_SRC
 
 # build_cleaner:auto-maintain
 set(GFX_RESOURCE_SRC
-  app/gfx/resource/arena.cc
   app/gfx/resource/memory_pool.cc
 )
 
 # build_cleaner:auto-maintain
 set(GFX_CORE_SRC
   app/gfx/core/bitmap.cc
+  app/gfx/render/background_buffer.cc
+  app/gfx/resource/arena.cc
 )
 
 # build_cleaner:auto-maintain
@@ -82,7 +83,6 @@ set(GFX_UTIL_SRC
 # build_cleaner:auto-maintain
 set(GFX_RENDER_SRC
   app/gfx/render/atlas_renderer.cc
-  app/gfx/render/background_buffer.cc
   app/gfx/render/texture_atlas.cc
   app/gfx/render/tilemap.cc
 )
@@ -133,12 +133,11 @@ target_link_libraries(yaze_gfx_debug PUBLIC
   ImGui
 )
 
-# Layer 4: Core bitmap (depends on resource, render, debug)
+# Layer 4: Core bitmap (depends on render, debug)
 add_library(yaze_gfx_core STATIC ${GFX_CORE_SRC})
 configure_gfx_library(yaze_gfx_core)
 target_link_libraries(yaze_gfx_core PUBLIC
   yaze_gfx_types
-  yaze_gfx_resource
   yaze_gfx_render
   yaze_gfx_debug
 )
@@ -154,10 +153,10 @@ target_link_libraries(yaze_gfx INTERFACE
   yaze_gfx_types
   yaze_gfx_backend
   yaze_gfx_resource
-  yaze_gfx_core
-  yaze_gfx_util
   yaze_gfx_render
   yaze_gfx_debug
+  yaze_gfx_core
+  yaze_gfx_util
 )
 
 # Conditionally add PNG support
