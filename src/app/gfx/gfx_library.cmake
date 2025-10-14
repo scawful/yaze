@@ -129,6 +129,7 @@ add_library(yaze_gfx_debug STATIC ${GFX_DEBUG_SRC})
 configure_gfx_library(yaze_gfx_debug)
 target_link_libraries(yaze_gfx_debug PUBLIC 
   yaze_gfx_types
+  yaze_gfx_resource
   ImGui
 )
 

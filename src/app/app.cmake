@@ -40,8 +40,8 @@ target_link_libraries(yaze PRIVATE
   absl::flags
   absl::flags_parse
 )
-if(YAZE_WITH_GRPC AND TARGET libprotobuf)
-  target_link_libraries(yaze PRIVATE libprotobuf)
+if(YAZE_WITH_GRPC AND YAZE_PROTOBUF_TARGET)
+  target_link_libraries(yaze PRIVATE ${YAZE_PROTOBUF_TARGET})
 endif()
 
 # Link test support library (yaze_editor needs TestManager)

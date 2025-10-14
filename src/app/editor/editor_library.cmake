@@ -142,8 +142,10 @@ if(YAZE_WITH_GRPC)
   target_link_libraries(yaze_editor PRIVATE
     grpc++
     grpc++_reflection
-    libprotobuf
   )
+  if(YAZE_PROTOBUF_TARGET)
+    target_link_libraries(yaze_editor PRIVATE ${YAZE_PROTOBUF_TARGET})
+  endif()
 endif()
 
 set_target_properties(yaze_editor PROPERTIES

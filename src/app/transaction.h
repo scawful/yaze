@@ -9,6 +9,7 @@
 // If any write fails before Commit, subsequent operations are skipped and
 // Commit() will Rollback() previously applied writes in reverse order.
 
+#include <cstdint>
 #include <variant>
 #include <vector>
 
