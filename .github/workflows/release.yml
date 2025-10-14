@@ -849,6 +849,15 @@ jobs:
       - name: "List Release Artifacts"
         run: ls -lR release-artifacts || echo "No artifacts directory"
 
+      - name: "Prepare Release Metadata"
+        id: metadata
+        shell: bash
+        env:
+          TAG_NAME: ${{ needs.prepare-release.outputs.tag_name }}
+        run: |
+          echo "release_name=yaze ${TAG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "Prepared release name: yaze ${TAG_NAME}"
+
       - name: "Generate Platform Availability Report"
         id: platform_report
         shell: bash
@@ -914,7 +923,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.prepare-release.outputs.tag_name }}
-          name: yaze ${{ needs.prepare-release.outputs.tag_name }}
+          name: ${{ steps.metadata.outputs.release_name }}
           body: |
             ${{ steps.platform_report.outputs.availability }}
             
