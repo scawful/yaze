@@ -177,6 +177,12 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($vcpkgRoot)) {
             $vcpkgRoot = "${{ steps.vcpkg_retry.outputs.vcpkgRoot }}"
           }
+          if ([string]::IsNullOrWhiteSpace($vcpkgRoot) -and $env:RUNVCPKG_VCPKG_ROOT) {
+            $vcpkgRoot = $env:RUNVCPKG_VCPKG_ROOT
+          }
+          if ([string]::IsNullOrWhiteSpace($vcpkgRoot) -and $env:VCPKG_ROOT) {
+            $vcpkgRoot = $env:VCPKG_ROOT
+          }
           if ([string]::IsNullOrWhiteSpace($vcpkgRoot)) {
             Write-Host "::error::lukka/run-vcpkg did not emit vcpkgRoot"
             exit 1
