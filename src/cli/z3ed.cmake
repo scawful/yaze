@@ -42,7 +42,9 @@ if(YAZE_WITH_GRPC)
   target_link_libraries(z3ed PRIVATE grpc++ grpc++_reflection libprotobuf)
   
   # On Windows, force whole-archive linking for protobuf to ensure all symbols are included
-  if(MSVC)
-    target_link_options(z3ed PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:libprotobuf>)
-  endif()
+if(MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  target_link_options(z3ed PRIVATE /WHOLEARCHIVE:$<TARGET_FILE:libprotobuf>)
+elseif(MSVC)
+  message(STATUS "○ Skipping /WHOLEARCHIVE for libprotobuf in z3ed (clang-cl)")
+endif()
 endif()
