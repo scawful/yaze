@@ -45,7 +45,6 @@ function(yaze_add_compiler_flags)
             /W4 /permissive-
             /bigobj
             /utf-8
-            /std:c++latest  # Required for C++20/23 features like std::span
         )
         target_compile_definitions(yaze_common INTERFACE
             _CRT_SECURE_NO_WARNINGS
