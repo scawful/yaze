@@ -20,6 +20,10 @@
 #include "cli/service/agent/agent_pretraining.h"
 #endif
 
+#ifdef SendMessage
+#undef SendMessage
+#endif
+
 namespace yaze {
 
 class Rom;
