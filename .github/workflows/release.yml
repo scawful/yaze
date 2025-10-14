@@ -148,6 +148,9 @@ jobs:
         uses: lukka/run-vcpkg@v11
         id: vcpkg
         continue-on-error: true
+        env:
+          VCPKG_DEFAULT_TRIPLET: x64-windows-static
+          VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
         with:
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           vcpkgGitCommitId: '01f602195983451bc83e72f4214af2cbc495aa94'  # 2024.10.21 release
@@ -156,11 +159,42 @@ jobs:
       - name: "Retry vcpkg setup (Windows only)"
         if: runner.os == 'Windows' && steps.vcpkg.outcome == 'failure'
         uses: lukka/run-vcpkg@v11
+        id: vcpkg_retry
+        env:
+          VCPKG_DEFAULT_TRIPLET: x64-windows-static
+          VCPKG_BINARY_SOURCES: 'clear;x-gha,readwrite'
         with:
           vcpkgDirectory: '${{ github.workspace }}/vcpkg'
           vcpkgGitCommitId: '01f602195983451bc83e72f4214af2cbc495aa94'
           runVcpkgInstall: true
           doNotUpdateVcpkg: true  # Use existing clone on retry
+
+      - name: "Cache vcpkg toolchain path (Windows)"
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $vcpkgRoot = "${{ steps.vcpkg.outputs.vcpkgRoot }}"
+          if ([string]::IsNullOrWhiteSpace($vcpkgRoot)) {
+            $vcpkgRoot = "${{ steps.vcpkg_retry.outputs.vcpkgRoot }}"
+          }
+          if ([string]::IsNullOrWhiteSpace($vcpkgRoot)) {
+            Write-Host "::error::lukka/run-vcpkg did not emit vcpkgRoot"
+            exit 1
+          }
+
+          $toolchain = Join-Path $vcpkgRoot "scripts/buildsystems/vcpkg.cmake"
+          if (-not (Test-Path $toolchain)) {
+            Write-Host "::error::vcpkg toolchain file missing at $toolchain"
+            Get-ChildItem -Path $vcpkgRoot -Recurse -File | Select-Object -First 20 FullName
+            exit 1
+          }
+
+          $normalizedToolchain = $toolchain -replace '\\', '/'
+          "VCPKG_ROOT=$($vcpkgRoot -replace '\\', '/')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          "CMAKE_TOOLCHAIN_FILE=$normalizedToolchain" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          Write-Host "Persisted VCPKG_ROOT=$vcpkgRoot"
+          Write-Host "Persisted CMAKE_TOOLCHAIN_FILE=$normalizedToolchain"
 
       - name: "Free Disk Space (Linux)"
         if: runner.os == 'Linux'
@@ -233,16 +267,18 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "::group::CMake Configuration (Windows)" -ForegroundColor Cyan
-
-          $vcpkgToolchain = "${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake" -replace '\\', '/'
-          Write-Host "Using vcpkg toolchain: $vcpkgToolchain"
+          if (-not $env:CMAKE_TOOLCHAIN_FILE -or -not (Test-Path $env:CMAKE_TOOLCHAIN_FILE)) {
+            Write-Host "::error::CMAKE_TOOLCHAIN_FILE environment variable missing or invalid: '$env:CMAKE_TOOLCHAIN_FILE'"
+            exit 1
+          }
+          Write-Host "Using vcpkg toolchain: $env:CMAKE_TOOLCHAIN_FILE"
 
           cmake -B build -G "Ninja" `
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
             -DCMAKE_C_COMPILER=${{ matrix.cc }} `
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} `
             -DCMAKE_LINKER=link.exe ` # Use MSVC linker; lld-link fails on protobuf resource files
-            -DCMAKE_TOOLCHAIN_FILE="$vcpkgToolchain" `
+            -DCMAKE_TOOLCHAIN_FILE="$env:CMAKE_TOOLCHAIN_FILE" `
             -DVCPKG_TARGET_TRIPLET=x64-windows-static `
             -DVCPKG_MANIFEST_MODE=ON `
             -DOPENSSL_NO_ASM=ON `
