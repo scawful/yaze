@@ -295,6 +295,12 @@ jobs:
           }
           Write-Host "MSVC developer environment variables exported (selected set)"
 
+      - name: "Ensure MSVC Dev Cmd (Windows)"
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
       - name: "Free Disk Space (Linux)"
         if: runner.os == 'Linux'
         shell: bash
@@ -371,6 +377,17 @@ jobs:
             exit 1
           }
           Write-Host "Using vcpkg toolchain: $env:CMAKE_TOOLCHAIN_FILE"
+
+          if (-not $env:WindowsSdkDir -or -not $env:WindowsSdkVersion) {
+            Write-Host "::warning::Windows SDK environment variables not set (WindowsSdkDir/WindowsSdkVersion)"
+          } else {
+            $kernelLib = Join-Path $env:WindowsSdkDir ("Lib/{0}/um/x64/kernel32.lib" -f $env:WindowsSdkVersion.TrimEnd('\'))
+            if (Test-Path $kernelLib) {
+              Write-Host "Found Windows SDK kernel32.lib at: $kernelLib"
+            } else {
+              Write-Host "::warning::kernel32.lib not found at expected path: $kernelLib"
+            }
+          }
 
           $linker = "link.exe"
           if ($env:MSVC_LINK_PATH -and (Test-Path $env:MSVC_LINK_PATH)) {
