@@ -61,12 +61,17 @@ if(YAZE_BUILD_TESTS)
     endif()
 
     include(GoogleTest)
-    gtest_discover_tests(${suite_name})
-
-    # Get the list of tests discovered for the target and apply the label.
-    get_target_property(suite_tests ${suite_name} TESTS)
-    if(suite_tests)
-      set_tests_properties(${suite_tests} PROPERTIES LABELS "${label}")
+    if(WIN32)
+      gtest_discover_tests(${suite_name}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        DISCOVERY_TIMEOUT 60
+        PROPERTIES LABELS "${label}"
+      )
+    else()
+      gtest_discover_tests(${suite_name}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        PROPERTIES LABELS "${label}"
+      )
     endif()
   endfunction()
 
