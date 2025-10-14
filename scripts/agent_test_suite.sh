@@ -12,6 +12,8 @@ NC='\033[0m' # No Color
 Z3ED="./build_test/bin/z3ed"
 RESULTS_FILE="/tmp/z3ed_ai_test_results.txt"
 USE_MOCK_ROM=true  # Set to false if you want to test with a real ROM
+OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5-coder:latest}"
+OLLAMA_PID=""
 
 echo "=========================================="
 echo "  Z3ED AI Provider Test Suite"
@@ -21,11 +23,92 @@ echo ""
 # Clear results file
 > "$RESULTS_FILE"
 
+# Cleanup function
+cleanup() {
+    if [ -n "$OLLAMA_PID" ]; then
+        echo ""
+        echo "Stopping Ollama server (PID: $OLLAMA_PID)..."
+        kill "$OLLAMA_PID" 2>/dev/null || true
+        wait "$OLLAMA_PID" 2>/dev/null || true
+    fi
+}
+
+# Register cleanup on exit
+trap cleanup EXIT INT TERM
+
+# --- Helper Functions ---
+
+# Start Ollama server if not already running
+start_ollama_server() {
+    echo "Checking Ollama server status..."
+    
+    # Check if Ollama is already running
+    if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+        echo -e "${GREEN}✓ Ollama server already running${NC}"
+        return 0
+    fi
+    
+    # Check if ollama command exists
+    if ! command -v ollama &> /dev/null; then
+        echo -e "${YELLOW}⚠ Ollama command not found. Skipping Ollama tests.${NC}"
+        return 1
+    fi
+    
+    echo "Starting Ollama server..."
+    ollama serve > /tmp/ollama_server.log 2>&1 &
+    OLLAMA_PID=$!
+    
+    # Wait for server to be ready (max 30 seconds)
+    local max_wait=30
+    local waited=0
+    while [ $waited -lt $max_wait ]; do
+        if curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
+            echo -e "${GREEN}✓ Ollama server started (PID: $OLLAMA_PID)${NC}"
+            return 0
+        fi
+        sleep 1
+        waited=$((waited + 1))
+    done
+    
+    echo -e "${RED}✗ Ollama server failed to start within ${max_wait}s${NC}"
+    echo "Check logs at: /tmp/ollama_server.log"
+    return 1
+}
+
+# Ensure Ollama model is available
+setup_ollama_model() {
+    local model="$1"
+    echo "Checking for Ollama model: $model"
+    
+    if ollama list | grep -q "${model%:*}"; then
+        echo -e "${GREEN}✓ Model $model already available${NC}"
+        return 0
+    fi
+    
+    echo "Pulling Ollama model: $model (this may take a while)..."
+    if ollama pull "$model"; then
+        echo -e "${GREEN}✓ Model $model pulled successfully${NC}"
+        return 0
+    else
+        echo -e "${RED}✗ Failed to pull model $model${NC}"
+        return 1
+    fi
+}
+
 # --- Pre-flight Checks ---
 
 if [ -z "$1" ]; then
   echo "❌ Error: No AI provider specified."
   echo "Usage: $0 <ollama|gemini|mock>"
+  echo ""
+  echo "Environment Variables:"
+  echo "  OLLAMA_MODEL - Ollama model to use (default: qwen2.5-coder:latest)"
+  echo "  GEMINI_API_KEY - Required for Gemini provider"
+  echo ""
+  echo "Examples:"
+  echo "  $0 ollama                                    # Use Ollama with default model"
+  echo "  OLLAMA_MODEL=llama3:8b $0 ollama            # Use Ollama with llama3"
+  echo "  GEMINI_API_KEY=xyz $0 gemini                # Use Gemini"
   exit 1
 fi
 PROVIDER=$1
@@ -62,17 +145,19 @@ else
     exit 1
 fi
 
-# Test Ollama availability
+# Setup Ollama if needed
 OLLAMA_AVAILABLE=false
-if command -v ollama &> /dev/null && curl -s http://localhost:11434/api/tags > /dev/null 2>&1; then
-    if ollama list | grep -q "qwen2.5-coder"; then
-        OLLAMA_AVAILABLE=true
-        echo -e "${GREEN}✓ Ollama available (qwen2.5-coder)${NC}"
+if [ "$PROVIDER" == "ollama" ] || [ -z "$PROVIDER" ]; then
+    if start_ollama_server; then
+        if setup_ollama_model "$OLLAMA_MODEL"; then
+            OLLAMA_AVAILABLE=true
+            echo -e "${GREEN}✓ Ollama ready with model: $OLLAMA_MODEL${NC}"
+        else
+            echo -e "${YELLOW}⚠ Ollama server running but model setup failed${NC}"
+        fi
     else
-        echo -e "${YELLOW}⚠ Ollama available but qwen2.5-coder not found${NC}"
+        echo -e "${YELLOW}⚠ Ollama server not available${NC}"
     fi
-else
-    echo -e "${YELLOW}⚠ Ollama not available${NC}"
 fi
 
 # Test Gemini availability
@@ -158,7 +243,7 @@ if [ "$OLLAMA_AVAILABLE" = true ]; then
     echo "  OLLAMA TESTS"
     echo "=========================================="
     echo ""
-    
+
     run_test "Ollama: Simple Question" "ollama" \
         "What dungeons are in this ROM?" \
         "dungeon\|palace\|castle"
@@ -256,12 +341,18 @@ echo "  4. Check AI provider connectivity and quotas"
 echo "  5. Examine tool execution logs for errors"
 echo ""
 echo "For Ollama:"
-echo "  - Try different models: ollama pull llama3:8b"
+echo "  - Try different models: OLLAMA_MODEL=llama3:8b $0 ollama"
+echo "  - Default model: $OLLAMA_MODEL"
 echo "  - Adjust temperature in ollama_ai_service.cc"
+echo "  - Server logs: /tmp/ollama_server.log"
 echo ""
 echo "For Gemini:"
 echo "  - Verify API key is valid"
 echo "  - Check quota at: https://aistudio.google.com"
+echo ""
+echo "Environment Variables:"
+echo "  - OLLAMA_MODEL: Set the Ollama model (default: qwen2.5-coder:latest)"
+echo "  - GEMINI_API_KEY: Required for Gemini tests"
 echo ""
 echo "Results saved to: $RESULTS_FILE"
 echo ""
