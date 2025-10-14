@@ -388,12 +388,14 @@ jobs:
         if: runner.os == 'Windows'
         id: configure_windows
         shell: pwsh
-        env:
-          CCACHE_BASEDIR: ${{ github.workspace }}
-          CCACHE_DIR: $HOME/.ccache
         run: |
           Write-Host "::group::CMake Configuration (Windows)" -ForegroundColor Cyan
+          
+          # Set up ccache directories for Windows
           if (Get-Command ccache -ErrorAction SilentlyContinue) {
+            $env:CCACHE_BASEDIR = "${{ github.workspace }}"
+            $env:CCACHE_DIR = Join-Path $env:USERPROFILE ".ccache"
+            Write-Host "CCACHE_DIR set to: $env:CCACHE_DIR"
             ccache --zero-stats
           }
           if (-not $env:CMAKE_TOOLCHAIN_FILE -or -not (Test-Path $env:CMAKE_TOOLCHAIN_FILE)) {
