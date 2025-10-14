@@ -234,6 +234,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
           -DCMAKE_C_COMPILER=${{ matrix.cc }} `
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} `
+          -DCMAKE_LINKER=link.exe ` # Use MSVC linker; lld-link fails on protobuf resource files
           -DCMAKE_TOOLCHAIN_FILE="$vcpkgToolchain" `
           -DVCPKG_TARGET_TRIPLET=x64-windows-static `
           -DVCPKG_MANIFEST_MODE=ON `
