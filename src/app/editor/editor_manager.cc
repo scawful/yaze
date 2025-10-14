@@ -1317,9 +1317,8 @@ void EditorManager::BuildModernMenu() {
           "Proposal Drawer", ICON_MD_PREVIEW,
           [this]() { proposal_drawer_.Toggle(); }, "Ctrl+P")
 #endif
-
-  menu_builder_.Separator()
-      .Item(
+      .Separator();
+  menu_builder_.Item(
           "Card Browser", ICON_MD_DASHBOARD,
           [this]() { show_card_browser_ = true; }, "Ctrl+Shift+B")
       .Separator()
