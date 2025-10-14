@@ -78,16 +78,18 @@ jobs:
 
       - name: "Generate Release Notes"
         shell: bash
+        env:
+          TAG_NAME: ${{ steps.validate.outputs.tag_name }}
         run: |
           set -euo pipefail
-          VERSION="${VALIDATED_TAG#v}"
+          VERSION="${TAG_NAME#v}"
 
           if [[ -f scripts/extract_changelog.py ]]; then
             echo "Attempting to extract changelog for version ${VERSION}..."
             python3 scripts/extract_changelog.py "${VERSION}" > release_notes.md
           else
             echo "::warning::'scripts/extract_changelog.py' not found. Creating default release notes."
-            echo "# Yaze ${{ env.VALIDATED_TAG }} Release Notes" > release_notes.md
+            echo "# Yaze ${TAG_NAME} Release Notes" > release_notes.md
             echo "" >> release_notes.md
             echo "For a detailed list of changes, please see the project's commit history or changelog file." >> release_notes.md
           fi
@@ -721,7 +723,7 @@ jobs:
   # ======================================================================================
   merge-macos-universal:
     name: "🍎 Merge macOS Universal"
-    needs: build-and-package
+    needs: [prepare-release, build-and-package]
     if: always()  # PRE-1.0: Run even if some platform builds failed
     continue-on-error: true  # PRE-1.0: Don't block release if universal merge fails
     runs-on: macos-14
@@ -912,19 +914,20 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.prepare-release.outputs.tag_name }}
-          name: "yaze ${{ needs.prepare-release.outputs.tag_name }}"
+          name: yaze ${{ needs.prepare-release.outputs.tag_name }}
           body: |
             ${{ steps.platform_report.outputs.availability }}
+            
             ${{ needs.prepare-release.outputs.release_notes }}
-
+            
             ---
-
+            
             **Note**: This is a pre-1.0 release. Platforms may be added incrementally.
             You can re-run failed platform jobs to add missing binaries to this release.
           draft: false
-          prerelease: ${{ needs.prepare-release.outputs.is_prerelease }}
+          prerelease: ${{ needs.prepare-release.outputs.is_prerelease == 'true' }}
           files: release-artifacts/*
-          fail_on_unmatched_files: false  # Don't fail if some platforms missing
+          fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
