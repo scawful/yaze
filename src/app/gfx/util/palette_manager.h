@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_GFX_PALETTE_MANAGER_H
 #define YAZE_APP_GFX_PALETTE_MANAGER_H
 
+#include <cstdint>
 #include <deque>
 #include <functional>
 #include <memory>
