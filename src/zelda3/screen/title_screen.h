@@ -43,6 +43,7 @@ class TitleScreen {
   auto& bg2_bitmap() { return tiles_bg2_bitmap_; }
   auto& oam_bitmap() { return oam_bg_bitmap_; }
   auto& tiles8_bitmap() { return tiles8_bitmap_; }
+  auto& composite_bitmap() { return title_composite_bitmap_; }
   auto& blockset() { return tile16_blockset_; }
 
   // Palette access
@@ -62,6 +63,13 @@ class TitleScreen {
    * Converts tile IDs from tiles_bg2_buffer_ into pixel data
    */
   absl::Status RenderBG2Layer();
+
+  /**
+   * @brief Render composite layer with BG1 on top of BG2 with transparency
+   * @param show_bg1 Whether to include BG1 layer
+   * @param show_bg2 Whether to include BG2 layer
+   */
+  absl::Status RenderCompositeLayer(bool show_bg1, bool show_bg2);
 
  private:
   /**
@@ -83,10 +91,11 @@ class TitleScreen {
 
   gfx::OamTile oam_data_[10];
 
-  gfx::Bitmap tiles_bg1_bitmap_;  // Rendered BG1 layer
-  gfx::Bitmap tiles_bg2_bitmap_;  // Rendered BG2 layer
-  gfx::Bitmap oam_bg_bitmap_;     // Rendered OAM layer
-  gfx::Bitmap tiles8_bitmap_;     // 8x8 tile graphics
+  gfx::Bitmap tiles_bg1_bitmap_;        // Rendered BG1 layer
+  gfx::Bitmap tiles_bg2_bitmap_;        // Rendered BG2 layer
+  gfx::Bitmap oam_bg_bitmap_;           // Rendered OAM layer
+  gfx::Bitmap tiles8_bitmap_;           // 8x8 tile graphics
+  gfx::Bitmap title_composite_bitmap_;  // Composite BG1+BG2 with transparency
 
   gfx::Tilemap tile16_blockset_;  // 16x16 tile blockset
   gfx::SnesPalette palette_;      // Title screen palette

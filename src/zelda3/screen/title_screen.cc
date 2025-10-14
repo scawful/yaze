@@ -22,7 +22,7 @@ absl::Status TitleScreen::Create(Rom* rom) {
   oam_bg_bitmap_.Create(256, 256, 8, std::vector<uint8_t>(0x80000));
   
   // Set metadata for title screen bitmaps
-  // Title screen uses 3BPP graphics with 8 palettes of 8 colors (64 total)
+  // Title screen uses 3BPP graphics (like all LTTP data) with composite 64-color palette
   tiles8_bitmap_.metadata().source_bpp = 3;
   tiles8_bitmap_.metadata().palette_format = 0;  // Full 64-color palette
   tiles8_bitmap_.metadata().source_type = "graphics_sheet";
@@ -42,23 +42,121 @@ absl::Status TitleScreen::Create(Rom* rom) {
   oam_bg_bitmap_.metadata().palette_format = 0;
   oam_bg_bitmap_.metadata().source_type = "screen_buffer";
   oam_bg_bitmap_.metadata().palette_colors = 64;
+  
+  // Initialize composite bitmap for stacked BG rendering (256x256 = 65536 bytes)
+  title_composite_bitmap_.Create(256, 256, 8, std::vector<uint8_t>(256 * 256));
+  title_composite_bitmap_.metadata().source_bpp = 3;
+  title_composite_bitmap_.metadata().palette_format = 0;
+  title_composite_bitmap_.metadata().source_type = "screen_buffer";
+  title_composite_bitmap_.metadata().palette_colors = 64;
 
   // Initialize tilemap buffers
   tiles_bg1_buffer_.fill(0x492);  // Default empty tile
   tiles_bg2_buffer_.fill(0x492);
 
   // Load palette (title screen uses 3BPP graphics with 8 palettes of 8 colors each)
-  // Build a full 64-color palette from sprite palettes
-  auto sprite_pal_group = rom->palette_group().sprites_aux1;
+  // Build composite palette from multiple sources (matches ZScream's SetColorsPalette)
+  // Palette 0: OverworldMainPalettes[5]
+  // Palette 1: OverworldAnimatedPalettes[0]
+  // Palette 2: OverworldAuxPalettes[3]
+  // Palette 3: OverworldAuxPalettes[3]
+  // Palette 4: HudPalettes[0]
+  // Palette 5: Transparent/black
+  // Palette 6: SpritesAux1Palettes[1]
+  // Palette 7: SpritesAux1Palettes[1]
   
-  // Title screen needs 8 palettes (64 colors total for 3BPP mode)
-  // Each palette in sprites_aux1 has 8 colors (7 actual + 1 transparent)
-  for (int pal = 0; pal < 8 && pal < sprite_pal_group.size(); pal++) {
-    auto sub_palette = sprite_pal_group[pal];
-    for (int col = 0; col < sub_palette.size(); col++) {
-      palette_.AddColor(sub_palette[col]);
+  auto pal_group = rom->palette_group();
+  
+  // Add each 8-color palette in sequence (EXACTLY 8 colors each for 64 total)
+  size_t palette_start = palette_.size();
+  
+  // Palette 0: OverworldMainPalettes[5]
+  if (pal_group.overworld_main.size() > 5) {
+    const auto& src = pal_group.overworld_main[5];
+    size_t added = 0;
+    for (size_t i = 0; i < 8 && i < src.size(); i++) {
+      palette_.AddColor(src[i]);
+      added++;
+    }
+    // Pad with black if less than 8 colors
+    while (added < 8) {
+      palette_.AddColor(gfx::SnesColor(0, 0, 0));
+      added++;
+    }
+    LOG_INFO("TitleScreen", "Palette 0: added %zu colors from overworld_main[5]", added);
+  }
+  
+  // Palette 1: OverworldAnimatedPalettes[0]
+  if (pal_group.overworld_animated.size() > 0) {
+    const auto& src = pal_group.overworld_animated[0];
+    size_t added = 0;
+    for (size_t i = 0; i < 8 && i < src.size(); i++) {
+      palette_.AddColor(src[i]);
+      added++;
+    }
+    while (added < 8) {
+      palette_.AddColor(gfx::SnesColor(0, 0, 0));
+      added++;
+    }
+    LOG_INFO("TitleScreen", "Palette 1: added %zu colors from overworld_animated[0]", added);
+  }
+  
+  // Palette 2 & 3: OverworldAuxPalettes[3] (used twice)
+  if (pal_group.overworld_aux.size() > 3) {
+    auto src = pal_group.overworld_aux[3];  // Copy, as this returns by value
+    for (int pal = 0; pal < 2; pal++) {
+      size_t added = 0;
+      for (size_t i = 0; i < 8 && i < src.size(); i++) {
+        palette_.AddColor(src[i]);
+        added++;
+      }
+      while (added < 8) {
+        palette_.AddColor(gfx::SnesColor(0, 0, 0));
+        added++;
+      }
+      LOG_INFO("TitleScreen", "Palette %d: added %zu colors from overworld_aux[3]", 2+pal, added);
     }
   }
+  
+  // Palette 4: HudPalettes[0]
+  if (pal_group.hud.size() > 0) {
+    auto src = pal_group.hud.palette(0);  // Copy, as this returns by value
+    size_t added = 0;
+    for (size_t i = 0; i < 8 && i < src.size(); i++) {
+      palette_.AddColor(src[i]);
+      added++;
+    }
+    while (added < 8) {
+      palette_.AddColor(gfx::SnesColor(0, 0, 0));
+      added++;
+    }
+    LOG_INFO("TitleScreen", "Palette 4: added %zu colors from hud[0]", added);
+  }
+  
+  // Palette 5: 8 transparent/black colors
+  for (int i = 0; i < 8; i++) {
+    palette_.AddColor(gfx::SnesColor(0, 0, 0));
+  }
+  LOG_INFO("TitleScreen", "Palette 5: added 8 transparent/black colors");
+  
+  // Palette 6 & 7: SpritesAux1Palettes[1] (used twice)
+  if (pal_group.sprites_aux1.size() > 1) {
+    auto src = pal_group.sprites_aux1[1];  // Copy, as this returns by value
+    for (int pal = 0; pal < 2; pal++) {
+      size_t added = 0;
+      for (size_t i = 0; i < 8 && i < src.size(); i++) {
+        palette_.AddColor(src[i]);
+        added++;
+      }
+      while (added < 8) {
+        palette_.AddColor(gfx::SnesColor(0, 0, 0));
+        added++;
+      }
+      LOG_INFO("TitleScreen", "Palette %d: added %zu colors from sprites_aux1[1]", 6+pal, added);
+    }
+  }
+  
+  LOG_INFO("TitleScreen", "Built composite palette: %zu colors (should be 64)", palette_.size());
 
   // Build tile16 blockset from graphics
   RETURN_IF_ERROR(BuildTileset(rom));
@@ -71,50 +169,106 @@ absl::Status TitleScreen::Create(Rom* rom) {
 
 absl::Status TitleScreen::BuildTileset(Rom* rom) {
   // Title screen uses specific graphics sheets
-  // Sheet arrangement for title screen (from ALTTP disassembly):
-  // 8-15: Graphics sheets 115, 115+6, 115+7, 112, etc.
+  // Load sheet configuration from ROM (matches ZScream implementation)
   uint8_t staticgfx[16] = {0};
 
-  // Title screen specific graphics sheets
-  staticgfx[8] = 115 + 0;   // Title logo graphics
-  staticgfx[9] = 115 + 3;   // Sprite graphics
+  // Read title screen GFX group indices from ROM
+  constexpr int kTitleScreenTilesGFX = 0x064207;
+  constexpr int kTitleScreenSpritesGFX = 0x06420C;
+  
+  ASSIGN_OR_RETURN(uint8_t tiles_gfx_index, rom->ReadByte(kTitleScreenTilesGFX));
+  ASSIGN_OR_RETURN(uint8_t sprites_gfx_index, rom->ReadByte(kTitleScreenSpritesGFX));
+  
+  LOG_INFO("TitleScreen", "GFX group indices: tiles=%d, sprites=%d", 
+           tiles_gfx_index, sprites_gfx_index);
+  
+  // Load main graphics sheets (slots 0-7) from GFX groups
+  // First, read the GFX groups pointer (2 bytes at 0x6237)
+  constexpr int kGfxGroupsPointer = 0x6237;
+  ASSIGN_OR_RETURN(uint16_t gfx_groups_snes, rom->ReadWord(kGfxGroupsPointer));
+  uint32_t main_gfx_table = SnesToPc(gfx_groups_snes);
+  
+  LOG_INFO("TitleScreen", "GFX groups table: SNES=0x%04X, PC=0x%06X", 
+           gfx_groups_snes, main_gfx_table);
+  
+  // Read 8 bytes from mainGfx[tiles_gfx_index]
+  int main_gfx_offset = main_gfx_table + (tiles_gfx_index * 8);
+  for (int i = 0; i < 8; i++) {
+    ASSIGN_OR_RETURN(staticgfx[i], rom->ReadByte(main_gfx_offset + i));
+  }
+
+  // Load sprite graphics sheets (slots 8-12) - matches ZScream logic
+  // Sprite GFX groups are after the 37 main groups (37 * 8 = 296 bytes)
+  // and 82 room groups (82 * 4 = 328 bytes) = 624 bytes offset
+  int sprite_gfx_table = main_gfx_table + (37 * 8) + (82 * 4);
+  int sprite_gfx_offset = sprite_gfx_table + (sprites_gfx_index * 4);
+  
+  staticgfx[8] = 115 + 0;   // Title logo base
+  ASSIGN_OR_RETURN(uint8_t sprite3, rom->ReadByte(sprite_gfx_offset + 3));
+  staticgfx[9] = 115 + sprite3;  // Sprite graphics slot 3
   staticgfx[10] = 115 + 6;  // Additional graphics
   staticgfx[11] = 115 + 7;  // Additional graphics
-  staticgfx[12] = 115 + 0;  // More sprite graphics
+  ASSIGN_OR_RETURN(uint8_t sprite0, rom->ReadByte(sprite_gfx_offset + 0));
+  staticgfx[12] = 115 + sprite0;  // Sprite graphics slot 0
   staticgfx[13] = 112;      // UI graphics
   staticgfx[14] = 112;      // UI graphics
   staticgfx[15] = 112;      // UI graphics
 
-  // Get ROM graphics buffer (contains 3BPP/4BPP SNES format data)
+  // Use pre-converted graphics from ROM buffer - simple and matches rest of yaze
+  // Title screen uses standard 3BPP graphics, no special offset needed
   const auto& gfx_buffer = rom->graphics_buffer();
   auto& tiles8_data = tiles8_bitmap_.mutable_data();
 
-  // Load and convert each graphics sheet from 3BPP SNES format to 8BPP indexed
-  // Each sheet is 2048 bytes in 3BPP format -> converts to 0x1000 bytes (4096) in 8BPP
+  LOG_INFO("TitleScreen", "Graphics buffer size: %zu bytes", gfx_buffer.size());
+  LOG_INFO("TitleScreen", "Tiles8 bitmap size: %zu bytes", tiles8_data.size());
+  
+  // Copy graphics sheets to tiles8_bitmap
+  LOG_INFO("TitleScreen", "Loading 16 graphics sheets:");
+  for (int i = 0; i < 16; i++) {
+    LOG_INFO("TitleScreen", "  staticgfx[%d] = %d", i, staticgfx[i]);
+  }
+  
   for (int i = 0; i < 16; i++) {
     int sheet_id = staticgfx[i];
-    int source_offset = sheet_id * 2048;
+    
+    // Validate sheet ID (ROM has 223 sheets: 0-222)
+    if (sheet_id > 222) {
+      LOG_ERROR("TitleScreen", "Sheet %d: Invalid sheet_id=%d (max 222), using sheet 0 instead", 
+                i, sheet_id);
+      sheet_id = 0;  // Fallback to a valid sheet
+    }
+    
+    int source_offset = sheet_id * 0x1000;  // Each 8BPP sheet is 0x1000 bytes
+    int dest_offset = i * 0x1000;
 
-    if (source_offset + 2048 <= gfx_buffer.size()) {
-      // Extract 3BPP sheet data
-      std::vector<uint8_t> sheet_3bpp(gfx_buffer.begin() + source_offset,
-                                       gfx_buffer.begin() + source_offset + 2048);
-
-      // Convert 3BPP SNES format to 8BPP indexed format
-      auto sheet_8bpp = gfx::SnesTo8bppSheet(sheet_3bpp, 3, 1);
-
-      // Copy converted data to tiles8_bitmap at correct position
-      // Each converted sheet is 0x1000 bytes (128x32 pixels)
-      int dest_offset = i * 0x1000;
-      if (dest_offset + sheet_8bpp.size() <= tiles8_data.size()) {
-        std::copy(sheet_8bpp.begin(), sheet_8bpp.end(),
+    if (source_offset + 0x1000 <= gfx_buffer.size() && 
+        dest_offset + 0x1000 <= tiles8_data.size()) {
+      
+      std::copy(gfx_buffer.begin() + source_offset,
+                gfx_buffer.begin() + source_offset + 0x1000,
                   tiles8_data.begin() + dest_offset);
-      }
+      
+      // Sample first few pixels
+      LOG_INFO("TitleScreen", "Sheet %d (ID %d): Sample pixels: %02X %02X %02X %02X", 
+               i, sheet_id, 
+               tiles8_data[dest_offset], tiles8_data[dest_offset+1],
+               tiles8_data[dest_offset+2], tiles8_data[dest_offset+3]);
+    } else {
+      LOG_ERROR("TitleScreen", "Sheet %d (ID %d): out of bounds! source=%d, dest=%d, buffer_size=%zu", 
+                i, sheet_id, source_offset, dest_offset, gfx_buffer.size());
     }
   }
 
   // Set palette on tiles8 bitmap
   tiles8_bitmap_.SetPalette(palette_);
+  
+  LOG_INFO("TitleScreen", "Applied palette to tiles8_bitmap: %zu colors", palette_.size());
+  // Log first few colors
+  if (palette_.size() >= 8) {
+    LOG_INFO("TitleScreen", "  Palette colors 0-7: %04X %04X %04X %04X %04X %04X %04X %04X",
+             palette_[0].snes(), palette_[1].snes(), palette_[2].snes(), palette_[3].snes(),
+             palette_[4].snes(), palette_[5].snes(), palette_[6].snes(), palette_[7].snes());
+  }
 
   // Queue texture creation via Arena's deferred system
   gfx::Arena::Get().QueueTextureCommand(
@@ -128,23 +282,16 @@ absl::Status TitleScreen::BuildTileset(Rom* rom) {
 }
 
 absl::Status TitleScreen::LoadTitleScreen(Rom* rom) {
-  // Title screen tilemap data addresses (PC format)
-  // These point to tilemap data for different screen sections
-  constexpr int kTilemapAddresses[7] = {
-      0x53de4, 0x53e2c, 0x53e08, 0x53e50, 0x53e74, 0x53e98, 0x53ebc};
-  constexpr int kTilemapGfxAddresses[7] = {
-      0x53ee0, 0x53f04, 0x53ef2, 0x53f16, 0x53f28, 0x53f3a, 0x53f4c};
-
-  // Note: The title screen uses a simpler tilemap format than dungeons
-  // For now, we'll use the compressed format loader which should work
-  // TODO: Implement proper title screen tilemap loading using the addresses above
-
-  ASSIGN_OR_RETURN(uint8_t byte0, rom->ReadByte(0x137A + 3));
-  ASSIGN_OR_RETURN(uint8_t byte1, rom->ReadByte(0x1383 + 3));
-  ASSIGN_OR_RETURN(uint8_t byte2, rom->ReadByte(0x138C + 3));
-
-  int pos = (byte2 << 16) + (byte1 << 8) + byte0;
-  pos = SnesToPc(pos);
+  // Check if ROM uses ZScream's expanded format (data at 0x108000 PC)
+  // by reading the title screen pointer at 0x137A+3, 0x1383+3, 0x138C+3
+  ASSIGN_OR_RETURN(uint8_t bank_byte, rom->ReadByte(0x138C + 3));
+  ASSIGN_OR_RETURN(uint8_t high_byte, rom->ReadByte(0x1383 + 3));
+  ASSIGN_OR_RETURN(uint8_t low_byte, rom->ReadByte(0x137A + 3));
+  
+  uint32_t snes_addr = (bank_byte << 16) | (high_byte << 8) | low_byte;
+  uint32_t pc_addr = SnesToPc(snes_addr);
+  
+  LOG_INFO("TitleScreen", "Title screen pointer: SNES=0x%06X, PC=0x%06X", snes_addr, pc_addr);
 
   // Initialize buffers with default empty tile
   for (int i = 0; i < 1024; i++) {
@@ -152,12 +299,65 @@ absl::Status TitleScreen::LoadTitleScreen(Rom* rom) {
     tiles_bg2_buffer_[i] = 0x492;
   }
 
-  // Read compressed tilemap data
+  // ZScream expanded format at 0x108000 (PC)
+  if (pc_addr >= 0x108000 && pc_addr <= 0x10FFFF) {
+    LOG_INFO("TitleScreen", "Detected ZScream expanded format");
+    
+    int pos = pc_addr;
+    
+    // Read BG1 header: dest (word), length (word)
+    ASSIGN_OR_RETURN(uint16_t bg1_dest, rom->ReadWord(pos));
+    pos += 2;
+    ASSIGN_OR_RETURN(uint16_t bg1_length, rom->ReadWord(pos));
+    pos += 2;
+    
+    LOG_INFO("TitleScreen", "BG1 Header: dest=0x%04X, length=0x%04X", bg1_dest, bg1_length);
+    
+    // Read 1024 BG1 tiles (2 bytes each = 2048 bytes)
+    for (int i = 0; i < 1024; i++) {
+      ASSIGN_OR_RETURN(uint16_t tile, rom->ReadWord(pos));
+      tiles_bg1_buffer_[i] = tile;
+      pos += 2;
+    }
+    
+    // Read BG2 header: dest (word), length (word)
+    ASSIGN_OR_RETURN(uint16_t bg2_dest, rom->ReadWord(pos));
+    pos += 2;
+    ASSIGN_OR_RETURN(uint16_t bg2_length, rom->ReadWord(pos));
+    pos += 2;
+    
+    LOG_INFO("TitleScreen", "BG2 Header: dest=0x%04X, length=0x%04X", bg2_dest, bg2_length);
+    
+    // Read 1024 BG2 tiles (2 bytes each = 2048 bytes)
+    for (int i = 0; i < 1024; i++) {
+      ASSIGN_OR_RETURN(uint16_t tile, rom->ReadWord(pos));
+      tiles_bg2_buffer_[i] = tile;
+      pos += 2;
+    }
+    
+    LOG_INFO("TitleScreen", "Loaded 2048 tilemap entries from ZScream expanded format");
+  }
+  // Vanilla format with 7 compressed sections
+  else {
+    LOG_INFO("TitleScreen", "Using vanilla compressed format");
+    
+    // Title screen tilemap data is stored in 7 sections
+    // Each section contains tile words for a portion of the screen
+    constexpr int kTilemapAddresses[7] = {
+        0x53de4, 0x53e2c, 0x53e08, 0x53e50, 0x53e74, 0x53e98, 0x53ebc};
+    
+    int total_entries = 0;
+    
+    // Load each tilemap section
+    for (int section = 0; section < 7; section++) {
+      int pos = kTilemapAddresses[section];
+      
+      // Read compressed tilemap data for this section
   // Format: destination address (word), length (word), tile data
   while (pos < rom->size()) {
     ASSIGN_OR_RETURN(uint8_t first_byte, rom->ReadByte(pos));
     if ((first_byte & 0x80) == 0x80) {
-      break;  // End of data marker
+          break;  // End of section marker
     }
 
     ASSIGN_OR_RETURN(uint16_t dest_addr, rom->ReadWord(pos));
@@ -177,10 +377,17 @@ absl::Status TitleScreen::LoadTitleScreen(Rom* rom) {
       // Determine which layer this tile belongs to
       if (dest_addr >= 0x1000 && dest_addr < 0x2000) {
         // BG1 layer
-        tiles_bg1_buffer_[dest_addr - 0x1000] = tiledata;
+            int index = dest_addr - 0x1000;
+            if (index < 1024) {
+              tiles_bg1_buffer_[index] = tiledata;
+              total_entries++;
+            }
       } else if (dest_addr < 0x1000) {
         // BG2 layer
+            if (dest_addr < 1024) {
         tiles_bg2_buffer_[dest_addr] = tiledata;
+              total_entries++;
+            }
       }
 
       // Advance destination address
@@ -201,6 +408,10 @@ absl::Status TitleScreen::LoadTitleScreen(Rom* rom) {
     } else {
       pos = posB + ((length / 2) + 1) * 2;
     }
+      }
+    }
+    
+    LOG_INFO("TitleScreen", "Loaded %d tilemap entries from 7 sections", total_entries);
   }
 
   pal_selected_ = 2;
@@ -213,11 +424,13 @@ absl::Status TitleScreen::LoadTitleScreen(Rom* rom) {
   tiles_bg1_bitmap_.SetPalette(palette_);
   tiles_bg2_bitmap_.SetPalette(palette_);
   oam_bg_bitmap_.SetPalette(palette_);
+  title_composite_bitmap_.SetPalette(palette_);
   
   // Ensure bitmaps are marked as active
   tiles_bg1_bitmap_.set_active(true);
   tiles_bg2_bitmap_.set_active(true);
   oam_bg_bitmap_.set_active(true);
+  title_composite_bitmap_.set_active(true);
 
   // Queue texture creation for all layer bitmaps
   gfx::Arena::Get().QueueTextureCommand(
@@ -226,6 +439,11 @@ absl::Status TitleScreen::LoadTitleScreen(Rom* rom) {
       gfx::Arena::TextureCommandType::CREATE, &tiles_bg2_bitmap_);
   gfx::Arena::Get().QueueTextureCommand(
       gfx::Arena::TextureCommandType::CREATE, &oam_bg_bitmap_);
+  gfx::Arena::Get().QueueTextureCommand(
+      gfx::Arena::TextureCommandType::CREATE, &title_composite_bitmap_);
+  
+  // Initial composite render (both layers visible)
+  RETURN_IF_ERROR(RenderCompositeLayer(true, true));
 
   return absl::OkStatus();
 }
@@ -247,9 +465,19 @@ absl::Status TitleScreen::RenderBG1Layer() {
       bool h_flip = (tile_word & 0x4000) != 0;  // Bit 14: horizontal flip
       bool v_flip = (tile_word & 0x8000) != 0;  // Bit 15: vertical flip
 
-      // Calculate source position in tiles8_bitmap_ (16 tiles per row, 8x8 each)
-      int src_tile_x = (tile_id % 16) * 8;
-      int src_tile_y = (tile_id / 16) * 8;
+      // Debug: Log suspicious tile IDs
+      if (tile_id > 512) {
+        LOG_WARN("TitleScreen", "BG1: Suspicious tile_id=%d at (%d,%d), word=0x%04X", 
+                 tile_id, tile_x, tile_y, tile_word);
+      }
+
+      // Calculate source position in tiles8_bitmap_
+      // tiles8_bitmap_ is 128 pixels wide, 512 pixels tall (16 sheets × 32 pixels)
+      // Each sheet has 256 tiles (16×16 tiles, 128×32 pixels, 0x1000 bytes)
+      int sheet_index = tile_id / 256;        // Which sheet (0-15)
+      int tile_in_sheet = tile_id % 256;      // Tile within sheet (0-255)
+      int src_tile_x = (tile_in_sheet % 16) * 8;
+      int src_tile_y = (sheet_index * 32) + ((tile_in_sheet / 16) * 8);
 
       // Copy 8x8 tile pixels from tile8 bitmap to BG1 bitmap
       for (int py = 0; py < 8; py++) {
@@ -268,12 +496,12 @@ absl::Status TitleScreen::RenderBG1Layer() {
           int dest_pos = dest_y * 256 + dest_x;  // BG1 is 256 pixels wide
 
           // Copy pixel with palette application
-          // Title screen uses 3BPP graphics (8 colors per palette)
+          // Graphics are 3BPP in ROM, converted to 8BPP indexed with +0x88 offset
           if (src_pos < tile8_bitmap_data.size() && dest_pos < bg1_data.size()) {
             uint8_t pixel_value = tile8_bitmap_data[src_pos];
-            // Apply palette index (title screen uses 8-color palettes)
-            // Mask to 3 bits for 8 colors, then apply palette offset
-            bg1_data[dest_pos] = (pixel_value & 0x07) | ((palette & 0x07) << 3);
+            // Pixel values already include palette information from +0x88 offset
+            // Just copy directly (color index 0 = transparent)
+            bg1_data[dest_pos] = pixel_value;
           }
         }
       }
@@ -282,6 +510,10 @@ absl::Status TitleScreen::RenderBG1Layer() {
   
   // Update surface with rendered pixel data
   tiles_bg1_bitmap_.UpdateSurfacePixels();
+  
+  // Queue texture update
+  gfx::Arena::Get().QueueTextureCommand(
+      gfx::Arena::TextureCommandType::UPDATE, &tiles_bg1_bitmap_);
 
   return absl::OkStatus();
 }
@@ -303,9 +535,13 @@ absl::Status TitleScreen::RenderBG2Layer() {
       bool h_flip = (tile_word & 0x4000) != 0;  // Bit 14: horizontal flip
       bool v_flip = (tile_word & 0x8000) != 0;  // Bit 15: vertical flip
 
-      // Calculate source position in tiles8_bitmap_ (16 tiles per row, 8x8 each)
-      int src_tile_x = (tile_id % 16) * 8;
-      int src_tile_y = (tile_id / 16) * 8;
+      // Calculate source position in tiles8_bitmap_
+      // tiles8_bitmap_ is 128 pixels wide, 512 pixels tall (16 sheets × 32 pixels)
+      // Each sheet has 256 tiles (16×16 tiles, 128×32 pixels, 0x1000 bytes)
+      int sheet_index = tile_id / 256;        // Which sheet (0-15)
+      int tile_in_sheet = tile_id % 256;      // Tile within sheet (0-255)
+      int src_tile_x = (tile_in_sheet % 16) * 8;
+      int src_tile_y = (sheet_index * 32) + ((tile_in_sheet / 16) * 8);
 
       // Copy 8x8 tile pixels from tile8 bitmap to BG2 bitmap
       for (int py = 0; py < 8; py++) {
@@ -324,12 +560,12 @@ absl::Status TitleScreen::RenderBG2Layer() {
           int dest_pos = dest_y * 256 + dest_x;  // BG2 is 256 pixels wide
 
           // Copy pixel with palette application
-          // Title screen uses 3BPP graphics (8 colors per palette)
+          // Graphics are 3BPP in ROM, converted to 8BPP indexed with +0x88 offset
           if (src_pos < tile8_bitmap_data.size() && dest_pos < bg2_data.size()) {
             uint8_t pixel_value = tile8_bitmap_data[src_pos];
-            // Apply palette index (title screen uses 8-color palettes)
-            // Mask to 3 bits for 8 colors, then apply palette offset
-            bg2_data[dest_pos] = (pixel_value & 0x07) | ((palette & 0x07) << 3);
+            // Pixel values already include palette information from +0x88 offset
+            // Just copy directly (color index 0 = transparent)
+            bg2_data[dest_pos] = pixel_value;
           }
         }
       }
@@ -338,6 +574,10 @@ absl::Status TitleScreen::RenderBG2Layer() {
   
   // Update surface with rendered pixel data
   tiles_bg2_bitmap_.UpdateSurfacePixels();
+  
+  // Queue texture update
+  gfx::Arena::Get().QueueTextureCommand(
+      gfx::Arena::TextureCommandType::UPDATE, &tiles_bg2_bitmap_);
 
   return absl::OkStatus();
 }
@@ -428,6 +668,43 @@ absl::Status TitleScreen::Save(Rom* rom) {
   for (size_t i = 0; i < compressed_data.size(); i++) {
     RETURN_IF_ERROR(rom->WriteByte(write_pos + i, compressed_data[i]));
   }
+  
+  return absl::OkStatus();
+}
+
+absl::Status TitleScreen::RenderCompositeLayer(bool show_bg1, bool show_bg2) {
+  auto& composite_data = title_composite_bitmap_.mutable_data();
+  const auto& bg1_data = tiles_bg1_bitmap_.vector();
+  const auto& bg2_data = tiles_bg2_bitmap_.vector();
+  
+  // Clear to transparent (color index 0)
+  std::fill(composite_data.begin(), composite_data.end(), 0);
+  
+  // Layer BG2 first (if visible) - background layer
+  if (show_bg2) {
+    for (int i = 0; i < 256 * 256; i++) {
+      composite_data[i] = bg2_data[i];
+    }
+  }
+  
+  // Layer BG1 on top (if visible), respecting transparency
+  if (show_bg1) {
+    for (int i = 0; i < 256 * 256; i++) {
+      uint8_t pixel = bg1_data[i];
+      // Check if color 0 in the sub-palette (transparent)
+      // Pixel format is (palette<<3) | color, so color is bits 0-2
+      if ((pixel & 0x07) != 0) {
+        composite_data[i] = pixel;
+      }
+    }
+  }
+  
+  // Copy pixel data to SDL surface
+  title_composite_bitmap_.UpdateSurfacePixels();
+  
+  // Queue texture update
+  gfx::Arena::Get().QueueTextureCommand(
+      gfx::Arena::TextureCommandType::UPDATE, &title_composite_bitmap_);
   
   return absl::OkStatus();
 }
