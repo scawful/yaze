@@ -127,6 +127,38 @@ jobs:
 
         Write-Host "Persisted VCPKG_ROOT=$vcpkgRoot"
         Write-Host "Persisted CMAKE_TOOLCHAIN_FILE=$normalizedToolchain"
+
+    - name: Compute MSVC linker path (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+        if (-not (Test-Path $vswhere)) {
+          Write-Host "::warning::vswhere.exe not found; falling back to PATH linker"
+          return
+        }
+
+        $vsInstall = & $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+        if ([string]::IsNullOrWhiteSpace($vsInstall) -or -not (Test-Path $vsInstall)) {
+          Write-Host "::warning::Visual Studio with VC tools not located; falling back to PATH linker"
+          return
+        }
+
+        $toolsetDir = Get-ChildItem -Path (Join-Path $vsInstall "VC\Tools\MSVC") -Directory | Sort-Object Name -Descending | Select-Object -First 1
+        if (-not $toolsetDir) {
+          Write-Host "::warning::MSVC toolset directory not found; falling back to PATH linker"
+          return
+        }
+
+        $linkPath = Join-Path $toolsetDir.FullName "bin\Hostx64\x64\link.exe"
+        if (-not (Test-Path $linkPath)) {
+          Write-Host "::warning::MSVC linker not found at $linkPath; falling back to PATH linker"
+          return
+        }
+
+        $normalized = $linkPath -replace '\\', '/'
+        "MSVC_LINK_PATH=$normalized" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        Write-Host "Persisted MSVC_LINK_PATH=$normalized"
     
     - name: Diagnose vcpkg (Windows)
       if: runner.os == 'Windows' && (steps.vcpkg.outcome == 'failure' || steps.vcpkg.outcome == 'success')
@@ -142,6 +174,7 @@ jobs:
           Write-Host "❌ vcpkg.exe not found" -ForegroundColor Red
         }
         Write-Host "CMAKE_TOOLCHAIN_FILE: $env:CMAKE_TOOLCHAIN_FILE"
+        Write-Host "MSVC_LINK_PATH: $env:MSVC_LINK_PATH"
         
         Write-Host "`nEnvironment:" -ForegroundColor Cyan
         Write-Host "VCPKG_DEFAULT_TRIPLET: $env:VCPKG_DEFAULT_TRIPLET"
@@ -267,12 +300,18 @@ jobs:
           exit 1
         }
         Write-Host "Using vcpkg toolchain: $env:CMAKE_TOOLCHAIN_FILE"
-        
+
+        $linker = "link.exe"
+        if ($env:MSVC_LINK_PATH -and (Test-Path $env:MSVC_LINK_PATH)) {
+          $linker = $env:MSVC_LINK_PATH
+        }
+        Write-Host "Using linker: $linker"
+
         cmake -B build -G "Ninja" `
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} `
           -DCMAKE_C_COMPILER=${{ matrix.cc }} `
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} `
-          -DCMAKE_LINKER=link.exe ` # Use MSVC linker; lld-link fails on protobuf resource files
+          -DCMAKE_LINKER="$linker" `
           -DCMAKE_TOOLCHAIN_FILE="$env:CMAKE_TOOLCHAIN_FILE" `
           -DVCPKG_TARGET_TRIPLET=x64-windows-static `
           -DVCPKG_MANIFEST_MODE=ON `
