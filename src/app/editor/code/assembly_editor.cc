@@ -1,4 +1,5 @@
 #include "assembly_editor.h"
+#include "app/editor/system/editor_card_registry.h"
 
 #include <fstream>
 #include <string>
@@ -176,11 +177,12 @@ void AssemblyEditor::Initialize() {
   text_editor_.SetLanguageDefinition(GetAssemblyLanguageDef());
   
   // Register cards with EditorCardManager
-  auto& card_manager = gui::EditorCardManager::Get();
-  card_manager.RegisterCard({.card_id = "assembly.editor", .display_name = "Assembly Editor",
+  if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
+  card_registry->RegisterCard({.card_id = "assembly.editor", .display_name = "Assembly Editor",
                             .icon = ICON_MD_CODE, .category = "Assembly",
                             .shortcut_hint = "", .priority = 10});
-  card_manager.RegisterCard({.card_id = "assembly.file_browser", .display_name = "File Browser",
+  card_registry->RegisterCard({.card_id = "assembly.file_browser", .display_name = "File Browser",
                             .icon = ICON_MD_FOLDER_OPEN, .category = "Assembly",
                             .shortcut_hint = "", .priority = 20});
   
@@ -188,9 +190,10 @@ void AssemblyEditor::Initialize() {
 }
 
 absl::Status AssemblyEditor::Load() {
-  // Register cards with EditorCardManager
+  // Register cards with EditorCardRegistry (dependency injection)
   // Note: Assembly editor uses dynamic file tabs, so we register the main editor window
-  auto& card_manager = gui::EditorCardManager::Get();
+  if (!dependencies_.card_registry) return absl::OkStatus();
+  auto* card_registry = dependencies_.card_registry;
   
   return absl::OkStatus(); 
 }

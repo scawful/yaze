@@ -1,4 +1,5 @@
 #include "palette_editor.h"
+#include "app/editor/system/editor_card_registry.h"
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
@@ -185,9 +186,10 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
 
 void PaletteEditor::Initialize() {
   // Register all cards with EditorCardManager (done once during initialization)
-  auto& card_manager = gui::EditorCardManager::Get();
+  if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
 
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = "palette.control_panel",
       .display_name = "Palette Controls",
       .icon = ICON_MD_PALETTE,
@@ -197,7 +199,7 @@ void PaletteEditor::Initialize() {
       .priority = 10
   });
 
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = "palette.ow_main",
       .display_name = "Overworld Main",
       .icon = ICON_MD_LANDSCAPE,
@@ -207,7 +209,7 @@ void PaletteEditor::Initialize() {
       .priority = 20
   });
 
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = "palette.ow_animated",
       .display_name = "Overworld Animated",
       .icon = ICON_MD_WATER,
@@ -217,7 +219,7 @@ void PaletteEditor::Initialize() {
       .priority = 30
   });
 
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = "palette.dungeon_main",
       .display_name = "Dungeon Main",
       .icon = ICON_MD_CASTLE,
@@ -227,7 +229,7 @@ void PaletteEditor::Initialize() {
       .priority = 40
   });
 
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = "palette.sprites",
       .display_name = "Global Sprite Palettes",
       .icon = ICON_MD_PETS,
@@ -237,7 +239,7 @@ void PaletteEditor::Initialize() {
       .priority = 50
   });
 
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = "palette.sprites_aux1",
       .display_name = "Sprites Aux 1",
       .icon = ICON_MD_FILTER_1,
@@ -247,7 +249,7 @@ void PaletteEditor::Initialize() {
       .priority = 51
   });
 
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = "palette.sprites_aux2",
       .display_name = "Sprites Aux 2",
       .icon = ICON_MD_FILTER_2,
@@ -257,7 +259,7 @@ void PaletteEditor::Initialize() {
       .priority = 52
   });
 
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = "palette.sprites_aux3",
       .display_name = "Sprites Aux 3",
       .icon = ICON_MD_FILTER_3,
@@ -267,7 +269,7 @@ void PaletteEditor::Initialize() {
       .priority = 53
   });
 
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = "palette.equipment",
       .display_name = "Equipment Palettes",
       .icon = ICON_MD_SHIELD,
@@ -277,7 +279,7 @@ void PaletteEditor::Initialize() {
       .priority = 60
   });
 
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = "palette.quick_access",
       .display_name = "Quick Access",
       .icon = ICON_MD_COLOR_LENS,
@@ -287,7 +289,7 @@ void PaletteEditor::Initialize() {
       .priority = 70
   });
 
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = "palette.custom",
       .display_name = "Custom Palette",
       .icon = ICON_MD_BRUSH,
@@ -935,8 +937,9 @@ void PaletteEditor::DrawControlPanel() {
       ImGui::Separator();
       
       // Use EditorCardManager to draw the menu
-      auto& card_manager = gui::EditorCardManager::Get();
-      card_manager.DrawViewMenuSection("Palette");
+      if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
+      // View menu section now handled by EditorCardRegistry in EditorManager
       
       ImGui::EndPopup();
     }

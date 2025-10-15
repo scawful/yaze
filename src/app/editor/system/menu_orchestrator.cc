@@ -191,7 +191,7 @@ void MenuOrchestrator::AddViewMenuItems() {
       .Item("Chat History", ICON_MD_CHAT,
             [this]() { OnShowChatHistory(); }, "Ctrl+H")
       .Item("Proposal Drawer", ICON_MD_PREVIEW,
-            [this]() { OnShowProposalDrawer(); }, "Ctrl+P");
+            [this]() { OnShowProposalDrawer(); }, "Ctrl+Shift+R");
 #endif
   
   menu_builder_

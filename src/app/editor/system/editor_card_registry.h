@@ -388,6 +388,13 @@ class EditorCardRegistry {
   }
   
   /**
+   * @brief Check if card is visible in active session (convenience)
+   */
+  bool IsCardVisible(const std::string& base_card_id) const {
+    return IsCardVisible(active_session_, base_card_id);
+  }
+  
+  /**
    * @brief Hide all cards in category for active session (convenience)
    */
   void HideAllCardsInCategory(const std::string& category) {
@@ -426,6 +433,20 @@ class EditorCardRegistry {
   }
   
   /**
+   * @brief Show all cards for active session (convenience)
+   */
+  void ShowAll() {
+    ShowAll(active_session_);
+  }
+  
+  /**
+   * @brief Hide all cards for active session (convenience)
+   */
+  void HideAll() {
+    HideAll(active_session_);
+  }
+  
+  /**
    * @brief Draw sidebar for active session (convenience)
    */
   void DrawSidebar(const std::string& category,
@@ -434,7 +455,7 @@ class EditorCardRegistry {
                   std::function<void()> on_collapse = nullptr) {
     DrawSidebar(active_session_, category, active_categories, on_category_switch, on_collapse);
   }
-
+  
  private:
   // Core card storage (prefixed IDs → CardInfo)
   std::unordered_map<std::string, CardInfo> cards_;

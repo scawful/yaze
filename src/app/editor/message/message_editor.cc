@@ -1,4 +1,5 @@
 #include "message_editor.h"
+#include "app/editor/system/editor_card_registry.h"
 
 #include <string>
 #include <vector>
@@ -62,35 +63,37 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
                                                ImGuiTableFlags_Resizable;
 
 void MessageEditor::Initialize() {
-  // Register cards with EditorCardManager (using centralized visibility)
-  auto& card_manager = gui::EditorCardManager::Get();
+  // Register cards with EditorCardRegistry (dependency injection)
+  if (!dependencies_.card_registry) return;
   
-  card_manager.RegisterCard({
-      .card_id = "message.message_list",
+  auto* card_registry = dependencies_.card_registry;
+  
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("message.message_list"),
       .display_name = "Message List",
       .icon = ICON_MD_LIST,
       .category = "Message",
       .priority = 10
   });
   
-  card_manager.RegisterCard({
-      .card_id = "message.message_editor",
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("message.message_editor"),
       .display_name = "Message Editor",
       .icon = ICON_MD_EDIT,
       .category = "Message",
       .priority = 20
   });
   
-  card_manager.RegisterCard({
-      .card_id = "message.font_atlas",
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("message.font_atlas"),
       .display_name = "Font Atlas",
       .icon = ICON_MD_FONT_DOWNLOAD,
       .category = "Message",
       .priority = 30
   });
   
-  card_manager.RegisterCard({
-      .card_id = "message.dictionary",
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("message.dictionary"),
       .display_name = "Dictionary",
       .icon = ICON_MD_BOOK,
       .category = "Message",
@@ -98,7 +101,7 @@ void MessageEditor::Initialize() {
   });
   
   // Show message list by default
-  card_manager.ShowCard("message.message_list");
+  card_registry->ShowCard(MakeCardId("message.message_list"));
   
   for (int i = 0; i < kWidthArraySize; i++) {
     message_preview_.width_array[i] = rom()->data()[kCharactersWidth + i];
@@ -143,10 +146,12 @@ absl::Status MessageEditor::Load() {
 }
 
 absl::Status MessageEditor::Update() {
-  auto& card_manager = gui::EditorCardManager::Get();
+  if (!dependencies_.card_registry) return absl::OkStatus();
+  
+  auto* card_registry = dependencies_.card_registry;
   
   // Message List Card
-  if (card_manager.IsCardVisible("message.message_list")) {
+  if (card_registry->IsCardVisible(MakeCardId("message.message_list"))) {
     static gui::EditorCard list_card("Message List", ICON_MD_LIST);
     list_card.SetDefaultSize(400, 600);
     if (list_card.Begin()) {
@@ -156,7 +161,7 @@ absl::Status MessageEditor::Update() {
   }
   
   // Message Editor Card
-  if (card_manager.IsCardVisible("message.message_editor")) {
+  if (card_registry->IsCardVisible(MakeCardId("message.message_editor"))) {
     static gui::EditorCard editor_card("Message Editor", ICON_MD_EDIT);
     editor_card.SetDefaultSize(500, 600);
     if (editor_card.Begin()) {
@@ -166,7 +171,7 @@ absl::Status MessageEditor::Update() {
   }
   
   // Font Atlas Card
-  if (card_manager.IsCardVisible("message.font_atlas")) {
+  if (card_registry->IsCardVisible(MakeCardId("message.font_atlas"))) {
     static gui::EditorCard font_card("Font Atlas", ICON_MD_FONT_DOWNLOAD);
     font_card.SetDefaultSize(400, 500);
     if (font_card.Begin()) {
@@ -177,7 +182,7 @@ absl::Status MessageEditor::Update() {
   }
   
   // Dictionary Card
-  if (card_manager.IsCardVisible("message.dictionary")) {
+  if (card_registry->IsCardVisible(MakeCardId("message.dictionary"))) {
     static gui::EditorCard dict_card("Dictionary", ICON_MD_BOOK);
     dict_card.SetDefaultSize(400, 500);
     if (dict_card.Begin()) {

@@ -1,4 +1,5 @@
 #include "screen_editor.h"
+#include "app/editor/system/editor_card_registry.h"
 
 #include <fstream>
 #include <iostream>
@@ -25,26 +26,27 @@ namespace editor {
 constexpr uint32_t kRedPen = 0xFF0000FF;
 
 void ScreenEditor::Initialize() {
-  auto& card_manager = gui::EditorCardManager::Get();
+  if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
   
-  card_manager.RegisterCard({.card_id = "screen.dungeon_maps", .display_name = "Dungeon Maps",
+  card_registry->RegisterCard({.card_id = "screen.dungeon_maps", .display_name = "Dungeon Maps",
                             .icon = ICON_MD_MAP, .category = "Screen",
                             .shortcut_hint = "Alt+1", .priority = 10});
-  card_manager.RegisterCard({.card_id = "screen.inventory_menu", .display_name = "Inventory Menu",
+  card_registry->RegisterCard({.card_id = "screen.inventory_menu", .display_name = "Inventory Menu",
                             .icon = ICON_MD_INVENTORY, .category = "Screen",
                             .shortcut_hint = "Alt+2", .priority = 20});
-  card_manager.RegisterCard({.card_id = "screen.overworld_map", .display_name = "Overworld Map",
+  card_registry->RegisterCard({.card_id = "screen.overworld_map", .display_name = "Overworld Map",
                             .icon = ICON_MD_PUBLIC, .category = "Screen",
                             .shortcut_hint = "Alt+3", .priority = 30});
-  card_manager.RegisterCard({.card_id = "screen.title_screen", .display_name = "Title Screen",
+  card_registry->RegisterCard({.card_id = "screen.title_screen", .display_name = "Title Screen",
                             .icon = ICON_MD_TITLE, .category = "Screen",
                             .shortcut_hint = "Alt+4", .priority = 40});
-  card_manager.RegisterCard({.card_id = "screen.naming_screen", .display_name = "Naming Screen",
+  card_registry->RegisterCard({.card_id = "screen.naming_screen", .display_name = "Naming Screen",
                             .icon = ICON_MD_EDIT, .category = "Screen",
                             .shortcut_hint = "Alt+5", .priority = 50});
   
   // Show title screen by default
-  card_manager.ShowCard("screen.title_screen");
+  card_registry->ShowCard("screen.title_screen");
 }
 
 absl::Status ScreenEditor::Load() {
@@ -105,7 +107,8 @@ absl::Status ScreenEditor::Load() {
 }
 
 absl::Status ScreenEditor::Update() {
-  auto& card_manager = gui::EditorCardManager::Get();
+  if (!dependencies_.card_registry) return absl::OkStatus();
+  auto* card_registry = dependencies_.card_registry;
 
   static gui::EditorCard dungeon_maps_card("Dungeon Maps", ICON_MD_MAP);
   static gui::EditorCard inventory_menu_card("Inventory Menu", ICON_MD_INVENTORY);
@@ -121,27 +124,27 @@ absl::Status ScreenEditor::Update() {
 
   // Get visibility flags from card manager and pass to Begin()
   // Always call End() after Begin() - End() handles ImGui state safely
-  if (dungeon_maps_card.Begin(card_manager.GetVisibilityFlag("screen.dungeon_maps"))) {
+  if (dungeon_maps_card.Begin(card_registry->GetVisibilityFlag("screen.dungeon_maps"))) {
     DrawDungeonMapsEditor();
   }
   dungeon_maps_card.End();
   
-  if (inventory_menu_card.Begin(card_manager.GetVisibilityFlag("screen.inventory_menu"))) {
+  if (inventory_menu_card.Begin(card_registry->GetVisibilityFlag("screen.inventory_menu"))) {
     DrawInventoryMenuEditor();
   }
   inventory_menu_card.End();
   
-  if (overworld_map_card.Begin(card_manager.GetVisibilityFlag("screen.overworld_map"))) {
+  if (overworld_map_card.Begin(card_registry->GetVisibilityFlag("screen.overworld_map"))) {
     DrawOverworldMapEditor();
   }
   overworld_map_card.End();
   
-  if (title_screen_card.Begin(card_manager.GetVisibilityFlag("screen.title_screen"))) {
+  if (title_screen_card.Begin(card_registry->GetVisibilityFlag("screen.title_screen"))) {
     DrawTitleScreenEditor();
   }
   title_screen_card.End();
   
-  if (naming_screen_card.Begin(card_manager.GetVisibilityFlag("screen.naming_screen"))) {
+  if (naming_screen_card.Begin(card_registry->GetVisibilityFlag("screen.naming_screen"))) {
     DrawNamingScreenEditor();
   }
   naming_screen_card.End();

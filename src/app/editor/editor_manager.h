@@ -310,10 +310,9 @@ class EditorManager {
   bool show_emulator_ = false;
   bool show_memory_editor_ = false;
   bool show_asm_editor_ = false;
-  bool show_imgui_metrics_ = false;
-  bool show_imgui_demo_ = false;
   bool show_palette_editor_ = false;
   bool show_resource_label_manager = false;
+  // Note: show_imgui_demo_ and show_imgui_metrics_ moved to UICoordinator
   // Workspace dialog flags (managed by EditorManager, not UI)
   bool show_workspace_layout = false;
   bool show_save_workspace_preset_ = false;

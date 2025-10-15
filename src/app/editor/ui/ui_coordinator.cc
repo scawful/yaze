@@ -33,6 +33,7 @@ UICoordinator::UICoordinator(
     RomFileManager& rom_manager,
     ProjectManager& project_manager,
     EditorRegistry& editor_registry,
+    EditorCardRegistry& card_registry,
     SessionCoordinator& session_coordinator,
     WindowDelegate& window_delegate,
     ToastManager& toast_manager,
@@ -42,6 +43,7 @@ UICoordinator::UICoordinator(
       rom_manager_(rom_manager),
       project_manager_(project_manager),
       editor_registry_(editor_registry),
+      card_registry_(card_registry),
       session_coordinator_(session_coordinator),
       window_delegate_(window_delegate),
       toast_manager_(toast_manager),
@@ -191,14 +193,38 @@ void UICoordinator::DrawContextSensitiveCardControl() {
   if (!active_editor) return;
   
   std::string category = editor_registry_.GetEditorCategory(active_editor->type());
+  size_t session_id = editor_manager_->GetCurrentSessionId();
   
-  // Draw compact card control with session awareness
-  auto& card_manager = gui::EditorCardManager::Get();
-  if (session_coordinator_.HasMultipleSessions()) {
-    std::string session_prefix = absl::StrFormat("s%zu", session_coordinator_.GetActiveSessionIndex());
-    card_manager.DrawCompactCardControlWithSession(category, session_prefix);
-  } else {
-    card_manager.DrawCompactCardControl(category);
+  // Draw compact card control in menu bar (mini dropdown for cards)
+  ImGui::SameLine();
+  ImGui::PushStyleColor(ImGuiCol_Button, gui::GetSurfaceContainerHighVec4());
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4());
+  
+  if (ImGui::SmallButton(absl::StrFormat("%s %s", ICON_MD_LAYERS, category.c_str()).c_str())) {
+    ImGui::OpenPopup("##CardQuickAccess");
+  }
+  
+  ImGui::PopStyleColor(2);
+  
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Quick access to %s cards", category.c_str());
+  }
+  
+  // Quick access popup for toggling cards
+  if (ImGui::BeginPopup("##CardQuickAccess")) {
+    auto cards = card_registry_.GetCardsInCategory(session_id, category);
+    
+    for (const auto& card : cards) {
+      bool visible = card.visibility_flag ? *card.visibility_flag : false;
+      if (ImGui::MenuItem(card.display_name.c_str(), nullptr, visible)) {
+        if (visible) {
+          card_registry_.HideCard(session_id, card.card_id);
+        } else {
+          card_registry_.ShowCard(session_id, card.card_id);
+        }
+      }
+    }
+    ImGui::EndPopup();
   }
 }
 

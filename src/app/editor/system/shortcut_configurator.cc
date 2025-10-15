@@ -253,7 +253,7 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                   });
 
   RegisterIfValid(shortcut_manager, "Proposal Drawer",
-                  {ImGuiMod_Ctrl, ImGuiKey_P},
+                  {ImGuiMod_Ctrl | ImGuiMod_Shift, ImGuiKey_R},  // Changed from Ctrl+P to Ctrl+Shift+R
                   [editor_manager]() {
                     if (editor_manager) {
                       editor_manager->ShowProposalDrawer();

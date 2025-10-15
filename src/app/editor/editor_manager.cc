@@ -176,9 +176,9 @@ EditorManager::EditorManager()
       this, menu_builder_, rom_file_manager_, project_manager_,
       editor_registry_, *session_coordinator_, toast_manager_, *popup_manager_);
   
-  // STEP 4: Initialize UICoordinator (depends on popup_manager_, session_coordinator_)
+  // STEP 4: Initialize UICoordinator (depends on popup_manager_, session_coordinator_, card_registry_)
   ui_coordinator_ = std::make_unique<UICoordinator>(
-      this, rom_file_manager_, project_manager_, editor_registry_,
+      this, rom_file_manager_, project_manager_, editor_registry_, card_registry_,
       *session_coordinator_, window_delegate_, toast_manager_, *popup_manager_,
       shortcut_manager_);
   
@@ -235,8 +235,9 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
                                const std::string& filename) {
   renderer_ = renderer;
 
-  // NOTE: Emulator will be initialized later when a ROM is loaded
-  // We just store the renderer for now
+  // Inject card_registry into emulator and workspace_manager
+  emulator_.set_card_registry(&card_registry_);
+  workspace_manager_.set_card_registry(&card_registry_);
 
   // Point to a blank editor set when no ROM is loaded
   current_editor_set_ = &blank_editor_set_;
@@ -987,14 +988,26 @@ void EditorManager::DrawMenuBar() {
 
   if (show_display_settings) {
     // Use the popup manager instead of a separate window
-    popup_manager_->Show("Display Settings");
+    popup_manager_->Show(PopupID::kDisplaySettings);
     show_display_settings = false;  // Close the old-style window
   }
 
-  if (show_imgui_demo_)
-    ImGui::ShowDemoWindow(&show_imgui_demo_);
-  if (show_imgui_metrics_)
-    ImGui::ShowMetricsWindow(&show_imgui_metrics_);
+  // ImGui debug windows (delegated to UICoordinator for visibility state)
+  if (ui_coordinator_ && ui_coordinator_->IsImGuiDemoVisible()) {
+    bool visible = true;
+    ImGui::ShowDemoWindow(&visible);
+    if (!visible) {
+      ui_coordinator_->SetImGuiDemoVisible(false);
+    }
+  }
+  
+  if (ui_coordinator_ && ui_coordinator_->IsImGuiMetricsVisible()) {
+    bool visible = true;
+    ImGui::ShowMetricsWindow(&visible);
+    if (!visible) {
+      ui_coordinator_->SetImGuiMetricsVisible(false);
+    }
+  }
 
   // Using EditorCardRegistry directly
   if (current_editor_set_) {
@@ -1045,7 +1058,7 @@ void EditorManager::DrawMenuBar() {
     ui_coordinator_->DrawWelcomeScreen();
   }
 
-  // Emulator is now card-based - it creates its own windows
+  // TODO: Fix emulator not appearing
   if (show_emulator_) {
     emulator_.Run(current_rom_);
   }

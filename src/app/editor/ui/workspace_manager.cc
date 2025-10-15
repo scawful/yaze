@@ -1,6 +1,8 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 #include "app/editor/ui/workspace_manager.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "app/editor/system/toast_manager.h"
-#include "app/gui/app/editor_card_manager.h"
 #include "app/rom.h"
 #include "absl/strings/str_format.h"
 #include "util/file_util.h"
@@ -125,14 +127,18 @@ void WorkspaceManager::LoadModderLayout() {
 }
 
 void WorkspaceManager::ShowAllWindows() {
-  gui::EditorCardManager::Get().ShowAll();
+  if (card_registry_) {
+    card_registry_->ShowAll();
+  }
   if (toast_manager_) {
     toast_manager_->Show("All windows shown", ToastType::kInfo);
   }
 }
 
 void WorkspaceManager::HideAllWindows() {
-  gui::EditorCardManager::Get().HideAll();
+  if (card_registry_) {
+    card_registry_->HideAll();
+  }
   if (toast_manager_) {
     toast_manager_->Show("All windows hidden", ToastType::kInfo);
   }

@@ -1,4 +1,5 @@
 #include "overworld_editor.h"
+#include "app/editor/system/editor_card_registry.h"
 
 #ifndef IM_PI
 #define IM_PI 3.14159265358979323846f
@@ -48,11 +49,12 @@ using namespace ImGui;
 constexpr float kInputFieldSize = 30.f;
 
 void OverworldEditor::Initialize() {
-  // Register cards with EditorCardManager
-  auto& card_manager = gui::EditorCardManager::Get();
+  // Register cards with EditorCardRegistry (dependency injection)
+  if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
   
   // Register Overworld Canvas (main canvas card with toolset)
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("overworld.canvas"),
       .display_name = "Overworld Canvas",
       .icon = ICON_MD_MAP,
@@ -62,7 +64,7 @@ void OverworldEditor::Initialize() {
       .priority = 5  // Show first, most important
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("overworld.tile16_selector"),
       .display_name = "Tile16 Selector",
       .icon = ICON_MD_GRID_ON,
@@ -72,7 +74,7 @@ void OverworldEditor::Initialize() {
       .priority = 10
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("overworld.tile8_selector"),
       .display_name = "Tile8 Selector",
       .icon = ICON_MD_GRID_3X3,
@@ -82,7 +84,7 @@ void OverworldEditor::Initialize() {
       .priority = 20
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("overworld.area_graphics"),
       .display_name = "Area Graphics",
       .icon = ICON_MD_IMAGE,
@@ -92,7 +94,7 @@ void OverworldEditor::Initialize() {
       .priority = 30
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("overworld.scratch"),
       .display_name = "Scratch Workspace",
       .icon = ICON_MD_DRAW,
@@ -102,7 +104,7 @@ void OverworldEditor::Initialize() {
       .priority = 40
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("overworld.gfx_groups"),
       .display_name = "GFX Groups",
       .icon = ICON_MD_FOLDER,
@@ -112,7 +114,7 @@ void OverworldEditor::Initialize() {
       .priority = 50
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("overworld.usage_stats"),
       .display_name = "Usage Statistics",
       .icon = ICON_MD_ANALYTICS,
@@ -122,7 +124,7 @@ void OverworldEditor::Initialize() {
       .priority = 60
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("overworld.v3_settings"),
       .display_name = "v3 Settings",
       .icon = ICON_MD_SETTINGS,
