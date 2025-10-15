@@ -119,9 +119,26 @@ class MenuOrchestrator {
   
   // Tool menu actions
   void OnShowGlobalSearch();
+  void OnShowCommandPalette();
   void OnShowPerformanceDashboard();
   void OnShowImGuiDemo();
   void OnShowImGuiMetrics();
+  void OnShowMemoryEditor();
+  void OnShowResourceLabelManager();
+  
+#ifdef YAZE_ENABLE_TESTING
+  void OnShowTestDashboard();
+  void OnRunAllTests();
+  void OnRunUnitTests();
+  void OnRunIntegrationTests();
+  void OnRunE2ETests();
+#endif
+  
+#ifdef YAZE_WITH_GRPC
+  void OnStartCollaboration();
+  void OnJoinCollaboration();
+  void OnShowNetworkStatus();
+#endif
   
   // Help menu actions
   void OnShowAbout();
