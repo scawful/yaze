@@ -1,7 +1,8 @@
-
 #include "app/editor/system/settings_editor.h"
 
 #include "absl/status/status.h"
+#include "app/editor/system/editor_card_registry.h"
+#include "app/gui/app/editor_layout.h"
 #include "app/gui/app/feature_flags_menu.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gui/core/style.h"
@@ -26,7 +27,62 @@ using ImGui::TableHeadersRow;
 using ImGui::TableNextColumn;
 using ImGui::TableSetupColumn;
 
-void SettingsEditor::Initialize() {}
+void SettingsEditor::Initialize() {
+  // Register cards with EditorCardRegistry (dependency injection)
+  if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
+  
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("settings.general"),
+      .display_name = "General Settings",
+      .icon = ICON_MD_SETTINGS,
+      .category = "System",
+      .priority = 10
+  });
+  
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("settings.appearance"),
+      .display_name = "Appearance",
+      .icon = ICON_MD_PALETTE,
+      .category = "System",
+      .priority = 20
+  });
+  
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("settings.editor_behavior"),
+      .display_name = "Editor Behavior",
+      .icon = ICON_MD_TUNE,
+      .category = "System",
+      .priority = 30
+  });
+  
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("settings.performance"),
+      .display_name = "Performance",
+      .icon = ICON_MD_SPEED,
+      .category = "System",
+      .priority = 40
+  });
+  
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("settings.ai_agent"),
+      .display_name = "AI Agent",
+      .icon = ICON_MD_SMART_TOY,
+      .category = "System",
+      .priority = 50
+  });
+  
+  card_registry->RegisterCard({
+      .card_id = MakeCardId("settings.shortcuts"),
+      .display_name = "Keyboard Shortcuts",
+      .icon = ICON_MD_KEYBOARD,
+      .category = "System",
+      .priority = 60
+  });
+  
+  // Show general settings by default
+  card_registry->ShowCard(MakeCardId("settings.general"));
+}
 
 absl::Status SettingsEditor::Load() { 
   gfx::ScopedTimer timer("SettingsEditor::Load");
@@ -34,36 +90,69 @@ absl::Status SettingsEditor::Load() {
 }
 
 absl::Status SettingsEditor::Update() {
-  if (BeginTabBar("Settings", ImGuiTabBarFlags_None)) {
-    if (BeginTabItem(ICON_MD_SETTINGS " General")) {
+  if (!dependencies_.card_registry) return absl::OkStatus();
+  auto* card_registry = dependencies_.card_registry;
+  
+  // General Settings Card
+  if (card_registry->IsCardVisible(MakeCardId("settings.general"))) {
+    static gui::EditorCard general_card("General Settings", ICON_MD_SETTINGS);
+    general_card.SetDefaultSize(600, 500);
+    if (general_card.Begin()) {
       DrawGeneralSettings();
-      EndTabItem();
     }
-    if (BeginTabItem(ICON_MD_FONT_DOWNLOAD " Font Manager")) {
-      gui::DrawFontManager();
-      EndTabItem();
-    }
-    if (BeginTabItem(ICON_MD_KEYBOARD " Keyboard Shortcuts")) {
-      DrawKeyboardShortcuts();
-      EndTabItem();
-    }
-    if (BeginTabItem(ICON_MD_PALETTE " Themes")) {
+    general_card.End();
+  }
+  
+  // Appearance Card (Themes + Font Manager combined)
+  if (card_registry->IsCardVisible(MakeCardId("settings.appearance"))) {
+    static gui::EditorCard appearance_card("Appearance", ICON_MD_PALETTE);
+    appearance_card.SetDefaultSize(600, 600);
+    if (appearance_card.Begin()) {
       DrawThemeSettings();
-      EndTabItem();
+      ImGui::Separator();
+      gui::DrawFontManager();
     }
-    if (BeginTabItem(ICON_MD_TUNE " Editor Behavior")) {
+    appearance_card.End();
+  }
+  
+  // Editor Behavior Card
+  if (card_registry->IsCardVisible(MakeCardId("settings.editor_behavior"))) {
+    static gui::EditorCard behavior_card("Editor Behavior", ICON_MD_TUNE);
+    behavior_card.SetDefaultSize(600, 500);
+    if (behavior_card.Begin()) {
       DrawEditorBehavior();
-      EndTabItem();
     }
-    if (BeginTabItem(ICON_MD_SPEED " Performance")) {
+    behavior_card.End();
+  }
+  
+  // Performance Card
+  if (card_registry->IsCardVisible(MakeCardId("settings.performance"))) {
+    static gui::EditorCard perf_card("Performance", ICON_MD_SPEED);
+    perf_card.SetDefaultSize(600, 450);
+    if (perf_card.Begin()) {
       DrawPerformanceSettings();
-      EndTabItem();
     }
-    if (BeginTabItem(ICON_MD_SMART_TOY " AI Agent")) {
+    perf_card.End();
+  }
+  
+  // AI Agent Settings Card
+  if (card_registry->IsCardVisible(MakeCardId("settings.ai_agent"))) {
+    static gui::EditorCard ai_card("AI Agent", ICON_MD_SMART_TOY);
+    ai_card.SetDefaultSize(600, 550);
+    if (ai_card.Begin()) {
       DrawAIAgentSettings();
-      EndTabItem();
     }
-    EndTabBar();
+    ai_card.End();
+  }
+  
+  // Keyboard Shortcuts Card
+  if (card_registry->IsCardVisible(MakeCardId("settings.shortcuts"))) {
+    static gui::EditorCard shortcuts_card("Keyboard Shortcuts", ICON_MD_KEYBOARD);
+    shortcuts_card.SetDefaultSize(700, 600);
+    if (shortcuts_card.Begin()) {
+      DrawKeyboardShortcuts();
+    }
+    shortcuts_card.End();
   }
 
   return absl::OkStatus();

@@ -102,21 +102,17 @@ UICoordinator::UICoordinator(
 
 void UICoordinator::DrawAllUI() {
   // Note: Theme styling is applied by ThemeManager, not here
+  // This is called from EditorManager::Update() - don't call menu bar stuff here
   
-  // Draw all UI components in order
-  DrawMenuBarExtras();
-  DrawContextSensitiveCardControl();
-  DrawCommandPalette();          // NEW: Moved from EditorManager
-  DrawSessionSwitcher();
-  DrawSessionManager();
-  DrawSessionRenameDialog();
-  DrawLayoutPresets();
-  DrawWelcomeScreen();
-  DrawProjectHelp();
-  DrawWindowManagementUI();
-  
-  // Draw all popups
-  DrawAllPopups();
+  // Draw UI windows and dialogs
+  DrawCommandPalette();          // Ctrl+Shift+P
+  DrawSessionSwitcher();         // Ctrl+Tab popup
+  DrawSessionManager();          // Session management window
+  DrawSessionRenameDialog();     // Rename popup
+  DrawLayoutPresets();           // Layout preset dialogs
+  DrawWelcomeScreen();           // Welcome screen
+  DrawProjectHelp();             // Project help
+  DrawWindowManagementUI();      // Window management
 }
 
 void UICoordinator::DrawMenuBarExtras() {

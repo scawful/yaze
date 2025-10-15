@@ -52,8 +52,8 @@ const std::unordered_map<EditorType, bool> EditorRegistry::kCardBasedEditors = {
   {EditorType::kAssembly, true},
   {EditorType::kEmulator, true},
   {EditorType::kHex, true},
-  {EditorType::kAgent, true},
-  {EditorType::kSettings, true}
+  {EditorType::kAgent, false},      // Agent: Traditional UI
+  {EditorType::kSettings, true}     // Settings: Now card-based for better organization
 };
 
 bool EditorRegistry::IsCardBasedEditor(EditorType type) {
