@@ -41,8 +41,54 @@ UICoordinator::UICoordinator(
       toast_manager_(toast_manager),
       popup_manager_(popup_manager) {
   
-  // Initialize welcome screen
+  // Initialize welcome screen with proper callbacks
   welcome_screen_ = std::make_unique<WelcomeScreen>();
+  
+  // Wire welcome screen callbacks to EditorManager
+  welcome_screen_->SetOpenRomCallback([this]() {
+    if (editor_manager_) {
+      auto status = editor_manager_->LoadRom();
+      if (!status.ok()) {
+        toast_manager_.Show(
+            absl::StrFormat("Failed to load ROM: %s", status.message()),
+            ToastType::kError);
+      } else {
+        // Hide welcome screen on successful ROM load
+        show_welcome_screen_ = false;
+        welcome_screen_manually_closed_ = true;
+      }
+    }
+  });
+  
+  welcome_screen_->SetNewProjectCallback([this]() {
+    if (editor_manager_) {
+      auto status = editor_manager_->CreateNewProject();
+      if (!status.ok()) {
+        toast_manager_.Show(
+            absl::StrFormat("Failed to create project: %s", status.message()),
+            ToastType::kError);
+      } else {
+        // Hide welcome screen on successful project creation
+        show_welcome_screen_ = false;
+        welcome_screen_manually_closed_ = true;
+      }
+    }
+  });
+  
+  welcome_screen_->SetOpenProjectCallback([this](const std::string& filepath) {
+    if (editor_manager_) {
+      auto status = editor_manager_->OpenRomOrProject(filepath);
+      if (!status.ok()) {
+        toast_manager_.Show(
+            absl::StrFormat("Failed to open project: %s", status.message()),
+            ToastType::kError);
+      } else {
+        // Hide welcome screen on successful project open
+        show_welcome_screen_ = false;
+        welcome_screen_manually_closed_ = true;
+      }
+    }
+  });
 }
 
 void UICoordinator::DrawAllUI() {
@@ -217,10 +263,28 @@ void UICoordinator::DrawLayoutPresets() {
 }
 
 void UICoordinator::DrawWelcomeScreen() {
+  // Auto-show welcome screen when no ROM is loaded (unless manually closed)
+  if (!show_welcome_screen_ && !welcome_screen_manually_closed_) {
+    // Check with EditorManager if we should show welcome screen
+    if (editor_manager_ && editor_manager_->GetActiveSessionCount() == 0) {
+      show_welcome_screen_ = true;
+    }
+  }
+  
   if (!show_welcome_screen_) return;
   
   if (welcome_screen_) {
+    // Update recent projects before showing
+    welcome_screen_->RefreshRecentProjects();
+    
+    bool was_open = show_welcome_screen_;
     welcome_screen_->Show(&show_welcome_screen_);
+    
+    // Check if the welcome screen was manually closed via the close button
+    if (was_open && !show_welcome_screen_) {
+      welcome_screen_manually_closed_ = true;
+      welcome_screen_->MarkManuallyClosed();
+    }
   }
 }
 
@@ -247,17 +311,9 @@ void UICoordinator::HidePopup(const std::string& popup_name) {
   popup_manager_.Hide(popup_name.c_str());
 }
 
-void UICoordinator::ShowEditorSelection() {
-  show_editor_selection_ = true;
-}
-
 void UICoordinator::ShowDisplaySettings() {
   show_display_settings_ = true;
   ShowPopup("Display Settings");
-}
-
-void UICoordinator::ShowSessionSwitcher() {
-  show_session_switcher_ = true;
 }
 
 void UICoordinator::HideCurrentEditorCards() {

@@ -186,8 +186,14 @@ class EditorManager {
   static bool IsCardBasedEditor(EditorType type);
   static std::string GetEditorCategory(EditorType type);
   static EditorType GetEditorTypeFromCategory(const std::string& category);
-  bool IsSidebarVisible() const { return show_card_sidebar_; }
-  void SetSidebarVisible(bool visible) { show_card_sidebar_ = visible; }
+  bool IsSidebarVisible() const { 
+    return ui_coordinator_ ? ui_coordinator_->IsCardSidebarVisible() : false; 
+  }
+  void SetSidebarVisible(bool visible) { 
+    if (ui_coordinator_) {
+      ui_coordinator_->SetCardSidebarVisible(visible);
+    }
+  }
   
   // Clean up cards when switching editors
   void HideCurrentEditorCards();
@@ -220,6 +226,19 @@ class EditorManager {
   bool HasDuplicateSession(const std::string& filepath);
   void RenameSession(size_t index, const std::string& new_name);
 
+  // ROM and Project operations (public for MenuOrchestrator)
+  absl::Status LoadRom();
+  absl::Status SaveRom();
+  absl::Status SaveRomAs(const std::string& filename);
+  absl::Status OpenRomOrProject(const std::string& filename);
+  absl::Status CreateNewProject(const std::string& template_name = "Basic ROM Hack");
+  absl::Status OpenProject();
+  absl::Status SaveProject();
+  absl::Status SaveProjectAs();
+  absl::Status ImportProject(const std::string& project_path);
+  absl::Status RepairCurrentProject();
+  void ShowProjectHelp();
+
  private:
   void DrawWelcomeScreen();
   absl::Status DrawRomSelector();
@@ -229,21 +248,7 @@ class EditorManager {
   void DrawLayoutPresets();
   void DrawSessionRenameDialog();
   
-  absl::Status LoadRom();
   absl::Status LoadAssets();
-  absl::Status SaveRom();
-  absl::Status SaveRomAs(const std::string& filename);
-  absl::Status OpenRomOrProject(const std::string& filename);
-
-  // Project and session management
-  absl::Status CreateNewProject(
-      const std::string& template_name = "Basic ROM Hack");
-  absl::Status OpenProject();
-  absl::Status SaveProject();
-  absl::Status SaveProjectAs();
-  absl::Status ImportProject(const std::string& project_path);
-  absl::Status RepairCurrentProject();
-  void ShowProjectHelp();
 
   // Testing system
   void InitializeTestSuites();
@@ -258,26 +263,15 @@ class EditorManager {
   bool show_imgui_demo_ = false;
   bool show_palette_editor_ = false;
   bool show_resource_label_manager = false;
+  // Workspace dialog flags (managed by EditorManager, not UI)
   bool show_workspace_layout = false;
   bool show_save_workspace_preset_ = false;
   bool show_load_workspace_preset_ = false;
-  bool show_session_switcher_ = false;
-  bool show_session_manager_ = false;
-  bool show_layout_presets_ = false;
-  bool show_homepage_ = true;
-  bool show_command_palette_ = false;
-  bool show_global_search_ = false;
-  bool show_session_rename_dialog_ = false;
-  bool show_welcome_screen_ = false;
-  bool welcome_screen_manually_closed_ = false;
-  bool show_card_browser_ = false;
-  bool show_card_sidebar_ = true;  // VSCode-style sidebar for editor cards (toggle with Ctrl+B)
   size_t session_to_rename_ = 0;
   char session_rename_buffer_[256] = {};
 
-  // Testing interface
-  bool show_test_dashboard_ = false;
-  bool show_performance_dashboard_ = false;
+  // Note: Most UI visibility flags have been moved to UICoordinator
+  // Access via ui_coordinator_->IsXxxVisible() or SetXxxVisible()
 
   // Agent proposal drawer
   ProposalDrawer proposal_drawer_;
@@ -294,11 +288,9 @@ class EditorManager {
   // Project file editor
   ProjectFileEditor project_file_editor_;
   
-  // Editor selection dialog
+  // Note: Editor selection dialog and welcome screen are now managed by UICoordinator
+  // Kept here for backward compatibility during transition
   EditorSelectionDialog editor_selection_dialog_;
-  bool show_editor_selection_ = false;
-  
-  // Welcome screen
   WelcomeScreen welcome_screen_;
 
 #ifdef YAZE_WITH_GRPC

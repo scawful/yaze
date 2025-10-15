@@ -2,25 +2,28 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
+#include "app/editor/editor_manager.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
+#include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/toast_manager.h"
 #include "app/editor/ui/menu_builder.h"
-#include "app/editor/system/session_coordinator.h"
 #include "app/gui/core/icons.h"
 
 namespace yaze {
 namespace editor {
 
 MenuOrchestrator::MenuOrchestrator(
+    EditorManager* editor_manager,
     MenuBuilder& menu_builder,
     RomFileManager& rom_manager,
     ProjectManager& project_manager,
     EditorRegistry& editor_registry,
     SessionCoordinator& session_coordinator,
     ToastManager& toast_manager)
-    : menu_builder_(menu_builder),
+    : editor_manager_(editor_manager),
+      menu_builder_(menu_builder),
       rom_manager_(rom_manager),
       project_manager_(project_manager),
       editor_registry_(editor_registry),
@@ -38,6 +41,9 @@ void MenuOrchestrator::BuildMainMenu() {
   BuildToolsMenu();
   BuildWindowMenu();
   BuildHelpMenu();
+  
+  // Draw the constructed menu
+  menu_builder_.Draw();
   
   menu_needs_refresh_ = false;
 }
@@ -312,20 +318,28 @@ void MenuOrchestrator::RefreshMenu() {
 
 // Menu item callbacks - delegate to appropriate managers
 void MenuOrchestrator::OnOpenRom() {
-  auto status = rom_manager_.LoadRom();
-  if (!status.ok()) {
-    toast_manager_.Show(
-        absl::StrFormat("Failed to load ROM: %s", status.message()),
-        ToastType::kError);
+  // Delegate to EditorManager's LoadRom which handles session management
+  if (editor_manager_) {
+    auto status = editor_manager_->LoadRom();
+    if (!status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to load ROM: %s", status.message()),
+          ToastType::kError);
+    }
   }
 }
 
 void MenuOrchestrator::OnSaveRom() {
-  auto status = rom_manager_.SaveRom();
-  if (!status.ok()) {
-    toast_manager_.Show(
-        absl::StrFormat("Failed to save ROM: %s", status.message()),
-        ToastType::kError);
+  // Delegate to EditorManager's SaveRom which handles editor data saving
+  if (editor_manager_) {
+    auto status = editor_manager_->SaveRom();
+    if (!status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to save ROM: %s", status.message()),
+          ToastType::kError);
+    } else {
+      toast_manager_.Show("ROM saved successfully", ToastType::kSuccess);
+    }
   }
 }
 
@@ -335,58 +349,75 @@ void MenuOrchestrator::OnSaveRomAs() {
 }
 
 void MenuOrchestrator::OnCreateProject() {
-  auto status = project_manager_.CreateNewProject();
-  if (!status.ok()) {
-    toast_manager_.Show(
-        absl::StrFormat("Failed to create project: %s", status.message()),
-        ToastType::kError);
+  // Delegate to EditorManager which handles the full project creation flow
+  if (editor_manager_) {
+    auto status = editor_manager_->CreateNewProject();
+    if (!status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to create project: %s", status.message()),
+          ToastType::kError);
+    }
   }
 }
 
 void MenuOrchestrator::OnOpenProject() {
-  auto status = project_manager_.OpenProject();
-  if (!status.ok()) {
-    toast_manager_.Show(
-        absl::StrFormat("Failed to open project: %s", status.message()),
-        ToastType::kError);
+  // Delegate to EditorManager which handles ROM loading and session creation
+  if (editor_manager_) {
+    auto status = editor_manager_->OpenProject();
+    if (!status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to open project: %s", status.message()),
+          ToastType::kError);
+    }
   }
 }
 
 void MenuOrchestrator::OnSaveProject() {
-  auto status = project_manager_.SaveProject();
-  if (!status.ok()) {
-    toast_manager_.Show(
-        absl::StrFormat("Failed to save project: %s", status.message()),
-        ToastType::kError);
+  // Delegate to EditorManager which updates project with current state
+  if (editor_manager_) {
+    auto status = editor_manager_->SaveProject();
+    if (!status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to save project: %s", status.message()),
+          ToastType::kError);
+    } else {
+      toast_manager_.Show("Project saved successfully", ToastType::kSuccess);
+    }
   }
 }
 
 void MenuOrchestrator::OnSaveProjectAs() {
-  auto status = project_manager_.SaveProjectAs();
-  if (!status.ok()) {
-    toast_manager_.Show(
-        absl::StrFormat("Failed to save project as: %s", status.message()),
-        ToastType::kError);
+  // Delegate to EditorManager
+  if (editor_manager_) {
+    auto status = editor_manager_->SaveProjectAs();
+    if (!status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to save project as: %s", status.message()),
+          ToastType::kError);
+    }
   }
 }
 
 // Editor-specific menu actions
 void MenuOrchestrator::OnSwitchToEditor(EditorType editor_type) {
-  editor_registry_.SwitchToEditor(editor_type);
-  toast_manager_.Show(
-      absl::StrFormat("Switched to %s", 
-                      editor_registry_.GetEditorDisplayName(editor_type)),
-      ToastType::kInfo);
+  // Delegate to EditorManager which manages editor switching
+  if (editor_manager_) {
+    editor_manager_->SwitchToEditor(editor_type);
+  }
 }
 
 void MenuOrchestrator::OnShowEditorSelection() {
-  // TODO: Show editor selection dialog
-  toast_manager_.Show("Editor Selection", ToastType::kInfo);
+  // Delegate to EditorManager
+  if (editor_manager_) {
+    editor_manager_->ShowEditorSelection();
+  }
 }
 
 void MenuOrchestrator::OnShowDisplaySettings() {
-  // TODO: Show display settings dialog
-  toast_manager_.Show("Display Settings", ToastType::kInfo);
+  // Delegate to EditorManager
+  if (editor_manager_) {
+    editor_manager_->ShowDisplaySettings();
+  }
 }
 
 // Session management menu actions
@@ -408,28 +439,38 @@ void MenuOrchestrator::OnSwitchToSession(size_t session_index) {
 
 // Window management menu actions
 void MenuOrchestrator::OnShowAllWindows() {
-  // TODO: Delegate to WindowDelegate
-  toast_manager_.Show("Show All Windows", ToastType::kInfo);
+  // Delegate to EditorManager
+  if (editor_manager_) {
+    editor_manager_->ShowAllWindows();
+  }
 }
 
 void MenuOrchestrator::OnHideAllWindows() {
-  // TODO: Delegate to WindowDelegate
-  toast_manager_.Show("Hide All Windows", ToastType::kInfo);
+  // Delegate to EditorManager
+  if (editor_manager_) {
+    editor_manager_->HideAllWindows();
+  }
 }
 
 void MenuOrchestrator::OnResetWorkspaceLayout() {
-  // TODO: Delegate to WindowDelegate
-  toast_manager_.Show("Reset Workspace Layout", ToastType::kInfo);
+  // Delegate to EditorManager
+  if (editor_manager_) {
+    editor_manager_->ResetWorkspaceLayout();
+  }
 }
 
 void MenuOrchestrator::OnSaveWorkspaceLayout() {
-  // TODO: Delegate to WindowDelegate
-  toast_manager_.Show("Save Workspace Layout", ToastType::kInfo);
+  // Delegate to EditorManager
+  if (editor_manager_) {
+    editor_manager_->SaveWorkspaceLayout();
+  }
 }
 
 void MenuOrchestrator::OnLoadWorkspaceLayout() {
-  // TODO: Delegate to WindowDelegate
-  toast_manager_.Show("Load Workspace Layout", ToastType::kInfo);
+  // Delegate to EditorManager
+  if (editor_manager_) {
+    editor_manager_->LoadWorkspaceLayout();
+  }
 }
 
 // Tool menu actions

@@ -2,6 +2,7 @@
 #define YAZE_APP_CORE_EDITOR_H
 
 #include <array>
+#include <cstddef>
 #include <vector>
 #include <functional>
 
@@ -16,11 +17,66 @@
 
 namespace yaze {
 
+// Forward declarations
+class Rom;
+namespace gfx {
+class Renderer;
+}
+
 /**
  * @namespace yaze::editor
  * @brief Editors are the view controllers for the application.
  */
 namespace editor {
+
+// Forward declarations
+class EditorCardRegistry;
+class ToastManager;
+class UserSettings;
+
+/**
+ * @struct EditorDependencies
+ * @brief Unified dependency container for all editor types
+ * 
+ * This struct encapsulates all dependencies that editors might need,
+ * providing a clean interface for dependency injection. It supports
+ * both standard editors and specialized ones (emulator, dungeon) that
+ * need additional dependencies like renderers.
+ * 
+ * Design Philosophy:
+ * - Single point of dependency management
+ * - Type-safe for common dependencies
+ * - Extensible via custom_data for editor-specific needs
+ * - Session-aware for multi-session support
+ * 
+ * Usage:
+ * ```cpp
+ * EditorDependencies deps;
+ * deps.rom = current_rom;
+ * deps.card_registry = &card_registry_;
+ * deps.session_id = session_index;
+ * 
+ * // Standard editor
+ * OverworldEditor editor(deps);
+ * 
+ * // Specialized editor with renderer
+ * deps.renderer = renderer_;
+ * DungeonEditor dungeon_editor(deps);
+ * ```
+ */
+struct EditorDependencies {
+  Rom* rom = nullptr;
+  EditorCardRegistry* card_registry = nullptr;
+  ToastManager* toast_manager = nullptr;
+  PopupManager* popup_manager = nullptr;
+  ShortcutManager* shortcut_manager = nullptr;
+  UserSettings* user_settings = nullptr;
+  size_t session_id = 0;
+  
+  // Optional dependencies for specialized editors
+  gfx::Renderer* renderer = nullptr;  // For emulator, dungeon editor
+  void* custom_data = nullptr;  // Type-erased for editor-specific needs
+};
 
 struct EditorContext {
   CommandManager command_manager;

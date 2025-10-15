@@ -137,7 +137,7 @@ EditorManager::EditorManager()
   
   // Initialize MenuOrchestrator after SessionCoordinator is created
   menu_orchestrator_ = std::make_unique<MenuOrchestrator>(
-      menu_builder_, rom_file_manager_, project_manager_, editor_registry_,
+      this, menu_builder_, rom_file_manager_, project_manager_, editor_registry_,
       *session_coordinator_, toast_manager_);
   
   // Initialize UICoordinator after all other components are created
@@ -215,7 +215,11 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Register global sidebar toggle shortcut (Ctrl+B)
   context_.shortcut_manager.RegisterShortcut(
       "global.toggle_sidebar", {ImGuiKey_LeftCtrl, ImGuiKey_B},
-      [this]() { show_card_sidebar_ = !show_card_sidebar_; });
+      [this]() { 
+        if (ui_coordinator_) {
+          ui_coordinator_->ToggleCardSidebar();
+        }
+      });
 
   // Register emulator cards early (emulator Initialize might not be called)
   auto& card_manager = gui::EditorCardManager::Get();
@@ -463,17 +467,17 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
   welcome_screen_.SetNewProjectCallback([this]() {
     status_ = CreateNewProject();
-    if (status_.ok()) {
-      show_welcome_screen_ = false;
-      welcome_screen_manually_closed_ = true;
+    if (status_.ok() && ui_coordinator_) {
+      ui_coordinator_->SetWelcomeScreenVisible(false);
+      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
     }
   });
 
   welcome_screen_.SetOpenProjectCallback([this](const std::string& filepath) {
     status_ = OpenRomOrProject(filepath);
-    if (status_.ok()) {
-      show_welcome_screen_ = false;
-      welcome_screen_manually_closed_ = true;
+    if (status_.ok() && ui_coordinator_) {
+      ui_coordinator_->SetWelcomeScreenVisible(false);
+      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
     }
   });
 
@@ -542,10 +546,18 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Command Palette and Global Search
   context_.shortcut_manager.RegisterShortcut(
       "Command Palette", {ImGuiKey_P, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      [this]() { show_command_palette_ = true; });
+      [this]() { 
+        if (ui_coordinator_) {
+          ui_coordinator_->ShowCommandPalette();
+        }
+      });
   context_.shortcut_manager.RegisterShortcut(
       "Global Search", {ImGuiKey_K, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      [this]() { show_global_search_ = true; });
+      [this]() {
+        if (ui_coordinator_) {
+          ui_coordinator_->ShowGlobalSearch();
+        }
+      });
 
   context_.shortcut_manager.RegisterShortcut(
       "Load Last ROM", {ImGuiKey_R, ImGuiMod_Ctrl}, [this]() {
@@ -594,12 +606,20 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Editor Selection Dialog shortcut
   context_.shortcut_manager.RegisterShortcut(
       "Editor Selection", {ImGuiKey_E, ImGuiMod_Ctrl},
-      [this]() { show_editor_selection_ = true; });
+      [this]() { 
+        if (ui_coordinator_) {
+          ui_coordinator_->ShowEditorSelection();
+        }
+      });
 
   // Card Browser shortcut
   context_.shortcut_manager.RegisterShortcut(
       "Card Browser", {ImGuiKey_B, ImGuiMod_Ctrl, ImGuiMod_Shift},
-      [this]() { show_card_browser_ = true; });
+      [this]() { 
+        if (ui_coordinator_) {
+          ui_coordinator_->ShowCardBrowser();
+        }
+      });
 
   // === SIMPLIFIED CARD SHORTCUTS - Use Card Browser instead of individual shortcuts ===
   // Individual card shortcuts removed to prevent hash table overflow
@@ -664,7 +684,11 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
       [this]() { CloseCurrentSession(); });
   context_.shortcut_manager.RegisterShortcut(
       "Session Switcher", std::vector<ImGuiKey>{ImGuiKey_Tab, ImGuiMod_Ctrl},
-      [this]() { show_session_switcher_ = true; });
+      [this]() { 
+        if (ui_coordinator_) {
+          ui_coordinator_->ShowSessionSwitcher();
+        }
+      });
   context_.shortcut_manager.RegisterShortcut(
       "Save Layout",
       std::vector<ImGuiKey>{ImGuiKey_S, ImGuiMod_Ctrl, ImGuiMod_Shift},
@@ -759,14 +783,22 @@ absl::Status EditorManager::Update() {
   ExecuteShortcuts(context_.shortcut_manager);
   toast_manager_.Draw();
 
-  // Draw editor selection dialog
-  if (show_editor_selection_) {
-    editor_selection_dialog_.Show(&show_editor_selection_);
+  // Draw editor selection dialog (managed by UICoordinator)
+  if (ui_coordinator_ && ui_coordinator_->IsEditorSelectionVisible()) {
+    bool show = true;
+    editor_selection_dialog_.Show(&show);
+    if (!show) {
+      ui_coordinator_->SetEditorSelectionVisible(false);
+    }
   }
 
-  // Draw card browser
-  if (show_card_browser_) {
-    gui::EditorCardManager::Get().DrawCardBrowser(&show_card_browser_);
+  // Draw card browser (managed by UICoordinator)
+  if (ui_coordinator_ && ui_coordinator_->IsCardBrowserVisible()) {
+    bool show = true;
+    gui::EditorCardManager::Get().DrawCardBrowser(&show);
+    if (!show) {
+      ui_coordinator_->SetCardBrowserVisible(false);
+    }
   }
 
 #ifdef YAZE_WITH_GRPC
@@ -830,20 +862,13 @@ absl::Status EditorManager::Update() {
 
   // Check if ROM is loaded before allowing editor updates
   if (!current_editor_set_) {
-    // Show welcome screen when no session is active, but only if not manually closed
-    if (sessions_.empty() && !welcome_screen_manually_closed_) {
-      show_welcome_screen_ = true;
-    }
-    // Don't auto-show here, let the manual control handle it
+    // Note: Welcome screen auto-show is now handled by UICoordinator
     return absl::OkStatus();
   }
 
   // Check if current ROM is valid
   if (!current_rom_) {
-    // Only show welcome screen for truly empty state, not when ROM is loaded but current_rom_ is null
-    if (sessions_.empty() && !welcome_screen_manually_closed_) {
-      show_welcome_screen_ = true;
-    }
+    // Note: Welcome screen auto-show is now handled by UICoordinator
     return absl::OkStatus();
   }
 
@@ -934,7 +959,7 @@ absl::Status EditorManager::Update() {
     }
   }
 
-  if (show_performance_dashboard_) {
+  if (ui_coordinator_ && ui_coordinator_->IsPerformanceDashboardVisible()) {
     gfx::PerformanceDashboard::Get().Render();
   }
 
@@ -949,7 +974,7 @@ absl::Status EditorManager::Update() {
 #endif
 
   // Draw unified sidebar LAST so it appears on top of all other windows
-  if (show_card_sidebar_ && current_editor_set_) {
+  if (ui_coordinator_ && ui_coordinator_->IsCardSidebarVisible() && current_editor_set_) {
     auto& card_manager = gui::EditorCardManager::Get();
 
     // Collect all active card-based editors
@@ -998,7 +1023,9 @@ absl::Status EditorManager::Update() {
       };
 
       auto collapse_callback = [this]() {
-        show_card_sidebar_ = false;
+        if (ui_coordinator_) {
+          ui_coordinator_->SetCardSidebarVisible(false);
+        }
       };
 
       card_manager.DrawSidebar(sidebar_category, active_categories,
@@ -1143,12 +1170,12 @@ void EditorManager::DrawMenuBar() {
 
   // Project file editor
   project_file_editor_.Draw();
-  if (show_performance_dashboard_) {
+  if (ui_coordinator_ && ui_coordinator_->IsPerformanceDashboardVisible()) {
     gfx::PerformanceDashboard::Get().SetVisible(true);
     gfx::PerformanceDashboard::Get().Update();
     gfx::PerformanceDashboard::Get().Render();
     if (!gfx::PerformanceDashboard::Get().IsVisible()) {
-      show_performance_dashboard_ = false;
+      ui_coordinator_->SetPerformanceDashboardVisible(false);
     }
   }
 
@@ -1168,9 +1195,9 @@ void EditorManager::DrawMenuBar() {
   // Agent chat history popup (left side)
   agent_chat_history_popup_.Draw();
 
-  // Welcome screen (accessible from View menu)
-  if (show_welcome_screen_) {
-    DrawWelcomeScreen();
+  // Welcome screen (managed by UICoordinator)
+  if (ui_coordinator_) {
+    ui_coordinator_->DrawWelcomeScreen();
   }
 
   // Emulator is now card-based - it creates its own windows
@@ -1178,14 +1205,15 @@ void EditorManager::DrawMenuBar() {
     emulator_.Run(current_rom_);
   }
 
-  // Enhanced Command Palette UI with Fuzzy Search
-  if (show_command_palette_) {
+  // Enhanced Command Palette UI with Fuzzy Search (managed by UICoordinator)
+  if (ui_coordinator_ && ui_coordinator_->IsCommandPaletteVisible()) {
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
                             ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 
+    bool show_palette = true;
     if (Begin(absl::StrFormat("%s Command Palette", ICON_MD_SEARCH).c_str(),
-              &show_command_palette_, ImGuiWindowFlags_NoCollapse)) {
+              &show_palette, ImGuiWindowFlags_NoCollapse)) {
 
       // Search input with focus management
       static char query[256] = {};
@@ -1296,7 +1324,9 @@ void EditorManager::DrawMenuBar() {
                 auto it = shortcuts.find(command_name);
                 if (it != shortcuts.end() && it->second.callback) {
                   it->second.callback();
-                  show_command_palette_ = false;
+                  if (ui_coordinator_) {
+                    ui_coordinator_->SetCommandPaletteVisible(false);
+                  }
                 }
               }
               ImGui::PopID();
@@ -1335,17 +1365,23 @@ void EditorManager::DrawMenuBar() {
       ImGui::TextDisabled("| ↑↓=Navigate | Enter=Execute | Esc=Close");
     }
     End();
+    
+    // Update visibility state
+    if (!show_palette && ui_coordinator_) {
+      ui_coordinator_->SetCommandPaletteVisible(false);
+    }
   }
 
-  // Enhanced Global Search UI
-  if (show_global_search_) {
+  // Enhanced Global Search UI (managed by UICoordinator)
+  if (ui_coordinator_ && ui_coordinator_->IsGlobalSearchVisible()) {
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
                             ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
 
+    bool show_search = true;
     if (Begin(
             absl::StrFormat("%s Global Search", ICON_MD_MANAGE_SEARCH).c_str(),
-            &show_global_search_, ImGuiWindowFlags_NoCollapse)) {
+            &show_search, ImGuiWindowFlags_NoCollapse)) {
 
       // Enhanced search input with focus management
       static char query[256] = {};
@@ -1413,7 +1449,9 @@ void EditorManager::DrawMenuBar() {
               ImGui::PushID(file.c_str());
               if (ImGui::Button("Open")) {
                 status_ = OpenRomOrProject(file);
-                show_global_search_ = false;
+                if (ui_coordinator_) {
+                  ui_coordinator_->SetGlobalSearchVisible(false);
+                }
               }
               ImGui::PopID();
             }
@@ -1498,7 +1536,9 @@ void EditorManager::DrawMenuBar() {
                                  .c_str())) {
                 if (!is_current) {
                   SwitchToSession(i);
-                  show_global_search_ = false;
+                  if (ui_coordinator_) {
+                    ui_coordinator_->SetGlobalSearchVisible(false);
+                  }
                 }
               }
 
@@ -1518,6 +1558,11 @@ void EditorManager::DrawMenuBar() {
       ImGui::Text("%s Global search across all YAZE data", ICON_MD_INFO);
     }
     End();
+    
+    // Update visibility state
+    if (!show_search && ui_coordinator_) {
+      ui_coordinator_->SetGlobalSearchVisible(false);
+    }
   }
 
   if (show_palette_editor_ && current_editor_set_) {
@@ -1793,11 +1838,11 @@ absl::Status EditorManager::LoadRom() {
   RETURN_IF_ERROR(LoadAssets());
 
   // Hide welcome screen when ROM is successfully loaded - don't reset manual close state
-  show_welcome_screen_ = false;
+  ui_coordinator_->SetWelcomeScreenVisible(false);
 
   // Clear recent editors for fresh start with new ROM and show editor selection dialog
   editor_selection_dialog_.ClearRecentEditors();
-  show_editor_selection_ = true;
+  ui_coordinator_->SetEditorSelectionVisible(true);
 
   return absl::OkStatus();
 }
@@ -1933,9 +1978,9 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     RETURN_IF_ERROR(LoadAssets());
 
     // Hide welcome screen and show editor selection when ROM is loaded
-    show_welcome_screen_ = false;
+    ui_coordinator_->SetWelcomeScreenVisible(false);
     editor_selection_dialog_.ClearRecentEditors();
-    show_editor_selection_ = true;
+    ui_coordinator_->SetEditorSelectionVisible(true);
   }
   return absl::OkStatus();
 }
@@ -2013,9 +2058,9 @@ absl::Status EditorManager::OpenProject() {
     RETURN_IF_ERROR(LoadAssets());
 
     // Hide welcome screen and show editor selection when project ROM is loaded
-    show_welcome_screen_ = false;
+    ui_coordinator_->SetWelcomeScreenVisible(false);
     editor_selection_dialog_.ClearRecentEditors();
-    show_editor_selection_ = true;
+    ui_coordinator_->SetEditorSelectionVisible(true);
   }
 
   // Apply workspace settings
@@ -2515,9 +2560,9 @@ void EditorManager::LoadUserSettings() {
   ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
 
   // Apply welcome screen preference
-  if (!user_settings_.prefs().show_welcome_on_startup) {
-    show_welcome_screen_ = false;
-    welcome_screen_manually_closed_ = true;
+  if (ui_coordinator_ && !user_settings_.prefs().show_welcome_on_startup) {
+    ui_coordinator_->SetWelcomeScreenVisible(false);
+    ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
   }
 }
 

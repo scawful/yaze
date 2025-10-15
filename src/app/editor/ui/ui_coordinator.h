@@ -78,26 +78,44 @@ class UICoordinator {
   void HidePopup(const std::string& popup_name);
   
   // UI state management
-  void ShowEditorSelection();
+  void ShowEditorSelection() { show_editor_selection_ = true; }
   void ShowDisplaySettings();
-  void ShowSessionSwitcher();
+  void ShowSessionSwitcher() { show_session_switcher_ = true; }
   void HideCurrentEditorCards();
+  void ToggleCardSidebar() { show_card_sidebar_ = !show_card_sidebar_; }
+  void ShowGlobalSearch() { show_global_search_ = true; }
+  void ShowCommandPalette() { show_command_palette_ = true; }
+  void ShowCardBrowser() { show_card_browser_ = true; }
   
   // Window visibility management
   void ShowAllWindows();
   void HideAllWindows();
   
-  // UI state queries
+  // UI state queries (EditorManager can check these)
   bool IsEditorSelectionVisible() const { return show_editor_selection_; }
   bool IsDisplaySettingsVisible() const { return show_display_settings_; }
   bool IsSessionSwitcherVisible() const { return show_session_switcher_; }
   bool IsWelcomeScreenVisible() const { return show_welcome_screen_; }
+  bool IsWelcomeScreenManuallyClosed() const { return welcome_screen_manually_closed_; }
+  bool IsGlobalSearchVisible() const { return show_global_search_; }
+  bool IsPerformanceDashboardVisible() const { return show_performance_dashboard_; }
+  bool IsCardBrowserVisible() const { return show_card_browser_; }
+  bool IsCommandPaletteVisible() const { return show_command_palette_; }
+  bool IsCardSidebarVisible() const { return show_card_sidebar_; }
   
-  // UI state setters
+  // UI state setters (for programmatic control)
   void SetEditorSelectionVisible(bool visible) { show_editor_selection_ = visible; }
   void SetDisplaySettingsVisible(bool visible) { show_display_settings_ = visible; }
   void SetSessionSwitcherVisible(bool visible) { show_session_switcher_ = visible; }
   void SetWelcomeScreenVisible(bool visible) { show_welcome_screen_ = visible; }
+  void SetWelcomeScreenManuallyClosed(bool closed) { welcome_screen_manually_closed_ = closed; }
+  void SetGlobalSearchVisible(bool visible) { show_global_search_ = visible; }
+  void SetPerformanceDashboardVisible(bool visible) { show_performance_dashboard_ = visible; }
+  void SetCardBrowserVisible(bool visible) { show_card_browser_ = visible; }
+  void SetCommandPaletteVisible(bool visible) { show_command_palette_ = visible; }
+  void SetCardSidebarVisible(bool visible) { show_card_sidebar_ = visible; }
+  void SetImGuiDemoVisible(bool visible) { show_imgui_demo_ = visible; }
+  void SetImGuiMetricsVisible(bool visible) { show_imgui_metrics_ = visible; }
   
   // Theme and styling helpers
   void ApplyMaterialDesignStyling();
@@ -115,16 +133,25 @@ class UICoordinator {
   ToastManager& toast_manager_;
   PopupManager& popup_manager_;
   
-  // UI state flags
+  // UI state flags (UICoordinator owns all UI visibility state)
   bool show_editor_selection_ = false;
   bool show_display_settings_ = false;
   bool show_session_switcher_ = false;
   bool show_welcome_screen_ = true;
+  bool welcome_screen_manually_closed_ = false;
   bool show_global_search_ = false;
   bool show_performance_dashboard_ = false;
   bool show_imgui_demo_ = false;
   bool show_imgui_metrics_ = false;
   bool show_test_dashboard_ = false;
+  bool show_card_browser_ = false;
+  bool show_command_palette_ = false;
+  bool show_emulator_ = false;
+  bool show_memory_editor_ = false;
+  bool show_asm_editor_ = false;
+  bool show_palette_editor_ = false;
+  bool show_resource_label_manager_ = false;
+  bool show_card_sidebar_ = false;
   
   // Welcome screen component
   std::unique_ptr<WelcomeScreen> welcome_screen_;
