@@ -45,6 +45,7 @@ class UICoordinator {
                 RomFileManager& rom_manager,
                 ProjectManager& project_manager,
                 EditorRegistry& editor_registry,
+                EditorCardRegistry& card_registry,
                 SessionCoordinator& session_coordinator,
                 WindowDelegate& window_delegate,
                 ToastManager& toast_manager,
@@ -108,6 +109,8 @@ class UICoordinator {
   bool IsCardBrowserVisible() const { return show_card_browser_; }
   bool IsCommandPaletteVisible() const { return show_command_palette_; }
   bool IsCardSidebarVisible() const { return show_card_sidebar_; }
+  bool IsImGuiDemoVisible() const { return show_imgui_demo_; }
+  bool IsImGuiMetricsVisible() const { return show_imgui_metrics_; }
   
   // UI state setters (for programmatic control)
   void SetEditorSelectionVisible(bool visible) { show_editor_selection_ = visible; }
@@ -131,6 +134,7 @@ class UICoordinator {
   RomFileManager& rom_manager_;
   ProjectManager& project_manager_;
   EditorRegistry& editor_registry_;
+  EditorCardRegistry& card_registry_;
   SessionCoordinator& session_coordinator_;
   WindowDelegate& window_delegate_;
   ToastManager& toast_manager_;
@@ -155,7 +159,7 @@ class UICoordinator {
   bool show_asm_editor_ = false;
   bool show_palette_editor_ = false;
   bool show_resource_label_manager_ = false;
-  bool show_card_sidebar_ = false;
+  bool show_card_sidebar_ = true;  // Show sidebar by default
   
   // Command Palette state
   char command_palette_query_[256] = {};

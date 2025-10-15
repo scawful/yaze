@@ -7,7 +7,6 @@
 #include "app/emu/snes.h"
 #include "app/emu/audio/audio_backend.h"
 #include "app/emu/debug/breakpoint_manager.h"
-#include "app/gui/app/editor_card_manager.h"
 #include "app/emu/debug/disassembly_viewer.h"
 #include "app/emu/input/input_manager.h"
 #include "app/rom.h"
@@ -16,6 +15,10 @@ namespace yaze {
 namespace gfx {
 class IRenderer;
 } // namespace gfx
+
+namespace editor {
+class EditorCardRegistry;
+} // namespace editor
 
 /**
  * @namespace yaze::emu
@@ -38,7 +41,8 @@ class Emulator {
   void Run(Rom* rom);
   void Cleanup();
   
-  // Card visibility managed by EditorCardManager
+  // Card visibility managed by EditorCardRegistry (dependency injection)
+  void set_card_registry(editor::EditorCardRegistry* registry) { card_registry_ = registry; }
 
   auto snes() -> Snes& { return snes_; }
   auto running() const -> bool { return running_; }
@@ -175,6 +179,9 @@ class Emulator {
 
   // Input handling (abstracted for SDL2/SDL3/custom backends)
   input::InputManager input_manager_;
+  
+  // Card registry for card visibility (injected)
+  editor::EditorCardRegistry* card_registry_ = nullptr;
 };
 
 }  // namespace emu

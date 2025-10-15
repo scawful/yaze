@@ -1,4 +1,5 @@
 #include "music_editor.h"
+#include "app/editor/system/editor_card_registry.h"
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -13,20 +14,21 @@ namespace yaze {
 namespace editor {
 
 void MusicEditor::Initialize() {
-  auto& card_manager = gui::EditorCardManager::Get();
+  if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
   
-  card_manager.RegisterCard({.card_id = "music.tracker", .display_name = "Music Tracker",
+  card_registry->RegisterCard({.card_id = "music.tracker", .display_name = "Music Tracker",
                             .icon = ICON_MD_MUSIC_NOTE, .category = "Music",
                             .shortcut_hint = "Ctrl+Shift+M", .priority = 10});
-  card_manager.RegisterCard({.card_id = "music.instrument_editor", .display_name = "Instrument Editor",
+  card_registry->RegisterCard({.card_id = "music.instrument_editor", .display_name = "Instrument Editor",
                             .icon = ICON_MD_PIANO, .category = "Music",
                             .shortcut_hint = "Ctrl+Shift+I", .priority = 20});
-  card_manager.RegisterCard({.card_id = "music.assembly", .display_name = "Assembly View",
+  card_registry->RegisterCard({.card_id = "music.assembly", .display_name = "Assembly View",
                             .icon = ICON_MD_CODE, .category = "Music",
                             .shortcut_hint = "Ctrl+Shift+A", .priority = 30});
   
   // Show tracker by default
-  card_manager.ShowCard("music.tracker");
+  card_registry->ShowCard("music.tracker");
 }
 
 absl::Status MusicEditor::Load() {
@@ -35,7 +37,8 @@ absl::Status MusicEditor::Load() {
 }
 
 absl::Status MusicEditor::Update() {
-  auto& card_manager = gui::EditorCardManager::Get();
+  if (!dependencies_.card_registry) return absl::OkStatus();
+  auto* card_registry = dependencies_.card_registry;
   
   static gui::EditorCard tracker_card("Music Tracker", ICON_MD_MUSIC_NOTE);
   static gui::EditorCard instrument_card("Instrument Editor", ICON_MD_PIANO);
@@ -46,19 +49,19 @@ absl::Status MusicEditor::Update() {
   assembly_card.SetDefaultSize(700, 600);
   
   // Music Tracker Card
-  if (tracker_card.Begin(card_manager.GetVisibilityFlag("music.tracker"))) {
+  if (tracker_card.Begin(card_registry->GetVisibilityFlag("music.tracker"))) {
     DrawTrackerView();
   }
   tracker_card.End();
   
   // Instrument Editor Card
-  if (instrument_card.Begin(card_manager.GetVisibilityFlag("music.instrument_editor"))) {
+  if (instrument_card.Begin(card_registry->GetVisibilityFlag("music.instrument_editor"))) {
     DrawInstrumentEditor();
   }
   instrument_card.End();
   
   // Assembly View Card
-  if (assembly_card.Begin(card_manager.GetVisibilityFlag("music.assembly"))) {
+  if (assembly_card.Begin(card_registry->GetVisibilityFlag("music.assembly"))) {
     assembly_editor_.InlineUpdate();
   }
   assembly_card.End();

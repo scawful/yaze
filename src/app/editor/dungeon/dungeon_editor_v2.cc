@@ -1,4 +1,5 @@
 #include "dungeon_editor_v2.h"
+#include "app/editor/system/editor_card_registry.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -27,10 +28,11 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
   room_window_class_.DockingAllowUnclassed = true;  // Room windows can dock with anything
   room_window_class_.DockingAlwaysTabBar = true;    // Always show tabs when multiple rooms
   
-  // Register all cards with the card manager (done once during initialization)
-  auto& card_manager = gui::EditorCardManager::Get();
+  // Register all cards with EditorCardRegistry (dependency injection)
+  if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("dungeon.control_panel"),
       .display_name = "Dungeon Controls",
       .icon = ICON_MD_CASTLE,
@@ -40,7 +42,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       .priority = 10
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("dungeon.room_selector"),
       .display_name = "Room Selector",
       .icon = ICON_MD_LIST,
@@ -50,7 +52,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       .priority = 20
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("dungeon.room_matrix"),
       .display_name = "Room Matrix",
       .icon = ICON_MD_GRID_VIEW,
@@ -60,7 +62,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       .priority = 30
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("dungeon.entrances"),
       .display_name = "Entrances",
       .icon = ICON_MD_DOOR_FRONT,
@@ -70,7 +72,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       .priority = 40
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("dungeon.room_graphics"),
       .display_name = "Room Graphics",
       .icon = ICON_MD_IMAGE,
@@ -80,7 +82,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       .priority = 50
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("dungeon.object_editor"),
       .display_name = "Object Editor",
       .icon = ICON_MD_CONSTRUCTION,
@@ -90,7 +92,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       .priority = 60
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("dungeon.palette_editor"),
       .display_name = "Palette Editor",
       .icon = ICON_MD_PALETTE,
@@ -100,7 +102,7 @@ void DungeonEditorV2::Initialize(gfx::IRenderer* renderer, Rom* rom) {
       .priority = 70
   });
   
-  card_manager.RegisterCard({
+  card_registry->RegisterCard({
       .card_id = MakeCardId("dungeon.debug_controls"),
       .display_name = "Debug Controls",
       .icon = ICON_MD_BUG_REPORT,

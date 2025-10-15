@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "app/core/window.h"
+#include "app/editor/system/editor_card_registry.h"
 #include "util/log.h"
 
 namespace yaze::core {
@@ -361,7 +362,7 @@ void Emulator::Run(Rom* rom) {
 
 void Emulator::RenderEmulatorInterface() {
   try {
-    auto& card_manager = gui::EditorCardManager::Get();
+    if (!card_registry_) return;  // Card registry must be injected
 
     static gui::EditorCard cpu_card("CPU Debugger", ICON_MD_MEMORY);
     static gui::EditorCard ppu_card("PPU Viewer", ICON_MD_VIDEOGAME_ASSET);
@@ -380,53 +381,53 @@ void Emulator::RenderEmulatorInterface() {
     breakpoints_card.SetDefaultSize(400, 350);
     performance_card.SetDefaultSize(350, 300);
 
-    if (card_manager.IsCardVisible("emulator.cpu_debugger") && cpu_card.Begin()) {
+    if (card_registry_->IsCardVisible("emulator.cpu_debugger") && cpu_card.Begin()) {
       RenderModernCpuDebugger();
       cpu_card.End();
     }
 
-    if (card_manager.IsCardVisible("emulator.ppu_viewer") && ppu_card.Begin()) {
+    if (card_registry_->IsCardVisible("emulator.ppu_viewer") && ppu_card.Begin()) {
       RenderNavBar();
       RenderSnesPpu();
       ppu_card.End();
     }
 
-    if (card_manager.IsCardVisible("emulator.memory_viewer") && memory_card.Begin()) {
+    if (card_registry_->IsCardVisible("emulator.memory_viewer") && memory_card.Begin()) {
       RenderMemoryViewer();
       memory_card.End();
     }
 
-    if (card_manager.IsCardVisible("emulator.breakpoints") && breakpoints_card.Begin()) {
+    if (card_registry_->IsCardVisible("emulator.breakpoints") && breakpoints_card.Begin()) {
       RenderBreakpointList();
       breakpoints_card.End();
     }
 
-    if (card_manager.IsCardVisible("emulator.performance") && performance_card.Begin()) {
+    if (card_registry_->IsCardVisible("emulator.performance") && performance_card.Begin()) {
       RenderPerformanceMonitor();
       performance_card.End();
     }
 
-    if (card_manager.IsCardVisible("emulator.ai_agent") && ai_card.Begin()) {
+    if (card_registry_->IsCardVisible("emulator.ai_agent") && ai_card.Begin()) {
       RenderAIAgentPanel();
       ai_card.End();
     }
 
-    if (card_manager.IsCardVisible("emulator.save_states") && save_states_card.Begin()) {
+    if (card_registry_->IsCardVisible("emulator.save_states") && save_states_card.Begin()) {
       RenderSaveStates();
       save_states_card.End();
     }
 
-    if (card_manager.IsCardVisible("emulator.keyboard_config") && keyboard_card.Begin()) {
+    if (card_registry_->IsCardVisible("emulator.keyboard_config") && keyboard_card.Begin()) {
       RenderKeyboardConfig();
       keyboard_card.End();
     }
 
-    if (card_manager.IsCardVisible("emulator.apu_debugger") && apu_card.Begin()) {
+    if (card_registry_->IsCardVisible("emulator.apu_debugger") && apu_card.Begin()) {
       RenderApuDebugger();
       apu_card.End();
     }
 
-    if (card_manager.IsCardVisible("emulator.audio_mixer") && audio_card.Begin()) {
+    if (card_registry_->IsCardVisible("emulator.audio_mixer") && audio_card.Begin()) {
       // RenderAudioMixer();
       audio_card.End();
     }

@@ -1,4 +1,5 @@
 #include "sprite_editor.h"
+#include "app/editor/system/editor_card_registry.h"
 
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gui/core/ui_helpers.h"
@@ -25,17 +26,18 @@ using ImGui::TableSetupColumn;
 using ImGui::Text;
 
 void SpriteEditor::Initialize() {
-  auto& card_manager = gui::EditorCardManager::Get();
+  if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
   
-  card_manager.RegisterCard({.card_id = "sprite.vanilla_editor", .display_name = "Vanilla Sprites",
+  card_registry->RegisterCard({.card_id = "sprite.vanilla_editor", .display_name = "Vanilla Sprites",
                             .icon = ICON_MD_SMART_TOY, .category = "Sprite",
                             .shortcut_hint = "Alt+Shift+1", .priority = 10});
-  card_manager.RegisterCard({.card_id = "sprite.custom_editor", .display_name = "Custom Sprites",
+  card_registry->RegisterCard({.card_id = "sprite.custom_editor", .display_name = "Custom Sprites",
                             .icon = ICON_MD_ADD_CIRCLE, .category = "Sprite",
                             .shortcut_hint = "Alt+Shift+2", .priority = 20});
   
   // Show vanilla editor by default
-  card_manager.ShowCard("sprite.vanilla_editor");
+  card_registry->ShowCard("sprite.vanilla_editor");
 }
 
 absl::Status SpriteEditor::Load() { 
@@ -48,7 +50,8 @@ absl::Status SpriteEditor::Update() {
     sheets_loaded_ = true;
   }
 
-  auto& card_manager = gui::EditorCardManager::Get();
+  if (!dependencies_.card_registry) return absl::OkStatus();
+  auto* card_registry = dependencies_.card_registry;
 
   static gui::EditorCard vanilla_card("Vanilla Sprites", ICON_MD_SMART_TOY);
   static gui::EditorCard custom_card("Custom Sprites", ICON_MD_ADD_CIRCLE);
@@ -58,12 +61,12 @@ absl::Status SpriteEditor::Update() {
 
   // Get visibility flags from card manager and pass to Begin()
   // Always call End() after Begin() - End() handles ImGui state safely
-  if (vanilla_card.Begin(card_manager.GetVisibilityFlag("sprite.vanilla_editor"))) {
+  if (vanilla_card.Begin(card_registry->GetVisibilityFlag("sprite.vanilla_editor"))) {
     DrawVanillaSpriteEditor();
   }
   vanilla_card.End();
 
-  if (custom_card.Begin(card_manager.GetVisibilityFlag("sprite.custom_editor"))) {
+  if (custom_card.Begin(card_registry->GetVisibilityFlag("sprite.custom_editor"))) {
     DrawCustomSprites();
   }
   custom_card.End();

@@ -1,4 +1,5 @@
 #include "graphics_editor.h"
+#include "app/editor/system/editor_card_registry.h"
 
 #include <filesystem>
 
@@ -43,23 +44,24 @@ constexpr ImGuiTableFlags kGfxEditTableFlags =
     ImGuiTableFlags_SizingFixedFit;
 
 void GraphicsEditor::Initialize() {
-  auto& card_manager = gui::EditorCardManager::Get();
+  if (!dependencies_.card_registry) return;
+  auto* card_registry = dependencies_.card_registry;
   
-  card_manager.RegisterCard({.card_id = "graphics.sheet_editor", .display_name = "Sheet Editor",
+  card_registry->RegisterCard({.card_id = "graphics.sheet_editor", .display_name = "Sheet Editor",
                             .icon = ICON_MD_EDIT, .category = "Graphics", 
                             .shortcut_hint = "Ctrl+Shift+1", .priority = 10});
-  card_manager.RegisterCard({.card_id = "graphics.sheet_browser", .display_name = "Sheet Browser",
+  card_registry->RegisterCard({.card_id = "graphics.sheet_browser", .display_name = "Sheet Browser",
                             .icon = ICON_MD_VIEW_LIST, .category = "Graphics",
                             .shortcut_hint = "Ctrl+Shift+2", .priority = 20});
-  card_manager.RegisterCard({.card_id = "graphics.player_animations", .display_name = "Player Animations",
+  card_registry->RegisterCard({.card_id = "graphics.player_animations", .display_name = "Player Animations",
                             .icon = ICON_MD_PERSON, .category = "Graphics",
                             .shortcut_hint = "Ctrl+Shift+3", .priority = 30});
-  card_manager.RegisterCard({.card_id = "graphics.prototype_viewer", .display_name = "Prototype Viewer",
+  card_registry->RegisterCard({.card_id = "graphics.prototype_viewer", .display_name = "Prototype Viewer",
                             .icon = ICON_MD_CONSTRUCTION, .category = "Graphics",
                             .shortcut_hint = "Ctrl+Shift+4", .priority = 40});
   
   // Show sheet editor by default when Graphics Editor is activated
-  card_manager.ShowCard("graphics.sheet_editor");
+  card_registry->ShowCard("graphics.sheet_editor");
 }
 
 absl::Status GraphicsEditor::Load() { 
@@ -99,7 +101,8 @@ absl::Status GraphicsEditor::Load() {
 }
 
 absl::Status GraphicsEditor::Update() {
-  auto& card_manager = gui::EditorCardManager::Get();
+  if (!dependencies_.card_registry) return absl::OkStatus();
+  auto* card_registry = dependencies_.card_registry;
   
   static gui::EditorCard sheet_editor_card("Sheet Editor", ICON_MD_EDIT);
   static gui::EditorCard sheet_browser_card("Sheet Browser", ICON_MD_VIEW_LIST);
@@ -113,12 +116,12 @@ absl::Status GraphicsEditor::Update() {
 
   // Get visibility flags from card manager and pass to Begin()
   // Always call End() after Begin() - End() handles ImGui state safely
-  if (sheet_editor_card.Begin(card_manager.GetVisibilityFlag("graphics.sheet_editor"))) {
+  if (sheet_editor_card.Begin(card_registry->GetVisibilityFlag("graphics.sheet_editor"))) {
     status_ = UpdateGfxEdit();
   }
   sheet_editor_card.End();
 
-  if (sheet_browser_card.Begin(card_manager.GetVisibilityFlag("graphics.sheet_browser"))) {
+  if (sheet_browser_card.Begin(card_registry->GetVisibilityFlag("graphics.sheet_browser"))) {
     if (asset_browser_.Initialized == false) {
       asset_browser_.Initialize(gfx::Arena::Get().gfx_sheets());
     }
@@ -126,12 +129,12 @@ absl::Status GraphicsEditor::Update() {
   }
   sheet_browser_card.End();
 
-  if (player_anims_card.Begin(card_manager.GetVisibilityFlag("graphics.player_animations"))) {
+  if (player_anims_card.Begin(card_registry->GetVisibilityFlag("graphics.player_animations"))) {
     status_ = UpdateLinkGfxView();
   }
   player_anims_card.End();
 
-  if (prototype_card.Begin(card_manager.GetVisibilityFlag("graphics.prototype_viewer"))) {
+  if (prototype_card.Begin(card_registry->GetVisibilityFlag("graphics.prototype_viewer"))) {
     status_ = UpdateScadView();
   }
   prototype_card.End();
