@@ -37,6 +37,7 @@
 #include "app/editor/system/toast_manager.h"
 #include "app/rom.h"
 #include "app/editor/system/editor_registry.h"
+#include "app/editor/system/menu_orchestrator.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_card_registry.h"
@@ -354,6 +355,7 @@ class EditorManager {
   
   // New delegated components
   EditorRegistry editor_registry_;
+  std::unique_ptr<MenuOrchestrator> menu_orchestrator_;
   ProjectManager project_manager_;
   RomFileManager rom_file_manager_;
   SessionCardRegistry card_registry_;

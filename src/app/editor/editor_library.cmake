@@ -35,6 +35,7 @@ set(
   app/editor/system/command_palette.cc
   app/editor/system/editor_registry.cc
   app/editor/system/extension_manager.cc
+  app/editor/system/menu_orchestrator.cc
   app/editor/system/popup_manager.cc
   app/editor/system/project_manager.cc
   app/editor/system/proposal_drawer.cc
