@@ -74,7 +74,7 @@ set(gRPC_BUILD_GRPC_PYTHON_PLUGIN OFF CACHE BOOL "" FORCE)
 set(gRPC_BUILD_GRPC_RUBY_PLUGIN OFF CACHE BOOL "" FORCE)
 
 set(gRPC_BENCHMARK_PROVIDER "none" CACHE STRING "" FORCE)
-set(gRPC_ZLIB_PROVIDER "package" CACHE STRING "" FORCE)
+set(gRPC_ZLIB_PROVIDER "module" CACHE STRING "" FORCE)
 
 # Skip install rule generation inside gRPC's dependency graph. This avoids
 # configure-time checks that require every transitive dependency (like Abseil
