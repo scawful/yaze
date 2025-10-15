@@ -98,79 +98,16 @@ std::string GetEditorName(EditorType type) {
 // These editors register their cards with EditorCardManager and manage their own windows
 // They do NOT need the traditional ImGui::Begin/End wrapper - they create cards internally
 bool EditorManager::IsCardBasedEditor(EditorType type) {
-  switch (type) {
-    case EditorType::kDungeon:    // ✅ Full card system
-    case EditorType::kPalette:    // ✅ Full card system
-    case EditorType::kGraphics:   // ✅ EditorCard wrappers + Toolset
-    case EditorType::kScreen:     // ✅ EditorCard wrappers + Toolset
-    case EditorType::kSprite:     // ✅ EditorCard wrappers + Toolset
-    case EditorType::kOverworld:  // ✅ Inline EditorCard + Toolset
-    case EditorType::kEmulator:   // ✅ Emulator UI panels as cards
-    case EditorType::kMessage:    // ✅ Message editor cards
-    case EditorType::kHex:        // ✅ Memory/Hex editor
-    case EditorType::kAssembly:   // ✅ Assembly editor
-    case EditorType::kMusic:      // ✅ Music tracker + instrument editor
-      return true;
-    // Settings, Agent: Traditional UI - needs wrapper
-    default:
-      return false;
-  }
+  return EditorRegistry::IsCardBasedEditor(type);
 }
 
 std::string EditorManager::GetEditorCategory(EditorType type) {
-  switch (type) {
-    case EditorType::kDungeon:
-      return "Dungeon";
-    case EditorType::kPalette:
-      return "Palette";
-    case EditorType::kGraphics:
-      return "Graphics";
-    case EditorType::kOverworld:
-      return "Overworld";
-    case EditorType::kSprite:
-      return "Sprite";
-    case EditorType::kMessage:
-      return "Message";
-    case EditorType::kMusic:
-      return "Music";
-    case EditorType::kScreen:
-      return "Screen";
-    case EditorType::kEmulator:
-      return "Emulator";
-    case EditorType::kHex:
-      return "Memory";
-    case EditorType::kAssembly:
-      return "Assembly";
-    default:
-      return "Unknown";
-  }
+  return EditorRegistry::GetEditorCategory(type);
 }
 
 EditorType EditorManager::GetEditorTypeFromCategory(
     const std::string& category) {
-  if (category == "Dungeon")
-    return EditorType::kDungeon;
-  if (category == "Palette")
-    return EditorType::kPalette;
-  if (category == "Graphics")
-    return EditorType::kGraphics;
-  if (category == "Overworld")
-    return EditorType::kOverworld;
-  if (category == "Sprite")
-    return EditorType::kSprite;
-  if (category == "Message")
-    return EditorType::kMessage;
-  if (category == "Music")
-    return EditorType::kMusic;
-  if (category == "Screen")
-    return EditorType::kScreen;
-  if (category == "Emulator")
-    return EditorType::kEmulator;
-  if (category == "Memory")
-    return EditorType::kHex;
-  if (category == "Assembly")
-    return EditorType::kAssembly;
-  return EditorType::kUnknown;
+  return EditorRegistry::GetEditorTypeFromCategory(category);
 }
 
 void EditorManager::HideCurrentEditorCards() {
@@ -183,7 +120,10 @@ void EditorManager::HideCurrentEditorCards() {
   card_manager.HideAllCardsInCategory(category);
 }
 
-EditorManager::EditorManager() : blank_editor_set_(nullptr, &user_settings_) {
+EditorManager::EditorManager() 
+    : blank_editor_set_(nullptr, &user_settings_),
+      project_manager_(&toast_manager_),
+      rom_file_manager_(&toast_manager_) {
   std::stringstream ss;
   ss << YAZE_VERSION_MAJOR << "." << YAZE_VERSION_MINOR << "."
      << YAZE_VERSION_PATCH;
@@ -2390,8 +2330,13 @@ absl::Status EditorManager::LoadRom() {
     return absl::OkStatus();
   }
 
-  Rom temp_rom;
-  RETURN_IF_ERROR(temp_rom.LoadFromFile(file_name));
+  // Delegate ROM loading to RomFileManager
+  auto status = rom_file_manager_.LoadRom(file_name);
+  if (!status.ok()) {
+    return status;
+  }
+  
+  Rom temp_rom = *rom_file_manager_.GetCurrentRom();
 
   // Check if there's an empty session we can populate instead of creating new one
   RomSession* target_session = nullptr;
@@ -2587,14 +2532,14 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 }
 
 absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
-  auto dialog_path = util::FileDialogWrapper::ShowOpenFolderDialog();
-  if (dialog_path.empty()) {
-    return absl::OkStatus();  // User cancelled
+  // Delegate to ProjectManager
+  auto status = project_manager_.CreateNewProject(template_name);
+  if (status.ok()) {
+    current_project_ = project_manager_.GetCurrentProject();
+    // Show project creation dialog
+    popup_manager_->Show("Create New Project");
   }
-
-  // Show project creation dialog
-  popup_manager_->Show("Create New Project");
-  return absl::OkStatus();
+  return status;
 }
 
 absl::Status EditorManager::OpenProject() {
@@ -2942,36 +2887,28 @@ std::string EditorManager::GenerateUniqueEditorTitle(
     EditorType type, size_t session_index) const {
   const char* base_name = kEditorNames[static_cast<int>(type)];
 
-  if (sessions_.size() <= 1) {
-    // Single session - use simple name
-    return std::string(base_name);
+  // Delegate to SessionCoordinator for multi-session title generation
+  if (session_coordinator_) {
+    return session_coordinator_->GenerateUniqueEditorTitle(base_name, session_index);
   }
 
-  // Multi-session - include session identifier
-  const auto& session = sessions_[session_index];
-  std::string session_name = session.GetDisplayName();
-
-  // Truncate long session names
-  if (session_name.length() > 20) {
-    session_name = session_name.substr(0, 17) + "...";
-  }
-
-  return absl::StrFormat("%s - %s##session_%zu", base_name, session_name,
-                         session_index);
+  // Fallback for single session or no coordinator
+  return std::string(base_name);
 }
 
 void EditorManager::ResetWorkspaceLayout() {
-  // Show confirmation popup first
+  // Show confirmation popup first, then delegate to WindowDelegate
   popup_manager_->Show("Layout Reset Confirm");
+  window_delegate_.ResetWorkspaceLayout();
 }
 
 void EditorManager::SaveWorkspaceLayout() {
-  ImGui::SaveIniSettingsToDisk("yaze_workspace.ini");
+  window_delegate_.SaveWorkspaceLayout();
   toast_manager_.Show("Workspace layout saved", editor::ToastType::kSuccess);
 }
 
 void EditorManager::LoadWorkspaceLayout() {
-  ImGui::LoadIniSettingsFromDisk("yaze_workspace.ini");
+  window_delegate_.LoadWorkspaceLayout();
   toast_manager_.Show("Workspace layout loaded", editor::ToastType::kSuccess);
 }
 
@@ -2979,6 +2916,10 @@ void EditorManager::ShowAllWindows() {
   if (!current_editor_set_)
     return;
 
+  // Delegate to WindowDelegate for registered windows
+  window_delegate_.ShowAllWindows();
+  
+  // Also show editor windows
   for (auto* editor : current_editor_set_->active_editors_) {
     editor->set_active(true);
   }
@@ -2996,6 +2937,10 @@ void EditorManager::HideAllWindows() {
   if (!current_editor_set_)
     return;
 
+  // Delegate to WindowDelegate for registered windows
+  window_delegate_.HideAllWindows();
+  
+  // Also hide editor windows
   for (auto* editor : current_editor_set_->active_editors_) {
     editor->set_active(false);
   }
@@ -3010,8 +2955,8 @@ void EditorManager::HideAllWindows() {
 }
 
 void EditorManager::MaximizeCurrentWindow() {
-  // This would maximize the current focused window
-  // Implementation depends on ImGui internal window management
+  // Delegate to WindowDelegate
+  // Note: This requires tracking the current focused window
   toast_manager_.Show("Current window maximized", editor::ToastType::kInfo);
 }
 

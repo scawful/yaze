@@ -69,6 +69,7 @@ class SessionCoordinator {
   std::string GetSessionDisplayName(size_t index) const;
   std::string GetActiveSessionDisplayName() const;
   void RenameSession(size_t index, const std::string& new_name);
+  std::string GenerateUniqueEditorTitle(const std::string& editor_name, size_t session_index) const;
   
   // Session state management
   void SetActiveSessionIndex(size_t index);

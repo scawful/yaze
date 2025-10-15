@@ -445,6 +445,34 @@ void SessionCoordinator::RenameSession(size_t index, const std::string& new_name
   printf("[SessionCoordinator] Renamed session %zu to '%s'\n", index, new_name.c_str());
 }
 
+std::string SessionCoordinator::GenerateUniqueEditorTitle(
+    const std::string& editor_name, size_t session_index) const {
+  auto* sessions = GET_SESSIONS();
+  
+  if (!sessions || sessions->size() <= 1) {
+    // Single session - use simple name
+    return editor_name;
+  }
+
+  if (session_index >= sessions->size()) {
+    return editor_name;
+  }
+
+  // Multi-session - include session identifier
+  const auto& session = sessions->at(session_index);
+  std::string session_name = session.custom_name.empty() 
+      ? session.rom.title() 
+      : session.custom_name;
+
+  // Truncate long session names
+  if (session_name.length() > 20) {
+    session_name = session_name.substr(0, 17) + "...";
+  }
+
+  return absl::StrFormat("%s - %s##session_%zu", editor_name, session_name,
+                         session_index);
+}
+
 void SessionCoordinator::SetActiveSessionIndex(size_t index) {
   SwitchToSession(index);
 }
